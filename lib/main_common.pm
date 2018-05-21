@@ -1191,10 +1191,10 @@ sub load_x11tests {
             loadtest "x11/ghostscript";
         }
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && (!is_server || we_is_applicable) && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && (!is_server || we_is_applicable) && !get_var("OFW") && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
         loadtest "x11/ooffice";
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && (!is_server || we_is_applicable)) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && !get_var("OFW") && (!is_server || we_is_applicable)) {
         loadtest "x11/oomath";
         loadtest "x11/oocalc";
     }
@@ -1238,10 +1238,12 @@ sub load_x11tests {
         loadtest "x11/vlc";
     }
     if (kdestep_is_applicable()) {
-        if (!is_krypton_argon && !is_kde_live) {
-            loadtest "x11/amarok";
+        if (!get_var("OFW")) {
+            if (!is_krypton_argon && !is_kde_live) {
+                loadtest "x11/amarok";
+            }
+            loadtest "x11/kontact" unless is_kde_live;
         }
-        loadtest "x11/kontact" unless is_kde_live;
     }
     if (kdestep_is_applicable()) {
         if (!get_var("USBBOOT") && !is_livesystem) {
