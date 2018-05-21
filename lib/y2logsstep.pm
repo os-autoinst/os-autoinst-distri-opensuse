@@ -99,12 +99,14 @@ sub break_dependency {
     }
     else {
         while (check_screen('dependency-issue', 5)) {
-            send_key 'alt-2';                                 # 2 is the option to break dependency
-            sleep 1;
-            send_key 'spc';                                   # select it
-            sleep 1;
-            send_key 'alt-o';                                 # OK
-            sleep 2;
+            # 2 is the option to break dependency
+            send_key 'alt-2';
+            # higher similarity level as this should only select a single
+            # entry, not close the dialog or something
+            wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
+            # lower similarity level to not confuse the button press for
+            # screen change
+            wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
         }
     }
 }
