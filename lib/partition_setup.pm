@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,8 +17,7 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT
-  = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk unselect_xen_pv_cdrom %partition_roles);
+our @EXPORT = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
 
 our %partition_roles = qw(
   OS alt-o
@@ -204,22 +203,6 @@ sub select_first_hard_disk {
             assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
         }
         assert_screen 'select-hard-disks-one-selected';
-        send_key $cmd{next};
-    }
-}
-
-# On Xen PV "CDROM" is of the same type as a disk block device so YaST
-# naturally sees it as a "disk". We have to uncheck the "CDROM".
-sub unselect_xen_pv_cdrom {
-    if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        assert_screen 'select-hard-disk';
-        if (check_var('VIDEOMODE', 'text')) {
-            send_key_until_needlematch 'uncheck-install-medium', 'tab';
-            send_key 'spc';
-        }
-        else {
-            assert_and_click 'uncheck-install-medium';
-        }
         send_key $cmd{next};
     }
 }
