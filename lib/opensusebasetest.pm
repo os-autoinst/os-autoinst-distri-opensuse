@@ -7,6 +7,7 @@ use strict;
 use utils;
 use lockapi 'mutex_wait';
 use version_utils qw(is_sle is_leap is_upgrade);
+use Net::Telnet ();
 
 # Base class for all openSUSE tests
 
@@ -355,10 +356,14 @@ sub wait_boot {
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             $self->rewrite_static_svirt_network_configuration();
             # check up to five times if the SUT it able to ping the worker before trying to connect a console
-            type_line_svirt "'for i in {1..5}; do ping -W 1 -c 1 $worker_hostname && break; sleep 5; done'",
-              expect       => '0% packet loss',
-              timeout      => 60,
-              fail_message => 'SUT was not able to ping hypervisor, network down?';
+            my $t = new Net::Telnet(Timeout => 5, Errmode => 'return');
+            for (1 .. 5) {
+                diag "Trying to telnet to " . get_required_var('VIRSH_GUEST');
+                last if $t->open(Host => get_required_var('VIRSH_GUEST'), Port => 22);
+                diag "Telnet failed due to " . $t->errmsg;
+                sleep 5;
+            }
+            die "Couldn't connect to SUT" if $t->timed_out;
         }
 
         # on z/(K)VM we need to re-select a console
