@@ -7,7 +7,6 @@ use strict;
 use utils;
 use lockapi 'mutex_wait';
 use version_utils qw(is_sle is_leap is_upgrade);
-use Net::Telnet ();
 
 # Base class for all openSUSE tests
 
