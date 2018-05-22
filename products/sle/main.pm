@@ -57,7 +57,10 @@ sub cleanup_needles {
         unregister_needle_tags("ENV-VERSION-11-SP4");
     }
 
-    my $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
+    my $tounregister = sle_version_at_least('12') ? '0' : '1';
+    unregister_needle_tags("ENV-12ORLATER-$tounregister");
+
+    $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
     unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
 
     $tounregister = sle_version_at_least('12-SP3') ? '0' : '1';
