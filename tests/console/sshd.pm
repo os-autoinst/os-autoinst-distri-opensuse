@@ -16,7 +16,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'is_virtualization_server';
+use version_utils qw(is_virtualization_server is_upgrade);
 
 # check if sshd works
 sub run {
@@ -27,7 +27,12 @@ sub run {
 
     select_console 'root-console';
 
-    systemctl 'stop ' . $self->firewall if !is_virtualization_server;
+    if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
+        record_soft_failure 'bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15';
+    }
+    else {
+        systemctl 'stop ' . $self->firewall if !is_virtualization_server;
+    }
     script_run('chkconfig sshd on');
     assert_script_run("chkconfig sshd on", 60);
     assert_script_run("rcsshd restart",    60);    # will do nothing if it is already running
