@@ -28,12 +28,12 @@ sub assert_wicked_state {
 }
 
 sub get_ip {
-    my ($self, $no_mask) = @_;
-    if ($no_mask) {
-        return check_var('IS_WICKED_REF', '1') ? '10.0.2.10' : '10.0.2.11';
+    my ($self, %args) = @_;
+    if ($args{no_mask}) {
+        return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
     }
     else {
-        return check_var('IS_WICKED_REF', '1') ? '10.0.2.10/15' : '10.0.2.11/15';
+        return $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
     }
 }
 

@@ -1105,16 +1105,16 @@ sub get_x11_console_tty {
 }
 
 =head2 setup_static_network
-Configure static IP on SUT with setting up DNS and default GW.
+Configure static IP on SUT with setting up default GW.
 Also doing test ping to 10.0.2.2 to check that network is alive
 =cut
 sub setup_static_network {
     my ($self, $ip) = @_;
-    configure_default_gateway();
-    configure_static_ip($ip);
-    configure_static_dns(get_host_resolv_conf());
-
-    # check if gateway is reachable
+    assert_script_run("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
+    my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-$iface";
+    assert_script_run "rcnetwork restart";
+    assert_script_run "ip addr";
     assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
 }
 

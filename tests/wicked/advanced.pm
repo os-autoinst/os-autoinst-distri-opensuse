@@ -7,11 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Summary: Advanced test cases for wicked
 # Test scenarios:
 # Test 1 : Create a gre interface from legacy ifcfg files
-# Summary: Collection of wicked tests which might be hard to implement in
-# openQA. Used as POC for wicked testing. Later will be reorganized in other
-# test suites.
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 
 use base 'wickedbase';
@@ -22,17 +20,20 @@ use utils 'systemctl';
 sub run {
     my ($self) = @_;
     record_info('Test 1', 'Create a gre interface from legacy ifcfg files');
-    $self->setup_static_network($self->get_ip());
-    my $network_config = '/etc/sysconfig/network/ifcfg-gre1';
-    $self->get_from_data('wicked/ifcfg-gre1_', $network_config, add_suffix => 1);
-    my $ip_no_mask = '';
-    $ip_no_mask = $1 if $self->get_ip() =~ /([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/;
-    assert_script_run("echo  \"IPADDR=\'$ip_no_mask\'\" >> $network_config");
-    assert_script_run("cat $network_config");
+    my $is_wicked_ref = check_var('IS_WICKED_REF', 1);
+    $self->setup_static_network($self->get_ip(is_wicked_ref => $is_wicked_ref));
+    my $gre_config = '/etc/sysconfig/network/ifcfg-gre1';
+    $self->get_from_data('wicked/ifcfg-gre1_', $gre_config, add_suffix => 1);
+    my $ip_no_mask               = $self->get_ip(no_mask => 1, is_wicked_ref => $is_wicked_ref);
+    my $parallel_host_ip_no_mask = $self->get_ip(no_mask => 1, is_wicked_ref => !$is_wicked_ref);
+    my $ip_in_tunnel          = $is_wicked_ref  ? "192.168.1.1" : "192.168.1.2";
+    my $parallel_ip_in_tunnel = !$is_wicked_ref ? "192.168.1.1" : "192.168.1.2";
+    assert_script_run("echo  \"\nTUNNEL_LOCAL_IPADDR=\'$ip_no_mask\'\" >> $gre_config");
+    assert_script_run("echo  \"\nTUNNEL_REMOTE_IPADDR=\'$parallel_host_ip_no_mask\'\" >> $gre_config");
+    assert_script_run("echo  \"\nIPADDR=\'$ip_in_tunnel/24\'\" >> $gre_config");
+    assert_script_run("cat $gre_config");
     assert_script_run('ifup gre1');
-    assert_script_run("ip -4 route add $ip_no_mask dev gre1");
-    assert_script_run('ip -6 route add $(sed -n "s/^IPADDR6=\'\(.*\)\'/\1/p" ' . $network_config . ') dev gre1');
-    assert_script_run('ip route');
+    assert_script_run("ping -c1 $parallel_ip_in_tunnel");
 }
 
 1;
