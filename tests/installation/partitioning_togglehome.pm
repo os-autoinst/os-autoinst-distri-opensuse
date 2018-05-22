@@ -20,7 +20,8 @@ use partition_setup 'unselect_xen_pv_cdrom';
 
 sub run {
     record_soft_failure 'boo#1093372' if (!get_var('TOGGLEHOME') && is_leap('15.1+'));
-    wait_screen_change { send_key($cmd{guidedsetup}) };    # open proposal settings
+    send_key $cmd{guidedsetup};
+    assert_screen 'partition-scheme';
     if (is_storage_ng) {
         unselect_xen_pv_cdrom;
         assert_screen 'partition-scheme';
