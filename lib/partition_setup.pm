@@ -186,21 +186,20 @@ sub addlv {
 }
 
 sub select_first_hard_disk {
-    assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected)];
-    if (match_has_tag 'hard-disk-dev-sdb-selected' || get_var('SELECT_FIRST_DISK')) {
-        if (check_var('VIDEOMODE', 'text')) {
-            if (match_has_tag 'hotkey_d') {
-                send_key 'alt-d';
-            }
-            elsif (match_has_tag 'hotkey_e') {
-                send_key 'alt-e';
+    my $matched_needle = assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected  hard-disk-dev-non-sda-selected)];
+    if (match_has_tag 'hard-disk-dev-non-sda-selected' || match_has_tag 'hard-disk-dev-sdb-selected' || get_var('SELECT_FIRST_DISK')) {
+        # SUT may have any number disks, only keep the first, unselect all other disks
+        foreach my $tag (@{$matched_needle->{needle}->{tags}}) {
+            if (check_var('VIDEOMODE', 'text')) {
+                if ($tag =~ /hotkey_([a-z])/) {
+                    send_key 'alt-' . $1;    # Unselect non-first drive
+                }
             }
             else {
-                die 'Needle needs tag \'hotkey_d\' or \'hotkey_e\'';
+                if ($tag =~ /hard-disk-dev-sd[a-z]-selected/) {
+                    assert_and_click $tag;    # Unselect non-first drive
+                }
             }
-        }
-        else {
-            assert_and_click 'hard-disk-dev-sdb-selected';    # Unselect second drive
         }
         assert_screen 'select-hard-disks-one-selected';
         send_key $cmd{next};
