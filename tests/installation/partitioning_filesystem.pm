@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,13 +14,10 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils 'is_storage_ng';
-use partition_setup qw(select_first_hard_disk unselect_xen_pv_cdrom);
+use version_utils qw(is_storage_ng is_sle);
+use partition_setup 'select_first_hard_disk';
 
 sub run {
-
-    my $fs = get_var('FILESYSTEM');
-
     # open the partinioner
     assert_screen 'edit-proposal-settings';
     wait_screen_change { send_key $cmd{guidedsetup} };
@@ -39,7 +36,6 @@ sub run {
         }
     }
     if (is_storage_ng) {
-        unselect_xen_pv_cdrom;
         assert_screen [qw(partition-scheme existing-partitions)];
         if (match_has_tag 'existing-partitions') {
             send_key $cmd{next};
@@ -52,6 +48,7 @@ sub run {
     send_key 'alt-f';
     assert_screen 'filesystem-root-menu-selected';
 
+    my $fs = get_var('FILESYSTEM');
     # select filesystem
     send_key 'home';
     send_key_until_needlematch("filesystem-$fs", 'down', 20, 3);
