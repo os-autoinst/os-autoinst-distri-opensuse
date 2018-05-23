@@ -260,6 +260,11 @@ sub fill_in_registration_data {
             assert_screen('scc-beta-filter-checkbox');
             send_key('alt-i');
         }
+        elsif (!check_screen($modules_needle)) {
+            record_soft_failure('Modules are still beta until GM or FCS');
+            assert_screen('scc-beta-filter-checkbox');
+            send_key('alt-i');
+        }
         assert_screen($modules_needle);
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
