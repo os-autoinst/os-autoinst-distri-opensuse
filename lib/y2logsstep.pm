@@ -63,23 +63,31 @@ sub get_to_console {
     }
 }
 
+# select the conflict resolution for dependency issues
+sub select_conflict_resolution {
+    # higher similarity level as this should only select a single
+    # entry, not close the dialog or something
+    wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
+    # lower similarity level to not confuse the button press for
+    # screen change
+    wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
+}
+
 # to workaround dependency issues
 sub workaround_dependency_issues {
     return unless check_screen 'dependency-issue', 10;
-    while (check_screen('dependency-issue', 5)) {
-        if (check_var('VIDEOMODE', 'text')) {
 
+    if (check_var('VIDEOMODE', 'text')) {
+        while (check_screen('dependency-issue', 5)) {
             wait_screen_change { send_key 'alt-s' };
             wait_screen_change { send_key 'ret' };
             wait_screen_change { send_key 'alt-o' };
         }
-        else {
-            check_screen('missing-dependency', 0) if is_sle('15+') && check_var('PATTERNS', 'all');
+    }
+    else {
+        while (check_screen('dependency-issue', 5)) {
             wait_screen_change { send_key 'alt-1' };
-            # higher similarity level as this should only select a single entry, not close the dialog or something
-            wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
-            # lower similarity level to not confuse the button press for screen change
-            wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
+            select_conflict_resolution;
         }
     }
     return 1;
@@ -101,12 +109,7 @@ sub break_dependency {
         while (check_screen('dependency-issue', 5)) {
             # 2 is the option to break dependency
             send_key 'alt-2';
-            # higher similarity level as this should only select a single
-            # entry, not close the dialog or something
-            wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
-            # lower similarity level to not confuse the button press for
-            # screen change
-            wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
+            select_conflict_resolution;
         }
     }
 }
