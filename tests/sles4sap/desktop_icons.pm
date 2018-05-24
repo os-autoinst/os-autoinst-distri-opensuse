@@ -20,7 +20,7 @@ sub run {
 
     select_console 'x11';
     # Check for SLES4SAP Desktop icons
-    if (check_screen 'sles4sap-desktop') {
+    if (check_screen 'sles4sap-desktop', 30) {
         assert_and_dclick 'sles4sap-desktop-cheatsheet';
         assert_screen 'sles4sap-cheatsheet', 90;
         send_key 'alt-f4';

@@ -48,7 +48,7 @@ sub run {
             # the assert_screen, record a soft failure
             wait_still_screen;
             if (match_has_tag('updates_none')) {
-                if (check_screen 'updates_none') {
+                if (check_screen 'updates_none', 30) {
                     last;
                 }
                 else {

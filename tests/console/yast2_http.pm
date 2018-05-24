@@ -105,7 +105,7 @@ sub run {
     send_key 'alt-t';
     assert_screen 'http_start_apache2';             # make sure that apache2 server got started when booting
     send_key 'alt-f';                               # now finish the tests :)
-    check_screen 'http_install_apache2_mods';
+    check_screen 'http_install_apache2_mods', 30;
     send_key 'alt-i';                               # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
 
     # if popup, confirm to enable apache2 configuratuion

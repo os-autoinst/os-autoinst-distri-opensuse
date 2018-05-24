@@ -107,7 +107,7 @@ sub import_pictures {
     send_key "ret";
 
     # Choose 'Import in Place'
-    if (check_screen 'shotwell-import-prompt') {
+    if (check_screen 'shotwell-import-prompt', 30) {
         send_key "alt-i";
     }
     assert_screen 'shotwell-imported-tip';
@@ -223,7 +223,7 @@ sub check_new_mail_evolution {
     my $config      = $self->getconfig_emailaccount;
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
@@ -251,7 +251,7 @@ sub check_new_mail_evolution {
     # Delete the message and expunge the deleted item if not used POP3
     if ($protocol != "POP") {
         send_key "ctrl-e";
-        if (check_screen "evolution_mail-expunge") {
+        if (check_screen "evolution_mail-expunge", 30) {
             send_key "alt-e";
         }
         assert_screen "evolution_mail-ready";
@@ -290,7 +290,7 @@ sub send_meeting_request {
     send_key "ctrl-s";
     assert_screen "evolution_mail-sendinvite_meeting", 60;
     send_key "ret";
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only need in SP2 or later
             send_key "alt-p";
@@ -389,7 +389,7 @@ sub setup_mail_account {
     my $mail_recvport   = $config->{$account}->{$port_key};
 
     $self->start_evolution($mail_box);
-    if (check_screen "evolution_wizard-skip-lookup") {
+    if (check_screen "evolution_wizard-skip-lookup", 30) {
         send_key "alt-s";
     }
 
@@ -490,7 +490,7 @@ sub setup_mail_account {
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
@@ -498,10 +498,10 @@ sub setup_mail_account {
         type_password $mail_passwd;
         send_key "ret";
     }
-    if (check_screen "evolution_mail-init-window") {
+    if (check_screen "evolution_mail-init-window", 30) {
         send_key "super-up";
     }
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
@@ -741,11 +741,11 @@ sub evolution_send_message {
     type_string "Test email send and receive.";
     send_key "ctrl-ret";
     if (sle_version_at_least('12-SP2')) {
-        if (check_screen "evolution_mail_send_mail_dialog") {
+        if (check_screen "evolution_mail_send_mail_dialog", 30) {
             send_key "ret";
         }
     }
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";

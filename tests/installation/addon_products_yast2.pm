@@ -108,7 +108,7 @@ sub run {
             }
             else {
                 skip_registration;
-                if (check_screen("scc-skip-base-system-reg-warning")) {
+                if (check_screen("scc-skip-base-system-reg-warning", 30)) {
                     wait_screen_change { send_key "alt-y" };    # confirmed skip SCC registration
                 }
             }

@@ -44,7 +44,7 @@ sub add_device {
         send_key 'alt-g';             # General
         send_key 'alt-i';             # Bridged devices
         assert_screen 'yast2_lan_bridged_devices';
-        if (check_screen('yast2_lan_default_NIC_bridge')) {
+        if (check_screen('yast2_lan_default_NIC_bridge', 0)) {
             send_key 'alt-d';         # select Bridged Devices region
             send_key 'spc';
             wait_still_screen;

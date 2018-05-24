@@ -63,7 +63,7 @@ sub run {
             # Assume no more than 6 possible migration targets
             for (1 .. 5) {
                 send_key 'down';
-                unless (check_screen $migration_target_base) {
+                unless (check_screen $migration_target_base, 30) {
                     record_info 'Likely error detected', 'Incorrect migration target? See https://fate.suse.com/323165', result => 'fail';
                     last;
                 }

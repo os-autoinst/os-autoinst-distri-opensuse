@@ -446,7 +446,7 @@ sub ensure_unlocked_desktop {
                 # open run command prompt (if screen isn't locked)
                 mouse_hide(1);
                 send_key 'alt-f2';
-                if (check_screen 'desktop-runner') {
+                if (check_screen 'desktop-runner', 30) {
                     send_key 'esc';
                     assert_screen 'generic-desktop';
                 }

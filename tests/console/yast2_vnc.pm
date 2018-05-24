@@ -40,7 +40,7 @@ sub run {
     send_key 'alt-a';
     if (is_sle('<15') || is_leap('<15.0')) {
         # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
-        if (check_screen 'yast2_vnc_open_port_firewall') {
+        if (check_screen 'yast2_vnc_open_port_firewall', 30) {
             send_key 'alt-p';
             send_key 'alt-d';
             assert_screen 'yast2_vnc_firewall_port_details';

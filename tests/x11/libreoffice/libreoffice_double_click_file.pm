@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -42,9 +42,7 @@ sub run {
             send_key 'ctrl-q';
         }
     }
-    if (!check_screen("generic-desktop")) {
-        send_key "ctrl-q";
-    }
+    send_key 'ctrl-q' unless check_screen 'generic-desktop', 0;
 
     #clean up
     $self->cleanup_libreoffice_recent_file();
