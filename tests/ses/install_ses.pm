@@ -13,7 +13,6 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils;
 use utils 'zypper_call';
 use version_utils 'is_sle';
 
@@ -22,7 +21,6 @@ sub run {
     my $git_deepsea = get_var('GIT_DEEPSEA', 'SUSE/DeepSea.git');
     my $git_deepsea_branch = get_var('GIT_DEEPSEA_BRANCH');
     $git_deepsea_branch ||= is_sle('<15') ? 'SES5' : 'master';
-    my $ses_version_specific_packages = is_sle('<15') ? 'openattic' : '';
     # this is not important, but I have seen in logs request, please install virt-what
     if (is_sle('>=15')) {
         zypper_call 'ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo';
@@ -34,7 +32,7 @@ sub run {
     zypper_call "ar http://download.suse.de/ibs/SUSE:/SLE-15:/Update:/Products:/SES6/images/repo/SUSE-Enterprise-Storage-6-POOL-$arch-Media1/ SES6"
       if is_sle('>=15');
     # install SES packages, chrony and git
-    zypper_call "in chrony git-core deepsea ceph $ses_version_specific_packages";
+    zypper_call 'in chrony git-core deepsea ceph';
     # deepsea testsuite from repo is stable, not changing every day and better for QAM testing
     if (get_var('DEEPSEA_TESTSUITE_STABLE')) {
         my $deepsea_qa
