@@ -21,11 +21,11 @@ use upload_system_log;
 use base "opensusebasetest";
 
 sub run {
-    my $timeout  = abs(get_var("MAX_JOB_TIME", 9600) - 1200);         #deduct 20 minutes for previous steps, due to poo#30183
-    my $test     = get_var("QA_TESTSUITE") . get_var("QA_VERSION");
-    my $runfile  = "/usr/share/qa/tools/test_$test-run";
-    my $runfile2 = "/usr/lib/ctcs2/tools/test_$test-run";
-    my $run_log  = "/tmp/$test-run.log";
+    my $timeout         = abs(get_var("MAX_JOB_TIME", 9600) - 1200);         #deduct 20 minutes for previous steps, due to poo#30183
+    my $test            = get_var("QA_TESTSUITE") . get_var("QA_VERSION");
+    my $runfile         = "/usr/share/qa/tools/test_$test-run";
+    my $runfile2        = "/usr/lib/ctcs2/tools/test_$test-run";
+    my $run_log         = "/tmp/$test-run.log";
     my $boot_local_file = "/etc/init.d/boot.local";
 
     # add a dummy boot.local file as it is not expected to be created by default anymore,
