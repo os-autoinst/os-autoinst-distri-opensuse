@@ -26,6 +26,12 @@ sub run {
     my $runfile  = "/usr/share/qa/tools/test_$test-run";
     my $runfile2 = "/usr/lib/ctcs2/tools/test_$test-run";
     my $run_log  = "/tmp/$test-run.log";
+    my $boot_local_file = "/etc/init.d/boot.local";
+
+    # add a dummy boot.local file as it is not expected to be created by default anymore,
+    # but it is required for rc-local service to be run (see bsc#1075734)
+    assert_script_run "echo '#!/bin/sh' | tee $boot_local_file";
+    assert_script_run "chmod +x $boot_local_file";
 
     #execute test run
     script_run("if [ -e $runfile ]; then $runfile |tee $run_log; else $runfile2 |tee $run_log; fi", $timeout);
