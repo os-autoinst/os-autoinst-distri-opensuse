@@ -27,6 +27,10 @@ sub start_firefox {
 
 sub run() {
     my ($self) = shift;
+    if (get_var('OFW')) {
+        record_soft_failure('boo#1094668 - do not start firefox as failure for ppc64le');
+        return;
+    }
     mouse_hide(1);
     $self->start_firefox();
     send_key "alt-h";
