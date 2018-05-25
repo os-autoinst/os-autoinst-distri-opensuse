@@ -32,7 +32,6 @@ sub run {
 
     # Reset vars for autoyast installation of origin system
     if (get_var('UPGRADE_ON_ZVM')) {
-        set_var('BETA',         0);
         set_var('UPGRADE',      0);
         set_var('SCC_REGISTER', 'none');
     }
