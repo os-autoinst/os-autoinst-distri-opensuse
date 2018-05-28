@@ -31,7 +31,7 @@ sub run {
 
     capture_state('between-after');
 
-    assert_script_run("zypper lr | grep test-minimal");
+    assert_script_run("zypper lr | grep TEST_");
 
     zypper_call("ref");
 
