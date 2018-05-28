@@ -187,7 +187,7 @@ sub addlv {
 
 sub select_first_hard_disk {
     my $matched_needle = assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected  hard-disk-dev-non-sda-selected)];
-    if (match_has_tag 'hard-disk-dev-non-sda-selected' || match_has_tag 'hard-disk-dev-sdb-selected' || get_var('SELECT_FIRST_DISK')) {
+    if (match_has_tag('hard-disk-dev-non-sda-selected') || match_has_tag('hard-disk-dev-sdb-selected') || get_var('SELECT_FIRST_DISK')) {
         # SUT may have any number disks, only keep the first, unselect all other disks
         foreach my $tag (@{$matched_needle->{needle}->{tags}}) {
             if (check_var('VIDEOMODE', 'text')) {
