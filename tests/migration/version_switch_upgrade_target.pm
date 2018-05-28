@@ -31,7 +31,6 @@ sub run {
 
     # Reset vars for upgrade on zVM
     if (get_var('UPGRADE_ON_ZVM')) {
-        set_var('BETA',                1);
         set_var('UPGRADE',             1);
         set_var('AUTOYAST',            0);
         set_var('DESKTOP',             'textmode');
