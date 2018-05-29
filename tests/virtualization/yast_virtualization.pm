@@ -20,6 +20,10 @@ sub run {
     x11_start_program('xterm');
     send_key 'alt-f10';
     become_root;
+    while (1) {
+        last unless (script_run("btrfs balance status -v / | grep 'No balance found on'"));
+        save_screenshot;
+    }
     if (script_run('zypper se -i yast2-vm') == 104) {
         record_soft_failure 'bsc#1083398 - YaST2-virtualization provides wrong components for SLED';
         assert_script_run 'zypper in -y yast2-vm';
