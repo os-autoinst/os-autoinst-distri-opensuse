@@ -226,6 +226,16 @@ sub verify_license_has_to_be_accepted {
     }
 }
 
+sub verify_translation {
+    return if check_var('VIDEOMODE', 'text');
+    for my $language (qw(korean english-us)) {
+        wait_screen_change { send_key 'alt-l' };
+        send_key 'home';
+        send_key_until_needlematch("license-language-selected-$language", 'down');
+        assert_screen "license-content-$language";
+    }
+}
+
 sub save_upload_y2logs {
     my ($self) = shift;
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';

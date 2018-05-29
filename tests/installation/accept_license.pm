@@ -39,7 +39,10 @@ sub run {
     if (match_has_tag('inst-welcome-no-product-list')) {
         return send_key $cmd{next} unless match_has_tag('license-agreement');
     }
-    $self->verify_license_has_to_be_accepted;
+    if (check_var('INSTALLER_EXTENDED_TEST', '1')) {
+        $self->verify_license_has_to_be_accepted;
+        $self->verify_translation;
+    }
     send_key $cmd{next};
     # workaround for bsc#1059317, multiple times clicking accept license
     my $count = 5;
