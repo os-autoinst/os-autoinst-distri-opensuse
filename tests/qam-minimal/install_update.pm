@@ -34,9 +34,8 @@ sub run {
     capture_state('before');
 
     my $repo = get_required_var('INCIDENT_REPO');
-    zypper_call("ar -f $repo test-minimal");
-
-    zypper_call("ref");
+    set_var('MAINT_TEST_REPO', $repo);
+    add_test_repositories;
 
     # test if is patch needed and record_info
     # record softfail on QAM_MINIMAL=small tests, or record info on others
