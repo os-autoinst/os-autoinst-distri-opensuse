@@ -186,7 +186,9 @@ sub unlock_if_encrypted {
     elsif (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
         # Enter password before GRUB if boot is encrypted
-        unlock_zvm_disk($console) if (get_var('FULL_LVM_ENCRYPT'));
+        # Boot partition is always encrypted, if not using expert partitioner with
+        # separate unencrypted boot
+        unlock_zvm_disk($console) unless get_var('UNENCRYPTED_BOOT');
         handle_grub_zvm($console);
         unlock_zvm_disk($console);
     }
