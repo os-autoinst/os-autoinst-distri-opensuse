@@ -122,7 +122,7 @@ sub addpart {
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
             wait_screen_change { send_key 'home' };    # start from the top of the list
-            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 2;
+            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
     }
     # Enable snapshots option works only with btrfs
@@ -136,7 +136,7 @@ sub addpart {
             record_soft_failure('bsc#1079399 - Combobox is writable');
             for (1 .. 10) { send_key 'up'; }
         }
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 2;
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 5;
     }
 
     mount_device $args{mount} if $args{mount};
