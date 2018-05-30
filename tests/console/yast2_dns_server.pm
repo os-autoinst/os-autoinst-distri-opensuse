@@ -79,8 +79,10 @@ sub run {
         assert_screen 'yast2-dns-server-step3';
     }
 
-    # Enable dns server and finish
-    wait_screen_change { send_key 'alt-s' };
+    # Enable dns server and finish after yast2 loads default settings
+    assert_screen 'yast2-dns-server-fw-port-is-closed';
+    send_key 'alt-s';
+    assert_screen 'yast2-dns-server-start-named-now';
     send_key 'alt-f';
     assert_screen 'root-console';
     # The wizard-like interface still uses the old approach of always starting the service
