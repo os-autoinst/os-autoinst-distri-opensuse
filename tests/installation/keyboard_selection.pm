@@ -36,7 +36,7 @@ sub switch_keyboard_layout {
     # Select back default keyboard layout
     send_key 'alt-k';
     send_key_until_needlematch("keyboard-layout", 'up', 60);
-    send_key 'ret' if (check_var('DESKTOP', 'textmode'));
+    wait_screen_change { send_key 'ret' } if (check_var('DESKTOP', 'textmode'));
 }
 
 sub run {
