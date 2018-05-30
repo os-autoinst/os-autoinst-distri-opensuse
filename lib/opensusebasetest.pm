@@ -273,33 +273,6 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
 }
 
-=head2 rewrite_static_svirt_network_configuration
-
-Rewrite the static network configuration within a SUT over the svirt console
-based on the worker specific configuration to allow reuse of images created on
-one host and booted on another host. Can also be used for debugging in case of
-consoles relying on remote connections to within the SUT being blocked by
-malfunctioning network or services within the SUT.
-
-Relies on the C<$pty> variable set in the remote svirt shell by C<utils::save_svirt_pty>.
-
-Also see poo#18016 for details.
-=cut
-sub rewrite_static_svirt_network_configuration {
-    my ($self) = @_;
-    type_line_svirt "root", expect => 'Password';
-    type_line_svirt "$testapi::password";
-    my $virsh_guest = get_required_var('VIRSH_GUEST');
-    type_line_svirt "sed -i \"\\\"s:IPADDR='[0-9.]*/\\([0-9]*\\)':IPADDR='$virsh_guest/\\1':\\\" /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
-    type_string "# output of current network configuration for debugging\n";
-    type_line_svirt "\"cat /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
-    type_line_svirt "systemctl restart network",               expect => '#';
-    type_line_svirt "systemctl is-active network",             expect => 'active';
-    type_line_svirt 'systemctl is-active sshd',                expect => 'active';
-    # make sure we can reach the SSH server in the SUT
-    type_string "for i in {1..7}; do (nc -z $virsh_guest 22 && break) || (echo \"retry: \$i\" ; sleep 5; false); done\n";
-}
-
 =head2 wait_boot
 
   wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
@@ -351,13 +324,19 @@ sub wait_boot {
         }
         else {
             my $worker_hostname = get_required_var('WORKER_HOSTNAME');
+            my $virsh_guest     = get_required_var('VIRSH_GUEST');
             workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
-            $self->rewrite_static_svirt_network_configuration();
-            type_line_svirt "systemctl is-active sshd", expect => 'active';
+            type_line_svirt "root", expect => 'Password';
+            type_line_svirt "$testapi::password";
+            type_line_svirt "systemctl is-active network", expect => 'active';
+            type_line_svirt 'systemctl is-active sshd',    expect => 'active';
+            # make sure we can reach the SSH server in the SUT
+            type_string "for i in {1..7}; do nc -zv $virsh_guest 22 && break || (echo \"retry: \$i\" ; sleep 5; false); done;\n";
+            save_screenshot;
         }
 
         # on z/(K)VM we need to re-select a console
