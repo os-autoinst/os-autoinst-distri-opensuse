@@ -89,11 +89,6 @@ sub accept_addons_license {
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
     push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
-    # SES6 license is not shown now in SLE15
-    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
-        record_soft_failure 'bsc#1090012 - missing SES6 license';
-        @addons_with_license = grep(!/^ses$/, @addons_with_license);
-    }
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
