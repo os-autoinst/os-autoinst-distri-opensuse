@@ -147,6 +147,7 @@ sub set_lvm {
     send_key "ret";
 
     # create normal volume with name root
+    assert_screen 'add-lvm-on-root';
     type_string "root";
     assert_screen 'volume-name-root';
     send_key $cmd{next};
