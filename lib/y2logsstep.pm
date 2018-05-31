@@ -231,7 +231,7 @@ sub verify_translation {
     for my $language (qw(korean english-us)) {
         wait_screen_change { send_key 'alt-l' };
         send_key 'home';
-        send_key_until_needlematch("license-language-selected-$language", 'down');
+        send_key_until_needlematch("license-language-selected-$language", 'down', 60, 1);
         assert_screen "license-content-$language";
     }
 }
