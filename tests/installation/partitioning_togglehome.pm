@@ -20,28 +20,27 @@ use version_utils qw(is_storage_ng is_leap is_sle);
 sub run {
     record_soft_failure 'boo#1093372' if (!get_var('TOGGLEHOME') && is_leap('15.1+'));
     send_key $cmd{guidedsetup};
-    assert_screen [qw(partition-scheme  inst-partition-radio-buttons)];
+    assert_screen [qw(partition-scheme inst-partition-radio-buttons)];
     if (is_storage_ng) {
         assert_screen 'partition-scheme';
         send_key $cmd{next};
         installation_user_settings::await_password_check if get_var('ENCRYPT');
     }
     # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
-    if (!check_var('ARCH', 's390x') or is_storage_ng()) {
-        if (!check_screen 'disabledhome', 0) {
-            # toggle_home hotkey can change
-            if (check_screen('inst-partition-radio-buttons', 0)) {
-                $cmd{toggle_home} = 'alt-r';
-            }
-            elsif (check_screen('proposed-separated-swap', 0)) {
-                $cmd{toggle_home} = 'alt-o';
-            }
-            send_key $cmd{toggle_home};
+    if ((!check_var('ARCH', 's390x') or is_storage_ng()) and !match_has_tag('disabledhome')) {
+        # older versions have radio buttons and no separate swap block
+        if (match_has_tag 'inst-partition-radio-buttons') {
+            $cmd{toggle_home} = 'alt-r';
         }
+        else {
+            assert_screen [qw(enabledhome-partition enabledhome-volume)];
+        }
+        $cmd{toggle_home} = 'alt-o' if match_has_tag 'enabledhome-partition';
+        send_key $cmd{toggle_home};
         assert_screen 'disabledhome';
     }
     send_key(is_storage_ng() ? 'alt-n' : 'alt-o');    # finish editing settings
-    save_screenshot;
+    assert_screen 'partitioning-edit-proposal-button';
 }
 
 1;
