@@ -63,6 +63,8 @@ sub y2snapper_show_changes_and_delete {
     send_key "alt-s";
     assert_screen 'yast2_snapper-collapsed_testdata', 200;
     if ($ncurses) {
+        # Select last directory in the tree and expand it
+        wait_screen_change { send_key "end" };
         wait_screen_change { send_key "ret" };
         wait_screen_change { send_key "end" };
     }
