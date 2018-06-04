@@ -24,7 +24,7 @@ sub set_autoyast_password {
 
     # Unlock and wait for propagation
     unpause 'AUTOYAST_PW_SET';
-    sleep 60;
+    sleep 30 if is_caasp('local');
 }
 
 sub run() {
