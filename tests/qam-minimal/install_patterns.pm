@@ -23,6 +23,7 @@ use strict;
 
 use utils;
 use qam;
+use version_utils 'is_sle';
 use testapi;
 
 sub install_packages {
@@ -49,7 +50,7 @@ sub run {
     zypper_call("pt");
     save_screenshot;
 
-    zypper_call("in -t pattern base x11 gnome-basic apparmor", exitcode => [0, 102], timeout => 2000);
+    zypper_call("in -t pattern base x11 " . (is_sle('>=15') ? 'gnome_basic' : 'gnome-basic') . " apparmor", exitcode => [0, 102], timeout => 2000);
 
     systemctl 'set-default graphical.target';
     script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
