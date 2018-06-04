@@ -17,6 +17,12 @@ use utils;
 
 sub run {
     mouse_hide();
+    assert_screen [qw(enlightenment_keyboard_english enlightenment_language_english)];
+    if (match_has_tag 'enlightenment_language_english') {
+        record_soft_failure('bsc#1076835 - Enlightenment: newly asks for language');
+        assert_and_click "enlightenment_language_english";
+        assert_and_click "enlightenment_assistant_next";
+    }
     assert_and_click "enlightenment_keyboard_english";
     assert_and_click "enlightenment_assistant_next";
     assert_and_click "enlightenment_profile_selection";
