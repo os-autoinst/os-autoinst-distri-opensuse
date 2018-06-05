@@ -24,7 +24,7 @@ our @EXPORT = qw(analyzeResult generateXML);
 
 sub analyzeResult {
     my ($text) = @_;
-    my $result;
+    my $result = ();
     $text =~ /Test in progress(.*)Test run complete/s;
     my $rough_result = $1;
     foreach (split("\n", $rough_result)) {

@@ -41,7 +41,8 @@ sub run {
         #convert to junit log
         my $script_output = script_output("cat $run_log");
         my $tc_result     = analyzeResult($script_output);
-        my $xml_result    = generateXML($tc_result);
+        die 'Could not parse execution logs' unless $tc_result;
+        my $xml_result = generateXML($tc_result);
         script_output "echo \'$xml_result\' > /tmp/output.xml", 7200;
         parse_junit_log("/tmp/output.xml");
     }
@@ -53,4 +54,11 @@ sub run {
     assert_script_run("grep 'Test run completed successfully' $run_log");
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    # Collect executed test logs
+    assert_script_run 'tar -cf /tmp/run_logs.tgz /tmp/*-run.log';
+    upload_logs '/tmp/run_logs.tgz';
+}
 1;
