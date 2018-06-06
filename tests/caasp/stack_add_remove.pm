@@ -101,7 +101,6 @@ sub run {
     if (check_var 'STACK_MASTERS', 3) {
         remove_node 'master-rm', unsupported => 1;
         check_kubernetes($n - 1);
-        # record_soft_failure 'bsc#1093123 - Master node removal fails';
 
         if (get_delayed 'master') {
             add_node 'master-add';
