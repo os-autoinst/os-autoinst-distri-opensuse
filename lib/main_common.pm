@@ -113,6 +113,9 @@ our @EXPORT = qw(
   load_common_opensuse_sle_tests
   replace_opensuse_repos_tests
   load_ssh_key_import_tests
+  updates_is_applicable
+  guiupdates_is_applicable
+  load_system_update_tests
 );
 
 sub init_main {
@@ -1039,11 +1042,7 @@ sub load_consoletests {
     {
         loadtest "console/glibc_sanity";
     }
-    # openSUSE has "load_system_update_tests" for that,
-    # https://progress.opensuse.org/issues/31954 to improve
-    if (is_sle && !gnomestep_is_applicable()) {
-        loadtest "update/zypper_up";
-    }
+    load_system_update_tests();
     loadtest "console/console_reboot" if is_jeos;
     loadtest "console/zypper_in";
     loadtest "console/yast2_i";
@@ -1127,13 +1126,17 @@ sub load_consoletests {
     loadtest "console/consoletest_finish";
 }
 
-sub load_x11tests {
+sub x11tests_is_applicable {
     return
-      unless (!get_var("INSTALLONLY")
-        && is_desktop_installed()
-        && !get_var("DUALBOOT")
-        && !get_var("RESCUECD")
-        && !get_var("HA_CLUSTER"));
+        !get_var("INSTALLONLY")
+      && is_desktop_installed()
+      && !get_var("DUALBOOT")
+      && !get_var("RESCUECD")
+      && !get_var("HA_CLUSTER");
+}
+
+sub load_x11tests {
+    return unless x11tests_is_applicable();
     if (is_smt()) {
         loadtest "x11/smt";
     }
@@ -1152,8 +1155,7 @@ sub load_x11tests {
     loadtest "x11/xterm";
     loadtest "x11/sshxterm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
-        # openSUSE has an explicit update check elsewhere
-        loadtest "update/updates_packagekit_gpk" if is_sle && !is_staging;
+        load_system_update_tests();
         loadtest "x11/gnome_control_center";
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "x11/gnome_tweak_tool" if is_opensuse;
@@ -1854,6 +1856,42 @@ sub load_sles4sap_tests {
         loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_ascs";
     }
+}
+
+sub updates_is_applicable {
+    # we don't want live systems to run out of memory or virtual disk space.
+    # Applying updates on a live system would not be persistent anyway.
+    # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
+    # Also, updates on INSTALLONLY do not match the meaning
+    return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
+}
+
+sub guiupdates_is_applicable {
+    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
+}
+
+sub load_system_update_tests {
+    return if get_var('SYSTEM_UPDATED');
+    if (need_clear_repos()) {
+        loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
+    }
+    loadtest "console/zypper_add_repos" if get_var('ZYPPER_ADD_REPOS');
+    return unless updates_is_applicable();
+    if (guiupdates_is_applicable()) {
+        loadtest "update/prepare_system_for_update_tests" if !is_sle;
+        if (check_var("DESKTOP", "kde")) {
+            loadtest "update/updates_packagekit_kde";
+        }
+        elsif (x11tests_is_applicable()) {
+            loadtest "update/updates_packagekit_gpk" unless (is_sle && is_staging);
+        }
+        loadtest "update/check_system_is_updated" if !is_sle;
+    }
+    else {
+        loadtest "update/zypper_up";
+    }
+    set_var('SYSTEM_UPDATED', 1);
 }
 
 1;
