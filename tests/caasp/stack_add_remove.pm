@@ -73,13 +73,8 @@ sub remove_node {
 # Has also function of wait_still_screen
 sub check_kubernetes {
     my $nodes_count = shift;
-
     switch_to 'xterm';
-    # Replace with assert_script_run when bug is fixed
-    my $count_failed = script_run "kubectl get nodes --no-headers | tee /dev/tty | wc -l | grep $nodes_count";
-    if ($count_failed) {
-        record_soft_failure 'bsc#1094078 - Node removal eats unassigned node';
-    }
+    assert_script_run "kubectl get nodes --no-headers | tee /dev/tty | wc -l | grep $nodes_count";
     switch_to 'velum';
 }
 
