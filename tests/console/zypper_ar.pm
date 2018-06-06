@@ -25,7 +25,7 @@ sub run {
         foreach (@repos_to_add) {
             next unless get_var("REPO_$_");    # Skip repo if not defined
             $repourl = $urlprefix . "/" . get_var("REPO_$_");
-            zypper_call "ar -c $repourl $_" if zypper_call("lr | grep $_", allow_exit_codes => [1]);
+            zypper_call "ar -c $repourl $_";
         }
     }
     else {
