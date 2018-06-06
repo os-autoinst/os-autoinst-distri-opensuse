@@ -14,6 +14,8 @@
 use base "console_yasttest";
 use strict;
 use testapi;
+use utils 'zypper_call';
+use repo_tools 'prepare_source_repo';
 
 # Executes the command line tests from a yast repository (in master or in the
 # given optional branch) using prove
@@ -42,6 +44,8 @@ sub run_yast_cli_test {
 sub run {
     select_console 'root-console';
 
+    prepare_source_repo;
+
     # Install test requirement
     assert_script_run 'zypper -n in rpm-build';
 
@@ -50,7 +54,7 @@ sub run {
 
     # Run YaST CLI tests
     run_yast_cli_test('yast2-network');
-    run_yast_cli_test('yast2-dns-server');
+    run_yast_cli_test('yast2-http-server');
 }
 
 1;

@@ -16,7 +16,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle sle_version_at_least is_leap);
+use repo_tools 'prepare_source_repo';
+use version_utils qw(is_sle is_leap is_opensuse);
 
 sub test_srcpackage_output {
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
@@ -45,33 +46,7 @@ sub test_package_output {
 sub run {
     select_console 'root-console';
 
-    # preparation of source repositories
-    my $cmd;
-    if (is_sle) {
-        if (sle_version_at_least('15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
-            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source";
-        }
-        elsif (sle_version_at_least('12-SP4') and get_var('REPO_SLES_SOURCE')) {
-            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source";
-        }
-        # SLE maintenance tests are assumed to be SCC registered
-        # and source repositories disabled by default
-        elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
-            $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
-        }
-        # use dvd2 as the src-repository
-        # Xen PV has different device for 2nd CDROM
-        elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
-            $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
-        }
-        else {
-            $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
-        }
-    }
-    # source repository is disabled by default
-    elsif (check_var('DISTRI', 'opensuse')) {
-        $cmd = "mr -e repo-source";
-    }
+    prepare_source_repo;
 
     if (is_leap('15.0+') and get_var('ARCH') =~ /aarch64|ppc64le/) {
         record_soft_failure(
@@ -81,13 +56,10 @@ sub run {
         return;
     }
 
-    zypper_call($cmd) if defined $cmd;
-    zypper_call("ref");
-
     # check for zypper info
     test_package_output;
 
-    if (sle_version_at_least('12-SP2') || check_var('DISTRI', 'opensuse')) {
+    if (is_sle('>=12-SP2') || is_opensuse) {
         test_srcpackage_output;
     }
 }
