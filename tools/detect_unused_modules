@@ -12,5 +12,6 @@ done | \
     # verify_firewalld: Loaded dynamically by AUTOYAST_VERIFY_MODULE
     # zypper_moo: https://progress.opensuse.org/issues/32302
     # sles4sap: Most tests are loaded via APPTESTS
-    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/)' \
+    # s390x_tests: Scheduled with s390x_tests/consoletest_${testset}${tc}
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/|s390x_tests/)' \
     && { exit 1; } || { exit 0; }

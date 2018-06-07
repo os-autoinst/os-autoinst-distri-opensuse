@@ -1080,6 +1080,21 @@ sub load_consoletests {
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
+
+    if (get_var('IBM_TESTS')) {
+        # prepare tarballs for the testcase
+        # the path below should be reworked to be universal for any distribution, now it's for openQA deployed on opensuse
+        my $tcs_path = "/var/lib/openqa/share/tests/sle/data/s390x/";
+        system("cd ${tcs_path}lib && rm -f common.tgz && tar -czf common.tgz ./*.sh");
+
+        my $testset = get_var('IBM_TESTSET');    # e.g. "KERNEL or TOOL or MEMORY"
+        foreach my $tc (split(',', get_var('IBM_TESTS'))) {
+            system("cd ${tcs_path}${testset}${tc} && rm -f ${testset}${tc}.tgz && tar -czf ${testset}${tc}.tgz ./*");
+            loadtest "s390x_tests/consoletest_${testset}${tc}";
+        }
+        return 1;
+    }
+
     loadtest "locale/keymap_or_locale";
     loadtest "console/orphaned_packages_check" if is_jeos;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
@@ -1626,8 +1641,8 @@ sub load_extra_tests {
 
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
-    # EXTRATEST=prepare,zypper,console,opensuse,docker,kdump in textmode or
-    # EXTRATEST=prepare,desktop in dektop tests
+    # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
+    # EXTRATEST=desktop in dektop tests
     foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
         if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
             $test_to_run->();
@@ -1992,7 +2007,8 @@ sub load_common_x11 {
     elsif (check_var('REGRESSION', 'remote')) {
         if (check_var("REMOTE_DESKTOP_TYPE", "win_client") || check_var('REMOTE_DESKTOP_TYPE', "win_server")) {
             loadtest "x11/remote_desktop/windows_client_boot";
-        } else {
+        }
+        else {
             loadtest 'boot/boot_to_desktop';
             loadtest "x11/window_system";
         }
