@@ -27,10 +27,10 @@ sub smt_wizard {
     assert_screen 'smt-wizard-1';
     send_key 'alt-u';
     wait_still_screen;
-    type_string 'SCC_ORG_DAJJBA';
+    type_string(get_required_var('SMT_ORG_NAME'));
     send_key 'alt-p';
     wait_still_screen;
-    type_string '043107d3db';
+    type_string(get_required_var('SMT_ORG_PASSWORD'));
     send_key 'alt-n';
     assert_screen 'smt-wizard-2';
     send_key 'alt-d';
@@ -59,7 +59,7 @@ sub smt_wizard {
         assert_screen 'smt-sync-failed', 100;    # expect fail because there is no network
         send_key 'alt-o';
     }
-    wait_serial("yast2-smt-wizard-0", 400) || die 'smt wizard failed';
+    wait_serial("yast2-smt-wizard-0", 800) || die 'smt wizard failed, it can be connection issue or credential issue';
 }
 
 sub smt_mirror_repo {
@@ -81,9 +81,9 @@ sub rmt_wizard {
     # check mysql status and config mysql for RMT
     systemctl 'start mysql.service';
     systemctl 'status mysql.service';
-    my $cmd = 'mysql -u root -p <<EOFF 
-GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY \'rmt\'; 
-FLUSH PRIVILEGES; 
+    my $cmd = 'mysql -u root -p <<EOFF
+GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY \'rmt\';
+FLUSH PRIVILEGES;
 EOFF';
     type_string "$cmd\n";
     assert_screen('rmt-sqladmin-password', 40);

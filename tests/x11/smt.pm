@@ -22,7 +22,7 @@ sub run {
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
     become_root;
     smt_wizard();
-    assert_script_run 'smt-sync', 600;
+    assert_script_run 'smt-sync', 800;
     assert_script_run 'smt-repos';
 
     # mirror and sync a base repo from SCC
