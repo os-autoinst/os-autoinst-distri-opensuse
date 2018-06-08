@@ -18,7 +18,7 @@ use caasp 'process_reboot';
 sub run {
     my $list_addons = script_output('LANG=C SUSEConnect --list');
     record_soft_failure('bsc#1090729') if $list_addons =~ /SUSE CaaS Plattform/;
-    my $install_command = ($list_addons =~ /Install with:\s+(.*)/) ? $1 : die "Command for installing not available";
+    my $install_command = ($list_addons =~ /Activate with:\s+(.*)/) ? $1 : die "Command for installing not available";
     if (script_run($install_command, 60)) {
         record_soft_failure('bsc#1090200');
         # Workarond for registering by transactional-update instead of SUSEConnect
