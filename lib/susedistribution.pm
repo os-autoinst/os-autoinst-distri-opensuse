@@ -552,7 +552,11 @@ sub activate_console {
         }
         assert_screen "text-logged-in-$user";
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        assert_screen $console;
+        assert_screen([$console, "$console-with-kernel-msg"]);
+        if (match_has_tag("$console-with-kernel-msg")) {
+            record_soft_failure("bsc#1011815: ugly kernel message in tty");
+            send_key("ret");
+        }
     }
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user, $self->{serial_term_prompt});
