@@ -252,6 +252,7 @@ sub load_system_update_tests {
     return unless updates_is_applicable;
     if (need_clear_repos) {
         loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
     }
 
     if (get_var('ZYPPER_ADD_REPOS')) {

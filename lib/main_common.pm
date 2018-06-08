@@ -1006,8 +1006,10 @@ sub load_consoletests {
     loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
 
     # Do not clear repos twice if replace repos for openSUSE
-    if (need_clear_repos() && !is_repo_replacement_required()) {
+    # On staging repos are already removed, using CLEAR_REPOS flag variable
+    if (need_clear_repos() && !is_repo_replacement_required() && !get_var('CLEAR_REPOS')) {
         loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
