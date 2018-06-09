@@ -73,7 +73,7 @@ test-no-wait_idle:
 	@! git grep wait_idle lib/ tests/
 
 .PHONY: test
-test: tidy test-compile test-merge test-dry test-no-wait_idle test-unused-modules
+test: tidy test-compile test-merge test-dry test-no-wait_idle test-unused-modules test-record_soft_failure-no-reference
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
 
@@ -84,3 +84,7 @@ perlcritic: tools/lib/
 .PHONY: test-unused-modules
 test-unused-modules:
 	tools/detect_unused_modules
+
+.PHONY: test-record_soft_failure-no-reference
+test-record_soft_failure-no-reference:
+	@! git grep -E -e 'record_soft_failure.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
