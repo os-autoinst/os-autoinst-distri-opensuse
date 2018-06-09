@@ -109,7 +109,7 @@ sub run {
     while ($out) {
         if ($out =~ $zypper_dup_conflict) {
             if (get_var("WORKAROUND_DEPS")) {
-                record_soft_failure 'workaround dependencies';
+                record_info 'workaround dependencies';
                 send_key '1';
                 send_key 'ret';
             }
@@ -163,9 +163,6 @@ sub run {
             next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
-            #             record_soft_failure;
-            #             send_key 'y';
-            #             send_key 'ret';
             $self->result('fail');
             save_screenshot;
             return;

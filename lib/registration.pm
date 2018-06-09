@@ -362,7 +362,7 @@ sub fill_in_registration_data {
                     qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
                 if (match_has_tag('import-untrusted-gpg-key')) {
                     if (!check_screen(\@known_untrusted_keys, 0)) {
-                        record_soft_failure 'untrusted gpg key';
+                        die 'untrusted gpg key';
                     }
                     wait_screen_change {
                         send_key 'alt-t';

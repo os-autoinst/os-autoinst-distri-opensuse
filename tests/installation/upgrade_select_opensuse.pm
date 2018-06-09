@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ sub check_bsc997635 {
 
 sub handle_beta_warning {
     if (!get_var("BETA")) {
-        record_soft_failure "Beta warning in non beta product";
+        die "Beta warning in non beta product";
     }
     send_key 'alt-o';
 }
@@ -46,7 +46,7 @@ sub run {
             handle_beta_warning;
         }
         elsif (get_var("BETA")) {
-            record_soft_failure('missing beta warning even though BETA is set');
+            die 'missing beta warning even though BETA is set';
         }
         # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
         # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
@@ -57,7 +57,7 @@ sub run {
 
     if (check_screen(["installed-product-incompatible", "inst-betawarning"], 10)) {
         if (match_has_tag 'installed-product-incompatible') {
-            record_soft_failure 'installed product incompatible';
+            record_info 'installed product incompatible', result => 'fail';
             send_key 'alt-o';
         }
         else {

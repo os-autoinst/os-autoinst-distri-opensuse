@@ -43,43 +43,43 @@ sub run_developers_tests {
     my $log        = '/tmp/sapconf_test.log';
 
     # Download and unpack the test scripts supplied by the developers
-    # Record soft failure and continue if it can not be downloaded
+    # Continue if it can not be downloaded
     type_string "cd /tmp\n";
     my $ret = script_run "curl -k $devel_repo | tar -zxvf -";
     unless (defined $ret and $ret == 0) {
-        record_soft_failure 'Could not download developer test script';
+        record_info 'Download problem', 'Could not download developer test script';
         return;
     }
 
     # Run script as is and upload results
     $ret = script_run 'cd sapconf-test-master-*';
     unless (defined $ret and $ret == 0) {
-        record_soft_failure 'sapconf-test-master-* directory not found in the developer test package';
+        record_info 'Script not found', 'sapconf-test-master-* directory not found in the developer test package';
         return;
     }
     my $output = script_output 'ls';
     if ($output !~ /sapconf_test\.sh/) {
-        record_soft_failure 'Script sapconf_test.sh is not in the developer test package';
+        record_info 'Script not found', 'Script sapconf_test.sh is not in the developer test package';
         return;
     }
     assert_script_run "chmod +x sapconf_test.sh";
     $ret = script_run "./sapconf_test.sh -c local -p no | tee $log", 600;
     # Record soft fail only if script returns an error. Ignore timeout as test completion is checked below
-    record_soft_failure "sapconf_test.sh returned error code: [$ret]" if (defined $ret and $ret != 0);
+    record_info('Test failed', "sapconf_test.sh returned error code: [$ret]", result => 'softfail') if (defined $ret and $ret != 0);
     upload_logs $log;
 
     # Check summary of tests on log for bug report
     my $report = script_output "grep ^Test $log || true";
-    record_soft_failure 'No tests summaries in log' unless ($report);
+    record_info('No tests summaries in log', result => 'softfail') unless ($report);
     foreach my $summary (split(/[\r\n]+/, $report)) {
         next unless ($summary =~ /^Test/);
         # Do nothing with passing tests. The summary will be shown on the script_output step
         next if ($summary =~ /PASSED$/);
-        if ($summary =~ /Test #bsc([0-9]+)/) {
-            record_soft_failure "bsc#$1";
+        if ($summary =~ /Test #(bsc|fate)([0-9]+)/) {
+            record_soft_failure "$1#$2";
         }
         else {
-            record_soft_failure $summary;
+            record_info $summary, result => 'fail';
         }
     }
 
