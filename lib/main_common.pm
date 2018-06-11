@@ -266,8 +266,6 @@ sub is_repo_replacement_required {
     return is_opensuse()                  # Is valid scenario onlu for openSUSE
       && !is_staging()                    # Do not have mirrored repos on staging
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
-      && !is_updates_tests()              # Is not required for update and upgrade tests, repos are already injected
-      && !is_upgrade()
       && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
       && !get_var('OFFLINE_SUT');         # Do not run if SUT is offine
 }

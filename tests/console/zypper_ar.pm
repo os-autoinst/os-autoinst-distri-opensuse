@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: harmorize zypper_ref between SLE and openSUSE
+# Summary: Add repos from corresponding mirror only if do not exist
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "consoletest";
@@ -25,7 +25,7 @@ sub run {
         foreach (@repos_to_add) {
             next unless get_var("REPO_$_");    # Skip repo if not defined
             $repourl = $urlprefix . "/" . get_var("REPO_$_");
-            zypper_call "ar -c $repourl $_";
+            assert_script_run "zypper lr | grep -w $_ || zypper ar -c $repourl $_";    # Skip add repo if already added
         }
     }
     else {
