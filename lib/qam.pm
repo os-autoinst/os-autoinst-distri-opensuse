@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,7 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw(capture_state check_automounter snap_revert is_patch_needed add_test_repositories remove_test_repositories advance_installer_window);
+our @EXPORT = qw(capture_state check_automounter is_patch_needed add_test_repositories remove_test_repositories advance_installer_window);
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -53,12 +53,6 @@ sub check_automounter {
             sleep 5;
         }
     }
-}
-
-sub snap_revert {
-    my ($svirt, $vm_name, $snapshot) = @_;
-    my $ret = $svirt->run_cmd("virsh snapshot-revert $vm_name $snapshot --running");
-    die "Snapshot revert $snapshot failed" if $ret;
 }
 
 sub is_patch_needed {
