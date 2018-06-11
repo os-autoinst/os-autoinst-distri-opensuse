@@ -34,8 +34,8 @@ sub run {
 
     install_docker_when_needed;
 
-    # boo#1072367 - docker engine doesnt have seccomp support
-    assert_script_run('docker info | grep seccomp');
+    # boo#1072367 - docker engine doesn't have seccomp support
+    assert_script_run('docker info | tee /dev/tty | grep seccomp');
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
