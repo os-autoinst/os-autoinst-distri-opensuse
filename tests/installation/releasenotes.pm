@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,6 @@ use version_utils 'is_sle';
 
 sub run {
     assert_screen('release-notes-button', 60);
-    return if match_has_tag('bsc#1054478');
 
     # workaround for bsc#1014178
     wait_still_screen(5);

@@ -49,7 +49,7 @@ sub create_new_partition_table {
     );
 
     assert_screen('release-notes-button');
-    send_key match_has_tag('bsc#1054478') ? 'alt-x' : $cmd{expertpartitioner};
+    send_key $cmd{expertpartitioner};
     if (is_storage_ng) {
         # start with existing configuration
         send_key 'down';
