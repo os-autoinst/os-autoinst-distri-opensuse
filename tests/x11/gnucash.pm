@@ -34,9 +34,9 @@ sub run {
         send_key 'alt-tab' if check_var('DESKTOP', 'lxde');
         wait_screen_change { send_key 'alt-c' };
     }
-    send_key 'ctrl-q';    # Exit
-    assert_screen [qw(gnucash-save-changes generic-desktop)];
-    wait_screen_change { send_key 'alt-w' } if match_has_tag 'gnucash-save-changes';
+    # sometimes send_key for closing windows not working
+    send_key_until_needlematch 'gnucash-save-changes', "ctrl-q", 5, 5;
+    wait_screen_change { send_key 'alt-w' };
 }
 
 1;
