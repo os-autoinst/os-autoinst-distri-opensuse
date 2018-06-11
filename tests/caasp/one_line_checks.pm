@@ -13,6 +13,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
+use caasp 'script_retry';
 use version_utils 'is_caasp';
 
 sub run {
@@ -50,6 +51,8 @@ sub run {
         # bsc#1039863 - Check we are running only sles12 docker images
         assert_script_run '! docker images | sed 1d | grep -v ^sles12';
         assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
+        # Velum is running
+        script_retry 'curl -kLI localhost | grep _velum_session';
     }
 
     # Checks are applicable only on Kubic now
