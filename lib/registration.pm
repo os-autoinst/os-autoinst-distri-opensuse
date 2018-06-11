@@ -251,12 +251,8 @@ sub fill_in_registration_data {
     # Process modules on sle 15
     if (is_sle '15+') {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
-        if (check_var('BETA', '1')) {
-            assert_screen('scc-beta-filter-checkbox');
-            send_key('alt-i');
-        }
-        elsif (!check_screen($modules_needle, 0)) {
-            record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
+        # During BETA and pre-GM phase, scc offer the modules as BETA.
+        if (check_var('BETA', '1') || check_var('GMC', '1')) {
             assert_screen('scc-beta-filter-checkbox');
             send_key('alt-i');
         }
