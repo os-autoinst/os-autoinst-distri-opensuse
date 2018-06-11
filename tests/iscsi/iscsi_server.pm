@@ -31,7 +31,7 @@ sub run {
     configure_static_dns(get_host_resolv_conf());
     zypper_call 'in yast2-iscsi-lio-server';
     assert_script_run 'dd if=/dev/zero of=/root/iscsi-disk seek=1M bs=8192 count=1';    # create iscsi LUN
-    type_string "yast2 iscsi-lio-server\n";
+    type_string "yast2 iscsi-lio-server; echo yast2-iscsi-server-\$? > /dev/$serialdev\n";
     assert_screen 'iscsi-lio-server';
     send_key 'alt-o';                                                                   # open port in firewall
     wait_still_screen(2, 10);
@@ -82,7 +82,7 @@ sub run {
     }
     assert_screen 'iscsi-target-overview-target-tab';
     send_key 'alt-f';                                                                   # finish
-    wait_still_screen(2, 10);
+    wait_serial("yast2-iscsi-server-0", 180) || die "'yast2 iscsi-lio ' didn't finish or exited with non-zero code";
     mutex_create('iscsi_ready');                                                        # setup is done client can connect
     type_string "killall xterm\n";
     wait_for_children;                                                                  # run till client is done

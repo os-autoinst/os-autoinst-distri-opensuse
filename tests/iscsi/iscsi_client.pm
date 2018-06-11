@@ -35,9 +35,9 @@ sub run {
     wait_still_screen(2, 10);
     assert_screen 'iscsi-initiator-service';
     send_key "alt-v";             # go to discovered targets tab
-    wait_still_screen(2, 10);
+    assert_screen 'iscsi-discovered-targets';
     send_key "alt-d";             # press discovery button
-    wait_still_screen(2, 10);
+    assert_screen 'iscsi-discovery';
     send_key "alt-i";             # go to IP address field
     wait_still_screen(2, 10);
     type_string "10.0.2.1";
