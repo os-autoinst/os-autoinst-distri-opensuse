@@ -15,9 +15,10 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use registration;
-use serial_terminal qw(add_serial_console select_virtio_console);
 use utils;
-use version_utils 'sle_version_at_least';
+use bootloader_setup 'add_custom_grub_entries';
+use serial_terminal qw(add_serial_console select_virtio_console);
+use version_utils qw(is_sle sle_version_at_least);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -184,7 +185,7 @@ sub run {
     select_virtio_console();
 
     add_we_repo_if_available;
-
+    add_custom_grub_entries;
     install_runtime_dependencies;
 
     if ($inst_ltp =~ /git/i) {
@@ -270,6 +271,11 @@ will be used.
 =head2 LTP_GIT_URL
 
 Overrides the official LTP GitHub repository URL.
+
+=head2 GRUB_PARAM
+
+Append custom group entries with appended group param via
+add_custom_grub_entries().
 
 =cut
 

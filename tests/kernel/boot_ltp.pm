@@ -14,6 +14,7 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use bootloader_setup 'boot_grub_item';
 use serial_terminal 'select_virtio_console';
 
 sub run {
@@ -21,9 +22,16 @@ sub run {
     my $ltp_env    = get_var('LTP_ENV');
     my $cmd_file   = get_var('LTP_COMMAND_FILE') || '';
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
+    my $is_ima     = $cmd_file =~ m/^ima$/i;
 
-    # During install_ltp, the second boot may take longer than usual.
-    $self->wait_boot(ready_time => 500);
+    if ($is_ima) {
+        # boot kernel with IMA parameters
+        $self->boot_grub_item();
+    }
+    else {
+        # during install_ltp, the second boot may take longer than usual
+        $self->wait_boot(ready_time => 500);
+    }
 
     if (select_virtio_console()) {
         script_run('dmesg --console-level 7');
