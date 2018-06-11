@@ -255,6 +255,11 @@ sub run {
     }
     select_virtio_console();
 
+    # check kGraft if KGRAFT=1
+    if (check_var("KGRAFT", '1')) {
+        assert_script_run("uname -v | grep '/kGraft-'");
+    }
+
     add_we_repo_if_available;
     add_custom_grub_entries;
     install_runtime_dependencies;
@@ -269,11 +274,6 @@ sub run {
     else {
         add_repos;
         install_from_repo($tag);
-    }
-
-    # check kGraft if KGRAFT=1
-    if (check_var("KGRAFT", '1')) {
-        assert_script_run("uname -v | grep '/kGraft-'");
     }
 
     setup_network();
