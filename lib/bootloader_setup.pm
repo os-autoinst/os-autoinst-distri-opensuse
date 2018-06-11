@@ -106,7 +106,7 @@ sub add_custom_grub_entries {
     die("Unexpected number of grub entries: $cnt_new, expected: " . ($cnt_orig * 2)) if ($cnt_orig * 2 != $cnt_new);
     $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' /boot/grub2/grub.cfg");
     die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
-    $cnt_new = script_output("grep -c 'linux.*/boot/vmlinu.* $grub_param ' /boot/grub2/grub.cfg");
+    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' /boot/grub2/grub.cfg");
     die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
 }
 
