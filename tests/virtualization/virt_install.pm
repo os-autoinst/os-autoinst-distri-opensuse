@@ -19,7 +19,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     script_run('virt-install --name TESTING --memory 512 --disk none --boot cdrom --graphics vnc &', 0);
-    wait_still_screen;
+    wait_still_screen(3);
     x11_start_program('vncviewer :0', target_match => 'virtman-gnome_virt-install', match_timeout => 100);
     # closing all windows
     send_key 'alt-f4' for (0 .. 2);
