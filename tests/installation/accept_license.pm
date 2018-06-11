@@ -40,7 +40,7 @@ sub run {
         return send_key $cmd{next} unless match_has_tag('license-agreement');
     }
     $self->verify_license_has_to_be_accepted;
-    $self->verify_translation if (check_var('INSTALLER_EXTENDED_TEST', '1'));
+    $self->verify_translation if get_var('INSTALLER_EXTENDED_TEST');
     send_key $cmd{next};
     # workaround for bsc#1059317, multiple times clicking accept license
     my $count = 5;
