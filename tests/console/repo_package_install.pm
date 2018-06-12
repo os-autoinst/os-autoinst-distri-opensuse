@@ -29,7 +29,7 @@ sub run {
     return unless sle_version_at_least('15');
     for my $package (keys %packages) {
         my $args = $packages{$package}->{installed} ? '--installed-only' : '--not-installed-only';
-        zypper_call('se ' . $args . ' --match-exact --details ' . $package . ' | grep ' . $packages{$package}->{repo});
+        assert_script_run("zypper se -n $args --match-exact --details $package | grep " . $packages{$package}->{repo});
     }
 }
 
