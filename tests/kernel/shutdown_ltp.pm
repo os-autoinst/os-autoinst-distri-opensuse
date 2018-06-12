@@ -41,8 +41,7 @@ sub run {
 
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     script_run('journalctl --no-pager -p warning');
-    type_string "poweroff\n";
-    assert_shutdown 1800;
+    power_action('poweroff');
 }
 
 sub test_flags {
