@@ -2,7 +2,8 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions);
+use utils
+  qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions pkcon_quit zypper_call);
 use version_utils qw(is_hyperv_in_gui is_sle is_leap);
 
 # Base class implementation of distribution class necessary for testapi
@@ -252,7 +253,17 @@ sub ensure_installed {
             next;
         }
     }
-    wait_serial('pkcon-0-', 27) || die "pkcon install did not succeed";
+    my $ret = wait_serial('pkcon-\d+-');
+    if ($ret =~ /pkcon-4-/) {
+        $self->become_root;
+        pkcon_quit;
+        zypper_call "in $pkglist";
+        type_string "exit\n";
+        record_soft_failure "boo#1091353 - pkcon doesn't find existing pkg - falling back to zypper";
+    }
+    elsif ($ret !~ /pkcon-0/) {
+        die "pkcon install did not succeed, return code: $ret";
+    }
     send_key("alt-f4");    # close xterm
 }
 
