@@ -43,7 +43,7 @@ sub run {
 sub post_run_hook {
     #prepare environment for next test
     type_string "logout\n";
-    assert_screen "text-login";
+    select_console 'root-console';
     select_console "x11";
 }
 
