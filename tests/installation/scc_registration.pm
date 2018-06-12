@@ -28,4 +28,12 @@ sub run {
     fill_in_registration_data;
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    # Verify that proxySCC and SCC can be accessed
+    assert_script_run("curl ${\(get_var('SCC_URL'))}/login") if get_var('SCC_URL');
+    assert_script_run("curl https://scc.suse.com/login");
+}
+
 1;

@@ -262,6 +262,15 @@ sub post_fail_hook {
     assert_script_run 'df > /tmp/df.txt';
     upload_logs '/tmp/df.txt';
 
+    # Log connections
+    script_run('ss -tulpn > /tmp/connections.txt');
+    upload_logs '/tmp/connections.txt';
+    # Check network traffic
+    script_run('for run in {1..10}; do echo "RUN: $run"; nstat; sleep 3; done | tee /tmp/network_traffic.log');
+    upload_logs '/tmp/network_traffic.log';
+    # Check VM load
+    script_run('for run in {1..3}; do echo "RUN: $run"; vmstat; sleep 5; done | tee /tmp/cpu_mem_usage.log');
+    upload_logs '/tmp/cpu_mem_usage.log';
 }
 
 1;
