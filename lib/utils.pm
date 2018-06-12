@@ -345,6 +345,7 @@ sub zypper_call {
     my $dumb_term        = $args{dumb_term};
 
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
+    die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
     # Retrying workarounds
     my $ret;

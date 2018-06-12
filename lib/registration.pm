@@ -618,7 +618,7 @@ sub rename_scc_addons {
 sub install_docker_when_needed {
     if (is_caasp) {
         # Docker should be pre-installed in MicroOS
-        die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker | grep docker', allow_exit_codes => [0, 1]);
+        die 'Docker is not pre-installed.' unless zypper_call('se -x --provides -i docker');
     }
     else {
         if (is_sle('<15')) {
