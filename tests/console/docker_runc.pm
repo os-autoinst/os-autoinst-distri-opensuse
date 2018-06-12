@@ -32,22 +32,6 @@ sub run {
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
     record_info 'Setup', 'Setup the environment';
 
-    # Setup the required testing environment
-
-    # install the docker package if it's not already installed
-    if (is_caasp) {
-        # Docker should be pre-installed in MicroOS
-        die "Docker is not pre-installed." if script_run("zypper se -x --provides -i docker | grep docker");
-    }
-    else {
-        # docker package can be installed
-        zypper_call("in docker");
-    }
-
-    # make sure docker daemon is running
-    systemctl('start docker');
-    systemctl('status docker');
-
     # create the rootfs directory
     assert_script_run('mkdir rootfs');
 
