@@ -114,8 +114,7 @@ sub run {
     wait_still_screen;
     send_key "alt-f4";
 
-    handle_logout;
-    handle_login;
+    handle_relogin;
     $self->firefox_check_default;
     $self->firefox_check_popups;
     assert_screen "firefox-gnome", 90;
@@ -134,8 +133,7 @@ sub run {
     send_key "alt-f4";
     assert_screen "generic-desktop";
 
-    handle_logout;
-    handle_login;
+    handle_relogin;
     assert_screen "generic-desktop";
 
     #set auto-save-session;
@@ -158,8 +156,7 @@ sub run {
         wait_still_screen;
         $self->firefox_check_popups;
         assert_screen "firefox-gnome", 90;
-        handle_logout;
-        handle_login;
+        handle_relogin;
         $self->firefox_check_popups;
         assert_screen "firefox-gnome", 90;
         send_key "alt-f4";

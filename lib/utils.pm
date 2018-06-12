@@ -61,6 +61,7 @@ our @EXPORT = qw(
   random_string
   handle_login
   handle_logout
+  handle_relogin
   handle_emergency
   service_action
   assert_gui_app
@@ -967,6 +968,11 @@ sub handle_logout {
         send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
     }
     assert_and_click 'logout-button';                                  # press logout
+}
+
+sub handle_relogin {
+    handle_logout;
+    handle_login;
 }
 
 # Handle emergency mode
