@@ -352,12 +352,6 @@ sub start_evolution {
     wait_screen_change { type_string "$mail_box" };
     save_screenshot();
 
-    # skip server look up for localhost email address
-    if ($mail_box =~ /localhost/) {
-        record_soft_failure 'bsc#1049387 - Evolution Skip lookup button sometimes doesn\'t work';
-        assert_and_click "evolution-mail-skip-look-up-checkbox";
-        save_screenshot();
-    }
     send_key $self->{next};
 }
 
