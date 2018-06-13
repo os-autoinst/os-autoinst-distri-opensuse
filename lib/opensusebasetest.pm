@@ -144,7 +144,7 @@ sub export_logs {
     my ($self) = shift;
     select_console 'log-console';
     save_screenshot;
-
+    $self->remount_tmp_if_ro;
     $self->problem_detection;
 
     $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
@@ -493,6 +493,18 @@ sub firewall {
     return ($old_product_versions || $upgrade_from_susefirewall) ? 'SuSEfirewall2' : 'firewalld';
 }
 
+=head2 remount_tmp_if_ro
+
+    remount_tmp_if_ro()
+
+Mounts /tmp to shared memory if not possible to write to tmp.
+For example, save_y2logs creates temporary files there.
+
+=cut
+sub remount_tmp_if_ro {
+    script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
+}
+
 # useful post_fail_hook for any module that calls wait_boot
 #
 # we could use the same approach in all cases of boot/reboot/shutdown in case
@@ -504,6 +516,7 @@ sub post_fail_hook {
     # 'esc' just in case the plymouth splash screen is shown and we can not
     # see any interesting console logs.
     send_key 'esc';
+    save_screenshot;
 }
 
 1;

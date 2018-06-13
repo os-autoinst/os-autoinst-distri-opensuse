@@ -259,7 +259,7 @@ sub post_fail_hook {
       smaps);
 
     get_to_console;
-
+    $self->remount_tmp_if_ro;
     # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
     $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
 
