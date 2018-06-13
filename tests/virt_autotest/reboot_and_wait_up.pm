@@ -36,13 +36,8 @@ sub reboot_and_wait_up {
         console('sol')->disable;
         # do the activation manually - the sol can be anything normally
         select_console 'sol', await_console => 0;
-        assert_screen("text-login", 600);
-        type_string "root\n";
-        assert_screen "password-prompt";
-        type_password;
-        send_key('ret');
-        assert_screen "text-logged-in-root";
-
+        wait_boot;
+        select_console 'root-console';
         #type reboot
         type_string("reboot\n");
         #switch to sut console
