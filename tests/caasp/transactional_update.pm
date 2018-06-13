@@ -75,11 +75,16 @@ sub run {
 
     # Check that zypper does not return 0 if update was aborted
     record_info 'Broken pkg', 'Install broken package poo#18644 -  snapshot #3';
-    if (is_caasp 'DVD') {
+    if (is_caasp('DVD')) {
         my $broken_pkg = is_caasp('caasp') ? 'trival' : 'broken';
         trup_call "pkg install" . rpmver($broken_pkg);
         check_reboot_changes;
-        trup_call 'cleanup dup', 2;
+        if (is_caasp 'caasp') {
+            trup_call 'cleanup dup', 2;
+        }
+        else {
+            trup_call "pkg update update-test-$broken_pkg", 2;
+        }
         check_reboot_changes 0;
     }
     else {
