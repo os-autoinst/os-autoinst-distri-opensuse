@@ -79,12 +79,9 @@ sub run {
         my $broken_pkg = is_caasp('caasp') ? 'trival' : 'broken';
         trup_call "pkg install" . rpmver($broken_pkg);
         check_reboot_changes;
-        if (is_caasp 'caasp') {
-            trup_call 'cleanup dup', 2;
-        }
-        else {
-            trup_call "pkg update update-test-$broken_pkg", 2;
-        }
+        # Systems with repositories would downgrade on DUP
+        my $upcmd = is_caasp('caasp') ? 'dup' : 'up';
+        trup_call "cleanup $upcmd", 2;
         check_reboot_changes 0;
     }
     else {
