@@ -118,12 +118,19 @@ sub trup_call {
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
+            # Abort update of broken package
+            if ($cmd =~ /\bup(date)?\b/ && $check == 2) {
+                die 'Abort dialog not shown' unless wait_serial('Abort');
+                send_key 'ret';
+            }
         }
         else {
             die "Confirmation dialog not shown";
         }
     }
+    # Check if trup passed
     wait_serial 'trup-0-' if $check == 1;
+    # Broken package update fails
     wait_serial 'trup-1-' if $check == 2;
 }
 
