@@ -552,7 +552,6 @@ sub activate_console {
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
             assert_screen \@tags, 60;
-            # Accept 'text-login' by default
             if (match_has_tag("tty$nr-selected")) {
                 type_string "$user\n";
                 handle_password_prompt;
