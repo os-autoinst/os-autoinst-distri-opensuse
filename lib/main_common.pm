@@ -1231,7 +1231,9 @@ sub load_x11tests {
         loadtest "x11/hexchat";
         loadtest "x11/vlc";
     }
-    loadtest "x11/remote_desktop/vino_screensharing_available";
+    if (gnomestep_is_applicable() && !is_staging()) {
+        loadtest "x11/remote_desktop/vino_screensharing_available";
+    }
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
