@@ -83,7 +83,7 @@ sub run {
             trup_call 'cleanup dup', 2;
         }
         else {
-            trup_call 'cleanup up', 2;
+            trup_call "pkg update update-test-$broken_pkg", 2;
         }
         check_reboot_changes 0;
     }
