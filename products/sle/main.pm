@@ -796,6 +796,15 @@ elsif (get_var("FIPS_TS")) {
         load_applicationstests;
     }
 }
+elsif (get_var('SECURITY')) {
+    prepare_target();
+    if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/consoletest_setup";
+    }
+    if (check_var("SECURITY", "apparmor_status")) {
+        load_security_tests_apparmor_status;
+    }
+}
 elsif (get_var('SMT')) {
     prepare_target();
     loadtest "x11/smt_disconnect_prepare";
