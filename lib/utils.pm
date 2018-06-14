@@ -211,8 +211,12 @@ sub clear_console {
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
-
+    if (check_var('BACKEND', 'ipmi')) {
+        console('root-ssh')->kill_ssh;
+        console('installation')->disable_vnc_stalls;
+        console('sol')->disable_vnc_stalls;
+        console('root-ssh')->disable_vnc_stalls;
+    }
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             # kill serial ssh connection (if it exists)
