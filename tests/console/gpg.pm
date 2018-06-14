@@ -31,11 +31,11 @@ sub gpg_generate_key {
     if ($gpg_version eq "2.0") {
 
         # gpg version 2.0.x
-        type_string "gpg2 --gen-key\n";
+        type_string "gpg2 -vv --gen-key\n";
     }
     else {
         # gpg version >= 2.1.x
-        type_string "gpg2 --full-generate-key\n";
+        type_string "gpg2 -vv --full-generate-key\n";
     }
     wait_still_screen 1;
     type_string "1\n";
@@ -109,7 +109,15 @@ sub gpg_encrypt_file {
 }
 
 sub run {
-    select_console 'user-console';
+
+    if (check_var('ARCH', 's390x')) {
+        record_soft_failure 'Using root console on s390x: boo#1097610';
+        select_console 'root-console';
+    }
+    else {
+        select_console 'user-console';
+    }
+
 
     # gpg key generated and file encrypted with two size of key
     for my $key_size (2048, 3072) {
