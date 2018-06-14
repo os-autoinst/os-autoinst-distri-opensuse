@@ -19,6 +19,22 @@ use utils;
 use version_utils 'sle_version_at_least';
 use qam;
 
+
+sub kernel_packages {
+    my @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
+    # SLE12 and SLE12SP1 has xen kernel
+    if (!sle_version_at_least('12-SP2')) {
+        push @packages, qw(kernel-xen kernel-xen-devel);
+    }
+    return @packages;
+}
+
+sub prepare_azure {
+    my @packages = kernel_packages;
+    script_run("zypper -n rm " . join(" ", @packages), 700);
+    zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+}
+
 sub update_kernel {
     my ($repo, $patch) = @_;
 
@@ -87,12 +103,7 @@ sub install_lock_kernel {
             '4.4.126-94.22.1' => '4.4.126-94.22.2',
         }};
 
-    my @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
-    # SLE12 and SLE12SP1 has xen kernel
-    if (!sle_version_at_least('12-SP2')) {
-        push @packages, qw(kernel-xen kernel-xen-devel);
-    }
-
+    my @packages = kernel_packages;
     # remove all kernel related packages from system
     script_run("zypper -n rm " . join(' ', @packages), 700);
 
@@ -211,7 +222,7 @@ sub run {
     $self->wait_boot;
     select_console('root-console');
 
-    if (check_var('KGRAFT', '1')) {
+    if (get_var('KGRAFT')) {
         my $qa_head = get_required_var('QA_HEAD_REPO');
         prepare_kgraft($repo, $patch);
         $self->wait_boot;
@@ -234,6 +245,10 @@ sub run {
         select_console('root-console');
 
         kgraft_state;
+    }
+    elsif (get_var('AZURE')) {
+        prepare_azure;
+        update_kernel($repo, $patch);
     }
     else {
         update_kernel($repo, $patch);
