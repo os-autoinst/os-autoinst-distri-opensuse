@@ -246,7 +246,18 @@ sub save_upload_y2logs {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my $self         = shift;
+    my @procfs_files = qw(
+      mounts
+      mountinfo
+      mountstats
+      maps
+      status
+      stack
+      cmdline
+      environ
+      smaps);
+
     get_to_console;
 
     # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
@@ -271,6 +282,31 @@ sub post_fail_hook {
     # Check VM load
     script_run('for run in {1..3}; do echo "RUN: $run"; vmstat; sleep 5; done | tee /tmp/cpu_mem_usage.log');
     upload_logs '/tmp/cpu_mem_usage.log';
+
+    $self->save_and_upload_log('pstree',  '/tmp/pstree');
+    $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
+
+    # Collect yast2 installer trace
+    if (!script_run(qq{ps -eo pid,comm | grep -i [y]2start | cut -f 2 -d " " > /dev/$serialdev}, 0)) {
+        chomp(my $installer_pid = wait_serial(qr/^[\d{4}]/, 10));
+        my $trace_timeout = 120;
+        my $strace_ret = script_run("timeout $trace_timeout strace -f -o /tmp/installer_trace.log -tt -p $installer_pid", ($trace_timeout + 5));
+
+        if (!script_run '[[ -e /tmp/installer_trace.log ]]') {
+            upload_logs '/tmp/installer_trace.log';
+        }
+
+        # collect installer proc fs files
+        foreach (@procfs_files) {
+            $self->save_and_upload_log("cat /proc/$installer_pid/$_", "/tmp/yast2-installer.$_");
+        }
+
+        assert_script_run 'extend gdb';
+        my $gdb_ret = script_run("timeout $trace_timeout gdb attach $installer_pid > /tmp/installer_gdb.log", ($trace_timeout + 5));
+        if (!script_run '[[ -e /tmp/installer_gdb.log ]]') {
+            upload_logs '/tmp/installer_gdb.log';
+        }
+    }
 }
 
 1;
