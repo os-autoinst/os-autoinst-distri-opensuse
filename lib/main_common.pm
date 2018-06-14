@@ -1231,7 +1231,8 @@ sub load_x11tests {
         loadtest "x11/hexchat";
         loadtest "x11/vlc";
     }
-    if (gnomestep_is_applicable() && !is_staging()) {
+    # https://progress.opensuse.org/issues/37342
+    if (is_sle() && gnomestep_is_applicable() && !is_staging()) {
         loadtest "x11/remote_desktop/vino_screensharing_available";
     }
     if (kdestep_is_applicable()) {
