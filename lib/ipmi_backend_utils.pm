@@ -208,4 +208,3 @@ sub set_serial_console_on_xen {
 
 
 1;
-
