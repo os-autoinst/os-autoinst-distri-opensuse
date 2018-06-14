@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Test the basic information output function for apparmor aa-status
+# Summary: Enforce a disabled profile with aa-enforce
 # Maintainer: Wes <whdu@suse.com>
-# Tags: poo#36874, tc#1621138
+# Tags: poo#36877, tc#1621145
 
-use base "consoletest";
 use strict;
+use base "consoletest";
 use testapi;
 use utils;
 
@@ -27,16 +27,22 @@ sub run {
 
     systemctl('restart apparmor');
 
-    validate_script_output "aa-status", sub {
-        m/
-        module\ is\ loaded.*
-        profiles\ are\ loaded.*
-        profiles\ are\ in\ enforce\ mode.*
-        profiles\ are\ in\ complain\ mode.*
-        processes\ are\ in\ enforce\ mode.*
-        processes\ are\ in\ complain\ mode.*
-        processes\ are\ unconfined/sxx
+    validate_script_output "aa-disable usr.sbin.nscd", sub {
+        m/Disabling.*nscd/;
     };
+
+    # Check if /usr/sbin/ntpd is really disabled
+    die "/usr/sbin/nscd should be disabled"
+      if (script_run("aa-status |grep /usr/sbin/nscd") == 0);
+
+    validate_script_output "aa-enforce usr.sbin.nscd", sub {
+        m/Setting.*nscd to enforce mode/;
+    };
+
+    validate_script_output "aa-status", sub {
+        m/\/usr\/sbin\/nscd/;
+    };
+
 }
 
 1;

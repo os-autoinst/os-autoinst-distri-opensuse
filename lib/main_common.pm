@@ -1740,6 +1740,7 @@ sub load_security_tests_crypt {
 # Other security tests other than FIPS
 sub load_security_tests_apparmor_status {
     loadtest "security/apparmor/aa_status";
+    loadtest "security/apparmor/aa_enforce";
 }
 
 sub load_systemd_patches_tests {
