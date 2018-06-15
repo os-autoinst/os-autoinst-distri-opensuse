@@ -140,6 +140,9 @@ sub run {
     if (grep { /Microsoft Windows \[Version 6.3.*\]/ } $winver) {
         $winserver = 2012;
     }
+    elsif (grep { /Microsoft Windows \[Version 10.0.*\]/ } $winver) {
+        $winserver = 2016;
+    }
     else {
         die "Unsupported version: $winver";
     }
@@ -152,7 +155,7 @@ sub run {
     my $vm_generation = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
     my @disk_paths = ();
-    if ($winserver eq "2012") {
+    if ($winserver eq '2012' || $winserver eq '2016') {
         for my $n (1 .. get_var('NUMDISKS')) {
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhdx");
@@ -170,6 +173,9 @@ sub run {
             }
         }
         hyperv_cmd("$ps New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
+        # Create 'Standard' checkpoints with application's memory, on Hyper-V 2016
+        # the default is 'Production' (i.e. snapshot on guest level).
+        hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016';
         if ($iso) {
             hyperv_cmd("$ps Add-VMDvdDrive -VMName $name") if get_var('UEFI');
             hyperv_cmd("$ps Set-VMDvdDrive -VMName $name -Path $iso");
@@ -197,7 +203,8 @@ sub run {
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
 
     if (get_var('UEFI')) {
-        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off");
+        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off")                                                        if $winserver eq '2012';
+        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot On -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'") if $winserver eq '2016';
         if (check_var('BOOTFROM', 'c')) {
             hyperv_cmd($ps . ' "' . "\$hd = Get-VMHardDiskDrive $name; Set-VMFirmware $name -BootOrder \$hd" . '"');
         }
@@ -211,7 +218,7 @@ sub run {
     }
     else {
         # All booteble devices has to be enumerated all the time...
-        my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'VHD'" : "'VHD', 'CD'") . ", 'Floppy', 'NetworkAdapter'";
+        my $startup_order = (check_var('BOOTFROM', 'd') ? "'CD', 'IDE'" : "'IDE', 'CD'") . ", 'Floppy', 'LegacyNetworkAdapter'";
         hyperv_cmd($ps . ' "' . "Set-VMBios $name -StartupOrder @($startup_order)" . '"');
     }
 
@@ -228,7 +235,7 @@ sub run {
       . get_var('HYPERV_SERVER')
       . " /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
-    hyperv_cmd_with_retry("$ps Start-VM $name");
+    hyperv_cmd_with_retry("$ps Start-VM $name", {msg => ($winserver eq '2016') ? 'used by another process' : undef});
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';
