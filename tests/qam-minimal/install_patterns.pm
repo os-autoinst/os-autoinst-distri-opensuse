@@ -40,10 +40,15 @@ sub install_packages {
 }
 
 sub run {
-    my ($self) = @_;
-    my $patch = get_required_var('INCIDENT_PATCH');
+    my ($self)      = @_;
+    my $incident_id = get_var('INCIDENT_ID');
+    my $patch       = get_var('INCIDENT_PATCH');
+    my $repo        = get_var('INCIDENT_REPO');
+    check_patch_variables($patch, $incident_id);
 
     select_console 'root-console';
+    my $patches = '';
+    $patches = get_patches($incident_id, $repo) if $incident_id;
 
     pkcon_quit;
     zypper_call("ref");
@@ -59,6 +64,7 @@ sub run {
     # now we have gnome installed - restore DESKTOP variable
     set_var('DESKTOP', get_var('FULL_DESKTOP'));
 
+    $patch = $patch ? $patch : $patches;
     my $patch_status = is_patch_needed($patch, 1);
     install_packages($patch_status) if $patch_status;
 
