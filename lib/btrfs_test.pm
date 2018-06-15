@@ -4,6 +4,7 @@ use base 'consoletest';
 use strict;
 use testapi;
 use utils 'get_root_console_tty';
+use serial_terminal 'login';
 
 =head2 set_playground_disk
 
@@ -40,14 +41,35 @@ way to get DBus-less environment is to enter rescue.target via systemctl.
 =cut
 sub snapper_nodbus_setup {
     my ($self) = @_;
-    if (script_run('! systemctl is-active dbus')) {
-        script_run('systemctl rescue', 0);
-        assert_screen('emergency-shell', 120);
-        type_password;
-        send_key 'ret';
-        $self->set_standard_prompt('root');
-        assert_screen 'root-console';
+    # serial console prints text style as ascii chars in PS1 by default.
+    my $escseq = '[\]\[\(\)\e\d\w\s]*';
+
+    my $rescue_service_config_path   = "/usr/lib/systemd/system/rescue.service";
+    my $rescue_service_override_path = "/etc/systemd/system/rescue.service";
+
+    return unless script_run('! systemctl is-active dbus');
+    if (!serial_terminal::select_virtio_console()) {
+        die 'Selection of virtio console failed.';
     }
+
+    # Replace StandardInput in rescue.service file and add TTYPath.
+    assert_script_run "cp $rescue_service_config_path $rescue_service_override_path";
+    assert_script_run "sed -i 's@^StandardInput=.*\$\@StandardInput=tty\\nTTYPath='\$(tty)'\@g' '$rescue_service_override_path'";
+
+    assert_script_run "systemctl reenable rescue";
+    type_string "systemctl rescue";
+    wait_serial "systemctl rescue";
+    type_string "\n";
+    wait_serial ".*or press Control-D to continue.*:";
+    type_password;
+    type_string "\n";
+
+    wait_serial "$escseq:~ #$escseq";
+    type_string 'PS1="# "; export TERM=dumb; stty cols 2048';
+    wait_serial 'PS1="# "; export TERM=dumb; stty cols 2048';
+    type_string "\n";
+    wait_serial "# ";
+    $self->set_standard_prompt('root');
 }
 
 =head2 snapper_nodbus_restore
@@ -57,16 +79,24 @@ move from rescue to default target, logs us out. Die if DBus is active at this p
 it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` testing.
 =cut
 sub snapper_nodbus_restore {
-    if (script_run('systemctl is-active dbus')) {
-        script_run('systemctl default', 0);
-        my $tty = get_root_console_tty;
-        assert_screen "tty$tty-selected";
-        console('root-console')->reset;
-        select_console 'root-console';
-    }
-    else {
+
+    if (script_run '! systemctl is-active dbus') {
         die 'DBus service ought not to be active (but is)';
     }
+    type_string "tty";
+    wait_serial "tty";
+    type_string "\n";
+    if (!wait_serial '\/dev\/hvc\d+') {
+        die 'This subroutine needs a virtio console being selected.';
+    }
+    wait_serial "# ";
+    type_string "systemctl default";
+    wait_serial "systemctl default";
+    type_string "\n";
+    login "root", "# ";
+    assert_script_run "systemctl revert rescue";
+    console("root-console")->reset;
+    select_console "root-console";
 }
 
 sub post_fail_hook {
