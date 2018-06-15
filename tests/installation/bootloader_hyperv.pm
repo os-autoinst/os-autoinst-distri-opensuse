@@ -151,7 +151,7 @@ sub run {
     hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
     hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
 
-    my $hddsize = get_var('HDDSIZEGB', 10);
+    my $hddsize = get_var('HDDSIZEGB', 20);
     my $vm_generation = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
     my @disk_paths = ();
