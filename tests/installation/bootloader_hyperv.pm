@@ -60,6 +60,15 @@ sub run {
     my $hyperv_intermediary = select_console('hyperv-intermediary');
     my $name                = $svirt->name;
 
+    # Following two variables specify where the root with expected directories is located.
+    # Beware that we deal with Windows so backslash ('\') is used and multiple backslashes
+    # in the path ('\\') are illegal (unless it's here in the test code or in shell
+    # as a quotation).
+    # Example: HYPERV_DISK="C:" HYPERV_ROOT="\\Users\\root\\VM"
+    my $hyperv_disk = get_var('HYPERV_DISK', 'D:');
+    my $root = $hyperv_disk . get_var('HYPERV_ROOT', '');
+    my $root_nfs = 'N:';
+
     # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/901) is deployed
     my $n = get_var('NUMDISKS', 1);
     set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
@@ -75,7 +84,9 @@ sub run {
             for my $isopath ("iso", "iso\\fixed") {
                 # Copy ISO from NFS share to local cache on Hyper-V in 'network-restartable' mode
                 my $basenameiso = basename($iso);
-                last unless hyperv_cmd("if not exist D:\\cache\\$basenameiso ( copy /Z /Y N:\\$isopath\\$basenameiso D:\\cache\\ )", {ignore_return_code => 1});
+                last
+                  unless hyperv_cmd("if not exist $root\\cache\\$basenameiso ( copy /Z /Y $root_nfs\\$isopath\\$basenameiso $root\\cache\\ )",
+                    {ignore_return_code => 1});
             }
         }
         if (my $hdd = get_var("HDD$n")) {
@@ -84,19 +95,19 @@ sub run {
                 my $basenamehdd_vhd      = $basenamehdd =~ s/vhdfixed\.xz/vhd/r;
                 my $basenamehdd_vhdfixed = $basenamehdd =~ s/\.xz//r;
                 # If the image exists, do nothing
-                last if hyperv_cmd("if exist D:\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
+                last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
                 # Copy HDD from NFS share to local cache on Hyper-V
-                next if hyperv_cmd("copy N:\\$hddpath\\$basenamehdd D:\\cache\\", {ignore_return_code => 1});
+                next if hyperv_cmd("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\", {ignore_return_code => 1});
                 # Decompress the XZ compressed image & rename it to .vhd
                 last if $hdd !~ m/vhdfixed\.xz/;
-                hyperv_cmd("xz --decompress --keep --verbose D:\\cache\\$basenamehdd");
+                hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
                 # Rename .vhdfixed to .vhd
-                hyperv_cmd("move /Y D:\\cache\\$basenamehdd_vhdfixed D:\\cache\\$basenamehdd_vhd");
+                hyperv_cmd("move /Y $root\\cache\\$basenamehdd_vhdfixed $root\\cache\\$basenamehdd_vhd");
                 # Because we likely wrote dozens of GB of zeros to disk, we have to wait some time for
                 # the disk to write all the data, otherwise the test would be unstable due to the load.
                 # Check average disk load for some time to make sure all the data are in cold on disk.
                 select_console('svirt');
-                type_string("typeperf \"\\LogicalDisk(D:)\\Avg\. Disk Bytes/Write\"\n");
+                type_string("typeperf \"\\LogicalDisk($hyperv_disk)\\Avg\. Disk Bytes/Write\"\n");
                 assert_screen('no-hyperv-disk-load', 600);
                 send_key 'ctrl-c';
                 assert_screen 'hyperv-typeperf-command-finished';
@@ -106,12 +117,12 @@ sub run {
                 last;
             }
             # Make sure the disk file is present
-            hyperv_cmd("if not exist D:\\cache\\" . $basenamehdd =~ s/vhdfixed\.xz/vhd/r . " ( exit 1 )");
+            hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdfixed\.xz/vhd/r . " ( exit 1 )");
         }
     }
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
-    my $iso      = get_var('ISO') ? 'd:\\cache\\' . basename(get_var('ISO')) : undef;
+    my $iso      = get_var('ISO') ? "$root\\cache\\" . basename(get_var('ISO')) : undef;
     my $ramsize  = get_var('QEMURAM', 1024);
     my $cpucount = get_var('QEMUCPUS', 1);
 
@@ -143,17 +154,17 @@ sub run {
     my @disk_paths = ();
     if ($winserver eq "2012") {
         for my $n (1 .. get_var('NUMDISKS')) {
-            hyperv_cmd("del /F d:\\cache\\${name}_${n}.vhd");
-            hyperv_cmd("del /F d:\\cache\\${name}_${n}.vhdx");
-            my $hdd = get_var("HDD_$n") ? 'd:\\cache\\' . basename(get_var("HDD_$n")) =~ s/vhdfixed\.xz/vhd/r : undef;
+            hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");
+            hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhdx");
+            my $hdd = get_var("HDD_$n") ? "$root\\cache\\" . basename(get_var("HDD_$n")) =~ s/vhdfixed\.xz/vhd/r : undef;
             if ($hdd) {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
-                my $disk_path = "d:\\cache\\${name}_${n}${hddsuffix}";
+                my $disk_path = "$root\\cache\\${name}_${n}${hddsuffix}";
                 push @disk_paths, $disk_path;
                 hyperv_cmd_with_retry("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
             }
             else {
-                my $disk_path = "d:\\cache\\${name}_${n}.vhdx";
+                my $disk_path = "$root\\cache\\${name}_${n}.vhdx";
                 push @disk_paths, $disk_path;
                 hyperv_cmd("$ps New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB");
             }
@@ -179,7 +190,7 @@ sub run {
     # (CDROM device can't be connected to SCSI, HDD can but we won't be able to bott from it).
     for my $n (1 .. 3) {
         if (my $addoniso = get_var("ISO_$n")) {
-            hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path d:\\cache\\" . basename($addoniso));
+            hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $root\\cache\\" . basename($addoniso));
         }
     }
 
