@@ -101,6 +101,7 @@ our @EXPORT = qw(
   load_security_tests_web
   load_security_tests_misc
   load_security_tests_crypt
+  load_security_tests_apparmor_status
   load_systemd_patches_tests
   load_create_hdd_tests
   load_virtualization_tests
@@ -1735,6 +1736,12 @@ sub load_security_tests_crypt {
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
+}
+
+# Other security tests other than FIPS
+sub load_security_tests_apparmor_status {
+    loadtest "security/apparmor/aa_status";
+    loadtest "security/apparmor/aa_enforce";
 }
 
 sub load_systemd_patches_tests {
