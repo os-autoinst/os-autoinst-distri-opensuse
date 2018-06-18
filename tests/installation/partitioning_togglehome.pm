@@ -35,7 +35,7 @@ sub run {
         elsif (is_storage_ng && !get_var('LVM')) {
             $cmd{toggle_home} = 'alt-o';
         }
-        send_key $cmd{toggle_home};
+        wait_screen_change { send_key $cmd{toggle_home} };
         assert_screen 'disabledhome';
     }
     send_key(is_storage_ng() ? 'alt-n' : 'alt-o');    # finish editing settings
