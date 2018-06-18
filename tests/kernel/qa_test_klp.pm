@@ -16,16 +16,22 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use registration;
+use qam;
 
 sub run {
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
     my ($test_type) = $git_repo =~ /qa_test_(\w+).git/;
 
+    # Set and check patch variables
+    my $incident_id = get_var('INCIDENT_ID');
+    my $patch       = get_var('INCIDENT_PATCH');
+    check_patch_variables($patch, $incident_id);
+
     select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
     zypper_call('in -l bats hiworkload');
 
-    if (check_var('DISTRI', 'sle') and get_var('INCIDENT_PATCH', '')) {
+    if (check_var('DISTRI', 'sle') and ($patch or $incident_id)) {
         add_suseconnect_product("sle-sdk");
     }
 

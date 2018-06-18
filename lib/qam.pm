@@ -110,7 +110,7 @@ sub get_patches {
     $repo =~ tr/,/ /;
 
     # Search for patches by incident, exclude not needed
-    my $patches = script_output("zypper patches -r $repo | awk -F '|' '/needed/ && !/not needed/ && /$incident_id/ { printf \$2 }'");
+    my $patches = script_output("zypper patches -r $repo | awk -F '|' '/[Nn]eeded/ && !/[Nn]ot [Nn]eeded/ && /$incident_id/ { printf \$2 }'");
     # Remove carriage returns and make patch list on one line
     $patches =~ s/\r//g;
     return $patches;
