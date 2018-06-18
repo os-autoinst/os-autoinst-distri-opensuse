@@ -261,7 +261,9 @@ sub run {
     }
 
     add_we_repo_if_available;
-    add_custom_grub_entries;
+    if (is_sle('12+')) {
+        add_custom_grub_entries;
+    }
     install_runtime_dependencies;
     install_runtime_dependencies_network;
 
