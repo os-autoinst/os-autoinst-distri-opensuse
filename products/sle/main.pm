@@ -567,8 +567,12 @@ sub load_ha_cluster_tests {
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_fencing';
 
-    # Check logs to find error and upload all needed logs
-    loadtest 'ha/check_logs';
+    # Check logs to find error and upload all needed logs if we are not
+    # in installation/publishing mode
+    loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
+
+    # If needed, do some actions prior to the shutdown
+    loadtest 'ha/prepare_shutdown' if get_var('INSTALLONLY');
 
     return 1;
 }
