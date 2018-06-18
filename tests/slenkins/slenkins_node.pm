@@ -46,8 +46,10 @@ sub run {
     type_string("rcwickedd stop\n");
     configure_hostname(get_var('SLENKINS_NODE'));
 
-    mutex_lock('dhcp', $control_id);
-    mutex_unlock('dhcp');
+    # Support server can start after network is on
+    barrier_wait 'HOSTNAMES_CONFIGURED', $control_id;
+
+    mutex_wait('support_server_ready', $control_id);
     configure_dhcp();
 
     if ($control_settings->{"SUPPORT_SERVER_ROLES"} !~ /\bdns\b/) {
