@@ -42,7 +42,7 @@ sub addpart {
     assert_screen "partition-size";
     if (is_storage_ng) {
         # maximum size is selected by default
-        send_key 'alt-c';
+        send_key $cmd{customsize};
         assert_screen 'partition-custom-size-selected';
         send_key 'alt-s';
     }
@@ -53,7 +53,7 @@ sub addpart {
     assert_screen "partition-size";
     send_key $cmd{next};
     assert_screen 'partition-role';
-    send_key "alt-a";    # Raw Volume
+    send_key $cmd{raw_volume};    # Raw Volume
     send_key $cmd{next};
     assert_screen 'partition-format';
     send_key $cmd{donotformat};
@@ -67,7 +67,9 @@ sub addpart {
         send_key_until_needlematch 'partition-selected-bios-boot-type', 'down';
     }
     else {
-        send_key_until_needlematch 'partition-selected-raid-type', 'down';
+        # poo#35134 Sporadic synchronization failure resulted in incorrect choice of partition type
+        # add partition screen was not refreshing fast enough
+        send_key_until_needlematch 'partition-selected-raid-type', 'down', 20, 3;
     }
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
@@ -145,6 +147,7 @@ sub set_lvm {
     send_key "ret";
 
     # create normal volume with name root
+    assert_screen 'add-lvm-on-root';
     type_string "root";
     assert_screen 'volume-name-root';
     send_key $cmd{next};
@@ -174,6 +177,7 @@ sub modify_uefi_boot_partition {
     # edit first partition
     send_key 'alt-e';
     assert_screen 'partition-format';
+    # We have different shortcut for Format option when editing partition
     send_key 'alt-a';
     assert_screen 'partitioning_raid-format_default_UEFI';
     # format as FAT (first choice)
@@ -268,7 +272,7 @@ sub add_prep_boot_partition {
     assert_screen 'partitioning-size';
     # Storage-ng has maximum size selected by default
     if (is_storage_ng) {
-        send_key 'alt-c';
+        send_key $cmd{customsize};
         wait_screen_change { send_key $cmd{size_hotkey} };
     }
     wait_screen_change { send_key 'ctrl-a' };    # Select text field content
@@ -276,7 +280,7 @@ sub add_prep_boot_partition {
     assert_screen 'partitioning_raid-custom-size-8MB';
     send_key 'alt-n';
     assert_screen 'partition-role';
-    send_key "alt-a";
+    send_key $cmd{raw_volume};
     assert_screen 'partitioning_raid-partition_role_raw_volume';
     send_key 'alt-n';
     assert_screen 'partition-format';

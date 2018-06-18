@@ -34,15 +34,15 @@ sub run {
 
     #output result to serial0 and upload test log
     if (get_var("QA_TESTSUITE")) {
-        my $test_log = script_output("ls /var/log/qa/ctcs2/");
-        my $tarball  = "/tmp/$test_log.tar.bz2";
-        assert_script_run("tar cjf $tarball -C /var/log/qa/ctcs2 $test_log");
+        my $tarball = "/tmp/testlog.tar.bz2";
+        assert_script_run("tar cjf $tarball -C /var/log/qa/ctcs2 `ls /var/log/qa/ctcs2/`");
         upload_logs($tarball, timeout => 600);
 
         #convert to junit log
         my $script_output = script_output("cat $run_log");
         my $tc_result     = analyzeResult($script_output);
-        my $xml_result    = generateXML($tc_result);
+        die 'Could not parse execution logs' unless $tc_result;
+        my $xml_result = generateXML($tc_result);
         script_output "echo \'$xml_result\' > /tmp/output.xml", 7200;
         parse_junit_log("/tmp/output.xml");
     }
@@ -54,4 +54,11 @@ sub run {
     assert_script_run("grep 'Test run completed successfully' $run_log");
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    # Collect executed test logs
+    assert_script_run 'tar -cf /tmp/run_logs.tgz /tmp/*-run.log';
+    upload_logs '/tmp/run_logs.tgz';
+}
 1;

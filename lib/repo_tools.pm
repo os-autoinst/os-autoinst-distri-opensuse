@@ -19,18 +19,19 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle is_leap);
 
-our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo);
+our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo);
 
 sub smt_wizard {
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
     assert_screen 'smt-wizard-1';
     send_key 'alt-u';
     wait_still_screen;
-    type_string 'SCC_ORG_DAJJBA';
+    type_string(get_required_var('SMT_ORG_NAME'));
     send_key 'alt-p';
     wait_still_screen;
-    type_string '043107d3db';
+    type_string(get_required_var('SMT_ORG_PASSWORD'));
     send_key 'alt-n';
     assert_screen 'smt-wizard-2';
     send_key 'alt-d';
@@ -59,7 +60,7 @@ sub smt_wizard {
         assert_screen 'smt-sync-failed', 100;    # expect fail because there is no network
         send_key 'alt-o';
     }
-    wait_serial("yast2-smt-wizard-0", 400) || die 'smt wizard failed';
+    wait_serial("yast2-smt-wizard-0", 800) || die 'smt wizard failed, it can be connection issue or credential issue';
 }
 
 sub smt_mirror_repo {
@@ -81,9 +82,9 @@ sub rmt_wizard {
     # check mysql status and config mysql for RMT
     systemctl 'start mysql.service';
     systemctl 'status mysql.service';
-    my $cmd = 'mysql -u root -p <<EOFF 
-GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY \'rmt\'; 
-FLUSH PRIVILEGES; 
+    my $cmd = 'mysql -u root -p <<EOFF
+GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY \'rmt\';
+FLUSH PRIVILEGES;
 EOFF';
     type_string "$cmd\n";
     assert_screen('rmt-sqladmin-password', 40);
@@ -111,10 +112,41 @@ sub rmt_mirror_repo {
     assert_script_run 'rmt-cli repo list';
 }
 
+sub prepare_source_repo {
+    my $cmd;
+    if (is_sle) {
+        if (is_sle('>=15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
+            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source";
+        }
+        elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_SOURCE')) {
+            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source";
+        }
+        # SLE maintenance tests are assumed to be SCC registered
+        # and source repositories disabled by default
+        elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+            $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
+        }
+        # use dvd2 as the src-repository
+        # Xen PV has different device for 2nd CDROM
+        elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
+            $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
+        }
+        else {
+            $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
+        }
+    }
+    # source repository is disabled by default
+    else {
+        $cmd = "mr -e repo-source";
+    }
+
+    zypper_call($cmd);
+    zypper_call("ref");
+}
+
 
 sub test_flags {
     return {fatal => 1};
 }
 
 1;
-# vim: set sw=4 et:

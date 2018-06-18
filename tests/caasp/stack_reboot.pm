@@ -15,29 +15,23 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp 'script_retry';
-use lockapi 'mutex_create';
+use caasp qw(script_retry unpause);
 
 sub run {
     switch_to 'xterm';
-    my $admin = 'admin.openqa.test';
 
-    # Test admin reboot
-    script_run "ssh $admin 'reboot'", 0;
+    record_info 'Admin reboot',            'Test admin node reboot';
+    script_run "ssh $admin_fqdn 'reboot'", 0;
+    # Wait until admin node powers off
+    script_retry "ping -c1 -W1 $admin_fqdn", expect => 1, retry => 3, delay => 10;
+    # Wait until velum is reachable again
+    script_retry "curl -kLI -m5 $admin_fqdn | grep _velum_session";
 
-    record_info 'Admin off', 'Wait until admin node powers off';
-    script_retry "ping -c1 -W1 $admin", expect => 1, retry => 3, delay => 10;
-
-    record_info 'Admin on', 'Wait until velum is reachable again';
-    script_retry "curl -kLI -m5 $admin | grep _velum_session";
-
-    # Test cluster reboot
-    assert_script_run "ssh $admin './update.sh -r' | tee /dev/$serialdev | grep EXIT_OK";
-
-    record_info 'Cluster off', 'Waiting until cluster powers off';
+    record_info 'Cluster reboot', 'Test cluster reboot';
+    assert_script_run "ssh $admin_fqdn './update.sh -r' | tee /dev/$serialdev | grep EXIT_OK";
+    # Wait until cluster powers off
     script_retry 'kubectl get nodes', expect => 1, retry => 3, delay => 10;
-
-    record_info 'Cluster on', 'Waiting until kubernetes is reachable again';
+    # Wait until kubernetes is reachable again
     script_retry 'kubectl get nodes';
 
     # Run basic kubernetes tests
@@ -45,7 +39,7 @@ sub run {
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     switch_to 'velum';
-    mutex_create 'UPDATE_FINISHED';
+    unpause 'REBOOT_FINISHED';
 }
 
 1;

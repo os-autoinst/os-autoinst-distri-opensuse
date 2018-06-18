@@ -26,11 +26,11 @@ sub run {
 
     select_virtio_console();
 
-    assert_script_run("wget $url");
+    assert_script_run("wget $url", 900);
     assert_script_run("tar -xzf $tarball");
     assert_script_run("mv $trex_version $trex_dest");
 
-    # Copy sample config file to default localtion
+    # Copy sample config file to default location
     assert_script_run("cp $trex_dest/cfg/simple_cfg.yaml /etc/trex_cfg.yaml");
 }
 

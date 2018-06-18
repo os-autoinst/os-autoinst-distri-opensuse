@@ -46,6 +46,22 @@ sub run {
         $xenconsole = "xvc0";
     }
 
+    set_var('BOOTFROM', 'c') if get_var('BOOT_HDD_IMAGE');
+    if (check_var('BOOTFROM', 'c')) {
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+    }
+    elsif (check_var('BOOTFROM', 'd')) {
+        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
+    }
+    else {
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+        $svirt->change_domain_element(os => boot => {dev => 'cdrom'}) if get_var('ISO');
+    }
+
+    # Unless os-autoinst PR#956 is deployed we have to remove 'on_reboot' first
+    $svirt->change_domain_element(on_reboot => undef);
+    $svirt->change_domain_element(on_reboot => 'destroy');
+
     my $dev_id = 'a';
     my $isodir = '/var/lib/openqa/share/factory/iso /var/lib/openqa/share/factory/iso/fixed';
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
@@ -58,7 +74,6 @@ sub run {
                 dev_id => $dev_id
             });
         $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
-        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
     }
     # Add addon media (if present at all)
     foreach my $n (1 .. 9) {
@@ -102,14 +117,8 @@ sub run {
     # on KVM and Xen HVM only. VMware and Xen PV add pointer
     # device with absolute axis by default.
     if (($vmm_family eq 'kvm') or ($vmm_family eq 'xen' and $vmm_type eq 'hvm')) {
-        if ($vmm_family eq 'kvm') {
-            $svirt->add_input({type => 'tablet',   bus => 'virtio'});
-            $svirt->add_input({type => 'keyboard', bus => 'virtio'});
-        }
-        elsif ($vmm_family eq 'xen' and $vmm_type eq 'hvm') {
-            $svirt->add_input({type => 'tablet',   bus => 'usb'});
-            $svirt->add_input({type => 'keyboard', bus => 'ps2'});
-        }
+        $svirt->add_input({type => 'tablet',   bus => 'usb'});
+        $svirt->add_input({type => 'keyboard', bus => 'ps2'});
     }
 
     my $console_target_type;

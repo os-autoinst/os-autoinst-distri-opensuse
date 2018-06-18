@@ -14,15 +14,16 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 use lockapi;
-use utils qw(zypper_call systemctl);
+use utils qw(systemctl zypper_call);
+use version_utils 'is_sle';
 
 sub run {
-    zypper_call 'up';
     if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('salt_master_ready',      $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
-        zypper_call 'in deepsea ceph openattic';
+        my $ses_version_specific_packages = is_sle('<15') ? 'openattic' : '';
+        zypper_call "in $ses_version_specific_packages";
         assert_script_run 'echo "deepsea_minions: \'*\'" > /srv/pillar/ceph/deepsea_minions.sls';
         systemctl 'start salt-master';
         systemctl 'enable salt-master';
@@ -38,22 +39,41 @@ sub run {
         # salt does not return 1 if any node will fail ping test
         assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
  then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
-        assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
-        assert_script_run 'deepsea stage run ceph.stage.0', 1200;
-        assert_script_run 'deepsea stage run ceph.stage.1', 1200;
+        assert_script_run "salt \'*\' cmd.run \'lsblk\' |& tee /dev/$serialdev";
         my $policy = get_var('SES_POLICY');
-        assert_script_run 'wget ' . data_url("ses/$policy");
-        assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
-        assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
-        assert_script_run 'deepsea stage run ceph.stage.2', 1200;
-        assert_script_run 'deepsea stage run ceph.stage.3', 1200;
+        if (is_sle('>=15')) {
+            # before every stage __pycache__ has to be deleted and also deepsea cli does not work properly
+            record_soft_failure 'bsc#1087232';
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.0 |& tee /dev/$serialdev", 700;
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev", 700;
+            assert_script_run 'wget ' . data_url("ses/$policy");
+            assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
+            assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.2 |& tee /dev/$serialdev", 700;
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.3 |& tee /dev/$serialdev", 1200;
+            assert_script_run 'rm -rf /srv/modules/runners/__pycache__';
+            assert_script_run "salt-run state.orch ceph.stage.4 |& tee /dev/$serialdev", 1200;
+        }
+        else {
+            assert_script_run "deepsea stage run ceph.stage.0 |& tee /dev/$serialdev", 700;
+            assert_script_run "deepsea stage run ceph.stage.1 |& tee /dev/$serialdev", 700;
+            assert_script_run 'wget ' . data_url("ses/$policy");
+            assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
+            assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
+            assert_script_run "deepsea stage run ceph.stage.2 |& tee /dev/$serialdev", 1200;
+            assert_script_run "deepsea stage run ceph.stage.3 |& tee /dev/$serialdev", 1200;
+            assert_script_run "deepsea stage run ceph.stage.4 |& tee /dev/$serialdev", 1200;
+        }
         assert_script_run 'ceph osd df tree';
         assert_script_run 'ceph -s';
         barrier_wait {name => 'deployment_done', check_dead_job => 1};
     }
     else {
         barrier_wait('salt_master_ready');
-        zypper_call 'in salt-minion ceph';
         # set master node as salt-master
         assert_script_run 'sed -i \'s/#master: salt/master: master/\' /etc/salt/minion';
         systemctl 'start salt-minion';

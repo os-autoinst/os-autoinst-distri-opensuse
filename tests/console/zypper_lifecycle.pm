@@ -106,7 +106,7 @@ sub run {
 
     my $product_eol;
     for my $l (split /\n/, $overview) {
-        if ($l =~ /(?<!Codestream:)\s+$product_name\s*(\S*)/) {
+        if ($l =~ /^(?<!Codestream:)\s+$product_name\s*(\S*)/) {
             $product_eol = $1;
             last;
         }

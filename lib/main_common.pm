@@ -40,6 +40,8 @@ our @EXPORT = qw(
   is_sles4sap
   is_sles4sap_standard
   is_updates_tests
+  is_updates_test_repo
+  map_incidents_to_repo
   need_clear_repos
   have_scc_repos
   load_svirt_vm_setup_tests
@@ -99,6 +101,7 @@ our @EXPORT = qw(
   load_security_tests_web
   load_security_tests_misc
   load_security_tests_crypt
+  load_security_tests_apparmor_status
   load_systemd_patches_tests
   load_create_hdd_tests
   load_virtualization_tests
@@ -165,6 +168,15 @@ sub setup_env {
         # Does _not_ work on aarch64
         set_var('UEFI_PFLASH', 1);
     }
+    # By default format DASD devices before installation
+    if (check_var('BACKEND', 's390x')) {
+        # Format DASD before the installation by default
+        # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
+        # due to channel not activation issue. Need further investigation on it.
+        # Also do not format if activate existing partitions
+        my $format_dasd = get_var('S390_DISK') || get_var('UPGRADE') || get_var('ENCRYPT_ACTIVATE_EXISTING') ? 'never' : 'pre_install';
+        set_var('FORMAT_DASD', get_var('FORMAT_DASD', $format_dasd));
+    }
 }
 
 sub any_desktop_is_applicable {
@@ -205,9 +217,7 @@ sub packagekit_available {
 
 sub is_kernel_test {
     return ( get_var('INSTALL_LTP')
-          || get_var('LTP_SETUP_NETWORKING')
           || get_var('LTP_COMMAND_FILE')
-          || get_var('INSTALL_KOTD')
           || get_var('QA_TEST_KLP_REPO')
           || get_var('INSTALL_KOTD')
           || get_var('VIRTIO_CONSOLE_TEST')
@@ -244,16 +254,18 @@ sub replace_opensuse_repos_tests {
 sub is_updates_tests {
     my $flavor = get_required_var('FLAVOR');
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    # -Updates works with SLE and Update is for openSUSE, and added Maintenance to match flavor for openSUSE
-    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/ || $flavor =~ /Maintenance$/ || $flavor =~ /Update/;
+    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+}
+
+sub is_updates_test_repo {
+    # mru stands for Maintenance Released Updates and skips unreleased updates
+    return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
 sub is_repo_replacement_required {
     return is_opensuse()                  # Is valid scenario onlu for openSUSE
       && !is_staging()                    # Do not have mirrored repos on staging
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
-      && !is_updates_tests()              # Is not required for update and upgrade tests, repos are already injected
-      && !is_upgrade()
       && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
       && !get_var('OFFLINE_SUT');         # Do not run if SUT is offine
 }
@@ -296,11 +308,11 @@ sub is_desktop_module_selected {
 }
 
 sub default_desktop {
+    return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     return undef   if get_var('VERSION', '') lt '12';
     return 'gnome' if get_var('VERSION', '') lt '15';
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
-    return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     return 'gnome' if is_desktop_module_selected;
     # default system role for sles and sled
     return 'textmode' if is_server || !get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation');
@@ -363,7 +375,7 @@ sub load_boot_tests {
 
 sub load_reboot_tests {
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if (check_var("ARCH", "s390x") && !(get_var('ENCRYPT') && check_var('BACKEND', 'svirt'))) {
+    if (check_var("ARCH", "s390x") && !get_var('ENCRYPT')) {
         loadtest "installation/reconnect_s390";
     }
     if (uses_qa_net_hardware()) {
@@ -380,7 +392,7 @@ sub load_reboot_tests {
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
-            if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
+            if (check_var('ARCH', 's390x')) {
                 loadtest "installation/reconnect_s390";
             }
         }
@@ -495,6 +507,9 @@ sub load_docker_tests {
 }
 
 sub load_system_role_tests {
+    if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+        loadtest "installation/setup_online_repos";
+    }
     # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
     if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
         loadtest "installation/logpackages";
@@ -623,6 +638,23 @@ sub remove_desktop_needles {
     if (!check_var("DESKTOP", $desktop) && !check_var("FULL_DESKTOP", $desktop)) {
         unregister_needle_tags("ENV-DESKTOP-$desktop");
     }
+}
+
+sub map_incidents_to_repo {
+    my ($incidents, $templates) = @_;
+    my @maint_repos;
+    for my $a (keys %$incidents) {
+        for my $b (split(/,/, $incidents->{$a})) {
+            if ($b) {
+                push @maint_repos, join($b, split('%INCIDENTNR%', $templates->{$a}));
+            }
+        }
+    }
+
+    my $ret = join(',', @maint_repos);
+    # do not start with ','
+    $ret =~ s/^,//s;
+    return $ret;
 }
 
 our %valueranges = (
@@ -790,7 +822,13 @@ sub load_inst_tests {
             }
             loadtest "installation/partitioning_filesystem";
         }
-        if (get_var("TOGGLEHOME")) {
+        # boo#1093372 Leap 15.0 proposes a separate home even on small disks
+        # making the root partition likely to small so we should switch the
+        # defaults here unless we reconfigure using the guided proposal or
+        # expert partitioner anyway
+        if (get_var("TOGGLEHOME")
+            || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !defined get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
+        {
             loadtest "installation/partitioning_togglehome";
             if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
                 loadtest "installation/partitioning_resize_root";
@@ -812,7 +850,7 @@ sub load_inst_tests {
         if (get_var("IBFT")) {
             loadtest "installation/partitioning_iscsi";
         }
-        if (uses_qa_net_hardware() || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
+        if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
             loadtest "installation/partitioning_firstdisk";
         }
         loadtest "installation/partitioning_finish";
@@ -830,9 +868,6 @@ sub load_inst_tests {
 
     if (noupdatestep_is_applicable()) {
         loadtest "installation/installer_timezone" if !is_caasp('kubic');
-        if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-            loadtest "installation/setup_online_repos";
-        }
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
@@ -841,6 +876,7 @@ sub load_inst_tests {
             and !is_hyperv_in_gui
             and !is_bridged_networking
             and !check_var('BACKEND', 's390x')
+            and !check_var('BACKEND', 'ipmi')
             and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";
@@ -864,7 +900,7 @@ sub load_inst_tests {
             loadtest "installation/user_settings" if !is_caasp('kubic');
         }
         if (is_sle || get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
-            loadtest "installation/user_settings_root";
+            loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-node') || check_var('SYSTEM_ROLE', 'hpc-server');
         }
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/installation_overview_before";
@@ -883,10 +919,6 @@ sub load_inst_tests {
     }
     if (get_var("UEFI") && get_var("SECUREBOOT")) {
         loadtest "installation/secure_boot";
-    }
-    # for upgrades on s390 zKVM we need to change the static ip adress of the image to reboot properly
-    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x') && get_var('UPGRADE')) {
-        loadtest "installation/set_static_ip";
     }
     if (installyaststep_is_applicable()) {
         loadtest "installation/installation_overview";
@@ -918,7 +950,6 @@ sub load_inst_tests {
             loadtest "installation/sles4sap_wizard_swpm";
         }
     }
-
 }
 
 sub load_consoletests {
@@ -927,6 +958,7 @@ sub load_consoletests {
         loadtest "rt/kmp_modules";
     }
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     loadtest "console/force_cron_run" unless is_jeos;
@@ -968,8 +1000,10 @@ sub load_consoletests {
     loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
 
     # Do not clear repos twice if replace repos for openSUSE
-    if (need_clear_repos() && !is_repo_replacement_required()) {
+    # On staging repos are already removed, using CLEAR_REPOS flag variable
+    if (need_clear_repos() && !is_repo_replacement_required() && !get_var('CLEAR_REPOS')) {
         loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
@@ -1050,8 +1084,7 @@ sub load_consoletests {
         loadtest "console/http_srv";
         loadtest "console/mysql_srv";
         loadtest "console/dns_srv";
-        # TODO test on openSUSE -> https://progress.opensuse.org/issues/27014
-        loadtest "console/postgresql_server" if is_sle;
+        loadtest "console/postgresql_server" unless (is_leap('<15.0'));
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
         if (is_sle && sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
             loadtest "console/shibboleth";
@@ -1086,11 +1119,10 @@ sub load_consoletests {
         }
     }
     loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
-    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && sle_version_at_least('12-SP3')) {
+    if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest 'migration/sle12_online_migration/orphaned_packages_check' if get_var('UPGRADE');
-
+    loadtest 'console/orphaned_packages_check' if get_var('UPGRADE');
     loadtest "console/consoletest_finish";
 }
 
@@ -1111,6 +1143,8 @@ sub load_x11tests {
     if (kdestep_is_applicable() && get_var("WAYLAND")) {
         loadtest "x11/start_wayland_plasma5";
     }
+    # first module after login or startup to check prerequisites
+    loadtest "x11/desktop_runner";
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal";
     }
@@ -1173,23 +1207,42 @@ sub load_x11tests {
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
-    if (xfcestep_is_applicable()) {
-        loadtest "x11/thunar";
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_xfce";
-        }
-    }
-    if (lxdestep_is_applicable()) {
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_lxde";
-        }
-    }
+    loadtest "x11/thunar" if xfcestep_is_applicable();
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
+    if (gnomestep_is_applicable()) {
+        loadtest "x11/nautilus" unless get_var("LIVECD");
+        loadtest "x11/gnome_music"    if is_opensuse;
+        loadtest "x11/evolution"      if (!is_server() || we_is_applicable());
+        load_testdir('x11/gnomeapps') if is_gnome_next;
+    }
+    loadtest "x11/desktop_mainmenu";
+    load_sles4sap_tests() if (is_sles4sap() and !is_sles4sap_standard());
+    if (xfcestep_is_applicable()) {
+        loadtest "x11/xfce4_appfinder";
+        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
+            loadtest "x11/xfce_lightdm_logout_login";
+        }
+    }
+    if (is_opensuse && !get_var("LIVECD")) {
+        loadtest "x11/inkscape";
+        loadtest "x11/gimp";
+    }
+    if (is_opensuse && !is_staging && !is_livesystem) {
+        loadtest "x11/gnucash";
+        loadtest "x11/hexchat";
+        loadtest "x11/vlc";
+    }
+    # https://progress.opensuse.org/issues/37342
+    if (is_sle() && gnomestep_is_applicable() && !is_staging()) {
+        loadtest "x11/remote_desktop/vino_screensharing_available";
+    }
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
         loadtest "x11/kontact" unless is_kde_live;
+    }
+    if (kdestep_is_applicable()) {
         if (!get_var("USBBOOT") && !is_livesystem) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
@@ -1199,35 +1252,18 @@ sub load_x11tests {
             }
         }
     }
-    if (gnomestep_is_applicable()) {
-        loadtest "x11/nautilus" unless get_var("LIVECD");
-        loadtest "x11/gnome_music" if is_opensuse;
-        loadtest "x11/evolution" if (!is_server() || we_is_applicable());
-        if (!get_var("USBBOOT") && !is_livesystem) {
-            loadtest "x11/reboot_gnome";
-        }
-        load_testdir('x11/gnomeapps') if is_gnome_next;
+    if (gnomestep_is_applicable() && !get_var("USBBOOT") && !is_livesystem) {
+        loadtest "x11/reboot_gnome";
     }
-    loadtest "x11/desktop_mainmenu";
-    if (is_sles4sap() and !is_sles4sap_standard()) {
-        load_sles4sap_tests();
-    }
-
     if (xfcestep_is_applicable()) {
-        loadtest "x11/xfce4_appfinder";
-        if (!(get_var("FLAVOR") eq 'Rescue-CD')) {
-            loadtest "x11/xfce_lightdm_logout_login";
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            loadtest "x11/reboot_xfce";
         }
     }
-
-    if (is_opensuse && !get_var("LIVECD")) {
-        loadtest "x11/inkscape";
-        loadtest "x11/gimp";
-    }
-    if (is_opensuse && !is_staging && !is_livesystem) {
-        loadtest "x11/gnucash";
-        loadtest "x11/hexchat";
-        loadtest "x11/vlc";
+    if (lxdestep_is_applicable()) {
+        if (!get_var("USBBOOT") && !is_livesystem) {
+            loadtest "x11/reboot_lxde";
+        }
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
@@ -1239,6 +1275,7 @@ sub load_yast2_ncurses_tests {
     boot_hdd_image;
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     loadtest "console/zypper_lr";
     loadtest "console/zypper_ref";
@@ -1329,7 +1366,7 @@ sub load_extra_tests_desktop {
             loadtest "x11/multi_users_dm";
         }
         # wine is only in openSUSE for various reasons, including legal ones
-        loadtest 'x11/wine';
+        loadtest 'x11/wine' if get_var('ARCH', '') =~ /x86_64|i586/;
 
     }
     # the following tests care about network and need some DE specific
@@ -1425,6 +1462,7 @@ sub load_extra_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
@@ -1436,6 +1474,7 @@ sub load_extra_tests {
 }
 
 sub load_rollback_tests {
+    return if check_var('ARCH', 's390x');
     loadtest "boot/grub_test_snapshot";
     loadtest "migration/version_switch_origin_system";
     if (get_var('UPGRADE') || get_var('ZDUP')) {
@@ -1453,6 +1492,7 @@ sub load_filesystem_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
@@ -1484,6 +1524,9 @@ sub load_wicked_tests {
     }
     elsif (check_var('WICKED', 'advanced')) {
         loadtest 'wicked/advanced';
+    }
+    else {
+        die 'Unhandled WICKED test selection: ' . get_var('WICKED');
     }
 }
 
@@ -1546,7 +1589,11 @@ sub load_x11_documentation {
     loadtest "x11/libreoffice/libreoffice_recent_documents";
     loadtest "x11/libreoffice/libreoffice_default_theme";
     loadtest "x11/libreoffice/libreoffice_double_click_file";
-    if (sle_version_at_least('12-SP1')) {
+    if (is_sle('>=15')) {
+        loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
+        loadtest "x11/libreoffice/libreoffice_pyuno_bridge_no_evolution_dep";
+    }
+    elsif (is_sle('>=12-SP1')) {
         loadtest "x11/libreoffice/libreoffice_mainmenu_favorites";
         loadtest "x11/evolution/evolution_prepare_servers";
         loadtest "x11/libreoffice/libreoffice_pyuno_bridge";
@@ -1691,6 +1738,12 @@ sub load_security_tests_crypt {
     loadtest "console/consoletest_finish";
 }
 
+# Other security tests other than FIPS
+sub load_security_tests_apparmor_status {
+    loadtest "security/apparmor/aa_status";
+    loadtest "security/apparmor/aa_enforce";
+}
+
 sub load_systemd_patches_tests {
     boot_hdd_image;
     loadtest 'console/systemd_testsuite';
@@ -1698,8 +1751,11 @@ sub load_systemd_patches_tests {
 
 sub load_create_hdd_tests {
     return unless get_var('INSTALLONLY');
+    # install SES packages and deepsea testsuites
+    loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest 'console/hostname'       unless is_bridged_networking;
     loadtest 'console/force_cron_run' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3

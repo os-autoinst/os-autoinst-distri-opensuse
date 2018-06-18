@@ -16,6 +16,7 @@ use strict;
 use testapi;
 use mm_network;
 use lockapi;
+use version_utils 'is_sle';
 use mmapi;
 use utils qw(zypper_call turn_off_gnome_screensaver);
 
@@ -30,7 +31,7 @@ sub run {
     configure_static_dns(get_host_resolv_conf());
     zypper_call 'in yast2-iscsi-lio-server';
     assert_script_run 'dd if=/dev/zero of=/root/iscsi-disk seek=1M bs=8192 count=1';    # create iscsi LUN
-    type_string "yast2 iscsi-lio-server\n";
+    type_string "yast2 iscsi-lio-server; echo yast2-iscsi-server-\$? > /dev/$serialdev\n";
     assert_screen 'iscsi-lio-server';
     send_key 'alt-o';                                                                   # open port in firewall
     wait_still_screen(2, 10);
@@ -46,7 +47,7 @@ sub run {
     send_key 'ctrl-a';                                                                  # select all text inside target field
     wait_still_screen(2, 10);
     send_key 'delete';                                                                  # text it is automatically selected after tab, delete
-    type_string 'iqn.openqa.de';
+    type_string 'iqn.2016-02.de.openqa';
     wait_still_screen(2, 10);
     send_key 'tab';                                                                     # tab to identifier field
     wait_still_screen(2, 10);
@@ -54,26 +55,34 @@ sub run {
     wait_still_screen(2, 10);
     type_string '132';
     wait_still_screen(2, 10);
-    send_key 'alt-u';                                                                   # un-check use authentication
+    if (is_sle('>=15')) {
+        send_key 'alt-l';                                                               # un-check bind all IPs
+    }
+    else {
+        send_key 'alt-u';                                                               # un-check use authentication
+    }
     wait_still_screen(2, 10);
     send_key 'alt-a';                                                                   # add LUN
-    send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 5, 5;         # send alt-p until LUN path is selected
+    my $lunpath_key = is_sle('>=15') ? 'alt-l' : 'alt-p';
+    send_key_until_needlematch 'iscsi-target-LUN-path-selected', $lunpath_key, 5, 5;    # send $lunpath_key until LUN path is selected
     type_string '/root/iscsi-disk';
     assert_screen 'iscsi-target-LUN';
     send_key 'alt-o';                                                                   # OK
     assert_screen 'iscsi-target-overview';
     send_key 'alt-n';                                                                   # next
     wait_still_screen(2, 10);
-    send_key 'alt-a';                                                                   # add client
-    send_key_until_needlematch 'iscsi-client-name-selected', 'tab';                     # there is no field shortcut, so tab till client name field is selected
-    type_string 'iqn.2016-02.de.openqa';
-    assert_screen 'iscsi-target-client-name';
-    send_key 'alt-o';                                                                   # OK
-    assert_screen 'iscsi-target-client-setup';
-    send_key 'alt-n';                                                                   # next
+    if (is_sle('<15')) {
+        send_key 'alt-a';                                                               # add client
+        send_key_until_needlematch 'iscsi-client-name-selected', 'tab';                 # there is no field shortcut, so tab till client name field is selected
+        type_string 'iqn.2016-02.de.openqa';
+        assert_screen 'iscsi-target-client-name';
+        send_key 'alt-o';                                                               # OK
+        assert_screen 'iscsi-target-client-setup';
+        send_key 'alt-n';                                                               # next
+    }
     assert_screen 'iscsi-target-overview-target-tab';
     send_key 'alt-f';                                                                   # finish
-    wait_still_screen(2, 10);
+    wait_serial("yast2-iscsi-server-0", 180) || die "'yast2 iscsi-lio ' didn't finish or exited with non-zero code";
     mutex_create('iscsi_ready');                                                        # setup is done client can connect
     type_string "killall xterm\n";
     wait_for_children;                                                                  # run till client is done

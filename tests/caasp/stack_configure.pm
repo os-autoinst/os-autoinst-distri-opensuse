@@ -16,7 +16,7 @@ use version_utils 'is_caasp';
 
 use strict;
 use testapi;
-use lockapi;
+use caasp 'unpause';
 
 # Fill certificate information
 sub velum_config {
@@ -28,6 +28,13 @@ sub velum_config {
     # Install Tiller
     send_key 'spc';
 
+    # Select container runtime
+    if (check_var('CONTAINER_RUNTIME', 'cri-o')) {
+        send_key 'pgdn';
+        assert_and_click 'container-runtime-cri-o';
+        wait_still_screen 3;
+    }
+
     # Make sure next button is visible
     send_key 'pgdn';
     assert_and_click "velum-next";
@@ -35,20 +42,20 @@ sub velum_config {
     assert_screen 'velum-tips-page';
     assert_and_click "velum-next";
 
-    mutex_create 'VELUM_CONFIGURED';
+    unpause 'VELUM_CONFIGURED';
 }
 
 # Upload autoyast profile
 sub upload_autoyast {
     send_key 'alt-tab';    # switch to xterm
     assert_screen 'xterm';
-    assert_script_run 'curl --location ' . get_var('DASHBOARD_URL') . '/autoyast' . ' --output autoyast.xml';
+    assert_script_run "curl --location $admin_fqdn/autoyast --output autoyast.xml";
     upload_logs('autoyast.xml');
     send_key 'alt-tab';    # switch to xterm
 }
 
 sub run {
-    x11_start_program('firefox admin.openqa.test', target_match => 'firefox');
+    x11_start_program("firefox $admin_fqdn", target_match => 'firefox');
     send_key 'f11';
     wait_still_screen 3;
 
@@ -56,7 +63,7 @@ sub run {
 
     # Check that footer has proper tag
     my $v = get_var('VERSION');
-    $v .= '-dev' if get_var 'BETA';
+    $v .= '-dev' if check_var('BETA', 'DEV');
     assert_screen "velum-footer-version-$v";
 
     # Register to velum

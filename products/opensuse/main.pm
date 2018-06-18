@@ -114,6 +114,13 @@ if (get_var('ZDUP_IN_X')) {
     set_var('ZDUP', 1);
 }
 
+if (is_updates_test_repo && !get_var('ZYPPER_ADD_REPOS')) {
+    my $repos = map_incidents_to_repo({OS => get_required_var('OS_TEST_ISSUES')}, {OS => get_required_var('OS_TEST_TEMPLATE')});
+    set_var('ZYPPER_ADD_REPOS', $repos);
+    # these are not using default gpg keys
+    set_var('ZYPPER_ADD_REPO_PREFIX', 'untrusted');
+}
+
 if (   get_var("WITH_UPDATE_REPO")
     || get_var("WITH_MAIN_REPO")
     || get_var("WITH_DEBUG_REPO")
@@ -245,8 +252,12 @@ sub load_system_update_tests {
     return unless updates_is_applicable;
     if (need_clear_repos) {
         loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
     }
 
+    if (get_var('ZYPPER_ADD_REPOS')) {
+        loadtest "console/zypper_add_repos";
+    }
     if (guiupdates_is_applicable()) {
         loadtest "update/prepare_system_for_update_tests";
         if (check_var("DESKTOP", "kde")) {
@@ -262,76 +273,17 @@ sub load_system_update_tests {
     }
 }
 
-sub load_applicationstests {
-    return 0 unless get_var("APPTESTS");
+sub load_qam_install_tests {
+    return 0 unless get_var('INSTALL_PACKAGES');
 
-    my @tests;
+    loadtest 'console/consoletest_setup';
+    loadtest 'console/import_gpg_keys';
+    loadtest 'update/zypper_up';
+    loadtest 'console/install_packages';
+    loadtest 'console/zypper_add_repos';
+    loadtest 'console/qam_zypper_patch';
+    loadtest 'console/qam_verify_package_install';
 
-    my %testsuites = (
-        chromium           => ['x11/chromium'],
-        evolution          => ['x11/evolution'],
-        gimp               => ['x11/gimp'],
-        hexchat            => ['x11/hexchat'],
-        libzypp            => ['console/zypper_in', 'console/yast2_i'],
-        MozillaFirefox     => [qw(x11/firefox x11/firefox_audio)],
-        MozillaThunderbird => ['x11/thunderbird'],
-        vlc                => ['x11/vlc'],
-        xchat              => ['x11/xchat'],
-        xterm              => ['x11/xterm'],
-    );
-
-    # adjust $pos below if you modify the position of
-    # consoletest_finish!
-    if (get_var('BOOT_HDD_IMAGE')) {
-        if (get_var('MM_CLIENT')) {
-            @tests = split(/,/, get_var('APPTESTS'));
-        }
-        else {
-            @tests = (
-                'console/consoletest_setup',
-                'console/import_gpg_keys',
-                'update/zypper_up',
-                'console/install_packages',
-                'console/zypper_add_repos',
-                'console/qam_zypper_patch',
-                'console/qam_verify_package_install',
-                'console/console_reboot',
-                # position -2
-                'console/consoletest_finish',
-                # position -1
-                'x11/shutdown'
-            );
-        }
-    }
-    else {
-        @tests = (
-            'console/consoletest_setup',
-            'update/zypper_up',
-            'console/qam_verify_package_install',
-            # position -2
-            'console/consoletest_finish',
-            # position -1
-            'x11/shutdown'
-        );
-    }
-
-    if (my $val = get_var("INSTALL_PACKAGES", '')) {
-        for my $pkg (split(/ /, $val)) {
-            next unless exists $testsuites{$pkg};
-            # yeah, pretty crappy method. insert
-            # consoletests before consoletest_finish and x11
-            # tests before shutdown
-            for my $t (@{$testsuites{$pkg}}) {
-                my $pos = -1;
-                $pos = -2 if ($t =~ /^console\//);
-                splice @tests, $pos, 0, $t;
-            }
-        }
-    }
-
-    for my $test (@tests) {
-        loadtest "$test";
-    }
 
     return 1;
 }
@@ -400,11 +352,10 @@ elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
     loadtest 'gnuhealth/gnuhealth_install';
     loadtest 'gnuhealth/gnuhealth_setup';
-    loadtest 'gnuhealth/tryton_install';
-    loadtest 'gnuhealth/tryton_preconfigure';
-    loadtest 'gnuhealth/tryton_first_time';
+    loadtest 'gnuhealth/gnuhealth_client_install';
+    loadtest 'gnuhealth/gnuhealth_client_preconfigure';
+    loadtest 'gnuhealth/gnuhealth_client_first_time';
 }
-
 elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
@@ -440,10 +391,6 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_inst_tests();
     load_reboot_tests();
 }
-elsif (get_var('MM_CLIENT')) {
-    boot_hdd_image;
-    load_applicationstests;
-}
 elsif (get_var('SECURITYTEST')) {
     boot_hdd_image;
     loadtest "console/consoletest_setup";
@@ -459,6 +406,9 @@ elsif (get_var('SECURITYTEST')) {
     }
     elsif (check_var('SECURITYTEST', 'crypt')) {
         load_security_tests_crypt;
+    }
+    elsif (check_var("SECURITYTEST", "apparmor_status")) {
+        load_security_tests_apparmor_status;
     }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
@@ -525,7 +475,7 @@ else {
     }
 
     unless (install_online_updates()
-        || load_applicationstests()
+        || load_qam_install_tests()
         || load_extra_tests()
         || load_virtualization_tests()
         || load_otherDE_tests()
@@ -551,4 +501,3 @@ else {
 load_common_opensuse_sle_tests;
 
 1;
-# vim: set sw=4 et:

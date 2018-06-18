@@ -348,7 +348,7 @@ sub setup_iscsi_server {
 
     # Change Target value
     for (1 .. 40) { send_key 'backspace'; }
-    type_string 'iqn.openqa.de';
+    type_string 'iqn.2016-02.de.openqa';
     wait_still_screen 3;
 
     # Select Identifier field

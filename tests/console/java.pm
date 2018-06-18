@@ -27,15 +27,15 @@ sub run {
     pkcon_quit;
 
     # Capture the return code value of the following scenarios
-    my $bootstrap_pkg_rt       = zypper_call("se java-*bootstrap",  exitcode => [0, 104]);
-    my $bootstrap_conflicts_rt = zypper_call("in --dry-run java-*", exitcode => [0, 4]);
+    my $bootstrap_pkg_rt = zypper_call("se java-*bootstrap", exitcode => [0, 104]);
+    my $bootstrap_conflicts_rt = zypper_call("in --auto-agree-with-licenses --dry-run java-*", exitcode => [0, 4]);
 
     # logs / debugging purposes
     diag "checking variable: bootstrap_pkg_rt = $bootstrap_pkg_rt";
     diag "checking variable: bootstrap_conflicts_rt = $bootstrap_conflicts_rt";
 
     if (check_var("DISTRI", "sle")) {
-        zypper_call("in java-*", timeout => 1400);
+        zypper_call("in --auto-agree-with-licenses java-*", timeout => 1400);
     }
 
     if (check_var("DISTRI", "opensuse")) {

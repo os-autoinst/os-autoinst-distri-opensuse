@@ -15,7 +15,8 @@ use lockapi;
 use needle;
 use registration;
 use utils;
-use version_utils qw(is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+use version_utils
+  qw(is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -30,10 +31,6 @@ init_main();
 
 sub is_new_installation {
     return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
-}
-
-sub is_update_test_repo_test {
-    return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
 sub cleanup_needles {
@@ -61,7 +58,10 @@ sub cleanup_needles {
         unregister_needle_tags("ENV-VERSION-11-SP4");
     }
 
-    my $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
+    my $tounregister = sle_version_at_least('12') ? '0' : '1';
+    unregister_needle_tags("ENV-12ORLATER-$tounregister");
+
+    $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
     unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
 
     $tounregister = sle_version_at_least('12-SP3') ? '0' : '1';
@@ -135,6 +135,10 @@ if (sle_version_at_least('15')) {
     }
 }
 
+# don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
+# For released products we want install updates during installation, only in minimal workflow disable
+set_var('DISABLE_SLE_UPDATES', get_var('DISABLE_SLE_UPDATES', get_var('QAM_MINIMAL')));
+
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
     if (sle_version_at_least('12-SP2')) {
@@ -199,6 +203,49 @@ if (get_var('DEV_IMAGE')) {
     }
 }
 
+#This setting is used to enable all extensions/modules for upgrading tests, generate corresponding extensions/modules list for all addons, all extensions, all modules cases.
+if (check_var('SCC_REGISTER', 'installation') && get_var('ALL_ADDONS') && !get_var('SCC_ADDONS')) {
+    my $version = get_required_var("HDDVERSION");
+    #Below $common* store the extensions/modules list in common.
+    my %common_addons = (
+        '12-SP3' => 'sdk,pcm,tcm,wsm',
+        '11-SP4' => 'ha,geo,sdk'
+    );
+    my %common_extensions = ('12-SP3' => 'sdk');
+    my %common_modules    = ('12-SP3' => 'pcm,tcm,wsm');
+    #Below $external* store external extensions/modules list on each ARCH.
+    my %external_addons_12SP3 = (
+        'x86_64'  => 'ha,geo,we,live,asmm,contm,lgm,hpcm',
+        'ppc64le' => 'ha,live,asmm,contm,lgm',
+        's390x'   => 'ha,geo,asmm,contm,lgm',
+        'aarch64' => 'hpcm'
+    );
+    my %external_modules_12SP3 = (
+        'x86_64'  => 'asmm,contm,lgm,hpcm',
+        'ppc64le' => 'asmm,contm,lgm',
+        's390x'   => 'asmm,contm,lgm',
+        'aarch64' => 'hpcm'
+    );
+    my %external_extensions_12SP3 = (
+        'x86_64'  => 'ha,geo,we,live',
+        'ppc64le' => 'ha,live',
+        's390x'   => 'ha,geo',
+        'aarch64' => ''
+    );
+    # ALL_ADDONS = 'addons' : all addons, 'extensions' : all extensions, 'modules' : all modules.
+    if (is_sle('12-SP3+')) {
+        set_var('SCC_ADDONS', join(',', $common_addons{$version},     $external_addons_12SP3{get_var('ARCH')}))     if (check_var('ALL_ADDONS', 'addons'));
+        set_var('SCC_ADDONS', join(',', $common_extensions{$version}, $external_extensions_12SP3{get_var('ARCH')})) if (check_var('ALL_ADDONS', 'extensions'));
+        set_var('SCC_ADDONS', join(',', $common_modules{$version},    $external_modules_12SP3{get_var('ARCH')}))    if (check_var('ALL_ADDONS', 'modules'));
+    }
+    elsif (is_sle('11-SP4+')) {
+        set_var('SCC_ADDONS', $common_addons{$version});
+    }
+    else {
+        die 'No addons defined for this version!';
+    }
+}
+
 # This is workaround setting which will be removed once SCC add repos and allows adding modules
 # TODO: place it somewhere else since test module suseconnect_scc will use it
 if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
@@ -256,13 +303,12 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
 # Always register at scc and use the test updates if the Flavor is -Updates.
 # This way we can reuse existant test suites without having to patch their
 # settings
-if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
+if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
     $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
     $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
 
-    my @maint_repos;
     my @inclist;
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
@@ -291,17 +337,7 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
         }
     }
 
-    for my $a (keys %incidents) {
-        for my $b (split(/,/, $incidents{$a})) {
-            if ($b) {
-                push @maint_repos, join($b, split('%INCIDENTNR%', $u_url{$a}));
-            }
-        }
-    }
-
-    my $repos = join(',', @maint_repos);
-    # MAINT_TEST_REPO cannot start with ','
-    $repos =~ s/^,//s;
+    my $repos = map_incidents_to_repo(\%incidents, \%u_url);
 
     set_var('MAINT_TEST_REPO', $repos);
     set_var('SCC_REGISTER',    'installation');
@@ -315,7 +351,7 @@ if (is_update_test_repo_test && !get_var('MAINT_TEST_REPO')) {
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     if (sle_version_at_least('15')) {
         # Add only modules which are not pre-selected
-        my $addons = 'legacy,sdk,pcm,wsm';
+        my $addons = 'legacy,sdk,pcm,wsm,phub';
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);
@@ -462,80 +498,73 @@ sub load_slenkins_tests {
     return 0;
 }
 
-sub load_cluster_boot {
+sub load_ha_cluster_tests {
+    return unless (get_var('HA_CLUSTER'));
+
     # Standard boot and configuration
     boot_hdd_image;
-    loadtest 'ha/wait_barriers'               if get_var('HA_CLUSTER');
+    loadtest 'ha/wait_barriers';
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    loadtest 'console/consoletest_setup'      if (is_updates_tests || get_var('HA_CLUSTER'));
-
-    return 1;
-}
-
-sub load_ha_cluster_tests {
-    return unless (get_var("HA_CLUSTER"));
-
-    # Standard boot and configuration
-    load_cluster_boot;
-    loadtest "console/hostname";
+    loadtest 'console/consoletest_setup';
+    loadtest 'console/hostname';
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product i selected
     loadtest "console/yast2_ntpclient" unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
 
     # Update the image if needed
-    if (get_var("FULL_UPDATE")) {
-        loadtest "update/zypper_up";
-        loadtest "console/console_reboot";
+    if (get_var('FULL_UPDATE')) {
+        loadtest 'update/zypper_up';
+        loadtest 'console/console_reboot';
     }
 
     # SLE15 workarounds
-    loadtest "ha/sle15_workarounds" if is_sle('15+');
+    loadtest 'ha/sle15_workarounds' if is_sle('15+');
 
     # Basic configuration
-    loadtest "ha/firewall_disable";
-    loadtest "ha/iscsi_client";
-    loadtest "ha/watchdog";
+    loadtest 'ha/firewall_disable';
+    loadtest 'ha/iscsi_client';
+    loadtest 'ha/watchdog';
 
     # Cluster initilisation
-    if (get_var("HA_CLUSTER_INIT")) {
+    if (get_var('HA_CLUSTER_INIT')) {
         # Node1 creates a cluster
-        loadtest "ha/ha_cluster_init";
+        loadtest 'ha/ha_cluster_init';
     }
     else {
         # Node2 joins the cluster
-        loadtest "ha/ha_cluster_join";
+        loadtest 'ha/ha_cluster_join';
     }
 
     # Test Hawk Web interface
-    loadtest "ha/check_hawk";
+    loadtest 'ha/check_hawk';
 
     # Lock manager configuration
-    loadtest "ha/dlm";
-    loadtest "ha/clvmd_lvmlockd";
+    loadtest 'ha/dlm';
+    loadtest 'ha/clvmd_lvmlockd';
 
     # Test cluster-md feature
-    loadtest "ha/cluster_md";
-    loadtest "ha/vg";
-    loadtest "ha/filesystem";
+    loadtest 'ha/cluster_md';
+    loadtest 'ha/vg';
+    loadtest 'ha/filesystem';
 
     # Test DRBD feature
-    if (get_var("HA_CLUSTER_DRBD")) {
-        loadtest "ha/drbd_passive";
-        loadtest "ha/filesystem";
+    if (get_var('HA_CLUSTER_DRBD')) {
+        loadtest 'ha/drbd_passive';
+        loadtest 'ha/filesystem';
     }
 
     # Show HA cluster status *before* fencing test and execute fencing test
-    loadtest "ha/fencing";
+    loadtest 'ha/fencing';
 
     # Node1 will be fenced, so we have to wait for it to boot
-    boot_hdd_image if (!get_var("HA_CLUSTER_JOIN"));
+    boot_hdd_image if (!get_var('HA_CLUSTER_JOIN'));
 
     # Show HA cluster status *after* fencing test
-    loadtest "ha/check_after_fencing";
+    loadtest 'ha/check_after_fencing';
 
     # Check logs to find error and upload all needed logs
-    loadtest "ha/check_logs";
+    loadtest 'ha/check_logs';
 
     return 1;
 }
@@ -588,12 +617,14 @@ sub load_patching_tests {
     }
     set_var('BOOT_HDD_IMAGE', 1);
     boot_hdd_image;
-    loadtest 'update/patch_before_migration';
+    loadtest 'update/patch_sle';
     if (is_upgrade) {
         # Lock package for offline migration by Yast installer
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
         }
+        loadtest 'migration/remove_ltss';
+        loadtest 'migration/record_disk_info';
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
@@ -724,7 +755,8 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "remote/remote_controller";
         load_inst_tests();
     }
-    loadtest "ha/barrier_init" if get_var("HA_CLUSTER");
+    loadtest "ha/barrier_init"  if get_var("HA_CLUSTER");
+    loadtest "hpc/barrier_init" if get_var("HPC");
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait_children";
     }
@@ -732,7 +764,7 @@ elsif (get_var("SUPPORT_SERVER")) {
 elsif (get_var("SLEPOS")) {
     load_slepos_tests();
 }
-elsif (get_var("FIPS_TS")) {
+elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
     prepare_target();
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest "console/consoletest_setup";
@@ -762,6 +794,9 @@ elsif (get_var("FIPS_TS")) {
     elsif (check_var("FIPS_TS", "mmtest")) {
         # Load client tests by APPTESTS variable
         load_applicationstests;
+    }
+    elsif (check_var("SECURITY", "apparmor_status")) {
+        load_security_tests_apparmor_status;
     }
 }
 elsif (get_var('SMT')) {
@@ -794,26 +829,12 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var("XFSTESTS")) {
-    loadtest "qa_automation/xfstests_prepare_boot";
-    loadtest "qa_automation/xfstests_prepare_testsuite";
-    if (get_var("XFSTESTS_KNOWN_ISSUE")) {
-        loadtest "qa_automation/xfstests_prepare_issue_case";
-    }
-    loadtest "qa_automation/xfstests_prepare_env";
-    loadtest "qa_automation/xfstests_run_generic";
-    loadtest "qa_automation/xfstests_run_shared";
-    if (check_var("TEST_FS_TYPE", "xfs")) {
-        loadtest "qa_automation/xfstests_run_xfs";
-    }
-    elsif (check_var("TEST_FS_TYPE", "btrfs")) {
-        loadtest "qa_automation/xfstests_run_btrfs";
-    }
-    elsif (check_var("TEST_FS_TYPE", "ext4")) {
-        loadtest "qa_automation/xfstests_run_ext4";
-    }
-    if (get_var("XFSTESTS_KNOWN_ISSUE")) {
-        loadtest "qa_automation/xfstests_run_issue_case";
-    }
+    loadtest "boot/boot_to_desktop";
+    loadtest "xfstests/enable_kdump";
+    loadtest "xfstests/install";
+    loadtest "xfstests/partition";
+    loadtest "xfstests/run";
+    loadtest "xfstests/generate_report";
 }
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
@@ -959,12 +980,8 @@ elsif (have_scc_repos()) {
     }
 }
 elsif (get_var('HPC')) {
-    if (get_var('CLUSTER_NODES')) {
-        load_cluster_boot();
-    }
-    else {
-        loadtest 'boot/boot_to_desktop';
-    }
+    boot_hdd_image;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'hpc/before_test';
     loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
     loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
@@ -1007,7 +1024,9 @@ else {
         # Use autoyast to perform origin system installation
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
-        loadtest 'update/patch_before_migration';
+        loadtest 'update/patch_sle';
+        loadtest 'migration/remove_ltss';
+        loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;
         loadtest "migration/post_upgrade";
@@ -1030,8 +1049,15 @@ else {
         load_patching_tests() if get_var('PATCH');
         load_boot_tests();
         load_inst_tests();
+        return 1 if get_var('EXIT_AFTER_START_INSTALL');
         load_reboot_tests();
         loadtest "migration/post_upgrade";
+        # Always load zypper_lr test for migration case and get repo information for investigation
+        if (get_var("INSTALLONLY")) {
+            loadtest "console/consoletest_setup";
+            loadtest 'console/integration_services' if is_hyperv;
+            loadtest "console/zypper_lr";
+        }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         if (get_var("RT_TESTS")) {
@@ -1095,4 +1121,3 @@ else {
 load_common_opensuse_sle_tests;
 
 1;
-# vim: set sw=4 et:

@@ -36,7 +36,8 @@ sub run {
     assert_and_click 'live-installation';
     assert_and_click 'maximize';
     mouse_hide;
-    wait_still_screen;
+    # Wait until the first screen is shown, only way to make sure it's idle
+    assert_screen 'inst-welcome', 180;
     # To fully reuse installer screenshots we set to fullscreen. Unfortunately
     # it seems no default shortcut is configured in plasma but we can use the
     # window context menu.

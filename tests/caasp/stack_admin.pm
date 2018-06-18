@@ -13,15 +13,11 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use lockapi;
 use caasp;
 use version_utils 'is_caasp';
 
 # Set default password on worker nodes - bsc#1030876
 sub set_autoyast_password {
-    my $name = shift;
-    mutex_lock $name;
-    mutex_unlock $name;
     script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
     script_run 'pw=$(python -c "import crypt; print crypt.crypt(\'nots3cr3t\', \'\$6\$susetest\')")';
     script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"';
@@ -33,29 +29,35 @@ sub handle_update_reboot {
     assert_script_run 'curl -O ' . data_url("caasp/update.sh");
     assert_script_run 'chmod +x update.sh';
 
-    # Wait until update is finished
-    mutex_lock 'UPDATE_FINISHED';
-    mutex_unlock 'UPDATE_FINISHED';
+    pause_until 'REBOOT_FINISHED';
 
-    # Admin node was rebooted
-    reset_consoles;
-    select_console 'root-console';
+    # Admin node was rebooted only if update passed
+    if (check_screen 'linux-login-casp', 0) {
+        reset_consoles;
+        select_console 'root-console';
+    }
 }
 
 sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
     script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 15;
-    # Controller node can connect to velum now
-    mutex_create "VELUM_STARTED";
+    unpause 'VELUM_STARTED';
 
-    set_autoyast_password 'NODES_ACCEPTED' if is_caasp 'DVD';
+    # Set password for autoyast cluster nodes
+    if (is_caasp 'DVD') {
+        pause_until 'NODES_ACCEPTED';
+        set_autoyast_password;
+    }
+
     handle_update_reboot;
-    set_autoyast_password 'DELAYED_NODES_ACCEPTED' if is_caasp('DVD') && get_delayed_worker;
 
-    # Wait until controller node finishes
-    mutex_lock "CNTRL_FINISHED";
-    mutex_unlock "CNTRL_FINISHED";
+    # Set password for autoyast cluster nodes
+    if (is_caasp('DVD') && get_delayed_worker) {
+        pause_until 'DELAYED_NODES_ACCEPTED';
+        set_autoyast_password;
+    }
 
+    pause_until 'CNTRL_FINISHED';
     export_cluster_logs;
 }
 

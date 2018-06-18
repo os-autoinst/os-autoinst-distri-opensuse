@@ -499,7 +499,6 @@
       <package>xf86-input-void</package>
       <package>xf86-input-wacom</package>
       <package>xf86-video-cirrus</package>
-      <package>xf86-video-modesetting</package>
       <package>yast2-snapper</package>
       <package>yast2-trans-en_US</package>
       <package>yast2-x11</package>

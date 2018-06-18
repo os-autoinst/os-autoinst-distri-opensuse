@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,8 +16,7 @@ use testapi;
 use utils;
 
 sub run {
-    handle_logout;
-    handle_login;
+    handle_relogin;
     assert_screen 'generic-desktop', 90;    # x11test is checking generic-desktop in post_run_hook but after login it can take longer than 30 sec
 }
 

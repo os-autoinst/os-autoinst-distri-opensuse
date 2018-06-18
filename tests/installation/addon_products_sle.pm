@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,7 @@ use testapi;
 use utils 'addon_license';
 use version_utils qw(is_sle sle_version_at_least);
 use qam 'advance_installer_window';
-use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons);
+use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE);
 
 sub handle_all_packages_medium {
     assert_screen 'addon-products-all_packages';
@@ -89,9 +89,6 @@ sub handle_all_packages_medium {
             if (@addons_license_tags && check_screen(\@addons_license_tags)) {
                 $addon_license_num++;
             }
-            else {
-                record_soft_failure 'bsc#1081647';
-            }
             wait_screen_change { send_key 'alt-a' };
             wait_screen_change { send_key 'alt-n' };
         }
@@ -120,15 +117,11 @@ sub handle_addon {
     send_key 'pgup';
     wait_still_screen 2;
     send_key_until_needlematch "addon-products-$addon", 'down';
-    if (is_sle('15+')) {
+    # modules like SES or RT that are not part of Packages ISO don't have this step, when bsc#1090012 will be fixed I will add else for license
+    if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
         send_key 'spc';
-        send_key $cmd{next};
-        wait_still_screen 2;
-
-        # license is shown *after* module selection in SLE15 and should be only for some modules (HA and WE)
-        record_soft_failure 'bsc#1081647' if $addon !~ /ha|we/;
-        addon_license($addon);
-        wait_still_screen 2;
+        wait_screen_change { send_key $cmd{next} };
+        assert_screen 'addon-product-installation';
     }
 }
 
@@ -182,17 +175,13 @@ sub run {
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
                 if (match_has_tag("addon-betawarning-$addon")) {
                     send_key "ret";
-                    assert_screen [qw(addon-license-beta addon-products)];
-                    record_soft_failure 'bsc#1057223: No license agreement shown when HA, HA-GEO, WE, RT extensions are added as addons'
-                      unless match_has_tag("addon-license-beta");
+                    assert_screen "addon-license-beta";
                 }
-                if (match_has_tag("addon-license-beta") or match_has_tag("addon-license-$addon")) {
-                    wait_still_screen 2;
-                    send_key 'alt-a';                     # yes, agree
-                    wait_still_screen 2;
-                    send_key $cmd{next};
-                    assert_screen 'addon-products', 90;
-                }
+                wait_still_screen 2;
+                send_key 'alt-a';                         # yes, agree
+                wait_still_screen 2;
+                send_key $cmd{next};
+                assert_screen 'addon-products', 90;
             }
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 send_key 'alt-t';

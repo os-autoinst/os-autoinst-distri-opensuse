@@ -27,6 +27,7 @@ use qam qw/remove_test_repositories/;
 use version_utils qw(sle_version_at_least is_sle);
 
 our @EXPORT = qw(
+  setup_sle
   setup_migration
   register_system_in_textmode
   remove_ltss
@@ -36,26 +37,29 @@ our @EXPORT = qw(
   reset_consoles_tty
 );
 
-sub setup_migration {
-    my ($self) = @_;
+sub setup_sle {
     select_console 'root-console';
 
-    # stop packagekit service
-    # Systemd is not available on SLE11
-    # skip this part if the version below SLE12
-    if (is_sle && sle_version_at_least('12')) {
-        systemctl 'mask packagekit.service';
-        systemctl 'stop packagekit.service';
+    # Stop packagekitd
+    if (is_sle('12+')) {
+        pkcon_quit;
     }
     else {
         assert_script_run "chmod 444 /usr/sbin/packagekitd";
     }
 
+    # Change serial dev permissions
     ensure_serialdev_permissions;
 
-    # enable Y2DEBUG all time
+    # Enable Y2DEBUG for error debugging
     type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
     script_run "source /etc/bash.bashrc.local";
+}
+
+sub setup_migration {
+    my ($self) = @_;
+
+    $self->setup_sle();
 
     # remove the PATCH test_repos
     remove_test_repositories();
@@ -127,8 +131,16 @@ sub check_rollback_system {
     return unless is_sle;
     # Check SUSEConnect status for SLE
     # check rollback-helper service is enabled and worked properly
+    # If rollback service is activating, need wait some time
+    # Add wait in a loop, max time is 5 minute, because case with much more modules need more time
+    for (1 .. 5) {
+        last unless script_run('systemctl --no-pager status rollback') != 0;
+        sleep 60;
+    }
     systemctl('is-active rollback');
 
+    # Disable the obsolete cd and dvd repos to avoid zypper error
+    assert_script_run("zypper mr -d -m cd -m dvd");
     # Verify registration status matches current system version
     # system is un-registered during media based upgrade
     assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python') unless get_var('MEDIA_UPGRADE');

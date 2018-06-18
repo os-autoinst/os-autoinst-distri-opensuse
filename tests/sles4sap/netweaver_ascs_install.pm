@@ -60,7 +60,11 @@ sub run {
 
     # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
     # reset and appear in SUD, so need to select 'root-console' again
-    assert_screen([qw(root-console displaymanager displaymanager-password-prompt generic-desktop text-login)]);
+    assert_screen(
+        [
+            qw(root-console displaymanager displaymanager-password-prompt generic-desktop
+              text-login linux-login started-x-displaymanager-info)
+        ]);
     select_console 'root-console' unless (match_has_tag 'root-console');
 
     assert_script_run "saptune daemon start";
@@ -122,6 +126,7 @@ sub post_fail_hook {
     $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
     $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
     upload_logs "/sapinst/unattended/sapinst.log";
+    upload_logs "/sapinst/unattended/sapinst_dev.log";
 }
 
 1;

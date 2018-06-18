@@ -16,11 +16,6 @@ use testapi;
 use utils qw(is_bridged_networking systemctl);
 
 sub run {
-    # Skip the entire test on bridget networks (e.g. Xen, Hyper-V)
-    if (is_bridged_networking) {
-        record_soft_failure 'Bug 1064438: "bind" cannot resolve localhost';
-        return;
-    }
     select_console 'root-console';
 
     # Install bind
@@ -36,7 +31,13 @@ sub run {
     systemctl 'show -p SubState named.service|grep SubState=running';
 
     # verify dns server responds to anything
-    assert_script_run "host localhost localhost";
+    my $e = script_run "host localhost localhost";
+    if ($e) {
+        record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost' if check_var('ARCH', 's390x');
+        record_info 'Skip the entire test on bridged networks (e.g. Xen, Hyper-V)' if (is_bridged_networking);
+        return if (is_bridged_networking || check_var('ARCH', 's390x'));
+        die "Command 'host localhost localhost' failed, cannot resolv localhost";
+    }
 }
 
 sub post_fail_hook {

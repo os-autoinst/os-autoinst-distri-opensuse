@@ -19,7 +19,7 @@ use version_utils 'is_sle';
 
 
 sub undo_redo_once {
-    assert_screen 'gnote-new-note-1';
+    send_key_until_needlematch 'gnote-new-note-1', 'left';
     send_key "ctrl-z";    #undo
     assert_screen 'gnote-new-note';
     send_key "ctrl-shift-z";    #redo
@@ -37,18 +37,14 @@ sub run {
     $self->undo_redo_once;
 
     #assure undo and redo take effect after save note and re-enter note
-    send_key "ctrl-tab";    #jump to toolbar
-    send_key "ctrl-tab" if is_sle('15+');    #jump to toolbar for SLED15
-    send_key "ret";                          #back to all notes interface
+    assert_and_click 'gnote-back2allnotes';
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     wait_still_screen 3;
     send_key "ret";
     $self->undo_redo_once;
 
     #clean: remove the created new note
-    send_key "ctrl-tab";                     #jump to toolbar
-    send_key "ctrl-tab" if is_sle('15+');    #jump to toolbar for SLED15
-    send_key "ret";                          #back to all notes interface
+    send_key "esc";
     send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
     send_key "delete";
     send_key "tab";

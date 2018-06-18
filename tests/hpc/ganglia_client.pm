@@ -26,9 +26,6 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
     # Get ganglia-server hostname
     my $server_hostname = get_required_var("GANGLIA_SERVER_HOSTNAME");
-    # Synchronize with server
-    mutex_lock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
-    mutex_unlock("GANGLIA_SERVER_BARRIERS_CONFIGURED");
 
     zypper_call 'in ganglia-gmond';
 
@@ -44,6 +41,8 @@ sub run {
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
+            # Wait for ganglia cluster setup
+            sleep 5;
             # Check if gmond has connected to gmetad
             validate_script_output "gstat -a", sub { m/.*Hosts: ${nodes}.*/ };
         };
@@ -58,6 +57,8 @@ sub run {
     my $gmetric_max_retries = 3;
     for (1 .. $gmetric_max_retries) {
         eval {
+            # Wait for gmetric update
+            sleep 5;
             # Check if gmetric is available
             assert_script_run "echo \"\\n\" | nc ${server_hostname} 8649 | grep $testMetric";
         };

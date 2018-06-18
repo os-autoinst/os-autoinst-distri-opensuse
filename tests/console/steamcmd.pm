@@ -20,7 +20,7 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    zypper_call('in steamcmd');
+    zypper_call('in --auto-agree-with-licenses steamcmd');
     # see https://github.com/ValveSoftware/steam-for-linux/issues/4341
     my $allow_exit_codes = [qw(0 6 7 8)];
     # /usr/bin/steamcmd currently does not forward arguments, see

@@ -27,13 +27,30 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
-use version_utils qw(is_jeos is_sle);
 use registration;
+use version_utils qw(is_sle is_leap);
+
+sub test_seccomp {
+    my $no_seccomp = script_run('docker info | tee /dev/tty | grep seccomp');
+    if ($no_seccomp) {
+        my $err_seccomp_support = 'boo#1072367 - Docker Engine does NOT have seccomp support';
+        if (is_sle('<15') || is_leap('<15.0')) {
+            record_info('WONTFIX', $err_seccomp_support);
+        }
+        else {
+            die($err_seccomp_support);
+        }
+    }
+    else {
+        record_info('seccomp', 'Docker Engine supports seccomp');
+    }
+}
 
 sub run {
     select_console("root-console");
 
     install_docker_when_needed;
+    test_seccomp;
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
@@ -91,10 +108,6 @@ sub run {
     $output = script_output('docker container run tw:saved curl -I google.de');
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
-    if (is_jeos && is_sle('15+')) {
-        record_soft_failure('bsc#1073877 - Docker fails to stop container on JeOS');
-        return;
-    }
     # containers can be stopped
     assert_script_run("docker container stop $container_name");
     assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep false");

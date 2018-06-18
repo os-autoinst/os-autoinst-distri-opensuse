@@ -23,13 +23,17 @@ sub run {
     switch_to 'xterm';
     assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl cluster-info > cluster.before_update";
-    assert_script_run "kubectl config view | tee /dev/$serialdev";
-    assert_script_run "kubectl get nodes";
+    assert_script_run "kubectl config view --flatten=true | tee /dev/$serialdev";
+    script_retry "kubectl get nodes", delay => 10;
     assert_script_run "! kubectl get cs --no-headers | grep -v Healthy";
 
     # Check cluster size
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
+
+    # Check container runtime [docker|cri-o]
+    my $runtime = get_var('CONTAINER_RUNTIME', 'docker');
+    assert_script_run "kubectl describe nodes | grep -c Runtime.*$runtime | grep $nodes_count";
 
     # Deploy nginx minimal application and check pods started succesfully
     my $pods_count = get_required_var("STACK_WORKERS") * 15;

@@ -24,12 +24,6 @@ sub run {
     my $self = shift;
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
-    barrier_create("MRSH_INSTALLATION_FINISHED", $nodes);
-    barrier_create("MRSH_MUNGE_ENABLED",         $nodes);
-    barrier_create("SLAVE_MRLOGIN_STARTED",      $nodes);
-    barrier_create("MRSH_MASTER_DONE",           $nodes);
-    # Synchronize all slave nodes with master
-    mutex_create("MRSH_MASTER_BARRIERS_CONFIGURED");
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');
@@ -40,7 +34,7 @@ sub run {
         my $node_name = sprintf("mrsh-slave%02d", $node);
         exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
     }
-    mutex_create("MRSH_KEY_COPIED");
+    barrier_wait("MRSH_KEY_COPIED");
 
     # start munge
     $self->enable_and_start('munge');

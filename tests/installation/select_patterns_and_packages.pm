@@ -141,7 +141,7 @@ sub package_action {
         accept3rdparty;
     }
     if (get_var('INSTALLATION_BLOCKED') && $secondrun) {
-        record_soft_failure 'bsc#1029660';
+        record_info 'low prio bug', 'bsc#1029660';
         assert_screen 'inst-overview-blocked';
         send_key 'alt-i';
         assert_screen 'startinstall-blocked';
@@ -206,10 +206,7 @@ sub run {
         }
     }
     $self->package_action;
-    if (is_sle('15+') and check_var('PATTERNS', 'all') and $dep_issue) {
-        record_soft_failure "bsc#1084064 - Cloud patterns conflicts";    # skip second & third runs
-    }
-    else {
+    unless (is_sle('15+') && check_var('PATTERNS', 'all') && $dep_issue) {
         $secondrun++;
         $self->gotopatterns;
         $self->package_action;

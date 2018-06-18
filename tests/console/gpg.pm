@@ -31,11 +31,11 @@ sub gpg_generate_key {
     if ($gpg_version eq "2.0") {
 
         # gpg version 2.0.x
-        type_string "gpg2 --gen-key\n";
+        type_string "gpg2 -vv --gen-key\n";
     }
     else {
         # gpg version >= 2.1.x
-        type_string "gpg2 --full-generate-key\n";
+        type_string "gpg2 -vv --full-generate-key\n";
     }
     wait_still_screen 1;
     type_string "1\n";
@@ -53,7 +53,13 @@ sub gpg_generate_key {
     wait_still_screen 1;
     save_screenshot;
     type_string "O\n";
-    assert_screen("gpg-enter-passphrase");
+    assert_screen(["gpg-enter-passphrase", "gpg-generate-key-boo1097610"]);
+    if (match_has_tag('gpg-generate-key-boo1097610') && check_var('ARCH', 's390x')) {
+        record_soft_failure 'boo#1097610';
+        select_console 'root-console';
+        gpg_generate_key($key_size);
+        return;
+    }
 
     # enter wrong passphrase
     type_string "REALSECRETPHRASE\n";

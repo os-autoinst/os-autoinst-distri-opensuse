@@ -46,10 +46,19 @@ sub run {
     # all but PPC64LE arch's vmlinux images are gzipped
     my $suffix = get_var('OFW') ? '' : '.gz';
     assert_script_run 'find /var/crash/';
+
     my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`$suffix";
-    assert_script_run "$crash_cmd", 600;
-    validate_script_output "$crash_cmd", sub { m/PANIC/ }, 600;
+    validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    script_run 'ls -lah /boot/';
+    script_run 'tar -cvJf /tmp/crash_saved.tar.xz -C /var/crash .';
+    upload_logs '/tmp/crash_saved.tar.xz';
+
+    $self->SUPER::post_fail_hook;
 }
 
 1;
-

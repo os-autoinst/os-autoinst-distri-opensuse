@@ -16,34 +16,33 @@ use strict;
 use testapi;
 use mm_network;
 use lockapi;
-use utils 'systemctl';
+use utils qw(systemctl zypper_call);
+use version_utils 'is_sle';
+
+sub restart_and_sync_chrony {
+    systemctl "restart chronyd";
+    systemctl "status chronyd";
+    assert_script_run 'chronyc waitsync 40 0.01 && chronyc sources', 400;
+}
 
 sub run {
     select_console 'root-console';
-    # configure and start ntp, ntp server for nodes is master
     if (check_var('HOSTNAME', 'master')) {
+        # create mutex lock and barriers
+        mutex_create('master_ready');
         my $all_ses_nodes = get_var('NODE_COUNT') + 1;
-        barrier_create('network_configured', $all_ses_nodes);
-        barrier_create('deployment_done',    $all_ses_nodes);
-        barrier_create('all_tests_done',     $all_ses_nodes);
-        assert_script_run 'echo \'server ntp1.suse.de burst iburst\' >> /etc/ntp.conf';
+        barrier_create('network_configured',  $all_ses_nodes);
+        barrier_create('master_chrony_ready', $all_ses_nodes);
+        barrier_create('deployment_done',     $all_ses_nodes);
+        barrier_create('all_tests_done',      $all_ses_nodes);
     }
     else {
-        assert_script_run 'echo \'server master.openqa.test burst iburst\' >> /etc/ntp.conf';
+        mutex_lock('master_ready');
+        mutex_unlock('master_ready');
     }
-    # print the ntp config
-    assert_script_run 'grep -v ^# /etc/ntp.conf';
-    systemctl 'restart ntpd';
     # disable ipv6
     assert_script_run 'echo \'net.ipv6.conf.all.disable_ipv6 = 1\' >> /etc/sysctl.conf';
-    systemctl 'restart network' unless get_var('DEEPSEA_TESTSUITE');
-    # firewall and apparmor should not run
-    systemctl 'stop SuSEfirewall2';
-    systemctl 'disable SuSEfirewall2';
-    systemctl 'stop apparmor';
-    systemctl 'disable apparmor';
-    # only one job (master) should check for dead jobs to avoid failures
-    my $only_master_check = check_var('HOSTNAME', 'master') ? 1 : 0;
+    # deepsea testsuite does not need to use supportserver
     if (get_var('DEEPSEA_TESTSUITE')) {
         # set node hostname
         my $node_hostname = get_var('HOSTNAME');
@@ -63,19 +62,45 @@ echo -e '10.0.2.104\tnode4.openqa.test node4' >> /etc/hosts
 EOF
         script_run($_) foreach (split /\n/, $hosts);
         assert_script_run 'cat /etc/hosts';
-        barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
-        # nodes will ping each other to test connection
-        assert_script_run 'fping -c2 -q $(grep \'openqa.test\' /etc/hosts|awk \'{print$2}\'|tr "\n" " ")';
     }
     else {
-        barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
-        assert_script_run 'ip a';
-        assert_script_run 'for i in {1..7}; do echo "try $i" && fping -c2 -q updates.suse.com 10.0.2.2 && sleep 2 && break; done';
+        # restart network, get IP from supportserver
+        systemctl 'restart network';
     }
-    # check repositories, should contain SLE, SES and QAM update repo
-    my $incident_number = get_var('SES_TEST_ISSUES');
-    my $version         = get_var('VERSION');
-    validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
+    # only one job (master) should check for dead jobs to avoid failures
+    my $only_master_check = check_var('HOSTNAME', 'master') ? 1 : 0;
+    barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
+    assert_script_run 'ip a';
+    assert_script_run 'for i in {1..7}; do echo "try $i" && fping -c2 -q updates.suse.com && sleep 2 && break; done';
+    # firewall and apparmor should not run
+    my $firewall = is_sle('15+') ? 'firewalld' : 'SuSEfirewall2';
+    systemctl "disable $firewall";
+    systemctl "stop $firewall";
+    systemctl 'disable apparmor';
+    systemctl 'stop apparmor';
+    # configure and start chrony, time synchroniation server for nodes is master
+    my $ntp_server = check_var('HOSTNAME', 'master') ? 'ntp1.suse.de' : 'master.openqa.test';
+    assert_script_run "sed -i '/pool/d' /etc/chrony.conf";
+    if (check_var('HOSTNAME', 'master')) {
+        # set ntp server and add allow for nodes to sync with master
+        assert_script_run "echo -e \"server $ntp_server iburst\\nallow\" >> /etc/chrony.conf";
+        restart_and_sync_chrony;
+        barrier_wait {name => 'master_chrony_ready', check_dead_job => $only_master_check};
+        assert_script_run 'echo "master_minion: master.openqa.test" >/srv/pillar/ceph/master_minion.sls';
+    }
+    else {
+        assert_script_run "echo 'server $ntp_server iburst' >> /etc/chrony.conf";
+        barrier_wait {name => 'master_chrony_ready', check_dead_job => $only_master_check};
+        restart_and_sync_chrony;
+    }
+    assert_script_run "grep -v ^# /etc/chrony.conf";
+    # check repositories only when it's QAM update
+    if (get_var('SES_TEST_ISSUES')) {
+        # repositories must contain SLE, SES and QAM update repo
+        my $incident_number = get_var('SES_TEST_ISSUES');
+        my $version         = get_var('VERSION');
+        validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
+    }
 }
 
 sub test_flags {

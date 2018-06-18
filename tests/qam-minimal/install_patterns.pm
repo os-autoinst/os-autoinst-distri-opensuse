@@ -23,6 +23,7 @@ use strict;
 
 use utils;
 use qam;
+use version_utils 'is_sle';
 use testapi;
 
 sub install_packages {
@@ -39,17 +40,22 @@ sub install_packages {
 }
 
 sub run {
-    my ($self) = @_;
-    my $patch = get_required_var('INCIDENT_PATCH');
+    my ($self)      = @_;
+    my $incident_id = get_var('INCIDENT_ID');
+    my $patch       = get_var('INCIDENT_PATCH');
+    my $repo        = get_var('INCIDENT_REPO');
+    check_patch_variables($patch, $incident_id);
 
     select_console 'root-console';
+    my $patches = '';
+    $patches = get_patches($incident_id, $repo) if $incident_id;
 
     pkcon_quit;
     zypper_call("ref");
     zypper_call("pt");
     save_screenshot;
 
-    zypper_call("in -t pattern base x11 gnome-basic apparmor", exitcode => [0, 102], timeout => 2000);
+    zypper_call("in -t pattern base x11 " . (is_sle('>=15') ? 'gnome_basic' : 'gnome-basic') . " apparmor", exitcode => [0, 102], timeout => 2000);
 
     systemctl 'set-default graphical.target';
     script_run('sed -i -r "s/^DISPLAYMANAGER=\"\"/DISPLAYMANAGER=\"gdm\"/" /etc/sysconfig/displaymanager');
@@ -58,6 +64,7 @@ sub run {
     # now we have gnome installed - restore DESKTOP variable
     set_var('DESKTOP', get_var('FULL_DESKTOP'));
 
+    $patch = $patch ? $patch : $patches;
     my $patch_status = is_patch_needed($patch, 1);
     install_packages($patch_status) if $patch_status;
 

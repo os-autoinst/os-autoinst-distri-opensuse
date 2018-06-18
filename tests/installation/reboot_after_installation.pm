@@ -21,6 +21,12 @@ sub run {
     # logs_from_installation_system.pm, so we should be safe to ignore this
     # call
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
+
+    # svirt: Make sure we will boot from hard disk next time
+    if (check_var('VIRSH_VMM_FAMILY', 'kvm') || check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        my $svirt = console('svirt');
+        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+    }
     wait_screen_change {
         send_key 'alt-o';    # Reboot
     };

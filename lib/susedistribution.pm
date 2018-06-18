@@ -2,7 +2,8 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions);
+use utils
+  qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions pkcon_quit zypper_call);
 use version_utils qw(is_hyperv_in_gui is_sle is_leap);
 
 # Base class implementation of distribution class necessary for testapi
@@ -10,7 +11,7 @@ use version_utils qw(is_hyperv_in_gui is_sle is_leap);
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
   match_has_tag set_var type_password type_string wait_serial
-  mouse_hide send_key_until_needlematch record_info
+  mouse_hide send_key_until_needlematch record_info record_soft_failure
   wait_still_screen wait_screen_change get_required_var diag);
 
 
@@ -62,6 +63,7 @@ sub init_cmd {
       encryptdisk alt-a
       enablelvm alt-e
       resize alt-i
+      customsize alt-c
       acceptlicense alt-a
       instdetails alt-d
       rebootnow alt-n
@@ -79,6 +81,8 @@ sub init_cmd {
       sync_interval alt-n
       sync_without_daemon alt-y
       toggle_home alt-p
+      raw_volume alt-a
+      enable_snapshots alt-n
     );
 
     if (check_var('INSTLANG', "de_DE")) {
@@ -164,6 +168,13 @@ The combination of C<no_wait> with C<valid> and C<target_match> is the
 preferred solution for the most efficient approach by saving time within
 tests.
 
+In case of KDE plasma krunner provides a suggestion list which can take a bit
+of time to be computed therefore the logic is slightly different there, for
+example longer waiting time, looking for the computed suggestions list before
+accepting and a default timeout for the target match of 90 seconds versus just
+using the default of C<assert_screen> itself. For other desktop environments
+we keep the old check for the runner border.
+
 This method is overwriting the base method in os-autoinst.
 
 =cut
@@ -175,6 +186,7 @@ sub x11_start_program {
     $args{valid}         //= 1;
     $args{target_match}  //= $program;
     $args{match_no_wait} //= 0;
+    $args{match_timeout} //= 90 if check_var('DESKTOP', 'kde');
 
     # Start desktop runner and type command there
     init_desktop_runner($program, $timeout);
@@ -193,14 +205,15 @@ sub x11_start_program {
     return unless $args{valid};
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
-        assert_screen([@target, 'desktop-runner-border'], $args{match_timeout}, no_wait => $args{match_no_wait});
-        last unless match_has_tag 'desktop-runner-border';
+        push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
+        assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
+        last unless (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
         wait_screen_change {
             send_key 'ret';
         };
     }
     # asserting program came up properly
-    die "Did not find target needle for tag(s) '@target'" if match_has_tag 'desktop-runner-border';
+    die "Did not find target needle for tag(s) '@target'" if (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
 }
 
 sub ensure_installed {
@@ -240,7 +253,17 @@ sub ensure_installed {
             next;
         }
     }
-    wait_serial('pkcon-0-', 27) || die "pkcon install did not succeed";
+    my $ret = wait_serial('pkcon-\d+-');
+    if ($ret =~ /pkcon-4-/) {
+        $self->become_root;
+        pkcon_quit;
+        zypper_call "in $pkglist";
+        type_string "exit\n";
+        record_soft_failure "boo#1091353 - pkcon doesn't find existing pkg - falling back to zypper";
+    }
+    elsif ($ret !~ /pkcon-0/) {
+        die "pkcon install did not succeed, return code: $ret";
+    }
     send_key("alt-f4");    # close xterm
 }
 
@@ -260,11 +283,18 @@ sub script_sudo($$) {
     return;
 }
 
-# Simplified but still colored prompt for better readability.
+=head2 set_standard_prompt
+
+  set_standard_prompt([$user] [[, os_type] [, skip_set_standard_prompt]])
+
+C<$user> and C<os_type> affect prompt sign. C<skip_set_standard_prompt> options
+skip the entire routine.
+=cut
 sub set_standard_prompt {
-    my ($self, $user, $os_type) = @_;
+    my ($self, $user, %args) = @_;
+    return if $args{skip_set_standard_prompt};
     $user ||= $testapi::username;
-    $os_type ||= 'linux';
+    my $os_type = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
@@ -460,9 +490,21 @@ sub ensure_user {
     type_string("su - $user\n") if $user ne 'root';
 }
 
-# callback whenever a console is selected for the first time
+=head2 activate_console
+
+  activate_console($console [, [ensure_tty_selected => 0|1, ] [skip_set_standard_prompt => 0|1, ] [skip_setterm => 0|1, ]])
+
+Callback whenever a console is selected for the first time. Accepts arguments
+provided to select_console().
+
+C<skip_set_standard_prompt> and C<skip_setterm> arguments skip respective routines,
+e.g. if you want select_console() without addition console setup. Then, at some
+point, you should set it on your own.
+
+Option C<ensure_tty_selected> ensures TTY is selected.
+=cut
 sub activate_console {
-    my ($self, $console) = @_;
+    my ($self, $console, %args) = @_;
 
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
@@ -501,7 +543,7 @@ sub activate_console {
             my $nr = 4;
             $nr = get_root_console_tty if ($name eq 'root');
             $nr = 5 if ($name eq 'log');
-            my @tags = ("tty$nr-selected", "text-logged-in-$user", "text-login");
+            my @tags = ("tty$nr-selected", "text-logged-in-$user");
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
@@ -510,7 +552,7 @@ sub activate_console {
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
             assert_screen \@tags, 60;
-            if (match_has_tag("tty$nr-selected") or match_has_tag("text-login")) {
+            if (match_has_tag("tty$nr-selected")) {
                 type_string "$user\n";
                 handle_password_prompt;
             }
@@ -519,7 +561,7 @@ sub activate_console {
             }
         }
         assert_screen "text-logged-in-$user";
-        $self->set_standard_prompt($user);
+        $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         assert_screen $console;
     }
     elsif ($type eq 'virtio-terminal') {
@@ -530,11 +572,11 @@ sub activate_console {
         handle_password_prompt;
         ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
-        $self->set_standard_prompt($user);
+        $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
     }
     elsif ($console eq 'svirt') {
         my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
-        $self->set_standard_prompt('root', $os_type);
+        $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         save_svirt_pty;
     }
     elsif (
@@ -556,7 +598,7 @@ sub activate_console {
         # On s390x 'setterm' binary is not present as there's no linux console
         if (!check_var('ARCH', 's390x')) {
             # Disable console screensaver
-            $self->script_run('setterm -blank 0');
+            $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
     }
 }
@@ -593,4 +635,3 @@ sub console_selected {
 }
 
 1;
-# vim: set sw=4 et:

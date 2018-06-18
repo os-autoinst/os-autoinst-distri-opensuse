@@ -25,6 +25,7 @@ sub switch_keyboard_layout {
     send_key_until_needlematch("keyboard-layout-$keyboard_layout", 'down', 60);
     if (check_var('DESKTOP', 'textmode')) {
         send_key 'ret';
+        assert_screen "keyboard-layout-$keyboard_layout-selected";
         send_key 'alt-e';    # Keyboard Test in text mode
     }
     else {
@@ -35,7 +36,7 @@ sub switch_keyboard_layout {
     # Select back default keyboard layout
     send_key 'alt-k';
     send_key_until_needlematch("keyboard-layout", 'up', 60);
-    send_key 'ret' if (check_var('DESKTOP', 'textmode'));
+    wait_screen_change { send_key 'ret' } if (check_var('DESKTOP', 'textmode'));
 }
 
 sub run {

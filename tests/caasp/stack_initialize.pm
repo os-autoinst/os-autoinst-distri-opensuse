@@ -22,19 +22,18 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp 'get_admin_job';
-use lockapi qw(mutex_lock mutex_unlock);
+use caasp 'pause_until';
 use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver);
 
 sub firefox_import_ca {
     # Setup ssh
-    script_run 'ssh-copy-id -f admin.openqa.test', 0;
+    script_run "ssh-copy-id -f $admin_fqdn", 0;
     assert_screen 'ssh-password-prompt';
     type_password;
     send_key 'ret';
 
     # Install certificate
-    assert_script_run 'scp admin.openqa.test:/etc/pki/ca.crt .';
+    assert_script_run "scp $admin_fqdn:/etc/pki/ca.crt .";
     assert_script_run 'certutil -A -n CaaSP -d .mozilla/firefox/*.default -i ca.crt -t "C,,"';
 }
 
@@ -53,9 +52,7 @@ sub run {
     send_key "ctrl-l";
     send_key 'super-up';
 
-    # Wait until dashboard becomes ready
-    mutex_lock "VELUM_STARTED", get_admin_job;
-    mutex_unlock "VELUM_STARTED";
+    pause_until 'VELUM_STARTED';
     firefox_import_ca;
 }
 

@@ -19,8 +19,11 @@ use mmapi;
 use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
-our @EXPORT
-  = qw(handle_simple_pw process_reboot trup_call write_detail_output get_admin_job update_scheduled export_cluster_logs get_delayed_worker rpmver check_reboot_changes trup_install script_retry);
+our @EXPORT = qw(
+  trup_call trup_install rpmver process_reboot check_reboot_changes microos_login
+  handle_simple_pw export_cluster_logs script_retry
+  get_delayed_worker update_scheduled
+  pause_until unpause);
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
@@ -69,6 +72,26 @@ sub handle_simple_pw {
     set_var 'SIMPLE_PW_CONFIRMED', 1;
 }
 
+# Assert login prompt and login as root
+sub microos_login {
+    assert_screen 'linux-login-casp', 150;
+
+    # Workers installed using autoyast have no password - bsc#1030876
+    return if get_var('AUTOYAST');
+
+    if (is_caasp 'VMX') {
+        # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
+        my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';
+        # First attempts to select tty2 are ignored - bsc#1035968
+        send_key_until_needlematch 'tty2-selected', $key, 10, 30;
+    }
+
+    select_console 'root-console';
+
+    # Don't match linux-login-casp twice
+    assert_script_run 'clear';
+}
+
 # Process reboot with an option to trigger it
 sub process_reboot {
     my $trigger = shift // 0;
@@ -81,9 +104,7 @@ sub process_reboot {
         assert_screen 'grub2';
         send_key 'ret';
     }
-
-    assert_screen 'linux-login-casp', 180;
-    select_console 'root-console';
+    microos_login;
 }
 
 # Optionally skip exit status check in case immediate reboot is expected
@@ -97,20 +118,24 @@ sub trup_call {
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
+            # Abort update of broken package
+            if ($cmd =~ /\bup(date)?\b/ && $check == 2) {
+                die 'Abort dialog not shown' unless wait_serial('Abort');
+                send_key 'ret';
+            }
         }
         else {
             die "Confirmation dialog not shown";
         }
     }
+    # Check if trup passed
     wait_serial 'trup-0-' if $check == 1;
+    # Broken package update fails
     wait_serial 'trup-1-' if $check == 2;
 }
 
 # Reboot if there's a diff between the current FS and the new snapshot
 sub check_reboot_changes {
-    # rebootmgr has to be turned off as prerequisity for this to work
-    script_run "rebootmgrctl set-strategy off";
-
     my $change_expected = shift // 1;
 
     # Compare currently mounted and default subvolume
@@ -137,34 +162,6 @@ sub trup_install {
     trup_call("pkg install $package");
     process_reboot 1;
     assert_script_run("rpm -qi $package");
-}
-
-# Function for writing custom text boxes for the test job
-# After fixing poo#17462 it should be replaced by record_info from testlib
-sub write_detail_output {
-    my ($self, $title, $output, $result) = @_;
-
-    $result =~ /^(ok|fail|softfail)$/ || die "Result value: $result not allowed.";
-
-    my $filename = $self->next_resultname('txt');
-    my $detail   = {
-        title  => $title,
-        result => $result,
-        text   => $filename,
-    };
-    push @{$self->{details}}, $detail;
-
-    open my $fh, '>', bmwqemu::result_dir() . "/$filename";
-    print $fh $output;
-    close $fh;
-
-    # Set overall result for the job
-    if ($result eq 'fail') {
-        $self->{result} = $result;
-    }
-    elsif ($result eq 'ok') {
-        $self->{result} ||= $result;
-    }
 }
 
 sub get_controller_job {
@@ -238,12 +235,54 @@ sub script_retry {
     for (1 .. $retry) {
         type_string "# Trying $_ of $retry:\n";
 
-        $ret = script_run($cmd);
+        $ret = script_run "timeout 25 $cmd";
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_;
         sleep $delay;
     }
+}
+
+# All events ordered by execution
+my %events = (
+    support_server_ready     => 'Wait for dhcp, dns, ntp, ..',
+    VELUM_STARTED            => 'Wait until velum starts to login there from controller',
+    VELUM_CONFIGURED         => 'Velum has to be configured before autoyast installations start',
+    NODES_ACCEPTED           => 'Wait until salt-keys are accepted to set password on autoyast nodes',
+    REBOOT_FINISHED          => 'Re-login when system rebooted after update/reboot test',
+    DELAYED_WORKER_INSTALLED => 'Wait until we have new node that we can add to existing cluster',
+    DELAYED_NODES_ACCEPTED   => 'Wait until salt-keys are accepted to set password on autoyast nodes',
+    CNTRL_FINISHED           => 'Wait on CaaSP nodes until controller finishes testing',
+);
+
+# CaaSP specific unpausing
+sub unpause {
+    my $event = shift;
+
+    # Handle cluster failure on controller node
+    if (uc($event) eq 'ALL') {
+        foreach my $e (keys %events) {
+            lockapi::mutex_create $e;
+        }
+    }
+    else {
+        lockapi::mutex_create $event;
+    }
+}
+
+# CaaSP specific pausing
+sub pause_until {
+    my $event = shift;
+
+    # Make sure mutex is documented here
+    die "Event '$event' is unknown" unless exists $events{$event};
+
+    # Mutexes created by child jobs (not controller)
+    my $owner;
+    $owner = get_admin_job      if $event eq 'VELUM_STARTED';
+    $owner = get_delayed_worker if $event eq 'DELAYED_WORKER_INSTALLED';
+
+    lockapi::mutex_wait($event, $owner, $events{$event});
 }
 
 1;

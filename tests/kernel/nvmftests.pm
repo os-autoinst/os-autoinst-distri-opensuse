@@ -24,7 +24,7 @@ sub run {
     zypper_call('ar -f -G ' . get_required_var('BENCHMARK_REPO'));
     zypper_call('ar -f -G ' . get_required_var('DEVEL_LANG_PYTHON_REPO'));
     zypper_call('--gpg-auto-import-keys ref');
-    zypper_call('in nvmftests');
+    zypper_call('in --no-recommends nvmftests');
 
     assert_script_run('cd /var/lib/nvmftests');
     assert_script_run('ln -sf tests/config config');

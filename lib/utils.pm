@@ -21,9 +21,9 @@ use Exporter;
 use strict;
 
 use testapi qw(is_serial_terminal :DEFAULT);
-use lockapi;
+use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng is_jeos);
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -33,6 +33,7 @@ our @EXPORT = qw(
   type_string_very_slow
   save_svirt_pty
   type_line_svirt
+  integration_services_check
   unlock_if_encrypted
   prepare_system_shutdown
   get_netboot_mirror
@@ -60,6 +61,7 @@ our @EXPORT = qw(
   random_string
   handle_login
   handle_logout
+  handle_relogin
   handle_emergency
   service_action
   assert_gui_app
@@ -76,7 +78,6 @@ our @EXPORT = qw(
   shorten_url
   reconnect_s390
   set_hostname
-  wait_supportserver
 );
 
 
@@ -118,6 +119,53 @@ sub type_line_svirt {
     }
 }
 
+sub unlock_zvm_disk {
+    my ($console) = @_;
+    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase') };
+    if ($@) {
+        diag 'No passphrase asked, continuing';
+    }
+    else {
+        $console->sequence_3270("String(\"$testapi::password\")", "ENTER");
+        diag 'Passphrase entered';
+    }
+
+}
+
+sub handle_grub_zvm {
+    my ($console) = @_;
+    eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+    if ($@) {
+        diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+    }
+    else {
+        $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
+    }
+}
+
+=head2 integration_services_check
+Make sure integration services (e.g. kernel modules, utilities, services)
+are present and in working condition. Just Hyper-V for now.
+=cut
+sub integration_services_check {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        assert_script_run('rpmquery hyper-v');
+        assert_script_run('rpmverify hyper-v');
+        my $base = is_jeos() ? '-base' : '';
+        for my $module (qw(utils netvsc storvsc vmbus)) {
+            assert_script_run("rpmquery -l kernel-default$base | grep hv_${module}.ko");
+            assert_script_run("modinfo hv_$module");
+            assert_script_run("lsmod | grep hv_$module");
+        }
+        # 'hv_balloon' need not to be loaded
+        assert_script_run('modinfo hv_balloon');
+        systemctl('is-active hv_kvp_daemon.service');
+        systemctl('is-active hv_vss_daemon.service');
+        # 'Guest Services' are not enabled by default on our VMs
+        assert_script_run('systemctl list-unit-files | grep hv_fcopy_daemon.service');
+    }
+}
+
 sub unlock_if_encrypted {
     my (%args) = @_;
     $args{check_typed_password} //= 0;
@@ -135,6 +183,15 @@ sub unlock_if_encrypted {
         }
         wait_serial("Please enter passphrase for disk.*", 100);
         type_line_svirt "$password";
+    }    # Handle zVM scenario
+    elsif (check_var('BACKEND', 's390x')) {
+        my $console = console('x3270');
+        # Enter password before GRUB if boot is encrypted
+        # Boot partition is always encrypted, if not using expert partitioner with
+        # separate unencrypted boot
+        unlock_zvm_disk($console) unless get_var('UNENCRYPTED_BOOT');
+        handle_grub_zvm($console);
+        unlock_zvm_disk($console);
     }
     else {
         assert_screen("encrypted-disk-password-prompt", 200);
@@ -289,6 +346,7 @@ sub zypper_call {
     my $dumb_term        = $args{dumb_term};
 
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
+    die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
     # Retrying workarounds
     my $ret;
@@ -497,7 +555,6 @@ sub assert_shutdown_and_restore_system {
             $svirt->define_and_start;
         }
         else {
-            $svirt->change_domain_element(os => boot => {dev => 'hd'});
             $svirt->define_and_start;
             select_console($vnc_console);
         }
@@ -561,7 +618,7 @@ sub poweroff_x11 {
 
     if (check_var("DESKTOP", "kde")) {
         send_key "ctrl-alt-delete";    # shutdown
-        assert_screen 'logoutdialog', 15;
+        assert_screen_with_soft_timeout('logoutdialog', timeout => 90, soft_timeout => 15, 'bsc#1091933');
 
         if (get_var("PLASMA5")) {
             assert_and_click 'sddm_shutdown_option_btn';
@@ -719,9 +776,13 @@ sub power_action {
     }
     # Shutdown takes longer than 60 seconds on SLE 15
     my $shutdown_timeout = 60;
-    if (is_sle('15+') && check_var('DESKTOP', 'gnome')) {
+    if (is_sle('15+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         record_soft_failure('bsc#1055462');
         $shutdown_timeout *= 3;
+    }
+    # The timeout is increased as shutdown takes longer on Live CD
+    if (get_var('LIVECD')) {
+        $shutdown_timeout *= 4;
     }
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $shutdown_timeout *= 3;
@@ -729,7 +790,10 @@ sub power_action {
     }
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast, as did initial reboot already
-    if (check_var('VIRSH_VMM_FAMILY', 'xen') || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST'))) {
+    if (   check_var('VIRSH_VMM_FAMILY', 'kvm')
+        || check_var('VIRSH_VMM_FAMILY', 'xen')
+        || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST')))
+    {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
@@ -803,11 +867,6 @@ sub addon_license {
     push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
   license: {
         do {
-            # Soft-fail on SLE-15 if license is not there.
-            if (sle_version_at_least('15') && !check_screen \@tags) {
-                record_soft_failure 'bsc#1057223';
-                return;
-            }
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
                 record_soft_failure 'untrusted gpg key';
@@ -840,7 +899,27 @@ sub random_string {
     return join '', map { @chars[rand @chars] } 1 .. $length;
 }
 
+=head2 handle_login
+
+  handle_login($myuser, $user_selected);
+
+Log the user in using the displaymanager.
+When C<$myuser> is set, this user will be used for login.
+Otherwise the function will default to C<$username>.
+For displaymanagers (like gnome) where the user needs to be selected
+from a menu C<$user_selected> tells the function that the desired
+user has already been selected before this function was called.
+
+Example:
+
+  handle_login('user1', 1);
+
+=cut
 sub handle_login {
+    my ($myuser, $user_selected) = @_;
+    $myuser //= $username;
+    $user_selected //= 0;
+
     assert_screen 'displaymanager';    # wait for DM, then try to login
     wait_still_screen;
     if (get_var('ROOTONLY')) {
@@ -852,14 +931,14 @@ sub handle_login {
         type_string "root\n";
     }
     elsif (get_var('DM_NEEDS_USERNAME')) {
-        type_string "$username\n";
+        type_string "$myuser\n";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
-        if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
+        if (!$user_selected && (is_sle('15+') || is_leap('15.0+') || is_tumbleweed)) {
             assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
             if (match_has_tag('displaymanager-user-notselected')) {
-                assert_and_click "displaymanager-$username";
+                assert_and_click "displaymanager-$myuser";
                 record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
             }
             elsif (match_has_tag('displaymanager-user-selected')) {
@@ -889,6 +968,11 @@ sub handle_logout {
         send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
     }
     assert_and_click 'logout-button';                                  # press logout
+}
+
+sub handle_relogin {
+    handle_logout;
+    handle_login;
 }
 
 # Handle emergency mode
@@ -998,22 +1082,24 @@ sub run_scripted_command_slow {
 Returns tty number used designed to be used for root-console.
 When console is not yet initialized, we cannot get it from arguments.
 Since SLE 15 gdm is running on tty2, so we change behaviour for it and
-openSUSE distris.
+openSUSE distris, except for Xen PV (bsc#1086243).
 =cut
 sub get_root_console_tty {
-    return (sle_version_at_least('15') && !is_caasp) ? 6 : 2;
+    return (sle_version_at_least('15') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
 }
 
 =head2 get_x11_console_tty
-Returns tty number used designed to be used for X
+Returns tty number used designed to be used for X.
 Since SLE 15 gdm is always running on tty7, currently the main GUI session
-is running on tty2 by default. see also: bsc#1054782
+is running on tty2 by default, except for Xen PV (bsc#1086243).
+See also: bsc#1054782
 =cut
 sub get_x11_console_tty {
     my $new_gdm
       = !is_sle('<15')
       && !is_leap('<15.0')
       && !is_caasp
+      && !check_var('VIRSH_VMM_TYPE', 'linux')
       && !get_var('VERSION_LAYERED');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
@@ -1116,21 +1202,30 @@ sub shorten_url {
 
 sub _handle_login_not_found {
     my ($str) = @_;
-    diag 'Expected welcome message not found, investigating bootup log content: ' . $str;
+    record_info 'Investigation', 'Expected welcome message not found, investigating bootup log content: ' . $str;
     diag 'Checking for bootloader';
-    diag "WARNING: bootloader grub menue not found" unless $str =~ /GNU GRUB/;
+    record_info 'grub not found', 'WARNING: bootloader grub menue not found' unless $str =~ /GNU GRUB/;
     diag 'Checking for ssh daemon';
-    diag "WARNING: ssh daemon in SUT is not available" unless $str =~ /Started OpenSSH Daemon/;
+    record_info 'ssh not found', 'WARNING: ssh daemon in SUT is not available' unless $str =~ /Started OpenSSH Daemon/;
     diag 'Checking for any welcome message';
-    die "no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)" unless $str =~ /Welcome to/;
+    die 'no welcome message found, system seems to have never passed the bootloader (stuck or not enough waiting time)' unless $str =~ /Welcome to/;
     diag 'Checking login target reached';
-    die "login target not reached" unless $str =~ /Reached target Login Prompts/;
+    record_info 'No login target' unless $str =~ /Reached target Login Prompts/;
     diag 'Checking for login prompt';
-    die "no login prompt found" unless $str =~ /login:/;
+    record_info 'No login prompt' unless $str =~ /login:/;
     diag 'Checking for known failure';
     return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
       if $str =~ /Welcome to SUSE Linux Enterprise 15/;
-    die "unknown error, system couldn't boot";
+    my $error_details = $str;
+    if (check_var('BACKEND', 's390x')) {
+        diag 'Trying to look for "blocked tasks" with magic sysrq';
+        console('x3270')->sequence_3270("String(\"^-w\\n\")");
+        my $r = console('x3270')->expect_3270(buffer_full => qr/(MORE\.\.\.|HOLDING)/);
+        save_screenshot;
+        $error_details = join("\n", @$r);
+    }
+
+    die "unknown error, system couldn't boot. Detailed bootup log:\n$error_details";
 }
 
 =head2 reconnect_s390
@@ -1145,6 +1240,9 @@ sub reconnect_s390 {
 
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
+        my $console = console('x3270');
+        # grub is handled in unlock_if_encrypted
+        handle_grub_zvm($console) unless get_var('ENCRYPT');
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
@@ -1158,10 +1256,10 @@ sub reconnect_s390 {
     }
     else {
         my $r = wait_serial($login_ready, 300);
-        if ($r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+        if ($r && $r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
             record_soft_failure('bsc#1040606');
         }
-        elsif (is_sle) {
+        elsif ($r && is_sle) {
             $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
         }
     }
@@ -1170,25 +1268,6 @@ sub reconnect_s390 {
     if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
         select_console('x11', await_console => 0);
     }
-}
-
-=head2 wait_supportserver
-
-  wait_supportserver():
-
-Wait for the support server to finish its initialization.
-Ideally, this should be done *before* starting the OS, mainly if a DHCP
-server is needed.
-
-=cut
-sub wait_supportserver {
-    return unless get_var('USE_SUPPORT_SERVER');
-
-    # We use mutex to do this
-    my $mutex = 'support_server_ready';
-    diag "Waiting for support server to complete setup (with mutex '$mutex')...";
-    mutex_lock($mutex);
-    mutex_unlock($mutex);
 }
 
 1;

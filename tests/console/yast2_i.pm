@@ -83,7 +83,7 @@ sub run {
         }
     }
 
-    wait_serial("y2-i-status-0", 60) || die "'yast2 sw_single' didn't finish";
+    wait_serial("y2-i-status-0", 120) || die "'yast2 sw_single' didn't finish";
 
     $self->clear_and_verify_console;         # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname

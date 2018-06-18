@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,8 @@ use Exporter;
 use testapi;
 use utils;
 
-our @EXPORT = qw(capture_state check_automounter snap_revert is_patch_needed add_test_repositories remove_test_repositories advance_installer_window);
+our @EXPORT
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -55,15 +56,11 @@ sub check_automounter {
     }
 }
 
-sub snap_revert {
-    my ($svirt, $vm_name, $snapshot) = @_;
-    my $ret = $svirt->run_cmd("virsh snapshot-revert $vm_name $snapshot --running");
-    die "Snapshot revert $snapshot failed" if $ret;
-}
-
 sub is_patch_needed {
     my $patch   = shift;
     my $install = shift // 0;
+
+    return '' if !($patch);
 
     my $patch_status = script_output("zypper -n info -t patch $patch");
     if ($patch_status =~ /Status\s*:\s+[nN]ot\s[nN]eeded/) {
@@ -103,6 +100,32 @@ sub advance_installer_window {
 
     send_key $cmd{next};
     assert_screen $screenName;
+}
+
+# Get list of patches
+sub get_patches {
+    my ($incident_id, $repo) = @_;
+
+    # Replace comma by space, repositories must be divided by space
+    $repo =~ tr/,/ /;
+
+    # Search for patches by incident, exclude not needed
+    my $patches = script_output("zypper patches -r $repo | awk -F '|' '/needed/ && !/not needed/ && /$incident_id/ { printf \$2 }'");
+    # Remove carriage returns and make patch list on one line
+    $patches =~ s/\r//g;
+    return $patches;
+}
+
+# Check variables for patch definition
+sub check_patch_variables {
+    my ($patch, $incident_id) = @_;
+
+    if ($patch && $incident_id) {
+        die('It is not possible to have defined INCIDENT_PATCH and INCIDENT_ID at the same time');
+    }
+    elsif (!($patch) && !($incident_id)) {
+        die("Missing INCIDENT_PATCH or INCIDENT_ID");
+    }
 }
 
 1;

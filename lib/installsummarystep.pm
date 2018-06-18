@@ -32,4 +32,3 @@ sub accept_changes_with_3rd_party_repos {
 }
 
 1;
-# vim: set sw=4 et:

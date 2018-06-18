@@ -33,7 +33,7 @@ sub initialize_y2lan {
     become_root;
     # make sure that firewalld is stopped, or we have later pops for firewall activation warning
     # or timeout for command 'ip a' later
-    if ((is_sle('15+') or is_leap('15.0+')) and assert_script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=active")) {
+    if ((is_sle('15+') or is_leap('15.0+')) and script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=inactive")) {
         systemctl 'stop firewalld';
         assert_script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=inactive");
     }
@@ -99,4 +99,3 @@ sub verify_network_configuration {
 }
 
 1;
-# vim: set sw=4 et:

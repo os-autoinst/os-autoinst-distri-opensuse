@@ -1,10 +1,11 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
+use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
 use testapi;
 use strict;
 use utils;
+use lockapi 'mutex_wait';
 use version_utils qw(is_sle is_leap is_upgrade);
 
 # Base class for all openSUSE tests
@@ -120,15 +121,22 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 sub investigate_yast2_failure {
     my ($self) = shift;
 
+    my $error_detected;
     # first check if badlist exists which could be the most likely problem
     if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
         record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
+        $error_detected = 1;
     }
-    if (my $y2log_internal_error = script_output 'grep -B 3 \'Internal error. Please report a bug report\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Internal error in YaST2 detected', "Details:\n\n$y2log_internal_error", result => 'fail';
+    # Array with possible strings to search in YaST2 logs
+    my @y2log_errors = ('Internal error. Please report a bug report', '<3>', 'No textdomain configured');
+    for my $y2log_error (@y2log_errors) {
+        if (my $y2log_error_result = script_output 'grep -B 3 \'' . $y2log_error . '\' /var/log/YaST2/y2log | tail -n 20 || true') {
+            record_info 'YaST2 log error detected', "Details:\n\n$y2log_error_result", result => 'fail';
+            $error_detected = 1;
+        }
     }
-    elsif (my $y2log_other_error = script_output 'grep -B 3 \'<3>\' /var/log/YaST2/y2log | tail -n 20 || true') {
-        record_info 'Other error in YaST2 detected', "Details:\n\n$y2log_other_error", result => 'fail';
+    if (get_var('ASSERT_Y2LOGS') && $error_detected) {
+        die "YaST2 error(s) detected. Please, check details";
     }
 }
 
@@ -189,10 +197,12 @@ sub set_standard_prompt {
 sub select_bootmenu_more {
     my ($self, $tag, $more) = @_;
 
-    assert_screen "inst-bootmenu", 15;
+    # do not waste time waiting when we already matched
+    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
+    stop_grub_timeout;
 
     # after installation-images 14.210 added a submenu
-    if ($more && check_screen "inst-submenu-more", 1) {
+    if ($more && check_screen 'inst-submenu-more', 0) {
         send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
         send_key "ret";
     }
@@ -263,33 +273,9 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
 }
 
-=head2 rewrite_static_svirt_network_configuration
-
-Rewrite the static network configuration within a SUT over the svirt console
-based on the worker specific configuration to allow reuse of images created on
-one host and booted on another host. Can also be used for debugging in case of
-consoles relying on remote connections to within the SUT being blocked by
-malfunctioning network or services within the SUT.
-
-Relies on the C<$pty> variable set in the remote svirt shell by C<utils::save_svirt_pty>.
-
-Also see poo#18016 for details.
-=cut
-sub rewrite_static_svirt_network_configuration {
-    my ($self) = @_;
-    type_line_svirt "root", expect => 'Password';
-    type_line_svirt "$testapi::password";
-    my $virsh_guest = get_required_var('VIRSH_GUEST');
-    type_line_svirt "sed -i \"\\\"s:IPADDR='[0-9.]*/\\([0-9]*\\)':IPADDR='$virsh_guest/\\1':\\\" /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
-    type_string "# output of current network configuration for debugging\n";
-    type_line_svirt "\"cat /etc/sysconfig/network/ifcfg-\*\"", expect => '#';
-    type_line_svirt "systemctl restart network",               expect => '#';
-    type_line_svirt "systemctl is-active network",             expect => 'active';
-}
-
 =head2 wait_boot
 
-  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin);
+  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
 
 Makes sure the bootloader appears and then boots to desktop or text mode
 correspondingly. Returns successfully when the system is ready on a login
@@ -302,7 +288,8 @@ place. The time waiting for the bootloader can be configured with
 C<$bootloader_time> in seconds as well as the time waiting for the system to
 be fully booted with C<$ready_time> in seconds. Set C<$in_grub> to 1 when the
 SUT is already expected to be within the grub menu. C<wait_boot> continues
-from there.
+from there. C<$forcenologin> makes this function behave as if
+the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot {
     my ($self, %args) = @_;
@@ -311,6 +298,7 @@ sub wait_boot {
     my $ready_time      = $args{ready_time} // 200;
     my $in_grub         = $args{in_grub} // 0;
     my $nologin         = $args{nologin};
+    my $forcenologin    = $args{forcenologin};
 
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
@@ -335,13 +323,20 @@ sub wait_boot {
             select_console('iucvconn');
         }
         else {
+            my $worker_hostname = get_required_var('WORKER_HOSTNAME');
+            my $virsh_guest     = get_required_var('VIRSH_GUEST');
             workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
             wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             select_console('svirt');
             save_svirt_pty;
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
-            $self->rewrite_static_svirt_network_configuration();
-            type_line_svirt "systemctl is-active sshd", expect => 'active';
+            type_line_svirt "root", expect => 'Password';
+            type_line_svirt "$testapi::password";
+            type_line_svirt "systemctl is-active network", expect => 'active';
+            type_line_svirt 'systemctl is-active sshd',    expect => 'active';
+            # make sure we can reach the SSH server in the SUT
+            type_string "for i in {1..7}; do nc -zv $virsh_guest 22 && break || (echo \"retry: \$i\" ; sleep 5; false); done;\n";
+            save_screenshot;
         }
 
         # on z/(K)VM we need to re-select a console
@@ -367,7 +362,8 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
-        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
+        $self->handle_uefi_boot_disk_workaround
+          if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub && !get_var('UEFI_PFLASH_VARS'));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -396,7 +392,7 @@ sub wait_boot {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
-        wait_supportserver if get_var('USE_SUPPORT_SERVER');
+        mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
         send_key 'ret';
     }
@@ -434,12 +430,13 @@ sub wait_boot {
 
     mouse_hide();
 
-    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED")) {
+    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $forcenologin) {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
 
         if (!$nologin) {
-            if (get_var('DM_NEEDS_USERNAME') || check_var('VERSION', '11-SP4')) {
+            # SLE11 SP4 kde desktop do not need type username
+            if (get_var('DM_NEEDS_USERNAME')) {
                 type_string "$username\n";
             }
             # log in
@@ -510,4 +507,3 @@ sub post_fail_hook {
 }
 
 1;
-# vim: set sw=4 et:

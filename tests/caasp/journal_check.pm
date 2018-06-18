@@ -16,8 +16,6 @@ use testapi;
 use caasp;
 
 sub run {
-    my ($self) = @_;
-
     my $bug_pattern = {
         bsc_1062349         => '.*vbd.*xenbus_dev_probe on device.*',
         bsc_1022527_FEATURE => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
@@ -46,13 +44,13 @@ sub run {
         }
         if ($buffer) {
             $result = $bug =~ 'FEATURE' ? 'ok' : 'softfail';
-            $self->write_detail_output($bug, $buffer, $result);
+            record_info $bug, $buffer, result => $result;
         }
     }
 
     # Find lines which doesn't match to the pattern_bug by using master_pattern
     foreach my $line (split(/\n/, $journal_output)) {
-        $self->write_detail_output("Unknown issue", $line, "fail") if ($line !~ /$master_pattern/);
+        record_info('Unknown issue', $line, result => 'fail') if ($line !~ /$master_pattern/);
     }
 
     # Write full journal output for reference and upload it into Uploaded Logs section in test webUI
@@ -65,7 +63,7 @@ sub run {
     foreach my $line (split(/\n/, $failed_services)) {
         if ($line =~ /^([\w.-]+)\s.+$/) {
             my $failed_service_output = script_output("systemctl status $1 -l || true");
-            $self->write_detail_output("$1 failed", $failed_service_output, "fail");
+            record_info "$1 failed", $failed_service_output, result => 'fail';
         }
     }
 }

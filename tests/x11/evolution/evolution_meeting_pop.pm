@@ -41,4 +41,3 @@ sub run {
 }
 
 1;
-# vim: set sw=5 set:

@@ -17,8 +17,6 @@ use caasp;
 use XML::Simple;
 
 sub run {
-    my $self = shift;
-
     my $salt_master   = 'fake-salt-master.com';
     my $smt_url       = 'http://fake.smt.com';
     my $regcode       = 'fake-reg-code';
@@ -40,24 +38,24 @@ sub run {
         if ($script->{source} =~ /$salt_master/)  { $counter += 1; next; }
         if ($script->{source} =~ /$ntp_hostname/) { $counter += 2; next; }
     }
-    $self->write_detail_output("scripts missing", "Values $salt_master and $ntp_hostname missing in xml", "fail") if ($counter == 0);
+    record_info('scripts missing', "Values $salt_master and $ntp_hostname missing in xml", result => 'fail') if ($counter == 0);
     # Softfail due bsc#1035665 and XEN snapshot incompatabily
-    $self->write_detail_output("ntp missing",         "Value $ntp_hostname for ntp missing in xml",        "softfail") if ($counter == 1);
-    $self->write_detail_output("salt_master missing", "Value $salt_master for salt-master missing in xml", "fail")     if ($counter == 2);
+    record_info('ntp missing',         "Value $ntp_hostname for ntp missing in xml",        result => 'softfail') if ($counter == 1);
+    record_info('salt_master missing', "Value $salt_master for salt-master missing in xml", result => 'fail')     if ($counter == 2);
 
     # Check for smt_url value in XML
     unless ($data->{suse_register}{reg_server} =~ /$smt_url/) {
-        $self->write_detail_output("reg-server missing", "Value $smt_url for reg-server missing in xml", "fail");
+        record_info 'reg-server missing', "Value $smt_url for reg-server missing in xml", result => 'fail';
     }
 
     # Check for regcode value in XML
     unless ($data->{suse_register}{reg_code} =~ /$regcode/) {
-        $self->write_detail_output("regcode missing", "Value $regcode for regcode missing in xml", "fail");
+        record_info 'regcode missing', "Value $regcode for regcode missing in xml", result => 'fail';
     }
 
     # Check for reg_email value in XML
     unless ($data->{suse_register}{email} =~ /$reg_email/) {
-        $self->write_detail_output("reg-email missing", "Value $reg_email for reg-email missing in xml", "fail");
+        record_info 'reg-email missing', "Value $reg_email for reg-email missing in xml", result => 'fail';
     }
 
     # Generate generic autoinst.xml without using additional args

@@ -3,11 +3,46 @@ use base "opensusebasetest";
 
 use strict;
 use testapi;
-use lockapi;
+use caasp 'unpause';
+use lockapi 'barrier_destroy';
 use mmapi 'wait_for_children';
 
 use Exporter 'import';
-our @EXPORT = qw(confirm_insecure_https velum_login switch_to download_kubeconfig);
+our @EXPORT = qw($admin_fqdn
+  confirm_insecure_https velum_login switch_to download_kubeconfig click_click xy);
+
+our $admin_fqdn = 'admin.openqa.test';
+
+# 10% of clicks are lost because ajax refreshes Velum during click
+sub click_click {
+    my ($x, $y) = @_;
+    mouse_set $x, $y;
+    for (1 .. 3) {
+        mouse_click;
+        # Don't click-and-drag
+        sleep 1;
+    }
+    mouse_hide;
+    record_info 'bsc#1048975', 'User interaction is lost after page refresh';
+}
+
+# Get xy coordinates for:
+# - 1 needle  1 area    : center of a needle
+# - 1 needle  2 areas   : intersection of 2 areas   (n1a1 => x, n1aN => y)
+# - 2 needles 1|2 areas : intersection of 2 needles (n1a1 => x, n2aN => y)
+sub xy {
+    my ($tag0, $tag1) = @_;
+    my $as;
+
+    # Get x position from first needle & first area
+    $as = assert_screen($tag0)->{area};
+    my $x = $as->[0]{x} + int($as->[0]{w} / 2);
+    # Get y position from last needle & last area
+    $as = assert_screen($tag1)->{area} if $tag1;
+    my $y = $as->[-1]{y} + int($as->[-1]{h} / 2);
+
+    return ($x, $y);
+}
 
 # Easier switching between applications
 # xterm | velum
@@ -53,11 +88,7 @@ sub post_fail_hook {
 
     # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy 'WORKERS_INSTALLED';
-    mutex_create 'NODES_ACCEPTED';
-    mutex_create 'DELAYED_NODES_ACCEPTED';
-    mutex_create 'VELUM_CONFIGURED';
-    mutex_create 'UPDATE_FINISHED';
-    mutex_create 'CNTRL_FINISHED';
+    unpause 'ALL';
 
     # Wait for log export from all nodes
     wait_for_children;
@@ -95,4 +126,3 @@ sub download_kubeconfig {
 }
 
 1;
-# vim: set sw=4 et:

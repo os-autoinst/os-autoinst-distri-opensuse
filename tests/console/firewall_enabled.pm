@@ -12,7 +12,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: fate#323436
 
-use base 'opensusebasetest';
+use base 'consoletest';
 use strict;
 use testapi;
 

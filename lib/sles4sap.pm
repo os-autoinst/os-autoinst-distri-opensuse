@@ -23,4 +23,3 @@ sub post_run_hook {
 }
 
 1;
-# vim: set sw=4 et:

@@ -130,8 +130,7 @@ sub run {
         send_key 'ret';    # boot from hard disk
         return;
     }
-    my @needles
-      = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up inst-betawarning autoyast-boot);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot);
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
     # bios-boot needle does not match if worker stalls during boot - poo#28648
@@ -143,6 +142,14 @@ sub run {
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
     push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
+    # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
+    if (get_var('BETA')) {
+        push(@needles, 'inst-betawarning');
+    }
+    elsif (get_var('AUTOYAST_LICENSE')) {
+        push(@needles, 'autoyast-license');
+    }
+
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
@@ -162,7 +169,8 @@ sub run {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
-            send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+            send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
+            last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
         }
         #repeat until timeout or login screen
         elsif (match_has_tag('nonexisting-package')) {
@@ -266,7 +274,9 @@ sub run {
             $num_errors++;
         }
         elsif (match_has_tag('autoyast-boot')) {
-            send_key 'ret';    # grub timeout is disable, so press any key is needed to pass the grub
+            # if we matched bios-boot tag during stage1 we may get grub menu, legacy behavior
+            # keep it as a fallback if grub timeout is disabled
+            send_key 'ret';
         }
         elsif (match_has_tag('warning-pop-up')) {
             handle_warnings;    # Process warnings during stage 2
@@ -287,4 +297,3 @@ sub post_fail_hook {
 }
 
 1;
-

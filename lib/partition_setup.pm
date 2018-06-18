@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,9 +17,9 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(create_new_partition_table addpart addlv unselect_xen_pv_cdrom enable_encryption_guided_setup);
+our @EXPORT = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
 
-my %role = qw(
+our %partition_roles = qw(
   OS alt-o
   data alt-d
   swap alt-s
@@ -49,7 +49,7 @@ sub create_new_partition_table {
     );
 
     assert_screen('release-notes-button');
-    send_key match_has_tag('bsc#1054478') ? 'alt-x' : $cmd{expertpartitioner};
+    send_key $cmd{expertpartitioner};
     if (is_storage_ng) {
         # start with existing configuration
         send_key 'down';
@@ -98,7 +98,7 @@ sub addpart {
     if ($args{size}) {
         if (is_storage_ng) {
             # maximum size is selected by default
-            send_key 'alt-c';
+            send_key $cmd{customsize};
             assert_screen 'partition-custom-size-selected';
             send_key 'alt-s';
         }
@@ -109,7 +109,7 @@ sub addpart {
     }
     send_key $cmd{next};
     assert_screen 'partition-role';
-    send_key $role{$args{role}};
+    send_key $partition_roles{$args{role}};
     send_key $cmd{next};
     assert_screen 'partition-format';
     if ($args{format}) {
@@ -122,12 +122,13 @@ sub addpart {
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
             wait_screen_change { send_key 'home' };    # start from the top of the list
-            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 2;
+            assert_screen((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10;
+            send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
     }
     # Enable snapshots option works only with btrfs
     if ($args{enable_snapshots} && $args{format} eq 'btrfs') {
-        send_key_until_needlematch('partition-btrfs-snapshots-enabled', (is_storage_ng) ? 'alt-p' : 'alt-n');
+        send_key_until_needlematch('partition-btrfs-snapshots-enabled', $cmd{enable_snapshots});
     }
     if ($args{fsid}) {                                 # $args{fsid} will describe needle tag below
         send_key 'alt-i';                              # select File system ID
@@ -136,7 +137,7 @@ sub addpart {
             record_soft_failure('bsc#1079399 - Combobox is writable');
             for (1 .. 10) { send_key 'up'; }
         }
-        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 2;
+        send_key_until_needlematch "partition-selected-$args{fsid}-type", 'down', 10, 5;
     }
 
     mount_device $args{mount} if $args{mount};
@@ -167,7 +168,7 @@ sub addlv {
     send_key $cmd{next};
     assert_screen 'partition-lv-size';
     if ($args{size}) {    # use default max size if not defined
-        send_key 'alt-c';    # custom size
+        send_key((is_storage_ng) ? 'alt-t' : $cmd{customsize});    # custom size
         assert_screen 'partition-custom-size-selected';
         send_key 'alt-s' if is_storage_ng;
         # Remove text
@@ -177,7 +178,7 @@ sub addlv {
     }
     send_key $cmd{next};
     assert_screen 'partition-role';
-    send_key $role{$args{role}};    # swap role
+    send_key $partition_roles{$args{role}};                        # swap role
     send_key $cmd{next};
     assert_screen 'partition-format';
     # Add mount
@@ -185,18 +186,23 @@ sub addlv {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
-# On Xen PV "CDROM" is of the same type as a disk block device so YaST
-# naturally sees it as a "disk". We have to uncheck the "CDROM".
-sub unselect_xen_pv_cdrom {
-    if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        assert_screen 'select-hard-disk';
-        if (get_var('TEXTMODE')) {
-            send_key_until_needlematch 'uncheck-install-medium', 'tab';
-            send_key 'spc';
+sub select_first_hard_disk {
+    my $matched_needle = assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected  hard-disk-dev-non-sda-selected)];
+    if (match_has_tag('hard-disk-dev-non-sda-selected') || match_has_tag('hard-disk-dev-sdb-selected') || get_var('SELECT_FIRST_DISK')) {
+        # SUT may have any number disks, only keep the first, unselect all other disks
+        foreach my $tag (@{$matched_needle->{needle}->{tags}}) {
+            if (check_var('VIDEOMODE', 'text')) {
+                if ($tag =~ /hotkey_([a-z])/) {
+                    send_key 'alt-' . $1;    # Unselect non-first drive
+                }
+            }
+            else {
+                if ($tag =~ /hard-disk-dev-sd[a-z]-selected/) {
+                    assert_and_click $tag;    # Unselect non-first drive
+                }
+            }
         }
-        else {
-            assert_and_click 'uncheck-install-medium';
-        }
+        assert_screen 'select-hard-disks-one-selected';
         send_key $cmd{next};
     }
 }
@@ -218,5 +224,63 @@ sub enable_encryption_guided_setup {
     installation_user_settings::await_password_check;
 }
 
+sub take_first_disk_storage_ng {
+    my (%args) = @_;
+    return unless is_storage_ng;
+    send_key $cmd{guidedsetup};    # select guided setup
+    assert_screen 'select-hard-disks';
+    # It's not always the case that SUT has 2 drives, for ipmi it's changing
+    # So making it flexible, still assert the screen if want to verify explicitly
+    select_first_hard_disk;
+
+    assert_screen [qw(existing-partitions partition-scheme)];
+    # If drive is not formatted, we have select hard disks page
+    # On ipmi we always have unformatted drive
+    # Sometimes can have existing installation on iscsi
+    if (match_has_tag 'existing-partitions') {
+        send_key $cmd{next};
+        assert_screen 'partition-scheme';
+    }
+    send_key $cmd{next};
+
+    # select btrfs file system
+    if (check_var('VIDEOMODE', 'text')) {
+        assert_screen 'select-root-filesystem';
+        send_key 'alt-f';
+        send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
+        send_key 'ret';
+    }
+    else {
+        assert_and_click 'default-root-filesystem';
+        assert_and_click "filesystem-btrfs";
+    }
+    assert_screen "btrfs-selected";
+    send_key $cmd{next};
+}
+
+sub take_first_disk {
+    my (%args) = @_;
+    # Flow is different for the storage-ng and previous storage stack
+    if (is_storage_ng) {
+        take_first_disk_storage_ng %args;
+    }
+    else {
+        # create partitioning
+        send_key $cmd{createpartsetup};
+        assert_screen($args{iscsi} ? 'preparing-disk-select-iscsi-disk' : 'prepare-hard-disk');
+
+        wait_screen_change {
+            send_key 'alt-1';
+        };
+        send_key $cmd{next};
+
+        # with iscsi we may or may not have previous installation on the disk,
+        # depending on the scenario we get different screens
+        # same can happen with ipmi installations
+        assert_screen [qw(use-entire-disk preparing-disk-overview)];
+        wait_screen_change { send_key "alt-e" } if match_has_tag 'use-entire-disk';    # use entire disk
+        send_key $cmd{next};
+    }
+}
+
 1;
-# vim: set sw=4 et:

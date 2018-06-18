@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -139,6 +139,9 @@ sub is_caasp {
     elsif ($filter eq 'qam') {
         return check_var('FLAVOR', 'CaaSP-DVD-Incidents') || get_var('LOCAL_QAM_DEVENV');
     }
+    elsif ($filter eq 'local') {
+        return get_var('LOCAL_DEVENV') || get_var('LOCAL_QAM_DEVENV');
+    }
     elsif ($filter =~ /staging/) {
         return get_var('FLAVOR') =~ /Staging-.-DVD/;
     }
@@ -217,7 +220,11 @@ sub sle_version_at_least {
     my $version_variable = $args{version_variable} // 'VERSION';
 
     if ($version eq '12') {
-        return !check_var($version_variable, '11-SP4');
+        return !(
+               check_var($version_variable, '11-SP1')
+            or check_var($version_variable, '11-SP2')
+            or check_var($version_variable, '11-SP3')
+            or check_var($version_variable, '11-SP4'));
     }
 
     if ($version eq '12-SP1') {

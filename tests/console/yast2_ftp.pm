@@ -21,7 +21,7 @@ sub vsftd_setup_checker {
     my $config_ref              = pop();
     my $error                   = "";
     my @vsftpd_conf_tested_dirs = qw(pasv_min_port pasv_max_port anon_mkdir_write_enable anon_root anon_umask anon_upload_enable anon_max_rate chroot_local_user
-      ftpd_banner local_root local_umask local_max_rate max_clients max_per_ip pasv_enable rsa_cert_file ssl_sslv2 ssl_sslv3 ssl_tlsv1);
+      ftpd_banner local_root local_umask local_max_rate max_clients max_per_ip pasv_enable rsa_cert_file ssl_tlsv1);
 
     foreach (@vsftpd_conf_tested_dirs) {
         if (script_run("grep \"^$_=$config_ref->{$_}\" \/etc\/vsftpd\.conf")) {
@@ -62,8 +62,6 @@ sub run {
         max_per_ip              => '7',
         pasv_enable             => 'YES',
         rsa_cert_file           => '/etc/vsftpd.pem',
-        ssl_sslv2               => 'NO',
-        ssl_sslv3               => 'NO',
         ssl_tlsv1               => 'YES'
     };
 

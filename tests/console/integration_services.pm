@@ -1,26 +1,24 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: gnuhealth tryton client installation and startup
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Summary: Run integration_services_check
+# Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base 'x11test';
-use strict;
+use base 'consoletest';
 use testapi;
+use utils 'integration_services_check';
+use strict;
 
 sub run {
-    my ($self) = @_;
-    ensure_installed 'tryton';
-}
+    select_console 'root-console';
 
-sub test_flags {
-    return {fatal => 1};
+    integration_services_check;
 }
 
 1;

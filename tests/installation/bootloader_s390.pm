@@ -211,6 +211,26 @@ sub show_debug {
     type_string "reset\n";
 }
 
+sub create_encrypted_part {
+    my $self = shift;
+    # activate install-shell to do pre-install dasd-format
+    select_console('install-shell');
+
+    # bring dasd online
+    # exit status 0 -> everything ok
+    # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
+    my $r = script_run("dasd_configure 0.0.0150 1");
+    die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
+    # create partition table
+    assert_script_run 'parted -s /dev/dasda mklabel gpt';
+    # create single partition
+    assert_script_run 'parted -s /dev/dasda mkpart 512 100%';
+    # encrypt created partition
+    assert_script_run 'echo nots3cr3t | cryptsetup luksFormat -q --type luks2 --force-password /dev/dasda1';
+    # bring DASD down again to test the activation during the installation
+    assert_script_run("dasd_configure 0.0.0150 0");
+}
+
 sub format_dasd {
     my $self = shift;
     my $r;
@@ -283,12 +303,9 @@ sub run {
     # activate console so we can call wait_serial later
     my $c = select_console('iucvconn', await_console => 0);
 
-    # we also want to test the formatting during the installation if the variable is set
-    # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
-    # due to channal not activation issue. Need further investigation on it.
-    if (!get_var("FORMAT_DASD_YAST") && !get_var('S390_DISK') && !get_var('UPGRADE') && !get_var('UPGRADE_ON_ZVM')) {
-        format_dasd;
-    }
+    # format DAST before installation by default
+    format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
+    create_encrypted_part if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
     select_console("installation");
 

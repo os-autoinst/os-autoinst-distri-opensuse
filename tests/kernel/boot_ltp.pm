@@ -14,6 +14,7 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use bootloader_setup 'boot_grub_item';
 use serial_terminal 'select_virtio_console';
 
 sub run {
@@ -21,9 +22,16 @@ sub run {
     my $ltp_env    = get_var('LTP_ENV');
     my $cmd_file   = get_var('LTP_COMMAND_FILE') || '';
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
+    my $is_ima     = $cmd_file =~ m/^ima$/i;
 
-    # During install_ltp, the second boot may take longer than usual.
-    $self->wait_boot(ready_time => 500);
+    if ($is_ima) {
+        # boot kernel with IMA parameters
+        $self->boot_grub_item();
+    }
+    else {
+        # during install_ltp, the second boot may take longer than usual
+        $self->wait_boot(ready_time => 500);
+    }
 
     if (select_virtio_console()) {
         script_run('dmesg --console-level 7');
@@ -107,6 +115,11 @@ EOF
 { export ENABLE_WICKED=1; systemctl disable wicked; }'
         );
 
+        # emulate $LTPROOT/testscripts/network.sh
+        assert_script_run('curl ' . data_url("ltp/net.sh") . ' -o net.sh', 60);
+        assert_script_run('chmod 755 net.sh');
+        assert_script_run('. ./net.sh');
+
         script_run('env');
 
         # Disable IPv4 and IPv6 iptables.
@@ -147,8 +160,14 @@ EOF
         script_run('cat /etc/hosts');
 
         script_run('ip addr');
+        script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
+
+        script_run('ping -c 2 $IPV4_NETWORK.$LHOST_IPV4_HOST');
+        script_run('ping -c 2 $IPV4_NETWORK.$RHOST_IPV4_HOST');
+        script_run('ping6 -c 2 $IPV6_NETWORK:$LHOST_IPV6_HOST');
+        script_run('ping6 -c 2 $IPV6_NETWORK:$RHOST_IPV6_HOST');
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');

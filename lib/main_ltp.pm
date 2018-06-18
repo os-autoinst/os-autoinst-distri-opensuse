@@ -32,6 +32,11 @@ sub loadtest {
     autotest::loadtest("tests/kernel/$test.pm", %args);
 }
 
+sub shutdown_ltp {
+    loadtest('proc_sys_dump') if get_var('PROC_SYS_DUMP');
+    loadtest('shutdown_ltp', @_);
+}
+
 sub parse_openposix_runfile {
     my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
@@ -89,7 +94,7 @@ sub loadtest_from_runtest_file {
         parse_runtest_file($path . "/ltp-$name-" . $tag, $cmd_pattern, $cmd_exclude, $test_result_export);
     }
 
-    loadtest('shutdown_ltp', run_args => testinfo($test_result_export));
+    shutdown_ltp(run_args => testinfo($test_result_export));
 }
 
 # Replace loadtest_from_runtest_file with this to stress test reverting to
@@ -117,12 +122,7 @@ sub load_kernel_tests {
         }
         loadtest 'install_ltp';
         #loadtest 'boot_ltp';
-        loadtest 'shutdown_ltp';
-    }
-    elsif (get_var('LTP_SETUP_NETWORKING')) {
-        loadtest 'boot_ltp';
-        loadtest 'ltp_setup_networking';
-        loadtest 'shutdown_ltp';
+        shutdown_ltp();
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {

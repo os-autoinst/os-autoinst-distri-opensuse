@@ -23,6 +23,8 @@ sub add_device {
     open_network_settings;
 
     if ($device eq 'bond') {
+        wait_screen_change { send_key 'home' };
+        send_key_until_needlematch 'yast2_lan_select_eth_card', 'down';
         send_key 'alt-i';    # Edit NIC
         assert_screen 'yast2_lan_network_card_setup';
         send_key 'alt-k';             # No link (Bonding Slavees)
@@ -56,8 +58,8 @@ sub add_device {
         send_key 'alt-o';             # Bond slaves
         assert_screen 'yast2_lan_bond_slaves';
         send_key_until_needlematch 'yast2_lan_bond_slave_tab_selected', 'tab';
-        send_key 'tab';               # select Bond Slaves and Order field
-        send_key 'spc';               # check network interface
+        assert_and_click 'yast2_lan_bond_slave_network_interface';    # select network interface
+        send_key 'spc';                                               # check network interface
         wait_still_screen;
         save_screenshot;
         send_key 'alt-n';
