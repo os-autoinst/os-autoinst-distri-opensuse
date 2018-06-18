@@ -108,6 +108,14 @@ sub run {
     $output = script_output('docker container run tw:saved curl -I google.de');
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
+    # Using an init process as PID 1
+    assert_script_run 'docker run --rm --init opensuse/tumbleweed ps --no-headers -xo "pid args" | grep "1 /dev/init"';
+
+    if (script_run('command -v man') == 0) {
+        assert_script_run('man -P cat docker build | grep "docker-build - Build an image from a Dockerfile"');
+        assert_script_run('man -P cat docker config | grep "docker-config - Manage Docker configs"');
+    }
+
     # containers can be stopped
     assert_script_run("docker container stop $container_name");
     assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep false");
