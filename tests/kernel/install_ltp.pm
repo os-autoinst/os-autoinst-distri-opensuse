@@ -232,8 +232,13 @@ EOF
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
     foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd)) {
-        systemctl($action . " " . $service);
-        assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
+        if (is_sle('12+')) {
+            systemctl($action . " " . $service);
+            assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
+        }
+        else {
+            script_run("rc$service start");
+        }
     }
 }
 
