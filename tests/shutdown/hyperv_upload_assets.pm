@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -33,7 +33,9 @@ sub extract_assets {
     my $name   = $args->{name};
     my $format = $args->{format};
 
-    my $image_storage  = 'D:\\cache';
+    my $hyperv_disk = get_var('HYPERV_DISK', 'D:');
+    my $root           = $hyperv_disk . get_var('HYPERV_ROOT', '');
+    my $image_storage  = "$root\\cache";
     my $svirt_img_name = $image_storage . '\\' . $args->{svirt_name} . ".$format";
     hyperv_cmd("dir $svirt_img_name");
 

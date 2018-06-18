@@ -53,6 +53,8 @@ sub run {
 
     # Select locale
     assert_screen 'jeos-locale', 300;
+    # Without this 'ret' sometimes won't get to the dialog
+    wait_still_screen;
     send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
     send_key 'ret';
 
