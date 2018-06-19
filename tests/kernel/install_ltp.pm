@@ -18,7 +18,7 @@ use registration;
 use utils;
 use bootloader_setup 'add_custom_grub_entries';
 use serial_terminal qw(add_serial_console select_virtio_console);
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils qw(is_sle sle_version_at_least is_opensuse);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -232,7 +232,7 @@ EOF
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
     foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd)) {
-        if (is_sle('12+')) {
+        if (is_sle('12+') || is_opensuse) {
             systemctl($action . " " . $service);
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
         }
@@ -266,7 +266,7 @@ sub run {
     }
 
     add_we_repo_if_available;
-    if (is_sle('12+')) {
+    if (is_sle('12+') || is_opensuse) {
         add_custom_grub_entries;
     }
     install_runtime_dependencies;
