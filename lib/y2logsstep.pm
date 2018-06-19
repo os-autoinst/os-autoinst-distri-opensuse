@@ -302,7 +302,7 @@ sub post_fail_hook {
         }
 
         assert_script_run 'extend gdb';
-        my $gdb_ret = script_run("timeout $trace_timeout gdb attach $installer_pid > /tmp/installer_gdb.log", ($trace_timeout + 5));
+        my $gdb_ret = script_run("gdb attach $installer_pid --batch -q -ex 'thread apply all bt' -ex q > /tmp/installer_gdb.log", ($trace_timeout + 5));
         if (!script_run '[[ -e /tmp/installer_gdb.log ]]') {
             upload_logs '/tmp/installer_gdb.log';
         }
