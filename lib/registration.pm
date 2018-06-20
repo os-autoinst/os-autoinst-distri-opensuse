@@ -328,9 +328,14 @@ sub fill_in_registration_data {
                         record_soft_failure 'bsc#1092568';
                     }
                     else {
-                        send_key_until_needlematch "scc-module-$addon", "down";
-                        # checkmark the requested addon
-                        assert_and_click "scc-module-$addon";
+                        send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down";
+                        if (match_has_tag("scc-module-$addon")) {
+                            # checkmark the requested addon
+                            assert_and_click "scc-module-$addon";
+                        }
+                        else {
+                            record_info("Module preselected", "Module $addon is already selected and installed by default");
+                        }
                     }
                 }
             }
@@ -440,18 +445,23 @@ sub select_addons_in_textmode {
     my ($addon, $flag) = @_;
     if ($flag) {
         send_key_until_needlematch 'scc-module-area-selected', 'tab';
-        send_key_until_needlematch "scc-module-$addon", 'down', 30, 5;
-        if (check_var('ARCH', 'aarch64') && check_var('HDDVERSION', '12-SP2') && check_screen('scc-module-tcm-selected', 5)) {
-            record_info('Workaround',
-                "Toolchain module is selected and installed by default on sles12sp2 aarch64\nSee: https://progress.opensuse.org/issues/19852");
+        send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], 'down', 30, 5;
+        if (match_has_tag("scc-module-$addon")) {
+            send_key 'spc';
+            # After selected/deselected an addon, yast scc would automatically
+            # bounce the focus back to the top of list on SP2 or later in
+            # textmode. Give a tiny time to wait it back completely to the top
+            # of list.
+            wait_still_screen 1;
         }
         else {
-            send_key 'spc';
+            record_info("Module preselected", "Module $addon is already selected and installed by default");
+            # As we are not selecting this, scc will not bounce the focus,
+            # hence we need to go up manually.
+            for (1 .. 15) {
+                send_key 'up';
+            }
         }
-        # After selected/deselected an addon, yast scc would automatically bounce the focus
-        # back to the top of list on SP2 or later in textmode, remove sendkey up
-        # And give a tiny time to wait it back completely to the top of list
-        wait_still_screen 1;
     }
     else {
         send_key_until_needlematch "scc-module-$addon", 'tab';

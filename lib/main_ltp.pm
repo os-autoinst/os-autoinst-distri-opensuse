@@ -121,7 +121,9 @@ sub load_kernel_tests {
             loadtest 'update_kernel';
         }
         loadtest 'install_ltp';
-        #loadtest 'boot_ltp';
+        if (get_var('LTP_INSTALL_REBOOT')) {
+            loadtest 'boot_ltp';
+        }
         shutdown_ltp();
     }
     elsif (get_var('LTP_COMMAND_FILE')) {

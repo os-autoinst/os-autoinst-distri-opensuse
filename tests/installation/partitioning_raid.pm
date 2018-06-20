@@ -343,10 +343,6 @@ sub run {
         send_key "right" unless is_storage_ng;
         assert_screen 'partitioning_raid-hard_disks-unfolded';
         send_key "down";
-        # CDROM is xvda and is seen as a disk block devide, we have to skip it
-        if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-            send_key 'down' for (1 .. 3);
-        }
     }
 
     my @devices = qw(vda vdb vdc vdd);

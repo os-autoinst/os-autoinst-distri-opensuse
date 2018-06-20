@@ -26,7 +26,7 @@ sub login_to_console {
     select_console 'sol', await_console => 0;
 
     # Wait for bootload for the first time.
-    assert_screen([qw(grub2 grub1)], 420);
+    assert_screen([qw(grub2 grub1)], 120);
 
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
@@ -37,6 +37,32 @@ sub login_to_console {
         }
     }
     else {
+        save_screenshot;
+        #offline upgrade requires upgrading offline during reboot while online doesn't
+        if (check_var('offline_upgrade', 'yes')) {
+            #boot to upgrade menuentry
+            send_key 'down';
+            send_key 'ret';
+            #wait sshd up
+            assert_screen('sshd-server-started', 180);
+            save_screenshot;
+            #switch to ssh console
+            use_ssh_serial_console;
+            save_screenshot;
+            #start upgrade
+            type_string("DISPLAY= yast.ssh\n");
+            save_screenshot;
+            #wait upgrade finish
+            assert_screen('rebootnow', 2700);
+            save_screenshot;
+            send_key 'ret';
+            #leave ssh console and switch to sol console
+            switch_from_ssh_to_sol_console(reset_console_flag => 'on');
+            #grub may not showup after upgrade because default GRUB_TERMINAL setting
+            #when fixed in separate PR, will uncomment following line
+            #assert_screen([qw(grub2 grub1)], 120);
+        }
+        #setup vars
         set_var("reboot_for_upgrade_step", undef);
         set_var("after_upgrade",           "yes");
     }
