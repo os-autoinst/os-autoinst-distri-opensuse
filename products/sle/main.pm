@@ -646,6 +646,28 @@ sub prepare_target {
     }
 }
 
+sub is_baremetal_test {
+    return get_var('IBTESTS');
+}
+
+sub load_baremetal_tests {
+    load_boot_tests();
+    load_inst_tests();
+    load_reboot_tests();
+
+    # load InfiniBand Tests. The barriers below must be created
+    # here to ensure they are a) only created once and b) early enough
+    # to be available when needed.
+    if (get_var('IBTESTS')) {
+        if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+            barrier_create('IBTEST_SETUP', 3);
+            barrier_create('IBTEST_BEGIN', 3);
+            barrier_create('IBTEST_DONE',  3);
+        }
+        loadtest "kernel/ib_tests";
+    }
+}
+
 sub load_default_tests {
     load_boot_tests();
     load_inst_tests();
@@ -680,6 +702,9 @@ if (is_jeos) {
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
+}
+elsif (is_baremetal_test()) {
+    load_baremetal_tests;
 }
 elsif (get_var("WICKED")) {
     boot_hdd_image();
