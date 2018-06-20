@@ -407,6 +407,9 @@ elsif (get_var('SECURITYTEST')) {
     elsif (check_var('SECURITYTEST', 'crypt')) {
         load_security_tests_crypt;
     }
+    elsif (check_var("SECURITYTEST", "apparmor_status")) {
+        load_security_tests_apparmor_status;
+    }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;

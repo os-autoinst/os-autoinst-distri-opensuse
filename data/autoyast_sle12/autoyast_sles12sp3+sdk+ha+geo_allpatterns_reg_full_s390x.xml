@@ -262,13 +262,6 @@
     <ipv6 config:type="boolean">true</ipv6>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <managed config:type="boolean">false</managed>
-    <net-udev config:type="list">
-      <rule>
-        <name>eth0</name>
-        <rule>KERNELS</rule>
-        <value>0.0.0700</value>
-      </rule>
-    </net-udev>
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
       <ipv6_forward config:type="boolean">false</ipv6_forward>
@@ -281,17 +274,6 @@
         </route>
       </routes>
     </routing>
-    <s390-devices config:type="list">
-      <listentry>
-        <chanids>0.0.0700 0.0.0701 0.0.0702</chanids>
-        <portname>no portname required</portname>
-        <type>qeth</type>
-      </listentry>
-      <listentry>
-        <chanids>   </chanids>
-        <type/>
-      </listentry>
-    </s390-devices>
   </networking>
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>

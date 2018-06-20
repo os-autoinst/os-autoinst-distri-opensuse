@@ -17,9 +17,32 @@ use testapi;
 use base "reboot_and_wait_up";
 
 sub run {
-    my $self    = shift;
-    my $timeout = 600;
+    my $self = shift;
+
+    #initialized to be offline upgrade
+    my $timeout = 180;
     set_var("reboot_for_upgrade_step", "yes");
+    set_var("offline_upgrade",         "yes");
+
+    #get the version that the host is installed to
+    my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));    #format 15 or 15-SP1
+    ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
+    #get the version that the host should upgrade to
+    my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');                        #format sles-15-sp0
+    ($host_upgrade_version) = $host_upgrade_version =~ /sles-(\d+)-sp/;
+    print("Debug info for reboot_and_wait_up_upgrade: host_installed_version is $host_installed_version, host_upgrade_version is $host_upgrade_version.\n");
+    #online upgrade actually
+    if ("$host_installed_version" eq "$host_upgrade_version") {
+        set_var("offline_upgrade", "no");
+        $timeout = 120;
+        print("Debug info for reboot_and_wait_up_upgrade: this is online upgrade.\n");
+    }
+    else {
+        #OpenQA needs ssh way to trigger offline upgrade
+        script_run("sed -i s/sshd=1/ssh=1/g /boot/grub2/grub.cfg /boot/grub/menu.lst");
+        print("Debug info for reboot_and_wait_up_upgrade: this is offline upgrade.\n");
+    }
+
     $self->reboot_and_wait_up($timeout);
 }
 

@@ -23,7 +23,7 @@ sub run {
     barrier_wait("DLM_INIT_$cluster_name");
 
     # Test if DLM kernel module package is installed
-    is_package_installed 'dlm-kmp-default';
+    die 'dlm kernel package is not installed' unless is_package_installed 'dlm-kmp-default';
 
     if (is_node(1)) {
         # Create DLM resource

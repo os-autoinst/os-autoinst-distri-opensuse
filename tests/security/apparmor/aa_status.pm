@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2016 SUSE LLC
+# Copyright (C) 2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,28 +12,31 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
+#
+# Summary: Test the basic information output function for apparmor aa-status
+# Maintainer: Wes <whdu@suse.com>
+# Tags: poo#36874, tc#1621138
 
-# Summary: Do the registration against SCC
-# Maintainer: Oliver Kurz <okurz@suse.de>
-
+use base "consoletest";
 use strict;
-use base "y2logsstep";
-
 use testapi;
-use registration;
-use utils 'assert_screen_with_soft_timeout';
+use utils;
 
 sub run {
-    assert_registration_screen_present;
-    fill_in_registration_data;
-}
+    select_console 'root-console';
 
-sub post_fail_hook {
-    my ($self) = @_;
-    $self->SUPER::post_fail_hook;
-    # Verify that proxySCC and SCC can be accessed
-    assert_script_run("curl ${\(get_var('SCC_URL'))}/login") if get_var('SCC_URL');
-    assert_script_run("curl https://scc.suse.com/login");
+    systemctl('restart apparmor');
+
+    validate_script_output "aa-status", sub {
+        m/
+        module\ is\ loaded.*
+        profiles\ are\ loaded.*
+        profiles\ are\ in\ enforce\ mode.*
+        profiles\ are\ in\ complain\ mode.*
+        processes\ are\ in\ enforce\ mode.*
+        processes\ are\ in\ complain\ mode.*
+        processes\ are\ unconfined/sxx
+    };
 }
 
 1;

@@ -45,12 +45,15 @@ sub run {
         assert_script_run 'grep "^NTP=dashboard-url" /etc/systemd/timesyncd.conf';
     }
 
-    # check if installation script was executed https://trello.com/c/PJqM8x0T
     if (check_var('SYSTEM_ROLE', 'admin')) {
-        assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
-        # bsc#1039863 - Check we are running only sles12 docker images
-        assert_script_run '! docker images | sed 1d | grep -v ^sles12';
-        assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
+        if (is_caasp 'caasp') {
+            # check if installation script was executed https://trello.com/c/PJqM8x0T
+            assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
+            # bsc#1039863 - Check we are running only sles12 docker images
+            assert_script_run '! docker images | sed 1d | grep -v ^sles12';
+            # Check that ntp config from installer was applied
+            assert_script_run 'grep "^server ns.openqa.test" /etc/ntp.conf';
+        }
         # Velum is running
         script_retry 'curl -kLI localhost | grep _velum_session';
     }

@@ -101,6 +101,7 @@ our @EXPORT = qw(
   load_security_tests_web
   load_security_tests_misc
   load_security_tests_crypt
+  load_security_tests_apparmor_status
   load_systemd_patches_tests
   load_create_hdd_tests
   load_virtualization_tests
@@ -1231,7 +1232,8 @@ sub load_x11tests {
         loadtest "x11/hexchat";
         loadtest "x11/vlc";
     }
-    if (gnomestep_is_applicable() && !is_staging()) {
+    # https://progress.opensuse.org/issues/37342
+    if (is_sle() && gnomestep_is_applicable() && !is_staging()) {
         loadtest "x11/remote_desktop/vino_screensharing_available";
     }
     if (kdestep_is_applicable()) {
@@ -1734,6 +1736,13 @@ sub load_security_tests_crypt {
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
+}
+
+# Other security tests other than FIPS
+sub load_security_tests_apparmor_status {
+    loadtest "security/apparmor/aa_status";
+    loadtest "security/apparmor/aa_enforce";
+    loadtest "security/apparmor/aa_complain";
 }
 
 sub load_systemd_patches_tests {

@@ -80,7 +80,7 @@ sub run {
                 }
             } while (match_has_tag 'updates_authenticate');
             if (match_has_tag("updates_none")) {
-                send_key 'ret';
+                wait_screen_change { send_key 'ret'; };
                 if (check_screen "updates_installed-restart", 0) {
                     power_action 'reboot', textmode => 1;
                     $self->wait_boot;

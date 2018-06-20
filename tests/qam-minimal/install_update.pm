@@ -29,18 +29,25 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    my $patch = get_required_var('INCIDENT_PATCH');
-
     capture_state('before');
+
+    # Set and check patch variables
+    my $incident_id = get_var('INCIDENT_ID');
+    my $patch       = get_var('INCIDENT_PATCH');
+    check_patch_variables($patch, $incident_id);
 
     my $repo = get_required_var('INCIDENT_REPO');
     set_var('MAINT_TEST_REPO', $repo);
     add_test_repositories;
 
+    # Get patch list related to incident
+    my $patches = '';
+    $patches = get_patches($incident_id, $repo) if $incident_id;
+
     # test if is patch needed and record_info
     # record softfail on QAM_MINIMAL=small tests, or record info on others
     # if isn't patch neded, zypper call with install makes no sense
-    if (is_patch_needed($patch)) {
+    if ((is_patch_needed($patch) && $patch) || ($incident_id && !($patches))) {
         if (check_var('QAM_MINIMAL', 'small')) {
             record_soft_failure("Patch isn't needed on minimal installation poo#17412");
         }
@@ -49,7 +56,9 @@ sub run {
         }
     }
     else {
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log');
+        # Use single patch or patch list
+        $patch = $patch ? $patch : $patches;
+        zypper_call("in -l -t patch ${patch}", exitcode => [0, 102, 103], log => 'zypper.log');
 
         save_screenshot;
 

@@ -15,6 +15,7 @@ use lockapi;
 use needle;
 use registration;
 use utils;
+use mmapi 'get_parents';
 use version_utils
   qw(is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
@@ -483,6 +484,9 @@ sub load_applicationstests {
 
 sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {
+        my $parents = get_parents;
+        barrier_create 'HOSTNAMES_CONFIGURED', 1 + @$parents;
+
         unless (get_var("SUPPORT_SERVER")) {
             loadtest "slenkins/login";
             loadtest "slenkins/slenkins_control_network";
@@ -764,7 +768,7 @@ elsif (get_var("SUPPORT_SERVER")) {
 elsif (get_var("SLEPOS")) {
     load_slepos_tests();
 }
-elsif (get_var("FIPS_TS")) {
+elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
     prepare_target();
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest "console/consoletest_setup";
@@ -794,6 +798,9 @@ elsif (get_var("FIPS_TS")) {
     elsif (check_var("FIPS_TS", "mmtest")) {
         # Load client tests by APPTESTS variable
         load_applicationstests;
+    }
+    elsif (check_var("SECURITY", "apparmor_status")) {
+        load_security_tests_apparmor_status;
     }
 }
 elsif (get_var('SMT')) {

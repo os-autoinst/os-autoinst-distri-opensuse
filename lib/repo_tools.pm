@@ -19,8 +19,9 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle is_leap);
 
-our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo);
+our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo);
 
 sub smt_wizard {
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
@@ -109,6 +110,38 @@ sub rmt_mirror_repo {
     }
     assert_script_run 'rmt-cli mirror', 1800;
     assert_script_run 'rmt-cli repo list';
+}
+
+sub prepare_source_repo {
+    my $cmd;
+    if (is_sle) {
+        if (is_sle('>=15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
+            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source";
+        }
+        elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_SOURCE')) {
+            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source";
+        }
+        # SLE maintenance tests are assumed to be SCC registered
+        # and source repositories disabled by default
+        elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+            $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
+        }
+        # use dvd2 as the src-repository
+        # Xen PV has different device for 2nd CDROM
+        elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
+            $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
+        }
+        else {
+            $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
+        }
+    }
+    # source repository is disabled by default
+    else {
+        $cmd = "mr -e repo-source";
+    }
+
+    zypper_call($cmd);
+    zypper_call("ref");
 }
 
 

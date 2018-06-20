@@ -473,6 +473,11 @@ sub run {
 
     setup_networks();
 
+    # Wait until all nodes boot first
+    if (get_var 'SLENKINS_CONTROL') {
+        barrier_wait 'HOSTNAMES_CONFIGURED';
+    }
+
     if (exists $server_roles{pxe}) {
         # PXE server cannot be configured on other ARCH than x86_64
         # because 'syslinux' package only exists on it

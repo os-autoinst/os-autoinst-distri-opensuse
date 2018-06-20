@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-use utils 'systemctl';
+use utils qw(zypper_call systemctl);
 use version_utils 'is_caasp';
 use bootloader_setup 'set_framebuffer_resolution';
 use caasp qw(process_reboot script_retry microos_login);
@@ -27,6 +27,12 @@ sub run {
     }
 
     microos_login;
+    if (check_var('DISTRI', 'kubic')) {
+        zypper_call("mr -da");
+        my $mirror = get_required_var('MIRROR_HTTP');
+        zypper_call("--no-gpg-check ar -f '$mirror' mirror_http");
+        zypper_call('ref');
+    }
 
     if (is_caasp 'VMX') {
         # Help cloud-init on cluster tests
