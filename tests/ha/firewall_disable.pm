@@ -7,21 +7,24 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Disable firewall in HA tests
+# Summary: Disable firewall in HA tests if needed
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
 use base 'opensusebasetest';
 use strict;
 use testapi;
 use hacluster;
+use utils 'systemctl';
 
 sub run {
     my ($self) = @_;
     my $firewall = $self->firewall;
 
-    # Deactivate firewall if needed
-    if (is_package_installed "$firewall") {
-        assert_script_run "systemctl -q is-active $firewall && systemctl disable $firewall; systemctl stop $firewall";
+    if (is_package_installed $firewall) {
+        # SuSEfirewall2 can't be disabled and stopped at
+        # the same time using 'disable --now'...
+        systemctl "disable $firewall";
+        systemctl "stop $firewall";
     }
 }
 

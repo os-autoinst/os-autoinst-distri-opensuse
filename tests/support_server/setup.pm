@@ -398,7 +398,7 @@ sub setup_iscsi_server {
                        -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
-    systemctl('start target');
+    systemctl('enable --now target');
     select_console 'root-console';
 
     $iscsi_server_set = 1;

@@ -514,7 +514,7 @@ sub load_ha_cluster_tests {
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product i selected
-    loadtest "console/yast2_ntpclient" unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
+    loadtest 'console/yast2_ntpclient' unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
 
     # Update the image if needed
     if (get_var('FULL_UPDATE')) {
@@ -562,13 +562,17 @@ sub load_ha_cluster_tests {
     loadtest 'ha/fencing';
 
     # Node1 will be fenced, so we have to wait for it to boot
-    boot_hdd_image if (!get_var('HA_CLUSTER_JOIN'));
+    boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
 
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_fencing';
 
-    # Check logs to find error and upload all needed logs
-    loadtest 'ha/check_logs';
+    # Check logs to find error and upload all needed logs if we are not
+    # in installation/publishing mode
+    loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
+
+    # If needed, do some actions prior to the shutdown
+    loadtest 'ha/prepare_shutdown' if get_var('INSTALLONLY');
 
     return 1;
 }
