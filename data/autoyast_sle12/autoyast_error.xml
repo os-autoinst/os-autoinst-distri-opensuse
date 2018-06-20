@@ -24,7 +24,11 @@
       <log config:type="boolean">true</log>
     </warnings>
   </report>
-
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
 <!-- stage 2 error - script output -->
 
   <scripts>

@@ -28,6 +28,11 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
   <keyboard>
     <keyboard_values>
       <delay/>

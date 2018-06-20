@@ -7,6 +7,11 @@
             <confirm_base_product_license config:type="boolean">true</confirm_base_product_license>
         </mode>
     </general>
+    <bootloader>
+        <global>
+            <timeout config:type="integer">-1</timeout>
+        </global>
+    </bootloader>
     <add-on>
         <add_on_products config:type="list">
              <listentry>

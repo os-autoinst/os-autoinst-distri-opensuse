@@ -21,6 +21,11 @@
       </addon>
     </addons>
   </suse_register>
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
   <add-on>
     <add_on_products config:type="list">
       <listentry>

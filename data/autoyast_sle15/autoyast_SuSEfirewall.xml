@@ -16,6 +16,11 @@
       </addon>
     </addons>
   </suse_register>
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
