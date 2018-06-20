@@ -1742,6 +1742,7 @@ sub load_security_tests_crypt {
 sub load_security_tests_apparmor_status {
     loadtest "security/apparmor/aa_status";
     loadtest "security/apparmor/aa_enforce";
+    loadtest "security/apparmor/aa_complain";
 }
 
 sub load_systemd_patches_tests {
