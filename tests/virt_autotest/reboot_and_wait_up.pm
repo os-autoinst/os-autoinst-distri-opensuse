@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use login_console;
-use utils;
+use ipmi_backend_utils;
 use base "proxymode";
 
 sub reboot_and_wait_up {
@@ -28,14 +28,11 @@ sub reboot_and_wait_up {
         $self->reboot($test_machine, $reboot_timeout);
     }
     else {
-        #leave root-ssh console
-        set_var('SERIALDEV', '');
-        $serialdev = 'ttyS1';
-        bmwqemu::save_vars();
-        prepare_system_shutdown;
-        console('sol')->disable;
-        # do the activation manually - the sol can be anything normally
-        select_console 'sol', await_console => 0;
+        #leave ssh console and switch to sol console
+        switch_from_ssh_to_sol_console(reset_console_flag => 'off');
+        #login
+        #The timeout can't be too small since autoyast installation
+        #need to wait 2nd phase install to finish
         assert_screen("text-login", 600);
         type_string "root\n";
         assert_screen "password-prompt";
@@ -47,6 +44,7 @@ sub reboot_and_wait_up {
         type_string("reboot\n");
         #switch to sut console
         reset_consoles;
+
         #wait boot finish and relogin
         login_console::login_to_console($self, $reboot_timeout);
     }
