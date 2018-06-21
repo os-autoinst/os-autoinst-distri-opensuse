@@ -24,7 +24,7 @@ sub run {
     my $runc = '/usr/sbin/runc';
 
     record_info 'Test #1', 'Test: Installation';
-    trup_install('runc');
+    trup_install('runc skopeo umoci');
 
     record_info 'Setup', 'Requirements';
     assert_script_run('mkdir test_runc && cd test_runc');
@@ -66,6 +66,7 @@ sub run {
 
     record_info 'Clean', 'Leave it clean for other tests';
     script_run('cd');
+    script_run('rm -r test_runc');
 }
 
 1;

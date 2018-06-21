@@ -156,12 +156,30 @@ sub check_reboot_changes {
 
 # Install a pkg in Kubic
 sub trup_install {
+    my $input = shift;
+    my ($unnecessary, $necessary);
+
     # rebootmgr has to be turned off as prerequisity for this to work
     script_run "rebootmgrctl set-strategy off";
-    my $package = shift;
-    trup_call("pkg install $package");
-    process_reboot 1;
-    assert_script_run("rpm -qi $package");
+
+    my @pkg = split(' ', $input);
+    foreach (@pkg) {
+        if (!script_run("rpm -q $_")) {
+            $unnecessary .= "$_ ";
+        }
+        else {
+            $necessary .= "$_ ";
+        }
+    }
+    record_info "Skip", "Pre-installed (no action): $unnecessary" if $unnecessary;
+    if ($necessary) {
+        record_info "Install", "Installing: $necessary";
+        trup_call("pkg install $necessary");
+        process_reboot 1;
+    }
+
+    # By the end, all pkgs should be installed
+    assert_script_run("rpm -q $input");
 }
 
 sub get_controller_job {
