@@ -45,7 +45,7 @@
       <gfxmode>auto</gfxmode>
       <gfxtheme/>
       <os_prober>true</os_prober>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
       <vgamode/>
     </global>
     <initrd_modules config:type="list">

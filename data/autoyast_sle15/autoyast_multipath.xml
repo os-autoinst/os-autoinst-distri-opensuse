@@ -25,6 +25,11 @@ pre init scripts feature. See poo#20818.
       </addon>
     </addons>
   </suse_register>
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>

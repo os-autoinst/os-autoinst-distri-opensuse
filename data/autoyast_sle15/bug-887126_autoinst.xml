@@ -33,7 +33,7 @@
       <os_prober>true</os_prober>
       <suse_btrfs>true</suse_btrfs>
       <terminal>gfxterm</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
     <sections config:type="list">

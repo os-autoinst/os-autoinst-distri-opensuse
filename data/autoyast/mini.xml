@@ -5,6 +5,11 @@
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
   <users config:type="list">
     <user>
       <fullname>Bernhard M. Wiedemann</fullname>

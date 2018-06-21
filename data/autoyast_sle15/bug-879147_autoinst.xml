@@ -40,7 +40,7 @@
       <gfxmode>auto</gfxmode>
       <os_prober>true</os_prober>
       <terminal>gfxterm</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
       <vgamode/>
     </global>
     <loader_type>grub2</loader_type>

@@ -20,6 +20,11 @@
       </addon>
     </addons>
   </suse_register>
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>

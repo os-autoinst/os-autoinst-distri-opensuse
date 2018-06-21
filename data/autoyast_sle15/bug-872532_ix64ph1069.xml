@@ -26,7 +26,7 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>true</os_prober>
       <suse_btrfs>true</suse_btrfs>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
       <xen_kernel_append> splash=silent quiet showopts</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
