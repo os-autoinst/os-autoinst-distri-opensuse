@@ -239,7 +239,7 @@ sub clear_console {
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
+    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
@@ -280,6 +280,7 @@ sub assert_gui_app {
 # console font, we need to call systemd-vconsole-setup to workaround
 # that
 sub check_console_font {
+    return if check_var('BACKEND', 'spvm');
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match
     select_console('root-console', await_console => 0);

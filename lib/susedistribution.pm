@@ -369,7 +369,7 @@ sub init_consoles {
                 password => get_var('VIRSH_GUEST_PASSWORD')});
     }
 
-    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -381,11 +381,11 @@ sub init_consoles {
             });
     }
 
-    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
+    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'spvm')) {
         my $hostname;
 
         $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
-        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi');
+        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 
         if (check_var('BACKEND', 's390x')) {
 
@@ -511,7 +511,7 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }
-        elsif (check_var('BACKEND', 'ipmi')) {
+        elsif (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
             # Select configure serial and redirect to root-ssh instead
             use_ssh_serial_console;
             return;
@@ -521,6 +521,11 @@ sub activate_console {
             handle_password_prompt if check_var('ARCH', 's390x');
             assert_screen "inst-console";
         }
+    }
+    elsif ($console =~ m/root-console$/ && check_var('BACKEND', 'spvm')) {
+        # Select configure serial and redirect to root-ssh instead
+        use_ssh_serial_console;
+        return;
     }
 
     $console =~ m/^(\w+)-(console|virtio-terminal|ssh|shell)/;
@@ -537,7 +542,7 @@ sub activate_console {
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
-        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi')) {
+        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
             diag 'backend s390x || zkvm || ipmi';
             $user ||= 'root';
             handle_password_prompt;
@@ -570,6 +575,14 @@ sub activate_console {
     }
     elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user, $self->{serial_term_prompt});
+    }
+    elsif ($console eq 'novalink-ssh') {
+        assert_screen "password-prompt-novalink";
+        type_password get_required_var('NOVALINK_PASSWORD');
+        send_key('ret');
+        my $user = get_var('NOVALINK_USERNAME', 'root');
+        assert_screen("text-logged-in-$user", 60);
+        $self->set_standard_prompt($user);
     }
     elsif ($type eq 'ssh') {
         $user ||= 'root';

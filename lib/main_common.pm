@@ -368,6 +368,9 @@ sub load_boot_tests {
         set_var("DELAYED_START", "1");
         loadtest "autoyast/pxe_boot";
     }
+    elsif (check_var('BACKEND', 'spvm')) {
+        loadtest "installation/bootloader_spvm";
+    }
     else {
         loadtest "installation/bootloader" unless load_bootloader_s390x();
     }
@@ -511,7 +514,7 @@ sub load_system_role_tests {
         loadtest "installation/setup_online_repos";
     }
     # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-    if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD")) {
+    if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
         loadtest "installation/logpackages";
     }
     loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
@@ -880,6 +883,7 @@ sub load_inst_tests {
             and !is_bridged_networking
             and !check_var('BACKEND', 's390x')
             and !check_var('BACKEND', 'ipmi')
+            and !check_var('BACKEND', 'spvm')
             and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";
