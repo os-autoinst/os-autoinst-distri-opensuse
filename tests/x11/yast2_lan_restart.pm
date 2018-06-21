@@ -27,6 +27,8 @@ sub check_network_settings_tabs {
 }
 
 sub check_network_card_setup_tabs {
+    wait_screen_change { send_key 'home' };
+    send_key_until_needlematch 'yast2_lan_select_eth_card', 'down';
     send_key 'alt-i';
     assert_screen 'yast2_lan_network_card_setup';
     send_key 'alt-w';
