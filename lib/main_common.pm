@@ -102,6 +102,7 @@ our @EXPORT = qw(
   load_security_tests_misc
   load_security_tests_crypt
   load_security_tests_apparmor_status
+  load_security_tests_apparmor_genprof
   load_systemd_patches_tests
   load_create_hdd_tests
   load_virtualization_tests
@@ -1747,6 +1748,10 @@ sub load_security_tests_apparmor_status {
     loadtest "security/apparmor/aa_status";
     loadtest "security/apparmor/aa_enforce";
     loadtest "security/apparmor/aa_complain";
+}
+
+sub load_security_tests_apparmor_genprof {
+    loadtest "security/apparmor/aa_genprof";
 }
 
 sub load_systemd_patches_tests {
