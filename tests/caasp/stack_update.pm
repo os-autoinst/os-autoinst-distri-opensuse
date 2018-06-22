@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ sub orchestrate_velum_reboot {
     switch_to 'velum';
 
     my $n = get_required_var('STACK_NODES');
-    assert_screen "velum-$n-nodes-outdated";
+    assert_screen "velum-$n-nodes-outdated", 60;
     if (check_screen "velum-update-all", 0) {
         record_soft_failure 'bnc#1085677 - Should not update nodes before admin';
     }
@@ -45,7 +45,11 @@ sub orchestrate_velum_reboot {
         send_key_until_needlematch "velum-$n-nodes-outdated", 'f5', 10, 120;
     }
 
-    die "Admin should be updated already" if check_screen 'velum-update-admin', 0;
+    if (check_screen 'velum-update-admin', 0) {
+        record_soft_failure 'bsc#1099015 - Update admin node still visible after reboot';
+        sleep 60;
+    }
+    die "Admin should be updated already" if check_screen('velum-update-admin', 0);
     assert_and_click "velum-update-all";
 
     # 5 minutes per node
@@ -68,12 +72,8 @@ sub update_check_changes {
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
-    # QAM: incidents repo with real maintenance updates
-    if (is_caasp('qam')) {
-        # TODO
-    }
-    else {
-        # QA: fake repo with pre-defined values (hardcoded)
+    # QA: fake repo with pre-defined values (hardcoded)
+    unless (is_caasp 'qam') {
         script_assert0 "ssh $admin_fqdn './update.sh -c' | tee /dev/$serialdev", 60;
     }
 }
@@ -113,18 +113,17 @@ sub update_perform_update {
 }
 
 sub run {
-    # setup repositository -s
+    # update.sh -s $repo
     update_setup_repo;
 
-    # install packages -i
+    # update.sh -i
     update_install_packages if is_caasp('qam');
 
-    # update packages -u
+    # update.sh -u
     update_perform_update;
 
-    # check packages -c
+    # update.sh -c
     update_check_changes;
 }
 
 1;
-

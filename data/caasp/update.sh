@@ -78,10 +78,10 @@ elif [ ! -z "${CHECK:-}" ]; then
     # caasp-container-manifests
     # check installed version
     zypper if --provides caasp-container-manifests | grep 100.0.0
-    # check there is a "fo:bar" in the public manifests
-    grep "fo: bar" /usr/share/caasp-container-manifests/public.yaml
+    # check there is a "foo:bar" in the public manifests
+    grep "foo: bar" /usr/share/caasp-container-manifests/manifests/public.yaml
     # check the change has been "activated"
-    grep "fo: bar" /etc/kubernetes/manifests/public.yaml
+    grep "foo: bar" /etc/kubernetes/manifests/public.yaml
     
     # container-feeder
     # check installed version
