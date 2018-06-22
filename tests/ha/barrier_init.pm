@@ -27,7 +27,9 @@ sub run {
         die 'A valid number of nodes is mandatory' if ($num_nodes lt '2');
 
         # BARRIER_HA_ needs to also wait the support-server
-        barrier_create("BARRIER_HA_$cluster_name",                  $num_nodes + 1);
+        barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
+
+        # Create barriers for HA clusters
         barrier_create("CLUSTER_INITIALIZED_$cluster_name",         $num_nodes);
         barrier_create("NODE_JOINED_$cluster_name",                 $num_nodes);
         barrier_create("DLM_INIT_$cluster_name",                    $num_nodes);
@@ -48,8 +50,8 @@ sub run {
         barrier_create("LOCK_INIT_$cluster_name",                   $num_nodes);
         barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",       $num_nodes);
         barrier_create("LOGS_CHECKED_$cluster_name",                $num_nodes);
-        barrier_create("CHECK_AFTER_FENCING_BEGIN_$cluster_name",   $num_nodes);
-        barrier_create("CHECK_AFTER_FENCING_END_$cluster_name",     $num_nodes);
+        barrier_create("CHECK_AFTER_REBOOT_BEGIN_$cluster_name",    $num_nodes);
+        barrier_create("CHECK_AFTER_REBOOT_END_$cluster_name",      $num_nodes);
         barrier_create("CHECK_BEFORE_FENCING_BEGIN_$cluster_name",  $num_nodes);
         barrier_create("CHECK_BEFORE_FENCING_END_$cluster_name",    $num_nodes);
         barrier_create("CLUSTER_MD_INIT_$cluster_name",             $num_nodes);
