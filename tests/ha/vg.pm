@@ -70,19 +70,7 @@ sub run {
         assert_script_run "pvcreate -y $vg_luns";
         $vg_type = '--shared' if (get_var("USE_LVMLOCKD"));
         assert_script_run "vgcreate $vg_type $vg_name $vg_luns";
-
-        if (script_run "lvcreate -n $lv_name -l100%FREE $vg_name") {
-            if (!get_var("USE_LVMLOCKD")) {
-                # Sometimes an 'Error locking on node' error could appear
-                # A refresh of clvmd is needed in this case, it's a old bug!
-                record_soft_failure 'bsc#1076042';
-                script_run 'clvmd -R ; sleep 5 ; clvmd -R';    # Multiple refresh could be necessary
-                assert_script_run "lvcreate -n $lv_name -l100%FREE $vg_name";
-            }
-            else {
-                die 'error while executing lvcreate command';
-            }
-        }
+        assert_script_run "lvcreate -n $lv_name -l100%FREE $vg_name";
 
         # With lvmlockd, VG lock should be stopped before starting HA resource
         if (get_var("USE_LVMLOCKD")) {

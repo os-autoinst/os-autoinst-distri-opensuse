@@ -49,9 +49,7 @@ sub run {
     assert_script_run "sbd -d $sbd_device list";
 
     # Check if the multicast port is correct (should be 5405 or 5407 by default)
-    if (script_run "grep -Eq '^[[:blank:]]*mcastport:[[:blank:]]*(5405|5407)[[:blank:]]*' $corosync_conf") {
-        record_soft_failure 'bsc#1066196';
-    }
+    assert_script_run "grep -Eq '^[[:blank:]]*mcastport:[[:blank:]]*(5405|5407)[[:blank:]]*' $corosync_conf";
 
     # Do a check of the cluster with a screenshot
     save_state;

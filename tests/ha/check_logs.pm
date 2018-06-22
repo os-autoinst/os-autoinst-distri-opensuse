@@ -20,9 +20,7 @@ sub run {
     my $cluster_name = get_cluster_name;
 
     # Checking cluster state can take time, so default timeout is not enough
-    # script_run return undef in case of timeout
-    my $ret = script_run 'crm script run health', 240;
-    record_soft_failure 'bsc#1071519' unless (defined $ret and $ret == 0);
+    assert_script_run 'crm script run health', 240;
 
     barrier_wait("LOGS_CHECKED_$cluster_name");
 
