@@ -198,7 +198,9 @@ sub x11_start_program {
     }
     wait_still_screen(1);
     save_screenshot;
-    send_key 'ret';
+    # sometimes send_key 'ret' doesn't work because of low performance
+    # so workaround this with repeat send_key can help
+    send_key_until_needlematch 'generic-desktop', "ret", 5, 5;
     # As above especially krunner seems to take some time before disappearing
     # after 'ret' press we should wait in this case nevertheless
     wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
