@@ -5,6 +5,7 @@ use strict;
 use utils
   qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions pkcon_quit zypper_call);
 use version_utils qw(is_hyperv_in_gui is_sle is_leap);
+use ipmi_backend_utils 'use_ssh_serial_console';
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -513,9 +514,14 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }
+        elsif (check_var('BACKEND', 'ipmi')) {
+            # Select configure serial and redirect to root-ssh instead
+            use_ssh_serial_console;
+            return;
+        }
         else {
             # on s390x we need to login here by providing a password
-            handle_password_prompt if (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi'));
+            handle_password_prompt if check_var('ARCH', 's390x');
             assert_screen "inst-console";
         }
     }
@@ -534,8 +540,9 @@ sub activate_console {
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
-        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM')) {
-            diag "backend s390x || zkvm";
+        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi')) {
+            diag 'activate_console called with installation for ssh based consoles';
+            $user ||= 'root';
             handle_password_prompt;
             ensure_user($user);
         }
@@ -578,17 +585,6 @@ sub activate_console {
         my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
         $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         save_svirt_pty;
-    }
-    elsif (
-        $console eq 'installation'
-        && (   ((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || get_var('S390_ZKVM')))
-            && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
-    {
-        diag 'activate_console called with installation for ssh based consoles';
-        $user ||= 'root';
-        handle_password_prompt;
-        ensure_user($user);
-        assert_screen "text-logged-in-$user", 60;
     }
     else {
         diag 'activate_console called with generic type, no action';

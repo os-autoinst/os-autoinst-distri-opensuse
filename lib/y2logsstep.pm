@@ -34,13 +34,6 @@ sub get_ip_address {
 }
 
 sub get_to_console {
-    if (check_var('BACKEND', 'ipmi')) {
-        use_ssh_serial_console;
-        get_ip_address;
-        save_screenshot();
-        return;
-    }
-
     my @tags = qw(yast-still-running linuxrc-install-fail linuxrc-repo-not-found);
     my $ret = check_screen(\@tags, 5);
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
