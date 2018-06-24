@@ -352,20 +352,22 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     if (sle_version_at_least('15')) {
         # Add only modules which are not pre-selected
-        my $addons = 'legacy,sdk,pcm,wsm,phub';
+        # 'pcm' should be treated special as it is only applicable to cloud
+        # installations
+        my $addons = 'legacy,sdk,wsm,phub';
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);
-        set_var('PATTERNS', 'default,asmm,pcm') if !get_var('PATTERNS');
+        set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
     }
     else {
         if (check_var('ARCH', 'aarch64')) {
-            set_var('SCC_ADDONS', 'pcm,tcm');
-            set_var('PATTERNS', 'default,pcm') if !get_var('PATTERNS');
+            set_var('SCC_ADDONS', 'tcm');
+            set_var('PATTERNS', 'default') if !get_var('PATTERNS');
         }
         else {
-            set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,pcm,tcm,wsm');
-            set_var('PATTERNS', 'default,asmm,pcm') if !get_var('PATTERNS');
+            set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,tcm,wsm');
+            set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
         }
     }
 }
