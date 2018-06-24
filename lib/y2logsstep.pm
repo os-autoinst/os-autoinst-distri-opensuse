@@ -130,7 +130,7 @@ sub deal_with_dependency_issues {
 
     return unless check_screen 'manual-intervention', 10;
 
-    record_soft_failure 'dependency warning';
+    record_info 'dependency warning', "Dependency warning, working around dependency issues", result => 'fail';
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-c';    # Change

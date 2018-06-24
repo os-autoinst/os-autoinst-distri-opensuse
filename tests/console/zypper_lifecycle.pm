@@ -64,7 +64,7 @@ sub run {
     # no package in the image comes from any repository - it's from the image. So we
     # hard-code 'sles-release' package, and it... works. Somehow.
     if (!$package && is_jeos) {
-        record_soft_failure "Hardcoding 'sles-release' package for lifecycle check";
+        record_info 'Workaround', "Hardcoding 'sles-release' package for lifecycle check", result => 'softfail';
         $package = 'sles-release';
     }
     die "No suitable package found. Script output:\nOutput: '$output'" unless $package;

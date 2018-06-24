@@ -869,7 +869,7 @@ sub addon_license {
         do {
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
-                record_soft_failure 'untrusted gpg key';
+                record_info 'untrusted gpg key', "Trusting untrusted GPG key", result => 'softfail';
                 wait_screen_change { send_key 'alt-t' };
             }
             elsif (match_has_tag("addon-betawarning-$addon")) {
