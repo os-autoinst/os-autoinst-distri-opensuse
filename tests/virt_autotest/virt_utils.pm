@@ -23,8 +23,10 @@ use XML::Writer;
 use IO::File;
 use proxymode;
 use virt_autotest_base;
+use version_utils 'is_sle';
 
-our @EXPORT = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile);
+our @EXPORT
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -107,11 +109,38 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
     repl_addon_with_daily_build_module_in_files("$file_list");
 }
 
+# Many virtualization testsuites contain settings composed by %DISTRI%s-%VERSION%
+# that need special handling for sp0/fcs, when integer products are being tested, eg sle15
+sub handle_sp_in_settings {
+    my ($var_name, $value_for_sp) = @_;
+
+    die "We only support sles product currently!" unless is_sle;
+
+    # We need small case variable value
+    my $var_value = lc(get_required_var("$var_name"));
+    # Add $value_for_sp after release for products like sle15, sle16
+    if ($var_value !~ /sp/ && "$value_for_sp") {
+        $var_value =~ s/(sles-\d+)/$1-$value_for_sp/;
+    }
+    set_var("$var_name", "$var_value");
+    bmwqemu::save_vars();
+}
+
+sub handle_sp_in_settings_with_fcs {
+    my $var_name = shift;
+    handle_sp_in_settings($var_name, "fcs");
+}
+
+sub handle_sp_in_settings_with_sp0 {
+    my $var_name = shift;
+    handle_sp_in_settings($var_name, "sp0");
+}
+
 sub update_guest_configurations_with_daily_build {
     repl_repo_in_sourcefile;
     repl_module_in_sourcefile;
-    #qa_lib_virtauto pkg will handle replacing module url with module link in source.xx for sle15 and 15+
-    #repl_guest_autoyast_addon_with_daily_build_module;
+    # qa_lib_virtauto pkg will handle replacing module url with module link in source.xx for sle15 and 15+
+    # repl_guest_autoyast_addon_with_daily_build_module;
 }
 
 1;
