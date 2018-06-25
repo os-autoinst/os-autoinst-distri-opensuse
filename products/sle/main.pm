@@ -434,7 +434,7 @@ sub load_x11_webbrowser_extra {
 
 sub load_x11_message {
     if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11/empathy/empathy_irc";
+        loadtest "x11/empathy/empathy_irc" if is_sle("<15");
         loadtest "x11/evolution/evolution_smoke";
         loadtest "x11/evolution/evolution_prepare_servers";
         loadtest "x11/evolution/evolution_mail_imap";
