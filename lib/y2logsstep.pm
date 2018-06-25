@@ -2,7 +2,7 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
 
 sub use_wicked {
@@ -257,6 +257,7 @@ sub post_fail_hook {
     $self->remount_tmp_if_ro;
     # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
     $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+    return if is_caasp;
 
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';

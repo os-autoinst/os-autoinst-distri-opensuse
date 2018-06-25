@@ -20,10 +20,38 @@ use version_utils 'is_caasp';
 use utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(
-  trup_call trup_install rpmver process_reboot check_reboot_changes microos_login
+  trup_call trup_install rpmver process_reboot check_reboot_changes microos_login send_alt
   handle_simple_pw export_cluster_logs script_retry script_run0 script_assert0
   get_delayed update_scheduled
   pause_until unpause);
+
+# Shorcuts for gui / textmode (optional) oci installer
+# Version 3.0 (default)
+my %keys = (
+    keyboard     => ['e', 'y'],
+    password     => ['w', 'a'],
+    registration => ['g'],
+    role         => ['s'],
+    partitioning => ['p'],
+    booting      => ['b'],
+    network      => ['n'],
+    kdump        => ['k'],
+    install      => ['i'],
+    ntpserver    => ['t'],
+);
+
+# Send alt shortcut by name
+sub send_alt {
+    my $key = shift;
+    my $txt = check_var('VIDEOMODE', 'text');
+
+    if (is_caasp '4.0+') {
+        $keys{keyboard} = ['y', 'e'];
+        $keys{password} = ['a', 'a'];
+        $keys{ntpserver} = ['r'];
+    }
+    send_key "alt-$keys{$key}[$txt]";
+}
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
