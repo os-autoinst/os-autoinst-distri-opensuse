@@ -16,14 +16,9 @@ use strict;
 use testapi;
 
 sub run {
-    send_key 'super';    # windows menu
-    assert_screen 'windows-menu';
-    send_key 'up';
-    send_key 'up';
-    send_key 'spc';          # press power button
-    send_key 'up';
-    send_key 'up';
-    send_key 'shift-ret';    # press shutdown button, use shift to avoid hybrid-shutdown
+    send_key 'alt-f4';
+    assert_screen 'windows-shutdown';
+    send_key 'ret';    # press ok to shutdown the os
     assert_shutdown;
 }
 
