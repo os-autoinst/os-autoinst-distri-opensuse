@@ -59,7 +59,7 @@ sub run {
 
     # No release-notes for basic modules and Live-Patching on SLE 15
     if (is_sle('15+')) {
-        push @no_relnotes, qw(base script desktop productivity serverapp legacy sdk live);
+        push @no_relnotes, qw(base script desktop serverapp legacy sdk live);
         # WE has release-notes on SLE 15
         @no_relnotes = grep(!/^we$/, @no_relnotes);
         # HA-GEO has been removed on SLE 15
