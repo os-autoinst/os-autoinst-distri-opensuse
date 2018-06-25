@@ -128,7 +128,7 @@ sub is_caasp {
     elsif ($filter eq 'VMX') {
         return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
     }
-    elsif ($filter =~ /^\d\.\d\+?$/) {
+    elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
         return check_version($filter, qr/\d\.\d/);

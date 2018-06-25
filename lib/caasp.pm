@@ -22,7 +22,7 @@ use utils qw(power_action assert_shutdown_and_restore_system);
 our @EXPORT = qw(
   trup_call trup_install rpmver process_reboot check_reboot_changes microos_login
   handle_simple_pw export_cluster_logs script_retry
-  get_delayed_worker update_scheduled
+  get_delayed update_scheduled
   pause_until unpause);
 
 # Return names and version of packages for transactional-update tests
@@ -53,14 +53,19 @@ sub rpmver {
 
 # Export logs from cluster admin/workers
 sub export_cluster_logs {
-    script_run "journalctl > journal.log", 60;
-    upload_logs "journal.log";
+    if (is_caasp 'local') {
+        record_info 'Logs skipped', 'Log export skipped because of LOCAL DEVENV';
+    }
+    else {
+        script_run "journalctl > journal.log", 60;
+        upload_logs "journal.log";
 
-    script_run 'supportconfig -b -B supportconfig', 500;
-    upload_logs '/var/log/nts_supportconfig.tbz';
+        script_run 'supportconfig -b -B supportconfig', 500;
+        upload_logs '/var/log/nts_supportconfig.tbz';
 
-    upload_logs('/var/log/transactional-update.log', failok => 1);
-    upload_logs('/var/log/YaST2/y2log-1.gz') if get_var 'AUTOYAST';
+        upload_logs('/var/log/transactional-update.log', failok => 1);
+        upload_logs('/var/log/YaST2/y2log-1.gz') if get_var 'AUTOYAST';
+    }
 }
 
 # Weak password warning should be displayed only once - bsc#1025835
@@ -217,12 +222,23 @@ sub get_admin_job {
     }
 }
 
-sub get_delayed_worker {
-    my @cluster_jobs = get_cluster_jobs;
-    for my $job_id (@cluster_jobs) {
-        return $job_id if get_job_info($job_id)->{settings}->{DELAYED_WORKER};
+# Return job id of delayed node when role filter is set
+# Return number of delayed jobs without filter
+# get_delayed [master|worker]
+sub get_delayed {
+    my $role = shift;
+
+    my ($drole, $count);
+    my @jobs = get_cluster_jobs;
+    for my $job_id (@jobs) {
+        if ($drole = get_job_info($job_id)->{settings}->{DELAYED}) {
+            if ($role) {
+                return $job_id if $role eq $drole;
+            }
+            $count++;
+        }
     }
-    return 0;
+    return $count;
 }
 
 sub update_scheduled {
@@ -263,14 +279,12 @@ sub script_retry {
 
 # All events ordered by execution
 my %events = (
-    support_server_ready     => 'Wait for dhcp, dns, ntp, ..',
-    VELUM_STARTED            => 'Wait until velum starts to login there from controller',
-    VELUM_CONFIGURED         => 'Velum has to be configured before autoyast installations start',
-    NODES_ACCEPTED           => 'Wait until salt-keys are accepted to set password on autoyast nodes',
-    REBOOT_FINISHED          => 'Re-login when system rebooted after update/reboot test',
-    DELAYED_WORKER_INSTALLED => 'Wait until we have new node that we can add to existing cluster',
-    DELAYED_NODES_ACCEPTED   => 'Wait until salt-keys are accepted to set password on autoyast nodes',
-    CNTRL_FINISHED           => 'Wait on CaaSP nodes until controller finishes testing',
+    support_server_ready => 'Wait for dhcp, dns, ntp, ..',
+    VELUM_STARTED        => 'Wait until velum starts to login there from controller',
+    VELUM_CONFIGURED     => 'Velum has to be configured before autoyast installations start',
+    NODES_ACCEPTED       => 'Wait until salt-keys are accepted to start booting delayed nodes',
+    AUTOYAST_PW_SET      => 'Wait on autoyast nodes until passord is set from admin with salt',
+    CNTRL_FINISHED       => 'Wait on CaaSP nodes until controller finishes testing',
 );
 
 # CaaSP specific unpausing
@@ -280,6 +294,8 @@ sub unpause {
     # Handle cluster failure on controller node
     if (uc($event) eq 'ALL') {
         foreach my $e (keys %events) {
+            # We need passwords mostly on failure
+            next if $e eq 'AUTOYAST_PW_SET';
             lockapi::mutex_create $e;
         }
     }
@@ -297,8 +313,8 @@ sub pause_until {
 
     # Mutexes created by child jobs (not controller)
     my $owner;
-    $owner = get_admin_job      if $event eq 'VELUM_STARTED';
-    $owner = get_delayed_worker if $event eq 'DELAYED_WORKER_INSTALLED';
+    $owner = get_admin_job if $event eq 'VELUM_STARTED';
+    $owner = get_admin_job if $event eq 'AUTOYAST_PW_SET';
 
     lockapi::mutex_wait($event, $owner, $events{$event});
 }

@@ -48,7 +48,7 @@ sub run {
 
     # Check deployed application in firefox
     type_string "NODEPORT=`kubectl get svc | egrep -o '80:3[0-9]{4}' | cut -d: -f2`\n";
-    type_string "firefox node1.openqa.test:\$NODEPORT\n";
+    type_string "firefox mixed.openqa.test:\$NODEPORT\n";
     assert_screen 'nginx-alpine';
     send_key 'ctrl-w';
 }

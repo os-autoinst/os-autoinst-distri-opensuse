@@ -18,7 +18,7 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp qw(update_scheduled unpause script_retry);
+use caasp qw(update_scheduled script_retry);
 use version_utils 'is_caasp';
 
 # Set up ssh to admin node and run update script on all nodes
@@ -123,7 +123,6 @@ sub run {
     record_info 'Reboot', 'Orchestrate the reboot via Velum';
     orchestrate_velum_reboot;
     check_update_changes;
-    unpause 'REBOOT_FINISHED';
 }
 
 1;
