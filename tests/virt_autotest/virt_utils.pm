@@ -58,10 +58,14 @@ sub repl_repo_in_sourcefile {
         print "Do not need to change resource for $veritem item\n";
     }
 }
-#Replace module repos configured in sources.* with openqa daily build repos
+# Replace module repos configured in sources.* with openqa daily build repos
 sub repl_module_in_sourcefile {
     my $version = get_version_for_daily_build_guest;
     $version =~ s/fcs/sp0/;
+    my $release = ($version =~ /(\d+)-/m);
+    #We only support sle product, and only products >= sle15 has module link
+    return unless (is_sle && $release >= 15);
+
     my $replaced_item = "(source.(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools|Web-Scripting).sles-" . $version . "-64=)";
     $version =~ s/-sp0//;
     my $daily_build_module = "http://openqa.suse.de/assets/repo/SLE-${version}-Module-\\2-POOL-x86_64-Build" . get_required_var('BUILD') . "-Media1/";
@@ -106,7 +110,8 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
 sub update_guest_configurations_with_daily_build {
     repl_repo_in_sourcefile;
     repl_module_in_sourcefile;
-    repl_guest_autoyast_addon_with_daily_build_module;
+    #qa_lib_virtauto pkg will handle replacing module url with module link in source.xx for sle15 and 15+
+    #repl_guest_autoyast_addon_with_daily_build_module;
 }
 
 1;
