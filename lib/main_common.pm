@@ -1753,6 +1753,7 @@ sub load_security_tests_apparmor_status {
 sub load_security_tests_apparmor_genprof {
     loadtest "security/apparmor/aa_genprof";
     loadtest "security/apparmor/aa_autodep";
+    loadtest "security/apparmor/aa_logprof";
 }
 
 sub load_systemd_patches_tests {
