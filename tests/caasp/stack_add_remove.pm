@@ -52,6 +52,7 @@ sub remove_node {
     my %args = @_;
 
     record_info 'Remove node', $node;
+    send_key_until_needlematch "$node-remove-xy", 'pgdn', 2, 5;
     click_click xy("$node-remove-xy");
     assert_and_click 'confirm-removal';
     if ($args{unsupported}) {
