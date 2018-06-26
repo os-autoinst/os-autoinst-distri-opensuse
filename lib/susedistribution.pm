@@ -541,7 +541,7 @@ sub activate_console {
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
         if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi')) {
-            diag 'activate_console called with installation for ssh based consoles';
+            diag 'backend s390x || zkvm || ipmi';
             $user ||= 'root';
             handle_password_prompt;
             ensure_user($user);
@@ -585,6 +585,17 @@ sub activate_console {
         my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
         $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         save_svirt_pty;
+    }
+    elsif (
+        $console eq 'installation'
+        && (   ((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || get_var('S390_ZKVM')))
+            && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
+    {
+        diag 'activate_console called with installation for ssh based consoles';
+        $user ||= 'root';
+        handle_password_prompt;
+        ensure_user($user);
+        assert_screen "text-logged-in-$user", 60;
     }
     else {
         diag 'activate_console called with generic type, no action';
