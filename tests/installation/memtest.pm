@@ -15,16 +15,12 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 use bootloader_setup 'ensure_shim_import';
-use utils 'power_action';
 
 sub run {
     my $self = shift;
-
     ensure_shim_import;
     $self->select_bootmenu_more('inst-onmemtest', 1);
-    assert_screen 'pass-complete', check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1100 : 700;
-    send_key 'esc';
-    power_action('poweroff', keepconsole => 1, observe => 1);
+    assert_screen('pass-complete', 700);
 }
 
 sub test_flags {
