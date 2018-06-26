@@ -976,7 +976,8 @@ sub load_consoletests {
     # We also don't have any repos on staging and update/upgrade tests.
     # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
     # Test doesn't make sense on live images too, don't have source repo there.
-    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem()) {
+    # Skip this test for SLED (poo#36397)
+    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem() && !is_desktop()) {
         loadtest "console/zypper_info";
     }
     # Add non-oss and debug repos for o3 and remove other by default
