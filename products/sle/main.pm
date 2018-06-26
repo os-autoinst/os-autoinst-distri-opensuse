@@ -511,6 +511,9 @@ sub load_slenkins_tests {
 sub load_ha_cluster_tests {
     return unless (get_var('HA_CLUSTER'));
 
+    # Only SLE-15+ has support for lvmlockd
+    set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
+
     # Standard boot and configuration
     boot_hdd_image;
     loadtest 'ha/wait_barriers';
