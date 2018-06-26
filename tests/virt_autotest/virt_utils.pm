@@ -64,8 +64,8 @@ sub repl_repo_in_sourcefile {
 sub repl_module_in_sourcefile {
     my $version = get_version_for_daily_build_guest;
     $version =~ s/fcs/sp0/;
-    my $release = ($version =~ /(\d+)-/m);
-    #We only support sle product, and only products >= sle15 has module link
+    my ($release) = ($version =~ /(\d+)-/m);
+    # We only support sle product, and only products >= sle15 has module link
     return unless (is_sle && $release >= 15);
 
     my $replaced_item = "(source.(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools|Web-Scripting).sles-" . $version . "-64=)";
