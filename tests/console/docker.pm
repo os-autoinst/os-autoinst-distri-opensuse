@@ -123,7 +123,7 @@ sub run {
     type_string("# ... and we seem to be still in container\n");
     # If echo works then ctrl-c stopped sleep
     type_string "echo 'ctrlc_timeout' > /dev/$serialdev\n";
-    if (wait_serial 'ctrlc_timeout', 10, 1) {
+    if (wait_serial('ctrlc_timeout', 10, 1) =~ 'ctrlc_timeout') {
         die 'ctrl-c stopped container';
     }
     die "Something went wrong" unless wait_serial('ctrlc_timeout', 30);
