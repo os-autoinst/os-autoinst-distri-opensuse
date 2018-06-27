@@ -17,36 +17,37 @@
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36892, tc#1621143
 
+use base "apparmortest";
 use strict;
-use base "consoletest";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
 
 sub run {
+    my ($self) = @_;
 
     my $output;
-    my $aa_prof     = "/etc/apparmor.d";
     my $aa_tmp_prof = "/tmp/apparmor.d";
 
     my $aa_logprof_allow = qr/\(A\)llow/m;
     my $aa_logprof_save  = qr/\(S\)ave Changes/m;
 
-    select_console 'root-console';
+    my $scan_ans = [
+        {
+            word => qr/\(A\)llow/m,
+            key  => 'a',
+        },
+        {
+            word => qr/\(S\)ave Changes/m,
+            key  => 's',
+            end  => 1,
+        },
+    ];
 
-    systemctl('restart apparmor');
     systemctl('stop nscd');
     systemctl('restart auditd');
 
-    # Must disable stdout buffering to make pipe works
-    if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
-        assert_script_run "sed -i '/use strict;/a \$|=1;' /usr/sbin/aa-logprof";
-    }
-    else {                                      # apparmor >= 2.8.95
-        assert_script_run "export PYTHONUNBUFFERED=1";
-    }
-
-    assert_script_run "cp -r $aa_prof $aa_tmp_prof";
+    $self->aa_disable_stdout_buf("/usr/sbin/aa-logprof");
+    $self->aa_tmp_prof_prepare("$aa_tmp_prof", 1);
 
     my @aa_logprof_items = ('capability setuid', '\/var\/log\/nscd.log');
 
@@ -59,24 +60,7 @@ sub run {
 
     systemctl('start nscd');
 
-    script_run("aa-logprof -d $aa_tmp_prof|tee /dev/$serialdev", 0);
-
-    # Interactive prompt capture
-    {
-        do {
-            $output = wait_serial([$aa_logprof_allow, $aa_logprof_save]);
-            if ($output =~ $aa_logprof_allow) {
-                send_key 'a';
-            }
-            elsif ($output =~ $aa_logprof_save) {
-                send_key 's';
-                last;
-            }
-            else {
-                die "Unknown options!";
-            }
-        } while ($output);
-    }
+    $self->aa_interactive_run("aa-logprof -d $aa_tmp_prof", $scan_ans);
 
     validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub {
         m/
@@ -87,17 +71,8 @@ sub run {
             \}/sxx
     };
 
-    # Verify nscd could start with new generated profile
-    assert_script_run("aa-enforce -d $aa_tmp_prof /usr/sbin/nscd");
-    systemctl('restart nscd');
-
-    # Restore
-    assert_script_run("aa-disable -d $aa_tmp_prof /usr/sbin/nscd");
-    assert_script_run("aa-enforce /usr/sbin/nscd");
-    systemctl('restart nscd');
-
-    # Clean up
-    assert_script_run("rm -rf $aa_tmp_prof");
+    $self->aa_tmp_prof_verify("$aa_tmp_prof", 'nscd');
+    $self->aa_tmp_prof_clean("$aa_tmp_prof");
 }
 
 1;
