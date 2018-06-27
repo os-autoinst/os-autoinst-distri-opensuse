@@ -14,6 +14,7 @@ use base "virt_autotest_base";
 use strict;
 use warnings;
 use testapi;
+use virt_utils;
 
 sub get_script_run {
     my $prd_version = script_output("cat /etc/issue");
@@ -24,7 +25,8 @@ sub get_script_run {
     else {
         $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
-
+    # testsuite setting pre-handling for no service pack products
+    handle_sp_in_settings_with_fcs("GUEST_PATTERN");
     my $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
     my $parallel_num  = get_var("PARALLEL_NUM",  "2");
     $pre_test_cmd = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
