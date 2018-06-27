@@ -49,13 +49,12 @@ sub change_system_role {
 
 sub assert_system_role {
     # Still initializing the system at this point, can take some time
+    # Asserting screen with preselected role
+    # Proper default role assertion will be addressed in poo#37504
+    assert_screen 'system-role-default-system', 180;
     my $system_role = get_var('SYSTEM_ROLE', 'default');
     if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default')) {
         change_system_role($system_role);
-    }
-    else {
-        # Verify default role for SLE15, it's text for sles and gnome for sled
-        assert_screen 'system-role-default-system', 180;
     }
     send_key $cmd{next};
 }
