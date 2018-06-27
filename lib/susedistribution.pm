@@ -193,7 +193,7 @@ sub x11_start_program {
     init_desktop_runner($program, $timeout);
     # With match_typed we check typed text and if doesn't match - retrying
     # Is required by firefox test on kde, as typing fails on KDE desktop runnner sometimes
-    if ($args{match_typed} && !check_screen($args{match_typed})) {
+    if ($args{match_typed} && !check_screen($args{match_typed}, 30)) {
         send_key 'esc';
         init_desktop_runner($program, $timeout);
     }

@@ -62,7 +62,7 @@ sub run {
 
     type_string "$mail_passwd";
     send_key "ret";
-    if (check_screen "evolution_mail-init-window") {
+    if (check_screen "evolution_mail-init-window", 30) {
         send_key "super-up";
     }
     assert_screen "evolution_mail-max-window";

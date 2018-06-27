@@ -86,7 +86,7 @@ sub handle_all_packages_medium {
         assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 60);
         last if (match_has_tag 'addon-products-nonempty');
         if (match_has_tag 'sle-product-license-agreement') {
-            if (@addons_license_tags && check_screen(\@addons_license_tags)) {
+            if (@addons_license_tags && check_screen(\@addons_license_tags, 30)) {
                 $addon_license_num++;
             }
             wait_screen_change { send_key 'alt-a' };

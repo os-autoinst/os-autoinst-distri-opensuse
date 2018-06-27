@@ -24,7 +24,7 @@ sub run {
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-installation-mode";
     send_key $cmd{next};
-    if (check_screen('sles4sap-wizard-installation-servers-detected')) {
+    if (check_screen('sles4sap-wizard-installation-servers-detected', 30)) {
         #sap-installation-wizard found sapinst shared over NFS, don't use it
         send_key 'alt-o';    #Okay
     }

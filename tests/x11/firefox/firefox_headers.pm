@@ -43,7 +43,7 @@ sub run {
     # Exit
     send_key "alt-f4";
 
-    if (check_screen('firefox-save-and-quit')) {
+    if (check_screen('firefox-save-and-quit', 30)) {
         # confirm "save&quit"
         send_key "ret";
     }

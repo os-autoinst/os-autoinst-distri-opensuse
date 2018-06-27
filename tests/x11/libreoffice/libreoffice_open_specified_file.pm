@@ -39,9 +39,7 @@ sub run {
         if ($i % 3 == 0) { send_key_until_needlematch('libreoffice-test-doc', 'alt-f4', 5, 10); }
         $i++;
     }
-    if (!check_screen("generic-desktop")) {
-        send_key "ctrl-q";
-    }
+    send_key 'ctrl-q' unless check_screen 'generic-desktop', 0;
 
     #clean up
     $self->cleanup_libreoffice_recent_file();

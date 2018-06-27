@@ -38,7 +38,7 @@ sub run {
     send_key "alt-s";
     wait_still_screen 3;
     send_key "ret";
-    if (check_screen "timezone-asia") {
+    if (check_screen "timezone-asia", 30) {
         send_key "right";
         send_key_until_needlematch("timezone-shanghai", "up");
     }

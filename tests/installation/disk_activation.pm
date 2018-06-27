@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_sle';
 
 sub format_dasd {
-    while (check_screen 'process-dasd-format') {
+    while (check_screen 'process-dasd-format', 30) {
         diag("formatting DASD ...");
         sleep 20;
     }
@@ -105,7 +105,7 @@ sub run {
             send_key 'alt-s';                           # select all
             assert_screen 'dasd-selected';
             send_key 'alt-a';                           # perform action button
-            if (check_screen 'dasd-device-formatted') {
+            if (check_screen 'dasd-device-formatted', 30) {
                 assert_screen 'action-list';
                 # shortcut changed for sle 15
                 send_key is_sle('15+') ? 'o' : 'f';

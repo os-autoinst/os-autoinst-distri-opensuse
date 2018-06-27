@@ -192,7 +192,7 @@ sub deal_with_dependency_issues {
         my $interval = 10;
         my $timetick = 0;
 
-        while (check_screen('adapting_proposal', no_wait => 1)) {
+        while (check_screen('adapting_proposal', timeout => 30, no_wait => 1)) {
             sleep 10;
             $timetick += $interval;
             last if $timetick >= $timeout;
@@ -201,7 +201,7 @@ sub deal_with_dependency_issues {
     }
 
     # In text mode dependency issues may occur again after resolving them
-    if (check_screen 'manual-intervention') {
+    if (check_screen 'manual-intervention', 30) {
         $self->deal_with_dependency_issues;
     }
 }

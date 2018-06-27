@@ -147,7 +147,7 @@ sub run {
     wait_screen_change { send_key 'down' };
     send_key 'ret';
     # Soft-fail bsc#1041829 on TW
-    if (check_var('VERSION', 'Tumbleweed') && check_screen('yast2_ftp_syntax_error_bsc#1041829')) {
+    if (check_var('VERSION', 'Tumbleweed') && check_screen('yast2_ftp_syntax_error_bsc#1041829', 30)) {
         record_soft_failure('bsc#1041829');
         wait_screen_change { send_key 'alt-c'; };
         wait_screen_change { send_key 'alt-f'; };

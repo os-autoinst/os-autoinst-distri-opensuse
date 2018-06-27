@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,7 @@ sub run {
     x11_start_program('xterm');
     if (sle_version_at_least('12-SP2')) {
         script_run 'tracker search emtpyfile';
-        record_soft_failure 'bsc#1074582 tracker can not index empty file automatically' if check_screen 'tracker-cmdsearch-noemptyfile';
+        record_soft_failure 'bsc#1074582 tracker can not index empty file automatically' if check_screen 'tracker-cmdsearch-noemptyfile', 30;
         # Wait 20s for tracker to index the test file
         wait_still_screen 20;
         script_run "tracker search newfile";

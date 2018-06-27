@@ -33,7 +33,7 @@ sub handle_beta_warning {
 
 sub run {
     # offline DVD upgrade may not have network (boo#995771)
-    if (!check_var("FLAVOR", "NET") && check_screen('network-not-configured')) {
+    if (!check_var("FLAVOR", "NET") && check_screen('network-not-configured', 30)) {
         send_key $cmd{next};
         assert_screen('ERROR-cannot-download-repositories');
         send_key 'alt-o';
@@ -42,7 +42,7 @@ sub run {
         assert_screen('list-of-online-repositories', 10);
         send_key $cmd{next};
 
-        if (check_screen('inst-betawarning')) {
+        if (check_screen('inst-betawarning', 30)) {
             handle_beta_warning;
         }
         elsif (get_var("BETA")) {
@@ -50,7 +50,7 @@ sub run {
         }
         # Bug 881107 - there is 2nd license agreement screen in openSUSE upgrade
         # http://bugzilla.opensuse.org/show_bug.cgi?id=881107
-        if (check_screen('upgrade-license-agreement')) {
+        if (check_screen('upgrade-license-agreement', 30)) {
             check_bsc997635;
         }
     }

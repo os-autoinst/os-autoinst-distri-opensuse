@@ -37,7 +37,7 @@ sub run {
     # Problem here is that sometimes installation takes longer than 10 minutes
     # And then screen saver is activated, so add this step to wake
     my $timeout = 0;
-    until (check_screen 'generic-desktop' || ++$timeout > 10) {
+    until (check_screen('generic-desktop', 30) || ++$timeout > 10) {
         # Now it will install required language packages and exit
         # Put in the loop, because sometimes button is not pressed
         wait_screen_change { send_key 'alt-o'; };
