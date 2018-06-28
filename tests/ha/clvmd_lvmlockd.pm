@@ -35,12 +35,9 @@ sub run {
     # DLM process/resource needs to be started
     ensure_dlm_running;
 
+    # lvm2-lockd package should be installed by default
     if ($lock_mgr eq 'lvmlockd') {
-        # Test if package is installed, if not install it and record a softfailure
-        if (!is_package_installed 'lvm2-lockd') {
-            record_soft_failure 'bsc#1076045';
-            zypper_call 'in lvm2-lockd';
-        }
+        die 'lvm2-lockd package is not installed' unless is_package_installed 'lvm2-lockd';
     }
     else {
         # In SLE15, lvmlockd is installed by default, not clvmd/cmirrord
