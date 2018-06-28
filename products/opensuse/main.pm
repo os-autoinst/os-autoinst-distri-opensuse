@@ -141,6 +141,18 @@ logcurrentenv(
       LIVECD NETBOOT NOIMAGES QEMUVGA SPLITUSR VIDEOMODE)
 );
 
+sub updates_is_applicable {
+    # we don't want live systems to run out of memory or virtual disk space.
+    # Applying updates on a live system would not be persistent anyway.
+    # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
+    # Also, updates on INSTALLONLY do not match the meaning
+    return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
+}
+
+sub guiupdates_is_applicable {
+    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
+}
+
 sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
 }
@@ -236,6 +248,31 @@ sub install_online_updates {
     return 1;
 }
 
+sub load_system_update_tests {
+    return unless updates_is_applicable;
+    if (need_clear_repos) {
+        loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
+    }
+
+    if (get_var('ZYPPER_ADD_REPOS')) {
+        loadtest "console/zypper_add_repos";
+    }
+    if (guiupdates_is_applicable()) {
+        loadtest "update/prepare_system_for_update_tests";
+        if (check_var("DESKTOP", "kde")) {
+            loadtest "update/updates_packagekit_kde";
+        }
+        else {
+            loadtest "update/updates_packagekit_gpk";
+        }
+        loadtest "update/check_system_is_updated";
+    }
+    else {
+        loadtest "update/zypper_up";
+    }
+}
+
 sub load_qam_install_tests {
     return 0 unless get_var('INSTALL_PACKAGES');
 
@@ -246,6 +283,7 @@ sub load_qam_install_tests {
     loadtest 'console/zypper_add_repos';
     loadtest 'console/qam_zypper_patch';
     loadtest 'console/qam_verify_package_install';
+
 
     return 1;
 }
