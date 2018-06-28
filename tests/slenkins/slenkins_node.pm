@@ -96,7 +96,7 @@ sub run {
         systemctl stop $firewallservice
         systemctl restart sshd
     ";
-    script_output($conf_script, 100);
+    script_output($conf_script, get_var('FOREIGN_REPOS') ? 1500 : 200);
 
     type_string("cat /var/log/messages >/dev/$serialdev\n");
     # send messages logged during the testsuite runtime to serial
