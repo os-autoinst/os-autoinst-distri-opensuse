@@ -17,16 +17,11 @@ use testapi;
 use windows_utils;
 
 sub run {
-    send_key 'super';    # windows menu
-
-    assert_screen 'windows-menu';
-
-    send_key 'up';
-    send_key 'up';
-    send_key 'spc';      # press power button
-    send_key 'up';
-    send_key 'spc';      # press shutdown button
-
+    assert_and_click 'windows-close-edge';
+    send_key 'alt-f4';
+    assert_screen 'windows-shutdown';
+    send_key 'down';    # switch from 'Shut down' to 'Restart'
+    send_key 'ret';     # press ok to restart
     wait_boot_windows;
 }
 
