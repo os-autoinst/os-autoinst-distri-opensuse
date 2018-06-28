@@ -14,7 +14,6 @@
 use base 'opensusebasetest';
 use strict;
 use testapi;
-use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -26,12 +25,6 @@ sub run {
     }
     else {
         $self->wait_boot(bootloader_time => $timeout);
-    }
-    if (is_sle && !check_var('DESKTOP', 'textmode')) {
-        x11_start_program('xterm');
-        my $window_system = script_output('echo $XDG_SESSION_TYPE');
-        script_run('exit', 0);
-        record_info("$window_system", "Current window system is $window_system");
     }
 }
 
