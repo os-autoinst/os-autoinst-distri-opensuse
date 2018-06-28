@@ -707,6 +707,7 @@ testapi::set_distribution(susedistribution->new());
 if (is_jeos) {
     load_boot_tests();
     loadtest "jeos/firstrun";
+    loadtest "jeos/record_machine_id";
     loadtest "console/force_cron_run";
     loadtest "jeos/grub2_gfxmode";
     loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
