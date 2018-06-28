@@ -31,7 +31,6 @@ sub run {
 
     select_virtio_console();
 
-    zypper_call('ar -f -G ' . get_required_var('GA_REPO'));
     zypper_call('--quiet in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 200);
 
     # Clone repositories
