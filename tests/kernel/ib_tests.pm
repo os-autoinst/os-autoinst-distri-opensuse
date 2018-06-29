@@ -115,7 +115,6 @@ sub run {
     my $role = get_required_var('IBTEST_ROLE');
 
     use_ssh_serial_console;
-    zypper_call('ar -f -G ' . get_required_var('GA_REPO'));
 
     if ($role eq "IBTEST_MASTER") {
         zypper_call('ar -f -G ' . get_required_var('DEVEL_TOOLS_REPO'));

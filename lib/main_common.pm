@@ -1540,21 +1540,11 @@ sub load_networkd_tests {
 }
 
 sub load_nfv_master_tests {
-    load_boot_tests();
-    load_inst_tests();
-    load_reboot_tests();
-    loadtest "kernel/mellanox_config";
-    load_reboot_tests();
     loadtest "nfv/prepare_env";
     loadtest "nfv/run_integration_tests";
 }
 
 sub load_nfv_trafficgen_tests {
-    load_boot_tests();
-    load_inst_tests();
-    load_reboot_tests();
-    loadtest "kernel/mellanox_config";
-    load_reboot_tests();
     loadtest "nfv/trex_installation";
 }
 
