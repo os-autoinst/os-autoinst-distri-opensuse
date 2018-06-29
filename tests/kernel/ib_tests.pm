@@ -16,6 +16,7 @@ use strict;
 use testapi;
 use utils;
 use lockapi;
+use ipmi_backend_utils;
 
 sub check_dmesg {
     my $dmesg_cmd = 'dmesg';
@@ -113,7 +114,8 @@ sub ibtest_master {
 sub run {
     my $role = get_required_var('IBTEST_ROLE');
 
-    select_console 'root-ssh';
+    use_ssh_serial_console;
+    zypper_call('ar -f -G ' . get_required_var('GA_REPO'));
 
     if ($role eq "IBTEST_MASTER") {
         zypper_call('ar -f -G ' . get_required_var('DEVEL_TOOLS_REPO'));
@@ -128,7 +130,7 @@ sub run {
         ibtest_slave;
     }
 
-    power_action('poweroff', observe => 0, keepconsole => 0);
+    power_action('poweroff');
 }
 
 sub post_fail_hook {

@@ -20,24 +20,24 @@ sub run {
     my $role = get_var('SYSTEM_ROLE', 'admin');
 
     # Select proper role
-    send_key 'alt-s';
+    send_alt 'role';
     send_key_until_needlematch "system-role-$role", 'down', 2;
     send_key 'ret' if (check_var('VIDEOMODE', 'text'));
 
     if ($role eq 'admin') {
         # Try without ntp servers
-        send_key 'alt-i';
+        send_alt 'install';
         handle_simple_pw;
         assert_screen 'ntp-servers-missing';
         send_key 'alt-n';
 
-        send_key 'alt-t';
+        send_alt 'ntpserver';
         type_string 'ns.openqa.test';
         save_screenshot;
     }
     elsif ($role eq 'worker') {
         # Try with empty controller node
-        send_key 'alt-i';
+        send_alt 'install';
         handle_simple_pw;
         assert_screen 'controller-node-invalid';
         send_key 'alt-o';

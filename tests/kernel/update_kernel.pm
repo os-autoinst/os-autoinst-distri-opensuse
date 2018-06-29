@@ -16,14 +16,14 @@ use strict;
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 use qam;
 
 
 sub kernel_packages {
     my @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
     # SLE12 and SLE12SP1 has xen kernel
-    if (!sle_version_at_least('12-SP2')) {
+    if (is_sle('<=12-SP1')) {
         push @packages, qw(kernel-xen kernel-xen-devel);
     }
     return @packages;
@@ -82,10 +82,10 @@ sub kgraft_state {
     my $module;
 
     # xen kernel exists only on SLE12 and SLE12SP1
-    if (!sle_version_at_least('12-SP2')) {
+    if (is_sle('<=12-SP1')) {
         script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
         save_screenshot;
-        script_run("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
+        script_run("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
         ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
 
         mod_rpm_info($module);
@@ -93,7 +93,7 @@ sub kgraft_state {
 
     script_run("lsinitrd /boot/initrd-$kver-default | grep patch");
     save_screenshot;
-    script_run("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
+    script_run("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
     ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
 
     mod_rpm_info($module);
@@ -149,11 +149,11 @@ sub prepare_kgraft {
     if ($version eq '12') {
         $release_override = '-d';
     }
-    if (!sle_version_at_least('12-SP3')) {
+    if (!is_sle('>=12-SP3')) {
         $version = '12';
     }
     # SLE15 has different structure of modules and products than SLE12
-    if (sle_version_at_least('15')) {
+    if (is_sle('15+')) {
         $lp_product = 'sle-module-live-patching';
         $lp_module  = 'SLE-Module-Live-Patching';
     }
@@ -204,8 +204,7 @@ sub prepare_kgraft {
 
 sub right_kversion {
     my ($kversion, $pversion) = @_;
-
-    my ($kver_fragment) = $pversion =~ qr/kgraft-patch-(\d+_\d+_\d+-\d+_*\d*_*\d*)-default/;
+    my ($kver_fragment) = $pversion =~ qr/(?:kgraft-|kernel-live)patch-(\d+_\d+_\d+-\d+_*\d*_*\d*)-default/;
     $kver_fragment =~ s/_/\\\./g;
     my ($real_version) = $kversion =~ qr/($kver_fragment\.*\d*)/;
 
