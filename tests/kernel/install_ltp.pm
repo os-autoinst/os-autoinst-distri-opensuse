@@ -262,7 +262,7 @@ sub run {
 
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1')) {
-        assert_script_run("uname -v | grep '/kGraft-'");
+        assert_script_run("uname -v | grep -E '(/kGraft-|/lp-)'");
     }
 
     add_we_repo_if_available;
