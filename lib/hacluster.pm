@@ -41,6 +41,7 @@ our @EXPORT = qw(
   rsc_cleanup
   ha_export_logs
   check_cluster_state
+  wait_until_resources_started
   get_lun
   pre_run_hook
   post_run_hook
@@ -228,8 +229,39 @@ sub ha_export_logs {
 
 sub check_cluster_state {
     assert_script_run "$crm_mon_cmd";
+    assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'";
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
     assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
+    assert_script_run 'crm_verify -LV';
+}
+
+# Wait for resources to be started
+sub wait_until_resources_started {
+    my @cmds    = ('crm cluster wait_for_startup', "$crm_mon_cmd | grep -i 'no inactive resources'");
+    my $timeout = 120;
+    my $ret     = undef;
+
+    # Execute each comnmand to validate that the cluster is running
+    # This can takes time, so a loop is a good idea here
+    foreach my $cmd (@cmds) {
+        # Each command execution has its own timeout, so we need to reset the counter
+        my $starttime = time;
+
+        # Check for cluster/resources status and exit loop when needed
+        while ($ret = script_run "$cmd") {
+            # Otherwise wait a while if timeout is not reached
+            my $timerun = time - $starttime;
+            if ($timerun < $timeout) {
+                sleep 5;
+            }
+            else {
+                die "Cluster/resources did not start within $timeout seconds (cmd='$cmd')";
+            }
+        }
+
+        # script_run need to be defined to ensure a correct exit code
+        die 'Cluster/resources check did not exit properly' if !defined $ret;
+    }
 }
 
 # This function returns the first available LUN

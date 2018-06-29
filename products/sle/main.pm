@@ -509,14 +509,24 @@ sub load_slenkins_tests {
 }
 
 sub load_ha_cluster_tests {
-    return unless (get_var('HA_CLUSTER'));
+    return unless get_var('HA_CLUSTER');
+
+    # Standard boot
+    boot_hdd_image;
 
     # Only SLE-15+ has support for lvmlockd
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
-    # Standard boot and configuration
-    boot_hdd_image;
+    # Wait for barriers to be initialized
     loadtest 'ha/wait_barriers';
+
+    # Test HA after an upgrade, so no need to configure the HA stack
+    if (get_var('HDDVERSION')) {
+        loadtest 'ha/check_after_reboot';
+        return 1;
+    }
+
+    # Patch (if needed) and basic configuration
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'console/consoletest_setup';
     loadtest 'console/hostname';
@@ -574,7 +584,7 @@ sub load_ha_cluster_tests {
     boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
 
     # Show HA cluster status *after* fencing test
-    loadtest 'ha/check_after_fencing';
+    loadtest 'ha/check_after_reboot';
 
     # Check logs to find error and upload all needed logs if we are not
     # in installation/publishing mode
