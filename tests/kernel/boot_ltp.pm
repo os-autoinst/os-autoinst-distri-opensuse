@@ -49,7 +49,7 @@ sub run {
 
     # check kGraft patch if KGRAFT=1
     if (check_var('KGRAFT', '1')) {
-        assert_script_run("uname -v| grep '/kGraft-'");
+        assert_script_run("uname -v| grep -E '(/kGraft-|/lp-)'");
     }
 
     if ($ltp_env) {
