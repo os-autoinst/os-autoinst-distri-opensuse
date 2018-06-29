@@ -23,8 +23,100 @@ use base "y2logsstep";
 use strict;
 use testapi;
 use version_utils 'is_sle';
+#use y2logsstep;
 
 my $secondrun = 0;    # bsc#1029660
+
+sub open_file {
+    my ($filename, $mode) = @_;
+    open my $fh_log, $mode, $filename
+      or die "Can't open yast2 log file '$filename': $!";
+    return $fh_log;
+}
+
+sub parse_y2log_module_info {
+    my @packages;
+    my @problems;
+    my @do_not_install_packages;
+    my @options = ('Install', 'Remove', 'Weaken dependencies');
+    my $save_temp_issue;
+    my $fh_log;
+    my $fh_report;
+
+    {
+        local $@;
+        $fh_log = eval { open_file('ulogs/package-y2log', '<') };
+        if (my $exception = $@) {
+            warn "Caught exception: $exception";
+        }
+    }
+
+    while (my $line = <$fh_log>) {
+        chomp($line);
+        if ($line =~ m/\[zypp\]/) {
+            if ($line =~ m/Install\s.*\)(?<type_of_module>\bpattern\b|\bproduct\b)?:?(?<name_of_module>(((\w+)-)+).*)\((?<repo>\w+.*\w)/) {
+                my $module_type = $+{type_of_module} // 'package';
+                push @packages, {name => $+{name_of_module}, module => $+{repo}, type => $module_type, action => $options[0]};
+            }
+            elsif ($line =~ m/Keep NOT installed name\s\w+:\w+\s.*\)(?<type_of_module>\w+):(?<name_of_module>\w+.*\w)\((?<repo>\w+.*\w)/) {
+                push @packages, {name => $+{name_of_module}, module => $+{repo}, type => $+{type_of_module}, action => $options[1]};
+            }
+            elsif ($line =~ m/Weaken dependencies of\s.*\)(?<type_of_module>\bpattern\b|\bproduct\b)?:?(?<name_of_module>\w+.*\w)\((?<repo>\w+.*\w)/) {
+                my $module_type = $+{type_of_module} // 'package';
+                push @packages,, {name => $+{name_of_module}, module => $+{repo}, type => $module_type, action => $options[2]};
+            }
+            elsif ($line =~ m/\sSATResolver.cc\(problems\):\d+\s(?<lowercase_problem_lines>[a-z]+(:|\s)\w+.*$)/) {
+                # matches
+                # (^pattern:((\w+)-)+(\d+\.)+\w+) -> pattern:Google_Cloud_Platform_Instance_Tools-15-3.14.x86_64
+                # (^pattern:((\w+)-)+(\d+\.)+\w+\s\w+\s((\w+)-)+\w+) ->
+                # pattern:Microsoft_Azure_Instance_Tools-15-3.14.x86_64 requires patterns-public-cloud-15-Microsoft-Azure-Instance-Tools
+                if ($+{lowercase_problem_lines} =~ m/(?<issue>^pattern:((\w+)-)+(\d+\.)+\w+\s\w+\s((\w+)-)+\w+)/) {
+                    $save_temp_issue = $+{issue};
+                }
+                elsif ($+{lowercase_problem_lines} =~ m/(?<issue>^nothing(\s\w+)+.*$)/) {
+                    $save_temp_issue = $+{issue};
+                }
+                elsif ($+{lowercase_problem_lines} =~ m/^do not install(?<recommended>.*$)/) {
+                    push @do_not_install_packages, $+{recommended};
+                }
+                elsif ($+{lowercase_problem_lines} =~ m/(?<ignore_deps>^ignore some dependencies of.*)\((?<module>.*)\)/) {
+                    # convert array to string
+                    push @problems,
+                      {issue => $save_temp_issue, recommended_actions => join(",", @do_not_install_packages), ignore => $+{ignore_deps}, module => $+{module}};
+                    @do_not_install_packages = ();
+                }
+            }
+        }
+    }
+
+    close $fh_log or warn $!;
+
+    {
+        local $@;
+        $fh_report = eval { open_file('ulogs/y2_module_report.txt', '>') };
+        if (my $exception = $@) {
+            warn "Caught exception: $exception";
+        }
+    }
+
+
+    print $fh_report "=" x 172 . "\n";
+    printf $fh_report "%-58s %-86s %s %s\n", 'NAME', 'MODULE', 'TYPE', '   ACTION';
+    print $fh_report "=" x 172 . "\n";
+    foreach (@packages) {
+        my $gap = 149 - (56 + (length($_->{module})));
+        printf $fh_report "%-58s %s %${gap}s %s\n", $_->{name}, $_->{module}, $_->{type}, $_->{action};
+    }
+    print $fh_report "=" x 172 . "\n\n";
+
+    foreach (@problems) {
+        print $fh_report "Problem: $_->{issue}\n";
+        print $fh_report "Recommended actions:\nDo not install:$_->{recommended_actions}\n";
+        print $fh_report "$_->{ignore} from module $_->{module}\n\n";
+    }
+
+    close $fh_report or warn $!;
+}
 
 sub accept3rdparty {
     #Third party licenses sometimes appear
@@ -214,6 +306,13 @@ sub run {
         $self->gotopatterns;
         $self->package_action('unblock');
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    select_console('install-shell');
+    upload_logs('/var/log/YaST2/y2log', log_name => "package");
+    parse_y2log_module_info;
 }
 
 1;
