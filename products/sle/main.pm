@@ -681,6 +681,8 @@ sub load_baremetal_tests {
             barrier_create('IBTEST_BEGIN', 3);
             barrier_create('IBTEST_DONE',  3);
         }
+        loadtest "kernel/mellanox_config";
+        load_reboot_tests();
         loadtest "kernel/ib_tests";
     }
 }
