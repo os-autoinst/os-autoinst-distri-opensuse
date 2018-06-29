@@ -119,7 +119,7 @@ sub handle_sp_in_settings {
     # We need small case variable value
     my $var_value = lc(get_required_var("$var_name"));
     # Add $value_for_sp after release for products like sle15, sle16
-    if ($var_value !~ /sp/ && "$value_for_sp") {
+    if ($var_value !~ /sp|fcs/ && $value_for_sp) {
         $var_value =~ s/(sles-\d+)/$1-$value_for_sp/;
     }
     set_var("$var_name", "$var_value");
