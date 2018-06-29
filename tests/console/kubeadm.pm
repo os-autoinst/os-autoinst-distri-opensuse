@@ -29,8 +29,9 @@ sub run {
     systemctl('is-active kubelet');
 
     record_info 'Test #1', 'Test: Initialize kubeadm';
-    assert_script_run('kubeadm reset');
-    assert_script_run('kubeadm init');
+    record_soft_failure "bsc#1093132" if script_run('kubeadm init');
+    script_run('kubeadm reset');
+    assert_script_run('kubeadm init', 180);
 
 }
 
