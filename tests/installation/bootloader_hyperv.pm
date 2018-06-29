@@ -233,7 +233,7 @@ sub run {
       . get_var('HYPERV_USERNAME') . " /p:'"
       . get_var('HYPERV_PASSWORD') . "' /v:"
       . get_var('HYPERV_SERVER')
-      . " /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
+      . " /gfx /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
     hyperv_cmd_with_retry("$ps Start-VM $name", {msg => ($winserver eq '2016') ? 'used by another process' : undef});
 
