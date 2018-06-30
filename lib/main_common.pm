@@ -804,57 +804,60 @@ sub load_inst_tests {
         if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        loadtest "installation/partitioning";
-        if (defined(get_var("RAIDLEVEL"))) {
-            loadtest "installation/partitioning_raid";
-        }
-        elsif (check_var('LVM', 0) && get_var('ENCRYPT')) {
-            loadtest 'installation/partitioning_crypt_no_lvm';
-        }
-        elsif (get_var("LVM")) {
-            loadtest "installation/partitioning_lvm";
-        }
-        elsif (get_var('FULL_LVM_ENCRYPT')) {
-            loadtest 'installation/partitioning_full_lvm';
-        }
-        if (get_var("FILESYSTEM")) {
-            if (get_var('PARTITIONING_WARNINGS')) {
-                loadtest 'installation/partitioning_warnings';
+        # Kubic doesn't have a partitioning step
+        if (!is_caasp('kubic')) {
+            loadtest "installation/partitioning";
+            if (defined(get_var("RAIDLEVEL"))) {
+                loadtest "installation/partitioning_raid";
             }
-            loadtest "installation/partitioning_filesystem";
-        }
-        # boo#1093372 Leap 15.0 proposes a separate home even on small disks
-        # making the root partition likely to small so we should switch the
-        # defaults here unless we reconfigure using the guided proposal or
-        # expert partitioner anyway
-        if (get_var("TOGGLEHOME")
-            || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !defined get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
-        {
-            loadtest "installation/partitioning_togglehome";
-            if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
-                loadtest "installation/partitioning_resize_root";
+            elsif (check_var('LVM', 0) && get_var('ENCRYPT')) {
+                loadtest 'installation/partitioning_crypt_no_lvm';
             }
-        }
-        if (get_var("EXPERTPARTITIONER")) {
-            loadtest "installation/partitioning_expert";
-        }
-        if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
-            loadtest "installation/installation_enlargeswap";
-        }
+            elsif (get_var("LVM")) {
+                loadtest "installation/partitioning_lvm";
+            }
+            elsif (get_var('FULL_LVM_ENCRYPT')) {
+                loadtest 'installation/partitioning_full_lvm';
+            }
+            if (get_var("FILESYSTEM")) {
+                if (get_var('PARTITIONING_WARNINGS')) {
+                    loadtest 'installation/partitioning_warnings';
+                }
+                loadtest "installation/partitioning_filesystem";
+            }
+            # boo#1093372 Leap 15.0 proposes a separate home even on small disks
+            # making the root partition likely to small so we should switch the
+            # defaults here unless we reconfigure using the guided proposal or
+            # expert partitioner anyway
+            if (get_var("TOGGLEHOME")
+                || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !defined get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
+            {
+                loadtest "installation/partitioning_togglehome";
+                if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
+                    loadtest "installation/partitioning_resize_root";
+                }
+            }
+            if (get_var("EXPERTPARTITIONER")) {
+                loadtest "installation/partitioning_expert";
+            }
+            if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
+                loadtest "installation/installation_enlargeswap";
+            }
 
-        if (get_var("SPLITUSR")) {
-            loadtest "installation/partitioning_splitusr";
+            if (get_var("SPLITUSR")) {
+                loadtest "installation/partitioning_splitusr";
+            }
+            if (get_var("DELETEWINDOWS")) {
+                loadtest "installation/partitioning_guided";
+            }
+            if (get_var("IBFT")) {
+                loadtest "installation/partitioning_iscsi";
+            }
+            if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
+                loadtest "installation/partitioning_firstdisk";
+            }
+            loadtest "installation/partitioning_finish";
         }
-        if (get_var("DELETEWINDOWS")) {
-            loadtest "installation/partitioning_guided";
-        }
-        if (get_var("IBFT")) {
-            loadtest "installation/partitioning_iscsi";
-        }
-        if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
-            loadtest "installation/partitioning_firstdisk";
-        }
-        loadtest "installation/partitioning_finish";
     }
     if (is_opensuse && addon_products_is_applicable() && !is_leap('42.3+')) {
         loadtest "installation/addon_products";
