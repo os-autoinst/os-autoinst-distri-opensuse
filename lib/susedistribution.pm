@@ -217,6 +217,14 @@ sub x11_start_program {
     die "Did not find target needle for tag(s) '@target'" if (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
 }
 
+sub _ensure_installed_zypper_fallback {
+    my ($self, $pkglist) = @_;
+    $self->become_root;
+    pkcon_quit;
+    zypper_call "in $pkglist";
+    type_string "exit\n";
+}
+
 sub ensure_installed {
     my ($self, $pkgs, %args) = @_;
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
@@ -252,11 +260,13 @@ sub ensure_installed {
     }
     my $ret = wait_serial('pkcon-status-\d+');
     if ($ret =~ /pkcon-status-4/) {
-        $self->become_root;
-        pkcon_quit;
-        zypper_call "in $pkglist";
-        type_string "exit\n";
+        $self->_ensure_installed_zypper_fallback($pkglist);
         record_soft_failure "boo#1091353 - pkcon doesn't find existing pkg - falling back to zypper";
+    }
+    elsif ($ret =~ /pkcon-status-5/) {
+        record_info 'pkcon failed', 'Return value meaning: "Nothing useful was done", trying fallback to zypper"';
+        $self->_ensure_installed_zypper_fallback($pkglist);
+        record_soft_failure 'boo#1100134 - pkcon randomly fails to download packages';
     }
     elsif ($ret !~ /pkcon-status-0/) {
         die "pkcon install did not succeed, return code: $ret";
