@@ -163,7 +163,7 @@ sub run {
             $wanted_patterns{$p} = 1;
         }
 
-        my $counter = 70;
+        my $counter = 80;
         while (1) {
             die "looping for too long" unless ($counter--);
             my $needs_to_be_selected;
