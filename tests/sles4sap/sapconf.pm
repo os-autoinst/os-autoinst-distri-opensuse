@@ -38,9 +38,18 @@ sub check_profile {
       unless ($output =~ /Current active profile: $profile/);
 }
 
+sub save_tuned_conf {
+    my $tag = shift;
+    my $log = "/tmp/conf_and_logs_$tag.tar.gz";
+    script_run "tar -zcf $log /etc/tuned/* /var/log/tuned/*";
+    upload_logs $log;
+}
+
 sub run_developers_tests {
     my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/master/archive.tar.gz';
     my $log        = '/tmp/sapconf_test.log';
+
+    save_tuned_conf 'before';
 
     # Download and unpack the test scripts supplied by the developers
     # Continue if it can not be downloaded
@@ -87,6 +96,8 @@ sub run_developers_tests {
 
     # Return to homedir just in case
     type_string "cd\n";
+
+    save_tuned_conf 'after';
 }
 
 sub verify_sapconf_service {
