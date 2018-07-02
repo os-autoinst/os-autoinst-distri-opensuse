@@ -231,8 +231,7 @@ sub ensure_installed {
     # make sure packagekit service is available
     testapi::assert_script_run('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     type_string "exit\n";
-    my $retries = 5;    # arbitrary
-    $self->script_run("pkcon install -yp $pkglist; echo \"pkcon-\$?-\" > /dev/$testapi::serialdev", 0);
+    $self->script_run("pkcon install -yp $pkglist; echo pkcon-status-\$? | tee /dev/$testapi::serialdev", 0);
     my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
@@ -251,15 +250,15 @@ sub ensure_installed {
             next;
         }
     }
-    my $ret = wait_serial('pkcon-\d+-');
-    if ($ret =~ /pkcon-4-/) {
+    my $ret = wait_serial('pkcon-status-\d+');
+    if ($ret =~ /pkcon-status-4/) {
         $self->become_root;
         pkcon_quit;
         zypper_call "in $pkglist";
         type_string "exit\n";
         record_soft_failure "boo#1091353 - pkcon doesn't find existing pkg - falling back to zypper";
     }
-    elsif ($ret !~ /pkcon-0/) {
+    elsif ($ret !~ /pkcon-status-0/) {
         die "pkcon install did not succeed, return code: $ret";
     }
     send_key("alt-f4");    # close xterm
