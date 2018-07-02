@@ -53,6 +53,9 @@ sub select_roles {
 
 # Run bootstrap and download kubeconfig
 sub bootstrap {
+    # CaaSP 2.0 will keep bsc#1087447
+    $master_fqdn =~ s/^ | $//g if is_caasp('=2.0');
+
     # Click next button to 'Confirm bootstrap' page
     send_key_until_needlematch 'velum-next', 'pgdn', 2, 5;
     assert_and_click 'velum-next';

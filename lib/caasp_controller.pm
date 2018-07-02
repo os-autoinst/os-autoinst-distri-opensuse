@@ -15,8 +15,6 @@ our @EXPORT = qw($admin_fqdn $master_fqdn
 our $admin_fqdn = 'admin.openqa.test';
 # Extra space to check for bsc#1087447
 our $master_fqdn = ' master-api.openqa.test ';
-# CaaSP 2.0 will keep the bug
-$master_fqdn =~ s/^ | $//g if is_caasp('=2.0');
 
 # 10% of clicks are lost because ajax refreshes Velum during click
 # bsc#1048975 - User interaction is lost after page refresh
