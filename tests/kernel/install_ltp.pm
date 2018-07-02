@@ -57,6 +57,7 @@ sub install_runtime_dependencies {
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
     my @maybe_deps = qw(
       acl
+      audit
       binutils
       dosfstools
       evmctl
@@ -231,7 +232,7 @@ EOF
     # SLE12GA uses too many old style services
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
-    foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd)) {
+    foreach my $service (qw(auditd dnsmasq nfsserver rpcbind vsftpd)) {
         if (is_sle('12+') || is_opensuse) {
             systemctl($action . " " . $service);
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");

@@ -88,6 +88,8 @@ sub run {
         $tinfo->test_result_export->{environment} = $environment;
     }
 
+    script_run('ps axf') if ($is_network || $is_ima);
+
     if ($is_network) {
         # poo#18762: Sometimes there is physical NIC which is not configured.
         # One of the reasons can be renaming by udev rule in
@@ -152,7 +154,6 @@ EOF
         script_run('ip6tables -S');
 
         # display various network configuration
-        script_run('ps axf');
         script_run('netstat -nap');
 
         script_run('cat /etc/resolv.conf');
