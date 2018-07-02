@@ -34,6 +34,7 @@ sub orchestrate_velum_reboot {
 
     # Update admin node (~160s for admin reboot)
     assert_and_click 'velum-update-admin';
+    wait_still_screen 3;
     assert_and_click 'velum-update-reboot';
 
     # Update all nodes - this part takes long time (~2 minutes per node)
