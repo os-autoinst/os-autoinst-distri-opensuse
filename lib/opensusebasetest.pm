@@ -128,7 +128,13 @@ sub investigate_yast2_failure {
         $error_detected = 1;
     }
     # Array with possible strings to search in YaST2 logs
-    my @y2log_errors = ('Internal error. Please report a bug report', '<3>', 'No textdomain configured');
+    my @y2log_errors = (
+        'Internal error. Please report a bug report',    # Detecting errors
+        '<3>',                                           # Detecting problems using error code
+        'No textdomain configured',                      # Detecting missing translations
+        'nothing provides',                              # Detecting missing required packages
+        'but this requirement cannot be provided'        # and package conflicts
+    );
     for my $y2log_error (@y2log_errors) {
         if (my $y2log_error_result = script_output 'grep -B 3 \'' . $y2log_error . '\' /var/log/YaST2/y2log | tail -n 20 || true') {
             record_info 'YaST2 log error detected', "Details:\n\n$y2log_error_result", result => 'fail';
