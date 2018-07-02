@@ -21,15 +21,6 @@ use version_utils qw(is_sle is_leap);
 sub run {
     my ($self) = shift;
 
-    if (check_var('ARCH', 's390x')) {
-        # on s390x we do not wait for the grub menu or can not handle it like
-        # do we on other architectures or backends. Also, we do not have the
-        # same problem that we could miss the grub screen with timeout so we
-        # skip disabling the grub timeout
-        diag 'Skipping disabling grub timeout on s390x as we can not catch the grub screen there';
-        return;
-    }
-
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded";
 
