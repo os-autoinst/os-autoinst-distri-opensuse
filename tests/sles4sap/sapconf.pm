@@ -19,7 +19,7 @@ my @tuned_profiles = is_sle('>=15') ?
   qw(balanced desktop latency-performance network-latency network-throughput
   powersave sapconf saptune throughput-performance virtual-guest virtual-host)
   : qw(balanced desktop latency-performance network-latency
-  network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver saptune
+  network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver
   throughput-performance virtual-guest virtual-host);
 
 my %sapconf_profiles = (
@@ -75,6 +75,8 @@ sub run_developers_tests {
         next unless ($summary =~ /^Test/);
         # Do nothing with passing tests. The summary will be shown on the script_output step
         next if ($summary =~ /PASSED$/);
+        # Skip results of fate#325548 on SLES4SAP versions before 15
+        next if ($summary =~ /fate325548/ and is_sle('<15'));
         if ($summary =~ /Test #(bsc|fate)([0-9]+)/) {
             record_soft_failure "$1#$2";
         }
