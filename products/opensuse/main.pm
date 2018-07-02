@@ -468,7 +468,7 @@ else {
     elsif (is_jeos) {
         load_boot_tests();
         loadtest "jeos/firstrun";
-        loadtest "console/force_cron_run";
+        loadtest "console/force_scheduled_tasks";
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";

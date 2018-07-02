@@ -7,7 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Avoid suprises later and run the cron jobs explicitly
+# Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
+#   jobs or systemd timer
 # Maintainer: Stephan Kulow <coolo@suse.de>
 # Tags: bsc#1017461, bsc#1063638
 

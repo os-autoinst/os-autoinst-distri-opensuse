@@ -966,7 +966,7 @@ sub load_consoletests {
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
-    loadtest "console/force_cron_run" unless is_jeos;
+    loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
     }
@@ -1566,8 +1566,8 @@ sub load_x11_installation {
     loadtest "x11/x11_setup";
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest "console/sle15_workarounds" if is_sle and sle_version_at_least('15');
-    loadtest "console/hostname"       unless is_bridged_networking;
-    loadtest "console/force_cron_run" unless is_jeos;
+    loadtest "console/hostname"              unless is_bridged_networking;
+    loadtest "console/force_scheduled_tasks" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
     loadtest "shutdown/shutdown";
 }
@@ -1772,8 +1772,8 @@ sub load_create_hdd_tests {
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv;
-    loadtest 'console/hostname'       unless is_bridged_networking;
-    loadtest 'console/force_cron_run' unless is_jeos;
+    loadtest 'console/hostname'              unless is_bridged_networking;
+    loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
@@ -1824,7 +1824,7 @@ sub load_syscontainer_tests() {
 }
 
 sub load_toolchain_tests {
-    loadtest "console/force_cron_run";
+    loadtest "console/force_scheduled_tasks";
     loadtest "toolchain/install";
     loadtest "toolchain/gcc_fortran_compilation";
     loadtest "toolchain/gcc_compilation";
