@@ -181,7 +181,8 @@ sub unlock_if_encrypted {
             wait_serial("Please enter passphrase for disk.*", 100);
             type_line_svirt "$password";
         }
-        wait_serial("Please enter passphrase for disk.*", 100);
+        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        type_line_svirt '', expect => "Please enter passphrase for disk.*", timeout => 100, fail_message => 'Could not find "enter passphrase" prompt';
         type_line_svirt "$password";
     }    # Handle zVM scenario
     elsif (check_var('BACKEND', 's390x')) {
@@ -1263,10 +1264,16 @@ sub reconnect_s390 {
         select_console('iucvconn');
     }
     else {
-        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
-        select_console('svirt');
-        save_svirt_pty;
-        type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+        # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
+        if (get_var('ENCRYPT')) {
+            wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        }
+        else {
+            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            select_console('svirt');
+            save_svirt_pty;
+            type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+        }
     }
 
     # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
