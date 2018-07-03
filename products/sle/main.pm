@@ -1080,6 +1080,12 @@ else {
         }
         return 1;
     }
+    elsif (get_var('TEUTHOLOGY')) {
+        boot_hdd_image;
+        loadtest 'console/teuthology';
+        loadtest 'console/pulpito';
+        return 1;
+    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
         # Set origin and target version
