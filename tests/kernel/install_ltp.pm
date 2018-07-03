@@ -172,7 +172,8 @@ sub install_from_git {
     my ($tag) = @_;
     my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
     my $rel = get_var('LTP_RELEASE') || '';
-    my $configure = './configure --with-open-posix-testsuite --with-realtime-testsuite';
+    my $timeout     = check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') ? 7200 : 1440;
+    my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
     if ($rel) {
         $rel = ' -b ' . $rel;
@@ -184,7 +185,7 @@ sub install_from_git {
 
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
     assert_script_run "find /opt/ltp/ -name '*.run-test' > ~/openposix-test-list-$tag";
