@@ -26,9 +26,10 @@ sub run {
     my %expiration = (
         gcc5      => 'Now',
         libada5   => 'Now',
-        gcc6      => '2024-10-30',
-        libada6   => '2024-10-30',
-        toolchain => '2024-10-30'
+        gcc6      => 'Now',
+        gcc7      => '2024-10-30',
+        libada7   => '2024-10-30',
+        toolchain => '2024-10-30',
     );
 
     select_console 'root-console';
