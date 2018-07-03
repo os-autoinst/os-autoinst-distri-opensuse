@@ -1265,6 +1265,7 @@ sub reconnect_s390 {
     else {
         wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
         select_console('svirt');
+        save_svirt_pty;
         type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
     }
 
