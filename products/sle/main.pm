@@ -701,6 +701,7 @@ sub load_baremetal_tests {
     }
     elsif (get_var('NFV')) {
         mellanox_config();
+        loadtest "kernel/mellanox_ofed" if get_var('OFED_URL');
         if (check_var("NFV", "master")) {
             load_nfv_master_tests();
         }
