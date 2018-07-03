@@ -116,6 +116,18 @@ sub run {
         assert_script_run('man -P cat docker config | grep "docker-config - Manage Docker configs"');
     }
 
+    # Try to stop container using ctrl+c
+    type_string("docker run --rm opensuse/tumbleweed sleep 30\n");
+    type_string("# Let's press ctrl+c right now ... ");
+    send_key 'ctrl-c';
+    type_string("# ... and we seem to be still in container\n");
+    # If echo works then ctrl-c stopped sleep
+    type_string "echo 'ctrlc_timeout' > /dev/$serialdev\n";
+    if (wait_serial 'ctrlc_timeout', 10, 1) {
+        die 'ctrl-c stopped container';
+    }
+    die "Something went wrong" unless wait_serial('ctrlc_timeout', 30);
+
     # containers can be stopped
     assert_script_run("docker container stop $container_name");
     assert_script_run("docker container inspect --format='{{.State.Running}}' $container_name | grep false");
