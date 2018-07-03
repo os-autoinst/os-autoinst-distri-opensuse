@@ -122,7 +122,7 @@ sub addpart {
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
             wait_screen_change { send_key 'home' };    # start from the top of the list
-            assert_screen((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10;
+            assert_screen(((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
     }
