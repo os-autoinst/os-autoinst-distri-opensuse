@@ -41,7 +41,8 @@ sub run {
     wait_screen_change { send_key "alt-c" };
 
     # Warning of spoofing ip may appear
-    if (check_screen("pidgin-spoofing-ip", 0)) {
+    assert_screen([qw(pidgin-spoofing-ip pidgin-irc-sledtesting)]);
+    if (match_has_tag('pidgin-spoofing-ip')) {
         wait_screen_change {
             send_key "alt-tab";
         };
