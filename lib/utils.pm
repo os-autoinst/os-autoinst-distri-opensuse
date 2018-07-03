@@ -1263,9 +1263,13 @@ sub reconnect_s390 {
         select_console('iucvconn');
     }
     else {
-        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
-        select_console('svirt');
-        type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+        my $r = wait_serial($login_ready, 300);
+        if ($r && $r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
+            record_soft_failure('bsc#1040606');
+        }
+        elsif ($r && is_sle) {
+            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
+        }
     }
 
     # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
