@@ -149,6 +149,9 @@ sub load_feature_tests {
 
 sub load_stack_tests {
     if (check_var 'STACK_ROLE', 'controller') {
+        if (update_scheduled 'dup') {
+            loadtest 'caasp/shift_version', name => 'ver=dec';
+        }
         loadtest 'caasp/stack_initialize';
         loadtest 'caasp/stack_configure';
         loadtest 'caasp/stack_bootstrap';
@@ -158,6 +161,9 @@ sub load_stack_tests {
         }
         else {
             loadtest 'caasp/stack_reboot';
+        }
+        if (update_scheduled 'dup') {
+            loadtest 'caasp/shift_version', name => 'ver=inc';
         }
         loadtest 'caasp/stack_add_remove' if get_delayed;
         unless (is_caasp('staging') || is_caasp('local')) {
@@ -202,6 +208,9 @@ if (get_var('STACK_ROLE')) {
         loadtest "support_server/setup";
     }
     else {
+        if (update_scheduled 'dup') {
+            loadtest 'caasp/shift_version', name => 'ver=dec';
+        }
         load_caasp_boot_tests;
         load_caasp_inst_tests if is_caasp('DVD');
         loadtest 'caasp/first_boot';
