@@ -758,6 +758,7 @@ elsif (get_var("REGRESSION")) {
     # Used by QAM testing
     if (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11/window_system";
         load_x11_webbrowser_core();
         load_x11_webbrowser_extra();
     }
@@ -773,14 +774,17 @@ elsif (get_var("REGRESSION")) {
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11/window_system";
         load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
         loadtest 'boot/boot_to_desktop';
+        loadtest "x11/window_system";
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11/window_system";
         loadtest "x11/piglit/piglit";
     }
 }

@@ -1664,14 +1664,17 @@ sub load_common_x11 {
     }
     elsif (check_var("REGRESSION", "gnome")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11/window_system";
         load_x11_gnome();
     }
     elsif (check_var("REGRESSION", "documentation")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11/window_system";
         load_x11_documentation();
     }
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11/window_system";
         load_x11_other();
     }
 }
