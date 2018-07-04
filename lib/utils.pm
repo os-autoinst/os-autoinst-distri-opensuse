@@ -121,7 +121,7 @@ sub type_line_svirt {
 
 sub unlock_zvm_disk {
     my ($console) = @_;
-    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase') };
+    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
     if ($@) {
         diag 'No passphrase asked, continuing';
     }
@@ -134,7 +134,7 @@ sub unlock_zvm_disk {
 
 sub handle_grub_zvm {
     my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 30); };
     if ($@) {
         diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
     }
@@ -181,7 +181,8 @@ sub unlock_if_encrypted {
             wait_serial("Please enter passphrase for disk.*", 100);
             type_line_svirt "$password";
         }
-        wait_serial("Please enter passphrase for disk.*", 100);
+        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        type_line_svirt '', expect => "Please enter passphrase for disk.*", timeout => 100, fail_message => 'Could not find "enter passphrase" prompt';
         type_line_svirt "$password";
     }    # Handle zVM scenario
     elsif (check_var('BACKEND', 's390x')) {
@@ -1249,8 +1250,8 @@ sub reconnect_s390 {
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
-        # grub is handled in unlock_if_encrypted
-        handle_grub_zvm($console) unless get_var('ENCRYPT');
+        # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
+        handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
@@ -1263,12 +1264,15 @@ sub reconnect_s390 {
         select_console('iucvconn');
     }
     else {
-        my $r = wait_serial($login_ready, 300);
-        if ($r && $r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
-            record_soft_failure('bsc#1040606');
+        # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
+        if (get_var('ENCRYPT')) {
+            wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
         }
-        elsif ($r && is_sle) {
-            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
+        else {
+            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            select_console('svirt');
+            save_svirt_pty;
+            type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
         }
     }
 
