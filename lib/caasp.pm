@@ -269,20 +269,30 @@ sub get_delayed {
     return $count;
 }
 
+
+# Return update repository without parameters
+# Optional filter for update type [qam|fake|dup]
 sub update_scheduled {
+    my $type = shift;
+
     # Don't update MicroOS tests
     return 0 unless get_var('STACK_ROLE');
-
     # Don't update staging
     return 0 if get_var('FLAVOR') =~ /Staging-?-DVD/;
 
-    # Return update repository if it's set on controller node
-    if (check_var('STACK_ROLE', 'controller')) {
-        return get_var('INCIDENT_REPO');
+    # Find update repository on controller node
+    my $repo = get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
+
+    # Filter for update types
+    return $repo unless $type;
+    return $repo =~ 'Maintenance' if $type eq 'qam';
+    return $repo =~ 'TestUpdate'  if $type eq 'fake';
+    if ($type eq 'dup') {
+        my $extracted_iso = get_var('REPO_0');
+        return 0 unless $extracted_iso;
+        return $repo =~ $extracted_iso;
     }
-    else {
-        return get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
-    }
+    die "Unrecognized type: '$type'";
 }
 
 # Repeat command until expected result or timeout

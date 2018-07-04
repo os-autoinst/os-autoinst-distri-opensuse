@@ -165,7 +165,7 @@ sub run {
     update_perform_update if is_needed();
 
     # update.sh -c
-    update_check_changes;
+    update_check_changes if update_scheduled('fake');
 }
 
 1;
