@@ -129,6 +129,12 @@ sub load_feature_tests {
     loadtest 'caasp/transactional_update';
     loadtest 'caasp/rebootmgr';
 
+    # Tests that require registered system
+    if (get_var 'REGISTER') {
+        loadtest 'caasp/register_and_check';
+        loadtest 'caasp/register_toolchain' if is_caasp('3.0+');
+    }
+
     # Journal errors
     loadtest 'caasp/journal_check';
 
@@ -173,7 +179,8 @@ sub load_stack_tests {
         loadtest 'caasp/stack_finalize';
     }
     else {
-        loadtest "caasp/stack_" . get_var('STACK_ROLE');
+        loadtest 'caasp/stack_' . get_var('STACK_ROLE');
+        loadtest 'caasp/register_and_check' if is_caasp('qam');
     }
 }
 
@@ -231,14 +238,7 @@ else {
     loadtest 'caasp/first_boot';
 }
 
-# ==== Extra tests run after installation  ====
-# REGISTER = 'suseconnect' -> Registers with SCC after the installation
-# REGISTER = 'installation' -> Registers with SCC during the installation
-if (get_var('REGISTER') && !check_var('STACK_ROLE', 'controller')) {
-    loadtest 'caasp/register_and_check';
-    loadtest 'caasp/register_toolchain' unless is_caasp('qam');
-}
-
+# MicroOS feature tests
 if (get_var('EXTRA', '') =~ /FEATURES/) {
     load_feature_tests;
 }
