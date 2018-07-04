@@ -121,7 +121,7 @@ sub type_line_svirt {
 
 sub unlock_zvm_disk {
     my ($console) = @_;
-    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase') };
+    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
     if ($@) {
         diag 'No passphrase asked, continuing';
     }
@@ -134,7 +134,7 @@ sub unlock_zvm_disk {
 
 sub handle_grub_zvm {
     my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 30); };
     if ($@) {
         diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
     }
@@ -1250,8 +1250,8 @@ sub reconnect_s390 {
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
-        # grub is handled in unlock_if_encrypted
-        handle_grub_zvm($console) unless get_var('ENCRYPT');
+        # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
+        handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
