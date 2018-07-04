@@ -128,8 +128,8 @@ sub init_main {
 }
 
 sub loadtest {
-    my ($test) = @_;
-    autotest::loadtest("tests/$test.pm");
+    my ($test, %args) = @_;
+    autotest::loadtest("tests/$test.pm", %args);
 }
 
 sub load_testdir {
