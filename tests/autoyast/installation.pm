@@ -47,10 +47,8 @@ sub save_and_upload_stage_logs {
     upload_logs "/tmp/logs-stage1-error$i.tar.bz2";
 }
 
-sub save_and_upload_yastlogs {
-    my ($self, $suffix) = @_;
-    my $name = $stage . ($suffix // '');
-    # save logs and continue
+sub upload_autoyast_profile {
+    my ($self) = @_;
     select_console 'install-shell';
     # the network may be down with keep_install_network=false
     # use static ip in that case if not on s390x
@@ -80,7 +78,7 @@ sub handle_expected_errors {
     my $i = $args{iteration};
     record_info('Expected error', 'Iteration = ' . $i);
     send_key "alt-s";    #stop
-    $self->save_and_upload_yastlogs("_expected_error$i");
+    $self->save_upload_y2logs("-$stage-expected_error$i");
     $i++;
     wait_screen_change { send_key 'tab' };    #continue
     wait_screen_change { send_key 'ret' };
@@ -287,7 +285,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->save_and_upload_yastlogs;
+    $self->upload_autoyast_profile;
     $self->SUPER::post_fail_hook;
 }
 

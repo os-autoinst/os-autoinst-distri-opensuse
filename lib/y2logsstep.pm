@@ -4,6 +4,7 @@ use testapi;
 use strict;
 use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
+use utils 'zypper_call';
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
@@ -230,35 +231,18 @@ sub verify_translation {
 }
 
 sub save_upload_y2logs {
-    my ($self) = shift;
+    my ($self, $suffix) = @_;
+    $suffix //= '';
+
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2", 180;
+    assert_script_run "save_y2logs /tmp/y2logs$suffix.tar.bz2", 180;
     upload_logs "/tmp/y2logs.tar.bz2";
     save_screenshot();
     $self->investigate_yast2_failure();
 }
 
-sub post_fail_hook {
-    my $self         = shift;
-    my @procfs_files = qw(
-      mounts
-      mountinfo
-      mountstats
-      maps
-      status
-      stack
-      cmdline
-      environ
-      smaps);
-
-    $self->SUPER::post_fail_hook;
-    get_to_console;
-    $self->get_ip_address;
-    $self->remount_tmp_if_ro;
-    # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
-    $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
-    return if is_caasp;
-
+sub save_system_logs {
+    my ($self) = @_;
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
         assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
@@ -281,28 +265,60 @@ sub post_fail_hook {
 
     $self->save_and_upload_log('pstree',  '/tmp/pstree');
     $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
+}
 
-    # Collect yast2 installer trace
+sub save_strace_gdb_output {
+    my ($self, $is_yast_module) = @_;
+    # Collect yast2 installer or yast2 module trace if is still running
     if (!script_run(qq{ps -eo pid,comm | grep -i [y]2start | cut -f 2 -d " " > /dev/$serialdev}, 0)) {
-        chomp(my $installer_pid = wait_serial(qr/^[\d{4}]/, 10));
+        chomp(my $yast_pid = wait_serial(qr/^[\d{4}]/, 10));
         my $trace_timeout = 120;
-        my $strace_ret = script_run("timeout $trace_timeout strace -f -o /tmp/installer_trace.log -tt -p $installer_pid", ($trace_timeout + 5));
+        my $strace_log    = '/tmp/yast_trace.log';
+        my $strace_ret    = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
 
-        if (!script_run '[[ -e /tmp/installer_trace.log ]]') {
-            upload_logs '/tmp/installer_trace.log';
-        }
+        upload_logs $strace_log if script_run "! [[ -e $strace_log ]]";
 
         # collect installer proc fs files
+        my @procfs_files = qw(
+          mounts
+          mountinfo
+          mountstats
+          maps
+          status
+          stack
+          cmdline
+          environ
+          smaps);
         foreach (@procfs_files) {
-            $self->save_and_upload_log("cat /proc/$installer_pid/$_", "/tmp/yast2-installer.$_");
+            $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-installer.$_");
         }
-
-        assert_script_run 'extend gdb';
-        my $gdb_ret = script_run("gdb attach $installer_pid --batch -q -ex 'thread apply all bt' -ex q > /tmp/installer_gdb.log", ($trace_timeout + 5));
-        if (!script_run '[[ -e /tmp/installer_gdb.log ]]') {
-            upload_logs '/tmp/installer_gdb.log';
+        # We enable gdb differently in the installer and in the installed SUT
+        if ($is_yast_module) {
+            zypper_call 'in gdb';
         }
+        else {
+            assert_script_run 'extend gdb';
+        }
+        my $gdb_output = '/tmp/yast_gdb.log';
+        my $gdb_ret = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
+        upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    $self->SUPER::post_fail_hook;
+    get_to_console;
+    $self->get_ip_address;
+    $self->remount_tmp_if_ro;
+    # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+    $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+    return if is_caasp;
+    $self->save_system_logs;
+
+    # Collect yast2 installer  strace and gbd debug output if is still running
+    $self->save_strace_gdb_output;
 }
 
 1;
