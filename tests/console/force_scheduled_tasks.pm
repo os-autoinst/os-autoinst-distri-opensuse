@@ -7,7 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Avoid suprises later and run the cron jobs explicitly
+# Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
+#   jobs or systemd timer
 # Maintainer: Stephan Kulow <coolo@suse.de>
 # Tags: bsc#1017461, bsc#1063638
 
@@ -39,10 +40,10 @@ sub run {
     my $before = time;
     # run cron jobs or systemd timers which can affect system performance and mask systemd timers later
     assert_script_run('find /etc/cron.{hourly,daily,weekly,monthly} -type f -executable -exec echo cron job: {} \; -exec {} \;');
+    my $systemd_tasks_cmd = 'echo "Triggering systemd timed service $i" && systemctl start $i';
+    $systemd_tasks_cmd .= ' && systemctl mask $i' unless get_var('SOFTFAIL_BSC1063638');
     assert_script_run(
-        'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do
-    echo "Triggering systemd timed service $i" && systemctl start $i && systemctl mask $i ; done'
-    );
+        'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do ' . $systemd_tasks_cmd . '; done');
     record_soft_failure 'bsc#1063638 - review I/O scheduling parameters of btrfsmaintenance' if (time - $before) > 60 && get_var('SOFTFAIL_BSC1063638');
     sleep 3;    # some head room for the load average to rise
     settle_load;
