@@ -101,9 +101,7 @@ our @EXPORT = qw(
   load_security_tests_web
   load_security_tests_misc
   load_security_tests_crypt
-  load_security_tests_apparmor_status
-  load_security_tests_apparmor_genprof
-  load_security_tests_apparmor_misc
+  load_security_tests_apparmor
   load_systemd_patches_tests
   load_create_hdd_tests
   load_virtualization_tests
@@ -1743,20 +1741,14 @@ sub load_security_tests_crypt {
 }
 
 # Other security tests other than FIPS
-sub load_security_tests_apparmor_status {
+sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_status";
     loadtest "security/apparmor/aa_enforce";
     loadtest "security/apparmor/aa_complain";
-}
-
-sub load_security_tests_apparmor_genprof {
     loadtest "security/apparmor/aa_genprof";
     loadtest "security/apparmor/aa_autodep";
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
-}
-
-sub load_security_tests_apparmor_misc {
     loadtest "security/apparmor/aa_notify";
 }
 
