@@ -859,14 +859,8 @@ elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
         # Load client tests by APPTESTS variable
         load_applicationstests;
     }
-    elsif (check_var("SECURITY", "apparmor_status")) {
-        load_security_tests_apparmor_status;
-    }
-    elsif (check_var("SECURITY", "apparmor_genprof")) {
-        load_security_tests_apparmor_genprof;
-    }
-    elsif (check_var("SECURITY", "apparmor_misc")) {
-        load_security_tests_apparmor_misc;
+    elsif (check_var("SECURITY", "apparmor")) {
+        load_security_tests_apparmor;
     }
 }
 elsif (get_var('SMT')) {
