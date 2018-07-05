@@ -29,11 +29,16 @@ sub assert_wicked_state {
 
 sub get_ip {
     my ($self, %args) = @_;
-    if ($args{no_mask}) {
-        return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
+    if ($args{type} eq 'host') {
+        if ($args{no_mask}) {
+            return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
+        }
+        else {
+            return $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
+        }
     }
-    else {
-        return $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
+    elsif ($args{type} eq 'gre_tunnel_ip') {
+        return $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
     }
 }
 
@@ -64,4 +69,24 @@ sub post_fail_hook {
     save_and_upload_wicked_log();
 }
 
+sub ping_with_timeout {
+    my ($self, %args) = @_;
+    my $timeout = $args{timeout};
+    while ($timeout > 0) {
+        return 1 if script_run("ping -c 1 $args{ip}") == 0;
+        $timeout -= 1;
+        sleep 5;
+    }
+    return 0;
+}
+
+sub create_tunnel_with_commands {
+    my ($self, %args) = @_;
+    assert_script_run("ip tunnel add $args{interface} mode $args{mode} remote $args{remote_ip} local $args{local_ip}");
+    assert_script_run("ip link set $args{interface} up");
+    assert_script_run("ip addr add $args{tunnel_ip} dev $args{interface}");
+    assert_script_run("ip addr");
+}
+
 1;
+

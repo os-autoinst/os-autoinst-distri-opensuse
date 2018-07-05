@@ -1529,7 +1529,8 @@ sub load_wicked_tests {
         loadtest 'wicked/config_files';
     }
     elsif (check_var('WICKED', 'advanced')) {
-        loadtest 'wicked/advanced';
+        loadtest 'wicked/advanced_ref' if check_var('IS_WICKED_REF', '1');
+        loadtest 'wicked/advanced_sut' if check_var('IS_WICKED_REF', '0');
     }
     else {
         die 'Unhandled WICKED test selection: ' . get_var('WICKED');
