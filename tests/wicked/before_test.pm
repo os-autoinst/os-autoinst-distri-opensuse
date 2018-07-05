@@ -39,6 +39,7 @@ sub run {
     if (check_var('WICKED', 'advanced')) {
         $self->setup_static_network($self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
     }
+    $self->get_from_data('wicked/ifbind.sh', '/bin/ifbind.sh', executable => 1);
 }
 
 sub test_flags {
