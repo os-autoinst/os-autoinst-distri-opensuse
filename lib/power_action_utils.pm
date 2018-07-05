@@ -26,6 +26,7 @@ our @EXPORT = qw(
   poweroff_x11
   power_action
   assert_shutdown_and_restore_system
+  assert_shutdown_with_soft_timeout
 );
 
 # in some backends we need to prepare the reboot/shutdown
@@ -220,19 +221,18 @@ sub power_action {
             }
         }
     }
-    # Shutdown takes longer than 60 seconds on SLE 15
+    my $soft_fail_data;
     my $shutdown_timeout = 60;
+    # Shutdown takes longer than 60 seconds on SLE 15
     if (is_sle('15+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
-        record_soft_failure('bsc#1055462');
-        $shutdown_timeout *= 3;
+        $soft_fail_data = {bugref => 'bsc#1055462', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
     # The timeout is increased as shutdown takes longer on Live CD
     if (get_var('LIVECD')) {
-        $shutdown_timeout *= 4;
+        $soft_fail_data = {soft_timeout => 60, timeout => $shutdown_timeout *= 4};
     }
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
-        $shutdown_timeout *= 3;
-        record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
+        $soft_fail_data = {bugref => 'bsc#1057637', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast or s390 zKVM reboot, as did initial reboot already
@@ -243,7 +243,7 @@ sub power_action {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
     else {
-        assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
+        assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.
@@ -282,6 +282,44 @@ sub assert_shutdown_and_restore_system {
             select_console($vnc_console);
         }
     }
+}
+
+=head2 assert_shutdown_with_soft_timeout
+
+  assert_shutdown_with_soft_timeout([$args]);
+
+  $args = {[timeout => $timeout] [,soft_timeout => $soft_timeout] [,bugref => $bugref] [,soft_failure_reason => $soft_failure_reason]}
+
+Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached,
+a soft failure is recorded with the message C<$args->{soft_failure_reason}>. After
+that, assert_shutdown continues until the (hard) timeout C<$args->{timeout}> is hit.
+
+This makes sense when a shutdown sporadically takes longer then it normally should take
+and the proper statistics of such cases should be gathered instead of just increasing
+a timeout.
+
+If C<$args->{soft_timeout}> is not specified, then the default assert_shutdown is executed.
+
+Example:
+
+  assert_shutdown_with_soft_timeout({timeout => 300, soft_timeout => 60, bugref => 'bsc#123456'});
+
+=cut
+
+sub assert_shutdown_with_soft_timeout {
+    my ($args) = @_;
+    $args->{timeout}      //= 60;
+    $args->{soft_timeout} //= 0;
+    $args->{bugref}       //= "No bugref specified";
+    if ($args->{soft_timeout}) {
+        diag($args->{soft_timeout});
+        die "soft timeout has to be smaller than timeout" unless ($args->{soft_timeout} < $args->{timeout});
+        my $ret = check_shutdown $args->{soft_timeout};
+        return if $ret;
+        $args->{soft_failure_reason} //= "$args->{bugref}: Machine didn't shut down within $args->{soft_timeout} sec";
+        record_soft_failure "$args->{soft_failure_reason}";
+    }
+    assert_shutdown($args->{timeout} - $args->{soft_timeout});
 }
 
 
