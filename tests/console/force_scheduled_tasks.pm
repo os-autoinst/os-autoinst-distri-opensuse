@@ -39,7 +39,7 @@ sub run {
     settle_load;
     my $before = time;
     # run cron jobs or systemd timers which can affect system performance and mask systemd timers later
-    assert_script_run('find /etc/cron.{hourly,daily,weekly,monthly} -type f -executable -exec echo cron job: {} \; -exec {} \;');
+    assert_script_run('find /etc/cron.{hourly,daily,weekly,monthly} -type f -executable -exec echo cron job: {} \; -exec {} \;', 1000);
     my $systemd_tasks_cmd = 'echo "Triggering systemd timed service $i" && systemctl start $i';
     $systemd_tasks_cmd .= ' && systemctl mask $i' unless get_var('SOFTFAIL_BSC1063638');
     assert_script_run(
