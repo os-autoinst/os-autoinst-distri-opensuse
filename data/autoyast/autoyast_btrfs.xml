@@ -9,6 +9,11 @@
       <btrfs_set_default_subvolume_name config:type="boolean">false</btrfs_set_default_subvolume_name>
     </storage>
   </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
   <keyboard>
     <keyboard_values>
       <delay/>
