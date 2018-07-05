@@ -36,6 +36,9 @@ sub run {
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
     #download script for check interface status
     $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1) if check_var('WICKED', 'basic');
+    if (check_var('WICKED', 'advanced')) {
+        $self->setup_static_network($self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+    }
 }
 
 sub test_flags {
@@ -43,3 +46,4 @@ sub test_flags {
 }
 
 1;
+
