@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-
   <bootloader>
     <global>
       <append> ${extra_cmdline} splash=silent quiet showopts crashkernel=164M-:82M</append>
