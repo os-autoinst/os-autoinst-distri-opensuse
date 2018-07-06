@@ -154,4 +154,3 @@ sub reset_consoles_tty {
 }
 
 1;
-# vim: sw=4 et
