@@ -18,12 +18,18 @@ use base "y2logsstep";
 use testapi;
 use utils qw(handle_login handle_emergency);
 use version_utils 'sle_version_at_least';
+use base 'opensusebasetest';
 
 sub run {
+    my ($self) = @_;
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
     my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
-    select_console('x11') if ($gnome_ipmi);
+    if ($gnome_ipmi) {
+        # first boot takes sometimes quite long time, ensure that it reaches login prompt
+        $self->wait_boot(textmode => 1);
+        select_console('x11');
+    }
     my $boot_timeout = (get_var('SES5_DEPLOY') || check_var('VIRSH_VMM_FAMILY', 'hyperv')) ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
     return if check_var('ARCH', 's390x') && sle_version_at_least('15');
