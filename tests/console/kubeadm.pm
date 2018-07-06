@@ -19,6 +19,10 @@ use utils "systemctl";
 sub run {
     select_console("root-console");
 
+    record_info 'etcd', 'Stop etcd and clean up';
+    systemctl 'disable --now etcd';
+    script_run 'rm -r /var/lib/etcd/*';
+
     record_info 'Setup', 'Test: Package Installation';
     my $packages = 'kubernetes-client kubernetes-kubelet kubernetes-kubeadm docker-kubic cri-tools';
     trup_install($packages);
