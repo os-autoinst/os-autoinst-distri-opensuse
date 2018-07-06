@@ -1113,7 +1113,7 @@ sub setup_static_network {
     my ($self, $ip) = @_;
     assert_script_run("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
     my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\" > /etc/sysconfig/network/ifcfg-$iface";
+    assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
     assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
