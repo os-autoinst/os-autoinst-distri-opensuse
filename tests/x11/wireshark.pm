@@ -45,28 +45,60 @@ sub run {
     if (check_var("VERSION", "Tumbleweed")) {
         type_string "wireshark-gtk\n";
     }
-    else {    # works for SLE12SP1 & SLE12SP2
+    else {    # works for SLE12-SP1+
         type_string "wireshark\n";
     }
     assert_screen "wireshark-welcome", 30;
     send_key "super-up";
     assert_screen "wireshark-fullscreen";
 
+    # check GUI version
+    assert_and_click "wireshark-help";
+    assert_and_click "about-wireshark";
+    assert_screen [qw(wireshark-gui-qt wireshark-gui-gtk)];
+    my $wireshark_gui_version = match_has_tag "wireshark-gui-qt" ? "qt" : "gtk";
+    assert_and_click "wireshark-about-ok";
+
     # check GUI/file set
     assert_and_click "wireshark-file";
     send_key_until_needlematch "wireshark-file-set", "down";
-    assert_and_click "wireshark-file-set-list";
-    assert_screen "wireshark-file-set-lists";
-    send_key "alt-f4";
+    # old GTK UI
+    if ($wireshark_gui_version eq "gtk") {
+        assert_and_click "wireshark-file-set-list";
+        assert_screen "wireshark-file-set-lists";
+        send_key "alt-f4";
+    }
+    # new QT UI greys out List Files item when no files are available
+    else {
+        send_key "right";
+        assert_screen "wireshark-no-files-available";
+        send_key "esc";
+        wait_still_screen 3;
+        send_key "esc";
+    }
+
     assert_screen "wireshark-fullscreen";
 
     ####################
     #   Capture test   #
     ####################
     # start capturing
-    assert_and_click "wireshark-interfaces";
-    wait_still_screen 3;
-    send_key "spc";
+    # GTK GUI has the Interfaces menu and all interfaces deselected by default
+    if ($wireshark_gui_version eq "gtk") {
+        assert_and_click "wireshark-interfaces";
+        wait_still_screen 3;
+        send_key "spc";
+    }
+    # QT GUI no longer allows to manage interfaces via dedicated menu item
+    else {
+        send_key "ctrl-k";
+        wait_still_screen 3;
+        assert_and_click "wireshark-manage-interfaces";
+        wait_still_screen 3;
+        assert_screen "wireshark-eth0-selected";
+        assert_and_click "wireshark-interfaces-ok";
+    }
+
     assert_and_click "wireshark-interfaces-start";
     assert_screen "wireshark-capturing";
     assert_screen "wireshark-capturing-list";
@@ -79,6 +111,7 @@ sub run {
     assert_screen "wireshark-capturing";
 
     # set filter
+    send_key "ctrl-/" if $wireshark_gui_version eq "qt";
     assert_screen "wireshark-filter-selected";
     type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
     assert_screen "wireshark-filter-applied";
@@ -88,6 +121,7 @@ sub run {
     assert_screen "wireshark-dns-response-list";
     assert_and_click "wireshark-dns-response-details";
     send_key "right";
+    send_key_until_needlematch "wireshark-dns-response-details-answers", "down";
     assert_and_click "wireshark-dns-response-details-answers";
     send_key "right";
     assert_screen "wireshark-dns-response-details-answers-expanded";
@@ -104,9 +138,8 @@ sub run {
     send_key "ctrl-q";
     wait_still_screen 1;
     assert_and_click "wireshark-quit-save";
-    assert_and_click "wireshark-quit-save-tmp";
     assert_and_click "wireshark-quit-save-filename";
-    type_string "wireshark-openQA-test\n";
+    type_string "/tmp/wireshark-openQA-test\n";
     wait_still_screen 1;
     type_string "\n";    # 2 times return for SP2
     wait_still_screen 1;
@@ -114,6 +147,9 @@ sub run {
 
     # start and load capture
     type_string "wireshark /tmp/wireshark-openQA-test.pcapng\n";
+    wait_still_screen 1;
+    # QT menu requires user to place focus in the filter field
+    send_key "ctrl-/" if $wireshark_gui_version eq "qt";
     assert_screen "wireshark-filter-selected";
     type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
     assert_screen "wireshark-filter-applied";
@@ -131,6 +167,11 @@ sub run {
     assert_screen "wireshark-profiles";
     assert_and_click "wireshark-profiles-new";
     type_string "openQA\n";
+    # QT GUI does not close Profiles menu window after creating new profile
+    if ($wireshark_gui_version eq "qt") {
+        wait_still_screen 1;
+        send_key "ret";
+    }
     assert_screen "wireshark-fullscreen";
 
     # Unselect the display of the Protocol in the UI.
@@ -142,13 +183,15 @@ sub run {
     assert_screen "wireshark-preferences-columns-protocol-not-displayed-selected";
     assert_and_click "wireshark-preferences-apply";
     wait_still_screen 3;
-    send_key "alt-f4";
+    send_key "alt-f4" if $wireshark_gui_version eq "gtk";
     assert_screen "wireshark-fullscreen";
 
     # Change back to the Default profile.
     send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_dclick "wireshark-profiles-default";
+    # QT GUI does not close window after selecting profile
+    send_key "ret" if $wireshark_gui_version eq "qt";
     assert_screen "wireshark-fullscreen";
 
     # Verify that the Protocol is properly displayed.
