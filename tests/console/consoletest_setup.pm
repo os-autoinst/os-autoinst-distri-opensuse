@@ -36,6 +36,14 @@ sub run {
     script_run "ip addr show";
     save_screenshot;
 
+    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
+    # Mask and stop only if SERIALDEV is defined or is qemu backend
+    my $serial_console = get_var('SERIALDEV') || (check_var('BACKEND', 'qemu') ? 'ttyS0' : undef);
+    if ($serial_console) {
+        systemctl "mask serial-getty\@$serial_console";
+        systemctl "stop serial-getty\@$serial_console";
+    }
+
     # Stop packagekit
     systemctl 'mask packagekit.service';
     systemctl 'stop packagekit.service';
