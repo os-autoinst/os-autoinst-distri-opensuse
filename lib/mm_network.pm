@@ -169,5 +169,3 @@ sub check_ip_in_subnet {
 }
 
 1;
-
-# vim: sw=4 et

@@ -25,4 +25,3 @@ sub run {
 }
 
 1;
-# vim: sw=4 et

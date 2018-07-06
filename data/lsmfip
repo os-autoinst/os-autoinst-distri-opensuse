@@ -315,5 +315,3 @@ else {
 }
 
 exit $exit_status;
-
-# vim: sw=4 et

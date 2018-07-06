@@ -648,4 +648,3 @@ sub install_docker_when_needed {
 }
 
 1;
-# vim: sw=4 et
