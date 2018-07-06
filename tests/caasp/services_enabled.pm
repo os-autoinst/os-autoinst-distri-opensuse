@@ -36,7 +36,7 @@ sub check_services {
 sub run {
     my $role = get_var('SYSTEM_ROLE');
 
-    push $services_for{admin}, is_caasp('4.0+') ? 'chronyd' : 'ntpd';
+    push @{$services_for{admin}}, is_caasp('4.0+') ? 'chronyd' : 'ntpd';
 
     check_services $services_for{default};
     check_services $services_for{$role} if $role;
