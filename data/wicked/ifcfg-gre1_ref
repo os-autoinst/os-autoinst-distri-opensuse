@@ -1,6 +1,0 @@
-STARTMODE='auto'
-BOOTPROTO='static'
-NAME='GRE tunnel interface'
-
-TUNNEL='gre'
-TUNNEL_TTL='64'
