@@ -134,7 +134,7 @@ sub unlock_zvm_disk {
 
 sub handle_grub_zvm {
     my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 30); };
+    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 60); };
     if ($@) {
         diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
     }
