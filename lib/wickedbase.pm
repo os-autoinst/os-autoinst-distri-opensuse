@@ -37,10 +37,10 @@ sub get_ip {
             return $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
         }
     }
-    elsif ($args{type} eq 'gre_tunnel_ip') {
+    elsif ($args{type} eq 'gre1') {
         return $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
     }
-    elsif ($args{type} eq 'sit_tunnel_ip') {
+    elsif ($args{type} eq 'sit1') {
         return $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
     }
 }
@@ -84,12 +84,16 @@ sub ping_with_timeout {
     return 0;
 }
 
-sub create_tunnel_with_commands {
-    my ($self, %args) = @_;
-    assert_script_run("ip tunnel add $args{interface} mode $args{mode} remote $args{remote_ip} local $args{local_ip}");
-    assert_script_run("ip link set $args{interface} up");
-    assert_script_run("ip addr add $args{tunnel_ip} dev $args{interface}");
-    assert_script_run("ip addr");
+sub before_scenario {
+    my ($self, $title, $text, $iface) = @_;
+    if ($iface) {
+        assert_script_run("ifdown $iface");
+        assert_script_run("ifbind.sh unbind $iface");
+        script_run("rm /etc/sysconfig/network/ifcfg-$iface");
+        assert_script_run("ifbind.sh bind $iface");
+        $self->setup_static_network($self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+    }
+    record_info($title, $text);
 }
 
 1;
