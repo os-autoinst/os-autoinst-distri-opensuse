@@ -232,10 +232,7 @@ sub ensure_installed {
     testapi::assert_script_run('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     type_string "exit\n";
     my $retries = 5;    # arbitrary
-    $self->script_run(
-"for i in {1..$retries} ; do pkcon install -yp $pkglist && break ; done ; RET=\$?; echo \"\n  pkcon finished\n\"; echo \"pkcon-\${RET}-\" > /dev/$testapi::serialdev",
-        0
-    );
+    $self->script_run("pkcon install -yp $pkglist; echo \"pkcon-\$?-\" > /dev/$testapi::serialdev", 0);
     my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
