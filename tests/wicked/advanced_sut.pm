@@ -37,11 +37,28 @@ sub run {
     assert_script_run('ifup gre1');
     assert_script_run('ip a');
     my $ret = $self->ping_with_timeout(ip => "$parallel_ip_in_tunnel", timeout => '60');
-
     # Create mutex to unlock REF
     mutex_create("test_1_ready");
     wait_for_children;
-    die "Can't ping IP $parallel_ip_in_tunnel" if !$ret;
+    record_info("[Test 1] Can't ping IP $parallel_ip_in_tunnel") if !$ret;
+    #TODO: Reset network (delete gre1 interface)
+
+    record_info('Test 3', 'Create a SIT interface from legacy ifcfg files');
+    my $sit_config = '/etc/sysconfig/network/ifcfg-sit1';
+    $self->get_from_data('wicked/ifcfg-sit1_', $sit_config, add_suffix => 1);
+    my $ip_in_tunnel          = $self->get_ip(is_wicked_ref => 0, type => 'sit_tunnel_ip');
+    my $parallel_ip_in_tunnel = $self->get_ip(is_wicked_ref => 1, type => 'sit_tunnel_ip');
+    assert_script_run("sed \'s/local_ip/$ip_no_mask/\' -i $sit_config");
+    assert_script_run("sed \'s/remote_ip/$parallel_host_ip_no_mask/\' -i $sit_config");
+    assert_script_run("sed \'s/tunnel_ip/$ip_in_tunnel\\/127/\' -i $sit_config");
+    assert_script_run("cat $sit_config");
+    assert_script_run('ifup sit1');
+    assert_script_run('ip a');
+    $ret = $self->ping_with_timeout(ip => "$parallel_ip_in_tunnel", timeout => '60', ip_version => 'v6');
+    # Create mutex to unlock REF
+    mutex_create("test_3_ready");
+    record_info("[Test 3] Can't ping IP $parallel_ip_in_tunnel") if !$ret;
+    #TODO: Reset network (delete sit1 interface)
 }
 
 1;

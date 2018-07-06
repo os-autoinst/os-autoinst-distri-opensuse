@@ -40,6 +40,9 @@ sub get_ip {
     elsif ($args{type} eq 'gre_tunnel_ip') {
         return $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
     }
+    elsif ($args{type} eq 'sit_tunnel_ip') {
+        return $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
+    }
 }
 
 sub save_and_upload_wicked_log {
@@ -72,8 +75,9 @@ sub post_fail_hook {
 sub ping_with_timeout {
     my ($self, %args) = @_;
     my $timeout = $args{timeout};
+    my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     while ($timeout > 0) {
-        return 1 if script_run("ping -c 1 $args{ip}") == 0;
+        return 1 if script_run("$ping_command -c 1 $args{ip}") == 0;
         $timeout -= 1;
         sleep 5;
     }
