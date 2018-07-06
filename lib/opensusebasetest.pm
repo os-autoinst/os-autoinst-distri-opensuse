@@ -317,8 +317,9 @@ sub wait_boot {
     if (check_var('ARCH', 's390x')) {
         my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
         if (check_var('BACKEND', 's390x')) {
-
-            console('x3270')->expect_3270(
+            my $console = console('x3270');
+            handle_grub_zvm($console);
+            $console->expect_3270(
                 output_delim => $login_ready,
                 timeout      => $ready_time + 100
             );

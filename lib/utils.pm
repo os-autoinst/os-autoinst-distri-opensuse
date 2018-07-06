@@ -63,6 +63,7 @@ our @EXPORT = qw(
   handle_logout
   handle_relogin
   handle_emergency
+  handle_grub_zvm
   service_action
   assert_gui_app
   install_all_from_repo
