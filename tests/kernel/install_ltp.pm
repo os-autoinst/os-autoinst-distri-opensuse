@@ -13,6 +13,7 @@
 use 5.018;
 use warnings;
 use base 'opensusebasetest';
+use File::Basename 'basename';
 use testapi;
 use registration;
 use utils;
@@ -246,7 +247,7 @@ EOF
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
-    my $tag      = get_var('LTP_RUNTEST_TAG') || get_var('VERSION') . '-' . get_var('BUILD');
+    my $tag      = (get_var('LTP_RUNTEST_TAG') || basename(get_var('PUBLISH_HDD_1'))) . '.txt';
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';

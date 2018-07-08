@@ -74,7 +74,7 @@ sub parse_runtest_file {
 sub loadtest_from_runtest_file {
     my $name               = get_var('LTP_COMMAND_FILE');
     my $path               = get_var('ASSETDIR') . '/other';
-    my $tag                = get_var('LTP_RUNTEST_TAG') || get_var('VERSION') . '-' . get_var('BUILD');
+    my $tag                = (get_var('LTP_RUNTEST_TAG') || basename(get_var('HDD_1'))) . '.txt';
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $test_result_export = {
