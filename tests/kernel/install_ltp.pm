@@ -165,7 +165,7 @@ curl --form upload=\@/tmp/ltp-runtest-files-$tag --form target=assets_public $ai
 curl --form upload=\@/root/openposix-test-list-$tag --form target=assets_public $aiurl/upload_asset/openposix-test-list-$tag
 %;
 
-    script_output($up_script);
+    script_output($up_script, 300);
 }
 
 sub install_from_git {
