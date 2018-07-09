@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="test">
+  <status date="2017-10-09">draft</status>
+  <title>Hardening SUSE Linux Enterprise</title>
+  <platform idref="cpe:/o:suse"/>
+  <version>1</version>
+
+  <Profile id="standard">
+    <title>Standard System Security Profile</title>
+    <select idref="no_direct_root_logins" selected="true"/>
+    <select idref="rule_misc_sysrq" selected="true"/>
+  </Profile>
+
+  <Group id="root_logins">
+    <title>Restrict Root Logins</title>
+
+    <Rule id="no_direct_root_logins" selected="false" severity="medium">
+      <title>Direct root Logins Not Allowed</title>
+      <fix system="urn:xccdf:fix:script:sh">echo &gt; /etc/securetty</fix>
+      <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+        <check-content-ref name="oval:no_direct_root_logins:def:1" href="oval.xml"/>
+      </check>
+    </Rule>
+
+  </Group>
+
+  <Rule id="rule_misc_sysrq" selected="false">
+    <title>sysctl kernel.sysrq must be 0</title>
+    <fix system="urn:xccdf:fix:script:sh">echo 0 &gt; /proc/sys/kernel/sysrq</fix>
+    <check system="http://oval.mitre.org/XMLSchema/oval-definitions-5">
+      <check-content-ref name="oval:rule_misc_sysrq:def:1" href="oval.xml"/>
+    </check>
+  </Rule>
+
+</Benchmark>

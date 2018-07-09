@@ -410,6 +410,9 @@ elsif (get_var('SECURITYTEST')) {
     elsif (check_var("SECURITYTEST", "apparmor")) {
         load_security_tests_apparmor;
     }
+    elsif (check_var("SECURITYTEST", "openscap")) {
+        load_security_tests_openscap;
+    }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
