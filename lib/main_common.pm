@@ -1348,6 +1348,8 @@ sub load_extra_tests_desktop {
     }
     elsif (check_var('DISTRI', 'opensuse')) {
         if (gnomestep_is_applicable()) {
+            # Setup env for x11 regression tests
+            loadtest "x11/x11_setup";
             # poo#18850 java test support for firefox, run firefox before chrome
             # as otherwise have wizard on first run to import settings from it
             loadtest "x11/firefox/firefox_java";
@@ -1463,7 +1465,9 @@ sub load_extra_tests {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
     # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv;
+    loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
     }
@@ -1766,7 +1770,6 @@ sub load_create_hdd_tests {
     loadtest 'console/integration_services' if is_hyperv;
     loadtest 'console/hostname'              unless is_bridged_networking;
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
-    loadtest 'x11/x11_setup' if any_desktop_is_applicable;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
