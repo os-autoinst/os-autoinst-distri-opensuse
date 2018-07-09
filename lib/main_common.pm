@@ -1759,6 +1759,7 @@ sub load_security_tests_apparmor {
 
 sub load_security_tests_openscap {
     loadtest "security/openscap/oscap_info";
+    loadtest "security/openscap/oscap_oval_scanning";
 }
 
 sub load_systemd_patches_tests {
