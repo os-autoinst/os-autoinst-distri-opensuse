@@ -31,8 +31,15 @@ sub run {
         wait_screen_change { send_key 'alt-c' };
     }
     send_key 'ctrl-q';    # Exit
-    assert_screen [qw(gnucash-save-changes generic-desktop)];
-    wait_screen_change { send_key 'alt-w' } if match_has_tag 'gnucash-save-changes';
+
+    # arbitrary limit
+    for (1 .. 7) {
+        assert_screen [qw(test-gnucash-1 gnucash gnucash-save-changes generic-desktop)];
+        last              if match_has_tag 'generic-desktop';
+        send_key 'alt-c'  if match_has_tag 'test-gnucash-1';
+        send_key 'alt-w'  if match_has_tag 'gnucash-save-changes';
+        send_key 'ctrl-q' if match_has_tag 'gnucash';
+    }
 }
 
 1;
