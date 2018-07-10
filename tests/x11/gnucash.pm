@@ -16,11 +16,7 @@ use strict;
 use testapi;
 
 sub run {
-    ensure_installed("gnucash");
-    ensure_installed("gnucash-docs");
-
-    # needed for viewing
-    ensure_installed("yelp");
+    ensure_installed('gnucash gnucash-docs yelp');
     x11_start_program('gnucash');
     send_key "ctrl-h";    # open user tutorial
     assert_screen 'test-gnucash-2';
