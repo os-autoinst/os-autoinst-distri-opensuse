@@ -863,6 +863,9 @@ elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
     elsif (check_var("SECURITY", "apparmor")) {
         load_security_tests_apparmor;
     }
+    elsif (check_var("SECURITY", "openscap")) {
+        load_security_tests_openscap;
+    }
 }
 elsif (get_var('SMT')) {
     prepare_target();

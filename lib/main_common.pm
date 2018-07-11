@@ -102,6 +102,7 @@ our @EXPORT = qw(
   load_security_tests_misc
   load_security_tests_crypt
   load_security_tests_apparmor
+  load_security_tests_openscap
   load_systemd_patches_tests
   load_create_hdd_tests
   load_virtualization_tests
@@ -1754,6 +1755,12 @@ sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
     loadtest "security/apparmor/aa_notify";
+}
+
+sub load_security_tests_openscap {
+    loadtest "security/openscap/oscap_info";
+    loadtest "security/openscap/oscap_oval_scanning";
+    loadtest "security/openscap/oscap_xccdf_scanning";
 }
 
 sub load_systemd_patches_tests {
