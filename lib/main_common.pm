@@ -1758,6 +1758,11 @@ sub load_security_tests_apparmor {
 }
 
 sub load_security_tests_openscap {
+    # ALWAYS run following tests in sequence because of the dependencies
+
+    # Setup - download test files and install necessary packages
+    loadtest "security/openscap/oscap_setup";
+
     loadtest "security/openscap/oscap_info";
     loadtest "security/openscap/oscap_oval_scanning";
     loadtest "security/openscap/oscap_xccdf_scanning";
