@@ -157,6 +157,23 @@ sub run {
     my ($self) = @_;
     my $dep_issue;
     $self->gotopatterns;
+    # select all patterns via menu and end in graphical mode
+    if (check_var('PATTERNS', 'all') && !check_var('VIDEOMODE', 'text')) {
+        # move mouse on patterns and open menu
+        mouse_set 100, 400;
+        mouse_click 'right';
+        wait_still_screen 3;
+        # select action on all patterns
+        wait_screen_change { send_key 'a'; };
+        # confirm install
+        wait_screen_change { send_key 'ret'; };
+        mouse_hide;
+        save_screenshot;
+        send_key 'alt-o';
+        accept3rdparty;
+        assert_screen 'inst-overview';
+        return 1;
+    }
     if (get_var('PATTERNS')) {
         my %wanted_patterns;
         for my $p (split(/,/, get_var('PATTERNS'))) {
