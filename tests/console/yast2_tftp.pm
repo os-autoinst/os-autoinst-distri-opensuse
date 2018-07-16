@@ -59,13 +59,24 @@ sub run {
     # bsc#1008493 is still open, but error pop-up doesn't always appear immediately
     # so wait still screen before assertion
     wait_still_screen 3;
-    assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show)]);
+    assert_screen([qw(yast2_tftp_view_log_error yast2_tftp_view_log_show yast2_tftp_view_journal)]);
     if (match_has_tag('yast2_tftp_view_log_error')) {
         # softfail for opensuse when error for view log throws out
         record_soft_failure "bsc#1008493";
         wait_screen_change { send_key 'alt-o' };    # confirm the error message
     }
-    send_key 'alt-c';                               # close the window
+    elsif (match_has_tag('yast2_tftp_view_journal')) {
+        # open filter settings pop-up
+        send_key 'alt-c';
+        assert_screen('yast2_tftp_view_journal_filter');
+        # close pop-up & quit Journal Entries view
+        wait_screen_change { send_key 'alt-o' };
+        send_key 'alt-q';
+    }
+    else {
+        send_key 'alt-c';                           # close the window
+    }
+
     assert_screen 'yast2_tftp_closed_port';
     # now finish tftp server configuration
     send_key 'alt-o';                               # confirm changes
