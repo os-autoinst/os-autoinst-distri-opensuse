@@ -10,6 +10,19 @@
 # Summary: Advanced test cases for wicked
 # Test scenarios:
 # Test 1 : Create a GRE interface from legacy ifcfg files
+# Test 2 : Create a GRE interface from wicked XML files
+# Test 3 : Create a SIT interface from legacy ifcfg files
+# Test 4 : Create a SIT interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 5 : Create a IPIP  interface from legacy ifcfg files
+# Test 6 : Create a IPIP interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 7 : Create a tun interface from legacy ifcfg files [NOT IMPLEMENTED]
+# Test 8 : Create a tun interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 9 : Create a tap interface from legacy ifcfg files [NOT IMPLEMENTED]
+# Test 10: Create a tap interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 11: Create Bridge interface from legacy ifcfg files
+# Test 12: Create a Bridge interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 13: Create a team interface from legacy ifcfg files [NOT IMPLEMENTED]
+# Test 14: Create a team interface from Wicked XML files [NOT IMPLEMENTED]
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, Jose Lausuch <jalausuch@suse.com>
 
 use base 'wickedbase';
@@ -25,7 +38,7 @@ sub get_test_result {
     my $ip      = $self->get_ip(is_wicked_ref => 1, type => $type);
     my $ret     = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
     if (!$ret) {
-        record_info("Can't ping IP $ip", result => 'fail');
+        record_info("PING FAILED", "Can't ping IP $ip", result => 'fail');
         return "FAILED";
     }
     else {
@@ -47,14 +60,20 @@ sub setup_tunnel {
 }
 
 sub setup_bridge {
-    my ($self, $config, $dummy, $br_name, $dummy_name) = @_;
+    my ($self, $config, $dummy) = @_;
     my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
     assert_script_run("cat $dummy");
-    assert_script_run("ifup $br_name");
-    assert_script_run("ifup $dummy_name");
+    assert_script_run("ifup br0");
+    assert_script_run("ifup dummy0");
     assert_script_run('ip a');
+}
+
+sub cleanup {
+    my ($self, $config, $type) = @_;
+    assert_script_run("ifdown $type");
+    assert_script_run("rm $config");
 }
 
 sub run {
@@ -64,62 +83,60 @@ sub run {
 
     $self->before_scenario('Test 1', 'Create a gre interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-gre1';
-    $self->get_from_data('wicked/ifcfg-gre1_', $config, add_suffix => 1);
+    $self->get_from_data('wicked/ifcfg-gre1_sut', $config);
     $self->setup_tunnel($config, "gre1");
     $results{1} = $self->get_test_result("gre1", "");
     mutex_create("test_1_ready");
-    assert_script_run("ifdown gre1");
-    assert_script_run("rm $config");
+    $self->cleanup($config, "gre1");
 
-    # Placeholder for Test 2: Create a GRE interface from Wicked XML files
+    $self->before_scenario('Test 2', 'Create a gre interface from wicked XML files', $iface);
+    $config = '/etc/wicked/ifconfig/gre.xml';
+    $self->get_from_data('wicked/gre.xml', $config);
+    $self->setup_tunnel($config, "gre1");
+    $results{2} = $self->get_test_result("gre1", "");
+    mutex_create("test_2_ready");
+    $self->cleanup($config, "gre1");
 
     $self->before_scenario('Test 3', 'Create a SIT interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-sit1';
-    $self->get_from_data('wicked/ifcfg-sit1_', $config, add_suffix => 1);
+    $self->get_from_data('wicked/ifcfg-sit1_sut', $config);
     $self->setup_tunnel($config, "sit1");
     $results{3} = $self->get_test_result("sit1", "v6");
-    assert_script_run("ifdown sit1");
-    assert_script_run("rm $config");
     mutex_create("test_3_ready");
+    $self->cleanup($config, "sit1");
 
     # Placeholder for Test 4: Create a SIT interface from Wicked XML files
 
     $self->before_scenario('Test 5', 'Create a IPIP  interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tunl1';
-    $self->get_from_data('wicked/ifcfg-tunl1_', $config, add_suffix => 1);
+    $self->get_from_data('wicked/ifcfg-tunl1_sut', $config);
     $self->setup_tunnel($config, "tunl1");
     $results{3} = $self->get_test_result("tunl1", "");
     mutex_create("test_5_ready");
-    assert_script_run("ifdown tunl1");
-    assert_script_run("rm $config");
+    $self->cleanup($config, "tunl1");
 
     # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
-
     # Placeholder for Test 7: Create a tun interface from legacy ifcfg files
     # Placeholder for Test 8: Create a tun interface from Wicked XML files
-
     # Placeholder for Test 9: Create a tap interface from legacy ifcfg files
     # Placeholder for Test 10: Create a tap interface from Wicked XML files
-
 
     $self->before_scenario('Test 11', 'Create Bridge interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-br0';
     my $dummy = '/etc/sysconfig/network/ifcfg-dummy0';
-    $self->get_from_data('wicked/ifcfg-br0_',    $config, add_suffix => 1);
-    $self->get_from_data('wicked/ifcfg-dummy0_', $dummy,  add_suffix => 1);
-    $self->setup_bridge($config, $dummy, "br0", "dummy0");
+    $self->get_from_data('wicked/ifcfg-br0_sut',    $config);
+    $self->get_from_data('wicked/ifcfg-dummy0_sut', $dummy);
+    $self->setup_bridge($config, $dummy);
     $results{4} = $self->get_test_result("br0", "");
-    assert_script_run("ifdown br0");
-    assert_script_run("ifdown dummy0");
-    assert_script_run("rm $config");
-    assert_script_run("rm $dummy");
     mutex_create("test_11_ready");
+    $self->cleanup($config, "br0");
+    $self->cleanup($dummy,  "dummy0");
 
     # Placeholder for Test 12: Create a Bridge interface from Wicked XML files
-
     # Placeholder for Test 13: Create a team interface from legacy ifcfg files
     # Placeholder for Test 14: Create a team interface from Wicked XML files
 
+    ## processing overall results
     wait_for_children;
     my $failures = grep { $_ eq "FAILED" } values %results;
     if ($failures > 0) {

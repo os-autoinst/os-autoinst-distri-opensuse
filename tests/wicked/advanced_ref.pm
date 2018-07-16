@@ -7,9 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Advanced test cases for wicked
-# Test scenarios:
-# Test 1 : Reference GRE interface
+# Summary: Advanced test cases for wicked. Reference machine which used to support tests
+# running on SUT
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, Jose Lausuch <jalausuch@suse.com>
 
 use base 'wickedbase';
@@ -34,29 +33,35 @@ sub create_tunnel_with_commands {
 sub run {
     my ($self) = @_;
 
-    record_info('Test 1', 'Create a gre interface from legacy ifcfg files');
+    record_info('Test 1', 'Create a GRE interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("gre1", "gre", "24");
     mutex_wait('test_1_ready');
-    assert_script_run("ifdown gre1");
-    # Placeholder for Test 2: Create a GRE interface from Wicked XML files
+    assert_script_run("ip addr flush dev gre1");
+    assert_script_run("ip tunnel delete gre1");
+
+    record_info('Test 2', 'Create a GRE interface from wicked XML files');
+    $self->create_tunnel_with_commands("gre1", "gre", "24");
+    mutex_wait('test_2_ready');
+    assert_script_run("ip addr flush dev gre1");
+    assert_script_run("ip tunnel delete gre1");
 
     record_info('Test 3', 'Create a SIT interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("sit1", "sit", "127");
     mutex_wait('test_3_ready');
-    assert_script_run("ifdown sit1");
+    assert_script_run("ip addr flush dev sit1");
+    assert_script_run("ip tunnel delete sit1");
 
     # Placeholder for Test 4: Create a SIT interface from Wicked XML files
 
     record_info('Test 5', 'Create a IPIP  interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("tunl1", "ipip", "24");
     mutex_wait('test_5_ready');
-    assert_script_run("ifdown tunl1");
+    assert_script_run("ip addr flush dev tunl1");
+    assert_script_run("ip tunnel delete tunl1");
 
     # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
-
     # Placeholder for Test 7: Create a tun interface from legacy ifcfg files
     # Placeholder for Test 8: Create a tun interface from Wicked XML files
-
     # Placeholder for Test 9: Create a tap interface from legacy ifcfg files
     # Placeholder for Test 10: Create a tap interface from Wicked XML files
 
@@ -66,7 +71,6 @@ sub run {
     mutex_wait('test_11_ready');
 
     # Placeholder for Test 12: Create a Bridge interface from Wicked XML files
-
     # Placeholder for Test 13: Create a team interface from legacy ifcfg files
     # Placeholder for Test 14: Create a team interface from Wicked XML files
 }
