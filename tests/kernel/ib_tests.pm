@@ -72,6 +72,8 @@ sub ibtest_master {
     my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
 
     # do all test preparations and setup
+    zypper_call('ar -f -G ' . get_required_var('DEVEL_TOOLS_REPO'));
+    zypper_call('--gpg-auto-import-keys ref');
     zypper_call('in git twopence bc');
 
     # create symlinks, the package is (for now) broken
@@ -116,13 +118,7 @@ sub run {
 
     use_ssh_serial_console;
 
-    if ($role eq "IBTEST_MASTER") {
-        zypper_call('ar -f -G ' . get_required_var('DEVEL_TOOLS_REPO'));
-    }
-
-    zypper_call('--gpg-auto-import-keys ref');
-
-    if ($role eq "IBTEST_MASTER") {
+    if ($role eq 'IBTEST_MASTER') {
         ibtest_master;
     }
     elsif ($role eq 'IBTEST_SLAVE1' || $role eq 'IBTEST_SLAVE2') {
