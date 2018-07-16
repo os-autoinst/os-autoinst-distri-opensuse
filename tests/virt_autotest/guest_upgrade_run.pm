@@ -21,10 +21,11 @@ use testapi;
 
 sub get_script_run {
     my $pre_test_cmd         = "/usr/share/qa/tools/test_virtualization-guest-upgrade-run";
-    my $product_upgrade      = get_var("PRODUCT_UPGRADE", "sles-12-sp2-64");
     my $product_upgrade_repo = get_var("PRODUCT_UPGRADE_REPO", "");
     my $guest_list           = get_var("GUEST_LIST", "sles-12-sp1-64");
     my $max_test_time        = get_var("MAX_TEST_TIME", "36000");
+    handle_sp_in_settings_with_sp0("PRODUCT_UPGRADE");
+    my $product_upgrade = get_var("PRODUCT_UPGRADE", "sles-12-sp2-64") . "-64";
 
     $pre_test_cmd = "$pre_test_cmd -p $product_upgrade -r $product_upgrade_repo -t $max_test_time -g \"$guest_list\"";
 
