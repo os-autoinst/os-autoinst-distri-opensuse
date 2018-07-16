@@ -37,6 +37,7 @@ our @EXPORT = qw(
   $arf_result
   oscap_get_test_file
   validate_result
+  ensure_generated_file
   pre_run_hook
 );
 
@@ -61,6 +62,13 @@ sub validate_result {
     assert_script_run "xmllint $result_file";
     validate_script_output "cat $result_file", sub { $match };
     upload_logs($result_file);
+}
+
+sub ensure_generated_file {
+    my ($genfile) = @_;
+
+    my $failmsg = "Missing $genfile file. You should first to run related test accordingly to generate it";
+    assert_script_run("ls $genfile", fail_message => $failmsg);
 }
 
 sub pre_run_hook {
