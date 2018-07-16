@@ -254,6 +254,12 @@ sub run {
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             log_add($STATUS_LOG, $test, $status, $time);
+            if ($status =~ /FAILED/) {
+                my $cmd = "cat /opt/xfstests/results/$category/$num.out.bad | tee $LOG_DIR/$category/$num.out.bad";
+                script_run($cmd);
+                $cmd = "cat /opt/xfstests/results/$category/$num.full | tee $LOG_DIR/$category/$num.full";
+                script_run($cmd);
+            }
             next;
         }
 
