@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,14 @@ use base "y2logsstep";
 use strict;
 use testapi;
 use utils 'addon_license';
+use version_utils 'is_sle';
 
 sub run {
-    assert_screen 'additional-products';
+    # On SLE 15 screen is shown before welcome, hence requires time to be loaded
+    assert_screen 'additional-products', (is_sle('15+') ? 500 : 60);
     send_key 'alt-p';
+    # With SLE 15 we have different mechanism for the licenses
+    return if is_sle('15+');
     for my $addon (split(/,/, get_var('DUD_ADDONS'))) {
         addon_license($addon);
     }
