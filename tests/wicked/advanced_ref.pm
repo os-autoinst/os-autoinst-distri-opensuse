@@ -34,30 +34,41 @@ sub create_tunnel_with_commands {
 sub run {
     my ($self) = @_;
 
-    record_info('Test 1', 'Create a gre interface with IP commands');
+    record_info('Test 1', 'Create a gre interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("gre1", "gre", "24");
-    # Lock until parent creates mutex 'test_1_ready'
-    mutex_lock('test_1_ready');
-    # Unlock mutex to end test
-    mutex_unlock('test_1_ready');
+    mutex_wait('test_1_ready');
     assert_script_run("ifdown gre1");
+    # Placeholder for Test 2: Create a GRE interface from Wicked XML files
 
-    record_info('Test 3', 'Create a SIT interface with IP commands');
+    record_info('Test 3', 'Create a SIT interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("sit1", "sit", "127");
-    # Lock until parent creates mutex 'test_3_ready'
-    mutex_lock('test_3_ready');
-    # Unlock mutex to end test
-    mutex_unlock('test_3_ready');
+    mutex_wait('test_3_ready');
+    assert_script_run("ifdown sit1");
 
-    record_info('Test 6', 'Create a SIT interface with IP commands');
+    # Placeholder for Test 4: Create a SIT interface from Wicked XML files
+
+    record_info('Test 5', 'Create a IPIP  interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("tunl1", "ipip", "24");
-    # Lock until parent creates mutex 'test_6_ready'
-    mutex_lock('test_6_ready');
-    # Unlock mutex to end test
-    mutex_unlock('test_6_ready');
+    mutex_wait('test_5_ready');
     assert_script_run("ifdown tunl1");
 
+    # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
 
+    # Placeholder for Test 7: Create a tun interface from legacy ifcfg files
+    # Placeholder for Test 8: Create a tun interface from Wicked XML files
+
+    # Placeholder for Test 9: Create a tap interface from legacy ifcfg files
+    # Placeholder for Test 10: Create a tap interface from Wicked XML files
+
+    record_info('Test 11', 'Create Bridge interface from legacy ifcfg files');
+    # Note: No need to create a bridge interface, as the SUT will ping
+    #       the IP of eth0 already configured.
+    mutex_wait('test_11_ready');
+
+    # Placeholder for Test 12: Create a Bridge interface from Wicked XML files
+
+    # Placeholder for Test 13: Create a team interface from legacy ifcfg files
+    # Placeholder for Test 14: Create a team interface from Wicked XML files
 }
 
 1;

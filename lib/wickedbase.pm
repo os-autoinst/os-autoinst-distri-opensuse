@@ -46,6 +46,9 @@ sub get_ip {
     elsif ($args{type} eq 'tunl1') {
         return $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
     }
+    elsif ($args{type} eq 'br0') {
+        return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
+    }
 }
 
 sub save_and_upload_wicked_log {
