@@ -90,7 +90,7 @@ sub run {
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
+    if (is_sle('15+')) {
         # On s390x there will be only one product which means there is no product selection
         # In upgrade mode, there is no product list shown in welcome screen
         unless (check_var('ARCH', 's390x') || get_var('UPGRADE')) {
