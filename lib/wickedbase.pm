@@ -43,6 +43,9 @@ sub get_ip {
     elsif ($args{type} eq 'sit1') {
         return $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
     }
+    elsif ($args{type} eq 'tunl1') {
+        return $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
+    }
 }
 
 sub save_and_upload_wicked_log {
@@ -97,4 +100,3 @@ sub before_scenario {
 }
 
 1;
-

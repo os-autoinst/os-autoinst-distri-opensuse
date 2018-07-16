@@ -49,7 +49,8 @@ sub setup_tunnel {
 sub run {
     my ($self) = @_;
     my %results;
-    my $iface  = script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
+
     my $config = '/etc/sysconfig/network/ifcfg-gre1';
     $self->get_from_data('wicked/ifcfg-gre1_', $config, add_suffix => 1);
     $self->before_scenario('Test 1', 'Create a gre interface from legacy ifcfg files');
@@ -65,6 +66,16 @@ sub run {
     $self->setup_tunnel($config, "sit1");
     $results{3} = $self->get_test_result("sit1", "v6");
     mutex_create("test_3_ready");
+
+    $self->before_scenario('Test 6', 'Create a IPIP  interface from legacy ifcfg files', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-tunl1';
+    $self->get_from_data('wicked/ifcfg-tunl1_', $config, add_suffix => 1);
+    $self->setup_tunnel($config, "tunl1");
+    $results{3} = $self->get_test_result("tunl1", "");
+    mutex_create("test_6_ready");
+    assert_script_run("ifdown tunl1");
+    assert_script_run("rm $config");
+
     wait_for_children;
     my $failures = grep { $_ eq "FAILED" } values %results;
     if ($failures > 0) {
@@ -76,4 +87,3 @@ sub run {
 }
 
 1;
-
