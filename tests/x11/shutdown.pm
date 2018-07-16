@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,10 +39,12 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    # In case plymouth splash shows up and the shutdown is blocked, show
-    # console logs - save screen of console (plymouth splash screen in disabled at boottime)
-    send_key('esc') if $self->{await_shutdown};
+    # Reveal what is behind Plymouth splash screen
+    wait_screen_change { send_key('esc') } if $self->{await_shutdown};
+    # save a screenshot before trying further measures which might fail
     save_screenshot;
+    # try to save logs as a last resort
+    $self->export_logs;
 }
 
 1;
