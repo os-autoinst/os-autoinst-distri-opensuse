@@ -18,6 +18,7 @@ sub use_ifconfig {
 
 sub get_ip_address {
     return if (get_var('NET') || check_var('ARCH', 's390x'));
+    return if (get_var('NOLOGS'));
 
     # avoid known issue in FIPS mode: bsc#985969
     return if get_var('FIPS');
@@ -234,6 +235,8 @@ sub save_upload_y2logs {
     my ($self, $suffix) = @_;
     $suffix //= '';
 
+    return if (get_var('NOLOGS'));
+
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
     my $filename = "/tmp/y2logs$suffix.tar.bz2";
     assert_script_run "save_y2logs $filename", 180;
@@ -244,6 +247,9 @@ sub save_upload_y2logs {
 
 sub save_system_logs {
     my ($self) = @_;
+
+    return if (get_var('NOLOGS'));
+
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
         assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
@@ -270,6 +276,8 @@ sub save_system_logs {
 
 sub save_strace_gdb_output {
     my ($self, $is_yast_module) = @_;
+    return if (get_var('NOLOGS'));
+
     # Collect yast2 installer or yast2 module trace if is still running
     if (!script_run(qq{ps -eo pid,comm | grep -i [y]2start | cut -f 2 -d " " > /dev/$serialdev}, 0)) {
         chomp(my $yast_pid = wait_serial(qr/^[\d{4}]/, 10));
