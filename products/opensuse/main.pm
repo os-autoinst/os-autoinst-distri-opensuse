@@ -313,6 +313,10 @@ sub load_default_tests {
 }
 
 # load the tests in the right order
+if (is_jeos) {
+    load_jeos_tests();
+}
+
 if (is_kernel_test()) {
     load_kernel_tests();
 }

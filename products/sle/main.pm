@@ -731,16 +731,7 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 if (is_jeos) {
-    load_boot_tests();
-    loadtest "jeos/firstrun";
-    loadtest "jeos/record_machine_id";
-    loadtest "console/force_scheduled_tasks";
-    loadtest "jeos/grub2_gfxmode";
-    loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
-    loadtest "jeos/diskusage";
-    loadtest "jeos/root_fs_size";
-    loadtest "jeos/mount_by_label";
-    loadtest "console/suseconnect_scc";
+    load_jeos_tests();
 }
 
 # load the tests in the right order

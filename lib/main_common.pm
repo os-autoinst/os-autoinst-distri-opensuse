@@ -113,6 +113,7 @@ our @EXPORT = qw(
   load_common_opensuse_sle_tests
   replace_opensuse_repos_tests
   load_ssh_key_import_tests
+  load_jeos_tests
 );
 
 sub init_main {
@@ -518,6 +519,21 @@ sub load_system_role_tests {
     loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
     loadtest "installation/installer_desktopselection" if is_opensuse;
     loadtest "installation/system_role" if is_caasp('kubic');
+}
+
+sub load_jeos_tests {
+    load_boot_tests();
+    loadtest "jeos/firstrun";
+    loadtest "jeos/record_machine_id";
+    loadtest "console/force_scheduled_tasks";
+    loadtest "jeos/grub2_gfxmode";
+    loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
+    loadtest "jeos/diskusage";
+    loadtest "jeos/root_fs_size";
+    loadtest "jeos/mount_by_label";
+    if (is_sle) {
+        loadtest "console/suseconnect_scc";
+    }
 }
 
 sub installzdupstep_is_applicable {
