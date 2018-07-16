@@ -844,4 +844,9 @@ sub configure_xdmcp_firewall {
     }
 }
 
+sub check_desktop_runner {
+    # we do not want to validate the result but leave this for other modules
+    x11_start_program('true', valid => 0, no_wait => 1);
+}
+
 1;

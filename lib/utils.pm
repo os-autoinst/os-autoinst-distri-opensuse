@@ -922,7 +922,7 @@ sub handle_login {
     $myuser //= $username;
     $user_selected //= 0;
 
-    assert_screen 'displaymanager';    # wait for DM, then try to login
+    assert_screen 'displaymanager', 90;    # wait for DM, then try to login
     wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
