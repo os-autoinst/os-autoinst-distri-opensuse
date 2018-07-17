@@ -1130,9 +1130,9 @@ sub load_consoletests {
     }
     loadtest "console/mtab";
     if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
+        loadtest "console/mysql_srv";
         # disable these tests of server packages for SLED (poo#36436)
         load_console_server_tests() unless is_desktop;
-        loadtest "console/mysql_srv";
     }
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
