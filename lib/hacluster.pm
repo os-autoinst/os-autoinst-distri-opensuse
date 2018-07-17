@@ -119,7 +119,9 @@ sub ensure_process_running {
     my $process   = shift;
     my $timeout   = 30;
     my $starttime = time;
-    while (script_run "ps -A | grep -q '\\<$process\\>'") {
+    my $ret       = undef;
+
+    while ($ret = script_run "ps -A | grep -q '\\<$process\\>'") {
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 5;
@@ -129,14 +131,17 @@ sub ensure_process_running {
         }
     }
 
-    return 0;
+    # script_run need to be defined to ensure a correct exit code
+    return defined $ret;
 }
 
 sub ensure_resource_running {
     my ($rsc, $regex) = @_;
     my $timeout   = 30;
     my $starttime = time;
-    while (script_run "crm resource status $rsc | grep -E -q '$regex'") {
+    my $ret       = undef;
+
+    while ($ret = script_run "crm resource status $rsc | grep -E -q '$regex'") {
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 5;
@@ -146,14 +151,13 @@ sub ensure_resource_running {
         }
     }
 
-    return 0;
+    # script_run need to be defined to ensure a correct exit code
+    return defined $ret;
 }
 
 sub ensure_dlm_running {
     die 'dlm is not running' unless check_rsc "dlm";
-    ensure_process_running 'dlm_controld';
-
-    return 0;
+    return ensure_process_running 'dlm_controld';
 }
 
 sub write_tag {
