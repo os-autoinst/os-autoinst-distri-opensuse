@@ -19,7 +19,7 @@ use serial_terminal 'select_virtio_console';
 use utils;
 use testapi;
 
-my $STATUS_LOG = '/tmp/status.log';
+my $STATUS_LOG = '/opt/status.log';
 
 # Create log file used to generate junit xml report
 sub log_create {

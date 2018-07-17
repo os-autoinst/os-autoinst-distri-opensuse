@@ -20,10 +20,10 @@ use File::Basename;
 use testapi;
 use ctcs2_to_junit;
 
-my $STATUS_LOG = '/tmp/status.log';
-my $LOG_DIR    = '/tmp/log';
-my $KDUMP_DIR  = '/tmp/kdump';
-my $JUNIT_FILE = '/tmp/output.xml';
+my $STATUS_LOG = '/opt/status.log';
+my $LOG_DIR    = '/opt/log';
+my $KDUMP_DIR  = '/opt/kdump';
+my $JUNIT_FILE = '/opt/output.xml';
 
 sub log_end {
     my $file = shift;

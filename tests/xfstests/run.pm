@@ -24,18 +24,18 @@ my $HB_INTVL   = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
 my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 40;
 my $HB_PATN    = '<heartbeat>';
 my $HB_DONE    = '<done>';
-my $HB_DONE_FILE = '/tmp/test.done';
-my $HB_EXIT_FILE = '/tmp/test.exit';
-my $HB_SCRIPT    = '/tmp/heartbeat.sh';
+my $HB_DONE_FILE = '/opt/test.done';
+my $HB_EXIT_FILE = '/opt/test.exit';
+my $HB_SCRIPT    = '/opt/heartbeat.sh';
 
 # xfstests variables
 my $TEST_RANGES  = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/usr/share/qa/qa_test_xfstests/wrapper.sh';
 my %BLACKLIST    = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
-my $STATUS_LOG   = '/tmp/status.log';
+my $STATUS_LOG   = '/opt/status.log';
 my $INST_DIR     = '/opt/xfstests';
-my $LOG_DIR      = '/tmp/log';
-my $KDUMP_DIR    = '/tmp/kdump';
+my $LOG_DIR      = '/opt/log';
+my $KDUMP_DIR    = '/opt/kdump';
 my $MAX_TIME     = 2400;
 
 # Create heartbeat script, directories(Call it only once)
