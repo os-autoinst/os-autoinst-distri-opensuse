@@ -1,6 +1,6 @@
 # Gnome tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     # Prepare test files
@@ -78,17 +78,17 @@ sub open_default_apps {
     wait_still_screen;
     assert_and_dclick "gnomecase-defaultapps-bz2file";    #open bzip
     assert_screen 'gnomecase-defaultapps-bz2open';
-    send_key "ctrl-w" unless sle_version_at_least('15');    #close fileroller
+    send_key "ctrl-w" if is_sle('<15');                   #close fileroller
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-gzfile";       #open gzip
+    assert_and_dclick "gnomecase-defaultapps-gzfile";     #open gzip
     assert_screen 'gnomecase-defaultapps-gzopen';
-    send_key "ctrl-w" unless sle_version_at_least('15');    #close fileroller
+    send_key "ctrl-w" if is_sle('<15');                   #close fileroller
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-htmlfile";     #open html
+    assert_and_dclick "gnomecase-defaultapps-htmlfile";    #open html
     assert_screen 'gnomecase-defaultapps-firefoxopen';
-    send_key "alt-f4";                                      #close firefox
+    send_key "alt-f4";                                     #close firefox
     wait_still_screen;
-    send_key "ctrl-w";                                      #close nautilus
+    send_key "ctrl-w";                                     #close nautilus
 }
 
 # For each element, will check if the mimetype will open with the correct application
@@ -99,11 +99,11 @@ sub check_default_apps {
     my $returnCode = 1;
     my @message    = ();
     for my $app (@apps) {
-        if (sle_version_at_least('15')) {
-            $returnCode = script_run("[ '$app->[1]' == \$(gio mime '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+        if (is_sle('<15')) {
+            $returnCode = script_run("[ '$app->[1]' == \$(gvfs-mime --query '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
         }
         else {
-            $returnCode = script_run("[ '$app->[1]' == \$(gvfs-mime --query '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+            $returnCode = script_run("[ '$app->[1]' == \$(gio mime '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
         }
         if ($returnCode) {
             push @message, "The mimetype $app->[0] should open with $app->[1]";

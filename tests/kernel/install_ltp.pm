@@ -19,7 +19,7 @@ use registration;
 use utils;
 use bootloader_setup 'add_custom_grub_entries';
 use serial_terminal qw(add_serial_console select_virtio_console);
-use version_utils qw(is_sle sle_version_at_least is_opensuse);
+use version_utils qw(is_sle is_opensuse);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -29,11 +29,11 @@ sub add_repos {
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
-    return if check_var('DISTRI', 'opensuse');
+    return if is_opensuse;
 
     my $ar_url;
     my $we_repo = get_var('REPO_SLE_WE15_POOL');
-    if ($we_repo && check_var('DISTRI', 'sle') && sle_version_at_least('15')) {
+    if ($we_repo && is_sle('15+')) {
         $ar_url = "http://openqa.suse.de/assets/repo/$we_repo";
     }
     # productQA test with enabled we as iso_2

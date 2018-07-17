@@ -51,7 +51,7 @@ sub reboot_system {
     assert_screen "displaymanager", 200;
     $self->{await_reboot} = 0;
     # The keyboard focus is different between SLE15 and SLE12
-    send_key 'up' if sle_version_at_least('15');
+    send_key 'up' unless is_sle('<15');
     send_key "ret";
     wait_still_screen;
     type_string "$newpwd\n";
@@ -143,7 +143,7 @@ sub run {
 
     #delete the added user: test
     # We should kill the active user test in SLE15
-    assert_script_run 'loginctl kill-user test' if (sle_version_at_least('15'));
+    assert_script_run 'loginctl kill-user test' unless is_sle('<15');
     wait_still_screen;
     type_string "userdel -f test\n";
     assert_screen "user-test-deleted";

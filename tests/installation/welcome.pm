@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
-use version_utils qw(is_sle sle_version_at_least is_staging);
+use version_utils qw(is_sle is_staging);
 
 sub run {
     my ($self) = @_;
@@ -31,11 +31,11 @@ sub run {
         push @welcome_tags, 'inst-welcome';
     }
     # Add tag for soft-failure on SLE 15
-    push @welcome_tags, 'no-product-found-on-scc' if sle_version_at_least('15');
+    push @welcome_tags, 'no-product-found-on-scc' if is_sle('15+');
     # Add tag for untrusted-ca-cert with SMT
     push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
-    push @welcome_tags, 'inst-welcome-no-product-list' if sle_version_at_least('15') and get_var('UPGRADE');
+    push @welcome_tags, 'inst-welcome-no-product-list' if is_sle('15+') and get_var('UPGRADE');
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
@@ -90,7 +90,7 @@ sub run {
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
+    if (is_sle('15+')) {
         # On s390x there will be only one product which means there is no product selection
         # In upgrade mode, there is no product list shown in welcome screen
         unless (check_var('ARCH', 's390x') || get_var('UPGRADE')) {

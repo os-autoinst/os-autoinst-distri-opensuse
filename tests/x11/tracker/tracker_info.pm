@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,17 +16,12 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 
 sub run {
     x11_start_program('xterm');
-    if (sle_version_at_least('12-SP2')) {
-        script_run "tracker info newpl.pl";
-    }
-    else {
-        script_run "tracker-info newpl.pl";
-    }
+    script_run is_sle('<12-SP2') ? 'tracker-info newpl.pl' : 'tracker info newpl.pl';
     assert_screen 'tracker-info-newpl';
     send_key "alt-f4";
 }

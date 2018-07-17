@@ -23,7 +23,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng is_jeos);
+use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -396,7 +396,7 @@ sub fully_patch_system {
 sub minimal_patch_system {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
-    if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
+    if (is_sle('12-SP1+', version_variable => $args{version_variable})) {
         zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
     }
     else {
@@ -426,7 +426,7 @@ sub workaround_type_encrypted_passphrase {
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
     return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
-    record_soft_failure 'workaround https://fate.suse.com/320901' if sle_version_at_least('12-SP4');
+    record_soft_failure 'workaround https://fate.suse.com/320901' unless is_sle('<12-SP4');
     unlock_if_encrypted;
 }
 
@@ -497,7 +497,7 @@ sub install_to_other_at_least {
     set_var("REAL_INSTALLED_VERSION", $real_installed_version);
     bmwqemu::save_vars();
 
-    return sle_version_at_least($version, version_variable => "REAL_INSTALLED_VERSION");
+    return is_sle($version + '+', version_variable => "REAL_INSTALLED_VERSION");
 }
 
 sub is_bridged_networking {
@@ -874,7 +874,7 @@ sub addon_license {
         do {
             # license on SLE15+ is shown only once during registration bsc#1057223
             # don't expect license if addon was already registered via SCC and license already viewed
-            if (sle_version_at_least('15') && check_var('SCC_REGISTER', 'installation') && get_var('SCC_ADDONS') =~ /$addon/ && !check_screen \@tags) {
+            if (is_sle('15+') && check_var(' SCC_REGISTER ', ' installation ') && get_var(' SCC_ADDONS ') =~ /$addon/ && !check_screen \@tags) {
                 return 1;
             }
             assert_screen \@tags;
@@ -1095,7 +1095,7 @@ Since SLE 15 gdm is running on tty2, so we change behaviour for it and
 openSUSE distris, except for Xen PV (bsc#1086243).
 =cut
 sub get_root_console_tty {
-    return (sle_version_at_least('15') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
+    return (is_sle('15+') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
 }
 
 =head2 get_x11_console_tty
@@ -1154,7 +1154,7 @@ sub ensure_serialdev_permissions {
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
     # Need backwards support for SLES11-SP4 here, the command "gpasswd" and "stat" are only available with SLES-12 at least.
-    if (is_sle && check_var('VERSION', '11-SP4')) {
+    if (is_sle('11-SP4')) {
         assert_script_run "chown $username /dev/$serialdev";
     }
     else {
@@ -1286,7 +1286,7 @@ sub reconnect_s390 {
     }
 
     # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
-    if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
+    if (!check_var('DESKTOP', 'textmode') && !is_sle('15+')) {
         select_console('x11', await_console => 0);
     }
 }

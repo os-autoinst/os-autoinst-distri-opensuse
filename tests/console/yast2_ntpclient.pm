@@ -24,7 +24,7 @@ sub run {
 
     # ntp configuration is different in SLE15/Leap15
     # for now, Tumbleweed doesn't use Chrony
-    # use sle_or_leap_15 variable to avoid executing is_* and *_version_at_least multiple time
+    # use variable to avoid executing is_* multiple time
     my $is_chronyd = (!is_sle('<15') && !is_leap('<15.0')) ? 1 : 0;
     $ntp_service = 'chronyd' if ($is_chronyd);
 

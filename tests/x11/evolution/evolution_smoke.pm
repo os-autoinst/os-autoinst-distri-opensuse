@@ -14,7 +14,7 @@ use strict;
 use base "x11test";
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub evolution_wizard {
     my ($self, $mail_box) = @_;
@@ -22,11 +22,11 @@ sub evolution_wizard {
     # Follow the wizard to setup mail account
     $self->start_evolution($mail_box);
     assert_screen "evolution_wizard-account-summary", 60;
-    if (sle_version_at_least('12-SP2')) {
-        assert_and_click "evolution-option-next";
+    if (is_sle('<12-SP2')) {
+        send_key $self->{next};
     }
     else {
-        send_key $self->{next};
+        assert_and_click "evolution-option-next";
     }
 
     assert_screen "evolution_wizard-done";

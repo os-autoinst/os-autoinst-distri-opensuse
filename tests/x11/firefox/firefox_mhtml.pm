@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -34,13 +34,13 @@ sub run {
     assert_and_click('firefox-mhtml-unmht');
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "spc";
-    unless (sle_version_at_least('15')) {
+    if (is_sle('<15')) {
         assert_and_click('unmht_restart_now');
         $self->firefox_check_popups;
     }
     wait_still_screen 3;
     assert_and_click('firefox-my-addons');
-    send_key 'f5' if (sle_version_at_least('15'));
+    send_key 'f5' unless is_sle('<15');
     assert_screen('firefox-mhtml-unmht_installed', 90);
 
     wait_screen_change { send_key "ctrl-w" };

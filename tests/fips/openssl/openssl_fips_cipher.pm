@@ -1,6 +1,6 @@
 # openssl fips test
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,7 @@ use base "consoletest";
 use testapi;
 use strict;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
@@ -40,9 +40,7 @@ sub run {
 
     # With FIPS non-approved Cipher algorithms, openssl shall report failure
     my @invalid_cipher = ("bf", "cast5", "rc4", "seed", "des", "desx");
-    if (sle_version_at_least('12-SP2')) {
-        push @invalid_cipher, "des-ede";
-    }
+    push @invalid_cipher, "des-ede" unless is_sle('<12-SP2');
     for my $cipher (@invalid_cipher) {
         validate_script_output
           "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 || true",

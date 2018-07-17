@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -41,7 +41,7 @@ sub run {
     sleep 1;
     send_key "ret";
 
-    assert_screen((sle_version_at_least('15')) ? 'firefox-extcontent-nautils' : 'firefox-extcontent-archive_manager');
+    assert_screen((is_sle('<15')) ? 'firefox-extcontent-archive_manager' : 'firefox-extcontent-nautils');
 
     send_key "ctrl-q";
 

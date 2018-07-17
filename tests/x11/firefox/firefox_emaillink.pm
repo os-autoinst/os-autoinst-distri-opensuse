@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,15 +15,11 @@ use strict;
 use base "x11test";
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my $next_key = "alt-o";
-
-    if (sle_version_at_least('12-SP2')) {
-        $next_key = "alt-n";
-    }
+    my $next_key = is_sle('<12-SP2') ? 'alt-o' : 'alt-n';
 
     $self->start_firefox;
 
@@ -31,7 +27,7 @@ sub run {
     send_key "alt-f";
     wait_still_screen 3;
     send_key "e";
-    unless (sle_version_at_least('15')) {
+    if (is_sle('<15')) {
         assert_screen('firefox-email_link-welcome', 90);
 
         send_key $next_key;
@@ -52,15 +48,15 @@ sub run {
         type_string "imap.suse.com";
         send_key "alt-n";    #Username
         type_string "test";
-        if (sle_version_at_least('12-SP2')) {
-            assert_and_click "evolution-option-next";
+        if (is_sle('<12-SP2')) {
+            send_key $next_key;
             wait_still_screen 3;
-            assert_and_click "evolution-option-next";
+            send_key $next_key;
         }
         else {
-            send_key $next_key;
+            assert_and_click "evolution-option-next";
             wait_still_screen 3;
-            send_key $next_key;
+            assert_and_click "evolution-option-next";
         }
 
         assert_screen('firefox-email_link-settings_sending');
@@ -71,11 +67,11 @@ sub run {
         };
 
         wait_still_screen 3;
-        if (sle_version_at_least('12-SP2')) {
-            assert_and_click "evolution-option-next";
+        if (is_sle('<12-SP2')) {
+            send_key $next_key;
         }
         else {
-            send_key $next_key;
+            assert_and_click "evolution-option-next";
         }
 
         wait_still_screen 3;

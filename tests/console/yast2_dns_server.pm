@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,8 @@ use base qw(console_yasttest y2logsstep);
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle sle_version_at_least);
 use constant RETRIES => 5;
+
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive
 # can be set

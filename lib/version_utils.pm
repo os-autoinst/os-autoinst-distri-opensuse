@@ -40,7 +40,6 @@ our @EXPORT = qw (
   is_sle12_hdd_in_upgrade
   is_installcheck
   is_rescuesystem
-  sle_version_at_least
   is_desktop_installed
   is_system_upgrading
   is_pre_15
@@ -85,12 +84,12 @@ sub is_virtualization_server {
 # Query format: [= > < >= <=] version [+] (Example: <=12-sp3 =12-sp1 <4.0 >=15 3.0+)
 # Regex format: matches version number (Example: /\d{2}\.\d/)
 sub check_version {
-    my $query = shift;
-    my $regex = shift;
+    my ($query, $regex, %args) = @_;
+    my $version_variable = $args{version_variable} // 'VERSION';
 
     # Matches operator($op), version($qv), plus($plus) - regex101.com to debug ;)
     if (uc($query) =~ /^(?(?!.*\+$)(?<op>[<>=]|[<>]=))(?<qv>$regex)(?<plus>\+)?$/) {
-        my $pv = uc get_var('VERSION');
+        my $pv = uc get_var($version_variable);
         my $qv = $+{qv};
         # Hacks for staging and HG2G
         if (is_leap) {
@@ -209,52 +208,7 @@ sub is_upgrade {
 }
 
 sub is_sle12_hdd_in_upgrade {
-    return is_upgrade && !sle_version_at_least('15', version_variable => 'HDDVERSION');
-}
-
-# =====================================
-# Deprecated, please use is_sle instead
-# =====================================
-sub sle_version_at_least {
-    my ($version, %args) = @_;
-    my $version_variable = $args{version_variable} // 'VERSION';
-
-    if ($version eq '12') {
-        return !(
-            check_var($version_variable, '11-SP1')
-            or check_var($version_variable, '11-SP2')
-            or check_var($version_variable, '11-SP3')
-            or check_var($version_variable, '11-SP4'));
-    }
-
-    if ($version eq '12-SP1') {
-        return sle_version_at_least('12', version_variable => $version_variable) && !check_var($version_variable, '12');
-    }
-
-    if ($version eq '12-SP2') {
-        return sle_version_at_least('12-SP1', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP1');
-    }
-
-    if ($version eq '12-SP3') {
-        return sle_version_at_least('12-SP2', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP2');
-    }
-
-    if ($version eq '12-SP4') {
-        return sle_version_at_least('12-SP3', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP3');
-    }
-
-    if ($version eq '15') {
-        return sle_version_at_least('12-SP4', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP4');
-    }
-    if ($version eq '15-SP1') {
-        return sle_version_at_least('15', version_variable => $version_variable)
-          && !check_var($version_variable, '15');
-    }
-    die "unsupported SLE $version_variable $version in check";
+    return is_upgrade && is_sle('<15', version_variable => 'HDDVERSION');
 }
 
 sub is_desktop_installed {

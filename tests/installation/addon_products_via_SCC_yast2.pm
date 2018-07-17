@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,13 +15,13 @@ use base qw(y2logsstep y2x11test);
 use strict;
 use testapi;
 use registration 'fill_in_registration_data';
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 use utils 'turn_off_gnome_screensaver';
 
 sub test_setup {
     select_console 'root-console';
     my $proxy_scc;
-    if (sle_version_at_least '15') {
+    if (is_sle('15+')) {
         # Remove registration from the system
         assert_script_run 'SUSEConnect --clean';
         # Define proxy SCC

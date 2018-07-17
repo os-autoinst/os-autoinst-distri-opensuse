@@ -14,13 +14,13 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 use apachetest;
 
 sub run {
     select_console 'root-console';
 
-    my $pgsql_server = sle_version_at_least('15') ? 'postgresql10-server' : 'postgresql96-server';
+    my $pgsql_server = (is_sle('<15') || is_leap('<15.0')) ? 'postgresql96-server' : 'postgresql10-server';
     # install the postgresql server package
     zypper_call "in $pgsql_server sudo";
 

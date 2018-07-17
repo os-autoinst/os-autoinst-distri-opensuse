@@ -8,7 +8,7 @@ use testapi;
 use LWP::Simple;
 use Config::Tiny;
 use utils;
-use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
+use version_utils qw(is_sle is_tumbleweed);
 use POSIX 'strftime';
 
 sub post_fail_hook {
@@ -33,11 +33,11 @@ sub switch_wm {
     assert_and_click "user-logout-sector";
     assert_and_click "logout-system";
     assert_screen "logout-dialogue";
-    send_key 'tab' if sle_version_at_least('15');
+    send_key 'tab' unless is_sle('<15');
     send_key "ret";
     assert_screen "displaymanager";
     # The keyboard focus was losing in gdm of SLE15 bgo#657996
-    mouse_set(520, 350) if sle_version_at_least('15');
+    mouse_set(520, 350) unless is_sle('<15');
     send_key "ret";
     assert_screen "originUser-login-dm";
     type_password;
@@ -59,15 +59,15 @@ sub prepare_sle_classic {
     # Log out and switch back to default session
     $self->switch_wm;
     assert_and_click "displaymanager-settings";
-    if (sle_version_at_least('15')) {
-        assert_and_click 'dm-gnome-shell';
-        send_key 'ret';
-        assert_screen 'desktop-gnome-shell', 120;
-    }
-    else {
+    if (is_sle('<15')) {
         assert_and_click 'dm-sle-classic';
         send_key 'ret';
         assert_screen 'desktop-sle-classic', 120;
+    }
+    else {
+        assert_and_click 'dm-gnome-shell';
+        send_key 'ret';
+        assert_screen 'desktop-gnome-shell', 120;
     }
 }
 
@@ -173,13 +173,13 @@ sub cleanup_libreoffice_recent_file {
 }
 
 sub open_libreoffice_options {
-    if (is_tumbleweed or is_sle('15+')) {
-        send_key 'alt-f12';
-    }
-    else {
+    if (is_sle('<15')) {
         send_key "alt-t";
         wait_still_screen 3;
         send_key "alt-o";
+    }
+    else {
+        send_key 'alt-f12';
     }
 }
 
@@ -225,9 +225,7 @@ sub check_new_mail_evolution {
     assert_screen "evolution_mail-online", 240;
     assert_and_click "evolution-send-receive";
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
-            send_key "alt-p";
-        }
+        send_key 'alt-p' unless is_sle('<12-SP2');
         type_password $mail_passwd;
         send_key "ret";
         assert_screen "evolution_mail-max-window";
@@ -282,9 +280,7 @@ sub send_meeting_request {
     wait_still_screen;
     type_string "$mail_box";
     send_key "alt-s";
-    if (sle_version_at_least('12-SP2')) {
-        send_key "alt-s";    #only need in sp2
-    }
+    send_key 'alt-s' unless is_sle('<12-SP2');
     type_string "$mail_subject this is a evolution test meeting";
     send_key "alt-l";
     type_string "the location of this meetinng is conference room";
@@ -293,8 +289,8 @@ sub send_meeting_request {
     assert_screen "evolution_mail-sendinvite_meeting", 60;
     send_key "ret";
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
-            send_key "alt-a";    #disable keyring option, only need in SP2 or later
+        unless (is_sle('<12-SP2')) {
+            send_key "alt-a";    #disable keyring option
             send_key "alt-p";
         }
         type_password $mail_passwd;
@@ -327,10 +323,7 @@ sub setup_imap {
 sub start_evolution {
     my ($self, $mail_box) = @_;
 
-    $self->{next} = "alt-o";
-    if (sle_version_at_least('12-SP2')) {
-        $self->{next} = "alt-n";
-    }
+    $self->{next} = is_sle('<12-SP2') ? 'alt-o' : 'alt-n';
     mouse_hide(1);
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
@@ -372,9 +365,7 @@ sub evolution_add_self_signed_ca {
     else {
         send_key $self->{next};
     }
-    if (sle_version_at_least('12-SP2')) {
-        send_key "ret";    #only need in SP2 or later
-    }
+    send_key 'ret' if is_sle('<12-SP2');
 }
 
 sub setup_mail_account {
@@ -436,9 +427,7 @@ sub setup_mail_account {
     save_screenshot;
     assert_screen "evolution_wizard-receiving-opts";
     send_key $self->{next};
-    if (sle_version_at_least('12-SP2')) {
-        send_key "ret";    #only need in SP2 or later
-    }
+    send_key 'ret' unless is_sle('<12-SP2');
 
     #setup sending protocol as smtp
     assert_screen "evolution_wizard-sending";
@@ -486,15 +475,15 @@ sub setup_mail_account {
     send_key "ret";
     assert_screen "evolution_wizard-account-summary";
     send_key $self->{next};
-    if (sle_version_at_least('12-SP2')) {
-        send_key "alt-n";    #only in sp2
+    unless (is_sle('<12-SP2')) {
+        send_key "alt-n";
         send_key "ret";
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
-            send_key "alt-a";    #disable keyring option, only in SP2
+        unless (is_sle('<12-SP2')) {
+            send_key "alt-a";    #disable keyring option
             send_key "alt-p";
         }
         type_password $mail_passwd;
@@ -504,9 +493,7 @@ sub setup_mail_account {
         send_key "super-up";
     }
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
-            send_key "alt-p";
-        }
+        send_key 'alt-p' unless is_sle('<12-SP2+');
         type_password $mail_passwd;
         send_key "ret";
     }
@@ -598,7 +585,6 @@ sub exit_firefox {
 }
 
 sub start_gnome_settings {
-    my $is_sle_12_sp1          = (check_var('DISTRI', 'sle') && check_var('VERSION', '12-SP1'));
     my $workaround_repetitions = 5;
     my $i                      = $workaround_repetitions;
     my $settings_menu_loaded   = 0;
@@ -606,7 +592,7 @@ sub start_gnome_settings {
     # the loop is a workaround for SP1: bug in launcher. Sometimes it doesn't react to click
     # The bug will be NOT fixed for SP1.
     do {
-        if ($is_sle_12_sp1) {
+        if (is_sle('12-SP1')) {
             if ($i < $workaround_repetitions) {
                 record_soft_failure 'bsc#1041175 - The settings menu fails sporadically on SP1';
             }
@@ -620,9 +606,9 @@ sub start_gnome_settings {
         wait_still_screen(3);
         $settings_menu_loaded = check_screen('settings', 0);
         $i--;
-    } while ($is_sle_12_sp1 && !$settings_menu_loaded && $i > 0);
+    } while (is_sle('12-SP1') && !$settings_menu_loaded && $i > 0);
 
-    if (!$is_sle_12_sp1 || $settings_menu_loaded) {
+    if (!is_sle('12-SP1') || $settings_menu_loaded) {
         assert_and_click 'settings';
         assert_screen 'gnome-settings';
     }
@@ -742,13 +728,13 @@ sub evolution_send_message {
     assert_and_click "evolution_mail-message-body";
     type_string "Test email send and receive.";
     send_key "ctrl-ret";
-    if (sle_version_at_least('12-SP2')) {
+    unless (is_sle('<12-SP2')) {
         if (check_screen "evolution_mail_send_mail_dialog", 30) {
             send_key "ret";
         }
     }
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
+        unless (is_sle('<12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
         }

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,14 +15,14 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_leap is_storage_ng is_sle sle_version_at_least);
+use version_utils qw(is_leap is_storage_ng is_sle);
 use partition_setup '%partition_roles';
 
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
 
     if (get_var("DUALBOOT")) {
-        if (is_sle && sle_version_at_least('15')) {
+        if (is_sle('15+')) {
             record_soft_failure('bsc#1089723 Make sure keep the existing windows partition');
             assert_screen "delete-partition";
             send_key "alt-g";

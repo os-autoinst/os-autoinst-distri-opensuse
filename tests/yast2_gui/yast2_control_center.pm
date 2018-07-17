@@ -18,7 +18,7 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_opensuse is_sle sle_version_at_least is_leap is_tumbleweed is_storage_ng);
+use version_utils qw(is_opensuse is_sle is_leap is_tumbleweed is_storage_ng);
 
 sub search {
     my ($name) = @_;
@@ -211,7 +211,7 @@ sub start_vpn_gateway {
 sub start_wake_on_lan {
     search('wake');
     assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules), timeout => 60];
-    if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
+    if (match_has_tag('yast2_control_no_modules') && is_sle('15+')) {
         # No wol on SLE 15 atm
         record_soft_failure 'bsc#1059569';
         return;
@@ -363,7 +363,7 @@ sub run {
         start_kernel_dump;
         # YaST2 CA management has been dropped from SLE15, see
         # https://bugzilla.suse.com/show_bug.cgi?id=1059569#c14
-        if (!sle_version_at_least('15')) {
+        if (!is_sle('15+')) {
             start_common_server_certificate;
             start_ca_management;
         }

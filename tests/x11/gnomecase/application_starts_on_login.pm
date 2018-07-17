@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,18 +14,18 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap sle_version_at_least);
+use version_utils qw(is_opensuse is_tumbleweed is_leap is_sle);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
-    unless (sle_version_at_least('15')) {
+    if (is_sle('<15')) {
         $self->start_gnome_settings;
         type_string "tweak";
         assert_screen "settings-tweak-selected";
         send_key "ret";
     }
     else {
-        # tweak-tool entry is not in gnome-control-center of SLE15;
+        # tweak-tool entry is not in gnome-control-center of SLE15
         x11_start_program 'gnome-tweak-tool';
     }
     assert_screen "tweak-tool";
@@ -35,7 +35,7 @@ sub tweak_startupapp_menu {
 
 sub start_dconf {
     my ($self) = @_;
-    unless (sle_version_at_least('15')) {
+    if (!is_sle('<15')) {
         $self->start_gnome_settings;
         type_string "dconf";
         assert_screen "settings-dconf";
@@ -59,7 +59,7 @@ sub alter_status_auto_save_session {
     my ($self) = @_;
     $self->start_dconf;
     # Old behavior for non SLE15 or non TW
-    if (!sle_version_at_least('15') && !is_leap('15.0+')) {
+    if (is_sle('<15') || is_leap('<15.0')) {
         send_key_until_needlematch "dconf-org", "down";
         assert_and_click "unfold";
         send_key_until_needlematch "dconf-org-gnome", "down";
@@ -88,7 +88,7 @@ sub alter_status_auto_save_session {
 sub restore_status_auto_save_session {
     my ($self) = @_;
     $self->start_dconf;
-    assert_and_click "auto-save-session" unless (sle_version_at_least('15'));
+    assert_and_click "auto-save-session" if is_sle('<15');
     assert_and_click "auto-save-session-alter-use-default";
     assert_and_click "auto-save-session-apply";
     send_key "alt-f4";
@@ -103,15 +103,15 @@ sub run {
     $self->tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('<12-SP2')) {
+        send_key_until_needlematch "applicationstart-firefox", "down";
+    }
+    else {
         assert_and_click "startupApp-searching";
         wait_still_screen;
         assert_screen "focused-on-search";
         type_string "firefox";
         assert_and_click "firefox-searched";
-    }
-    else {
-        send_key_until_needlematch "applicationstart-firefox", "down";
     }
     assert_and_click "tweak-addapp-2startup";
     assert_screen "startapp-firefox-added";
@@ -147,14 +147,13 @@ sub run {
     ##auto-save-session functionality has been abandoned;
     ##current status: just firefox works
     ##so in the future will consider remove openqa code for this session
-    unless (sle_version_at_least('15')) {
-        # Install dconf-editor for TW
-        if (check_var('VERSION', 'Tumbleweed')) {
-            select_console('root-console');
-            pkcon_quit;
-            zypper_call('in dconf-editor');
-            select_console('x11');
-        }
+    if (is_tumbleweed) {
+        select_console('root-console');
+        pkcon_quit;
+        zypper_call('in dconf-editor');
+        select_console('x11');
+    }
+    if (is_sle('<15')) {
         $self->alter_status_auto_save_session;
 
         x11_start_program('firefox');
@@ -169,11 +168,11 @@ sub run {
         send_key "ret";
         wait_still_screen;
 
-        if (sle_version_at_least('12-SP2')) {
-            $self->restore_status_auto_save_session;
+        if (is_sle('<12-SP2')) {
+            $self->alter_status_auto_save_session;
         }
         else {
-            $self->alter_status_auto_save_session;
+            $self->restore_status_auto_save_session;
         }
     }
 }
