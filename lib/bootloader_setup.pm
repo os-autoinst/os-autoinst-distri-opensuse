@@ -84,30 +84,39 @@ And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 sub add_custom_grub_entries {
     my $grub_param = get_var('GRUB_PARAM');
     return unless defined($grub_param);
+    my $script_old     = "/etc/grub.d/10_linux";
+    my $script_new     = "/etc/grub.d/11_linux_openqa";
+    my $script_old_esc = $script_old =~ s~/~\\/~rg;
+    my $script_new_esc = $script_new =~ s~/~\\/~rg;
+    my $cfg_new        = '/boot/grub2/grub.cfg';
+    my $cfg_old        = 'grub.cfg.old';
 
-    assert_script_run('cp /boot/grub2/grub.cfg grub.cfg.old');
-    upload_logs('grub.cfg.old', failok => 1);
+    assert_script_run("cp $cfg_new $cfg_old");
+    upload_logs($cfg_old, failok => 1);
 
     assert_script_run('cp /etc/grub.d/40_custom 40_custom.tmp');
-    assert_script_run('cp /etc/grub.d/10_linux /etc/grub.d/11_linux_openqa');
+
+    assert_script_run("cp $script_old $script_new");
 
     my $cmd = "sed -i -e 's/\\(args=.\\)\\(\\\$4\\)/\\1$grub_param \\2/'";
     $cmd .= " -e 's/\\(Advanced options for %s\\)/\\1 ($grub_param)/'";
     $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$title\\)/\\1 ($grub_param)/'";
-    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' /etc/grub.d/11_linux_openqa";
+    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' $script_new";
     assert_script_run($cmd);
-    upload_logs('/etc/grub.d/11_linux_openqa', failok => 1);
-    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
-    upload_logs('/boot/grub2/grub.cfg', failok => 1);
+    upload_logs($script_new, failok => 1);
+    assert_script_run("grub2-mkconfig -o $cfg_new");
+    upload_logs($cfg_new, failok => 1);
 
-    my $distro   = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
-    my $cnt_orig = script_output("grep -c 'menuentry .$distro' grub.cfg.old");
-    my $cnt_new  = script_output("grep -c 'menuentry .$distro' /boot/grub2/grub.cfg");
-    die("Unexpected number of grub entries: $cnt_new, expected: " . ($cnt_orig * 2)) if ($cnt_orig * 2 != $cnt_new);
-    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' /boot/grub2/grub.cfg");
-    die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
-    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' /boot/grub2/grub.cfg");
-    die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
+    my $distro      = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
+    my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
+    my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' $cfg_new";
+    my $cnt_old     = script_output("$section_old | grep -c 'menuentry .$distro'");
+    my $cnt_new     = script_output("$section_new | grep -c 'menuentry .$distro'");
+    die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
+    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' $cfg_new");
+    die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
+    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' $cfg_new");
+    die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
 }
 
 =head2 boot_grub_item
