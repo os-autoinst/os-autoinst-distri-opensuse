@@ -792,7 +792,7 @@ sub power_action {
     }
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast, as did initial reboot already
-    if (   check_var('VIRSH_VMM_FAMILY', 'kvm')
+    if (check_var('VIRSH_VMM_FAMILY', 'kvm')
         || check_var('VIRSH_VMM_FAMILY', 'xen')
         || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST')))
     {

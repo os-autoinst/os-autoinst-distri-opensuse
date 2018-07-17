@@ -121,7 +121,7 @@ if (is_updates_test_repo && !get_var('ZYPPER_ADD_REPOS')) {
     set_var('ZYPPER_ADD_REPO_PREFIX', 'untrusted');
 }
 
-if (   get_var("WITH_UPDATE_REPO")
+if (get_var("WITH_UPDATE_REPO")
     || get_var("WITH_MAIN_REPO")
     || get_var("WITH_DEBUG_REPO")
     || get_var("WITH_SOURCE_REPO")

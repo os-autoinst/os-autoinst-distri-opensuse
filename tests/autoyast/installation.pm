@@ -161,7 +161,7 @@ sub run {
 
     mouse_hide(1);
     check_screen \@needles, $check_time;
-    until (  match_has_tag('reboot-after-installation')
+    until (match_has_tag('reboot-after-installation')
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('linux-login-casp'))
@@ -183,7 +183,7 @@ sub run {
             if (check_var('DISTRI', 'sle') && check_screen('warning-partition-reduced', 0)) {
                 # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
                 record_info('bsc#1045470',
-                        "There is no timeout on sle for reduced partition screen by default.\n"
+                    "There is no timeout on sle for reduced partition screen by default.\n"
                       . "But there is timeout on CaaSP and if explicitly defined in profile. See bsc#1045470 for details.");
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;

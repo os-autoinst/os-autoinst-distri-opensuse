@@ -134,7 +134,7 @@ sub verify_mount_opts {
     ## Verify that there is node found by xpath and it's single one
     if (scalar @nodes != 1) {
         return
-            "Generated autoinst.xml contains unexpected number of partitions with same mount path for"
+          "Generated autoinst.xml contains unexpected number of partitions with same mount path for"
           . $mount_path
           . "Found: "
           . scalar @nodes

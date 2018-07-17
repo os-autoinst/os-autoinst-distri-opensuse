@@ -221,7 +221,7 @@ sub sle_version_at_least {
 
     if ($version eq '12') {
         return !(
-               check_var($version_variable, '11-SP1')
+            check_var($version_variable, '11-SP1')
             or check_var($version_variable, '11-SP2')
             or check_var($version_variable, '11-SP3')
             or check_var($version_variable, '11-SP4'));
