@@ -160,6 +160,10 @@ EOF
         script_run('cat /etc/nsswitch.conf');
         script_run('cat /etc/hosts');
 
+        # hostname (getaddrinfo_01)
+        script_run('hostnamectl');
+        script_run('cat /etc/hostname');
+
         script_run('ip addr');
         script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
