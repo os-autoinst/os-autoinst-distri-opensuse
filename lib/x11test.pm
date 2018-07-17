@@ -223,12 +223,14 @@ sub check_new_mail_evolution {
     my $config      = $self->getconfig_emailaccount;
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
+    assert_and_click "evolution-send-receive";
     if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
         type_password $mail_passwd;
         send_key "ret";
+        assert_screen "evolution_mail-max-window";
     }
     send_key "alt-w";
     send_key "ret";
