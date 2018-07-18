@@ -13,9 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Determine type and print information about a openscap source file
+# Summary: Setup environment for openscap test
 # Maintainer: Wes <whdu@suse.com>
-# Tags: poo#36901, tc#1621169
+# Tags: poo#37006
 
 use base 'consoletest';
 use strict;
@@ -25,28 +25,15 @@ use openscaptest;
 
 sub run {
 
-    validate_script_output "oscap info oval.xml", sub {
-        m/
-            Document\ type:\ OVAL\ Definitions.*
-            OVAL\ version:\ [0-9]+.*
-            Generated:\ [0-9]+.*
-            Imported:\ [0-9]+/sxx
-    };
+    zypper_call('in openscap-utils libxslt-tools');
 
-    validate_script_output "oscap info xccdf.xml", sub {
-        m/
-            Document\ type:\ XCCDF\ Checklist.*
-            Checklist\ version:\ [0-9]+.*
-            Imported:\ [0-9]+.*
-            Status:\ draft.*
-            Generated:\ [0-9]+.*
-            Resolved:\ false.*
-            Profiles:.*
-            standard.*
-            Referenced\ check\ files:.*
-            oval\.xml.*
-            system:/sxx
-    };
+    oscap_get_test_file("oval.xml");
+    oscap_get_test_file("xccdf.xml");
 }
+
+sub test_flags {
+    return {fatal => 1};
+}
+
 
 1;

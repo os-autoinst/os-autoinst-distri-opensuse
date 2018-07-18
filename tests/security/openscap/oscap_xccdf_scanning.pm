@@ -18,17 +18,14 @@
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36907, tc#1621171
 
-use base "openscaptest";
+use base 'consoletest';
 use strict;
 use testapi;
 use utils;
+use openscaptest;
 use version_utils qw(is_sle is_leap);
 
 sub run {
-    my ($self) = @_;
-
-    my $xccdf_result        = "scan-xccdf-results.xml";
-    my $xccdf_result_single = "scan-xccdf-results-single.xml";
 
     my $scanning_match = 'm/
         Rule.*no_direct_root_logins.*fail.*
@@ -66,16 +63,14 @@ sub run {
 
     # Always return failed here, so we use "||true" as workaround
     validate_script_output "oscap xccdf eval --profile standard --results $xccdf_result xccdf.xml || true", sub { $scanning_match };
-
-    $self->validate_result($xccdf_result, $result_match);
+    validate_result($xccdf_result, $result_match);
 
     # Single rule testing only available on the higher version for
     # openscap-utils
     if (!(is_sle('<15') or is_leap('<15.0'))) {    # openscap >= 1.2.16
         validate_script_output "oscap xccdf eval --profile standard --rule no_direct_root_logins --results $xccdf_result_single xccdf.xml || true",
           sub { $scanning_match_single };
-
-        $self->validate_result($xccdf_result_single, $result_match_single);
+        validate_result($xccdf_result_single, $result_match_single);
     }
 }
 

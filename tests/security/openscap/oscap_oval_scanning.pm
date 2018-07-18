@@ -18,16 +18,13 @@
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36904, tc#1621170
 
-use base "openscaptest";
+use base 'consoletest';
 use strict;
 use testapi;
 use utils;
+use openscaptest;
 
 sub run {
-    my ($self) = @_;
-
-    my $oval_result        = "scan-oval-results.xml";
-    my $oval_result_single = "scan-oval-results-single.xml";
 
     my $scanning_match = 'm/
         Definition\ oval:rule_misc_sysrq:def:[0-9]:\ false.*
@@ -67,10 +64,10 @@ sub run {
         result="not\ evaluated"/sxx';
 
     validate_script_output "oscap oval eval --results $oval_result oval.xml", sub { $scanning_match };
-    $self->validate_result($oval_result, $result_match);
+    validate_result($oval_result, $result_match);
 
     validate_script_output "oscap oval eval --id oval:rule_misc_sysrq:def:1 --results $oval_result_single oval.xml", sub { $scanning_match_single };
-    $self->validate_result($oval_result_single, $result_match_single);
+    validate_result($oval_result_single, $result_match_single);
 }
 
 1;

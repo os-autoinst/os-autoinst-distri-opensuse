@@ -15,38 +15,65 @@
 
 # Summary: Base module for openSCAP test cases
 # Maintainer: Wes <whdu@suse.com>
+# Tags: poo#37006
 
 package openscaptest;
 
+use base Exporter;
+use Exporter;
+
+use consoletest;
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
-use base 'consoletest';
+
+our @EXPORT = qw(
+  $oval_result
+  $oval_result_single
+  $xccdf_result
+  $xccdf_result_single
+  $source_ds
+  $source_ds_result
+  $arf_result
+  oscap_get_test_file
+  validate_result
+  ensure_generated_file
+  pre_run_hook
+);
+
+our $oval_result         = "scan-oval-results.xml";
+our $oval_result_single  = "scan-oval-results-single.xml";
+our $xccdf_result        = "scan-xccdf-results.xml";
+our $xccdf_result_single = "scan-xccdf-results-single.xml";
+
+our $source_ds        = 'source-ds.xml';
+our $source_ds_result = 'source-ds-results.xml';
+our $arf_result       = "arf-results.xml";
 
 sub oscap_get_test_file {
-    my ($self, $source) = @_;
+    my ($source) = @_;
 
-    assert_script_run "test -f $source || wget " . data_url("openscap/$source");
+    assert_script_run "wget --quiet " . data_url("openscap/$source");
 }
 
 sub validate_result {
-    my ($self, $result_file, $match) = @_;
+    my ($result_file, $match) = @_;
 
     assert_script_run "xmllint $result_file";
     validate_script_output "cat $result_file", sub { $match };
     upload_logs($result_file);
 }
 
+sub ensure_generated_file {
+    my ($genfile) = @_;
+
+    my $failmsg = "Missing $genfile file. You should first to run related test accordingly to generate it";
+    assert_script_run("ls $genfile", fail_message => $failmsg);
+}
+
 sub pre_run_hook {
-    my ($self) = @_;
 
     select_console 'root-console';
-
-    zypper_call('in openscap-utils');
-
-    $self->oscap_get_test_file("oval.xml");
-    $self->oscap_get_test_file("xccdf.xml");
 }
 
 1;
