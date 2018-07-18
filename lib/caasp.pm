@@ -28,8 +28,8 @@ our @EXPORT = qw(
 # Shorcuts for gui / textmode (optional) oci installer
 # Version 3.0 (default)
 my %keys = (
-    keyboard     => ['e', 'y'],
-    password     => ['w', 'a'],
+    keyboard => ['e', 'y'],
+    password => ['w', 'a'],
     registration => ['g'],
     role         => ['s'],
     partitioning => ['p'],

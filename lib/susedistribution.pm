@@ -594,7 +594,7 @@ sub activate_console {
     }
     elsif (
         $console eq 'installation'
-        && (   ((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || get_var('S390_ZKVM')))
+        && (((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || get_var('S390_ZKVM')))
             && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
     {
         diag 'activate_console called with installation for ssh based consoles';

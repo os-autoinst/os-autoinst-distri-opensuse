@@ -263,7 +263,7 @@ sub fill_in_registration_data {
         assert_screen($modules_needle);
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
-        if (   check_var('SLE_PRODUCT', 'sles')
+        if (check_var('SLE_PRODUCT', 'sles')
             && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
             && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity|ha)/)
         {

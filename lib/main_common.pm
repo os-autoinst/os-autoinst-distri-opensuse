@@ -199,7 +199,7 @@ sub logcurrentenv {
 
 sub have_addn_repos {
     return
-         !get_var("NET")
+      !get_var("NET")
       && !get_var("EVERGREEN")
       && get_var("SUSEMIRROR")
       && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
@@ -218,7 +218,7 @@ sub packagekit_available {
 }
 
 sub is_kernel_test {
-    return ( get_var('INSTALL_LTP')
+    return (get_var('INSTALL_LTP')
           || get_var('LTP_COMMAND_FILE')
           || get_var('QA_TEST_KLP_REPO')
           || get_var('INSTALL_KOTD')
@@ -302,7 +302,7 @@ sub is_desktop_module_selected {
     # productivity and ha require desktop applications, so it's preselected
     # same is true for sles4sap
     return
-         get_var('ADDONS', '') =~ /all-packages|desktop|we/
+      get_var('ADDONS', '') =~ /all-packages|desktop|we/
       || get_var('WORKAROUND_MODULES', '') =~ /desktop|we/
       || get_var('ADDONURL',           '') =~ /desktop|we/
       || get_var('SCC_ADDONS',         '') =~ /desktop|we|productivity|ha/
@@ -587,7 +587,7 @@ sub ssh_key_import {
 
 sub we_is_applicable {
     return
-         is_server()
+      is_server()
       && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/)
       && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
 }
@@ -808,7 +808,7 @@ sub load_inst_tests {
         #no matter with or without INSTALL_TO_OTHERS tag
         if (
             is_sle
-            && (   check_var('ARCH', 'x86_64')
+            && (check_var('ARCH', 'x86_64')
                 && sle_version_at_least('12-SP2')
                 && is_server()
                 && (!is_sles4sap() || is_sles4sap_standard())
@@ -891,7 +891,7 @@ sub load_inst_tests {
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
-        if (    !consolestep_is_applicable()
+        if (!consolestep_is_applicable()
             and !get_var("REMOTE_CONTROLLER")
             and !is_hyperv_in_gui
             and !is_bridged_networking
@@ -1085,7 +1085,7 @@ sub load_consoletests {
     if (!is_staging && (is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || (sle_version_at_least('15') && !is_desktop)))) {
         loadtest "console/salt";
     }
-    if (   check_var('ARCH', 'x86_64')
+    if (check_var('ARCH', 'x86_64')
         || check_var('ARCH', 'i686')
         || check_var('ARCH', 'i586'))
     {

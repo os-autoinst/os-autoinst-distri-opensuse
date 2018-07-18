@@ -98,7 +98,7 @@ sub run {
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted", $started_timeout;
     }
-    if (   !get_var("LIVECD")
+    if (!get_var("LIVECD")
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
         && !check_var('VIDEOMODE', 'text'))
