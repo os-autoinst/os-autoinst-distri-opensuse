@@ -17,6 +17,7 @@ use version_utils 'is_sle';
 use utils;
 use testapi;
 use lockapi;
+use isotovideo;
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -310,8 +311,14 @@ sub get_lun {
 
 sub pre_run_hook {
     my ($self) = @_;
-
-    $prev_console = $autotest::selected_console;
+    if (isotovideo::get_version() == 12) {
+        $prev_console = $autotest::selected_console;
+    } else {
+        # perl -c will give a "only used once" message
+        # here and this makes the travis ci tests fail.
+        1 if defined $testapi::selected_console;
+        $prev_console = $testapi::selected_console;
+    }
 }
 
 sub post_run_hook {
