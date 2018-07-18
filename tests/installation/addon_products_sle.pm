@@ -106,7 +106,8 @@ sub handle_all_packages_medium {
 sub handle_addon {
     my ($addon) = @_;
     return handle_all_packages_medium if $addon eq 'all-packages';
-    addon_license($addon) unless is_sle('15+');
+    # SES6 on SLE15 in development has untrusted key warning
+    addon_license($addon) unless is_sle('15+') && $addon !~ /^ses$|^rt$/;
     # might involve some network lookup of products, licenses, etc.
     assert_screen 'addon-products', 90;
     send_key 'tab';    # select addon-products-$addon
@@ -117,7 +118,7 @@ sub handle_addon {
     send_key 'pgup';
     wait_still_screen 2;
     send_key_until_needlematch "addon-products-$addon", 'down';
-    # modules like SES or RT that are not part of Packages ISO don't have this step, when bsc#1090012 will be fixed I will add else for license
+    # modules like SES or RT that are not part of Packages ISO don't have this step
     if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
         send_key 'spc';
         wait_screen_change { send_key $cmd{next} };
