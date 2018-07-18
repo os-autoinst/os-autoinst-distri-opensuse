@@ -283,6 +283,8 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
               = is_module($short_name) ?
               "REPO_SLE${version}_MODULE_${repo_name}"
               : "REPO_SLE${version}_PRODUCT_${repo_name}";
+            # Replace dashes with underscore symbols, as not used in the variable name
+            $repo_variable_name =~ s/-/_/;
             my $default_repo_name
               = is_module($short_name) ?
               "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1"
