@@ -21,7 +21,7 @@ sub run {
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
     my $timeout = get_var('UEFI') ? 140 : 80;
     if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        wait_serial("Welcome to SUSE Linux", $timeout) || die "System did not boot in $timeout seconds.";
+        wait_serial("Welcome to .*SUSE Linux", $timeout) || die "System did not boot in $timeout seconds.";
     }
     else {
         $self->wait_boot(bootloader_time => $timeout);
