@@ -11,7 +11,7 @@ our $prev_console;
 sub pre_run_hook {
     my ($self) = @_;
 
-    $prev_console = $testapi::selected_console;
+    $prev_console = $autotest::selected_console;
 }
 
 sub post_run_hook {
