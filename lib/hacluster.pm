@@ -311,7 +311,7 @@ sub get_lun {
 sub pre_run_hook {
     my ($self) = @_;
 
-    $prev_console = $autotest::selected_console;
+    $prev_console = $testapi::selected_console;
 }
 
 sub post_run_hook {
