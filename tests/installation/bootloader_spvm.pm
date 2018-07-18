@@ -96,7 +96,9 @@ sub run {
     type_string "sshd=1 sshpassword=$testapi::password\n";
 
     type_string "initrd $mntpoint/initrd\n";
+    save_screenshot;
     type_string "boot\n";
+    save_screenshot;
 
     assert_screen("novalink-successful-first-boot", 120);
 }
