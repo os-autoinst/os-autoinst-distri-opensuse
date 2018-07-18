@@ -67,6 +67,7 @@ sub run {
 
     my $need_ssh = check_var('ARCH', 's390x');    # s390x always needs SSH
     $need_ssh = 1 if check_var('BACKEND', 'ipmi');    # we better be able to login
+    $need_ssh = 1 if check_var('BACKEND', 'spvm');    # we better be able to login
 
     if (!get_var('UPGRADE') && $need_ssh) {
 

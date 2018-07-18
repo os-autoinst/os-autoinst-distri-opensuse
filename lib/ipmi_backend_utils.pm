@@ -30,7 +30,7 @@ our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_xen switch_from_ss
 
 #use it after SUT boot finish, as it requires ssh connection to SUT to interact with SUT, including window and serial console
 sub use_ssh_serial_console {
-    console('sol')->disable;
+    console('sol')->disable if check_var('BACKEND', 'ipmi');
     select_console('root-ssh');
     $serialdev = 'sshserial';
     set_var('SERIALDEV', 'sshserial');
