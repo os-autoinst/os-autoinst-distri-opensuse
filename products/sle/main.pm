@@ -382,8 +382,9 @@ if (get_var('SUPPORT_SERVER_ROLES', '') =~ /aytest/ && !get_var('AYTESTS_REPO'))
     }
 }
 
-# Workaround to be able to use create_hdd_hpc_textmode simultaneously  in SLE15 and SLE12 SP*
-if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('<15')) {
+# Workaround to be able to use create_hdd_hpc_textmode simultaneously in SLE15 and SLE12 SP*
+# and exlude maintenance tests
+if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('<15') && !is_updates_tests) {
     set_var('SCC_ADDONS',   'hpcm,wsm');
     set_var('SCC_REGISTER', 'installation');
 }
