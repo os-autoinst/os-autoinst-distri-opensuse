@@ -29,20 +29,10 @@ sub find_secgroup {
     return;
 }
 
-sub find_ami {
-    my ($name) = @_;
-
-    my $out = script_output("aws ec2 describe-images  --filters 'Name=name,Values=$name'", 30, proceed_on_failure => 1);
-    if ($out =~ /"ImageId":\s+"([^"]+)"/) {
-        return $1;
-    }
-    return;
-}
-
 sub save_logs {
     my $output = script_output("find ipa_results -type f");
     for my $file (split(/\n/, $output)) {
-        if ($file =~ 'ipa_results/ec2/ami-[0-9a-z]+/i-[0-9a-z]+/[0-9]{14}\.(log|results)') {
+        if ($file =~ m'ipa_results/ec2/ami-[0-9a-z]+/i-[0-9a-z]+/[0-9]{14}\.(log|results)') {
             upload_logs($file);
         }
     }
@@ -54,12 +44,15 @@ sub run {
 
     die "Public cloud provider isn't supported" unless check_var('PUBLIC_CLOUD_PROVIDER', "EC2");
 
-    # Install needed packages
-    zypper_call('in python3-ipa python3-ipa-tests python3-ec2uploadimg python-susepubliccloudinfo git');
+    zypper_call('ar ' . get_required_var('PUBLIC_CLOUD_TOOLS_REPO'));
+    zypper_call('--gpg-auto-import-keys in python3-ipa python3-ipa-tests');
 
     # WAR install awscli from pip instead of using the package bcs#1095041
-    zypper_call('in gcc python3-devel');
-    assert_script_run("pip3 install pycrypto");
+    zypper_call('in gcc python3-pip');
+    if (check_var('DISTRI', 'opensuse')) {
+        zypper_call('in python3-devel');
+        assert_script_run("pip3 install pycrypto");
+    }
     assert_script_run("pip3 install awscli");
     assert_script_run("pip3 install keyring");
 
@@ -81,41 +74,7 @@ sub run {
         die "Failed on creating security group " unless $secgroup_id;
     }
 
-    #Upload image
-    my $url = get_required_var("PUBLIC_CLOUD_IMAGE_URL");
-    my ($image_name) = $url =~ '.*/([^/]+)$';
-
-    my $ami_id = find_ami($image_name);
-    if (!defined($ami_id)) {
-
-        # Download image
-        assert_script_run("wget " . get_required_var("PUBLIC_CLOUD_IMAGE_URL") . " -O " . $image_name, timeout => 300);
-
-        #Write ec2utils configuration, needed by ec2uploadimg
-        assert_script_run("echo -e '[region-eu-central-1]\\nami = ami-bc5b48d0\\ninstance_type = t2.micro\\naki_i386 = aki-3e4c7a23\\n"
-              . "aki_x86_64 = aki-184c7a05\\ng2_aki_x86_64 = aki-e23f09ff\\nuser = ec2-user\\n' >> ~/.ec2utils.conf");
-
-        assert_script_run(
-            "ec2uploadimg --access-id '"
-              . get_required_var('PUBLIC_CLOUD_KEY_ID')
-              . "' -s '"
-              . get_required_var('PUBLIC_CLOUD_KEY_SECRET') . "' "
-              . "--backing-store ssd "
-              . "--grub2 "
-              . "--machine 'x86_64' "
-              . "-n '$image_name' "
-              . (($image_name =~ /hvm/i) ? "--virt-type hvm --sriov-support " : "--virt-type para ")
-              . "--verbose "
-              . "--regions 'eu-central-1' "
-              . "--ssh-key-pair 'QA_SSH_KEY' "
-              . "--private-key-file 'QA_SSH_KEY.pem' "
-              . "-d 'OpenQA tests' "
-              . "'$image_name'",
-            timeout => 1200
-        );
-        $ami_id = find_ami($image_name);
-        die "Failed on uploading $image_name" unless $ami_id;
-    }
+    my $ami_id = get_required_var("PUBLIC_CLOUD_IMAGE_ID");
 
     #Prestart instance, cause IPA might use the wrong security group
     my ($instance_id)
@@ -133,12 +92,12 @@ sub run {
     assert_script_run("ipa list");
 
     assert_script_run(
-            "ipa test ec2 "
+        "ipa test ec2 "
           . "--access-key-id '"
           . get_required_var('PUBLIC_CLOUD_KEY_ID') . "' "
           . "--secret-access-key '"
           . get_required_var('PUBLIC_CLOUD_KEY_SECRET') . "' "
-          . "-D 'IPA test $image_name' "
+          . "-D 'IPA test $ami_id' "
           . "--distro sles "
           # . "--early-exit "
           . "-R '$instance_id' "
@@ -170,3 +129,34 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Discussion
+
+This module use IPA tool to test public cloud SLE images.
+Logs are uploaded at the end.
+
+=head1 Configuration
+
+=head2 PUBLIC_CLOUD_IMAGE_ID
+
+The image ID which is used to instanciate a VM and run tests on it.
+
+=head2 PUBLIC_CLOUD_PROVIDER
+
+The type of the CSP (Cloud service provider). Currently only EC2 is allowed.
+
+=head2 PUBLIC_CLOUD_TOOLS_REPO
+
+The URL to the cloud:tools repo. 
+(e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo)
+
+=head2 PUBLIC_CLOUD_KEY_ID
+
+The CSP credentials key-id to used to access API.
+
+=head2 PUBLIC_CLOUD_KEY_SECRET
+
+The CSP credentials secret used to access API.
+
+=cut
+
