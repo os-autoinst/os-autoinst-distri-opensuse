@@ -106,7 +106,8 @@ sub handle_all_packages_medium {
 sub handle_addon {
     my ($addon) = @_;
     return handle_all_packages_medium if $addon eq 'all-packages';
-    addon_license($addon) unless is_sle('15+');
+    # SES6 on SLE15 in development has untrusted key warning
+    addon_license($addon) unless is_sle('15+') && $addon !~ /^ses$|^rt$/;
     # might involve some network lookup of products, licenses, etc.
     assert_screen 'addon-products', 90;
     send_key 'tab';    # select addon-products-$addon
