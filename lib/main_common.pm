@@ -502,12 +502,13 @@ sub load_slepos_tests {
 sub load_docker_tests {
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    # No package 'docker-compose' in SLE
-    if (!is_sle) {
-        loadtest "console/docker_compose";
-    }
-    if (is_sle('<12-SP4')) {
+    if (is_sle('12-SP3+')) {
+        loadtest "console/docker_image";
         loadtest "console/sle2docker";
+    }
+    elsif (is_opensuse) {
+        loadtest "console/docker_image_rpm";
+        loadtest "console/docker_compose";
     }
 }
 
