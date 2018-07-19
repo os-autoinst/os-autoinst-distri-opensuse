@@ -140,6 +140,7 @@ sub init_desktop_runner {
     else {
         type_string $program;
     }
+    assert_screen 'desktop-runner-program-found';
 }
 
 =head2 x11_start_program
