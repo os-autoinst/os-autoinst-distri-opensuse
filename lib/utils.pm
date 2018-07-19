@@ -150,6 +150,18 @@ are present and in working condition. Just Hyper-V for now.
 =cut
 sub integration_services_check {
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        # Host-side of Integration Services
+        my $vmname       = console('svirt')->name;
+        my $ips_host_pov = console('svirt')
+          ->get_cmd_output('powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
+        $ips_host_pov = (split /\n/, $ips_host_pov)[1];
+        $ips_host_pov =~ s/,.*//g;
+        $ips_host_pov =~ s/\{//g;
+        my $ips_guest_pov = script_output("ip address show up scope global | grep -w inet | awk '{ print \$2 }' | sed 's|/.*||' | tr -d '\\n'");
+        record_info('IP (host)',  $ips_host_pov);
+        record_info('IP (guest)', $ips_guest_pov);
+        die "ips_host_pov=<$ips_host_pov> ips_guest_pov=<$ips_guest_pov>" if $ips_host_pov ne $ips_guest_pov;
+        # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
         my $base = is_jeos() ? '-base' : '';
