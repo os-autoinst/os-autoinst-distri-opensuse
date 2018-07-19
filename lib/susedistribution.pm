@@ -208,13 +208,13 @@ sub x11_start_program {
     for (1 .. 3) {
         push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
         assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
-        last unless (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
+        last unless match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
         wait_screen_change {
             send_key 'ret';
         };
     }
     # asserting program came up properly
-    die "Did not find target needle for tag(s) '@target'" if (match_has_tag 'desktop-runner-border' || match_has_tag 'desktop-runner-plasma-suggestions');
+    die "Did not find target needle for tag(s) '@target'" if match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
 }
 
 sub _ensure_installed_zypper_fallback {
