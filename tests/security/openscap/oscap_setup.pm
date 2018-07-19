@@ -22,6 +22,7 @@ use strict;
 use testapi;
 use utils;
 use openscaptest;
+use version_utils 'is_opensuse';
 
 sub run {
 
@@ -29,6 +30,11 @@ sub run {
 
     oscap_get_test_file("oval.xml");
     oscap_get_test_file("xccdf.xml");
+
+    # xccdf.xml is for SLE, the CPE is different on openSUSE
+    if (is_opensuse) {
+        assert_script_run "sed -i 's#cpe:/o:suse#cpe:/o:opensuse#g' xccdf.xml";
+    }
 }
 
 sub test_flags {
