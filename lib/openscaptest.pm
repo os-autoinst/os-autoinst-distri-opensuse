@@ -38,6 +38,8 @@ our @EXPORT = qw(
   oscap_get_test_file
   validate_result
   ensure_generated_file
+  prepare_remediate_validation
+  finish_remediate_validation
   pre_run_hook
 );
 
@@ -57,9 +59,16 @@ sub oscap_get_test_file {
 }
 
 sub validate_result {
-    my ($result_file, $match) = @_;
+    my ($result_file, $match, $file_ext) = @_;
+    $file_ext //= 'xml';
 
-    assert_script_run "xmllint $result_file";
+    my $xml_args = '';
+
+    if ($file_ext eq 'xml' || $file_ext eq 'html') {
+        $xml_args = '--html' if $file_ext eq 'html';
+        assert_script_run "xmllint --noout $xml_args $result_file";
+    }
+
     validate_script_output "cat $result_file", sub { $match };
     upload_logs($result_file);
 }
@@ -67,8 +76,21 @@ sub validate_result {
 sub ensure_generated_file {
     my ($genfile) = @_;
 
-    my $failmsg = "Missing $genfile file. You should first to run related test accordingly to generate it";
+    my $failmsg = "Missing $genfile file. You should first to run related test accordingly";
     assert_script_run("ls $genfile", fail_message => $failmsg);
+}
+
+sub prepare_remediate_validation {
+    validate_script_output "cat /etc/securetty",         sub { m/tty[1-6]/ };
+    validate_script_output "cat /proc/sys/kernel/sysrq", sub { m/[1-9]+$/ };
+
+    assert_script_run "cp /etc/securetty /tmp/";
+    assert_script_run "cp /proc/sys/kernel/sysrq /tmp/";
+}
+
+sub finish_remediate_validation {
+    assert_script_run "mv /tmp/securetty /etc/";
+    assert_script_run "cat /tmp/sysrq > /proc/sys/kernel/sysrq";
 }
 
 sub pre_run_hook {
