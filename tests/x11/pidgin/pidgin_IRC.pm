@@ -15,12 +15,15 @@
 use base "x11test";
 use strict;
 use testapi;
-
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
     my $CHANNELNAME = "susetesting";
     x11_start_program('pidgin');
+
+    # Focus the welcome window in SLE15
+    assert_and_click("pidgin-welcome-not-focused") if is_sle('>=15');
 
     # Create account
     wait_screen_change { send_key "alt-a" };
@@ -57,13 +60,22 @@ sub run {
     send_key "alt-j";
 
     # Should open sledtesting channel
-    assert_screen 'pidgin-irc-sledtesting';
+    # we need to switch tabs on SLE15
+    if (is_sle('>=15')) {
+        assert_and_click 'pidgin-irc-sledtesting';
+    }
+    else {
+        assert_screen 'pidgin-irc-sledtesting';
+    }
 
     # Send a message
     send_key "alt-tab";
     type_string "Hello from openQA\n";
     assert_screen 'pidgin-irc-msgsent';
     wait_screen_change { send_key "ctrl-w" };
+
+    # There is another tab to close on SLE15
+    wait_screen_change { send_key "ctrl-w" } if is_sle('>=15');
 
     # Cleaning
     $self->pidgin_remove_account;
