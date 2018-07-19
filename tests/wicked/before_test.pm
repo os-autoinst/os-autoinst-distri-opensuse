@@ -13,7 +13,7 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use utils 'systemctl';
+use utils qw(zypper_call systemctl);
 use serial_terminal 'select_virtio_console';
 
 sub run {
@@ -25,6 +25,7 @@ sub run {
     systemctl("stop " . opensusebasetest::firewall);
     systemctl("disable " . opensusebasetest::firewall);
     record_info('INFO', 'Checking that network is up');
+    zypper_call('--quiet in openvpn', timeout => 200);
     systemctl('is-active network');
     systemctl('is-active wicked');
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
@@ -47,4 +48,3 @@ sub test_flags {
 }
 
 1;
-

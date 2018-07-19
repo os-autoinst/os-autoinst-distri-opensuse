@@ -60,7 +60,14 @@ sub run {
     assert_script_run("ip tunnel delete tunl1");
 
     # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
-    # Placeholder for Test 7: Create a tun interface from legacy ifcfg files
+
+    record_info('Test 7', 'Create a TUN  interface from legacy ifcfg files');
+    my $config = '/etc/sysconfig/network/ifcfg-tun1';
+    $self->get_from_data('wicked/ifcfg-tun1_ref', $config);
+    $self->get_from_data('wicked/server.conf',    '/etc/openvpn/server.conf');
+    $self->setup_tuntap($config, "tun1", 1);
+    mutex_wait('test_7_ready');
+
     # Placeholder for Test 8: Create a tun interface from Wicked XML files
     # Placeholder for Test 9: Create a tap interface from legacy ifcfg files
     # Placeholder for Test 10: Create a tap interface from Wicked XML files
