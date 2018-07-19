@@ -370,7 +370,11 @@ sub wait_boot {
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
         $self->handle_uefi_boot_disk_workaround
-          if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub && !get_var('UEFI_PFLASH_VARS'));
+          if (get_var('MACHINE') =~ /aarch64/
+            && get_var('UEFI')
+            && get_var('BOOT_HDD_IMAGE')
+            && !$in_grub
+            && !(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
