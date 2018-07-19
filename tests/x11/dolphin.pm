@@ -37,8 +37,11 @@ sub run {
     my $lastarea = $create_new->{area}->[-1];
     my $x        = int($lastarea->{x} + $lastarea->{w} / 2);
     my $y        = int($lastarea->{y} + $lastarea->{h} / 2);
-    mouse_set($x, $y);
+
+    # Workaround: In 42.3 clicking without moving doesn't open the submenu
+    mouse_set($x - 5, $y);
     mouse_click();
+    mouse_set($x, $y);
 
     assert_and_click 'dolphin_create_new_text_file';
     mouse_hide();
