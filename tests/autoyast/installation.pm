@@ -122,7 +122,8 @@ sub run {
         send_key 'ret';    # boot from hard disk
         return;
     }
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot);
+    my @needles           = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot);
+    my $expected_licenses = get_var('AUTOYAST_LICENSE');
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
     # bios-boot needle does not match if worker stalls during boot - poo#28648
@@ -138,7 +139,7 @@ sub run {
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
     }
-    elsif (get_var('AUTOYAST_LICENSE')) {
+    elsif ($expected_licenses) {
         push(@needles, 'autoyast-license');
     }
 
@@ -203,11 +204,13 @@ sub run {
         }
         elsif (match_has_tag('autoyast-license')) {
             accept_license;
+            # In SLE 12 we have BETA warning shown for each addon
+            push(@needles, 'inst-betawarning') if --$expected_licenses;
         }
         elsif (match_has_tag('inst-betawarning')) {
             wait_screen_change { send_key $cmd{ok} };
             @needles = grep { $_ ne 'inst-betawarning' } @needles;
-            push(@needles, 'autoyast-license') if (get_var('AUTOYAST_LICENSE'));
+            push(@needles, 'autoyast-license') if $expected_licenses;
             next;
         }
         elsif (match_has_tag('untrusted-ca-cert')) {
