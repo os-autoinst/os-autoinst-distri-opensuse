@@ -26,7 +26,7 @@ sub run {
 
     select_console 'root-console';
     #	add 1 entry to /etc/hosts and edit it later
-    script_run "echo '80.92.65.530    n-tv.de ntv' >> /etc/hosts";
+    script_run "echo '80.92.65.53    n-tv.de ntv' >> /etc/hosts";
     select_console 'x11', await_console => 0;
     $self->launch_yast2_module_x11('host', match_timeout => 90);
     assert_and_click "yast2_hostnames_added";
