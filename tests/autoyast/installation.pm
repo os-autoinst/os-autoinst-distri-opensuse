@@ -78,7 +78,9 @@ sub handle_expected_errors {
     my $i = $args{iteration};
     record_info('Expected error', 'Iteration = ' . $i);
     send_key "alt-s";    #stop
+    select_console 'install-shell';
     $self->save_upload_y2logs("-$stage-expected_error$i");
+    select_console 'installation';
     $i++;
     wait_screen_change { send_key 'tab' };    #continue
     wait_screen_change { send_key 'ret' };
