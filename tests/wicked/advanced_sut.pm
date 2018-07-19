@@ -15,7 +15,7 @@
 # Test 4 : Create a SIT interface from Wicked XML files [NOT IMPLEMENTED]
 # Test 5 : Create a IPIP  interface from legacy ifcfg files
 # Test 6 : Create a IPIP interface from Wicked XML files [NOT IMPLEMENTED]
-# Test 7 : Create a tun interface from legacy ifcfg files [NOT IMPLEMENTED]
+# Test 7 : Create a tun interface from legacy ifcfg files
 # Test 8 : Create a tun interface from Wicked XML files [NOT IMPLEMENTED]
 # Test 9 : Create a tap interface from legacy ifcfg files [NOT IMPLEMENTED]
 # Test 10: Create a tap interface from Wicked XML files [NOT IMPLEMENTED]
@@ -81,6 +81,7 @@ sub run {
     my %results;
     my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
 
+
     $self->before_scenario('Test 1', 'Create a gre interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-gre1';
     $self->get_from_data('wicked/ifcfg-gre1_sut', $config);
@@ -107,16 +108,25 @@ sub run {
 
     # Placeholder for Test 4: Create a SIT interface from Wicked XML files
 
-    $self->before_scenario('Test 5', 'Create a IPIP  interface from legacy ifcfg files', $iface);
+    $self->before_scenario('Test 5', 'Create a IPIP interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tunl1';
     $self->get_from_data('wicked/ifcfg-tunl1_sut', $config);
     $self->setup_tunnel($config, "tunl1");
-    $results{3} = $self->get_test_result("tunl1", "");
+    $results{5} = $self->get_test_result("tunl1", "");
     mutex_create("test_5_ready");
     $self->cleanup($config, "tunl1");
 
     # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
-    # Placeholder for Test 7: Create a tun interface from legacy ifcfg files
+
+    $self->before_scenario('Test 7', 'Create a TUN interface from legacy ifcfg files', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-tun1';
+    $self->get_from_data('wicked/ifcfg-tun1_sut', $config);
+    $self->get_from_data('wicked/client.conf',    '/etc/openvpn/client.conf');
+    $self->setup_tuntap($config, "tun1", 0);
+    $results{7} = $self->get_test_result("tun1", "");
+    mutex_create("test_7_ready");
+    $self->cleanup($config, "tun1");
+
     # Placeholder for Test 8: Create a tun interface from Wicked XML files
     # Placeholder for Test 9: Create a tap interface from legacy ifcfg files
     # Placeholder for Test 10: Create a tap interface from Wicked XML files
@@ -127,7 +137,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg-br0_sut',    $config);
     $self->get_from_data('wicked/ifcfg-dummy0_sut', $dummy);
     $self->setup_bridge($config, $dummy);
-    $results{4} = $self->get_test_result("br0", "");
+    $results{11} = $self->get_test_result("br0", "");
     mutex_create("test_11_ready");
     $self->cleanup($config, "br0");
     $self->cleanup($dummy,  "dummy0");

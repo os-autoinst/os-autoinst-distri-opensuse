@@ -46,6 +46,9 @@ sub get_ip {
     elsif ($args{type} eq 'tunl1') {
         return $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
     }
+    elsif ($args{type} eq 'tun1') {
+        return $args{is_wicked_ref} ? '192.168.2.10' : '192.168.2.11';
+    }
     elsif ($args{type} eq 'br0') {
         return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
     }
@@ -88,6 +91,17 @@ sub ping_with_timeout {
         sleep 5;
     }
     return 0;
+}
+
+sub setup_tuntap {
+    my ($self, $config, $type, $is_wicked_ref) = @_;
+    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => $is_wicked_ref,  type => $type);
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => !$is_wicked_ref, type => $type);
+    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
+    assert_script_run("cat $config");
+    assert_script_run("ifup $type");
+    assert_script_run('ip a');
 }
 
 sub before_scenario {
