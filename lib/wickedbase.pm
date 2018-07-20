@@ -46,7 +46,7 @@ sub get_ip {
     elsif ($args{type} eq 'tunl1') {
         return $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
     }
-    elsif ($args{type} eq 'tun1') {
+    elsif ($args{type} eq 'tun1' || $args{type} eq 'tap1') {
         return $args{is_wicked_ref} ? '192.168.2.10' : '192.168.2.11';
     }
     elsif ($args{type} eq 'br0') {
@@ -100,8 +100,14 @@ sub setup_tuntap {
     assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("ifup $type");
+    assert_script_run("wicked ifup --timeout infinite $type");
     assert_script_run('ip a');
+}
+
+sub cleanup {
+    my ($self, $config, $type) = @_;
+    assert_script_run("ifdown $type");
+    assert_script_run("rm $config");
 }
 
 sub before_scenario {

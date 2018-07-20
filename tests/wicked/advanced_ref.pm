@@ -32,6 +32,7 @@ sub create_tunnel_with_commands {
 
 sub run {
     my ($self) = @_;
+    my $openvpn_server = '/etc/openvpn/server.conf';
 
     record_info('Test 1', 'Create a GRE interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("gre1", "gre", "24");
@@ -61,15 +62,26 @@ sub run {
 
     # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
 
-    record_info('Test 7', 'Create a TUN  interface from legacy ifcfg files');
+    record_info('Test 7', 'Create a TUN interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
     $self->get_from_data('wicked/ifcfg-tun1_ref', $config);
-    $self->get_from_data('wicked/server.conf',    '/etc/openvpn/server.conf');
+    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    assert_script_run("sed \'s/device/tun1/\' -i $openvpn_server");
     $self->setup_tuntap($config, "tun1", 1);
     mutex_wait('test_7_ready');
+    $self->cleanup($config, "tun1");
 
     # Placeholder for Test 8: Create a tun interface from Wicked XML files
-    # Placeholder for Test 9: Create a tap interface from legacy ifcfg files
+
+    record_info('Test 9', 'Create a TAP interface from legacy ifcfg files');
+    my $config = '/etc/sysconfig/network/ifcfg-tap1';
+    $self->get_from_data('wicked/ifcfg-tap1_ref', $config);
+    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    assert_script_run("sed \'s/device/tap1/\' -i $openvpn_server");
+    $self->setup_tuntap($config, "tap1", 1);
+    mutex_wait('test_9_ready');
+    $self->cleanup($config, "tap1");
+
     # Placeholder for Test 10: Create a tap interface from Wicked XML files
 
     record_info('Test 11', 'Create Bridge interface from legacy ifcfg files');
