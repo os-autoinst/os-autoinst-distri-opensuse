@@ -55,8 +55,7 @@ sub setup_tunnel {
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("sed \'s/tunnel_ip/$tunnel_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("ifup $type");
-    sleep 5;
+    assert_script_run("wicked ifup --timeout infinite $type");
     assert_script_run('ip a');
 }
 
@@ -66,9 +65,8 @@ sub setup_bridge {
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
     assert_script_run("cat $dummy");
-    assert_script_run("ifup br0");
-    assert_script_run("ifup dummy0");
-    sleep 5;
+    assert_script_run("wicked ifup --timeout infinite br0");
+    assert_script_run("wicked ifup --timeout infinite dummy0");
     assert_script_run('ip a');
 }
 
