@@ -20,15 +20,6 @@ use version_utils "is_sle";
 sub run {
     select_console "root-console";
 
-    my $version     = get_required_var("VERSION");
-    my $SCC_REGCODE = get_required_var("SCC_REGCODE");
-
-    if (script_run("SUSEConnect --status-text") != 0) {
-        assert_script_run("SUSEConnect --cleanup");
-        assert_script_run("SUSEConnect -r $SCC_REGCODE");
-        add_suseconnect_product("sle-module-containers", substr($version, 0, 2));
-    }
-
     my $image_name;
     if (is_sle("=12-SP3")) {
         $image_name = "registry.suse.de/suse/sle-12-sp3/update/products/casp30/container/sles12:sp3";
@@ -38,6 +29,15 @@ sub run {
     }
     else {
         die("This test only works at SLE12SP3 and SLE15.");
+    }
+
+    my $version     = get_required_var("VERSION");
+    my $SCC_REGCODE = get_required_var("SCC_REGCODE");
+
+    if (script_run("SUSEConnect --status-text") != 0) {
+        assert_script_run("SUSEConnect --cleanup");
+        assert_script_run("SUSEConnect -r $SCC_REGCODE");
+        add_suseconnect_product("sle-module-containers", substr($version, 0, 2));
     }
 
     # Allow our internal 'insecure' registry
