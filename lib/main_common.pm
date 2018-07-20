@@ -1869,11 +1869,16 @@ sub load_toolchain_tests {
     loadtest "console/kdump_and_crash" if is_sle && kdump_is_applicable;
 }
 
+sub load_publiccloud_tests {
+    loadtest "publiccloud/ipa";
+}
+
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
+    load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
 }
 
 sub load_ssh_key_import_tests {
