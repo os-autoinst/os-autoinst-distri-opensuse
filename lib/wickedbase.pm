@@ -100,8 +100,7 @@ sub setup_tuntap {
     assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("ifup $type");
-    sleep 5;
+    assert_script_run("wicked ifup --timeout infinite $type");
     assert_script_run('ip a');
 }
 
