@@ -81,10 +81,6 @@ sub run {
       = script_output("aws ec2 run-instances --image-id $ami_id --instance-type t2.large --key-name QA_SSH_KEY --security-group-ids qa_secgroup")
       =~ /"InstanceId":\s*"([^"]+)"/;
 
-    # download latest IPA tests
-    #    assert_script_run("git clone -q --depth 1 https://github.com/SUSE/ipa.git ipa_repo");
-    #    assert_script_run("ln -s ipa_repo/usr/share/lib/ipa ipa");
-
     # Create some folders, ipa will need them
     assert_script_run("mkdir -p ~/ipa/tests/");
     assert_script_run("mkdir -p .config/ipa");
@@ -99,7 +95,6 @@ sub run {
           . get_required_var('PUBLIC_CLOUD_KEY_SECRET') . "' "
           . "-D 'IPA test $ami_id' "
           . "--distro sles "
-          # . "--early-exit "
           . "-R '$instance_id' "
           . "--region 'eu-central-1' "
           . "-u ec2-user "
