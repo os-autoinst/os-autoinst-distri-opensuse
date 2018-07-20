@@ -33,7 +33,7 @@ sub save_logs {
     my $output = script_output("find ipa_results -type f");
     for my $file (split(/\n/, $output)) {
         if ($file =~ m'ipa_results/ec2/ami-[0-9a-z]+/i-[0-9a-z]+/[0-9]{14}\.(log|results)') {
-            upload_logs($file);
+            upload_logs($file, failok => 1);
         }
     }
 }
