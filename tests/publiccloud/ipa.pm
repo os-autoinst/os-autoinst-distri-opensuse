@@ -29,6 +29,18 @@ sub find_secgroup {
     return;
 }
 
+sub create_secgroup {
+    my ($name) = @_;
+
+    my $secgroup_id = find_secgroup($name);
+    return $secgroup_id if (defined($secgroup_id));
+
+    assert_script_run("aws ec2 create-security-group --group-name '$name' --description 'SSH_OPEN'");
+    assert_script_run("aws ec2 authorize-security-group-ingress --group-name '$name' --protocol tcp --port 22 --cidr 0.0.0.0/0");
+    assert_script_run("aws ec2 authorize-security-group-ingress --group-name '$name' --protocol icmp --cidr 0.0.0.0/0 --port 0 ");
+    return find_secgroup($name);
+}
+
 sub save_logs {
     my $output = script_output("find ipa_results -type f");
     for my $file (split(/\n/, $output)) {
@@ -64,21 +76,14 @@ sub run {
     assert_script_run("aws ec2 delete-key-pair --key-name QA_SSH_KEY");
     assert_script_run("aws ec2 create-key-pair --key-name QA_SSH_KEY --query 'KeyMaterial' --output text > QA_SSH_KEY.pem");
 
-    # Create/find security group
-    my $secgroup_id = find_secgroup("qa_secgroup");
-    if (!defined($secgroup_id)) {
-        assert_script_run("aws ec2 create-security-group --group-name qa_secgroup --description 'SSH_OPEN'");
-        assert_script_run("aws ec2 authorize-security-group-ingress --group-name qa_secgroup --protocol tcp --port 22 --cidr 0.0.0.0/0");
-        assert_script_run("aws ec2 authorize-security-group-ingress --group-name qa_secgroup --protocol icmp --cidr 0.0.0.0/0 --port 0 ");
-        $secgroup_id = find_secgroup("qa_secgroup");
-        die "Failed on creating security group " unless $secgroup_id;
-    }
-
-    my $ami_id = get_required_var("PUBLIC_CLOUD_IMAGE_ID");
+    # Create security group
+    my $secgroup_id = create_secgroup("qa_secgroup");
+    die "Failed on creating security group" unless $secgroup_id;
 
     #Prestart instance, cause IPA might use the wrong security group
+    my $ami_id = get_required_var("PUBLIC_CLOUD_IMAGE_ID");
     my ($instance_id)
-      = script_output("aws ec2 run-instances --image-id $ami_id --instance-type t2.large --key-name QA_SSH_KEY --security-group-ids qa_secgroup")
+      = script_output("aws ec2 run-instances --image-id $ami_id --instance-type t2.large --key-name QA_SSH_KEY --security-group-ids '$secgroup_id'")
       =~ /"InstanceId":\s*"([^"]+)"/;
 
     # Create some folders, ipa will need them
