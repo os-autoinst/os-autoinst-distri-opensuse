@@ -1,0 +1,40 @@
+<interface>
+  <name>br0</name>
+
+  <bridge>
+    <stp>true</stp>
+    <forward-delay>15</forward-delay>
+    <ports>
+      <port>
+        <device>eth0</device>
+      </port>
+      <port>
+        <device>dummy0</device>
+      </port>
+    </ports>
+  </bridge>
+
+  <ipv4:static>
+    <address>
+      <local>ip_address/15</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:c0de:ba5e:100::200/48</local>
+    </address>
+  </ipv6:static>
+</interface>
+
+<interface>
+  <name>eth0</name>
+</interface>
+
+<interface>
+  <name>dummy0</name>
+
+  <dummy>
+    <address>42:41:40:3F:3E:3D</address>
+  </dummy>
+</interface>

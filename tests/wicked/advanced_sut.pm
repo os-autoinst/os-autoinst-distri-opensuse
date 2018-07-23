@@ -64,9 +64,11 @@ sub setup_bridge {
     my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("cat $dummy");
     assert_script_run("wicked ifup --timeout infinite br0");
-    assert_script_run("wicked ifup --timeout infinite dummy0");
+    if ($dummy ne '') {
+        assert_script_run("cat $dummy");
+        assert_script_run("wicked ifup --timeout infinite dummy0");
+    }
     assert_script_run('ip a');
 }
 
@@ -184,7 +186,16 @@ sub run {
     $self->cleanup($config, "br0");
     $self->cleanup($dummy,  "dummy0");
 
-    # Placeholder for Test 12: Create a Bridge interface from Wicked XML files
+    $self->before_scenario('Test 12', 'Create Bridge interface from Wicked XM files', $iface);
+    $config = '/etc/wicked/ifconfig/bridge.xml';
+    $self->get_from_data('wicked/bridge.xml', $config);
+    assert_script_run("ifdown eth0");
+    assert_script_run("rm /etc/sysconfig/network/ifcfg-eth0");
+    $self->setup_bridge($config, '');
+    $results{12} = $self->get_test_result("br0", "");
+    mutex_create("test_12_ready");
+    $self->cleanup($config, "br0");
+
     # Placeholder for Test 13: Create a team interface from legacy ifcfg files
     # Placeholder for Test 14: Create a team interface from Wicked XML files
 

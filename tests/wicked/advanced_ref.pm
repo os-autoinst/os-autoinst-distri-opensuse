@@ -111,7 +111,11 @@ sub run {
     #       the IP of eth0 already configured.
     mutex_wait('test_11_ready');
 
-    # Placeholder for Test 12: Create a Bridge interface from Wicked XML files
+    record_info('Test 12', 'Create Bridge interface from Wicked XML files');
+    # Note: No need to create a bridge interface, as the SUT will ping
+    #       the IP of eth0 already configured.
+    mutex_wait('test_12_ready');
+
     # Placeholder for Test 13: Create a team interface from legacy ifcfg files
     # Placeholder for Test 14: Create a team interface from Wicked XML files
 }
