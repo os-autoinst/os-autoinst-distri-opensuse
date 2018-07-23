@@ -161,7 +161,17 @@ sub run {
     mutex_create("test_9_ready");
     $self->cleanup($config, "tap1");
 
-    # Placeholder for Test 10: Create a tap interface from Wicked XML files
+    $self->before_scenario('Test 10', 'Create a TAP interface from Wicked XM files', $iface);
+    $config = '/etc/wicked/ifconfig/tap.xml';
+    $self->get_from_data('wicked/tap.xml',     $config);
+    $self->get_from_data('wicked/client.conf', $openvpn_client);
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
+    assert_script_run("sed \'s/device/tap1/\' -i $openvpn_client");
+    $self->setup_tuntap($config, "tap1", 0);
+    $results{10} = $self->get_test_result("tap1", "");
+    mutex_create("test_10_ready");
+    $self->cleanup($config, "tap1");
 
     $self->before_scenario('Test 11', 'Create Bridge interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-br0';

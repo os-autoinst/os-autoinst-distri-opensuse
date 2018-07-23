@@ -97,7 +97,14 @@ sub run {
     mutex_wait('test_9_ready');
     $self->cleanup($config, "tap1");
 
-    # Placeholder for Test 10: Create a tap interface from Wicked XML files
+    record_info('Test 10', 'Create a TAP interface from Wicked XML files');
+    my $config = '/etc/sysconfig/network/ifcfg-tap1';
+    $self->get_from_data('wicked/ifcfg-tap1_ref', $config);
+    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    assert_script_run("sed \'s/device/tap1/\' -i $openvpn_server");
+    $self->setup_tuntap($config, "tap1", 1);
+    mutex_wait('test_10_ready');
+    $self->cleanup($config, "tap1");
 
     record_info('Test 11', 'Create Bridge interface from legacy ifcfg files');
     # Note: No need to create a bridge interface, as the SUT will ping
