@@ -1,0 +1,15 @@
+<interface>
+  <name>sit1</name>
+  <description>SIT tunnel interface</description>
+
+  <sit>
+    <local-address>local_ip</local-address>
+    <remote-address>remote_ip</remote-address>
+  </sit>
+
+  <ipv6:static>
+    <address>
+      <local>tunnel_ip/127</local>
+    </address>
+  </ipv6:static>
+</interface>

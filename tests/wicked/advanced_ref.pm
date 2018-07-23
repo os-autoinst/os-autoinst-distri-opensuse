@@ -52,7 +52,11 @@ sub run {
     assert_script_run("ip addr flush dev sit1");
     assert_script_run("ip tunnel delete sit1");
 
-    # Placeholder for Test 4: Create a SIT interface from Wicked XML files
+    record_info('Test 4', 'Create a SIT interface from from Wicked XML files');
+    $self->create_tunnel_with_commands("sit1", "sit", "127");
+    mutex_wait('test_4_ready');
+    assert_script_run("ip addr flush dev sit1");
+    assert_script_run("ip tunnel delete sit1");
 
     record_info('Test 5', 'Create a IPIP  interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("tunl1", "ipip", "24");
