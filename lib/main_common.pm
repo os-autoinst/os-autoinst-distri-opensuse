@@ -742,9 +742,13 @@ sub load_common_installation_steps_tests {
 }
 
 sub load_inst_tests {
+    # On SLE 15 dud addon screen is shown before product selection
+    if (get_var('DUD_ADDONS') && is_sle('15+')) {
+        loadtest "installation/dud_addon";
+    }
     loadtest "installation/welcome";
     loadtest "installation/keyboard_selection";
-    if (get_var('DUD_ADDONS')) {
+    if (get_var('DUD_ADDONS') && is_sle('<15')) {
         loadtest "installation/dud_addon";
     }
     if (is_sle '15+') {

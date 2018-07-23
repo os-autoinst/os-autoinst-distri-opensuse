@@ -390,6 +390,10 @@ if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('
     set_var('SCC_ADDONS',   'hpcm,wsm');
     set_var('SCC_REGISTER', 'installation');
 }
+# We have different dud files for SLE 12 and SLE 15
+if (check_var('DUD_ADDONS', 'sdk') && !get_var('DUD')) {
+    set_var('DUD', is_sle('15+') ? 'dev_tools.dud' : 'sdk.dud');
+}
 
 $needle::cleanuphandler = \&cleanup_needles;
 
