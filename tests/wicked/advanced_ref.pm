@@ -79,7 +79,14 @@ sub run {
     mutex_wait('test_7_ready');
     $self->cleanup($config, "tun1");
 
-    # Placeholder for Test 8: Create a tun interface from Wicked XML files
+    record_info('Test 8', 'Create a TUN interface from Wicked XML files');
+    my $config = '/etc/sysconfig/network/ifcfg-tun1';
+    $self->get_from_data('wicked/ifcfg-tun1_ref', $config);
+    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    assert_script_run("sed \'s/device/tun1/\' -i $openvpn_server");
+    $self->setup_tuntap($config, "tun1", 1);
+    mutex_wait('test_8_ready');
+    $self->cleanup($config, "tun1");
 
     record_info('Test 9', 'Create a TAP interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-tap1';
