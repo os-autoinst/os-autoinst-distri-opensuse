@@ -58,13 +58,17 @@ sub run {
     assert_script_run("ip addr flush dev sit1");
     assert_script_run("ip tunnel delete sit1");
 
-    record_info('Test 5', 'Create a IPIP  interface from legacy ifcfg files');
+    record_info('Test 5', 'Create a IPIP interface from legacy ifcfg files');
     $self->create_tunnel_with_commands("tunl1", "ipip", "24");
     mutex_wait('test_5_ready');
     assert_script_run("ip addr flush dev tunl1");
     assert_script_run("ip tunnel delete tunl1");
 
-    # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
+    record_info('Test 6', 'Create a IPIP interface from Wicked XML files');
+    $self->create_tunnel_with_commands("tunl1", "ipip", "24");
+    mutex_wait('test_6_ready');
+    assert_script_run("ip addr flush dev tunl1");
+    assert_script_run("ip tunnel delete tunl1");
 
     record_info('Test 7', 'Create a TUN interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-tun1';

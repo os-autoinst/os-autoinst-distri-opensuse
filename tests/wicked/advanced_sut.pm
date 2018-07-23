@@ -14,7 +14,7 @@
 # Test 3 : Create a SIT interface from legacy ifcfg files
 # Test 4 : Create a SIT interface from Wicked XML files
 # Test 5 : Create a IPIP  interface from legacy ifcfg files
-# Test 6 : Create a IPIP interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 6 : Create a IPIP interface from Wicked XML files
 # Test 7 : Create a tun interface from legacy ifcfg files
 # Test 8 : Create a tun interface from Wicked XML files [NOT IMPLEMENTED]
 # Test 9 : Create a tap interface from legacy ifcfg files
@@ -117,7 +117,13 @@ sub run {
     mutex_create("test_5_ready");
     $self->cleanup($config, "tunl1");
 
-    # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
+    $self->before_scenario('Test 6', 'Create a IPIP interface from wicked XML files', $iface);
+    $config = '/etc/wicked/ifconfig/ipip.xml';
+    $self->get_from_data('wicked/ipip.xml', $config);
+    $self->setup_tunnel($config, "tunl1");
+    $results{6} = $self->get_test_result("tunl1", "");
+    mutex_create("test_6_ready");
+    $self->cleanup($config, "tunl1");
 
     $self->before_scenario('Test 7', 'Create a TUN interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tun1';
