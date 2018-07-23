@@ -38,7 +38,7 @@ sub run {
         idref="rule_misc_sysrq"\s+selected="true".*
         <Rule\s+id="no_direct_root_logins"\s+selected="false".*
         <Rule\s+id="rule_misc_sysrq"\s+selected="false".*
-        <TestResult.*<platform.*cpe:\/o:suse.*
+        <TestResult.*<platform.*cpe:\/o:(open)?suse.*
         <rule-result.*idref="no_direct_root_logins".*<result.*fail.*
         <rule-result.*idref="rule_misc_sysrq".*<result.*fail.*
         <score\s+system="urn:xccdf:scoring:default".*
@@ -55,7 +55,7 @@ sub run {
         idref="rule_misc_sysrq"\s+selected="true".*
         <Rule\s+id="no_direct_root_logins"\s+selected="false".*
         <Rule\s+id="rule_misc_sysrq"\s+selected="false".*
-        <TestResult.*<platform.*cpe:\/o:suse.*
+        <TestResult.*<platform.*cpe:\/o:(open)?suse.*
         <rule-result.*idref="no_direct_root_logins".*<result.*fail.*
         <rule-result.*idref="rule_misc_sysrq".*<result.*notselected.*
         <score\s+system="urn:xccdf:scoring:default".*

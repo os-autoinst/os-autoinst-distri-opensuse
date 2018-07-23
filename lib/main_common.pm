@@ -1796,6 +1796,8 @@ sub load_security_tests_openscap {
     loadtest "security/openscap/oscap_xccdf_scanning";
     loadtest "security/openscap/oscap_source_datastream";
     loadtest "security/openscap/oscap_result_datastream";
+    loadtest "security/openscap/oscap_remediating_online";
+    loadtest "security/openscap/oscap_remediating_offline";
 }
 
 sub load_systemd_patches_tests {
