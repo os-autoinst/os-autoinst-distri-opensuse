@@ -22,8 +22,7 @@ sub run {
         my $num_nodes = get_var('NODE_COUNT');
         barrier_create('salt_master_ready',      $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
-        my $ses_version_specific_packages = is_sle('<15') ? 'openattic' : '';
-        zypper_call "in $ses_version_specific_packages";
+        zypper_call 'in openattic' if is_sle('<15');
         assert_script_run 'echo "deepsea_minions: \'*\'" > /srv/pillar/ceph/deepsea_minions.sls';
         systemctl 'start salt-master';
         systemctl 'enable salt-master';
