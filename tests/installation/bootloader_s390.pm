@@ -303,7 +303,7 @@ sub run {
     # activate console so we can call wait_serial later
     my $c = select_console('iucvconn', await_console => 0);
 
-    # format DAST before installation by default
+    # format DASD before installation by default
     format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
     create_encrypted_part if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
@@ -311,7 +311,7 @@ sub run {
 
     # We have textmode installation via ssh and the default vnc installation so far
     if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-        type_string("TERM=linux yast.ssh\n") && record_soft_failure('bsc#1054448');
+        type_string("yast.ssh\n");
     }
     wait_still_screen;
 
