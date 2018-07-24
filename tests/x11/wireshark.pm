@@ -56,7 +56,7 @@ sub run {
     assert_and_click "wireshark-help";
     assert_and_click "about-wireshark";
     assert_screen [qw(wireshark-gui-qt wireshark-gui-gtk)];
-    my $wireshark_gui_version = match_has_tag "wireshark-gui-qt" ? "qt" : "gtk";
+    my $wireshark_gui_version = match_has_tag("wireshark-gui-qt") ? "qt" : "gtk";
     assert_and_click "wireshark-about-ok";
 
     # check GUI/file set
@@ -111,7 +111,10 @@ sub run {
     assert_screen "wireshark-capturing";
 
     # set filter
-    send_key "ctrl-/" if $wireshark_gui_version eq "qt";
+    if ($wireshark_gui_version eq "qt") {
+        wait_still_screen 1;
+        send_key "ctrl-/";
+    }
     assert_screen "wireshark-filter-selected";
     type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
     assert_screen "wireshark-filter-applied";
