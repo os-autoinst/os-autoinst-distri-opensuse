@@ -1802,6 +1802,7 @@ sub load_security_tests_openscap {
     loadtest "security/openscap/oscap_result_datastream";
     loadtest "security/openscap/oscap_remediating_online";
     loadtest "security/openscap/oscap_remediating_offline";
+    loadtest "security/openscap/oscap_generating_report";
 }
 
 sub load_systemd_patches_tests {
