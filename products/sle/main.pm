@@ -649,7 +649,7 @@ sub load_patching_tests {
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
         # Always boot from installer DVD in upgrade test
         set_var('BOOTFROM', 'd');
-        loadtest "migration/version_switch_origin_system";
+        loadtest "migration/version_switch_origin_system" if (!get_var('ONLINE_MIGRATION'));
     }
     set_var('BOOT_HDD_IMAGE', 1);
     boot_hdd_image;
