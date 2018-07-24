@@ -1,6 +1,6 @@
 STARTMODE='manual'
 BOOTPROTO='static'
-TUNNEL='tun'
+TUNNEL='tap'
 TUNNEL_SET_OWNER='root'
 TUNNEL_SET_GROUP='root'
 LINK_REQUIRED=no
