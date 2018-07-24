@@ -303,7 +303,7 @@ sub run {
     # activate console so we can call wait_serial later
     my $c = select_console('iucvconn', await_console => 0);
 
-    # format DAST before installation by default
+    # format DASD before installation by default
     format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
     create_encrypted_part if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
