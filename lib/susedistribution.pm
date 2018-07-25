@@ -122,6 +122,7 @@ sub init_cmd {
 
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
+    $timeout //= 30;
 
     send_key(check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2');
 
