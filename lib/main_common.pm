@@ -114,6 +114,7 @@ our @EXPORT = qw(
   replace_opensuse_repos_tests
   load_ssh_key_import_tests
   load_jeos_tests
+  load_shutdown_tests
 );
 
 sub init_main {
@@ -324,6 +325,11 @@ sub default_desktop {
 
 sub uses_qa_net_hardware {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
+}
+
+sub load_shutdown_tests {
+    loadtest("shutdown/cleanup_before_shutdown");
+    loadtest "shutdown/shutdown";
 }
 
 sub load_svirt_boot_tests {
@@ -1302,7 +1308,7 @@ sub load_x11tests {
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
-        loadtest "x11/shutdown";
+        load_shutdown_tests;
     }
 }
 
@@ -1601,7 +1607,7 @@ sub load_x11_installation {
     loadtest "console/hostname"              unless is_bridged_networking;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
-    loadtest "shutdown/shutdown";
+    load_shutdown_tests;
 }
 
 sub load_x11_documentation {
@@ -1824,7 +1830,7 @@ sub load_create_hdd_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
-    loadtest 'shutdown/shutdown';
+    load_shutdown_tests;
     if (check_var('BACKEND', 'svirt')) {
         if (is_hyperv) {
             loadtest 'shutdown/hyperv_upload_assets';

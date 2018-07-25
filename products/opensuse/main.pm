@@ -207,7 +207,7 @@ sub load_otherDE_tests {
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
         if ($de =~ /^mate$/)          { load_mate_tests(); }
         if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
-        loadtest "x11/shutdown";
+        load_shutdown_tests;
         return 1;
     }
     return 0;
@@ -238,12 +238,12 @@ sub install_online_updates {
       console/zypper_add_repos
       update/zypper_up
       console/console_reboot
-      shutdown/shutdown
     );
 
     for my $test (@tests) {
         loadtest "$test";
     }
+    load_shutdown_tests;
 
     return 1;
 }
