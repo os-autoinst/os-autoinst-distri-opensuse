@@ -3166,6 +3166,7 @@
                       version  => "*",
                     },
                     {
+                      description => "force SCC_REGISTER to avoid registration.",
                       arch     => "ppc64le",
                       distri   => "sle",
                       flavor   => "Server-DVD",
@@ -3173,6 +3174,7 @@
                                     { key => "DVD", value => 1 },
                                     { key => "ISO_MAXSIZE", value => 4700372992 },
                                     { key => "NOIMAGES", value => 1 },
+                                    { key => "SCC_REGISTER", value => "never" },
                                   ],
                       version  => "*",
                     },
