@@ -126,13 +126,9 @@ sub prepare_source_repo {
         elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
             $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
         }
-        # use dvd2 as the src-repository
-        # Xen PV has different device for 2nd CDROM
-        elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
-            $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
-        }
         else {
-            $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
+            record_info('No repo', 'Missing source repository');
+            die('Missing source repository');
         }
     }
     # source repository is disabled by default
