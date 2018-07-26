@@ -119,6 +119,9 @@ sub run {
     assert_script_run("touch .config/ipa/config");
     assert_script_run("ipa list");
 
+    my $ipa_tests = get_required_var('PUBLIC_CLOUD_IPA_TESTS');
+    $ipa_tests =~ s/,/ /g;
+
     assert_script_run(
         "ipa test ec2 "
           . "--access-key-id '"
@@ -133,9 +136,7 @@ sub run {
           . "--ssh-private-key QA_SSH_KEY.pem "
           . "--ssh-key-name '" . $ssh_key_name . "' "
           . "--results-dir ipa_results "
-          . "test_sles "
-          . "test_sles_ec2 "
-          . "test_sles_on_demand ",
+          . $ipa_tests,
         timeout => 600
     );
     delete $self->{'ipa_instance_id'};
