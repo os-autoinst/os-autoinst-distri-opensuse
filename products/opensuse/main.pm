@@ -390,7 +390,7 @@ elsif (get_var('DOCKER_IMAGE_TEST')) {
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
         load_boot_tests();
-        loadtest "boot/boot_to_desktop";
+        loadtest "installation/finish_desktop";
         if (get_var('LIVE_INSTALLATION')) {
             loadtest "installation/live_installation";
             load_inst_tests();
