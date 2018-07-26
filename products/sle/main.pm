@@ -659,7 +659,6 @@ sub load_patching_tests {
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
         }
-        loadtest 'migration/remove_ltss';
         loadtest 'migration/record_disk_info';
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
@@ -1099,7 +1098,6 @@ else {
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
         loadtest 'update/patch_sle';
-        loadtest 'migration/remove_ltss';
         loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;
