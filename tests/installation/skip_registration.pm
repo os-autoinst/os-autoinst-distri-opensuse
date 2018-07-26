@@ -49,6 +49,7 @@ sub run {
         );
     }
     skip_registration;
+    wait_still_screen;
 }
 
 1;
