@@ -2723,6 +2723,19 @@
                       },
                       test_suite => { name => "install_gnome" }
                     },
+                    {
+                      group_name => "SLES 15 PowerPC",
+                      machine => { name => "ppc64le" },
+                      prio => 50,
+                      product => {
+                        arch    => "ppc64le",
+                        distri  => "sle",
+                        flavor  => "Server-DVD",
+                        group   => "sle-15-Server-DVD",
+                        version => "15.0",
+                      },
+                      test_suite => { name => "install_textmode" }
+                    },
                   ],
   Machines     => [
                     {
@@ -3178,6 +3191,19 @@
                                   ],
                       version  => "*",
                     },
+                    {
+                      description => "force SCC_REGISTER to avoid registration.",
+                      arch     => "ppc64le",
+                      distri   => "sle",
+                      flavor   => "Server-DVD",
+                      settings => [
+                                    { key => "DVD", value => 1 },
+                                    { key => "ISO_MAXSIZE", value => 4700372992 },
+                                    { key => "NOIMAGES", value => 1 },
+                                    { key => "SCC_REGISTER", value => "never" },
+                                  ],
+                      version  => "15.0",
+                    },
                   ],
   TestSuites   => [
                     {
@@ -3367,6 +3393,14 @@
                       name => "install_gnome",
                       settings => [
                         { key => "DESKTOP", value => "gnome" },
+                        { key => "INSTALLONLY", value => 1 },
+                      ],
+                    },
+                    {
+                      description => "set target DESKTOP as textmode but do not set VIDEOMODE as such to keep installation as GUI.",
+                      name => "install_textmode",
+                      settings => [
+                        { key => "DESKTOP", value => "textmode" },
                         { key => "INSTALLONLY", value => 1 },
                       ],
                     },
