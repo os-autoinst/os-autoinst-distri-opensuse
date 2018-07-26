@@ -76,6 +76,7 @@ sub run {
     if (match_has_tag('displaymanager')) {
         record_soft_failure 'boo#1102563';
         handle_login;
+        assert_screen 'generic-desktop';
     }
     if (match_has_tag('kde-greeter')) {
         send_key "esc";
