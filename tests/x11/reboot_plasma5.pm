@@ -20,7 +20,7 @@ sub run {
     my ($self) = @_;
     send_key "ctrl-alt-delete";    # reboot
     assert_and_click 'sddm_reboot_option_btn';
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 300);
     # Ensure the desktop runner is reactive again before going into other test
     # modules
     # https://progress.opensuse.org/issues/30805
