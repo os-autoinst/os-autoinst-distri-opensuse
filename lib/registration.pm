@@ -431,7 +431,6 @@ sub fill_in_registration_data {
                 assert_screen 'yast-scc-emptypkg';
                 send_key 'alt-a';
             }
-            accept_addons_license('ha') if (check_var('SLE_PRODUCT', 'sles4sap'));
         }
     }
     else {
