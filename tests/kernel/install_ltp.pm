@@ -299,6 +299,9 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
+    script_run("dmesg > /tmp/dmesg.txt");
+    upload_logs("/tmp/dmesg.txt", failok => 1);
+
     # bsc#1024050
     script_run('pkill pidstat');
     upload_logs('/tmp/pidstat.txt', failok => 1);

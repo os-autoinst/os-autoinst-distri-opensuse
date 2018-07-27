@@ -39,6 +39,9 @@ sub run {
         upload_logs($ver_linux_log, failok => 1);
     }
 
+    script_run("dmesg > /tmp/dmesg.txt");
+    upload_logs("/tmp/dmesg.txt", failok => 1);
+
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     script_run('journalctl --no-pager -p warning');
     power_action('poweroff');
