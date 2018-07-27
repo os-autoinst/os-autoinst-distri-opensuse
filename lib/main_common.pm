@@ -252,7 +252,9 @@ sub is_kernel_test {
 }
 
 sub replace_opensuse_repos_tests {
+    return if get_var('CLEAR_REPOS');
     loadtest "update/zypper_clear_repos";
+    set_var('CLEAR_REPOS', 1);
     loadtest "console/zypper_ar";
     loadtest "console/zypper_ref";
 }
@@ -273,6 +275,7 @@ sub is_repo_replacement_required {
       && !is_staging()                    # Do not have mirrored repos on staging
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
       && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
+      && !get_var('ZYPPER_ADD_REPOS')     # Skip if manual repos are specified
       && !get_var('OFFLINE_SUT');         # Do not run if SUT is offine
 }
 
@@ -613,7 +616,7 @@ sub installwithaddonrepos_is_applicable {
 }
 
 sub need_clear_repos {
-    return (is_opensuse && is_staging()) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
+    return (is_opensuse && !is_updates_tests) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
 }
 
 sub have_scc_repos {
@@ -1938,8 +1941,13 @@ sub load_system_update_tests {
 
     return if get_var('SYSTEM_UPDATED');
     if (need_clear_repos() && !get_var('CLEAR_REPOS')) {
-        loadtest "update/zypper_clear_repos";
-        set_var('CLEAR_REPOS', 1);
+        if (is_repo_replacement_required()) {
+            replace_opensuse_repos_tests;
+        }
+        else {
+            loadtest "update/zypper_clear_repos";
+            set_var('CLEAR_REPOS', 1);
+        }
     }
     loadtest "console/zypper_add_repos" if get_var('ZYPPER_ADD_REPOS');
     return unless updates_is_applicable();
