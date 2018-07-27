@@ -897,8 +897,14 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var("XFSTESTS")) {
+    #Workaround bsc#1101787
+    if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP4')) {
+        set_var('NO_KDUMP', 1);
+    }
     loadtest "boot/boot_to_desktop";
-    loadtest "xfstests/enable_kdump";
+    unless (get_var('NO_KDUMP')) {
+        loadtest "xfstests/enable_kdump";
+    }
     loadtest "xfstests/install";
     loadtest "xfstests/partition";
     loadtest "xfstests/run";

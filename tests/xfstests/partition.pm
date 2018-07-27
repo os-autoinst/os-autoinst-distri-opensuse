@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Create partitions for xfstests
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package partition;
 
 use 5.018;

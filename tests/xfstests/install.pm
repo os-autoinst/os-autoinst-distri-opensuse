@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Install xfstests
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package install;
 
 use 5.018;

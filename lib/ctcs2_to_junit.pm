@@ -99,12 +99,20 @@ sub generateXML {
             name      => $test,
             status    => $case_status,
             time      => $test_results{$test}->{time});
-        $writer->startTag('system-err');
-        $writer->characters("");
-        $writer->endTag('system-err');
-        $writer->startTag('system-out');
-        $writer->characters("");
-        $writer->endTag('system-out');
+        if ($case_status eq 'failure' || $case_status eq 'skipped') {
+            (my $test_path = $test) =~ s/-/\//;
+            $test_path = '/opt/log/' . $test_path;
+            my $test_out_content = script_output("cat $test_path\n", 600);
+            $writer->startTag('system-out');
+            $writer->characters($test_out_content);
+            $writer->endTag('system-out');
+            if ($case_status eq 'failure') {
+                my $test_err_content = script_output("echo '====out.bad log====\n';\ncat $test_path" . ".out.bad;\necho '\n====full log====\n';\ncat  $test_path" . ".full", 600);
+                $writer->startTag('system-err');
+                $writer->characters($test_err_content);
+                $writer->endTag('system-err');
+            }
+        }
         $writer->endTag('testcase');
     }
 
