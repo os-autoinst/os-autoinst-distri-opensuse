@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Run tests
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package run;
 
 use 5.018;
@@ -277,11 +277,13 @@ sub run {
 
         sleep(1);
         select_console('root-console');
-        # Save kdump data to KDUMP_DIR
-        unless (save_kdump($test, $KDUMP_DIR)) {
-            # If no kdump data found, write warning to log
-            my $msg = "Warning: $test crashed SUT but has no kdump data";
-            script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
+        unless (get_var('NO_KDUMP')) {
+            unless (save_kdump($test, $KDUMP_DIR)) {
+                # If no kdump data found, write warning to log
+                my $msg = "Warning: $test crashed SUT but has no kdump data";
+                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+            }
         }
 
         # Add test status to STATUS_LOG file

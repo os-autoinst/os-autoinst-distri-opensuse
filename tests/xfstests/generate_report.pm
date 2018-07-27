@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Upload logs and generate junit report
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package generate_report;
 
 use strict;
@@ -54,8 +54,10 @@ sub run {
     # Upload test logs
     upload_subdirs($LOG_DIR, 1200);
 
-    # Upload kdump logs
-    upload_subdirs($KDUMP_DIR, 1200);
+    # Upload kdump logs if not set "NO_KDUMP"
+    unless (get_var('NO_KDUMP')) {
+        upload_subdirs($KDUMP_DIR, 1200);
+    }
 
     # Junit xml report
     my $script_output = script_output("cat $STATUS_LOG", 600);

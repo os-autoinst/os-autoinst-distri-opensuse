@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Enable kdump and verify it's enabled
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package enable_kdump;
 
 use strict;
