@@ -12,11 +12,11 @@
 # Test 1 : Create a GRE interface from legacy ifcfg files
 # Test 2 : Create a GRE interface from wicked XML files
 # Test 3 : Create a SIT interface from legacy ifcfg files
-# Test 4 : Create a SIT interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 4 : Create a SIT interface from Wicked XML files
 # Test 5 : Create a IPIP  interface from legacy ifcfg files
-# Test 6 : Create a IPIP interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 6 : Create a IPIP interface from Wicked XML files
 # Test 7 : Create a tun interface from legacy ifcfg files
-# Test 8 : Create a tun interface from Wicked XML files [NOT IMPLEMENTED]
+# Test 8 : Create a tun interface from Wicked XML files
 # Test 9 : Create a tap interface from legacy ifcfg files
 # Test 10: Create a tap interface from Wicked XML files [NOT IMPLEMENTED]
 # Test 11: Create Bridge interface from legacy ifcfg files
@@ -64,9 +64,11 @@ sub setup_bridge {
     my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("cat $dummy");
     assert_script_run("wicked ifup --timeout infinite br0");
-    assert_script_run("wicked ifup --timeout infinite dummy0");
+    if ($dummy ne '') {
+        assert_script_run("cat $dummy");
+        assert_script_run("wicked ifup --timeout infinite dummy0");
+    }
     assert_script_run('ip a');
 }
 
@@ -101,7 +103,13 @@ sub run {
     mutex_create("test_3_ready");
     $self->cleanup($config, "sit1");
 
-    # Placeholder for Test 4: Create a SIT interface from Wicked XML files
+    $self->before_scenario('Test 4', 'Create a SIT interface from wicked XML files', $iface);
+    $config = '/etc/wicked/ifconfig/sit.xml';
+    $self->get_from_data('wicked/sit.xml', $config);
+    $self->setup_tunnel($config, "sit1");
+    $results{4} = $self->get_test_result("sit1", "v6");
+    mutex_create("test_4_ready");
+    $self->cleanup($config, "sit1");
 
     $self->before_scenario('Test 5', 'Create a IPIP interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tunl1';
@@ -111,7 +119,13 @@ sub run {
     mutex_create("test_5_ready");
     $self->cleanup($config, "tunl1");
 
-    # Placeholder for Test 6: Create a IPIP interface from Wicked XML files
+    $self->before_scenario('Test 6', 'Create a IPIP interface from wicked XML files', $iface);
+    $config = '/etc/wicked/ifconfig/ipip.xml';
+    $self->get_from_data('wicked/ipip.xml', $config);
+    $self->setup_tunnel($config, "tunl1");
+    $results{6} = $self->get_test_result("tunl1", "");
+    mutex_create("test_6_ready");
+    $self->cleanup($config, "tunl1");
 
     $self->before_scenario('Test 7', 'Create a TUN interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tun1';
@@ -125,7 +139,17 @@ sub run {
     mutex_create("test_7_ready");
     $self->cleanup($config, "tun1");
 
-    # Placeholder for Test 8: Create a tun interface from Wicked XML files
+    $self->before_scenario('Test 8', 'Create a TUN interface from wicked XML files', $iface);
+    $config = '/etc/wicked/ifconfig/tun.xml';
+    $self->get_from_data('wicked/tun.xml',     $config);
+    $self->get_from_data('wicked/client.conf', $openvpn_client);
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
+    assert_script_run("sed \'s/device/tun1/\' -i $openvpn_client");
+    $self->setup_tuntap($config, "tun1");
+    $results{8} = $self->get_test_result("tun1", "");
+    mutex_create("test_8_ready");
+    $self->cleanup($config, "tun1");
 
     $self->before_scenario('Test 9', 'Create a TAP interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tap1';
@@ -139,7 +163,17 @@ sub run {
     mutex_create("test_9_ready");
     $self->cleanup($config, "tap1");
 
-    # Placeholder for Test 10: Create a tap interface from Wicked XML files
+    $self->before_scenario('Test 10', 'Create a TAP interface from Wicked XM files', $iface);
+    $config = '/etc/wicked/ifconfig/tap.xml';
+    $self->get_from_data('wicked/tap.xml',     $config);
+    $self->get_from_data('wicked/client.conf', $openvpn_client);
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
+    assert_script_run("sed \'s/device/tap1/\' -i $openvpn_client");
+    $self->setup_tuntap($config, "tap1", 0);
+    $results{10} = $self->get_test_result("tap1", "");
+    mutex_create("test_10_ready");
+    $self->cleanup($config, "tap1");
 
     $self->before_scenario('Test 11', 'Create Bridge interface from legacy ifcfg files', $iface);
     $config = '/etc/sysconfig/network/ifcfg-br0';
@@ -152,7 +186,16 @@ sub run {
     $self->cleanup($config, "br0");
     $self->cleanup($dummy,  "dummy0");
 
-    # Placeholder for Test 12: Create a Bridge interface from Wicked XML files
+    $self->before_scenario('Test 12', 'Create Bridge interface from Wicked XM files', $iface);
+    $config = '/etc/wicked/ifconfig/bridge.xml';
+    $self->get_from_data('wicked/bridge.xml', $config);
+    assert_script_run("ifdown eth0");
+    assert_script_run("rm /etc/sysconfig/network/ifcfg-eth0");
+    $self->setup_bridge($config, '');
+    $results{12} = $self->get_test_result("br0", "");
+    mutex_create("test_12_ready");
+    $self->cleanup($config, "br0");
+
     # Placeholder for Test 13: Create a team interface from legacy ifcfg files
     # Placeholder for Test 14: Create a team interface from Wicked XML files
 
