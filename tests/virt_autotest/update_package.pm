@@ -43,7 +43,8 @@ sub update_package {
 sub run {
     my $self = shift;
     $self->update_package();
-    set_serial_console_on_xen if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
+    set_serial_console_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
+    set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm"));
     update_guest_configurations_with_daily_build();
 }
 

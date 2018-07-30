@@ -20,7 +20,7 @@ use testapi;
 use version_utils qw/is_storage_ng/;
 use utils;
 
-our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_xen switch_from_ssh_to_sol_console);
+our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_vh switch_from_ssh_to_sol_console);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -92,11 +92,13 @@ sub get_dom0_serialdev {
 }
 
 sub setup_console_in_grub {
-    my ($ipmi_console, $root_dir) = @_;
+    my ($ipmi_console, $root_dir, $virt_type) = @_;
     $ipmi_console //= $serialdev;
     $root_dir //= '/';
+    #Ther is no default value for $virt_type, which has to be passed into function explicitly.
 
     #set grub config file
+    my $grub_default_file = "${root_dir}/etc/default/grub";
     my $grub_cfg_file;
     if ($grub_ver eq "grub2") {
         $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
@@ -112,32 +114,51 @@ sub setup_console_in_grub {
     my $cmd;
     if ($grub_ver eq "grub2") {
         #grub2
-        $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org "
-          . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
-          . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-          . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console/; "
-          . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
-          . "s/timeout=[0-9]*/timeout=30/g;"
-          . "' $grub_cfg_file";
-        assert_script_run("$cmd");
+        if (${virt_type} eq "xen") {
+            $cmd
+              = "cp $grub_cfg_file ${grub_cfg_file}.org "
+              . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
+              . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
+              . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console/; "
+              . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
+              . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
+              . "' $grub_cfg_file";
+            assert_script_run($cmd);
+            save_screenshot;
+            $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz|timeout=)/p' $grub_cfg_file";
+            assert_script_run($cmd);
+            save_screenshot;
+        } elsif (${virt_type} eq "kvm") {
+            $cmd
+              = "cp $grub_cfg_file ${grub_cfg_file}.org "
+              . "\&\& sed -ri 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g' $grub_cfg_file "
+              . "\&\& sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file "
+              . "\&\& cat $grub_default_file $grub_cfg_file";
+            assert_script_run($cmd);
+            save_screenshot;
+        } else { die "Host Hypervisor is not xen or kvm"; }
+
+
+        $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
+        assert_script_run($cmd);
+        $cmd = "cat $grub_default_file $grub_cfg_file";
+        assert_script_run($cmd);
         save_screenshot;
-        $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz|timeout=)/p' $grub_cfg_file";
-        assert_script_run("$cmd");
     }
     elsif ($grub_ver eq "grub1") {
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout [0-9]*/timeout 30/; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
-        assert_script_run("$cmd");
+          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
+        assert_script_run($cmd);
         save_screenshot;
         $cmd = "sed -rn '/module \\\/boot\\\/vmlinuz/p' $grub_cfg_file";
-        assert_script_run("$cmd");
+        assert_script_run($cmd);
     }
     else {
         die "Not supported grub version!";
     }
     save_screenshot;
-    upload_logs("$grub_cfg_file");
+    upload_logs($grub_cfg_file);
+    upload_logs($grub_default_file);
 }
 
 sub mount_installation_disk {
@@ -190,11 +211,12 @@ sub get_installation_partition {
 }
 
 #Usage:
-#For post installation, use set_serial_console_on_xen directly
-#For during installation, use set_serial_console_on_xen("/mnt")
-#For custom usage, use set_serial_console_on_xen($mount_point, $installation_disk)
-sub set_serial_console_on_xen {
-    my ($mount_point, $installation_disk) = @_;
+#For post installation, use set_serial_console_on_vh(,...) directly
+#For during installation, use set_serial_console_on_vh("/mnt",...)
+#For custom usage, use set_serial_console_on_vh($mount_point, $installation_disk, $virt_type)
+#Please pass desired hypervisor type to this function explicitly. There is no default value for $virt_type
+sub set_serial_console_on_vh {
+    my ($mount_point, $installation_disk, $virt_type) = @_;
 
     #prepare accessible grub
     my $root_dir;
@@ -215,14 +237,15 @@ sub set_serial_console_on_xen {
 
     #set up xen serial console
     my $ipmi_console = &get_dom0_serialdev("$root_dir");
-    &setup_console_in_grub($ipmi_console, $root_dir);
+    if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { &setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
+    else                                                { die "Host Hypervisor is not xen or kvm"; }
 
     #cleanup mount
     if ($mount_point ne "") {
         assert_script_run("cd /");
         &umount_installation_disk("$mount_point");
     }
-}
 
+}
 
 1;
