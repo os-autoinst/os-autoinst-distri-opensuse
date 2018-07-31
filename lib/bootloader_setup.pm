@@ -185,7 +185,7 @@ sub boot_local_disk {
         }
         if (match_has_tag 'inst-slof') {
             diag 'specifying local disk for boot from slof';
-            type_string_very_slow "boot /pci\t/sc\t4";
+            type_string_very_slow "boot /pci\t/sc\t5";
             save_screenshot;
         }
     }
