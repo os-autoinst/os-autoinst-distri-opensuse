@@ -46,6 +46,7 @@ sub initialize_y2lan {
 sub open_network_settings {
     type_string "yast2 lan\n";
     assert_screen 'yast2_lan', 100;       # yast2 lan overview tab
+    wait_still_screen(2);
 }
 
 sub close_network_settings {
