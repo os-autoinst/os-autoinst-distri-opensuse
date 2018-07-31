@@ -1169,7 +1169,6 @@ sub ensure_serialdev_permissions {
     }
     else {
         assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
-        assert_script_run "gpasswd -a $testapi::username dialout";
     }
 }
 
