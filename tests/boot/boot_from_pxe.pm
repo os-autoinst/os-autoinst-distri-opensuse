@@ -109,7 +109,7 @@ sub run {
     save_screenshot;
 
     if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
-        my $ssh_vnc_wait_time = get_var('SES5_DEPLOY') ? 300 : 180;
+        my $ssh_vnc_wait_time = get_var('SES5_DEPLOY') ? 300 : 210;
         assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', $ssh_vnc_wait_time);
         select_console 'installation';
 
