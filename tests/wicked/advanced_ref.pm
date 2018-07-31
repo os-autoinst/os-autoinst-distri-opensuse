@@ -72,8 +72,8 @@ sub run {
 
     record_info('Test 7', 'Create a TUN interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
-    $self->get_from_data('wicked/ifcfg-tun1_ref', $config);
-    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
+    $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed \'s/device/tun1/\' -i $openvpn_server");
     $self->setup_tuntap($config, "tun1", 1);
     mutex_wait('test_7_ready');
@@ -81,8 +81,8 @@ sub run {
 
     record_info('Test 8', 'Create a TUN interface from Wicked XML files');
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
-    $self->get_from_data('wicked/ifcfg-tun1_ref', $config);
-    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
+    $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed \'s/device/tun1/\' -i $openvpn_server");
     $self->setup_tuntap($config, "tun1", 1);
     mutex_wait('test_8_ready');
@@ -90,8 +90,8 @@ sub run {
 
     record_info('Test 9', 'Create a TAP interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-tap1';
-    $self->get_from_data('wicked/ifcfg-tap1_ref', $config);
-    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    $self->get_from_data('wicked/ifcfg/tap1_ref',      $config);
+    $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed \'s/device/tap1/\' -i $openvpn_server");
     $self->setup_tuntap($config, "tap1", 1);
     mutex_wait('test_9_ready');
@@ -99,8 +99,8 @@ sub run {
 
     record_info('Test 10', 'Create a TAP interface from Wicked XML files');
     my $config = '/etc/sysconfig/network/ifcfg-tap1';
-    $self->get_from_data('wicked/ifcfg-tap1_ref', $config);
-    $self->get_from_data('wicked/server.conf',    $openvpn_server);
+    $self->get_from_data('wicked/ifcfg/tap1_ref',      $config);
+    $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed \'s/device/tap1/\' -i $openvpn_server");
     $self->setup_tuntap($config, "tap1", 1);
     mutex_wait('test_10_ready');
@@ -116,8 +116,6 @@ sub run {
     #       the IP of eth0 already configured.
     mutex_wait('test_12_ready');
 
-    # Placeholder for Test 13: Create a team interface from legacy ifcfg files
-    # Placeholder for Test 14: Create a team interface from Wicked XML files
 }
 
 1;
