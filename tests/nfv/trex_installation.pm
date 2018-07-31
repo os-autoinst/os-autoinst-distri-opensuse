@@ -15,6 +15,7 @@ use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
+use lockapi;
 use mmapi;
 
 sub run {
@@ -39,10 +40,16 @@ sub run {
     assert_script_run("sed -i 's/PORT_1/$PORT_2/' -i $trex_conf");
     assert_script_run("cat $trex_conf");
 
+    assert_script_run("ip link set dev eth2 up");
+    assert_script_run("ip link set dev eth3 up");
+
+    mutex_create("NFV_trafficgen_ready");
+
     # Start daemon
     assert_script_run("cd $trex_dest");
     assert_script_run("./trex_daemon_server start");
+
+    mutex_wait('NFV_testing_ready');
 }
 
 1;
-

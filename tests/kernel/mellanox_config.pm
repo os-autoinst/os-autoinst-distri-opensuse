@@ -31,7 +31,9 @@ sub run {
     my $mft_version = get_required_var('MFT_VERSION');
     my $protocol = get_var('MLX_PROTOCOL') || 2;
 
-    zypper_call('ar -f -G ' . get_required_var('GA_REPO'));
+    if (check_var('VERSION', '15')) {
+        zypper_call('ar -f -G ' . get_required_var('GA_REPO'));
+    }
     zypper_call('--quiet in kernel-source rpm-build', timeout => 200);
 
     # Install Mellanox Firmware Tool (MFT)
@@ -61,7 +63,7 @@ sub run {
     show_links();
 
     # Reboot system
-    power_action('reboot', keepconsole => 1);
+    power_action('reboot', textmode => 1, keepconsole => 1);
 }
 
 sub test_flags {
@@ -69,4 +71,3 @@ sub test_flags {
 }
 
 1;
-
