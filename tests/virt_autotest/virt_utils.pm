@@ -26,7 +26,7 @@ use virt_autotest_base;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -141,6 +141,26 @@ sub update_guest_configurations_with_daily_build {
     repl_module_in_sourcefile;
     # qa_lib_virtauto pkg will handle replacing module url with module link in source.xx for sle15 and 15+
     # repl_guest_autoyast_addon_with_daily_build_module;
+}
+
+sub clean_up_red_disks {
+    my $wait_script           = "120";
+    my $get_disks_not_used    = "ls /dev/sd* | grep -v -e \"/dev/sd[a].*\" -e \"/dev/sd[b-z].*[[:digit:]].*\"";
+    my $disks_not_used        = script_output($get_disks_not_used, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $get_disks_fs_overview = "lsblk -f";
+    my $get_fs_type_supported = "$get_disks_fs_overview | grep sda | awk \'{print \$2}\' | grep -v swap | tail -1";
+    my $fs_type_supported     = script_output($get_fs_type_supported, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $make_fs_cmd           = "mkfs.$fs_type_supported";
+
+    if ($disks_not_used && $fs_type_supported) {
+        assert_script_run("wipefs -a $disks_not_used && $make_fs_cmd $disks_not_used");
+        diag("Debug info: Redundant disks have already been formatted using mkfs.");
+    }
+    else {
+        diag("Debug info: Maybe there are no other disks functioning other than /dev/sda. Or something unexpected happened during obtaining available file system type.");
+    }
+    my $disks_fs_overview = script_output($get_disks_fs_overview, $wait_script, type_command => 1, proceed_on_failure => 1);
+    diag("Debug info: Disks and File Systems Overview:\n $disks_fs_overview");
 }
 
 1;
