@@ -17,9 +17,12 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_console 'root-ssh';
+    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
+    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+
     my $ofed_url      = get_required_var('OFED_URL');
     my $ofed_file_tgz = (split(/\//, $ofed_url))[-1];
     my $ofed_dir      = ((split(/\.tgz/, $ofed_file_tgz))[0]);
@@ -30,7 +33,7 @@ sub run {
     elsif (check_var('VERSION', '12-SP4')) {
         my $SDK_REPO = 'http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/GA:/TEST/images/repo/SLE-12-SP4-SDK-POOL-x86_64-Media1/';
         zypper_call("--quiet ar -f $SDK_REPO SLE-12-SP4-SDK-POOL");
-        zypper_call('--quiet in openvswitch python-devel python-libxml2 libopenssl1_0_0 insserv-compat libstdc++-devel createrepo rpm-build kernel-syms', timeout => 500);
+        zypper_call('--quiet in openvswitch python-devel python-libxml2 libopenssl1_0_0 insserv-compat libstdc++-devel createrepo rpm-build kernel-syms tk', timeout => 500);
     }
     else {
         die "OS VERSION not supported. Available only on 15 and 12-SP4";
@@ -40,12 +43,15 @@ sub run {
     assert_script_run("wget $ofed_url");
     assert_script_run("tar -xvf $ofed_file_tgz");
     assert_script_run("cd $ofed_dir");
-    assert_script_run("./mlnxofedinstall --skip-distro-check --add-kernel-support --with-mft --with-mstflint --dpdk --upstream-libs", timeout => 1000);
-    assert_script_run("modprobe -rv rpcrdma");
-    assert_script_run("/etc/init.d/openibd restart");
-    script_run("ibv_devinfo");
-    script_run("ibdev2netdev");
-    script_run("ofed_info -s");
+    if (check_var('BACKEND', 'ipmi')) {
+        record_info("OFED install");
+        assert_script_run("./mlnxofedinstall --skip-distro-check --add-kernel-support --with-mft --with-mstflint --dpdk --upstream-libs", timeout => 2000);
+        assert_script_run("modprobe -rv rpcrdma");
+        assert_script_run("/etc/init.d/openibd restart");
+        script_run("ibv_devinfo");
+        script_run("ibdev2netdev");
+        script_run("ofed_info -s");
+    }
 }
 
 sub test_flags {

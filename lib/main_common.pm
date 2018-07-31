@@ -1583,11 +1583,13 @@ sub load_networkd_tests {
 
 sub load_nfv_master_tests {
     loadtest "nfv/prepare_env";
-    loadtest "nfv/run_integration_tests";
+    loadtest "nfv/run_integration_tests" if (check_var('BACKEND', 'qemu'));
+    loadtest "nfv/run_performance_tests" if (check_var('BACKEND', 'ipmi'));
 }
 
 sub load_nfv_trafficgen_tests {
     loadtest "nfv/trex_installation";
+    loadtest "nfv/trex_runner" if (check_var('BACKEND', 'ipmi'));
 }
 
 sub load_iso_in_external_tests {
