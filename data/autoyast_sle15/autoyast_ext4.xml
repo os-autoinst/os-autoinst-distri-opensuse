@@ -93,6 +93,7 @@
       <package>kdump</package>
       <package>sles-release</package>
       <package>kexec-tools</package>
+      <package>gnome-packagekit</package>
     </packages>
     <patterns config:type="list">
       <pattern>apparmor</pattern>

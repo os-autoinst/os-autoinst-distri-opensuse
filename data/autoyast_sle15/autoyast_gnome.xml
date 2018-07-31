@@ -72,6 +72,7 @@
     <packages config:type="list">
       <package>grub2</package>
       <package>sles-release</package>
+      <package>gnome-packagekit</package>
     </packages>
     <patterns config:type="list">
       <pattern>apparmor</pattern>
