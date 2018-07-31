@@ -882,6 +882,11 @@ sub addon_license {
     push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
   license: {
         do {
+            # license on SLE15+ is shown only once during registration bsc#1057223
+            # don't expect license if addon was already registered via SCC and license already viewed
+            if (sle_version_at_least('15') && check_var('SCC_REGISTER', 'installation') && get_var('SCC_ADDONS') =~ /$addon/ && !check_screen \@tags) {
+                return 1;
+            }
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
                 record_info 'untrusted gpg key', "Trusting untrusted GPG key", result => 'softfail';

@@ -17,7 +17,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils qw(handle_login handle_emergency);
-use version_utils 'sle_version_at_least';
+use version_utils qw(sle_version_at_least is_sle is_leap);
 use base 'opensusebasetest';
 
 sub run {
@@ -56,6 +56,10 @@ sub run {
     if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
         push(@tags, 'kde-greeter');
     }
+    # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
+    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
+        push(@tags, 'displaymanager');
+    }
     # GNOME and KDE get into screenlock after 5 minutes without activities.
     # using multiple check intervals here then we can get the wrong desktop
     # screenshot at least in case desktop screenshot changed, otherwise we get
@@ -69,6 +73,11 @@ sub run {
     }
     # the last check after previous intervals must be fatal
     assert_screen \@tags, $check_interval;
+    if (match_has_tag('displaymanager')) {
+        record_soft_failure 'boo#1102563';
+        handle_login;
+        assert_screen 'generic-desktop';
+    }
     if (match_has_tag('kde-greeter')) {
         send_key "esc";
         assert_screen 'generic-desktop';

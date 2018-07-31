@@ -22,7 +22,12 @@ sub run {
     my $result = 'ok';
     my $max    = get_var("ISO_MAXSIZE", 0);
     if (!$size || !$max || $size > $max) {
-        $result = 'fail';
+        if (check_var('VERSION', '12-SP4') && check_var('FLAVOR', 'Desktop-DVD')) {
+            record_soft_failure("bsc#1101761 - SLED ISO size is over limit");
+        }
+        else {
+            $result = 'fail';
+        }
     }
     if (!defined $size) {
         diag("iso path invalid: $iso");

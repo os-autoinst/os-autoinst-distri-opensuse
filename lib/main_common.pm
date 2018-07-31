@@ -114,6 +114,10 @@ our @EXPORT = qw(
   replace_opensuse_repos_tests
   load_ssh_key_import_tests
   load_jeos_tests
+  load_shutdown_tests
+  updates_is_applicable
+  guiupdates_is_applicable
+  load_system_update_tests
 );
 
 sub init_main {
@@ -326,6 +330,11 @@ sub uses_qa_net_hardware {
     return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
+sub load_shutdown_tests {
+    loadtest("shutdown/cleanup_before_shutdown");
+    loadtest "shutdown/shutdown";
+}
+
 sub load_svirt_boot_tests {
     # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
     # has to be skipped there.
@@ -502,7 +511,7 @@ sub load_slepos_tests {
 sub load_docker_tests {
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    if (is_sle('12-SP3+')) {
+    if (is_sle('=12-SP3') || is_sle('=15')) {
         loadtest "console/docker_image";
         loadtest "console/sle2docker";
     }
@@ -742,9 +751,13 @@ sub load_common_installation_steps_tests {
 }
 
 sub load_inst_tests {
+    # On SLE 15 dud addon screen is shown before product selection
+    if (get_var('DUD_ADDONS') && is_sle('15+')) {
+        loadtest "installation/dud_addon";
+    }
     loadtest "installation/welcome";
     loadtest "installation/keyboard_selection";
-    if (get_var('DUD_ADDONS')) {
+    if (get_var('DUD_ADDONS') && is_sle('<15')) {
         loadtest "installation/dud_addon";
     }
     if (is_sle '15+') {
@@ -1087,7 +1100,7 @@ sub load_consoletests {
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
     # SLES but not SLED
-    if (!is_staging && (is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || (sle_version_at_least('15') && !is_desktop)))) {
+    if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15') && !is_desktop)) {
         loadtest "console/salt";
     }
     if (check_var('ARCH', 'x86_64')
@@ -1096,11 +1109,7 @@ sub load_consoletests {
     {
         loadtest "console/glibc_sanity";
     }
-    # openSUSE has "load_system_update_tests" for that,
-    # https://progress.opensuse.org/issues/31954 to improve
-    if (is_sle && !gnomestep_is_applicable()) {
-        loadtest "update/zypper_up";
-    }
+    load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
     loadtest "console/zypper_in";
     loadtest "console/yast2_i";
@@ -1157,13 +1166,12 @@ sub load_consoletests {
     loadtest "console/consoletest_finish";
 }
 
+sub x11tests_is_applicable {
+    return !get_var("INSTALLONLY") && is_desktop_installed() && !get_var("DUALBOOT") && !get_var("RESCUECD") && !get_var("HA_CLUSTER");
+}
+
 sub load_x11tests {
-    return
-      unless (!get_var("INSTALLONLY")
-        && is_desktop_installed()
-        && !get_var("DUALBOOT")
-        && !get_var("RESCUECD")
-        && !get_var("HA_CLUSTER"));
+    return unless x11tests_is_applicable();
     if (is_smt()) {
         loadtest "x11/smt";
     }
@@ -1182,8 +1190,7 @@ sub load_x11tests {
     loadtest "x11/xterm";
     loadtest "x11/sshxterm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
-        # openSUSE has an explicit update check elsewhere
-        loadtest "update/updates_packagekit_gpk" if is_sle && !is_staging;
+        load_system_update_tests();
         loadtest "x11/gnome_control_center";
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "x11/gnome_tweak_tool" if is_opensuse;
@@ -1298,7 +1305,7 @@ sub load_x11tests {
     }
     # Need to skip shutdown to keep backend alive if running rollback tests after migration
     unless (get_var('ROLLBACK_AFTER_MIGRATION')) {
-        loadtest "x11/shutdown";
+        load_shutdown_tests;
     }
 }
 
@@ -1371,7 +1378,8 @@ sub load_extra_tests_desktop {
         # start extra x11 tests from here
         loadtest 'x11/vnc_two_passwords';
         # TODO: check why this is not called on opensuse
-        loadtest 'x11/user_defined_snapshot';
+        # poo#35574 - Excluded for Xen PV as it was never passed due to the fail while interacting with grub.
+        loadtest 'x11/user_defined_snapshot' unless (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'));
     }
     elsif (check_var('DISTRI', 'opensuse')) {
         if (gnomestep_is_applicable()) {
@@ -1591,7 +1599,7 @@ sub load_x11_installation {
     loadtest "console/hostname"              unless is_bridged_networking;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
-    loadtest "shutdown/shutdown";
+    load_shutdown_tests;
 }
 
 sub load_x11_documentation {
@@ -1790,6 +1798,11 @@ sub load_security_tests_openscap {
     loadtest "security/openscap/oscap_xccdf_scanning";
     loadtest "security/openscap/oscap_source_datastream";
     loadtest "security/openscap/oscap_result_datastream";
+    loadtest "security/openscap/oscap_remediating_online";
+    loadtest "security/openscap/oscap_remediating_offline";
+    loadtest "security/openscap/oscap_generating_report";
+    loadtest "security/openscap/oscap_generating_fix";
+    loadtest "security/openscap/oscap_validating";
 }
 
 sub load_systemd_patches_tests {
@@ -1812,7 +1825,7 @@ sub load_create_hdd_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
-    loadtest 'shutdown/shutdown';
+    load_shutdown_tests;
     if (check_var('BACKEND', 'svirt')) {
         if (is_hyperv) {
             loadtest 'shutdown/hyperv_upload_assets';
@@ -1865,11 +1878,16 @@ sub load_toolchain_tests {
     loadtest "console/kdump_and_crash" if is_sle && kdump_is_applicable;
 }
 
+sub load_publiccloud_tests {
+    loadtest "publiccloud/ipa";
+}
+
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
+    load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
 }
 
 sub load_ssh_key_import_tests {
@@ -1893,6 +1911,55 @@ sub load_sles4sap_tests {
     if (get_var('NW')) {
         loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_ascs";
+    }
+}
+
+sub updates_is_applicable {
+    # we don't want live systems to run out of memory or virtual disk space.
+    # Applying updates on a live system would not be persistent anyway.
+    # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
+    # Also, updates on INSTALLONLY do not match the meaning
+    return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
+}
+
+sub guiupdates_is_applicable {
+    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
+}
+
+sub load_system_update_tests {
+    my (%args) = @_;
+    my $console_updates = $args{console_updates} // 0;
+
+    return if get_var('SYSTEM_UPDATED');
+    if (need_clear_repos() && !get_var('CLEAR_REPOS')) {
+        loadtest "update/zypper_clear_repos";
+        set_var('CLEAR_REPOS', 1);
+    }
+    loadtest "console/zypper_add_repos" if get_var('ZYPPER_ADD_REPOS');
+    return unless updates_is_applicable();
+    if (!$console_updates) {
+        if (guiupdates_is_applicable()) {
+            loadtest "update/prepare_system_for_update_tests" if !is_sle;
+            if (check_var("DESKTOP", "kde")) {
+                loadtest "update/updates_packagekit_kde";
+                set_var('SYSTEM_UPDATED', 1);
+            }
+            elsif (x11tests_is_applicable()) {
+                unless (is_sle && is_staging) {
+                    loadtest "update/updates_packagekit_gpk";
+                    set_var('SYSTEM_UPDATED', 1);
+                }
+            }
+            loadtest "update/check_system_is_updated" if !is_sle;
+        }
+        else {
+            loadtest "update/zypper_up";
+            set_var('SYSTEM_UPDATED', 1);
+        }
+    }
+    elsif (is_sle && !gnomestep_is_applicable()) {
+        loadtest "update/zypper_up";
+        set_var('SYSTEM_UPDATED', 1);
     }
 }
 

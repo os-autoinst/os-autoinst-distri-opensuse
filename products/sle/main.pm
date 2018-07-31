@@ -292,11 +292,11 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
             my $module_repo_name = get_var($repo_variable_name, $default_repo_name);
             my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
-            if (head($url)) {
-                set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
-                $addonurl .= "$short_name,";
-            }
+            die "URL $url could not be accessed, missing repo?" unless head($url);
+            set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
+            $addonurl .= "$short_name,";
         }
+        die '$addonurl (test variable \'ADDONURL\') could not be set' unless $addonurl;
         #remove last comma from ADDONURL setting value
         $addonurl =~ s/,$//;
         set_var("ADDONURL", $addonurl);
@@ -322,6 +322,9 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 
     # set SCC_ADDONS before push to slenkins
     set_var('SCC_ADDONS', join(',', @addons));
+
+    # SLES4SAP does not have addon on SLE12SP3
+    push(@addons, 'sles4sap') if is_sle('<15') && check_var('FLAVOR', 'Server-DVD-SLES4SAP-Updates');
 
     # push sdk addon to slenkins tests
     if (get_var('TEST', '') =~ /^slenkins/) {
@@ -389,6 +392,10 @@ if (get_var('SUPPORT_SERVER_ROLES', '') =~ /aytest/ && !get_var('AYTESTS_REPO'))
 if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('<15') && !is_updates_tests) {
     set_var('SCC_ADDONS',   'hpcm,wsm');
     set_var('SCC_REGISTER', 'installation');
+}
+# We have different dud files for SLE 12 and SLE 15
+if (check_var('DUD_ADDONS', 'sdk') && !get_var('DUD')) {
+    set_var('DUD', is_sle('15+') ? 'dev_tools.dud' : 'sdk.dud');
 }
 
 $needle::cleanuphandler = \&cleanup_needles;
@@ -645,7 +652,7 @@ sub load_patching_tests {
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
         # Always boot from installer DVD in upgrade test
         set_var('BOOTFROM', 'd');
-        loadtest "migration/version_switch_origin_system";
+        loadtest "migration/version_switch_origin_system" if (!get_var('ONLINE_MIGRATION'));
     }
     set_var('BOOT_HDD_IMAGE', 1);
     boot_hdd_image;
@@ -655,7 +662,6 @@ sub load_patching_tests {
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
         }
-        loadtest 'migration/remove_ltss';
         loadtest 'migration/record_disk_info';
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
@@ -893,8 +899,14 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var("XFSTESTS")) {
+    #Workaround bsc#1101787
+    if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP4')) {
+        set_var('NO_KDUMP', 1);
+    }
     loadtest "boot/boot_to_desktop";
-    loadtest "xfstests/enable_kdump";
+    unless (get_var('NO_KDUMP')) {
+        loadtest "xfstests/enable_kdump";
+    }
     loadtest "xfstests/install";
     loadtest "xfstests/partition";
     loadtest "xfstests/run";
@@ -946,8 +958,11 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_upgrade";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             loadtest "virt_autotest/setup_xen_serial_console";
-            loadtest "virt_autotest/reboot_and_wait_up_normal";
         }
+        else {
+            loadtest "virt_autotest/setup_kvm_serial_console";
+        }
+        loadtest "virt_autotest/reboot_and_wait_up_normal";
         loadtest "virt_autotest/host_upgrade_step3_run";
     }
     elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
@@ -1095,7 +1110,6 @@ else {
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
         loadtest 'update/patch_sle';
-        loadtest 'migration/remove_ltss';
         loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;

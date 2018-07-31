@@ -1,0 +1,30 @@
+<interface>
+  <name>tun1</name>
+
+  <tun>
+    <owner>1000</owner>
+    <group>100</group>
+  </tun>
+  <scripts>
+    <pre-up>
+      <script>systemd:openvpn@client.service</script>
+    </pre-up>
+    <post-down>
+      <script>systemd:openvpn@client.service</script>
+    </post-down>
+  </scripts>
+
+  <ipv4:static>
+    <address>
+      <local>local_ip</local>
+      <peer>remote_ip</peer>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:555:2368::123/128</local>
+      <peer>fd00:555:2368::1</peer>
+    </address>
+  </ipv6:static>
+</interface>

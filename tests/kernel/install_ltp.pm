@@ -268,6 +268,8 @@ sub run {
         assert_script_run("uname -v | grep -E '(/kGraft-|/lp-)'");
     }
 
+    upload_logs('/boot/config-$(uname -r)', failok => 1);
+
     add_we_repo_if_available;
     if (is_sle('12+') || is_opensuse) {
         add_custom_grub_entries;

@@ -24,6 +24,7 @@ sub run {
 
     add_test_repositories;
     fully_patch_system;
+    remove_ltss;
     type_string "reboot\n";
     $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
     $self->setup_migration;

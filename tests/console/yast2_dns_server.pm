@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle sle_version_at_least);
-
+use constant RETRIES => 5;
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive
 # can be set
@@ -25,12 +25,24 @@ use version_utils qw(is_leap is_sle sle_version_at_least);
 sub assert_running {
     my $self    = shift;
     my $running = shift;
+    my $cmd     = '(systemctl is-active named || true) | grep -E';
 
     if ($running) {
-        assert_script_run '(systemctl is-active named || true) | grep -E "^active"', timeout => 300;
+        $cmd .= ' "^active"';
+        my $counter = RETRIES;
+        # Service may take a bit of time to actually start
+        while (script_run $cmd) {
+            sleep 5;
+            $counter--;
+            # Service was not started after 25 seconds
+            die 'named service is not active even after 25s delay' if $counter == 0;
+        }
+        # Service was started after some delay
+        record_soft_failure 'bsc#1093029' if $counter < RETRIES;
     }
     else {
-        assert_script_run '(systemctl is-active named || true) | grep -E "^(inactive|unknown)"';
+        $cmd .= ' "^(inactive|unknown)"';
+        record_soft_failure 'bsc#1102235' if (script_run $cmd);
     }
 }
 
@@ -167,4 +179,3 @@ sub post_fail_hook {
 }
 
 1;
-

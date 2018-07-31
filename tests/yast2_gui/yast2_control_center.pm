@@ -111,9 +111,9 @@ sub start_software_repositories {
 sub start_sound {
     search('sound');
     assert_and_click 'yast2_control-center_sound';
-    assert_screen 'yast2_control-center_sound_configuration';
+    assert_screen 'yast2_control-center_sound_configuration', timeout => 180;
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_fonts {
@@ -151,7 +151,7 @@ sub start_kernel_settings {
 sub start_partitioner {
     search('partitioner');
     assert_and_click 'yast2_control-center-partitioner';
-    assert_screen [qw(yast2_control-center-partitioner_warning yast2_control-center-partitioner_expert)], 180;
+    assert_screen [qw(yast2_control-center-partitioner_warning yast2_control-center-partitioner_expert)], timeout => 180;
     # Define if storage-ng
     set_var('STORAGE_NG', 1) if match_has_tag 'storage-ng';
 
@@ -181,13 +181,13 @@ sub start_authentication_server {
     do {
         assert_screen [
             qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration yast2_control-center-authentication-server_empty_first_page)
-        ], 90;
+        ], timeout => 180;
         send_key 'alt-i' if match_has_tag 'yast2_control-center-authentication-server_install';
         send_key 'alt-n' if match_has_tag 'yast2_control-center-authentication-server_empty_first_page';
     } until (match_has_tag 'yast2_control-center-authentication-server_configuration');
     # cancel, just check the first page
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_user_logon_management {
@@ -205,39 +205,39 @@ sub start_vpn_gateway {
     assert_and_click 'yast2_control-center_vpn-gateway-client';
     assert_screen 'yast2-vpn-gateway-client', timeout => 180;
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_wake_on_lan {
     search('wake');
-    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules)];
+    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules), timeout => 60];
     if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
         # No wol on SLE 15 atm
         record_soft_failure 'bsc#1059569';
         return;
     }
     assert_and_click 'yast2_control-center_wake-on-lan';
-    assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
+    assert_screen 'yast2_control-center_wake-on-lan_install_cancel', timeout => 180;
     send_key 'alt-c';
     assert_screen 'yast2_control-center_wake-on-lan_install_error';
     send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_ca_management {
     search('ca ');
     assert_and_click 'yast2_control-center_ca-management';
-    assert_screen 'yast2-ca-management', 60;
+    assert_screen 'yast2-ca-management', timeout => 180;
     send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_common_server_certificate {
     search('cert');
     assert_and_click 'yast2_control-center_common-server-certificate';
-    assert_screen 'yast2-common-server-certificate';
+    assert_screen 'yast2-common-server-certificate', timeout => 180;
     send_key 'alt-r';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_security_center {
@@ -269,7 +269,7 @@ sub start_hypervisor {
     assert_and_click 'yast2_control-center_install-hypervisor-and-tools';
     assert_screen 'yast2-install-hypervisor-and-tools', timeout => 180;
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_printer {
@@ -278,16 +278,22 @@ sub start_printer {
     if (check_var('DISTRI', 'sle')) {
         search('print');
         assert_and_click 'yast2_control-center_printer';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon';
+        assert_screen 'yast2_control-center_printer_running-cups-daemon', timeout => 60;
         send_key 'alt-y';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon_no-delay';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon_enabled';
-        send_key 'alt-y';
+        # need to wait for Restarted CUPS daemon or Failed to restart CUPS
+        assert_screen [qw(yast2_control-center_printer_running-cups-daemon_no-delay yast2_control-center_printer_error-cups-restart-failed), timeout => 60];
+        if (match_has_tag('yast2_control-center_printer_running-cups-daemon_no-delay')) {
+            send_key 'alt-o';
+            assert_screen 'yast2_control-center_printer_running-cups-daemon_enabled';
+            send_key 'alt-y';
+        }
+        else {
+            send_key 'alt-o';
+        }
         assert_screen 'yast2_control-center_printer_configurations';
         send_key 'alt-o';
 
-        assert_screen 'yast2-control-center-ui', 60;
+        assert_screen 'yast2-control-center-ui', timeout => 120;
         # test case if not restart cups daemon locally
         select_console 'root-console';
         systemctl 'stop cups.service';
@@ -295,7 +301,7 @@ sub start_printer {
         assert_screen 'yast2-control-center-ui';
         send_key 'up';
         assert_and_click 'yast2_control-center_printer';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon';
+        assert_screen 'yast2_control-center_printer_running-cups-daemon', timeout => 60;
         send_key 'alt-n';
         assert_screen 'yast2_control-center_printer_running-cups-daemon_error';
         send_key 'alt-o';
@@ -305,7 +311,7 @@ sub start_printer {
         send_key 'alt-o';
         assert_screen 'yast2_control-center_printer_configurations';
         send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui', 60;
+        assert_screen 'yast2-control-center-ui', timeout => 60;
     }
     elsif (check_var('DISTRI', 'opensuse')) {
         search('print');
@@ -313,7 +319,7 @@ sub start_printer {
         assert_screen 'yast2_control-center_printer_configurations', timeout => 180;
         wait_still_screen;
         send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui', 60;
+        assert_screen 'yast2-control-center-ui', timeout => 60;
     }
 }
 

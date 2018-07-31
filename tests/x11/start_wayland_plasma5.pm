@@ -10,7 +10,7 @@
 # Summary: Prepare for wayland and log out of X11 and into wayland
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use base "opensusebasetest";
+use base "x11test";
 use strict;
 use testapi;
 use utils;
