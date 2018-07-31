@@ -168,8 +168,14 @@ sub tests_from_ranges {
     foreach my $range (split(/,/, $ranges)) {
         my ($min, $max) = (0, 99999);
         my ($category, $min_max) = split(/\//, $range);
-        if (defined($min_max)) {
+        unless (defined($min_max)) {
+            next;
+        }
+        if ($min_max =~ /\d+-\d+/) {
             ($min, $max) = split(/-/, $min_max);
+        }
+        else {
+            $min = $max = $min_max;
         }
         unless (exists($cache{$category})) {
             $cache{$category} = [tests_from_category($category, $dir)];
