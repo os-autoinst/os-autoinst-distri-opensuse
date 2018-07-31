@@ -63,8 +63,7 @@ sub y2snapper_show_changes_and_delete {
     send_key "alt-s";
     assert_screen 'yast2_snapper-collapsed_testdata', 200;
     if ($ncurses) {
-        # Select last directory in the tree and expand it
-        wait_screen_change { send_key "end" };
+        # Select 1. subvolume (root) in the tree and expand it
         wait_screen_change { send_key "ret" };
         wait_screen_change { send_key "end" };
     }
@@ -73,7 +72,7 @@ sub y2snapper_show_changes_and_delete {
         wait_screen_change { send_key "spc" };
     }
     # Make sure it shows the new files from the unpacked tarball
-    assert_screen 'yast2_snapper-show_testdata', 100;
+    send_key_until_needlematch 'yast2_snapper-show_testdata', 'up';
     # Close the dialog and make sure it is closed
     send_key "alt-c";
     send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
