@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils;
+use version_utils qw(is_opensuse is_sle);
 
 #testcase 5255-1503803: Gnome:Change Password
 
@@ -51,7 +51,8 @@ sub reboot_system {
     assert_screen "displaymanager", 200;
     $self->{await_reboot} = 0;
     # The keyboard focus is different between SLE15 and SLE12
-    send_key 'up' if sle_version_at_least('15');
+    send_key 'up'  if is_sle('15+');
+    send_key 'tab' if is_opensuse;
     send_key "ret";
     wait_still_screen;
     type_string "$newpwd\n";
@@ -61,7 +62,16 @@ sub reboot_system {
 sub switch_user {
     assert_and_click "system-indicator";
     assert_and_click "user-logout-sector";
-    assert_and_click "switch-user";
+    assert_screen([qw(switch-user logout-user)]);
+    if (match_has_tag('switch-user')) {
+        assert_and_click "switch-user";
+    }
+    else {
+        record_soft_failure "bsc#1100041 - switch user disappeared after logout";
+        assert_and_click "logout-user";
+        send_key 'tab';
+        send_key 'ret';
+    }
 }
 
 sub change_pwd {
@@ -102,17 +112,23 @@ sub add_user {
 
 sub run {
     my ($self) = @_;
+    my $ov = get_var('NOAUTOLOGIN');
 
     #change pwd for current user and add new user for switch scenario
     assert_screen "generic-desktop";
     $self->unlock_user_settings;
     change_pwd;
+    if (is_opensuse) {
+        send_key "alt-u";
+        set_var('NOAUTOLOGIN', 1);
+    }
     add_user;
 
     #verify changed password work well in the following scenario:
     lock_screen;
     logout_and_login;
     $self->reboot_system;
+    set_var('NOAUTOLOGIN', $ov);
 
     #swtich to new added user then switch back
     switch_user;
@@ -143,7 +159,7 @@ sub run {
 
     #delete the added user: test
     # We should kill the active user test in SLE15
-    assert_script_run 'loginctl kill-user test' if (sle_version_at_least('15'));
+    assert_script_run 'loginctl kill-user test' if is_sle('15+');
     wait_still_screen;
     type_string "userdel -f test\n";
     assert_screen "user-test-deleted";

@@ -26,7 +26,7 @@ sub tweak_startupapp_menu {
     }
     else {
         # tweak-tool entry is not in gnome-control-center of SLE15;
-        x11_start_program 'gnome-tweak-tool';
+        x11_start_program 'gnome-tweaks';
     }
     assert_screen "tweak-tool";
     # increase the default timeout - the switching can be slow
