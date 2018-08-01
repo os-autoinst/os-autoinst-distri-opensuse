@@ -2690,6 +2690,7 @@
                       backend => "qemu",
                       name => "ppc64le",
                       settings => [
+                        { key => "HDDSIZEGB", value => 20 },
                         { key => "NOVIDEO", value => 1 },
                         { key => "OFW", value => 1 },
                         { key => "QEMU", value => "ppc64" },
@@ -2706,6 +2707,7 @@
                       backend => "qemu",
                       name => "ppc64",
                       settings => [
+                        { key => "HDDSIZEGB", value => 20 },
                         { key => "NOVIDEO", value => 1 },
                         { key => "OFW", value => 1 },
                         { key => "QEMU", value => "ppc64" },
@@ -2722,6 +2724,7 @@
                       backend => "qemu",
                       name => "ppc64le-multipath",
                       settings => [
+                        { key => "HDDSIZEGB", value => 20 },
                         { key => "MULTIPATH", value => 1 },
                         { key => "NOVIDEO", value => 1 },
                         { key => "OFW", value => 1 },
@@ -2737,6 +2740,7 @@
                       backend => "qemu",
                       name => "ppc64-multipath",
                       settings => [
+                        { key => "HDDSIZEGB", value => 20 },
                         { key => "MULTIPATH", value => 1 },
                         { key => "NOVIDEO", value => 1 },
                         { key => "OFW", value => 1 },
