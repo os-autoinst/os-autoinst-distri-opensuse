@@ -514,7 +514,10 @@ sub load_slepos_tests {
 sub load_docker_tests {
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    if (is_sle('=12-SP3') || is_sle('=15')) {
+    if (is_sle('=15')) {
+        loadtest "console/docker_image";
+    }
+    elsif (is_sle('=12-SP3')) {
         loadtest "console/docker_image";
         loadtest "console/sle2docker";
     }
