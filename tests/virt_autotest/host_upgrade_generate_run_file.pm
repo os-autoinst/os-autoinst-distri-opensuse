@@ -15,6 +15,7 @@ use base "host_upgrade_base";
 use strict;
 use warnings;
 use testapi;
+use virt_utils;
 
 sub get_script_run {
     my $pre_test_cmd;
