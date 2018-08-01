@@ -1046,10 +1046,9 @@ sub load_consoletests {
     # The test can't be run on JeOS as it's heavily dependant
     # on repos from installation medium.
     # We also don't have any repos on staging and update/upgrade tests.
-    # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
     # Test doesn't make sense on live images too, don't have source repo there.
     # Skip this test for SLED (poo#36397)
-    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem() && !is_desktop()) {
+    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_livesystem() && !is_desktop()) {
         loadtest "console/zypper_info";
     }
     # Add non-oss and debug repos for o3 and remove other by default
@@ -1155,8 +1154,7 @@ sub load_consoletests {
         loadtest "console/xfce_gnome_deps";
     }
     if (!is_staging() && is_sle && sle_version_at_least('12-SP2')) {
-        # This test uses serial console too much to be reliable on Hyper-V. See (poo#30613)
-        loadtest "console/zypper_lifecycle" unless is_hyperv;
+        loadtest "console/zypper_lifecycle";
         if (check_var_array('SCC_ADDONS', 'tcm') && !sle_version_at_least('15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
