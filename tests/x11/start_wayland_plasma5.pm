@@ -38,7 +38,11 @@ sub run {
     assert_screen 'generic-desktop', 60;
 
     # We're now in a wayland session, which is in a different VT
-    console('x11')->{args}->{tty} = 3;
+    x11_start_program('xterm');
+    my $tty = script_output('echo $XDG_VTNR');
+    send_key("alt-f4");                                # close xterm
+
+    console('x11')->set_tty(int($tty));
 }
 
 sub test_flags {
