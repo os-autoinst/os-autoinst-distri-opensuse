@@ -21,10 +21,6 @@ sub run {
     # Make sure everything necessary is installed
     ensure_installed "plasma5-session-wayland";
 
-    # Workaround (part 1): use softpipe as llvmpipe crashes all the time (fdo#96953)
-    x11_start_program('mkdir -p ~/.config/plasma-workspace/env',                                                                            valid => 0);
-    x11_start_program("echo 'echo export GALLIUM_DRIVER=softpipe >> ~/.config/startupconfig' > ~/.config/plasma-workspace/env/softpipe.sh", valid => 0);
-
     # Log out of X session
     send_key 'super';                             # Open the application menu
     assert_and_click 'plasma_logout_btn';         # Click on the logout button
@@ -43,10 +39,6 @@ sub run {
 
     # We're now in a wayland session, which is in a different VT
     console('x11')->{args}->{tty} = 3;
-
-    # Workaround (part 2): KWin does not work with the workaround so we need to undo it
-    # to allow relogins to succeed
-    x11_start_program('rm ~/.config/startupconfig', valid => 0);
 }
 
 sub test_flags {
