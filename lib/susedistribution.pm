@@ -203,7 +203,7 @@ sub x11_start_program {
     send_key 'ret';
     # As above especially krunner seems to take some time before disappearing
     # after 'ret' press we should wait in this case nevertheless
-    wait_still_screen(3) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
+    wait_still_screen(3, similarity_level => 45) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
     return unless $args{valid};
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
