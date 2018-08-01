@@ -831,7 +831,7 @@ elsif (get_var("SUPPORT_SERVER")) {
 elsif (get_var("SLEPOS")) {
     load_slepos_tests();
 }
-elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
+elsif (get_var("FIPS_TS") || get_var("SECURITY_TEST")) {
     prepare_target();
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest "console/consoletest_setup";
@@ -862,10 +862,10 @@ elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
         # Load client tests by APPTESTS variable
         load_applicationstests;
     }
-    elsif (check_var("SECURITY", "apparmor")) {
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
         load_security_tests_apparmor;
     }
-    elsif (check_var("SECURITY", "openscap")) {
+    elsif (check_var("SECURITY_TEST", "openscap")) {
         load_security_tests_openscap;
     }
 }
