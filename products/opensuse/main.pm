@@ -357,26 +357,26 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_inst_tests();
     load_reboot_tests();
 }
-elsif (get_var('SECURITYTEST')) {
+elsif (get_var('SECURITY_TEST')) {
     boot_hdd_image;
     loadtest "console/consoletest_setup";
     loadtest "console/hostname";
-    if (check_var('SECURITYTEST', 'core')) {
+    if (check_var('SECURITY_TEST', 'core')) {
         load_security_tests_core;
     }
-    elsif (check_var('SECURITYTEST', 'web')) {
+    elsif (check_var('SECURITY_TEST', 'web')) {
         load_security_tests_web;
     }
-    elsif (check_var('SECURITYTEST', 'misc')) {
+    elsif (check_var('SECURITY_TEST', 'misc')) {
         load_security_tests_misc;
     }
-    elsif (check_var('SECURITYTEST', 'crypt')) {
+    elsif (check_var('SECURITY_TEST', 'crypt')) {
         load_security_tests_crypt;
     }
-    elsif (check_var("SECURITYTEST", "apparmor")) {
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
         load_security_tests_apparmor;
     }
-    elsif (check_var("SECURITYTEST", "openscap")) {
+    elsif (check_var("SECURITY_TEST", "openscap")) {
         load_security_tests_openscap;
     }
 }
