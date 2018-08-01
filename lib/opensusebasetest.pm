@@ -8,6 +8,7 @@ use utils;
 use lockapi 'mutex_wait';
 use version_utils qw(is_sle is_leap is_upgrade);
 use isotovideo;
+use IO::Socket::INET;
 
 # Base class for all openSUSE tests
 
@@ -342,8 +343,21 @@ sub wait_boot {
             type_line_svirt "$testapi::password";
             type_line_svirt "systemctl is-active network", expect => 'active';
             type_line_svirt 'systemctl is-active sshd',    expect => 'active';
-            # make sure we can reach the SSH server in the SUT
-            type_string "for i in {1..7}; do nc -zv $virsh_guest 22 && break || (echo \"retry: \$i\" ; sleep 5; false); done;\n";
+
+            # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
+            my $retries = 12;
+            my $port    = 22;
+            for my $i (0 .. $retries) {
+                die "The SSH Port in the SUT could not be reached within 1 minute, considering a product issue" if $i == $retries;
+                if (IO::Socket::INET->new(PeerAddr => "$virsh_guest", PeerPort => $port)) {
+                    record_info("ssh port open", "check for port $port on $virsh_guest successful");
+                    last;
+                }
+                else {
+                    record_info("ssh port closed", "check for port $port on $virsh_guest failed", result => 'fail');
+                }
+                sleep 5;
+            }
             save_screenshot;
         }
 

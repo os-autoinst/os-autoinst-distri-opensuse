@@ -4,6 +4,7 @@ requires 'XML::LibXML';
 requires 'XML::Writer';
 requires 'XML::Simple';
 requires 'IO::File';
+requires 'IO::Socket::INET';
 requires 'List::Util';
 requires 'LWP::Simple';
 requires 'File::Copy';
