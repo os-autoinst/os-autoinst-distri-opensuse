@@ -599,25 +599,20 @@ sub reboot_x11 {
         record_soft_failure 'poo#19082' if ($repetitions > 0);
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-            if (check_screen('shutdown-auth', 15)) {
-                wait_still_screen(3);                                           # 981299#c41
-                type_string $testapi::password, max_interval => 5;
-                wait_still_screen(3);                                           # 981299#c41
-                wait_screen_change {
-                    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-                    assert_and_click 'reboot-auth-typed', 'right';
-                };
-                wait_screen_change {
-                    # Click the 'Show Text' Option to enable the display of the typed text
-                    assert_and_click 'reboot-auth-showtext';
-                };
-                # Check the password is correct
-                assert_screen 'reboot-auth-correct-password';
-            }
-            else {
-                record_soft_failure 'bsc#1062788';
-            }
-
+            assert_screen 'shutdown-auth';
+            wait_still_screen(3);                                               # 981299#c41
+            type_string $testapi::password, max_interval => 5;
+            wait_still_screen(3);                                               # 981299#c41
+            wait_screen_change {
+                # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+                assert_and_click 'reboot-auth-typed', 'right';
+            };
+            wait_screen_change {
+                # Click the 'Show Text' Option to enable the display of the typed text
+                assert_and_click 'reboot-auth-showtext';
+            };
+            # Check the password is correct
+            assert_screen 'reboot-auth-correct-password';
             # we need to kill ssh for iucvconn here,
             # because after pressing return, the system is down
             prepare_system_shutdown;
@@ -662,13 +657,8 @@ sub poweroff_x11 {
         assert_and_click 'gnome-shell_shutdown_btn';
 
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-            if (check_screen('shutdown-auth', 15)) {
-                type_password;
-            }
-            else {
-                record_soft_failure 'bsc#1062788';
-            }
-
+            assert_screen 'shutdown-auth';
+            type_password;
             # we need to kill all open ssh connections before the system shuts down
             prepare_system_shutdown;
             send_key "ret";
