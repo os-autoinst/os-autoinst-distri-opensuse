@@ -17,7 +17,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw/is_storage_ng/;
+use version_utils qw/is_storage_ng is_sle/;
 use utils;
 
 our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_vh switch_from_ssh_to_sol_console);
@@ -185,22 +185,25 @@ sub umount_installation_disk {
     assert_script_run("ls $mount_point");
 }
 
-#Get the partition where the new installed system is installed to
+# Get the partition where the new installed system is installed to
 sub get_installation_partition {
     my $partition = '';
 
-    #Do not use script_output because when the command fail, script_output dies
-    type_string(qq{fdisk -l | grep "^/dev/sda.*\\*" | cut -d ' ' -f 1 | tee /dev/$serialdev\n});
-    $partition = wait_serial;
-    $partition =~ s/^\s+|\s+$//g;
-    save_screenshot;
-    if (is_storage_ng && ($partition eq '')) {
-        record_soft_failure "bsc#1080729 - Partitioner does not mark boot flag";
-        my $y2log_file                = '/var/log/YaST2/y2log';
-        my $root_partition_commit_msg = script_output(qq{grep 'Commit Action "Adding mount point / of .* to /etc/fstab' $y2log_file});
-        $root_partition_commit_msg =~ m{Commit Action "Adding mount point / of ([\S]*) to /etc/fstab}m;
-        $partition = $1;
+    # Confirmed with dev that the reliable way to get partition for / is via installation log, rather than fdisk
+    # For details, please refer to bug 1101806.
+    my $cmd        = '';
+    my $y2log_file = '/var/log/YaST2/y2log';
+    if (is_sle('15+')) {
+        $cmd = qq{grep 'Commit Action "Adding mount point / of .* to /etc/fstab"' $y2log_file | grep -o "/dev/[^ ]*"};
     }
+    elsif (is_sle('12+')) {
+        $cmd = qq{sed -n '/INSTALL INFO info:Adding entry for mount point \\\/ to \\\/etc\\\/fstab/{x;p};h' $y2log_file | grep -o "/dev/[^ ]*"};
+    }
+    else {
+        die "Not support finding root partition for products lower than sle12.";
+    }
+    $partition = script_output($cmd);
+    save_screenshot;
 
     die "Error: can not get installation partition!" unless ($partition);
 
