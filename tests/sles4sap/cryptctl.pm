@@ -19,13 +19,10 @@ sub run {
     my ($self) = @_;
     # List of solutions is different between saptune in x86_64 and in ppc64le
     # Will check whether test is running in ppc64le with the OFW variable
- 
     select_console 'root-console';
- 
     unless ( script_output "rpm -ql cryptctl" ) {
     	script_run "zypper -n in cryptctl";
     }
-
     my $timeout          = 7200;
     # precompile regexes
     my $access_password = qr/^Access password.*/m;
@@ -41,20 +38,20 @@ sub run {
     my $question        = qr/^Would you.*/m;
     my $running         = qr/^Key server is now running.*/m;
     my $proc_cryptctl   = qr/.*\/usr\/sbin\/cryptctl.*/m; 
-    my $hstname    	 = qr/.*host name.*/m;
+    my $hstname    	= qr/.*host name.*/m;
     my $port_num        = qr/.*number \[3737.*/m;
     my $cert_keyserv    = qr/.*PEM-encoded CA certificate.*/m;
-    my $certkey2	 = qr/.*PEM-encoded client certificate.*/m;
-    my $clientkey	 = qr/.*PEM-encoded client key.*/m;
+    my $certkey2	= qr/.*PEM-encoded client certificate.*/m;
+    my $clientkey	= qr/.*PEM-encoded client key.*/m;
     my $serv_passwd     = qr/^Enter key server's.*/m;
-    my $crypta		 = qr/^Path of dir.*/m;
-    my $disk		 = qr/^Path of disk.*/;
-    my $how_many	 = qr/^How many.*/m;
-    my $ifthekey	 = qr/^If the key.*/m;
-    my $doublecheck 	 = qr/^Please double check.*/m;
+    my $crypta		= qr/^Path of dir.*/m;
+    my $disk		= qr/^Path of disk.*/;
+    my $how_many	= qr/^How many.*/m;
+    my $ifthekey	= qr/^If the key.*/m;
+    my $doublecheck 	= qr/^Please double check.*/m;
 
     #my $HOSTNAME 	 = script_ouptut ('ifconfig | grep \"inet addr\" | grep 10. | cut -d \"\:\" -f2 | cut -d \" \" -f1');
-    my $HOSTNAME        = script_output ('ip a | grep "inet 10." | cut -d " " -f6 | cut -d "/" -f1');
+    my $HOSTNAME = script_output ('ip a | grep "inet 10." | cut -d " " -f6 | cut -d "/" -f1');
 
     # Start cryptctl_server
     record_info("starting cryptctl init", ">>> cryptctl init-server");
@@ -87,7 +84,7 @@ sub run {
             type_string "3737";
             send_key "ret";
         }
-        elsif ($out =~$db) {
+        elsif ($out =~ $db) {
             # change dir /var/lib/cryptctl/keydb into:
             type_string '/etc/cryptctl/servertls/';
             send_key "ret";
@@ -186,7 +183,7 @@ sub run {
         elsif ($out2 =~ $ifthekey) {
            send_key "ret";
         }
-        elsif ($out2 =~ $doublecheck){
+        elsif ($out2 =~ $doublecheck) {
            type_string "yes";
            send_key "ret";
            last;
