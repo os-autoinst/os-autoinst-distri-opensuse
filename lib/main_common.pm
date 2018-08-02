@@ -616,7 +616,7 @@ sub installwithaddonrepos_is_applicable {
 }
 
 sub need_clear_repos {
-    return !get_var('BOOT_TO_SNAPSHOT') && !get_var('LIVETEST') && (is_opensuse && !is_updates_tests) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
+    return (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1')) && !get_var('BOOT_TO_SNAPSHOT') && !get_var('LIVETEST') && (is_opensuse && !is_updates_tests) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
 }
 
 sub have_scc_repos {
