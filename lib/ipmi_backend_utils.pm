@@ -144,6 +144,7 @@ sub setup_console_in_grub {
         $cmd = "cat $grub_default_file $grub_cfg_file";
         assert_script_run($cmd);
         save_screenshot;
+        upload_logs($grub_default_file);
     }
     elsif ($grub_ver eq "grub1") {
         $cmd
@@ -158,7 +159,6 @@ sub setup_console_in_grub {
     }
     save_screenshot;
     upload_logs($grub_cfg_file);
-    upload_logs($grub_default_file);
 }
 
 sub mount_installation_disk {
