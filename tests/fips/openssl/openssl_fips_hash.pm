@@ -11,8 +11,8 @@
 # approved HASH algorithms: SHA1 and SHA2 (224, 256, 384, 512)
 
 # Summary: Add Hash and Cipher test cases for openssl-fips
-#    A new test suite is created for FIPS_TS, named "core", which will
-#    contain all the basic test cases for fips verificaton. Just like
+#    A new test suite "core" is created, which contains all the basic
+#    test cases for fips verificaton when FIPS_ENABLED is set, like
 #    the cases to verify opessl hash, cipher, or public key algorithms
 # Maintainer: Qingming Su <qingming.su@suse.com>
 

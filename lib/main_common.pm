@@ -1717,12 +1717,12 @@ sub load_common_x11 {
     }
 }
 
-# Move fips testsuites to main_common to apply to SLE_FIPS + openSUSE
-# Rename load_fips_tests_* to load_security_tests_* to avoid confusedness since
+# The function name load_security_tests_* is to avoid confusing since
 # openSUSE does NOT have FIPS mode
-# Some tests are only valid for SLE FIPS and loaded if defined variables set
+# Some tests are valid only for FIPS Regression testing. Use
+# "FIPS_ENABLED" to control whether to run these "FIPS only" cases
 sub load_security_tests_core {
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/openssl/openssl_fips_alglist";
         loadtest "fips/openssl/openssl_fips_hash";
         loadtest "fips/openssl/openssl_fips_cipher";
@@ -1745,18 +1745,18 @@ sub load_security_tests_web {
     loadtest "console/wget_https";
     loadtest "console/w3m_https";
     loadtest "console/apache_ssl";
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/mozilla_nss/apache_nssfips";
         loadtest "console/libmicrohttpd";
     }
     loadtest "console/consoletest_finish";
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/mozilla_nss/firefox_nss";
     }
 }
 
 sub load_security_tests_misc {
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/curl_fips_rc4_seed";
         loadtest "console/aide_check";
     }
@@ -1774,7 +1774,7 @@ sub load_security_tests_misc {
 }
 
 sub load_security_tests_crypt {
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_TS')) {
+    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/ecryptfs_fips";
     }
     loadtest "console/gpg";

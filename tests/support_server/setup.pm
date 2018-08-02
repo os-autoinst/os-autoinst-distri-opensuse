@@ -439,7 +439,7 @@ sub setup_stunnel_server {
     assert_script_run 'chmod 0600 ~/.vnc/passwd';
     assert_script_run 'vncserver :5';
     assert_script_run 'netstat -nal | grep 5905';
-    if (get_var('FIPS_TS') || get_var('FIPS')) {
+    if (get_var('FIPS_ENABLED') || get_var('FIPS')) {
         assert_script_run "grep 'stunnel:.*FIPS mode enabled' /var/log/messages";
     }
     $disable_firewall = 1;

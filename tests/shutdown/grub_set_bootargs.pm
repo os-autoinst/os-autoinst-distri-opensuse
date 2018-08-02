@@ -19,7 +19,7 @@ sub run {
     my @cmds;
     push @cmds, "source /etc/default/grub";
     push @cmds, 'new_cmdline=`echo $GRUB_CMDLINE_LINUX_DEFAULT | sed \'s/\(^\| \)quiet\($\| \)/ /\'`';
-    if (get_var("ENABLE_FIPS")) {
+    if (get_var("FIPS_ENABLED")) {
         push @cmds, 'new_cmdline="$new_cmdline fips=1"';
         if (get_var("ENCRYPT") && !get_var("FULL_LVM_ENCRYPT")) {
             push @cmds, 'new_cmdline="$new_cmdline boot=$(df /boot | tail -1 | cut -d" " -f1)"';

@@ -71,7 +71,7 @@ sub gpg_generate_key {
     wait_still_screen 1;
     type_string "$passwd\n";
     wait_still_screen 1;
-    if (get_var("FIPS") || get_var("FIPS_TS") && $key_size == 1024) {
+    if (get_var("FIPS") || get_var("FIPS_ENABLED") && $key_size == 1024) {
         assert_screen("key-generation-failed");
     }
     else {
@@ -124,7 +124,7 @@ sub run {
     }
 
     # fips environment, 1024 bit RSA size key should NOT work
-    if (get_var("FIPS") || get_var("FIPS_TS")) {
+    if (get_var("FIPS") || get_var("FIPS_ENABLED")) {
         gpg_generate_key(1024);
     }
 }
