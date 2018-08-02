@@ -558,7 +558,7 @@ sed -i -e '/^      <start_multipath/ c\
 ' /tmp/profile/modified.xml
 # Set device
 sed -i -e "/^      <device>\/dev\/placeholder/ c\
-      <device>/dev/mapper/0QEMU_QEMU_HARDDISK_mpath1</device>" /tmp/profile/modified.xml
+      <device>/dev/mapper/0QEMU_QEMU_HARDDISK_hd0</device>" /tmp/profile/modified.xml
 # Set fs type, mount point and mount options
 # EFI
 if [ -e /sys/firmware/efi ]; then
