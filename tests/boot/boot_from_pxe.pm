@@ -93,7 +93,9 @@ sub run {
         }
 
         # we need ssh access to gather logs
-        # 'ssh=1' and 'sshd=1' are equal, both together don't work
+        # 'ssh=1' starts a remote installation
+        # 'sshd=1' only starts the ssh daemon,
+        # both together don't work
         # so let's just set the password here
         $cmdline .= "sshpassword=$testapi::password ";
         type_string $cmdline, $type_speed;
