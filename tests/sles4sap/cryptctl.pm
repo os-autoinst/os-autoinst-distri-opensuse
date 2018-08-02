@@ -16,16 +16,15 @@ use strict;
 
 
 sub run {
-     my ($self) = @_;
+    my ($self) = @_;
+    # List of solutions is different between saptune in x86_64 and in ppc64le
+    # Will check whether test is running in ppc64le with the OFW variable
  
-     # List of solutions is different between saptune in x86_64 and in ppc64le
-     # Will check whether test is running in ppc64le with the OFW variable
+    select_console 'root-console';
  
-     select_console 'root-console';
- 
-     unless ( script_output "rpm -ql cryptctl" ) {
- 	script_run "zypper -n in cryptctl";
-       }
+    unless ( script_output "rpm -ql cryptctl" ) {
+    	script_run "zypper -n in cryptctl";
+    }
 
     my $timeout          = 7200;
     # precompile regexes
@@ -115,7 +114,6 @@ sub run {
         $out = wait_serial($cryptctl_server_checks, $timeout);
     }
  
-
     script_run("ps -aux | grep cryptctl | tee /dev/$serialdev", 0);
     my $sysctl_running_check = [
         $proc_cryptctl
@@ -126,7 +124,6 @@ sub run {
            record_info 'cryptctl-server Running', 'Daemon runs';
         }
     
-
     script_run("lsblk | tee /dev/$serialdev", 0);
 
     script_run("dd if=/dev/vda3 of=kukish.img bs=1024 count=300 | tee /dev/$serialdev", 0);
@@ -153,7 +150,7 @@ sub run {
             type_string "3737";
             send_key "ret";
         } 
-  	 elsif ($out2 =~ $cert_keyserv) {
+  	elsif ($out2 =~ $cert_keyserv) {
             #type_string "/etc/cryptctl/servertls/";
             #type_string $HOSTNAME;
             #type_string ".crt";
@@ -165,7 +162,7 @@ sub run {
             type_string ".crt";
             send_key "ret";
         }
-         elsif ($out2 =~ $clientkey) {
+        elsif ($out2 =~ $clientkey) {
             type_string "/etc/cryptctl/servertls/";
             type_string $HOSTNAME;
             type_string ".key"; 
@@ -178,7 +175,7 @@ sub run {
         elsif ($out2 =~ $crypta) {
             type_string "/root/crypta";
             send_key "ret";
- 	 }
+ 	}
         elsif ($out2 =~ $disk) {
             type_string "/dev/loop1";
             send_key "ret";
@@ -186,15 +183,15 @@ sub run {
         elsif ($out2 =~ $how_many) {
             send_key "ret";
         }
-       elsif ($out2 =~ $ifthekey) {
+        elsif ($out2 =~ $ifthekey) {
            send_key "ret";
         }
-       elsif ($out2 =~ $doublecheck){
+        elsif ($out2 =~ $doublecheck){
            type_string "yes";
            send_key "ret";
            last;
         }
-   $out2 = wait_serial($encrypt_check, $timeout);
+   	$out2 = wait_serial($encrypt_check, $timeout);
    }
 }
   
