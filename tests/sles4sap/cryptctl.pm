@@ -194,9 +194,8 @@ sub run {
            send_key "ret";
            last;
         }
-       $out2 = wait_serial($encrypt_check, $timeout);
+   $out2 = wait_serial($encrypt_check, $timeout);
    }
-
 }
   
 1;
