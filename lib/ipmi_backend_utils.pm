@@ -158,7 +158,7 @@ sub setup_console_in_grub {
     }
     save_screenshot;
     upload_logs($grub_cfg_file);
-    upload_logs($grub_default_file);
+    upload_logs($grub_default_file, failok => 1);
 }
 
 sub mount_installation_disk {
