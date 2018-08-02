@@ -20,8 +20,8 @@ sub run {
     # List of solutions is different between saptune in x86_64 and in ppc64le
     # Will check whether test is running in ppc64le with the OFW variable
     select_console 'root-console';
-    unless ( script_output "rpm -ql cryptctl" ) {
-    	 script_run "zypper -n in cryptctl";
+    unless (script_output "rpm -ql cryptctl") {
+        script_run "zypper -n in cryptctl";
     }
     my $timeout = 7200;
     # precompile regexes
@@ -37,21 +37,21 @@ sub run {
     my $smtp            = qr/^SMTP.*/m;
     my $question        = qr/^Would you.*/m;
     my $running         = qr/^Key server is now running.*/m;
-    my $proc_cryptctl   = qr/.*\/usr\/sbin\/cryptctl.*/m; 
-    my $hstname    	= qr/.*host name.*/m;
+    my $proc_cryptctl   = qr/.*\/usr\/sbin\/cryptctl.*/m;
+    my $hstname         = qr/.*host name.*/m;
     my $port_num        = qr/.*number \[3737.*/m;
     my $cert_keyserv    = qr/.*PEM-encoded CA certificate.*/m;
-    my $certkey2	= qr/.*PEM-encoded client certificate.*/m;
-    my $clientkey	= qr/.*PEM-encoded client key.*/m;
+    my $certkey2        = qr/.*PEM-encoded client certificate.*/m;
+    my $clientkey       = qr/.*PEM-encoded client key.*/m;
     my $serv_passwd     = qr/^Enter key server's.*/m;
-    my $crypta		= qr/^Path of dir.*/m;
-    my $disk		= qr/^Path of disk.*/;
-    my $how_many	= qr/^How many.*/m;
-    my $ifthekey	= qr/^If the key.*/m;
-    my $doublecheck 	= qr/^Please double check.*/m;
+    my $crypta          = qr/^Path of dir.*/m;
+    my $disk            = qr/^Path of disk.*/;
+    my $how_many        = qr/^How many.*/m;
+    my $ifthekey        = qr/^If the key.*/m;
+    my $doublecheck     = qr/^Please double check.*/m;
 
     #my $HOSTNAME 	 = script_ouptut ('ifconfig | grep \"inet addr\" | grep 10. | cut -d \"\:\" -f2 | cut -d \" \" -f1');
-    my $HOSTNAME = script_output ('ip a | grep "inet 10." | cut -d " " -f6 | cut -d "/" -f1');
+    my $HOSTNAME = script_output('ip a | grep "inet 10." | cut -d " " -f6 | cut -d "/" -f1');
 
     # Start cryptctl_server
     record_info("starting cryptctl init", ">>> cryptctl init-server");
@@ -110,7 +110,7 @@ sub run {
         }
         $out = wait_serial($cryptctl_server_checks, $timeout);
     }
- 
+
     script_run("ps -aux | grep cryptctl | tee /dev/$serialdev", 0);
     my $sysctl_running_check = [
         $proc_cryptctl
@@ -118,9 +118,9 @@ sub run {
 
     my $out = wait_serial($sysctl_running_check, $timeout);
     if ($out =~ $proc_cryptctl) {
-    	record_info 'cryptctl-server Running', 'Daemon runs';
+        record_info 'cryptctl-server Running', 'Daemon runs';
     }
-    
+
     script_run("lsblk | tee /dev/$serialdev", 0);
 
     script_run("dd if=/dev/vda3 of=kukish.img bs=1024 count=300 | tee /dev/$serialdev", 0);
@@ -133,10 +133,10 @@ sub run {
     record_info("Encrypting bulk dev", ">>> cryptctl encrypt /dev/<blk>");
     script_run("(cryptctl encrypt /dev/loop1) | tee /dev/$serialdev", 0);
     my $encrypt_check = [
-    	 $hstname,  $port_num,  $cert_keyserv, $certkey2, $clientkey, $serv_passwd,  $crypta,
-         $disk,  $how_many,  $ifthekey,  $doublecheck
-    ];	
-       
+        $hstname, $port_num, $cert_keyserv, $certkey2, $clientkey, $serv_passwd, $crypta,
+        $disk, $how_many, $ifthekey, $doublecheck
+    ];
+
     my $out2 = wait_serial($encrypt_check, $timeout);
     while ($out2) {
         if ($out2 =~ $hstname) {
@@ -146,8 +146,8 @@ sub run {
         elsif ($out2 =~ $port_num) {
             type_string "3737";
             send_key "ret";
-        } 
-  	elsif ($out2 =~ $cert_keyserv) {
+        }
+        elsif ($out2 =~ $cert_keyserv) {
             #type_string "/etc/cryptctl/servertls/";
             #type_string $HOSTNAME;
             #type_string ".crt";
@@ -162,7 +162,7 @@ sub run {
         elsif ($out2 =~ $clientkey) {
             type_string "/etc/cryptctl/servertls/";
             type_string $HOSTNAME;
-            type_string ".key"; 
+            type_string ".key";
             send_key "ret";
         }
         elsif ($out2 =~ $serv_passwd) {
@@ -172,7 +172,7 @@ sub run {
         elsif ($out2 =~ $crypta) {
             type_string "/root/crypta";
             send_key "ret";
- 	}
+        }
         elsif ($out2 =~ $disk) {
             type_string "/dev/loop1";
             send_key "ret";
@@ -188,10 +188,8 @@ sub run {
             send_key "ret";
             last;
         }
-   	$out2 = wait_serial($encrypt_check, $timeout);
-   }
+        $out2 = wait_serial($encrypt_check, $timeout);
+    }
 }
-  
-
 1;
 
