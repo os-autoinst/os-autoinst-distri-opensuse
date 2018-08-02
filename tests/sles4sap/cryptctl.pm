@@ -21,9 +21,9 @@ sub run {
     # Will check whether test is running in ppc64le with the OFW variable
     select_console 'root-console';
     unless ( script_output "rpm -ql cryptctl" ) {
-    	script_run "zypper -n in cryptctl";
+    	 script_run "zypper -n in cryptctl";
     }
-    my $timeout          = 7200;
+    my $timeout = 7200;
     # precompile regexes
     my $access_password = qr/^Access password.*/m;
     my $confirm_passwd  = qr/^Confirm access password.*/m;
@@ -117,24 +117,24 @@ sub run {
     ];
 
     my $out = wait_serial($sysctl_running_check, $timeout);
-        if ($out =~ $proc_cryptctl) {
-           record_info 'cryptctl-server Running', 'Daemon runs';
-        }
+    if ($out =~ $proc_cryptctl) {
+    	record_info 'cryptctl-server Running', 'Daemon runs';
+    }
     
     script_run("lsblk | tee /dev/$serialdev", 0);
 
     script_run("dd if=/dev/vda3 of=kukish.img bs=1024 count=300 | tee /dev/$serialdev", 0);
 
     script_run("losetup loop1 kukish.img | tee /dev/$serialdev", 0);
-    script_run("losetup -l | tee /dev/$serialdev", 0);
+    script_run("losetup -l | tee /dev/$serialdev",               0);
 
     script_run("mkdir -p /root/crypta | tee /dev/$serialdev", 0);
 
     record_info("Encrypting bulk dev", ">>> cryptctl encrypt /dev/<blk>");
     script_run("(cryptctl encrypt /dev/loop1) | tee /dev/$serialdev", 0);
     my $encrypt_check = [
-    	$hstname,  $port_num,  $cert_keyserv, $certkey2, $clientkey, $serv_passwd,  $crypta,
-       $disk,  $how_many,  $ifthekey,  $doublecheck
+    	 $hstname,  $port_num,  $cert_keyserv, $certkey2, $clientkey, $serv_passwd,  $crypta,
+         $disk,  $how_many,  $ifthekey,  $doublecheck
     ];	
        
     my $out2 = wait_serial($encrypt_check, $timeout);
@@ -181,16 +181,17 @@ sub run {
             send_key "ret";
         }
         elsif ($out2 =~ $ifthekey) {
-           send_key "ret";
+            send_key "ret";
         }
         elsif ($out2 =~ $doublecheck) {
-           type_string "yes";
-           send_key "ret";
-           last;
+            type_string "yes";
+            send_key "ret";
+            last;
         }
    	$out2 = wait_serial($encrypt_check, $timeout);
    }
 }
   
+
 1;
 
