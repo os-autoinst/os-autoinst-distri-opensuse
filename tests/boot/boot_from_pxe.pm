@@ -20,6 +20,7 @@ use lockapi;
 use registration;
 use testapi;
 use utils 'type_string_very_slow';
+use installation_utils 'is_remote_installation';
 
 sub run {
     # In autoyast tests we need to wait until pxe is available
@@ -83,7 +84,7 @@ sub run {
     type_string ${image_path} . " ", $type_speed;
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
-    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
+    if (is_remote_installation()) {
         my $cmdline = '';
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
@@ -93,7 +94,7 @@ sub run {
         }
 
         # we need ssh access to gather logs
-        # 'ssh=1' starts a remote installation
+        # 'ssh=1' starts a remote installation through ssh
         # 'sshd=1' only starts the ssh daemon,
         # both together don't work
         # so let's just set the password here
@@ -110,7 +111,7 @@ sub run {
     send_key 'ret';
     save_screenshot;
 
-    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
+    if (is_remote_installation()) {
         my $ssh_vnc_wait_time = get_var('SES5_DEPLOY') ? 300 : 210;
         assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', $ssh_vnc_wait_time);
         select_console 'installation';
