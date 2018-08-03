@@ -685,7 +685,9 @@ sub prepare_target {
 }
 
 sub is_baremetal_test {
-    return (get_var('IBTESTS') || get_var('NFV'));
+    return 1 if (get_var('IBTESTS'));
+    return 1 if (get_var('NFV') && check_var('BACKEND', 'ipmi'));
+    return 0;
 }
 
 sub mellanox_config {
@@ -711,14 +713,18 @@ sub load_baremetal_tests {
         loadtest "kernel/ib_tests";
     }
     elsif (get_var('NFV')) {
-        mellanox_config();
-        loadtest "kernel/mellanox_ofed" if get_var('OFED_URL');
-        if (check_var("NFV", "master")) {
-            load_nfv_master_tests();
-        }
-        elsif (check_var("NFV", "trafficgen")) {
-            load_nfv_trafficgen_tests();
-        }
+        load_nfv_tests();
+    }
+}
+
+sub load_nfv_tests {
+    mellanox_config() if check_var('BACKEND', 'ipmi');
+    loadtest "kernel/mellanox_ofed" if get_var('OFED_URL');
+    if (check_var("NFV", "master")) {
+        load_nfv_master_tests();
+    }
+    elsif (check_var("NFV", "trafficgen")) {
+        load_nfv_trafficgen_tests();
     }
 }
 
@@ -755,6 +761,10 @@ elsif (is_baremetal_test()) {
 elsif (get_var("WICKED")) {
     boot_hdd_image();
     load_wicked_tests();
+}
+elsif (get_var("NFV")) {
+    boot_hdd_image();
+    load_nfv_tests();
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;

@@ -16,14 +16,13 @@ use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
-use mmapi;
 use serial_terminal 'select_virtio_console';
 
 sub run {
+    select_virtio_console();
+
     my $self        = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
-
-    select_virtio_console();
 
     # use conf file from data dir
     assert_script_run("curl " . data_url('nfv/vsperf_ovs_dummy.conf') . " -o $vsperf_conf");
@@ -41,4 +40,3 @@ sub run {
 }
 
 1;
-
