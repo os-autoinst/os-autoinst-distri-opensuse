@@ -232,11 +232,7 @@ sub pre_bootmenu_setup {
         send_key(2 + get_var("NUMDISKS"));
     }
 
-    if (get_var("BOOT_HDD_IMAGE")) {
-        assert_screen "grub2", 15;    # Use the same bootloader needle as in grub-test
-        send_key "ret";               # boot from hd
-        return 3;
-    }
+    return 3 if get_var('BOOT_HDD_IMAGE');
     return 0;
 }
 

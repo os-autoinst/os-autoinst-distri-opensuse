@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,13 +14,14 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
+use utils 'power_action';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run {
     my $self = shift;
 
     select_console 'root-console';
-    type_string "reboot\n";
+    power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
     $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE'));
     assert_screen 'grub2', 200;
@@ -30,4 +31,5 @@ sub run {
 sub test_flags {
     return {fatal => 1};
 }
+
 1;
