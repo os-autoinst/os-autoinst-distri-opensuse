@@ -58,6 +58,10 @@ sub run {
     send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
     send_key 'ret';
 
+    # Select language
+    send_key_until_needlematch "jeos-keylayout-$lang", $keylayout_key{$lang}, 30;
+    send_key 'ret';
+
     # Accept license
     if (is_sle) {
         assert_screen 'jeos-license', 60;
@@ -65,10 +69,6 @@ sub run {
         assert_screen 'jeos-doyouaccept';
         send_key 'ret';
     }
-
-    # Select language
-    send_key_until_needlematch "jeos-keylayout-$lang", $keylayout_key{$lang}, 30;
-    send_key 'ret';
 
     # Select timezone
     send_key_until_needlematch "jeos-timezone-$lang", $tz_key{$lang}, 10;
