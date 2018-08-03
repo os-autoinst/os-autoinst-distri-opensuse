@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use repo_tools 'prepare_source_repo';
+use repo_tools qw(prepare_source_repo disable_source_repo);
 use version_utils qw(is_sle is_leap is_opensuse);
 
 sub test_srcpackage_output {
@@ -54,13 +54,13 @@ sub run {
         return;
     }
 
-    prepare_source_repo;
-
     # check for zypper info
     test_package_output;
 
     if (is_sle('>=12-SP2') || is_opensuse) {
+        prepare_source_repo;
         test_srcpackage_output;
+        disable_source_repo;
     }
 }
 
