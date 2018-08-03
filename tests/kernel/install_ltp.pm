@@ -23,8 +23,7 @@ use version_utils qw(is_sle sle_version_at_least is_opensuse);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
-    zypper_call("ar $qa_head_repo qa_repo",   dumb_term => 1);
-    zypper_call('--gpg-auto-import-keys ref', dumb_term => 1);
+    zypper_ar($qa_head_repo, 'qa_repo');
 }
 
 sub add_we_repo_if_available {
