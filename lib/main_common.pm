@@ -1044,17 +1044,6 @@ sub load_consoletests {
     loadtest "console/textinfo";
     loadtest "console/rmt" if is_rmt;
     loadtest "console/hostname" unless is_bridged_networking;
-    # Run zypper info before as tests source repo are not yet synced to o3 and we
-    # rely on default repos we get after installation.
-    # The test can't be run on JeOS as it's heavily dependant
-    # on repos from installation medium.
-    # We also don't have any repos on staging and update/upgrade tests.
-    # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
-    # Test doesn't make sense on live images too, don't have source repo there.
-    # Skip this test for SLED (poo#36397)
-    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem() && !is_desktop()) {
-        loadtest "console/zypper_info";
-    }
     # Add non-oss and debug repos for o3 and remove other by default
     replace_opensuse_repos_tests if is_repo_replacement_required;
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
@@ -1439,6 +1428,7 @@ sub load_extra_tests_textmode {
     # dependency of git test
     loadtest "console/sshd";
     loadtest "console/zypper_ref";
+    loadtest "console/zypper_info";
     loadtest "console/update_alternatives";
     # start extra console tests from here
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
