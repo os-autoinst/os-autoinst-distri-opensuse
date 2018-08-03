@@ -220,6 +220,7 @@ sub run {
     if (check_screen("yast2-ask-reboot", 5)) {
         # reboot
         send_key "alt-r";
+        power_action('reboot', observe => 1, keepconsole => 1);
         # sometimes reboot takes longer time after online migration
         # give more time to reboot
         $self->wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
