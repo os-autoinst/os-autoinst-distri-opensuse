@@ -14,6 +14,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_desktop_installed';
 use qam qw(add_test_repositories remove_test_repositories);
 
 sub run {
@@ -24,10 +25,12 @@ sub run {
 
     add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
 
-    select_console 'x11', await_console => 0;
-    ensure_unlocked_desktop;
-    mouse_hide(1);
-    assert_screen 'generic-desktop';
+    if (is_desktop_installed) {
+        select_console 'x11', await_console => 0;
+        ensure_unlocked_desktop;
+        mouse_hide(1);
+        assert_screen 'generic-desktop';
+    }
 }
 
 sub test_flags {
