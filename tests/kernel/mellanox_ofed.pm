@@ -28,11 +28,9 @@ sub run {
     my $ofed_dir      = ((split(/\.tgz/, $ofed_file_tgz))[0]);
 
     if (check_var('VERSION', '15')) {
-        zypper_call('--quiet in openvswitch python-devel python2-libxml2-python libopenssl1_0_0 insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm-build', timeout => 500);
+        zypper_call('--quiet in openvswitch python-devel python2-libxml2-python libopenssl1_1 insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm', timeout => 500);
     }
     elsif (check_var('VERSION', '12-SP4')) {
-        my $SDK_REPO = 'http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/GA:/TEST/images/repo/SLE-12-SP4-SDK-POOL-x86_64-Media1/';
-        zypper_call("--quiet ar -f $SDK_REPO SLE-12-SP4-SDK-POOL");
         zypper_call('--quiet in openvswitch python-devel python-libxml2 libopenssl1_0_0 insserv-compat libstdc++-devel createrepo rpm-build kernel-syms tk', timeout => 500);
     }
     else {
