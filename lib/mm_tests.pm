@@ -46,7 +46,7 @@ sub configure_stunnel {
     if (!$is_server) {
         assert_script_run "sed -i 's/^client = no/client = yes/' /etc/stunnel/stunnel.conf";
     }
-    my $conf = get_var('FIPS_TS') || get_var('FIPS') ? "fips = yes\n" : '';
+    my $conf = get_var('FIPS_ENABLED') || get_var('FIPS') ? "fips = yes\n" : '';
     $conf .= "[VNC]\naccept = 15905\nconnect = ";
     $conf .= $is_server ? "5905\n" : "10.0.2.1:15905\n";
     assert_script_run "echo \"$conf\" >> /etc/stunnel/stunnel.conf";
