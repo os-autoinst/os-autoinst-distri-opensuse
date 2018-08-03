@@ -14,6 +14,7 @@
 use base "console_yasttest";
 use strict;
 use testapi;
+use version_utils 'is_sle';
 use utils 'zypper_call';
 
 sub run {
@@ -38,7 +39,12 @@ sub run {
     # Check and upload profile for chained tests
     upload_asset "/root/autoinst.xml";
     if (script_run 'xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml') {
-        record_soft_failure 'bsc#1013047';
+        if (is_sle('<15')) {
+            record_soft_failure 'bsc#1103712';
+        }
+        else {
+            die "autoinst.xml does not validate for unknown reason";
+        }
     }
 
     # Remove for autoyast_removed test - poo#11442
