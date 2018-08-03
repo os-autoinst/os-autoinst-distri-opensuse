@@ -1021,6 +1021,10 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('DESKTOP',      'textmode');
     }
 }
+elsif (get_var("TERADATA")) {
+    boot_hdd_image;
+    loadtest "qam-teradata/teradata";
+}
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     # update system with agregate repositories
