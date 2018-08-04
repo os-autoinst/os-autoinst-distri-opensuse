@@ -718,7 +718,10 @@ sub load_baremetal_tests {
 }
 
 sub load_nfv_tests {
-    mellanox_config() if check_var('BACKEND', 'ipmi');
+    if (check_var('BACKEND', 'ipmi')) {
+        loadtest "nfv/hugepages_config" if get_var('HUGEPAGES');
+        mellanox_config();
+    }
     loadtest "kernel/mellanox_ofed" if get_var('OFED_URL');
     if (check_var("NFV", "master")) {
         load_nfv_master_tests();
