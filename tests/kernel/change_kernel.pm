@@ -33,7 +33,6 @@ sub run {
         dumb_term => 1);
 
     # Reboot into the new kernel
-    select_console('root-console');
     power_action('reboot', textmode => 1);
 }
 

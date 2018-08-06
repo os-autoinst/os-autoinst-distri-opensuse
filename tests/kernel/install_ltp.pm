@@ -291,7 +291,6 @@ sub run {
 
     upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
 
-    select_console('root-console');
     power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
 }
 
