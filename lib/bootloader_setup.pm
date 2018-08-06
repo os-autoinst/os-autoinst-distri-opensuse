@@ -177,10 +177,13 @@ sub boot_local_disk {
     if (get_var('OFW')) {
         # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
         wait_screen_change { send_key 'ret' };
-        assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
-        if (match_has_tag 'bootloader') {
-            assert_screen 'inst-slof';
+        # Currently the bootloader would bounce back to inst-bootmenu screen after pressing 'ret'
+        # on 'local' menu-item, we have to check it and send 'ret' again to make booting properly
+        if (check_screen(['bootloader', 'inst-bootmenu'], 30)) {
+            record_info 'bounce back to inst-bootmenu, send ret again';
+            send_key 'ret';
         }
+        assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
         if (match_has_tag 'grub2') {
             diag 'already in grub2, returning from boot_local_disk';
             stop_grub_timeout;
