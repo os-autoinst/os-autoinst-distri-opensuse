@@ -178,6 +178,9 @@ sub boot_local_disk {
         # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
         wait_screen_change { send_key 'ret' };
         assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
+        if (match_has_tag 'bootloader') {
+            assert_screen 'inst-slof';
+        }
         if (match_has_tag 'grub2') {
             diag 'already in grub2, returning from boot_local_disk';
             stop_grub_timeout;
