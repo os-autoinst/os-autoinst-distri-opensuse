@@ -237,6 +237,13 @@ sub shuffle {
     return @arr;
 }
 
+# Copy log to ready to save
+sub copy_log {
+    my ($category, $num, $log_type) = @_;
+    my $cmd = "cat /opt/xfstests/results/$category/$num.$log_type | tee $LOG_DIR/$category/$num.$log_type";
+    script_run($cmd);
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -261,10 +268,9 @@ sub run {
             # Test finished without crashing SUT
             log_add($STATUS_LOG, $test, $status, $time);
             if ($status =~ /FAILED/) {
-                my $cmd = "cat /opt/xfstests/results/$category/$num.out.bad | tee $LOG_DIR/$category/$num.out.bad";
-                script_run($cmd);
-                $cmd = "cat /opt/xfstests/results/$category/$num.full | tee $LOG_DIR/$category/$num.full";
-                script_run($cmd);
+                copy_log($category, $num, 'out.bad');
+                copy_log($category, $num, 'full');
+                copy_log($category, $num, 'dmesg');
             }
             next;
         }
