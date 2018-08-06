@@ -192,9 +192,6 @@ sub boot_local_disk {
             save_screenshot;
         }
     }
-    if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
-        assert_screen 'boot-firmware';
-    }
     send_key 'ret';
 }
 
