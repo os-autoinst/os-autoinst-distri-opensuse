@@ -147,13 +147,21 @@ sub clean_up_red_disks {
     my $wait_script           = "120";
     my $get_disks_not_used    = "ls /dev/sd* | grep -v -e \"/dev/sd[a].*\" -e \"/dev/sd[b-z].*[[:digit:]].*\"";
     my $disks_not_used        = script_output($get_disks_not_used, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $get_disks_nu_num      = "$get_disks_not_used | wc -l";
+    my $disks_nu_num          = script_output($get_disks_nu_num, $wait_script, type_command => 1, proceed_on_failure => 1);
     my $get_disks_fs_overview = "lsblk -f";
     my $get_fs_type_supported = "$get_disks_fs_overview | grep sda | awk \'{print \$2}\' | grep -v swap | tail -1";
     my $fs_type_supported     = script_output($get_fs_type_supported, $wait_script, type_command => 1, proceed_on_failure => 1);
     my $make_fs_cmd           = "mkfs.$fs_type_supported";
+    my @disks_nu_array        = split(/\n+/, $disks_not_used);
+    my $disks_nu_length       = scalar @disks_nu_array;
 
-    if ($disks_not_used && $fs_type_supported) {
-        assert_script_run("wipefs -a $disks_not_used && $make_fs_cmd $disks_not_used");
+    if (($disks_nu_length eq $disks_nu_num) && $disks_nu_num && $fs_type_supported) {
+        foreach my $item (@disks_nu_array) {
+            if ($item =~ /\/dev\/sd[b-z].*/) {
+                assert_script_run("wipefs -a $item && $make_fs_cmd $item");
+            }
+        }
         diag("Debug info: Redundant disks have already been formatted using mkfs.");
     }
     else {
