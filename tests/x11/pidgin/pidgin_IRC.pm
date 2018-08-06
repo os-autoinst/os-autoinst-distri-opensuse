@@ -36,22 +36,24 @@ sub run {
     wait_screen_change { type_string "$CHANNELNAME" };
     wait_screen_change { send_key "alt-a" };
 
-    # Should create IRC account
-    assert_screen 'pidgin-irc-account';
-
-    # Close account manager
-    wait_screen_change { send_key "ctrl-a" };
-    wait_screen_change { send_key "alt-c" };
+    # Should create IRC account, close account manager
+    assert_and_click 'pidgin-irc-account';
 
     # Warning of spoofing ip may appear
     assert_screen([qw(pidgin-spoofing-ip pidgin-irc-sledtesting)]);
     if (match_has_tag('pidgin-spoofing-ip')) {
         wait_screen_change {
-            send_key "alt-tab";
+            send_key is_sle('<15') ? "alt-tab" : "alt-`";
         };
         wait_screen_change {
             send_key "ctrl-w";    # close it
         };
+    }
+
+    # CTCP Version and warning about scan may appear
+    assert_screen([qw(pidgin-ctcp-version pidgin-irc-sledtesting)]);
+    if (match_has_tag('pidgin-ctcp-version')) {
+        wait_screen_change { send_key "ctrl-w"; }    # close it
     }
 
     # Join a chat
@@ -60,22 +62,13 @@ sub run {
     send_key "alt-j";
 
     # Should open sledtesting channel
-    # we need to switch tabs on SLE15
-    if (is_sle('>=15')) {
-        assert_and_click 'pidgin-irc-sledtesting';
-    }
-    else {
-        assert_screen 'pidgin-irc-sledtesting';
-    }
+    assert_screen 'pidgin-irc-sledtesting';
 
     # Send a message
-    send_key "alt-tab";
+    send_key is_sle('<15') ? "alt-tab" : "alt-`";
     type_string "Hello from openQA\n";
     assert_screen 'pidgin-irc-msgsent';
     wait_screen_change { send_key "ctrl-w" };
-
-    # There is another tab to close on SLE15
-    wait_screen_change { send_key "ctrl-w" } if is_sle('>=15');
 
     # Cleaning
     $self->pidgin_remove_account;
