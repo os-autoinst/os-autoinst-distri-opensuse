@@ -273,7 +273,8 @@ sub is_repo_replacement_required {
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
       && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
       && !get_var('ZYPPER_ADD_REPOS')     # Skip if manual repos are specified
-      && !get_var('OFFLINE_SUT');         # Do not run if SUT is offine
+      && !get_var('OFFLINE_SUT')          # Do not run if SUT is offine
+      && !get_var('ZDUP');                # Do not run on ZDUP as these tests handle repos on their own
 }
 
 sub is_memtest {
@@ -613,7 +614,12 @@ sub installwithaddonrepos_is_applicable {
 }
 
 sub need_clear_repos {
-    return (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1')) && !get_var('BOOT_TO_SNAPSHOT') && !get_var('LIVETEST') && (is_opensuse && !is_updates_tests) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
+    return !get_var('ZDUP')
+      && (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1'))
+      && !get_var('BOOT_TO_SNAPSHOT')
+      && !get_var('LIVETEST')
+      && (is_opensuse && !is_updates_tests)
+      || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
 }
 
 sub have_scc_repos {
