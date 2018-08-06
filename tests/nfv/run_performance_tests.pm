@@ -18,6 +18,8 @@ use lockapi;
 sub run {
     select_console 'root-ssh';
 
+    record_info("Check Hugepages");
+    assert_script_run('cat /proc/meminfo |grep -i huge');
     record_info("Start test");
     assert_script_run('source /root/vsperfenv/bin/activate && cd /root/vswitchperf/');
     assert_script_run('./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch OvsVanilla phy2phy_tput',

@@ -27,7 +27,8 @@ sub show_links {
 }
 
 sub run {
-    use_ssh_serial_console;
+    select_console 'root-ssh';
+
     my $mft_version = get_required_var('MFT_VERSION');
     my $protocol = get_var('MLX_PROTOCOL') || 2;
 
