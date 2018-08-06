@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,7 +21,7 @@ sub run {
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
     my $timeout = get_var('UEFI') ? 140 : 80;
     if (check_var('VIRSH_VMM_TYPE', 'linux')) {
-        wait_serial("Welcome to .*SUSE Linux", $timeout) || die "System did not boot in $timeout seconds.";
+        wait_serial('Welcome to SUSE Linux', $timeout) || die "System did not boot in $timeout seconds.";
     }
     else {
         $self->wait_boot(bootloader_time => $timeout);
@@ -29,7 +29,8 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 1};    # add milestone flag to save setup in lastgood VM snapshot
+    # add milestone flag to save setup in lastgood VM snapshot
+    return {fatal => 1, milestone => 1};
 }
 
 1;
