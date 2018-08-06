@@ -252,7 +252,9 @@ sub is_kernel_test {
 }
 
 sub replace_opensuse_repos_tests {
+    return if get_var('CLEAR_REPOS');
     loadtest "update/zypper_clear_repos";
+    set_var('CLEAR_REPOS', 1);
     loadtest "console/zypper_ar";
     loadtest "console/zypper_ref";
 }
@@ -273,6 +275,7 @@ sub is_repo_replacement_required {
       && !is_staging()                    # Do not have mirrored repos on staging
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
       && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
+      && !get_var('ZYPPER_ADD_REPOS')     # Skip if manual repos are specified
       && !get_var('OFFLINE_SUT');         # Do not run if SUT is offine
 }
 
@@ -613,7 +616,7 @@ sub installwithaddonrepos_is_applicable {
 }
 
 sub need_clear_repos {
-    return (is_opensuse && is_staging()) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
+    return (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1')) && !get_var('BOOT_TO_SNAPSHOT') && !get_var('LIVETEST') && (is_opensuse && !is_updates_tests) || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
 }
 
 sub have_scc_repos {
@@ -1041,17 +1044,6 @@ sub load_consoletests {
     loadtest "console/textinfo";
     loadtest "console/rmt" if is_rmt;
     loadtest "console/hostname" unless is_bridged_networking;
-    # Run zypper info before as tests source repo are not yet synced to o3 and we
-    # rely on default repos we get after installation.
-    # The test can't be run on JeOS as it's heavily dependant
-    # on repos from installation medium.
-    # We also don't have any repos on staging and update/upgrade tests.
-    # This test uses serial console too much to be reliable on Hyper-V (poo#30613)
-    # Test doesn't make sense on live images too, don't have source repo there.
-    # Skip this test for SLED (poo#36397)
-    if (!is_staging() && !is_updates_tests() && !is_upgrade() && !is_jeos() && !is_hyperv() && !is_livesystem() && !is_desktop()) {
-        loadtest "console/zypper_info";
-    }
     # Add non-oss and debug repos for o3 and remove other by default
     replace_opensuse_repos_tests if is_repo_replacement_required;
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
@@ -1436,6 +1428,7 @@ sub load_extra_tests_textmode {
     # dependency of git test
     loadtest "console/sshd";
     loadtest "console/zypper_ref";
+    loadtest "console/zypper_info";
     loadtest "console/update_alternatives";
     # start extra console tests from here
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
@@ -1940,8 +1933,13 @@ sub load_system_update_tests {
 
     return if get_var('SYSTEM_UPDATED');
     if (need_clear_repos() && !get_var('CLEAR_REPOS')) {
-        loadtest "update/zypper_clear_repos";
-        set_var('CLEAR_REPOS', 1);
+        if (is_repo_replacement_required()) {
+            replace_opensuse_repos_tests;
+        }
+        else {
+            loadtest "update/zypper_clear_repos";
+            set_var('CLEAR_REPOS', 1);
+        }
     }
     loadtest "console/zypper_add_repos" if get_var('ZYPPER_ADD_REPOS');
     return unless updates_is_applicable();

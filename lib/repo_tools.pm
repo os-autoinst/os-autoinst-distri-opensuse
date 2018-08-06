@@ -19,9 +19,9 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 
-our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo);
+our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo disable_source_repo);
 
 sub smt_wizard {
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
@@ -116,15 +116,15 @@ sub prepare_source_repo {
     my $cmd;
     if (is_sle) {
         if (is_sle('>=15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
-            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source";
+            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source");
         }
         elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_SOURCE')) {
-            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source";
+            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source");
         }
         # SLE maintenance tests are assumed to be SCC registered
         # and source repositories disabled by default
         elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
-            $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
+            zypper_call(q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')});
         }
         else {
             record_info('No repo', 'Missing source repository');
@@ -133,13 +133,23 @@ sub prepare_source_repo {
     }
     # source repository is disabled by default
     else {
-        $cmd = "mr -e repo-source";
+        if (script_run('zypper lr repo-source') != 0) {
+            # re-add the source repo
+            my $version = lc get_required_var('VERSION');
+            my $source_name = is_tumbleweed() ? $version : 'distribution/leap/' . $version;
+            zypper_call("ar -f http://download.opensuse.org/source/$source_name/repo/oss repo-source");
+        }
+        else {
+            zypper_call("mr -e repo-source");
+        }
     }
 
-    zypper_call($cmd);
     zypper_call("ref");
 }
 
+sub disable_source_repo {
+    zypper_call("mr -d repo-source");
+}
 
 sub test_flags {
     return {fatal => 1};
