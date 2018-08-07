@@ -67,8 +67,11 @@ sub run {
     my $type_speed = 20;
     # Execute installation command on pxe management cmd console
     type_string ${image_path} . " ", $type_speed;
-    type_string "vga=791 ",   $type_speed;
-    type_string "Y2DEBUG=1 ", $type_speed;
+    type_string "vga=791 ",                      $type_speed;
+    type_string "Y2DEBUG=1 ",                    $type_speed;
+    type_string "linuxrc.core=/dev/$serialdev ", $type_speed;
+    type_string "linuxrc.log=/dev/$serialdev ",  $type_speed;
+    type_string "linuxrc.debug=4,trace ",        $type_speed;
 
     if ((check_var('BACKEND', 'ipmi') && !check_var('AUTOYAST', '1')) || get_var('SES5_DEPLOY')) {
         my $cmdline = '';
