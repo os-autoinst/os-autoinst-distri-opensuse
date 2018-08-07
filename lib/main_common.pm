@@ -1431,7 +1431,10 @@ sub load_extra_tests_textmode {
     # dependency of git test
     loadtest "console/sshd";
     loadtest "console/zypper_ref";
-    loadtest "console/zypper_info";
+    # The test can't be run on JeOS as it's heavily dependant on SLES build number we don't have in JeOS
+    unless (is_jeos) {
+        loadtest "console/zypper_info";
+    }
     loadtest "console/update_alternatives";
     # start extra console tests from here
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
