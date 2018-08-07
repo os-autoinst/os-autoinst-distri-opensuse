@@ -148,7 +148,12 @@ sub prepare_source_repo {
 }
 
 sub disable_source_repo {
-    zypper_call("mr -d repo-source");
+    if (is_sle && get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+        zypper_call(q{mr -d $(zypper -n lr | awk '/-Source/ {print $1}')});
+    }
+    elsif (script_run('zypper lr repo-source') == 0) {
+        zypper_call("mr -d repo-source");
+    }
 }
 
 sub test_flags {
