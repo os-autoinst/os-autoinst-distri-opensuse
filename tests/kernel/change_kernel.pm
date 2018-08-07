@@ -16,9 +16,25 @@ use utils;
 use serial_terminal 'select_virtio_console';
 use kernel 'remove_kernel_packages';
 
+sub from_repo {
+    my ($repo, $pkg) = @_;
+
+    zypper_ar($repo, 'change-kernel') if ($repo);
+    zypper_call("in --force-resolution --force --replacefiles --repo change-kernel $pkg",
+        dumb_term => 1);
+}
+
+sub from_rpm {
+    my ($uri) = @_;
+
+    assert_script_run("curl --location --output /tmp/kernel.rpm $uri");
+    assert_script_run('rpm -i --oldpackage --nosignature --force /tmp/kernel.rpm', 120);
+}
+
 sub run {
     my $self = shift;
     my $repo = get_var('CHANGE_KERNEL_REPO');
+    my $rpm  = get_var('ASSET_CHANGE_KERNEL_RPM');
     my $pkg  = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
 
     $self->wait_boot;
@@ -28,9 +44,12 @@ sub run {
     remove_kernel_packages();
 
     # Install the new kernel
-    zypper_ar($repo, 'change-kernel') if ($repo);
-    zypper_call("in --force-resolution --force --replacefiles --repo change-kernel $pkg",
-        dumb_term => 1);
+    if ($rpm) {
+        from_rpm(autoinst_url("/assets/other/$rpm"));
+    }
+    else {
+        from_repo($repo, $pkg);
+    }
 
     # Reboot into the new kernel
     power_action('reboot', textmode => 1);

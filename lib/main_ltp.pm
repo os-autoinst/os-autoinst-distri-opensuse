@@ -130,7 +130,9 @@ sub load_kernel_tests {
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
         }
-        elsif (get_var('CHANGE_KERNEL_REPO') || get_var('CHANGE_KERNEL_PKG')) {
+        elsif (get_var('CHANGE_KERNEL_REPO') ||
+            get_var('CHANGE_KERNEL_PKG') ||
+            get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest 'change_kernel';
         }
 
