@@ -18,20 +18,10 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 use qam;
-
-
-sub kernel_packages {
-    my @packages = qw(kernel-default kernel-default-devel kernel-macros kernel-source);
-    # SLE12 and SLE12SP1 has xen kernel
-    if (is_sle('<=12-SP1')) {
-        push @packages, qw(kernel-xen kernel-xen-devel);
-    }
-    return @packages;
-}
+use kernel 'remove_kernel_packages';
 
 sub prepare_azure {
-    my @packages = kernel_packages;
-    script_run("zypper -n rm " . join(" ", @packages), 700);
+    remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
 }
 
@@ -117,9 +107,8 @@ sub install_lock_kernel {
             '4.4.126-94.22.1' => '4.4.126-94.22.2',
         }};
 
-    my @packages = kernel_packages;
     # remove all kernel related packages from system
-    script_run("zypper -n rm " . join(' ', @packages), 700);
+    my @packages = remove_kernel_packages();
 
     my @lpackages = @packages;
 

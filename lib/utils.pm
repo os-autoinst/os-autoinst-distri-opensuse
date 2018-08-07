@@ -79,6 +79,7 @@ our @EXPORT = qw(
   shorten_url
   reconnect_s390
   set_hostname
+  zypper_ar
 );
 
 
@@ -1289,6 +1290,13 @@ sub reconnect_s390 {
     if (!check_var('DESKTOP', 'textmode') && !sle_version_at_least('15')) {
         select_console('x11', await_console => 0);
     }
+}
+
+sub zypper_ar {
+    my ($url, $name) = @_;
+
+    zypper_call("ar $url $name",                           dumb_term => 1);
+    zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
 }
 
 1;
