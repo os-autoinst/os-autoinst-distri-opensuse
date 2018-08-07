@@ -16,12 +16,20 @@ use File::Basename;
 use base "opensusebasetest";
 use testapi;
 use registration;
+use utils 'type_string_very_slow';
+use lockapi;
 
 sub run {
+    # In autoyast tests we need to wait until pxe is available
+    if (get_var('AUTOYAST') && get_var('DELAYED_START')) {
+        mutex_lock('pxe');
+        mutex_unlock('pxe');
+        resume_vm();
+    }
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu)], 300);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
     my $image_path = "";
 
     #detect pxe location
@@ -64,6 +72,11 @@ sub run {
         my $node = get_var('WORKER_CLASS');
         type_string " console=ttyS1,115200 ifcfg=$interface=dhcp4 autoyast=" . data_url(get_var('AUTOYAST', ''));
     }
+    elsif (match_has_tag('pxe-menu')) {
+        # select network (second entry)
+        send_key "down";
+        send_key "tab";
+    }
     my $type_speed = 20;
     # Execute installation command on pxe management cmd console
     type_string ${image_path} . " ", $type_speed;
@@ -95,16 +108,32 @@ sub run {
     else {
         type_string "xvideo=1024x768 ", $type_speed;
     }
-
-    type_string "console=$serialdev,115200 ", $type_speed;    # to get crash dumps as text
+    # to get crash dumps as text
+    type_string "console=$serialdev,115200 ", $type_speed unless get_var('AUTOYAST');
 
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
         type_string registration_bootloader_cmdline;
     }
 
+    if (get_var("AUTOYAST")) {
+        my $proto = get_var("PROTO") || 'http';
+
+        # edit parameters
+        if (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE")) {
+            type_string_very_slow " autoupgrade=1";
+        }
+        if (get_var("AUTOYAST") =~ /^aytests\//) {
+            # test from aytests package
+            type_string_very_slow " autoyast=$proto://10.0.2.1/" . get_var("AUTOYAST");
+        }
+        else {
+            # test from re-exported data directory
+            type_string_very_slow " autoyast=$proto://10.0.2.1/data/" . get_var("AUTOYAST");
+        }
+    }
+
     save_screenshot;
-    my $e = get_var("EXTRABOOTPARAMS");
-    if ($e) {
+    if (my $e = get_var("EXTRABOOTPARAMS")) {
         type_string " $e ", 4;
         save_screenshot;
     }
