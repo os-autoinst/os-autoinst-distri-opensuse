@@ -50,7 +50,7 @@ sub run {
     type_password;
     wait_still_screen 3;
     send_key 'ret';
-    assert_screen 'vinagre-gcc-sharing-activate';
+    assert_screen 'vinagre-gcc-sharing-activate', 120;
     wait_screen_change { send_key 'ctrl-w'; };    # Disconnect vinagre
     wait_screen_change { send_key 'ctrl-q'; };    # Exit vinagre
     save_screenshot;

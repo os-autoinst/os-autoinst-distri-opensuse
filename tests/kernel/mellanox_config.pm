@@ -33,7 +33,8 @@ sub run {
     my $protocol = get_var('MLX_PROTOCOL') || 2;
 
     if (check_var('VERSION', '15')) {
-        zypper_call('ar -f -G ' . get_required_var('GA_REPO'));
+        my $GA_REPO = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo';
+        zypper_call("ar -f -G $GA_REPO");
     }
     zypper_call('--quiet in kernel-source rpm-build', timeout => 200);
 

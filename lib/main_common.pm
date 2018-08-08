@@ -861,6 +861,9 @@ sub load_inst_tests {
             elsif (get_var('FULL_LVM_ENCRYPT')) {
                 loadtest 'installation/partitioning_full_lvm';
             }
+            elsif (get_var('LVM_THIN_LV')) {
+                loadtest "installation/partitioning_lvm_thin_provisioning";
+            }
             if (get_var("FILESYSTEM")) {
                 if (get_var('PARTITIONING_WARNINGS')) {
                     loadtest 'installation/partitioning_warnings';
@@ -1037,6 +1040,7 @@ sub load_consoletests {
         loadtest "rt/kmp_modules";
     }
     loadtest "console/consoletest_setup";
+    loadtest "console/lvm_thin_check" if get_var('LVM_THIN_LV');
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
@@ -1583,7 +1587,10 @@ sub load_networkd_tests {
 sub load_nfv_master_tests {
     loadtest "nfv/prepare_env";
     loadtest "nfv/run_integration_tests" if (check_var('BACKEND', 'qemu'));
-    loadtest "nfv/run_performance_tests" if (check_var('BACKEND', 'ipmi'));
+    if (check_var('BACKEND', 'ipmi')) {
+        loadtest "nfv/run_performance_tests";
+        loadtest "nfv/process_perf_results";
+    }
 }
 
 sub load_nfv_trafficgen_tests {
