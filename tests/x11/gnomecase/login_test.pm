@@ -32,7 +32,12 @@ sub run {
     $self->auto_login_alter;
     my $ov = get_var('NOAUTOLOGIN');
     set_var('NOAUTOLOGIN', '');
-    power_action('reboot', keepconsole => 1) if is_opensuse;
+    if (is_sle) {
+        power_action('reboot');
+    }
+    else {
+        power_action('reboot', keepconsole => 1);
+    }
     $self->wait_boot(bootloader_time => 300);
     set_var('NOAUTOLOGIN', $ov);
     $self->auto_login_alter;
