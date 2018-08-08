@@ -78,7 +78,7 @@ sub run {
 
     # Clone Trex repo inside VSPerf directories
     record_info("Clone TREX");
-    assert_script_run("cd /root/vswitchperf/src/trex; make", timeout => 200);
+    assert_script_run("cd /root/vswitchperf/src/trex; make", timeout => 500);
 
     # Copy VSPERF custom configuration files
     record_info("Copy config");
