@@ -1160,7 +1160,6 @@ sub load_consoletests {
             loadtest "console/zypper_lifecycle_toolchain";
         }
     }
-    loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }

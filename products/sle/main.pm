@@ -916,6 +916,10 @@ elsif (get_var("TERADATA")) {
     boot_hdd_image;
     loadtest "qam-teradata/teradata";
 }
+elsif (get_var('LIBSOLV_INSTALLCHECK')) {
+    boot_hdd_image;
+    loadtest 'console/libsolv_installcheck';
+}
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     # update system with agregate repositories
@@ -967,8 +971,7 @@ elsif (get_var('HPC')) {
     boot_hdd_image;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'hpc/before_test';
-    loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
-    loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
+    loadtest 'console/install_single_package' if (get_var('PACKAGETOINSTALL'));
 
     # load hpc multimachine scenario based on value of HPC variable
     # e.g 'hpc/$testsuite_[master|slave].pm'

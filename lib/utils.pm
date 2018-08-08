@@ -66,7 +66,6 @@ our @EXPORT = qw(
   handle_grub_zvm
   service_action
   assert_gui_app
-  install_all_from_repo
   run_scripted_command_slow
   get_root_console_tty
   get_x11_console_tty
@@ -1024,25 +1023,6 @@ sub service_action {
             systemctl "$action $name.$type";
         }
     }
-}
-
-=head2 install_all_from_repo
-will install all packages in repo defined by C<INSTALL_ALL_REPO> variable
-with ability to exclude some of them by using C<INSTALL_ALL_EXCEPT> which suppose to contain
-space separated list of packages
-=cut
-sub install_all_from_repo {
-    my $repo         = get_required_var('INSTALL_ALL_REPO');
-    my $grep_str     = "";
-    my $hpc_excludes = "hpc-openqa-tools-devel openqa-ci-tools-devel .*openqa-tests";
-    if (get_var('INSTALL_ALL_EXCEPT') or get_var('HPC')) {
-        #spliting space separated list of packages into array to iterate over it
-        my @packages_array = split(/ /, get_var('INSTALL_ALL_EXCEPT'));
-        push @packages_array, split(/ /, $hpc_excludes) if get_var('HPC');
-        $grep_str = '|grep -vE "(' . join('|', @packages_array) . ')$"';
-    }
-    my $exec_str = sprintf("zypper se -ur %s -t package | awk '{print \$2}' | sed '1,/|/d' %s | xargs zypper -n in", $repo, $grep_str);
-    assert_script_run($exec_str, 900);
 }
 
 =head2 run_scripted_command_slow
