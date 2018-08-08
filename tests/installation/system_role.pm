@@ -53,7 +53,7 @@ sub assert_system_role {
     # Proper default role assertion will be addressed in poo#37504
     assert_screen [qw(before-role-selection system-role-default-system)], 180;
     die "SYSTEM_ROLE is not defined" if (match_has_tag 'before-role-selection') && !get_var('SYSTEM_ROLE');
-    my $system_role = is_opensuse ? get_var('SYSTEM_ROLE') : get_var('SYSTEM_ROLE', 'default');
+    my $system_role = is_opensuse() ? get_var('SYSTEM_ROLE') : get_var('SYSTEM_ROLE', 'default');
     change_system_role($system_role) if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     send_key $cmd{next};
 }
