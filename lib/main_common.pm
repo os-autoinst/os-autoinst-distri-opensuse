@@ -618,7 +618,7 @@ sub need_clear_repos {
       && (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1'))
       && !get_var('BOOT_TO_SNAPSHOT')
       && !get_var('LIVETEST')
-      && (is_opensuse && !is_updates_tests)
+      && (is_opensuse && !is_updates_tests && get_var("SUSEMIRROR"))
       || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
 }
 
@@ -1160,7 +1160,6 @@ sub load_consoletests {
             loadtest "console/zypper_lifecycle_toolchain";
         }
     }
-    loadtest 'console/install_all_from_repository' if get_var('INSTALL_ALL_REPO');
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }

@@ -205,6 +205,7 @@ sub x11_start_program {
     # after 'ret' press we should wait in this case nevertheless
     wait_still_screen(3, similarity_level => 45) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
     return unless $args{valid};
+    set_var('IN_X11_START_PROGRAM', $program);
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
         push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
@@ -214,6 +215,7 @@ sub x11_start_program {
             send_key 'ret';
         };
     }
+    set_var('IN_X11_START_PROGRAM', '0');
     # asserting program came up properly
     die "Did not find target needle for tag(s) '@target'" if match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
 }

@@ -531,12 +531,22 @@ sub remount_tmp_if_ro {
     script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
 }
 
-# useful post_fail_hook for any module that calls wait_boot
-#
-# we could use the same approach in all cases of boot/reboot/shutdown in case
-# of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
+# useful post_fail_hook for any module that calls wait_boot and x11_start_program
+##
+## we could use the same approach in all cases of boot/reboot/shutdown in case
+## of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
 sub post_fail_hook {
     my ($self) = @_;
+    # just output error if selected program doesn't exist instead of collecting all logs
+    # set current variables in x11_start_program
+    if (!check_var('IN_X11_START_PROGRAM', '0')) {
+        my $program = get_var('IN_X11_START_PROGRAM');
+        select_console 'log-console';
+        my $r = script_run "which $program";
+        if ($r != 0) {
+            record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
+        }
+    }
     return unless $self->{in_wait_boot};
     # In case the system is stuck in shutting down or during boot up, press
     # 'esc' just in case the plymouth splash screen is shown and we can not
