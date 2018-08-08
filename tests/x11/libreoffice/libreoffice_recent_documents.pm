@@ -35,13 +35,13 @@ sub run {
     # Check Recent Documents
     wait_still_screen;
     x11_start_program('oowriter');
-    if (is_sle('<15')) {
-        send_key "alt-f";
-    }
     # Because of bsc#1074057 alt-f is not working in libreoffice under wayland
     # use another way to replace alt-f in SLED15
     if (is_sle '15+') {
         assert_and_click 'ooffice-writing-file', 'left', 10;
+    }
+    else {
+        send_key "alt-f";    # is_sle('<15') and openSUSE all need to send key
     }
     assert_screen 'oowriter-menus-file';
     if (is_tumbleweed || is_sle('15+')) {

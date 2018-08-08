@@ -19,18 +19,14 @@ use version_utils 'is_sle';
 
 
 sub run {
+    my ($self) = @_;
     x11_start_program('gnote');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note', 5;
     send_key "up";
     send_key "up";
     type_string "new title-opensuse\n";
-    send_key 'esc';    #back to all notes interface
-    send_key_until_needlematch 'gnote-new-note-title-matched', 'down', 6;
-    send_key "delete";
-    send_key "tab";
-    send_key "ret";
-    send_key "ctrl-w";
+    $self->cleanup_gnote;
 }
 
 1;
