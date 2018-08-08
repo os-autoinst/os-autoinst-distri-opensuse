@@ -7,15 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check system role selection screen or select system role. Added in SLE 12 SP2
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Summary: Check default system role selection screen (only for SLE) and select system role. Added in SLE 12 SP2
+# Maintainer: Jozef Pupava <jpupava@suse.com>, Joaquín Rivera <jeriveramoya@suse.com>
 # Tags: poo#16650, poo#25850
 
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_sle is_caasp);
-
+use version_utils qw(is_sle is_caasp is_opensuse);
 
 my %role_hotkey = (
     gnome    => 's',
@@ -28,7 +27,7 @@ my %role_hotkey = (
 sub change_system_role {
     my ($system_role) = @_;
     # Since SLE 15 we do not have shortcuts for system roles anymore
-    if ((is_sle '15+') || (is_caasp 'kubic')) {
+    if (is_sle('15+') || is_caasp('kubic') || is_opensuse) {
         if (check_var('VIDEOMODE', 'text')) {
             # Expect that no actions are done before and default system role is preselected
             send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role
@@ -51,16 +50,20 @@ sub assert_system_role {
     # Still initializing the system at this point, can take some time
     # Asserting screen with preselected role
     # Proper default role assertion will be addressed in poo#37504
-    assert_screen 'system-role-default-system', 180;
-    my $system_role = get_var('SYSTEM_ROLE', 'default');
-    if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default')) {
-        change_system_role($system_role);
+    # Product might or might not have default selected
+    if (is_opensuse) {
+        assert_screen('before-role-selection', 180);
+        change_system_role(get_var('SYSTEM_ROLE', get_var('DESKTOP')));
+    }
+    else {
+        assert_screen('system-role-default-system', 180);
+        my $system_role = get_var('SYSTEM_ROLE', 'default');
+        change_system_role($system_role) if ($system_role && !check_var('SYSTEM_ROLE', 'default'));
     }
     send_key $cmd{next};
 }
 
 sub run {
-    # Define default role
     assert_system_role;
 }
 
