@@ -25,7 +25,6 @@ sub run {
 
     if (is_caasp '4.0+') {
         assert_script_run 'btrfs property get /var ro | grep "ro=false"';
-        assert_script_run 'lsattr -ld /var | grep No_COW';
     }
     else {
         assert_script_run 'btrfs property get /var/log ro | grep "ro=false"';
