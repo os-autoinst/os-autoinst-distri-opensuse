@@ -1587,7 +1587,10 @@ sub load_networkd_tests {
 sub load_nfv_master_tests {
     loadtest "nfv/prepare_env";
     loadtest "nfv/run_integration_tests" if (check_var('BACKEND', 'qemu'));
-    loadtest "nfv/run_performance_tests" if (check_var('BACKEND', 'ipmi'));
+    if (check_var('BACKEND', 'ipmi')) {
+        loadtest "nfv/run_performance_tests";
+        loadtest "nfv/process_perf_results";
+    }
 }
 
 sub load_nfv_trafficgen_tests {
