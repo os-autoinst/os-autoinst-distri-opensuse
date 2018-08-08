@@ -26,9 +26,9 @@ sub run {
     assert_script_run 'ip a || ifstatus all';
     pkcon_quit;
     zypper_call 'ref';
-    # make sure that save_y2logs from yast2 package and tar is installed
+    # make sure that save_y2logs from yast2 package, tar and bzip2 are installed
     # even on minimal system
-    zypper_call 'in yast2 tar';
+    zypper_call 'in yast2 tar bzip2';
     assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
     upload_logs '/tmp/y2logs.tar.bz2';
 }
