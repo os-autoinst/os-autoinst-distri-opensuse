@@ -49,6 +49,7 @@ sub run {
         $cmd{resize}           = 'alt-r';
         $cmd{raw_volume}       = 'alt-r';
         $cmd{enable_snapshots} = 'alt-a';
+        $cmd{system_view}      = 'alt-s';
         # Set shortcut for role selection when creating partition
         $partition_roles{raw} = $cmd{raw_volume};
 
