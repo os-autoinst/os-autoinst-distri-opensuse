@@ -22,9 +22,19 @@ sub run {
     ensure_installed "plasma5-session-wayland";
 
     # Log out of X session
-    send_key 'super';                             # Open the application menu
-    assert_and_click 'plasma_logout_btn';         # Click on the logout button
-    assert_and_click 'plasma_overlay_confirm';    # Confirm logout
+    send_key 'super';    # Open the application menu
+
+    # Logout in kicker and kickoff is different
+    assert_screen(["desktop_mainmenu-kicker", "desktop_mainmenu-kickoff"]);
+    if (match_has_tag('desktop_mainmenu-kicker')) {
+        assert_and_click 'plasma_logout_btn';    # Click on the logout button
+    }
+    elsif (match_has_tag('desktop_mainmenu-kickoff')) {
+        assert_and_click 'plasma_kickoff_leave';     # Switch to the leave section
+        assert_and_click 'plasma_kickoff_logout';    # Click on the logout button
+    }
+
+    assert_and_click 'plasma_overlay_confirm';       # Confirm logout
 
     # Now we're in sddm
     assert_and_click 'sddm_desktopsession';            # Open session selection box
