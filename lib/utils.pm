@@ -941,7 +941,7 @@ sub handle_login {
         }
         type_string "root\n";
     }
-    elsif (get_var('DM_NEEDS_USERNAME')) {
+    elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
         type_string "$myuser\n";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
