@@ -548,7 +548,7 @@ sub load_system_role_tests {
     if (is_leap('<=15.0')) {
         loadtest "installation/installer_desktopselection";
     }
-    elsif (is_tumbleweed || is_caasp('kubic') || is_sle12sp2_using_system_role() || is_sle('15+'))
+    elsif (is_tumbleweed || is_caasp('kubic'))
     {
         loadtest "installation/system_role";
     }
@@ -844,6 +844,10 @@ sub load_inst_tests {
         # Run system_role/desktop selection tests if using the new openSUSE installation flow
         if (get_var("SYSTEM_ROLE_FIRST_FLOW")) {
             load_system_role_tests;
+        }
+        if (is_sle12sp2_using_system_role() || is_sle('15+'))
+        {
+            loadtest "installation/system_role";
         }
         if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
             loadtest "installation/sles4sap_product_installation_mode";
