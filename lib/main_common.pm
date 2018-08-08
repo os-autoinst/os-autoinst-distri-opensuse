@@ -1785,37 +1785,44 @@ sub load_common_x11 {
     }
     elsif (check_var("REGRESSION", "gnome")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         load_x11_gnome();
     }
     elsif (check_var("REGRESSION", "documentation")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         load_x11_documentation();
     }
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         load_x11_other();
     }
     elsif (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         load_x11_webbrowser_core();
         load_x11_webbrowser_extra();
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
         loadtest 'boot/boot_to_desktop';
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
         loadtest "boot/boot_to_desktop";
+        loadtest "x11_x11_setup"
         loadtest "x11/window_system";
         loadtest "x11/piglit/piglit";
     }
