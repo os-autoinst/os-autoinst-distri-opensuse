@@ -741,9 +741,6 @@ elsif (get_var("SECURITY_TEST")) {
         # Setup system into fips mode
         loadtest "fips/fips_setup";
     }
-    elsif (check_var("SECURITY_TEST", "fips_env")) {
-        loadtest "fips/openssl/openssl_fips_env";
-    }
     elsif (check_var("SECURITY_TEST", "core")) {
         load_security_tests_core;
     }

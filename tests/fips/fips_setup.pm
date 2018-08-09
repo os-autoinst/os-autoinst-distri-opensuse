@@ -1,39 +1,51 @@
-# SUSE's FIPS tests
+# Copyright © 2016-2018 SUSE LLC
 #
-# Copyright © 2016 SUSE LLC
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 #
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
+#
+# Summary: Setup fips mode for further testing
+#          Support both "global mode" (fips=1 in kernel command line)
+#          and "ENV mode" - selected by FIPS_ENV_MODE
+# Maintainer: Wes <whdu@suse.com>
+# Tags: poo#39071
 
-# Summary: Setup system work into fips mode
-#    Install fips pattern and update grub.cfg with fips=1
-#
-#    Also include workaround of bsc#982268:
-#    Due to bsc#982268, openssl couldn't enter fips mode even the
-#    system is booted with fips=1. Workaround is create the file
-#    /etc/system-fips manually.
-# Maintainer: Qingming Su <qingming.su@suse.com>
-
+use strict;
 use base "consoletest";
 use testapi;
-use strict;
+use utils;
 
-# Install fips pattern and update grub.cfg to boot with fips=1
 sub run {
     select_console 'root-console';
 
-    my $setup_script = "
-    grep 'fips=1' /proc/cmdline && exit 0
-    zypper -n install --type pattern fips
-    sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/s/\\(\"\\)\$/ fips=1\\1/' /etc/default/grub
-    grub2-mkconfig -o /boot/grub2/grub.cfg
-    grep 'fips=1' /boot/grub2/grub.cfg
-    ";
+    zypper_call('in -t pattern fips');
 
-    print $setup_script;
-    script_output($setup_script, 300);
+    # If FIPS_ENV_MODE, then set ENV for some FIPS modules. It is a
+    # workaround when fips=1 kernel cmdline is not working.
+    # If FIPS_ENV_MODE does not set, global FIPS mode (fips=1 from
+    # kernel command line) will be applied
+    if (get_var("FIPS_ENV_MODE")) {
+        foreach my $env ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS') {
+            assert_script_run "echo 'export $env=1' >> /etc/bash.bashrc";
+        }
+    }
+    else {
+        assert_script_run "sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/s/\\(\"\\)\$/ fips=1\\1/' /etc/default/grub";
+        assert_script_run "grub2-mkconfig -o /boot/grub2/grub.cfg";
+    }
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;
