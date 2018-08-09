@@ -489,6 +489,13 @@ sub specific_bootmenu_params {
         $args .= " autoupgrade=1";
     }
 
+    # Boot the system with the debug options if shutdown takes suspiciously long time.
+    # Please, see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
+    # Further actions for saving debug logs are done in 'shutdown/cleanup_before_shutdown' module.
+    if (get_var('DEBUG_SHUTDOWN')) {
+        $args .= " systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on enforcing=0 plymouth.enable=0";
+    }
+
     if (get_var("IBFT")) {
         $args .= " withiscsi=1";
     }

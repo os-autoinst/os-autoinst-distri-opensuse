@@ -21,6 +21,13 @@ use version_utils;
 
 sub run {
     select_console('root-console');
+    # Collect detailed logs to investigate shutdown issues and redirect them to serial console.
+    # Please see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
+    # Boot options that are required to make logs more detalized are located in 'bootloader_setup.pm'
+    if (get_var('DEBUG_SHUTDOWN')) {
+        assert_script_run "echo -e '#!/bin/sh\\ndmesg > /dev/$serialdev' > /usr/lib/systemd/system-shutdown/debug.sh";
+        assert_script_run "chmod +x /usr/lib/systemd/system-shutdown/debug.sh";
+    }
     if (get_var('DROP_PERSISTENT_NET_RULES')) {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
     }
