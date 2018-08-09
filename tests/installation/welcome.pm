@@ -65,7 +65,8 @@ sub run {
             next;
         }
         if (match_has_tag 'no-product-found-on-scc') {
-            record_soft_failure 'bsc#1056413';
+            # assuming the according needle is handling the potential
+            # soft-fail and bug ref we can just continue here
             wait_screen_change { send_key $cmd{ok} };
             next;
         }
