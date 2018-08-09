@@ -33,15 +33,7 @@ sub add_zfcp_disk {
     for (1 .. 9) { send_key "backspace"; }
     type_string "$channel";
     assert_screen "zfcp-channel-$channel-selected";
-
     send_key $cmd{next};
-
-    # use allow_lun_scan
-    # popup was removed for sle15, allow_lun_scan still works though
-    if (is_sle '<15') {
-        assert_screen 'zfcp-popup-scan';
-        send_key 'alt-o';
-    }
     assert_screen 'zfcp-disk-management';
 }
 
