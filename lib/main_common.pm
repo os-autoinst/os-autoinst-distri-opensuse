@@ -426,7 +426,6 @@ sub load_rescuecd_tests {
 }
 
 sub load_autoyast_clone_tests {
-    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/yast2_clone_system";
     loadtest "console/consoletest_finish";
@@ -1040,7 +1039,6 @@ sub load_consoletests {
     if (get_var("ADDONS", "") =~ /rt/) {
         loadtest "rt/kmp_modules";
     }
-    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/lvm_thin_check" if get_var('LVM_THIN_LV');
     loadtest 'console/integration_services' if is_hyperv;
@@ -1538,7 +1536,6 @@ sub load_filesystem_tests {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
     # setup $serialdev permission and so on
-    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
@@ -1947,8 +1944,7 @@ sub load_create_hdd_tests {
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv;
-    loadtest 'console/hostname' unless is_bridged_networking;
-    loadtest 'console/system_prepare';
+    loadtest 'console/hostname'              unless is_bridged_networking;
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
@@ -1985,7 +1981,6 @@ sub load_syscontainer_tests() {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
     # setup $serialdev permission and so on
-    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
 
     # Install needed pieces
