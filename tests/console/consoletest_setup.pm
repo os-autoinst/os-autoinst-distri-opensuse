@@ -49,6 +49,11 @@ sub run {
         assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
 
+    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
+    systemctl "stop serial-getty\@$testapi::serialdev";
+    # Mask if is qemu backend as use serial in remote installations e.g. during reboot
+    systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
+
     save_screenshot;
     $self->clear_and_verify_console;
 
