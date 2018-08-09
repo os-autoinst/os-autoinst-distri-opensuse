@@ -215,7 +215,7 @@ sub x11_start_program {
             send_key 'ret';
         };
     }
-    set_var('IN_X11_START_PROGRAM', '0');
+    set_var('IN_X11_START_PROGRAM', undef);
     # asserting program came up properly
     die "Did not find target needle for tag(s) '@target'" if match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
 }
