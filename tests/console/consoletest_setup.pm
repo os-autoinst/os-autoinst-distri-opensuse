@@ -25,7 +25,7 @@ sub run {
 
     # init
     check_console_font;
-    ensure_serialdev_permissions;
+
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     # Export the existing status of running tasks and system load for future reference (fail would export it again)
@@ -39,22 +39,9 @@ sub run {
     # Stop packagekit
     systemctl 'mask packagekit.service';
     systemctl 'stop packagekit.service';
-    # Installing a minimal system gives a pattern conflicting with anything not minimal
-    # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
-    script_run 'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
-    # Install curl and tar in order to get the test data
-    zypper_call 'install curl tar';
-
     # upload_logs requires curl, but we wanted the initial state of the system
     upload_logs "/tmp/psaxf.log";
     upload_logs "/tmp/loadavg_consoletest_setup.txt";
-
-    # BSC#997263 - VMware screen resolution defaults to 800x600
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
-    }
 
     # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
     if (check_var('NETWORK_INIT_PARAM', 'ifcfg=eth0=dhcp')) {
@@ -63,7 +50,6 @@ sub run {
     }
 
     save_screenshot;
-
     $self->clear_and_verify_console;
 
     select_console 'user-console';

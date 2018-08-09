@@ -460,6 +460,7 @@ sub load_ha_cluster_tests {
 
     # Patch (if needed) and basic configuration
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
     loadtest 'console/hostname';
 
@@ -529,6 +530,7 @@ sub load_ha_cluster_tests {
 }
 
 sub load_feature_tests {
+    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "feature/feature_console/zypper_releasever";
     loadtest "feature/feature_console/suseconnect";
@@ -735,6 +737,7 @@ elsif (get_var("SLEPOS")) {
 elsif (get_var("SECURITY_TEST")) {
     prepare_target();
     if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
     }
     if (check_var("SECURITY_TEST", "fips_setup")) {
@@ -1046,6 +1049,7 @@ else {
         loadtest "migration/post_upgrade";
         # Always load zypper_lr test for migration case and get repo information for investigation
         if (get_var("INSTALLONLY")) {
+            loadtest "console/system_prepare";
             loadtest "console/consoletest_setup";
             loadtest 'console/integration_services' if is_hyperv;
             loadtest "console/zypper_lr";
