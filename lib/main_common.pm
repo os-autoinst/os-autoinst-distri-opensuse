@@ -618,7 +618,7 @@ sub need_clear_repos {
       && (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1'))
       && !get_var('BOOT_TO_SNAPSHOT')
       && !get_var('LIVETEST')
-      && (is_opensuse && !is_updates_tests && get_var("SUSEMIRROR"))
+      && (is_opensuse && !is_updates_tests)
       || (is_sle && get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/ && get_var("SUSEMIRROR"));
 }
 
