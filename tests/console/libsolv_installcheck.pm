@@ -10,7 +10,7 @@
 # Summary: Checking if it is possible to install packages in repo with libsolv
 # Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
 
-use base "consoletest";
+use base "opensusebasetest";
 use testapi;
 use utils;
 use strict;
@@ -22,10 +22,10 @@ sub run {
     my $installcheck_script = 'installcheck_hpc_module.sh';
     assert_script_run("wget --quiet " . data_url($installcheck_script) . " -O $installcheck_script");
     assert_script_run("chmod +x $installcheck_script");
-    my $rez = script_run("./$installcheck_script " . get_var('ARCH') . " > installcheck_result.txt");
+    my $rez = script_run("./$installcheck_script " . get_var('ARCH') . " > result.txt");
     if ($rez != 0) {
-        upload_logs('./installcheck_result.txt', failok => 1);
-        die('There are failures! Check installcheck_result.txt for details');
+        upload_logs('./result.txt', failok => 1);
+        die('There are failures! Check result.txt for details');
     }
 }
 
