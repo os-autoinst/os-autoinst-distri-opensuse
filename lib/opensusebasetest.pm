@@ -407,7 +407,12 @@ sub wait_boot {
             # harddisk' is above
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             boot_local_disk;
-            assert_screen 'grub2', 15;
+            check_screen(['grub2', 'tianocore-mainmenu'], 15)
+              || die 'niether grub2 or tianocore-mainmenu needles found';
+            if (match_has_tag('tianocore-mainmenu')) {
+                $self->handle_uefi_boot_disk_workaround();
+                assert_screen('grub2');
+            }
         }
         elsif (match_has_tag('encrypted-disk-password-prompt')) {
             # unlock encrypted disk before grub
