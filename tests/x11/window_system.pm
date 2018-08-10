@@ -13,12 +13,8 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils 'ensure_serialdev_permissions';
 
 sub run {
-    select_console 'root-console';
-    ensure_serialdev_permissions;
-    select_console('x11');
     x11_start_program('xterm');
     my $window_system = script_output('echo $XDG_SESSION_TYPE');
     script_run('exit', 0);
