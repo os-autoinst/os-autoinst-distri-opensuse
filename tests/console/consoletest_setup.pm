@@ -8,7 +8,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: console test pre setup, stoping and disabling packagekit, install curl and tar to get logs and so on
+# Summary: console test pre setup, performing actions required to run tests
+# which are supposed to be reverted e.g. stoping and disabling packagekit and so on
+# Permanent changes are now executed in system_prepare module
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
