@@ -23,8 +23,11 @@ sub run {
     barrier_wait("CHECK_AFTER_REBOOT_BEGIN_$cluster_name");
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
-    reset_consoles if (is_node(1) && !get_var('HDDVERSION'));
-    select_console 'root-console';
+    # Only do this on node01, as node02 console is expected to be the root-console
+    if (is_node(1) && !get_var('HDDVERSION')) {
+        reset_consoles;
+        select_console 'root-console';
+    }
 
     # Wait for resources to be started
     wait_until_resources_started;
