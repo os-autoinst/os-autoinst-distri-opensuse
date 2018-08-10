@@ -95,14 +95,19 @@ sub run {
         # In upgrade mode, there is no product list shown in welcome screen
         unless (check_var('ARCH', 's390x') || get_var('UPGRADE')) {
             assert_screen('select-product');
-            my %hotkey = (
-                sles     => 's',
-                sled     => 'u',
-                sles4sap => get_var('OFW') ? 'u' : 'i',
-                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
-            );
             my $product = get_required_var('SLE_PRODUCT');
-            send_key 'alt-' . $hotkey{$product};
+            if (check_var('VIDEOMODE', 'text')) {
+                my %hotkey = (
+                    sles     => 's',
+                    sled     => 'u',
+                    sles4sap => get_var('OFW') ? 'u' : 'i',
+                    hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
+                );
+                send_key 'alt-' . $hotkey{$product};
+            }
+            else {
+                assert_and_click('before-select-product-' . $product);
+            }
             assert_screen('select-product-' . $product);
         }
     }
