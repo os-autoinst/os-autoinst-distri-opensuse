@@ -252,8 +252,14 @@ sub fill_in_registration_data {
     if (is_sle '15+') {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
         if (check_var('BETA', '1')) {
-            assert_screen('scc-beta-filter-checkbox');
-            send_key('alt-i');
+            if (check_var('VERSION', '15-SP1')) {
+                # beta filter is not present in 15-SP1
+                record_soft_failure 'bsc#1104450';
+            }
+            else {
+                assert_screen('scc-beta-filter-checkbox');
+                send_key('alt-i');
+            }
         }
         elsif (!check_screen($modules_needle, 0)) {
             record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
