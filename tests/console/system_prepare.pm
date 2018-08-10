@@ -21,6 +21,8 @@ sub run {
 
     ensure_serialdev_permissions;
 
+    # Stop packagekit as may lock zypper and fail zypper calls, if it's running
+    systemctl 'stop packagekit.service' if script_run('systemctl is-active packagekit.service');
     # Installing a minimal system gives a pattern conflicting with anything not minimal
     # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
     script_run 'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
