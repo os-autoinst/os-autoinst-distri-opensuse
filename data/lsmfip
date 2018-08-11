@@ -171,6 +171,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^cloud-netconfig-azure/;
     # conflicts with otherproviders(skelcd-installer), skelcd-installer-openSUSE
     return 1 if $pkg =~ /^skelcd-installer-net-openSUSE/;
+    # conflicts with openafs-client, fuse client is experimental
+    return 1 if $pkg =~ /^openafs-fuse_client/;
 
     return;
 }
