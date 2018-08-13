@@ -789,8 +789,8 @@ sub power_action {
             }
         }
     }
-    # Shutdown takes longer than 60 seconds on SLE 15
     my $shutdown_timeout = 60;
+    # Shutdown takes longer than 60 seconds on SLE 15
     if (is_sle('15+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         record_soft_failure('bsc#1055462');
         $shutdown_timeout *= 3;
@@ -803,6 +803,7 @@ sub power_action {
         $shutdown_timeout *= 3;
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
     }
+    $shutdown_timeout = get_var("DEBUG_SHUTDOWN") if (get_var('DEBUG_SHUTDOWN'));
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast, as did initial reboot already
     if (check_var('VIRSH_VMM_FAMILY', 'kvm')
