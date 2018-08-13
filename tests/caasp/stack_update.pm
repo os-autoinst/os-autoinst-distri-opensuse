@@ -45,11 +45,15 @@ sub orchestrate_velum_reboot {
         send_key_until_needlematch "velum-$n-nodes-outdated", 'f5', 10, 120;
     }
 
+    # Workaround for bsc#1099015
     if (check_screen 'velum-update-admin', 0) {
         record_soft_failure 'bsc#1099015 - Update admin node still visible after reboot';
-        sleep 60;
+        for (1 .. 10) {
+            sleep 60;
+            last unless (check_screen 'velum-update-admin', 0);
+        }
+        die "Admin should be updated already" if check_screen('velum-update-admin', 0);
     }
-    die "Admin should be updated already" if check_screen('velum-update-admin', 0);
     assert_and_click "velum-update-all";
 
     # 5 minutes per node
