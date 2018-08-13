@@ -21,7 +21,20 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 
-our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo disable_source_repo);
+our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo disable_source_repo get_repo_var);
+
+=head2 get_repo_var_name
+This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter
+and returns "REPO_SLE15_SP1_MODULE_BASESYSTEM_SOURCE" when being
+called on SLE15-SP1.
+=cut
+sub get_repo_var_name {
+    my ($repo_name) = @_;
+    my $distri      = uc get_required_var("DISTRI");
+    my $version     = get_required_var("VERSION");
+    $version =~ s/-/_/;
+    return "REPO_${distri}${version}_${repo_name}";
+}
 
 sub smt_wizard {
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
@@ -115,8 +128,8 @@ sub rmt_mirror_repo {
 sub prepare_source_repo {
     my $cmd;
     if (is_sle) {
-        if (is_sle('>=15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
-            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source");
+        if (is_sle('>=15') and get_var(get_repo_var_name("MODULE_BASESYSTEM_SOURCE"))) {
+            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var(get_repo_var_name("MODULE_BASESYSTEM_SOURCE")) . " repo-source");
         }
         elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_SOURCE')) {
             zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source");
