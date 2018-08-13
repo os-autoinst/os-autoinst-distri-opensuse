@@ -672,6 +672,14 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+# Set serial failures
+my $serial_failures = [];
+# Detect bsc#1093797 on aarch64
+if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
+    push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
+}
+$testapi::distri->set_expected_serial_failures($serial_failures);
+
 if (is_jeos) {
     load_jeos_tests();
 }
