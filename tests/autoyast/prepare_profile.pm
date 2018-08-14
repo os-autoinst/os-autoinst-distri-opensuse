@@ -14,6 +14,7 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
+use version_utils 'is_sle';
 use File::Copy 'copy';
 use File::Path 'make_path';
 
@@ -23,24 +24,29 @@ sub run {
     my $profile = get_test_data($path);
     # Return if profile is not available
     return unless $profile;
-    # Expand variables
-    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL VERSION ARCH HostIP);
+
+    # Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
+    if (my $version = get_var('VERSION')) {
+        if (is_sle('>15')) {
+            $version =~ s/-SP/./;
+        }
+        $profile =~ s/\{\{VERSION\}\}/$version/g;
+    }
+    # For s390x and svirt backends need to adjust network configuration
+    my $hostip;
+    if (check_var('BACKEND', 's390x')) {
+        ($hostip) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
+    }
+    elsif (check_var('BACKEND', 'svirt')) {
+        $hostip = get_var('VIRSH_GUEST');
+    }
+    $profile =~ s/\{\{HostIP\}\}/$hostip/g if $hostip;
+
+    # Expand other variables
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH);
     for my $var (@vars) {
-        my $value;
-        # For s390x and svirt backends need to adjust network configuration
-        if ($var eq 'HostIP') {
-            if (check_var('BACKEND', 's390x')) {
-                ($value) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
-            }
-            elsif (check_var('BACKEND', 'svirt')) {
-                $value = get_var('VIRSH_GUEST');
-            }
-        }
-        else {
-            $value = get_var($var);
-        }
         # Skip if value is not defined
-        next unless $value;
+        next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;
     }
     # Upload modified profile
