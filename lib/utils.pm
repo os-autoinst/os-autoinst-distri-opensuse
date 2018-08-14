@@ -436,6 +436,15 @@ sub workaround_type_encrypted_passphrase {
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
+        # On GNOME tw (aarch64), assert_screen matches gnome-screenlock-password and displaymanager at the same time,
+        # so check gnome screenlock first in this case
+        if (check_var('DESKTOP', 'gnome') and check_var('ARCH', 'aarch64') and check_screen [qw(gnome-screenlock-password)]) {
+            if ($password ne '') {
+                type_password;
+                assert_screen [qw(locked_screen-typed_password login_screen-typed_password)];
+            }
+            send_key 'ret';
+        }
         assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
