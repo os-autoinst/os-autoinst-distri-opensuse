@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,8 +34,7 @@ sub run {
     script_run "snapper rollback";
 
     # reboot into the system before online migration
-    script_run("systemctl reboot", 0);
-    reset_consoles;
+    power_action('reboot');
     $self->wait_boot(textmode => !is_desktop_installed);
     select_console 'root-console';
 

@@ -1521,7 +1521,8 @@ sub load_extra_tests {
 
 sub load_rollback_tests {
     return if check_var('ARCH', 's390x');
-    loadtest "boot/grub_test_snapshot";
+    # On Xen PV we don't have GRUB
+    loadtest "boot/grub_test_snapshot" unless check_var('VIRSH_VMM_TYPE', 'linux');
     # Skip load version switch for online migration
     loadtest "migration/version_switch_origin_system" if (!get_var("ONLINE_MIGRATION"));
     if (get_var('UPGRADE') || get_var('ZDUP')) {
