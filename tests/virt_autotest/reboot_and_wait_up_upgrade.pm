@@ -42,11 +42,10 @@ sub run {
         #OpenQA needs ssh way to trigger offline upgrade
         script_run("sed -i s/sshd=1/ssh=1/g /boot/grub2/grub.cfg /boot/grub/menu.lst");
         diag("Debug info for reboot_and_wait_up_upgrade: this is offline upgrade. Need to clean up redundant disks using clean_up_red_disks.");
-        clean_up_red_disks;
+        clean_up_red_disks unless (($host_installed_version eq '11') || get_var('AUTOYAST', ''));
     }
 
     $self->reboot_and_wait_up($timeout);
 }
 
 1;
-

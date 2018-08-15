@@ -144,8 +144,8 @@ sub update_guest_configurations_with_daily_build {
 }
 
 sub clean_up_red_disks {
-    my $wait_script           = "120";
-    my $get_disks_not_used    = "ls /dev/sd* | grep -v -e \"/dev/sd[a].*\" -e \"/dev/sd[b-z].*[[:digit:]].*\"";
+    my $wait_script           = "600";
+    my $get_disks_not_used    = "ls /dev/sd* | grep -v -e \"/dev/sd[a].*\" | grep -o -e \"/dev/sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
     my $disks_not_used        = script_output($get_disks_not_used, $wait_script, type_command => 1, proceed_on_failure => 1);
     my $get_disks_nu_num      = "$get_disks_not_used | wc -l";
     my $disks_nu_num          = script_output($get_disks_nu_num, $wait_script, type_command => 1, proceed_on_failure => 1);
@@ -155,11 +155,22 @@ sub clean_up_red_disks {
     my $make_fs_cmd           = "mkfs.$fs_type_supported";
     my @disks_nu_array        = split(/\n+/, $disks_not_used);
     my $disks_nu_length       = scalar @disks_nu_array;
+    my $get_swaps_not_need = "$get_disks_fs_overview | grep -v -e \"sd[a].*\" | grep -i \"\\\[SWAP\\\]\" | grep -o -e \"sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
+    my $swaps_not_used = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
+
+    if ($swaps_not_used) {
+        my @swaps_nu_array = split(/\n+/, $swaps_not_used);
+        foreach my $swapitem (@swaps_nu_array) {
+            if ($swapitem =~ /sd[b-z].*/) {
+                assert_script_run("swapoff /dev/$swapitem", $wait_script);
+            }
+        }
+    }
 
     if (($disks_nu_length eq $disks_nu_num) && $disks_nu_num && $fs_type_supported) {
         foreach my $item (@disks_nu_array) {
             if ($item =~ /\/dev\/sd[b-z].*/) {
-                assert_script_run("wipefs -a $item && $make_fs_cmd $item");
+                assert_script_run("wipefs -a -f $item && $make_fs_cmd $item", $wait_script);
             }
         }
         diag("Debug info: Redundant disks have already been formatted using mkfs.");
@@ -172,4 +183,3 @@ sub clean_up_red_disks {
 }
 
 1;
-
