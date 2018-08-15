@@ -24,6 +24,7 @@ use utils;
 use mm_network;
 use mm_tests;
 use opensusebasetest 'firewall';
+use registration 'scc_version';
 
 my $pxe_server_set   = 0;
 my $quemu_proxy_set  = 0;
@@ -419,7 +420,7 @@ sub setup_aytests {
     # Expand variables
     sed -i -e 's|{{SCC_REGCODE}}|" . get_var('SCC_REGCODE') . "|g' \\
            -e 's|{{SCC_URL}}|" . get_var('SCC_URL') . "|g' \\
-           -e 's|{{VERSION}}|" . get_var('VERSION') . "|g' \\
+           -e 's|{{VERSION}}|" . scc_version . "|g' \\
            -e 's|{{ARCH}}|" . get_var('ARCH') . "|g' \\
            -e 's|{{MSG_TIMEOUT}}|0|g' \\
            -e 's|{{REPO1_URL}}|http://10.0.2.1/aytests/files/repos/sles12|g' \\
@@ -571,4 +572,3 @@ sub test_flags {
 }
 
 1;
-
