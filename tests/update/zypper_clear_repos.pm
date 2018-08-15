@@ -23,6 +23,7 @@ sub run {
 
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
+    script_run("zypper lr -d");
     assert_script_run(
 "find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
         15
