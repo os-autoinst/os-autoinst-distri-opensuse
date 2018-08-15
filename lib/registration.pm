@@ -34,6 +34,7 @@ our @EXPORT = qw(
   yast_scc_registration
   skip_registration
   scc_deregistration
+  scc_version
   get_addon_fullname
   rename_scc_addons
   is_module

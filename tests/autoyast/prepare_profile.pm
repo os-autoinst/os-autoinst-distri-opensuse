@@ -15,6 +15,7 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use version_utils 'is_sle';
+use registration 'scc_version';
 use File::Copy 'copy';
 use File::Path 'make_path';
 
@@ -26,10 +27,7 @@ sub run {
     return unless $profile;
 
     # Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
-    if (my $version = get_var('VERSION')) {
-        if (is_sle('>15')) {
-            $version =~ s/-SP/./;
-        }
+    if (my $version = scc_version(get_var('VERSION', ''))) {
         $profile =~ s/\{\{VERSION\}\}/$version/g;
     }
     # For s390x and svirt backends need to adjust network configuration
