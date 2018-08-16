@@ -169,7 +169,7 @@ sub clean_up_red_disks {
 
     if (($disks_nu_length eq $disks_nu_num) && $disks_nu_num && $fs_type_supported) {
         foreach my $item (@disks_nu_array) {
-            if ($item =~ /\/dev\/sd[b-z].*/) {
+            if ($item =~ /^\/dev\/sd[b-z]$/) {
                 assert_script_run("wipefs -a -f $item && $make_fs_cmd $item", $wait_script);
             }
         }
