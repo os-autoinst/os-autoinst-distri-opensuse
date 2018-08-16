@@ -25,7 +25,10 @@ sub java_testing {
     type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
     wait_still_screen 3;
-    assert_and_click('firefox-java-agree-and-proceed') if check_screen('oracle-cookies-handling', 0);
+    if (check_screen('oracle-cookies-handling')) {
+        assert_and_click('firefox-java-agree-and-proceed');
+        assert_and_click('oracle-cookies-close');
+    }
 
     wait_still_screen 3;
     if (check_screen('firefox-java-security', 0)) {
