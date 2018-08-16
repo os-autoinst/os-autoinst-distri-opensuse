@@ -281,6 +281,7 @@ sub save_strace_gdb_output {
     # Collect yast2 installer or yast2 module trace if is still running
     if (!script_run(qq{ps -eo pid,comm | grep -i [y]2start | cut -f 2 -d " " > /dev/$serialdev}, 0)) {
         chomp(my $yast_pid = wait_serial(qr/^[\d{4}]/, 10));
+        return unless defined($yast_pid);
         my $trace_timeout = 120;
         my $strace_log    = '/tmp/yast_trace.log';
         my $strace_ret    = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
@@ -298,8 +299,10 @@ sub save_strace_gdb_output {
           cmdline
           environ
           smaps);
+
+        my $opt = defined($is_yast_module) ? 'module' : 'installer';
         foreach (@procfs_files) {
-            $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-installer.$_");
+            $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
         }
         # We enable gdb differently in the installer and in the installed SUT
         if ($is_yast_module) {
