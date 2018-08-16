@@ -84,7 +84,20 @@ sub run {
     }
 
     # enable service start
-    send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
+    if ((is_sle '<15') || (is_leap)) {
+        send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
+    }
+    else {
+        assert_screen 'yast2_ncurses_service_start_widget';
+        send_key 'alt-f';
+        send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_after_conf', 'up';
+        send_key 'ret';
+        assert_screen 'yast2_ncurses_service_start_widget_check_start_after_conf';
+        send_key 'alt-a';
+        send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_on_boot', 'up';
+        send_key 'ret';
+        assert_screen 'yast2_ncurses_service_start_widget_check_start_on_boot';
+    }
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports
     unless ($is_still_susefirewall2) {
@@ -266,11 +279,15 @@ sub run {
 
     assert_screen 'yast2_proxy_squid';
     wait_still_screen 1;
-    # now save settings and start squid server
-    send_key 'alt-s';
-    #	check again before to close configuration
-    assert_screen 'yast2_proxy_before_close';
-    wait_still_screen 1;
+
+    if ((is_sle '<15') || (is_leap)) {
+        # now save settings and start squid server
+        send_key 'alt-s';
+        #   check again before to close configuration
+        assert_screen 'yast2_proxy_before_close';
+        wait_still_screen 1;
+    }
+
     # finish configuration with OK
     wait_screen_change { send_key 'alt-o'; };
 
@@ -282,4 +299,3 @@ sub run {
     systemctl 'show -p SubState squid.service|grep SubState=running';
 }
 1;
-
