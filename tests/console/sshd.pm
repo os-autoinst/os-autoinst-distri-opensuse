@@ -28,7 +28,7 @@ sub run {
     select_console 'root-console';
 
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
-        record_soft_failure 'bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15';
+        record_info("SuSEfirewall2 not available", "bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15");
     }
     else {
         systemctl 'stop ' . $self->firewall if !is_virtualization_server;
