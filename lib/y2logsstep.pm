@@ -238,11 +238,19 @@ sub save_upload_y2logs {
     return if (get_var('NOLOGS'));
 
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
-    my $filename = "/tmp/y2logs$suffix.tar.bz2";
+    my $filename = "/tmp/y2logs$suffix.tar" . get_available_compression();
     assert_script_run "save_y2logs $filename", 180;
     upload_logs $filename;
     save_screenshot();
     $self->investigate_yast2_failure();
+}
+
+sub get_available_compression {
+    my %extensions = ('bzip2' => '.bz2', 'gzip' => '.gz', 'xz' => '.xz');
+    foreach my $binary (sort keys %extensions) {
+        return $extensions{$binary} unless script_run("which $binary");
+    }
+    return "";
 }
 
 sub save_system_logs {
