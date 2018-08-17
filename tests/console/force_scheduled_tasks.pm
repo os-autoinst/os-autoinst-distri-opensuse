@@ -41,7 +41,7 @@ sub run {
     # run cron jobs or systemd timers which can affect system performance and mask systemd timers later
     assert_script_run('find /etc/cron.{hourly,daily,weekly,monthly} -type f -executable -exec echo cron job: {} \; -exec {} \;', 1000);
     my $systemd_tasks_cmd = 'echo "Triggering systemd timed service $i" && systemctl start $i';
-    $systemd_tasks_cmd .= ' && systemctl mask $i' unless get_var('SOFTFAIL_BSC1063638');
+    $systemd_tasks_cmd .= ' && systemctl mask $i.{service,timer}' unless get_var('SOFTFAIL_BSC1063638');
     assert_script_run(
         'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do ' . $systemd_tasks_cmd . '; done');
     record_soft_failure 'bsc#1063638 - review I/O scheduling parameters of btrfsmaintenance' if (time - $before) > 60 && get_var('SOFTFAIL_BSC1063638');
