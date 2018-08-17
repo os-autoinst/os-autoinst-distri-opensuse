@@ -115,6 +115,7 @@ our @EXPORT = qw(
   updates_is_applicable
   guiupdates_is_applicable
   load_system_update_tests
+  load_public_cloud_patterns_validation_tests
 );
 
 sub init_main {
@@ -1461,8 +1462,8 @@ sub load_extra_tests_textmode {
     }
     loadtest "console/command_not_found";
     if (is_sle '12-sp2+') {
-        # Check for availability of packages and the corresponding repository, only makes sense for SLE
-        loadtest 'console/repo_package_install';
+        # Check for availability of packages and the corresponding repository, as of now only makes sense for SLE
+        loadtest 'console/validate_packages_and_patterns';
         loadtest 'console/openssl_alpn';
         loadtest 'console/autoyast_removed';
     }
@@ -2111,6 +2112,17 @@ sub load_system_update_tests {
         loadtest "update/zypper_up";
         set_var('SYSTEM_UPDATED', 1);
     }
+}
+
+# Tests to validate standalone installation of PCM module
+sub load_public_cloud_patterns_validation_tests {
+    boot_hdd_image;
+    # setup $serialdev permission and so on
+    loadtest "console/consoletest_setup";
+    # validate packages of pcm
+    loadtest 'console/validate_packages_and_patterns';
+    loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
+    loadtest "console/consoletest_finish";
 }
 
 1;
