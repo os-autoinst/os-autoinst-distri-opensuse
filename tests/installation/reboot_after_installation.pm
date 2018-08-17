@@ -38,7 +38,7 @@ sub run {
         send_key 'alt-o';    # Reboot
     };
 
-    power_action('reboot', observe => 1, keepconsole => 1);
+    power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
 }
 
 1;
