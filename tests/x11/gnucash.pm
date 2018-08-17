@@ -28,7 +28,8 @@ sub run {
         # opened gets focussed but the last. Bring the tip window back to
         # focus if it is not
         send_key 'alt-tab' if check_var('DESKTOP', 'lxde');
-        wait_screen_change { send_key 'alt-c' };
+        send_key 'alt-c';
+        assert_screen('test-gnucash-tips-closed');
     }
     send_key 'ctrl-q';    # Exit
 
