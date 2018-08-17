@@ -739,9 +739,10 @@ unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 =cut
 sub power_action {
     my ($action, %args) = @_;
-    $args{observe}     //= 0;
-    $args{keepconsole} //= 0;
-    $args{textmode}    //= check_var('DESKTOP', 'textmode');
+    $args{observe}      //= 0;
+    $args{keepconsole}  //= 0;
+    $args{textmode}     //= check_var('DESKTOP', 'textmode');
+    $args{first_reboot} //= 0;
     die "'action' was not provided" unless $action;
     prepare_system_shutdown;
     unless ($args{keepconsole}) {
@@ -775,10 +776,10 @@ sub power_action {
         record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
     }
     # no need to redefine the system when we boot from an existing qcow image
-    # Do not redefine if autoyast, as did initial reboot already
+    # Do not redefine if autoyast or s390 zKVM reboot, as did initial reboot already
     if (check_var('VIRSH_VMM_FAMILY', 'kvm')
         || check_var('VIRSH_VMM_FAMILY', 'xen')
-        || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST')))
+        || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST') && $args{first_reboot}))
     {
         assert_shutdown_and_restore_system($action, $shutdown_timeout);
     }
