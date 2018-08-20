@@ -17,7 +17,7 @@ use testapi;
 
 
 sub run {
-    send_key "alt-f2";
+    wait_screen_change { send_key "alt-f2"; };
     send_key "down";
     type_string "about\n";
     assert_screen 'test-xfce4_appfinder-1';
