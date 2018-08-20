@@ -373,12 +373,9 @@ sub load_boot_tests {
     elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
         load_svirt_vm_setup_tests;
     }
-    elsif (uses_qa_net_hardware()) {
+    elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {
         loadtest "boot/boot_from_pxe";
-    }
-    elsif (get_var("PXEBOOT")) {
-        set_var("DELAYED_START", "1");
-        loadtest "autoyast/pxe_boot";
+        set_var("DELAYED_START", get_var("PXEBOOT"));
     }
     elsif (check_var('BACKEND', 'spvm')) {
         loadtest "installation/bootloader_spvm";

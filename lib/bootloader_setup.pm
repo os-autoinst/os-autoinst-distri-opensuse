@@ -281,12 +281,14 @@ sub bootmenu_type_extra_boot_params {
 }
 
 sub bootmenu_type_console_params {
+    my ($baud_rate) = shift // '';
+    $baud_rate = $baud_rate ? ",$baud_rate" : '';
     # To get crash dumps as text
-    type_string_very_slow "console=$serialdev ";
+    type_string_very_slow "console=${serialdev}${baud_rate} ";
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
-    # and doesn't work if set to serial device.
-    type_string_very_slow "console=tty ";
+    # and doesn't work if set to serial device. Don't want this on ipmi backend.
+    type_string_very_slow "console=tty " unless check_var('BACKEND', 'ipmi');
 }
 
 sub uefi_bootmenu_params {
@@ -334,6 +336,7 @@ sub type_hyperv_fb_video_resolution {
 }
 
 sub bootmenu_default_params {
+    my (%args) = @_;
     if (get_var('OFW')) {
         # edit menu, wait until we get to grub edit
         wait_screen_change { send_key "e" };
@@ -356,23 +359,35 @@ sub bootmenu_default_params {
         # gfxpayload variable replaced vga option in grub2
         if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
             type_string_slow "vga=791 ";
-            type_string_slow "video=1024x768-16 ";
-            assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+            if (check_var("INSTALL_TO_OTHERS", 1) || !$args{pxe}) {
+                type_string_slow "video=1024x768-16 ";
+            } else {
+                type_string_slow "xvideo=1024x768 ";
+            }
+            # Do not assert on pxe boot as it's unreliable due to multiline input
+            if ($args{pxe})
+            {
+                save_screenshot;
+            }
+            else {
+                assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+            }
         }
 
         if (!get_var("NICEVIDEO")) {
             if (is_caasp) {
-                bootmenu_type_console_params;
+                bootmenu_type_console_params $args{baud_rate};
             }
             elsif (!is_jeos) {
                 type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
                 type_string_very_slow "linuxrc.log=/dev/$serialdev ";
-                bootmenu_type_console_params;
-
-                assert_screen "inst-consolesettingstyped", 30;
+                bootmenu_type_console_params $args{baud_rate};
+                # Do not assert on pxe boot as it's unreliable due to multiline input
+                assert_screen "inst-consolesettingstyped", 30 unless $args{pxe};
 
                 # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
                 type_string_very_slow "linuxrc.core=/dev/$serialdev ";
+                type_string_very_slow "linuxrc.debug=4,trace ";
             }
             bootmenu_type_extra_boot_params;
         }
@@ -463,6 +478,25 @@ sub bootmenu_network_source {
     }
 }
 
+sub autoyast_boot_params {
+    my $ay_var = get_var("AUTOYAST");
+    return '' unless $ay_var;
+
+    my $autoyast_args = 'autoyast=';
+    # In case of SUPPORT_SERVER, profiles are available on another VM
+    if (get_var('USE_SUPPORT_SERVER')) {
+        my $proto = get_var("PROTO") || 'http';
+        $autoyast_args .= "$proto://10.0.2.1/";
+        $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
+        $autoyast_args .= $ay_var;
+    } elsif ($ay_var !~ /^slp$|:\/\//) {
+        $autoyast_args .= data_url($ay_var);    # Getting profile from the worker as openQA asset
+    } else {
+        $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
+    }
+    return $autoyast_args . " ";
+}
+
 sub specific_bootmenu_params {
     my $args = "";
 
@@ -476,16 +510,15 @@ sub specific_bootmenu_params {
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic.
             $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp SetHostname=0");
-            # If AUTOYAST is url (://) or slp dont't translate it to openqa asset
-            $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
-            $args .= " $netsetup autoyast=$autoyast ";
+            $args .= " $netsetup ";
+            $args .= autoyast_boot_params;
         }
         else {
             $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
             $args .= $netsetup;
         }
     }
-    if (get_var("AUTOUPGRADE")) {
+    if (get_var("AUTOUPGRADE") || get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE")) {
         $args .= " autoupgrade=1";
     }
 

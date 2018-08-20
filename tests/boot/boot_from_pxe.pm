@@ -10,18 +10,28 @@
 # Summary: Boot systems from PXE
 # Maintainer: alice <xlai@suse.com>
 
+use base 'opensusebasetest';
+
 use strict;
 use warnings;
+use bootloader_setup;
 use File::Basename;
-use base "opensusebasetest";
-use testapi;
+use lockapi;
 use registration;
+use testapi;
+use utils 'type_string_very_slow';
 
 sub run {
+    # In autoyast tests we need to wait until pxe is available
+    if (get_var('AUTOYAST') && get_var('DELAYED_START')) {
+        mutex_lock('pxe');
+        mutex_unlock('pxe');
+        resume_vm();
+    }
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu)], 300);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
     my $image_path = "";
 
     #detect pxe location
@@ -62,16 +72,17 @@ sub run {
         send_key 'tab';
         my $interface = get_var('WORKER_CLASS') eq 'hornet' ? 'eth1' : 'eth4';
         my $node = get_var('WORKER_CLASS');
-        type_string " console=ttyS1,115200 ifcfg=$interface=dhcp4 autoyast=" . data_url(get_var('AUTOYAST', ''));
+        type_string "ifcfg=$interface=dhcp4 ";
+    }
+    elsif (match_has_tag('pxe-menu')) {
+        # select network (second entry)
+        send_key "down";
+        send_key "tab";
     }
     my $type_speed = 20;
     # Execute installation command on pxe management cmd console
     type_string ${image_path} . " ", $type_speed;
-    type_string "vga=791 ",                      $type_speed;
-    type_string "Y2DEBUG=1 ",                    $type_speed;
-    type_string "linuxrc.core=/dev/$serialdev ", $type_speed;
-    type_string "linuxrc.log=/dev/$serialdev ",  $type_speed;
-    type_string "linuxrc.debug=4,trace ",        $type_speed;
+    bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if ((check_var('BACKEND', 'ipmi') && !check_var('AUTOYAST', '1')) || get_var('SES5_DEPLOY')) {
         my $cmdline = '';
@@ -89,25 +100,12 @@ sub run {
         type_string $cmdline;
     }
 
-    if (check_var("INSTALL_TO_OTHERS", 1)) {
-        type_string "video=1024x768-16 ", $type_speed;
-    }
-    else {
-        type_string "xvideo=1024x768 ", $type_speed;
-    }
-
-    type_string "console=$serialdev,115200 ", $type_speed;    # to get crash dumps as text
-
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
         type_string registration_bootloader_cmdline;
     }
 
-    save_screenshot;
-    my $e = get_var("EXTRABOOTPARAMS");
-    if ($e) {
-        type_string " $e ", 4;
-        save_screenshot;
-    }
+    specific_bootmenu_params;
+
     send_key 'ret';
     save_screenshot;
 
