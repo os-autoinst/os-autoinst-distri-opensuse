@@ -49,8 +49,8 @@ sub test_seccomp {
 sub run {
     select_console("root-console");
 
-    install_docker_when_needed;
-    test_seccomp;
+    install_docker_when_needed();
+    test_seccomp();
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
@@ -126,7 +126,7 @@ sub run {
     if (wait_serial('ctrlc_timeout', 10, 1) =~ 'ctrlc_timeout') {
         die 'ctrl-c stopped container';
     }
-    die "Something went wrong" unless wait_serial('ctrlc_timeout', 30);
+    die "Something went wrong" unless wait_serial('ctrlc_timeout', 40);
 
     # containers can be stopped
     assert_script_run("docker container stop $container_name");

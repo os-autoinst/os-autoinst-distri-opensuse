@@ -533,8 +533,11 @@ sub load_docker_tests {
         loadtest "console/docker_image";
         loadtest "console/sle2docker";
     }
-    elsif (is_opensuse) {
+    if (is_tumbleweed) {
         loadtest "console/docker_image_rpm";
+        loadtest "console/docker_compose";
+    }
+    elsif (is_opensuse && !is_tumbleweed) {
         loadtest "console/docker_compose";
     }
 }
