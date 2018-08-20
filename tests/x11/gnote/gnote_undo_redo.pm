@@ -44,13 +44,7 @@ sub run {
     $self->undo_redo_once;
 
     #clean: remove the created new note
-    send_key "esc";
-    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
-    send_key "delete";
-    send_key "tab";
-    send_key "ret";
-    assert_screen "gnote-first-launched";
-    send_key "ctrl-w";
+    $self->cleanup_gnote;
 }
 
 1;

@@ -15,6 +15,7 @@ use strict;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
+use repo_tools qw(prepare_oss_repo disable_oss_repo);
 
 # open desktop mainmenu and click office
 sub open_mainmenu {
@@ -92,42 +93,57 @@ sub run {
 
     # launch components from Activities overview
     $self->open_overview();
-    type_string "base";                                #open base
+    type_string "base";
+    # tag is base-install means libreoffice-base not installed
+    if (assert_screen 'base-install') {
+        send_key 'esc';
+        send_key 'esc';
+        x11_start_program('xterm');
+        script_run("gsettings set org.gnome.desktop.session idle-delay 0", 0);    #value=0 means never blank screen
+        become_root;
+        prepare_oss_repo;
+        script_run("zypper in -y libreoffice-base",                          900);
+        script_run("gsettings set org.gnome.desktop.session idle-delay 900", 0);     #default value=900
+        disable_oss_repo;
+        send_key 'alt-f4';
+        $self->open_overview();
+        type_string "base";
+    }
     assert_screen 'overview-office-base';
     send_key "ret";
     select_base_and_cleanup;
 
     $self->open_overview();
-    type_string "calc";                                #open calc
+    type_string "calc";                                                              #open calc
     assert_and_click 'overview-office-calc';
     assert_screen 'test-oocalc-1';
-    send_key "ctrl-q";                                 #close calc
+    send_key "ctrl-q";                                                               #close calc
 
     $self->open_overview();
-    type_string "draw";                                #open draw
+    type_string "draw";                                                              #open draw
     assert_screen 'overview-office-draw';
     send_key "ret";
     assert_screen 'oodraw-launched';
-    send_key "ctrl-q";                                 #close draw
+    send_key "ctrl-q";                                                               #close draw
 
     $self->open_overview();
-    type_string "impress";                             #open impress
+    type_string "impress";                                                           #open impress
     assert_screen 'overview-office-impress';
     send_key "ret";
     assert_screen [qw(ooimpress-select-a-template ooimpress-launched)];
     if (match_has_tag 'ooimpress-select-a-template') {
-        send_key 'alt-f4';                             # close impress template window
+        send_key 'alt-f4';                                                           # close impress template window
         assert_screen 'ooimpress-launched';
     }
-    send_key "ctrl-q";                                 #close impress
+    send_key "ctrl-q";                                                               #close impress
 
     $self->open_overview();
-    type_string "writer";                              #open writer
+    type_string "writer";                                                            #open writer
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
     assert_and_click 'ooffice-writing-area', 'left', 10;
-    send_key "ctrl-q";                                 #close writer
+    send_key "ctrl-q";                                                               #close writer
 }
 
 1;
