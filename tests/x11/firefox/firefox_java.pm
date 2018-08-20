@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,6 +26,8 @@ sub java_testing {
 
     wait_still_screen 3;
     if (check_screen('oracle-cookies-handling')) {
+        assert_and_click('oracle-function-cookies');
+        assert_and_click('oracle-ad-cookies');
         assert_and_click('firefox-java-agree-and-proceed');
         assert_and_click('oracle-cookies-close');
     }
