@@ -25,97 +25,97 @@ use strict;
 use warnings;
 
 our @EXPORT = qw(
-  init_main
-  loadtest
-  load_testdir
-  set_defaults_for_username_and_password
-  setup_env
-  logcurrentenv
+  any_desktop_is_applicable
+  bootencryptstep_is_applicable
+  boot_hdd_image
+  check_env
+  chromestep_is_applicable
+  chromiumstep_is_applicable
+  console_is_applicable
+  consolestep_is_applicable
   default_desktop
+  gnomestep_is_applicable
+  guiupdates_is_applicable
+  have_scc_repos
+  init_main
+  installyaststep_is_applicable
+  installzdupstep_is_applicable
   is_desktop
+  is_kernel_test
   is_livesystem
-  is_memtest
   is_mediacheck
+  is_mediacheck
+  is_memtest
+  is_memtest
   is_server
   is_sles4sap
   is_sles4sap_standard
-  is_updates_tests
   is_updates_test_repo
-  map_incidents_to_repo
-  need_clear_repos
-  have_scc_repos
-  load_svirt_vm_setup_tests
-  load_inst_tests
-  load_svirt_boot_tests
-  load_boot_tests
-  load_reboot_tests
-  load_rescuecd_tests
-  load_zdup_tests
-  load_autoyast_tests
-  load_autoyast_clone_tests
-  load_slepos_tests
-  load_docker_tests
-  load_sles4sap_tests
-  installzdupstep_is_applicable
-  snapper_is_applicable
-  chromestep_is_applicable
-  chromiumstep_is_applicable
-  gnomestep_is_applicable
-  installyaststep_is_applicable
-  noupdatestep_is_applicable
+  is_updates_tests
   kdestep_is_applicable
   kdump_is_applicable
-  consolestep_is_applicable
-  rescuecdstep_is_applicable
-  bootencryptstep_is_applicable
-  we_is_applicable
-  remove_common_needles
-  remove_desktop_needles
-  check_env
-  ssh_key_import
-  unregister_needle_tags
-  any_desktop_is_applicable
-  console_is_applicable
-  boot_hdd_image
-  is_kernel_test
-  load_kernel_tests
+  load_autoyast_clone_tests
+  load_autoyast_tests
   load_bootloader_s390x
+  load_boot_tests
+  load_common_installation_steps_tests
+  load_common_opensuse_sle_tests
+  load_common_x11
   load_consoletests
-  load_x11tests
-  load_yast2_ncurses_tests
-  load_yast2_gui_tests
+  load_create_hdd_tests
+  load_docker_tests
   load_extra_tests
-  load_rollback_tests
   load_filesystem_tests
-  load_wicked_tests
+  load_inst_tests
+  load_iso_in_external_tests
+  load_jeos_tests
+  load_kernel_tests
   load_networkd_tests
   load_nfv_master_tests
   load_nfv_trafficgen_tests
-  load_common_installation_steps_tests
-  load_iso_in_external_tests
-  load_common_x11
-  load_security_tests_core
-  load_security_tests_web
-  load_security_tests_misc
-  load_security_tests_crypt
-  load_security_tests_apparmor
-  load_security_tests_openscap
-  load_systemd_patches_tests
-  load_create_hdd_tests
-  load_virtualization_tests
-  is_memtest
-  is_mediacheck
-  load_syscontainer_tests
-  load_toolchain_tests
-  load_common_opensuse_sle_tests
-  replace_opensuse_repos_tests
-  load_ssh_key_import_tests
-  load_jeos_tests
-  load_shutdown_tests
-  updates_is_applicable
-  guiupdates_is_applicable
-  load_system_update_tests
   load_public_cloud_patterns_validation_tests
+  load_reboot_tests
+  load_rescuecd_tests
+  load_rollback_tests
+  load_security_tests_apparmor
+  load_security_tests_core
+  load_security_tests_crypt
+  load_security_tests_misc
+  load_security_tests_openscap
+  load_security_tests_web
+  load_shutdown_tests
+  load_slepos_tests
+  load_sles4sap_tests
+  load_ssh_key_import_tests
+  load_svirt_boot_tests
+  load_svirt_vm_setup_tests
+  load_syscontainer_tests
+  load_systemd_patches_tests
+  load_system_update_tests
+  loadtest
+  load_testdir
+  load_toolchain_tests
+  load_virtualization_tests
+  load_wicked_tests
+  load_x11tests
+  load_yast2_gui_tests
+  load_yast2_ncurses_tests
+  load_zdup_tests
+  logcurrentenv
+  map_incidents_to_repo
+  need_clear_repos
+  noupdatestep_is_applicable
+  remove_common_needles
+  remove_desktop_needles
+  replace_opensuse_repos_tests
+  rescuecdstep_is_applicable
+  set_defaults_for_username_and_password
+  setup_env
+  snapper_is_applicable
+  ssh_key_import
+  unregister_needle_tags
+  updates_is_applicable
+  we_is_applicable
 );
 
 sub init_main {
