@@ -33,8 +33,10 @@ sub run {
     select_console 'root-console';
     script_run "snapper rollback";
 
-    # reboot into the system before online migration
-    power_action('reboot');
+    # reboot into the origin system before online migration
+    # execute reboot command directly since it is in a read-only snapshot
+    script_run("systemctl reboot", 0);
+    reset_consoles;
     $self->wait_boot(textmode => !is_desktop_installed);
     select_console 'root-console';
 
