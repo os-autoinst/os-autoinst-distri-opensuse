@@ -1510,7 +1510,6 @@ sub load_extra_tests {
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv;
-    loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
     }
