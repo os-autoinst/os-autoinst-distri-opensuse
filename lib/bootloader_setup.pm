@@ -518,7 +518,7 @@ sub specific_bootmenu_params {
             $args .= $netsetup;
         }
     }
-    if (get_var("AUTOUPGRADE") || get_var("AUTOYAST") && (("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE"))) {
+    if (get_var("AUTOUPGRADE") || get_var("AUTOYAST") && (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE"))) {
         $args .= " autoupgrade=1";
     }
 
