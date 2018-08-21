@@ -16,11 +16,12 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_opensuse is_sle);
 
 sub auto_login_alter {
     my ($self) = @_;
     $self->unlock_user_settings;
-    send_key "alt-u";
+    send_key "alt-u" if is_sle;
     send_key "alt-f4";
 }
 
@@ -31,7 +32,12 @@ sub run {
     $self->auto_login_alter;
     my $ov = get_var('NOAUTOLOGIN');
     set_var('NOAUTOLOGIN', '');
-    power_action('reboot');
+    if (is_sle) {
+        power_action('reboot');
+    }
+    else {
+        power_action('reboot', keepconsole => 1);
+    }
     $self->wait_boot(bootloader_time => 300);
     set_var('NOAUTOLOGIN', $ov);
     $self->auto_login_alter;
