@@ -28,6 +28,9 @@ sub run {
         reset_consoles;
         select_console 'root-console';
     }
+    # This code is also called after boot on update tests. We must ensure to be on the root console
+    # in that case
+    select_console 'root-console' if (get_var('HDDVERSION'));
 
     # Wait for resources to be started
     wait_until_resources_started;
