@@ -30,8 +30,17 @@ sub run {
         send_key $cmd{ok};
     }
 
+    my $update_list_needles = ['select-for-update'];
+    # Detect if empty list is shown due to bsc#1105335
+    push @$update_list_needles, 'empty-update-list' if check_var('ORIGINAL_VERSION', '15.0');
     # hardware detection and waiting for updates from suse.com can take a while
-    assert_screen_with_soft_timeout('select-for-update', timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
+    assert_screen_with_soft_timeout($update_list_needles, timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
+    if (match_has_tag 'empty-update-list') {
+        record_soft_failure('bsc#1105335');
+        # Check show all partitions checkbox
+        send_key('alt-s');
+        assert_screen 'select-for-update';
+    }
     send_key $cmd{next};
     assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
     if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
