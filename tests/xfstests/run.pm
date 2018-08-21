@@ -18,6 +18,7 @@ use base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 # Heartbeat variables
 my $HB_INTVL   = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;

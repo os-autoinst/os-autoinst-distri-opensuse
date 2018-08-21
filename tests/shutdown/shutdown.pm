@@ -19,7 +19,7 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
-use utils;
+use power_action_utils 'power_action';
 
 sub run {
     power_action('poweroff');

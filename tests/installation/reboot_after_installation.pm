@@ -14,6 +14,7 @@ use strict;
 use base 'y2logsstep';
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 sub run {
     # on remote installations we can not try to switch to the installation

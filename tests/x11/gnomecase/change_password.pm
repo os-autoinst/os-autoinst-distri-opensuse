@@ -15,6 +15,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'reboot_x11';
 use version_utils;
 
 #testcase 5255-1503803: Gnome:Change Password

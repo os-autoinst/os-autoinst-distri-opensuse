@@ -20,6 +20,7 @@ use strict;
 use base 'y2logsstep';
 use testapi;
 use utils;
+use power_action_utils 'prepare_system_shutdown';
 use version_utils 'is_caasp';
 
 my $confirmed_licenses = 0;

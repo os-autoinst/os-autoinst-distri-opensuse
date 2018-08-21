@@ -15,6 +15,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 sub export_to_json {
     my ($test_result_export) = @_;

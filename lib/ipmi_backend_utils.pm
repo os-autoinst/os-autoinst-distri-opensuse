@@ -19,6 +19,7 @@ use warnings;
 use testapi;
 use version_utils qw/is_storage_ng is_sle/;
 use utils;
+use power_action_utils 'prepare_system_shutdown';
 
 our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_vh switch_from_ssh_to_sol_console);
 

@@ -15,7 +15,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils;
+use power_action_utils 'power_action';
 
 sub auto_login_alter {
     my ($self) = @_;

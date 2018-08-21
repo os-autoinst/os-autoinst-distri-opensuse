@@ -14,6 +14,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;

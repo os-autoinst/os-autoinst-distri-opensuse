@@ -13,6 +13,7 @@ use 5.018;
 use base "opensusebasetest";
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use serial_terminal 'select_virtio_console';
 use kernel 'remove_kernel_packages';
 
