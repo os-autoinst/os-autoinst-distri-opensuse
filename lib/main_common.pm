@@ -1006,6 +1006,7 @@ sub load_console_server_tests {
         # The NFS test expects the IP to be 10.0.2.15
         loadtest "console/yast2_nfs_server";
     }
+    loadtest "console/rsync";
     loadtest "console/http_srv";
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
@@ -1474,6 +1475,7 @@ sub load_extra_tests_textmode {
     loadtest "console/wget_ipv6";
     loadtest "console/unzip";
     loadtest "console/gpg";
+    loadtest "console/rsync";
     loadtest "console/shells";
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
