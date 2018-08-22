@@ -90,7 +90,7 @@ sub repl_vm_repo_in_sourcefile {
         assert_script_run("grep \"$veritem32b\" $soucefile");
     }
     else {
-        print "Do not need to change resource for $veritem32b item\n";
+        print "Do not need to change resource for vm guest installation\n";
     }
 }
 
