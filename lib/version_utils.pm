@@ -45,6 +45,7 @@ our @EXPORT = qw (
   is_system_upgrading
   is_pre_15
   is_virtualization_server
+  is_aarch64_uefi_boot_hdd
 );
 
 sub is_leap;
@@ -268,4 +269,8 @@ sub is_system_upgrading {
 
 sub is_pre_15 {
     return (is_sle('<15') || is_leap('<15.0')) && !is_tumbleweed;
+}
+
+sub is_aarch64_uefi_boot_hdd {
+    return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
 }
