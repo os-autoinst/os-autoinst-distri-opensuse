@@ -33,7 +33,7 @@ sub run {
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
     my $image_path = "";
-
+    my $type_speed = 20;
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
@@ -72,14 +72,13 @@ sub run {
         send_key 'tab';
         my $interface = get_var('WORKER_CLASS') eq 'hornet' ? 'eth1' : 'eth4';
         my $node = get_var('WORKER_CLASS');
-        type_string "ifcfg=$interface=dhcp4 ";
+        type_string "ifcfg=$interface=dhcp4 ", $type_speed;
     }
     elsif (match_has_tag('pxe-menu')) {
         # select network (second entry)
         send_key "down";
         send_key "tab";
     }
-    my $type_speed = 20;
     # Execute installation command on pxe management cmd console
     type_string ${image_path} . " ", $type_speed;
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
@@ -97,11 +96,11 @@ sub run {
         # 'ssh=1' and 'sshd=1' are equal, both together don't work
         # so let's just set the password here
         $cmdline .= "sshpassword=$testapi::password ";
-        type_string $cmdline;
+        type_string $cmdline, $type_speed;
     }
 
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
-        type_string registration_bootloader_cmdline;
+        type_string(registration_bootloader_cmdline, $type_speed);
     }
 
     specific_bootmenu_params;
@@ -116,8 +115,8 @@ sub run {
 
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-            type_string('DISPLAY= ') if check_var('VIDEOMODE', 'text');
-            type_string("yast.ssh\n");
+            type_string('DISPLAY= ', $type_speed) if check_var('VIDEOMODE', 'text');
+            type_string("yast.ssh\n", $type_speed);
         }
         wait_still_screen;
     }

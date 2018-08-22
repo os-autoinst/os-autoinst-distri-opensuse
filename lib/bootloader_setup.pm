@@ -379,7 +379,8 @@ sub bootmenu_default_params {
                 bootmenu_type_console_params $args{baud_rate};
             }
             elsif (!is_jeos) {
-                type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
+                # make plymouth go graphical
+                type_string_very_slow "plymouth.ignore-serial-consoles " unless $args{pxe};
                 type_string_very_slow "linuxrc.log=/dev/$serialdev ";
                 bootmenu_type_console_params $args{baud_rate};
                 # Do not assert on pxe boot as it's unreliable due to multiline input
