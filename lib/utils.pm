@@ -1084,6 +1084,7 @@ Also doing test ping to 10.0.2.2 to check that network is alive
 sub setup_static_network {
     my ($self, $ip) = @_;
     assert_script_run("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
+    assert_script_run("echo 'nameserver 10.160.0.1' >> /etc/resolv.conf");
     my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run "rcnetwork restart";
