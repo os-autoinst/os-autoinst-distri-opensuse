@@ -553,6 +553,9 @@ sub post_fail_hook {
         }
     }
     return unless $self->{in_wait_boot};
+    if (wait_serial qr/Reached target Shutdown/) {
+        record_info 'shutdown', 'At least we reached target Shutdown';
+    }
     # In case the system is stuck in shutting down or during boot up, press
     # 'esc' just in case the plymouth splash screen is shown and we can not
     # see any interesting console logs.

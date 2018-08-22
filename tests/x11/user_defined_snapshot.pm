@@ -53,15 +53,15 @@ sub run {
     send_key_until_needlematch([qw(grub_comment)], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
+    $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
-
     $self->handle_uefi_boot_disk_workaround() if get_var('MACHINE') =~ qr'aarch64';
     assert_screen "grub2";
     send_key 'up';
 
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
-
+    $self->{in_wait_boot} = 0;
     # On slow VMs we press down key before snapshots list is on screen
     wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
 
