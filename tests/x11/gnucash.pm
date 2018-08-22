@@ -16,12 +16,14 @@ use strict;
 use testapi;
 
 sub run {
+    select_console('x11');
     ensure_installed('gnucash gnucash-docs yelp');
     x11_start_program('gnucash');
     send_key "ctrl-h";    # open user tutorial
     assert_screen 'test-gnucash-2';
     # Leave tutorial window
-    wait_screen_change { send_key 'alt-f4' };
+    send_key 'alt-f4';
+    assert_screen('gnucash');
     # Leave tips windows for GNOME/gtk case
     if (get_var('DESKTOP', '') =~ /gnome|xfce|lxde/) {
         # LXDE specifc behaviour: After closing one window not the first
