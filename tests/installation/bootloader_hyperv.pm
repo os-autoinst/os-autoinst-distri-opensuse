@@ -232,7 +232,7 @@ sub run {
     type_string "rm -fv xfreerdp_${name}_stop* xfreerdp_${name}.log; while true; do inotifywait xfreerdp_${name}_stop; DISPLAY=:$xvncport xfreerdp /u:"
       . get_var('HYPERV_USERNAME') . " /p:'"
       . get_var('HYPERV_PASSWORD') . "' /v:"
-      . get_var('HYPERV_SERVER')
+      . get_var('HYPERV_SERVER') . ' +auto-reconnect /auto-reconnect-max-retries:10'
       . " /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
     hyperv_cmd_with_retry("$ps Start-VM $name", {msg => ($winserver eq '2016') ? 'used by another process' : undef});

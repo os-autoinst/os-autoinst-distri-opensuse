@@ -352,7 +352,10 @@ sub load_svirt_boot_tests {
 sub load_svirt_vm_setup_tests {
     return unless check_var('BACKEND', 'svirt');
     if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
-        loadtest "installation/bootloader_hyperv";
+        # Loading bootloader_hyperv here when UPGRADE is on (i.e. offline migration is underway)
+        # means loading it for the second time. Which might be apropriate if we want to reconfigure
+        # the VM, but currently we don't want to.
+        loadtest "installation/bootloader_hyperv" unless get_var('UPGRADE');
     }
     else {
         loadtest "installation/bootloader_svirt";
@@ -744,7 +747,12 @@ sub boot_hdd_image {
     # On JeOS we don't need to load any test to boot, but to keep main.pm sane just return.
     is_jeos() ? return 1 : get_required_var('BOOT_HDD_IMAGE');
     if (check_var('BACKEND', 'svirt')) {
-        loadtest 'installation/bootloader_svirt' unless load_bootloader_s390x;
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+            loadtest 'installation/bootloader_hyperv';
+        }
+        else {
+            loadtest 'installation/bootloader_svirt' unless load_bootloader_s390x;
+        }
     }
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest 'boot/uefi_bootmenu';
