@@ -16,7 +16,6 @@ use strict;
 use testapi;
 
 sub run {
-    select_console('x11');
     ensure_installed('gnucash gnucash-docs yelp');
     x11_start_program('gnucash');
     send_key "ctrl-h";    # open user tutorial
