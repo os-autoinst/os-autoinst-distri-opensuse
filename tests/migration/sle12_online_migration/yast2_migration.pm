@@ -14,6 +14,7 @@ use base "y2logsstep";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
 
 sub run {

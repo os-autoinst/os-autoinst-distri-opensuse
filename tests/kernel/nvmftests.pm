@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 use utils 'zypper_call';
-use utils qw(power_action zypper_call);
+use power_action_utils 'power_action';
 use serial_terminal 'select_virtio_console';
 
 sub run {

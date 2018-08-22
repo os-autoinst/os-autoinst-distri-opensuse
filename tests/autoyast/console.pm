@@ -19,8 +19,6 @@
 use strict;
 use base 'y2logsstep';
 use testapi;
-use utils 'power_action';
-use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;

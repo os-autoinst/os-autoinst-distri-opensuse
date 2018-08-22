@@ -17,6 +17,7 @@ use strict;
 use testapi;
 use utils;
 use ipmi_backend_utils;
+use power_action_utils 'power_action';
 
 our $device1 = '/dev/mst/mt4119_pciconf0';
 our $device2 = '/dev/mst/mt4119_pciconf0.1';

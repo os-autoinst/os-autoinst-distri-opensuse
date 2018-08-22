@@ -14,7 +14,7 @@
 use base qw(y2logsstep y2x11test);
 use strict;
 use testapi;
-use utils 'reboot_x11';
+use power_action_utils 'reboot_x11';
 use registration qw(fill_in_registration_data skip_registration);
 
 sub run {

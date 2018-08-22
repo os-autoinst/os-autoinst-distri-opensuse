@@ -13,7 +13,7 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils;
+use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
 use migration 'check_rollback_system';
 

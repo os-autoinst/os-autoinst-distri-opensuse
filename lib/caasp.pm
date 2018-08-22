@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use mmapi;
 use version_utils 'is_caasp';
-use utils qw(power_action assert_shutdown_and_restore_system);
+use power_action_utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(
   trup_call trup_install rpmver process_reboot check_reboot_changes microos_login send_alt

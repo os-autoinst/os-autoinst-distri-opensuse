@@ -22,6 +22,7 @@ use base "opensusebasetest";
 use strict;
 
 use utils;
+use power_action_utils 'prepare_system_shutdown';
 use qam;
 use version_utils 'is_sle';
 use testapi;

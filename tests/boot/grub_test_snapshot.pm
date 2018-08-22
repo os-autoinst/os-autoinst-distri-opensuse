@@ -14,7 +14,7 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
-use utils 'power_action';
+use power_action_utils 'power_action';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run {

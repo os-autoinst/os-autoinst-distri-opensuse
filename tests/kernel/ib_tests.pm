@@ -15,6 +15,7 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use lockapi;
 use ipmi_backend_utils;
 
