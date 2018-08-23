@@ -369,11 +369,9 @@ pre init scripts feature. See poo#20818.
       <disable config:type="list">
       </disable>
       <enable config:type="list">
-        <service>atd</service>
         <service>kexec-load</service>
         <service>sshd</service>
         <service>sysstat</service>
-        <service>tuned</service>
       </enable>
     </services>
   </services-manager>
