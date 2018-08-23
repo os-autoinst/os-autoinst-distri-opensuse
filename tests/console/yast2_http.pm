@@ -17,6 +17,7 @@ use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
 
 sub run {
+    my $self = shift;
 
     select_console 'root-console';
     # install http server
@@ -102,25 +103,17 @@ sub run {
     assert_screen 'http_vitual_host_page';          # check wizard page (4/5)
     send_key 'alt-n';                               # go to http server wizard (5/5) --summary
                                                     # make sure that apache2 server got started when booting
-    if ((is_sle '<15') || (is_leap)) {
+    if (is_sle('<15') || is_leap('<15.1')) {
         assert_screen 'http_summary';
         send_key 'alt-t';
         assert_screen 'http_start_apache2';
     }
     else {
-        assert_screen 'yast2_ncurses_service_start_widget';
-        send_key 'alt-t';
-        send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_after_conf', 'up';
-        send_key 'ret';
-        assert_screen 'yast2_ncurses_service_start_widget_check_start_after_conf';
-        send_key 'alt-a';
-        send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_on_boot', 'up';
-        send_key 'ret';
-        assert_screen 'yast2_ncurses_service_start_widget_check_start_on_boot';
+        $self->assert_service_widget(after_writing_conf => 'alt-w', after_reboot => 'alt-e');
     }
-    send_key 'alt-f';    # now finish the tests :)
+    send_key 'alt-f';                               # now finish the tests :)
     check_screen 'http_install_apache2_mods', 60;
-    send_key 'alt-i';    # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
+    send_key 'alt-i';                               # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
 
     # if popup, confirm to enable apache2 configuratuion
     if (check_screen('http_enable_apache2', 10)) {
@@ -129,4 +122,3 @@ sub run {
     wait_serial("yast2-http-server-status-0", 240) || die "'yast2 http-server' didn't finish";
 }
 1;
-
