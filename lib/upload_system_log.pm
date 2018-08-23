@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-#Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,7 +25,6 @@ sub system_status {
     my ($self, $log) = @_;
     $log //= "/tmp/system-status.log";
 
-    my @klst = ("kernel", "cpuinfo", "memory", "repos", "lspci");
     my %cmds = (
         kernel  => "uname -a",
         cpuinfo => "cat /proc/cpuinfo",
@@ -34,7 +33,7 @@ sub system_status {
         lspci   => "lspci",
     );
 
-    foreach my $key (@klst) {
+    foreach my $key (keys %cmds) {
         my $cmd = "echo '=========> $key <=========' >> $log; ";
         $cmd .= "$cmds{$key} >> $log; ";
         $cmd .= "echo '' >> $log";
