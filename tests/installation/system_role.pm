@@ -58,7 +58,7 @@ sub assert_system_role {
     else {
         assert_screen('system-role-default-system', 180);
         my $system_role = get_var('SYSTEM_ROLE', 'default');
-        change_system_role($system_role) if ($system_role && !check_var('SYSTEM_ROLE', 'default'));
+        change_system_role($system_role) if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     }
     send_key $cmd{next};
 }
