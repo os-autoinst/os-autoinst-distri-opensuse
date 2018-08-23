@@ -302,6 +302,17 @@ sub is_leanos {
     return 0;
 }
 
+sub is_sle12sp2_using_system_role {
+    #system_role selection during installation was added as a new feature since sles12sp2
+    #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
+    #no matter with or without INSTALL_TO_OTHERS tag
+    return is_sle('>=12-SP2')
+      && check_var('ARCH', 'x86_64')
+      && is_server()
+      && (!is_sles4sap() || is_sles4sap_standard())
+      && (install_this_version() || install_to_other_at_least('12-SP2'));
+}
+
 sub is_desktop_module_selected {
     # desktop applications module is selected if following variables have following values:
     # productivity and ha require desktop applications, so it's preselected
@@ -535,10 +546,15 @@ sub load_system_role_tests {
         loadtest "installation/logpackages";
     }
     loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
-    loadtest "installation/installer_desktopselection" if is_opensuse;
-    loadtest "installation/system_role" if is_caasp('kubic');
+    # SYSTEM_ROLE_STYLE will be included in Mediums for openSUSE products progressively offering this new dialog
+    # i.e.: not all staging will receive it at the same time
+    if (get_var('SYSTEM_ROLE_STYLE') || is_caasp('kubic')) {
+        loadtest "installation/system_role";
+    }
+    elsif (is_opensuse) {
+        loadtest "installation/installer_desktopselection";
+    }
 }
-
 sub load_jeos_tests {
     load_boot_tests();
     loadtest "jeos/firstrun";
@@ -836,18 +852,7 @@ sub load_inst_tests {
         if (get_var("SYSTEM_ROLE_FIRST_FLOW")) {
             load_system_role_tests;
         }
-        #system_role selection during installation was added as a new feature since sles12sp2
-        #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
-        #no matter with or without INSTALL_TO_OTHERS tag
-        if (
-            is_sle
-            && (check_var('ARCH', 'x86_64')
-                && sle_version_at_least('12-SP2')
-                && is_server()
-                && (!is_sles4sap() || is_sles4sap_standard())
-                && (install_this_version() || install_to_other_at_least('12-SP2'))
-                || is_sle('15+')))
-        {
+        if (is_sle12sp2_using_system_role() || is_sle('15+')) {
             loadtest "installation/system_role";
         }
         if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default')) {
