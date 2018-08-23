@@ -26,11 +26,13 @@ sub system_status {
     $log //= "/tmp/system-status.log";
 
     my %cmds = (
-        kernel  => "uname -a",
-        cpuinfo => "cat /proc/cpuinfo",
-        memory  => "free -m",
-        repos   => "zypper repos -u",
-        lspci   => "lspci",
+        kernel                     => "uname -a",
+        cpuinfo                    => "cat /proc/cpuinfo",
+        memory                     => "free -m",
+        repos                      => "zypper repos -u",
+        lspci                      => "lspci",
+        lsmod                      => "lsmod",
+        '/proc/sys/kernel/tainted' => "cat /proc/sys/kernel/tainted",
     );
 
     foreach my $key (keys %cmds) {
