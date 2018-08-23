@@ -74,9 +74,15 @@ sub run {
     # the last check after previous intervals must be fatal
     assert_screen \@tags, $check_interval;
     if (match_has_tag('displaymanager')) {
-        record_soft_failure 'boo#1102563';
+        record_soft_failure 'boo#1102563 - GNOME autologin broken. Handle login and disable Wayland for login page to make it work next time';
         handle_login;
         assert_screen 'generic-desktop';
+        # Force the login screen to use Xorg to get autologin working
+        # (needed for additional tests using boot_to_desktop)
+        x11_start_program('xterm');
+        wait_still_screen;
+        script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
+        wait_screen_change { send_key 'alt-f4' };
     }
     if (match_has_tag('kde-greeter')) {
         send_key "esc";
