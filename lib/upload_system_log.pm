@@ -47,7 +47,7 @@ sub system_status {
 sub journalctl_log {
     my ($self, $log) = @_;
     $log //= "/tmp/journalctl.log";
-    script_run("journalctl -b >$log", 40);
+    script_run("journalctl -b -o short-precise >$log", 40);
     return $log;
 }
 
