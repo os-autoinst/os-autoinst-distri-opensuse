@@ -40,6 +40,7 @@ sub login_to_console {
         save_screenshot;
         #offline upgrade requires upgrading offline during reboot while online doesn't
         if (check_var('offline_upgrade', 'yes')) {
+            $timeout = 600;
             #boot to upgrade menuentry
             send_key 'down';
             send_key 'ret';
