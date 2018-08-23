@@ -45,19 +45,23 @@ sub system_status {
 }
 
 sub journalctl_log {
-    my ($self, $sys_log) = @_;
-    $sys_log //= "/tmp/journalctl.log";
-    script_run("journalctl -b >$sys_log", 40);
+    my ($self, $log) = @_;
+    $log //= "/tmp/journalctl.log";
+    script_run("journalctl -b >$log", 40);
+    return $log;
+}
 
-    return $sys_log;
+sub dmesg_log {
+    my ($self, $log) = @_;
+    $log //= "/tmp/dmesg.log";
+    script_run("dmesg >$log", 40);
+    return $log;
 }
 
 sub upload_system_logs {
-    my $log     = system_status();
-    my $sys_log = journalctl_log();
-
-    upload_logs($log,     timeout => 100);
-    upload_logs($sys_log, timeout => 100);
+    upload_logs(system_status(),  timeout => 100);
+    upload_logs(journalctl_log(), timeout => 100);
+    upload_logs(dmesg_log(),      timeout => 100);
 }
 
 1;
