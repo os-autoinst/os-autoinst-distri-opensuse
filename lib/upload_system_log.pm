@@ -59,9 +59,9 @@ sub dmesg_log {
 }
 
 sub upload_system_logs {
-    upload_logs(system_status(),  timeout => 100);
-    upload_logs(journalctl_log(), timeout => 100);
-    upload_logs(dmesg_log(),      timeout => 100);
+    upload_logs(system_status(),  timeout => 100, failok => 1);
+    upload_logs(journalctl_log(), timeout => 100, failok => 1);
+    upload_logs(dmesg_log(),      timeout => 100, failok => 1);
 }
 
 1;
