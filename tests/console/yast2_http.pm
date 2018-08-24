@@ -109,7 +109,10 @@ sub run {
         assert_screen 'http_start_apache2';
     }
     else {
-        $self->assert_service_widget(after_writing_conf => 'alt-w', after_reboot => 'alt-e');
+        $self->change_service_configuration(
+            after_writing => {start         => 'alt-t'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
     }
     send_key 'alt-f';                               # now finish the tests :)
     check_screen 'http_install_apache2_mods', 60;
@@ -121,4 +124,5 @@ sub run {
     }
     wait_serial("yast2-http-server-status-0", 240) || die "'yast2 http-server' didn't finish";
 }
+
 1;

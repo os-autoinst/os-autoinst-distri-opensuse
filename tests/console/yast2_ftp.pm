@@ -85,18 +85,25 @@ sub run {
 
     # start yast2 ftp configuration
     type_string "yast2 ftp-server; echo yast2-ftp-server-status-\$? > /dev/$serialdev\n";
-    assert_screen 'ftp-server';                 # check ftp server configuration page
-    send_key 'alt-w';                           # make sure ftp start-up when booting
-    assert_screen 'ftp_server_when_booting';    # check service start when booting
+    assert_screen 'ftp-server';    # check ftp server configuration page
+    if (is_sle('<15') || is_leap('<15.1')) {
+        send_key 'alt-w';                           # make sure ftp start-up when booting
+        assert_screen 'ftp_server_when_booting';    # check service start when booting
+    }
+    else {
+        $self->change_service_configuration(
+            after_writing => {start         => 'alt-t'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
+    }
 
     # General
     send_key_until_needlematch 'yast2_ftp_start-up_selected', 'tab';
     wait_screen_change { send_key 'down' };
-    wait_screen_change { send_key 'ret' };      # enter page General
-
+    wait_screen_change { send_key 'ret' };          # enter page General
     assert_screen 'yast2_tftp_general_selected';
-    assert_screen 'ftp_welcome_mesage';         # check welcome message for add strings
-    send_key 'alt-w';                           # select welcome message to edit
+    assert_screen 'ftp_welcome_mesage';             # check welcome message for add strings
+    send_key 'alt-w';                               # select welcome message to edit
     send_key_until_needlematch 'yast2_tftp_empty_welcome_message', 'backspace';    # delete existing welcome strings
     type_string($vsftpd_directives->{ftpd_banner});                                # type new welcome text
     assert_screen 'ftp_welcome_message_added';                                     # check new welcome text
@@ -199,5 +206,5 @@ sub post_fail_hook {
 sub test_flags {
     return {milestone => 1};
 }
-1;
 
+1;

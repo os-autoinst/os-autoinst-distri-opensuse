@@ -89,7 +89,10 @@ sub run {
         send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
     }
     else {
-        $self->assert_service_widget;
+        $self->change_service_configuration(
+            after_writing => {start         => 'alt-f'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
     }
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports

@@ -84,17 +84,25 @@ sub run {
     assert_screen 'yast2-dns-server-step2';
     send_key 'alt-n';
     wait_still_screen(3);
-    assert_screen([qw(yast2-dns-server-step3 yast2_still_susefirewall2)], 90);
-    if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure "bsc#1059569";
-        send_key 'alt-i';
-        assert_screen 'yast2-dns-server-step3';
-    }
+    if (is_sle('<15') || is_leap('<15.1')) {
+        assert_screen([qw(yast2-dns-server-step3 yast2_still_susefirewall2)], 90);
+        if (match_has_tag 'yast2_still_susefirewall2') {
+            record_soft_failure "bsc#1059569";
+            send_key 'alt-i';
+            assert_screen 'yast2-dns-server-step3';
+        }
 
-    # Enable dns server and finish after yast2 loads default settings
-    assert_screen 'yast2-dns-server-fw-port-is-closed';
-    send_key 'alt-s';
-    assert_screen 'yast2-dns-server-start-named-now';
+        # Enable dns server and finish after yast2 loads default settings
+        assert_screen 'yast2-dns-server-fw-port-is-closed';
+        send_key 'alt-s';
+        assert_screen 'yast2-dns-server-start-named-now';
+    }
+    else {
+        $self->change_service_configuration(
+            after_writing => {start         => 'alt-t'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
+    }
     send_key 'alt-f';
     assert_screen 'root-console';
     # The wizard-like interface still uses the old approach of always starting the service
@@ -106,15 +114,20 @@ sub run {
     # Second execution (tree-based interface)
     #
     script_run 'yast2 dns-server', 0;
-    assert_screen([qw(yast2-service-running-enabled yast2_still_susefirewall2)], 90);
-    if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure "bsc#1059569";
-        send_key 'alt-i';
-        assert_screen 'yast2-service-running-enabled';
+    if (is_sle('<15') || is_leap('<15.1')) {
+        assert_screen([qw(yast2-service-running-enabled yast2_still_susefirewall2)], 90);
+        if (match_has_tag 'yast2_still_susefirewall2') {
+            record_soft_failure "bsc#1059569";
+            send_key 'alt-i';
+            assert_screen 'yast2-service-running-enabled';
+        }
+        # Stop the service
+        wait_screen_change { send_key 'alt-s' };
+        assert_screen 'yast2-service-stopped-enabled';
     }
-    # Stop the service
-    wait_screen_change { send_key 'alt-s' };
-    assert_screen 'yast2-service-stopped-enabled';
+    else {
+        $self->change_service_configuration(after_writing => {stop => 'alt-t'});
+    }
     # Cancel yast2 to check the effect
     # workaround for single send_key 'alt-c' because it doesn't work.
     send_key_until_needlematch([qw(root-console yast2-dns-server-quit)], 'alt-c');
@@ -127,12 +140,17 @@ sub run {
     # Third execution (tree-based interface)
     #
     script_run 'yast2 dns-server', 0;
-    assert_screen 'yast2-service-stopped-enabled';
-    # Start the service
-    send_key 'alt-s';
-    assert_screen 'yast2-service-running-enabled';
-    # Disable the service and finish
-    wait_screen_change { send_key 'alt-t' };
+    if (is_sle('<15') || is_leap('<15.1')) {
+        assert_screen 'yast2-service-stopped-enabled';
+        # Start the service
+        send_key 'alt-s';
+        assert_screen 'yast2-service-running-enabled';
+        # Disable the service and finish
+        wait_screen_change { send_key 'alt-t' };
+    }
+    else {
+        $self->change_service_configuration(after_reboot => {do_not_start => 'alt-a'});
+    }
     send_key 'alt-o';
     assert_screen 'root-console', 180;
     $self->assert_running(1);
@@ -141,11 +159,16 @@ sub run {
     #
     # Fourth execution (tree-based interface)
     #
-    script_run 'yast2 dns-server',                  0;
-    assert_screen 'yast2-service-running-disabled', 90;
-    # Stop the service
-    send_key 'alt-s';
-    assert_screen 'yast2-service-stopped-disabled';
+    script_run 'yast2 dns-server', 0;
+    if (is_sle('<15') || is_leap('<15.1')) {
+        assert_screen 'yast2-service-running-disabled', 90;
+        # Stop the service
+        send_key 'alt-s';
+        assert_screen 'yast2-service-stopped-disabled';
+    }
+    else {
+        $self->change_service_configuration(after_writing => {stop => 'alt-t'});
+    }
     # Finish
     send_key 'alt-o';
     assert_screen 'root-console', 180;
