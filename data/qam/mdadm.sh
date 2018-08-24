@@ -13,7 +13,7 @@ DEV_1=/dev/loop41
 DEV_2=/dev/loop42
 DEV_3=/dev/loop43
 
-IMAGE_SIZE=500M
+IMAGE_SIZE=536870912 # 512 MiB
 RANDOM_DATA_COPY_COUNT=5
 
 LANG=C
@@ -120,7 +120,7 @@ result="FAILED Test 1 on $(uname -a)"
 
 for i in 1 2 3
 do
-  echo "Creating disk image $i of size $IMAGE_SIZE ..."
+  echo "Creating disk image $i of size $(($IMAGE_SIZE/1048576))MiB ..."
   run dd if=/dev/zero of=disk$i.img bs=$IMAGE_SIZE count=1
 done
 
@@ -132,7 +132,7 @@ run losetup $DEV_3 disk3.img
 
 run losetup -l
 
-run mdadm --create --verbose $MD_DEVICE --level=0 --raid-devices=3 $DEV_1 $DEV_2 $DEV_3
+run mdadm --create --verbose $MD_DEVICE --level=0 --raid-devices=3 --size=522240 $DEV_1 $DEV_2 $DEV_3
 
 rungrep "active raid0" cat /proc/mdstat
 
@@ -186,7 +186,7 @@ result="FAILED Test 2 on $(uname -a)"
 
 for i in 1 2 3
 do
-  echo "Creating disk image $i of size $IMAGE_SIZE ..."
+  echo "Creating disk image $i of size $(($IMAGE_SIZE/1048576))MiB ..."
   run dd if=/dev/zero of=disk$i.img bs=$IMAGE_SIZE count=1
 done
 
@@ -198,7 +198,7 @@ run losetup $DEV_3 disk3.img
 
 run losetup -l
 
-run yes | mdadm --create --verbose $MD_DEVICE --level=1 --raid-devices=3 $DEV_1 $DEV_2 $DEV_3
+run yes | mdadm --create --verbose $MD_DEVICE --level=1 --raid-devices=3 --size=522240 $DEV_1 $DEV_2 $DEV_3
 
 sleep 1
 rungrep "active raid1" cat /proc/mdstat
@@ -217,7 +217,7 @@ done
 
 rungrep "UUU" cat /proc/mdstat
 
-rungrep "499 MiB" fdisk -l $MD_DEVICE
+rungrep "510 MiB" fdisk -l $MD_DEVICE
 
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 
@@ -330,7 +330,7 @@ result="FAILED Test 3 on $(uname -a)"
 
 for i in 1 2 3
 do
-  echo "Creating disk image $i of size $IMAGE_SIZE ..."
+  echo "Creating disk image $i of size $(($IMAGE_SIZE/1048576))MiB ..."
   run dd if=/dev/zero of=disk$i.img bs=$IMAGE_SIZE count=1
 done
 
@@ -342,7 +342,7 @@ run losetup $DEV_3 disk3.img
 
 run losetup -l
 
-run mdadm --create --verbose $MD_DEVICE --level=5 --raid-devices=3 $DEV_1 $DEV_2 $DEV_3
+run mdadm --create --verbose $MD_DEVICE --level=5 --raid-devices=3 --size=522240 $DEV_1 $DEV_2 $DEV_3
 
 sleep 1
 rungrep "active raid5" cat /proc/mdstat
@@ -361,7 +361,7 @@ done
 
 rungrep "UUU" cat /proc/mdstat
 
-rungrep "998 MiB" fdisk -l $MD_DEVICE
+rungrep "1020 MiB" fdisk -l $MD_DEVICE
 
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 
