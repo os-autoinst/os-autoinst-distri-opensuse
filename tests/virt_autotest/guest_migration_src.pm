@@ -16,17 +16,19 @@ use strict;
 use testapi;
 use lockapi;
 use mmapi;
+use virt_utils;
 
 sub get_script_run {
     my ($self) = @_;
 
-    my $dst_ip       = $self->get_var_from_parent('DST_IP');
-    my $dst_user     = $self->get_var_from_parent('DST_USER');
-    my $dst_pass     = $self->get_var_from_parent('DST_PASS');
-    my $guests       = get_var("GUEST_LIST", "");
-    my $hypervisor   = get_var("HOST_HYPERVISOR", "kvm");
-    my $test_time    = get_var("MAX_MIGRATE_TIME", "10800") - 90;
-    my $args         = "-d $dst_ip -v $hypervisor -u $dst_user -p $dst_pass -i \"$guests\" -t $test_time";
+    my $dst_ip   = $self->get_var_from_parent('DST_IP');
+    my $dst_user = $self->get_var_from_parent('DST_USER');
+    my $dst_pass = $self->get_var_from_parent('DST_PASS');
+    handle_sp_in_settings_with_sp0("GUEST_LIST");
+    my $guests     = get_var("GUEST_LIST",       "");
+    my $hypervisor = get_var("HOST_HYPERVISOR",  "kvm");
+    my $test_time  = get_var("MAX_MIGRATE_TIME", "10800") - 90;
+    my $args       = "-d $dst_ip -v $hypervisor -u $dst_user -p $dst_pass -i \"$guests\" -t $test_time";
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-guest-migrate-run " . $args;
 
     return "$pre_test_cmd";
@@ -36,7 +38,7 @@ sub run {
     my ($self) = @_;
 
     #preparation
-    my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 30);
+    my $ip_out = $self->execute_script_run('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('SRC_IP',   $ip_out);
     set_var('SRC_USER', "root");
     set_var('SRC_PASS', "nots3cr3t");
