@@ -125,17 +125,6 @@ sub rmt_mirror_repo {
     assert_script_run 'rmt-cli repo list';
 }
 
-sub prepare_oss_repo {
-    my $cmd;
-    return 0 if is_sle;
-    if (script_run('zypper lr repo-oss') != 0) {
-        # re-add the oss repo
-        my $version = lc get_required_var('VERSION');
-        my $source_name = is_tumbleweed() ? $version : 'distribution/leap/' . $version;
-        zypper_call("ar -f http://download.opensuse.org/$source_name/repo/oss repo-oss");
-    }
-}
-
 sub prepare_source_repo {
     my $cmd;
     if (is_sle) {
@@ -177,13 +166,6 @@ sub disable_source_repo {
     }
     elsif (script_run('zypper lr repo-source') == 0) {
         zypper_call("mr -d repo-source");
-    }
-}
-
-sub disable_oss_repo {
-    return 0 if is_sle;
-    if (script_run('zypper lr repo-oss') == 0) {
-        zypper_call("mr -d repo-oss");
     }
 }
 
