@@ -15,21 +15,12 @@ use strict;
 use testapi;
 use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
-use migration 'check_rollback_system';
+use migration qw(check_rollback_system boot_into_ro_snapshot);
 
 sub run {
     my ($self) = @_;
 
-    # login to before online migration snapshot
-    # tty would not appear quite often after booting snapshot
-    # it is a known bug bsc#980337
-    # in this case select tty1 first then select root console
-    if (!check_screen('linux-login', 200)) {
-        record_soft_failure 'bsc#980337';
-        send_key "ctrl-alt-f1";
-        assert_screen 'tty1-selected';
-    }
-
+    boot_into_ro_snapshot;
     select_console 'root-console';
     script_run "snapper rollback";
 
