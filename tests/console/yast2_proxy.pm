@@ -16,7 +16,6 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
 
-
 my %sub_menu_needles = (
     start_up      => 'yast2_proxy_start-up',
     http_ports    => 'yast2_proxy_http_ports_selected',
@@ -60,6 +59,8 @@ sub post_fail_hook {
 }
 
 sub run {
+    my $self = shift;
+
     select_console 'root-console';
     if (is_sle '15+') {
         zypper_call('in squid');
@@ -84,19 +85,11 @@ sub run {
     }
 
     # enable service start
-    if ((is_sle '<15') || (is_leap)) {
+    if (is_sle('<15') || is_leap('<15.1')) {
         send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
     }
     else {
-        assert_screen 'yast2_ncurses_service_start_widget';
-        send_key 'alt-f';
-        send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_after_conf', 'up';
-        send_key 'ret';
-        assert_screen 'yast2_ncurses_service_start_widget_check_start_after_conf';
-        send_key 'alt-a';
-        send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_on_boot', 'up';
-        send_key 'ret';
-        assert_screen 'yast2_ncurses_service_start_widget_check_start_on_boot';
+        $self->assert_service_widget;
     }
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports
@@ -280,7 +273,7 @@ sub run {
     assert_screen 'yast2_proxy_squid';
     wait_still_screen 1;
 
-    if ((is_sle '<15') || (is_leap)) {
+    if (is_sle('<15') || is_leap('<15.1')) {
         # now save settings and start squid server
         send_key 'alt-s';
         #   check again before to close configuration
@@ -298,4 +291,5 @@ sub run {
     script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active';
     systemctl 'show -p SubState squid.service|grep SubState=running';
 }
+
 1;
