@@ -118,6 +118,7 @@ sub run {
     assert_script_run("mkdir -p .config/ipa");
     assert_script_run("touch .config/ipa/config");
     assert_script_run("ipa list");
+    assert_script_run("ipa --version");
 
     my $ipa_tests = get_required_var('PUBLIC_CLOUD_IPA_TESTS');
     $ipa_tests =~ s/,/ /g;
@@ -133,7 +134,7 @@ sub run {
           . "-R '$instance_id' "
           . "--region 'eu-central-1' "
           . "-u ec2-user "
-          . "--ssh-private-key QA_SSH_KEY.pem "
+          . "--ssh-private-key-file QA_SSH_KEY.pem "
           . "--ssh-key-name '" . $ssh_key_name . "' "
           . "--results-dir ipa_results "
           . $ipa_tests,
