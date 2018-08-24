@@ -372,15 +372,11 @@
       <service>getty@tty6</service>
       <service>haveged</service>
       <service>irqbalance</service>
-      <service>iscsi</service>
       <service>kdump</service>
       <service>nscd</service>
-      <service>ntpd</service>
       <service>postfix</service>
       <service>purge-kernels</service>
       <service>rsyslog</service>
-      <service>systemd-readahead-collect</service>
-      <service>systemd-readahead-replay</service>
       <service>wicked</service>
       <service>wickedd-auto4</service>
       <service>wickedd-dhcp4</service>
@@ -403,15 +399,11 @@
       <service>getty@tty6</service>
       <service>haveged</service>
       <service>irqbalance</service>
-      <service>iscsi</service>
       <service>kdump</service>
       <service>nscd</service>
-      <service>ntpd</service>
       <service>postfix</service>
       <service>purge-kernels</service>
       <service>rsyslog</service>
-      <service>systemd-readahead-collect</service>
-      <service>systemd-readahead-replay</service>
       <service>wicked</service>
       <service>wickedd-auto4</service>
       <service>wickedd-dhcp4</service>

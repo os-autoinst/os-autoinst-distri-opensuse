@@ -651,15 +651,9 @@
     <services config:type="list">
       <service>cron</service>
       <service>getty@tty1</service>
-      <service>haveged</service>
       <service>kdump</service>
-      <service>nscd</service>
       <service>postfix</service>
-      <service>rsyslog</service>
       <service>sshd</service>
-      <service>firewalld</service>
-      <service>systemd-readahead-collect</service>
-      <service>systemd-readahead-replay</service>
       <service>wicked</service>
       <service>wickedd-auto4</service>
       <service>wickedd-dhcp4</service>

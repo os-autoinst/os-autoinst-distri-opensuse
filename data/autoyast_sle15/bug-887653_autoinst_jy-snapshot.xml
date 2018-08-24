@@ -138,10 +138,6 @@
         <service_status>enable</service_status>
       </service>
       <service>
-        <service_name>hamsta</service_name>
-        <service_status>enable</service_status>
-      </service>
-      <service>
         <service_name>sshd</service_name>
         <service_status>enable</service_status>
       </service>
