@@ -678,6 +678,14 @@ my $serial_failures = [];
 if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
     push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
 }
+if (is_kernel_test()) {
+    push @$serial_failures, {type => 'hard', message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
+    push @$serial_failures, {type => 'hard', message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
+    push @$serial_failures, {type => 'hard', message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
+    push @$serial_failures, {type => 'hard', message => 'Kernel stack is corrupted',      pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
+    push @$serial_failures, {type => 'hard', message => 'Kernel BUG found',               pattern => quotemeta 'BUG: failure at'};
+    push @$serial_failures, {type => 'hard', message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
+}
 $testapi::distri->set_expected_serial_failures($serial_failures);
 
 if (is_jeos) {

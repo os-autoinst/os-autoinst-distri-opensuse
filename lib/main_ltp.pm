@@ -154,8 +154,22 @@ sub load_kernel_tests {
         loadtest 'virtio_console';
     }
     elsif (get_var('NVMFTESTS')) {
-        boot_hdd_image;
+        boot_hdd_image();
         loadtest 'nvmftests';
+    }
+    elsif (get_var('TRINITY')) {
+        if (get_var('INSTALL_KOTD')) {
+            loadtest 'install_kotd';
+        }
+        elsif (get_var('CHANGE_KERNEL_REPO') ||
+            get_var('CHANGE_KERNEL_PKG') ||
+            get_var('ASSET_CHANGE_KERNEL_RPM')) {
+            loadtest 'change_kernel';
+        }
+        else {
+            boot_hdd_image();
+        }
+        loadtest "trinity";
     }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
