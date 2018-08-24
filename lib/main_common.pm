@@ -1496,6 +1496,8 @@ sub load_extra_tests_textmode {
     if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
         loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
     }
+    # bind need source package and legacy and development module on SLE15+
+    loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
     if (get_var("SYSAUTHTEST")) {
         # sysauth test scenarios run in the console
         loadtest "sysauth/sssd";
