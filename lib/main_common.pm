@@ -224,7 +224,8 @@ sub is_kernel_test {
           || get_var('QA_TEST_KLP_REPO')
           || get_var('INSTALL_KOTD')
           || get_var('VIRTIO_CONSOLE_TEST')
-          || get_var('NVMFTESTS'));
+          || get_var('NVMFTESTS'))
+      || get_var('TRINITY');
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features
