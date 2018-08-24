@@ -1498,6 +1498,7 @@ sub load_extra_tests_textmode {
     }
     # bind need source package and legacy and development module on SLE15+
     loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
+    loadtest 'console/mdadm';
     if (get_var("SYSAUTHTEST")) {
         # sysauth test scenarios run in the console
         loadtest "sysauth/sssd";
