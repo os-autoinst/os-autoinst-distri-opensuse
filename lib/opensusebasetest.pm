@@ -15,7 +15,8 @@ use IO::Socket::INET;
 sub new {
     my ($class, $args) = @_;
     my $self = $class->SUPER::new($args);
-    $self->{in_wait_boot} = 0;
+    $self->{in_wait_boot}    = 0;
+    $self->{in_boot_desktop} = 0;
     return $self;
 }
 
@@ -552,9 +553,12 @@ sub post_fail_hook {
             record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
         }
     }
-    return unless $self->{in_wait_boot};
-    if (wait_serial qr/Reached target Shutdown/) {
-        record_info 'shutdown', 'At least we reached target Shutdown';
+    return unless ($self->{in_wait_boot} || $self->{in_boot_desktop});
+    if ($self->{in_wait_boot}) {
+        record_info('shutdown', 'At least we reached target Shutdown') if (wait_serial 'Reached target Shutdown');
+    }
+    elsif ($self->{in_boot_desktop}) {
+        record_info('Startup', 'At least Startup is finished.') if (wait_serial 'Startup finished');
     }
     # In case the system is stuck in shutting down or during boot up, press
     # 'esc' just in case the plymouth splash screen is shown and we can not
