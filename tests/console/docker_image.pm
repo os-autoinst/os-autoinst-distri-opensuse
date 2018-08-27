@@ -14,7 +14,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use strict;
-use registration "add_suseconnect_product";
+use registration qw(add_suseconnect_product install_docker_when_needed);
 use version_utils "is_sle";
 
 sub run {
@@ -43,8 +43,9 @@ sub run {
         add_suseconnect_product("sle-module-containers", substr($version, 0, 2));
     }
 
+    install_docker_when_needed();
+
     # Allow our internal 'insecure' registry
-    zypper_call("in docker");
     assert_script_run("mkdir -p /etc/docker");
     assert_script_run('cat /etc/docker/daemon.json; true');
     assert_script_run(
@@ -70,9 +71,9 @@ sub run {
             validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 15"/ });
         }
         # zypper lr
-        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper lr -s'");
+        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper lr -s'", 120);
         # zypper ref
-        assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper -v ref | grep "All repositories have been refreshed"'};
+        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
 
         # container-diff
         my $image_file = $image_name =~ s/\/|:/-/gr;

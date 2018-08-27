@@ -15,40 +15,32 @@ use testapi;
 use utils;
 use strict;
 use version_utils qw(is_leap is_tumbleweed);
+use registration "install_docker_when_needed";
 
 sub run {
     select_console 'root-console';
 
     my $version = get_required_var('VERSION');
 
+    my $repo_url;
     my $image_name;
     my $image_path;
 
+    install_docker_when_needed();
+
     if (is_tumbleweed) {
+        $repo_url = 'https://download.opensuse.org/repositories/Virtualization:containers:images:openSUSE-Tumbleweed/container/Virtualization:containers:images:openSUSE-Tumbleweed.repo';
         $image_name = 'opensuse/tumbleweed:current';
         $image_path = '/usr/share/suse-docker-images/native/*-image*.tar.xz';
 
         # For Tumbleweed, the image is wrapped inside an RPM
-        zypper_call "in docker opensuse-tumbleweed-image";
-    }
-    elsif (is_leap('15.0+')) {
-        $image_name = "opensuse-leap-$version:current";
-        $image_path = "/usr/share/suse-docker-images/native/opensuse-leap${version}-image.tar.xz";
-
-        # For Leap, the docker image is the ISO asset
-        my $image_filename = get_required_var('ISO');
-        $image_filename =~ s/^.*\///;
-        my $image_url = autoinst_url("/assets/other/$image_filename");
-        assert_script_run "curl $image_url --create-dirs -o $image_path";
+        zypper_call "ar -fG $repo_url";
+        zypper_call "in opensuse-tumbleweed-image";
+        zypper_call "rr $repo_url";
     }
     else {
         die 'Only know about Tumbleweed and Leap 15.0+ docker images';
     }
-
-    # Start the docker daemon, normally done by previous test modules already
-    systemctl 'start docker';
-    systemctl 'status docker';
-    assert_script_run 'docker info';
 
     # Load the image
     assert_script_run "docker load -i $image_path";
