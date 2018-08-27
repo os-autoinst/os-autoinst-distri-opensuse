@@ -39,19 +39,20 @@ sub run {
     select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
     select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
-    my ($self)        = @_;
-    my $vsperf_repo   = "https://gerrit.opnfv.org/gerrit/vswitchperf";
-    my $dpdk_repo     = "http://dpdk.org/git/dpdk";
-    my $trafficgen_ip = get_trafficgen_ip();
-    my $children      = get_children();
-    my $child_id      = (keys %$children)[0];
+    my ($self)         = @_;
+    my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";
+    my $vsperf_version = get_required_var('VSPERF_VERSION');
+    my $dpdk_repo      = "http://dpdk.org/git/dpdk";
+    my $trafficgen_ip  = get_trafficgen_ip();
+    my $children       = get_children();
+    my $child_id       = (keys %$children)[0];
 
     record_info("Install OVS, DPKD");
     zypper_call('--quiet in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 200);
 
     assert_script_run("cd /root/");
     record_info("Clone VSPerf");
-    assert_script_run("git clone --quiet --depth 1 $vsperf_repo", timeout => 200);
+    assert_script_run("git clone --quiet --depth 1 --branch $vsperf_version $vsperf_repo", timeout => 200);
     record_info("Clone DPKD");
     assert_script_run("git clone --quiet --depth 1 $dpdk_repo", timeout => 500);
 
