@@ -997,6 +997,9 @@ elsif (get_var('HPC')) {
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
 }
+elsif (get_var('VALIDATE_PCM_PATTERN')) {
+    load_public_cloud_patterns_validation_tests;
+}
 else {
     if (get_var("SES5_DEPLOY")) {
         loadtest "boot/boot_from_pxe";
