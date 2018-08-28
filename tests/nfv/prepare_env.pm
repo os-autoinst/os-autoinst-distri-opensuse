@@ -25,6 +25,7 @@ use strict;
 use utils;
 use lockapi;
 use mmapi;
+use version_utils 'is_sle';
 use serial_terminal 'select_virtio_console';
 
 sub get_trafficgen_ip {
@@ -62,10 +63,10 @@ sub run {
 
     record_info("VSPerf Installation");
     assert_script_run("cd vswitchperf/systems");
-    if (check_var('VERSION', '15')) {
+    if (is_sle('>=15')) {
         # Hack to skip the OVS, DPDK and QEMU compilation as we will use the vanilla packages
         assert_script_run("sed -n -e :a -e '1,8!{P;N;D;};N;ba' -i build_base_machine.sh");
-        zypper_call('ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/SUSE:SLE-12:GA.repo SLE-12-GA-REPO');
+        assert_script_run("cp -r sles/15 sles/15.1") if (check_var('VERSION', '15-SP1'));
         assert_script_run("bash -x build_base_machine.sh", 300);
     }
     elsif (check_var('VERSION', '12-SP4')) {
@@ -74,7 +75,7 @@ sub run {
         assert_script_run("bash -x /root/build_base_machine.sh", timeout => 500);
     }
     else {
-        die "OS VERSION not supported. Available only on 15 and 12-SP4";
+        die "OS VERSION not supported. Available only on >=15 and 12-SP4";
     }
 
     # Clone Trex repo inside VSPerf directories
