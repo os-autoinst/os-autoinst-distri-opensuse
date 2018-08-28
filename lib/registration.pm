@@ -581,7 +581,7 @@ sub scc_deregistration {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
-        assert_script_run('SUSEConnect -d --cleanup');
+        assert_script_run('SUSEConnect -d --cleanup', 200);
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
