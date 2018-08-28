@@ -325,18 +325,24 @@ sub fill_in_registration_data {
                     # go to the top of the list before looking for the addon
                     send_key "home";
                     # move the list of addons down until the current addon is found
-                    if (check_var('VERSION', '12-SP4') && $addon =~ 'phub') {
-                        record_soft_failure 'bsc#1092568';
+                    if ($addon eq 'phub') {
+                        # Record soft-failure for 12-SP4 and 15-SP1
+                        my $bugref =
+                          is_sle('=12-SP4')   ? 'bsc#1092568'
+                          : is_sle('=15-SP1') ? 'bsc#1106085'
+                          :                     undef;
+                        if ($bugref) {
+                            record_soft_failure $bugref;
+                            next;
+                        }
+                    }
+                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down";
+                    if (match_has_tag("scc-module-$addon")) {
+                        # checkmark the requested addon
+                        assert_and_click "scc-module-$addon";
                     }
                     else {
-                        send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down";
-                        if (match_has_tag("scc-module-$addon")) {
-                            # checkmark the requested addon
-                            assert_and_click "scc-module-$addon";
-                        }
-                        else {
-                            record_info("Module preselected", "Module $addon is already selected and installed by default");
-                        }
+                        record_info("Module preselected", "Module $addon is already selected and installed by default");
                     }
                 }
             }
