@@ -416,6 +416,15 @@ sub bootmenu_network_source {
         else {
             my $m_protocol = get_var('INSTALL_SOURCE', 'http');
             my $m_mirror = get_netboot_mirror;
+            die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
+            # In case of https we have to use boot options and not UI
+            if ($m_protocol eq "https") {
+                type_string_very_slow " install=$m_mirror";
+                # Ignore certificate validation
+                type_string_very_slow ' ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
+                # As we use boot options, no extra action is required
+                return;
+            }
             my ($m_server, $m_share, $m_directory);
 
             # Parse SUSEMIRROR into variables
@@ -576,10 +585,9 @@ sub specific_bootmenu_params {
     if (check_var('ARCH', 's390x')) {
         return $args;
     }
-    else {
-        type_string_very_slow $args;
-        save_screenshot;
-    }
+
+    type_string_very_slow $args;
+    save_screenshot;
 }
 
 sub select_bootmenu_video_mode {
