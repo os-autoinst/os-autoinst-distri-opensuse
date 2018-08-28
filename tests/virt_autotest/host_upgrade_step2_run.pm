@@ -27,6 +27,7 @@ sub get_script_run {
 
 sub run {
     my $self = shift;
+    update_vm_configurations_with_daily_build();
     $self->run_test(12600, "Host upgrade to .* is done. Need to reboot system|Executing host upgrade to .* offline",
         "no", "yes", "/var/log/qa/", "host-upgrade-prepAndUpgrade");
 

@@ -26,7 +26,7 @@ use virt_autotest_base;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks);
+  = qw(update_guest_configurations_with_daily_build update_vm_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -35,6 +35,21 @@ sub get_version_for_daily_build_guest {
     }
     else {
         $version = get_var("VERSION", '');
+    }
+    $version = lc($version);
+    if ($version !~ /sp/m) {
+        $version = $version . "-fcs";
+    }
+    return $version;
+}
+
+sub get_version_for_daily_build_vm {
+    my $version = '';
+    if (get_var('REPO_0_TO_INSTALL', '')) {
+        $version = get_var('VERSION', '');
+    }
+    else {
+        $version = get_var('TARGET_DEVELOPING_VERSION', '');
     }
     $version = lc($version);
     if ($version !~ /sp/m) {
@@ -60,6 +75,25 @@ sub repl_repo_in_sourcefile {
         print "Do not need to change resource for $veritem item\n";
     }
 }
+
+sub repl_vm_repo_in_sourcefile {
+    my $vervm = get_version_for_daily_build_vm;
+    if ($vervm =~ /11-SP/i) {
+        my $veritem32b = "source.http.sles-" . $vervm . "-32";
+        my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+        $location =~ s/[\r\n]+$//;
+        my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
+        my $newrepo   = "http://dist.suse.de/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/";
+        my $shell_cmd
+          = "if grep $veritem32b $soucefile >> /dev/null;then sed -i \"s#$veritem32b=.*#$veritem32b=$newrepo#\" $soucefile;else echo \"$veritem32b=$newrepo\" >> $soucefile;fi";
+        assert_script_run($shell_cmd);
+        assert_script_run("grep \"$veritem32b\" $soucefile");
+    }
+    else {
+        print "Do not need to change resource for vm guest installation\n";
+    }
+}
+
 # Replace module repos configured in sources.* with openqa daily build repos
 sub repl_module_in_sourcefile {
     my $version = get_version_for_daily_build_guest;
@@ -141,6 +175,10 @@ sub update_guest_configurations_with_daily_build {
     repl_module_in_sourcefile;
     # qa_lib_virtauto pkg will handle replacing module url with module link in source.xx for sle15 and 15+
     # repl_guest_autoyast_addon_with_daily_build_module;
+}
+
+sub update_vm_configurations_with_daily_build {
+    repl_vm_repo_in_sourcefile;
 }
 
 sub clean_up_red_disks {
