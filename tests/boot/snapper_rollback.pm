@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use strict;
 use migration qw(check_rollback_system boot_into_ro_snapshot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -29,8 +30,7 @@ sub run {
     # rollback
     script_run("snapper rollback -d rollback-before-migration");
     assert_script_run("snapper list | tail -n 2 | grep rollback");
-    script_run("systemctl reboot", 0);
-    reset_consoles;
+    power_action('reboot', textmode => 1, keepconsole => 1);
     $self->wait_boot(ready_time => 300, bootloader_time => 300);
     select_console 'root-console';
     check_rollback_system;
