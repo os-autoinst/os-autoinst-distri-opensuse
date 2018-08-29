@@ -24,7 +24,8 @@ sub run {
         # SLE 12-SP3 neeed gpg-offline to build
         assert_script_run 'wget http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/noarch/gpg-offline-0.1-10.4.noarch.rpm';
         assert_script_run 'rpm -iv gpg-offline*';
-        # on higher versions are needed modules like SDK preinstalled
+        # on higher versions than 12SP1 & 12SP2 are needed modules like SDK preinstalled
+        assert_script_run 'SUSEConnect -p sle-sdk/12.1/x86_64' if is_sle('=12-SP1');
         assert_script_run 'SUSEConnect -p sle-sdk/12.2/x86_64' if is_sle('=12-SP2');
         # preinstall libmysqlclient-devel because on 12SP2 are multiple versions and zypper can't decide, perl-IO-Socket-INET6 for reclimit
         zypper_call 'in libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6';
@@ -70,7 +71,8 @@ sub run {
 }
 
 sub post_run_hook {
-    # unregister added SDK product on SLE 12-SP2
+    # unregister added SDK product on SLE 12-SP2 & 12-SP1
+    assert_script_run 'SUSEConnect -d -p sle-sdk/12.1/x86_64' if is_sle('=12-SP1');
     assert_script_run 'SUSEConnect -d -p sle-sdk/12.2/x86_64' if is_sle('=12-SP2');
 }
 
