@@ -18,7 +18,7 @@ sub run {
     select_console 'root-console';
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
-    assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi';
+    assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200;
     upload_logs 'mdadm.log';
 }
 
