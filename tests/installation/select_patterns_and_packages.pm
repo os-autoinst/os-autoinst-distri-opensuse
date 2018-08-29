@@ -75,13 +75,11 @@ sub gotopatterns {
         wait_screen_change { send_key 'alt-f' };
         for (1 .. 4) { send_key 'up'; }
         send_key 'ret';
-        assert_screen 'patterns-list-selected';
     }
     else {
         send_key 'tab';
-        send_key ' ';
-        assert_screen 'patterns-list-selected';
     }
+    assert_screen 'patterns-list-selected';
 }
 
 sub package_action {
