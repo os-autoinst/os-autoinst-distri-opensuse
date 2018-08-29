@@ -17,6 +17,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 use serial_terminal 'select_virtio_console';
 
 sub run {
@@ -27,7 +28,7 @@ sub run {
     my $ofed_file_tgz = (split(/\//, $ofed_url))[-1];
     my $ofed_dir      = ((split(/\.tgz/, $ofed_file_tgz))[0]);
 
-    if (check_var('VERSION', '15')) {
+    if (is_sle('>=15')) {
         zypper_call('--quiet in openvswitch python-devel python2-libxml2-python libopenssl1_1 insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm', timeout => 500);
     }
     elsif (check_var('VERSION', '12-SP4')) {
@@ -36,7 +37,7 @@ sub run {
         zypper_call('--quiet in openvswitch python-devel python-libxml2 libopenssl1_0_0 insserv-compat libstdc++-devel createrepo rpm-build kernel-syms tk', timeout => 500);
     }
     else {
-        die "OS VERSION not supported. Available only on 15 and 12-SP4";
+        die "OS VERSION not supported. Available only on >=15 and 12-SP4";
     }
 
     # Install Mellanox OFED

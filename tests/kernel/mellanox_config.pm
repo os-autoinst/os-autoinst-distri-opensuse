@@ -18,6 +18,7 @@ use testapi;
 use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
+use version_utils 'is_sle';
 
 our $device1 = '/dev/mst/mt4119_pciconf0';
 our $device2 = '/dev/mst/mt4119_pciconf0.1';
@@ -33,7 +34,7 @@ sub run {
     my $mft_version = get_required_var('MFT_VERSION');
     my $protocol = get_var('MLX_PROTOCOL') || 2;
 
-    if (check_var('VERSION', '15')) {
+    if (is_sle('>=15')) {
         my $GA_REPO = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo';
         zypper_call("ar -f -G $GA_REPO");
     }
