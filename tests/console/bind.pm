@@ -20,12 +20,14 @@ use version_utils 'is_sle';
 sub run {
     select_console 'root-console';
 
-    if (is_sle('=12-SP3')) {
+    if (is_sle('<=12-SP3')) {
         # SLE 12-SP3 neeed gpg-offline to build
         assert_script_run 'wget http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/noarch/gpg-offline-0.1-10.4.noarch.rpm';
         assert_script_run 'rpm -iv gpg-offline*';
-        # perl-IO-Socket-INET6 for reclimit
-        zypper_call 'in bind rpm-build perl-IO-Socket-INET6';
+        # on higher versions are needed modules like SDK preinstalled
+        assert_script_run 'SUSEConnect -p sle-sdk/12.2/x86_64' if is_sle('=12-SP2');
+        # preinstall libmysqlclient-devel because on 12SP2 are multiple versions and zypper can't decide, perl-IO-Socket-INET6 for reclimit
+        zypper_call 'in libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6';
     }
     elsif (is_sle('>=15')) {
         # dnspython for chain test
@@ -49,10 +51,10 @@ sub run {
     assert_script_run 'sed -i \'s/$TOP\/bin\/dig\/dig/\/usr\/bin\/dig/\' conf.sh';
     upload_logs 'conf.sh';
     # add missing $ and replace $dig with exported $DIG
-    assert_script_run 'sed -i \'s/^DIG/$DIG/\' nsupdate/tests.sh' if is_sle('=12-SP3');
-    assert_script_run 'sed -i \'s/$dig/$DIG/\' nsupdate/tests.sh' if is_sle('=12-SP3');
+    assert_script_run 'sed -i \'s/^DIG/$DIG/\' nsupdate/tests.sh' if is_sle('<=12-SP3');
+    assert_script_run 'sed -i \'s/$dig/$DIG/\' nsupdate/tests.sh' if is_sle('<=12-SP3');
     # no idea what is with rpz on SLE 12 SP3, remove it for now
-    assert_script_run 'rm -rf rpz' if is_sle('=12-SP3');
+    assert_script_run 'rm -rf rpz' if is_sle('<=12-SP3');
     # fix permissions and executables to run the testsuite
     assert_script_run 'chown root:root -R .';
     assert_script_run 'chmod +x *.sh *.pl';
@@ -65,6 +67,11 @@ sub run {
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
     assert_script_run 'ip a';
+}
+
+sub post_run_hook {
+    # unregister added SDK product on SLE 12-SP2
+    assert_script_run 'SUSEConnect -d -p sle-sdk/12.2/x86_64' if is_sle('=12-SP2');
 }
 
 sub post_fail_hook {
