@@ -58,7 +58,7 @@ sub run {
     # images can be pulled from the Docker Hub
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
-    my $alpine_image_version = '3.5';
+    my $alpine_image_version = '3.6';
     assert_script_run("docker image pull alpine:$alpine_image_version", timeout => 300);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
