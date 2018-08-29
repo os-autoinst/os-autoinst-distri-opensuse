@@ -10,7 +10,7 @@
 # Summary: sle12 online migration testsuite
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base "y2logsstep";
+use base 'y2logsstep';
 use strict;
 use testapi;
 use utils;
@@ -240,8 +240,7 @@ sub post_fail_hook {
     my ($self) = @_;
 
     $self->SUPER::post_fail_hook;
-    select_console 'log-console';
-    $self->save_upload_y2logs;
+    $self->export_logs;
 }
 
 1;
