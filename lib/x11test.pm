@@ -805,8 +805,9 @@ sub gnote_search_and_close {
 
 # remove the created new note
 sub cleanup_gnote {
+    my ($self, $needle) = @_;
     send_key 'esc';    #back to all notes interface
-    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
+    send_key_until_needlematch $needle, 'down', 6;
     wait_screen_change { send_key 'delete' };
     wait_screen_change { send_key 'tab' };
     wait_screen_change { send_key 'ret' };
