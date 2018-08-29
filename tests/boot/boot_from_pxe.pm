@@ -83,7 +83,7 @@ sub run {
     type_string ${image_path} . " ", $type_speed;
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
-    if ((check_var('BACKEND', 'ipmi') && !check_var('AUTOYAST', '1')) || get_var('SES5_DEPLOY')) {
+    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
         my $cmdline = '';
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
