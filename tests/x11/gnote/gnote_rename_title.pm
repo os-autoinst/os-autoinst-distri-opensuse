@@ -26,7 +26,7 @@ sub run {
     send_key "up";
     send_key "up";
     type_string "new title-opensuse\n";
-    $self->cleanup_gnote;
+    $self->cleanup_gnote('gnote-new-note-title-matched');
 }
 
 1;

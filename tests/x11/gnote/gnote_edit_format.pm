@@ -35,7 +35,7 @@ sub run {
     send_key "ctrl-i";    #italic off
     assert_screen 'gnote-edit-format', 5;
 
-    $self->cleanup_gnote;
+    $self->cleanup_gnote('gnote-new-note-matched');
 }
 
 1;

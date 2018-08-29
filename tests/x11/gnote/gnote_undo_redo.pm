@@ -44,7 +44,7 @@ sub run {
     $self->undo_redo_once;
 
     #clean: remove the created new note
-    $self->cleanup_gnote;
+    $self->cleanup_gnote('gnote-new-note-matched');
 }
 
 1;
