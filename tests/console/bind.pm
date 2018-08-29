@@ -62,7 +62,7 @@ sub run {
     # setup loopback interfaces for testsuite
     assert_script_run 'sh ifconfig.sh up';
     assert_script_run 'ip a';
-    my $timeout = is_sle('=12-SP3') ? 1500 : 2000;
+    my $timeout = is_sle('<=12-SP3') ? 1500 : 2500;
     assert_script_run 'sh runall.sh', $timeout;
     upload_logs 'systests.output';
     # remove loopback interfaces
