@@ -15,7 +15,6 @@ use strict;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
-use repo_tools qw(prepare_oss_repo disable_oss_repo);
 
 # open desktop mainmenu and click office
 sub open_mainmenu {
@@ -95,16 +94,14 @@ sub run {
     $self->open_overview();
     type_string "base";
     # tag is base-install means libreoffice-base not installed
-    if (assert_screen 'base-install') {
+    if (check_screen 'base-install') {
         send_key 'esc';
         send_key 'esc';
         x11_start_program('xterm');
         script_run("gsettings set org.gnome.desktop.session idle-delay 0", 0);    #value=0 means never blank screen
         become_root;
-        prepare_oss_repo;
         script_run("zypper in -y libreoffice-base",                          900);
         script_run("gsettings set org.gnome.desktop.session idle-delay 900", 0);     #default value=900
-        disable_oss_repo;
         send_key 'alt-f4';
         $self->open_overview();
         type_string "base";
