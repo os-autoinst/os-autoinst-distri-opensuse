@@ -64,7 +64,6 @@ our @EXPORT = qw(
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
-  setup_static_network
   arrays_differ
   ensure_serialdev_permissions
   assert_and_click_until_screen_change
@@ -831,21 +830,6 @@ sub get_x11_console_tty {
       && !check_var('VIRSH_VMM_TYPE', 'linux')
       && !get_var('VERSION_LAYERED');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
-}
-
-=head2 setup_static_network
-Configure static IP on SUT with setting up default GW.
-Also doing test ping to 10.0.2.2 to check that network is alive
-=cut
-sub setup_static_network {
-    my ($self, $ip) = @_;
-    assert_script_run("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
-    assert_script_run("echo 'nameserver 10.160.0.1' >> /etc/resolv.conf");
-    my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
-    assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'">/etc/sysconfig/network/ifcfg-$iface);
-    assert_script_run "rcnetwork restart";
-    assert_script_run "ip addr";
-    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
 }
 
 =head2  arrays_differ

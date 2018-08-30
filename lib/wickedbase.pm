@@ -14,6 +14,7 @@ package wickedbase;
 
 use base 'opensusebasetest';
 use utils 'systemctl';
+use network_utils 'setup_static_network';
 use testapi;
 
 sub assert_wicked_state {
