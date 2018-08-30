@@ -169,10 +169,10 @@ EOF
         script_run('ip route');
         script_run('ip -6 route');
 
-        script_run('ping -c 2 $IPV4_NETWORK.$LHOST_IPV4_HOST');
-        script_run('ping -c 2 $IPV4_NETWORK.$RHOST_IPV4_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$LHOST_IPV6_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$RHOST_IPV6_HOST');
+        script_run('ping -c 2 $IPV4_LNETWORK.$LHOST_IPV4_HOST');
+        script_run('ping -c 2 $IPV4_RNETWORK.$RHOST_IPV4_HOST');
+        script_run('ping6 -c 2 $IPV6_LNETWORK:$LHOST_IPV6_HOST');
+        script_run('ping6 -c 2 $IPV6_RNETWORK:$RHOST_IPV6_HOST');
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');
