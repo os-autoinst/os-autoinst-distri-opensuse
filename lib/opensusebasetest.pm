@@ -174,14 +174,7 @@ sub export_logs {
         $self->save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
     }
 
-    # do not upload empty .xsession-errors
-    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
-      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
-      0;
-    if (wait_serial("xsefile-valid", 10)) {
-        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
-    }
-
+    $self->upload_xsession_errors_log;
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
@@ -189,6 +182,17 @@ sub export_logs {
     script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";
     upload_logs "/tmp/y2logs_clone.tar.bz2";
     $self->investigate_yast2_failure();
+}
+
+sub upload_xsession_errors_log {
+    my ($self) = @_;
+    # do not upload empty .xsession-errors
+    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
+      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
+      0;
+    if (wait_serial("xsefile-valid", 10)) {
+        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
+    }
 }
 
 sub upload_packagekit_logs {
