@@ -20,7 +20,9 @@ my %software = ();
 
 # Define test data
 if (check_var('VALIDATE_PCM_PATTERN', 'azure')) {
-    $software{'Microsoft-Azure'} = {
+    # We have different pattern names on SLE 15 and SLE 12
+    my $azure_pattern = is_sle('15+') ? 'Microsoft_Azure' : 'Microsoft-Azure';
+    $software{$azure_pattern} = {
         repo      => 'Module-Public-Cloud',
         installed => 1,
         condition => sub { check_var_array('PATTERNS', 'azure') },
