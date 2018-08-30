@@ -4,6 +4,7 @@ use testapi;
 use strict;
 use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
+use network_utils;
 use utils 'zypper_call';
 
 sub use_wicked {
@@ -232,15 +233,26 @@ sub verify_license_translations {
 }
 
 sub save_upload_y2logs {
-    my ($self, $suffix) = @_;
-    $suffix //= '';
+    my ($self, %args) = @_;
 
     return if (get_var('NOLOGS'));
+    $args{suffix} //= '';
 
-    assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
-    my $filename = "/tmp/y2logs$suffix.tar" . get_available_compression();
-    assert_script_run "save_y2logs $filename", 180;
-    upload_logs $filename;
+    # Do not test/recover network if collect from installation system, as it won't work anyway with current approach
+    # Do not recover network on non-qemu backend, as not implemented yet
+    $args{no_ntwrk_recovery} //= (get_var('BACKEND') !~ /qemu/);
+
+    # Try to recover network if cannot reach gw and upload logs if everything works
+    if (can_upload_logs() || (!$args{no_ntwrk_recovery} && recover_network())) {
+        assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
+        my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
+        assert_script_run "save_y2logs $filename", 180;
+        upload_logs $filename;
+    } else {    # Redirect logs content to serial
+        script_run("journalctl -b --no-pager > /dev/$serialdev");
+        script_run("dmesg > /dev/$serialdev");
+        script_run("cat /var/log/YaST/y2log > /dev/$serialdev");
+    }
     save_screenshot();
     $self->investigate_yast2_failure();
 }

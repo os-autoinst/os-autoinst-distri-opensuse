@@ -19,8 +19,6 @@ use testapi;
 
 our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface);
 
-our $default_gw = '10.0.2.2';
-
 =head2 setup_static_network
 Configure static IP on SUT with setting up default GW.
 Also doing test ping to 10.0.2.2 to check that network is alive
@@ -29,7 +27,7 @@ sub setup_static_network {
     my (%args) = @_;
     # Set default values
     $args{ip} ||= '10.0.2.15';
-    $args{gw} ||= $default_gw;
+    $args{gw} ||= testapi::host_ip();
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
     assert_script_run('echo "nameserver 10.160.0.1" >> /etc/resolv.conf');
     my $iface = iface();
@@ -51,16 +49,34 @@ Returns if can ping worker host gateway
 =cut
 sub can_upload_logs {
     my ($gw) = @_;
-    $gw ||= $default_gw;
-    return script_run('ping -c 1 ' . $default_gw);
+    $gw ||= testapi::host_ip();
+    return (script_run('ping -c 1 ' . $gw) == 0);
 }
 
 =head2 check_and_recover_network
 Recover network with static config if is feasible, returns if can ping GW
+Main use case is post_fail_hook, to be able to upload logs
 =cut
 sub recover_network {
-    setup_static_network(gw => testapi::host_ip());
-    return can_upload_logs;
+    my (%args) = @_;
+
+    # We set static setup just to upload logs, so no permament setup
+    # Set default values
+    $args{ip} //= '10.0.2.15/24';
+    $args{gw} //= testapi::host_ip();
+    my $iface = iface();
+    # Clean routes and ip address settings
+    script_run "ip a flush dev $iface";
+    script_run 'ip r flush all';
+    # Set expected ip and routes and set interface up
+    script_run "ip a a $args{ip} dev $iface";
+    script_run "ip r a default via $args{gw} dev $iface";
+    script_run "ip link set dev $iface up";
+    # Display settings
+    script_run 'ip a s';
+    script_run 'ip r s';
+
+    return can_upload_logs();
 }
 
 1;

@@ -42,7 +42,8 @@ sub run {
         # avoid known issue in FIPS mode: bsc#985969
         $self->get_ip_address();
     }
-    $self->save_upload_y2logs();
+    # We don't change network setup here, so should work
+    $self->save_upload_y2logs(no_ntwrk_recovery => 1);
 }
 
 sub test_flags {
