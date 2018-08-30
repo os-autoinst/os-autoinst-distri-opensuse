@@ -146,6 +146,8 @@ sub setup_ldap_in_samba {
 }
 
 sub setup_samba {
+    my $self = shift;
+
     script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
 
     # samba-server configuration for SLE older than 15 or opensuse TW
@@ -174,8 +176,16 @@ sub setup_samba {
 
     # service starts during boot, wait to load default data
     assert_screen 'yast2_samba-startup-configuration';
-    send_key 'alt-r';
-    assert_screen 'yast2_samba-server_start-during-boot';
+    if (is_sle('<15') || is_leap('<15.1') || is_tumbleweed) {
+        send_key 'alt-r';
+        assert_screen 'yast2_samba-server_start-during-boot';
+    }
+    else {
+        $self->change_service_configuration(
+            after_writing => {start         => 'alt-e'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
+    }
     # open firewalld port
     send_key 'alt-f';
     assert_screen 'yast2_samba_open_port_firewall';
@@ -317,6 +327,8 @@ sub setup_yast2_auth_server {
 }
 
 sub run {
+    my $self = shift;
+
     select_console 'root-console';
     zypper_call('in samba yast2-samba-server yast2-auth-server');
 
@@ -329,7 +341,7 @@ sub run {
         record_soft_failure "bsc#1088152";
         setup_yast2_ldap_server;
     }
-    setup_samba;
+    $self->setup_samba;
     # check samba server status
     # samba doesn't start up correctly on TW, so add record soft failure here
     if (script_run('systemctl show -p ActiveState smb.service | grep ActiveState=active')) {

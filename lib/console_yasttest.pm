@@ -5,20 +5,28 @@ use base 'y2logsstep';
 use strict;
 use testapi;
 
-sub assert_service_widget {
+sub change_service_configuration {
     my ($self, %args) = @_;
-    my $after_writing_conf = $args{after_writing_conf} || 'alt-f';
-    my $after_reboot       = $args{after_reboot}       || 'alt-a';
+    my $after_writing_ref = $args{after_writing};
+    my $after_reboot_ref  = $args{after_reboot};
 
     assert_screen 'yast2_ncurses_service_start_widget';
-    send_key $after_writing_conf;
-    send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_after_conf', 'up';
+    change_service_configuration_step('after_writing_conf', $after_writing_ref) if $after_writing_ref;
+    change_service_configuration_step('after_reboot',       $after_reboot_ref)  if $after_reboot_ref;
+}
+
+sub change_service_configuration_step {
+    my ($step_name, $step_conf_ref) = @_;
+    my ($action)         = keys %$step_conf_ref;
+    my ($shortcut)       = values %$step_conf_ref;
+    my $needle_selection = 'yast2_ncurses_service_' . $action . '_' . $step_name;
+    my $needle_check     = 'yast2_ncurses_service_check_' . $action . '_' . $step_name;
+
+    send_key $shortcut;
+    send_key 'end';
+    send_key_until_needlematch $needle_selection, 'up', 5, 1;
     send_key 'ret';
-    assert_screen 'yast2_ncurses_service_start_widget_check_start_after_conf';
-    send_key $after_reboot;
-    send_key_until_needlematch 'yast2_ncurses_service_start_widget_start_on_boot', 'up';
-    send_key 'ret';
-    assert_screen 'yast2_ncurses_service_start_widget_check_start_on_boot';
+    assert_screen $needle_check;
 }
 
 sub post_fail_hook {
