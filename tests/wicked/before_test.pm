@@ -35,7 +35,7 @@ sub run {
     #download script for check interface status
     $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1) if check_var('WICKED', 'basic');
     if (check_var('WICKED', 'advanced')) {
-        setup_static_network($self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+        setup_static_network(ip => $self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
     } else {
         systemctl('restart network');
     }

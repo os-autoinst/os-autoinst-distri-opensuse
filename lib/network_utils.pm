@@ -15,24 +15,41 @@ use base Exporter;
 use Exporter;
 
 use strict;
-
-our @EXPORT = qw(setup_static_network check_and_recover_network);
-
 use testapi;
+
+our @EXPORT = qw(setup_static_network recover_network can_upload_logs);
 
 =head2 setup_static_network
 Configure static IP on SUT with setting up default GW.
 Also doing test ping to 10.0.2.2 to check that network is alive
 =cut
 sub setup_static_network {
-    my ($ip) = @_;
-    assert_script_run("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
+    my (%args) = @_;
+    # Set default values
+    $args{ip} ||= '10.0.2.15';
+    $args{gw} ||= '10.0.2.2';
+    assert_script_run("echo 'default $args{gw} - -' > /etc/sysconfig/network/routes");
     assert_script_run("echo 'nameserver 10.160.0.1' >> /etc/resolv.conf");
     my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
-    assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'">/etc/sysconfig/network/ifcfg-$iface);
+    assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
-    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
+    assert_script_run "ping -c 1 $args{gw} || journalctl -b --no-pager > /dev/$serialdev";
+}
+
+=head2 can_upload_logs
+Returns if can ping worker host gateway
+=cut
+sub can_upload_logs {
+    return undef;
+}
+
+=head2 check_and_recover_network
+Recover network with static config if is feasible, returns if can ping GW
+=cut
+sub recover_network {
+    setup_static_network(gw => testapi::host_ip());
+    return can_upload_logs;
 }
 
 1;
