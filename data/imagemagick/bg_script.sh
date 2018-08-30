@@ -168,11 +168,15 @@ convert test.png  null: -alpha set -compose Clear -composite -compose Over  tran
 cme trans_compose.png 41.png
 
 echo "yellow_gamma.png"
-convert  test.png  -gamma -1,-1,0  -alpha off  yellow_gamma.png
+convert  test.png -channel red -gamma -1 -channel green -gamma -1 -channel blue -gamma 0 -alpha off yellow_gamma.png
 cme yellow_gamma.png 42.png
 
 echo "color_matte.png"
-convert test.png -alpha set -fill none  -draw 'matte 0,0 reset' color_matte.png
+if grep -q 'VERSION=\"15' /etc/os-release ; then
+    convert test.png -alpha set -fill none -draw 'alpha 0,0 reset' color_matte.png
+else
+    convert test.png -alpha set -fill none -draw 'matte 0,0 reset' color_matte.png
+fi
 cme color_matte.png 43.png
 
 echo "grey_level.png"
@@ -384,7 +388,7 @@ convert -size 600x30 xc:   \( +size xc:gold xc:firebrick +append \)   -fx 'v.p{i
 cme gradient_interpolated.jpg 95.jpg
 
 echo "gradient_clut.jpg"
-convert -size 30x600 gradient: -rotate 90  -interpolate Bicubic  \( +size xc:black xc:tomato xc:wheat +append \) -clut  gradient_clut.jpg
+convert -size 30x600 gradient: -rotate 90  -interpolate Catrom  \( +size xc:black xc:tomato xc:wheat +append \) -clut  gradient_clut.jpg
 cme gradient_clut.jpg 96.jpg
 
 echo "gradient_clut_recolored.jpg"
@@ -448,7 +452,7 @@ convert gradient_inverse_RGB.png -colorspace HSB  -channel GB -evaluate set 100%
 cme gradient_inverse_RGB_Hue.gif 111.gif
 
 echo "sparse_bary_triangle.png"
-convert -size 100x100 xc:  -sparse-color Barycentric '30,10 red   10,80 blue   90,90 lime'  \( -size 100x100 xc:black -fill white  -draw 'polygon 30,10  10,80  90,90' \)  +matte -compose CopyOpacity -composite  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82  circle 90,90 90,92'  sparse_bary_triangle.png
+convert -size 100x100 xc:  -sparse-color Barycentric '30,10 red   10,80 blue   90,90 lime'  \( -size 100x100 xc:black -fill white  -draw 'polygon 30,10  10,80  90,90' \)  -alpha Off -compose CopyOpacity -composite  -fill white -stroke black  -draw 'circle 30,10 30,12  circle 10,80 10,82  circle 90,90 90,92'  sparse_bary_triangle.png
 cme sparse_bary_triangle.png 112.png
 
 echo "sparse_barycentric.png"
