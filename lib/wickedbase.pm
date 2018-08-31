@@ -14,6 +14,7 @@ package wickedbase;
 
 use base 'opensusebasetest';
 use utils 'systemctl';
+use network_utils;
 use testapi;
 
 sub assert_wicked_state {
@@ -71,13 +72,7 @@ sub post_fail_hook {
     my ($self) = @_;
     systemctl('start network');
     systemctl('start wicked');
-    my $iface    = $self->{iface};
-    my $ifstatus = script_output("ifstatus $iface");
-    if ($ifstatus !~ /state up/) {
-        script_run("ip addr add 10.0.2.15/24 dev $iface");
-        script_run("ip link set $iface up");
-        script_run("ip route add default via 10.0.2.2 dev $iface");
-    }
+    recover_network() if !can_upload_logs();
     save_and_upload_wicked_log();
 }
 
@@ -117,7 +112,7 @@ sub before_scenario {
         assert_script_run("ifbind.sh unbind $iface");
         script_run("rm /etc/sysconfig/network/ifcfg-$iface");
         assert_script_run("ifbind.sh bind $iface");
-        $self->setup_static_network($self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+        setup_static_network(ip => $self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
     }
     record_info($title, $text);
 }

@@ -20,11 +20,12 @@
 use base 'wickedbase';
 use strict;
 use testapi;
+use network_utils 'iface';
 
 
 sub run {
     my ($self) = @_;
-    my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    my $iface = iface();
     $self->get_from_data('wicked/static_address/ifcfg-eth0',                      "/data/static_address/ifcfg-$iface");
     $self->get_from_data('wicked/static_address/static-addresses.xml',            "/data/static_address/static-addresses.xml");
     $self->get_from_data('wicked/static_address/ifroute-eth0',                    "/data/static_address/ifroute-$iface");

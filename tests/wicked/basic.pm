@@ -22,10 +22,11 @@ use base 'wickedbase';
 use strict;
 use testapi;
 use utils qw(systemctl arrays_differ);
+use network_utils 'iface';
 
 sub run {
     my ($self) = @_;
-    my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    my $iface = iface();
     $self->{iface} = $iface;
     record_info('Test 1', 'Bring down the wicked client service');
     systemctl('stop wicked.service');
