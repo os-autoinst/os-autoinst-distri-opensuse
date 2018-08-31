@@ -41,6 +41,12 @@ sub run {
     # Stop packagekit
     systemctl 'mask packagekit.service';
     systemctl 'stop packagekit.service';
+
+    # Installing a minimal system gives a pattern conflicting with anything not minimal
+    # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
+    script_run 'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
+    # Install curl and tar in order to get the test data
+    zypper_call 'install curl tar';
     # upload_logs requires curl, but we wanted the initial state of the system
     upload_logs "/tmp/psaxf.log";
     upload_logs "/tmp/loadavg_consoletest_setup.txt";
