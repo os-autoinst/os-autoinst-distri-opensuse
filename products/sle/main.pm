@@ -627,9 +627,8 @@ sub load_baremetal_tests {
     # to be available when needed.
     if (get_var('IBTESTS')) {
         if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
-            barrier_create('IBTEST_SETUP', 3);
-            barrier_create('IBTEST_BEGIN', 3);
-            barrier_create('IBTEST_DONE',  3);
+            barrier_create('IBTEST_BEGIN', 2);
+            barrier_create('IBTEST_DONE',  2);
         }
         else {
             mellanox_config();
