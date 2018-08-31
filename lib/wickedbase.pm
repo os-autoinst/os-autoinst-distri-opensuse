@@ -14,7 +14,6 @@ package wickedbase;
 
 use base 'opensusebasetest';
 use utils 'systemctl';
-use network_utils 'setup_static_network';
 use testapi;
 
 sub assert_wicked_state {
@@ -118,7 +117,7 @@ sub before_scenario {
         assert_script_run("ifbind.sh unbind $iface");
         script_run("rm /etc/sysconfig/network/ifcfg-$iface");
         assert_script_run("ifbind.sh bind $iface");
-        $self->setup_static_network(ip => $self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+        $self->setup_static_network($self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
     }
     record_info($title, $text);
 }
