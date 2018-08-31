@@ -630,9 +630,7 @@ sub load_baremetal_tests {
             barrier_create('IBTEST_BEGIN', 2);
             barrier_create('IBTEST_DONE',  2);
         }
-        else {
-            mellanox_config();
-        }
+        mellanox_config();
         loadtest "kernel/ib_tests";
     }
     elsif (get_var('NFV')) {

@@ -66,7 +66,7 @@ sub ibtest_master {
     # do all test preparations and setup
     zypper_call('ar -f -G ' . get_required_var('DEVEL_TOOLS_REPO'));
     zypper_call('--gpg-auto-import-keys ref');
-    zypper_call('in git twopence bc');
+    zypper_call('in git-core twopence bc');
 
     # create symlinks, the package is (for now) broken
     assert_script_run('ln -sf /usr/lib64/libtwopence.so.0.3.8 /usr/lib64/libtwopence.so.0');
