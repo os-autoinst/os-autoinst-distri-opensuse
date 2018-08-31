@@ -4,9 +4,7 @@ use testapi;
 use strict;
 use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
-use network_utils;
 use utils 'zypper_call';
-
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
@@ -238,20 +236,13 @@ sub save_upload_y2logs {
     $suffix //= '';
 
     return if (get_var('NOLOGS'));
-    # Try to recover network if cannot reach gw
-    # Upload logs if everything works
-    if (can_upload_logs() || recover_network()) {
-        assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
-        my $filename = "/tmp/y2logs$suffix.tar" . get_available_compression();
-        assert_script_run "save_y2logs $filename", 180;
-        upload_logs $filename;
-        save_screenshot();
-        $self->investigate_yast2_failure();
-    } else {    # Redirect logs content to serial
-        script_run("journalctl -b --no-pager > /dev/$serialdev");
-        script_run("dmesg > /dev/$serialdev");
-        script_run("cat /var/log/YaST/y2log > /dev/$serialdev");
-    }
+
+    assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
+    my $filename = "/tmp/y2logs$suffix.tar" . get_available_compression();
+    assert_script_run "save_y2logs $filename", 180;
+    upload_logs $filename;
+    save_screenshot();
+    $self->investigate_yast2_failure();
 }
 
 sub get_available_compression {
