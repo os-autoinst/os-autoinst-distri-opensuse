@@ -21,16 +21,14 @@ sub run {
 
     ensure_serialdev_permissions;
 
-    # Mask packagekit as may lock zypper and fail zypper calls, if it's running
-    systemctl 'stop packagekit.service';
-    systemctl 'mask --now packagekit.service';
+    # Stop packagekit as may lock zypper and fail zypper calls, if it's running
+    systemctl 'stop packagekit.service' unless script_run('systemctl is-active packagekit.service');
     # Installing a minimal system gives a pattern conflicting with anything not minimal
     # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
     script_run 'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
     # Install curl and tar in order to get the test data
     zypper_call 'install curl tar';
-    # unmask packagekit service as some images expect this service to be running
-    systemctl 'unmask packagekit.service';
+
     # BSC#997263 - VMware screen resolution defaults to 800x600
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
         assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
