@@ -20,22 +20,16 @@ use version_utils 'is_sle';
 sub run {
     select_console 'root-console';
 
+    # script to add missing dependency repos and in second run remove only added products/repos
+    assert_script_run 'curl -v -o /tmp/script.sh ' . data_url('qam/handle_bind_source_dependencies.sh');
+    assert_script_run 'bash /tmp/script.sh';
     if (is_sle('<=12-SP3')) {
-        # SLE 12-SP3 neeed gpg-offline to build
-        assert_script_run 'wget http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/noarch/gpg-offline-0.1-10.4.noarch.rpm';
-        assert_script_run 'rpm -iv gpg-offline*';
-        # on higher versions than 12SP1 & 12SP2 are needed modules like SDK preinstalled
-        assert_script_run 'SUSEConnect -p sle-sdk/12.1/x86_64' if is_sle('=12-SP1');
-        assert_script_run 'SUSEConnect -p sle-sdk/12.2/x86_64' if is_sle('=12-SP2');
-        # preinstall libmysqlclient-devel because on 12SP2 are multiple versions and zypper can't decide, perl-IO-Socket-INET6 for reclimit
+        # preinstall libmysqlclient-devel because on 12* are multiple versions and zypper can't decide, perl-IO-Socket-INET6 for reclimit test
         zypper_call 'in libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6';
     }
     elsif (is_sle('>=15')) {
-        # dnspython for chain test
-        assert_script_run 'curl -L http://download.suse.de/install/SLP/SLE-15-Module-Public-Cloud-GM/x86_64/DVD1/noarch/python3-dnspython-1.15.0-1.25.noarch.rpm -o python3-dnspython.rpm';
-        assert_script_run 'rpm -iv python3-dnspython.rpm';
-        # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit, perl-Net-DNS for xfer
-        zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS';
+        # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit, perl-Net-DNS for xfer, dnspython for chain test
+        zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython';
     }
     # install bind sources to build and run testsuite
     zypper_call 'si bind';
@@ -71,9 +65,8 @@ sub run {
 }
 
 sub post_run_hook {
-    # unregister added SDK product on SLE 12-SP2 & 12-SP1
-    assert_script_run 'SUSEConnect -d -p sle-sdk/12.1/x86_64' if is_sle('=12-SP1');
-    assert_script_run 'SUSEConnect -d -p sle-sdk/12.2/x86_64' if is_sle('=12-SP2');
+    # deregister products or repositories added with first script run
+    assert_script_run 'bash /tmp/script.sh';
 }
 
 sub post_fail_hook {
