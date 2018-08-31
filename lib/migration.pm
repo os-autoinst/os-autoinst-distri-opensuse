@@ -163,6 +163,7 @@ sub reset_consoles_tty {
 # Workaround known issue: bsc#980337
 # In this case try to select tty1 with multi-times then select root console
 sub boot_into_ro_snapshot {
+    unlock_if_encrypted(check_typed_password => 1);
     if (!check_screen('linux-login', 200)) {
         record_soft_failure 'bsc#980337';
         for (1 .. 10) {

@@ -12,9 +12,10 @@
 # Maintainer: dmaiocchi <dmaiocchi@suse.com>
 
 use strict;
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
+use utils 'workaround_type_encrypted_passphrase';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run {
@@ -24,7 +25,14 @@ sub run {
     power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
     $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE'));
-    assert_screen 'grub2', 200;
+
+    my @tags = ('grub2');
+    push @tags, 'encrypted-disk-password-prompt' if get_var('ENCRYPT');
+    assert_screen(\@tags, 200);
+    if (match_has_tag('encrypted-disk-password-prompt')) {
+        workaround_type_encrypted_passphrase;
+        assert_screen 'grub2', 15;
+    }
     stop_grub_timeout;
     boot_into_snapshot;
 }
