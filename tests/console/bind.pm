@@ -16,9 +16,10 @@ use testapi;
 use strict;
 use utils 'zypper_call';
 use version_utils 'is_sle';
+use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_console 'root-console';
+    select_virtio_console();
 
     # script to add missing dependency repos and in second run remove only added products/repos
     assert_script_run 'curl -v -o /tmp/script.sh ' . data_url('qam/handle_bind_source_dependencies.sh');
@@ -36,8 +37,7 @@ sub run {
     assert_script_run 'rpm -q bind';
     assert_script_run 'cd /usr/src/packages';
     # build the bind package with tests
-    assert_script_run 'rpmbuild -bc SPECS/bind.spec |& tee /tmp/build.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 500;
-    upload_logs '/tmp/build.log';
+    assert_script_run 'rpmbuild -bc SPECS/bind.spec', 500;
     assert_script_run 'cd /usr/src/packages/BUILD/bind-*/bin/tests/system && pwd';
     # replace build bind binaries with system bind binaries
     assert_script_run 'sed -i \'s/$TOP\/bin\/check\/named-checkconf/\/usr\/sbin\/named-checkconf/\' conf.sh';
@@ -58,7 +58,6 @@ sub run {
     assert_script_run 'ip a';
     my $timeout = is_sle('<=12-SP3') ? 1500 : 2500;
     assert_script_run 'sh runall.sh', $timeout;
-    upload_logs 'systests.output';
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
     assert_script_run 'ip a';
@@ -72,7 +71,6 @@ sub post_run_hook {
 sub post_fail_hook {
     # print out what tests failed
     assert_script_run 'egrep "^A|^R" systests.output|grep -B1 FAIL';
-    upload_logs 'systests.output';
 }
 
 1;
