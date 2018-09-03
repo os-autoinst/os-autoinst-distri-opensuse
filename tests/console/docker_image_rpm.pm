@@ -29,12 +29,11 @@ sub run {
     install_docker_when_needed();
 
     if (is_tumbleweed) {
-        if (check_var('ARCH', 'aarch64')) {
-            $repo_url = 'https://download.opensuse.org/repositories/Virtualization:containers:images:openSUSE-Tumbleweed/container_ARM/Virtualization:containers:images:openSUSE-Tumbleweed.repo';
-        }
-        else {
-            $repo_url = 'https://download.opensuse.org/repositories/Virtualization:containers:images:openSUSE-Tumbleweed/container/Virtualization:containers:images:openSUSE-Tumbleweed.repo';
-        }
+        my $defname = check_var('ARCH', 'aarch64') ? 'container_ARM'
+          : check_var('ARCH', 'ppc64le') ? 'container_PowerPC'
+          :                                'container';
+
+        $repo_url = "https://download.opensuse.org/repositories/Virtualization:containers:images:openSUSE-Tumbleweed/$defname/Virtualization:containers:images:openSUSE-Tumbleweed.repo";
         $image_name = 'opensuse/tumbleweed:current';
         $image_path = '/usr/share/suse-docker-images/native/*-image*.tar.xz';
 
