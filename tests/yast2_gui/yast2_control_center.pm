@@ -57,8 +57,10 @@ sub start_addon_products {
 sub start_media_check {
     search 'check';
     assert_and_click 'yast2_control-center_media-check';
-    assert_and_click 'yast2_control-center_media-check_close', timeout => 180;
-    assert_screen 'yast2-control-center-ui',                   timeout => 60;
+    wait_still_screen;
+    assert_screen 'yast2_control-center_media-check_close';
+    send_key 'alt-l';
+    assert_screen 'yast2-control-center-ui';
 }
 
 sub start_online_update {
