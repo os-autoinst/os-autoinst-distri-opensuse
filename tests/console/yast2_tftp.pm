@@ -27,7 +27,7 @@ sub run {
     wait_still_screen(3);
     my $boot_image_dir_shortcut  = 'alt-i';
     my $firewall_detail_shortcut = 'alt-d';
-    if (is_sle('<15') || is_leap || is_tumbleweed) {
+    if (is_sle('<15') || is_leap('<15.1') || is_tumbleweed) {
         assert_screen([qw(yast2_tftp-server_configuration yast2_still_susefirewall2)], 90);
         if (match_has_tag 'yast2_still_susefirewall2') {
             record_soft_failure "bsc#1059569";
