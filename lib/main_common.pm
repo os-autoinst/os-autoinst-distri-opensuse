@@ -1617,7 +1617,6 @@ sub load_nfv_master_tests {
     loadtest "nfv/run_integration_tests" if (check_var('BACKEND', 'qemu'));
     if (check_var('BACKEND', 'ipmi')) {
         loadtest "nfv/run_performance_tests";
-        loadtest "nfv/process_perf_results";
     }
 }
 
