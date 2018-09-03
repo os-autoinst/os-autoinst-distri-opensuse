@@ -27,6 +27,7 @@ use base 'wickedbase';
 use strict;
 use testapi;
 use utils 'systemctl';
+use network_utils 'iface';
 use lockapi;
 use mmapi;
 
@@ -83,7 +84,7 @@ sub setup_openvpn_client {
 sub run {
     my ($self) = @_;
     my %results;
-    my $iface = script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    my $iface = iface();
 
 
     $self->before_scenario('Test 1', 'Create a gre interface from legacy ifcfg files');
