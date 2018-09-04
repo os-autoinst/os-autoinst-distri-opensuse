@@ -221,7 +221,7 @@ sub start_sudo {
 }
 
 sub start_user_and_group_management {
-    search('login');
+    search('user and group');
     assert_and_click 'yast2_control-center_user-and-group-management';
     assert_screen 'yast2_control-center_user-and-group-management_users', timeout => 180;
     send_key 'alt-o';
@@ -261,7 +261,7 @@ sub start_common_server_certificate {
 }
 
 sub start_ca_management {
-    search('ca ');
+    search('ca management');
     assert_and_click 'yast2_control-center_ca-management';
     assert_screen 'yast2-ca-management', timeout => 180;
     send_key 'alt-f';
@@ -284,7 +284,7 @@ sub start_wake_on_lan {
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
-sub start_authentication_server {
+sub start_directory_server {
     search 'directory server';
     assert_and_click 'yast2_control-center_authentication-server';
     do {
@@ -346,13 +346,14 @@ sub run {
         start_kernel_dump;
         # YaST2 CA management has been dropped from SLE15, see
         # https://bugzilla.suse.com/show_bug.cgi?id=1059569#c14
-        if (!sle_version_at_least('15')) {
+        if (sle_version_at_least('15')) {
+            start_directory_server;
+        }
+        else {
             start_common_server_certificate;
             start_ca_management;
         }
         start_wake_on_lan;
-        # available by default only on SLES
-        start_authentication_server;
     }
     if (check_var('DISTRI', 'opensuse')) {
         start_kernel_settings;
