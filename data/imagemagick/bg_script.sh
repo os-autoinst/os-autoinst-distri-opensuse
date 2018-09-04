@@ -171,9 +171,9 @@ echo "yellow_gamma.png"
 convert  test.png  -gamma -1,-1,0  -alpha off  yellow_gamma.png
 cme yellow_gamma.png 42.png
 
-echo "color_matte.png"
-convert test.png -alpha set -fill none  -draw 'matte 0,0 reset' color_matte.png
-cme color_matte.png 43.png
+echo "color_alpha.png"
+convert test.png -alpha set -fill none -draw 'alpha 0,0 reset' color_alpha.png
+cme color_alpha.png 43.png
 
 echo "grey_level.png"
 convert  test.png  +level 40%,40%  -alpha off  grey_level.png
