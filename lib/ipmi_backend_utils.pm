@@ -34,7 +34,7 @@ sub use_ssh_serial_console {
     console('sol')->disable if check_var('BACKEND', 'ipmi');
     select_console('root-ssh');
     $serialdev = 'sshserial';
-    set_var('SERIALDEV', 'sshserial');
+    set_var('SERIALDEV', $serialdev);
     bmwqemu::save_vars();
 }
 
