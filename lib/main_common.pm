@@ -1424,9 +1424,6 @@ sub load_extra_tests_desktop {
         }
         if (!get_var("NOAUTOLOGIN")) {
             loadtest "x11/multi_users_dm";
-            if (check_var('DESKTOP', 'gnome')) {
-                loadtest "x11/keyboard_layout_gnome";
-            }
         }
         # wine is only in openSUSE for various reasons, including legal ones
         loadtest 'x11/wine' if get_var('ARCH', '') =~ /x86_64|i586/;
