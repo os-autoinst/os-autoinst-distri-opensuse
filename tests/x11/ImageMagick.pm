@@ -52,7 +52,7 @@ sub run {
       color_pick_draw color_pick_distort black_threshold white_threshold
       black_level white_level black_fx white_fx black_evaluate white_evaluate
       black_gamma white_posterize black_posterize white_alpha black_alpha
-      trans_fx trans_fx_alpha_off trans_compose yellow_gamma color_matte
+      trans_fx trans_fx_alpha_off trans_compose yellow_gamma color_alpha
       grey_level trans_alpha gradient trans_evaluate gradient_range1
       trans_threshold gradient_range2 gradient_range3 gradient_ice-sea
       gradient_range4 gradient_burnished gradient_range5 gradient_grassland
