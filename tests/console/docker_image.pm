@@ -28,7 +28,7 @@ sub run {
         }
     }
     elsif (is_sle("=15")) {
-        push @image_names, "registry.suse.de/suse/sle-15/update/cr/images/suse/sle15:current";
+        push @image_names, "registry.suse.de/suse/sle-15/update/cr/images/suse/sle15:latest";
     }
     else {
         die("This test only works at SLE12SP3 and SLE15.");
