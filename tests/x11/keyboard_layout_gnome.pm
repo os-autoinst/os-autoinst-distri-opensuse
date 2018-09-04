@@ -26,6 +26,7 @@ sub reboot {
 
 sub run {
     my $self = shift;
+    my $kbdlayout_script = "changekbd.sh";
 
     # login
     select_console('root-console');
@@ -34,6 +35,8 @@ sub run {
     assert_script_run "sed -i.bak '/^DISPLAYMANAGER_AUTOLOGIN=/s/=.*/=\"\"/' /etc/sysconfig/displaymanager";
 
     # set german keyboard layout (y and z are switched on this layout)
+    type_string "echo \"loadkeys us-intl && echo done > /dev/$serialdev\" > $kbdlayout_script\n";
+    type_string "cat $kbdlayout_script\n";
     assert_script_run "yast keyboard set layout=german";
 
     $self->reboot(setnologin => 1);
@@ -45,14 +48,16 @@ sub run {
 
     # check console keyboard layout and restore autologin
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
-    type_string "loadkezs us\n";
+    type_string "bash $kbdlayout_script\n";
+    wait_serial 'done';
     assert_script_run '$(exit $?)';
     assert_script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";
 
     $self->reboot;
 
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
-    type_string "loadkezs us\n";
+    type_string "bash $kbdlayout_script\n";
+    wait_serial 'done';
     assert_script_run '$(exit $?)';
     ensure_serialdev_permissions;
 
