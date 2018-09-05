@@ -167,7 +167,7 @@ sub boot_into_ro_snapshot {
     if (!check_screen('linux-login', 200)) {
         record_soft_failure 'bsc#980337';
         for (1 .. 10) {
-            send_key "ctrl-alt-f1";
+            check_var('VIRSH_VMM_FAMILY', 'hyperv') ? send_key 'alt-f1' : send_key 'ctrl-alt-f1';
             if (check_screen('tty1-selected', 12)) {
                 return 1;
             }
