@@ -16,14 +16,14 @@
 use base "consoletest";
 use testapi;
 use utils;
+use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
 sub run {
     my $self = shift;
     # let's see how it looks at the beginning
     save_screenshot;
-
-    select_console 'root-console';
+    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
     # init
     check_console_font;

@@ -266,7 +266,8 @@ sub assert_gui_app {
 # console font, we need to call systemd-vconsole-setup to workaround
 # that
 sub check_console_font {
-    return if check_var('BACKEND', 'spvm');
+    # Does not make sense on ssh-based consoles
+    return if (check_var('BACKEND', 'spvm')) || (check_var('BACKEND', 'ipmi'));
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match
     select_console('root-console', await_console => 0);
