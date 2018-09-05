@@ -22,13 +22,14 @@ sub run {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $sbd_device    = get_lun;
+    my $unicast_opt   = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
     my $join_timeout  = 60;
 
     # If we failed to initialize the cluster, trying again but in debug mode
     # Note: the default timeout need to be increase because it can takes time to join the cluster
-    if (script_run "ha-cluster-init -y -s $sbd_device", $join_timeout) {
-        assert_script_run "crm -dR cluster init -y -s $sbd_device", $join_timeout;
+    if (script_run "ha-cluster-init -y -s $sbd_device $unicast_opt", $join_timeout) {
+        assert_script_run "crm -dR cluster init -y -s $sbd_device $unicast_opt", $join_timeout;
     }
 
     # Signal that the cluster stack is initialized
