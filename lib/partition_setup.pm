@@ -213,24 +213,28 @@ sub addlv {
 }
 
 sub select_first_hard_disk {
-    my $matched_needle = assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected  hard-disk-dev-non-sda-selected)];
-    if (match_has_tag('hard-disk-dev-non-sda-selected') || match_has_tag('hard-disk-dev-sdb-selected') || get_var('SELECT_FIRST_DISK')) {
-        # SUT may have any number disks, only keep the first, unselect all other disks
+    my $matched_needle = assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-non-sda-selected)];
+    return if match_has_tag 'existing-partitions';
+    # SUT may have any number disks, only keep the first, unselect all other disks
+    # In text mode, the needle has tag 'hard-disk-dev-non-sda-selected' and multiple hotkey_? tags as hints for unselecting
+    if (check_var('VIDEOMODE', 'text') && match_has_tag('hard-disk-dev-non-sda-selected')) {
         foreach my $tag (@{$matched_needle->{needle}->{tags}}) {
-            if (check_var('VIDEOMODE', 'text')) {
-                if ($tag =~ /hotkey_([a-z])/) {
-                    send_key 'alt-' . $1;    # Unselect non-first drive
-                }
-            }
-            else {
-                if ($tag =~ /hard-disk-dev-sd[a-z]-selected/) {
-                    assert_and_click $tag;    # Unselect non-first drive
-                }
+            if ($tag =~ /hotkey_([a-z])/) {
+                send_key 'alt-' . $1;    # Unselect non-first drive
             }
         }
-        assert_screen 'select-hard-disks-one-selected';
-        send_key $cmd{next};
     }
+    # Video mode directly matched the sdb-selected needle (old code) or can do the similar (ideal for multiple disks)
+    else {
+        assert_and_click 'hard-disk-dev-sdb-selected' if match_has_tag('hard-disk-dev-sdb-selected');
+        if (match_has_tag('hard-disk-dev-non-sda-selected')) {
+            foreach my $tag (grep { $_ =~ /hard-disk-dev-sd[a-z]/ } @{$matched_needle->{needle}->{tags}}) {
+                assert_and_click "$tag-selected";
+            }
+        }
+    }
+    assert_screen 'select-hard-disks-one-selected';
+    send_key $cmd{next};
 }
 
 # Enables encryption in guided setup during installation
