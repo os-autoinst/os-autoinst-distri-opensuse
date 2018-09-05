@@ -17,6 +17,7 @@ use testapi;
 use strict;
 use utils;
 use serial_terminal 'select_virtio_console';
+use mmapi;
 
 sub run {
     select_virtio_console();
@@ -37,6 +38,8 @@ sub run {
     assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_vport');
     assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_vports');
     assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_vports_add_del_flow');
+
+    wait_for_children;
 }
 
 1;

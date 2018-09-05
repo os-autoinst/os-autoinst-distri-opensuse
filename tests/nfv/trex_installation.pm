@@ -33,31 +33,31 @@ sub run {
     my $PORT_2       = get_required_var('PORT_2');
 
     # Download and extract T-Rex package
-    record_info("Download TREX");
+    record_info("INFO", "Download TREX package");
     assert_script_run("wget $url", 900);
     assert_script_run("tar -xzf $tarball");
     assert_script_run("mv $trex_version $trex_dest");
 
     # Copy config file and replace port values
-    record_info("TREX Config");
+    record_info("INFO", "Modify TREX config file.");
     assert_script_run("curl " . data_url('nfv/trex_cfg.yaml') . " -o $trex_conf");
     assert_script_run("sed -i 's/PORT_0/$PORT_1/' -i $trex_conf");
     assert_script_run("sed -i 's/PORT_1/$PORT_2/' -i $trex_conf");
     assert_script_run("cat $trex_conf");
 
     if (check_var('BACKEND', 'ipmi')) {
-        record_info("Bring mellanox interfaces up");
+        record_info("INFO", "Bring Mellanox interfaces up");
         assert_script_run("ip link set dev eth2 up");
         assert_script_run("ip link set dev eth3 up");
     }
 
-    record_info("Stop Firewall");
+    record_info("INFO", "Stop Firewall");
     systemctl 'stop ' . $self->firewall;
 
-    record_info("TREX ready");
+    record_info("INFO", "TREX installation & configuration ready. Mutex NFV_TRAFFICGEN_READY created.");
     mutex_create("NFV_TRAFFICGEN_READY");
 
-    record_info("Wait for VSPerf");
+    record_info("INFO", "Wait for VSPerf installation, wait for Mutex NFV_VSPERF_READY");
     mutex_wait('NFV_VSPERF_READY');
 }
 

@@ -608,13 +608,12 @@ sub prepare_target {
 
 sub is_baremetal_test {
     return 1 if (get_var('IBTESTS'));
-    return 1 if (get_var('NFV') && check_var('BACKEND', 'ipmi'));
     return 0;
 }
 
 sub mellanox_config {
     loadtest "kernel/mellanox_config";
-    load_reboot_tests();
+    load_reboot_tests() if (check_var('BACKEND', 'ipmi'));
 }
 
 sub load_baremetal_tests {
@@ -633,16 +632,11 @@ sub load_baremetal_tests {
         mellanox_config();
         loadtest "kernel/ib_tests";
     }
-    elsif (get_var('NFV')) {
-        load_nfv_tests();
-    }
 }
 
 sub load_nfv_tests {
-    if (check_var('BACKEND', 'ipmi')) {
-        loadtest "nfv/hugepages_config" if get_var('HUGEPAGES');
-        mellanox_config();
-    }
+    loadtest "nfv/hugepages_config" if get_var('HUGEPAGES');
+    mellanox_config();
     loadtest "kernel/mellanox_ofed" if get_var('OFED_URL');
     if (check_var("NFV", "master")) {
         load_nfv_master_tests();
@@ -696,14 +690,14 @@ if (is_kernel_test()) {
     load_kernel_tests();
 }
 elsif (is_baremetal_test()) {
-    load_baremetal_tests;
+    load_baremetal_tests();
 }
 elsif (get_var("WICKED")) {
     boot_hdd_image();
     load_wicked_tests();
 }
 elsif (get_var("NFV")) {
-    boot_hdd_image();
+    load_baremetal_tests();
     load_nfv_tests();
 }
 elsif (get_var("REGRESSION")) {

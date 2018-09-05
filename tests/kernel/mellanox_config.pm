@@ -19,6 +19,7 @@ use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
+use serial_terminal 'select_virtio_console';
 
 our $device1 = '/dev/mst/mt4119_pciconf0';
 our $device2 = '/dev/mst/mt4119_pciconf0.1';
@@ -29,7 +30,8 @@ sub show_links {
 }
 
 sub run {
-    select_console 'root-ssh';
+    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
+    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
     my $mft_version = get_required_var('MFT_VERSION');
     my $protocol = get_var('MLX_PROTOCOL') || 2;
@@ -49,25 +51,27 @@ sub run {
 
     # List network devices
     assert_script_run("lspci|egrep -i 'network|ethernet'");
-    if (script_run("lspci|grep -i mellanox") != 0) {
-        die "echo There is no Mellanox card here";
-    }
-    if (script_run("ls " . $device1) != 0) {
-        die "echo The directory $device1 doesn't exist";
-    }
-    if (script_run("ls " . $device2) != 0) {
-        die "echo The directory $device2 doesn't exist";
-    }
 
-    # Change Link protocol
-    script_run("echo Wanted Link protocol is $protocol");
-    show_links();
-    assert_script_run("mlxconfig -y -d $device1 set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol");
-    assert_script_run("mlxconfig -y -d $device2 set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol");
-    show_links();
+    if (check_var('BACKEND', 'ipmi')) {
+        if (script_run("lspci|grep -i mellanox") != 0) {
+            die "There is no Mellanox card here";
+        }
+        if (script_run("ls " . $device1) != 0) {
+            die "The directory $device1 doesn't exist";
+        }
+        if (script_run("ls " . $device2) != 0) {
+            die "The directory $device2 doesn't exist";
+        }
+        # Change Link protocol
+        record_info("INFO", "Wanted Link protocol is $protocol");
+        show_links();
+        assert_script_run("mlxconfig -y -d $device1 set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol");
+        assert_script_run("mlxconfig -y -d $device2 set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol");
+        show_links();
 
-    # Reboot system
-    power_action('reboot', textmode => 1, keepconsole => 1);
+        # Reboot system
+        power_action('reboot', textmode => 1, keepconsole => 1);
+    }
 }
 
 sub test_flags {
