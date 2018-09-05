@@ -10,14 +10,15 @@
 # Summary: Execute SUT changes which should be permanent
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base "consoletest";
+use base 'consoletest';
 use testapi;
 use utils;
+use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
 
     ensure_serialdev_permissions;
 
