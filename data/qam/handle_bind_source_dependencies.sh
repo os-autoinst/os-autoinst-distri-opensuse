@@ -1,20 +1,23 @@
 #!/bin/bash
 set -eox pipefail
-SOURCE_FILE=/etc/bash.bashrc.local
+. /etc/os-release
 SUSECONNECT=/tmp/SUSEConnect.txt
-VERSION=$(SUSEConnect --status-text|grep SLE[SD]/|awk -F/ '{print$2}')
-MAJOR_VERSION=$(echo $VERSION|cut -c1-2)
+MAJOR_VERSION=$(echo $VERSION_ID|cut -c1-2)
 
-if echo $VERSION|grep 15 > /dev/null 2>&1; then
-    SDK=sle-module-development-tools
-elif echo $VERSION|grep 12 > /dev/null 2>&1; then
-    SDK=sle-sdk
-fi
+function is_sle12 {
+    [[ $VERSION_ID =~ 12 ]]
+}
 
 function finish {
  rm -f /tmp/SUSEConnect.txt
 }
 trap finish EXIT
+
+if [[ $VERSION_ID =~ 15 ]]; then
+    SDK=sle-module-development-tools
+elif is_sle12; then
+    SDK=sle-sdk
+fi
 
 SUSEConnect -s >$SUSECONNECT
 
@@ -25,10 +28,10 @@ if [ -e /tmp/REMOVE_ADDED_PRODUCTS ]; then
         rm -f /tmp/REMOVE_PC
     fi
     if [ -e /tmp/REMOVE_SDK ]; then
-        SUSEConnect -d -p $SDK/$VERSION/x86_64
+        SUSEConnect -d -p $SDK/$VERSION_ID/x86_64
         rm -f /tmp/REMOVE_SDK
     fi
-    if echo $VERSION|grep 12 > /dev/null 2>&1; then
+    if is_sle12; then
         zypper rr SUSE_SLE-12_GA
         zypper -n rm gpg-offline
     fi
@@ -39,10 +42,10 @@ else
         touch /tmp/REMOVE_PC
     fi
     if ! grep $SDK $SUSECONNECT; then
-        SUSEConnect -p $SDK/$VERSION/x86_64
+        SUSEConnect -p $SDK/$VERSION_ID/x86_64
         touch /tmp/REMOVE_SDK
     fi
-    if echo $VERSION|grep 12 > /dev/null 2>&1; then
+    if is_sle12; then
         # for not really needed gpg-offline, but simpler than zypper solution in openQA
         zypper ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/SUSE:SLE-12:GA.repo
     fi
