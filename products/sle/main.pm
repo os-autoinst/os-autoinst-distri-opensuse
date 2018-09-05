@@ -585,6 +585,7 @@ sub load_patching_tests {
             loadtest 'console/lock_package';
         }
         loadtest 'migration/record_disk_info';
+        load_before_migration_testsuite() if get_var('BEFORE_MIGRATION_TESTS');
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
@@ -592,6 +593,12 @@ sub load_patching_tests {
         if (get_var('UPGRADE') || get_var('AUTOUPGRADE')) {
             loadtest "migration/version_switch_upgrade_target";
         }
+    }
+}
+
+sub load_before_migration_testsuite {
+    if (check_var('BEFORE_MIGRATION_TESTS', 'hpc_register_product')) {
+        loadtest 'hpc/migration';
     }
 }
 
