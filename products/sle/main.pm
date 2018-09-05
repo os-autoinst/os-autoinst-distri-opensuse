@@ -678,7 +678,7 @@ if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
     push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
 }
 if (is_kernel_test()) {
-    my $type = get_var('INSTALL_LTP') ? 'soft' : 'hard';
+    my $type = is_ltp_test() ? 'soft' : 'hard';
     push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
     push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
     push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
