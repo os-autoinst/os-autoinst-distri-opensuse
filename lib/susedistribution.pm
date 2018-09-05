@@ -500,6 +500,58 @@ sub ensure_user {
     type_string("su - $user\n") if $user ne 'root';
 }
 
+=head2 hyperv_console_switch
+
+    hyperv_console_switch($console, $nr)
+
+On Hyper-V console switch from one console to another is not possible with the general
+'Ctrl-Alt-Fx' binding as the combination is lost somewhere in VNC-to-RDP translation.
+For VT-to-VT switch we use 'Alt-Fx' binding, however this is not enough for X11-to-VT
+switch, which requires the missing 'Ctrl'. However, in X11 we can use `chvt` command
+to do the switch for us.
+
+This is expected to be executed either from activate_console(), or from console_selected(),
+test variable C<CONSOLE_JUST_ACTIVATED> works as a mutually exclusive lock.
+
+Requires C<console> name, an actual VT number C<nr> is optional.
+=cut
+sub hyperv_console_switch {
+    my ($self, $console, $nr) = @_;
+
+    return unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    # If CONSOLE_JUST_ACTIVATED is set, this sub was already executed for current console.
+    # If we switch to 'x11', we are already there because, if we switch from VT then 'Alt-Fx'
+    # works, if we switch from 'x11' to 'x11' then we don't have to do anything.
+    if (get_var('CONSOLE_JUST_ACTIVATED') || $console eq 'x11' || $console eq 'displaymanager') {
+        set_var('CONSOLE_JUST_ACTIVATED', 0);
+        return;
+    }
+    die 'hyperv_console_switch: Console was not provided' unless $console;
+    diag 'hyperv_console_switch: Console number was not provided' unless $nr;
+    # If we are in VT, 'Alt-Fx' switch already worked
+    return if check_screen(["tty$nr-selected", 'text-logged-in-root', 'linux-login',
+            'installation', 'install-shell', 'install-shell2', 'inst-console', "$console"], 10);
+    # We are in X11 and wan't to switch to VT
+    testapi::x11_start_program('xterm');
+    self->distribution::script_sudo("exec chvt $nr; exit", 0);
+}
+
+=head2 console_nr
+
+    console_nr($console)
+
+Return console VT number with regards to it's name.
+=cut
+sub console_nr {
+    my ($console) = @_;
+    $console =~ m/^(\w+)-(console|virtio-terminal|ssh|shell)/;
+    my ($name) = ($1) || return;
+    my $nr = 4;
+    $nr = get_root_console_tty if ($name eq 'root');
+    $nr = 5 if ($name eq 'log');
+    return $nr;
+}
+
 =head2 activate_console
 
   activate_console($console [, [ensure_tty_selected => 0|1, ] [skip_set_standard_prompt => 0|1, ] [skip_setterm => 0|1, ]])
@@ -561,9 +613,8 @@ sub activate_console {
             ensure_user($user);
         }
         else {
-            my $nr = 4;
-            $nr = get_root_console_tty if ($name eq 'root');
-            $nr = 5 if ($name eq 'log');
+            my $nr = console_nr($console);
+            $self->hyperv_console_switch($console, $nr);
             my @tags = ("tty$nr-selected", "text-logged-in-$user");
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
@@ -630,6 +681,7 @@ sub activate_console {
             $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
     }
+    set_var('CONSOLE_JUST_ACTIVATED', 1);
 }
 
 =head2 console_selected
@@ -654,9 +706,13 @@ sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh};
-    return unless $args{await_console};
-    return if $args{tags} =~ $args{ignore};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
+    if ($args{tags} =~ $args{ignore} || !$args{await_console}) {
+        set_var('CONSOLE_JUST_ACTIVATED', 0);
+        return;
+    }
+    $self->hyperv_console_switch($console, console_nr($console));
+    set_var('CONSOLE_JUST_ACTIVATED', 0);
     # x11 needs special handling because we can not easily know if screen is
     # locked, display manager is waiting for login, etc.
     return ensure_unlocked_desktop if $args{tags} =~ /x11/;
