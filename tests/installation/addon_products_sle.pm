@@ -18,6 +18,7 @@ use utils 'addon_license';
 use version_utils qw(is_sle sle_version_at_least);
 use qam 'advance_installer_window';
 use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE);
+use LWP::Simple 'head';
 
 sub handle_all_packages_medium {
     assert_screen 'addon-products-all_packages';
@@ -126,6 +127,22 @@ sub handle_addon {
     }
 }
 
+sub test_addonurl {
+    my $testvalue = get_var('ADDONURL');
+    my @missing_modules;
+    my @test_modules = split(/,/, get_var('WORKAROUND_MODULES'));
+
+    foreach (@test_modules) {
+        push @missing_modules, $_ unless ($testvalue =~ $_);
+        die('URL ADDONURL_' . uc $_ . ' could not be accessed') unless head(get_var('ADDONURL_' . uc $_));
+    }
+
+    if (@missing_modules) {
+        my $str_missed_mod = join(',', @missing_modules);
+        die "Missing modules in ADDONURL which are set in WORKAROUND_MODULES: $str_missed_mod";
+    }
+}
+
 sub run {
     my ($self) = @_;
 
@@ -154,6 +171,11 @@ sub run {
             }
         }
     }
+    test_addonurl
+      if is_sle('>=15')
+      and !check_var('SCC_REGISTER', 'installation')
+      and (get_var('ALL_MODULES') || get_var('WORKAROUND_MODULES'));
+
     if (get_var("ADDONURL")) {
         if (match_has_tag('inst-addon')) {
             send_key 'alt-k';                                                   # install with addons
@@ -167,10 +189,10 @@ sub run {
             send_key 'alt-u';                                                   # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';                             # select URL field
-            type_string get_var("ADDONURL_$uc_addon");    # repo URL
+            send_key 'alt-u';                                      # select URL field
+            type_string get_required_var("ADDONURL_$uc_addon");    # repo URL
             send_key $cmd{next};
-            wait_still_screen;                            # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
+            wait_still_screen;                                     # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
             my @tags = ('addon-products', "addon-betawarning-$addon", "addon-license-$addon", 'import-untrusted-gpg-key');
             assert_screen(\@tags, 90);
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
@@ -179,7 +201,7 @@ sub run {
                     assert_screen "addon-license-beta";
                 }
                 wait_still_screen 2;
-                send_key 'alt-a';                         # yes, agree
+                send_key 'alt-a';                                  # yes, agree
                 wait_still_screen 2;
                 send_key $cmd{next};
                 assert_screen 'addon-products', 90;
@@ -187,9 +209,9 @@ sub run {
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 send_key 'alt-t';
             }
-            send_key "tab";                               # select addon-products-$addon
-            wait_still_screen 10;                         # wait until repo is added and list is initialized
-            if (check_var('VIDEOMODE', 'text')) {         # textmode need more tabs, depends on add-on count
+            send_key "tab";                                        # select addon-products-$addon
+            wait_still_screen 10;                                  # wait until repo is added and list is initialized
+            if (check_var('VIDEOMODE', 'text')) {                  # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";

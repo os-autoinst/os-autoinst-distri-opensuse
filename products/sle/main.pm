@@ -292,11 +292,12 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
             my $module_repo_name = get_var($repo_variable_name, $default_repo_name);
             my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
-            die "URL $url could not be accessed, missing repo?" unless head($url);
-            set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
-            $addonurl .= "$short_name,";
+            if (head($url)) {
+                set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
+                $addonurl .= "$short_name,";
+            }
         }
-        die '$addonurl (test variable \'ADDONURL\') could not be set' unless $addonurl;
+
         #remove last comma from ADDONURL setting value
         $addonurl =~ s/,$//;
         set_var("ADDONURL", $addonurl);
