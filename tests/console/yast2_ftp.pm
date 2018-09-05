@@ -16,6 +16,7 @@ use testapi;
 use utils;
 use version_utils;
 use y2logsstep;
+use yast2_widget_utils 'change_service_configuration';
 
 sub vsftd_setup_checker {
     my $config_ref              = pop();
@@ -91,7 +92,7 @@ sub run {
         assert_screen 'ftp_server_when_booting';    # check service start when booting
     }
     else {
-        $self->change_service_configuration(
+        change_service_configuration(
             after_writing => {start         => 'alt-t'},
             after_reboot  => {start_on_boot => 'alt-a'}
         );

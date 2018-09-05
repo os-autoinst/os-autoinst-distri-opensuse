@@ -16,10 +16,9 @@ use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
 use y2_common 'continue_info_network_manager_default';
+use yast2_widget_utils 'change_service_configuration';
 
 sub run {
-    my $self = shift;
-
     select_console 'root-console';
     # install http server
     zypper_call("-q in yast2-http-server");
@@ -111,7 +110,7 @@ sub run {
         assert_screen 'http_start_apache2';
     }
     else {
-        $self->change_service_configuration(
+        change_service_configuration(
             after_writing => {start         => 'alt-t'},
             after_reboot  => {start_on_boot => 'alt-a'}
         );

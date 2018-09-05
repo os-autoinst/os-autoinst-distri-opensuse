@@ -15,6 +15,7 @@ use base "console_yasttest";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
+use yast2_widget_utils 'change_service_configuration';
 
 my %sub_menu_needles = (
     start_up      => 'yast2_proxy_start-up',
@@ -59,8 +60,6 @@ sub post_fail_hook {
 }
 
 sub run {
-    my $self = shift;
-
     select_console 'root-console';
     if (is_sle '15+') {
         zypper_call('in squid');
@@ -89,7 +88,7 @@ sub run {
         send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
     }
     else {
-        $self->change_service_configuration(
+        change_service_configuration(
             after_writing => {start         => 'alt-f'},
             after_reboot  => {start_on_boot => 'alt-a'}
         );

@@ -16,9 +16,10 @@ use strict;
 use testapi;
 use mm_network;
 use lockapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 use mmapi;
 use utils qw(zypper_call turn_off_gnome_screensaver);
+use yast2_widget_utils 'change_service_configuration';
 
 sub run {
     my $self = shift;
@@ -33,6 +34,12 @@ sub run {
     assert_script_run 'dd if=/dev/zero of=/root/iscsi-disk seek=1M bs=8192 count=1';    # create iscsi LUN
     type_string "yast2 iscsi-lio-server; echo yast2-iscsi-server-\$? > /dev/$serialdev\n";
     assert_screen 'iscsi-lio-server';
+    unless (is_sle('<15') || is_leap('<15.1')) {
+        change_service_configuration(
+            after_writing => {start         => 'alt-w'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
+    }
     send_key 'alt-o';                                                                   # open port in firewall
     wait_still_screen(2, 10);
     assert_screen 'iscsi-target-overview-service-tab';

@@ -18,6 +18,8 @@ use utils;
 use version_utils qw(is_leap is_sle);
 use y2_common 'continue_info_network_manager_default';
 use constant RETRIES => 5;
+use yast2_widget_utils 'change_service_configuration';
+
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive
 # can be set
@@ -99,7 +101,7 @@ sub run {
         assert_screen 'yast2-dns-server-start-named-now';
     }
     else {
-        $self->change_service_configuration(
+        change_service_configuration(
             after_writing => {start         => 'alt-t'},
             after_reboot  => {start_on_boot => 'alt-a'}
         );
@@ -128,7 +130,7 @@ sub run {
         assert_screen 'yast2-service-stopped-enabled';
     }
     else {
-        $self->change_service_configuration(after_writing => {stop => 'alt-t'});
+        change_service_configuration(after_writing => {stop => 'alt-t'});
     }
     # Cancel yast2 to check the effect
     # workaround for single send_key 'alt-c' because it doesn't work.
@@ -152,7 +154,7 @@ sub run {
         wait_screen_change { send_key 'alt-t' };
     }
     else {
-        $self->change_service_configuration(after_reboot => {do_not_start => 'alt-a'});
+        change_service_configuration(after_reboot => {do_not_start => 'alt-a'});
     }
     send_key 'alt-o';
     assert_screen 'root-console', 180;
@@ -171,7 +173,7 @@ sub run {
         assert_screen 'yast2-service-stopped-disabled';
     }
     else {
-        $self->change_service_configuration(after_writing => {stop => 'alt-t'});
+        change_service_configuration(after_writing => {stop => 'alt-t'});
     }
     # Finish
     send_key 'alt-o';
