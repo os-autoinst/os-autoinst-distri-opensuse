@@ -221,13 +221,13 @@ sub verify_license_has_to_be_accepted {
     }
 }
 
-sub verify_translation {
-    return if check_var('VIDEOMODE', 'text');
-    for my $language (qw(korean english-us)) {
+sub verify_license_translations {
+    return if (!get_var('INSTALLER_EXTENDED_TEST') || (is_sle && get_var("BETA")) || check_var('VIDEOMODE', 'text'));
+    for my $language (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
         wait_screen_change { send_key 'alt-l' };
         send_key 'home';
         send_key_until_needlematch("license-language-selected-$language", 'down', 60, 1);
-        assert_screen "license-content-$language";
+        assert_screen "license-content-$language";    # needs wait for loading content
     }
 }
 

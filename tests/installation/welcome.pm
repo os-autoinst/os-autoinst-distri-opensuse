@@ -116,6 +116,7 @@ sub run {
     }
 
     assert_screen 'languagepicked';
+    $self->verify_license_translations unless is_sle('15+');
 }
 
 1;
