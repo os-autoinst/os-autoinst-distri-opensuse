@@ -24,7 +24,7 @@ use testapi;
 use utils;
 use registration;
 use qam qw/remove_test_repositories/;
-use version_utils qw(sle_version_at_least is_sle);
+use version_utils qw(sle_version_at_least is_sle is_sles4sap);
 
 our @EXPORT = qw(
   setup_sle
@@ -113,10 +113,10 @@ sub record_disk_info {
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df / | tee /tmp/btrfs-filesystem-df.txt';
         assert_script_run 'btrfs filesystem usage / | tee /tmp/btrfs-filesystem-usage.txt';
-        assert_script_run 'snapper list | tee /tmp/snapper-list.txt';
+        assert_script_run 'snapper list | tee /tmp/snapper-list.txt' unless (is_sles4sap());
         upload_logs '/tmp/btrfs-filesystem-df.txt';
         upload_logs '/tmp/btrfs-filesystem-usage.txt';
-        upload_logs '/tmp/snapper-list.txt';
+        upload_logs '/tmp/snapper-list.txt' unless (is_sles4sap());
     }
     assert_script_run 'df -h > /tmp/df.txt';
     upload_logs '/tmp/df.txt';

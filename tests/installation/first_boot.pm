@@ -17,7 +17,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils qw(handle_login handle_emergency);
-use version_utils qw(sle_version_at_least is_sle is_leap);
+use version_utils qw(sle_version_at_least is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use base 'opensusebasetest';
 
 sub run {
@@ -43,6 +43,12 @@ sub run {
     }
     elsif ((get_var('DESKTOP', '') =~ /textmode|serverro/) || get_var('BOOT_TO_SNAPSHOT')) {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
+        return;
+    }
+    # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
+    # Administrator user listed but do not attempt to login
+    if (get_var('HDDVERSION') and is_desktop_installed() and is_upgrade() and is_sles4sap()) {
+        assert_screen 'displaymanager-sapadm', $boot_timeout;
         return;
     }
     # On IPMI, when selecting x11 console, we are already logged in.

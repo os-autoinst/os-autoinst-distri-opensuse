@@ -13,7 +13,7 @@
 use base "sles4sap";
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils qw(is_sle is_upgrade);
 use strict;
 
 sub run {
@@ -26,16 +26,17 @@ sub run {
     # Disable packagekit
     pkcon_quit;
 
-    my $base_pattern = sle_version_at_least('15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
+    my $base_pattern = is_sle('>=15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
 
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
     $output = script_output("zypper info -t pattern sap_server");
     if ($output !~ /i\+\s\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
-        # Pattern sap_server is not installed. Could either be a bug or caused by
-        # the use of the 'textmode' system role
+        # Pattern sap_server is not installed. Could be a due to a bug, caused by the
+        # use of the 'textmode' system role during install, or on upgrades when the
+        # original system didn't have the pattern (for example, from SLES4SAP 11-SP4)
         die "Pattern sap_server not installed by default"
-          unless (check_var('SYSTEM_ROLE', 'textmode'));
+          unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade());
         record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
         assert_script_run("zypper in -y -t pattern sap_server");
         assert_script_run("systemctl start tuned");

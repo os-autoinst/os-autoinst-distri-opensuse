@@ -79,7 +79,7 @@ sub run_developers_tests {
 
     # Check summary of tests on log for bug report
     my $report = script_output "grep ^Test $log || true";
-    record_info('No tests summaries in log', result => 'softfail') unless ($report);
+    record_info('Summaries', 'No tests summaries in log', result => 'softfail') unless ($report);
     foreach my $summary (split(/[\r\n]+/, $report)) {
         next unless ($summary =~ /^Test/);
         # Do nothing with passing tests. The summary will be shown on the script_output step
@@ -90,7 +90,7 @@ sub run_developers_tests {
             record_soft_failure "$1#$2";
         }
         else {
-            record_info $summary, result => 'fail';
+            record_info $summary, "Test summary: $summary", result => 'fail';
         }
     }
 
@@ -117,16 +117,16 @@ sub run {
 
     assert_script_run("rpm -q sapconf");
 
-    verify_sapconf_service('tuned.service',   'Dynamic System Tuning Daemon');
-    verify_sapconf_service('sapconf.service', 'sapconf');
-    verify_sapconf_service('uuidd.socket',    'UUID daemon activation socket');
-    verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
-      if (is_sle('>=15'));
-
     my $output = script_output "tuned-adm active";
     $output =~ /Current active profile: ([a-z\-]+)/;
     my $default_profile = $1;
     record_info("Current profile", "Current default profile: $default_profile");
+
+    verify_sapconf_service('tuned.service',   'Dynamic System Tuning Daemon');
+    verify_sapconf_service('sapconf.service', 'sapconf') unless ($default_profile eq 'saptune');
+    verify_sapconf_service('uuidd.socket',    'UUID daemon activation socket');
+    verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
+      if (is_sle('>=15'));
 
     my $statusregex = join('.+', @tuned_profiles);
     $output = script_output "tuned-adm list";
@@ -160,7 +160,7 @@ sub run {
     # Set default profile again
     assert_script_run "tuned-adm profile $default_profile";
 
-    run_developers_tests unless (is_staging());
+    run_developers_tests unless (is_staging() or ($default_profile eq 'saptune'));
 }
 
 1;
