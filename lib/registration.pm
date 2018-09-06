@@ -187,7 +187,12 @@ sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
 
-    my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
+    my @known_untrusted_keys = qw(
+      import-trusted-gpg-key-nvidia-F5113243C66B6EAE
+      import-trusted-gpg-key-phub-9C214D4065176565
+      import-untrusted-gpg-key-ids-key-A5665AC46976A827
+      import-untrusted-gpg-key-idv-key-A5665AC46976A827
+    );
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my $counter = 50;
         my @tags
