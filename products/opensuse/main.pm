@@ -84,9 +84,8 @@ unless (get_var("DESKTOP")) {
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
-    # lightdm is the default DM since Leap 15.0 per boo#1081760
-    # staging project keep to use xdm due to lightdm will not be in staging project
-    if (!is_leap('15.0+') || get_var('STAGING')) {
+    # lightdm is the default DM for Tumbleweed and Leap 15.0 per boo#1081760
+    if (is_leap('<15.0')) {
         set_var("XDMUSED",           1);
         set_var('DM_NEEDS_USERNAME', 1);
     }
