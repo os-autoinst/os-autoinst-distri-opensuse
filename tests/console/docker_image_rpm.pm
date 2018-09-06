@@ -39,9 +39,9 @@ sub run {
         $image_path = '/usr/share/suse-docker-images/native/*-image*.tar.xz';
 
         # For Tumbleweed, the image is wrapped inside an RPM
-        zypper_call "ar -fG $repo_url";
+        zypper_call "ar -fGn virtualization $repo_url";
         zypper_call "in opensuse-tumbleweed-image";
-        zypper_call "rr $repo_url";
+        zypper_call "rr virtualization";
     }
     else {
         die 'Only know about Tumbleweed and Leap 15.0+ docker images';
