@@ -20,7 +20,7 @@ use serial_terminal 'select_virtio_console';
 
 sub run {
     my $self     = shift;
-    my $scc_code = get_required_var('SCC_REGCODE_HPC');
+    my $scc_code = get_required_var('SCC_REGCODE_HPC_PRODUCT');
     select_virtio_console();
 
     assert_script_run('ls -la /etc/products.d/');
