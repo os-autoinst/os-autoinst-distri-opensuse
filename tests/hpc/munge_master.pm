@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use lockapi;
 use utils;
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my $self = shift;
@@ -52,6 +53,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    select_virtio_console(force => 1);
     $self->upload_service_log('munge');
 }
 
