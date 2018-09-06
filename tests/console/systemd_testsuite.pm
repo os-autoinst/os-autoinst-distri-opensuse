@@ -22,6 +22,9 @@ sub run {
     if (is_leap('=15.0')) {
         $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/Leap:/15/openSUSE_Leap_15.0/';
     }
+    elsif (is_sle('=15')) {
+        $qa_head_repo = 'http://download.suse.de/ibs/QA:/SLE15/standard/';
+    }
 
     # install systemd testsuite
     select_console 'root-console';
