@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use serial_terminal 'select_virtio_console';
+use registration 'add_suseconnect_product';
 
 sub run {
     my $self     = shift;
@@ -26,8 +27,8 @@ sub run {
     assert_script_run('ls -la /etc/products.d/');
     zypper_call('in switch_sles_sle-hpc');
     script_run('SUSEConnect -s');
-    assert_script_run('SUSEConnect -p sle-module-hpc/12/x86_64');
-    assert_script_run('SUSEConnect -p sle-module-web-scripting/12/x86_64');
+    add_suseconnect_product('sle-module-hpc',           '12');
+    add_suseconnect_product('sle-module-web-scripting', '12');
     assert_script_run("switch_to_sle-hpc -e testing\@suse.com -r $scc_code");
     assert_script_run('ls -la /etc/products.d/');
 }
