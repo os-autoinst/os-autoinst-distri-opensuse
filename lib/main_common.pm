@@ -579,17 +579,21 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
-    load_boot_tests();
-    loadtest "jeos/firstrun";
-    loadtest "jeos/record_machine_id";
-    loadtest "console/force_scheduled_tasks";
-    loadtest "jeos/grub2_gfxmode";
-    loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
-    loadtest "jeos/diskusage";
-    loadtest "jeos/root_fs_size";
-    loadtest "jeos/mount_by_label";
-    if (is_sle) {
-        loadtest "console/suseconnect_scc";
+    unless (get_var('LTP_COMMAND_FILE')) {
+        load_boot_tests();
+        loadtest "jeos/firstrun";
+        loadtest "jeos/record_machine_id";
+        unless (get_var('INSTALL_LTP')) {
+            loadtest "console/force_scheduled_tasks";
+            loadtest "jeos/grub2_gfxmode";
+            loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
+            loadtest "jeos/diskusage";
+            loadtest "jeos/root_fs_size";
+            loadtest "jeos/mount_by_label";
+        }
+        if (is_sle) {
+            loadtest "console/suseconnect_scc";
+        }
     }
 }
 
