@@ -82,7 +82,7 @@ sub update_check_changes {
     }
 }
 
-# ./update.sh -u will set up repositories
+# ./update.sh -s will set up repositories
 sub update_setup_repo {
     record_info 'Repo', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
@@ -92,11 +92,38 @@ sub update_setup_repo {
     script_assert0 "ssh $admin_fqdn './update.sh -s $repo' | tee /dev/$serialdev", 120;
 }
 
+# ./update.sh -n will install new package (QAM) if any
+sub install_new_package {
+    record_info "New Package", "This maintenance incident includes a NEW package";
+    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -n' | tee /dev/$serialdev", 600);
+    if ($returnCode == 100) {
+        # Reboot the cluster
+        orchestrate_velum_reboot;
+        update_check_changes;
+    }
+    elsif ($returnCode == 0) {
+        record_info 'No New Package', 'No new packages for this maintenance incident';
+    }
+    else {
+        die "Package installation failed";
+    }
+}
+
+# ./update.sh -t will decide if it makes sense to run update_perform_update
+sub is_needed {
+    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -t' | tee /dev/$serialdev", 120);
+    if ($returnCode == 110) {
+        record_info 'Skip Update', 'This maintenance incident was just one single new package';
+        return 0;
+    }
+    return 1;
+}
+
 # ./update.sh -u will install missing packages (QAM)
 sub update_install_packages {
+    record_info 'Prepare', 'Install packages that are not part of the DVD but they are part of this incident';
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
-        record_info 'Prepare', 'Install packages that are not part of the DVD but they are part of this incident';
         # Reboot the cluster
         orchestrate_velum_reboot;
         update_check_changes;
@@ -112,19 +139,30 @@ sub update_install_packages {
 # ./update.sh -u will perform actual update
 sub update_perform_update {
     record_info 'Update', 'Apply the update using transactional update via salt and docker';
-    script_assert0("ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev", 1200);
-    orchestrate_velum_reboot;
+    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev", 1200);
+    if ($returnCode == 100) {
+        orchestrate_velum_reboot;
+    }
+    elsif ($returnCode == 0) {
+        record_info 'Skip Update', 'This maintenance incident was just one single new package';
+    }
+    else {
+        die "Package installation failed";
+    }
 }
 
 sub run {
     # update.sh -s $repo
     update_setup_repo;
 
+    # update.sh -n
+    install_new_package if is_caasp('qam');
+
     # update.sh -i
     update_install_packages if is_caasp('qam');
 
     # update.sh -u
-    update_perform_update;
+    update_perform_update if is_needed();
 
     # update.sh -c
     update_check_changes;

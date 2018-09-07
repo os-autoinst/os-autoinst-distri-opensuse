@@ -11,12 +11,14 @@ usage() {
         [-s $REPO] Setup all nodes with update REPO
         [-u] Update all nodes
         [-c] Check that update was applied
+        [-n] Install new package
         [-i] Install package
+        [-t] Test if update is needed
         [-r] Just reboot cluster test" 1>&2
     exit 1
 }
 
-while getopts "s:curi" opt; do
+while getopts "s:curnti" opt; do
 case $opt in
     s)
         SETUP=$OPTARG
@@ -30,8 +32,14 @@ case $opt in
     r)
         REBOOT=true
         ;;
+    n)
+        NEWPKG=true
+        ;;
     i)
         INSTALL=true
+        ;;
+    t)
+        TEST=true
         ;;
     \?)
         usage
@@ -66,13 +74,31 @@ if [ ! -z "${SETUP:-}" ]; then
     $runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
     $runner "zypper lr -U"
 
+elif [ ! -z "${TEST:-}" ]; then
+    # Skip updating if the whole maintenance incident was just a single new package
+    if [ -f new_package.txt ]; then
+        # Helpful for debugging maintenance packaging problems
+        echo "new_package.txt"
+        cat new_package.txt
+        echo
+        echo "qam_packages.txt"
+        cat qam_packages.txt
+        if cmp --silent new_package.txt qam_packages.txt; then
+            # Corner case:
+            echo "The whole qam incident is just one single new package"
+            exit 110
+        fi
+    fi
+
 elif [ ! -z "${UPDATE:-}" ]; then
+
     # Manually Trigger Transactional Update (or wait up to 24 hours for it run by itself)
     $runner 'systemctl disable --now transactional-update.timer'
     $runner '/usr/sbin/transactional-update cleanup dup salt'
 
     # Manually Refresh the Grains (or wait up to 10 minutes)
     $srun '*' saltutil.refresh_grains
+    exit 100
 
 elif [ ! -z "${CHECK:-}" ]; then
     # caasp-container-manifests
@@ -110,10 +136,52 @@ elif [ ! -z "${REBOOT:-}" ]; then
     srun="docker exec -d $saltid salt"
     $srun $where system.reboot
 
-elif [ ! -z "${INSTALL:-}" ]; then
+elif [ ! -z "${NEWPKG:-}" ]; then
     # Fetch all the packages included for this QAM incident
-    zypper -q --plus-content UPDATE pa -R UPDATE | awk -F'|' 'NR>2 {print $3}' > qam_packages.txt
+    zypper -q --plus-content UPDATE pa -R UPDATE | awk -F'|' 'NR>2 {print $3}' | cut -c 2- > qam_packages.txt
 
+    # Check if there are any packages included into the QAM incident that are not pre-installed
+    reboot_required=0
+    while read pkg; do
+        if ! rpm -q $pkg; then
+            echo "$pkg " >> not_installed.txt
+            reboot_required=1
+        fi
+    done < qam_packages.txt
+
+    if [ ${reboot_required} -eq 1 ]; then
+        # Disable the update repo, so to check if this package is old or new
+        $runner "zypper mr -d UPDATE"
+        while read pkg; do
+            if ! zypper se $pkg; then
+                echo "$pkg " >> new_package.txt
+            fi
+        done < not_installed.txt
+
+        if [ -f new_package.txt ]; then
+
+            # Enable the update repo to install the new package
+            $runner "zypper mr -e UPDATE"
+            $runner "zypper lr UPDATE | grep Enabled | grep Yes"
+            echo "The following new packages are going to be installed: $(cat new_package.txt)"
+
+            # Install the packages
+            $runner "/usr/sbin/transactional-update salt pkg install -y $(cat new_package.txt)"
+
+            # Refresh the Grains
+            $srun '*' saltutil.refresh_grains
+
+            # Orchestrate the reboot via Velum to complete the installation
+            rm not_installed.txt
+            exit 100
+        fi
+    fi
+
+elif [ ! -z "${INSTALL:-}" ]; then
+    # In case there was a new package, it must be installed by now. Clear the state.
+    if [ -f not_installed.txt ]; then
+         rm not_installed.txt
+    fi
     # Check if there are any packages included into the QAM incident that are not pre-installed
     reboot_required=0
     while read pkg; do
@@ -128,7 +196,7 @@ elif [ ! -z "${INSTALL:-}" ]; then
 
         # Disable the update repo, so it will install the released version of those
         $runner "zypper mr -d UPDATE"
-        $runner "zypper lr UPDATE | grep Enabled"
+        $runner "zypper lr UPDATE | grep Enabled | grep No"
 
         # Install the packages
         $runner "/usr/sbin/transactional-update salt pkg install -y $(cat not_installed.txt)"
@@ -138,7 +206,7 @@ elif [ ! -z "${INSTALL:-}" ]; then
 
         # Enable the update repo
         $runner "zypper mr -e UPDATE"
-        $runner "zypper lr UPDATE | grep Enabled"
+        $runner "zypper lr UPDATE | grep Enabled | grep Yes"
 
         # Orchestrate the reboot via Velum to complete the installation
         exit 100
