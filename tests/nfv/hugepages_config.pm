@@ -13,16 +13,18 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_console 'root-ssh';
+    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
+    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
     my $hugepages  = get_required_var('HUGEPAGES');
     my $hugepagesz = get_required_var('HUGEPAGESZ');
     my $grub_file  = '/boot/grub2/grub.cfg';
     my $boot_line  = "default_hugepagesz=$hugepagesz hugepagesz=$hugepagesz hugepages=$hugepages";
 
-    record_info("Kernel boot command");
+    record_info("INFO", "Add $boot_line to the Kernel boot command");
     assert_script_run("sed -i 's/showopts/showopts " . $boot_line . "/' " . $grub_file);
     assert_script_run("sed -i 's/showopts/showopts " . $boot_line . "/' " . $grub_file);
     assert_script_run("grub2-mkconfig");

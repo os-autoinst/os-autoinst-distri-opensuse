@@ -32,8 +32,7 @@ sub run {
         zypper_call('--quiet in openvswitch python-devel python2-libxml2-python libopenssl1_1 insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm', timeout => 500);
     }
     elsif (check_var('VERSION', '12-SP4')) {
-        my $SDK_REPO = 'http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/GA:/TEST/images/repo/SLE-12-SP4-SDK-POOL-x86_64-Media1/';
-        zypper_call("--quiet ar -f $SDK_REPO SLE-12-SP4-SDK-POOL");
+        zypper_call("--quiet ar -f http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/GA:/TEST/images/repo/SLE-12-SP4-SDK-POOL-x86_64-Media1/ SLE-12-SP4-SDK-POOL1");
         zypper_call('--quiet in openvswitch python-devel python-libxml2 libopenssl1_0_0 insserv-compat libstdc++-devel createrepo rpm-build kernel-syms tk', timeout => 500);
     }
     else {
@@ -45,7 +44,7 @@ sub run {
     assert_script_run("tar -xvf $ofed_file_tgz");
     assert_script_run("cd $ofed_dir");
     if (check_var('BACKEND', 'ipmi')) {
-        record_info("OFED install");
+        record_info('INFO', 'OFED install');
         assert_script_run("./mlnxofedinstall --skip-distro-check --add-kernel-support --with-mft --with-mstflint --dpdk --upstream-libs", timeout => 2000);
         assert_script_run("modprobe -rv rpcrdma");
         assert_script_run("/etc/init.d/openibd restart");

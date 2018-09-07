@@ -48,20 +48,20 @@ sub run {
     my $children       = get_children();
     my $child_id       = (keys %$children)[0];
 
-    record_info("Install OVS, DPKD");
+    record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
     zypper_call('--quiet in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 200);
 
     assert_script_run("cd /root/");
-    record_info("Clone VSPerf");
+    record_info("INFO", "Clone VSPerf repository");
     assert_script_run("git clone --quiet --depth 1 --branch $vsperf_version $vsperf_repo", timeout => 200);
-    record_info("Clone DPKD");
-    assert_script_run("git clone --quiet --depth 1 $dpdk_repo", timeout => 500);
+    record_info("INFO", "Clone DPKD repository");
+    assert_script_run("git clone --quiet --depth 1 $dpdk_repo", timeout => 600);
 
-    record_info("Start openvswitch");
+    record_info("INFO", "Start openvswitch service");
     systemctl 'enable openvswitch', timeout => 200;
     systemctl 'start openvswitch',  timeout => 200;
 
-    record_info("VSPerf Installation");
+    record_info("INFO", "VSPerf Installation");
     assert_script_run("cd vswitchperf/systems");
     if (is_sle('>=15')) {
         # Hack to skip the OVS, DPDK and QEMU compilation as we will use the vanilla packages
@@ -72,18 +72,18 @@ sub run {
     elsif (check_var('VERSION', '12-SP4')) {
         assert_script_run("curl " . data_url('nfv/sles/12.4/build_base_machine.sh') . " -o /root/build_base_machine.sh");
         assert_script_run("chmod 755 /root/build_base_machine.sh");
-        assert_script_run("bash -x /root/build_base_machine.sh", timeout => 500);
+        assert_script_run("bash -x /root/build_base_machine.sh", timeout => 600);
     }
     else {
         die "OS VERSION not supported. Available only on >=15 and 12-SP4";
     }
 
     # Clone Trex repo inside VSPerf directories
-    record_info("Clone TREX");
-    assert_script_run("cd /root/vswitchperf/src/trex; make", timeout => 500);
+    record_info("INFO", "Clone TREX repository");
+    assert_script_run("cd /root/vswitchperf/src/trex; make", timeout => 600);
 
     # Copy VSPERF custom configuration files
-    record_info("Copy config");
+    record_info("INFO", "Copy VSPERF config files to target directory");
     assert_script_run("curl " . data_url('nfv/conf/00_common.conf') . " -o /root/vswitchperf/conf/00_common.conf");
     assert_script_run("curl " . data_url('nfv/conf/01_testcases.conf') . " -o /root/vswitchperf/conf/01_testcases.conf");
     assert_script_run("curl " . data_url('nfv/conf/02_vswitch.conf') . " -o /root/vswitchperf/conf/02_vswitch.conf");
@@ -96,25 +96,25 @@ sub run {
     assert_script_run("curl " . data_url('nfv/conf/10_custom.conf') . " -o /root/vswitchperf/conf/10_custom.conf");
     assert_script_run("sed -i 's/trafficgen_ip/$trafficgen_ip/' -i /root/vswitchperf/conf/10_custom.conf");
 
-    record_info("Wait NFV_TRAFFICGEN_READY");
+    record_info("INFO", "Wait for mutex NFV_TRAFFICGEN_READY");
     mutex_wait('NFV_TRAFFICGEN_READY', $child_id);
 
     if (check_var('BACKEND', 'ipmi')) {
         # Generate ssh keypair and ssh-copy-id to the Traffic generator machine
-        record_info("SSH KEY");
+        record_info("INFO", "Grant SSH access to trafficgen machine $trafficgen_ip");
         assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
         exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$trafficgen_ip");
 
         # Bring mellanox interfaces up
-        record_info("Interfaces up");
+        record_info("INFO", "Bring Mellanox interfaces up");
         assert_script_run("ip link set dev eth2 up");
         assert_script_run("ip link set dev eth3 up");
     }
 
-    record_info("Stop Firewall");
+    record_info("INFO", "Stop Firewall");
     systemctl 'stop ' . $self->firewall;
 
-    record_info("Installation ready");
+    record_info("INFO", "Installation ready. Mutex NFV_VSPERF_READY created");
     mutex_create("NFV_VSPERF_READY");
 }
 
