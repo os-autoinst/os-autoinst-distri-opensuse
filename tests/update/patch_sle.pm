@@ -28,7 +28,7 @@ sub patching_sle {
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test
     # with other than the SAP Administrator
-    my $nologin = (get_var('HDDVERSION') and is_upgrade() and is_sles4sap()) ? 1 : 0;
+    my $nologin = (get_var('HDDVERSION') and is_upgrade() and is_sles4sap());
 
     # Skip registration here since we use autoyast profile to register origin system on zVM
     if (!get_var('UPGRADE_ON_ZVM')) {
