@@ -64,10 +64,10 @@ def parse_csv(parsefile, os_version, os_build, vswitch_version, openqa_url):
 
 
 logging.basicConfig(filename='push2db.log', level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
 
@@ -93,6 +93,7 @@ elif args.parsefolder:
     result_folders_list = [folder for folder in os.listdir(
         args.parsefolder) if R.match(folder)]
     for result_folder in result_folders_list:
+        result_folder = os.path.join(args.parsefolder, result_folder)
         for file in os.listdir(result_folder):
             if file.endswith(".csv"):
                 parsefile = os.path.join(args.parsefolder, result_folder, file)
