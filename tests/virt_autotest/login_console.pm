@@ -70,8 +70,22 @@ sub login_to_console {
     save_screenshot;
     send_key 'ret';
 
-    assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
+    my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
+    ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
+    if (check_var('offline_upgrade', 'yes') && ($host_installed_version eq '11')) {
+        assert_screen('sshd-server-started-config', 180);
+        use_ssh_serial_console;
+        save_screenshot;
+        #start system first configuration after finishing upgrading from sles-11-sp4
+        type_string("yast.ssh\n");
+        assert_screen('will-linux-login', $timeout);
+        select_console('sol', await_console => 0);
+        save_screenshot;
+        send_key 'ret';
+        save_screenshot;
+    }
 
+    assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
     #use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 }
