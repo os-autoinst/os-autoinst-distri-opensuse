@@ -56,6 +56,7 @@ sub smb_conf_checker {
 
     if ($error ne "") {
         assert_script_run("echo \"$error\" > /tmp/failed_smb_directives.log");
+        return record_soft_failure "bsc#1106876 - Missing smb.conf directives" if (is_sle('>=15') || is_leap('>=15.0'));
         die 'Missing smb.conf directives';
     }
 }
