@@ -176,6 +176,7 @@ sub install_from_git {
     my $timeout     = check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') ? 7200 : 1440;
     my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
+    my $buildlog    = '/tmp/ltp_build.log';
     if ($rel) {
         $rel = ' -b ' . $rel;
     }
@@ -184,12 +185,13 @@ sub install_from_git {
     # It is a shallow clone so 'git describe' won't work
     script_run 'git log -1 --pretty=format:"git-%h" | tee /opt/ltp_version';
 
-    assert_script_run 'make autotools';
-    assert_script_run("$configure $extra_flags", timeout => 300);
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
+    assert_script_run "make autotools 2>&1 | tee -a $buildlog";
+    assert_script_run("$configure $extra_flags 2>&1 | tee -a $buildlog", timeout => 300);
+    assert_script_run "make -j\$(getconf _NPROCESSORS_ONLN) 2>&1 | tee -a $buildlog", timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
-    assert_script_run 'make install', timeout => 360;
+    assert_script_run "make install 2>&1 | tee -a $buildlog", timeout => 360;
     assert_script_run "find /opt/ltp/ -name '*.run-test' > ~/openposix-test-list-$tag";
+    upload_logs($buildlog, failok => 1);
 }
 
 sub install_from_repo {
