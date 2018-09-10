@@ -25,17 +25,22 @@ sub run_test {
     my $testname = "$test\_$vswitch";
     my $cmd      = "./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch $vswitch $test";
     record_info("INFO", "Running test case $testname");
+    record_info("INFO", "Command to run: $cmd");
     if (check_var('BACKEND', 'ipmi')) {
         assert_script_run($cmd, timeout => 4000);
-        record_info("INFO", "Push VSPerf Results to InfluxDB");
-        assert_script_run(sprintf('./push2db.py --parsefolder "%s" --targeturl http://10.86.0.128:8086 --os_version %s --os_build %s --vswitch_version %s --openqa_url %s',
-                $results_dir, get_var('VERSION'), get_var('BUILD'), $ovs_version, $test_url));
-        assert_script_run("mv /tmp/push2db.log /tmp/push2db_$testname.log");
-        upload_logs("/tmp/push2db_$testname.log", failok => 1);
-        assert_script_run("tar -czvf /tmp/vsperf_logs_$testname.tar.gz $results_dir/results_*");
-        upload_logs("/tmp/vsperf_logs_$test.tar.gz", failok => 1);
-        assert_script_run("rm -r $results_dir/results_*");
+    } elsif (check_var('BACKEND', 'qemu')) {
+        record_info("INFO", "Skip test as this is a virtual environment. Generate dummy results instead.");
+        assert_script_run("mkdir -p $results_dir/results_dummy");
+        assert_script_run("curl " . data_url('nfv/result_0_dummy.csv') . " -o $results_dir/results_dummy/result_0_dummy.csv");
     }
+    record_info("INFO", "Push VSPerf Results to InfluxDB");
+    assert_script_run(sprintf('./push2db.py --parsefolder "%s" --targeturl http://10.86.0.128:8086 --os_version %s --os_build %s --vswitch_version %s --openqa_url %s',
+            $results_dir, get_var('VERSION'), get_var('BUILD'), $ovs_version, $test_url));
+    assert_script_run("mv ./push2db.log $results_dir/push2db_$testname.log");
+    upload_logs("$results_dir/push2db_$testname.log", failok => 1);
+    assert_script_run("tar -czvf $results_dir/vsperf_logs_$testname.tar.gz $results_dir/results_*");
+    upload_logs("$results_dir/vsperf_logs_$test.tar.gz", failok => 1);
+    assert_script_run("rm -r $results_dir/results_*");
 }
 
 sub run {
