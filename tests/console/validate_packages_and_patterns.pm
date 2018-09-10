@@ -27,10 +27,43 @@ if (check_var('VALIDATE_PCM_PATTERN', 'azure')) {
         installed => 1,
         condition => sub { check_var_array('PATTERNS', 'azure') },
         pattern   => 1,
-        packages  => [qw(azuremetadata cloud-regionsrv-client docker-img-store-setup growpart
-              patterns-public-cloud-Microsoft-Azure python-azure-agent python-azurectl
-              python-susepubliccloudinfo regionServiceClientConfigAzure
-              supportutils-plugin-suse-public-cloud)],
+        packages  => [qw(azuremetadata
+              cloud-regionsrv-client docker-img-store-setup growpart supportutils-plugin-suse-public-cloud
+              patterns-public-cloud-Microsoft-Azure python-azure-agent python-azurectl python-susepubliccloudinfo
+              regionServiceClientConfigAzure
+              )],
+    };
+}
+elsif (check_var('VALIDATE_PCM_PATTERN', 'aws')) {
+    # We have different pattern names on SLE 15 and SLE 12
+    my $aws_pattern = is_sle('15+') ? 'Amazon_Web_Services' : 'Amazon-Web-Services';
+    my @aws_pattern_packages = qw(
+      aws-cli cloud-init
+      cloud-regionsrv-client
+      docker-img-store-setup growpart supportutils-plugin-suse-public-cloud
+      regionServiceClientConfigEC2 s3fs
+    );
+    if (is_sle('15+')) {
+        push @aws_pattern_packages, qw(
+          cloud-regionsrv-client-plugin-ec2
+          patterns-public-cloud-15-Amazon-Web-Services
+          python3-ec2deprecateimg python3-ec2metadata python3-ec2publishimg
+          python3-ec2uploadimg python3-s3transfer python3-susepubliccloudinfo
+        );
+    }
+    else {
+        push @aws_pattern_packages, qw(
+          patterns-public-cloud-Amazon-Web-Services
+          python-ec2deprecateimg python-ec2metadata python-ec2publishimg
+          python-ec2uploadimg python-s3transfer python-susepubliccloudinfo
+        );
+    }
+    $software{$aws_pattern} = {
+        repo      => 'Module-Public-Cloud',
+        installed => 1,
+        condition => sub { check_var_array('PATTERNS', 'aws') },
+        pattern   => 1,
+        packages  => \@aws_pattern_packages,
     };
 } else {
     $software{salt} = {
