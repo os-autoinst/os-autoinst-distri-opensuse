@@ -64,7 +64,7 @@ sub run {
     assert_screen 'multi_users_dm', 180;    # gnome loading takes long sometimes
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
-        assert_and_click('user_not_listed');
+        wait_screen_change { assert_and_click('user_not_listed') };
     }
     elsif (check_var('DESKTOP', 'xfce')) {
         send_key 'down';                    # select created user #01
