@@ -194,11 +194,8 @@ sub get_installation_partition {
     # For details, please refer to bug 1101806.
     my $cmd        = '';
     my $y2log_file = '/var/log/YaST2/y2log';
-    if (is_sle('15+')) {
-        $cmd = qq{grep 'Commit Action "Adding mount point / of .* to /etc/fstab"' $y2log_file | grep -o "/dev/[^ ]*"};
-    }
-    elsif (is_sle('12+')) {
-        $cmd = qq{sed -n '/INSTALL INFO info:Adding entry for mount point \\\/ to \\\/etc\\\/fstab/{x;p};h' $y2log_file | grep -o "/dev/[^ ]*"};
+    if (is_sle('12+')) {
+        $cmd = qq{grep -o '/dev/[^ ]\\+ /mnt ' $y2log_file | head -n1 | cut -f1 -d' '};
     }
     else {
         die "Not support finding root partition for products lower than sle12.";
