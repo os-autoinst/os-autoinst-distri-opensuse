@@ -323,13 +323,14 @@ sub is_sle12sp2_using_system_role {
 
 sub is_desktop_module_selected {
     # desktop applications module is selected if following variables have following values:
-    # productivity and ha require desktop applications, so it's preselected
+    # ha require desktop applications on sle <15, so it's preselected
     # same is true for sles4sap
     return
       get_var('ADDONS', '') =~ /all-packages|desktop|we/
       || get_var('WORKAROUND_MODULES', '') =~ /desktop|we/
       || get_var('ADDONURL',           '') =~ /desktop|we/
-      || get_var('SCC_ADDONS',         '') =~ /desktop|we|productivity|ha/
+      || (!is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we|productivity|ha/)
+      || (is_sle('15+')  && get_var('SCC_ADDONS', '') =~ /desktop|we/)
       || is_sles4sap;
 }
 

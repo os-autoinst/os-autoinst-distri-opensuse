@@ -47,16 +47,15 @@ our @EXPORT = qw(
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
 our %SLE15_MODULES = (
-    base         => 'Basesystem',
-    sdk          => 'Development-Tools',
-    desktop      => 'Desktop-Applications',
-    productivity => 'Desktop-Productivity',
-    legacy       => 'Legacy',
-    script       => 'Web-Scripting',
-    serverapp    => 'Server-Applications',
-    contm        => 'Containers',
-    pcm          => 'Public-Cloud',
-    sapapp       => 'SAP-Applications',
+    base      => 'Basesystem',
+    sdk       => 'Development-Tools',
+    desktop   => 'Desktop-Applications',
+    legacy    => 'Legacy',
+    script    => 'Web-Scripting',
+    serverapp => 'Server-Applications',
+    contm     => 'Containers',
+    pcm       => 'Public-Cloud',
+    sapapp    => 'SAP-Applications',
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -266,7 +265,7 @@ sub fill_in_registration_data {
         # Need desktop application for minimalx to make change_desktop work
         if (check_var('SLE_PRODUCT', 'sles')
             && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
-            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity|ha)/)
+            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we)/)
         {
             $addons = $addons ? $addons . ',desktop' : 'desktop';
             set_var('SCC_ADDONS', $addons);
