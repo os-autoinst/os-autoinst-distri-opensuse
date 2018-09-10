@@ -140,6 +140,9 @@ if (sle_version_at_least('15')) {
 # For released products we want install updates during installation, only in minimal workflow disable
 set_var('DISABLE_SLE_UPDATES', get_var('DISABLE_SLE_UPDATES', get_var('QAM_MINIMAL')));
 
+# set remote connection variable for s390x, svirt and ipmi
+set_var('REMOTE_CONNECTION', 'vnc') if get_var('BACKEND', '') =~ /s390x|svirt|ipmi/;
+
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
     if (sle_version_at_least('12-SP2')) {

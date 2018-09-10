@@ -17,10 +17,17 @@ use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
 
+sub yast2_migration_gnome_remote {
+    return check_var('MIGRATION_METHOD', 'yast') && check_var('DESKTOP', 'gnome') && get_var('REMOTE_CONNECTION');
+}
+
 sub run {
     my $self = shift;
 
-    if (!is_desktop_installed()) {
+    # According to bsc#1106017, use yast2 migration in gnome environment is not possible on s390x
+    # due to vnc session over xinetd service could be stopped during migration that cause gnome exit
+    # so use yast2 migration under root console
+    if (!is_desktop_installed() || yast2_migration_gnome_remote) {
         select_console 'root-console';
     }
     else {
