@@ -117,7 +117,8 @@ sub run {
     }
 
     # Try to stop container using ctrl+c
-    type_string("docker run --rm opensuse/tumbleweed sleep 30\n");
+    my $sleep_time = 30 * get_var('TIMEOUT_SCALE', 1);
+    type_string("docker run --rm opensuse/tumbleweed sleep $sleep_time\n");
     type_string("# Let's press ctrl+c right now ... ");
     send_key 'ctrl-c';
     type_string("# ... and we seem to be still in container\n");
