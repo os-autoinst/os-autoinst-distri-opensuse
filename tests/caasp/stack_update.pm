@@ -90,9 +90,14 @@ sub update_check_changes {
 }
 
 # ./update.sh -s will set up repositories
-sub update_setup_repo {
+sub update_setup_repos {
     record_info 'Repo', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
+
+    # Deregister before distribution update
+    if (update_scheduled 'dup') {
+        script_assert0 "ssh $admin_fqdn './update.sh -s dup' | tee /dev/$serialdev", 120;
+    }
 
     # Add UPDATE repository
     my $repo = update_scheduled;
@@ -156,7 +161,7 @@ sub update_perform_update {
 
 sub run {
     # update.sh -s $repo
-    update_setup_repo;
+    update_setup_repos;
 
     if (is_caasp 'qam') {
         install_new_packages;        # update.sh -n
