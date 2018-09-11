@@ -59,7 +59,7 @@ sub run {
     assert_screen "grub2";
     send_key 'up';
 
-    send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
+    send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 60);
     send_key 'ret';
     $self->{in_wait_boot} = 0;
     # On slow VMs we press down key before snapshots list is on screen
