@@ -226,7 +226,7 @@ sub verify_license_translations {
     for my $language (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
         wait_screen_change { send_key 'alt-l' };
         send_key 'home';
-        send_key_until_needlematch("license-language-selected-$language", 'down', 60, 1);
+        send_key_until_needlematch("license-language-selected-$language", 'down', 60, 3);
         assert_screen "license-content-$language";    # needs wait for loading content
     }
 }
