@@ -12,7 +12,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_desktop_installed);
+use version_utils qw(is_sle is_desktop_installed is_upgrade is_sles4sap);
 use migration;
 use registration;
 use qam;
@@ -24,6 +24,11 @@ sub patching_sle {
     # Save VIDEOMODE and SCC_REGISTER vars
     my $orig_videomode    = get_var('VIDEOMODE',    '');
     my $orig_scc_register = get_var('SCC_REGISTER', '');
+
+    # Do not attempt to log into the desktop of a system installed with SLES4SAP
+    # being prepared for upgrade, as it does not have an unprivileged user to test
+    # with other than the SAP Administrator
+    my $nologin = (get_var('HDDVERSION') and is_upgrade() and is_sles4sap());
 
     # Skip registration here since we use autoyast profile to register origin system on zVM
     if (!get_var('UPGRADE_ON_ZVM')) {
@@ -58,7 +63,7 @@ sub patching_sle {
             # Workaround for test failed of the reboot operation need to wait some jobs done
             # Add '-f' to force the reboot to avoid the test be blocked here
             type_string "reboot -f\n";
-            $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300);
+            $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300, nologin => $nologin);
             # Setup again after reboot
             $self->setup_sle();
         }
