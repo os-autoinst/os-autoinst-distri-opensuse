@@ -100,7 +100,7 @@ sub update_setup_repo {
 }
 
 # ./update.sh -n will install new package (QAM) if any
-sub install_new_package {
+sub install_new_packages {
     record_info "New Package", "This maintenance incident includes a NEW package";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -n' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
@@ -118,6 +118,9 @@ sub install_new_package {
 
 # ./update.sh -t will decide if it makes sense to run update_perform_update
 sub is_needed {
+    # Always needed for QA scenarios
+    return 1 unless is_caasp('qam');
+
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -t' | tee /dev/$serialdev", 120);
     if ($returnCode == 110) {
         record_info 'Skip Update', 'This maintenance incident was just one single new package';
@@ -127,7 +130,7 @@ sub is_needed {
 }
 
 # ./update.sh -u will install missing packages (QAM)
-sub update_install_packages {
+sub install_missing_packages {
     record_info 'Prepare', 'Install packages that are not part of the DVD but they are part of this incident';
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
@@ -146,27 +149,19 @@ sub update_install_packages {
 # ./update.sh -u will perform actual update
 sub update_perform_update {
     record_info 'Update', 'Apply the update using transactional update via salt and docker';
-    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev", 1200);
-    if ($returnCode == 100) {
-        orchestrate_velum_reboot;
-    }
-    elsif ($returnCode == 0) {
-        record_info 'Skip Update', 'This maintenance incident was just one single new package';
-    }
-    else {
-        die "Package installation failed";
-    }
+    switch_to 'xterm';
+    my $ret = script_run0("ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev", 1500);
+    $ret == 100 ? orchestrate_velum_reboot : die('Update process failed');
 }
 
 sub run {
     # update.sh -s $repo
     update_setup_repo;
 
-    # update.sh -n
-    install_new_package if is_caasp('qam');
-
-    # update.sh -i
-    update_install_packages if is_caasp('qam');
+    if (is_caasp 'qam') {
+        install_new_packages;        # update.sh -n
+        install_missing_packages;    # update.sh -i
+    }
 
     # update.sh -u
     update_perform_update if is_needed();
