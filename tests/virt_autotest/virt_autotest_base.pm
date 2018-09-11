@@ -95,7 +95,8 @@ sub generateXML {
             status    => $case_status,
             time      => $my_hash{$item}->{time});
         $writer->startTag('system-err');
-        $writer->characters("None");
+        my $system_err = ($my_hash{$item}->{error} ? $my_hash{$item}->{error} : 'None');
+        $writer->characters("$system_err");
         $writer->endTag('system-err');
 
         $writer->startTag('system-out');

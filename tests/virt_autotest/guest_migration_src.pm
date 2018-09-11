@@ -17,6 +17,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use virt_utils;
+use Data::Dumper;
 
 sub get_script_run {
     my ($self) = @_;
@@ -32,6 +33,47 @@ sub get_script_run {
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-guest-migrate-run " . $args;
 
     return "$pre_test_cmd";
+}
+
+sub analyzeResult {
+    my ($self, $text) = @_;
+    my $result;
+
+    #parse the guest migration result
+    $text =~ /Overall migration result start:(.*)Overall migration result end/s;
+    my $rough_result = $1;
+
+    foreach my $full_testcase_info (split("\n", $rough_result)) {
+        #remove lines that are not testcases
+        next if ($full_testcase_info =~ /(^\s*$|testcase|##)/m);
+        #parse result with format: case separator status [separator error]
+        my ($testcase_name, $status, $error) = (split("----------", $full_testcase_info));
+        foreach my $item ($testcase_name, $status, $error) {
+            $item =~ s/(^\s*|\s*$)//g;
+        }
+        if ($status =~ /pass/) {
+            $status = "PASSED";
+        }
+        elsif ($status =~ /fail/) {
+            $status = "FAILED";
+        }
+        $result->{$testcase_name}->{status} = $status;
+        $result->{$testcase_name}->{error}  = $error;
+    }
+
+    #parse the reported guest installation failures at the end of log
+    unless ($text =~ /Congratulations! No guest failed in installation/) {
+        $text =~ /The guests failed in guest installation phase before core test are:(.*)Installation failed guest list done/s;
+        my $installation_failed_guests = $1;
+        foreach my $guest (split('\n', $installation_failed_guests)) {
+            next unless $guest !~ /^\s*$/;
+            #add the installation failed guest into junit log
+            $result->{$guest}->{status} = 'FAILED';
+            $result->{$guest}->{error}  = "Guest $guest installation failed before guest migration test.";
+        }
+    }
+
+    return $result;
 }
 
 sub run {
@@ -60,6 +102,10 @@ sub run {
 
     my $guest_migrate_log_content = &script_output("$cmd");
     save_screenshot;
+
+    #upload junit log
+    $self->{"package_name"} = "Guest Migration Test";
+    $self->add_junit_log("$guest_migrate_log_content");
 
     #mark test result
     if ($guest_migrate_log_content =~ /0 succeed/m) {
