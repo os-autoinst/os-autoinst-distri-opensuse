@@ -684,6 +684,9 @@ if (is_jeos) {
 
 # load the tests in the right order
 if (is_kernel_test()) {
+    if (get_var('LTP_BAREMETAL')) {
+        load_baremetal_tests();
+    }
     load_kernel_tests();
 }
 elsif (get_var('IBTESTS')) {

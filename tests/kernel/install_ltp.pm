@@ -17,11 +17,11 @@ use File::Basename 'basename';
 use testapi;
 use registration;
 use utils;
-use power_action_utils 'power_action';
 use bootloader_setup 'add_custom_grub_entries';
+use main_common 'get_ltp_tag';
+use power_action_utils 'power_action';
 use serial_terminal qw(add_serial_console select_virtio_console);
 use version_utils qw(is_sle sle_version_at_least is_opensuse);
-use main_common 'get_ltp_tag';
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -255,7 +255,9 @@ sub run {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
 
-    $self->wait_boot;
+    if (!get_var('LTP_BAREMETAL')) {
+        $self->wait_boot;
+    }
 
     # poo#18980
     if (get_var('OFW') && check_var('VIRTIO_CONSOLE', 1)) {
@@ -272,6 +274,7 @@ sub run {
     upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     add_we_repo_if_available;
+
     if (is_sle('12+') || is_opensuse) {
         add_custom_grub_entries;
     }
