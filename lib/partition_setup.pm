@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(addpart addlv create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
+our @EXPORT = qw(addpart addlv addvg create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
 
 our %partition_roles = qw(
   OS alt-o
@@ -122,7 +122,7 @@ sub addpart {
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
             wait_screen_change { send_key 'home' };    # start from the top of the list
-            assert_screen((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10;
+            assert_screen(((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
     }
@@ -155,6 +155,27 @@ sub addpart {
     send_key((is_storage_ng) ? $cmd{next} : $cmd{finish});
 }
 
+sub addvg {
+    my (%args) = @_;
+
+    assert_screen 'expert-partitioner';
+    send_key $cmd{system_view};
+    send_key_until_needlematch('volume_management_feature', 'down');
+    send_key $cmd{addpart};
+    wait_still_screen 2;
+    save_screenshot;
+    send_key 'down';
+    send_key 'ret';
+    assert_screen 'partition-add-volume-group';
+    send_key 'alt-v';
+    type_string $args{name};
+    assert_and_click 'partition-select-first-from-top';
+    send_key 'alt-a';
+    wait_still_screen 2;
+    save_screenshot;
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
+}
+
 sub addlv {
     my (%args) = @_;
     send_key $cmd{addpart};
@@ -165,6 +186,9 @@ sub addlv {
     send_key 'ret';    # create logical volume
     assert_screen 'partition-lv-type';
     type_string $args{name};
+
+    send_key($args{thinpool} ? 'alt-t' : $args{thinvolume} ? 'alt-i' : 'alt-o');
+
     send_key $cmd{next};
     assert_screen 'partition-lv-size';
     if ($args{size}) {    # use default max size if not defined
@@ -177,6 +201,7 @@ sub addlv {
         type_string $args{size} . 'mb';
     }
     send_key $cmd{next};
+    return if $args{thinpool};
     assert_screen 'partition-role';
     send_key $partition_roles{$args{role}};                        # swap role
     send_key $cmd{next};
@@ -184,6 +209,7 @@ sub addlv {
     # Add mount
     mount_device $args{mount} if $args{mount};
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
+    assert_screen 'expert-partitioner';
 }
 
 sub select_first_hard_disk {

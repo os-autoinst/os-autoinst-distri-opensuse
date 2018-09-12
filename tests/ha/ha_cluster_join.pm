@@ -30,7 +30,7 @@ sub run {
     assert_screen 'ha-cluster-join-password';
     type_password;
     send_key 'ret';
-    wait_still_screen;
+    wait_still_screen(stilltime => 10);
 
     # Indicate that the other nodes have joined the cluster
     barrier_wait("NODE_JOINED_$cluster_name");

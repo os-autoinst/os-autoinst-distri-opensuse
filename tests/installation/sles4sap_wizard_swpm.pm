@@ -19,15 +19,15 @@ sub run {
         assert_screen "sles4sap-wizard-tuned-profile-throughput";
     }
     send_key $cmd{next};
-    if (check_screen 'sles4sap-wizard-tuned-profile-confirmation') {
+    if (check_screen 'sles4sap-wizard-tuned-profile-confirmation', 30) {
         send_key 'alt-y';    # Yes
     }
     assert_screen "sles4sap-wizard-tuned-profile-applied";
     send_key 'alt-o';        # Ok
     send_key $cmd{next};
-    if (check_screen('sles4sap-wizard-no-space-left')) {
-        send_key 'alt-o';       #Okay
-        record_soft_failure;    #this is a bug, there is plenty of space
+    if (check_screen('sles4sap-wizard-no-space-left', 30)) {
+        send_key 'alt-o';    #Okay
+        die 'this is a bug, there is plenty of space';
     }
     assert_screen "sles4sap-wizard-swpm-overview";    #the same screen as at the beginning of sles4sap_wizard_swpm
     send_key $cmd{next};

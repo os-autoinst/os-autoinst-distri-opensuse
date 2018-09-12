@@ -84,12 +84,23 @@ unless (get_var("DESKTOP")) {
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
-    # lightdm is the default DM since Leap 15.0 per boo#1081760
-    # staging project keep to use xdm due to lightdm will not be in staging project
-    if (!is_leap('15.0+') || get_var('STAGING')) {
+    # lightdm is the default DM for Tumbleweed and Leap 15.0 per boo#1081760
+    if (is_leap('<15.0')) {
         set_var("XDMUSED",           1);
         set_var('DM_NEEDS_USERNAME', 1);
     }
+    # Set patterns for the new system role flow, as we need to select patterns, similarly to SLE12
+    if (get_var('SYSTEM_ROLE_STYLE') && !get_var('PATTERNS')) {
+        set_var('PATTERNS', 'default,minimalx');
+    }
+}
+
+if (get_var('SYSTEM_ROLE_STYLE') && check_var('DESKTOP', 'lxde') && !get_var('PATTERNS')) {
+    set_var('PATTERNS', 'default,lxde');
+}
+
+if (get_var('SYSTEM_ROLE_STYLE') && check_var('DESKTOP', 'xfce') && !get_var('PATTERNS')) {
+    set_var('PATTERNS', 'default,xfce');
 }
 
 if (is_leap('15.0+') || is_tumbleweed()) {
@@ -121,7 +132,7 @@ if (is_updates_test_repo && !get_var('ZYPPER_ADD_REPOS')) {
     set_var('ZYPPER_ADD_REPO_PREFIX', 'untrusted');
 }
 
-if (   get_var("WITH_UPDATE_REPO")
+if (get_var("WITH_UPDATE_REPO")
     || get_var("WITH_MAIN_REPO")
     || get_var("WITH_DEBUG_REPO")
     || get_var("WITH_SOURCE_REPO")
@@ -140,18 +151,6 @@ logcurrentenv(
       ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE
       LIVECD NETBOOT NOIMAGES QEMUVGA SPLITUSR VIDEOMODE)
 );
-
-sub updates_is_applicable {
-    # we don't want live systems to run out of memory or virtual disk space.
-    # Applying updates on a live system would not be persistent anyway.
-    # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
-    # Also, updates on INSTALLONLY do not match the meaning
-    return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
-}
-
-sub guiupdates_is_applicable {
-    return get_var("DESKTOP") =~ /gnome|kde|xfce|lxde/ && !check_var("FLAVOR", "Rescue-CD");
-}
 
 sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
@@ -183,6 +182,7 @@ sub load_fixup_firewall {
 sub load_consoletests_minimal {
     return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
     # Stagings should test yast2-bootloader in miniuefi at least but not all
+    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/textinfo";
     loadtest "console/hostname";
@@ -195,6 +195,7 @@ sub load_consoletests_minimal {
 sub load_otherDE_tests {
     if (get_var("DE_PATTERN")) {
         my $de = get_var("DE_PATTERN");
+        loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
         loadtest "console/hostname";
         loadtest "update/zypper_clear_repos";
@@ -207,7 +208,7 @@ sub load_otherDE_tests {
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
         if ($de =~ /^mate$/)          { load_mate_tests(); }
         if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
-        loadtest "x11/shutdown";
+        load_shutdown_tests;
         return 1;
     }
     return 0;
@@ -238,44 +239,19 @@ sub install_online_updates {
       console/zypper_add_repos
       update/zypper_up
       console/console_reboot
-      shutdown/shutdown
     );
 
     for my $test (@tests) {
         loadtest "$test";
     }
+    load_shutdown_tests;
 
     return 1;
 }
 
-sub load_system_update_tests {
-    return unless updates_is_applicable;
-    if (need_clear_repos) {
-        loadtest "update/zypper_clear_repos";
-        set_var('CLEAR_REPOS', 1);
-    }
-
-    if (get_var('ZYPPER_ADD_REPOS')) {
-        loadtest "console/zypper_add_repos";
-    }
-    if (guiupdates_is_applicable()) {
-        loadtest "update/prepare_system_for_update_tests";
-        if (check_var("DESKTOP", "kde")) {
-            loadtest "update/updates_packagekit_kde";
-        }
-        else {
-            loadtest "update/updates_packagekit_gpk";
-        }
-        loadtest "update/check_system_is_updated";
-    }
-    else {
-        loadtest "update/zypper_up";
-    }
-}
-
 sub load_qam_install_tests {
     return 0 unless get_var('INSTALL_PACKAGES');
-
+    loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
     loadtest 'console/import_gpg_keys';
     loadtest 'update/zypper_up';
@@ -283,7 +259,6 @@ sub load_qam_install_tests {
     loadtest 'console/zypper_add_repos';
     loadtest 'console/qam_zypper_patch';
     loadtest 'console/qam_verify_package_install';
-
 
     return 1;
 }
@@ -313,6 +288,10 @@ sub load_default_tests {
 }
 
 # load the tests in the right order
+if (is_jeos) {
+    load_jeos_tests();
+}
+
 if (is_kernel_test()) {
     load_kernel_tests();
 }
@@ -391,24 +370,28 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_inst_tests();
     load_reboot_tests();
 }
-elsif (get_var('SECURITYTEST')) {
+elsif (get_var('SECURITY_TEST')) {
     boot_hdd_image;
+    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/hostname";
-    if (check_var('SECURITYTEST', 'core')) {
+    if (check_var('SECURITY_TEST', 'core')) {
         load_security_tests_core;
     }
-    elsif (check_var('SECURITYTEST', 'web')) {
+    elsif (check_var('SECURITY_TEST', 'web')) {
         load_security_tests_web;
     }
-    elsif (check_var('SECURITYTEST', 'misc')) {
+    elsif (check_var('SECURITY_TEST', 'misc')) {
         load_security_tests_misc;
     }
-    elsif (check_var('SECURITYTEST', 'crypt')) {
+    elsif (check_var('SECURITY_TEST', 'crypt')) {
         load_security_tests_crypt;
     }
-    elsif (check_var("SECURITYTEST", "apparmor_status")) {
-        load_security_tests_apparmor_status;
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
+        load_security_tests_apparmor;
+    }
+    elsif (check_var("SECURITY_TEST", "openscap")) {
+        load_security_tests_openscap;
     }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
@@ -417,7 +400,6 @@ elsif (get_var('SYSTEMD_TESTSUITE')) {
 elsif (get_var('DOCKER_IMAGE_TEST')) {
     boot_hdd_image;
     load_docker_tests;
-    loadtest 'console/docker_image';
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
@@ -462,7 +444,7 @@ else {
     elsif (is_jeos) {
         load_boot_tests();
         loadtest "jeos/firstrun";
-        loadtest "console/force_cron_run";
+        loadtest "console/force_scheduled_tasks";
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
         loadtest "jeos/mount_by_label";

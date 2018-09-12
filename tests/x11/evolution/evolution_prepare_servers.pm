@@ -14,20 +14,19 @@ use strict;
 use base "x11test";
 use testapi;
 use utils;
+use version_utils "is_sle";
 
 sub run() {
-    # check for the SLE version, die if not supported
-    # dovecot repository must be ajusted for versions > 12 to run full
-    # evolution imap/pop tests
-    die 'not supported SLE version' if not get_var('VERSION') =~ /12/;
-
     select_console('root-console');
     pkcon_quit;
 
-    # add SLES repository and install dovecot
-    zypper_call("ar http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/ sle_server_repo");
+    my $dovecot_repo = get_required_var("DOVECOT_REPO");
+    # Add dovecot repository and install dovecot
+    zypper_call("ar ${dovecot_repo} dovecot_repo");
+
     zypper_call("--gpg-auto-import-keys ref");
     zypper_call("in dovecot", exitcode => [0, 102, 103]);
+    zypper_call("rr dovecot_repo");
     save_screenshot;
 
     # configure dovecot
@@ -35,11 +34,20 @@ sub run() {
     assert_script_run "sed -i -e 's/#mail_access_groups =/mail_access_groups = mail/g' /etc/dovecot/conf.d/10-mail.conf";
     assert_script_run "sed -i -e 's/#ssl_cert =/ssl_cert =/g' /etc/dovecot/conf.d/10-ssl.conf";
     assert_script_run "sed -i -e 's/#ssl_key =/ssl_key =/g' /etc/dovecot/conf.d/10-ssl.conf";
+    assert_script_run "sed -i -e 's/#ssl_dh =/ssl_dh =/g' /etc/dovecot/conf.d/10-ssl.conf";
     assert_script_run "sed -i -e 's/auth_mechanisms = plain/auth_mechanisms = plain login/g' /etc/dovecot/conf.d/10-auth.conf";
-    assert_script_run "sed -i -e '96,98 s/#//g' /etc/dovecot/conf.d/10-master.conf";
+    # Uncomment lines related to Postfix smtp-auth
+    #  unix_listener /var/spool/postfix/private/auth {
+    #   mode = 0666
+    # }
+    my $uncomment_lines = is_sle("15+") ? "107,109" : "96,98";
+    assert_script_run "sed -i -e '${uncomment_lines} s/#//g' /etc/dovecot/conf.d/10-master.conf";
 
-    # generate default certificate for dovecot and postfix
-    assert_script_run "cd /usr/share/doc/packages/dovecot;./mkcert.sh";
+    # Generate SSL DH parameters
+    assert_script_run "openssl dhparam -out /etc/dovecot/dh.pem 2048", 300;
+
+    # Generate default certificate for dovecot and postfix
+    assert_script_run "cd /usr/share/doc/packages/dovecot;bash mkcert.sh";
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
@@ -70,11 +78,14 @@ sub run() {
     send_key 'ret';
     save_screenshot;
 
+    systemctl 'status dovecot';
+    systemctl 'status postfix';
+
     select_console 'x11';
 }
 
 sub test_flags() {
-    return {milestone => 1};         # add milestone flag to save setup in lastgood VM snapshot
+    return {milestone => 1};
 }
 
 1;

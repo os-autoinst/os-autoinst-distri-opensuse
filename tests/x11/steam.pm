@@ -38,8 +38,14 @@ sub run {
 'find $HOME/.steam/root/ubuntu12_32/steam-runtime/*/usr/lib/ \( -name "libstdc++.so.6" -o -name "libgpg-error.so.0" -o -name "libxcb.so.1" -o -name "libgcc_s.so.1" \) -exec mv "{}" "{}.bak" \; -print';
         script_run 'steam', 0;
     }
-    assert_screen 'steam-login', 600;
-    send_key 'alt-f4';
+    # record_soft_failure for issue with steamAPI_Init
+    assert_screen [qw(steam-login steamapi-init-failed)], 600;
+    if (match_has_tag 'steamapi-init-failed') {
+        send_key 'alt-f4';
+        record_soft_failure 'bsc#1102525, steamAPI_Init failed';
+    }
+    wait_screen_change { send_key 'alt-f4' };
+    wait_still_screen(3);
     script_run 'exit', 0;
 }
 

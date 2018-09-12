@@ -17,30 +17,43 @@ use testapi;
 use caasp;
 use version_utils 'is_caasp';
 
+# poo#16408
 sub run {
-    # poo#16408 part 1
-    send_key 'alt-p';    # partitioning
-    assert_screen 'prepare-hard-disk';
+    # Partitioning
+    send_alt 'partitioning';
+    if (is_caasp '=4.0') {
+        record_soft_failure 'bsc#1099485 - Jumping straight to expert partitioner';
+        assert_screen 'expert-partitioner';
+    }
+    else {
+        assert_screen 'prepare-hard-disk';
+    }
     send_key 'alt-b';    # back
     if (check_var('FAIL_EXPECTED', 'SMALL-DISK')) {
         assert_screen 'error-small-disk';
         send_key 'ret';
     }
-    assert_screen 'oci-overview-filled';
-    send_key 'alt-b';    # booting
-    assert_screen 'inst-bootloader-settings';
-    send_key 'alt-c';    # cancel
-    assert_screen 'oci-overview-filled';
-    send_key $cmd{next};    # network configuration
-    assert_screen 'inst-networksettings';
-    send_key $cmd{next};    # next
-    assert_screen 'oci-overview-filled';
-    send_key 'alt-k';       # kdump
-    assert_screen 'inst-kdump';
-    send_key 'alt-o';       # OK
-    assert_screen 'oci-overview-filled';
+    assert_screen 'rootpassword-typed';
 
-    send_key $cmd{install};
+    # Booting
+    send_alt 'booting';
+    assert_screen 'inst-bootloader-settings';
+    send_key 'alt-c';
+    assert_screen 'rootpassword-typed';
+
+    # Network configuration
+    send_alt 'network';
+    assert_screen 'inst-networksettings';
+    send_key 'alt-n';
+    assert_screen 'rootpassword-typed';
+
+    # Kdump
+    send_alt 'kdump';
+    assert_screen 'inst-kdump';
+    send_key 'alt-o';
+    assert_screen 'rootpassword-typed';
+
+    send_alt 'install';
 
     # Accept simple password
     handle_simple_pw;
@@ -55,7 +68,7 @@ sub run {
     if (check_var('FAIL_EXPECTED', 'SMALL-DISK')) {
         assert_screen 'error-small-disk';
         send_key 'ret';
-        assert_screen 'oci-overview-filled';
+        assert_screen 'rootpassword-typed';
         return;
     }
 
@@ -64,18 +77,17 @@ sub run {
         # Confirm installation start
         assert_screen "startinstall";
 
-        # poo#16408 part 2
         if ($repeat_once) {
-            send_key 'alt-b';    # abort
+            send_key 'alt-b';
             sleep 5 if check_var('VIDEOMODE', 'text');    # Wait until DOM reloads data tree
-            assert_screen 'oci-overview-filled';
+            assert_screen 'rootpassword-typed';
         }
         elsif (is_caasp '3.0+') {
             # accept eula
             send_key 'alt-a';
         }
 
-        send_key $cmd{install};
+        send_alt 'install';
     }
 
     # We need to wait a bit for the disks to be formatted

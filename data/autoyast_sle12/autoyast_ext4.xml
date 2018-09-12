@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>

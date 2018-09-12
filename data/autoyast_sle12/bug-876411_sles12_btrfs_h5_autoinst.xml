@@ -1,21 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-
-<!--
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <media_url>http://10.0.2.1/factory/extra/standard/</media_url>
-        <product>SuSE-Linux-Updates</product>
-        <product_dir>/</product_dir>
-        <name>Updates</name>
-      </listentry>
-    </add_on_products>
-  </add-on>
--->
   <scripts>
-
     <chroot-scripts config:type="list">
       <script>
         <filename>3_chroot.sh</filename>
@@ -58,11 +44,7 @@ find / -name YaST2-Second-Stage.service
 
       </script>
     </chroot-scripts>
-
-
-
   </scripts>
-
   <bootloader>
     <global>
       <append> ${extra_cmdline} net.ifnames=0 splash=silent quiet showopts crashkernel=164M-:82M</append>
@@ -75,7 +57,7 @@ find / -name YaST2-Second-Stage.service
       <os_prober>true</os_prober>
       <suse_btrfs>true</suse_btrfs>
       <terminal>gfxterm</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
     <sections config:type="list">

@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
 use migration;
 use qam;
@@ -24,7 +25,8 @@ sub run {
 
     add_test_repositories;
     fully_patch_system;
-    type_string "reboot\n";
+    remove_ltss;
+    power_action('reboot', keepconsole => 1, textmode => 1);
     $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
     $self->setup_migration;
 }

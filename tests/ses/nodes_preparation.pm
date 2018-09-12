@@ -79,7 +79,7 @@ EOF
     systemctl 'disable apparmor';
     systemctl 'stop apparmor';
     # configure and start chrony, time synchroniation server for nodes is master
-    my $ntp_server = check_var('HOSTNAME', 'master') ? 'ntp1.suse.de' : 'master.openqa.test';
+    my $ntp_server = check_var('HOSTNAME', 'master') ? 'ntp.suse.de' : 'master.openqa.test';
     assert_script_run "sed -i '/pool/d' /etc/chrony.conf";
     if (check_var('HOSTNAME', 'master')) {
         # set ntp server and add allow for nodes to sync with master

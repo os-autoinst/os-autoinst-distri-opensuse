@@ -14,6 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
@@ -42,9 +43,9 @@ sub run {
     type_string "yast2 snapper\n";
     assert_screen 'yast2_snapper-snapshots', 100;
     # ensure the last screenshots are visible
-    send_key 'end';
+    wait_screen_change { send_key 'end' };
     # Make sure the test snapshot is not there
-    die("Unexpected snapshot found") if (check_screen([qw(grub_comment)], 1));
+    die("Unexpected snapshot found") if (check_screen([qw(grub_comment)], 0));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot();
@@ -52,15 +53,15 @@ sub run {
     send_key_until_needlematch([qw(grub_comment)], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
+    $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
-
     $self->handle_uefi_boot_disk_workaround() if get_var('MACHINE') =~ qr'aarch64';
     assert_screen "grub2";
     send_key 'up';
 
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
-
+    $self->{in_wait_boot} = 0;
     # On slow VMs we press down key before snapshots list is on screen
     wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
 

@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Install xfstests
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package install;
 
 use 5.018;
@@ -19,7 +19,7 @@ use serial_terminal 'select_virtio_console';
 use utils;
 use testapi;
 
-my $STATUS_LOG = '/tmp/status.log';
+my $STATUS_LOG = '/opt/status.log';
 
 # Create log file used to generate junit xml report
 sub log_create {

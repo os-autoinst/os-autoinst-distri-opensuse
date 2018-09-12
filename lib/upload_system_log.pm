@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-#Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,16 +25,17 @@ sub system_status {
     my ($self, $log) = @_;
     $log //= "/tmp/system-status.log";
 
-    my @klst = ("kernel", "cpuinfo", "memory", "repos", "lspci");
     my %cmds = (
-        kernel  => "uname -a",
-        cpuinfo => "cat /proc/cpuinfo",
-        memory  => "free -m",
-        repos   => "zypper repos -u",
-        lspci   => "lspci",
+        kernel                     => "uname -a",
+        cpuinfo                    => "cat /proc/cpuinfo",
+        memory                     => "free -m",
+        repos                      => "zypper repos -u",
+        lspci                      => "lspci",
+        lsmod                      => "lsmod",
+        '/proc/sys/kernel/tainted' => "cat /proc/sys/kernel/tainted",
     );
 
-    foreach my $key (@klst) {
+    foreach my $key (keys %cmds) {
         my $cmd = "echo '=========> $key <=========' >> $log; ";
         $cmd .= "$cmds{$key} >> $log; ";
         $cmd .= "echo '' >> $log";
@@ -44,19 +45,23 @@ sub system_status {
 }
 
 sub journalctl_log {
-    my ($self, $sys_log) = @_;
-    $sys_log //= "/tmp/journalctl.log";
-    script_run("journalctl -b >$sys_log", 40);
+    my ($self, $log) = @_;
+    $log //= "/tmp/journalctl.log";
+    script_run("journalctl -b -o short-precise >$log", 40);
+    return $log;
+}
 
-    return $sys_log;
+sub dmesg_log {
+    my ($self, $log) = @_;
+    $log //= "/tmp/dmesg.log";
+    script_run("dmesg >$log", 40);
+    return $log;
 }
 
 sub upload_system_logs {
-    my $log     = system_status();
-    my $sys_log = journalctl_log();
-
-    upload_logs($log,     timeout => 100);
-    upload_logs($sys_log, timeout => 100);
+    upload_logs(system_status(),  timeout => 100, failok => 1);
+    upload_logs(journalctl_log(), timeout => 100, failok => 1);
+    upload_logs(dmesg_log(),      timeout => 100, failok => 1);
 }
 
 1;

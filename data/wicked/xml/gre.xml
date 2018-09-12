@@ -1,0 +1,15 @@
+<interface>
+  <name>gre1</name>
+  <description>GRE tunnel interface</description>
+
+  <gre>
+    <local-address>local_ip</local-address>
+    <remote-address>remote_ip</remote-address>
+  </gre>
+
+  <ipv4:static>
+    <address>
+      <local>tunnel_ip/24</local>
+    </address>
+  </ipv4:static>
+</interface>

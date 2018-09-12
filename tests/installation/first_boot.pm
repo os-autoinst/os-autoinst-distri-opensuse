@@ -17,13 +17,19 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils qw(handle_login handle_emergency);
-use version_utils 'sle_version_at_least';
+use version_utils qw(sle_version_at_least is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
+use base 'opensusebasetest';
 
 sub run {
+    my ($self) = @_;
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
     my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
-    select_console('x11') if ($gnome_ipmi);
+    if ($gnome_ipmi) {
+        # first boot takes sometimes quite long time, ensure that it reaches login prompt
+        $self->wait_boot(textmode => 1);
+        select_console('x11');
+    }
     my $boot_timeout = (get_var('SES5_DEPLOY') || check_var('VIRSH_VMM_FAMILY', 'hyperv')) ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
     return if check_var('ARCH', 's390x') && sle_version_at_least('15');
@@ -39,6 +45,12 @@ sub run {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
     }
+    # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
+    # Administrator user listed but do not attempt to login
+    if (get_var('HDDVERSION') and is_desktop_installed() and is_upgrade() and is_sles4sap()) {
+        assert_screen 'displaymanager-sapadm', $boot_timeout;
+        return;
+    }
     # On IPMI, when selecting x11 console, we are already logged in.
     if ((get_var("NOAUTOLOGIN") || get_var("IMPORT_USER_DATA")) && !$gnome_ipmi) {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $boot_timeout;
@@ -49,6 +61,10 @@ sub run {
     my @tags = qw(generic-desktop);
     if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
         push(@tags, 'kde-greeter');
+    }
+    # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
+    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
+        push(@tags, 'displaymanager');
     }
     # GNOME and KDE get into screenlock after 5 minutes without activities.
     # using multiple check intervals here then we can get the wrong desktop
@@ -63,6 +79,17 @@ sub run {
     }
     # the last check after previous intervals must be fatal
     assert_screen \@tags, $check_interval;
+    if (match_has_tag('displaymanager')) {
+        record_soft_failure 'boo#1102563 - GNOME autologin broken. Handle login and disable Wayland for login page to make it work next time';
+        handle_login;
+        assert_screen 'generic-desktop';
+        # Force the login screen to use Xorg to get autologin working
+        # (needed for additional tests using boot_to_desktop)
+        x11_start_program('xterm');
+        wait_still_screen;
+        script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
+        wait_screen_change { send_key 'alt-f4' };
+    }
     if (match_has_tag('kde-greeter')) {
         send_key "esc";
         assert_screen 'generic-desktop';

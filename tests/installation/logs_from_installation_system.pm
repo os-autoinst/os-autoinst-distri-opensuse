@@ -32,10 +32,11 @@ sub run {
     }
     # while technically SUT has a different network than the BMC
     # we require ssh installation anyway
-    if (check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
         use_ssh_serial_console;
         # set serial console for xen
-        set_serial_console_on_xen('/mnt') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
+        set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
+        set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE', 'kvm'));
     }
     else {
         # avoid known issue in FIPS mode: bsc#985969

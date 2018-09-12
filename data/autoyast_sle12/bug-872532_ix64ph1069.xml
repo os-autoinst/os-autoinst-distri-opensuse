@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-
   <bootloader>
     <global>
       <append> ${extra_cmdline} splash=silent quiet showopts crashkernel=164M-:82M</append>
@@ -13,7 +12,7 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>true</os_prober>
       <suse_btrfs>true</suse_btrfs>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
       <xen_kernel_append> splash=silent quiet showopts</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>

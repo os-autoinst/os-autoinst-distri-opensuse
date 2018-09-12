@@ -65,11 +65,7 @@ sub run {
 
     # ocfs2 package should be installed by default
     if ($fs_type eq 'ocfs2') {
-        # Test if OCFS2 kernel module package is installed
-        if (!is_package_installed 'ocfs2-kmp-default') {
-            record_soft_failure 'bsc#1060601';
-            zypper_call 'in ocfs2-kmp-default';
-        }
+        die 'ocfs2-kmp-default kernel package is not installed' unless is_package_installed 'ocfs2-kmp-default';
     }
 
     # xfsprogs is not installed by default, so we need to install it if needed

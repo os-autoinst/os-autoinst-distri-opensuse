@@ -154,8 +154,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^julia-compat(-devel)?/;
     # conflicts with wxWidgets-3_0-devel/
     return 1 if $pkg =~ /^wxWidgets-3_0-nostl-devel/;
-    # conflicts with split devel packages from ffmpeg (3)
-    return 1 if $pkg =~ /^ffmpeg2-devel/;
+    # ffmpeg was split into -2,3,4, and the -devel packages are mutually exclusive
+    return 1 if $pkg =~ /^ffmpeg-[23]-.*-devel/;
     # conflicts with libjpeg62-devel
     return 1 if $pkg =~ /^libjpeg8-devel/;
     # conflicts with the plain variant
@@ -171,6 +171,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^cloud-netconfig-azure/;
     # conflicts with otherproviders(skelcd-installer), skelcd-installer-openSUSE
     return 1 if $pkg =~ /^skelcd-installer-net-openSUSE/;
+    # conflicts with openafs-client, fuse client is experimental
+    return 1 if $pkg =~ /^openafs-fuse_client/;
 
     return;
 }
@@ -315,5 +317,3 @@ else {
 }
 
 exit $exit_status;
-
-# vim: sw=4 et

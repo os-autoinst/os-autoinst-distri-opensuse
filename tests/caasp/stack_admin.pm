@@ -16,26 +16,15 @@ use testapi;
 use caasp;
 use version_utils 'is_caasp';
 
-# Set default password on worker nodes - bsc#1030876
+# Set password on autoyast nodes - bsc#1030876
 sub set_autoyast_password {
     script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
     script_run 'pw=$(python -c "import crypt; print crypt.crypt(\'nots3cr3t\', \'\$6\$susetest\')")';
-    script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"';
-}
+    script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"', 60;
 
-# Handle update process
-sub handle_update_reboot {
-    # Download update script
-    assert_script_run 'curl -O ' . data_url("caasp/update.sh");
-    assert_script_run 'chmod +x update.sh';
-
-    pause_until 'REBOOT_FINISHED';
-
-    # Admin node was rebooted only if update passed
-    if (check_screen 'linux-login-casp', 0) {
-        reset_consoles;
-        select_console 'root-console';
-    }
+    # Unlock and wait for propagation
+    unpause 'AUTOYAST_PW_SET';
+    sleep 30 if is_caasp('local');
 }
 
 sub run() {
@@ -43,21 +32,20 @@ sub run() {
     script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 15;
     unpause 'VELUM_STARTED';
 
-    # Set password for autoyast cluster nodes
-    if (is_caasp 'DVD') {
-        pause_until 'NODES_ACCEPTED';
-        set_autoyast_password;
-    }
+    # Download update script
+    assert_script_run 'curl -O ' . data_url("caasp/update.sh");
+    assert_script_run 'chmod +x update.sh';
 
-    handle_update_reboot;
-
-    # Set password for autoyast cluster nodes
-    if (is_caasp('DVD') && get_delayed_worker) {
-        pause_until 'DELAYED_NODES_ACCEPTED';
-        set_autoyast_password;
-    }
-
+    # Wait during tests from controller
     pause_until 'CNTRL_FINISHED';
+
+    # Login if node was rebooted (update|reboot modules)
+    if (check_screen 'linux-login-casp', 0) {
+        reset_consoles;
+        select_console 'root-console';
+    }
+
+    set_autoyast_password if is_caasp 'DVD';
     export_cluster_logs;
 }
 

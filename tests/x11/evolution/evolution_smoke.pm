@@ -1,6 +1,6 @@
 # Evolution tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -50,7 +50,7 @@ sub run {
         last if (match_has_tag('evolution_mail-auth'));
         # if evolution still hangs on folders scanning after 10 tries, try another mail provider
         if ($time_counter == 10) {
-            record_soft_failure("Server is not responding, trying backup email provider.");
+            record_info('Connection problem', "Server is not responding, trying backup email provider.");
             my $mail_box = 'nooops_test3@gmx.com';
             evolution_wizard($self, $mail_box);
             assert_screen "evolution_mail-auth";
@@ -62,7 +62,7 @@ sub run {
 
     type_string "$mail_passwd";
     send_key "ret";
-    if (check_screen "evolution_mail-init-window") {
+    if (check_screen "evolution_mail-init-window", 30) {
         send_key "super-up";
     }
     assert_screen "evolution_mail-max-window";

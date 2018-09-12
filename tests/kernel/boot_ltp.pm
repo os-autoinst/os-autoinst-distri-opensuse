@@ -49,7 +49,7 @@ sub run {
 
     # check kGraft patch if KGRAFT=1
     if (check_var('KGRAFT', '1')) {
-        assert_script_run("uname -v| grep '/kGraft-'");
+        assert_script_run("uname -v| grep -E '(/kGraft-|/lp-)'");
     }
 
     if ($ltp_env) {
@@ -87,6 +87,8 @@ sub run {
         $environment->{ltp_version} = script_output('touch /opt/ltp_version; cat /opt/ltp_version');
         $tinfo->test_result_export->{environment} = $environment;
     }
+
+    script_run('ps axf') if ($is_network || $is_ima);
 
     if ($is_network) {
         # poo#18762: Sometimes there is physical NIC which is not configured.
@@ -152,22 +154,25 @@ EOF
         script_run('ip6tables -S');
 
         # display various network configuration
-        script_run('ps axf');
         script_run('netstat -nap');
 
         script_run('cat /etc/resolv.conf');
         script_run('cat /etc/nsswitch.conf');
         script_run('cat /etc/hosts');
 
+        # hostname (getaddrinfo_01)
+        script_run('hostnamectl');
+        script_run('cat /etc/hostname');
+
         script_run('ip addr');
         script_run('ip netns exec ltp_ns ip addr');
         script_run('ip route');
         script_run('ip -6 route');
 
-        script_run('ping -c 2 $IPV4_NETWORK.$LHOST_IPV4_HOST');
-        script_run('ping -c 2 $IPV4_NETWORK.$RHOST_IPV4_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$LHOST_IPV6_HOST');
-        script_run('ping6 -c 2 $IPV6_NETWORK:$RHOST_IPV6_HOST');
+        script_run('ping -c 2 $IPV4_LNETWORK.$LHOST_IPV4_HOST');
+        script_run('ping -c 2 $IPV4_RNETWORK.$RHOST_IPV4_HOST');
+        script_run('ping6 -c 2 $IPV6_LNETWORK:$LHOST_IPV6_HOST');
+        script_run('ping6 -c 2 $IPV6_RNETWORK:$RHOST_IPV6_HOST');
     }
 
     assert_script_run('cd $LTPROOT/testcases/bin');

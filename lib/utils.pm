@@ -19,7 +19,6 @@ use base Exporter;
 use Exporter;
 
 use strict;
-
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
@@ -35,7 +34,6 @@ our @EXPORT = qw(
   type_line_svirt
   integration_services_check
   unlock_if_encrypted
-  prepare_system_shutdown
   get_netboot_mirror
   zypper_call
   fully_patch_system
@@ -45,10 +43,6 @@ our @EXPORT = qw(
   install_to_other_at_least
   is_bridged_networking
   ensure_fullscreen
-  reboot_x11
-  poweroff_x11
-  power_action
-  assert_shutdown_and_restore_system
   assert_screen_with_soft_timeout
   pkcon_quit
   systemctl
@@ -63,14 +57,13 @@ our @EXPORT = qw(
   handle_logout
   handle_relogin
   handle_emergency
+  handle_grub_zvm
   service_action
   assert_gui_app
-  install_all_from_repo
   run_scripted_command_slow
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
-  setup_static_network
   arrays_differ
   ensure_serialdev_permissions
   assert_and_click_until_screen_change
@@ -78,6 +71,7 @@ our @EXPORT = qw(
   shorten_url
   reconnect_s390
   set_hostname
+  zypper_ar
 );
 
 
@@ -121,7 +115,7 @@ sub type_line_svirt {
 
 sub unlock_zvm_disk {
     my ($console) = @_;
-    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase') };
+    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
     if ($@) {
         diag 'No passphrase asked, continuing';
     }
@@ -134,7 +128,7 @@ sub unlock_zvm_disk {
 
 sub handle_grub_zvm {
     my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB'); };
+    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 60); };
     if ($@) {
         diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
     }
@@ -149,6 +143,18 @@ are present and in working condition. Just Hyper-V for now.
 =cut
 sub integration_services_check {
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        # Host-side of Integration Services
+        my $vmname       = console('svirt')->name;
+        my $ips_host_pov = console('svirt')
+          ->get_cmd_output('powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
+        $ips_host_pov = (split /\n/, $ips_host_pov)[1];
+        $ips_host_pov =~ s/,.*//g;
+        $ips_host_pov =~ s/\{//g;
+        my $ips_guest_pov = script_output("ip address show up scope global | grep -w inet | awk '{ print \$2 }' | sed 's|/.*||' | tr -d '\\n'");
+        record_info('IP (host)',  $ips_host_pov);
+        record_info('IP (guest)', $ips_guest_pov);
+        die "ips_host_pov=<$ips_host_pov> ips_guest_pov=<$ips_guest_pov>" if $ips_host_pov ne $ips_guest_pov;
+        # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
         my $base = is_jeos() ? '-base' : '';
@@ -181,7 +187,8 @@ sub unlock_if_encrypted {
             wait_serial("Please enter passphrase for disk.*", 100);
             type_line_svirt "$password";
         }
-        wait_serial("Please enter passphrase for disk.*", 100);
+        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        type_line_svirt '', expect => "Please enter passphrase for disk.*", timeout => 100, fail_message => 'Could not find "enter passphrase" prompt';
         type_line_svirt "$password";
     }    # Handle zVM scenario
     elsif (check_var('BACKEND', 's390x')) {
@@ -235,26 +242,6 @@ sub clear_console {
     type_string "clear\n";
 }
 
-# in some backends we need to prepare the reboot/shutdown
-sub prepare_system_shutdown {
-    # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
-
-    if (check_var('ARCH', 's390x')) {
-        if (check_var('BACKEND', 's390x')) {
-            # kill serial ssh connection (if it exists)
-            eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
-            diag('ignoring already shut down console') if ($@);
-        }
-        console('installation')->disable_vnc_stalls;
-    }
-    if (check_var('BACKEND', 'svirt')) {
-        my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
-        console($vnc_console)->disable_vnc_stalls;
-        console('svirt')->stop_serial_grab;
-    }
-}
-
 # assert_gui_app (optionally installs and) starts an application, checks it started
 # and closes it again. It's the most minimalistic way to test a GUI application
 # Mandatory parameter: application: the name of the application.
@@ -279,6 +266,8 @@ sub assert_gui_app {
 # console font, we need to call systemd-vconsole-setup to workaround
 # that
 sub check_console_font {
+    # Does not make sense on ssh-based consoles
+    return if (check_var('BACKEND', 'spvm')) || (check_var('BACKEND', 'ipmi'));
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match
     select_console('root-console', await_console => 0);
@@ -421,7 +410,7 @@ sub workaround_type_encrypted_passphrase {
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock gnome-screenlock-password)], no_wait => 1;
+        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -429,7 +418,7 @@ sub ensure_unlocked_desktop {
             }
             send_key 'ret';
         }
-        if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'gnome-screenlock-password')) {
+        if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {
                 type_password;
                 assert_screen [qw(locked_screen-typed_password login_screen-typed_password)];
@@ -446,7 +435,7 @@ sub ensure_unlocked_desktop {
                 # open run command prompt (if screen isn't locked)
                 mouse_hide(1);
                 send_key 'alt-f2';
-                if (check_screen 'desktop-runner') {
+                if (check_screen 'desktop-runner', 30) {
                     send_key 'esc';
                     assert_screen 'generic-desktop';
                 }
@@ -457,11 +446,16 @@ sub ensure_unlocked_desktop {
             last;            # desktop is unlocked, mission accomplished
         }
         if (match_has_tag 'screenlock') {
-            wait_screen_change {
-                send_key 'esc';    # end screenlock
-            };
+            unless (get_var('DESKTOP', '') =~ m/gnome/ && check_screen('blackscreen')) {
+                # Only xscreensaver has a blackscreen as screenlock but gnome might
+                # show a black screen here as a transient screen due to switch to x11.
+                # Pressing 'esc' in this case will break the user selection by pressing 'ret'.
+                wait_screen_change {
+                    send_key 'esc';    # end screenlock
+                };
+            }
         }
-        wait_still_screen 2;       # slow down loop
+        wait_still_screen 2;           # slow down loop
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
     }
 }
@@ -532,35 +526,6 @@ sub ensure_fullscreen {
     }
 }
 
-# VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
-# backend and we have to re-connect *after* the restart, otherwise we end up
-# with stalled VNC connection. The tricky part is to know *when* the system
-# is already booting.
-sub assert_shutdown_and_restore_system {
-    my ($action, $shutdown_timeout) = @_;
-    $action           //= 'reboot';
-    $shutdown_timeout //= 60;
-    my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
-    console($vnc_console)->disable_vnc_stalls;
-    assert_shutdown($shutdown_timeout);
-    if ($action eq 'reboot') {
-        reset_consoles;
-        my $svirt = console('svirt');
-        # Set disk as a primary boot device
-        if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
-            $svirt->change_domain_element(os => initrd  => undef);
-            $svirt->change_domain_element(os => kernel  => undef);
-            $svirt->change_domain_element(os => cmdline => undef);
-            $svirt->change_domain_element(on_reboot => undef);
-            $svirt->define_and_start;
-        }
-        else {
-            $svirt->define_and_start;
-            select_console($vnc_console);
-        }
-    }
-}
-
 sub assert_and_click_until_screen_change {
     my ($mustmatch, $wait_change, $repeat) = @_;
     $wait_change //= 2;
@@ -573,150 +538,6 @@ sub assert_and_click_until_screen_change {
     }
 
     return $i;
-}
-
-sub reboot_x11 {
-    my ($self) = @_;
-    wait_still_screen;
-    if (check_var('DESKTOP', 'gnome')) {
-        send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
-        my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
-        record_soft_failure 'poo#19082' if ($repetitions > 0);
-
-        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-            if (check_screen('shutdown-auth', 15)) {
-                wait_still_screen(3);                                           # 981299#c41
-                type_string $testapi::password, max_interval => 5;
-                wait_still_screen(3);                                           # 981299#c41
-                wait_screen_change {
-                    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-                    assert_and_click 'reboot-auth-typed', 'right';
-                };
-                wait_screen_change {
-                    # Click the 'Show Text' Option to enable the display of the typed text
-                    assert_and_click 'reboot-auth-showtext';
-                };
-                # Check the password is correct
-                assert_screen 'reboot-auth-correct-password';
-            }
-            else {
-                record_soft_failure 'bsc#1062788';
-            }
-
-            # we need to kill ssh for iucvconn here,
-            # because after pressing return, the system is down
-            prepare_system_shutdown;
-
-            send_key 'ret';    # Confirm
-        }
-    }
-}
-
-sub poweroff_x11 {
-    my ($self) = @_;
-    wait_still_screen;
-
-    if (check_var("DESKTOP", "kde")) {
-        send_key "ctrl-alt-delete";    # shutdown
-        assert_screen_with_soft_timeout('logoutdialog', timeout => 90, soft_timeout => 15, 'bsc#1091933');
-
-        if (get_var("PLASMA5")) {
-            assert_and_click 'sddm_shutdown_option_btn';
-            if (check_screen([qw(sddm_shutdown_option_btn sddm_shutdown_btn)], 3)) {
-                # sometimes not reliable, since if clicked the background
-                # color of button should changed, thus check and click again
-                if (match_has_tag('sddm_shutdown_option_btn')) {
-                    assert_and_click 'sddm_shutdown_option_btn';
-                }
-                # plasma < 5.8
-                elsif (match_has_tag('sddm_shutdown_btn')) {
-                    assert_and_click 'sddm_shutdown_btn';
-                }
-            }
-        }
-        else {
-            type_string "\t";
-            assert_screen "kde-turn-off-selected", 2;
-            type_string "\n";
-        }
-    }
-
-    if (check_var("DESKTOP", "gnome")) {
-        send_key "ctrl-alt-delete";
-        assert_screen 'logoutdialog', 15;
-        assert_and_click 'gnome-shell_shutdown_btn';
-
-        if (get_var("SHUTDOWN_NEEDS_AUTH")) {
-            if (check_screen('shutdown-auth', 15)) {
-                type_password;
-            }
-            else {
-                record_soft_failure 'bsc#1062788';
-            }
-
-            # we need to kill all open ssh connections before the system shuts down
-            prepare_system_shutdown;
-            send_key "ret";
-        }
-    }
-
-    if (check_var("DESKTOP", "xfce")) {
-        for (1 .. 5) {
-            send_key "alt-f4";    # opens log out popup after all windows closed
-        }
-        assert_screen 'logoutdialog';
-        wait_screen_change { type_string "\t\t" };    # select shutdown
-
-        # assert_screen 'test-shutdown-1', 3;
-        type_string "\n";
-    }
-
-    if (check_var("DESKTOP", "lxde")) {
-        # opens logout dialog
-        x11_start_program('lxsession-logout', target_match => 'logoutdialog');
-        send_key "ret";
-    }
-
-    if (check_var("DESKTOP", "lxqt")) {
-        # opens logout dialog
-        x11_start_program('shutdown', target_match => 'lxqt_logoutdialog');
-        send_key "ret";
-    }
-    if (check_var("DESKTOP", "enlightenment")) {
-        send_key "ctrl-alt-delete";    # shutdown
-        assert_screen 'logoutdialog', 15;
-        assert_and_click 'enlightenment_shutdown_btn';
-    }
-
-    if (check_var('DESKTOP', 'awesome')) {
-        assert_and_click 'awesome-menu-main';
-        assert_and_click 'awesome-menu-system';
-        assert_and_click 'awesome-menu-shutdown';
-    }
-
-    if (check_var("DESKTOP", "mate")) {
-        x11_start_program("mate-session-save --shutdown-dialog", valid => 0);
-        send_key "ctrl-alt-delete";    # shutdown
-        assert_screen 'mate_logoutdialog', 15;
-        assert_and_click 'mate_shutdown_btn';
-    }
-
-    if (check_var("DESKTOP", "minimalx")) {
-        send_key "ctrl-alt-delete";    # logout dialog
-        assert_screen 'logoutdialog', 10;
-        send_key "alt-d";              # shut_d_own
-        assert_screen 'logout-confirm-dialog', 10;
-        send_key "alt-o";              # _o_k
-    }
-
-    if (check_var('BACKEND', 's390x')) {
-        # make sure SUT shut down correctly
-        console('x3270')->expect_3270(
-            output_delim => qr/.*SIGP stop.*/,
-            timeout      => 30
-        );
-
-    }
 }
 
 =head2 handle_livecd_reboot_failure
@@ -733,79 +554,6 @@ sub handle_livecd_reboot_failure {
         select_console 'install-shell';
         type_string "reboot\n";
         save_screenshot;
-    }
-}
-
-=head2 power_action
-
-    power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
-
-Executes the selected power action (e.g. poweroff, reboot). If C<$observe> is
-set the function expects that the specified C<$action> was already executed by
-another actor and the function justs makes sure the system shuts down, restart
-etc. properly. C<$keepconsole> prevents a console change, which we do by
-default to make sure that a system with a GUI desktop which was in text
-console at the time of C<power_action> call, is switched to the expected
-console, that is 'root-console' for textmode, 'x11' otherwise. The actual
-execution happens in a shell for textmode or with GUI commands otherwise
-unless explicitly overridden by setting C<$textmode> to either 0 or 1.
-
-=cut
-sub power_action {
-    my ($action, %args) = @_;
-    $args{observe}     //= 0;
-    $args{keepconsole} //= 0;
-    $args{textmode}    //= check_var('DESKTOP', 'textmode');
-    die "'action' was not provided" unless $action;
-    prepare_system_shutdown;
-    unless ($args{keepconsole}) {
-        select_console $args{textmode} ? 'root-console' : 'x11';
-    }
-    unless ($args{observe}) {
-        if ($args{textmode}) {
-            type_string "$action\n";
-        }
-        else {
-            if ($action eq 'reboot') {
-                reboot_x11;
-            }
-            elsif ($action eq 'poweroff') {
-                poweroff_x11;
-            }
-        }
-    }
-    # Shutdown takes longer than 60 seconds on SLE 15
-    my $shutdown_timeout = 60;
-    if (is_sle('15+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
-        record_soft_failure('bsc#1055462');
-        $shutdown_timeout *= 3;
-    }
-    # The timeout is increased as shutdown takes longer on Live CD
-    if (get_var('LIVECD')) {
-        $shutdown_timeout *= 4;
-    }
-    if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
-        $shutdown_timeout *= 3;
-        record_soft_failure("boo#1057637 shutdown_timeout increased to $shutdown_timeout (s) expecting to complete.");
-    }
-    # no need to redefine the system when we boot from an existing qcow image
-    # Do not redefine if autoyast, as did initial reboot already
-    if (   check_var('VIRSH_VMM_FAMILY', 'kvm')
-        || check_var('VIRSH_VMM_FAMILY', 'xen')
-        || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST')))
-    {
-        assert_shutdown_and_restore_system($action, $shutdown_timeout);
-    }
-    else {
-        assert_shutdown($shutdown_timeout) if $action eq 'poweroff';
-        # We should only reset consoles if the system really rebooted.
-        # Otherwise the next select_console will check for a login prompt
-        # instead of handling the still logged in system.
-        handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
-        reset_consoles;
-        if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
-            console('svirt')->start_serial_grab;
-        }
     }
 }
 
@@ -867,9 +615,14 @@ sub addon_license {
     push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
   license: {
         do {
+            # license on SLE15+ is shown only once during registration bsc#1057223
+            # don't expect license if addon was already registered via SCC and license already viewed
+            if (sle_version_at_least('15') && check_var('SCC_REGISTER', 'installation') && get_var('SCC_ADDONS') =~ /$addon/ && !check_screen \@tags) {
+                return 1;
+            }
             assert_screen \@tags;
             if (match_has_tag('import-untrusted-gpg-key')) {
-                record_soft_failure 'untrusted gpg key';
+                record_info 'untrusted gpg key', "Trusting untrusted GPG key", result => 'softfail';
                 wait_screen_change { send_key 'alt-t' };
             }
             elsif (match_has_tag("addon-betawarning-$addon")) {
@@ -920,7 +673,7 @@ sub handle_login {
     $myuser //= $username;
     $user_selected //= 0;
 
-    assert_screen 'displaymanager';    # wait for DM, then try to login
+    assert_screen 'displaymanager', 90;    # wait for DM, then try to login
     wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
@@ -930,7 +683,7 @@ sub handle_login {
         }
         type_string "root\n";
     }
-    elsif (get_var('DM_NEEDS_USERNAME')) {
+    elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
         type_string "$myuser\n";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
@@ -1015,25 +768,6 @@ sub service_action {
     }
 }
 
-=head2 install_all_from_repo
-will install all packages in repo defined by C<INSTALL_ALL_REPO> variable
-with ability to exclude some of them by using C<INSTALL_ALL_EXCEPT> which suppose to contain
-space separated list of packages
-=cut
-sub install_all_from_repo {
-    my $repo         = get_required_var('INSTALL_ALL_REPO');
-    my $grep_str     = "";
-    my $hpc_excludes = "hpc-openqa-tools-devel openqa-ci-tools-devel .*openqa-tests";
-    if (get_var('INSTALL_ALL_EXCEPT') or get_var('HPC')) {
-        #spliting space separated list of packages into array to iterate over it
-        my @packages_array = split(/ /, get_var('INSTALL_ALL_EXCEPT'));
-        push @packages_array, split(/ /, $hpc_excludes) if get_var('HPC');
-        $grep_str = '|grep -vE "(' . join('|', @packages_array) . ')$"';
-    }
-    my $exec_str = sprintf("zypper se -ur %s -t package | awk '{print \$2}' | sed '1,/|/d' %s | xargs zypper -n in", $repo, $grep_str);
-    assert_script_run($exec_str, 900);
-}
-
 =head2 run_scripted_command_slow
 
     run_scripted_command_slow($cmd [, slow_type => <num>]);
@@ -1104,20 +838,6 @@ sub get_x11_console_tty {
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
 
-=head2 setup_static_network
-Configure static IP on SUT with setting up DNS and default GW.
-Also doing test ping to 10.0.2.2 to check that network is alive
-=cut
-sub setup_static_network {
-    my ($self, $ip) = @_;
-    configure_default_gateway();
-    configure_static_ip($ip);
-    configure_static_dns(get_host_resolv_conf());
-
-    # check if gateway is reachable
-    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager > /dev/$serialdev";
-}
-
 =head2  arrays_differ
 Comparing two arrays passed by reference. Return 1 if arrays has symmetric difference
 and 0 otherwise.
@@ -1156,7 +876,7 @@ sub ensure_serialdev_permissions {
 
     exec_and_insert_password($cmd);
 
- 1. Execute a command that ask for a password.
+ 1. Execute a command that ask for a password
  2. Detects password prompt
  3. Insert password and hits enter
 
@@ -1165,6 +885,8 @@ sub exec_and_insert_password {
     my ($cmd) = @_;
     my $hashed_cmd = hashed_string("SR$cmd");
     wait_serial(serial_terminal::serial_term_prompt(), undef, 0, no_regex => 1) if is_serial_terminal();
+    # We need to clear the console to correctly catch the password needle if needed
+    clear_console if !is_serial_terminal();
     type_string "$cmd";
     if (is_serial_terminal()) {
         type_string " ; echo $hashed_cmd-\$?-\n";
@@ -1176,7 +898,13 @@ sub exec_and_insert_password {
     }
     type_password;
     send_key "ret";
-    wait_serial(qr/$hashed_cmd-\d+-/) if is_serial_terminal();
+
+    if (is_serial_terminal()) {
+        wait_serial(qr/$hashed_cmd-\d+-/);
+    }
+    else {
+        wait_still_screen(stilltime => 10);
+    }
 }
 
 =head2 shorten_url
@@ -1241,8 +969,8 @@ sub reconnect_s390 {
     # different behaviour for z/VM and z/KVM
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
-        # grub is handled in unlock_if_encrypted
-        handle_grub_zvm($console) unless get_var('ENCRYPT');
+        # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
+        handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
         my $r;
         eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
         if ($@) {
@@ -1255,12 +983,15 @@ sub reconnect_s390 {
         select_console('iucvconn');
     }
     else {
-        my $r = wait_serial($login_ready, 300);
-        if ($r && $r =~ qr/Welcome to SUSE Linux Enterprise 15/) {
-            record_soft_failure('bsc#1040606');
+        # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
+        if (get_var('ENCRYPT')) {
+            wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
         }
-        elsif ($r && is_sle) {
-            $r =~ qr/Welcome to SUSE Linux Enterprise Server/ || die "Correct welcome string not found";
+        else {
+            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            select_console('svirt');
+            save_svirt_pty;
+            type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
         }
     }
 
@@ -1270,6 +1001,11 @@ sub reconnect_s390 {
     }
 }
 
-1;
+sub zypper_ar {
+    my ($url, $name) = @_;
 
-# vim: sw=4 et
+    zypper_call("ar $url $name",                           dumb_term => 1);
+    zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
+}
+
+1;

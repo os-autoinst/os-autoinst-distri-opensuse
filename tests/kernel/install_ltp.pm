@@ -13,17 +13,18 @@
 use 5.018;
 use warnings;
 use base 'opensusebasetest';
+use File::Basename 'basename';
 use testapi;
 use registration;
 use utils;
+use power_action_utils 'power_action';
 use bootloader_setup 'add_custom_grub_entries';
 use serial_terminal qw(add_serial_console select_virtio_console);
 use version_utils qw(is_sle sle_version_at_least is_opensuse);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
-    zypper_call("ar $qa_head_repo qa_repo",   dumb_term => 1);
-    zypper_call('--gpg-auto-import-keys ref', dumb_term => 1);
+    zypper_ar($qa_head_repo, 'qa_repo');
 }
 
 sub add_we_repo_if_available {
@@ -57,6 +58,7 @@ sub install_runtime_dependencies {
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
     my @maybe_deps = qw(
       acl
+      audit
       binutils
       dosfstools
       evmctl
@@ -164,14 +166,15 @@ curl --form upload=\@/tmp/ltp-runtest-files-$tag --form target=assets_public $ai
 curl --form upload=\@/root/openposix-test-list-$tag --form target=assets_public $aiurl/upload_asset/openposix-test-list-$tag
 %;
 
-    script_output($up_script);
+    script_output($up_script, 300);
 }
 
 sub install_from_git {
     my ($tag) = @_;
     my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
     my $rel = get_var('LTP_RELEASE') || '';
-    my $configure = './configure --with-open-posix-testsuite --with-realtime-testsuite';
+    my $timeout     = check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') ? 7200 : 1440;
+    my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
     if ($rel) {
         $rel = ' -b ' . $rel;
@@ -183,7 +186,7 @@ sub install_from_git {
 
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => 1440;
+    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
     assert_script_run "find /opt/ltp/ -name '*.run-test' > ~/openposix-test-list-$tag";
@@ -231,7 +234,7 @@ EOF
     # SLE12GA uses too many old style services
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
-    foreach my $service (qw(dnsmasq nfsserver rpcbind vsftpd)) {
+    foreach my $service (qw(auditd dnsmasq nfsserver rpcbind vsftpd)) {
         if (is_sle('12+') || is_opensuse) {
             systemctl($action . " " . $service);
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
@@ -245,7 +248,7 @@ EOF
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
-    my $tag      = get_var('LTP_RUNTEST_TAG') || get_var('VERSION') . '-' . get_var('BUILD');
+    my $tag      = (get_var('LTP_RUNTEST_TAG') || basename(get_var('PUBLISH_HDD_1'))) . '.txt';
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
@@ -262,8 +265,10 @@ sub run {
 
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1')) {
-        assert_script_run("uname -v | grep '/kGraft-'");
+        assert_script_run("uname -v | grep -E '(/kGraft-|/lp-)'");
     }
+
+    upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     add_we_repo_if_available;
     if (is_sle('12+') || is_opensuse) {
@@ -287,12 +292,14 @@ sub run {
 
     upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
 
-    select_console('root-console');
-    #type_string "reboot\n";
+    power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
 }
 
 sub post_fail_hook {
     my $self = shift;
+
+    script_run("dmesg > /tmp/dmesg.txt");
+    upload_logs("/tmp/dmesg.txt", failok => 1);
 
     # bsc#1024050
     script_run('pkill pidstat');

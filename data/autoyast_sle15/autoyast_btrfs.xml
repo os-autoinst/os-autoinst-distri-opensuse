@@ -25,6 +25,11 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
   <report>
     <errors>
       <log config:type="boolean">true</log>

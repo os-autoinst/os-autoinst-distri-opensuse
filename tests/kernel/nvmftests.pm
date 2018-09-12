@@ -15,14 +15,20 @@ use strict;
 use testapi;
 
 use utils 'zypper_call';
-use utils qw(power_action zypper_call);
+use power_action_utils 'power_action';
 use serial_terminal 'select_virtio_console';
 
 sub run {
     select_virtio_console();
 
     zypper_call('ar -f -G ' . get_required_var('BENCHMARK_REPO'));
-    zypper_call('ar -f -G ' . get_required_var('DEVEL_LANG_PYTHON_REPO'));
+    if (get_var('DEVEL_LANG_PYTHON_REPO')) {
+        zypper_call('ar -f -G ' . get_var('DEVEL_LANG_PYTHON_REPO'));
+    }
+    else {
+        assert_script_run('python -m ensurepip --default-pip');
+        assert_script_run('pip install nose nose2 natsort pep8 flake8 pylint epydoc');
+    }
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('in --no-recommends nvmftests');
 

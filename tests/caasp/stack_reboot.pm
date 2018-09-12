@@ -15,7 +15,7 @@ use caasp_controller;
 
 use strict;
 use testapi;
-use caasp qw(script_retry unpause);
+use caasp;
 
 sub run {
     switch_to 'xterm';
@@ -28,7 +28,7 @@ sub run {
     script_retry "curl -kLI -m5 $admin_fqdn | grep _velum_session";
 
     record_info 'Cluster reboot', 'Test cluster reboot';
-    assert_script_run "ssh $admin_fqdn './update.sh -r' | tee /dev/$serialdev | grep EXIT_OK";
+    script_assert0 "ssh $admin_fqdn './update.sh -r' | tee /dev/$serialdev";
     # Wait until cluster powers off
     script_retry 'kubectl get nodes', expect => 1, retry => 3, delay => 10;
     # Wait until kubernetes is reachable again
@@ -39,7 +39,6 @@ sub run {
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     switch_to 'velum';
-    unpause 'REBOOT_FINISHED';
 }
 
 1;

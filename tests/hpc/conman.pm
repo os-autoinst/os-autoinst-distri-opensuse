@@ -38,10 +38,13 @@ sub run {
 
     # run netcat on this socket
     type_string("netcat -ClU /tmp/testsocket &\n");
-    type_string("chown conman:conman /tmp/testsocket \n");
 
-    # restart conmand service
-    systemctl 'restart conman';
+    # If needed change group:
+    my $conman_chgrp = q!GRP=$(ps -Ao group,fname | grep conmand | cut -d' ' -f 1);!;
+    $conman_chgrp .= q! [ "$GRP" = "root" ] || { chgrp $GRP /tmp/testsocket; chmod g+w /tmp/testsocket; }!;
+    type_string($conman_chgrp . "\n");
+
+    # do not restart conmand after starting netcat!
 
     # start conman on this socket
     type_string("conman socket1 &\n");

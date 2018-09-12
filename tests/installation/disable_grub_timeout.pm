@@ -21,15 +21,6 @@ use version_utils qw(is_sle is_leap);
 sub run {
     my ($self) = shift;
 
-    if (check_var('ARCH', 's390x')) {
-        # on s390x we do not wait for the grub menu or can not handle it like
-        # do we on other architectures or backends. Also, we do not have the
-        # same problem that we could miss the grub screen with timeout so we
-        # skip disabling the grub timeout
-        diag 'Skipping disabling grub timeout on s390x as we can not catch the grub screen there';
-        return;
-    }
-
     # Verify Installation Settings overview is displayed as starting point
     assert_screen "installation-settings-overview-loaded";
 
@@ -49,9 +40,12 @@ sub run {
     # Config bootloader is not be supported during an upgrade
     # Add exception for SLES11SP4 base update, configure grub for this scenario
     if (get_var('UPGRADE') && (!is_sle('<15') || !is_leap('<15.0')) && (!check_var('HDDVERSION', '11-SP4'))) {
-        assert_screen "bootloader-config-unsupport";
-        send_key 'ret';
-        return;
+        assert_screen([qw(bootloader-config-unsupport inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
+        if (match_has_tag 'bootloader-config-unsupport') {
+            send_key 'ret';
+            return;
+        }
+        record_info('Bootloader conf', 'Config bootloader should not be supported during upgrade', result => 'softfail');
     }
     assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
     # Depending on an optional button "release notes" we need to press "tab"

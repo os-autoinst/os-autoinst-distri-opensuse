@@ -6,14 +6,17 @@ use testapi;
 use strict;
 use utils;
 use lockapi 'mutex_wait';
-use version_utils qw(is_sle is_leap is_upgrade);
+use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd);
+use isotovideo;
+use IO::Socket::INET;
 
 # Base class for all openSUSE tests
 
 sub new {
     my ($class, $args) = @_;
     my $self = $class->SUPER::new($args);
-    $self->{in_wait_boot} = 0;
+    $self->{in_wait_boot}    = 0;
+    $self->{in_boot_desktop} = 0;
     return $self;
 }
 
@@ -128,7 +131,13 @@ sub investigate_yast2_failure {
         $error_detected = 1;
     }
     # Array with possible strings to search in YaST2 logs
-    my @y2log_errors = ('Internal error. Please report a bug report', '<3>', 'No textdomain configured');
+    my @y2log_errors = (
+        'Internal error. Please report a bug report',    # Detecting errors
+        '<3>',                                           # Detecting problems using error code
+        'No textdomain configured',                      # Detecting missing translations
+        'nothing provides',                              # Detecting missing required packages
+        'but this requirement cannot be provided'        # and package conflicts
+    );
     for my $y2log_error (@y2log_errors) {
         if (my $y2log_error_result = script_output 'grep -B 3 \'' . $y2log_error . '\' /var/log/YaST2/y2log | tail -n 20 || true') {
             record_info 'YaST2 log error detected', "Details:\n\n$y2log_error_result", result => 'fail';
@@ -144,7 +153,7 @@ sub export_logs {
     my ($self) = shift;
     select_console 'log-console';
     save_screenshot;
-
+    $self->remount_tmp_if_ro;
     $self->problem_detection;
 
     $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
@@ -166,14 +175,7 @@ sub export_logs {
         $self->save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
     }
 
-    # do not upload empty .xsession-errors
-    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
-      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
-      0;
-    if (wait_serial("xsefile-valid", 10)) {
-        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
-    }
-
+    $self->upload_xsession_errors_log;
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
@@ -181,6 +183,17 @@ sub export_logs {
     script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";
     upload_logs "/tmp/y2logs_clone.tar.bz2";
     $self->investigate_yast2_failure();
+}
+
+sub upload_xsession_errors_log {
+    my ($self) = @_;
+    # do not upload empty .xsession-errors
+    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
+      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
+      0;
+    if (wait_serial("xsefile-valid", 10)) {
+        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
+    }
 }
 
 sub upload_packagekit_logs {
@@ -311,8 +324,9 @@ sub wait_boot {
     if (check_var('ARCH', 's390x')) {
         my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
         if (check_var('BACKEND', 's390x')) {
-
-            console('x3270')->expect_3270(
+            my $console = console('x3270');
+            handle_grub_zvm($console);
+            $console->expect_3270(
                 output_delim => $login_ready,
                 timeout      => $ready_time + 100
             );
@@ -334,8 +348,21 @@ sub wait_boot {
             type_line_svirt "$testapi::password";
             type_line_svirt "systemctl is-active network", expect => 'active';
             type_line_svirt 'systemctl is-active sshd',    expect => 'active';
-            # make sure we can reach the SSH server in the SUT
-            type_string "for i in {1..7}; do nc -zv $virsh_guest 22 && break || (echo \"retry: \$i\" ; sleep 5; false); done;\n";
+
+            # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
+            my $retries = 12;
+            my $port    = 22;
+            for my $i (0 .. $retries) {
+                die "The SSH Port in the SUT could not be reached within 1 minute, considering a product issue" if $i == $retries;
+                if (IO::Socket::INET->new(PeerAddr => "$virsh_guest", PeerPort => $port)) {
+                    record_info("ssh port open", "check for port $port on $virsh_guest successful");
+                    last;
+                }
+                else {
+                    record_info("ssh port closed", "check for port $port on $virsh_guest failed", result => 'fail');
+                }
+                sleep 5;
+            }
             save_screenshot;
         }
 
@@ -362,7 +389,10 @@ sub wait_boot {
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
         push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
-        $self->handle_uefi_boot_disk_workaround if (get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE') && !$in_grub);
+        $self->handle_uefi_boot_disk_workaround
+          if (is_aarch64_uefi_boot_hdd
+            && !$in_grub
+            && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
         check_screen(\@tags, $bootloader_time);
         if (match_has_tag("bootloader-shim-import-prompt")) {
             send_key "down";
@@ -380,7 +410,20 @@ sub wait_boot {
             # harddisk' is above
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             boot_local_disk;
-            assert_screen 'grub2', 15;
+
+            my @tags = qw(grub2 tianocore-mainmenu);
+            push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+
+            check_screen(\@tags, 15)
+              || die 'niether grub2 or tianocore-mainmenu needles found';
+            if (match_has_tag('tianocore-mainmenu')) {
+                $self->handle_uefi_boot_disk_workaround();
+                check_screen('encrypted-disk-password-prompt', 10);
+            }
+            if (match_has_tag('encrypted-disk-password-prompt')) {
+                workaround_type_encrypted_passphrase;
+                assert_screen('grub2');
+            }
         }
         elsif (match_has_tag('encrypted-disk-password-prompt')) {
             # unlock encrypted disk before grub
@@ -492,17 +535,48 @@ sub firewall {
     return ($old_product_versions || $upgrade_from_susefirewall) ? 'SuSEfirewall2' : 'firewalld';
 }
 
-# useful post_fail_hook for any module that calls wait_boot
-#
-# we could use the same approach in all cases of boot/reboot/shutdown in case
-# of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
+=head2 remount_tmp_if_ro
+
+    remount_tmp_if_ro()
+
+Mounts /tmp to shared memory if not possible to write to tmp.
+For example, save_y2logs creates temporary files there.
+
+=cut
+sub remount_tmp_if_ro {
+    script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
+}
+
+# useful post_fail_hook for any module that calls wait_boot and x11_start_program
+##
+## we could use the same approach in all cases of boot/reboot/shutdown in case
+## of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
 sub post_fail_hook {
     my ($self) = @_;
-    return unless $self->{in_wait_boot};
+    return if testapi::is_serial_terminal();    # in case it is VIRTIO_CONSOLE=1 nothing below make sense
+
+    # just output error if selected program doesn't exist instead of collecting all logs
+    # set current variables in x11_start_program
+    if (get_var('IN_X11_START_PROGRAM')) {
+        my $program = get_var('IN_X11_START_PROGRAM');
+        select_console 'log-console';
+        my $r = script_run "which $program";
+        if ($r != 0) {
+            record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
+        }
+    }
+    return unless ($self->{in_wait_boot} || $self->{in_boot_desktop});
+    if ($self->{in_wait_boot}) {
+        record_info('shutdown', 'At least we reached target Shutdown') if (wait_serial 'Reached target Shutdown');
+    }
+    elsif ($self->{in_boot_desktop}) {
+        record_info('Startup', 'At least Startup is finished.') if (wait_serial 'Startup finished');
+    }
     # In case the system is stuck in shutting down or during boot up, press
     # 'esc' just in case the plymouth splash screen is shown and we can not
     # see any interesting console logs.
     send_key 'esc';
+    save_screenshot;
 }
 
 1;

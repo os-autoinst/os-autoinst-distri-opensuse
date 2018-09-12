@@ -74,7 +74,7 @@ sub parse_runtest_file {
 sub loadtest_from_runtest_file {
     my $name               = get_var('LTP_COMMAND_FILE');
     my $path               = get_var('ASSETDIR') . '/other';
-    my $tag                = get_var('LTP_RUNTEST_TAG') || get_var('VERSION') . '-' . get_var('BUILD');
+    my $tag                = (get_var('LTP_RUNTEST_TAG') || basename(get_var('HDD_1'))) . '.txt';
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $test_result_export = {
@@ -117,17 +117,30 @@ sub load_kernel_tests {
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
         }
+        elsif (get_var('CHANGE_KERNEL_REPO') ||
+            get_var('CHANGE_KERNEL_PKG') ||
+            get_var('ASSET_CHANGE_KERNEL_RPM')) {
+            loadtest 'change_kernel';
+        }
         if (get_var('FLAVOR', '') =~ /Incidents-Kernel$/) {
             loadtest 'update_kernel';
         }
         loadtest 'install_ltp';
-        #loadtest 'boot_ltp';
+        if (get_var('LTP_INSTALL_REBOOT')) {
+            loadtest 'boot_ltp';
+        }
         shutdown_ltp();
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
         }
+        elsif (get_var('CHANGE_KERNEL_REPO') ||
+            get_var('CHANGE_KERNEL_PKG') ||
+            get_var('ASSET_CHANGE_KERNEL_RPM')) {
+            loadtest 'change_kernel';
+        }
+
         loadtest_from_runtest_file();
     }
     elsif (get_var('QA_TEST_KLP_REPO')) {
@@ -141,8 +154,22 @@ sub load_kernel_tests {
         loadtest 'virtio_console';
     }
     elsif (get_var('NVMFTESTS')) {
-        boot_hdd_image;
+        boot_hdd_image();
         loadtest 'nvmftests';
+    }
+    elsif (get_var('TRINITY')) {
+        if (get_var('INSTALL_KOTD')) {
+            loadtest 'install_kotd';
+        }
+        elsif (get_var('CHANGE_KERNEL_REPO') ||
+            get_var('CHANGE_KERNEL_PKG') ||
+            get_var('ASSET_CHANGE_KERNEL_RPM')) {
+            loadtest 'change_kernel';
+        }
+        else {
+            boot_hdd_image();
+        }
+        loadtest "trinity";
     }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {

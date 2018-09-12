@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_sle';
 
 sub format_dasd {
-    while (check_screen 'process-dasd-format') {
+    while (check_screen 'process-dasd-format', 30) {
         diag("formatting DASD ...");
         sleep 20;
     }
@@ -33,15 +33,7 @@ sub add_zfcp_disk {
     for (1 .. 9) { send_key "backspace"; }
     type_string "$channel";
     assert_screen "zfcp-channel-$channel-selected";
-
     send_key $cmd{next};
-
-    # use allow_lun_scan
-    # popup was removed for sle15, allow_lun_scan still works though
-    if (is_sle '<15') {
-        assert_screen 'zfcp-popup-scan';
-        send_key 'alt-o';
-    }
     assert_screen 'zfcp-disk-management';
 }
 
@@ -105,10 +97,10 @@ sub run {
             send_key 'alt-s';                           # select all
             assert_screen 'dasd-selected';
             send_key 'alt-a';                           # perform action button
-            if (check_screen 'dasd-device-formatted') {
+            if (check_screen 'dasd-device-formatted', 30) {
                 assert_screen 'action-list';
                 # shortcut changed for sle 15
-                send_key is_sle('15+') ? 'o' : 'f';
+                send_key 'o';
                 assert_screen 'confirm-dasd-format';    # confirmation popup
                 send_key 'alt-y';
                 format_dasd;

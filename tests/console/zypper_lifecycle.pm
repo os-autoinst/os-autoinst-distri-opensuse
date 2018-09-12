@@ -35,16 +35,10 @@ sub run {
     # 3. verify that "zypper lifecycle" shows correct package eol based on the
     # data from step 2
     my ($base_repos, $package, $prod);
-    # Workaround for poo#30613, surround product with >< and use these markers for parsing
-    my $output = script_output "echo '>>>'\$(basename `readlink /etc/products.d/baseproduct ` .prod)'<<<'";
-    if ($output =~ />>>(?<prod>.+)<<</) {
-        $prod = $+{prod};
-    }
-    die "Could not parse product (see poo#30613):\nOutput: '$output'" unless $prod;
-
+    my $prod = script_output 'basename `readlink /etc/products.d/baseproduct ` .prod';
     # select a package suitable for the following test
     # the package must be installed from base product repo
-    $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
+    my $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
     # Parse base repositories
     if (my @repos = $output =~ /repository="([^"]+)"/g) {
         $base_repos = join(" ", @repos);
@@ -64,7 +58,7 @@ sub run {
     # no package in the image comes from any repository - it's from the image. So we
     # hard-code 'sles-release' package, and it... works. Somehow.
     if (!$package && is_jeos) {
-        record_soft_failure "Hardcoding 'sles-release' package for lifecycle check";
+        record_info 'Workaround', "Hardcoding 'sles-release' package for lifecycle check", result => 'softfail';
         $package = 'sles-release';
     }
     die "No suitable package found. Script output:\nOutput: '$output'" unless $package;

@@ -19,6 +19,10 @@ use utils "systemctl";
 sub run {
     select_console("root-console");
 
+    record_info 'etcd', 'Stop etcd and clean up';
+    systemctl 'disable --now etcd';
+    script_run 'rm -r /var/lib/etcd/*';
+
     record_info 'Setup', 'Test: Package Installation';
     my $packages = 'kubernetes-client kubernetes-kubelet kubernetes-kubeadm docker-kubic cri-tools';
     trup_install($packages);
@@ -29,8 +33,9 @@ sub run {
     systemctl('is-active kubelet');
 
     record_info 'Test #1', 'Test: Initialize kubeadm';
-    assert_script_run('kubeadm reset');
-    assert_script_run('kubeadm init');
+    record_soft_failure "bsc#1093132" if script_run('kubeadm init');
+    script_run('kubeadm reset');
+    assert_script_run('kubeadm init', 180);
 
 }
 

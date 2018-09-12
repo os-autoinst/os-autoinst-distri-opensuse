@@ -42,36 +42,29 @@ sub search {
 }
 
 sub start_addon_products {
+    search('add-on');
     assert_and_click 'yast2_control-center_add-on';
-
     my @tags = qw(yast2_control-center_add-on_installed yast2_control-center-ask_packagekit_to_quit);
     do {
         assert_screen \@tags;
         # Let it kill PackageKit, in case it is running.
         wait_screen_change { send_key 'alt-y' } if match_has_tag('yast2_control-center-ask_packagekit_to_quit');
     } until (match_has_tag('yast2_control-center_add-on_installed'));
-
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
-sub start_add_system_extensions_or_modules {
-    search 'system ext';
-    assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
-    assert_screen 'yast2_control-center_registration', timeout => 180;
-    send_key 'alt-r';
-    assert_screen 'yast2-control-center-ui', timeout => 60;
-}
-
 sub start_media_check {
+    search 'check';
     assert_and_click 'yast2_control-center_media-check';
-    assert_screen 'yast2_control-center_media-check_close', timeout => 180;
     wait_still_screen;
+    assert_screen 'yast2_control-center_media-check_close';
     send_key 'alt-l';
-    assert_screen 'yast2-control-center-ui', timeout => 60;
+    assert_screen 'yast2-control-center-ui';
 }
 
 sub start_online_update {
+    search 'online update';
     # to test the online update configuration dialog we need update repos
     # which are removed unless explicitly selected to be kept
     if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
@@ -95,7 +88,7 @@ sub start_online_update {
 }
 
 sub start_software_repositories {
-    search('software');
+    search('software repo');
     assert_and_click 'yast2_control-center_software-repositories';
     my @tags = qw(yast2_control-center_configured-software-repositories yast2_control-center-ask_packagekit_to_quit);
     do {
@@ -108,18 +101,62 @@ sub start_software_repositories {
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
+sub start_printer {
+    search('printer');
+    # for now only test on SLE as openSUSE looks different. Can be extended
+    # later
+    if (check_var('DISTRI', 'sle')) {
+        search('print');
+        assert_and_click 'yast2_control-center_printer';
+        assert_screen 'yast2_control-center_printer_running-cups-daemon', timeout => 60;
+        send_key 'alt-y';
+        # need to wait for Restarted CUPS daemon or Failed to restart CUPS
+        assert_screen [qw(yast2_control-center_printer_running-cups-daemon_no-delay yast2_control-center_printer_error-cups-restart-failed), timeout => 60];
+        if (match_has_tag('yast2_control-center_printer_running-cups-daemon_no-delay')) {
+            send_key 'alt-o';
+            assert_screen 'yast2_control-center_printer_running-cups-daemon_enabled';
+            send_key 'alt-y';
+        }
+        else {
+            send_key 'alt-o';
+        }
+        assert_screen 'yast2_control-center_printer_configurations';
+        send_key 'alt-o';
+
+        assert_screen 'yast2-control-center-ui', timeout => 120;
+        # test case if not restart cups daemon locally
+        select_console 'root-console';
+        systemctl 'stop cups.service';
+        select_console 'x11', await_console => 0;
+        assert_screen 'yast2-control-center-ui';
+        send_key 'up';
+        assert_and_click 'yast2_control-center_printer';
+        assert_screen 'yast2_control-center_printer_running-cups-daemon', timeout => 60;
+        send_key 'alt-n';
+        assert_screen 'yast2_control-center_printer_running-cups-daemon_error';
+        send_key 'alt-o';
+        assert_screen 'yast2_control-center_detect-printer-queues_error';
+        send_key 'alt-o';
+        assert_screen 'yast2_control-center_show-printer-queues_error';
+        send_key 'alt-o';
+        assert_screen 'yast2_control-center_printer_configurations';
+        send_key 'alt-o';
+        assert_screen 'yast2-control-center-ui', timeout => 60;
+    }
+    elsif (check_var('DISTRI', 'opensuse')) {
+        search('print');
+        assert_and_click 'yast2_control-center_printer';
+        assert_screen 'yast2_control-center_printer_configurations', timeout => 180;
+        wait_still_screen;
+        send_key 'alt-o';
+        assert_screen 'yast2-control-center-ui', timeout => 60;
+    }
+}
+
 sub start_sound {
     search('sound');
     assert_and_click 'yast2_control-center_sound';
-    assert_screen 'yast2_control-center_sound_configuration';
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_fonts {
-    search('fonts');
-    assert_and_click 'yast2_control-center_fonts';
-    assert_screen 'yast2_control-center_fonts-configuration', timeout => 180;
+    assert_screen 'yast2_control-center_sound_configuration', timeout => 180;
     send_key 'alt-o';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
@@ -132,26 +169,10 @@ sub start_sysconfig_editor {
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
-sub start_kernel_dump {
-    search('dump');
-    assert_and_click 'yast2_control-kernel-kdump';
-    assert_screen 'yast2_control-center_kernel-kdump-configuration', timeout => 180;
-    send_key 'alt-o';    # Press ok
-    assert_screen 'yast2-control-center-ui', timeout => 60;
-}
-
-sub start_kernel_settings {
-    search('kernel');
-    assert_and_click 'yast2_control-center-kernel-settings';
-    assert_screen 'yast2_control-center_kernel-settings_pci-id-setup', timeout => 180;
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', timeout => 60;
-}
-
 sub start_partitioner {
     search('partitioner');
     assert_and_click 'yast2_control-center-partitioner';
-    assert_screen [qw(yast2_control-center-partitioner_warning yast2_control-center-partitioner_expert)], 180;
+    assert_screen [qw(yast2_control-center-partitioner_warning yast2_control-center-partitioner_expert)], timeout => 180;
     # Define if storage-ng
     set_var('STORAGE_NG', 1) if match_has_tag 'storage-ng';
 
@@ -175,73 +196,16 @@ sub start_partitioner {
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
-sub start_authentication_server {
-    search 'authentication';
-    assert_and_click 'yast2_control-center_authentication-server';
-    do {
-        assert_screen [
-            qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration yast2_control-center-authentication-server_empty_first_page)
-        ], 90;
-        send_key 'alt-i' if match_has_tag 'yast2_control-center-authentication-server_install';
-        send_key 'alt-n' if match_has_tag 'yast2_control-center-authentication-server_empty_first_page';
-    } until (match_has_tag 'yast2_control-center-authentication-server_configuration');
-    # cancel, just check the first page
-    send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_user_logon_management {
-    search('user');
-    assert_and_click 'yast2_control-center_user-logon-management';
-    assert_screen 'yast2_control-center_user-logon-management_finish', timeout => 180;
-    send_key 'alt-f';
-    assert_screen 'yast2_control-center_user-logon-management_new-users';
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', timeout => 180;
-}
-
 sub start_vpn_gateway {
     search('vpn');
     assert_and_click 'yast2_control-center_vpn-gateway-client';
     assert_screen 'yast2-vpn-gateway-client', timeout => 180;
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_wake_on_lan {
-    search('wake');
-    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules)];
-    if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
-        # No wol on SLE 15 atm
-        record_soft_failure 'bsc#1059569';
-        return;
-    }
-    assert_and_click 'yast2_control-center_wake-on-lan';
-    assert_screen 'yast2_control-center_wake-on-lan_install_cancel', 60;
-    send_key 'alt-c';
-    assert_screen 'yast2_control-center_wake-on-lan_install_error';
-    send_key 'alt-o';
-    assert_screen 'yast2-control-center-ui', 60;
-}
-
-sub start_ca_management {
-    search('ca ');
-    assert_and_click 'yast2_control-center_ca-management';
-    assert_screen 'yast2-ca-management', 60;
-    send_key 'alt-f';
-    assert_screen 'yast2-control-center-ui';
-}
-
-sub start_common_server_certificate {
-    search('cert');
-    assert_and_click 'yast2_control-center_common-server-certificate';
-    assert_screen 'yast2-common-server-certificate';
-    send_key 'alt-r';
-    assert_screen 'yast2-control-center-ui';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub start_security_center {
-    search('security');
+    search('security center');
     assert_and_click 'yast2_control-center_security-center-and-hardening';
     assert_screen 'yast2_control-center_security-center-and-hardening_overview', timeout => 180;
     send_key 'alt-o';
@@ -257,7 +221,7 @@ sub start_sudo {
 }
 
 sub start_user_and_group_management {
-    search('user and');
+    search('user and group');
     assert_and_click 'yast2_control-center_user-and-group-management';
     assert_screen 'yast2_control-center_user-and-group-management_users', timeout => 180;
     send_key 'alt-o';
@@ -269,52 +233,86 @@ sub start_hypervisor {
     assert_and_click 'yast2_control-center_install-hypervisor-and-tools';
     assert_screen 'yast2-install-hypervisor-and-tools', timeout => 180;
     send_key 'alt-c';
-    assert_screen 'yast2-control-center-ui', 60;
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
-sub start_printer {
-    # for now only test on SLE as openSUSE looks different. Can be extended
-    # later
-    if (check_var('DISTRI', 'sle')) {
-        search('print');
-        assert_and_click 'yast2_control-center_printer';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon';
-        send_key 'alt-y';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon_no-delay';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon_enabled';
-        send_key 'alt-y';
-        assert_screen 'yast2_control-center_printer_configurations';
-        send_key 'alt-o';
+sub start_add_system_extensions_or_modules {
+    search 'system ext';
+    assert_and_click 'yast2_control-center_add-system-extensions-or-modules';
+    assert_screen 'yast2_control-center_registration', timeout => 180;
+    send_key 'alt-r';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
 
-        assert_screen 'yast2-control-center-ui', 60;
-        # test case if not restart cups daemon locally
-        select_console 'root-console';
-        systemctl 'stop cups.service';
-        select_console 'x11', await_console => 0;
-        assert_screen 'yast2-control-center-ui';
-        send_key 'up';
-        assert_and_click 'yast2_control-center_printer';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon';
-        send_key 'alt-n';
-        assert_screen 'yast2_control-center_printer_running-cups-daemon_error';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center_detect-printer-queues_error';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center_show-printer-queues_error';
-        send_key 'alt-o';
-        assert_screen 'yast2_control-center_printer_configurations';
-        send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui', 60;
+sub start_kernel_dump {
+    search('dump');
+    assert_and_click 'yast2_control-kernel-kdump';
+    assert_screen 'yast2_control-center_kernel-kdump-configuration', timeout => 180;
+    send_key 'alt-o';    # Press ok
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
+
+sub start_common_server_certificate {
+    search('cert');
+    assert_and_click 'yast2_control-center_common-server-certificate';
+    assert_screen 'yast2-common-server-certificate', timeout => 180;
+    send_key 'alt-r';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
+
+sub start_ca_management {
+    search('ca management');
+    assert_and_click 'yast2_control-center_ca-management';
+    assert_screen 'yast2-ca-management', timeout => 180;
+    send_key 'alt-f';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
+
+sub start_wake_on_lan {
+    search('wake');
+    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules), timeout => 60];
+    if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
+        # No wol on SLE 15 atm
+        record_soft_failure 'bsc#1059569';
+        return;
     }
-    elsif (check_var('DISTRI', 'opensuse')) {
-        search('print');
-        assert_and_click 'yast2_control-center_printer';
-        assert_screen 'yast2_control-center_printer_configurations', timeout => 180;
-        wait_still_screen;
-        send_key 'alt-o';
-        assert_screen 'yast2-control-center-ui', 60;
-    }
+    assert_and_click 'yast2_control-center_wake-on-lan';
+    assert_screen 'yast2_control-center_wake-on-lan_install_cancel', timeout => 180;
+    send_key 'alt-c';
+    assert_screen 'yast2_control-center_wake-on-lan_install_error';
+    send_key 'alt-o';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
+
+sub start_directory_server {
+    search 'directory server';
+    assert_and_click 'yast2_control-center_authentication-server';
+    do {
+        assert_screen [
+            qw(yast2_control-center-authentication-server_install yast2_control-center-authentication-server_configuration yast2_control-center-authentication-server_empty_first_page)
+        ], timeout => 180;
+        send_key 'alt-i' if match_has_tag 'yast2_control-center-authentication-server_install';
+        send_key 'alt-n' if match_has_tag 'yast2_control-center-authentication-server_empty_first_page';
+    } until (match_has_tag 'yast2_control-center-authentication-server_configuration');
+    # cancel, just check the first page
+    send_key 'alt-c';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
+
+sub start_kernel_settings {
+    search('kernel settings');
+    assert_and_click 'yast2_control-center-kernel-settings';
+    assert_screen 'yast2_control-center_kernel-settings_pci-id-setup', timeout => 180;
+    send_key 'alt-o';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
+}
+
+sub start_fonts {
+    search('fonts');
+    assert_and_click 'yast2_control-center_fonts';
+    assert_screen 'yast2_control-center_fonts-configuration', timeout => 180;
+    send_key 'alt-o';
+    assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
 sub run {
@@ -328,15 +326,6 @@ sub run {
         ensure_installed 'yast2-sound yast2-ca-management yast2-auth-server';
     }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
-
-    # search module by typing string
-    search('add');
-    assert_screen 'yast2_control-center_search_add', 60;
-
-    # start yast2 modules
-    for (1 .. 6) {
-        send_key 'backspace';
-    }
 
     start_addon_products;
     start_media_check;
@@ -357,13 +346,14 @@ sub run {
         start_kernel_dump;
         # YaST2 CA management has been dropped from SLE15, see
         # https://bugzilla.suse.com/show_bug.cgi?id=1059569#c14
-        if (!sle_version_at_least('15')) {
+        if (sle_version_at_least('15')) {
+            start_directory_server;
+        }
+        else {
             start_common_server_certificate;
             start_ca_management;
         }
         start_wake_on_lan;
-        # available by default only on SLES
-        start_authentication_server;
     }
     if (check_var('DISTRI', 'opensuse')) {
         start_kernel_settings;

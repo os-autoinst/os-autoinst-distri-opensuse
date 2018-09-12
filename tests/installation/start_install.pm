@@ -70,11 +70,6 @@ sub run {
         # confirm
         assert_screen 'startupdate';
         send_key $cmd{update};
-
-        if (check_screen('ERROR-bootloader_preupdate', 3)) {
-            send_key 'alt-n';
-            record_soft_failure 'error bootloader preupdate';
-        }
         assert_screen "inst-packageinstallationstarted", $started_timeout;
 
         # view installation details
@@ -103,7 +98,7 @@ sub run {
         send_key $cmd{install};
         assert_screen "inst-packageinstallationstarted", $started_timeout;
     }
-    if (   !get_var("LIVECD")
+    if (!get_var("LIVECD")
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
         && !check_var('VIDEOMODE', 'text'))

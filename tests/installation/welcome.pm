@@ -90,19 +90,24 @@ sub run {
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
-    if (sle_version_at_least('15') && check_var('DISTRI', 'sle')) {
+    if (is_sle('15+')) {
         # On s390x there will be only one product which means there is no product selection
         # In upgrade mode, there is no product list shown in welcome screen
         unless (check_var('ARCH', 's390x') || get_var('UPGRADE')) {
             assert_screen('select-product');
-            my %hotkey = (
-                sles     => 's',
-                sled     => 'u',
-                sles4sap => get_var('OFW') ? 'u' : 'i',
-                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
-            );
             my $product = get_required_var('SLE_PRODUCT');
-            send_key 'alt-' . $hotkey{$product};
+            if (check_var('VIDEOMODE', 'text')) {
+                my %hotkey = (
+                    sles     => 's',
+                    sled     => 'u',
+                    sles4sap => get_var('OFW') ? 'u' : 'i',
+                    hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
+                );
+                send_key 'alt-' . $hotkey{$product};
+            }
+            else {
+                assert_and_click('before-select-product-' . $product);
+            }
             assert_screen('select-product-' . $product);
         }
     }
@@ -111,19 +116,7 @@ sub run {
     }
 
     assert_screen 'languagepicked';
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    # system might be stuck on bootup showing only splash screen so we press
-    # esc to show console logs
-    send_key 'esc';
-    select_console('install-shell');
-    # in case we could not even reach the installer welcome screen and logs
-    # could not be collected on the serial output:
-    $self->save_upload_y2logs;
-    $self->get_ip_address;
-    upload_logs '/var/log/linuxrc.log';
+    $self->verify_license_translations unless is_sle('15+');
 }
 
 1;

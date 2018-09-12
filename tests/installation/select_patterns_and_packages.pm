@@ -12,6 +12,7 @@
 #    You can pass
 #    PATTERNS=minimal,base or
 #    PATTERNS=all to select all of them
+#    PATTERNS=default,web,-x11,-gnome to keep the default but add web and remove x11 and gnome
 #    PACKAGES=quota-nfs,-samba,-grub2  packages starting with - will be removed
 #    some package will block installation, conflict will be resolved via INSTALLATION_BLOCKED
 #
@@ -74,13 +75,11 @@ sub gotopatterns {
         wait_screen_change { send_key 'alt-f' };
         for (1 .. 4) { send_key 'up'; }
         send_key 'ret';
-        assert_screen 'patterns-list-selected';
     }
     else {
         send_key 'tab';
-        send_key ' ';
-        assert_screen 'patterns-list-selected';
     }
+    assert_screen 'patterns-list-selected';
 }
 
 sub package_action {
@@ -157,26 +156,54 @@ sub run {
     my ($self) = @_;
     my $dep_issue;
     $self->gotopatterns;
+    # select all patterns via menu and end in graphical mode
+    if (check_var('PATTERNS', 'all') && !check_var('VIDEOMODE', 'text')) {
+        # move mouse on patterns and open menu
+        mouse_set 100, 400;
+        mouse_click 'right';
+        wait_still_screen 3;
+        # select action on all patterns
+        wait_screen_change { send_key 'a'; };
+        # confirm install
+        wait_screen_change { send_key 'ret'; };
+        mouse_hide;
+        save_screenshot;
+        send_key 'alt-o';
+        accept3rdparty;
+        assert_screen 'inst-overview';
+        return 1;
+    }
     if (get_var('PATTERNS')) {
-        my %wanted_patterns;
+        my %patterns;
         for my $p (split(/,/, get_var('PATTERNS'))) {
-            $wanted_patterns{$p} = 1;
+            $patterns{$p} = 1;
         }
 
-        my $counter = 70;
+        my $counter = 80;
         while (1) {
             die "looping for too long" unless ($counter--);
             my $needs_to_be_selected;
             my $ret = check_screen('on-pattern', 1);
+            # this variable will only be updated when the pattern list entry is under the cursor
+            # and the pattern is in the PATTERNS variable and there is a needle for that entry
+            my $current_pattern = 'UNKNOWN_PATTERN';
 
             if ($ret) {    # unneedled pattern
-                for my $wp (keys %wanted_patterns) {
-                    if (match_has_tag("pattern-$wp")) {
-                        $needs_to_be_selected = 1;
+                for my $p (keys %patterns) {
+                    my $sel = 1;
+                    if ($p =~ /^-/) {
+                        # this pattern shall be deselected as indicated by '-' prefix
+                        $sel = 0;
+                        $p =~ s/^-//;
+                    }
+                    if (match_has_tag("pattern-$p")) {
+                        $needs_to_be_selected = $sel;
+                        $current_pattern      = $p;
+                        record_info($current_pattern, $needs_to_be_selected);
                     }
                 }
             }
-            $needs_to_be_selected = 1 if ($wanted_patterns{all});
+            $needs_to_be_selected = 1 if ($patterns{all});
 
             my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
 
@@ -188,17 +215,20 @@ sub run {
             if ($needs_to_be_selected && !$selected) {
                 wait_screen_change {
                     send_key ' ';
+                    record_info("select", "");
                 };
                 assert_screen 'current-pattern-selected', 5;
             }
             # stick to the default patterns. Check if at least 1 dep. issue was displayed
             $dep_issue = $self->workaround_dependency_issues || $dep_issue;
 
-            if (get_var('PATTERNS', '') =~ /default/) {
+            if (get_var('PATTERNS', '') =~ /default/ && !(get_var('PATTERNS', '') =~ /$current_pattern/)) {
                 $needs_to_be_selected = $selected;
+                record_info("keep default", "");
             }
             if (!$needs_to_be_selected && $selected) {
                 send_key ' ';
+                record_info("unselect", "");
                 assert_screen [qw(current-pattern-unselected current-pattern-autoselected)], 8;
             }
             movedownelseend;

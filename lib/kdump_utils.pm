@@ -45,11 +45,10 @@ sub prepare_for_kdump_sle {
         return;
     }
     my $counter = 0;
-    if (get_var('OS_TEST_ISSUES') && get_var('OS_TEST_TEMPLATE')) {
+    if (get_var('MAINT_TEST_REPO')) {
         # append _debug to the incident repo
-        for my $b (split(/,/, get_var('OS_TEST_ISSUES'))) {
+        for my $b (split(/,/, get_var('MAINT_TEST_REPO'))) {
             next unless $b;
-            $b = join($b, split('%INCIDENTNR%', get_var('OS_TEST_TEMPLATE')));
             $b =~ s,/$,_debug/,;
             $counter++;
             zypper_call("--no-gpg-check ar -f $b 'DEBUG_$counter'");
@@ -136,5 +135,3 @@ sub do_kdump {
 }
 
 1;
-
-# vim: sw=4 et

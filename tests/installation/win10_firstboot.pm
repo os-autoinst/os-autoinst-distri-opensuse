@@ -16,24 +16,48 @@ use strict;
 use testapi;
 
 sub run {
-    assert_screen 'windows-first-boot', 1000;
-    send_key 'alt-e';    # use express settings button
-    assert_screen 'windows-owner', 200;
-    assert_and_click 'windows-next';    # no alt-n shortcut
-    assert_and_click 'windows-local-active-directory';
-    assert_and_click 'windows-next';    # no alt-n shortcut
-    assert_screen 'windows-user', 60;
-    send_key 'tab';                     # select user name
-    type_string $realname;
-    send_key 'tab';                     # go to password
-    type_password;
-    send_key 'tab';                     # go to password
-    type_password;
-    send_key 'tab';                     # go to hint (hint is important for windows)
-    type_string 'security';
-    wait_still_screen;
-    send_key 'alt-n';                   # next
-    assert_screen 'desktop-at-first-boot', 600;
+    assert_screen 'windows-start-with-region', 1000;
+    assert_and_click 'windows-yes';
+    assert_screen 'windows-keyboard-layout';
+    assert_and_click 'windows-yes';
+    assert_and_click 'windows-skip-second-keyboard';
+    assert_screen 'windows-signin-with-ms', 1000;
+    assert_and_click 'windows-offline';
+    assert_and_click 'windows-no-signin-ms-instead';
+    sleep 3;
+    type_string $realname;    # input account name
+    assert_and_click 'windows-next';
+    type_password;            # input password
+    assert_and_click 'windows-next';
+    type_password;            # confirm password
+    assert_and_click 'windows-next';
+    for (1 .. 3) {
+        sleep 3;
+        assert_and_click 'windows-security-question';
+        send_key 'down';
+        send_key 'ret';
+        send_key 'tab';
+        type_string 'security';
+        sleep 3;
+        assert_and_click 'windows-next';
+    }
+    assert_screen 'windows-make-cortana-personal-assistant';
+    assert_and_click 'windows-no';
+    assert_and_click 'windows-dont-use-speech-recognition';
+    assert_and_click 'windows-accept';
+    assert_and_click 'windows-dont-user-my-location';
+    assert_and_click 'windows-accept';
+    assert_and_click 'windows-turn-off-find-device';
+    assert_and_click 'windows-accept';
+    assert_and_click 'windows-send-full-diagnostic-data';
+    assert_and_click 'windows-accept';
+    assert_and_click 'windows-dont-improve-inking&typing';
+    assert_and_click 'windows-accept';
+    assert_and_click 'windows-dont-get-tailored-experiences';
+    assert_and_click 'windows-accept';
+    assert_and_click 'windows-dont-use-adID';
+    assert_and_click 'windows-accept';
+    assert_screen 'windows-first-boot', 600;
 }
 
 1;

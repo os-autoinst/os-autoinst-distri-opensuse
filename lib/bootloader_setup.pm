@@ -84,30 +84,39 @@ And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 sub add_custom_grub_entries {
     my $grub_param = get_var('GRUB_PARAM');
     return unless defined($grub_param);
+    my $script_old     = "/etc/grub.d/10_linux";
+    my $script_new     = "/etc/grub.d/11_linux_openqa";
+    my $script_old_esc = $script_old =~ s~/~\\/~rg;
+    my $script_new_esc = $script_new =~ s~/~\\/~rg;
+    my $cfg_new        = '/boot/grub2/grub.cfg';
+    my $cfg_old        = 'grub.cfg.old';
 
-    assert_script_run('cp /boot/grub2/grub.cfg grub.cfg.old');
-    upload_logs('grub.cfg.old', failok => 1);
+    assert_script_run("cp $cfg_new $cfg_old");
+    upload_logs($cfg_old, failok => 1);
 
     assert_script_run('cp /etc/grub.d/40_custom 40_custom.tmp');
-    assert_script_run('cp /etc/grub.d/10_linux /etc/grub.d/11_linux_openqa');
+
+    assert_script_run("cp $script_old $script_new");
 
     my $cmd = "sed -i -e 's/\\(args=.\\)\\(\\\$4\\)/\\1$grub_param \\2/'";
     $cmd .= " -e 's/\\(Advanced options for %s\\)/\\1 ($grub_param)/'";
     $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$title\\)/\\1 ($grub_param)/'";
-    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' /etc/grub.d/11_linux_openqa";
+    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' $script_new";
     assert_script_run($cmd);
-    upload_logs('/etc/grub.d/11_linux_openqa', failok => 1);
-    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
-    upload_logs('/boot/grub2/grub.cfg', failok => 1);
+    upload_logs($script_new, failok => 1);
+    assert_script_run("grub2-mkconfig -o $cfg_new");
+    upload_logs($cfg_new, failok => 1);
 
-    my $distro   = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
-    my $cnt_orig = script_output("grep -c 'menuentry .$distro' grub.cfg.old");
-    my $cnt_new  = script_output("grep -c 'menuentry .$distro' /boot/grub2/grub.cfg");
-    die("Unexpected number of grub entries: $cnt_new, expected: " . ($cnt_orig * 2)) if ($cnt_orig * 2 != $cnt_new);
-    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' /boot/grub2/grub.cfg");
-    die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
-    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' /boot/grub2/grub.cfg");
-    die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_orig)) if ($cnt_orig != $cnt_new);
+    my $distro      = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
+    my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
+    my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' $cfg_new";
+    my $cnt_old     = script_output("$section_old | grep -c 'menuentry .$distro'");
+    my $cnt_new     = script_output("$section_new | grep -c 'menuentry .$distro'");
+    die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
+    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' $cfg_new");
+    die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
+    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' $cfg_new");
+    die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
 }
 
 =head2 boot_grub_item
@@ -168,6 +177,12 @@ sub boot_local_disk {
     if (get_var('OFW')) {
         # TODO use bootindex to properly boot from disk when first in boot order is cd-rom
         wait_screen_change { send_key 'ret' };
+        # Currently the bootloader would bounce back to inst-bootmenu screen after pressing 'ret'
+        # on 'local' menu-item, we have to check it and send 'ret' again to make booting properly
+        if (check_screen(['bootloader', 'inst-bootmenu'], 30)) {
+            record_info 'bounce back to inst-bootmenu, send ret again';
+            send_key 'ret';
+        }
         assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
         if (match_has_tag 'grub2') {
             diag 'already in grub2, returning from boot_local_disk';
@@ -176,12 +191,9 @@ sub boot_local_disk {
         }
         if (match_has_tag 'inst-slof') {
             diag 'specifying local disk for boot from slof';
-            type_string_very_slow "boot /pci\t/sc\t4";
+            type_string_very_slow "boot /pci\t/sc\t5";
             save_screenshot;
         }
-    }
-    if (check_var('ARCH', 'aarch64') and get_var('UEFI')) {
-        assert_screen 'boot-firmware';
     }
     send_key 'ret';
 }
@@ -189,6 +201,7 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
+    record_soft_failure 'bsc#1017558:Cannot view timestamp of read-only snapshots in GRUB as names truncated' if is_leap;
     # assert needle to avoid send down key early in grub_test_snapshot.
     assert_screen 'snap-default' if get_var('OFW');
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
@@ -210,7 +223,10 @@ sub pre_bootmenu_setup {
         sleep 60;
         return 3;
     }
-    if (get_var("USBBOOT")) {
+
+    # After version 12 the USB storage is set as the default boot device using
+    # bootindex. Before 12 it needs to be selected in the BIOS.
+    if (isotovideo::get_version() < 12 && get_var("USBBOOT")) {
         assert_screen "boot-menu", 5;
         # support multiple versions of seabios, does not harm to press
         # multiple keys here: seabios<1.9: f12, seabios=>1.9: esc
@@ -219,11 +235,7 @@ sub pre_bootmenu_setup {
         send_key(2 + get_var("NUMDISKS"));
     }
 
-    if (get_var("BOOT_HDD_IMAGE")) {
-        assert_screen "grub2", 15;    # Use the same bootloader needle as in grub-test
-        send_key "ret";               # boot from hd
-        return 3;
-    }
+    return 3 if get_var('BOOT_HDD_IMAGE');
     return 0;
 }
 
@@ -269,12 +281,14 @@ sub bootmenu_type_extra_boot_params {
 }
 
 sub bootmenu_type_console_params {
+    my ($baud_rate) = shift // '';
+    $baud_rate = $baud_rate ? ",$baud_rate" : '';
     # To get crash dumps as text
-    type_string_very_slow "console=$serialdev ";
+    type_string_very_slow "console=${serialdev}${baud_rate} ";
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
-    # and doesn't work if set to serial device.
-    type_string_very_slow "console=tty ";
+    # and doesn't work if set to serial device. Don't want this on ipmi backend.
+    type_string_very_slow "console=tty " unless check_var('BACKEND', 'ipmi');
 }
 
 sub uefi_bootmenu_params {
@@ -322,6 +336,7 @@ sub type_hyperv_fb_video_resolution {
 }
 
 sub bootmenu_default_params {
+    my (%args) = @_;
     if (get_var('OFW')) {
         # edit menu, wait until we get to grub edit
         wait_screen_change { send_key "e" };
@@ -344,23 +359,36 @@ sub bootmenu_default_params {
         # gfxpayload variable replaced vga option in grub2
         if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
             type_string_slow "vga=791 ";
-            type_string_slow "video=1024x768-16 ";
-            assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+            if (check_var("INSTALL_TO_OTHERS", 1) || !$args{pxe}) {
+                type_string_slow "video=1024x768-16 ";
+            } else {
+                type_string_slow "xvideo=1024x768 ";
+            }
+            # Do not assert on pxe boot as it's unreliable due to multiline input
+            if ($args{pxe})
+            {
+                save_screenshot;
+            }
+            else {
+                assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+            }
         }
 
         if (!get_var("NICEVIDEO")) {
             if (is_caasp) {
-                bootmenu_type_console_params;
+                bootmenu_type_console_params $args{baud_rate};
             }
             elsif (!is_jeos) {
-                type_string_very_slow "plymouth.ignore-serial-consoles ";    # make plymouth go graphical
+                # make plymouth go graphical
+                type_string_very_slow "plymouth.ignore-serial-consoles " unless $args{pxe};
                 type_string_very_slow "linuxrc.log=/dev/$serialdev ";
-                bootmenu_type_console_params;
-
-                assert_screen "inst-consolesettingstyped", 30;
+                bootmenu_type_console_params $args{baud_rate};
+                # Do not assert on pxe boot as it's unreliable due to multiline input
+                assert_screen "inst-consolesettingstyped", 30 unless $args{pxe};
 
                 # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
                 type_string_very_slow "linuxrc.core=/dev/$serialdev ";
+                type_string_very_slow "linuxrc.debug=4,trace ";
             }
             bootmenu_type_extra_boot_params;
         }
@@ -388,6 +416,15 @@ sub bootmenu_network_source {
         else {
             my $m_protocol = get_var('INSTALL_SOURCE', 'http');
             my $m_mirror = get_netboot_mirror;
+            die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
+            # In case of https we have to use boot options and not UI
+            if ($m_protocol eq "https") {
+                type_string_very_slow " install=$m_mirror";
+                # Ignore certificate validation
+                type_string_very_slow ' ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
+                # As we use boot options, no extra action is required
+                return;
+            }
             my ($m_server, $m_share, $m_directory);
 
             # Parse SUSEMIRROR into variables
@@ -451,6 +488,25 @@ sub bootmenu_network_source {
     }
 }
 
+sub autoyast_boot_params {
+    my $ay_var = get_var("AUTOYAST");
+    return '' unless $ay_var;
+
+    my $autoyast_args = 'autoyast=';
+    # In case of SUPPORT_SERVER, profiles are available on another VM
+    if (get_var('USE_SUPPORT_SERVER')) {
+        my $proto = get_var("PROTO") || 'http';
+        $autoyast_args .= "$proto://10.0.2.1/";
+        $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
+        $autoyast_args .= $ay_var;
+    } elsif ($ay_var !~ /^slp$|:\/\//) {
+        $autoyast_args .= data_url($ay_var);    # Getting profile from the worker as openQA asset
+    } else {
+        $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
+    }
+    return $autoyast_args . " ";
+}
+
 sub specific_bootmenu_params {
     my $args = "";
 
@@ -464,17 +520,23 @@ sub specific_bootmenu_params {
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic.
             $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp SetHostname=0");
-            # If AUTOYAST is url (://) or slp dont't translate it to openqa asset
-            $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
-            $args .= " $netsetup autoyast=$autoyast ";
+            $args .= " $netsetup ";
+            $args .= autoyast_boot_params;
         }
         else {
             $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
             $args .= $netsetup;
         }
     }
-    if (get_var("AUTOUPGRADE")) {
+    if (get_var("AUTOUPGRADE") || get_var("AUTOYAST") && (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE"))) {
         $args .= " autoupgrade=1";
+    }
+
+    # Boot the system with the debug options if shutdown takes suspiciously long time.
+    # Please, see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
+    # Further actions for saving debug logs are done in 'shutdown/cleanup_before_shutdown' module.
+    if (get_var('DEBUG_SHUTDOWN')) {
+        $args .= " systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on enforcing=0 plymouth.enable=0";
     }
 
     if (get_var("IBFT")) {
@@ -523,10 +585,9 @@ sub specific_bootmenu_params {
     if (check_var('ARCH', 's390x')) {
         return $args;
     }
-    else {
-        type_string_very_slow $args;
-        save_screenshot;
-    }
+
+    type_string_very_slow $args;
+    save_screenshot;
 }
 
 sub select_bootmenu_video_mode {
@@ -643,7 +704,7 @@ sub specific_caasp_params {
         # Wait until admin node genarates autoyast profile
         pause_until 'VELUM_CONFIGURED' if get_var('AUTOYAST');
         # Wait until first round of nodes are processed
-        pause_until 'NODES_ACCEPTED' if get_var('DELAYED_WORKER');
+        pause_until 'NODES_ACCEPTED' if get_var('DELAYED');
     }
 }
 
@@ -742,5 +803,3 @@ sub ensure_shim_import {
 }
 
 1;
-
-# vim: sw=4 et

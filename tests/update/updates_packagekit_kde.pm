@@ -26,6 +26,7 @@ sub kernel_updated {
 sub run {
     my ($self) = @_;
     select_console 'x11', await_console => 0;
+    ensure_unlocked_desktop;
     turn_off_kde_screensaver;
 
     my @updates_installed_tags = qw(updates_none updates_available);
@@ -48,7 +49,7 @@ sub run {
             # the assert_screen, record a soft failure
             wait_still_screen;
             if (match_has_tag('updates_none')) {
-                if (check_screen 'updates_none') {
+                if (check_screen 'updates_none', 30) {
                     last;
                 }
                 else {

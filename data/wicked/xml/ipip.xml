@@ -1,0 +1,15 @@
+<interface>
+  <name>tunl1</name>
+  <description>IPIP tunnel interface</description>
+
+  <ipip>
+    <local-address>local_ip</local-address>
+    <remote-address>remote_ip</remote-address>
+  </ipip>
+
+  <ipv4:static>
+    <address>
+      <local>tunnel_ip/24</local>
+    </address>
+  </ipv4:static>
+</interface>

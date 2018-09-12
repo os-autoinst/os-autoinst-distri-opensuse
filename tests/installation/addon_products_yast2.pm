@@ -14,7 +14,7 @@
 use base qw(y2logsstep y2x11test);
 use strict;
 use testapi;
-use utils 'reboot_x11';
+use power_action_utils 'reboot_x11';
 use registration qw(fill_in_registration_data skip_registration);
 
 sub run {
@@ -52,7 +52,7 @@ sub run {
                 send_key 'alt-o';                                                   # continue
             }
             if (check_screen('import-untrusted-gpg-key', 10)) {                     # workaround untrusted key pop-up, record soft fail and trust it
-                record_soft_failure;
+                record_info 'untrusted key', 'Workaround untrusted key by accepting it', result => 'softfail';
                 send_key 'alt-t';
             }
             if (get_var("BETA_$uc_addon")) {
@@ -79,7 +79,7 @@ sub run {
             do {
                 assert_screen \@needles, 300;
                 if (match_has_tag('unsupported-packages')) {
-                    record_soft_failure 'unsuppoorted packages';
+                    die 'unsupported packages';
                     send_key 'alt-o';
                 }
                 if (match_has_tag('addon-installation-pop-up')) {
@@ -108,7 +108,7 @@ sub run {
             }
             else {
                 skip_registration;
-                if (check_screen("scc-skip-base-system-reg-warning")) {
+                if (check_screen("scc-skip-base-system-reg-warning", 30)) {
                     wait_screen_change { send_key "alt-y" };    # confirmed skip SCC registration
                 }
             }

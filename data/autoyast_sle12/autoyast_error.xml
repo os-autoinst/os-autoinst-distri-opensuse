@@ -9,22 +9,23 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <report>
     <messages>
-      <show config:type="boolean">true</show>
       <timeout config:type="integer">0</timeout>
-      <log config:type="boolean">true</log>
     </messages>
     <errors>
-      <show config:type="boolean">true</show>
       <timeout config:type="integer">0</timeout>
-      <log config:type="boolean">true</log>
     </errors>
     <warnings>
-      <show config:type="boolean">true</show>
       <timeout config:type="integer">0</timeout>
-      <log config:type="boolean">true</log>
     </warnings>
+    <yesno_messages>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
   </report>
-
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
 <!-- stage 2 error - script output -->
 
   <scripts>

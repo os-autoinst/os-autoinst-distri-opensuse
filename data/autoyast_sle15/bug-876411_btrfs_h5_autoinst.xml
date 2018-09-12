@@ -92,7 +92,7 @@ find / -name YaST2-Second-Stage.service
       <os_prober>true</os_prober>
       <suse_btrfs>true</suse_btrfs>
       <terminal>gfxterm</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
     <sections config:type="list">
@@ -739,14 +739,9 @@ find / -name YaST2-Second-Stage.service
     <services config:type="list">
       <service>cron</service>
       <service>getty@tty1</service>
-      <service>haveged</service>
       <service>kdump</service>
-      <service>nscd</service>
       <service>postfix</service>
-      <service>rsyslog</service>
       <service>sshd</service>
-      <service>systemd-readahead-collect</service>
-      <service>systemd-readahead-replay</service>
       <service>wicked</service>
       <service>wickedd-auto4</service>
       <service>wickedd-dhcp4</service>

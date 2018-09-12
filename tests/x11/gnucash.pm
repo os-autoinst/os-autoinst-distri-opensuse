@@ -16,27 +16,32 @@ use strict;
 use testapi;
 
 sub run {
-    ensure_installed("gnucash");
-    ensure_installed("gnucash-docs");
-
-    # needed for viewing
-    ensure_installed("yelp");
+    ensure_installed('gnucash gnucash-docs yelp');
     x11_start_program('gnucash');
     send_key "ctrl-h";    # open user tutorial
     assert_screen 'test-gnucash-2';
     # Leave tutorial window
-    wait_screen_change { send_key 'alt-f4' };
+    send_key 'alt-f4';
+    assert_screen('gnucash');
     # Leave tips windows for GNOME/gtk case
     if (get_var('DESKTOP', '') =~ /gnome|xfce|lxde/) {
         # LXDE specifc behaviour: After closing one window not the first
         # opened gets focussed but the last. Bring the tip window back to
         # focus if it is not
         send_key 'alt-tab' if check_var('DESKTOP', 'lxde');
-        wait_screen_change { send_key 'alt-c' };
+        send_key 'alt-c';
+        assert_screen('test-gnucash-tips-closed');
     }
-    # sometimes send_key for closing windows not working
-    send_key_until_needlematch 'gnucash-save-changes', "ctrl-q", 5, 5;
-    wait_screen_change { send_key 'alt-w' };
+    send_key 'ctrl-q';    # Exit
+
+    # arbitrary limit
+    for (1 .. 7) {
+        assert_screen [qw(test-gnucash-1 gnucash gnucash-save-changes generic-desktop)];
+        last              if match_has_tag 'generic-desktop';
+        send_key 'alt-c'  if match_has_tag 'test-gnucash-1';
+        send_key 'alt-w'  if match_has_tag 'gnucash-save-changes';
+        send_key 'ctrl-q' if match_has_tag 'gnucash';
+    }
 }
 
 1;

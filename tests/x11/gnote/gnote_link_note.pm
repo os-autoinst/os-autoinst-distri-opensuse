@@ -38,7 +38,7 @@ sub run {
     wait_screen_change { send_key 'esc' };
     #close the note "Start Here"
     wait_screen_change { send_key 'ctrl-w' } if is_sle('<15');
-    $self->cleanup_gnote;
+    $self->cleanup_gnote('gnote-new-note-matched');
 }
 
 1;

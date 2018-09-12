@@ -17,7 +17,8 @@ use testapi;
 use bootloader_setup qw(ensure_shim_import pre_bootmenu_setup);
 
 sub run {
-    my $self = shift;
+    my $self       = shift;
+    my $iterations = 0;
 
     # handle mediacheck for usb boot if non-uefi
     if (!get_var("UEFI")) {
@@ -27,12 +28,18 @@ sub run {
     ensure_shim_import;
     $self->select_bootmenu_more('inst-onmediacheck', 1);
 
-    # the timeout is insane - but some old DVDs took almost forever, could
-    # recheck with all current one and lower again
-    assert_screen [qw(mediacheck-ok mediacheck-checksum-wrong)], 3600;
-    send_key "ret";
-    if (match_has_tag('mediacheck-checksum-wrong')) {
-        die "Checksum reported as wrong";
+    while ($iterations++ < 3) {
+        # the timeout is insane - but some old DVDs took almost forever, could
+        # recheck with all current one and lower again
+        assert_screen [qw(mediacheck-select-device mediacheck-ok mediacheck-checksum-wrong)], 3600;
+        send_key "ret";
+        if (match_has_tag('mediacheck-select-device')) {
+            next;
+        }
+        if (match_has_tag('mediacheck-checksum-wrong')) {
+            die "Checksum reported as wrong";
+        }
+        last;
     }
 }
 

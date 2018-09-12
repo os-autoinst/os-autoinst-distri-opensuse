@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     mouse_hide(1);
@@ -26,9 +26,13 @@ sub run {
     x11_start_program('pidgin');
     send_key "alt-c";
 
-    # pidgin main winodow is hidden in tray at first run
-    # need to show up the main window
-    if (sle_version_at_least('12-SP2')) {
+    # pidgin main window is hidden in tray at first run
+    # need to show up the main window (12-SP2 and SP3)
+    # the main window is shown correctly in SLE15
+    if (is_sle('>=15')) {
+        wait_still_screen;
+    }
+    elsif (is_sle('>=12-sp2')) {
         hold_key "ctrl-alt";
         send_key "tab";
         wait_still_screen;

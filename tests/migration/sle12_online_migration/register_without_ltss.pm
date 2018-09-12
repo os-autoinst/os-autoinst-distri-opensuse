@@ -20,7 +20,6 @@ sub run {
     select_console 'root-console';
 
     scc_deregistration(version_variable => 'HDDVERSION');
-    remove_ltss;
 
     # Re-register system without LTSS with resetting SCC_ADDONS variable without ltss
     my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));

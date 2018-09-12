@@ -89,11 +89,13 @@ sub bug_workaround_bsc1005313 {
 
 sub run {
     my ($self) = @_;
+    my $timeout = get_var('GRUB_TIMEOUT', 90);
 
     $self->handle_installer_medium_bootup;
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
-    assert_screen 'grub2', 60;
+    # 90 as a workaround due to the qemu backend fallout
+    assert_screen 'grub2', $timeout;
     stop_grub_timeout;
     set_vmware_videomode if check_var('VIRSH_VMM_FAMILY', 'vmware');
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");

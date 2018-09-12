@@ -1,0 +1,10 @@
+STARTMODE='manual'
+BOOTPROTO='static'
+TUNNEL='tun'
+TUNNEL_SET_OWNER='root'
+TUNNEL_SET_GROUP='root'
+LINK_REQUIRED=no
+PRE_UP_SCRIPT='systemd:openvpn@client'
+PRE_DOWN_SCRIPT='systemd:openvpn@client'
+IPADDR='local_ip'
+REMOTE_IPADDR='remote_ip'

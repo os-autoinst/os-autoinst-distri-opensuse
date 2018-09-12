@@ -208,5 +208,3 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
 }
 
 1;
-
-# vim: sw=4 et

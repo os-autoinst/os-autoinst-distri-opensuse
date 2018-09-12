@@ -14,32 +14,36 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use lockapi 'barrier_wait';
+use autotest 'query_isotovideo';
 use caasp;
 
 sub run {
     # Notify others that installation finished
-    if (get_var 'DELAYED_WORKER') {
-        unpause 'DELAYED_WORKER_INSTALLED';
+    if (get_var 'DELAYED') {
+        barrier_wait 'DELAYED_NODES_ONLINE';
     }
     else {
-        barrier_wait "WORKERS_INSTALLED";
+        barrier_wait "NODES_ONLINE";
     }
-
-    # Wait until controller node finishes
     pause_until 'CNTRL_FINISHED';
 }
 
 sub post_run_hook {
+    # Some nodes were removed & powered off during test run
+    return if query_isotovideo('backend_is_shutdown');
+
+    # Wait until password is set from admin node
+    pause_until('AUTOYAST_PW_SET') if get_var('AUTOYAST');
+
+    # Redraw login screen
     send_key 'ret';
-    # Cluster was rebooted during stack tests
+
+    # Node could be rebooted during stack tests
     if (check_screen 'linux-login-casp', 7) {
         reset_consoles;
         select_console 'root-console';
     }
-    # Delayed node was removed & powered off
-    unless (get_var 'DELAYED_WORKER') {
-        export_cluster_logs;
-    }
+    export_cluster_logs;
 }
 
 1;

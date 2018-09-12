@@ -20,6 +20,11 @@
       </addon>
     </addons>
   </suse_register>
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
   <firewall>
     <enable_firewall config:type="boolean">false</enable_firewall>
     <start_firewall config:type="boolean">false</start_firewall>
@@ -130,10 +135,6 @@
     <services config:type="list">
       <service>
         <service_name>nfs</service_name>
-        <service_status>enable</service_status>
-      </service>
-      <service>
-        <service_name>hamsta</service_name>
         <service_status>enable</service_status>
       </service>
       <service>

@@ -17,10 +17,11 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw/is_storage_ng/;
+use version_utils qw/is_storage_ng is_sle/;
 use utils;
+use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_xen switch_from_ssh_to_sol_console);
+our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_vh switch_from_ssh_to_sol_console);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -30,10 +31,10 @@ our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_xen switch_from_ss
 
 #use it after SUT boot finish, as it requires ssh connection to SUT to interact with SUT, including window and serial console
 sub use_ssh_serial_console {
-    console('sol')->disable;
+    console('sol')->disable if check_var('BACKEND', 'ipmi');
     select_console('root-ssh');
     $serialdev = 'sshserial';
-    set_var('SERIALDEV', 'sshserial');
+    set_var('SERIALDEV', $serialdev);
     bmwqemu::save_vars();
 }
 
@@ -92,11 +93,13 @@ sub get_dom0_serialdev {
 }
 
 sub setup_console_in_grub {
-    my ($ipmi_console, $root_dir) = @_;
+    my ($ipmi_console, $root_dir, $virt_type) = @_;
     $ipmi_console //= $serialdev;
     $root_dir //= '/';
+    #Ther is no default value for $virt_type, which has to be passed into function explicitly.
 
     #set grub config file
+    my $grub_default_file = "${root_dir}/etc/default/grub";
     my $grub_cfg_file;
     if ($grub_ver eq "grub2") {
         $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
@@ -112,32 +115,52 @@ sub setup_console_in_grub {
     my $cmd;
     if ($grub_ver eq "grub2") {
         #grub2
-        $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org "
-          . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
-          . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-          . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console/; "
-          . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
-          . "s/timeout=[0-9]*/timeout=30/g;"
-          . "' $grub_cfg_file";
-        assert_script_run("$cmd");
+        if (${virt_type} eq "xen") {
+            my $com_settings = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            $cmd
+              = "cp $grub_cfg_file ${grub_cfg_file}.org "
+              . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
+              . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
+              . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/; "
+              . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
+              . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
+              . "' $grub_cfg_file";
+            assert_script_run($cmd);
+            save_screenshot;
+            $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz|timeout=)/p' $grub_cfg_file";
+            assert_script_run($cmd);
+            save_screenshot;
+        } elsif (${virt_type} eq "kvm") {
+            $cmd
+              = "cp $grub_cfg_file ${grub_cfg_file}.org "
+              . "\&\& sed -ri 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g' $grub_cfg_file "
+              . "\&\& sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file "
+              . "\&\& cat $grub_default_file $grub_cfg_file";
+            assert_script_run($cmd);
+            save_screenshot;
+        } else { die "Host Hypervisor is not xen or kvm"; }
+
+
+        $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
+        assert_script_run($cmd);
+        $cmd = "cat $grub_default_file $grub_cfg_file";
+        assert_script_run($cmd);
         save_screenshot;
-        $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz|timeout=)/p' $grub_cfg_file";
-        assert_script_run("$cmd");
+        upload_logs($grub_default_file);
     }
     elsif ($grub_ver eq "grub1") {
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout [0-9]*/timeout 30/; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
-        assert_script_run("$cmd");
+          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
+        assert_script_run($cmd);
         save_screenshot;
         $cmd = "sed -rn '/module \\\/boot\\\/vmlinuz/p' $grub_cfg_file";
-        assert_script_run("$cmd");
+        assert_script_run($cmd);
     }
     else {
         die "Not supported grub version!";
     }
     save_screenshot;
-    upload_logs("$grub_cfg_file");
+    upload_logs($grub_cfg_file);
 }
 
 sub mount_installation_disk {
@@ -164,22 +187,25 @@ sub umount_installation_disk {
     assert_script_run("ls $mount_point");
 }
 
-#Get the partition where the new installed system is installed to
+# Get the partition where the new installed system is installed to
 sub get_installation_partition {
     my $partition = '';
 
-    #Do not use script_output because when the command fail, script_output dies
-    type_string(qq{fdisk -l | grep "^/dev/sda.*\\*" | cut -d ' ' -f 1 | tee /dev/$serialdev\n});
-    $partition = wait_serial;
-    $partition =~ s/^\s+|\s+$//g;
-    save_screenshot;
-    if (is_storage_ng && ($partition eq '')) {
-        record_soft_failure "bsc#1080729 - Partitioner does not mark boot flag";
-        my $y2log_file                = '/var/log/YaST2/y2log';
-        my $root_partition_commit_msg = script_output(qq{grep 'Commit Action "Adding mount point / of .* to /etc/fstab' $y2log_file});
-        $root_partition_commit_msg =~ m{Commit Action "Adding mount point / of ([\S]*) to /etc/fstab}m;
-        $partition = $1;
+    # Confirmed with dev that the reliable way to get partition for / is via installation log, rather than fdisk
+    # For details, please refer to bug 1101806.
+    my $cmd        = '';
+    my $y2log_file = '/var/log/YaST2/y2log';
+    if (is_sle('15+')) {
+        $cmd = qq{grep 'Commit Action "Adding mount point / of .* to /etc/fstab"' $y2log_file | grep -o "/dev/[^ ]*"};
     }
+    elsif (is_sle('12+')) {
+        $cmd = qq{sed -n '/INSTALL INFO info:Adding entry for mount point \\\/ to \\\/etc\\\/fstab/{x;p};h' $y2log_file | grep -o "/dev/[^ ]*"};
+    }
+    else {
+        die "Not support finding root partition for products lower than sle12.";
+    }
+    $partition = script_output($cmd);
+    save_screenshot;
 
     die "Error: can not get installation partition!" unless ($partition);
 
@@ -190,11 +216,12 @@ sub get_installation_partition {
 }
 
 #Usage:
-#For post installation, use set_serial_console_on_xen directly
-#For during installation, use set_serial_console_on_xen("/mnt")
-#For custom usage, use set_serial_console_on_xen($mount_point, $installation_disk)
-sub set_serial_console_on_xen {
-    my ($mount_point, $installation_disk) = @_;
+#For post installation, use set_serial_console_on_vh(,...) directly
+#For during installation, use set_serial_console_on_vh("/mnt",...)
+#For custom usage, use set_serial_console_on_vh($mount_point, $installation_disk, $virt_type)
+#Please pass desired hypervisor type to this function explicitly. There is no default value for $virt_type
+sub set_serial_console_on_vh {
+    my ($mount_point, $installation_disk, $virt_type) = @_;
 
     #prepare accessible grub
     my $root_dir;
@@ -215,15 +242,15 @@ sub set_serial_console_on_xen {
 
     #set up xen serial console
     my $ipmi_console = &get_dom0_serialdev("$root_dir");
-    &setup_console_in_grub($ipmi_console, $root_dir);
+    if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { &setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
+    else                                                { die "Host Hypervisor is not xen or kvm"; }
 
     #cleanup mount
     if ($mount_point ne "") {
         assert_script_run("cd /");
         &umount_installation_disk("$mount_point");
     }
+
 }
 
-
 1;
-

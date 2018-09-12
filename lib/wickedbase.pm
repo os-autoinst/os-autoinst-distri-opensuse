@@ -14,6 +14,7 @@ package wickedbase;
 
 use base 'opensusebasetest';
 use utils 'systemctl';
+use network_utils;
 use testapi;
 
 sub assert_wicked_state {
@@ -28,12 +29,29 @@ sub assert_wicked_state {
 }
 
 sub get_ip {
-    my ($self, $no_mask) = @_;
-    if ($no_mask) {
-        return check_var('IS_WICKED_REF', '1') ? '10.0.2.10' : '10.0.2.11';
+    my ($self, %args) = @_;
+    if ($args{type} eq 'host') {
+        if ($args{no_mask}) {
+            return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
+        }
+        else {
+            return $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
+        }
     }
-    else {
-        return check_var('IS_WICKED_REF', '1') ? '10.0.2.10/15' : '10.0.2.11/15';
+    elsif ($args{type} eq 'gre1') {
+        return $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
+    }
+    elsif ($args{type} eq 'sit1') {
+        return $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
+    }
+    elsif ($args{type} eq 'tunl1') {
+        return $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
+    }
+    elsif ($args{type} eq 'tun1' || $args{type} eq 'tap1') {
+        return $args{is_wicked_ref} ? '192.168.2.10' : '192.168.2.11';
+    }
+    elsif ($args{type} eq 'br0') {
+        return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
     }
 }
 
@@ -54,14 +72,49 @@ sub post_fail_hook {
     my ($self) = @_;
     systemctl('start network');
     systemctl('start wicked');
-    my $iface    = $self->{iface};
-    my $ifstatus = script_output("ifstatus $iface");
-    if ($ifstatus !~ /state up/) {
-        script_run("ip addr add 10.0.2.15/24 dev $iface");
-        script_run("ip link set $iface up");
-        script_run("ip route add default via 10.0.2.2 dev $iface");
-    }
+    recover_network() if !can_upload_logs();
     save_and_upload_wicked_log();
+}
+
+sub ping_with_timeout {
+    my ($self, %args) = @_;
+    my $timeout = $args{timeout};
+    my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
+    while ($timeout > 0) {
+        return 1 if script_run("$ping_command -c 1 $args{ip}") == 0;
+        $timeout -= 1;
+        sleep 5;
+    }
+    return 0;
+}
+
+sub setup_tuntap {
+    my ($self, $config, $type, $is_wicked_ref) = @_;
+    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => $is_wicked_ref,  type => $type);
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => !$is_wicked_ref, type => $type);
+    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
+    assert_script_run("cat $config");
+    assert_script_run("wicked ifup --timeout infinite $type");
+    assert_script_run('ip a');
+}
+
+sub cleanup {
+    my ($self, $config, $type) = @_;
+    assert_script_run("ifdown $type");
+    assert_script_run("rm $config");
+}
+
+sub before_scenario {
+    my ($self, $title, $text, $iface) = @_;
+    if ($iface) {
+        assert_script_run("ifdown $iface");
+        assert_script_run("ifbind.sh unbind $iface");
+        script_run("rm /etc/sysconfig/network/ifcfg-$iface");
+        assert_script_run("ifbind.sh bind $iface");
+        setup_static_network(ip => $self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+    }
+    record_info($title, $text);
 }
 
 1;

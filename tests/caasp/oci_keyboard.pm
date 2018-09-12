@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,10 +14,11 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
+use caasp 'send_alt';
 
 sub run {
     # Switch to UK keyboard
-    check_var('VIDEOMODE', 'text') ? send_key 'alt-y' : send_key 'alt-e';
+    send_alt 'keyboard';
     send_key 'up';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 
@@ -25,13 +26,13 @@ sub run {
     sleep 1;
 
     # Check that UK layout is active
-    send_key 'alt-g';
+    send_alt 'registration';
     type_string '~@#\"|';    # writes ¬"£#@~
     assert_screen 'keyboard-layout-uk';
     for (1 .. 6) { send_key 'backspace' }
 
     # Switch back to US keyboard
-    check_var('VIDEOMODE', 'text') ? send_key 'alt-y' : send_key 'alt-e';
+    send_alt 'keyboard';
     send_key 'down';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 }

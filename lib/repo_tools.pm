@@ -19,9 +19,22 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 
-our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo);
+our @EXPORT = qw (smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo disable_source_repo get_repo_var_name prepare_oss_repo disable_oss_repo);
+
+=head2 get_repo_var_name
+This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter
+and returns "REPO_SLE15_SP1_MODULE_BASESYSTEM_SOURCE" when being
+called on SLE15-SP1.
+=cut
+sub get_repo_var_name {
+    my ($repo_name) = @_;
+    my $distri      = uc get_required_var("DISTRI");
+    my $version     = get_required_var("VERSION");
+    $version =~ s/-/_/;
+    return "REPO_${distri}${version}_${repo_name}";
+}
 
 sub smt_wizard {
     type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
@@ -115,35 +128,46 @@ sub rmt_mirror_repo {
 sub prepare_source_repo {
     my $cmd;
     if (is_sle) {
-        if (is_sle('>=15') and get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE')) {
-            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLE15_MODULE_BASESYSTEM_SOURCE') . " repo-source";
+        if (is_sle('>=15') and get_var(get_repo_var_name("MODULE_BASESYSTEM_SOURCE"))) {
+            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var(get_repo_var_name("MODULE_BASESYSTEM_SOURCE")) . " repo-source");
         }
         elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_SOURCE')) {
-            $cmd = "ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source";
+            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source");
         }
         # SLE maintenance tests are assumed to be SCC registered
         # and source repositories disabled by default
         elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
-            $cmd = q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')};
-        }
-        # use dvd2 as the src-repository
-        # Xen PV has different device for 2nd CDROM
-        elsif (check_var('VIRSH_VMM_TYPE', 'linux')) {
-            $cmd = 'ar --type plaindir hd:///?device=/dev/xvda repo-source';
+            zypper_call(q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')});
         }
         else {
-            $cmd = "ar --type plaindir cd:///?devices=/dev/sr1 repo-source";
+            record_info('No repo', 'Missing source repository');
+            die('Missing source repository');
         }
     }
     # source repository is disabled by default
     else {
-        $cmd = "mr -e repo-source";
+        if (script_run('zypper lr repo-source') != 0) {
+            # re-add the source repo
+            my $version = lc get_required_var('VERSION');
+            my $source_name = is_tumbleweed() ? $version : 'distribution/leap/' . $version;
+            zypper_call("ar -f http://download.opensuse.org/source/$source_name/repo/oss repo-source");
+        }
+        else {
+            zypper_call("mr -e repo-source");
+        }
     }
 
-    zypper_call($cmd);
     zypper_call("ref");
 }
 
+sub disable_source_repo {
+    if (is_sle && get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+        zypper_call(q{mr -d $(zypper -n lr | awk '/-Source/ {print $1}')});
+    }
+    elsif (script_run('zypper lr repo-source') == 0) {
+        zypper_call("mr -d repo-source");
+    }
+}
 
 sub test_flags {
     return {fatal => 1};

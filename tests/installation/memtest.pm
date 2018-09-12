@@ -11,18 +11,16 @@
 # Summary: Simple memtest
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use testapi;
 use bootloader_setup 'ensure_shim_import';
 
 sub run {
     my $self = shift;
-
     ensure_shim_import;
     $self->select_bootmenu_more('inst-onmemtest', 1);
-    assert_screen "pass-complete", check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1100 : 700;
-    send_key "esc";
+    assert_screen('pass-complete', 700);
 }
 
 sub test_flags {

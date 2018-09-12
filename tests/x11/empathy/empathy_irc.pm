@@ -60,7 +60,7 @@ sub run {
 
     # cleaning
     send_key "f4";
-    if (!check_screen 'empathy-disable-account') {
+    if (!check_screen 'empathy-disable-account', 30) {
         assert_and_click 'empathy-menu';
         assert_and_click 'empathy-menu-accounts';
     }

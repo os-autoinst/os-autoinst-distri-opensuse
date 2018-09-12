@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,19 +14,13 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
-use migration 'check_rollback_system';
+use migration qw(check_rollback_system boot_into_ro_snapshot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
 
-    # assert the we are on a ro snapshot.
-    # assert_screen 'linux-login', 200;
-    # workaround known issue: bsc#980337
-    if (!check_screen('linux-login', 200)) {
-        record_soft_failure 'bsc#980337';
-        send_key "ctrl-alt-f1";
-        assert_screen 'tty1-selected';
-    }
+    boot_into_ro_snapshot;
     select_console 'root-console';
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
@@ -36,8 +30,7 @@ sub run {
     # rollback
     script_run("snapper rollback -d rollback-before-migration");
     assert_script_run("snapper list | tail -n 2 | grep rollback");
-    script_run("systemctl reboot", 0);
-    reset_consoles;
+    power_action('reboot', textmode => 1, keepconsole => 1);
     $self->wait_boot(ready_time => 300, bootloader_time => 300);
     select_console 'root-console';
     check_rollback_system;

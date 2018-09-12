@@ -15,6 +15,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 sub export_to_json {
     my ($test_result_export) = @_;
@@ -38,6 +39,9 @@ sub run {
         script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
         upload_logs($ver_linux_log, failok => 1);
     }
+
+    script_run("dmesg > /tmp/dmesg.txt");
+    upload_logs("/tmp/dmesg.txt", failok => 1);
 
     script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     script_run('journalctl --no-pager -p warning');

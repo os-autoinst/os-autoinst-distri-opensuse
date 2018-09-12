@@ -27,7 +27,7 @@ sub run {
     systemctl 'show -p ActiveState hawk.service | grep ActiveState=active';
 
     # Test the Hawk port
-    assert_script_run "ss -nap | grep -w ':$hawk_port'";
+    assert_script_run "ss -nap | grep '.*LISTEN.*:$hawk_port\[[:blank:]]*'";
 
     # Test Hawk connection
     assert_script_run "nc -zv localhost $hawk_port";

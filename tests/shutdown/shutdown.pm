@@ -13,36 +13,15 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: support for saving and loading of hdd image
-# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Summary: Shut down the system
+# Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 use strict;
-use base 'basetest';
+use base "opensusebasetest";
 use testapi;
-use serial_terminal 'add_serial_console';
-use utils;
-use version_utils;
+use power_action_utils 'power_action';
 
 sub run {
-    select_console('root-console');
-    if (get_var('DROP_PERSISTENT_NET_RULES')) {
-        type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
-    }
-    if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
-        add_serial_console('hvc0');
-    }
-    # Proceed with dhcp cleanup on qemu backend only
-    if (check_var('BACKEND', 'qemu')) {
-        my $network_status = script_output('systemctl status network');
-        # Do dhcp cleanup for wicked
-        if ($network_status =~ /wicked/) {
-            systemctl 'stop network.service';
-            systemctl 'stop wickedd.service';
-            assert_script_run('ls /var/lib/wicked/');
-            save_screenshot;
-            assert_script_run('rm -f /var/lib/wicked/*.xml');
-        }
-    }
     power_action('poweroff');
 }
 
@@ -50,13 +29,4 @@ sub test_flags {
     return {fatal => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
-    # In case plymouth splash shows up and the shutdown is blocked, show
-    # console logs - save screen of console (plymouth splash screen in disabled at boottime)
-    send_key('esc');
-    save_screenshot;
-}
-
 1;
-

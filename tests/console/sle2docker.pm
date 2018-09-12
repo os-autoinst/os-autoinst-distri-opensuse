@@ -18,10 +18,13 @@
 use base "consoletest";
 use testapi;
 use utils;
+use registration "install_docker_when_needed";
 use strict;
 
 sub run {
     select_console('root-console');
+
+    install_docker_when_needed();
 
     # install sle2docker and sle docker image
     zypper_call("in sle2docker sles12sp2-docker-image");

@@ -6,24 +6,29 @@ use testapi;
 use caasp 'unpause';
 use lockapi 'barrier_destroy';
 use mmapi 'wait_for_children';
+use version_utils 'is_caasp';
 
 use Exporter 'import';
-our @EXPORT = qw($admin_fqdn
+our @EXPORT = qw($admin_fqdn $master_fqdn
   confirm_insecure_https velum_login switch_to download_kubeconfig click_click xy);
 
 our $admin_fqdn = 'admin.openqa.test';
+# Extra space to check for bsc#1087447
+our $master_fqdn = ' master-api.openqa.test ';
+# CaaSP 2.0 will keep the bug
+$master_fqdn =~ s/^ | $//g if is_caasp('=2.0');
 
 # 10% of clicks are lost because ajax refreshes Velum during click
+# bsc#1048975 - User interaction is lost after page refresh
 sub click_click {
     my ($x, $y) = @_;
     mouse_set $x, $y;
-    for (1 .. 3) {
+    for (1 .. 2) {
         mouse_click;
         # Don't click-and-drag
         sleep 1;
     }
     mouse_hide;
-    record_info 'bsc#1048975', 'User interaction is lost after page refresh';
 }
 
 # Get xy coordinates for:
@@ -87,7 +92,8 @@ sub post_fail_hook {
     sleep if check_var('DEBUG_SLEEP', 'controller');
 
     # Destroy barriers and create mutexes to avoid deadlock
-    barrier_destroy 'WORKERS_INSTALLED';
+    barrier_destroy 'NODES_ONLINE';
+    barrier_destroy 'DELAYED_NODES_ONLINE';
     unpause 'ALL';
 
     # Wait for log export from all nodes

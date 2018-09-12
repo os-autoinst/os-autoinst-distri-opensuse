@@ -1,0 +1,5 @@
+NAME='Dummy link'
+STARTMODE='auto'
+BOOTPROTO='static'
+ 
+LLADDR='42:41:40:3F:3E:3D'

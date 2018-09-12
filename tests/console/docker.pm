@@ -49,8 +49,8 @@ sub test_seccomp {
 sub run {
     select_console("root-console");
 
-    install_docker_when_needed;
-    test_seccomp;
+    install_docker_when_needed();
+    test_seccomp();
 
     # images can be searched on the Docker Hub
     validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
@@ -58,7 +58,7 @@ sub run {
     # images can be pulled from the Docker Hub
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
-    my $alpine_image_version = '3.5';
+    my $alpine_image_version = '3.6';
     assert_script_run("docker image pull alpine:$alpine_image_version", timeout => 300);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
@@ -100,7 +100,7 @@ sub run {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # containers state can be saved to a docker image
-    my $output = script_output("docker container exec $container_name zypper -n in curl", 180);
+    my $output = script_output("docker container exec $container_name zypper -n in curl", 300);
     die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
     assert_script_run("docker container commit $container_name tw:saved");
 
@@ -115,6 +115,19 @@ sub run {
         assert_script_run('man -P cat docker build | grep "docker-build - Build an image from a Dockerfile"');
         assert_script_run('man -P cat docker config | grep "docker-config - Manage Docker configs"');
     }
+
+    # Try to stop container using ctrl+c
+    my $sleep_time = 30 * get_var('TIMEOUT_SCALE', 1);
+    type_string("docker run --rm opensuse/tumbleweed sleep $sleep_time\n");
+    type_string("# Let's press ctrl+c right now ... ");
+    send_key 'ctrl-c';
+    type_string("# ... and we seem to be still in container\n");
+    # If echo works then ctrl-c stopped sleep
+    type_string "echo 'ctrlc_timeout' > /dev/$serialdev\n";
+    if (wait_serial('ctrlc_timeout', 10, 1) =~ 'ctrlc_timeout') {
+        die 'ctrl-c stopped container';
+    }
+    die "Something went wrong" unless wait_serial('ctrlc_timeout', 40);
 
     # containers can be stopped
     assert_script_run("docker container stop $container_name");

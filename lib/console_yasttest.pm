@@ -1,10 +1,33 @@
 # Base for YaST tests.  Switches to text console 2 and uploady y2logs
 
 package console_yasttest;
-use base "opensusebasetest";
+use base 'y2logsstep';
 use strict;
-
 use testapi;
+
+sub change_service_configuration {
+    my ($self, %args) = @_;
+    my $after_writing_ref = $args{after_writing};
+    my $after_reboot_ref  = $args{after_reboot};
+
+    assert_screen 'yast2_ncurses_service_start_widget';
+    change_service_configuration_step('after_writing_conf', $after_writing_ref) if $after_writing_ref;
+    change_service_configuration_step('after_reboot',       $after_reboot_ref)  if $after_reboot_ref;
+}
+
+sub change_service_configuration_step {
+    my ($step_name, $step_conf_ref) = @_;
+    my ($action)         = keys %$step_conf_ref;
+    my ($shortcut)       = values %$step_conf_ref;
+    my $needle_selection = 'yast2_ncurses_service_' . $action . '_' . $step_name;
+    my $needle_check     = 'yast2_ncurses_service_check_' . $action . '_' . $step_name;
+
+    send_key $shortcut;
+    send_key 'end';
+    send_key_until_needlematch $needle_selection, 'up', 5, 1;
+    send_key 'ret';
+    assert_screen $needle_check;
+}
 
 sub post_fail_hook {
     my $self = shift;
@@ -12,27 +35,11 @@ sub post_fail_hook {
     select_console 'log-console';
     save_screenshot;
 
-    script_run "dmesg > /dev/$serialdev";
     upload_logs('/var/log/zypper.log');
-    my $fn = '/tmp/y2logs.tar.bz2';
-    # only upload if save_y2log succeeded
-    if (!script_run "save_y2logs $fn") {
-        upload_logs $fn;
-    }
-    else {
-        # there is a severe problem, e.g. could be bsc#985850 or bsc#990384 so
-        # save more, let's hope there is enough memory for intermediate
-        # storage
-        record_soft_failure 'bsc#990384';
-        # CAUTION just assuming that '/dev/vda2' is the root device here, does
-        # not work for LVM setup and others but we want to debug non-LVM first
-        # /dev/root is not recognized as btrfs device
-        $fn = '/dev/shm/vda2_brfs_debug_tree';
-        assert_script_run "btrfs-debug-tree /dev/vda2 &> $fn";
-        upload_logs $fn;
-    }
-    save_screenshot;
-    $self->investigate_yast2_failure();
+    $self->remount_tmp_if_ro;
+    $self->save_upload_y2logs;
+    $self->save_system_logs;
+    $self->save_strace_gdb_output('yast');
 }
 
 sub post_run_hook {

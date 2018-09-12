@@ -5,6 +5,25 @@
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <report>
+    <errors>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
   <users config:type="list">
     <user>
       <fullname>Bernhard M. Wiedemann</fullname>

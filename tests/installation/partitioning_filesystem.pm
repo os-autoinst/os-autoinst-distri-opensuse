@@ -25,15 +25,8 @@ sub run {
     select_first_hard_disk if (check_screen('select-hard-disks', 0) && check_var('BACKEND', 'ipmi'));
 
     if (get_var('PARTITIONING_WARNINGS')) {
-        if (is_storage_ng) {
-            assert_screen 'partition-scheme';
-            # No warnings with storage ng stack
-            record_soft_failure 'bsc#1055756';
-        }
-        else {
-            assert_screen 'proposal-will-overwrite-manual-changes';
-            send_key 'alt-y';
-        }
+        assert_screen 'proposal-will-overwrite-manual-changes';
+        send_key 'alt-y';
     }
     if (is_storage_ng) {
         assert_screen [qw(partition-scheme existing-partitions)];

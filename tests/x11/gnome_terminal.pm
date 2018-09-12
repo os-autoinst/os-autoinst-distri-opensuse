@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@ sub run {
     mouse_hide(1);
     x11_start_program('gnome-terminal');
     send_key "ctrl-shift-t";
-    if (!check_screen "gnome-terminal-second-tab") {
+    if (!check_screen "gnome-terminal-second-tab", 30) {
         record_info('workaround', 'gnome_terminal does not open second terminal when shortcut is pressed (see bsc#999243)');
     }
     $self->enter_test_text('gnome-terminal', cmd => 1);

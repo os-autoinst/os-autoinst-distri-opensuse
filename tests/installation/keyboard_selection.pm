@@ -48,17 +48,4 @@ sub run {
     }
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
-    # system might be stuck on bootup showing only splash screen so we press
-    # esc to show console logs
-    send_key 'esc';
-    select_console('install-shell');
-    # in case we could not even reach the installer welcome screen and logs
-    # could not be collected on the serial output:
-    $self->save_upload_y2logs;
-    $self->get_ip_address;
-    upload_logs '/var/log/linuxrc.log';
-}
-
 1;

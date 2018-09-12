@@ -20,7 +20,7 @@ sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');
     $self->SUPER::post_fail_hook;
-
+    $self->remount_tmp_if_ro;
     # Export logs after failure
     assert_script_run("journalctl --no-pager -b 0 > /tmp/full_journal.log");
     upload_logs "/tmp/full_journal.log";

@@ -24,7 +24,7 @@ use testapi;
 use utils;
 use registration;
 use qam qw/remove_test_repositories/;
-use version_utils qw(sle_version_at_least is_sle);
+use version_utils qw(sle_version_at_least is_sle is_sles4sap);
 
 our @EXPORT = qw(
   setup_sle
@@ -35,6 +35,7 @@ our @EXPORT = qw(
   record_disk_info
   check_rollback_system
   reset_consoles_tty
+  boot_into_ro_snapshot
 );
 
 sub setup_sle {
@@ -83,10 +84,14 @@ sub register_system_in_textmode {
 }
 
 # Remove LTSS product and manually remove its relevant package before migration
+# Also remove ltss from SCC_ADDONS setting for registration in upgrade target
 sub remove_ltss {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
+        my $scc_addons = get_var_array('SCC_ADDONS');
+        record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
         zypper_call 'rm -t product SLES-LTSS';
         zypper_call 'rm sles-ltss-release-POOL';
+        set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
     }
 }
 
@@ -108,10 +113,10 @@ sub record_disk_info {
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df / | tee /tmp/btrfs-filesystem-df.txt';
         assert_script_run 'btrfs filesystem usage / | tee /tmp/btrfs-filesystem-usage.txt';
-        assert_script_run 'snapper list | tee /tmp/snapper-list.txt';
+        assert_script_run 'snapper list | tee /tmp/snapper-list.txt' unless (is_sles4sap());
         upload_logs '/tmp/btrfs-filesystem-df.txt';
         upload_logs '/tmp/btrfs-filesystem-usage.txt';
-        upload_logs '/tmp/snapper-list.txt';
+        upload_logs '/tmp/snapper-list.txt' unless (is_sles4sap());
     }
     assert_script_run 'df -h > /tmp/df.txt';
     upload_logs '/tmp/df.txt';
@@ -153,5 +158,25 @@ sub reset_consoles_tty {
     reset_consoles;
 }
 
+# Assert read-only snapshot before migrated
+# Assert screen 'linux-login' with 200s
+# Workaround known issue: bsc#980337
+# In this case try to select tty1 with multi-times then select root console
+sub boot_into_ro_snapshot {
+    unlock_if_encrypted(check_typed_password => 1);
+    if (!check_screen('linux-login', 200)) {
+        record_soft_failure 'bsc#980337';
+        for (1 .. 10) {
+            send_key "ctrl-alt-f1";
+            if (check_screen('tty1-selected', 12)) {
+                return 1;
+            }
+            else {
+                record_info('not in tty1', 'switch to tty1 failed', result => 'softfail');
+            }
+        }
+        die "Boot into read-only snapshot failed over 5 minutes, considering a product issue";
+    }
+}
+
 1;
-# vim: sw=4 et

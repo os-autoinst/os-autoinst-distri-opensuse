@@ -18,8 +18,6 @@
 use base "y2x11test";
 use strict;
 use testapi;
-# TO be removed!!!
-use utils 'ensure_unlocked_desktop';
 
 sub run {
     my $self = shift;
@@ -34,12 +32,14 @@ sub run {
     #	kernel parameters and use graphical console
     wait_still_screen 3;
     assert_and_click 'yast2-bootloader_kernel-parameters';
+    assert_screen 'yast2-bootloader_kernel-parameters-switched';
     send_key 'alt-p';
     send_key 'end';
     assert_screen 'yast2-bootloader_use-graphical-console';
 
     #	bootloader options and set probe foreign OS, timeout
     assert_and_click 'yast2-bootloader_bootloader-options';
+    assert_screen 'yast2-bootloader_bootloader-options-switched';
     send_key 'alt-b';
     wait_still_screen 3;
     send_key 'alt-t';

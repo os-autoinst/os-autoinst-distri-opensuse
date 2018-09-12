@@ -107,7 +107,7 @@ sub import_pictures {
     send_key "ret";
 
     # Choose 'Import in Place'
-    if (check_screen 'shotwell-import-prompt') {
+    if (check_screen 'shotwell-import-prompt', 30) {
         send_key "alt-i";
     }
     assert_screen 'shotwell-imported-tip';
@@ -223,12 +223,14 @@ sub check_new_mail_evolution {
     my $config      = $self->getconfig_emailaccount;
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
-    if (check_screen "evolution_mail-auth") {
+    assert_and_click "evolution-send-receive";
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
         type_password $mail_passwd;
         send_key "ret";
+        assert_screen "evolution_mail-max-window";
     }
     send_key "alt-w";
     send_key "ret";
@@ -251,7 +253,7 @@ sub check_new_mail_evolution {
     # Delete the message and expunge the deleted item if not used POP3
     if ($protocol != "POP") {
         send_key "ctrl-e";
-        if (check_screen "evolution_mail-expunge") {
+        if (check_screen "evolution_mail-expunge", 30) {
             send_key "alt-e";
         }
         assert_screen "evolution_mail-ready";
@@ -290,7 +292,7 @@ sub send_meeting_request {
     send_key "ctrl-s";
     assert_screen "evolution_mail-sendinvite_meeting", 60;
     send_key "ret";
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only need in SP2 or later
             send_key "alt-p";
@@ -389,7 +391,7 @@ sub setup_mail_account {
     my $mail_recvport   = $config->{$account}->{$port_key};
 
     $self->start_evolution($mail_box);
-    if (check_screen "evolution_wizard-skip-lookup") {
+    if (check_screen "evolution_wizard-skip-lookup", 30) {
         send_key "alt-s";
     }
 
@@ -490,7 +492,7 @@ sub setup_mail_account {
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
@@ -498,10 +500,10 @@ sub setup_mail_account {
         type_password $mail_passwd;
         send_key "ret";
     }
-    if (check_screen "evolution_mail-init-window") {
+    if (check_screen "evolution_mail-init-window", 30) {
         send_key "super-up";
     }
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-p";
         }
@@ -525,7 +527,7 @@ sub start_firefox {
 
 sub firefox_check_default {
     # Set firefox as default browser if asked
-    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox_clean)], 120;
+    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox_clean)], 150;
     if (match_has_tag('firefox_default_browser')) {
         wait_screen_change {
             assert_and_click 'firefox_default_browser_yes';
@@ -741,11 +743,11 @@ sub evolution_send_message {
     type_string "Test email send and receive.";
     send_key "ctrl-ret";
     if (sle_version_at_least('12-SP2')) {
-        if (check_screen "evolution_mail_send_mail_dialog") {
+        if (check_screen "evolution_mail_send_mail_dialog", 30) {
             send_key "ret";
         }
     }
-    if (check_screen "evolution_mail-auth") {
+    if (check_screen "evolution_mail-auth", 30) {
         if (sle_version_at_least('12-SP2')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
@@ -803,8 +805,9 @@ sub gnote_search_and_close {
 
 # remove the created new note
 sub cleanup_gnote {
+    my ($self, $needle) = @_;
     send_key 'esc';    #back to all notes interface
-    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
+    send_key_until_needlematch $needle, 'down', 6;
     wait_screen_change { send_key 'delete' };
     wait_screen_change { send_key 'tab' };
     wait_screen_change { send_key 'ret' };
@@ -842,6 +845,10 @@ sub configure_xdmcp_firewall {
     else {
         assert_script_run 'yast2 firewall services add zone=EXT service=service:xdmcp';
     }
+}
+
+sub check_desktop_runner {
+    x11_start_program('true', target_match => 'generic-desktop', no_wait => 1);
 }
 
 1;

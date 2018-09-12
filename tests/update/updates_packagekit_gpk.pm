@@ -14,6 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use version_utils 'is_sle';
 
 sub setup_system {
@@ -48,9 +49,10 @@ sub run {
         record_soft_failure 'bsc#1081584';
     }
     select_console 'x11', await_console => 0;
+    ensure_unlocked_desktop;
 
     my @updates_tags = qw(updates_none updates_available package-updater-privileged-user-warning updates_restart_application updates_installed-restart);
-    my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application);
+    my @updates_installed_tags = qw(updates_none updates_installed-logout updates_installed-restart updates_restart_application updates_failed);
 
     setup_system;
 
@@ -77,6 +79,11 @@ sub run {
                 if (match_has_tag("updates_authenticate")) {
                     type_string "$password\n";
                     pop @updates_installed_tags;
+                }
+                if (match_has_tag("updates_failed")) {
+                    assert_and_click("updates_failed");
+                    save_screenshot;
+                    die "Failed to process request";
                 }
             } while (match_has_tag 'updates_authenticate');
             if (match_has_tag("updates_none")) {

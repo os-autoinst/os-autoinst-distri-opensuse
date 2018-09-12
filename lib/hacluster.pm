@@ -17,6 +17,7 @@ use version_utils 'is_sle';
 use utils;
 use testapi;
 use lockapi;
+use isotovideo;
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -41,6 +42,7 @@ our @EXPORT = qw(
   rsc_cleanup
   ha_export_logs
   check_cluster_state
+  wait_until_resources_started
   get_lun
   pre_run_hook
   post_run_hook
@@ -118,7 +120,9 @@ sub ensure_process_running {
     my $process   = shift;
     my $timeout   = 30;
     my $starttime = time;
-    while (script_run "ps -A | grep -q '\\<$process\\>'") {
+    my $ret       = undef;
+
+    while ($ret = script_run "ps -A | grep -q '\\<$process\\>'") {
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 5;
@@ -128,14 +132,17 @@ sub ensure_process_running {
         }
     }
 
-    return 0;
+    # script_run need to be defined to ensure a correct exit code
+    return defined $ret;
 }
 
 sub ensure_resource_running {
     my ($rsc, $regex) = @_;
     my $timeout   = 30;
     my $starttime = time;
-    while (script_run "crm resource status $rsc | grep -E -q '$regex'") {
+    my $ret       = undef;
+
+    while ($ret = script_run "crm resource status $rsc | grep -E -q '$regex'") {
         my $timerun = time - $starttime;
         if ($timerun < $timeout) {
             sleep 5;
@@ -145,14 +152,13 @@ sub ensure_resource_running {
         }
     }
 
-    return 0;
+    # script_run need to be defined to ensure a correct exit code
+    return defined $ret;
 }
 
 sub ensure_dlm_running {
     die 'dlm is not running' unless check_rsc "dlm";
-    ensure_process_running 'dlm_controld';
-
-    return 0;
+    return ensure_process_running 'dlm_controld';
 }
 
 sub write_tag {
@@ -208,7 +214,7 @@ sub ha_export_logs {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $hb_log        = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
-    my $report_opt    = '-f0' unless is_sle('15+');
+    my $report_opt    = '-f0' unless is_sle('12-sp4+');
     my @y2logs;
 
     # Extract HA logs and upload them
@@ -228,8 +234,39 @@ sub ha_export_logs {
 
 sub check_cluster_state {
     assert_script_run "$crm_mon_cmd";
+    assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'";
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
     assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
+    assert_script_run 'crm_verify -LV';
+}
+
+# Wait for resources to be started
+sub wait_until_resources_started {
+    my @cmds    = ('crm cluster wait_for_startup', "$crm_mon_cmd | grep -i 'no inactive resources'");
+    my $timeout = 120;
+    my $ret     = undef;
+
+    # Execute each comnmand to validate that the cluster is running
+    # This can takes time, so a loop is a good idea here
+    foreach my $cmd (@cmds) {
+        # Each command execution has its own timeout, so we need to reset the counter
+        my $starttime = time;
+
+        # Check for cluster/resources status and exit loop when needed
+        while ($ret = script_run "$cmd") {
+            # Otherwise wait a while if timeout is not reached
+            my $timerun = time - $starttime;
+            if ($timerun < $timeout) {
+                sleep 5;
+            }
+            else {
+                die "Cluster/resources did not start within $timeout seconds (cmd='$cmd')";
+            }
+        }
+
+        # script_run need to be defined to ensure a correct exit code
+        die 'Cluster/resources check did not exit properly' if !defined $ret;
+    }
 }
 
 # This function returns the first available LUN
@@ -274,8 +311,14 @@ sub get_lun {
 
 sub pre_run_hook {
     my ($self) = @_;
-
-    $prev_console = $testapi::selected_console;
+    if (isotovideo::get_version() == 12) {
+        $prev_console = $autotest::selected_console;
+    } else {
+        # perl -c will give a "only used once" message
+        # here and this makes the travis ci tests fail.
+        1 if defined $testapi::selected_console;
+        $prev_console = $testapi::selected_console;
+    }
 }
 
 sub post_run_hook {

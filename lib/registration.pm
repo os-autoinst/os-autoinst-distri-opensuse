@@ -34,6 +34,7 @@ our @EXPORT = qw(
   yast_scc_registration
   skip_registration
   scc_deregistration
+  scc_version
   get_addon_fullname
   rename_scc_addons
   is_module
@@ -46,16 +47,15 @@ our @EXPORT = qw(
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
 our %SLE15_MODULES = (
-    base         => 'Basesystem',
-    sdk          => 'Development-Tools',
-    desktop      => 'Desktop-Applications',
-    productivity => 'Desktop-Productivity',
-    legacy       => 'Legacy',
-    script       => 'Web-Scripting',
-    serverapp    => 'Server-Applications',
-    contm        => 'Containers',
-    pcm          => 'Public-Cloud',
-    sapapp       => 'SAP-Applications',
+    base      => 'Basesystem',
+    sdk       => 'Development-Tools',
+    desktop   => 'Desktop-Applications',
+    legacy    => 'Legacy',
+    script    => 'Web-Scripting',
+    serverapp => 'Server-Applications',
+    contm     => 'Containers',
+    pcm       => 'Public-Cloud',
+    sapapp    => 'SAP-Applications',
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -67,7 +67,7 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
-our @SLE15_ADDONS_WITHOUT_LICENSE = qw(ha sdk wsm we);
+our @SLE15_ADDONS_WITHOUT_LICENSE = qw(ha sdk wsm we hpcm);
 
 # Method to determine if a short name references a module based on what's defined
 # on %SLE15_MODULES
@@ -84,7 +84,7 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo live rt idu ids lgm hpcm ses);
+    my @addons_with_license = qw(geo live rt idu ids lgm ses);
 
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
@@ -160,7 +160,7 @@ sub register_addons {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
             else {
-                assert_and_click "scc-code-field-$addon", 'left', 60;
+                assert_and_click "scc-code-field-$addon", 'left', 120;
             }
             type_string $regcode;
             save_screenshot;
@@ -186,7 +186,12 @@ sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
 
-    my @known_untrusted_keys = qw(import-trusted-gpg-key-nvidia-F5113243C66B6EAE import-trusted-gpg-key-phub-9C214D4065176565);
+    my @known_untrusted_keys = qw(
+      import-trusted-gpg-key-nvidia-F5113243C66B6EAE
+      import-trusted-gpg-key-phub-9C214D4065176565
+      import-untrusted-gpg-key-ids-key-A5665AC46976A827
+      import-untrusted-gpg-key-idv-key-A5665AC46976A827
+    );
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my $counter = 50;
         my @tags
@@ -263,9 +268,9 @@ sub fill_in_registration_data {
         assert_screen($modules_needle);
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
-        if (   check_var('SLE_PRODUCT', 'sles')
+        if (check_var('SLE_PRODUCT', 'sles')
             && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
-            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we|productivity|ha)/)
+            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we)/)
         {
             $addons = $addons ? $addons . ',desktop' : 'desktop';
             set_var('SCC_ADDONS', $addons);
@@ -324,18 +329,24 @@ sub fill_in_registration_data {
                     # go to the top of the list before looking for the addon
                     send_key "home";
                     # move the list of addons down until the current addon is found
-                    if (check_var('VERSION', '12-SP4') && $addon =~ 'phub') {
-                        record_soft_failure 'bsc#1092568';
+                    if ($addon eq 'phub') {
+                        # Record soft-failure for 12-SP4 and 15-SP1
+                        my $bugref =
+                          is_sle('=12-SP4')   ? 'bsc#1092568'
+                          : is_sle('=15-SP1') ? 'bsc#1106085'
+                          :                     undef;
+                        if ($bugref) {
+                            record_soft_failure $bugref;
+                            next;
+                        }
+                    }
+                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down";
+                    if (match_has_tag("scc-module-$addon")) {
+                        # checkmark the requested addon
+                        assert_and_click "scc-module-$addon";
                     }
                     else {
-                        send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down";
-                        if (match_has_tag("scc-module-$addon")) {
-                            # checkmark the requested addon
-                            assert_and_click "scc-module-$addon";
-                        }
-                        else {
-                            record_info("Module preselected", "Module $addon is already selected and installed by default");
-                        }
+                        record_info("Module preselected", "Module $addon is already selected and installed by default");
                     }
                 }
             }
@@ -367,7 +378,7 @@ sub fill_in_registration_data {
                     qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
                 if (match_has_tag('import-untrusted-gpg-key')) {
                     if (!check_screen(\@known_untrusted_keys, 0)) {
-                        record_soft_failure 'untrusted gpg key';
+                        die 'untrusted gpg key';
                     }
                     wait_screen_change {
                         send_key 'alt-t';
@@ -431,7 +442,6 @@ sub fill_in_registration_data {
                 assert_screen 'yast-scc-emptypkg';
                 send_key 'alt-a';
             }
-            accept_addons_license('ha') if (check_var('SLE_PRODUCT', 'sles4sap'));
         }
     }
     else {
@@ -581,7 +591,7 @@ sub scc_deregistration {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
-        assert_script_run('SUSEConnect -d --cleanup');
+        assert_script_run('SUSEConnect -d --cleanup', 200);
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
@@ -648,4 +658,3 @@ sub install_docker_when_needed {
 }
 
 1;
-# vim: sw=4 et

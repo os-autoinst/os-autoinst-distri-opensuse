@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Run tests
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package run;
 
 use 5.018;
@@ -18,24 +18,25 @@ use base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 # Heartbeat variables
 my $HB_INTVL   = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
 my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 40;
 my $HB_PATN    = '<heartbeat>';
 my $HB_DONE    = '<done>';
-my $HB_DONE_FILE = '/tmp/test.done';
-my $HB_EXIT_FILE = '/tmp/test.exit';
-my $HB_SCRIPT    = '/tmp/heartbeat.sh';
+my $HB_DONE_FILE = '/opt/test.done';
+my $HB_EXIT_FILE = '/opt/test.exit';
+my $HB_SCRIPT    = '/opt/heartbeat.sh';
 
 # xfstests variables
 my $TEST_RANGES  = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/usr/share/qa/qa_test_xfstests/wrapper.sh';
 my %BLACKLIST    = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
-my $STATUS_LOG   = '/tmp/status.log';
+my $STATUS_LOG   = '/opt/status.log';
 my $INST_DIR     = '/opt/xfstests';
-my $LOG_DIR      = '/tmp/log';
-my $KDUMP_DIR    = '/tmp/kdump';
+my $LOG_DIR      = '/opt/log';
+my $KDUMP_DIR    = '/opt/kdump';
 my $MAX_TIME     = 2400;
 
 # Create heartbeat script, directories(Call it only once)
@@ -168,8 +169,14 @@ sub tests_from_ranges {
     foreach my $range (split(/,/, $ranges)) {
         my ($min, $max) = (0, 99999);
         my ($category, $min_max) = split(/\//, $range);
-        if (defined($min_max)) {
+        unless (defined($min_max)) {
+            next;
+        }
+        if ($min_max =~ /\d+-\d+/) {
             ($min, $max) = split(/-/, $min_max);
+        }
+        else {
+            $min = $max = $min_max;
         }
         unless (exists($cache{$category})) {
             $cache{$category} = [tests_from_category($category, $dir)];
@@ -231,6 +238,13 @@ sub shuffle {
     return @arr;
 }
 
+# Copy log to ready to save
+sub copy_log {
+    my ($category, $num, $log_type) = @_;
+    my $cmd = "cat /opt/xfstests/results/$category/$num.$log_type | tee $LOG_DIR/$category/$num.$log_type";
+    script_run($cmd);
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -254,6 +268,11 @@ sub run {
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             log_add($STATUS_LOG, $test, $status, $time);
+            if ($status =~ /FAILED/) {
+                copy_log($category, $num, 'out.bad');
+                copy_log($category, $num, 'full');
+                copy_log($category, $num, 'dmesg');
+            }
             next;
         }
 
@@ -271,11 +290,13 @@ sub run {
 
         sleep(1);
         select_console('root-console');
-        # Save kdump data to KDUMP_DIR
-        unless (save_kdump($test, $KDUMP_DIR)) {
-            # If no kdump data found, write warning to log
-            my $msg = "Warning: $test crashed SUT but has no kdump data";
-            script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
+        unless (get_var('NO_KDUMP')) {
+            unless (save_kdump($test, $KDUMP_DIR)) {
+                # If no kdump data found, write warning to log
+                my $msg = "Warning: $test crashed SUT but has no kdump data";
+                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+            }
         }
 
         # Add test status to STATUS_LOG file

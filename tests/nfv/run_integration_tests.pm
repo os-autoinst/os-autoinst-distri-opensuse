@@ -16,14 +16,14 @@ use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
-use mmapi;
 use serial_terminal 'select_virtio_console';
+use mmapi;
 
 sub run {
+    select_virtio_console();
+
     my $self        = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
-
-    select_virtio_console();
 
     # use conf file from data dir
     assert_script_run("curl " . data_url('nfv/vsperf_ovs_dummy.conf') . " -o $vsperf_conf");
@@ -38,7 +38,8 @@ sub run {
     assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_vport');
     assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_add_del_vports');
     assert_script_run('./vsperf --conf-file=' . $vsperf_conf . ' --integration vswitch_vports_add_del_flow');
+
+    wait_for_children;
 }
 
 1;
-

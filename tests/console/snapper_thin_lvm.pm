@@ -14,6 +14,7 @@
 use base 'btrfs_test';
 use testapi;
 use strict;
+use utils 'zypper_call';
 
 sub run {
     my ($self) = @_;
@@ -24,6 +25,7 @@ sub run {
     my $mnt_thin          = '/mnt/thin';
     my $mnt_thin_snapshot = $mnt_thin . '-snapshot';
 
+    zypper_call 'in lvm2';
     foreach my $snapper (@snapper_runs) {
         $self->snapper_nodbus_setup if $snapper =~ /dbus/;
 

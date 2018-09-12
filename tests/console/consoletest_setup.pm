@@ -8,24 +8,26 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: console test pre setup, stoping and disabling packagekit, install curl and tar to get logs and so on
+# Summary: console test pre setup, performing actions required to run tests
+# which are supposed to be reverted e.g. stoping and disabling packagekit and so on
+# Permanent changes are now executed in system_prepare module
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
 use testapi;
 use utils;
+use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
 sub run {
     my $self = shift;
     # let's see how it looks at the beginning
     save_screenshot;
-
-    select_console 'root-console';
+    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
     # init
     check_console_font;
-    ensure_serialdev_permissions;
+
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     # Export the existing status of running tasks and system load for future reference (fail would export it again)
@@ -39,22 +41,9 @@ sub run {
     # Stop packagekit
     systemctl 'mask packagekit.service';
     systemctl 'stop packagekit.service';
-    # Installing a minimal system gives a pattern conflicting with anything not minimal
-    # Let's uninstall 'the pattern' (no packages affected) in order to be able to install stuff
-    script_run 'rpm -qi patterns-openSUSE-minimal_base-conflicts && zypper -n rm patterns-openSUSE-minimal_base-conflicts';
-    # Install curl and tar in order to get the test data
-    zypper_call 'install curl tar';
-
     # upload_logs requires curl, but we wanted the initial state of the system
     upload_logs "/tmp/psaxf.log";
     upload_logs "/tmp/loadavg_consoletest_setup.txt";
-
-    # BSC#997263 - VMware screen resolution defaults to 800x600
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
-    }
 
     # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
     if (check_var('NETWORK_INIT_PARAM', 'ifcfg=eth0=dhcp')) {
@@ -62,8 +51,12 @@ sub run {
         assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
 
-    save_screenshot;
+    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
+    systemctl "stop serial-getty\@$testapi::serialdev";
+    # Mask if is qemu backend as use serial in remote installations e.g. during reboot
+    systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
 
+    save_screenshot;
     $self->clear_and_verify_console;
 
     select_console 'user-console';

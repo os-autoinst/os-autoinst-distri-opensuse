@@ -24,6 +24,7 @@ use utils;
 use mm_network;
 use mm_tests;
 use opensusebasetest 'firewall';
+use registration 'scc_version';
 
 my $pxe_server_set   = 0;
 my $quemu_proxy_set  = 0;
@@ -398,7 +399,7 @@ sub setup_iscsi_server {
                        -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'      \\
                        -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
-    systemctl('start target');
+    systemctl('enable --now target');
     select_console 'root-console';
 
     $iscsi_server_set = 1;
@@ -419,7 +420,7 @@ sub setup_aytests {
     # Expand variables
     sed -i -e 's|{{SCC_REGCODE}}|" . get_var('SCC_REGCODE') . "|g' \\
            -e 's|{{SCC_URL}}|" . get_var('SCC_URL') . "|g' \\
-           -e 's|{{VERSION}}|" . get_var('VERSION') . "|g' \\
+           -e 's|{{VERSION}}|" . scc_version . "|g' \\
            -e 's|{{ARCH}}|" . get_var('ARCH') . "|g' \\
            -e 's|{{MSG_TIMEOUT}}|0|g' \\
            -e 's|{{REPO1_URL}}|http://10.0.2.1/aytests/files/repos/sles12|g' \\
@@ -439,7 +440,7 @@ sub setup_stunnel_server {
     assert_script_run 'chmod 0600 ~/.vnc/passwd';
     assert_script_run 'vncserver :5';
     assert_script_run 'netstat -nal | grep 5905';
-    if (get_var('FIPS_TS') || get_var('FIPS')) {
+    if (get_var('FIPS_ENABLED') || get_var('FIPS')) {
         assert_script_run "grep 'stunnel:.*FIPS mode enabled' /var/log/messages";
     }
     $disable_firewall = 1;
@@ -571,4 +572,3 @@ sub test_flags {
 }
 
 1;
-

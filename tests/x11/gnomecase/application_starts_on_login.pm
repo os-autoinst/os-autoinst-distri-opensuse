@@ -45,8 +45,13 @@ sub start_dconf {
         # dconf-editor entry is not in gnome-control-center of SLE15;
         x11_start_program 'dconf-editor';
     }
-    if (check_screen("dconf-caution")) {
-        assert_and_click "will-be-careful";
+    # dconf-editor can show the notice to be careful after the main window
+    # popped up so we have to wait for it to settle down
+    wait_still_screen(3);
+    assert_screen([qw(dconf-editor will-be-careful)]);
+    if (match_has_tag('will-be-careful')) {
+        assert_and_click 'will-be-careful';
+        assert_screen 'dconf-editor';
     }
 }
 
@@ -70,7 +75,7 @@ sub alter_status_auto_save_session {
         type_string "auto-save-session\n";
     }
     assert_and_click "auto-save-session";
-    if (check_screen("changing-scheme-popup")) {
+    if (check_screen("changing-scheme-popup", 30)) {
         assert_and_click "auto-save-session-alter-use-default";
         assert_and_click "auto-save-session-true";
         assert_and_click "auto-save-session-apply";

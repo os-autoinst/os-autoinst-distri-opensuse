@@ -14,6 +14,7 @@ use base "installbasetest";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;
@@ -40,6 +41,7 @@ sub run {
         $zypper_migration_error,  $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
         $zypper_migration_failed, $zypper_migration_license
     ];
+    my $zypper_migration_error_cnt = 0;
     my $out = wait_serial($migration_checks, $timeout);
     while ($out) {
         if ($out =~ $zypper_migration_target) {
@@ -55,8 +57,18 @@ sub run {
             send_key "y";
             send_key "ret";
         }
-        elsif ($out =~ $zypper_migration_error
-            || $out =~ $zypper_migration_conflict
+        elsif ($out =~ $zypper_migration_error) {
+            $zypper_migration_error_cnt += 1;
+            die 'Migration failed with zypper error' if $zypper_migration_error_cnt > 3;
+            record_info("Migration error [$zypper_migration_error_cnt/3]",
+                'zypper migration error, will sleep for a while and retry',
+                result => 'softfail');
+            sleep 60;
+            # Retry zypper action
+            send_key 'r';
+            send_key 'ret';
+        }
+        elsif ($out =~ $zypper_migration_conflict
             || $out =~ $zypper_migration_fileconflict
             || $out =~ $zypper_migration_failed)
         {

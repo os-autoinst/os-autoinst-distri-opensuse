@@ -16,6 +16,7 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use registration;
+use version_utils 'is_sle';
 use qam;
 
 sub run {
@@ -29,9 +30,9 @@ sub run {
 
     select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
-    zypper_call('in -l bats hiworkload');
+    zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
-    if (check_var('DISTRI', 'sle') and ($patch or $incident_id)) {
+    if (is_sle('<15') and ($patch or $incident_id)) {
         add_suseconnect_product("sle-sdk");
     }
 

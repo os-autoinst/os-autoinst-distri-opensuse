@@ -5,13 +5,17 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use isotovideo;
 
 our $prev_console;
 
 sub pre_run_hook {
     my ($self) = @_;
-
-    $prev_console = $testapi::selected_console;
+    if (isotovideo::get_version() == 12) {
+        $prev_console = $autotest::selected_console;
+    } else {
+        $prev_console = $testapi::selected_console;
+    }
 }
 
 sub post_run_hook {

@@ -14,6 +14,7 @@ use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use kdump_utils;
 use version_utils 'is_sle';
 use registration;

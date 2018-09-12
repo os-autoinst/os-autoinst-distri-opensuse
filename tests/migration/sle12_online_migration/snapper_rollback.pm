@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,29 +13,19 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils;
+use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
-use migration 'check_rollback_system';
+use migration qw(check_rollback_system boot_into_ro_snapshot);
 
 sub run {
     my ($self) = @_;
 
-    # login to before online migration snapshot
-    # tty would not appear quite often after booting snapshot
-    # it is a known bug bsc#980337
-    # in this case select tty1 first then select root console
-    if (!check_screen('linux-login', 200)) {
-        record_soft_failure 'bsc#980337';
-        send_key "ctrl-alt-f1";
-        assert_screen 'tty1-selected';
-    }
-
+    boot_into_ro_snapshot;
     select_console 'root-console';
     script_run "snapper rollback";
 
     # reboot into the system before online migration
-    script_run("systemctl reboot", 0);
-    reset_consoles;
+    power_action('reboot', textmode => 1, keepconsole => 1);
     $self->wait_boot(textmode => !is_desktop_installed);
     select_console 'root-console';
 

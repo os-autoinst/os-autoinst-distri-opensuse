@@ -64,10 +64,10 @@ sub run {
     assert_screen 'multi_users_dm', 180;    # gnome loading takes long sometimes
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
-        send_key_until_needlematch('user#01_selected', 'tab', 5, 3);    # select created user #01
+        wait_screen_change { assert_and_click('user_not_listed') };
     }
     elsif (check_var('DESKTOP', 'xfce')) {
-        send_key 'down';                                                # select created user #01
+        send_key 'down';                    # select created user #01
     }
     elsif (check_var('DESKTOP', 'kde')) {
         wait_screen_change { send_key 'shift-tab' };

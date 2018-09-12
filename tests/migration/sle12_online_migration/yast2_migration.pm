@@ -10,10 +10,11 @@
 # Summary: sle12 online migration testsuite
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base "y2logsstep";
+use base 'y2logsstep';
 use strict;
 use testapi;
 use utils;
+use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';
 
 sub run {
@@ -220,6 +221,7 @@ sub run {
     if (check_screen("yast2-ask-reboot", 5)) {
         # reboot
         send_key "alt-r";
+        power_action('reboot', observe => 1, keepconsole => 1);
         # sometimes reboot takes longer time after online migration
         # give more time to reboot
         $self->wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
@@ -236,10 +238,10 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-
-    $self->SUPER::post_fail_hook;
     select_console 'log-console';
-    $self->save_upload_y2logs;
+    $self->save_and_upload_log('journalctl -b', '/tmp/journal.log', {screenshot => 1});
+    $self->upload_xsession_errors_log;
+    $self->SUPER::post_fail_hook;
 }
 
 1;

@@ -34,7 +34,6 @@ sub run {
     my $upgrade_product = get_required_var('UPGRADE_PRODUCT');
     my ($upgrade_release) = lc($upgrade_product) =~ /sles-([0-9]+)-sp/;
     if ($upgrade_release >= 15) {
-        repl_addon_with_daily_build_module_in_files('/root/autoupg.xml');
         upload_logs('/root/autoupg.xml');
     }
 }

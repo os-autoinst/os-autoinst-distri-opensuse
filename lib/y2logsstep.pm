@@ -2,8 +2,9 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
+use utils 'zypper_call';
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
@@ -17,6 +18,7 @@ sub use_ifconfig {
 
 sub get_ip_address {
     return if (get_var('NET') || check_var('ARCH', 's390x'));
+    return if (get_var('NOLOGS'));
 
     # avoid known issue in FIPS mode: bsc#985969
     return if get_var('FIPS');
@@ -34,13 +36,6 @@ sub get_ip_address {
 }
 
 sub get_to_console {
-    if (check_var('BACKEND', 'ipmi')) {
-        use_ssh_serial_console;
-        get_ip_address;
-        save_screenshot();
-        return;
-    }
-
     my @tags = qw(yast-still-running linuxrc-install-fail linuxrc-repo-not-found);
     my $ret = check_screen(\@tags, 5);
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
@@ -137,7 +132,7 @@ sub deal_with_dependency_issues {
 
     return unless check_screen 'manual-intervention', 10;
 
-    record_soft_failure 'dependency warning';
+    record_info 'dependency warning', "Dependency warning, working around dependency issues", result => 'fail';
 
     if (check_var('VIDEOMODE', 'text')) {
         send_key 'alt-c';    # Change
@@ -199,7 +194,7 @@ sub deal_with_dependency_issues {
         my $interval = 10;
         my $timetick = 0;
 
-        while (check_screen('adapting_proposal', no_wait => 1)) {
+        while (check_screen('adapting_proposal', timeout => 30, no_wait => 1)) {
             sleep 10;
             $timetick += $interval;
             last if $timetick >= $timeout;
@@ -208,7 +203,7 @@ sub deal_with_dependency_issues {
     }
 
     # In text mode dependency issues may occur again after resolving them
-    if (check_screen 'manual-intervention') {
+    if (check_screen 'manual-intervention', 30) {
         $self->deal_with_dependency_issues;
     }
 }
@@ -226,42 +221,42 @@ sub verify_license_has_to_be_accepted {
     }
 }
 
-sub verify_translation {
-    return if check_var('VIDEOMODE', 'text');
-    for my $language (qw(korean english-us)) {
+sub verify_license_translations {
+    return if (!get_var('INSTALLER_EXTENDED_TEST') || (is_sle && get_var("BETA")) || check_var('VIDEOMODE', 'text'));
+    for my $language (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
         wait_screen_change { send_key 'alt-l' };
         send_key 'home';
-        send_key_until_needlematch("license-language-selected-$language", 'down', 60, 1);
-        assert_screen "license-content-$language";
+        send_key_until_needlematch("license-language-selected-$language", 'down', 60, 3);
+        assert_screen "license-content-$language";    # needs wait for loading content
     }
 }
 
 sub save_upload_y2logs {
-    my ($self) = shift;
+    my ($self, $suffix) = @_;
+    $suffix //= '';
+
+    return if (get_var('NOLOGS'));
+
     assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
-    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2", 180;
-    upload_logs "/tmp/y2logs.tar.bz2";
+    my $filename = "/tmp/y2logs$suffix.tar" . get_available_compression();
+    assert_script_run "save_y2logs $filename", 180;
+    upload_logs $filename;
     save_screenshot();
     $self->investigate_yast2_failure();
 }
 
-sub post_fail_hook {
-    my $self         = shift;
-    my @procfs_files = qw(
-      mounts
-      mountinfo
-      mountstats
-      maps
-      status
-      stack
-      cmdline
-      environ
-      smaps);
+sub get_available_compression {
+    my %extensions = ('bzip2' => '.bz2', 'gzip' => '.gz', 'xz' => '.xz');
+    foreach my $binary (sort keys %extensions) {
+        return $extensions{$binary} unless script_run("type $binary");
+    }
+    return "";
+}
 
-    get_to_console;
+sub save_system_logs {
+    my ($self) = @_;
 
-    # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
-    $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+    return if (get_var('NOLOGS'));
 
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
@@ -285,28 +280,65 @@ sub post_fail_hook {
 
     $self->save_and_upload_log('pstree',  '/tmp/pstree');
     $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
+}
 
-    # Collect yast2 installer trace
+sub save_strace_gdb_output {
+    my ($self, $is_yast_module) = @_;
+    return if (get_var('NOLOGS'));
+
+    # Collect yast2 installer or yast2 module trace if is still running
     if (!script_run(qq{ps -eo pid,comm | grep -i [y]2start | cut -f 2 -d " " > /dev/$serialdev}, 0)) {
-        chomp(my $installer_pid = wait_serial(qr/^[\d{4}]/, 10));
+        chomp(my $yast_pid = wait_serial(qr/^[\d{4}]/, 10));
+        return unless defined($yast_pid);
         my $trace_timeout = 120;
-        my $strace_ret = script_run("timeout $trace_timeout strace -f -o /tmp/installer_trace.log -tt -p $installer_pid", ($trace_timeout + 5));
+        my $strace_log    = '/tmp/yast_trace.log';
+        my $strace_ret    = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
 
-        if (!script_run '[[ -e /tmp/installer_trace.log ]]') {
-            upload_logs '/tmp/installer_trace.log';
-        }
+        upload_logs $strace_log if script_run "! [[ -e $strace_log ]]";
 
         # collect installer proc fs files
-        foreach (@procfs_files) {
-            $self->save_and_upload_log("cat /proc/$installer_pid/$_", "/tmp/yast2-installer.$_");
-        }
+        my @procfs_files = qw(
+          mounts
+          mountinfo
+          mountstats
+          maps
+          status
+          stack
+          cmdline
+          environ
+          smaps);
 
-        assert_script_run 'extend gdb';
-        my $gdb_ret = script_run("timeout $trace_timeout gdb attach $installer_pid > /tmp/installer_gdb.log", ($trace_timeout + 5));
-        if (!script_run '[[ -e /tmp/installer_gdb.log ]]') {
-            upload_logs '/tmp/installer_gdb.log';
+        my $opt = defined($is_yast_module) ? 'module' : 'installer';
+        foreach (@procfs_files) {
+            $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
         }
+        # We enable gdb differently in the installer and in the installed SUT
+        if ($is_yast_module) {
+            zypper_call 'in gdb';
+        }
+        else {
+            assert_script_run 'extend gdb';
+        }
+        my $gdb_output = '/tmp/yast_gdb.log';
+        my $gdb_ret = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
+        upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    $self->SUPER::post_fail_hook;
+    get_to_console;
+    $self->get_ip_address;
+    $self->remount_tmp_if_ro;
+    # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+    $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+    return if is_caasp;
+    $self->save_system_logs;
+
+    # Collect yast2 installer  strace and gbd debug output if is still running
+    $self->save_strace_gdb_output;
 }
 
 1;

@@ -8,14 +8,15 @@
 # without any warranty.
 #
 # Summary: Enable kdump and verify it's enabled
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: Yong Sun <yosun@suse.com>
 package enable_kdump;
 
 use strict;
 use 5.018;
 use warnings;
 use base 'opensusebasetest';
-use utils qw(power_action zypper_call);
+use utils 'zypper_call';
+use power_action_utils 'power_action';
 use serial_terminal 'select_virtio_console';
 use kdump_utils;
 use testapi;
@@ -25,8 +26,12 @@ sub run {
     select_console('root-console');
 
     # Also panic when softlockup
+    # workaround bsc#1104778, skip s390x in 12SP4
     assert_script_run('echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf');
-    assert_script_run('sysctl -p');
+    my $output = script_output('sysctl -p', 10, proceed_on_failure => 1);
+    unless ($output =~ /kernel.softlockup_panic = 1/) {
+        record_soft_failure 'bsc#1104778';
+    }
 
     # Activate kdump
     prepare_for_kdump;

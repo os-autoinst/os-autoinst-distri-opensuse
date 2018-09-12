@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-
   <bootloader>
     <global>
       <append> resume=/dev/sda1 splash=silent quiet crashkernel=176M-:88M  showopts</append>
@@ -15,7 +14,7 @@
       <os_prober>true</os_prober>
       <suse_btrfs>true</suse_btrfs>
       <terminal>gfxterm</terminal>
-      <timeout config:type="integer">8</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
     <sections config:type="list">

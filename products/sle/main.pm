@@ -283,6 +283,8 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
               = is_module($short_name) ?
               "REPO_SLE${version}_MODULE_${repo_name}"
               : "REPO_SLE${version}_PRODUCT_${repo_name}";
+            # Replace dashes with underscore symbols, as not used in the variable name
+            $repo_variable_name =~ s/-/_/;
             my $default_repo_name
               = is_module($short_name) ?
               "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1"
@@ -295,6 +297,7 @@ if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
                 $addonurl .= "$short_name,";
             }
         }
+
         #remove last comma from ADDONURL setting value
         $addonurl =~ s/,$//;
         set_var("ADDONURL", $addonurl);
@@ -320,6 +323,9 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 
     # set SCC_ADDONS before push to slenkins
     set_var('SCC_ADDONS', join(',', @addons));
+
+    # SLES4SAP does not have addon on SLE12SP3
+    push(@addons, 'sles4sap') if is_sle('<15') && check_var('FLAVOR', 'Server-DVD-SLES4SAP-Updates');
 
     # push sdk addon to slenkins tests
     if (get_var('TEST', '') =~ /^slenkins/) {
@@ -352,20 +358,22 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     if (sle_version_at_least('15')) {
         # Add only modules which are not pre-selected
-        my $addons = 'legacy,sdk,pcm,wsm,phub';
+        # 'pcm' should be treated special as it is only applicable to cloud
+        # installations
+        my $addons = 'legacy,sdk,wsm,phub';
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);
-        set_var('PATTERNS', 'default,asmm,pcm') if !get_var('PATTERNS');
+        set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
     }
     else {
         if (check_var('ARCH', 'aarch64')) {
-            set_var('SCC_ADDONS', 'pcm,tcm');
-            set_var('PATTERNS', 'default,pcm') if !get_var('PATTERNS');
+            set_var('SCC_ADDONS', 'tcm');
+            set_var('PATTERNS', 'default') if !get_var('PATTERNS');
         }
         else {
-            set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,pcm,tcm,wsm');
-            set_var('PATTERNS', 'default,asmm,pcm') if !get_var('PATTERNS');
+            set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,tcm,wsm');
+            set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
         }
     }
 }
@@ -380,6 +388,17 @@ if (get_var('SUPPORT_SERVER_ROLES', '') =~ /aytest/ && !get_var('AYTESTS_REPO'))
     }
 }
 
+# Workaround to be able to use create_hdd_hpc_textmode simultaneously in SLE15 and SLE12 SP*
+# and exlude maintenance tests
+if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('<15') && !is_updates_tests) {
+    set_var('SCC_ADDONS',   'hpcm,wsm');
+    set_var('SCC_REGISTER', 'installation');
+}
+# We have different dud files for SLE 12 and SLE 15
+if (check_var('DUD_ADDONS', 'sdk') && !get_var('DUD')) {
+    set_var('DUD', is_sle('15+') ? 'dev_tools.dud' : 'sdk.dud');
+}
+
 $needle::cleanuphandler = \&cleanup_needles;
 
 # dump other important ENV:
@@ -391,86 +410,6 @@ logcurrentenv(
       SYSTEM_ROLE SCC_REGISTER
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
-
-sub load_x11_webbrowser_core {
-    loadtest "x11/firefox/firefox_smoke";
-    loadtest "x11/firefox/firefox_urlsprotocols";
-    loadtest "x11/firefox/firefox_downloading";
-    loadtest "x11/firefox/firefox_changesaving";
-    loadtest "x11/firefox/firefox_fullscreen";
-    loadtest "x11/firefox/firefox_flashplayer";
-}
-
-sub load_x11_webbrowser_extra {
-    loadtest "x11/firefox/firefox_localfiles";
-    loadtest "x11/firefox/firefox_headers";
-    loadtest "x11/firefox/firefox_pdf";
-    loadtest "x11/firefox/firefox_health";
-    loadtest "x11/firefox/firefox_pagesaving";
-    loadtest "x11/firefox/firefox_private";
-    loadtest "x11/firefox/firefox_mhtml";
-    loadtest "x11/firefox/firefox_extensions";
-    loadtest "x11/firefox/firefox_appearance";
-    loadtest "x11/firefox/firefox_passwd";
-    loadtest "x11/firefox/firefox_html5";
-    loadtest "x11/firefox/firefox_developertool";
-    loadtest "x11/firefox/firefox_rss";
-    loadtest "x11/firefox/firefox_ssl";
-    loadtest "x11/firefox/firefox_emaillink";
-    loadtest "x11/firefox/firefox_plugins";
-    loadtest "x11/firefox/firefox_java";
-    loadtest "x11/firefox/firefox_extcontent";
-    loadtest "x11/firefox/firefox_gnomeshell";
-    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
-        loadtest "x11/firefox_audio";
-    }
-}
-
-sub load_x11_message {
-    if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11/empathy/empathy_irc";
-        loadtest "x11/evolution/evolution_smoke";
-        loadtest "x11/evolution/evolution_prepare_servers";
-        loadtest "x11/evolution/evolution_mail_imap";
-        loadtest "x11/evolution/evolution_mail_pop";
-        loadtest "x11/evolution/evolution_timezone_setup";
-        loadtest "x11/evolution/evolution_meeting_imap";
-        loadtest "x11/evolution/evolution_meeting_pop";
-        loadtest "x11/groupwise/groupwise";
-    }
-    if (get_var("DESKTOP") =~ /kde|gnome/) {
-        loadtest "x11/pidgin/prep_pidgin";
-        loadtest "x11/pidgin/pidgin_IRC";
-        loadtest "x11/pidgin/clean_pidgin";
-    }
-}
-
-sub load_x11_remote {
-    # load onetime vncsession testing
-    if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
-        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_tigervnc';
-        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_remmina';
-        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_java' if is_sle('<15');
-        loadtest 'x11/remote_desktop/onetime_vncsession_multilogin_failed';
-    }
-    # load persistemt vncsession, x11 forwarding, xdmcp with gdm testing
-    elsif (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
-        loadtest 'x11/remote_desktop/persistent_vncsession_xvnc';
-        loadtest 'x11/remote_desktop/x11_forwarding_openssh';
-        loadtest 'x11/remote_desktop/xdmcp_gdm';
-    }
-    # load xdmcp with xdm testing
-    elsif (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
-        loadtest 'x11/remote_desktop/xdmcp_xdm';
-    }
-    # load vino testing
-    elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_server')) {
-        loadtest 'x11/remote_desktop/vino_server';
-    }
-    elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_client')) {
-        loadtest 'x11/remote_desktop/vino_client';
-    }
-}
 
 sub load_applicationstests {
     if (my $val = get_var("APPTESTS")) {
@@ -503,18 +442,32 @@ sub load_slenkins_tests {
 }
 
 sub load_ha_cluster_tests {
-    return unless (get_var('HA_CLUSTER'));
+    return unless get_var('HA_CLUSTER');
 
-    # Standard boot and configuration
+    # Standard boot
     boot_hdd_image;
+
+    # Only SLE-15+ has support for lvmlockd
+    set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
+
+    # Wait for barriers to be initialized
     loadtest 'ha/wait_barriers';
+
+    # Test HA after an upgrade, so no need to configure the HA stack
+    if (get_var('HDDVERSION')) {
+        loadtest 'ha/check_after_reboot';
+        return 1;
+    }
+
+    # Patch (if needed) and basic configuration
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
     loadtest 'console/hostname';
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product i selected
-    loadtest "console/yast2_ntpclient" unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
+    loadtest 'console/yast2_ntpclient' unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
 
     # Update the image if needed
     if (get_var('FULL_UPDATE')) {
@@ -562,18 +515,23 @@ sub load_ha_cluster_tests {
     loadtest 'ha/fencing';
 
     # Node1 will be fenced, so we have to wait for it to boot
-    boot_hdd_image if (!get_var('HA_CLUSTER_JOIN'));
+    boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
 
     # Show HA cluster status *after* fencing test
-    loadtest 'ha/check_after_fencing';
+    loadtest 'ha/check_after_reboot';
 
-    # Check logs to find error and upload all needed logs
-    loadtest 'ha/check_logs';
+    # Check logs to find error and upload all needed logs if we are not
+    # in installation/publishing mode
+    loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
+
+    # If needed, do some actions prior to the shutdown
+    loadtest 'ha/prepare_shutdown' if get_var('INSTALLONLY');
 
     return 1;
 }
 
 sub load_feature_tests {
+    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "feature/feature_console/zypper_releasever";
     loadtest "feature/feature_console/suseconnect";
@@ -604,7 +562,7 @@ sub load_online_migration_tests {
     if (check_var("MIGRATION_METHOD", 'zypper')) {
         loadtest "migration/sle12_online_migration/zypper_migration";
     }
-    loadtest "migration/sle12_online_migration/orphaned_packages_check";
+    loadtest 'console/orphaned_packages_check';
     loadtest "migration/sle12_online_migration/post_migration";
 }
 
@@ -617,7 +575,7 @@ sub load_patching_tests {
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
         # Always boot from installer DVD in upgrade test
         set_var('BOOTFROM', 'd');
-        loadtest "migration/version_switch_origin_system";
+        loadtest "migration/version_switch_origin_system" if (!get_var('ONLINE_MIGRATION'));
     }
     set_var('BOOT_HDD_IMAGE', 1);
     boot_hdd_image;
@@ -627,7 +585,6 @@ sub load_patching_tests {
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
         }
-        loadtest 'migration/remove_ltss';
         loadtest 'migration/record_disk_info';
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
@@ -650,6 +607,41 @@ sub prepare_target {
     }
 }
 
+sub mellanox_config {
+    loadtest "kernel/mellanox_config";
+    load_reboot_tests() if (check_var('BACKEND', 'ipmi'));
+}
+
+sub load_baremetal_tests {
+    load_boot_tests();
+    load_inst_tests();
+    load_reboot_tests();
+}
+
+sub load_infiniband_tests {
+    # The barriers below must be created
+    # here to ensure they are a) only created once and b) early enough
+    # to be available when needed.
+    if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+        barrier_create('IBTEST_BEGIN', 2);
+        barrier_create('IBTEST_DONE',  2);
+    }
+    mellanox_config();
+    loadtest "kernel/ib_tests";
+}
+
+sub load_nfv_tests {
+    loadtest "nfv/hugepages_config" if get_var('HUGEPAGES');
+    mellanox_config();
+    loadtest "kernel/mellanox_ofed" if get_var('OFED_URL');
+    if (check_var("NFV", "master")) {
+        load_nfv_master_tests();
+    }
+    elsif (check_var("NFV", "trafficgen")) {
+        load_nfv_trafficgen_tests();
+    }
+}
+
 sub load_default_tests {
     load_boot_tests();
     load_inst_tests();
@@ -669,64 +661,45 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+# Set serial failures
+my $serial_failures = [];
+# Detect bsc#1093797 on aarch64
+if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
+    push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
+}
+if (is_kernel_test()) {
+    my $type = is_ltp_test() ? 'soft' : 'hard';
+    push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
+    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
+    push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
+    push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted',      pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
+    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => quotemeta 'BUG: failure at'};
+    push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
+}
+$testapi::distri->set_expected_serial_failures($serial_failures);
+
 if (is_jeos) {
-    load_boot_tests();
-    loadtest "jeos/firstrun";
-    loadtest "console/force_cron_run";
-    loadtest "jeos/grub2_gfxmode";
-    loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
-    loadtest "jeos/diskusage";
-    loadtest "jeos/root_fs_size";
-    loadtest "jeos/mount_by_label";
-    loadtest "console/suseconnect_scc";
+    load_jeos_tests();
 }
 
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
 }
+elsif (get_var('IBTESTS')) {
+    load_baremetal_tests();
+    load_infiniband_tests();
+}
 elsif (get_var("WICKED")) {
     boot_hdd_image();
     load_wicked_tests();
 }
-elsif (get_var('NFV')) {
-    if (check_var("NFV", "master")) {
-        load_nfv_master_tests();
-    }
-    elsif (check_var("NFV", "trafficgen")) {
-        load_nfv_trafficgen_tests();
-    }
+elsif (get_var("NFV")) {
+    load_baremetal_tests();
+    load_nfv_tests();
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    # Used by QAM testing
-    if (check_var("REGRESSION", "firefox")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_webbrowser_core();
-        load_x11_webbrowser_extra();
-    }
-    # Used by Desktop Applications Group
-    elsif (check_var("REGRESSION", "webbrowser_core")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_webbrowser_core();
-    }
-    # Used by Desktop Applications Group
-    elsif (check_var("REGRESSION", "webbrowser_extra")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_webbrowser_extra();
-    }
-    elsif (check_var("REGRESSION", "message")) {
-        loadtest "boot/boot_to_desktop";
-        load_x11_message();
-    }
-    elsif (check_var('REGRESSION', 'remote')) {
-        loadtest 'boot/boot_to_desktop';
-        load_x11_remote();
-    }
-    elsif (check_var("REGRESSION", "piglit")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/piglit/piglit";
-    }
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -768,39 +741,40 @@ elsif (get_var("SUPPORT_SERVER")) {
 elsif (get_var("SLEPOS")) {
     load_slepos_tests();
 }
-elsif (get_var("FIPS_TS") || get_var("SECURITY")) {
+elsif (get_var("SECURITY_TEST")) {
     prepare_target();
     if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
     }
-    if (check_var("FIPS_TS", "setup")) {
+    if (check_var("SECURITY_TEST", "fips_setup")) {
         # Setup system into fips mode
         loadtest "fips/fips_setup";
     }
-    elsif (check_var("FIPS_TS", "fipsenv")) {
-        loadtest "fips/openssl/openssl_fips_env";
-    }
-    elsif (check_var("FIPS_TS", "core")) {
+    elsif (check_var("SECURITY_TEST", "core")) {
         load_security_tests_core;
     }
-    elsif (check_var("FIPS_TS", "web")) {
+    elsif (check_var("SECURITY_TEST", "web")) {
         load_security_tests_web;
     }
-    elsif (check_var("FIPS_TS", "misc")) {
+    elsif (check_var("SECURITY_TEST", "misc")) {
         load_security_tests_misc;
     }
-    elsif (check_var("FIPS_TS", "crypt")) {
+    elsif (check_var("SECURITY_TEST", "crypt")) {
         load_security_tests_crypt;
     }
-    elsif (check_var("FIPS_TS", "ipsec")) {
+    elsif (check_var("SECURITY_TEST", "ipsec")) {
         loadtest "console/ipsec_tools_h2h";
     }
-    elsif (check_var("FIPS_TS", "mmtest")) {
+    elsif (check_var("SECURITY_TEST", "mmtest")) {
         # Load client tests by APPTESTS variable
         load_applicationstests;
     }
-    elsif (check_var("SECURITY", "apparmor_status")) {
-        load_security_tests_apparmor_status;
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
+        load_security_tests_apparmor;
+    }
+    elsif (check_var("SECURITY_TEST", "openscap")) {
+        load_security_tests_openscap;
     }
 }
 elsif (get_var('SMT')) {
@@ -833,8 +807,14 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var("XFSTESTS")) {
-    loadtest "boot/boot_to_desktop";
-    loadtest "xfstests/enable_kdump";
+    #Workaround bsc#1101787
+    if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP4')) {
+        set_var('NO_KDUMP', 1);
+    }
+    boot_hdd_image;
+    unless (get_var('NO_KDUMP')) {
+        loadtest "xfstests/enable_kdump";
+    }
     loadtest "xfstests/install";
     loadtest "xfstests/partition";
     loadtest "xfstests/run";
@@ -886,8 +866,11 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_upgrade";
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             loadtest "virt_autotest/setup_xen_serial_console";
-            loadtest "virt_autotest/reboot_and_wait_up_normal";
         }
+        else {
+            loadtest "virt_autotest/setup_kvm_serial_console";
+        }
+        loadtest "virt_autotest/reboot_and_wait_up_normal";
         loadtest "virt_autotest/host_upgrade_step3_run";
     }
     elsif (get_var("VIRT_PRJ3_GUEST_MIGRATION_SOURCE")) {
@@ -935,6 +918,14 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('FULL_DESKTOP', get_var('DESKTOP'));
         set_var('DESKTOP',      'textmode');
     }
+}
+elsif (get_var("TERADATA")) {
+    boot_hdd_image;
+    loadtest "qam-teradata/teradata";
+}
+elsif (get_var('LIBSOLV_INSTALLCHECK')) {
+    boot_hdd_image;
+    loadtest 'console/libsolv_installcheck';
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
@@ -987,8 +978,7 @@ elsif (get_var('HPC')) {
     boot_hdd_image;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'hpc/before_test';
-    loadtest 'console/install_all_from_repository' if (get_var('INSTALL_ALL_REPO'));
-    loadtest 'console/install_single_package'      if (get_var('PACKAGETOINSTALL'));
+    loadtest 'console/install_single_package' if (get_var('PACKAGETOINSTALL'));
 
     # load hpc multimachine scenario based on value of HPC variable
     # e.g 'hpc/$testsuite_[master|slave].pm'
@@ -997,6 +987,9 @@ elsif (get_var('HPC')) {
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
+}
+elsif (get_var('VALIDATE_PCM_PATTERN')) {
+    load_public_cloud_patterns_validation_tests;
 }
 else {
     if (get_var("SES5_DEPLOY")) {
@@ -1018,6 +1011,12 @@ else {
         }
         return 1;
     }
+    elsif (get_var('TEUTHOLOGY')) {
+        boot_hdd_image;
+        loadtest 'console/teuthology';
+        loadtest 'console/pulpito';
+        return 1;
+    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
         # Set origin and target version
@@ -1029,7 +1028,6 @@ else {
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
         loadtest 'update/patch_sle';
-        loadtest 'migration/remove_ltss';
         loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;
@@ -1058,6 +1056,7 @@ else {
         loadtest "migration/post_upgrade";
         # Always load zypper_lr test for migration case and get repo information for investigation
         if (get_var("INSTALLONLY")) {
+            loadtest "console/system_prepare";
             loadtest "console/consoletest_setup";
             loadtest 'console/integration_services' if is_hyperv;
             loadtest "console/zypper_lr";
@@ -1074,7 +1073,7 @@ else {
             if (get_var("ADDONS")) {
                 loadtest "installation/addon_products_yast2";
             }
-            if (get_var('SCC_ADDONS')) {
+            if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE')) {
                 loadtest "installation/addon_products_via_SCC_yast2";
             }
             if (get_var("ISCSI_SERVER")) {

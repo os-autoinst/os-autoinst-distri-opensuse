@@ -24,7 +24,11 @@ pre init scripts feature. See poo#20818.
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
   </general>
-
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
   <report>
     <errors>
       <log config:type="boolean">true</log>
@@ -554,7 +558,7 @@ sed -i -e '/^      <start_multipath/ c\
 ' /tmp/profile/modified.xml
 # Set device
 sed -i -e "/^      <device>\/dev\/placeholder/ c\
-      <device>/dev/mapper/0QEMU_QEMU_HARDDISK_mpath1</device>" /tmp/profile/modified.xml
+      <device>/dev/mapper/0QEMU_QEMU_HARDDISK_hd0</device>" /tmp/profile/modified.xml
 # Set fs type, mount point and mount options
 # EFI
 if [ -e /sys/firmware/efi ]; then

@@ -20,6 +20,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     $self->gnote_launch();
+    send_key "down" if check_screen 'gnote-start-here-matched_TW';
     send_key "ret";
     $self->gnote_search_and_close('and', 'gnote-search-body-and');
 }

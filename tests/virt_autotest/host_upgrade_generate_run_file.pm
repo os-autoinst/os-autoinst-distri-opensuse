@@ -15,9 +15,14 @@ use base "host_upgrade_base";
 use strict;
 use warnings;
 use testapi;
+use virt_utils;
 
 sub get_script_run {
     my $pre_test_cmd;
+
+    handle_sp_in_settings_with_sp0("UPGRADE_PRODUCT");
+    handle_sp_in_settings_with_sp0("GUEST_LIST");
+    handle_sp_in_settings_with_sp0("BASE_PRODUCT");
 
     my $mode         = get_var("TEST_MODE",       "");
     my $hypervisor   = get_var("HOST_HYPERVISOR", "");

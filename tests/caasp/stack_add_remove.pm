@@ -11,59 +11,98 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 use parent 'caasp_controller';
 use caasp_controller;
-use caasp qw(pause_until unpause);
+use caasp qw(pause_until get_delayed);
+use lockapi 'barrier_wait';
 
 use strict;
 use testapi;
 
-sub add_nodes {
+
+sub accept_delayed_nodes {
     # Accept pending nodes
-    send_key_until_needlematch 'velum-bootstrap-accept-nodes', 'pgdn', 2, 3;
+    send_key 'end';
     assert_and_click 'velum-bootstrap-accept-nodes';
-    save_screenshot;
-    send_key 'home';
+    wait_still_screen;
 
     # Nodes are moved from pending to new
-    assert_and_click "velum-1-nodes-accepted", 'left', 90;
-    unpause 'DELAYED_NODES_ACCEPTED';
+    send_key 'home';
+    my $n = get_var 'STACK_DELAYED';
+    assert_screen "velum-$n-nodes-accepted", 90;
+}
 
-    # Bootstrap new node
-    wait_still_screen 3;
-    assert_and_click 'unassigned-select-all';
+# Select node and role based on needle match
+sub add_node {
+    my $node = shift;
+    record_info 'Add node', $node;
+
+    click_click xy('velum-new-nodes');
+    click_click xy("$node-setrole-xy");
     assert_and_click 'unassigned-add-nodes';
     assert_screen 'velum-bootstrap-done';
     send_key 'end';
-    assert_screen 'velum-adding-nodes-done', 900;
+
+    # Wait until node is added or error
+    assert_screen ['velum-adding-nodes-done', 'velum-status-error'], 900;
+    die 'Adding node failed' if match_has_tag('velum-status-error');
 }
 
-sub remove_nodes {
-    mouse_set xy('delayed-remove-xy');
-    mouse_click;
+# Remove node based on needle match
+sub remove_node {
+    my $node = shift;
+    my %args = @_;
+
+    record_info 'Remove node', $node;
+    send_key_until_needlematch "$node-remove-xy", 'pgdn', 2, 5;
+    click_click xy("$node-remove-xy");
     assert_and_click 'confirm-removal';
-    sleep 7;
-    assert_screen 'velum-adding-nodes-done', 900;
+    if ($args{unsupported}) {
+        wait_still_screen 3;
+        assert_and_click 'confirm-unsupported';
+    }
+
+    # Wait until node is removed or error
+    my $timer = time + 900;
+    assert_screen "$node-pending";
+    while (check_screen "$node-pending", 5) {
+        sleep 25;
+        die 'Node removal timeout' if $timer - time < 0;
+        die 'Node removal failed' if check_screen('velum-status-error', 0);
+    }
     send_key 'home';
 }
 
+# Has also function of wait_still_screen
 sub check_kubernetes {
     my $nodes_count = shift;
     switch_to 'xterm';
-    assert_script_run "kubectl cluster-info";
     assert_script_run "kubectl get nodes --no-headers | tee /dev/tty | wc -l | grep $nodes_count";
     switch_to 'velum';
 }
 
 sub run {
-    pause_until 'DELAYED_WORKER_INSTALLED';
+    switch_to 'velum';
+    barrier_wait {name => 'DELAYED_NODES_ONLINE', check_dead_job => 1};
 
-    record_info 'Add node';
-    add_nodes;
-    check_kubernetes(get_required_var('STACK_NODES') + 1);
+    accept_delayed_nodes;
+    my $n = get_required_var('STACK_NODES');
 
-    record_info 'Remove node';
-    remove_nodes;
-    check_kubernetes(get_required_var('STACK_NODES'));
+    if (get_delayed 'worker') {
+        add_node 'worker-addrm';
+        check_kubernetes($n + 1);
+
+        remove_node 'worker-addrm';
+        check_kubernetes($n);
+    }
+
+    if (check_var 'STACK_MASTERS', 3) {
+        remove_node 'master-rm', unsupported => 1;
+        check_kubernetes($n - 1);
+
+        if (get_delayed 'master') {
+            add_node 'master-add';
+            check_kubernetes($n);
+        }
+    }
 }
 
 1;
-

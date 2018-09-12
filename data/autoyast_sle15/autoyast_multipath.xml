@@ -25,6 +25,11 @@ pre init scripts feature. See poo#20818.
       </addon>
     </addons>
   </suse_register>
+  <bootloader>
+      <global>
+          <timeout config:type="integer">-1</timeout>
+      </global>
+  </bootloader>
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>
@@ -364,11 +369,9 @@ pre init scripts feature. See poo#20818.
       <disable config:type="list">
       </disable>
       <enable config:type="list">
-        <service>atd</service>
         <service>kexec-load</service>
         <service>sshd</service>
         <service>sysstat</service>
-        <service>tuned</service>
       </enable>
     </services>
   </services-manager>
@@ -565,7 +568,7 @@ sed -i -e '/^      <start_multipath/ c\
 ' /tmp/profile/modified.xml
 # Set device
 sed -i -e "/^      <device>\/dev\/placeholder/ c\
-      <device>/dev/mapper/0QEMU_QEMU_HARDDISK_mpath1</device>" /tmp/profile/modified.xml
+      <device>/dev/mapper/0QEMU_QEMU_HARDDISK_hd0</device>" /tmp/profile/modified.xml
 # Set fs type, mount point and mount options
 # EFI
 if [ -e /sys/firmware/efi ]; then

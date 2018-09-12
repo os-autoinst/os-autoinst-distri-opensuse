@@ -41,5 +41,3 @@ sub wait_boot_windows {
 }
 
 1;
-
-# vim: sw=4 et

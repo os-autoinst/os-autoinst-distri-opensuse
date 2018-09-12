@@ -1,0 +1,2 @@
+tx_frames,rx_frames,tx_rate_fps,throughput_rx_fps,tx_rate_mbps,throughput_rx_mbps,tx_rate_percent,throughput_rx_percent,frame_loss_percent,min_latency_ns,max_latency_ns,avg_latency_ns,type,packet_size,id,deployment,vswitch,traffic_type,test_execution_time,start_time,stop_time
+45777135,45777135,1525680.900,1525718.700,781.148,781.168,Unknown,Unknown,0.000,2.000,131.000,38.557,dummy_rfc,64,dummy_test,p2p,dummy_ovs,udp,01:02:10,2018-09-10 07:23:19,2018-09-10 08:25:30

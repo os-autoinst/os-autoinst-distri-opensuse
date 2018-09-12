@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,14 +14,22 @@
 use strict;
 use base "y2logsstep";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     assert_screen('release-notes-button');
     send_key('ctrl-shift-alt-x');
     assert_screen('yast-xterm');
     my $src = check_var('SCC_REGISTER', 'installation') ? "RPM" : "URL";
-    type_string "grep -o \"Got release notes.*$src\" /var/log/YaST2/y2log\n";
-    assert_screen "got-releasenotes-$src";
+    type_string "grep -o \"Got release notes.*\" /var/log/YaST2/y2log\n";
+    assert_screen [qw(got-releasenotes-RPM got-releasenotes-URL)];
+    unless (match_has_tag "got-releasenotes-$src") {
+        if (is_sle '=15-SP1') {
+            record_soft_failure 'bsc#1106066';
+        } else {
+            die "Release notes source does NOT match expectaions or not found in YaST logs, expected source: $src";
+        }
+    }
     type_string "exit\n";
     assert_screen 'system-role-default-system', 180;
 }

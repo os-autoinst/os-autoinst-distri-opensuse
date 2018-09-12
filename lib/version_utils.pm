@@ -45,6 +45,7 @@ our @EXPORT = qw (
   is_system_upgrading
   is_pre_15
   is_virtualization_server
+  is_aarch64_uefi_boot_hdd
 );
 
 sub is_leap;
@@ -128,7 +129,7 @@ sub is_caasp {
     elsif ($filter eq 'VMX') {
         return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
     }
-    elsif ($filter =~ /^\d\.\d\+?$/) {
+    elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
         return check_version($filter, qr/\d\.\d/);
@@ -221,7 +222,7 @@ sub sle_version_at_least {
 
     if ($version eq '12') {
         return !(
-               check_var($version_variable, '11-SP1')
+            check_var($version_variable, '11-SP1')
             or check_var($version_variable, '11-SP2')
             or check_var($version_variable, '11-SP3')
             or check_var($version_variable, '11-SP4'));
@@ -250,6 +251,10 @@ sub sle_version_at_least {
         return sle_version_at_least('12-SP4', version_variable => $version_variable)
           && !check_var($version_variable, '12-SP4');
     }
+    if ($version eq '15-SP1') {
+        return sle_version_at_least('15', version_variable => $version_variable)
+          && !check_var($version_variable, '15');
+    }
     die "unsupported SLE $version_variable $version in check";
 }
 
@@ -264,4 +269,8 @@ sub is_system_upgrading {
 
 sub is_pre_15 {
     return (is_sle('<15') || is_leap('<15.0')) && !is_tumbleweed;
+}
+
+sub is_aarch64_uefi_boot_hdd {
+    return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
 }

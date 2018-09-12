@@ -7,69 +7,82 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test installation and running of the docker image for this snapshot
-# Maintainer: Fabian Vogt <fvogt@suse.com>
+# Summary: Test installation and running of the docker image from the registry for this snapshot
+# Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base 'consoletest';
 use testapi;
 use utils;
 use strict;
-use version_utils qw(is_leap is_tumbleweed);
+use registration qw(add_suseconnect_product install_docker_when_needed);
+use version_utils "is_sle";
 
 sub run {
-    select_console 'root-console';
+    select_console "root-console";
 
-    my $version = get_required_var('VERSION');
-
-    my $image_name;
-    my $image_path;
-
-    if (is_tumbleweed) {
-        $image_name = 'opensuse/tumbleweed:current';
-        $image_path = '/usr/share/suse-docker-images/native/*-image*.tar.xz';
-
-        # For Tumbleweed, the image is wrapped inside an RPM
-        zypper_call "in docker opensuse-tumbleweed-image";
+    my @image_names = ();
+    if (is_sle("=12-SP3")) {
+        my @suffixes = ("container/sles12:sp3", "container-next/sles12/caasp-dex:2.7.1", "container-next/sles12/chartmuseum:0.2.8", "container-next/sles12/dnsmasq-nanny:1.0.0", "container-next/sles12/flannel:0.9.1", "container-next/sles12/haproxy:1.6.0", "container-next/sles12/kubedns:1.0.0", "container-next/sles12/mariadb:10.0", "container-next/sles12/openldap:10.0", "container-next/sles12/pause:1.0.0", "container-next/sles12/portus:2.3.2", "container-next/sles12/pv-recycler-node:1.0.0", "container-next/sles12/salt-api:2016.11.4", "container-next/sles12/salt-master:2016.11.4", "container-next/sles12/salt-minion:2016.11.4", "container-next/sles12/sidecar:1.0.0", "container-next/sles12/tiller:2.8.2", "container-next/sles12/velum:0.0");
+        foreach my $suffix (@suffixes) {
+            push @image_names, "registry.suse.de/suse/sle-12-sp3/update/products/casp30/$suffix";
+        }
     }
-    elsif (is_leap('15.0+')) {
-        $image_name = "opensuse-leap-$version:current";
-        $image_path = "/usr/share/suse-docker-images/native/opensuse-leap${version}-image.tar.xz";
-
-        # For Leap, the docker image is the ISO asset
-        my $image_filename = get_required_var('ISO');
-        $image_filename =~ s/^.*\///;
-        my $image_url = autoinst_url("/assets/other/$image_filename");
-        assert_script_run "curl $image_url --create-dirs -o $image_path";
+    elsif (is_sle("=15")) {
+        push @image_names, "registry.suse.de/suse/sle-15/update/cr/images/suse/sle15:latest";
     }
     else {
-        die 'Only know about Tumbleweed and Leap 15.0+ docker images';
+        die("This test only works at SLE12SP3 and SLE15.");
     }
 
-    # Start the docker daemon, normally done by previous test modules already
-    systemctl 'start docker';
-    systemctl 'status docker';
-    assert_script_run 'docker info';
+    my $version     = get_required_var("VERSION");
+    my $SCC_REGCODE = get_required_var("SCC_REGCODE");
 
-    # Load the image
-    assert_script_run "docker load -i $image_path";
-    # Show that the image got registered
-    assert_script_run "docker images $image_name";
-    # Running executables works
-    assert_script_run qq{docker container run --rm $image_name echo "I work" | grep "I work"};
-    # It is the correct openSUSE version
-    validate_script_output qq{docker container run --rm $image_name cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}( .*)?"/ };
-    # Zypper and network are working
-    assert_script_run qq{docker container run --rm $image_name zypper -v ref | grep "All repositories have been refreshed"};
+    if (script_run("SUSEConnect --status-text") != 0) {
+        assert_script_run("SUSEConnect --cleanup");
+        assert_script_run("SUSEConnect -r $SCC_REGCODE");
+        add_suseconnect_product("sle-module-containers", substr($version, 0, 2));
+    }
 
-    # Interactive session works
-    type_string <<"EOF";
-docker container run --rm -it $image_name /bin/bash; echo DOCKER-\$?- > /dev/$serialdev
-exit 42
-EOF
-    wait_serial 'DOCKER-42-' || die 'Interactive test failed';
+    install_docker_when_needed();
 
-    # Remove the image again to save space
-    assert_script_run "docker image rm --force $image_name";
+    # Allow our internal 'insecure' registry
+    assert_script_run("mkdir -p /etc/docker");
+    assert_script_run('cat /etc/docker/daemon.json; true');
+    assert_script_run(
+        'echo "{ \"insecure-registries\" : [\"registry.suse.de\", \"registry.suse.de:443\", \"registry.suse.de:5000\"] }" > /etc/docker/daemon.json');
+    assert_script_run('cat /etc/docker/daemon.json');
+    systemctl('restart docker');
+
+    assert_script_run(
+        "curl -LO https://storage.googleapis.com/container-diff/latest/container-diff-linux-amd64 &&
+        chmod +x container-diff-linux-amd64 && sudo mv container-diff-linux-amd64 /usr/local/bin/container-diff"
+    );
+
+    foreach my $image_name (@image_names) {
+        # Load the image
+        assert_script_run("docker pull $image_name", 120);
+        # Running executables works
+        assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_name -c 'echo "I work" | grep "I work"'};
+        # It is the right SLE version
+        if (is_sle("=12-SP3")) {
+            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 12 SP3"/ });
+        }
+        elsif (is_sle("=15")) {
+            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 15"/ });
+        }
+        # zypper lr
+        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper lr -s'", 120);
+        # zypper ref
+        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+
+        # container-diff
+        my $image_file = $image_name =~ s/\/|:/-/gr;
+        assert_script_run("container-diff analyze daemon://$image_name --type=rpm > /tmp/container-diff-$image_file.txt");
+        upload_asset("/tmp/container-diff-$image_file.txt");
+
+        # Remove the image again to save space
+        assert_script_run("docker image rm --force $image_name");
+    }
 }
 
 1;

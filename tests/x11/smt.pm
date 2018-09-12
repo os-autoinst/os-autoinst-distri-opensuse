@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,14 +12,17 @@
 #    smt-wizard and validation with smt-repos smt-sync return value
 # Maintainer: Jozef Pupava <jpupava@suse.com>, Jiawei Sun <jwsun@suse.com>, Dehai Kong <dhkong@suse.com>
 
-use base "x11test";
+use base 'x11test';
 use strict;
 use warnings;
 use testapi;
 use repo_tools;
+use utils 'turn_off_gnome_screensaver';
 
 sub run {
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
+    # Avoid blank screen since smt sync needs time
+    turn_off_gnome_screensaver;
     become_root;
     smt_wizard();
     assert_script_run 'smt-sync', 800;
