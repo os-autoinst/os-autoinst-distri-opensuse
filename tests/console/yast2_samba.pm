@@ -177,7 +177,7 @@ sub setup_samba {
 
     # service starts during boot, wait to load default data
     assert_screen 'yast2_samba-startup-configuration';
-    if (is_sle('<15') || is_leap('<15.1') || is_tumbleweed) {
+    if (is_sle('<15') || is_leap('<15.1')) {
         send_key 'alt-r';
         assert_screen 'yast2_samba-server_start-during-boot';
     }
