@@ -49,12 +49,14 @@ sub handle_installer_medium_bootup {
             assert_screen 'grub2';
         }
         # use firmware boot manager of aarch64 to boot upgraded system
-        if (check_var('ARCH', 'aarch64') && get_var('UPGRADE')) {
+        if (check_var('ARCH', 'aarch64')) {
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             send_key 'ret';
             $self->handle_uefi_boot_disk_workaround;
         }
         else {
+            # we need to assure that we boot from the disk
+            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
             send_key 'ret';
         }
     }
