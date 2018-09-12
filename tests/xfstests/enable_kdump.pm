@@ -28,7 +28,7 @@ sub run {
     # Also panic when softlockup
     # workaround bsc#1104778, skip s390x in 12SP4
     assert_script_run('echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf');
-    my $output = script_output('sysctl -p');
+    my $output = script_output('sysctl -p', 10, proceed_on_failure => 1);
     unless ($output =~ /kernel.softlockup_panic = 1/) {
         record_soft_failure 'bsc#1104778';
     }
