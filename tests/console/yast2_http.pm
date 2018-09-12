@@ -15,6 +15,7 @@ use base "console_yasttest";
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
+use y2_common 'continue_info_network_manager_default';
 
 sub run {
     my $self = shift;
@@ -23,6 +24,7 @@ sub run {
     # install http server
     zypper_call("-q in yast2-http-server");
     script_run("yast2 http-server; echo yast2-http-server-status-\$? > /dev/$serialdev", 0);
+    continue_info_network_manager_default;
     assert_screen 'http-server', 180;    # check page "Initializing HTTP Server Configuration"
     wait_still_screen 1;
     send_key 'alt-i';                    # make sure that apache2, apache2-prefork packages needs to be installed

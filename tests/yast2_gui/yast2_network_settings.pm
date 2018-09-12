@@ -17,66 +17,80 @@
 use base "y2x11test";
 use strict;
 use testapi;
+use y2_common 'is_network_manager_default';
 
 sub run {
     my $self = shift;
-    $self->launch_yast2_module_x11('lan', match_args => [qw(yast2-lan-ui yast2_still_susefirewall2)], match_timeout => 60);
-    if (match_has_tag('yast2_still_susefirewall2')) {
+
+    # keyboard shorcuts
+    $cmd{global_options_tab} = 'alt-g';
+    $cmd{dhcp_client_id}     = 'alt-i';
+    $cmd{overview_tab}       = 'alt-v';
+    $cmd{add_device}         = 'alt-a';
+    $cmd{dynamic_address}    = 'alt-y';
+    $cmd{hostname_dns_tab}   = 'alt-s';
+    $cmd{routing_tab}        = 'alt-u';
+
+    $self->launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 60);
+    if (match_has_tag 'yast2_still_susefirewall2') {
         record_soft_failure "bsc#1059569";
-        send_key 'alt-i';
+        send_key $cmd{install};
         wait_still_screen;
     }
-
-    #	Global Options
-    send_key 'alt-g';
+    elsif (match_has_tag('yast2-lan-warning-network-manager') || is_network_manager_default) {
+        assert_screen 'yast2-lan-warning-network-manager';    # assert twice due to sometimes screen matches just before pop-up appears
+        send_key $cmd{ok};
+        assert_screen 'yast2-lan-ui';
+    }
+    # Global options
+    send_key $cmd{global_options_tab};
     assert_screen 'yast2-network-settings_global-options';
-    assert_screen 'yast2-network-settings_global-options_wicked-service';
-    #	set dhcp client Identifier
-    send_key 'alt-i';
-    if (check_var('DISTRI', 'sle')) {
-        type_string 'sle-host';
-    }
-    elsif (check_var('DISTRI', 'opensuse')) {
-        type_string 'opensuse-host';
-    }
-
-    #	Overview, add a bridge
-    send_key 'alt-v';
-    assert_screen 'yast2-network-settings_overview';
-    send_key 'alt-a';
-    assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type';
-    assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type_bridge';
-    send_key 'alt-n';
-    assert_screen 'yast2-network-settings_overview_network-card-setup';
-    send_key 'alt-y';
-    assert_screen 'yast2-network-settings_overview_network-card-setup_dynamic-add';
-    send_key 'alt-n';
-
-    #	Hostname/DNS, set hostname via dhcp, yes for br0
-    send_key 'alt-s';
-    assert_screen 'yast2-network-settings_hostname-dns';
-    assert_screen([qw(yast2-network-settings_hostname-dns_set-via-dhcp dns_set-via-dhcp_no)], 90);
-    if (match_has_tag('dns_set-via-dhcp_no')) {
-        assert_and_click 'dns_set-via-dhcp_no';
+    if (is_network_manager_default) {
+        assert_screen 'yast2-lan-network-manager-selected';
     }
     else {
-        assert_and_click 'yast2-network-settings_hostname-dns_set-via-dhcp';
+        assert_screen 'yast2-network-settings_global-options_wicked-service';
+        send_key $cmd{dhcp_client_id};
+        type_string(get_var('DISTRI') . '-host') if get_var("DISTRI") =~ /(sle|opensuse)/;
     }
-    assert_and_click 'yast2-network-settings_hostname-dns_br0';
-
-    #	Routing, enable Forwarding
-    send_key 'alt-u';
+    # Overview tab
+    send_key $cmd{overview_tab};
+    assert_screen 'yast2-network-settings_overview';
+    unless (is_network_manager_default) {
+        send_key $cmd{add_device};
+        assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type';
+        assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type_bridge';
+        send_key $cmd{next};
+        assert_screen 'yast2-network-settings_overview_network-card-setup';
+        send_key $cmd{dynamic_address};
+        assert_screen 'yast2-network-settings_overview_network-card-setup_dynamic-add';
+        send_key $cmd{next};
+    }
+    # Hostname/DNS tab
+    send_key $cmd{hostname_dns_tab};
+    assert_screen 'yast2-network-settings_hostname-dns';
+    unless (is_network_manager_default) {
+        assert_screen([qw(yast2-network-settings_hostname-dns_set-via-dhcp dns_set-via-dhcp_no)], 90);
+        if (match_has_tag('dns_set-via-dhcp_no')) {
+            assert_and_click 'dns_set-via-dhcp_no';
+        }
+        else {
+            assert_and_click 'yast2-network-settings_hostname-dns_set-via-dhcp';
+        }
+        assert_and_click 'yast2-network-settings_hostname-dns_br0';
+    }
+    # Routing tab
+    send_key $cmd{routing_tab};
     assert_screen 'yast2-network-settings_routing';
-    assert_and_click 'yast2-network-settings_routing_ipv4';
-    assert_and_click 'yast2-network-settings_routing_ipv6';
-
-    #	Save network setting and it can take long time, exit
-    send_key "alt-o";
+    unless (is_network_manager_default) {
+        assert_and_click 'yast2-network-settings_routing_ipv4';
+        assert_and_click 'yast2-network-settings_routing_ipv6';
+    }
+    send_key $cmd{ok};
 }
 
 sub post_run_hook {
     assert_screen('generic-desktop', 300);
 }
-
 
 1;

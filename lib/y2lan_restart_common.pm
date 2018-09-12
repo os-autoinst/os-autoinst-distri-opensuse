@@ -18,6 +18,7 @@ use Exporter 'import';
 use testapi;
 use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
+use y2_common 'accept_warning_network_manager_default';
 
 our @EXPORT_OK = qw(
   initialize_y2lan
@@ -45,6 +46,7 @@ sub initialize_y2lan {
 
 sub open_network_settings {
     type_string "yast2 lan\n";
+    accept_warning_network_manager_default;
     assert_screen 'yast2_lan', 100;       # yast2 lan overview tab
     wait_still_screen(2);
 }
