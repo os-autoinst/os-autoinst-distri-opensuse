@@ -44,6 +44,7 @@ sub run {
     my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";
     my $vsperf_version = get_required_var('VSPERF_VERSION');
     my $dpdk_repo      = "http://dpdk.org/git/dpdk";
+    my $vnf_image      = get_required_var('VNF_IMAGE');
     my $trafficgen_ip  = get_trafficgen_ip();
     my $children       = get_children();
     my $child_id       = (keys %$children)[0];
@@ -77,6 +78,9 @@ sub run {
     else {
         die "OS VERSION not supported. Available only on >=15 and 12-SP4";
     }
+
+    # Download VNF from OPNFV artifacts repository
+    assert_script_run("wget $vnf_image -O /tmp/vloop-vnf.qcow2");
 
     # Clone Trex repo inside VSPerf directories
     record_info("INFO", "Clone TREX repository");
