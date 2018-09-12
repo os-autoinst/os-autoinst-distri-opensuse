@@ -22,7 +22,7 @@ use autotest;
 use utils;
 use LTP::TestInfo qw(testinfo);
 use File::Basename 'basename';
-use main_common qw(load_bootloader_s390x boot_hdd_image);
+use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag);
 use 5.018;
 
 our @EXPORT = 'load_kernel_tests';
@@ -74,7 +74,7 @@ sub parse_runtest_file {
 sub loadtest_from_runtest_file {
     my $name               = get_var('LTP_COMMAND_FILE');
     my $path               = get_var('ASSETDIR') . '/other';
-    my $tag                = (get_var('LTP_RUNTEST_TAG') || basename(get_var('HDD_1'))) . '.txt';
+    my $tag                = get_ltp_tag();
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $test_result_export = {

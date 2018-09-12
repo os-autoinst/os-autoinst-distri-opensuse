@@ -21,6 +21,7 @@ use power_action_utils 'power_action';
 use bootloader_setup 'add_custom_grub_entries';
 use serial_terminal qw(add_serial_console select_virtio_console);
 use version_utils qw(is_sle sle_version_at_least is_opensuse);
+use main_common 'get_ltp_tag';
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -248,7 +249,7 @@ EOF
 sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
-    my $tag      = (get_var('LTP_RUNTEST_TAG') || basename(get_var('PUBLISH_HDD_1'))) . '.txt';
+    my $tag      = get_ltp_tag();
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
