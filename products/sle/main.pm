@@ -607,11 +607,6 @@ sub prepare_target {
     }
 }
 
-sub is_baremetal_test {
-    return 1 if (get_var('IBTESTS'));
-    return 0;
-}
-
 sub mellanox_config {
     loadtest "kernel/mellanox_config";
     load_reboot_tests() if (check_var('BACKEND', 'ipmi'));
@@ -621,18 +616,18 @@ sub load_baremetal_tests {
     load_boot_tests();
     load_inst_tests();
     load_reboot_tests();
+}
 
-    # load InfiniBand Tests. The barriers below must be created
+sub load_infiniband_tests {
+    # The barriers below must be created
     # here to ensure they are a) only created once and b) early enough
     # to be available when needed.
-    if (get_var('IBTESTS')) {
-        if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
-            barrier_create('IBTEST_BEGIN', 2);
-            barrier_create('IBTEST_DONE',  2);
-        }
-        mellanox_config();
-        loadtest "kernel/ib_tests";
+    if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+        barrier_create('IBTEST_BEGIN', 2);
+        barrier_create('IBTEST_DONE',  2);
     }
+    mellanox_config();
+    loadtest "kernel/ib_tests";
 }
 
 sub load_nfv_tests {
@@ -691,8 +686,9 @@ if (is_jeos) {
 if (is_kernel_test()) {
     load_kernel_tests();
 }
-elsif (is_baremetal_test()) {
+elsif (get_var('IBTESTS')) {
     load_baremetal_tests();
+    load_infiniband_tests();
 }
 elsif (get_var("WICKED")) {
     boot_hdd_image();
