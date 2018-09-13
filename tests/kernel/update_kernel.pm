@@ -20,6 +20,8 @@ use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
 
+my $wk_ker = 0;
+
 sub prepare_azure {
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
@@ -94,6 +96,7 @@ sub kgraft_state {
 
 sub install_lock_kernel {
     my $version = shift;
+    if ($version eq '4.12.14-25.13.1') { $wk_ker = 1; }
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
@@ -218,7 +221,7 @@ sub update_kgraft {
     my $patches = '';
     $patches = get_patches($incident_id, $repo) if $incident_id;
 
-    if ((is_patch_needed($patch) && $patch) || ($incident_id && !($patches))) {
+    if (!($wk_ker) && ((is_patch_needed($patch) && $patch) || ($incident_id && !($patches)))) {
         die "Patch isn't needed";
     }
     else {
@@ -237,8 +240,12 @@ sub update_kgraft {
 
         # Use single patch or patch list
         $patch = $patch ? $patch : $patches;
-
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        if ($wk_ker) {
+            zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        }
+        else {
+            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        }
 
         #kill HEAVY-LOAD scripts
         script_run("screen -S LTP_syscalls -X quit");
