@@ -73,8 +73,7 @@ sub prepare_for_kdump {
         return;
     }
 
-    if (get_var('REPO_0_DEBUGINFO')) {
-        my $snapshot_debuginfo_repo = get_var('REPO_0_DEBUGINFO');
+    if (my $snapshot_debuginfo_repo = get_var('REPO_OSS_DEBUGINFO')) {
         zypper_call('ar -f ' . get_var('MIRROR_HTTP') . "-debuginfo $snapshot_debuginfo_repo");
         install_kernel_debuginfo;
         script_run "zypper -n rr $snapshot_debuginfo_repo";
