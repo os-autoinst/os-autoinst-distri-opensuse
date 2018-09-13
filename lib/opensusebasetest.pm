@@ -555,6 +555,8 @@ sub post_fail_hook {
     my ($self) = @_;
     return if testapi::is_serial_terminal();    # in case it is VIRTIO_CONSOLE=1 nothing below make sense
 
+    show_tasks_in_blocked_state;
+
     # just output error if selected program doesn't exist instead of collecting all logs
     # set current variables in x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {

@@ -4,6 +4,7 @@ package console_yasttest;
 use base 'y2logsstep';
 use strict;
 use testapi;
+use utils 'show_tasks_in_blocked_state';
 
 sub change_service_configuration {
     my ($self, %args) = @_;
@@ -31,6 +32,8 @@ sub change_service_configuration_step {
 
 sub post_fail_hook {
     my $self = shift;
+
+    show_tasks_in_blocked_state;
 
     select_console 'log-console';
     save_screenshot;
