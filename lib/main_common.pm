@@ -370,6 +370,7 @@ sub load_svirt_boot_tests {
 
 sub load_svirt_vm_setup_tests {
     return unless check_var('BACKEND', 'svirt');
+    set_bridged_networking;
     if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
         # Loading bootloader_hyperv here when UPGRADE is on (i.e. offline migration is underway)
         # means loading it for the second time. Which might be apropriate if we want to reconfigure

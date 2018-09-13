@@ -24,7 +24,7 @@ sub run {
     # Remove the --force when this is fixed: https://bugzilla.redhat.com/1075131
     # Because of poo#32458 Hyper-V can't switch from VT to X11 and has to use
     # whatever the default in the image is.
-    systemctl('set-default --force graphical.target') unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    systemctl('set-default --force graphical.target');
 
     # switch to root-console (in case we are in X)
     select_console 'root-console';
