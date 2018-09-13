@@ -18,7 +18,15 @@ sub run {
     select_console 'root-console';
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
-    assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200;
+    if (is_sle('=12-SP3')) {
+        if (script_run('bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200)) {
+            record_soft_failure 'bsc#1105628';
+            assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200;
+        }
+    }
+    else {
+        assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 200;
+    }
     upload_logs 'mdadm.log';
 }
 
