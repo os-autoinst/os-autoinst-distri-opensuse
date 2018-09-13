@@ -14,6 +14,7 @@
 use base "x11test";
 use strict;
 use testapi;
+use version_utils 'is_leap';
 
 sub run {
     ensure_installed('gnucash gnucash-docs yelp');
@@ -32,16 +33,8 @@ sub run {
         send_key 'alt-c';
         assert_screen('test-gnucash-tips-closed');
     }
-    send_key 'ctrl-q';    # Exit
-
-    # arbitrary limit
-    for (1 .. 7) {
-        assert_screen [qw(test-gnucash-1 gnucash gnucash-save-changes generic-desktop)];
-        last              if match_has_tag 'generic-desktop';
-        send_key 'alt-c'  if match_has_tag 'test-gnucash-1';
-        send_key 'alt-w'  if match_has_tag 'gnucash-save-changes';
-        send_key 'ctrl-q' if match_has_tag 'gnucash';
-    }
+    assert_and_click('gnucash-close-window');
+    assert_and_click('gnucash-close-without-saving-changes') if (is_leap('<=15.1'));
 }
 
 1;
