@@ -340,7 +340,8 @@ sub fill_in_registration_data {
                             next;
                         }
                     }
-                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down";
+                    # Default attempts counter of 20 is not enough; the modules list may be too long!
+                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", 40;
                     if (match_has_tag("scc-module-$addon")) {
                         # checkmark the requested addon
                         assert_and_click "scc-module-$addon";
