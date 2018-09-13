@@ -42,6 +42,7 @@ our @EXPORT = qw(
   ensure_unlocked_desktop
   install_to_other_at_least
   is_bridged_networking
+  set_bridged_networking
   ensure_fullscreen
   assert_screen_with_soft_timeout
   pkcon_quit
@@ -480,6 +481,10 @@ sub install_to_other_at_least {
 }
 
 sub is_bridged_networking {
+    return get_var('BRIDGED_NETWORKING');
+}
+
+sub set_bridged_networking {
     my $ret = 0;
     if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
         my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
@@ -487,7 +492,6 @@ sub is_bridged_networking {
     }
     # Some needles match hostname which we can't set permanently with bridge.
     set_var('BRIDGED_NETWORKING', 1) if $ret;
-    return $ret;
 }
 
 =head2 set_hostname

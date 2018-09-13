@@ -31,6 +31,7 @@ sub run {
     my $zypper_migration_notification = qr/^View the notifications now\? \[y/m;
     my $zypper_migration_failed       = qr/^Migration failed/m;
     my $zypper_migration_license      = qr/Do you agree with the terms of the license\? \[y/m;
+    my $zypper_migration_urlerror     = qr/URI::InvalidURIError/m;
 
     # start migration
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
@@ -70,7 +71,8 @@ sub run {
         }
         elsif ($out =~ $zypper_migration_conflict
             || $out =~ $zypper_migration_fileconflict
-            || $out =~ $zypper_migration_failed)
+            || $out =~ $zypper_migration_failed
+            || $out =~ $zypper_migration_urlerror)
         {
             $self->result('fail');
             save_screenshot;
