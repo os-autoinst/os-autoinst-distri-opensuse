@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_storage_ng';
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(addpart addlv addvg create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
+our @EXPORT = qw(addboot addpart addlv addvg create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
 
 our %partition_roles = qw(
   OS alt-o
@@ -210,6 +210,36 @@ sub addlv {
     mount_device $args{mount} if $args{mount};
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     assert_screen 'expert-partitioner';
+}
+
+sub addboot {
+    my $part_size          = shift;
+    my %default_boot_sizes = (
+        ofw        => 8,
+        uefi       => 256,
+        bios_boot  => 2,
+        zipl       => 500,
+        unenc_boot => 500
+    );
+
+    if (get_var('OFW')) {    # ppc64le always needs PReP boot
+        addpart(role => 'raw', size => $part_size // $default_boot_sizes{ofw}, fsid => 'PReP');
+    }
+    elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
+        addpart(role => 'efi', size => $part_size // $default_boot_sizes{uefi});
+    }
+    elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
+        # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
+        addpart(role => 'raw', fsid => 'bios-boot', size => $part_size // $default_boot_sizes{bios_boot});
+    }
+    elsif (check_var('ARCH', 's390x')) {
+        # s390x need /boot/zipl on ext partition
+        addpart(role => 'OS', size => $part_size // $default_boot_sizes{zipl}, format => 'ext2', mount => '/boot/zipl');
+    }
+
+    if (get_var('UNENCRYPTED_BOOT')) {
+        addpart(role => 'OS', size => $part_size // $default_boot_sizes{unenc_boot}, format => 'ext2', mount => '/boot');
+    }
 }
 
 sub select_first_hard_disk {

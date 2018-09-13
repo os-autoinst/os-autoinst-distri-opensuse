@@ -84,6 +84,7 @@ sub init_cmd {
       toggle_home alt-p
       raw_volume alt-a
       enable_snapshots alt-n
+      system_view alt-s
     );
 
     if (check_var('INSTLANG', "de_DE")) {

@@ -15,16 +15,16 @@ use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use partition_setup qw(create_new_partition_table addpart addlv addvg);
+use partition_setup qw(create_new_partition_table addpart addlv addvg addboot);
 use version_utils 'is_storage_ng';
 
 sub run {
     create_new_partition_table;
+    addboot if is_storage_ng;
     # create boot and 2 lvm partitions
-    addpart(role => 'raw', fsid => 'bios-boot', size => 2);
-    addpart(role => 'raw', size => 10000);
-    addpart(role => 'raw');
-    # create volume group for root and swap non thin lvs
+    addpart(role => 'raw', size => 15000);    #rootfs + swap
+    addpart(role => 'raw');                   # home on thin lv
+                                              # create volume group for root and swap non thin lvs
     addvg(name => 'vg-no-thin');
     addlv(name => 'lv-swap', role => 'swap', size => 2000);
     addlv(name => 'lv-root', role => 'OS');
@@ -32,6 +32,7 @@ sub run {
     addvg(name => 'vg-thin');
     addlv(name => 'thin_pool', thinpool => 1);
     addlv(name => 'thin_lv_home', role => 'data', thinvolume => 1);
+    save_screenshot;
     send_key $cmd{accept};
 
 }

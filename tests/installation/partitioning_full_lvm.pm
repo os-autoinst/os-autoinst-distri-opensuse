@@ -22,24 +22,7 @@ use version_utils 'is_storage_ng';
 
 sub run {
     create_new_partition_table;
-    if (get_var('OFW')) {    # ppc64le always needs PReP boot
-        addpart(role => 'raw', size => 8, fsid => 'PReP');
-    }
-    elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
-        addpart(role => 'efi', size => 256);
-    }
-    elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
-        # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
-        addpart(role => 'raw', fsid => 'bios-boot', size => 2);
-    }
-    elsif (check_var('ARCH', 's390x')) {
-        # s390x need /boot/zipl on ext partition
-        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot/zipl');
-    }
-
-    if (get_var('UNENCRYPTED_BOOT')) {
-        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
-    }
+    addboot;
 
     addpart(role => 'raw', encrypt => 1);
     assert_screen 'expert-partitioner';
