@@ -19,6 +19,8 @@ use utils;
 use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
+use power_action_utils 'power_action';
+
 
 my $wk_ker = 0;
 
@@ -170,7 +172,7 @@ sub prepare_kgraft {
         fully_patch_system;
         install_lock_kernel($wanted_version);
     }
-    type_string("reboot\n");
+    power_action('reboot', textmode => 1);
 }
 
 sub right_kversion {
@@ -256,8 +258,7 @@ sub run {
 
         zypper_call("rr qa_repo");
         zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-
-        type_string("reboot\n");
+        power_action('reboot', textmode => 1);
 
         $self->wait_boot;
         select_console('root-console');
@@ -272,7 +273,7 @@ sub run {
         update_kernel($repo, $incident_id);
     }
 
-    type_string("reboot\n");
+    power_action('reboot', textmode => 1);
 }
 
 sub test_flags {
