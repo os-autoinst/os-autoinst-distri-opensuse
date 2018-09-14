@@ -183,7 +183,9 @@ sub boot_local_disk {
             record_info 'bounce back to inst-bootmenu, send ret again';
             send_key 'ret';
         }
-        assert_screen [qw(inst-slof bootloader grub2 inst-bootmenu)];
+        my @tags = qw(inst-slof bootloader grub2 inst-bootmenu);
+        push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+        assert_screen(\@tags);
         if (match_has_tag 'grub2') {
             diag 'already in grub2, returning from boot_local_disk';
             stop_grub_timeout;
@@ -193,6 +195,11 @@ sub boot_local_disk {
             diag 'specifying local disk for boot from slof';
             type_string_very_slow "boot /pci\t/sc\t5";
             save_screenshot;
+        }
+        if (match_has_tag 'encrypted-disk-password-prompt') {
+            # It is possible to show encrypted prompt directly by pressing 'local' boot-menu
+            # Simply return and do enter passphrase operation in cheking block of sub wait_boot
+            return;
         }
     }
     send_key 'ret';
