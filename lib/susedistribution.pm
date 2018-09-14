@@ -530,8 +530,7 @@ sub hyperv_console_switch {
     die 'hyperv_console_switch: Console was not provided' unless $console;
     diag 'hyperv_console_switch: Console number was not provided' unless $nr;
     # If we are in VT, 'Alt-Fx' switch already worked
-    return if check_screen(["tty$nr-selected", 'text-logged-in-root', 'linux-login',
-            'installation', 'install-shell', 'install-shell2', 'inst-console', "$console"], 10);
+    return if check_screen('any-console', 10);
     # We are in X11 and wan't to switch to VT
     testapi::x11_start_program('xterm');
     self->distribution::script_sudo("exec chvt $nr; exit", 0);
