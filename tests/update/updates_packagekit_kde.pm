@@ -29,7 +29,7 @@ sub run {
     ensure_unlocked_desktop;
     turn_off_kde_screensaver;
 
-    my @updates_installed_tags = qw(updates_none updates_available);
+    my @updates_installed_tags = qw(updates_none updates_available updates_available-tray);
     assert_screen [qw(updates_available-tray tray-without-updates-available)];
     if (match_has_tag 'updates_available-tray') {
         assert_and_click("updates_available-tray");
@@ -59,6 +59,19 @@ sub run {
             elsif (match_has_tag('updates_available')) {
                 # look again
                 if (check_screen 'updates_none', 0) {
+                    record_soft_failure 'boo#1041112';
+                    last;
+                }
+            }
+            # Check, if there are more updates available
+            elsif (match_has_tag('updates_available-tray')) {
+                # look again
+                if (check_screen 'updates_available-tray', 30) {
+                    assert_and_click("updates_available-tray");
+                }
+                else {
+                    # Make sure, that there are no updates, otherwise fail
+                    assert_screen 'updates_none';
                     record_soft_failure 'boo#1041112';
                     last;
                 }
