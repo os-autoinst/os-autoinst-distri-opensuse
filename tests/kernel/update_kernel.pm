@@ -122,6 +122,11 @@ sub install_lock_kernel {
         $package =~ s/$/-$l_v/;
     }
 
+    # workaround for SLE15 - 4.12.4-25.13.1
+    if ($wk_ker) {
+        @packages = grep { $_ ne 'kernel-source-4.12.4-25.13.1' } @packages;
+    }
+
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
