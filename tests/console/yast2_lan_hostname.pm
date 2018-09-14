@@ -15,28 +15,35 @@ use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
+use y2_common 'accept_warning_network_manager_default';
 
 sub hostname_via_dhcp {
     my $dhcp = shift;
 
+    # keyboard shortcuts
+    $cmd{hostname_dns_tab} = 'alt-s';
+    $cmd{home}             = 'home';
+    $cmd{spc}              = 'spc';
+
     type_string "yast2 lan\n";
+    accept_warning_network_manager_default;
     assert_screen([qw(yast2_lan yast2_still_susefirewall2)], 90);
     if (match_has_tag 'yast2_still_susefirewall2') {
         record_soft_failure "bsc#1059569";
-        send_key 'alt-i';
+        send_key $cmd{install};
         assert_screen 'yast2_lan';
     }
-
-    send_key "alt-s";    # open hostname tab
+    # Hostname/DNS tab
+    send_key $cmd{hostname_dns_tab};
     assert_screen "yast2_lan-hostname-tab";
     for (1 .. 4) { send_key 'tab' }    # go to roll-down list
     wait_screen_change { send_key 'down'; };    # open roll-down list
-    send_key('home');                               # go to the top of list
+    send_key $cmd{home};
     assert_screen("yast2_lan-hostname-DHCP-no");    # check that topmost option is selected
     send_key_until_needlematch "yast2_lan-hostname-DHCP-$dhcp", 'down';
-    wait_screen_change { send_key 'spc'; };         # pick selected option
+    wait_screen_change { send_key $cmd{spc}; };
     assert_screen "yast2_lan-hostname-DHCP-$dhcp-selected";    # make sure that the option is actually selected
-    send_key 'alt-o';                                          # OK=>Save&Exit
+    send_key $cmd{ok};
     assert_screen 'console-visible';                           # yast module exited
     wait_still_screen;
     if ($dhcp eq 'no') {
@@ -67,4 +74,3 @@ sub post_fail_hook {
 }
 
 1;
-

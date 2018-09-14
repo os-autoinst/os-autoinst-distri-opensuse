@@ -15,7 +15,8 @@ use base qw(console_yasttest y2logsstep);
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle sle_version_at_least);
+use version_utils qw(is_leap is_sle);
+use y2_common 'continue_info_network_manager_default';
 use constant RETRIES => 5;
 # Test "yast2 dhcp-server" functionality
 # Ensure that all combinations of running/stopped and active/inactive
@@ -78,7 +79,7 @@ sub run {
     # First execution (wizard-like interface)
     #
     script_run 'yast2 dns-server', 0;
-    # Just do next-next until the last step
+    continue_info_network_manager_default;
     assert_screen 'yast2-dns-server-step1';
     send_key 'alt-n';
     assert_screen 'yast2-dns-server-step2';
@@ -114,6 +115,7 @@ sub run {
     # Second execution (tree-based interface)
     #
     script_run 'yast2 dns-server', 0;
+    continue_info_network_manager_default;
     if (is_sle('<15') || is_leap('<15.1')) {
         assert_screen([qw(yast2-service-running-enabled yast2_still_susefirewall2)], 90);
         if (match_has_tag 'yast2_still_susefirewall2') {
@@ -140,6 +142,7 @@ sub run {
     # Third execution (tree-based interface)
     #
     script_run 'yast2 dns-server', 0;
+    continue_info_network_manager_default;
     if (is_sle('<15') || is_leap('<15.1')) {
         assert_screen 'yast2-service-stopped-enabled';
         # Start the service
@@ -160,6 +163,7 @@ sub run {
     # Fourth execution (tree-based interface)
     #
     script_run 'yast2 dns-server', 0;
+    continue_info_network_manager_default;
     if (is_sle('<15') || is_leap('<15.1')) {
         assert_screen 'yast2-service-running-disabled', 90;
         # Stop the service
