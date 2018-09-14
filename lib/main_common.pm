@@ -2128,6 +2128,7 @@ sub load_public_cloud_patterns_validation_tests {
     # validate packages of pcm
     loadtest 'console/validate_packages_and_patterns';
     loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
+    loadtest 'console/validate_pcm_aws'   if check_var('VALIDATE_PCM_PATTERN', 'aws');
     loadtest "console/consoletest_finish";
 }
 
