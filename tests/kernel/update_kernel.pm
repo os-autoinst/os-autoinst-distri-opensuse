@@ -28,32 +28,26 @@ sub prepare_azure {
 }
 
 sub update_kernel {
-    my ($repo, $patch, $incident_id) = @_;
+    my ($repo, $incident_id) = @_;
 
     fully_patch_system;
 
-    if ($incident_id) {
-        my @repos = split(",", $repo);
-        while (my ($i, $val) = each(@repos)) {
-            zypper_call("ar $val kernel-update-$i");
-        }
-    }
-    else {
-        zypper_call("ar $repo kernel-update");
+    my @repos = split(",", $repo);
+    while (my ($i, $val) = each(@repos)) {
+        zypper_call("ar $val kernel-update-$i");
     }
     zypper_call("ref");
 
     #Get patch list related to incident
     my $patches = '';
-    $patches = get_patches($incident_id, $repo) if $incident_id;
+    $patches = get_patches($incident_id, $repo);
 
-    if ((is_patch_needed($patch) && $patch) || ($incident_id && !($patches))) {
+    if ($incident_id && !($patches)) {
         die "Patch isn't needed";
     }
     else {
         # Use single patch or patch list
-        $patch = $patch ? $patch : $patches;
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1400);
+        zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1400);
     }
 }
 
@@ -132,7 +126,7 @@ sub install_lock_kernel {
 }
 
 sub prepare_kgraft {
-    my ($repo, $patch, $incident_id) = @_;
+    my ($repo, $incident_id) = @_;
     my $arch    = get_required_var('ARCH');
     my $version = get_required_var('VERSION');
     my $release_override;
@@ -162,30 +156,15 @@ sub prepare_kgraft {
     zypper_call("mr -e kgraft-update");
 
     #add repository with tested patch
-    if ($incident_id) {
-        my @repos = split(",", $repo);
-        while (my ($i, $val) = each(@repos)) {
-            zypper_call("ar $val kgraft-test-repo-$i");
-
-            my $kversion = script_output(q(zypper -n se -s kernel-default));
-            my $pversion = script_output("zypper -n se -s -r kgraft-test-repo-$i");
-
-            #disable kgraf-test-repo for while
-            zypper_call("mr -d kgraft-test-repo-$i");
-
-            my $wanted_version = right_kversion($kversion, $pversion);
-            fully_patch_system;
-            install_lock_kernel($wanted_version);
-        }
-    }
-    else {
-        zypper_call("ar $repo kgraft-test-repo");
+    my @repos = split(",", $repo);
+    while (my ($i, $val) = each(@repos)) {
+        zypper_call("ar $val kgraft-test-repo-$i");
 
         my $kversion = script_output(q(zypper -n se -s kernel-default));
-        my $pversion = script_output(q(zypper -n se -r kgraft-test-repo -s));
+        my $pversion = script_output("zypper -n se -s -r kgraft-test-repo-$i");
 
         #disable kgraf-test-repo for while
-        zypper_call("mr -d kgraft-test-repo");
+        zypper_call("mr -d kgraft-test-repo-$i");
 
         my $wanted_version = right_kversion($kversion, $pversion);
         fully_patch_system;
@@ -204,24 +183,18 @@ sub right_kversion {
 }
 
 sub update_kgraft {
-    my ($repo, $patch, $incident_id) = @_;
+    my ($repo, $incident_id) = @_;
 
-    if ($incident_id) {
-        my @repos = split(",", $repo);
-        while (my ($i, $val) = each(@repos)) {
-            zypper_call("mr -e kgraft-test-repo-$i");
-        }
+    my @repos = split(",", $repo);
+    while (my ($i, $val) = each(@repos)) {
+        zypper_call("mr -e kgraft-test-repo-$i");
     }
-    else {
-        zypper_call("mr -e kgraft-test-repo");
-    }
-    zypper_call("ref");
 
     # Get patch list related to incident
     my $patches = '';
-    $patches = get_patches($incident_id, $repo) if $incident_id;
+    $patches = get_patches($incident_id, $repo);
 
-    if (!($wk_ker) && ((is_patch_needed($patch) && $patch) || ($incident_id && !($patches)))) {
+    if (!($wk_ker) && ($incident_id && !($patches))) {
         die "Patch isn't needed";
     }
     else {
@@ -239,12 +212,11 @@ sub update_kgraft {
         sleep 15;
 
         # Use single patch or patch list
-        $patch = $patch ? $patch : $patches;
         if ($wk_ker) {
             zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
         }
         else {
-            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+            zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
         }
 
         #kill HEAVY-LOAD scripts
@@ -266,13 +238,11 @@ sub run {
     my $repo = get_required_var('INCIDENT_REPO');
 
     # Set and check patch variables
-    my $incident_id = get_var('INCIDENT_ID');
-    my $patch       = get_var('INCIDENT_PATCH');
-    check_patch_variables($patch, $incident_id);
+    my $incident_id = get_required_var('INCIDENT_ID');
 
     if (get_var('KGRAFT')) {
         my $qa_head = get_required_var('QA_HEAD_REPO');
-        prepare_kgraft($repo, $patch, $incident_id);
+        prepare_kgraft($repo, $incident_id);
         $self->wait_boot;
         select_console('root-console');
 
@@ -282,7 +252,7 @@ sub run {
         zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
 
         # update kgraft patch under heavy load
-        update_kgraft($repo, $patch, $incident_id);
+        update_kgraft($repo, $incident_id);
 
         zypper_call("rr qa_repo");
         zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
@@ -296,10 +266,10 @@ sub run {
     }
     elsif (get_var('AZURE')) {
         prepare_azure;
-        update_kernel($repo, $patch, $incident_id);
+        update_kernel($repo, $incident_id);
     }
     else {
-        update_kernel($repo, $patch, $incident_id);
+        update_kernel($repo, $incident_id);
     }
 
     type_string("reboot\n");
