@@ -12,6 +12,7 @@
 
 use base 'consoletest';
 use testapi;
+use version_utils 'is_sle';
 use strict;
 
 sub run {
