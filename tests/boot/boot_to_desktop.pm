@@ -35,6 +35,9 @@ sub run {
     else {
         $self->wait_boot(bootloader_time => $timeout, nologin => $nologin);
     }
+
+    # Detect btrfs balancing if filesystem is set to btrfs, or undef, as btrfs is default
+    push @{$self->{serial_failures}}, {type => 'soft', message => 'bsc#1063638', pattern => qr/BTRFS info.*relocating/} if get_var('SOFTFAIL_BSC1063638');
 }
 
 sub test_flags {
