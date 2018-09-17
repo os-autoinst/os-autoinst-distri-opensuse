@@ -80,7 +80,7 @@ sub run {
     }
 
     # Download VNF from OPNFV artifacts repository
-    assert_script_run("wget $vnf_image -O /tmp/vloop-vnf.qcow2");
+    assert_script_run("wget $vnf_image -O /tmp/vloop-vnf.qcow2", timeout => 1500);
 
     # Clone Trex repo inside VSPerf directories
     record_info("INFO", "Clone TREX repository");
