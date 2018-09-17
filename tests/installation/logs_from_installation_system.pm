@@ -16,12 +16,10 @@ use base 'y2logsstep';
 use testapi;
 use lockapi;
 use utils;
-use version_utils qw(is_caasp is_hyperv_in_gui);
 use ipmi_backend_utils;
 
 sub run {
     my ($self) = @_;
-    return if get_var('REMOTE_CONTROLLER') || is_caasp || is_hyperv_in_gui;
     select_console 'install-shell';
 
     # check for right boot-device on s390x (zVM, DASD ONLY)
