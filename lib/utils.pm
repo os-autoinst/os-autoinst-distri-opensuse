@@ -73,6 +73,7 @@ our @EXPORT = qw(
   reconnect_s390
   set_hostname
   zypper_ar
+  show_tasks_in_blocked_state
 );
 
 
@@ -1010,6 +1011,12 @@ sub zypper_ar {
 
     zypper_call("ar $url $name",                           dumb_term => 1);
     zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
+}
+
+sub show_tasks_in_blocked_state {
+    # info will be sent to serial tty
+    send_key 'alt-sysrq-w';
+    wait_serial('SysRq : Show Blocked State', 1);
 }
 
 1;
