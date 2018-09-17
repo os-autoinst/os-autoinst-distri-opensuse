@@ -29,7 +29,6 @@ sub hostname_via_dhcp {
     accept_warning_network_manager_default;
     assert_screen([qw(yast2_lan yast2_still_susefirewall2)], 90);
     if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure "bsc#1059569";
         send_key $cmd{install};
         assert_screen 'yast2_lan';
     }

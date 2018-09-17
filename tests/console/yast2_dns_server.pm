@@ -88,7 +88,6 @@ sub run {
     if (is_sle('<15') || is_leap('<15.1')) {
         assert_screen([qw(yast2-dns-server-step3 yast2_still_susefirewall2)], 90);
         if (match_has_tag 'yast2_still_susefirewall2') {
-            record_soft_failure "bsc#1059569";
             send_key 'alt-i';
             assert_screen 'yast2-dns-server-step3';
         }
@@ -119,7 +118,6 @@ sub run {
     if (is_sle('<15') || is_leap('<15.1')) {
         assert_screen([qw(yast2-service-running-enabled yast2_still_susefirewall2)], 90);
         if (match_has_tag 'yast2_still_susefirewall2') {
-            record_soft_failure "bsc#1059569";
             send_key 'alt-i';
             assert_screen 'yast2-service-running-enabled';
         }

@@ -270,17 +270,11 @@ sub start_ca_management {
 
 sub start_wake_on_lan {
     search('wake');
-    assert_screen [qw(yast2_control-center_wake-on-lan yast2_control_no_modules), timeout => 60];
-    if (match_has_tag('yast2_control_no_modules') && sle_version_at_least('15')) {
-        # No wol on SLE 15 atm
-        record_soft_failure 'bsc#1059569';
-        return;
-    }
     assert_and_click 'yast2_control-center_wake-on-lan';
-    assert_screen 'yast2_control-center_wake-on-lan_install_cancel', timeout => 180;
-    send_key 'alt-c';
-    assert_screen 'yast2_control-center_wake-on-lan_install_error';
-    send_key 'alt-o';
+    assert_screen 'yast2_control-center_wake-on-lan_install_wol';
+    send_key $cmd{install};    # wol needs to be installed
+    assert_screen 'yast2_control-center_wake-on-lan_overview', timeout => 60;
+    send_key 'alt-f';
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
@@ -320,10 +314,10 @@ sub run {
     if (is_sle '15+') {
         # kdump is disabled by default, so ensure that it's installed
         ensure_installed 'yast2-kdump';
-        record_soft_failure 'bsc#1059569';
+        record_soft_failure 'bsc#1108669';
         # see bsc#1062331, sound is not added to the yast2 pattern
         # also add missing yast2-ca-management and yast2-auth-server
-        ensure_installed 'yast2-sound yast2-ca-management yast2-auth-server';
+        ensure_installed 'yast2-boot-server yast2-sound yast2-ca-management yast2-auth-server';
     }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
