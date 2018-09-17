@@ -1443,7 +1443,7 @@ sub load_extra_tests_desktop {
     # well
     if (check_var('DESKTOP', 'gnome')) {
         loadtest 'x11/yast2_lan_restart';
-        loadtest 'x11/yast2_lan_restart_devices';
+        loadtest 'x11/yast2_lan_restart_devices' unless is_leap('<=15.0');
         # we only have the test dependencies, e.g. hostapd available in
         # openSUSE
         if (check_var('DISTRI', 'opensuse')) {
