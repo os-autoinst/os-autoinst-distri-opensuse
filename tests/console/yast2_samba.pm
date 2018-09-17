@@ -14,7 +14,7 @@ use strict;
 use base "console_yasttest";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use version_utils qw(is_sle is_leap is_tumbleweed is_opensuse);
 use y2logsstep;
 use yast2_widget_utils 'change_service_configuration';
 
@@ -57,7 +57,7 @@ sub smb_conf_checker {
 
     if ($error ne "") {
         assert_script_run("echo \"$error\" > /tmp/failed_smb_directives.log");
-        return record_soft_failure "bsc#1106876 - Missing smb.conf directives" if (is_sle('>=15') || is_leap('>=15.0'));
+        return record_soft_failure "bsc#1106876 - Missing smb.conf directives" if (is_sle('>=15') || is_opensuse);
         die 'Missing smb.conf directives';
     }
 }
