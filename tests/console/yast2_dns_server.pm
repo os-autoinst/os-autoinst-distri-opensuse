@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,14 +34,13 @@ sub assert_running {
         $cmd .= ' "^active"';
         my $counter = RETRIES;
         # Service may take a bit of time to actually start
+        # acceptable behaviour (boo#1093029)
         while (script_run $cmd) {
             sleep 5;
             $counter--;
             # Service was not started after 25 seconds
             die 'named service is not active even after 25s delay' if $counter == 0;
         }
-        # Service was started after some delay
-        record_soft_failure 'bsc#1093029' if $counter < RETRIES;
     }
     else {
         $cmd .= ' "^(inactive|unknown)"';
