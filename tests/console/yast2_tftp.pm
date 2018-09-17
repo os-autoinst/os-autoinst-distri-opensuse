@@ -15,10 +15,9 @@ use base "console_yasttest";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
+use yast2_widget_utils 'change_service_configuration';
 
 sub run {
-    my $self = shift;
-
     select_console 'root-console';
     zypper_call("in tftp yast2-tftp-server", timeout => 240);
     script_run("yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
@@ -40,7 +39,7 @@ sub run {
         $firewall_detail_shortcut = 'alt-i';
     }
     else {
-        $self->change_service_configuration(
+        change_service_configuration(
             after_writing => {start           => 'alt-t'},
             after_reboot  => {start_on_demand => 'alt-a'}
         );

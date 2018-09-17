@@ -16,6 +16,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2logsstep;
+use yast2_widget_utils 'change_service_configuration';
 
 my %ldap_directives = (
     fqdn                => 'openqa.ldaptest.org',
@@ -147,8 +148,6 @@ sub setup_ldap_in_samba {
 }
 
 sub setup_samba {
-    my $self = shift;
-
     script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
 
     # samba-server configuration for SLE older than 15 or opensuse TW
@@ -182,7 +181,7 @@ sub setup_samba {
         assert_screen 'yast2_samba-server_start-during-boot';
     }
     else {
-        $self->change_service_configuration(
+        change_service_configuration(
             after_writing => {start         => 'alt-e'},
             after_reboot  => {start_on_boot => 'alt-a'}
         );

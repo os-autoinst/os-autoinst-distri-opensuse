@@ -19,7 +19,6 @@ use lockapi;
 use utils 'turn_off_gnome_screensaver';
 
 sub run {
-    my ($self) = @_;
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
     turn_off_gnome_screensaver;
     become_root;
@@ -35,7 +34,7 @@ sub run {
     wait_still_screen(2, 10);
     assert_screen 'iscsi-initiator-service';
     send_key "alt-v";             # go to discovered targets tab
-    assert_screen 'iscsi-discovered-targets';
+    assert_screen 'iscsi-discovered-targets', 120;
     send_key "alt-d";             # press discovery button
     assert_screen 'iscsi-discovery';
     send_key "alt-i";             # go to IP address field
