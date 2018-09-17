@@ -48,8 +48,8 @@ sub run {
     select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
     # Arrayss for test specs
-    my @tests   = ('phy2phy_tput', 'pvp_tput');
-    my @vswitch = ('OvsVanilla',   'OvsVanilla');
+    my @tests   = ('phy2phy_tput', 'pvp_tput', 'pvvp_tput');
+    my @vswitch = ('OvsVanilla',   'OvsVanilla', 'OvsVanilla');
 
     # Get OVS version
     $ovs_version = script_output(q(ovs-vswitchd --version|head -1|awk '{print $NF}'));
