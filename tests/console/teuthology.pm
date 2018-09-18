@@ -60,8 +60,10 @@ sub run {
 --simultaneous-jobs 20 --teuthology-git-url http://github.com/SUSE/teuthology --teuthology-branch master \\
 --suite-repo http://github.com/SUSE/ceph --suite-branch $ses_version \\
 --ceph-repo http://github.com/SUSE/ceph --ceph $ses_version --suite $suite --filter sle $maint_test_repos \\
---test-repo sle12_repo:http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/ \\
---test-repo ses5_repo:http://download.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/ \\
+--test-repo sle12_product:http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/x86_64/product/ \\
+--test-repo sle12_update:http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/x86_64/update/ \\
+--test-repo ses5_product:http://download.suse.de/ibs/SUSE/Products/Storage/5/x86_64/product/ \\
+--test-repo ses5_update:http://download.suse.de/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/SES5:/Update/standard/ \\
 --wait |& tee teuthology-openstack-$suite.log; if [ \${PIPESTATUS[0]} -ne 0 ]; then false; fi", 7000;
     # get pulpito webui ip from log
     assert_script_run "export PULPITO=\$(grep 'pulpito web interface:' teuthology-openstack-$suite.log|awk -F'//|:' '{print\$4}'|uniq)";
