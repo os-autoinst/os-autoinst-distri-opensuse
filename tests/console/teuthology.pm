@@ -15,7 +15,7 @@ use strict;
 use testapi;
 use version_utils 'is_sle';
 
-my $incidentnr    = get_var('INCIDENTNR');
+my $incidentnr    = get_var('INCIDENT_ID');
 my $suite         = get_var('TEUTHOLOGY_SUITE');
 my $ses_version   = is_sle('=15') ? 'ses6' : 'ses5';
 my $instance_name = "QAM-$incidentnr-openqa-$ses_version";
