@@ -41,6 +41,7 @@ sub launch_yast2_module_x11 {
 
 sub post_fail_hook {
     my ($self) = shift;
+    show_tasks_in_blocked_state;
     $self->export_logs;
     save_screenshot;
 }
