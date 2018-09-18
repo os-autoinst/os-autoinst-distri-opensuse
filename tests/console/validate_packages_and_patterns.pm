@@ -35,20 +35,35 @@ if (check_var('VALIDATE_PCM_PATTERN', 'azure')) {
     };
 }
 elsif (check_var('VALIDATE_PCM_PATTERN', 'aws')) {
-    # Different pattern and packages names on SLE 15 and SLE 12
-    my %aws_specific = is_sle('15+') ? (name => 'Amazon_Web_Services', sle_version => '15-', py_version => 'python3') :
-      (name => 'Amazon-Web-Services', py_version => 'python');
-    $software{%aws_specific{name}} = {
+    # We have different pattern names on SLE 15 and SLE 12
+    my $aws_pattern = is_sle('15+') ? 'Amazon_Web_Services' : 'Amazon-Web-Services';
+    my @aws_pattern_packages = qw(
+      aws-cli cloud-init
+      cloud-regionsrv-client
+      docker-img-store-setup growpart supportutils-plugin-suse-public-cloud
+      regionServiceClientConfigEC2 s3fs
+    );
+    if (is_sle('15+')) {
+        push @aws_pattern_packages, qw(
+          cloud-regionsrv-client-plugin-ec2
+          patterns-public-cloud-15-Amazon-Web-Services
+          python3-ec2deprecateimg python3-ec2metadata python3-ec2publishimg
+          python3-ec2uploadimg python3-s3transfer python3-susepubliccloudinfo
+        );
+    }
+    else {
+        push @aws_pattern_packages, qw(
+          patterns-public-cloud-Amazon-Web-Services
+          python-ec2deprecateimg python-ec2metadata python-ec2publishimg
+          python-ec2uploadimg python-s3transfer python-susepubliccloudinfo
+        );
+    }
+    $software{$aws_pattern} = {
         repo      => 'Module-Public-Cloud',
         installed => 1,
         condition => sub { check_var_array('PATTERNS', 'aws') },
         pattern   => 1,
-        packages  => ['aws-cli', 'cloud-init', 'cloud-regionsrv-client', 'cloud-regionsrv-client-plugin-ec2',
-            'docker-img-store-setup', 'growpart', 'patterns-public-cloud-' . $aws_specific{sle_version} . 'Amazon-Web-Services',
-            $aws_specific{py_version} . '-ec2deprecateimg', $aws_specific{py_version} . '-ec2metadata',
-            $aws_specific{py_version} . '-ec2publishimg',   $aws_specific{py_version} . '-ec2uploadimg',
-            $aws_specific{py_version} . '-s3transfer',      $aws_specific{py_version} . '-susepubliccloudinfo',
-            'regionServiceClientConfigEC2', 's3fs', 'supportutils-plugin-suse-public-cloud'],
+        packages  => \@aws_pattern_packages,
     };
 } else {
     $software{salt} = {
@@ -102,10 +117,6 @@ sub verify_pattern {
 
     for my $package (@{$software{$name}->{packages}}) {
         if ($pattern_info !~ /$package/) {
-            if ($package eq 'cloud-regionsrv-client-plugin-ec2') {
-                record_soft_failure 'bsc#1108267 -- Differences in the content of pattern Amazon Web Service between SLE12SP4 and SLE15.1';
-                next;
-            }
             $errors .= "Package '$package' is not listed in the pattern '$name'\n";
         }
     }
