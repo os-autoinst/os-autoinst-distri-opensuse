@@ -2036,8 +2036,9 @@ sub load_toolchain_tests {
 }
 
 sub load_publiccloud_tests {
-    loadtest "publiccloud/install_ipa" if get_var('INSTALL_IPA');
-    loadtest "publiccloud/ipa"         if get_var('PUBLIC_CLOUD_PROVIDER');
+    loadtest "publiccloud/install_ipa"  if get_var('INSTALL_IPA');
+    loadtest "publiccloud/upload_image" if get_var('PUBLIC_CLOUD_IMAGE_LOCATION');
+    loadtest "publiccloud/ipa"          if get_var('PUBLIC_CLOUD_IPA_TESTS');
 }
 
 sub load_common_opensuse_sle_tests {
