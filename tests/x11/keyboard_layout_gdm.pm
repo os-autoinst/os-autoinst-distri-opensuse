@@ -35,7 +35,7 @@ sub run {
     assert_script_run "sed -i.bak '/^DISPLAYMANAGER_AUTOLOGIN=/s/=.*/=\"\"/' /etc/sysconfig/displaymanager";
 
     # set german keyboard layout (y and z are switched on this layout)
-    type_string "echo \"test \\\$1 == qwerty && loadkeys us-intl && echo done > /dev/$serialdev\" > $kbdlayout_script\n";
+    type_string "echo \"test \\\$1 == qwerty && loadkeys us && echo done > /dev/$serialdev\" > $kbdlayout_script\n";
     assert_script_run "cat $kbdlayout_script";
     assert_script_run "yast keyboard set layout=german";
 
@@ -54,7 +54,7 @@ sub run {
     assert_script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";
 
     # restore keyboard settings
-    assert_script_run "yast keyboard set layout=us-int";
+    assert_script_run "yast keyboard set layout=english-us";
 
     $self->reboot;
 
