@@ -117,11 +117,14 @@ sub setup_console_in_grub {
         #grub2
         if (${virt_type} eq "xen") {
             my $com_settings = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            #bsc#1107572 workaround(Comment9 "This dom0 memory amount works well with hosts having 4 to 8 Gigs of RAM.
+            #With host containing larger amounts of memory, you may want to increase this to something larger.")
+            #dom0_mem=1024M,max:1024M
             $cmd
               = "cp $grub_cfg_file ${grub_cfg_file}.org "
               . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
               . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/; "
+              . "/multiboot/ s/\$/ dom0_mem=1024M,max:1024M console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/; "
               . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
               . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
               . "' $grub_cfg_file";
