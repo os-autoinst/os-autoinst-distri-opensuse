@@ -18,6 +18,7 @@ use testapi;
 use lockapi;
 use utils;
 use version_utils 'is_sle';
+use serial_terminal 'select_virtio_console';
 
 sub run {
     my $self = shift;
@@ -47,6 +48,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
+    select_virtio_console(force => 1);
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
 }

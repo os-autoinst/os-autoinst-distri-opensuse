@@ -94,10 +94,12 @@ sub login {
    select_virtio_console();
 
 Helper to select console 'root-virtio-terminal' or 'root-console'.
+Select 'root-virtio-terminal' in case VIRTIO_CONSOLE=1 or if C<force=1> passed to function
 =cut
 # TODO: Move here optional init with add_serial_console($console);
 sub select_virtio_console {
-    my $is_virtio = get_var('VIRTIO_CONSOLE');
+    my %args = shift;
+    my $is_virtio = $args{force} || get_var('VIRTIO_CONSOLE');
 
     if ($is_virtio && !get_var('S390_ZKVM')) {
         select_console('root-virtio-terminal');
