@@ -66,9 +66,9 @@ sub run {
     my ($self) = @_;
     select_virtio_console();
 
-    prepare_os;
+    prepare_os();
 
-    my $provider = $self->{provider} = provider_factory;
+    my $provider = $self->{provider} = provider_factory();
     $provider->init;
 
     my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
@@ -86,14 +86,14 @@ sub run {
 
     set_var('PUBLIC_CLOUD_IMAGE_ID', $img_id);
 
-    $provider->cleanup;
+    $provider->cleanup();
 }
 
 sub post_fail_hook {
     my ($self) = @_;
 
     if ($self->{provider}) {
-        $self->{provider}->cleanup;
+        $self->{provider}->cleanup();
     }
 }
 
