@@ -66,6 +66,10 @@ sub create_new_partition_table {
     wait_still_screen 2;
     save_screenshot;
     send_key 'ret';
+    if (is_storage_ng) {
+        assert_screen 'expert-partitioner-confirm-dev-removal';
+        send_key 'alt-y';
+    }
     # create new partition table, change gpt table if it's available
     # storage-ng always allows partition table selection
     if (!get_var('UEFI') && !check_var('BACKEND', 's390x') || is_storage_ng) {
@@ -74,8 +78,10 @@ sub create_new_partition_table {
         assert_screen "partition-table-$table_type-selected";
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
     }
-    assert_screen 'partition-create-new-table';
-    send_key 'alt-y';
+    unless (is_storage_ng) {
+        assert_screen 'partition-create-new-table';
+        send_key 'alt-y';
+    }
 }
 
 sub mount_device {
