@@ -40,6 +40,9 @@ sub run {
         mutex_lock('master_ready');
         mutex_unlock('master_ready');
     }
+    # only one job (master) should check for dead jobs to avoid failures
+    my $only_master_check = check_var('HOSTNAME', 'master') ? 1 : 0;
+    barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
     # disable ipv6
     assert_script_run 'echo \'net.ipv6.conf.all.disable_ipv6 = 1\' >> /etc/sysctl.conf';
     # deepsea testsuite does not need to use supportserver
@@ -67,9 +70,6 @@ EOF
         # restart network, get IP from supportserver
         systemctl 'restart network';
     }
-    # only one job (master) should check for dead jobs to avoid failures
-    my $only_master_check = check_var('HOSTNAME', 'master') ? 1 : 0;
-    barrier_wait {name => 'network_configured', check_dead_job => $only_master_check};
     assert_script_run 'ip a';
     assert_script_run 'for i in {1..7}; do echo "try $i" && fping -c2 -q updates.suse.com && sleep 2 && break; done';
     # firewall and apparmor should not run
