@@ -540,7 +540,7 @@ sub firefox_check_popups {
     for (1 .. 2) {
         # wait for any popup to showup but not expect a too long still time
         # because of dynamic openSUSE start page background logo
-        wait_still_screen(1);
+        wait_still_screen(3);
         assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox_clean)], 60;
         # handle the tracking protection pop up
         if (match_has_tag('firefox_trackinfo')) {

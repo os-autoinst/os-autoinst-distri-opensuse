@@ -10,13 +10,20 @@
 # Summary: Create small root partition (11GB) to test 'too small filesystem for snapshots' warning
 #          missing swap warning and on UEFI missing /boot/efi partition
 #          https://progress.opensuse.org/issues/16570 https://fate.suse.com/320416
+#          Warnings:
+#                       1) no /
+#                       2) no boot (sle15+)
+#                       3) boot with minimal size and correct ID (sle15+)
+#                       4) size of / with enabled snapshots
+#                       5) size of / non-btrfs (sle15+)
+#                       6) no swap (sle12)
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use partition_setup;
+use partition_setup qw(create_new_partition_table addpart addboot);
 use version_utils 'is_storage_ng';
 
 sub process_warning {
@@ -43,7 +50,35 @@ sub process_missing_special_partitions {
     }
 }
 
+sub remove_partition {
+    wait_screen_change { send_key 'alt-t' };
+    send_key 'alt-y';
+    save_screenshot;
+}
+
 sub run {
+    my %roles = (
+        ofw => {
+            role => 'raw',
+            size => 7,
+            fsid => 'PReP'
+        },
+        uefi => {
+            role => 'efi',
+            size => 100
+        },
+        bios => {
+            role => 'raw',
+            size => 1,
+            fsid => 'bios-boot'
+        },
+        zipl => {
+            role   => 'OS',
+            size   => 300,
+            format => 'ext2',
+            mount  => '/boot'
+        });
+
     create_new_partition_table;
     # Verify missing root partition error is shown
     assert_screen 'expert-partitioner';
@@ -75,8 +110,7 @@ sub run {
         # No further warnings on x86_64 and s390x on non-storage-ng
         if (get_var('ARCH') =~ /x86_64|s390x/) {
             process_warning(warning => 'too-small-for-snapshots');
-            process_warning(warning => 'no-swap');
-            return;
+            process_warning(warning => 'no-swap', key => 'alt-n');
         }
         else {
             process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if !check_var('ARCH', 'ppc64le');
@@ -90,27 +124,37 @@ sub run {
         process_missing_special_partitions;
     }
 
-    ## Add required partitions as per warnings
-    if (check_var('ARCH', 's390x')) {    # s390x need /boot/zipl on ext partition
-        addpart(role => 'OS', size => 500, format => 'ext2', mount => '/boot');
+    ## Add wrong or small boot partition
+    if (is_storage_ng) {
+        foreach (keys %roles) {
+            addpart(role => $roles{$_}{role}, size => $roles{$_}{size}, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
+            send_key $cmd{accept};
+            process_missing_special_partitions;
+        }
+
+        ## Clean up partitions
+        remove_partition for (0 .. 4);
+
+        ## Add proper boot partition, so we can see other warnings clearly
+        addboot;
+        ## Rootfs should be >= than 3 GiB
+        addpart(role => 'OS', size => 2000, format => 'xfs');
+        send_key $cmd{accept};
+        process_warning(warning => 'too-small-root', key => 'alt-n');
+
+        ## Clean up small root
+        remove_partition;
     }
-    elsif (get_var('OFW')) {             # ppc64le need PReP /boot
-        addpart(role => 'raw', size => 8, fsid => 'PReP');
-    }
-    elsif (get_var('UEFI')) {
-        addpart(role => 'efi', size => 256);
-    }
-    elsif (check_var('ARCH', 'x86_64')) {
-        # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
-        addpart(role => 'raw', fsid => 'bios-boot', size => 2);
+    else {
+        ## Clean up previous root
+        remove_partition;
+        addpart(role => 'swap', size => 500);
     }
 
+    addpart(role => 'OS', size => 13000, format => 'btrfs');
     assert_screen 'expert-partitioner';
+    save_screenshot;
     send_key $cmd{accept};
-    if (!is_storage_ng()) {
-        process_warning(warning => 'too-small-for-snapshots');
-        process_warning(warning => 'no-swap');
-    }
 }
 
 1;

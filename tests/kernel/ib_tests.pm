@@ -102,6 +102,9 @@ sub run {
 
     use_ssh_serial_console;
 
+    # Add the GA repository
+    zypper_call("ar -f -G " . get_required_var('GA_REPO'));
+
     # unload firewall. MPI- and libfabric-tests require too many open ports
     script_run("systemctl stop firewalld");
 

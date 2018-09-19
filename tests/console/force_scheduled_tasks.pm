@@ -30,6 +30,7 @@ sub settle_load {
 }
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
 
     # show dmesg output in console during cron run
@@ -50,6 +51,11 @@ sub run {
 
     # return dmesg output to normal
     assert_script_run "dmesg -n 1";
+
+    # Detect btrfs balancing if filesystem is set to btrfs, or undef, as btrfs is default
+    if (get_var('FILESYSTEM', 'btrfs') eq 'btrfs' || get_var('SOFTFAIL_BSC1063638')) {
+        push @{$self->{serial_failures}}, {type => 'soft', message => 'bsc#1063638', pattern => qr/BTRFS info.*relocating/};
+    }
 }
 
 sub test_flags {
