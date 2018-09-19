@@ -52,15 +52,20 @@ sub process_missing_special_partitions {
 
 sub remove_partition {
     wait_screen_change { send_key 'alt-t' };
+    assert_screen 'remove-partition';
     send_key 'alt-y';
-    save_screenshot;
 }
 
 sub run {
+    # Boot partition limits for storage-ng:
+    #      1) ppc  -> >=   2 MiB & ID prep
+    #      2) bios -> >=   2 MiB & ID bios_boot
+    #      3) uefi -> >= 256 MiB & vfat & /boot/efi
+    #      4) zipl -> >= 100 MiB & ext?,xfs & /boot/zipl
     my %roles = (
         ofw => {
             role => 'raw',
-            size => 7,
+            size => 1,
             fsid => 'PReP'
         },
         uefi => {
@@ -74,7 +79,7 @@ sub run {
         },
         zipl => {
             role   => 'OS',
-            size   => 300,
+            size   => 50,
             format => 'ext2',
             mount  => '/boot'
         });
@@ -129,6 +134,13 @@ sub run {
         foreach (keys %roles) {
             addpart(role => $roles{$_}{role}, size => $roles{$_}{size}, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
             send_key $cmd{accept};
+            if ($roles{$_}{role} =~ m/OS/) {
+                # small boot (<=100) partition for zipl triggers another pop which warns that kernel won't fit
+                process_warning(warning => 'no-space-for-kernel', key => 'alt-o');
+                remove_partition;
+                addpart(role => $roles{$_}{role}, size => 120, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
+                send_key $cmd{accept};
+            }
             process_missing_special_partitions;
         }
 
