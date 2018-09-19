@@ -263,6 +263,8 @@ sub save_system_logs {
         assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
         upload_logs '/tmp/btrfs-filesystem-df-mnt.txt';
         upload_logs '/tmp/btrfs-filesystem-usage-mnt.txt';
+        # Detect bsc#1063638
+        record_soft_failure 'bsc#1063638' if (script_run('ps x | grep "btrfs-\(scrub\|balance\|trim\)"') == 0);
     }
     assert_script_run 'df -h';
     assert_script_run 'df > /tmp/df.txt';
