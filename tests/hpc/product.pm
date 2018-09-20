@@ -20,17 +20,19 @@ use serial_terminal 'select_virtio_console';
 use registration 'add_suseconnect_product';
 
 sub run {
-    my $self     = shift;
-    my $scc_code = get_required_var('SCC_REGCODE_HPC_PRODUCT');
+    my $self            = shift;
+    my $suseconnect_str = ' -e testing@suse.com -r ';
     select_virtio_console();
 
-    assert_script_run('ls -la /etc/products.d/');
-    zypper_call('in switch_sles_sle-hpc');
-    script_run('SUSEConnect -s');
+    script_run('ls -la /etc/products.d/');
+    my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);
+    assert_script_run('SUSEConnect --cleanup', 200) if $out =~ /Error: Invalid system credentials/s;
+    add_suseconnect_product('SLES', '12.4', get_var('ARCH'), $suseconnect_str . get_required_var('SCC_REGCODE'));
     add_suseconnect_product('sle-module-hpc',           '12');
     add_suseconnect_product('sle-module-web-scripting', '12');
-    assert_script_run("switch_to_sle-hpc -e testing\@suse.com -r $scc_code", 600);
-    assert_script_run('ls -la /etc/products.d/');
+    zypper_call('in switch_sles_sle-hpc');
+    assert_script_run('switch_to_sle-hpc' . $suseconnect_str . get_required_var('SCC_REGCODE_HPC_PRODUCT'), 600);
+    script_run('ls -la /etc/products.d/');
 }
 
 1;
