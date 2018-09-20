@@ -69,8 +69,9 @@ sub run {
             fsid => 'PReP'
         },
         uefi => {
-            role => 'efi',
-            size => 100
+            role  => 'efi',
+            size  => 100,
+            mount => '/boot/efi'
         },
         bios => {
             role => 'raw',
@@ -81,7 +82,7 @@ sub run {
             role   => 'OS',
             size   => 50,
             format => 'ext2',
-            mount  => '/boot'
+            mount  => '/boot/zipl'
         });
 
     create_new_partition_table;
@@ -89,9 +90,12 @@ sub run {
     assert_screen 'expert-partitioner';
     send_key $cmd{accept};
     # Check no root partition warning (has different keys, with storage-ng it's an error)
+    record_info('Test: No root', 'Test warning for missing root partition');
     process_warning(warning => 'no-root-partition', key => (is_storage_ng) ? 'alt-o' : 'alt-n');
     if (!is_storage_ng) {
+        record_info('Test: No boot', "Missing boot partition for " . get_var('ARCH'));
         process_missing_special_partitions;
+        record_info('Test: No swap', 'Missing swap partition');
         process_warning(warning => 'no-swap', key => 'alt-n');
     }
     # create small enough partition (11GB) to get warning for enabled snapshots
@@ -100,6 +104,7 @@ sub run {
 
     # In storage-ng we get this warning when adding/editing partition
     if (is_storage_ng) {
+        record_info('Test: Snapshots + small root', 'Enable snapshots for undersized root partition');
         process_warning(warning => 'too-small-for-snapshots');
         send_key $cmd{next};
     }
@@ -114,33 +119,45 @@ sub run {
     if (!is_storage_ng) {
         # No further warnings on x86_64 and s390x on non-storage-ng
         if (get_var('ARCH') =~ /x86_64|s390x/) {
+            record_info('Test: Snapshots + small root', 'Enable snapshots for undersized root partition');
             process_warning(warning => 'too-small-for-snapshots');
+            record_info('Test: No swap', 'Missing swap partition');
             process_warning(warning => 'no-swap', key => 'alt-n');
         }
         else {
-            process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if !check_var('ARCH', 'ppc64le');
+            if (!check_var('ARCH', 'ppc64le')) {
+                record_info('Test: Snapshots + small root', 'Enable snapshots for undersized root partition');
+                process_warning(warning => 'too-small-for-snapshots', key => 'alt-n');
+            }
+            record_info('Test: No boot', "Missing boot partition for " . get_var('ARCH'));
             process_missing_special_partitions;
-            process_warning(warning => 'too-small-for-snapshots', key => 'alt-n') if check_var('ARCH', 'ppc64le');
+            if (check_var('ARCH', 'ppc64le')) {
+                record_info('Test: Snapshots + small root', 'Enable snapshots for undersized root partition');
+                process_warning(warning => 'too-small-for-snapshots', key => 'alt-n');
+            }
+            record_info('Test: No swap', 'Missing swap partition');
             process_warning(warning => 'no-swap', key => 'alt-n');
         }
     }
     else {
         # in storage-ng need to process only special warnings
+        record_info('Test: No boot', "Missing boot partition for " . get_var('ARCH'));
         process_missing_special_partitions;
     }
 
-    ## Add wrong or small boot partition
     if (is_storage_ng) {
+        ## Test whether /boot is big enough to contain kernel
+        addpart(role => 'OS', size => 40, format => 'ext2', mount => '/boot');
+        record_info('Test: /boot space', "Boot partition size is insufficient to fit kernel");
+        send_key $cmd{accept};
+        process_warning(warning => 'no-space-for-kernel', key => 'alt-o');
+        remove_partition;
+
+        ## Add wrong or small boot partition
         foreach (keys %roles) {
             addpart(role => $roles{$_}{role}, size => $roles{$_}{size}, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
             send_key $cmd{accept};
-            if ($roles{$_}{role} =~ m/OS/) {
-                # small boot (<=100) partition for zipl triggers another pop which warns that kernel won't fit
-                process_warning(warning => 'no-space-for-kernel', key => 'alt-o');
-                remove_partition;
-                addpart(role => $roles{$_}{role}, size => 120, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
-                send_key $cmd{accept};
-            }
+            record_info("Test: $_", "Wrong partition ID or boot partition is too small");
             process_missing_special_partitions;
         }
 
@@ -152,6 +169,7 @@ sub run {
         ## Rootfs should be >= than 3 GiB
         addpart(role => 'OS', size => 2000, format => 'xfs');
         send_key $cmd{accept};
+        record_info('Test: rootfs', "Root partition without snapshots is too small");
         process_warning(warning => 'too-small-root', key => 'alt-n');
 
         ## Clean up small root
