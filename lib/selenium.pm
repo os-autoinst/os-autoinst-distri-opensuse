@@ -31,10 +31,11 @@ our @EXPORT = qw(
 use testapi;
 use utils 'zypper_call';
 use opensusebasetest;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_caasp);
 
 use Selenium::Remote::Driver;
 use Selenium::Chrome;
+use Selenium::Firefox;
 use Selenium::Waiter qw/wait_until/;
 use Selenium::Remote::WDKeys;
 
@@ -95,18 +96,29 @@ sub enable_selenium_port {
 
 my $driver;
 
-sub selenium_driver {
-    return $driver if $driver;
+sub setup_geckodriver {
+    my $sut = shift;
+    assert_script_sudo 'systemctl stop ' . opensusebasetest::firewall();
 
-    die "Selenium support works only with openvswitch and tap devices" unless check_var('NICTYPE', 'tap');
+    # We need old driver with firefox 52esr
+    my $gecko = script_run('rpm -q MozillaFirefox | grep "52.*esr"') ? 'geckodriver22' : 'geckodriver18';
+    assert_script_run 'curl -o geckodriver ' . data_url("caasp/$gecko");
+    assert_script_run 'chmod +x geckodriver';
+    type_string("./geckodriver --host 0.0.0.0 | tee /dev/$serialdev\n");
+    wait_still_screen 1;
+    send_key 'super-h';
 
-    my @mac_parts = split(':', get_var('NICMAC'));
-    my $sut = "10.1." . hex($mac_parts[4]) . '.' . hex($mac_parts[5]);
+    # Workaround for CaaSP support-server hacks
+    my $profile = Selenium::Firefox::Profile->new;
+    $profile->set_boolean_preference('browser.download.forbid_open_with' => 1) if is_caasp;
 
-    select_console('x11');
+    $driver = Selenium::Firefox->new(
+        firefox_profile => $profile,
+        remote_server_addr => $sut, port => $port);
+}
 
-    x11_start_program('xterm');
-    assert_screen('xterm');
+sub setup_chromedriver {
+    my $sut = shift;
 
     type_string("/usr/lib64/chromium/chromedriver --port=$port --url-base=wd/hub --whitelisted-ips | tee /dev/$serialdev\n");
     save_screenshot;
@@ -120,6 +132,25 @@ sub selenium_driver {
 
     # https://github.com/teodesian/Selenium-Remote-Driver/issues/367
     $driver->{is_wd3} = 0;
+}
+
+sub selenium_driver {
+    return $driver if $driver;
+    my $browser = shift // 'chromium';
+
+    die "Selenium support works only with openvswitch and tap devices" unless check_var('NICTYPE', 'tap');
+
+    my @mac_parts = split(':', get_var('NICMAC'));
+    my $sut = "10.1." . hex($mac_parts[4]) . '.' . hex($mac_parts[5]);
+
+    select_console 'x11';
+    x11_start_program('xterm');
+
+    if ($browser == 'firefox') {
+        setup_geckodriver($sut);
+    } else {
+        setup_chromedriver($sut);
+    }
     return $driver;
 }
 
