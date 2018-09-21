@@ -17,10 +17,9 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     assert_screen('firefox-extensions-no_flag', 90);
-    send_key "ctrl-w";
     wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
@@ -32,7 +31,6 @@ sub run {
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";
-    $self->firefox_check_popups;
     assert_screen('firefox-extensions-show_flag', 60);
 
     send_key "alt-2";

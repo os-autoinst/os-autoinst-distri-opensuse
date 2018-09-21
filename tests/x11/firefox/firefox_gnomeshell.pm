@@ -19,10 +19,8 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "ctrl-w";
-    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-plugins-tabicon');
     assert_screen [qw(firefox-gnomeshell-default firefox-plugins-missing)], 60;
@@ -34,7 +32,6 @@ sub run {
 
     send_key "alt-d";
     type_string "extensions.gnome.org\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-gnomeshell-frontpage', 120);
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
@@ -47,7 +44,6 @@ sub run {
 
     send_key "alt-d";
     type_string "extensions.gnome.org/extension/512/wikipedia-search-provider/\n";
-    $self->firefox_check_popups;
     assert_screen "firefox-gnomeshell-extension";
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";

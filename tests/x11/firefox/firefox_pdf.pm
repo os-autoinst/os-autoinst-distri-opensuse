@@ -17,13 +17,12 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
 
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.gnupg.org/gph/en/manual.pdf\n";
-    $self->firefox_check_popups;
 
+    $self->start_firefox_with_profile;
     assert_screen('firefox-pdf-load', 90);
 
     sleep 1;

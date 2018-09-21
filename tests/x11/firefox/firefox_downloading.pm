@@ -79,7 +79,7 @@ sub dl_resume {
 sub run {
     my ($self) = @_;
 
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     dl_location_switch("ask");
 

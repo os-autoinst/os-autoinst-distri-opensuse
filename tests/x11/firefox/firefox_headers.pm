@@ -17,15 +17,8 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    mouse_hide(1);
+    $self->start_firefox_with_profile;
 
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"", valid => 0);
-    x11_start_program('firefox');
-    $self->firefox_check_popups;
-    assert_screen('firefox-launch', 90);
-
-    send_key "esc";
     send_key "ctrl-shift-q";
     assert_screen 'firefox-headers-inspector';
     $self->firefox_open_url('www.gnu.org');

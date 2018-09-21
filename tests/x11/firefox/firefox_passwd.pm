@@ -18,13 +18,11 @@ use testapi;
 sub run {
     my ($self) = @_;
 
-    mouse_hide(1);
-
     my $masterpw = "firefox_test";
     my $mozlogin = "https://www-archive.mozilla.org/quality/browser/front-end/testcases/wallet/login.html";
 
-    # Clean and Start Firefox
-    $self->start_firefox;
+    # Start Firefox
+    $self->start_firefox_with_profile;
 
     send_key "alt-e";
     wait_still_screen 3;
@@ -50,13 +48,11 @@ sub run {
     send_key "ctrl-q";
 
     x11_start_program('firefox');
-    $self->firefox_check_popups;
     assert_screen('firefox-gnome', 60);
 
     send_key "esc";
     send_key "alt-d";
     type_string $mozlogin. "\n";
-    $self->firefox_check_popups;
 
     assert_and_click('firefox-passwd-input_username');
     type_string "squiddy";
@@ -70,7 +66,6 @@ sub run {
     send_key "esc";
     send_key "alt-d";
     type_string $mozlogin. "\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-passwd-auto_filled', 90);
 
     send_key "alt-e";

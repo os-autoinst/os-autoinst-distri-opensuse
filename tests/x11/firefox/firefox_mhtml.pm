@@ -18,13 +18,11 @@ use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
-
+    $self->start_firefox_with_profile;
 
     # Fetch mht file to shm
     x11_start_program("wget " . autoinst_url . "/data/x11/ie10.mht -O /dev/shm/ie10.mht", valid => 0);
 
-    send_key "ctrl-w";
     wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
@@ -36,7 +34,6 @@ sub run {
     send_key "spc";
     unless (sle_version_at_least('15')) {
         assert_and_click('unmht_restart_now');
-        $self->firefox_check_popups;
     }
     wait_still_screen 3;
     assert_and_click('firefox-my-addons');
@@ -44,11 +41,9 @@ sub run {
     assert_screen('firefox-mhtml-unmht_installed', 90);
 
     wait_screen_change { send_key "ctrl-w" };
-    $self->firefox_check_popups;
 
     send_key "alt-d";
     type_string "file:///dev/shm/ie10.mht\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-mhtml-loadpage', 60);
 
     # Exit and Clear

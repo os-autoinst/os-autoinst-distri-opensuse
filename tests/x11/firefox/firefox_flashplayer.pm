@@ -17,12 +17,11 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.adobe.com/software/flash/about/\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-flashplayer-verify_loaded');
 
     send_key "pgdn";
@@ -33,7 +32,6 @@ sub run {
             send_key "esc";
             send_key "alt-d";
             type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
-            $self->firefox_check_popups;
             assert_screen('firefox-flashplayer-video_loaded', 90);
         }
         last;

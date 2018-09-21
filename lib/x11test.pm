@@ -513,6 +513,71 @@ sub setup_mail_account {
     assert_screen "evolution_mail-max-window";
 }
 
+# start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
+# .mozilla is stored as .mozilla_first_run to be reference profile for following tests
+sub start_clean_firefox {
+    my ($self) = @_;
+    mouse_hide(1);
+
+    x11_start_program('xterm');
+    # Clean and Start Firefox
+    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox suse.com >firefox.log 2>&1 &\n";
+    assert_screen 'firefox-launch', 150;
+    # maximize window
+    send_key 'alt-f10' if is_sle('<=12-sp1');
+    # to avoid stuck trackinfo pop-up, refresh the browser
+    if (is_sle('>12-sp1')) {
+        my $count = 10;
+        while ($count--) {
+            # workaround for bsc#1046005
+            wait_screen_change { assert_and_click 'firefox_titlebar' };
+            if (check_screen 'firefox_trackinfo', 3) {
+                assert_and_click 'firefox_trackinfo';
+                last;
+            }
+            elsif ($count eq 1) {
+                die 'trackinfo pop-up did not match';
+            }
+            else {
+                send_key 'f5';
+            }
+        }
+    }
+
+    # get rid of the reader & tracking pop-up once, first test should have milestone flag
+    $self->firefox_open_url('eu.httpbin.org/html');
+    # no reader view pop-up on sle15+
+    if (is_sle('<15')) {
+        wait_still_screen(3);
+        assert_and_click 'firefox_readerview_window';
+    }
+    # workaround for bsc#1046005
+    wait_screen_change { assert_and_click 'firefox_titlebar' };
+
+    # Help
+    send_key "alt-h";
+    sleep 1;
+    send_key "a";
+    assert_screen('firefox-help', 30);
+    send_key "esc";
+
+    # store .mozilla configuration as default to avoid popup checks in following tests
+    $self->restart_firefox('cp -rp .mozilla .mozilla_first_run');
+}
+
+sub start_firefox_with_profile {
+    my ($self) = @_;
+    mouse_hide(1);
+
+    x11_start_program('xterm');
+    # use mozilla configuration stored with start_clean_firefox
+    type_string "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla\n";
+    # Start Firefox
+    type_string "firefox >firefox.log 2>&1 &\n";
+    assert_screen 'firefox-launch', 90;
+    wait_still_screen(3);
+}
+
 sub start_firefox {
     my ($self) = @_;
     mouse_hide(1);
@@ -574,8 +639,7 @@ sub firefox_open_url {
             last;    # in case it worked
         }
     }
-    type_string "$url\n";
-    $self->firefox_check_popups;
+    type_string_slow "$url\n";
 }
 
 sub exit_firefox {
