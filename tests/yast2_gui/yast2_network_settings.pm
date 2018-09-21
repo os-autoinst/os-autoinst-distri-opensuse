@@ -33,7 +33,6 @@ sub run {
 
     $self->launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 60);
     if (match_has_tag 'yast2_still_susefirewall2') {
-        record_soft_failure "bsc#1059569";
         send_key $cmd{install};
         wait_still_screen;
     }
