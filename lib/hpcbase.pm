@@ -14,13 +14,14 @@ sub upload_service_log {
     my ($self, $service_name) = @_;
     script_run("journalctl -u $service_name > /tmp/$service_name");
     script_run("cat /tmp/$service_name");
-    upload_logs("/tmp/$service_name");
+    upload_logs("/tmp/$service_name", failok => 1);
 }
 
 sub post_fail_hook {
+    select_virtio_console(force => 1);
     script_run("journalctl -o short-precise > /tmp/journal.log");
     script_run('cat /tmp/journal.log');
-    upload_logs('/tmp/journal.log');
+    upload_logs('/tmp/journal.log', failok => 1);
     upload_service_log('wickedd-dhcp4.service');
 }
 

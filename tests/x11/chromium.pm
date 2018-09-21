@@ -29,12 +29,12 @@ sub run {
     # Additional waiting to prevent unready address bar
     # https://progress.opensuse.org/issues/36304
     wait_still_screen(1);
-    type_string "about:\n";
+    type_string "chrome://version \n";
     assert_screen 'chromium-about';
 
     wait_screen_change { send_key 'ctrl-l' };
     type_string "https://html5test.opensuse.org\n";
-    assert_screen 'chromium-html-test';
+    assert_screen 'chromium-html-test', 90;
     send_key 'alt-f4';
 }
 
