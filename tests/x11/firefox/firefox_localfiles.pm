@@ -17,25 +17,22 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     # html
     send_key "alt-d";
     type_string "/usr/share/w3m/w3mhelp.html\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-local_files-html', 60);
 
     # wav
     send_key "alt-d";
     type_string "/usr/share/sounds/alsa/test.wav\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-local_files-wav', 60);
     send_key "esc";
 
     # so
     send_key "alt-d";
     type_string "/usr/lib64/libnss3.so\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-local_files-so', 60);
     send_key "esc";
 

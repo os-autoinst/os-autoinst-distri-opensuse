@@ -19,34 +19,14 @@ use utils 'type_string_slow';
 sub run {
     my ($self) = @_;
 
-    $self->start_firefox;
-    assert_screen('firefox-gnome', 90);
-
-    # Topsites
-    my @topsite = ('www.gnu.org', 'www.opensuse.org');
-    for my $site (@topsite) {
-        send_key "esc";
-        send_key "alt-d";
-        sleep 1;
-        type_string_slow $site. "\n";
-        $self->firefox_check_popups;
-        assert_screen('firefox-topsite_' . $site, 120);
-    }
-
-    # Help
-    send_key "alt-h";
-    sleep 1;
-    send_key "a";
-    assert_screen('firefox-help', 30);
-    send_key "esc";
+    $self->start_clean_firefox;
 
     # Exit
     $self->exit_firefox;
-
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

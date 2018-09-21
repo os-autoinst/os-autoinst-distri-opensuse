@@ -25,7 +25,7 @@ sub run {
         $next_key = "alt-n";
     }
 
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     # Email link
     send_key "alt-f";

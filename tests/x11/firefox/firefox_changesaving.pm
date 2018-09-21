@@ -20,7 +20,7 @@ sub run {
     my ($self) = @_;
     my $changesaving_checktimestamp = "ll --time-style=full-iso .mozilla/firefox/*.default/prefs.js | cut -d' ' -f7";
 
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     wait_screen_change {
         send_key "alt-tab";    #Switch to xterm

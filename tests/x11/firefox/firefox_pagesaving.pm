@@ -17,12 +17,11 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     send_key "esc";
     send_key "alt-d";
     type_string "http://www.mozilla.org/en-US\n";
-    $self->firefox_check_popups;
 
     assert_screen('firefox-pagesaving-load', 90);
     send_key "ctrl-s";
