@@ -779,6 +779,9 @@ elsif (get_var("SECURITY_TEST")) {
     elsif (check_var("SECURITY_TEST", "openscap")) {
         load_security_tests_openscap;
     }
+    elsif (check_var("SECURITY_TEST", "selinux")) {
+        load_security_tests_selinux;
+    }
 }
 elsif (get_var('SMT')) {
     prepare_target();

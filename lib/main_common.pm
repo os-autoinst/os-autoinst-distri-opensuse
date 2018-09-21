@@ -83,6 +83,7 @@ our @EXPORT = qw(
   load_security_tests_crypt
   load_security_tests_misc
   load_security_tests_openscap
+  load_security_tests_selinux
   load_security_tests_web
   load_shutdown_tests
   load_slepos_tests
@@ -1960,6 +1961,15 @@ sub load_security_tests_openscap {
     loadtest "security/openscap/oscap_generating_report";
     loadtest "security/openscap/oscap_generating_fix";
     loadtest "security/openscap/oscap_validating";
+}
+
+sub load_security_tests_selinux {
+    # ALWAYS run following tests in sequence because of the dependencies
+    # Setup - install SELinux necessary packages
+    loadtest "security/selinux/selinux_setup";
+
+    loadtest "security/selinux/sestatus";
+    loadtest "security/selinux/selinux_smoke";
 }
 
 sub load_systemd_patches_tests {
