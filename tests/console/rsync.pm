@@ -18,6 +18,12 @@ use utils;
 use version_utils qw(is_opensuse is_sle is_jeos);
 
 sub run {
+    # try to install rsync if the test does not run on JeOS
+    if (!is_jeos) {
+        select_console 'root-console';
+        zypper_call('-t in rsync', dumb_term => 1);
+    }
+
     # create the folders and files that will be synced
     select_console('root-console');
     assert_script_run('mkdir /tmp/rsync_test_folder_a');
