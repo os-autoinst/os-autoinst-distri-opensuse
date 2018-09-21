@@ -51,7 +51,7 @@ sub configure_system {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    y2logsstep::save_upload_y2logs;
+    y2logsstep::save_upload_y2logs($self);
     $self->SUPER::post_fail_hook;
 }
 
