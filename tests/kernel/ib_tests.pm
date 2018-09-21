@@ -22,6 +22,7 @@ use ipmi_backend_utils;
 
 our $master;
 our $slave;
+our $role;
 
 sub check_dmesg {
     my $dmesg_cmd = 'dmesg';
@@ -42,19 +43,28 @@ sub check_dmesg {
     );
 }
 
+sub log_upload {
+    # just save the dmesg log
+    script_run("dmesg > /tmp/dmesg.txt");
+    upload_logs("/tmp/dmesg.txt");
+
+    # remove non-printable characters
+    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
+    parse_extra_log('XUnit', '/tmp/results.xml');
+
+    script_run("scp -o StrictHostKeyChecking=no root\@$slave:/tmp/dmesg.txt /tmp/dmesg_slave.txt");
+
+    check_dmesg;
+    check_dmesg('/tmp/dmesg_slave.txt');
+}
+
+
 sub ibtest_slave {
     # setup complete, test can begin
     barrier_wait('IBTEST_BEGIN');
 
     # wait until test is finished
     barrier_wait('IBTEST_DONE');
-
-    # just save the dmesg log
-    script_run("dmesg > /tmp/dmesg.txt");
-    upload_logs("/tmp/dmesg.txt");
-
-    # check dmesg for warnings etc.
-    check_dmesg;
 }
 
 sub ibtest_master {
@@ -80,15 +90,7 @@ sub ibtest_master {
     assert_script_run('cd hpc-testing');
     assert_script_run("./ib-test.sh $master $slave", 1800);
 
-
-    # remove non-printable characters
-    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-    parse_extra_log('XUnit', '/tmp/results.xml');
-
-    script_run("scp -o StrictHostKeyChecking=no root\@$slave:/tmp/dmesg.txt /tmp/dmesg_slave.txt");
-
-    check_dmesg;
-    check_dmesg('/tmp/dmesg_slave.txt');
+    log_upload;
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_BEGIN');
@@ -96,9 +98,9 @@ sub ibtest_master {
 }
 
 sub run {
-    my $role = get_required_var('IBTEST_ROLE');
     $master = get_required_var('IBTEST_IP1');
     $slave  = get_required_var('IBTEST_IP2');
+    $role   = get_required_var('IBTEST_ROLE');
 
     use_ssh_serial_console;
 
@@ -127,9 +129,7 @@ sub run {
 }
 
 sub post_fail_hook {
-    # remove non-printable characters from the results file
-    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-    parse_extra_log('XUnit', '/tmp/results.xml');
+    log_upload;
 }
 
 1;
