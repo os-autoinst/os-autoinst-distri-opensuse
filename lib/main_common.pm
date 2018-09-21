@@ -34,6 +34,7 @@ our @EXPORT = qw(
   console_is_applicable
   consolestep_is_applicable
   default_desktop
+  get_ltp_tag
   gnomestep_is_applicable
   guiupdates_is_applicable
   have_scc_repos
@@ -233,6 +234,14 @@ sub is_kernel_test {
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('NVMFTESTS')
         || get_var('TRINITY'));
+}
+
+sub get_ltp_tag {
+    my $tag = get_var('LTP_RUNTEST_TAG');
+    if (!defined $tag) {
+        $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '-' . get_var('LTP_RELEASE', 'master') . '@' . get_var('MACHINE');
+    }
+    return $tag . '.txt';
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features
