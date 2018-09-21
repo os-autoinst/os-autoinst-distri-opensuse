@@ -28,6 +28,10 @@ sub setup_system {
     }
     else {
         script_run("xscreensaver-command -exit");
+        if (check_var("DESKTOP", "lxde")) {
+            # Disable xscreensaver autostart on LXDE
+            script_sudo("sed -i 's/\@xscreensaver -no-splash//' /etc/xdg/lxsession/LXDE/autostart");
+        }
     }
     send_key("ctrl-d");
 }
