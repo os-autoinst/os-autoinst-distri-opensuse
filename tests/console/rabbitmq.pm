@@ -23,7 +23,8 @@ sub run {
     assert_script_run('zypper -n in rabbitmq-server');
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
-    assert_script_run('zypper -n in python-pika');
+    record_soft_failure 'obs sr#636625: manually install python as python-pika rpm is missing the requirement';
+    assert_script_run('zypper -n in python-pika python');
     my $cmd = <<'EOF';
 mkdir rabbitmq
 cd rabbitmq
