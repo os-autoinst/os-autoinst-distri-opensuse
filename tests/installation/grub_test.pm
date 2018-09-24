@@ -43,28 +43,19 @@ Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
 =cut
 sub handle_installer_medium_bootup {
     my ($self) = @_;
-    if (check_var("BOOTFROM", "d")) {
-        assert_screen 'inst-bootmenu';
-        if (check_var("AUTOUPGRADE") && check_var("PATCH")) {
-            assert_screen 'grub2';
-        }
-        # use firmware boot manager of aarch64 to boot upgraded system
-        if (check_var('ARCH', 'aarch64') && get_var('UPGRADE')) {
-            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-            send_key 'ret';
-            $self->handle_uefi_boot_disk_workaround;
-        }
-        else {
-            send_key 'ret';
-        }
+
+    return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
+    assert_screen 'inst-bootmenu';
+
+    if (check_var("BOOTFROM", "d") && check_var("AUTOUPGRADE") && check_var("PATCH")) {
+        assert_screen 'grub2';
     }
-    elsif (get_var('UEFI') && get_var('USBBOOT')) {
-        assert_screen 'inst-bootmenu';
-        # assuming the cursor is on 'installation' by default and 'boot from
-        # harddisk' is above
-        send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-        send_key 'ret';
-    }
+
+    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+    send_key 'ret';
+
+    # use firmware boot manager of aarch64 to boot upgraded system
+    $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64'));
 }
 
 sub bug_workaround_bsc1005313 {
