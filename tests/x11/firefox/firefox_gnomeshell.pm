@@ -30,8 +30,7 @@ sub run {
         return;
     }
 
-    send_key "alt-d";
-    type_string "extensions.gnome.org\n";
+    $self->firefox_open_url('extensions.gnome.org');
     assert_screen('firefox-gnomeshell-frontpage', 120);
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
@@ -42,8 +41,7 @@ sub run {
     send_key "pgdn";
     assert_screen("firefox-gnomeshell-installed_02", 90);
 
-    send_key "alt-d";
-    type_string "extensions.gnome.org/extension/512/wikipedia-search-provider/\n";
+    $self->firefox_open_url('extensions.gnome.org/extension/512/wikipedia-search-provider/');
     assert_screen "firefox-gnomeshell-extension";
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";

@@ -50,9 +50,7 @@ sub run {
     x11_start_program('firefox');
     assert_screen('firefox-gnome', 60);
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string $mozlogin. "\n";
+    $self->firefox_open_url($mozlogin);
 
     assert_and_click('firefox-passwd-input_username');
     type_string "squiddy";
@@ -63,9 +61,7 @@ sub run {
     assert_screen('firefox-passwd-confirm_master_pw');
     type_string $masterpw. "\n";
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string $mozlogin. "\n";
+    $self->firefox_open_url($mozlogin);
     assert_screen('firefox-passwd-auto_filled', 90);
 
     send_key "alt-e";

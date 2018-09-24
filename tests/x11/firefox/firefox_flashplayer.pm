@@ -19,9 +19,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string "http://www.adobe.com/software/flash/about/\n";
+    $self->firefox_open_url('http://www.adobe.com/software/flash/about/');
     assert_screen('firefox-flashplayer-verify_loaded');
 
     send_key "pgdn";
@@ -29,9 +27,7 @@ sub run {
     while (assert_screen([qw(firefox-flashplayer-dropped firefox-flashplayer-verify)])) {
         last if (match_has_tag('firefox-flashplayer-dropped'));
         if (match_has_tag('firefox-flashplayer-verify')) {
-            send_key "esc";
-            send_key "alt-d";
-            type_string "https://www.youtube.com/watch?v=Z4j5rJQMdOU\n";
+            $self->firefox_open_url('https://www.youtube.com/watch?v=Z4j5rJQMdOU');
             assert_screen('firefox-flashplayer-video_loaded', 90);
         }
         last;
