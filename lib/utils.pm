@@ -1014,9 +1014,12 @@ sub zypper_ar {
 }
 
 sub show_tasks_in_blocked_state {
-    # info will be sent to serial tty
-    send_key 'alt-sysrq-w';
-    wait_serial('SysRq : Show Blocked State', 1);
+    # sending sysrqs doesn't work for hyperv
+    if (!check_var('MACHINE', 'svirt-hyperv')) {
+        send_key 'alt-sysrq-w';
+        # info will be sent to serial tty
+        wait_serial('SysRq : Show Blocked State', 1);
+    }
 }
 
 1;
