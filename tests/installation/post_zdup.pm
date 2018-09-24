@@ -26,6 +26,8 @@ sub run {
     # whatever the default in the image is.
     systemctl('set-default --force graphical.target');
 
+    script_run("rpm -qa --qf '%{vendor} %{name}\n' | tee /dev/$serialdev");
+
     # switch to root-console (in case we are in X)
     select_console 'root-console';
     power_action('reboot', keepconsole => 1, textmode => 1);

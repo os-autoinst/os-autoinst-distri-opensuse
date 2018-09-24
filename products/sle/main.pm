@@ -1046,9 +1046,11 @@ else {
         load_default_autoyast_tests;
     }
     elsif (installzdupstep_is_applicable()) {
-        # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
-        if (!is_staging) {
-            load_patching_tests();
+        if (get_var('HDDVERSION', '') !~ /opensuse-/) {
+            # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
+            if (!is_staging) {
+                load_patching_tests();
+            }
         }
         load_zdup_tests();
     }
