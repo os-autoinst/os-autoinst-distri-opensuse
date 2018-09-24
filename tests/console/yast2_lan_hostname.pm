@@ -27,11 +27,7 @@ sub hostname_via_dhcp {
 
     type_string "yast2 lan\n";
     accept_warning_network_manager_default;
-    assert_screen([qw(yast2_lan yast2_still_susefirewall2)], 90);
-    if (match_has_tag 'yast2_still_susefirewall2') {
-        send_key $cmd{install};
-        assert_screen 'yast2_lan';
-    }
+    assert_screen 'yast2_lan';
     # Hostname/DNS tab
     send_key $cmd{hostname_dns_tab};
     assert_screen "yast2_lan-hostname-tab";
