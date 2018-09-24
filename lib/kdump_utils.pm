@@ -29,8 +29,8 @@ sub install_kernel_debuginfo {
 }
 
 sub get_repo_url_for_kdump_sle {
-    return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLE_MODULE_BASESYSTEM_DEBUG'))
-      if get_var('REPO_SLE_MODULE_BASESYSTEM_DEBUG')
+    return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG'))
+      if get_var('REPO_SLE15_MODULE_BASESYSTEM_DEBUG')
       and is_sle('15+');
     return join('/', $utils::OPENQA_FTP_URL, get_var('REPO_SLES_DEBUG')) if get_var('REPO_SLES_DEBUG');
 }

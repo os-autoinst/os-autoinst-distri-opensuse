@@ -33,7 +33,7 @@ sub add_we_repo_if_available {
     return if check_var('DISTRI', 'opensuse');
 
     my $ar_url;
-    my $we_repo = get_var('REPO_SLE_WE_POOL');
+    my $we_repo = get_var('REPO_SLE_WE15_POOL');
     if ($we_repo && check_var('DISTRI', 'sle') && sle_version_at_least('15')) {
         $ar_url = "http://openqa.suse.de/assets/repo/$we_repo";
     }
