@@ -27,12 +27,7 @@ sub run {
     my $boot_image_dir_shortcut  = 'alt-i';
     my $firewall_detail_shortcut = 'alt-d';
     if (is_sle('<15') || is_leap('<15.1')) {
-        assert_screen([qw(yast2_tftp-server_configuration yast2_still_susefirewall2)], 90);
-        if (match_has_tag 'yast2_still_susefirewall2') {
-            record_soft_failure "bsc#1059569";
-            send_key 'alt-i';
-            assert_screen 'yast2_tftp-server_configuration';
-        }
+        assert_screen 'yast2_tftp-server_configuration';
         send_key 'alt-e';    # enable tftp
         assert_screen 'yast2_tftp-server_configuration_enabled';
         $boot_image_dir_shortcut  = 'alt-t';

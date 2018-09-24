@@ -87,12 +87,7 @@ sub run {
     send_key 'alt-n';
     wait_still_screen(3);
     if (is_sle('<15') || is_leap('<15.1')) {
-        assert_screen([qw(yast2-dns-server-step3 yast2_still_susefirewall2)], 90);
-        if (match_has_tag 'yast2_still_susefirewall2') {
-            send_key 'alt-i';
-            assert_screen 'yast2-dns-server-step3';
-        }
-
+        assert_screen 'yast2-dns-server-step3';
         # Enable dns server and finish after yast2 loads default settings
         assert_screen 'yast2-dns-server-fw-port-is-closed';
         send_key 'alt-s';
@@ -117,11 +112,7 @@ sub run {
     script_run 'yast2 dns-server', 0;
     continue_info_network_manager_default;
     if (is_sle('<15') || is_leap('<15.1')) {
-        assert_screen([qw(yast2-service-running-enabled yast2_still_susefirewall2)], 90);
-        if (match_has_tag 'yast2_still_susefirewall2') {
-            send_key 'alt-i';
-            assert_screen 'yast2-service-running-enabled';
-        }
+        assert_screen 'yast2-service-running-enabled';
         # Stop the service
         wait_screen_change { send_key 'alt-s' };
         assert_screen 'yast2-service-stopped-enabled';
