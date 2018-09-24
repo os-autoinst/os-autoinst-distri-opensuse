@@ -14,6 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -30,6 +31,8 @@ sub run {
     assert_and_click('firefox-passwd-security');
 
     send_key "alt-shift-u";
+    wait_still_screen 3;
+    send_key 'spc' if is_sle('15+');
 
     assert_screen('firefox-passwd-master_setting');
 
@@ -38,7 +41,8 @@ sub run {
     type_string $masterpw;
 
     # confirm password change
-    assert_and_click('firefox-password-changed');
+    for (1 .. 2) { send_key 'tab'; }
+    send_key 'ret';
     assert_and_click('firefox-passwd-success');
 
     #Restart firefox
@@ -65,6 +69,8 @@ sub run {
     send_key "alt-shift-p";    #"Show Passwords"
     type_string $masterpw. "\n";
     send_key "alt-shift-l";
+    wait_still_screen 3;
+    send_key 'spc' if is_sle('15+');
     assert_screen('firefox-passwd-saved');
 
     send_key "alt-shift-a";    #"Remove"

@@ -14,6 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -25,9 +26,7 @@ sub run {
     wait_still_screen 3;
     send_key "c";
 
-    assert_and_click "firefox-rss-close_hint";
-    send_key "alt-f10";
-    wait_still_screen 3;
+    assert_and_click "firefox-rss-close_hint" if is_sle('<15');
     assert_and_click("firefox-rss-button", "right");
 
     send_key "a";

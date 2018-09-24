@@ -23,6 +23,7 @@ sub run {
     assert_screen('firefox-html5-youtube', 90);
     send_key "pgdn";
     send_key "up";
+    send_key "up";
     sleep 1;
     assert_screen('firefox-html5-support', 60);
 

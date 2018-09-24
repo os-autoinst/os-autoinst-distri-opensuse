@@ -14,6 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
 
@@ -22,44 +23,44 @@ sub run {
 
     $self->start_firefox_with_profile;
 
-    wait_screen_change {
-        send_key "alt-tab";    #Switch to xterm
-    };
-    type_string "$changesaving_checktimestamp > dfa\n";
+    send_key "alt-tab";    #Switch to xterm
+    wait_still_screen 2, 4;
+    assert_script_run "$changesaving_checktimestamp > dfa";
 
-    wait_screen_change {
-        send_key "alt-tab";    #Switch to firefox
-    };
+    send_key "alt-tab";    #Switch to firefox
+    wait_still_screen 2, 4;
+    save_screenshot;
 
     # Open a new tab to avoid the keyboard focus is misled by the homepage
     send_key 'ctrl-t';
     wait_still_screen 3;
-    wait_screen_change {
-        send_key "alt-e";
-    };
+    send_key "alt-e";
+    wait_still_screen 3;
     send_key "n";
     assert_screen('firefox-changesaving-preferences', 30);
 
-    send_key "alt-shift-s";
-    send_key "down";    #Show a blank page
-    assert_screen('firefox-changesaving-showblankpage', 30);
+    if (is_sle('15+')) {
+        assert_and_click 'firefox-changesaving-showblankpage';
+    }
+    else {
+        send_key "alt-shift-s";
+        send_key "down";    #Show a blank page
+        assert_screen('firefox-changesaving-showblankpage', 30);
+    }
 
-    wait_screen_change {
-        send_key "ctrl-w";
-    };
-    wait_screen_change {
-        send_key "alt-tab";    #Switch to xterm
-    };
-    type_string "$changesaving_checktimestamp > dfb\n";
-    send_key "ctrl-l";
-    type_string "diff dfa dfb\n";
+    send_key "alt-tab";     #Switch to xterm
+    wait_still_screen 2, 4;
+    assert_script_run "$changesaving_checktimestamp > dfb";
 
-    assert_screen('firefox-changesaving-diffresult', 30);
-    type_string "rm df*\n", 1;    #Clear
+    # check and fail if timestamp is same
+    assert_script_run 'grep -v $(cat dfa) dfb';
 
-    wait_screen_change {
-        send_key "alt-tab";       #Switch to xterm
-    };
+    # restore previous settings, start with home page
+    assert_script_run 'cp dfa dfb';
+    assert_script_run 'rm -vf df*';    #Clear
+
+    send_key "alt-tab";                #Switch to firefox
+    wait_still_screen 2, 4;
 
     $self->exit_firefox;
 }

@@ -14,6 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso\n";
 my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso\n";
@@ -60,12 +61,18 @@ sub dl_pause {
     wait_still_screen 2;
 }
 
+# firefox 62 in sle15 does not have option or shortcut to cancel only button
 sub dl_cancel {
-    dl_pause();
-    send_key "shift-f10";
-    wait_still_screen 2;
-    send_key "c";
-    wait_still_screen 2;
+    if (is_sle('15+')) {
+        assert_and_click('firefox-downloading-cancel-button');
+    }
+    else {
+        dl_pause();
+        send_key "shift-f10";
+        wait_still_screen 2;
+        send_key "c";
+        wait_still_screen 2;
+    }
 }
 
 sub dl_resume {
@@ -85,8 +92,12 @@ sub run {
 
     dl_save($dl_link_01);
 
-    assert_screen('firefox-downloading-saving_box', 90);
-    send_key "alt-s";
+    # on SLE 15 is by default saved without save to window
+    if (is_sle('<15')) {
+        assert_screen('firefox-downloading-saving_box', 90);
+        wait_still_screen 2;
+        send_key "alt-s";
+    }
 
     assert_and_click('firefox-downloading-saving_dialog', 'left', 90);
 
@@ -141,6 +152,7 @@ sub run {
     send_key "down";
     dl_cancel();
 
+    wait_still_screen 3;
     send_key "shift-f10";
     wait_still_screen 2;
     send_key "d";    #"Clear Downloads"

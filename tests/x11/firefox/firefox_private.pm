@@ -33,7 +33,7 @@ sub run {
     send_key "ctrl-h";
     assert_and_click('firefox-private-checktoday');
     assert_screen('firefox-private-checkhistory', 60);
-    send_key "alt-f4";
+    send_key "ctrl-h";
 
     # Exit
     $self->exit_firefox;
