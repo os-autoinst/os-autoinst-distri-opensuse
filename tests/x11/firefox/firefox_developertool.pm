@@ -18,14 +18,11 @@ use testapi;
 sub run {
 
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string "opensuse.org\n";
-    $self->firefox_check_popups;
+    $self->firefox_open_url('opensuse.org');
     assert_screen('firefox-developertool-opensuse', 90);
-    send_key "ctrl-shift-i";
+    send_key 'f12';
     assert_screen('firefox-developertool-gerneral', 30);
     assert_and_click "firefox-developertool-click_element";
     assert_screen "firefox-developertool-check_inspector";

@@ -21,14 +21,15 @@ sub java_testing {
 
     send_key "ctrl-t";
     assert_screen 'firefox-new-tab';
-    send_key "alt-d";
-    type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
+    $self->firefox_open_url('http://www.java.com/en/download/installed.jsp?detect=jre');
     wait_still_screen 3;
     if (check_screen('oracle-cookies-handling')) {
+        assert_and_click('oracle-cookie-settings');
+        assert_and_click('oracle-cookie-advanced-settings');
         assert_and_click('oracle-function-cookies');
         assert_and_click('oracle-ad-cookies');
-        assert_and_click('firefox-java-agree-and-proceed');
+        assert_and_click('oracle-submit-preferences');
         assert_and_click('oracle-cookies-close');
     }
 
@@ -37,8 +38,6 @@ sub java_testing {
         assert_and_click('firefox-java-securityrun');
         assert_and_click('firefox-java-run_confirm');
     }
-
-    $self->firefox_check_popups;
 
     wait_still_screen 3;
     assert_screen([qw(firefox-java-verifyversion firefox-java-verifyfailed firefox-java-verifypassed firefox-newer-java-available)]);
@@ -67,12 +66,8 @@ sub run {
         return;
     }
 
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    #Required only on sle, as open mozilla home page
-    if (is_sle) {
-        assert_and_click('firefox-logo');
-    }
     send_key "ctrl-shift-a";
 
     assert_screen("firefox-java-addonsmanager");

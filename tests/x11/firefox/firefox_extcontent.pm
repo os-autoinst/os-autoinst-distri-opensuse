@@ -18,16 +18,9 @@ use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
 
-    my $ext_link = "http://mirror.bej.suse.com/dist/install/SLP/SLE-12-SP3-Server-GM/x86_64/dvd1/";
-
-    send_key "esc";
-    sleep 1;
-    send_key "alt-d";
-    sleep 1;
-    type_string $ext_link. "\n";
-    $self->firefox_check_popups;
+    $self->start_firefox_with_profile;
+    $self->firefox_open_url('http://mirror.bej.suse.com/dist/install/SLP/SLE-12-SP3-Server-GM/x86_64/dvd1/');
 
     assert_screen('firefox-extcontent-pageloaded');
 

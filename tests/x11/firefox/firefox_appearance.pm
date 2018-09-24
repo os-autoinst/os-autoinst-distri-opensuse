@@ -17,18 +17,13 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "ctrl-w";
-    wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-appearance-tabicon');
     assert_screen('firefox-appearance-default', 30);
 
-    sleep 1;
-    send_key "alt-d";
-    sleep 1;
-    type_string "addons.mozilla.org/en-US/firefox/addon/opensuse\n";
+    $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse');
     assert_screen('firefox-appearance-mozilla_addons', 90);
     assert_and_click "firefox-appearance-addto";
     if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {

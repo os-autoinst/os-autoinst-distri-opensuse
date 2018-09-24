@@ -19,12 +19,10 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "ctrl-w";
-    wait_still_screen 3;
     send_key "ctrl-shift-a";
-    assert_and_click('firefox-plugins-tabicon');
+    assert_and_click('firefox-addons-plugins');
     assert_screen [qw(firefox-gnomeshell-default firefox-plugins-missing)], 60;
     if (match_has_tag('firefox-plugins-missing')) {
         record_soft_failure 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
@@ -32,9 +30,7 @@ sub run {
         return;
     }
 
-    send_key "alt-d";
-    type_string "extensions.gnome.org\n";
-    $self->firefox_check_popups;
+    $self->firefox_open_url('extensions.gnome.org');
     assert_screen('firefox-gnomeshell-frontpage', 120);
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
@@ -45,9 +41,7 @@ sub run {
     send_key "pgdn";
     assert_screen("firefox-gnomeshell-installed_02", 90);
 
-    send_key "alt-d";
-    type_string "extensions.gnome.org/extension/512/wikipedia-search-provider/\n";
-    $self->firefox_check_popups;
+    $self->firefox_open_url('extensions.gnome.org/extension/512/wikipedia-search-provider/');
     assert_screen "firefox-gnomeshell-extension";
     assert_and_click "firefox-gnomeshell-extension_install";
     assert_and_click "firefox-gnomeshell-extension_confirm";

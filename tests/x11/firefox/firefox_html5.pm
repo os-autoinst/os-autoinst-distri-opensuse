@@ -17,24 +17,17 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string "youtube.com/html5\n";
-    $self->firefox_check_popups;
-
+    $self->firefox_open_url('youtube.com/html5');
     assert_screen('firefox-html5-youtube', 90);
     send_key "pgdn";
+    send_key "up";
     send_key "up";
     sleep 1;
     assert_screen('firefox-html5-support', 60);
 
-    sleep 1;
-    send_key "esc";
-    send_key "alt-d";
-    type_string "youtube.com/watch?v=Z4j5rJQMdOU\n";
-    $self->firefox_check_popups;
+    $self->firefox_open_url('youtube.com/watch?v=Z4j5rJQMdOU');
     assert_screen('firefox-flashplayer-video_loaded', 90);
 
     # Exit

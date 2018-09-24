@@ -14,21 +14,23 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
+    $self->firefox_open_url('https://build.suse.de');
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string "https://build.suse.de\n";
+    assert_screen 'firefox-ssl-untrusted';
 
-    check_screen('firefox-ssl-untrusted', 60);
-
+    # go to advanced button and press it
     send_key "tab";
     send_key "ret";
-    for (1 .. 3) { send_key "tab"; }
+    # go to add exception button and press it, sle12 sp2 & sp3 have checkbox under buttons (3 tabs)
+    # sle15+ has checkbox above buttons (2 tabs) and 12 & 12sp1 don't have checkbox (1 tab)
+    my $count = is_sle('15+') ? 2 : is_sle('<12-sp2') ? 1 : 3;
+    for (1 .. $count) { send_key "tab"; }
     send_key "ret";
 
     assert_screen('firefox-ssl-addexception', 60);
@@ -39,10 +41,16 @@ sub run {
     send_key "alt-e";
     send_key "n";
 
-    assert_and_click('firefox-ssl-preference_advanced');
-    assert_and_click('firefox-ssl-advanced_certificate');
-
-    send_key "alt-shift-c";
+    if (is_sle('15+')) {
+        assert_and_click('firefox-preferences-search');
+        type_string "cert\n";
+        assert_and_click('firefox-ssl-preference-view-certificate');
+    }
+    else {
+        assert_and_click('firefox-ssl-preference_advanced');
+        assert_and_click('firefox-ssl-advanced_certificate');
+        send_key "alt-shift-c";
+    }
 
     sleep 1;
     assert_and_click('firefox-ssl-certificate_table');
@@ -52,7 +60,14 @@ sub run {
     send_key "down";
 
     sleep 1;
-    send_key "alt-shift-e";
+    # alt-shift-e does not work in openQA on 12 & 12sp1, but manually does (no idea why)
+    if (is_sle('<12-sp2')) {
+        for (1 .. 2) { send_key 'tab'; }
+        send_key 'spc';
+    }
+    else {
+        send_key "alt-shift-e";
+    }
 
     sleep 1;
     send_key "spc";
@@ -71,8 +86,7 @@ sub run {
     wait_screen_change { send_key "esc" };
     send_key "ctrl-w";
 
-    send_key "alt-d";
-    type_string "https://www.hongkongpost.gov.hk\n";
+    $self->firefox_open_url('https://www.hongkongpost.gov.hk');
     assert_screen('firefox-ssl-connection_untrusted', 90);
 
     # Exit

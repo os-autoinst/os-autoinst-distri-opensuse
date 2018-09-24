@@ -17,38 +17,25 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     wait_still_screen 1;
     send_key "ctrl-shift-p";
     assert_screen 'firefox-private-browsing';
     type_string "gnu.org\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-private-gnu', 90);
     send_key "alt-d";
     type_string "facebook.com\n";
-    $self->firefox_check_popups;
     assert_screen('firefox-private-facebook', 90);
 
-    send_key "alt-f4";
-    wait_still_screen 3;
-    $self->exit_firefox;
-
-    x11_start_program('firefox');
-    $self->firefox_check_default;
-    $self->firefox_check_popups;
-    assert_screen('firefox-launch', 90);
+    $self->restart_firefox;
 
     send_key "ctrl-h";
     assert_and_click('firefox-private-checktoday');
     assert_screen('firefox-private-checkhistory', 60);
-    send_key "alt-f4";
+    send_key "ctrl-h";
 
     # Exit
-    send_key "alt-f4";
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;

@@ -20,14 +20,9 @@ use testapi;
 sub run {
     my ($self) = @_;
 
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "esc";
-    sleep 1;
-    send_key "alt-d";
-    sleep 1;
-    type_string "file:///usr/share/w3m/w3mhelp.html\n";
-    $self->firefox_check_popups;
+    $self->firefox_open_url('file:///usr/share/w3m/w3mhelp.html');
     assert_screen('firefox-fullscreen-page', 90);
 
     send_key "f11";

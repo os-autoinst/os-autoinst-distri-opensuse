@@ -14,24 +14,25 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    mouse_hide(1);
+    $self->start_firefox_with_profile;
 
-    # Clean and Start Firefox
-    x11_start_program("xterm -e \"killall -9 firefox;rm -rf .moz*\"", valid => 0);
-    x11_start_program('firefox');
-    $self->firefox_check_popups;
-    assert_screen('firefox-launch', 90);
-
-    send_key "esc";
-    send_key "ctrl-shift-q";
+    # open network monitor tab in developer tools
+    my $key = is_sle('15+') ? 'e' : 'q';
+    send_key "ctrl-shift-$key";
     assert_screen 'firefox-headers-inspector';
     $self->firefox_open_url('www.gnu.org');
     assert_screen('firefox-headers-website', 90);
 
-    send_key "down";
+    if (is_sle('15+')) {
+        assert_and_click('firefox-headers-select-gnu.org');
+    }
+    else {
+        send_key "down";
+    }
     assert_screen('firefox-headers-first_item', 50);
 
     send_key "shift-f10";
@@ -41,11 +42,6 @@ sub run {
     assert_screen('firefox-headers-user_agent', 50);
 
     # Exit
-    send_key "alt-f4";
-
-    if (check_screen('firefox-save-and-quit', 30)) {
-        # confirm "save&quit"
-        send_key "ret";
-    }
+    $self->exit_firefox;
 }
 1;

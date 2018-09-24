@@ -20,9 +20,8 @@ use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
-    send_key "ctrl-w";
     wait_still_screen 3;
     send_key "ctrl-shift-a";
     assert_and_click('firefox-addons-plugins');

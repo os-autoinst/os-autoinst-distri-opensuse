@@ -25,7 +25,7 @@ sub run {
         $next_key = "alt-n";
     }
 
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     # Email link
     send_key "alt-f";
@@ -81,12 +81,7 @@ sub run {
         wait_still_screen 3;
         send_key "alt-a";
     }
-    assert_screen [qw(firefox-email_link-send firefox-launch)];
-    if (match_has_tag('firefox-launch')) {
-        record_soft_failure 'bsc#1079512 - evolution dumped core';
-        $self->exit_firefox;
-        return;
-    }
+    assert_screen('firefox-email_link-send');
     wait_screen_change {
         send_key "esc";
     };

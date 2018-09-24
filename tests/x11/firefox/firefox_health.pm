@@ -19,7 +19,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
     wait_screen_change { send_key 'alt-h' };
     send_key 'e';
     assert_screen 'firefox-health-report', 60;

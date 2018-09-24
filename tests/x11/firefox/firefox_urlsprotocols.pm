@@ -19,7 +19,7 @@ use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox;
+    $self->start_firefox_with_profile;
 
     # sites_url
     my %sites_url = (
@@ -36,12 +36,7 @@ sub run {
         $sites_url{smb} = "smb://mirror.bej.suse.com/dist/";
     }
     for my $proto (sort keys %sites_url) {
-        send_key "esc";
-        sleep 1;
-        send_key "alt-d";
-        sleep 1;
-        type_string $sites_url{$proto} . "\n";
-        $self->firefox_check_popups;
+        $self->firefox_open_url($sites_url{$proto});
         assert_screen('firefox-urls_protocols-' . $proto, 60);
     }
 
