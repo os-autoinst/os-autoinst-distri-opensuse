@@ -9,7 +9,7 @@
 
 # Summary: run InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de, Nick Singer <nsinger@suse.de>
+# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>
 
 use base 'opensusebasetest';
 use strict;
@@ -22,6 +22,7 @@ use ipmi_backend_utils;
 
 our $master;
 our $slave;
+our $role;
 
 sub check_dmesg {
     my $dmesg_cmd = 'dmesg';
@@ -42,19 +43,28 @@ sub check_dmesg {
     );
 }
 
+sub log_upload {
+    # just save the dmesg log
+    script_run("dmesg > /tmp/dmesg.txt");
+    upload_logs("/tmp/dmesg.txt");
+
+    # remove non-printable characters
+    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
+    parse_extra_log('XUnit', '/tmp/results.xml');
+
+    script_run("scp -o StrictHostKeyChecking=no root\@$slave:/tmp/dmesg.txt /tmp/dmesg_slave.txt");
+
+    check_dmesg;
+    check_dmesg('/tmp/dmesg_slave.txt');
+}
+
+
 sub ibtest_slave {
     # setup complete, test can begin
     barrier_wait('IBTEST_BEGIN');
 
     # wait until test is finished
     barrier_wait('IBTEST_DONE');
-
-    # just save the dmesg log
-    script_run("dmesg > /tmp/dmesg.txt");
-    upload_logs("/tmp/dmesg.txt");
-
-    # check dmesg for warnings etc.
-    check_dmesg;
 }
 
 sub ibtest_master {
@@ -74,21 +84,13 @@ sub ibtest_master {
     # pull in the testsuite
     assert_script_run("git -c http.sslVerify=false clone $hpc_testing --branch $hpc_testing_branch");
 
-    # wait until the two machines under test are ready setting up their local things
+    # wait until the other machine under test is ready
     barrier_wait('IBTEST_BEGIN');
 
     assert_script_run('cd hpc-testing');
     assert_script_run("./ib-test.sh $master $slave", 1800);
 
-
-    # remove non-printable characters
-    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-    parse_extra_log('XUnit', '/tmp/results.xml');
-
-    script_run("scp -o StrictHostKeyChecking=no root\@$slave:/tmp/dmesg.txt /tmp/dmesg_slave.txt");
-
-    check_dmesg;
-    check_dmesg('/tmp/dmesg_slave.txt');
+    log_upload;
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_BEGIN');
@@ -96,9 +98,9 @@ sub ibtest_master {
 }
 
 sub run {
-    my $role = get_required_var('IBTEST_ROLE');
     $master = get_required_var('IBTEST_IP1');
     $slave  = get_required_var('IBTEST_IP2');
+    $role   = get_required_var('IBTEST_ROLE');
 
     use_ssh_serial_console;
 
@@ -127,31 +129,29 @@ sub run {
 }
 
 sub post_fail_hook {
-    # remove non-printable characters from the results file
-    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-    parse_extra_log('XUnit', '/tmp/results.xml');
+    log_upload;
 }
 
 1;
 
-=head1 bare metal testing for InfiniBand
+=head1 Bare Metal testing for InfiniBand
 
 =head2 Overview
 This test is executing an InfiniBand testsuite currently under development at SUSE.
 
-In order to run this testsuite, three IPMI-workers are required. Two of them need 
-to have actual InfiniBand HCA's, the third one is controlling the test execution.
+In order to run this testsuite, two IPMI-workers with actual InfiniBand HCS's, namely the 
+Connect-X5 from Mellanox are required. Other HCA's will require some changes.
 
-The test has some additional dependencies. The controlling master needs to have "twopence"
+The test has some additional dependencies. One of the nodes, the master, needs to have "twopence"
 (see https://github.com/openSUSE/twopence) which is not in the default SLE repositories. 
-A repository needs to be specified
+A repository needs to be specified as DEVEL_TOOLS_REPO.
+In addtiion, the GA-Repository has to be specified.
 
 =head1 openQA setup
 
 =head2 openQA worker setup
 The workers with the InfiniBand HCA's need a special worker class, in this case
-we assume it is "64bit-ipmi_infiniband". The third worker just needs a different 
-worker class, something like "64bit-ipmi" should be fine.
+we assume it is "64bit-mlx_con5".
 
 =head2 openQA test suites
 As the test is executed on two hosts, two test suites should be created:
@@ -167,6 +167,8 @@ IBTEST_IP1=<master IP>
 IBTEST_IP2=<slave IP>
 IBTEST_ROLE=IBTEST_MASTER
 INSTALLONLY=1
+MFT_VERSION=mft-4.9.0-38-x86_64-rpm
+MLX_PROTOCOL=1
 TEST=ibtest-master
 WORKER_CLASS=ipmi-64bit-mlx_con5
 
@@ -178,6 +180,8 @@ IBTEST_IP1=<master IP>
 IBTEST_IP2=<slave IP>
 IBTEST_ROLE=IBTEST_SLAVE
 INSTALLONLY=1
+MFT_VERSION=mft-4.9.0-38-x86_64-rpm
+MLX_PROTOCOL=1
 PARALLEL_WITH=ibtest-master
 TEST=ibtest-slave
 WORKER_CLASS=ipmi-64bit-mlx_con5
