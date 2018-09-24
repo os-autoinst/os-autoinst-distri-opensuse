@@ -124,7 +124,7 @@ sub install_lock_kernel {
 
     # workaround for SLE15 - 4.12.4-25.13.1
     if ($wk_ker) {
-        @packages = grep { $_ ne 'kernel-source-4.12.4-25.13.1' } @packages;
+        @packages = grep { $_ ne 'kernel-source-4.12.14-25.13.1' } @packages;
     }
 
     # install and lock needed kernel
@@ -208,16 +208,18 @@ sub update_kgraft {
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
         upload_logs('/tmp/rpmlist.before');
 
-        # Download HEAVY LOAD script
-        assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
+        if (!$wk_ker) {
+            # Download HEAVY LOAD script
+            assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
 
-        # install screen command
-        zypper_call("in screen", exitcode => [0, 102, 103]);
-        #run HEAVY Load script
-        script_run("bash /tmp/heavy_load.sh");
-        # warm up system
-        sleep 15;
+            # install screen command
+            zypper_call("in screen", exitcode => [0, 102, 103]);
+            #run HEAVY Load script
+            script_run("bash /tmp/heavy_load.sh");
 
+            # warm up system
+            sleep 15;
+        }
         # Use single patch or patch list
         if ($wk_ker) {
             zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
@@ -225,12 +227,12 @@ sub update_kgraft {
         else {
             zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
         }
-
-        #kill HEAVY-LOAD scripts
-        script_run("screen -S LTP_syscalls -X quit");
-        script_run("screen -S newburn_KCOMPILE -X quit");
-        script_run("rm -Rf /var/log/qa");
-
+        if (!$wk_ker) {
+            #kill HEAVY-LOAD scripts
+            script_run("screen -S LTP_syscalls -X quit");
+            script_run("screen -S newburn_KCOMPILE -X quit");
+            script_run("rm -Rf /var/log/qa");
+        }
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
     }
@@ -254,15 +256,18 @@ sub run {
         select_console('root-console');
 
         # dependencies for heavy load script
-        zypper_call("ar $qa_head qa_repo");
-        zypper_call("--gpg-auto-import-keys ref");
-        zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-
+        if (!$wk_ker) {
+            zypper_call("ar $qa_head qa_repo");
+            zypper_call("--gpg-auto-import-keys ref");
+            zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+        }
         # update kgraft patch under heavy load
         update_kgraft($repo, $incident_id);
 
-        zypper_call("rr qa_repo");
-        zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+        if (!$wk_ker) {
+            zypper_call("rr qa_repo");
+            zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+        }
         power_action('reboot', textmode => 1);
 
         $self->wait_boot;
