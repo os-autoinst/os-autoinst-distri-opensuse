@@ -28,11 +28,7 @@ sub run {
     type_string "facebook.com\n";
     assert_screen('firefox-private-facebook', 90);
 
-    send_key "alt-f4";
-    wait_still_screen 3;
-    $self->exit_firefox;
-
-    $self->start_firefox;
+    $self->restart_firefox;
 
     send_key "ctrl-h";
     assert_and_click('firefox-private-checktoday');

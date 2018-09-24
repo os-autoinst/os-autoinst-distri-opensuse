@@ -590,6 +590,19 @@ sub start_firefox {
     assert_screen 'firefox-launch', 90;
 }
 
+sub restart_firefox {
+    my ($self, $cmd) = @_;
+    # exit firefox properly
+    wait_still_screen 2;
+    send_key 'alt-f';
+    assert_screen('firefox-menu-quit');
+    send_key 'q';
+    assert_screen 'xterm';
+    type_string "$cmd\n";
+    type_string "firefox >>firefox.log 2>&1 &\n";
+    $self->firefox_check_default;
+}
+
 sub firefox_check_default {
     # Set firefox as default browser if asked
     assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox_clean)], 150;
