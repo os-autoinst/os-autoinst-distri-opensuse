@@ -47,11 +47,19 @@ sub save_and_upload_systemd_unit_log {
     $self->save_and_upload_log("journalctl --no-pager -u $unit", "journal_$unit.log");
 }
 
+# btrfs maintenance jobs lead to the system being unresponsive and affects SUT's performance
+# Not to waste time during investigation of the failures, we would like to detect
+# if such jobs are running, providing a hint why test timed out.
+sub detect_bsc_1063638 {
+    # Detect bsc#1063638
+    record_soft_failure 'bsc#1063638' if (script_run('ps x | grep "btrfs-\(scrub\|balance\|trim\)"') == 0);
+}
+
 sub problem_detection {
     my $self = shift;
 
     type_string "pushd \$(mktemp -d)\n";
-
+    $self->detect_bsc_1063638;
     # Slowest services
     $self->save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
     clear_console;
