@@ -20,13 +20,15 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
     ensure_serialdev_permissions;
-
-    assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf";
+    # default is true, for legacy reasons we were running this on openSUSE only
+    assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf" if !is_sle;
     systemctl 'unmask packagekit';
+
     assert_script_run "pkcon refresh", 300;
 }
 

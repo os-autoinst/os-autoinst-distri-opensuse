@@ -2087,8 +2087,17 @@ sub guiupdates_is_applicable {
 sub load_system_update_tests {
     my (%args) = @_;
     my $console_updates = $args{console_updates} // 0;
-
+    # Do not run if system is updated already
     return if get_var('SYSTEM_UPDATED');
+
+    if (is_sle) {
+        # Do not run on sle staging, as doesn't make sense there
+        return if is_staging;
+        # On SLE we schedule console and x11 tests together
+        # Do the update using x11 tools then and do not schedule zypper_up
+        return if $console_updates && gnomestep_is_applicable;
+    }
+    # Handle replacing official mirrors with snapshot version of the repos
     if (need_clear_repos() && !get_var('CLEAR_REPOS')) {
         if (is_repo_replacement_required()) {
             replace_opensuse_repos_tests;
@@ -2100,27 +2109,24 @@ sub load_system_update_tests {
     }
     loadtest "console/zypper_add_repos" if get_var('ZYPPER_ADD_REPOS');
     return unless updates_is_applicable();
-    if (!$console_updates) {
-        if (guiupdates_is_applicable()) {
-            loadtest "update/prepare_system_for_update_tests" if !is_sle;
+
+    if (guiupdates_is_applicable() && !$console_updates) {
+        # If we run both console and x11, this method is trigered twice
+        # So we don't schedule it for the first time
+        if (x11tests_is_applicable()) {
+            loadtest "update/prepare_system_for_update_tests";
             if (check_var("DESKTOP", "kde")) {
                 loadtest "update/updates_packagekit_kde";
                 set_var('SYSTEM_UPDATED', 1);
+            } else {
+                loadtest "update/updates_packagekit_gpk";
+                set_var('SYSTEM_UPDATED', 1);
             }
-            elsif (x11tests_is_applicable()) {
-                unless (is_sle && is_staging) {
-                    loadtest "update/updates_packagekit_gpk";
-                    set_var('SYSTEM_UPDATED', 1);
-                }
-            }
+            # Test was never executed on SLE and fails currently
             loadtest "update/check_system_is_updated" if !is_sle;
         }
-        else {
-            loadtest "update/zypper_up";
-            set_var('SYSTEM_UPDATED', 1);
-        }
     }
-    elsif (is_sle && !gnomestep_is_applicable()) {
+    else {
         loadtest "update/zypper_up";
         set_var('SYSTEM_UPDATED', 1);
     }
