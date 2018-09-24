@@ -670,14 +670,20 @@ my $serial_failures = [];
 if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
     push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
 }
-if (is_kernel_test()) {
+if (is_kernel_test() || is_baremetal_test()) {
     my $type = is_ltp_test() ? 'soft' : 'hard';
     push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
     push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
     push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
     push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted',      pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
-    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => quotemeta 'BUG: failure at'};
+    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => quotemeta 'BUG:'};
     push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
+    push @$serial_failures, {type => $type, message => 'General Protection Fault found', pattern => quotemeta 'general protection fault:'};
+    push @$serial_failures, {type => $type, message => 'suspicious RCU usage found',     pattern => quotemeta 'INFO: suspicious RCU usage'};
+    push @$serial_failures, {type => $type, message => 'Internal Error found',           pattern => quotemeta 'Internal Error'};
+    push @$serial_failures,
+      {type => $type, message => 'possible circular locking dependency detected', pattern => quotemeta 'INFO: possible circular locking dependency detected'};
+    push @$serial_failures, {type => $type, message => 'possible recursive locking detected', pattern => quotemeta 'possible recursive locking detected'};
 }
 $testapi::distri->set_expected_serial_failures($serial_failures);
 

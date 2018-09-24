@@ -23,38 +23,12 @@ use ipmi_backend_utils;
 our $master;
 our $slave;
 
-sub check_dmesg {
-    my $dmesg_cmd = 'dmesg';
-    if ($1) {
-        $dmesg_cmd = "cat $1";
-    }
-    assert_script_run(
-        "dmesg_cmd | grep -q \
-        -e \"kernel BUG at\" \
-        -e \"WARNING:\" \
-	-e \"BUG:\" \
-	-e \"Oops:\" \
-	-e \"possible recursive locking detected\" \
-	-e \"Internal error\" \
-	-e \"INFO: suspicious RCU usage\" \
-	-e \"INFO: possible circular locking dependency detected\" \
-        -e \"general protection fault:\""
-    );
-}
-
 sub ibtest_slave {
     # setup complete, test can begin
     barrier_wait('IBTEST_BEGIN');
 
     # wait until test is finished
     barrier_wait('IBTEST_DONE');
-
-    # just save the dmesg log
-    script_run("dmesg > /tmp/dmesg.txt");
-    upload_logs("/tmp/dmesg.txt");
-
-    # check dmesg for warnings etc.
-    check_dmesg;
 }
 
 sub ibtest_master {
@@ -85,10 +59,6 @@ sub ibtest_master {
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
 
-    script_run("scp -o StrictHostKeyChecking=no root\@$slave:/tmp/dmesg.txt /tmp/dmesg_slave.txt");
-
-    check_dmesg;
-    check_dmesg('/tmp/dmesg_slave.txt');
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_BEGIN');

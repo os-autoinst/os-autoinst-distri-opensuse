@@ -42,6 +42,7 @@ our @EXPORT = qw(
   installyaststep_is_applicable
   installzdupstep_is_applicable
   is_desktop
+  is_baremetal_test
   is_kernel_test
   is_ltp_test
   is_livesystem
@@ -204,7 +205,7 @@ sub logcurrentenv {
 
 sub have_addn_repos {
     return
-      !get_var("NET")
+         !get_var("NET")
       && !get_var("EVERGREEN")
       && get_var("SUSEMIRROR")
       && !get_var("FLAVOR", '') =~ m/^Staging2?[\-]DVD$/;
@@ -223,23 +224,33 @@ sub packagekit_available {
 }
 
 sub is_ltp_test {
-    return (get_var('INSTALL_LTP')
-          || get_var('LTP_COMMAND_FILE'));
+    return (get_var('INSTALL_LTP') || get_var('LTP_COMMAND_FILE'));
 }
 
 sub is_kernel_test {
-    return is_ltp_test() ||
-      (get_var('QA_TEST_KLP_REPO')
+    return is_ltp_test()
+      || ( get_var('QA_TEST_KLP_REPO')
         || get_var('INSTALL_KOTD')
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('NVMFTESTS')
         || get_var('TRINITY'));
 }
 
+sub is_baremetal_test {
+    return (get_var('IBTEST') || get_var('NFV'));
+}
+
 sub get_ltp_tag {
     my $tag = get_var('LTP_RUNTEST_TAG');
     if (!defined $tag) {
-        $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '-' . get_var('LTP_RELEASE', 'master') . '@' . get_var('MACHINE');
+        $tag
+          = get_var('DISTRI') . '-'
+          . get_var('VERSION') . '-'
+          . get_var('ARCH') . '-'
+          . get_var('BUILD') . '-'
+          . get_var('FLAVOR') . '-'
+          . get_var('LTP_RELEASE', 'master') . '@'
+          . get_var('MACHINE');
     }
     return $tag . '.txt';
 }
@@ -323,7 +334,8 @@ sub is_sle12sp2_using_system_role {
     #system_role selection during installation was added as a new feature since sles12sp2
     #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
     #no matter with or without INSTALL_TO_OTHERS tag
-    return is_sle('>=12-SP2')
+    return
+         is_sle('>=12-SP2')
       && check_var('ARCH', 'x86_64')
       && is_server()
       && (!is_sles4sap() || is_sles4sap_standard())
@@ -335,7 +347,7 @@ sub is_desktop_module_selected {
     # ha require desktop applications on sle <15, so it's preselected
     # same is true for sles4sap
     return
-      get_var('ADDONS', '') =~ /all-packages|desktop|we/
+         get_var('ADDONS', '') =~ /all-packages|desktop|we/
       || get_var('WORKAROUND_MODULES', '') =~ /desktop|we/
       || get_var('ADDONURL',           '') =~ /desktop|we/
       || (!is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we|productivity|ha/)
@@ -639,7 +651,7 @@ sub ssh_key_import {
 
 sub we_is_applicable {
     return
-      is_server()
+         is_server()
       && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/)
       && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
 }
@@ -649,7 +661,8 @@ sub installwithaddonrepos_is_applicable {
 }
 
 sub need_clear_repos {
-    return !get_var('ZDUP')
+    return
+         !get_var('ZDUP')
       && (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1'))
       && !get_var('BOOT_TO_SNAPSHOT')
       && !get_var('LIVETEST')
@@ -953,7 +966,7 @@ sub load_inst_tests {
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
-        if (!consolestep_is_applicable()
+        if (    !consolestep_is_applicable()
             and !get_var("REMOTE_CONTROLLER")
             and !is_hyperv_in_gui
             and !is_bridged_networking
@@ -1140,7 +1153,7 @@ sub load_consoletests {
     if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15') && !is_desktop)) {
         loadtest "console/salt";
     }
-    if (check_var('ARCH', 'x86_64')
+    if (   check_var('ARCH', 'x86_64')
         || check_var('ARCH', 'i686')
         || check_var('ARCH', 'i586'))
     {
