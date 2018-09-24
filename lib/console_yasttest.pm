@@ -9,10 +9,13 @@ use utils 'show_tasks_in_blocked_state';
 sub post_fail_hook {
     my $self = shift;
 
-    show_tasks_in_blocked_state;
+    my $defer_blocked_task_info = testapi::is_serial_terminal();
+    show_tasks_in_blocked_state unless ($defer_blocked_task_info);
 
     select_console 'log-console';
     save_screenshot;
+
+    show_tasks_in_blocked_state if ($defer_blocked_task_info);
 
     upload_logs('/var/log/zypper.log');
     $self->remount_tmp_if_ro;
