@@ -29,7 +29,16 @@ sub prepare_os {
     }
 
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        zypper_call('in python-ec2uploadimg aws-cli');
+        if (is_sle) {
+            # disable Cloud_tools for this test
+            zypper_call('rr Cloud_Tools');
+            if (script_run('pip list | grep awscli') == 0) {
+                assert_script_run('pip uninstall -y awscli');
+            }
+            zypper_call('ref');
+            zypper_call('in aws-cli');
+        }
+        zypper_call('in python-ec2uploadimg');
         assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
@@ -74,9 +83,9 @@ sub run {
     my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
 
-    if (my $img = $provider->find_img($img_name)) {
+    if (my $img_id = $provider->find_img($img_name)) {
         record_info("Image $img_name already exists!");
-        set_var('PUBLIC_CLOUD_IMAGE_ID', $img_name);
+        set_var('PUBLIC_CLOUD_IMAGE_ID', $img_id);
         return;
     }
 
