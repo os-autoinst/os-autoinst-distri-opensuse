@@ -22,7 +22,7 @@ sub run {
     $self->start_firefox_with_profile;
 
     send_key "ctrl-shift-a";
-    assert_and_click('firefox-plugins-tabicon');
+    assert_and_click('firefox-addons-plugins');
     assert_screen [qw(firefox-gnomeshell-default firefox-plugins-missing)], 60;
     if (match_has_tag('firefox-plugins-missing')) {
         record_soft_failure 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
