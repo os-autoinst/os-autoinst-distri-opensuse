@@ -21,6 +21,7 @@ our @EXPORT = qw(
   install_chromium
   enable_selenium_port
   selenium_driver
+  find_element
   wait_for_page_to_load
   wait_for_link
   wait_for_text
@@ -162,7 +163,20 @@ sub wait_for_page_to_load {
     }, timeout => $timeout;
 }
 
-sub wait_for {
+# Highlight element and make screenshot
+sub flash {
+    my $element = shift;
+    $driver->execute_script("arguments[0].scrollIntoView(false);",                              $element);
+    $driver->execute_script("arguments[0].setAttribute('style', 'border: 2px solid yellow;');", $element);
+    sleep 1;    # delay to apply the style
+    save_screenshot;
+    sleep 0.5;    # delay to save screenshot
+    $driver->execute_script("arguments[0].setAttribute('style', null);", $element);
+}
+
+# Wrapper for $driver->find_element with additional text type
+# https://metacpan.org/pod/Selenium::Remote::Driver#find_element
+sub find_element {
     my ($type, $target, @args) = @_;
     my %args = (
         -tries              => 5,
@@ -170,52 +184,49 @@ sub wait_for {
         -reload_after_tries => 5,
         @args
     );
+    diag "Looking by ${type} for ${target}";
 
-    die 'Unknown wait type' unless grep(/$type/, qw(text link xpath));
-    diag "waiting for ${type}: ${target}";
-    my $i = 0;
-    while ($i < $args{-tries}) {
-        save_screenshot;
-        my $element;
+    # Find element
+    my $find_by = "find_element_by_$type";
+    my $element;
+    for my $i (1 .. $args{-tries}) {
         if ($type eq 'text') {
-            return 1 if $driver->get_page_source() =~ /$target/;
+            $element = $driver->get_page_source() =~ /$target/;
+        } else {
+            $element = $driver->$find_by($target);
         }
-        elsif ($type eq 'link') {
-            $element = $driver->find_element_by_partial_link_text($target);
-        }
-        elsif ($type eq 'xpath') {
-            $element = $driver->find_element_by_xpath($target);
-        }
+        diag "last: $i, $args{-tries}";
+        last if $element || $i == $args{-tries};
 
-        if ($element) {
-            $driver->execute_script("arguments[0].scrollIntoView(false);", $element);
-            sleep 1;
-            save_screenshot;
-            return $element;
-        }
-        if (($i > 0) && ($i % $args{-reload_after_tries} == 0)) {
-            print "reload\n";
+        if ($i % $args{-reload_after_tries} == 0) {
+            diag "Reloading after $i tries";
             $driver->refresh();
             wait_for_page_to_load;
         }
+        diag "Sleep #$i for $args{-wait}";
         sleep $args{-wait};
-        $i++;
     }
-    print $driver->get_page_source();
-    die "$target not found on the page";
+
+    # Return element or die
+    if ($element) {
+        flash($element) unless $type eq 'text';
+        return $element;
+    } else {
+        print $driver->get_page_source();
+        die "$target not found on the page";
+    }
 }
 
 sub wait_for_link {
-    return wait_for('link', @_);
+    return find_element('partial_link_text', @_);
 }
 
-
 sub wait_for_text {
-    return wait_for('text', @_);
+    return find_element('text', @_);
 }
 
 sub wait_for_xpath {
-    return wait_for('xpath', @_);
+    return find_element('xpath', @_);
 }
 
 sub select_input {
