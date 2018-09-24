@@ -20,9 +20,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string "opensuse.org\n";
+    $self->firefox_open_url('opensuse.org');
     assert_screen('firefox-developertool-opensuse', 90);
     send_key "ctrl-shift-i";
     assert_screen('firefox-developertool-gerneral', 30);

@@ -19,12 +19,9 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
+    $self->firefox_open_url('https://build.suse.de');
 
-    send_key "esc";
-    send_key "alt-d";
-    type_string "https://build.suse.de\n";
-
-    check_screen('firefox-ssl-untrusted', 60);
+    assert_screen 'firefox-ssl-untrusted';
 
     send_key "tab";
     send_key "ret";
@@ -71,8 +68,7 @@ sub run {
     wait_screen_change { send_key "esc" };
     send_key "ctrl-w";
 
-    send_key "alt-d";
-    type_string "https://www.hongkongpost.gov.hk\n";
+    $self->firefox_open_url('https://www.hongkongpost.gov.hk');
     assert_screen('firefox-ssl-connection_untrusted', 90);
 
     # Exit

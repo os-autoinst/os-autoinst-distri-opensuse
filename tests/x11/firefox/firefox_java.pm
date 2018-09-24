@@ -21,9 +21,8 @@ sub java_testing {
 
     send_key "ctrl-t";
     assert_screen 'firefox-new-tab';
-    send_key "alt-d";
-    type_string "http://www.java.com/en/download/installed.jsp?detect=jre\n";
 
+    $self->firefox_open_url('http://www.java.com/en/download/installed.jsp?detect=jre');
     wait_still_screen 3;
     if (check_screen('oracle-cookies-handling')) {
         assert_and_click('oracle-function-cookies');
