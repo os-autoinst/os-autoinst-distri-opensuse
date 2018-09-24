@@ -14,6 +14,7 @@
 use strict;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -26,8 +27,23 @@ sub run {
     assert_and_click "firefox-extensions";
     assert_and_click "firefox-searchall-addon";
     type_string "flagfox\n";
-    assert_and_click('firefox-extensions-flagfox', 'right');
-    assert_and_click('firefox-extensions-flagfox_install');
+    if (is_sle('15+')) {
+        assert_and_click('firefox-extensions-flagfox');
+        assert_and_click('firefox-extensions-add-to-firefox');
+        assert_and_click('firefox-extensions-confirm-add');
+        # close the flagfox relase notes tab
+        wait_still_screen 3;
+        save_screenshot;
+        send_key 'ctrl-w';
+        # close the flagfox search tab
+        send_key 'ctrl-w';
+    }
+    else {
+        assert_and_click('firefox-extensions-flagfox', 'right');
+        assert_and_click('firefox-extensions-flagfox_install');
+    }
+    # refresh the page to see addon buttons
+    send_key 'f5' if is_sle('15+');
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";

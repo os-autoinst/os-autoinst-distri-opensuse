@@ -1759,10 +1759,12 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_localfiles";
     loadtest "x11/firefox/firefox_headers";
     loadtest "x11/firefox/firefox_pdf";
-    loadtest "x11/firefox/firefox_health";
+    # firefox health was removed in 59 https://techdows.com/2017/11/firefox-59-mozilla-removes-firefox-health-report.html
+    loadtest "x11/firefox/firefox_health" if is_sle('<15');
     loadtest "x11/firefox/firefox_pagesaving";
     loadtest "x11/firefox/firefox_private";
-    loadtest "x11/firefox/firefox_mhtml";
+    # could not find UnMHT addon, home page is dead http://www.unmht.org/unmht/en_index.html
+    loadtest "x11/firefox/firefox_mhtml" if is_sle('<15');
     loadtest "x11/firefox/firefox_extensions";
     loadtest "x11/firefox/firefox_appearance";
     loadtest "x11/firefox/firefox_passwd";
@@ -1770,9 +1772,11 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_developertool";
     loadtest "x11/firefox/firefox_rss";
     loadtest "x11/firefox/firefox_ssl";
-    loadtest "x11/firefox/firefox_emaillink";
+    # evolution is not installed without WE addon
+    loadtest "x11/firefox/firefox_emaillink" if (get_var('MRU_ADDONS') || get_var('HDD_1')) =~ /we/;
     loadtest "x11/firefox/firefox_plugins";
-    loadtest "x11/firefox/firefox_java";
+    # IcedTea-Web plugin package is present in 12 SP3 and higher
+    loadtest "x11/firefox/firefox_java" if is_sle('>12-sp2');
     loadtest "x11/firefox/firefox_extcontent";
     loadtest "x11/firefox/firefox_gnomeshell";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
