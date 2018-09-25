@@ -32,7 +32,8 @@ sub run {
     assert_and_click('firefox-mhtml-unmht');
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "spc";
-    if (is_sle('=12-sp2') || is_sle('=12-sp3')) {
+    # mhtml is not running on SLE15+
+    if (is_sle('12-sp2+')) {
         assert_and_click('unmht_restart_now');
     }
     wait_still_screen 3;
