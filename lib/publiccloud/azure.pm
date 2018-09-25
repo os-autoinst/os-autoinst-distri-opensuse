@@ -25,7 +25,17 @@ sub init {
           . $self->key_secret . ' -t ' . $self->tenantid);
 }
 
-sub find_img {
+sub filename_to_resgroup {
+    my ($self, $name) = @_;
+
+    ($name) = $name =~ m/([^\/]+)$/;
+    $name =~ s/\.xz$//;
+    $name =~ s/\.vhdfixed$/.vhd/;
+    $name = $self->prefix . "-" . $name;
+    return $name;
+}
+
+sub find_resgroup {
     my ($self, $name) = @_;
 
     my $jgroups = decode_json(script_output("az group list"));
@@ -35,6 +45,19 @@ sub find_img {
         }
     }
 
+    return;
+}
+
+sub find_img {
+    my ($self, $name) = @_;
+
+    $name = $self->filename_to_resgroup($name);
+    return unless $self->find_resgroup($name);
+
+    my $images = decode_json(script_output("az image list --resource-group '$name'"));
+
+    #retrives the first image of the resource group
+    return $images->[0]->{name} if (@{$images});
     return;
 }
 
@@ -50,7 +73,7 @@ sub upload_img {
     my ($img_name) = $file =~ /([^\/]+)$/;
     $img_name =~ s/\.vhdfixed/.vhd/;
 
-    my $group     = $self->prefix . "-" . $img_name;
+    my $group     = $self->filename_to_resgroup($file);
     my $acc       = $self->prefix . "-" . $suffix;
     my $container = $self->prefix . "-" . $suffix;
     my $disk_name = $self->prefix . "-" . $suffix;
@@ -78,7 +101,7 @@ sub upload_img {
 
     assert_script_run("az storage blob upload --max-connections 4 "
           . "--account-name $acc --account-key $key --container-name $container "
-          . "--type page --file '$file' --name $img_name", timeout => 60 * 90);
+          . "--type page --file '$file' --name $img_name", timeout => 60 * 60 * 2);
     assert_script_run("az disk create --resource-group $group --name $disk_name "
           . "--source https://$acc.blob.core.windows.net/$container/$img_name");
 
