@@ -15,7 +15,25 @@ use base "console_yasttest";
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle);
+use registration 'add_suseconnect_product';
 
+sub open_firewall_port {
+    # open port in firewall if it is enabled and check network interfaces, check long text by send key right.
+    assert_screen [qw(yast2_vnc_open_port_firewall yast2_vnc_firewall_port_closed)];
+    if (match_has_tag 'yast2_vnc_open_port_firewall' && (is_sle('<15') || is_leap('<15.0'))) {
+        send_key 'alt-p';
+        send_key 'alt-d';
+        assert_screen 'yast2_vnc_firewall_port_details';
+        send_key 'alt-e';
+        for (1 .. 5) { send_key 'right'; }
+        send_key 'alt-a';
+        send_key 'alt-o';
+    }
+    elsif (match_has_tag 'yast2_vnc_firewall_port_closed') {
+        send_key 'alt-f';    # Open port
+        assert_screen 'yast2_vnc_firewall_port_open';
+    }
+}
 
 sub run {
     my $self = shift;
@@ -27,8 +45,11 @@ sub run {
     # install components to test plus dependencies for checking
     my $packages = 'vncmanager xorg-x11';
     # netstat is deprecated in newer versions, use 'ss' instead
-    my $use_nettools = is_sle('<15') || is_leap('<15.0');
-    $packages .= ' net-tools' if $use_nettools;
+    my $older_products = is_sle('<15') || is_leap('<15.0');
+    $packages .= ' net-tools' if $older_products;
+    if (check_var('ARCH', 's390x') && !$older_products) {
+        add_suseconnect_product('sle-module-desktop-applications', undef, undef, undef, 180);
+    }
     zypper_call("in $packages");
 
     # start Remote Administration configuration
@@ -36,34 +57,20 @@ sub run {
 
     # check Remote Administration VNC got started
     assert_screen 'yast2_vnc_remote_administration';
-    # enable remote administration
-    send_key 'alt-a';
-    if (is_sle('<15') || is_leap('<15.0')) {
-        # open port in firewall if it is eanbaled and check network interfaces, check long text by send key right.
-        if (check_screen 'yast2_vnc_open_port_firewall', 30) {
-            send_key 'alt-p';
-            send_key 'alt-d';
-            assert_screen 'yast2_vnc_firewall_port_details';
-            send_key 'alt-e';
-            for (1 .. 5) { send_key 'right'; }
-            send_key 'alt-a';
-            send_key 'alt-o';
-        }
-        send_key 'alt-o';    # ok
+
+    unless (check_var('ARCH', 's390x')) {
+        send_key 'alt-a';    # enable remote administration
+        open_firewall_port;
     }
-    else {
-        assert_screen 'yast2_vnc_firewall_port_closed';
-        send_key 'alt-f';    # Open port
-        assert_screen 'yast2_vnc_firewall_port_open';
-        send_key 'alt-n';    # next
-    }
+    send_key($older_products ? $cmd{ok} : $cmd{next});
     # confirm with OK for Warning dialogue
     assert_screen 'yast2_vnc_warning_text';
     send_key 'alt-o';
     wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
+    return if check_var('ARCH', 's390x');    # exit here as port is already open for s390x
 
     # Check service listening
-    my $cmd_check_port = $use_nettools ? 'netstat' : 'ss' . ' -tln | grep -E LISTEN.*:5901';
+    my $cmd_check_port = $older_products ? 'netstat' : 'ss' . ' -tln | grep -E LISTEN.*:5901';
     if (script_run($cmd_check_port)) {
         record_soft_failure 'boo#1088646 - service vncmanager is not started automatically';
         systemctl('status vncmanager', expect_false => 1);
@@ -83,4 +90,5 @@ sub run {
         }
     }
 }
+
 1;

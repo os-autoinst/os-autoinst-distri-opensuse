@@ -124,11 +124,11 @@ sub scc_version {
 Wrapper for SUSEConnect -p $name.
 =cut
 sub add_suseconnect_product {
-    my ($name, $version, $arch, $params) = @_;
+    my ($name, $version, $arch, $params, $timeout) = @_;
     $version //= scc_version();
     $arch    //= get_required_var('ARCH');
     $params  //= '';
-    assert_script_run("SUSEConnect -p $name/$version/$arch $params");
+    assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
 }
 
 =head2 remove_suseconnect_product
