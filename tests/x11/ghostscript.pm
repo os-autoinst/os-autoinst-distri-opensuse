@@ -32,6 +32,14 @@ sub run {
     # special case for gv which is not installed on all flavors
     my $gv_missing = zypper_call("in gv", exitcode => [0, 104]);
 
+    # Remove known failing test file poo#41393/bsc#1109788
+    my $excluded_file = "/usr/share/ghostscript/9.25/examples/transparency_example.ps";
+    my $file_status   = script_run("ls $excluded_file");
+    unless ($file_status) {
+        record_soft_failure("bsc#1109788");
+        assert_script_run("rm $excluded_file");
+    }
+
     # exit root shell
     type_string "exit\n";
 
