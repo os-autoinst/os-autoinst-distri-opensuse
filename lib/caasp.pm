@@ -215,8 +215,14 @@ sub trup_install {
     assert_script_run("rpm -q $input");
 }
 
+# Get current job id
+sub get_current_job {
+    my $name = get_required_var('NAME');
+    return int(substr($name, 0, 8));
+}
+
 sub get_controller_job {
-    die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'controller';
+    return get_current_job if check_var('STACK_ROLE', 'controller');
 
     my $parents = get_parents();
     for my $job_id (@$parents) {
@@ -228,19 +234,11 @@ sub get_controller_job {
 
 # Get list of jobs in cluster
 sub get_cluster_jobs {
-    my @cluster_jobs;
-    if (check_var 'STACK_ROLE', 'controller') {
-        my $children = get_children();
-        @cluster_jobs = keys %$children;
-    }
-    else {
-        @cluster_jobs = @{get_job_info(get_controller_job)->{children}->{Parallel}};
-    }
-    return @cluster_jobs;
+    return @{get_job_info(get_controller_job)->{children}->{Parallel}};
 }
 
 sub get_admin_job {
-    die "Don't know how to find current job id" if check_var 'STACK_ROLE', 'admin';
+    return get_current_job if check_var('STACK_ROLE', 'admin');
 
     my @cluster_jobs = get_cluster_jobs;
     for my $job_id (@cluster_jobs) {
@@ -269,20 +267,30 @@ sub get_delayed {
     return $count;
 }
 
+
+# Return update repository without parameters
+# Optional filter for update type [qam|fake|dup]
 sub update_scheduled {
+    my $type = shift;
+
     # Don't update MicroOS tests
     return 0 unless get_var('STACK_ROLE');
-
     # Don't update staging
     return 0 if get_var('FLAVOR') =~ /Staging-?-DVD/;
 
-    # Return update repository if it's set on controller node
-    if (check_var('STACK_ROLE', 'controller')) {
-        return get_var('INCIDENT_REPO');
+    # Find update repository on controller node
+    my $repo = get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
+
+    # Filter for update types
+    return $repo unless $type;
+    return $repo =~ 'Maintenance' if $type eq 'qam';
+    return $repo =~ 'TestUpdate'  if $type eq 'fake';
+    if ($type eq 'dup') {
+        my $extracted_iso = get_var('REPO_0');
+        return 0 unless $extracted_iso;
+        return $repo =~ $extracted_iso;
     }
-    else {
-        return get_job_info(get_controller_job)->{settings}->{INCIDENT_REPO};
-    }
+    die "Unrecognized type: '$type'";
 }
 
 # Repeat command until expected result or timeout

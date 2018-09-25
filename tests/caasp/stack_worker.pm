@@ -18,6 +18,11 @@ use autotest 'query_isotovideo';
 use caasp;
 
 sub run {
+    # Enable salt debug
+    if (get_var('DEBUG_SLEEP') && !get_var('AUTOYAST')) {
+        script_run 'echo "log_level: trace" >> /etc/salt/minion';
+        script_run 'systemctl restart salt-minion';
+    }
     # Notify others that installation finished
     if (get_var 'DELAYED') {
         barrier_wait 'DELAYED_NODES_ONLINE';

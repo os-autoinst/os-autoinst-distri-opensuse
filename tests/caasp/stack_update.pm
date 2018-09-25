@@ -34,6 +34,7 @@ sub orchestrate_velum_reboot {
 
     # Update admin node (~160s for admin reboot)
     assert_and_click 'velum-update-admin';
+    wait_still_screen 3;
     assert_and_click 'velum-update-reboot';
 
     # Update all nodes - this part takes long time (~2 minutes per node)
@@ -57,7 +58,13 @@ sub orchestrate_velum_reboot {
     assert_and_click "velum-update-all";
 
     # 5 minutes per node
-    assert_screen 'velum-bootstrap-done', $n * 300;
+    my @tags = qw(velum-retry velum-bootstrap-done);
+    assert_screen \@tags, $n * 300;
+    if (match_has_tag 'velum-retry') {
+        record_soft_failure 'bsc#000000 - Should have passed first time';
+        assert_and_click 'velum-retry';
+        assert_screen 'velum-bootstrap-done', $n * 300;
+    }
     die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
 }
 
@@ -83,9 +90,14 @@ sub update_check_changes {
 }
 
 # ./update.sh -s will set up repositories
-sub update_setup_repo {
+sub update_setup_repos {
     record_info 'Repo', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
+
+    # Deregister before distribution update
+    if (update_scheduled 'dup') {
+        script_assert0 "ssh $admin_fqdn './update.sh -s dup' | tee /dev/$serialdev", 120;
+    }
 
     # Add UPDATE repository
     my $repo = update_scheduled;
@@ -93,7 +105,7 @@ sub update_setup_repo {
 }
 
 # ./update.sh -n will install new package (QAM) if any
-sub install_new_package {
+sub install_new_packages {
     record_info "New Package", "This maintenance incident includes a NEW package";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -n' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
@@ -111,6 +123,9 @@ sub install_new_package {
 
 # ./update.sh -t will decide if it makes sense to run update_perform_update
 sub is_needed {
+    # Always needed for QA scenarios
+    return 1 unless is_caasp('qam');
+
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -t' | tee /dev/$serialdev", 120);
     if ($returnCode == 110) {
         record_info 'Skip Update', 'This maintenance incident was just one single new package';
@@ -120,7 +135,7 @@ sub is_needed {
 }
 
 # ./update.sh -u will install missing packages (QAM)
-sub update_install_packages {
+sub install_missing_packages {
     record_info 'Prepare', 'Install packages that are not part of the DVD but they are part of this incident';
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
@@ -139,33 +154,25 @@ sub update_install_packages {
 # ./update.sh -u will perform actual update
 sub update_perform_update {
     record_info 'Update', 'Apply the update using transactional update via salt and docker';
-    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev", 1200);
-    if ($returnCode == 100) {
-        orchestrate_velum_reboot;
-    }
-    elsif ($returnCode == 0) {
-        record_info 'Skip Update', 'This maintenance incident was just one single new package';
-    }
-    else {
-        die "Package installation failed";
-    }
+    switch_to 'xterm';
+    my $ret = script_run0("ssh $admin_fqdn './update.sh -u' | tee /dev/$serialdev", 1500);
+    $ret == 100 ? orchestrate_velum_reboot : die('Update process failed');
 }
 
 sub run {
     # update.sh -s $repo
-    update_setup_repo;
+    update_setup_repos;
 
-    # update.sh -n
-    install_new_package if is_caasp('qam');
-
-    # update.sh -i
-    update_install_packages if is_caasp('qam');
+    if (is_caasp 'qam') {
+        install_new_packages;        # update.sh -n
+        install_missing_packages;    # update.sh -i
+    }
 
     # update.sh -u
     update_perform_update if is_needed();
 
     # update.sh -c
-    update_check_changes;
+    update_check_changes if update_scheduled('fake');
 }
 
 1;

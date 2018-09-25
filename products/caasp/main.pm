@@ -129,6 +129,12 @@ sub load_feature_tests {
     loadtest 'caasp/transactional_update';
     loadtest 'caasp/rebootmgr';
 
+    # Tests that require registered system
+    if (get_var 'REGISTER') {
+        loadtest 'caasp/register_and_check';
+        loadtest 'caasp/register_toolchain' if is_caasp('3.0+');
+    }
+
     # Journal errors
     loadtest 'caasp/journal_check';
 
@@ -149,6 +155,9 @@ sub load_feature_tests {
 
 sub load_stack_tests {
     if (check_var 'STACK_ROLE', 'controller') {
+        if (update_scheduled 'dup') {
+            loadtest 'caasp/shift_version', name => 'ver=dec';
+        }
         loadtest 'caasp/stack_initialize';
         loadtest 'caasp/stack_configure';
         loadtest 'caasp/stack_bootstrap';
@@ -159,6 +168,9 @@ sub load_stack_tests {
         else {
             loadtest 'caasp/stack_reboot';
         }
+        if (update_scheduled 'dup') {
+            loadtest 'caasp/shift_version', name => 'ver=inc';
+        }
         loadtest 'caasp/stack_add_remove' if get_delayed;
         unless (is_caasp('staging') || is_caasp('local')) {
             loadtest 'caasp/stack_conformance';
@@ -167,7 +179,8 @@ sub load_stack_tests {
         loadtest 'caasp/stack_finalize';
     }
     else {
-        loadtest "caasp/stack_" . get_var('STACK_ROLE');
+        loadtest 'caasp/stack_' . get_var('STACK_ROLE');
+        loadtest 'caasp/register_and_check' if is_caasp('qam');
     }
 }
 
@@ -202,6 +215,9 @@ if (get_var('STACK_ROLE')) {
         loadtest "support_server/setup";
     }
     else {
+        if (update_scheduled 'dup') {
+            loadtest 'caasp/shift_version', name => 'ver=dec';
+        }
         load_caasp_boot_tests;
         load_caasp_inst_tests if is_caasp('DVD');
         loadtest 'caasp/first_boot';
@@ -222,14 +238,7 @@ else {
     loadtest 'caasp/first_boot';
 }
 
-# ==== Extra tests run after installation  ====
-# REGISTER = 'suseconnect' -> Registers with SCC after the installation
-# REGISTER = 'installation' -> Registers with SCC during the installation
-if (get_var('REGISTER') && !check_var('STACK_ROLE', 'controller')) {
-    loadtest 'caasp/register_and_check';
-    loadtest 'caasp/register_toolchain' unless is_caasp('qam');
-}
-
+# MicroOS feature tests
 if (get_var('EXTRA', '') =~ /FEATURES/) {
     load_feature_tests;
 }

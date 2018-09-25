@@ -30,6 +30,12 @@ sub set_autoyast_password {
 sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
     script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 15;
+    # Enable salt debug
+    if (get_var 'DEBUG_SLEEP') {
+        script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
+        script_run 'echo "log_level: trace" > /etc/caasp/salt-master-custom.conf';
+        script_run 'docker restart $id';
+    }
     unpause 'VELUM_STARTED';
 
     # Download update script
