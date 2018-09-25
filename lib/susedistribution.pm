@@ -276,6 +276,7 @@ sub ensure_installed {
         die "pkcon install did not succeed, return code: $ret";
     }
     send_key("alt-f4");    # close xterm
+    assert_screen('generic-desktop');
 }
 
 sub script_sudo($$) {
