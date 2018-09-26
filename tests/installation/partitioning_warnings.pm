@@ -24,7 +24,7 @@ use warnings;
 use base 'y2logsstep';
 use testapi;
 use partition_setup qw(create_new_partition_table addpart addboot);
-use version_utils 'is_storage_ng';
+use version_utils qw(is_opensuse is_storage_ng);
 
 sub process_warning {
     my (%args) = @_;
@@ -100,7 +100,7 @@ sub run {
     }
     # create small enough partition (11GB) to get warning for enabled snapshots
     # on storage-ng snaphots are disabled as per proposal when partition is to small, so enable to check the warning
-    addpart(role => 'OS', size => 11000, format => 'btrfs', enable_snapshots => is_storage_ng);
+    addpart(role => 'OS', size => (is_opensuse) ? 9000 : 11000, format => 'btrfs', enable_snapshots => is_storage_ng);
 
     # In storage-ng we get this warning when adding/editing partition
     if (is_storage_ng) {
@@ -153,17 +153,18 @@ sub run {
         process_warning(warning => 'no-space-for-kernel', key => 'alt-o');
         remove_partition;
 
-        ## Add wrong or small boot partition
+        ## Add boot partition ID with under limit boot partition size
         foreach (keys %roles) {
             addpart(role => $roles{$_}{role}, size => $roles{$_}{size}, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
             send_key $cmd{accept};
             record_info("Test: $_", "Wrong partition ID or boot partition is too small");
             process_missing_special_partitions;
+            send_key 'end';
+            remove_partition;
         }
 
-        ## Clean up partitions
-        remove_partition for (0 .. 4);
-
+        ## Clean up previously added root
+        remove_partition;
         ## Add proper boot partition, so we can see other warnings clearly
         addboot;
         ## Rootfs should be >= than 3 GiB
@@ -178,6 +179,7 @@ sub run {
     else {
         ## Clean up previous root
         remove_partition;
+        addboot if get_var('UEFI');
         addpart(role => 'swap', size => 500);
     }
 
