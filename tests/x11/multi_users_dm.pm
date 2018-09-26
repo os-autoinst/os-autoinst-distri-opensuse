@@ -74,6 +74,8 @@ sub run {
         send_key 'ctrl-a';
         type_string "$user\n";
     }
+    # Make sure screen changed before calling handle_login function (for slow workers)
+    wait_still_screen;
     handle_login($user, 1);
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
