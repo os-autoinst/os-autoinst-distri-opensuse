@@ -48,9 +48,22 @@ our @EXPORT = qw(
   set_framebuffer_resolution
   set_extrabootparams_grub_conf
   ensure_shim_import
+  GRUB_CFG_FILE
+  GRUB_DEFAULT_FILE
+  add_grub_cmdline_settings
+  change_grub_config
+  get_cmdline_var
+  grep_grub_cmdline_settings
+  grep_grub_settings
+  grub_mkconfig
+  remove_grub_cmdline_settings
+  replace_grub_cmdline_settings
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
+
+use constant GRUB_CFG_FILE     => "/boot/grub2/grub.cfg";
+use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
@@ -88,10 +101,9 @@ sub add_custom_grub_entries {
     my $script_new     = "/etc/grub.d/11_linux_openqa";
     my $script_old_esc = $script_old =~ s~/~\\/~rg;
     my $script_new_esc = $script_new =~ s~/~\\/~rg;
-    my $cfg_new        = '/boot/grub2/grub.cfg';
     my $cfg_old        = 'grub.cfg.old';
 
-    assert_script_run("cp $cfg_new $cfg_old");
+    assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old");
     upload_logs($cfg_old, failok => 1);
 
     assert_script_run('cp /etc/grub.d/40_custom 40_custom.tmp');
@@ -104,18 +116,18 @@ sub add_custom_grub_entries {
     $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' $script_new";
     assert_script_run($cmd);
     upload_logs($script_new, failok => 1);
-    assert_script_run("grub2-mkconfig -o $cfg_new");
-    upload_logs($cfg_new, failok => 1);
+    grub_mkconfig;
+    upload_logs(GRUB_CFG_FILE, failok => 1);
 
     my $distro      = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
     my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
-    my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' $cfg_new";
+    my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' " . GRUB_CFG_FILE;
     my $cnt_old     = script_output("$section_old | grep -c 'menuentry .$distro'");
     my $cnt_new     = script_output("$section_new | grep -c 'menuentry .$distro'");
     die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
-    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' $cfg_new");
+    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
     die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
-    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' $cfg_new");
+    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' " . GRUB_CFG_FILE);
     die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
 }
 
@@ -782,20 +794,14 @@ sub set_framebuffer_resolution {
     else {
         return;
     }
-    if ($video) {
-        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
-        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
-        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $video \"/' /etc/default/grub");
-    }
+    add_grub_cmdline_settings($video) if ($video);
 }
 
 # Add content of EXTRABOOTPARAMS to /etc/default/grub. Don't forget to run grub2-mkconfig
 # in test code afterwards.
 sub set_extrabootparams_grub_conf {
     if (my $extrabootparams = get_var('EXTRABOOTPARAMS')) {
-        # On JeOS we have GRUB_CMDLINE_LINUX, on CaaSP we have GRUB_CMDLINE_LINUX_DEFAULT.
-        my $grub_cmdline_label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
-        assert_script_run("sed -ie '/${grub_cmdline_label}=/s/\"\$/ $extrabootparams \"/' /etc/default/grub");
+        add_grub_cmdline_settings($extrabootparams);
     }
 }
 
@@ -807,6 +813,106 @@ sub ensure_shim_import {
         send_key "down";
         send_key "ret";
     }
+}
+
+=head2 grep_grub_settings
+
+    grep_grub_settings($pattern)
+
+Search for C<$pattern> in /etc/default/grub, return 1 if found.
+=cut
+sub grep_grub_settings {
+    die((caller(0))[3] . ' expects 1 arguments') unless @_ == 1;
+    my $pattern = shift;
+    return !script_run("grep \"$pattern\" " . GRUB_DEFAULT_FILE);
+}
+
+=head2 grep_grub_cmdline_settings
+
+    grep_grub_cmdline_settings($pattern)
+
+Search for C<$pattern> in grub cmdline variable (usually
+GRUB_CMDLINE_LINUX_DEFAULT) in /etc/default/grub, return 1 if found.
+=cut
+sub grep_grub_cmdline_settings {
+    my $pattern = shift;
+    return grep_grub_settings(get_cmdline_var() . ".*${pattern}");
+}
+
+=head2 change_grub_config
+
+    change_grub_config($old, $new [, $search ] [, $modifiers ]);
+
+Replace $old with $new in /etc/default/grub, using sed.
+C<$search> meant to be for changing only particular line for sed,
+C<$modifiers> for sed replacement, e.g. "g".
+=cut
+sub change_grub_config {
+    die((caller(0))[3] . ' expects from 2 to 4 arguments') unless (@_ >= 2 && @_ <= 4);
+    my ($old, $new, $search, $modifiers) = @_;
+    $search = "/$search/" if defined $search;
+
+    assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+}
+
+=head2 add_grub_cmdline_settings
+
+    add_grub_cmdline_settings($add);
+
+Add $add into /etc/default/grub, using sed.
+=cut
+sub add_grub_cmdline_settings {
+    my $add = shift;
+
+    change_grub_config('"$', " $add\"", get_cmdline_var(), "g");
+}
+
+=head2 replace_grub_cmdline_settings
+
+    replace_grub_cmdline_settings($old, $new);
+
+Replace $old with $new in /etc/default/grub, using sed.
+=cut
+sub replace_grub_cmdline_settings {
+    my ($old, $new) = @_;
+
+    change_grub_config($old, $new, get_cmdline_var(), "g");
+}
+
+=head2 remove_grub_cmdline_settings
+
+    remove_grub_cmdline_settings($remove);
+
+Remove $remove from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
+=cut
+sub remove_grub_cmdline_settings {
+    my $remove = shift;
+    replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', "", "g");
+}
+
+=head2 grub_mkconfig
+
+    grub_mkconfig();
+    grub_mkconfig($config);
+
+Regenerate /boot/grub2/grub.cfg with grub2-mkconfig.
+=cut
+sub grub_mkconfig {
+    my $config = shift;
+    $config //= GRUB_CFG_FILE;
+    assert_script_run("grub2-mkconfig -o $config");
+}
+
+=head2 get_cmdline_var
+
+    get_cmdline_var();
+
+Get default grub cmdline variable:
+GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.
+=cut
+sub get_cmdline_var {
+    my $label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
+    return "^${label}=";
 }
 
 1;
