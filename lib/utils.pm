@@ -406,6 +406,9 @@ sub workaround_type_encrypted_passphrase {
     unlock_if_encrypted;
 }
 
+# Just declare 'handle_login' function as we need it in 'ensure_unlocked_desktop'
+sub handle_login;
+
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
 # all possible options should be handled within loop to get unlocked desktop
@@ -414,11 +417,8 @@ sub ensure_unlocked_desktop {
     while ($counter--) {
         assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
-            if (check_var('DESKTOP', 'minimalx')) {
-                type_string "$username";
-                save_screenshot;
-            }
-            send_key 'ret';
+            # Make use of handle_login when we have the displaymanager, to avoid code duplication
+            handle_login;
         }
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {
