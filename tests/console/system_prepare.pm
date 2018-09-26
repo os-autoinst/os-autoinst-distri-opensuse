@@ -14,6 +14,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use ipmi_backend_utils 'use_ssh_serial_console';
+use bootloader_setup qw(change_grub_config grub_mkconfig);
 use strict;
 
 sub run {
@@ -22,11 +23,11 @@ sub run {
 
     ensure_serialdev_permissions;
 
-    # BSC#997263 - VMware screen resolution defaults to 800x600
+    # bsc#997263 - VMware screen resolution defaults to 800x600
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run("sed -ie '/GFXMODE=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("sed -ie '/GFXPAYLOAD_LINUX=/s/=.*/=1024x768x32/' /etc/default/grub");
-        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+        change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
+        change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
+        grub_mkconfig;
     }
 }
 
