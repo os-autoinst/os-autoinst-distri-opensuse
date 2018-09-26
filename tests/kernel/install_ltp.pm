@@ -17,7 +17,7 @@ use File::Basename 'basename';
 use testapi;
 use registration;
 use utils;
-use bootloader_setup 'add_custom_grub_entries';
+use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
 use power_action_utils 'power_action';
 use serial_terminal qw(add_serial_console select_virtio_console);
@@ -250,6 +250,7 @@ sub run {
     my $self     = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
     my $tag      = get_ltp_tag();
+    my $grub_param;
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
@@ -274,6 +275,12 @@ sub run {
     upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     add_we_repo_if_available;
+
+    $grub_param = 'console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
+    $grub_param = 'console=ttysclp0' if (get_var('ARCH') eq 's390x');
+    if (defined $grub_param) {
+        add_grub_cmdline_settings($grub_param);
+    }
 
     if (is_sle('12+') || is_opensuse) {
         add_custom_grub_entries;
