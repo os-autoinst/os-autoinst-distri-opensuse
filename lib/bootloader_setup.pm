@@ -116,7 +116,7 @@ sub add_custom_grub_entries {
     $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' $script_new";
     assert_script_run($cmd);
     upload_logs($script_new, failok => 1);
-    grub_mkconfig;
+    grub_mkconfig();
     upload_logs(GRUB_CFG_FILE, failok => 1);
 
     my $distro      = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
