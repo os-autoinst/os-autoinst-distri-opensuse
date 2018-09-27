@@ -8,8 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: New test for yast2-dns-server (service management)
-# Maintainer: mgriessmeier <mgriessmeier@suse.de>
+# Summary: Ensure that all combinations of running/stopped and active/inactive can be set for yast2 dns-server
+# Maintainer: jeriveramoya <jeriveramoya@suse.com>
 
 use base qw(console_yasttest y2logsstep);
 use strict;
@@ -18,67 +18,20 @@ use utils;
 use version_utils qw(is_leap is_sle);
 use y2_common 'continue_info_network_manager_default';
 use constant RETRIES => 5;
-use yast2_widget_utils 'change_service_configuration';
-
-# Test "yast2 dhcp-server" functionality
-# Ensure that all combinations of running/stopped and active/inactive
-# can be set
-
-# Assert if the dns service is running or stopped
-sub assert_running {
-    my $self    = shift;
-    my $running = shift;
-    my $cmd     = '(systemctl is-active named || true) | grep -E';
-
-    if ($running) {
-        $cmd .= ' "^active"';
-        my $counter = RETRIES;
-        # Service may take a bit of time to actually start
-        # acceptable behaviour (boo#1093029)
-        while (script_run $cmd) {
-            sleep 5;
-            $counter--;
-            # Service was not started after 25 seconds
-            die 'named service is not active even after 25s delay' if $counter == 0;
-        }
-    }
-    else {
-        $cmd .= ' "^(inactive|unknown)"';
-        record_soft_failure 'bsc#1102235' if (script_run $cmd);
-    }
-}
-
-# Assert if the dns service is enabled or disabled
-sub assert_enabled {
-    my $self    = shift;
-    my $enabled = shift;
-
-    if ($enabled) {
-        systemctl 'is-enabled named';
-    }
-    else {
-        systemctl 'is-enabled named', expect_false => 1;
-    }
-}
+use yast2_widget_utils qw(change_service_configuration verify_service_configuration);
 
 sub run {
     my $self = shift;
 
-    #
     # Preparation
-    #
+    my $older_products = is_sle('<15') || is_leap('<15.1');
+    $cmd{apply_changes} = $older_products ? "alt-a" : "alt-p";
     select_console 'root-console';
+    zypper_call 'in yast2-dns-server bind ' . $self->firewall, timeout => 180;
+    # Pretend this is the 1st execution (could not be the case if yast2_cmdline was executed before)
+    assert_script_run 'rm -f /var/lib/YaST2/dns_server';
 
-    # Make sure packages are installed
-    my $firewall_package = $self->firewall;
-    zypper_call("in yast2-dns-server bind $firewall_package", timeout => 180);
-    # Let's pretend this is the first execution (could not be the case if
-    # yast2_cmdline was executed before)
-    script_run 'rm /var/lib/YaST2/dns_server';
-
-    #
-    # First execution (wizard-like interface)
-    #
+    record_info '1st run',         '[wizard-like interface] -> service active & enabled';
     script_run 'yast2 dns-server', 0;
     continue_info_network_manager_default;
     assert_screen 'yast2-dns-server-step1';
@@ -86,7 +39,7 @@ sub run {
     assert_screen 'yast2-dns-server-step2';
     send_key 'alt-n';
     wait_still_screen(3);
-    if (is_sle('<15') || is_leap('<15.1')) {
+    if ($older_products) {
         assert_screen 'yast2-dns-server-step3';
         # Enable dns server and finish after yast2 loads default settings
         assert_screen 'yast2-dns-server-fw-port-is-closed';
@@ -99,19 +52,20 @@ sub run {
             after_reboot  => {start_on_boot => 'alt-a'}
         );
     }
-    send_key 'alt-f';
-    assert_screen 'root-console';
-    # The wizard-like interface still uses the old approach of always starting the service
-    # while enabling it, so named should be both active and enabled
-    $self->assert_running(1);
-    $self->assert_enabled(1);
+    send_key $cmd{finish};
 
-    #
-    # Second execution (tree-based interface)
-    #
+    # Verify changes in console. Apply changes is not availaible to check in the gui first,
+    # Service may take a bit to actually start -> acceptable behaviour (boo#1093029)
+    assert_screen 'root-console';
+    my $times = RETRIES;
+    ($times-- && sleep 5) while (systemctl('is-active named') == 1 && $times);
+    die 'named service is not active even after waiting 25s' unless $times;
+    systemctl 'is-enabled named';
+
+    record_info '2nd run',         '[tree-based interface] -> service inactive & enabled';
     script_run 'yast2 dns-server', 0;
     continue_info_network_manager_default;
-    if (is_sle('<15') || is_leap('<15.1')) {
+    if ($older_products) {
         assert_screen 'yast2-service-running-enabled';
         # Stop the service
         wait_screen_change { send_key 'alt-s' };
@@ -119,42 +73,40 @@ sub run {
     }
     else {
         change_service_configuration(after_writing => {stop => 'alt-t'});
+        send_key $cmd{apply_changes};
+        verify_service_configuration(status => 'inactive');
     }
-    # Cancel yast2 to check the effect
-    # workaround for single send_key 'alt-c' because it doesn't work.
-    send_key_until_needlematch([qw(root-console yast2-dns-server-quit)], 'alt-c');
-    send_key 'alt-y';
-    assert_screen 'root-console', 180;
-    $self->assert_running(0);
-    $self->assert_enabled(1);
+    send_key $cmd{ok};
+    assert_screen 'root-console';
+    systemctl 'is-active named', expect_false => 1;
+    systemctl 'is-enabled named';
 
-    #
-    # Third execution (tree-based interface)
-    #
+    record_info '3rd run',         '[tree-based interface] -> service active and disabled';
     script_run 'yast2 dns-server', 0;
     continue_info_network_manager_default;
-    if (is_sle('<15') || is_leap('<15.1')) {
+    if ($older_products) {
         assert_screen 'yast2-service-stopped-enabled';
-        # Start the service
-        send_key 'alt-s';
+        send_key 'alt-s';    # Start the service
         assert_screen 'yast2-service-running-enabled';
-        # Disable the service and finish
-        wait_screen_change { send_key 'alt-t' };
+        wait_screen_change { send_key 'alt-t' };    # Disable the service and finish
     }
     else {
-        change_service_configuration(after_reboot => {do_not_start => 'alt-a'});
+        change_service_configuration(
+            after_writing => {start        => 'alt-t'},
+            after_reboot  => {do_not_start => 'alt-a'}
+        );
+        send_key $cmd{apply_changes};
+        verify_service_configuration(status => 'active');
     }
-    send_key 'alt-o';
+    send_key $cmd{ok};
     assert_screen 'root-console', 180;
-    $self->assert_running(1);
-    $self->assert_enabled(0);
+    systemctl 'is-active named';
+    systemctl 'is-enabled named', expect_false => 1;
 
-    #
-    # Fourth execution (tree-based interface)
-    #
+    record_info '4th run',         '[tree-based interface] -> service inactive and disabled';
     script_run 'yast2 dns-server', 0;
     continue_info_network_manager_default;
-    if (is_sle('<15') || is_leap('<15.1')) {
+    if ($older_products) {
         assert_screen 'yast2-service-running-disabled', 90;
         # Stop the service
         send_key 'alt-s';
@@ -162,12 +114,27 @@ sub run {
     }
     else {
         change_service_configuration(after_writing => {stop => 'alt-t'});
+        send_key $cmd{apply_changes};
+        verify_service_configuration(status => 'inactive');    # verify changes in gui first
     }
-    # Finish
-    send_key 'alt-o';
+    send_key $cmd{ok};
     assert_screen 'root-console', 180;
-    $self->assert_running(0);
-    $self->assert_enabled(0);
+    systemctl 'is-active named',  expect_false => 1;
+    systemctl 'is-enabled named', expect_false => 1;
+
+    return if $older_products;                                 # only for new products as cancel do not revert changes in services status
+    record_info '5th run',         '[tree-based interface] -> service in same status than previous run';
+    script_run 'yast2 dns-server', 0;
+    continue_info_network_manager_default;
+    change_service_configuration(
+        after_writing => {start         => 'alt-t'},
+        after_reboot  => {start_on_boot => 'alt-a'}
+    );
+    send_key_until_needlematch([qw(root-console yast2-dns-server-quit)], 'alt-c');    # Cancel to check there is not effect
+    send_key 'alt-y';
+    assert_screen 'root-console';
+    systemctl 'is-active named',  expect_false => 1;
+    systemctl 'is-enabled named', expect_false => 1;
 }
 
 sub post_fail_hook {
