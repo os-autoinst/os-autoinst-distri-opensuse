@@ -15,8 +15,10 @@ package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
 use testapi;
+use Data::Dumper;
 
-has tenantid => undef;
+has tenantid     => undef;
+has subscription => undef;
 
 sub init {
     my ($self) = @_;
@@ -109,6 +111,84 @@ sub upload_img {
           . "--os-type Linux --source='$disk_name'");
 
     return $img_name;
+}
+
+sub ipa {
+    my ($self, %args) = @_;
+
+    $args{instance_type}        //= 'Standard_A2';
+    $args{cleanup}              //= 1;
+    $args{ssh_private_key_file} //= '.ssh/id_rsa';
+    $args{tests}                //= '';
+    $args{timeout}              //= 60 * 20;
+    $args{results_dir}          //= 'ipa_results';
+
+    $args{tests} =~ s/,/ /g;
+
+    if (script_run('test -f ' . $args{ssh_private_key_file}) != 0) {
+        assert_script_run('SSH_DIR=`dirname ' . $args{ssh_private_key_file} . '`; test -d $SSH_DIR || mkdir -p $SSH_DIR');
+        assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ' . $args{ssh_private_key_file});
+    }
+
+    my $credentials_file = 'azure_credentials.txt';
+    my $credentials      = "{" . $/
+      . '"clientId": "' . $self->key_id . '", ' . $/
+      . '"clientSecret": "' . $self->key_secret . '", ' . $/
+      . '"subscriptionId": "' . $self->subscription . '", ' . $/
+      . '"tenantId": "' . $self->tenantid . '", ' . $/
+      . '"activeDirectoryEndpointUrl": "https://login.microsoftonline.com", ' . $/
+      . '"resourceManagerEndpointUrl": "https://management.azure.com/", ' . $/
+      . '"activeDirectoryGraphResourceId": "https://graph.windows.net/", ' . $/
+      . '"sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", ' . $/
+      . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
+      . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
+      . '}';
+
+    save_tmp_file($credentials_file, $credentials);
+    assert_script_run('curl -O ' . autoinst_url . "/files/" . $credentials_file);
+
+    my $cmd = 'ipa --no-color test azure ';
+    $cmd .= '--debug ';
+    $cmd .= '--service-account-file "' . $credentials_file . '" ';
+    $cmd .= '--distro sles ';
+    $cmd .= '--ssh-private-key-file "' . $args{ssh_private_key_file} . '" ';
+    $cmd .= '--region "' . $self->region . '" ';
+    $cmd .= '--results-dir "' . $args{results_dir} . '" ';
+    $cmd .= ($args{cleanup}) ? '--cleanup ' : '--no-cleanup ';
+    $cmd .= '--instance-type "' . $args{instance_type} . '" ';
+    if (exists($args{running_instance_id})) {
+        $cmd .= '--running-instance-id "' . $args{running_instance_id} . '" ';
+    } else {
+        $cmd .= '--image-id "' . $args{image_id} . '" ';
+    }
+    $cmd .= $args{tests};
+
+    my $output = script_output($cmd . ' 2>&1', $args{timeout}, proceed_on_failure => 1);
+    my $ipa = $self->parse_ipa_output($output);
+    die($output) unless (defined($ipa));
+
+    # retrieves username and password for ssh login
+    $ipa->{username} = 'azureuser';
+    $ipa->{ssh_key}  = $args{ssh_private_key_file};
+
+    $self->{running_instances} //= {};
+    if ($args{cleanup}) {
+        delete($self->{running_instances}->{$ipa->{instance_id}});
+    } else {
+        $self->{running_instances}->{$ipa->{instance_id}} = $ipa;
+    }
+
+    return $ipa;
+}
+
+sub cleanup {
+    my ($self) = @_;
+
+    print Dumper($self->{running_instances});
+    for my $i (keys(%{$self->{running_instances}})) {
+        my $instance = $self->{running_instances}->{$i};
+        $self->ipa(cleanup => 1, running_instance_id => $instance->{instance_id});
+    }
 }
 
 1;

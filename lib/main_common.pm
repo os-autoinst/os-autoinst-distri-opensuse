@@ -2081,6 +2081,7 @@ sub load_publiccloud_tests {
     loadtest "publiccloud/prepare_tools" if get_var('PUBLIC_CLOUD_PREPARE_TOOLS');
     loadtest "publiccloud/upload_image"  if get_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     loadtest "publiccloud/ipa"           if get_var('PUBLIC_CLOUD_IPA_TESTS');
+    loadtest 'publiccloud/run_ltp'       if get_var('PUBLIC_CLOUD_LTP');
 }
 
 sub load_common_opensuse_sle_tests {

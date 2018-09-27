@@ -11,7 +11,7 @@
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base "opensusebasetest";
+use base "publiccloud::basetest";
 use strict;
 use testapi;
 use utils;
@@ -43,35 +43,13 @@ sub prepare_os {
     }
 }
 
-sub provider_factory {
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        return publiccloud::ec2->new(
-            key_id     => get_required_var('PUBLIC_CLOUD_KEY_ID'),
-            key_secret => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
-            region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
-        );
-
-    }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-        return publiccloud::azure->new(
-            key_id     => get_required_var('PUBLIC_CLOUD_KEY_ID'),
-            key_secret => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
-            region     => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
-            tenantid   => get_required_var('PUBLIC_CLOUD_TENANT_ID')
-        );
-    }
-    else {
-        die('Unknown PUBLIC_CLOUD_PROVIDER given');
-    }
-}
-
 sub run {
     my ($self) = @_;
     select_virtio_console();
 
     prepare_os();
 
-    my $provider = $self->{provider} = provider_factory();
+    my $provider = $self->{provider} = $self->provider_factory();
     $provider->init;
 
     my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');

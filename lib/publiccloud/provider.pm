@@ -60,5 +60,48 @@ This method is called called after each test on failure or success.
 sub cleanup {
 }
 
+=head2 parse_ipa_output
+
+Parse the output from ipa command and retrieves instance-id, ip and logfile names.
+
+=cut
+sub parse_ipa_output {
+    my ($self, $output) = @_;
+    my $ret = {};
+    my $instance_id;
+    my $ip;
+
+    for my $line (split(/\r?\n/, $output)) {
+        if ($line =~ m/^ID of instance: (\S+)$/) {
+            $ret->{instance_id} = $1;
+        }
+        elsif ($line =~ m/^Terminating instance (\S+)$/) {
+            $ret->{instance_id} = $1;
+        }
+        elsif ($line =~ m/^IP of instance: (\S+)$/) {
+            $ret->{ip} = $1;
+        }
+        elsif ($line =~ m/^Created log file (\S+)$/) {
+            $ret->{logfile} = $1;
+        }
+        elsif ($line =~ m/^Created results file (\S+)$/) {
+            $ret->{results} = $1;
+        }
+        elsif ($line =~ m/tests=(\d+)\|pass=(\d+)\|skip=(\d+)\|fail=(\d+)\|error=(\d+)/) {
+            $ret->{tests} = $1;
+            $ret->{pass}  = $2;
+            $ret->{skip}  = $3;
+            $ret->{fail}  = $4;
+            $ret->{error} = $5;
+        }
+    }
+
+    for my $k (qw(instance_id ip logfile results tests pass skip fail error)) {
+        return unless (exists($ret->{$k}));
+    }
+    return $ret;
+}
+
+
 1;
 
