@@ -39,6 +39,7 @@ our @EXPORT = qw(
   fully_patch_system
   minimal_patch_system
   workaround_type_encrypted_passphrase
+  select_user_gnome
   ensure_unlocked_desktop
   install_to_other_at_least
   is_bridged_networking
@@ -406,6 +407,20 @@ sub workaround_type_encrypted_passphrase {
     unlock_if_encrypted;
 }
 
+# Handle the case when user is not selected, on gnome
+sub select_user_gnome {
+    my ($myuser) = @_;
+    $myuser //= $username;
+    assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
+    if (match_has_tag('displaymanager-user-notselected')) {
+        assert_and_click "displaymanager-$myuser";
+        record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
+    }
+    elsif (match_has_tag('displaymanager-user-selected')) {
+        send_key 'ret';
+    }
+}
+
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
 # all possible options should be handled within loop to get unlocked desktop
@@ -418,7 +433,13 @@ sub ensure_unlocked_desktop {
                 type_string "$username";
                 save_screenshot;
             }
-            send_key 'ret';
+            # On gnome, user may not be selected and using 'ret' is not enough in this case
+            if (check_var('DESKTOP', 'gnome') && (is_sle('15+') || is_leap('15.0+') || is_tumbleweed)) {
+                select_user_gnome($username);
+            }
+            else {
+                send_key 'ret';
+            }
         }
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {
@@ -694,14 +715,7 @@ sub handle_login {
     elsif (check_var('DESKTOP', 'gnome')) {
         # DMs in condition above have to select user
         if (!$user_selected && (is_sle('15+') || is_leap('15.0+') || is_tumbleweed)) {
-            assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
-            if (match_has_tag('displaymanager-user-notselected')) {
-                assert_and_click "displaymanager-$myuser";
-                record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
-            }
-            elsif (match_has_tag('displaymanager-user-selected')) {
-                send_key 'ret';
-            }
+            select_user_gnome($myuser);
         }
         else {
             send_key 'ret';
