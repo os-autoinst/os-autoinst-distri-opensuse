@@ -198,7 +198,7 @@ sub boot_local_disk {
         }
         if (match_has_tag 'encrypted-disk-password-prompt') {
             # It is possible to show encrypted prompt directly by pressing 'local' boot-menu
-            # Simply return and do enter passphrase operation in cheking block of sub wait_boot
+            # Simply return and do enter passphrase operation in checking block of sub wait_boot
             return;
         }
     }
