@@ -267,6 +267,11 @@ sub run {
     }
     select_virtio_console();
 
+    if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
+        script_run('echo 1 > /sys/module/printk/parameters/time');
+        $grub_param = 'printk.time=1';
+    }
+
     # check kGraft if KGRAFT=1
     if (check_var("KGRAFT", '1')) {
         assert_script_run("uname -v | grep -E '(/kGraft-|/lp-)'");
@@ -276,8 +281,8 @@ sub run {
 
     add_we_repo_if_available;
 
-    $grub_param = 'console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
-    $grub_param = 'console=ttysclp0' if (get_var('ARCH') eq 's390x');
+    $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
+    $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
     if (defined $grub_param) {
         add_grub_cmdline_settings($grub_param);
     }
