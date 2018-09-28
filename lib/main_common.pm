@@ -1304,9 +1304,11 @@ sub load_x11tests {
         loadtest "x11/inkscape";
         loadtest "x11/gimp";
     }
-    if (is_opensuse && !is_staging && !is_livesystem) {
-        loadtest "x11/gnucash";
-        loadtest "x11/hexchat";
+    if (is_opensuse && !is_livesystem) {
+        if (!is_staging) {
+            loadtest "x11/gnucash";
+            loadtest "x11/hexchat";
+        }
         loadtest "x11/vlc";
     }
     # https://progress.opensuse.org/issues/37342
