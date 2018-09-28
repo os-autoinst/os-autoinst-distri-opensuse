@@ -24,6 +24,8 @@ sub run {
     # Avoid blank screen since smt sync needs time
     turn_off_gnome_screensaver;
     become_root;
+    # remove apache2-example-pages to avoid warning message shown during smt test
+    assert_script_run 'rpm -qa apache2-example-pages && rpm -e apache2-example-pages';
     smt_wizard();
     assert_script_run 'smt-sync', 800;
     assert_script_run 'smt-repos';
