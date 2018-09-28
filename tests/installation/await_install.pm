@@ -125,7 +125,7 @@ sub run {
             send_key 'alt-o';    # ok
             next;
         }
-        if (get_var('LIVECD') and match_has_tag('screenlock')) {
+        if (get_var('LIVECD') and match_has_tag('screenlock') and !match_has_tag('blackscreen')) {
             handle_livecd_screenlock;
             $screenlock_previously_detected = 1;
             next;
