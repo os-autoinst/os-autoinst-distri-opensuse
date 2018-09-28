@@ -65,6 +65,12 @@ sub run {
     assert_script_run("touch .config/ipa/config");
     assert_script_run("ipa list");
     assert_script_run("ipa --version");
+
+    # install azure cli
+    zypper_call('in curl');
+    assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
+    zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
+    zypper_call('install --from azure-cli -y azure-cli');
 }
 
 sub test_flags {

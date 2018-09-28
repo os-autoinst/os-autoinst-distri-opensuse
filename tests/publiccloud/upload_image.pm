@@ -41,12 +41,6 @@ sub prepare_os {
         zypper_call('in python-ec2uploadimg');
         assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-        zypper_call('in curl');
-        assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
-        zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
-        zypper_call('install --from azure-cli -y azure-cli');
-    }
 }
 
 sub provider_factory {
