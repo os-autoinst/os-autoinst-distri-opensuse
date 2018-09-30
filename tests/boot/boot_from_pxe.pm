@@ -43,9 +43,6 @@ sub run {
         $image_path = get_var("HOST_IMG_URL");
     }
     elsif (match_has_tag("qa-net-selection")) {
-        #Nuremberg
-        send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
-
         my $image_name = "";
         if (check_var("INSTALL_TO_OTHERS", 1)) {
             $image_name = get_var("REPO_0_TO_INSTALL");
@@ -55,11 +52,24 @@ sub run {
         }
 
         my $arch       = get_var('ARCH');
-        my $path       = "/mnt/openqa/repo/${image_name}/boot/${arch}/loader";
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo = $openqa_url . "/assets/repo/${image_name}";
-        $image_path = "$path/linux initrd=$path/initrd install=$repo";
+        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot)], 'esc', 8, 3;
+        if (match_has_tag("qa-net-boot")) {
+            #Nuremberg
+            my $path_prefix = "/mnt/openqa/repo";
+            my $path        = "${path_prefix}/${image_name}/boot/${arch}/loader";
+            $image_path = "$path/linux initrd=$path/initrd install=$repo";
+        }
+        elsif (match_has_tag("orthos-grub-boot")) {
+            #Orthos
+            my $path_prefix = "auto/openqa/repo";
+            my $path        = "${path_prefix}/${image_name}/boot/${arch}";
+            $image_path = "linux $path/linux install=$repo";
+        }
+
+        #IPMI Backend
         if (check_var('BACKEND', 'ipmi')) {
             my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
             $image_path .= "?device=$netdevice";
@@ -120,10 +130,26 @@ sub run {
     save_screenshot;
 
     if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
-        my $ssh_vnc_wait_time = 600;
-        assert_screen((check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc') . '-server-started', $ssh_vnc_wait_time);
-        select_console 'installation';
+        my $ssh_vnc_wait_time = get_var('SES5_DEPLOY') ? 300 : 210;
+        my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
+        my @tags = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
+        assert_screen \@tags, $ssh_vnc_wait_time;
 
+        if (match_has_tag("orthos-grub-boot-linux")) {
+            my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
+            my $arch       = get_var('ARCH');
+            my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+            type_string $args;
+            send_key 'ret';
+            assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
+            $args = "boot";
+            type_string $args;
+            send_key "ret";
+            assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
+        }
+
+        select_console 'installation';
+        save_screenshot;
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
             type_string('DISPLAY= ', $type_speed) if check_var('VIDEOMODE', 'text');
