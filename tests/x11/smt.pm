@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use repo_tools;
-use utils 'turn_off_gnome_screensaver';
+use utils qw(turn_off_gnome_screensaver zypper_call);
 
 sub run {
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
@@ -25,7 +25,8 @@ sub run {
     turn_off_gnome_screensaver;
     become_root;
     # remove apache2-example-pages to avoid warning message shown during smt test
-    assert_script_run 'rpm -qa apache2-example-pages && rpm -e apache2-example-pages';
+    # if return 104 means the apache2-example-pages not exist, continue the test
+    zypper_call("rm apache2-example-pages", exitcode => [0, 104]);
     smt_wizard();
     assert_script_run 'smt-sync', 800;
     assert_script_run 'smt-repos';
