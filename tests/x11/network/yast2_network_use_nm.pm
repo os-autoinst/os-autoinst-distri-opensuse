@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Configures yast2 by its GUI to use NetworkManager as system network manager
+# Summary: Ensure using NetworkManager as system network manager
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
@@ -21,7 +21,14 @@ use utils;
 
 sub run {
     my $self = shift;
+
+    select_console 'root-console';
+    my $nm_is_active = (script_run("readlink /etc/systemd/system/network.service | grep NetworkManager") == 0);
     select_console 'x11';
+
+    # return if NetworkManager is already configured as system network manager
+    return if ($nm_is_active);
+
     $self->configure_system;
 }
 

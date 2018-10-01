@@ -1465,7 +1465,7 @@ sub load_extra_tests_desktop {
         # openSUSE
         if (check_var('DISTRI', 'opensuse')) {
             loadtest 'x11/network/hwsim_wpa2_enterprise_setup';
-            loadtest 'x11/network/yast2_network_setup';
+            loadtest 'x11/network/yast2_network_use_nm';
             loadtest 'x11/network/NM_wpa2_enterprise';
         }
     }
