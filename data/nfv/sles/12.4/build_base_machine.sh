@@ -55,7 +55,7 @@ libzmq3
 
 wget -q http://download.opensuse.org/repositories/openSUSE:/Backports:/SLE-12/standard/x86_64/sshpass-1.06-2.1.x86_64.rpm
 rpm -i sshpass-1.06-2.1.x86_64.rpm
-zypper ar -f -G https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP3/devel:languages:python:backports.repo
+zypper ar -f -G https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/devel:languages:python:backports.repo
 zypper -q in -y -r devel_languages_python_backports python-pip python3-pip python3-tk
 pip install -q --upgrade pip
 pip3 install -q --upgrade pip

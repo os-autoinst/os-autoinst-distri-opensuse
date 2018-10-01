@@ -37,8 +37,9 @@ sub run {
     my $protocol = get_var('MLX_PROTOCOL') || 2;
 
     if (is_sle('>=15')) {
-        my $GA_REPO = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo';
-        zypper_call("ar -f -G $GA_REPO");
+        zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media1/  dev_1");
+        zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media2/  dev_2");
+        zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA/standard/SUSE:SLE-15-SP1:GA.repo");
     }
     zypper_call('--quiet in kernel-source rpm-build', timeout => 200);
 
