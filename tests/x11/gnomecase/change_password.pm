@@ -152,10 +152,4 @@ sub run {
     send_key "ret";
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
-    # get rid of plymouth splash during reboot
-    send_key 'esc' if $self->{await_reboot};
-}
-
 1;
