@@ -81,12 +81,12 @@ sub test_flags {
 
 =head1 Discussion
 
-Install IPA tool in SLE image. This image gets published and can be used 
+Install public cloud tools in SLE image. This image gets published and can be used 
 for specific tests for azure, amazon and google CSPs.
 
 =head1 Configuration
 
-=head2 INSTALL_IPA
+=head2 PUBLIC_CLOUD_PREPARE_TOOLS
 
 Activate this test module by setting this variable.
 
