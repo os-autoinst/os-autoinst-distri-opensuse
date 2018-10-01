@@ -40,7 +40,7 @@ sub run {
     assert_and_click 'pidgin-irc-account';
 
     # Warning of spoofing ip may appear
-    assert_screen([qw(pidgin-spoofing-ip pidgin-irc-sledtesting)]);
+    assert_screen([qw(pidgin-spoofing-ip pidgin-ready)]);
     if (match_has_tag('pidgin-spoofing-ip')) {
         wait_screen_change {
             send_key is_sle('<15') ? "alt-tab" : "alt-`";
@@ -51,9 +51,10 @@ sub run {
     }
 
     # CTCP Version and warning about scan may appear
-    assert_screen([qw(pidgin-ctcp-version pidgin-irc-sledtesting)]);
+    assert_screen([qw(pidgin-ctcp-version pidgin-ready)]);
     if (match_has_tag('pidgin-ctcp-version')) {
-        wait_screen_change { send_key "ctrl-w"; }    # close it
+        wait_screen_change { send_key "ctrl-w" };    # close it
+        assert_screen("pidgin-ready");               # Assure that pidgin is ready
     }
 
     # Join a chat
