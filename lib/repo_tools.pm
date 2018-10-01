@@ -30,10 +30,8 @@ called on SLE15-SP1.
 =cut
 sub get_repo_var_name {
     my ($repo_name) = @_;
-    my $distri      = uc get_required_var("DISTRI");
-    my $version     = get_required_var("VERSION");
-    $version =~ s/-/_/;
-    return "REPO_${distri}${version}_${repo_name}";
+    my $distri = uc get_required_var("DISTRI");
+    return "REPO_${distri}_${repo_name}";
 }
 
 sub smt_wizard {
