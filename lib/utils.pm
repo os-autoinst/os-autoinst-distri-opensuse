@@ -22,7 +22,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_tumbleweed is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng is_jeos);
+use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade sle_version_at_least is_storage_ng is_jeos);
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -433,12 +433,12 @@ sub ensure_unlocked_desktop {
                 type_string "$username";
                 save_screenshot;
             }
-            # On gnome, user may not be selected and using 'ret' is not enough in this case
-            if (check_var('DESKTOP', 'gnome') && (is_sle('15+') || is_leap('15.0+') || is_tumbleweed)) {
-                select_user_gnome($username);
-            }
-            else {
+            if (!check_var('DESKTOP', 'gnome') || (is_sle('<15') || is_leap('<15.0'))) {
                 send_key 'ret';
+            }
+            # On gnome, user may not be selected and using 'ret' is not enough in this case
+            else {
+                select_user_gnome($username);
             }
         }
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
@@ -713,12 +713,12 @@ sub handle_login {
         type_string "$myuser\n";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
-        # DMs in condition above have to select user
-        if (!$user_selected && (is_sle('15+') || is_leap('15.0+') || is_tumbleweed)) {
-            select_user_gnome($myuser);
-        }
-        else {
+        if ($user_selected || (is_sle('<15') || is_leap('<15.0'))) {
             send_key 'ret';
+        }
+        # DMs in condition above have to select user
+        else {
+            select_user_gnome($myuser);
         }
     }
     assert_screen 'displaymanager-password-prompt', no_wait => 1;
