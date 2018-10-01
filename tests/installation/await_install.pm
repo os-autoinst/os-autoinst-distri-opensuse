@@ -27,8 +27,10 @@ sub handle_livecd_screenlock {
         # the only 'window' shown, tab over the empty password field and
         # confirm unlocking
         send_key 'alt-tab';
-        send_key 'tab';
-        send_key 'ret';
+        if (!match_has_tag('blackscreen')) {
+            send_key 'tab';
+            send_key 'ret';
+        }
     } while (check_screen('screenlock', 20));
     save_screenshot;
     # can take a long time until the screen unlock happens as the
