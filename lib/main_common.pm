@@ -446,6 +446,7 @@ sub load_reboot_tests {
             }
         }
         loadtest "installation/first_boot";
+        loadtest "installation/system_workarounds" if check_var('ARCH', 'aarch64');
     }
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd";
