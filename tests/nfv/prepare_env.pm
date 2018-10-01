@@ -11,7 +11,7 @@
 #
 #   This test does the following
 #    - Installs needed packages (ovs, dpdk, git, ...)
-#    - Clones vsperf and dpdk repositories
+#    - Clones vsperf repository
 #    - Starts the systemd service unit
 #    - Executes a few basic openvswitch commands
 #    - Removes the lines to skip OVS, DPDK and QEMU compilation
@@ -43,48 +43,50 @@ sub run {
     my ($self)         = @_;
     my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";
     my $vsperf_version = get_required_var('VSPERF_VERSION');
-    my $dpdk_repo      = "http://dpdk.org/git/dpdk";
     my $vnf_image      = get_required_var('VNF_IMAGE');
     my $trafficgen_ip  = get_trafficgen_ip();
     my $children       = get_children();
     my $child_id       = (keys %$children)[0];
 
     record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
-    zypper_call('--quiet in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 200);
+    zypper_call('--quiet in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 60 * 4);
 
     assert_script_run("cd /root/");
     record_info("INFO", "Clone VSPerf repository");
-    assert_script_run("git clone --quiet --depth 1 --branch $vsperf_version $vsperf_repo", timeout => 200);
-    record_info("INFO", "Clone DPKD repository");
-    assert_script_run("git clone --quiet --depth 1 $dpdk_repo", timeout => 600);
+    assert_script_run("git clone --quiet --depth 1 --branch $vsperf_version $vsperf_repo", timeout => 60 * 4);
+
 
     record_info("INFO", "Start openvswitch service");
-    systemctl 'enable openvswitch', timeout => 200;
-    systemctl 'start openvswitch',  timeout => 200;
+    systemctl 'enable openvswitch', timeout => 60 * 2;
+    systemctl 'start openvswitch',  timeout => 60 * 2;
 
     record_info("INFO", "VSPerf Installation");
     assert_script_run("cd vswitchperf/systems");
+
+    # Hack to skip the OVS, DPDK and QEMU compilation as we will use the vanilla packages
+    assert_script_run("sed -n -e :a -e '1,8!{P;N;D;};N;ba' -i build_base_machine.sh");
     if (is_sle('>=15')) {
-        # Hack to skip the OVS, DPDK and QEMU compilation as we will use the vanilla packages
-        assert_script_run("sed -n -e :a -e '1,8!{P;N;D;};N;ba' -i build_base_machine.sh");
+        #zypper_call('--quiet in python2-pip');
         assert_script_run("cp -r sles/15 sles/15.1") if (check_var('VERSION', '15-SP1'));
-        assert_script_run("bash -x build_base_machine.sh", 300);
+        assert_script_run("bash -x build_base_machine.sh", timeout => 60 * 10);
+        zypper_call('--quiet in python2-pip');
     }
     elsif (check_var('VERSION', '12-SP4')) {
         assert_script_run("curl " . data_url('nfv/sles/12.4/build_base_machine.sh') . " -o /root/build_base_machine.sh");
         assert_script_run("chmod 755 /root/build_base_machine.sh");
-        assert_script_run("bash -x /root/build_base_machine.sh", timeout => 600);
+        assert_script_run("bash -x /root/build_base_machine.sh", timeout => 60 * 10);
     }
     else {
         die "OS VERSION not supported. Available only on >=15 and 12-SP4";
     }
+    assert_script_run("pip2 install -q requests");
 
     # Download VNF from OPNFV artifacts repository
-    assert_script_run("wget $vnf_image -O /tmp/vloop-vnf.qcow2", timeout => 1500);
+    assert_script_run("wget $vnf_image -O /tmp/vloop-vnf.qcow2", timeout => 60 * 30);
 
     # Clone Trex repo inside VSPerf directories
     record_info("INFO", "Clone TREX repository");
-    assert_script_run("cd /root/vswitchperf/src/trex; make", timeout => 600);
+    assert_script_run("cd /root/vswitchperf/src/trex; make", timeout => 60 * 10);
 
     # Copy VSPERF custom configuration files
     record_info("INFO", "Copy VSPERF config files to target directory");
