@@ -235,7 +235,7 @@ sub run {
       . get_var('HYPERV_SERVER') . ' +auto-reconnect /auto-reconnect-max-retries:10'
       . " /cert-ignore /vmconnect:$vmguid /f /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
-    hyperv_cmd_with_retry("$ps Start-VM $name", {msg => ($winserver eq '2016') ? 'used by another process' : undef});
+    hyperv_cmd_with_retry("$ps Start-VM $name");
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';
