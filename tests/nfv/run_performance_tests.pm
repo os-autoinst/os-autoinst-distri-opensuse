@@ -59,8 +59,6 @@ sub run {
     $test_id =~ s/^0+//;
     $test_url = "http://openqa.suse.de/tests/$test_id";
 
-    assert_script_run("pip2 install -q requests");
-
     record_info("INFO", "Check Hugepages information");
     assert_script_run('cat /proc/meminfo |grep -i huge');
 
