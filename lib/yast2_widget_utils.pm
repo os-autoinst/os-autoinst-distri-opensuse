@@ -18,7 +18,16 @@ use Exporter;
 use strict;
 use testapi;
 
-our @EXPORT = qw(change_service_configuration);
+our @EXPORT = qw(change_service_configuration verify_service_configuration);
+
+=head2 verify_service_configuration
+Verify service configuration: status
+=cut
+sub verify_service_configuration {
+    my (%args) = @_;
+    my $status = $args{status};
+    assert_screen "yast2_ncurses_service_$status";
+}
 
 =head2 change_service_configuration
 Modify service configuration: "after writing" and/or "after reboot" steps
