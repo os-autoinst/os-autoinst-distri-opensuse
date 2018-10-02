@@ -49,7 +49,7 @@ sub run {
     my $child_id       = (keys %$children)[0];
 
     record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
-    zypper_call('--quiet in git-core openvswitch-switch dpdk qemu tcpdump', timeout => 60 * 4);
+    zypper_call('--quiet in git-core openvswitch-switch dpdk dpdk-tools qemu tcpdump', timeout => 60 * 4);
 
     assert_script_run("cd /root/");
     record_info("INFO", "Clone VSPerf repository");
