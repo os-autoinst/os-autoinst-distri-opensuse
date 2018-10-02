@@ -35,8 +35,7 @@ sub run {
     type_string "killall xterm\n";
 
     assert_screen 'generic-desktop';
-    x11_start_program 'yast2 sap-installation-wizard';
-    assert_screen 'sap-installation-wizard';
+    x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
 
     # Choose nfs://
     send_key 'tab';
