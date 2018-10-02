@@ -23,7 +23,7 @@ sub run {
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
 
     my $QEMURAM = get_required_var('QEMURAM');
-    die "QEMURAM=$QEMURAM. QEMURAM must be at least 32768" if $QEMURAM < 32768;
+    die "QEMURAM=$QEMURAM. The SUT needs at least 32G of RAM" if $QEMURAM < 32768;
 
     # Add host's IP to /etc/hosts
     select_console 'root-console';
