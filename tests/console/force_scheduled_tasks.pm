@@ -45,8 +45,6 @@ sub run {
     assert_script_run(
         'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do ' . $systemd_tasks_cmd . '; done');
     record_soft_failure 'bsc#1063638 - review I/O scheduling parameters of btrfsmaintenance' if (time - $before) > 60 && get_var('SOFTFAIL_BSC1063638');
-    # Disable cron jobs on older SLE12 by symlinking them to /bin/true
-    assert_script_run('find /usr/share/btrfsmaintenance/ -type f -exec ln -fs /bin/true {} \;') unless get_var('SOFTFAIL_BSC1063638');
     sleep 3;    # some head room for the load average to rise
     settle_load;
 
