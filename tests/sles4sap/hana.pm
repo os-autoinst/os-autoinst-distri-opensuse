@@ -20,8 +20,7 @@ sub run {
     my ($self) = @_;
     my ($proto, $path) = split m|://|, get_required_var('MEDIA');
 
-    die "Currently supported protocols are nfs and smb"
-      unless ($proto eq 'nfs' or $proto eq 'smb');
+    die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
 
     my $QEMURAM = get_required_var('QEMURAM');
     die "QEMURAM=$QEMURAM. QEMURAM must be at least 32768" if $QEMURAM < 32768;
