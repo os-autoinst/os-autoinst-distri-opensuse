@@ -66,12 +66,12 @@ sub run {
     send_key 'alt-s';
     type_string $sid;
     # SAP Master Password
-    send_key 'alt-a';
+    wait_screen_change { send_key 'alt-a' };
     type_password $password;
-    send_key 'tab';
+    wait_screen_change { send_key 'tab' };
     type_password $password;
     # Ok
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o' };
 
     set_var('SAPADM', lc($sid) . 'adm');
 
