@@ -33,7 +33,6 @@ sub run {
     else {
         # Select section booting on Installation Settings overview (video mode)
         send_key_until_needlematch 'booting-section-selected', 'tab';
-        assert_screen 'booting-section-selected';
         send_key 'ret';
     }
 
