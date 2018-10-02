@@ -56,7 +56,7 @@ sub run {
     $output = script_output "sapcontrol -nr 00 -function StopService";
     die "sapcontrol: StopService API failed\n\n$output" unless ($output =~ /StopService[\r\n]+OK/);
 
-    script_run "$ps_cmd | wc -l ; $ps_cmd";
+    assert_script_run "$ps_cmd | wc -l ; $ps_cmd";
     save_screenshot;
 
     $output = script_output "sapcontrol -nr 00 -function StartService $sid";
