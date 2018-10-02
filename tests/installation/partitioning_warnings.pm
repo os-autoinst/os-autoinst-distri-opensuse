@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Create small root partition (11GB) to test 'too small filesystem for snapshots' warning
+# Summary: Create small root partition to test 'too small filesystem for snapshots' warning
 #          missing swap warning and on UEFI missing /boot/efi partition
 #          https://progress.opensuse.org/issues/16570 https://fate.suse.com/320416
 #          Warnings:
@@ -98,7 +98,7 @@ sub run {
         record_info('Test: No swap', 'Missing swap partition');
         process_warning(warning => 'no-swap', key => 'alt-n');
     }
-    # create small enough partition (11GB) to get warning for enabled snapshots
+    # create small enough partition to get warning for enabled snapshots
     # on storage-ng snaphots are disabled as per proposal when partition is to small, so enable to check the warning
     addpart(role => 'OS', size => (is_opensuse) ? 9000 : 11000, format => 'btrfs', enable_snapshots => is_storage_ng);
 
