@@ -117,7 +117,7 @@ sub post_fail_hook {
     select_console 'root-console';
     assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
-    save_upload_y2logs;
+    save_upload_y2logs();
     $self->SUPER::post_fail_hook;
 }
 
