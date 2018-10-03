@@ -21,7 +21,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
 use power_action_utils 'power_action';
 use serial_terminal qw(add_serial_console select_virtio_console);
-use version_utils qw(is_sle sle_version_at_least is_opensuse);
+use version_utils qw(is_sle sle_version_at_least is_opensuse is_jeos);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -48,6 +48,10 @@ sub add_we_repo_if_available {
 }
 
 sub install_runtime_dependencies {
+    if (is_jeos) {
+        zypper_call('in --force-resolution gettext-runtime', dumb_term => 1);
+    }
+
     my @deps = qw(
       sysstat
       iputils
@@ -236,7 +240,7 @@ EOF
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
     foreach my $service (qw(auditd dnsmasq nfsserver rpcbind vsftpd)) {
-        if (is_sle('12+') || is_opensuse) {
+        if (is_sle('12+') || is_opensuse || is_jeos) {
             systemctl($action . " " . $service);
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
         }
@@ -256,7 +260,7 @@ sub run {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
 
-    if (!get_var('LTP_BAREMETAL')) {
+    if (!get_var('LTP_BAREMETAL') && !is_jeos) {
         $self->wait_boot;
     }
 
@@ -382,4 +386,3 @@ Append custom group entries with appended group param via
 add_custom_grub_entries().
 
 =cut
-
