@@ -22,7 +22,7 @@ use bootloader_setup qw(change_grub_config grep_grub_settings grub_mkconfig set_
 sub run {
     change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
     change_grub_config('^#',  '',          'GRUB_GFXMODE');
-    change_grub_config('=.*', '=-1',       'GRUB_TIMEOUT');
+    change_grub_config('=.*', '=-1',       'GRUB_TIMEOUT') unless check_var('VIRSH_VMM_TYPE', 'linux');
     grep_grub_settings('^GRUB_GFXMODE=1024x768$');
     set_framebuffer_resolution;
     set_extrabootparams_grub_conf;
