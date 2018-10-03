@@ -87,18 +87,12 @@ sub run {
     assert_screen 'sap-product-installation';
 
     assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], 4000;
+    send_key $cmd{ok};
     if (match_has_tag 'sap-wizard-installation-summary') {
-        send_key $cmd{ok};
         assert_screen 'generic-desktop', 600;
     } else {
-        if (match_has_tag 'sap-wizard-error') {
-            send_key $cmd{ok};
-        } elsif (match_has_tag 'sap-wizard-failed') {
-            send_key 'tab';
-            send_key 'ret';
-        }
         # Wait for SAP wizard to finish writing logs
-        assert_screen 'generic-desktop', 90;
+        check_screen 'generic-desktop', 90;
         die "Failed";
     }
 }
