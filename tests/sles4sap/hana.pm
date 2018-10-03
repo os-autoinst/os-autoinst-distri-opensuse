@@ -20,11 +20,14 @@ use utils 'type_string_slow';
 sub run {
     my ($self) = @_;
     my ($proto, $path) = split m|://|, get_required_var('MEDIA');
-
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
-
     my $QEMURAM = get_required_var('QEMURAM');
     die "QEMURAM=$QEMURAM. The SUT needs at least 32G of RAM" if $QEMURAM < 32768;
+    # Don't change this. The needle has this SID.
+    my $sid      = 'NDB';
+    my $password = 'Qwerty_123';
+    set_var('PASSWORD', $password);
+    set_var('SAPADM',   lc($sid) . 'adm');
 
     # Add host's IP to /etc/hosts
     select_console 'root-console';
@@ -34,10 +37,8 @@ sub run {
     x11_start_program('xterm', target_match => 'xterm-susetest');
     turn_off_gnome_screensaver;
     type_string "killall xterm\n";
-
     assert_screen 'generic-desktop';
     x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
-
     # Choose nfs://
     send_key 'tab';
     send_key_until_needlematch 'sap-wizard-proto-' . $proto . '-selected', 'down';
@@ -45,20 +46,12 @@ sub run {
     type_string_slow "$path", wait_still_screen => 1;
     send_key 'tab';
     send_key $cmd{next};
-
     assert_screen 'sap-wizard-copying-media';
-
     # "Do you use a Supplement/3rd-Party SAP software medium?"
     assert_screen 'sap-wizard-supplement-medium', 3000;
     send_key $cmd{next};
     assert_screen 'sap-wizard-additional-repos';
     send_key $cmd{next};
-
-    # Don't change this. The needle has this SID.
-    my $sid      = 'NDB';
-    my $password = 'Qwerty_123';
-    set_var('PASSWORD', $password);
-
     assert_screen 'sap-wizard-hana-system-parameters';
     # SAP SID
     send_key 'alt-s';
@@ -69,23 +62,16 @@ sub run {
     wait_screen_change { send_key 'tab' };
     type_password $password;
     wait_screen_change { send_key $cmd{ok} };
-
-    set_var('SAPADM', lc($sid) . 'adm');
-
     assert_screen 'sap-wizard-performing-installation', 60;
-
     # "Are there more SAP products to be prepared for installation?"
     assert_screen 'sap-wizard-profile-ready', 300;
     send_key $cmd{next};
-
     # "Do you want to continue the installation?"
     # "Your system does not meet the requirements..."
     assert_screen 'sap-wizard-continue-installation';
     # Yes
     send_key 'alt-y';
-
     assert_screen 'sap-product-installation';
-
     assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], 4000;
     send_key $cmd{ok};
     if (match_has_tag 'sap-wizard-installation-summary') {
