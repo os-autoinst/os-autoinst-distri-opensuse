@@ -61,15 +61,22 @@ sub create_new_partition_table {
     send_key_until_needlematch "expert-partitioner-vda", 'right';
 
     # empty disk partitions by creating new partition table
-    send_key((is_storage_ng) ? 'alt-e' : 'alt-x');    # expert menu
-    send_key 'down';
-    wait_still_screen 2;
-    save_screenshot;
-    send_key 'ret';
     if (is_storage_ng) {
+        # partition table management has been moved from Partitions tab to Overview
+        send_key 'alt-o';
+        assert_screen 'expert-partitioner-overview';
+        send_key 'alt-e';
         assert_screen 'expert-partitioner-confirm-dev-removal';
         send_key 'alt-y';
     }
+    else {
+        send_key 'alt-x';    # expert menu
+        send_key 'down';
+        wait_still_screen 2;
+        save_screenshot;
+        send_key 'ret';
+    }
+
     # create new partition table, change gpt table if it's available
     # storage-ng always allows partition table selection
     if (!get_var('UEFI') && !check_var('BACKEND', 's390x') || is_storage_ng) {
@@ -77,6 +84,7 @@ sub create_new_partition_table {
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
+        send_key 'alt-p';                                     # return back to Partitions tab
     }
     unless (is_storage_ng) {
         assert_screen 'partition-create-new-table';
