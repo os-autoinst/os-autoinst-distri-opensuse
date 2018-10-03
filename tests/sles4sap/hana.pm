@@ -60,7 +60,7 @@ sub run {
     type_password $password;
     wait_screen_change { send_key $cmd{ok} };
     assert_screen 'sap-wizard-performing-installation', 60;
-    assert_screen 'sap-wizard-profile-ready', 300;
+    assert_screen 'sap-wizard-profile-ready',           300;
     send_key $cmd{next};
     assert_screen 'sap-wizard-continue-installation';
     send_key 'alt-y';
