@@ -27,7 +27,7 @@ sub run {
     fully_patch_system;
     remove_ltss;
     power_action('reboot', keepconsole => 1, textmode => 1);
-    $self->wait_boot(textmode => !is_desktop_installed, ready_time => 600);
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600);
     $self->setup_migration;
 }
 
