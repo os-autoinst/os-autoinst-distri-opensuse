@@ -179,7 +179,7 @@ sub run {
     else {
         ## Clean up previous root
         remove_partition;
-        addboot if get_var('UEFI');
+        addboot if (get_var('UEFI') || get_var('OFW'));
         addpart(role => 'swap', size => 500);
     }
 
