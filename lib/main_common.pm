@@ -2160,8 +2160,7 @@ sub load_system_update_tests {
                 loadtest "update/updates_packagekit_gpk";
                 set_var('SYSTEM_UPDATED', 1);
             }
-            # Test was never executed on SLE and fails currently
-            loadtest "update/check_system_is_updated" if !is_sle;
+            loadtest "update/check_system_is_updated";
         }
     }
     else {
