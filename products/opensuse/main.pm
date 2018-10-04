@@ -90,21 +90,17 @@ if (check_var('DESKTOP', 'minimalx')) {
         set_var('DM_NEEDS_USERNAME', 1);
     }
     # Set patterns for the new system role flow, as we need to select patterns, similarly to SLE12
-    if (get_var('SYSTEM_ROLE_STYLE') && !get_var('PATTERNS')) {
+    if (is_using_system_role && !get_var('PATTERNS')) {
         set_var('PATTERNS', 'default,minimalx');
     }
 }
 
-if (get_var('SYSTEM_ROLE_STYLE') && check_var('DESKTOP', 'lxde') && !get_var('PATTERNS')) {
+if (is_using_system_role && check_var('DESKTOP', 'lxde') && !get_var('PATTERNS')) {
     set_var('PATTERNS', 'default,lxde');
 }
 
-if (get_var('SYSTEM_ROLE_STYLE') && check_var('DESKTOP', 'xfce') && !get_var('PATTERNS')) {
+if (is_using_system_role && check_var('DESKTOP', 'xfce') && !get_var('PATTERNS')) {
     set_var('PATTERNS', 'default,xfce');
-}
-
-if (is_leap('15.0+') || is_tumbleweed()) {
-    set_var('SYSTEM_ROLE_FIRST_FLOW', 1);
 }
 
 # openSUSE specific variables

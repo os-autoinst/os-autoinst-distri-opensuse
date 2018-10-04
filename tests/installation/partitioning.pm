@@ -53,10 +53,9 @@ sub run {
         $partition_roles{raw} = $cmd{raw_volume};
 
         if (check_var('DISTRI', 'opensuse')) {
-            #TODO remove SYSTEM_ROLE_FIRST_FLOW usages with versions checks
-            $cmd{expertpartitioner} = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-x';
-            $cmd{enablelvm}         = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-e' : 'alt-a';
-            $cmd{encryptdisk}       = get_var('SYSTEM_ROLE_FIRST_FLOW') ? 'alt-a' : 'alt-l';
+            $cmd{expertpartitioner} = 'alt-e';
+            $cmd{enablelvm}         = 'alt-e';
+            $cmd{encryptdisk}       = 'alt-a';
         }
     }
 
