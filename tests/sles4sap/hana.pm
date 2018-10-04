@@ -13,7 +13,6 @@
 use base 'sles4sap';
 use strict;
 use testapi;
-use y2logsstep 'save_upload_y2logs';
 use utils 'turn_off_gnome_screensaver';
 use utils 'type_string_slow';
 
@@ -85,7 +84,8 @@ sub post_fail_hook {
     select_console 'root-console';
     assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
-    save_upload_y2logs();
+    assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
+    upload_logs "/tmp/y2logs.tar.xz";
     $self->SUPER::post_fail_hook;
 }
 
