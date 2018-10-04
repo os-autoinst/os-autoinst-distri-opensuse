@@ -224,7 +224,8 @@ sub turn_off_kde_screensaver {
         assert_and_click('kde-disable-screenlock');
     }
     assert_screen 'screenlock-disabled';
-    send_key("alt-o");
+    send_key('alt-o');
+    assert_screen 'generic-desktop';
 }
 
 =head2 turn_off_gnome_screensaver

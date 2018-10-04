@@ -7,7 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check no more updates are available
+# Summary: Check no more updates are available in the queue after they have
+#   been previously applied
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
@@ -18,7 +19,6 @@ use utils 'ensure_serialdev_permissions';
 sub run {
     select_console 'root-console';
     ensure_serialdev_permissions;
-    assert_script_run "pkcon refresh";
     assert_script_run "pkcon get-updates | tee /dev/$serialdev | grep 'There are no updates'";
 }
 
