@@ -150,13 +150,13 @@ sub integration_services_check {
         my $vmname       = console('svirt')->name;
         my $ips_host_pov = console('svirt')
           ->get_cmd_output('powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
-        $ips_host_pov = (split /\n/, $ips_host_pov)[1];
-        $ips_host_pov =~ s/,.*//g;
-        $ips_host_pov =~ s/\{//g;
-        my $ips_guest_pov = script_output("ip address show up scope global | grep -w inet | awk '{ print \$2 }' | sed 's|/.*||' | tr -d '\\n'");
+        $ips_host_pov =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
+        $ips_host_pov = $1;
+        my $ips_guest_pov = script_output("ip address show up scope global | awk '/inet/ { print \$2 }' | sed 's|/.*||' | tr -d '\\n'");
         record_info('IP (host)',  $ips_host_pov);
         record_info('IP (guest)', $ips_guest_pov);
         die "ips_host_pov=<$ips_host_pov> ips_guest_pov=<$ips_guest_pov>" if $ips_host_pov ne $ips_guest_pov;
+        die 'Client nor host see IP address of the VM' unless $ips_host_pov;
         # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
