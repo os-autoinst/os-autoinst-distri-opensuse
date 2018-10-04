@@ -132,6 +132,9 @@ sub prepare_source_repo {
         elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_SOURCE')) {
             zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_SOURCE') . " repo-source");
         }
+        elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_POOL_SOURCE')) {
+            zypper_call("ar -f " . "$utils::OPENQA_FTP_URL/" . get_var('REPO_SLES_POOL_SOURCE') . " repo-source");
+        }
         # SLE maintenance tests are assumed to be SCC registered
         # and source repositories disabled by default
         elsif (get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
