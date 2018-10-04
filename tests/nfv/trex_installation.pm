@@ -34,7 +34,7 @@ sub run {
 
     # Download and extract T-Rex package
     record_info("INFO", "Download TREX package");
-    assert_script_run("wget $url", 1800);
+    assert_script_run("wget $url", timeout => 60 * 30);
     assert_script_run("tar -xzf $tarball");
     assert_script_run("mv $trex_version $trex_dest");
 
