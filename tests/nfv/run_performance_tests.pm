@@ -27,7 +27,7 @@ sub run_test {
     record_info("INFO", "Running test case $testname");
     record_info("INFO", "Command to run: $cmd");
     if (check_var('BACKEND', 'ipmi')) {
-        assert_script_run($cmd, timeout => 4000);
+        assert_script_run($cmd, timeout => 60 * 60 * 1.5);
     } elsif (check_var('BACKEND', 'qemu')) {
         record_info("INFO", "Skip test as this is a virtual environment. Generate dummy results instead.");
         assert_script_run("mkdir -p $results_dir/results_dummy");
