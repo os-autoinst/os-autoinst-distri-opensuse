@@ -521,7 +521,7 @@ sub start_clean_firefox {
 
     x11_start_program('xterm');
     # Clean and Start Firefox
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox html5test.opensuse.org >firefox.log 2>&1 &\n";
+    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox opensuse.org >firefox.log 2>&1 &\n";
     assert_screen 'firefox-launch', 150;
     # maximize window
     send_key 'alt-f10' if is_sle('<=12-sp1');
