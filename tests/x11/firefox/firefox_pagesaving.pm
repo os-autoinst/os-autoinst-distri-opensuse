@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,7 +24,9 @@ sub run {
     assert_screen('firefox-pagesaving-load', 90);
     send_key "ctrl-s";
     assert_screen 'firefox-pagesaving-saveas';
-    send_key "alt-s";
+    wait_still_screen 3;
+    # on sle15 just one alt-s does not work
+    send_key_until_needlematch 'firefox-downloading-saving_dialog', 'alt-s', 3, 3;
 
     # Exit
     $self->exit_firefox;
@@ -32,8 +34,9 @@ sub run {
     x11_start_program('xterm');
     send_key "ctrl-l";
     wait_still_screen 3;
-    type_string "ls Downloads/\n";
-    assert_screen 'firefox-pagesaving-downloads';
+    # look for file name "Internet for people, not profit",
+    # if mozilla changes the title save the file with custom name
+    assert_script_run 'ls Downloads/|grep "Internet for people, not profit"';
     assert_script_run 'rm -rf Downloads/*';
     send_key "ctrl-d";
 }
