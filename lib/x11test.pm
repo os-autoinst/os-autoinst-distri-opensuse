@@ -606,7 +606,7 @@ sub restart_firefox {
 
 sub firefox_check_default {
     # Set firefox as default browser if asked
-    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-launch)], 150;
+    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 150;
     if (match_has_tag('firefox_default_browser')) {
         wait_screen_change {
             assert_and_click 'firefox_default_browser_yes';
@@ -620,7 +620,7 @@ sub firefox_check_popups {
         # wait for any popup to showup but not expect a too long still time
         # because of dynamic openSUSE start page background logo
         wait_still_screen(3);
-        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox_clean)], 60;
+        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 60;
         # handle the tracking protection pop up
         if (match_has_tag('firefox_trackinfo')) {
             wait_screen_change { assert_and_click 'firefox_trackinfo'; };
