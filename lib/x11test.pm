@@ -555,7 +555,7 @@ sub start_clean_firefox {
 
     # Help
     send_key "alt-h";
-    sleep 1;
+    assert_screen 'firefox-help-menu';
     send_key "a";
     assert_screen('firefox-help', 30);
     send_key "esc";

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -76,8 +76,11 @@ sub run {
     send_key "alt-shift-a";    #"Remove"
     wait_still_screen 3;
     send_key "alt-y";
+    wait_still_screen 3;
     send_key "alt-shift-c";
+    wait_still_screen 3;
     send_key "ctrl-w";
+    wait_still_screen 3;
     send_key "f5";
     assert_screen('firefox-passwd-removed', 60);
 

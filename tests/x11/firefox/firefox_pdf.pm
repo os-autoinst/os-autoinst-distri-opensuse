@@ -37,6 +37,7 @@ sub run {
     sleep 1;
     assert_and_click 'firefox-pdf-icon_fullscreen';          #Full Screen
 
+    wait_still_screen 2;
     send_key "esc";
     sleep 1;
     assert_and_click "firefox-pdf-actual_size";

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,6 +39,7 @@ sub run {
     assert_screen('firefox-ssl-loadpage', 60);
 
     send_key "alt-e";
+    wait_still_screen 3;
     send_key "n";
 
     if (is_sle('15+')) {

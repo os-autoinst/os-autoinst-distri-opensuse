@@ -26,7 +26,7 @@ sub run {
     send_key "alt-tab";    #Switch to xterm
     wait_still_screen 2, 4;
     assert_script_run "$changesaving_checktimestamp > dfa";
-
+    wait_still_screen 2, 4;
     send_key "alt-tab";    #Switch to firefox
     wait_still_screen 2, 4;
     save_screenshot;

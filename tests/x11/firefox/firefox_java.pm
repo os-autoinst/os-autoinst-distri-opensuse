@@ -78,12 +78,15 @@ sub run {
 
     #Focus to "Available Add-ons"
     assert_and_click "firefox-java-myaddons";
+    wait_still_screen 3;
 
     #Focus to "Ask to Activate"
     assert_and_click "firefox-java-asktoactivate";
 
     #Focus to "Never Activate"
+    wait_still_screen 3;
     send_key "up";
+    wait_still_screen 3;
     send_key "ret";
 
     assert_screen("firefox-java-neveractive");
