@@ -15,12 +15,9 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use caasp 'process_reboot';
-use version_utils 'is_caasp';
 
 sub run() {
-    if (!is_caasp '4.0+') {
-        assert_script_run "grep 'passwd:.*usrfiles' /etc/nsswitch.conf";
-    }
+    assert_script_run "grep 'passwd:.*usrfiles' /etc/nsswitch.conf";
 
     record_info 'Setup';
     script_run 'transactional-update shell', 0;
