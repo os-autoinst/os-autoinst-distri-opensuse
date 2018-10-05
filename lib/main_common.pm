@@ -186,6 +186,12 @@ sub setup_env {
     }
 }
 
+sub data_integrity_is_applicable {
+    # Other backends than qemu, i.e.Xen, zKVM or Hyper-V will check it later after the image is downloaded
+    return check_var('BACKEND', 'qemu') &&
+      grep { /^CHECKSUM_/ } keys %bmwqemu::vars;
+}
+
 sub any_desktop_is_applicable {
     return get_var("DESKTOP") !~ /textmode/;
 }
@@ -403,6 +409,7 @@ sub load_boot_tests {
     # s390x uses only remote repos
     if (get_var("ISO_MAXSIZE") && !check_var('ARCH', 's390x')) {
         loadtest "installation/isosize";
+        loadtest "installation/data_integrity" if data_integrity_is_applicable;
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_uefi";
