@@ -16,19 +16,10 @@ use base "x11test";
 use strict;
 use testapi;
 
-sub start_firefox {
-    my ($self) = @_;
-    # Using match_typed parameter on KDE as typing in desktop runner may fail
-    x11_start_program('firefox https://html5test.opensuse.org', valid => 0, match_typed => ((check_var('DESKTOP', 'kde')) ? "firefox_url_typed" : ''));
-    $self->firefox_check_default;
-    $self->firefox_check_popups;
-    assert_screen 'firefox-html-test';
-}
-
 sub run() {
     my ($self) = shift;
-    mouse_hide(1);
-    $self->start_firefox();
+
+    $self->start_firefox;
     send_key "alt-h";
     assert_screen 'firefox-help-menu';
     send_key "a";

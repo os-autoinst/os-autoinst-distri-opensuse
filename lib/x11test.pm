@@ -582,12 +582,11 @@ sub start_firefox {
     my ($self) = @_;
     mouse_hide(1);
 
-    x11_start_program('xterm');
-    # Clean and Start Firefox
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
+    # Using match_typed parameter on KDE as typing in desktop runner may fail
+    x11_start_program('firefox https://html5test.opensuse.org', valid => 0, match_typed => ((check_var('DESKTOP', 'kde')) ? "firefox_url_typed" : ''));
     $self->firefox_check_default;
     $self->firefox_check_popups;
-    assert_screen 'firefox-launch', 90;
+    assert_screen 'firefox-html-test';
 }
 
 sub restart_firefox {
