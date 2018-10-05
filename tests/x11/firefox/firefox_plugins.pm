@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ sub run {
     assert_and_click('firefox-addons-plugins');
     assert_screen [qw(firefox-plugins-overview_01 firefox-plugins-missing)], 60;
     if (match_has_tag('firefox-plugins-missing')) {
-        record_soft_failure 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
+        record_info 'Dropped support for NPAPI plugins since Firefox 52+', 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
         $self->exit_firefox;
         return;
     }
