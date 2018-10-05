@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -33,9 +33,7 @@ sub run {
     for my $i (1 .. 2) { send_key "tab"; }
     send_key "spc";
     # mhtml is not running on SLE15+
-    if (is_sle('12-sp2+')) {
-        assert_and_click('unmht_restart_now');
-    }
+    assert_and_click('unmht_restart_now');
     wait_still_screen 3;
     assert_and_click('firefox-my-addons');
     # refresh addon list to show newly installed addons

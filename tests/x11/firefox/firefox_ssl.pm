@@ -27,9 +27,8 @@ sub run {
     # go to advanced button and press it
     send_key "tab";
     send_key "ret";
-    # go to add exception button and press it, sle12 sp2 & sp3 have checkbox under buttons (3 tabs)
-    # sle15+ has checkbox above buttons (2 tabs) and 12 & 12sp1 don't have checkbox (1 tab)
-    my $count = is_sle('15+') ? 2 : is_sle('<12-sp2') ? 1 : 3;
+    # sle15+ has checkbox above buttons (2 tabs) and rest has checkbox under buttons (3 tabs)
+    my $count = is_sle('15+') ? 2 : 3;
     for (1 .. $count) { send_key "tab"; }
     send_key "ret";
 

@@ -561,7 +561,7 @@ sub start_clean_firefox {
     send_key "esc";
 
     # restart firefox to trigger default browser pop-up and store .mozilla configuration as default without pop-ups
-    $self->restart_firefox('cp -rp .mozilla .mozilla_first_run', 'opensuse.org');
+    $self->restart_firefox('sync && cp -rp .mozilla .mozilla_first_run', 'opensuse.org');
 }
 
 sub start_firefox_with_profile {
@@ -660,6 +660,7 @@ sub firefox_open_url {
 
 sub exit_firefox {
     # Exit
+    send_key 'alt-f4';
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
