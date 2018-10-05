@@ -220,16 +220,16 @@ sub ha_export_logs {
     # Extract HA logs and upload them
     script_run "touch $corosync_conf";
     script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 300;
-    upload_logs "$bootstrap_log";
-    upload_logs "$hb_log.tar.bz2";
+    upload_logs("$bootstrap_log",  failok => 1);
+    upload_logs("$hb_log.tar.bz2", failok => 1);
 
     # Extract YaST logs and upload them
     script_run 'save_y2logs /tmp/y2logs.tar.bz2', 120;
-    upload_logs '/tmp/y2logs.tar.bz2';
+    upload_logs('/tmp/y2logs.tar.bz2', failok => 1);
 
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
-    upload_logs "$packages_list";
+    upload_logs("$packages_list", failok => 1);
 }
 
 sub check_cluster_state {

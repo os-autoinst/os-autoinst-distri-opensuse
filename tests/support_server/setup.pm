@@ -145,13 +145,14 @@ sub setup_dns_server {
     $dns_server_set = 1;
 }
 
-sub dhcpd_conf_genration {
+sub dhcpd_conf_generation {
     my ($dns, $pxe, $net_conf) = @_;
     $setup_script .= "cat  >/etc/dhcpd.conf <<EOT\n";
     $setup_script .= "default-lease-time 14400;\n";
     if ($dns) {
         $setup_script .= "ddns-update-style standard;\n";
         $setup_script .= "ddns-updates on;\n";
+        $setup_script .= "update-conflict-detection false;\n";
         $setup_script .= "
         zone openqa.test. {
             primary 127.0.0.1;
@@ -206,7 +207,7 @@ sub setup_dhcp_server {
         $setup_script .= "curl -f -v " . autoinst_url . "/data" . get_var('SUPPORT_SERVER_DHPCD_CONFIG') . " >/etc/dhcpd.conf \n";
     }
     else {
-        dhcpd_conf_genration($dns, $pxe, $net_conf);
+        dhcpd_conf_generation($dns, $pxe, $net_conf);
     }
 
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/dhcp/sysconfig/dhcpd  >/etc/sysconfig/dhcpd \n";
