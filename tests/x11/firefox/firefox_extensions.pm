@@ -47,6 +47,7 @@ sub run {
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";
+
     assert_screen('firefox-extensions-show_flag', 60);
 
     send_key "alt-2";
