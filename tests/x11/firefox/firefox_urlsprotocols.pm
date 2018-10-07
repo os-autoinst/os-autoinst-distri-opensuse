@@ -37,7 +37,7 @@ sub run {
     }
     for my $proto (sort keys %sites_url) {
         $self->firefox_open_url($sites_url{$proto});
-        assert_screen('firefox-urls_protocols-' . $proto, 60);
+        assert_screen('firefox-urls_protocols-' . $proto);
     }
 
     $self->exit_firefox;

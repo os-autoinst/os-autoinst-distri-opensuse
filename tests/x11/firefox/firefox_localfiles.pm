@@ -21,15 +21,15 @@ sub run {
 
     # html
     $self->firefox_open_url('/usr/share/w3m/w3mhelp.html');
-    assert_screen('firefox-local_files-html', 60);
+    assert_screen('firefox-local_files-html');
 
     # wav
     $self->firefox_open_url('/usr/share/sounds/alsa/test.wav');
-    assert_screen('firefox-local_files-wav', 60);
+    assert_screen('firefox-local_files-wav');
 
     # so
     $self->firefox_open_url('/usr/lib64/libnss3.so');
-    assert_screen('firefox-local_files-so', 60);
+    assert_screen('firefox-local_files-so');
     send_key "esc";
 
     $self->exit_firefox;

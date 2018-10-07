@@ -36,7 +36,6 @@ sub run {
     assert_screen("firefox-rss-button_disabled", 60);
 
     $self->firefox_open_url('https://linux.slashdot.org/');
-    assert_screen 'firefox-url-loaded';
     assert_and_click("slashdot-cookies-agree") if check_screen("slashdot-cookies", 0);
 
     assert_and_click "firefox-rss-button_enabled", "left", 30;

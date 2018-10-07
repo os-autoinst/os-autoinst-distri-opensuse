@@ -522,10 +522,10 @@ sub start_clean_firefox {
     x11_start_program('xterm');
     # Clean and Start Firefox
     type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox /home >firefox.log 2>&1 &\n";
+    wait_still_screen 3;
     assert_screen 'firefox-url-loaded', 90;
     # to avoid stuck trackinfo pop-up, refresh the browser
     $self->firefox_open_url('opensuse.org');
-    assert_screen 'firefox-url-loaded', 90;
     my $count = 10;
     while ($count--) {
         # workaround for bsc#1046005
@@ -544,7 +544,6 @@ sub start_clean_firefox {
 
     # get rid of the reader & tracking pop-up once, first test should have milestone flag
     $self->firefox_open_url('eu.httpbin.org/html');
-    assert_screen 'firefox-url-loaded', 90;
     # no reader view pop-up on sle15+
     if (is_sle('<15')) {
         wait_still_screen(3);
@@ -642,7 +641,7 @@ sub firefox_check_popups {
 }
 
 sub firefox_open_url {
-    my ($self, $url) = @_;
+    my ($self, $url, $do_not_check_loaded_url) = @_;
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
@@ -656,6 +655,11 @@ sub firefox_open_url {
         }
     }
     type_string_slow "$url\n";
+    wait_still_screen 2, 4;
+    # this is because of adobe flash, screensaver will activate sooner than the page
+    unless ($do_not_check_loaded_url) {
+        assert_screen 'firefox-url-loaded', 90;
+    }
 }
 
 sub exit_firefox {

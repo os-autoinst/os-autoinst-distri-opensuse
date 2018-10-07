@@ -24,7 +24,7 @@ sub run {
     assert_screen('firefox-appearance-default', 30);
 
     $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse');
-    assert_screen('firefox-appearance-mozilla_addons', 90);
+    assert_screen('firefox-appearance-mozilla_addons');
     assert_and_click "firefox-appearance-addto";
     if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {
         assert_and_click "firefox-appearance-addto-permissions_requested";

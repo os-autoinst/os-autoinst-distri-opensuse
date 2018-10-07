@@ -87,7 +87,7 @@ sub run {
     send_key "ctrl-w";
 
     $self->firefox_open_url('https://www.hongkongpost.gov.hk');
-    assert_screen('firefox-ssl-connection_untrusted', 90);
+    assert_screen('firefox-ssl-connection_untrusted');
 
     # Exit
     $self->exit_firefox;

@@ -19,7 +19,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
     $self->firefox_open_url('http://www.gnupg.org/gph/en/manual.pdf');
-    assert_screen('firefox-pdf-load', 90);
+    assert_screen('firefox-pdf-load');
 
     sleep 1;
     for my $i (1 .. 2) { assert_and_click 'firefox-pdf-zoom_out_button'; }

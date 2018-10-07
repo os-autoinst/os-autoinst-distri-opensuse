@@ -47,8 +47,8 @@ sub run {
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";
-
-    assert_screen('firefox-extensions-show_flag', 60);
+    $self->firefox_open_url('opensuse.org');
+    assert_screen('firefox-extensions-show_flag');
 
     send_key "alt-2";
     assert_and_click('firefox-extensions-flagfox_installed');

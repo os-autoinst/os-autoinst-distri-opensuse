@@ -25,7 +25,7 @@ sub run {
     send_key "ctrl-shift-$key";
     assert_screen 'firefox-headers-inspector';
     $self->firefox_open_url('gnu.org');
-    assert_screen('firefox-headers-website', 90);
+    assert_screen('firefox-headers-website');
 
     assert_and_click('firefox-headers-select-html');
     # to see new request window after edit and resend on SLE15

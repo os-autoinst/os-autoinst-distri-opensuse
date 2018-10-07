@@ -43,7 +43,7 @@ sub run {
     wait_screen_change { send_key "ctrl-w" };
 
     $self->firefox_open_url('file:///dev/shm/ie10.mht');
-    assert_screen('firefox-mhtml-loadpage', 90);
+    assert_screen('firefox-mhtml-loadpage');
 
     # Exit and Clear
     $self->exit_firefox;

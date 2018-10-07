@@ -60,7 +60,7 @@ sub run {
     type_string $masterpw. "\n";
 
     $self->firefox_open_url($mozlogin);
-    assert_screen('firefox-passwd-auto_filled', 90);
+    assert_screen('firefox-passwd-auto_filled');
 
     send_key "alt-e";
     send_key "n";    #Preferences

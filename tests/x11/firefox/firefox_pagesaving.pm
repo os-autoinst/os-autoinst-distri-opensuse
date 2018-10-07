@@ -20,8 +20,7 @@ sub run {
     $self->start_firefox_with_profile;
 
     $self->firefox_open_url('http://www.mozilla.org/en-US');
-
-    assert_screen('firefox-pagesaving-load', 90);
+    assert_screen('firefox-pagesaving-load');
     send_key "ctrl-s";
     assert_screen 'firefox-pagesaving-saveas';
     wait_still_screen 3;

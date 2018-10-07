@@ -16,8 +16,8 @@ use base "x11test";
 use testapi;
 use version_utils 'is_sle';
 
-my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso\n";
-my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso\n";
+my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso";
+my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso";
 
 sub dl_location_switch {
     my ($tg) = @_;
@@ -37,9 +37,8 @@ sub dl_location_switch {
 }
 
 sub dl_save {
-    my ($link) = @_;
-    send_key "alt-d";
-    type_string $link;
+    my ($self, $link) = @_;
+    $self->firefox_open_url($link);
 
     # check if downloading content open with default application
     assert_screen ['firefox-downloading-openwith', 'firefox-downloading-save_enabled'], 30;
@@ -90,7 +89,7 @@ sub run {
 
     dl_location_switch("ask");
 
-    dl_save($dl_link_01);
+    dl_save($self, $dl_link_01);
 
     # on SLE 15 is by default saved without save to window
     if (is_sle('<15')) {
@@ -141,8 +140,8 @@ sub run {
     # Multiple files downloading
     dl_location_switch("save");
 
-    dl_save($dl_link_01);
-    dl_save($dl_link_02);
+    dl_save($self, $dl_link_01);
+    dl_save($self, $dl_link_02);
 
     send_key "ctrl-shift-y";
     assert_screen 'firefox-downloading-multi';
