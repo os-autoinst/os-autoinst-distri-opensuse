@@ -33,7 +33,7 @@ sub dl_location_switch {
     else {
         send_key "alt-shift-a";    #"Always ask me where to save files"
     }
-    send_key "ctrl-w";
+    send_key "ctrl-w" if is_sle('<15');
 }
 
 sub dl_save {
@@ -47,17 +47,14 @@ sub dl_save {
     }
     assert_and_click("firefox-downloading-save_enabled", "left", 90);
     # wait a little time at the beginning of the download to avoid busy disk writing
-    wait_still_screen 2;
+    wait_still_screen 3, 6;
 }
 
 # the changes of shift-f10 context menu and its shortcut keys certainly rely on the
 # actual downloading status, slow down the operations for pause, cancel and resume
 sub dl_pause {
-    wait_still_screen 2;
-    send_key "shift-f10";
-    wait_still_screen 2;
+    dl_menu();
     send_key "p";
-    wait_still_screen 2;
 }
 
 # firefox 62 in sle15 does not have option or shortcut to cancel only button
@@ -67,19 +64,22 @@ sub dl_cancel {
     }
     else {
         dl_pause();
-        send_key "shift-f10";
-        wait_still_screen 2;
+        dl_menu();
         send_key "c";
-        wait_still_screen 2;
+        wait_still_screen 3, 6;
     }
 }
 
 sub dl_resume {
-    wait_still_screen 2;
-    send_key "shift-f10";
-    wait_still_screen 2;
+    dl_menu();
     send_key "r";
-    wait_still_screen 2;
+    wait_still_screen 3, 6;
+}
+
+sub dl_menu {
+    wait_still_screen 3, 6;
+    send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
+    wait_still_screen 3, 6;
 }
 
 sub run {
@@ -94,7 +94,7 @@ sub run {
     # on SLE 15 is by default saved without save to window
     if (is_sle('<15')) {
         assert_screen('firefox-downloading-saving_box', 90);
-        wait_still_screen 2;
+        wait_still_screen 3, 6;
         send_key "alt-s";
     }
 
@@ -111,7 +111,7 @@ sub run {
 
     # It have to use context menu to identify if downloading resumed, (gray "pause")
     # because there is no obvious specific elements when download is in on going.
-    send_key "shift-f10";
+    dl_menu();
     assert_screen 'firefox-downloading-resumed';
     send_key "esc";
 
@@ -121,21 +121,19 @@ sub run {
 
     # Retry
     send_key "ret";
-    wait_still_screen 2;    # extra wait for subsequent command execution, wait_screen_change sometimes works not well
-    send_key "shift-f10";
+    dl_menu();
     assert_screen 'firefox-downloading-resumed';
     send_key "esc";
 
     # Remove from history
     dl_cancel();
-    send_key "shift-f10";
-    wait_still_screen 2;
-    send_key "e";           #"Remove From History"
+    dl_menu();
+    send_key "e";    #"Remove From History"
     assert_screen 'firefox-downloading-blank_list';
 
     # Close download library and wait a little time
     send_key "alt-f4";
-    wait_still_screen 2;
+    wait_still_screen 3, 6;
 
     # Multiple files downloading
     dl_location_switch("save");
@@ -151,11 +149,9 @@ sub run {
     send_key "down";
     dl_cancel();
 
-    wait_still_screen 2;
-    send_key "shift-f10";
-    wait_still_screen 2;
-    send_key "d";    #"Clear Downloads"
-    assert_screen 'firefox-downloading-blank_list';
+    dl_menu();
+    # clear downloads, sometimes one d does not clear the list
+    send_key_until_needlematch 'firefox-downloading-blank_list', 'd', 3, 3;
 
     send_key "alt-f4";
     send_key "spc";
