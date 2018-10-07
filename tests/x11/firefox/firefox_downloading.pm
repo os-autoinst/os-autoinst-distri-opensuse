@@ -77,9 +77,9 @@ sub dl_resume {
 }
 
 sub dl_menu {
-    wait_still_screen 3, 6;
+    wait_still_screen 3,                                   6;
     send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
-    wait_still_screen 3, 6;
+    wait_still_screen 3,                                   6;
 }
 
 sub run {
