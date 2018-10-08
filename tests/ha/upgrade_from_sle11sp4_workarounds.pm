@@ -19,7 +19,7 @@ use hacluster;
 
 # Do some stuff that need to be workaround in SLE15
 sub run {
-    return unless get_var('HDDVERSION', '11-SP4');
+    return unless check_var('HDDVERSION', '11-SP4');
 
     my ($self)        = @_;
     my $cluster_name  = get_cluster_name;
