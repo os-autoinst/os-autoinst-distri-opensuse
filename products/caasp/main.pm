@@ -40,10 +40,6 @@ testapi::set_distribution(susedistribution->new());
 
 set_var 'FAIL_EXPECTED', 'SMALL-DISK' if get_var('HDDSIZEGB') < 12;
 
-if (is_caasp('kubic')) {
-    set_var('SYSTEM_ROLE_FIRST_FLOW', 1);
-}
-
 # Set console for XEN-PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
     set_var('SERIALDEV', 'hvc0');

@@ -54,6 +54,7 @@ our @EXPORT = qw(
   is_sles4sap_standard
   is_updates_test_repo
   is_updates_tests
+  is_using_system_role
   kdestep_is_applicable
   kdump_is_applicable
   load_autoyast_clone_tests
@@ -323,7 +324,7 @@ sub is_leanos {
     return 0;
 }
 
-sub is_sle12sp2_using_system_role {
+sub is_using_system_role {
     #system_role selection during installation was added as a new feature since sles12sp2
     #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
     #no matter with or without INSTALL_TO_OTHERS tag
@@ -331,7 +332,15 @@ sub is_sle12sp2_using_system_role {
       && check_var('ARCH', 'x86_64')
       && is_server()
       && (!is_sles4sap() || is_sles4sap_standard())
-      && (install_this_version() || install_to_other_at_least('12-SP2'));
+      && (install_this_version() || install_to_other_at_least('12-SP2'))
+      || is_sle('15+')    # SLE 15 has system roles without extra conditions
+      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW
+      || is_caasp('kubic');                    # And Kubic
+}
+
+# On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
+sub is_using_system_role_first_flow {
+    return is_leap('=15.0') || is_using_system_role;
 }
 
 sub is_desktop_module_selected {
@@ -561,17 +570,18 @@ sub load_docker_tests {
 }
 
 sub load_system_role_tests {
-    if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
-        loadtest "installation/setup_online_repos";
+    # This part is relevant only for openSUSE
+    unless (is_sle) {
+        if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+            loadtest "installation/setup_online_repos";
+        }
+        # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
+        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
+            loadtest "installation/logpackages";
+        }
+        loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
     }
-    # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-    if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
-        loadtest "installation/logpackages";
-    }
-    loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
-    # SYSTEM_ROLE_STYLE will be included in Mediums for openSUSE products progressively offering this new dialog
-    # i.e.: not all staging will receive it at the same time
-    if (get_var('SYSTEM_ROLE_STYLE') || is_caasp('kubic')) {
+    if (is_using_system_role) {
         loadtest "installation/system_role";
     }
     elsif (is_opensuse) {
@@ -879,11 +889,8 @@ sub load_inst_tests {
             loadtest "installation/livecd_network_settings";
         }
         # Run system_role/desktop selection tests if using the new openSUSE installation flow
-        if (get_var("SYSTEM_ROLE_FIRST_FLOW")) {
+        if (is_using_system_role_first_flow) {
             load_system_role_tests;
-        }
-        if (is_sle12sp2_using_system_role() || is_sle('15+')) {
-            loadtest "installation/system_role";
         }
         if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
@@ -974,7 +981,7 @@ sub load_inst_tests {
             loadtest "installation/hostname_inst";
         }
         # Do not run system_role/desktop selection if using the new openSUSE installation flow
-        if (!get_var("SYSTEM_ROLE_FIRST_FLOW")) {
+        if (!is_using_system_role_first_flow) {
             load_system_role_tests;
         }
         if (is_sles4sap()) {
