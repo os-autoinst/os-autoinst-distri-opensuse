@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_leap is_storage_ng is_sle sle_version_at_least);
+use version_utils qw(is_leap is_storage_ng is_sle sle_version_at_least is_tumbleweed);
 use partition_setup '%partition_roles';
 
 sub run {
@@ -49,6 +49,7 @@ sub run {
         $cmd{resize}           = 'alt-r';
         $cmd{raw_volume}       = 'alt-r';
         $cmd{enable_snapshots} = 'alt-a';
+        $cmd{addpart}          = 'alt-r' unless is_tumbleweed;
         # Set shortcut for role selection when creating partition
         $partition_roles{raw} = $cmd{raw_volume};
 
