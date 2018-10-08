@@ -14,7 +14,7 @@ use Exporter;
 
 use strict;
 use testapi;
-use version_utils qw(is_storage_ng is_sle);
+use version_utils qw(is_storage_ng is_sle is_tumbleweed);
 use installation_user_settings 'await_password_check';
 
 our @EXPORT = qw(addboot addpart addlv addvg create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
@@ -61,23 +61,22 @@ sub create_new_partition_table {
     send_key_until_needlematch "expert-partitioner-vda", 'right';
 
     # empty disk partitions by creating new partition table
-    my $expert_menu_key = (is_storage_ng) ? 'alt-e' : 'alt-x';    # expert menu keys
+    my $expert_menu_key = (is_storage_ng) ? 'alt-r' : 'alt-x';    # expert menu keys
+    $expert_menu_key = 'alt-e' if is_tumbleweed;
 
-    if (is_sle('15+')) {
+    if (is_storage_ng and (!is_tumbleweed)) {
         # partition table management has been moved from Partitions tab to Overview
         send_key 'alt-o';
         assert_screen 'expert-partitioner-overview';
-        send_key $expert_menu_key;                                # enter expert menu
-    }
-    else {
-        send_key $expert_menu_key;                                # enter expert menu
-        send_key 'down';
-        wait_still_screen 2;
-        save_screenshot;
-        send_key 'ret';
     }
 
-    if (is_storage_ng) {
+    wait_screen_change { send_key $expert_menu_key };             # enter Partition table menu
+    send_key 'down';
+    wait_still_screen 2;
+    save_screenshot;
+    send_key 'ret';
+
+    if (is_storage_ng and (!is_tumbleweed)) {
         assert_screen 'expert-partitioner-confirm-dev-removal';
         send_key 'alt-y';
     }
@@ -89,9 +88,9 @@ sub create_new_partition_table {
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
-        send_key 'alt-p' if is_sle('15+');                    # return back to Partitions tab
+        send_key 'alt-p' if (is_storage_ng and (!is_tumbleweed));    # return back to Partitions tab
     }
-    unless (is_storage_ng) {
+    unless (is_storage_ng and (!is_tumbleweed)) {
         assert_screen 'partition-create-new-table';
         send_key 'alt-y';
     }
