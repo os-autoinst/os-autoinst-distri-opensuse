@@ -26,7 +26,7 @@ sub run {
     send_key "alt-tab";    #Switch to xterm
     wait_still_screen 2, 4;
     assert_script_run "$changesaving_checktimestamp > dfa";
-
+    wait_still_screen 2, 4;
     send_key "alt-tab";    #Switch to firefox
     wait_still_screen 2, 4;
     save_screenshot;
@@ -59,8 +59,7 @@ sub run {
     assert_script_run 'cp dfa dfb';
     assert_script_run 'rm -vf df*';    #Clear
 
-    send_key "alt-tab";                #Switch to firefox
-    wait_still_screen 2, 4;
+    send_key_until_needlematch 'firefox-url-loaded', 'alt-tab';    #Switch to firefox
 
     $self->exit_firefox;
 }

@@ -25,13 +25,13 @@ sub run {
     assert_and_click('firefox-addons-plugins');
     assert_screen [qw(firefox-gnomeshell-default firefox-plugins-missing)], 60;
     if (match_has_tag('firefox-plugins-missing')) {
-        record_soft_failure 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
+        record_info 'Dropped support for NPAPI plugins since Firefox 52+', 'bsc#1077707 - GNOME Shell Integration and other two plugins are not installed by default';
         $self->exit_firefox;
         return;
     }
 
     $self->firefox_open_url('extensions.gnome.org');
-    assert_screen('firefox-gnomeshell-frontpage', 120);
+    assert_screen('firefox-gnomeshell-frontpage');
     send_key "alt-a";
     assert_and_click "firefox-gnomeshell-allowremember";
     assert_and_click "firefox-gnomeshell-check_installed";

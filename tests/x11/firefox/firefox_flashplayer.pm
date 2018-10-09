@@ -19,8 +19,8 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    $self->firefox_open_url('http://www.adobe.com/software/flash/about/');
-    assert_screen('firefox-flashplayer-verify_loaded');
+    $self->firefox_open_url('http://www.adobe.com/software/flash/about/', 'do_not_check_loaded_url');
+    assert_screen('firefox-flashplayer-verify_loaded', 90);
 
     send_key "pgdn";
     # flashplayer dropped since sled12 sp2
@@ -28,7 +28,7 @@ sub run {
         last if (match_has_tag('firefox-flashplayer-dropped'));
         if (match_has_tag('firefox-flashplayer-verify')) {
             $self->firefox_open_url('https://www.youtube.com/watch?v=Z4j5rJQMdOU');
-            assert_screen('firefox-flashplayer-video_loaded', 90);
+            assert_screen('firefox-flashplayer-video_loaded');
         }
         last;
     }

@@ -1438,9 +1438,6 @@ sub load_extra_tests_desktop {
         if (gnomestep_is_applicable()) {
             # Setup env for x11 regression tests
             loadtest "x11/x11_setup";
-            # poo#18850 java test support for firefox, run firefox before chrome
-            # as otherwise have wizard on first run to import settings from it
-            loadtest "x11/firefox/firefox_java";
             if (check_var('VERSION', '42.2')) {
                 # 42.2 feature - not even on Tumbleweed
                 loadtest "x11/gdm_session_switch";
@@ -1793,8 +1790,8 @@ sub load_x11_webbrowser_extra {
     # evolution is not installed without WE addon
     loadtest "x11/firefox/firefox_emaillink" if (get_var('MRU_ADDONS') || get_var('HDD_1')) =~ /we/;
     loadtest "x11/firefox/firefox_plugins";
-    # IcedTea-Web plugin package is present in 12 SP3 and higher
-    loadtest "x11/firefox/firefox_java" if is_sle('>12-sp2');
+    # IcedTea-Web plugin is part of NPAPI dropped in version 52 available only on DESKTOP with currently 45.2
+    loadtest "x11/firefox/firefox_java" if get_var('FLAVOR') =~ /Desktop/;
     loadtest "x11/firefox/firefox_extcontent";
     loadtest "x11/firefox/firefox_gnomeshell";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {

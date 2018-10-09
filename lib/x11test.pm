@@ -521,26 +521,24 @@ sub start_clean_firefox {
 
     x11_start_program('xterm');
     # Clean and Start Firefox
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox opensuse.org >firefox.log 2>&1 &\n";
-    assert_screen 'firefox-launch', 150;
-    # maximize window
-    send_key 'alt-f10' if is_sle('<=12-sp1');
+    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox /home >firefox.log 2>&1 &\n";
+    wait_still_screen 3;
+    assert_screen 'firefox-url-loaded', 90;
     # to avoid stuck trackinfo pop-up, refresh the browser
-    if (is_sle('>12-sp1')) {
-        my $count = 10;
-        while ($count--) {
-            # workaround for bsc#1046005
-            wait_screen_change { assert_and_click 'firefox_titlebar' };
-            if (check_screen 'firefox_trackinfo', 3) {
-                assert_and_click 'firefox_trackinfo';
-                last;
-            }
-            elsif ($count eq 1) {
-                die 'trackinfo pop-up did not match';
-            }
-            else {
-                send_key 'f5';
-            }
+    $self->firefox_open_url('opensuse.org');
+    my $count = 10;
+    while ($count--) {
+        # workaround for bsc#1046005
+        wait_screen_change { assert_and_click 'firefox_titlebar' };
+        if (check_screen 'firefox_trackinfo', 3) {
+            assert_and_click 'firefox_trackinfo';
+            last;
+        }
+        elsif ($count eq 1) {
+            die 'trackinfo pop-up did not match';
+        }
+        else {
+            send_key 'f5';
         }
     }
 
@@ -556,42 +554,43 @@ sub start_clean_firefox {
 
     # Help
     send_key "alt-h";
-    sleep 1;
+    assert_screen 'firefox-help-menu';
     send_key "a";
     assert_screen('firefox-help', 30);
     send_key "esc";
 
-    # store .mozilla configuration as default to avoid popup checks in following tests
-    $self->restart_firefox('cp -rp .mozilla .mozilla_first_run');
+    # restart firefox to trigger default browser pop-up and store .mozilla configuration as default without pop-ups
+    $self->restart_firefox('sync && cp -rp .mozilla .mozilla_first_run', 'opensuse.org');
 }
 
 sub start_firefox_with_profile {
-    my ($self) = @_;
+    my ($self, $url) = @_;
+    $url ||= '/home';
     mouse_hide(1);
 
     x11_start_program('xterm');
     # use mozilla configuration stored with start_clean_firefox
     type_string "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla\n";
     # Start Firefox
-    type_string "firefox >firefox.log 2>&1 &\n";
-    assert_screen 'firefox-launch', 90;
-    wait_still_screen(3);
+    type_string "firefox $url >firefox.log 2>&1 &\n";
+    wait_still_screen 3;
+    assert_screen 'firefox-url-loaded', 90;
 }
 
 sub start_firefox {
     my ($self) = @_;
     mouse_hide(1);
 
-    x11_start_program('xterm');
-    # Clean and Start Firefox
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox > firefox.log 2>&1 &\n";
+    # Using match_typed parameter on KDE as typing in desktop runner may fail
+    x11_start_program('firefox https://html5test.opensuse.org', valid => 0, match_typed => ((check_var('DESKTOP', 'kde')) ? "firefox_url_typed" : ''));
     $self->firefox_check_default;
     $self->firefox_check_popups;
-    assert_screen 'firefox-launch', 90;
+    assert_screen 'firefox-html-test';
 }
 
 sub restart_firefox {
-    my ($self, $cmd) = @_;
+    my ($self, $cmd, $url) = @_;
+    $url ||= '/home';
     # exit firefox properly
     wait_still_screen 2;
     send_key 'alt-f';
@@ -599,13 +598,14 @@ sub restart_firefox {
     send_key 'q';
     assert_screen 'xterm';
     type_string "$cmd\n";
-    type_string "firefox >>firefox.log 2>&1 &\n";
+    type_string "firefox $url >>firefox.log 2>&1 &\n";
+    sleep 5;
     $self->firefox_check_default;
 }
 
 sub firefox_check_default {
     # Set firefox as default browser if asked
-    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-launch)], 150;
+    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 150;
     if (match_has_tag('firefox_default_browser')) {
         wait_screen_change {
             assert_and_click 'firefox_default_browser_yes';
@@ -619,7 +619,7 @@ sub firefox_check_popups {
         # wait for any popup to showup but not expect a too long still time
         # because of dynamic openSUSE start page background logo
         wait_still_screen(3);
-        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox_clean)], 60;
+        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 60;
         # handle the tracking protection pop up
         if (match_has_tag('firefox_trackinfo')) {
             wait_screen_change { assert_and_click 'firefox_trackinfo'; };
@@ -641,7 +641,7 @@ sub firefox_check_popups {
 }
 
 sub firefox_open_url {
-    my ($self, $url) = @_;
+    my ($self, $url, $do_not_check_loaded_url) = @_;
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
@@ -655,10 +655,16 @@ sub firefox_open_url {
         }
     }
     type_string_slow "$url\n";
+    wait_still_screen 2, 4;
+    # this is because of adobe flash, screensaver will activate sooner than the page
+    unless ($do_not_check_loaded_url) {
+        assert_screen 'firefox-url-loaded', 90;
+    }
 }
 
 sub exit_firefox {
     # Exit
+    send_key 'alt-f4';
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"

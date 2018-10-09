@@ -20,7 +20,7 @@ sub run {
     $self->start_firefox_with_profile;
 
     $self->firefox_open_url('youtube.com/html5');
-    assert_screen('firefox-html5-youtube', 90);
+    assert_screen('firefox-html5-youtube');
     send_key "pgdn";
     send_key "up";
     send_key "up";
@@ -28,7 +28,7 @@ sub run {
     assert_screen('firefox-html5-support', 60);
 
     $self->firefox_open_url('youtube.com/watch?v=Z4j5rJQMdOU');
-    assert_screen('firefox-flashplayer-video_loaded', 90);
+    assert_screen('firefox-flashplayer-video_loaded');
 
     # Exit
     $self->exit_firefox;
