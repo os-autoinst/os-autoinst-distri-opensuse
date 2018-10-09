@@ -62,9 +62,12 @@ sub run {
         push @no_relnotes, qw(base script desktop serverapp legacy sdk live);
         # WE has release-notes on SLE 15
         @no_relnotes = grep(!/^we$/, @no_relnotes);
-        # HA-GEO has been removed on SLE 15
-        @addons = grep(!/^geo$/, @addons);
     }
+
+    # No HA-GEO on ppc64le before SLE 15 (OFW firmware is only used on ppc* at this time)
+    # But HA-GEO in now (SLE 15+) included in HA extension for all platforms
+    # So we can remove it on ppc64le and SLE 15+
+    @addons = grep(!/^geo$/, @addons) if get_var('OFW') or is_sle('15+');
 
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
