@@ -36,14 +36,6 @@ sub run {
         sleep 2;
         assert_script_run 'salt-key --accept-all --yes';
         assert_script_run 'cd /usr/lib/deepsea/qa/';
-        if (is_sle('<15') && get_var('DEEPSEA_TESTSUITE_STABLE')) {
-            # workaround missing zypper option for retry in case of network issue fate#325366
-            assert_script_run 'string=\'\(zypper\) --non-interactive \(--no-gpg-checks refresh\)\'';
-            assert_script_run 'replace=\'expect -c \'"\'"\';spawn \1 \2;expect Abort*;send "r\\\r";interact\'"\'"\'\'';
-            assert_script_run 'sed -i "s|$string|$replace|" common/common.sh';
-            record_info 'fix', 'https://github.com/SUSE/DeepSea/pull/939 will be present in new deepsea-qa package';
-            assert_script_run 'sed -i \'s/head -1$/sort | head -1/\' common/helper.sh';
-        }
         # print system info
         assert_script_run 'uname -a';
         assert_script_run 'cat /etc/os-release';
