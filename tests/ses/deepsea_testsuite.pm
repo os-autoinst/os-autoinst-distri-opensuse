@@ -36,14 +36,6 @@ sub run {
         sleep 2;
         assert_script_run 'salt-key --accept-all --yes';
         assert_script_run 'cd /usr/lib/deepsea/qa/';
-        if (is_sle('<15') && get_var('DEEPSEA_TESTSUITE_STABLE')) {
-            # workaround missing zypper option for retry in case of network issue fate#325366
-            assert_script_run 'string=\'\(zypper\) --non-interactive \(--no-gpg-checks refresh\)\'';
-            assert_script_run 'replace=\'expect -c \'"\'"\';spawn \1 \2;expect Abort*;send "r\\\r";interact\'"\'"\'\'';
-            assert_script_run 'sed -i "s|$string|$replace|" common/common.sh';
-            record_info 'fix', 'https://github.com/SUSE/DeepSea/pull/939 will be present in new deepsea-qa package';
-            assert_script_run 'sed -i \'s/head -1$/sort | head -1/\' common/helper.sh';
-        }
         # print system info
         assert_script_run 'uname -a';
         assert_script_run 'cat /etc/os-release';
@@ -53,9 +45,12 @@ sub run {
         assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
         # __pycache__ is deleted in testsuite and deepsea cli doe not work properly in SES6
         record_soft_failure 'bsc#1087232' if is_sle('>=15');
-        my $deepsea_cli = is_sle('>=15') ? '' : '--cli';
+        my $deepsea_cli       = is_sle('>=15') ? '' : '--cli';
         my $deepsea_testsuite = get_var('DEEPSEA_TESTSUITE');
-        assert_script_run "suites/basic/$deepsea_testsuite.sh $deepsea_cli | tee /dev/tty /dev/$serialdev | grep ^OK\$", 4000;
+        my $deepsea_options   = get_var('DEEPSEA_OPTIONS');
+        # temporary fix https://github.com/SUSE/DeepSea/pull/1417
+        script_run 'sed -i \'s/MASTER_MINION=$(hostname)/MASTER_MINION=$(hostname --fqdn)/\' common/deploy.sh';
+        assert_script_run "suites/basic/$deepsea_testsuite.sh $deepsea_cli $deepsea_options | grep \"test result: PASS\$\"", 4000;
     }
     else {
         barrier_wait {name => 'salt_master_ready', check_dead_job => 1};
@@ -66,6 +61,10 @@ sub run {
         barrier_wait {name => 'salt_minions_connected', check_dead_job => 1};
     }
     barrier_wait {name => 'all_tests_done', check_dead_job => 1};
+}
+
+sub post_fail_hook {
+    upload_logs '/var/log/salt/deepsea.log';
 }
 
 1;
