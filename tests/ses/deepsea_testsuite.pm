@@ -45,9 +45,12 @@ sub run {
         assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
         # __pycache__ is deleted in testsuite and deepsea cli doe not work properly in SES6
         record_soft_failure 'bsc#1087232' if is_sle('>=15');
-        my $deepsea_cli = is_sle('>=15') ? '' : '--cli';
+        my $deepsea_cli       = is_sle('>=15') ? '' : '--cli';
         my $deepsea_testsuite = get_var('DEEPSEA_TESTSUITE');
-        assert_script_run "suites/basic/$deepsea_testsuite.sh $deepsea_cli | tee /dev/tty /dev/$serialdev | grep ^OK\$", 4000;
+        my $deepsea_options   = get_var('DEEPSEA_OPTIONS');
+        # temporary fix https://github.com/SUSE/DeepSea/pull/1417
+        script_run 'sed -i \'s/MASTER_MINION=$(hostname)/MASTER_MINION=$(hostname --fqdn)/\' common/deploy.sh';
+        assert_script_run "suites/basic/$deepsea_testsuite.sh $deepsea_cli $deepsea_options | grep \"test result: PASS\$\"", 4000;
     }
     else {
         barrier_wait {name => 'salt_master_ready', check_dead_job => 1};
