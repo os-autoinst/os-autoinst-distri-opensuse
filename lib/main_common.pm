@@ -1526,6 +1526,7 @@ sub load_extra_tests_textmode {
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
     loadtest "console/unzip";
+    loadtest "console/salt" if is_jeos;
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/shells";

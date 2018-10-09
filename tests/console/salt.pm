@@ -16,8 +16,14 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils qw(zypper_call pkcon_quit systemctl);
+use version_utils 'is_jeos';
+use registration 'add_suseconnect_product';
 
 sub run {
+    if (is_jeos) {
+        my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
+        add_suseconnect_product('sle-module-adv-systems-management', $version);
+    }
     select_console 'root-console';
     pkcon_quit;
     zypper_call('in salt-master salt-minion');
