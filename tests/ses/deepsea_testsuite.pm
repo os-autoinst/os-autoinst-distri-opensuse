@@ -63,5 +63,9 @@ sub run {
     barrier_wait {name => 'all_tests_done', check_dead_job => 1};
 }
 
+sub post_fail_hook {
+    upload_logs '/var/log/salt/deepsea.log';
+}
+
 1;
 
