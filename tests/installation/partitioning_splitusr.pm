@@ -14,7 +14,7 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use version_utils 'is_storage_ng';
+use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'addpart';
 
 sub run {
@@ -27,12 +27,21 @@ sub run {
 
     # select root partition
     send_key_until_needlematch 'vda-selected', 'right';
+    wait_screen_change { send_key 'alt-p' } if is_storage_ng;
     send_key "tab";
     wait_screen_change { send_key "tab" };
     send_key "home";
     wait_still_screen(2);
     send_key_until_needlematch 'root-partition-selected', 'down', 5, 2;    # Select root partition
-                                                                           # Different shortcut on storage-ng
+                                                                           # Resize has been moved under drop down button Modify in storage-ng
+    if (is_storage_ng and (!is_tumbleweed)) {
+        wait_screen_change { send_key 'alt-m' };
+        wait_still_screen(2);
+        send_key 'down' for (0 .. 1);
+        save_screenshot;
+        send_key 'ret';
+    }
+
     wait_screen_change { send_key $cmd{resize} };                          # Resize
     send_key 'alt-u';                                                      # Custom size
     send_key $cmd{size_hotkey} if is_storage_ng;
