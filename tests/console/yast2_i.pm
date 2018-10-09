@@ -43,9 +43,10 @@ sub run {
     # UC1:
     # Select a certain package, check that another gets selected/installed
     type_string("$pkgname\n");
+    assert_screen "$pkgname-selected";
     wait_still_screen 3;
     send_key "+";    # select for install
-    assert_screen "$pkgname-selected-for-install", 5;
+    assert_screen "$pkgname-selected-for-install";
 
     if (!check_var('VERSION', '12')) {    #this functionality isn't avivable in SLE12SP0
         send_key "alt-p";                 # go to search box again
