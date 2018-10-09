@@ -61,8 +61,10 @@ sub run {
     assert_screen 'sap-wizard-performing-installation', 60;
     assert_screen 'sap-wizard-profile-ready',           300;
     send_key $cmd{next};
-    assert_screen 'sap-wizard-continue-installation';
-    send_key 'alt-y';
+    check_screen 'sap-wizard-continue-installation';
+    if (match_has_tag 'sap-wizard-continue-installation') {
+        send_key 'alt-y';
+    }
     assert_screen 'sap-product-installation';
     assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], 4000;
     send_key $cmd{ok};
