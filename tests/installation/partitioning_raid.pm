@@ -15,7 +15,10 @@ use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use version_utils qw(is_storage_ng is_sle);
+use version_utils qw(is_storage_ng is_sle is_leap is_tumbleweed);
+
+# tumbleweed is not older product, but it didn't roll out yet
+my $older_product = is_sle('<15') || is_leap('<15.1') || is_tumbleweed;
 
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
@@ -31,6 +34,11 @@ sub addpart {
     else                         { die 'Unknown argument'; }
 
     assert_screen "expert-partitioner";
+    unless ($older_product) {
+        $cmd{addpart} = 'alt-r';
+        send_key 'alt-p';
+        assert_screen "partitions-tab";
+    }
     send_key $cmd{addpart};
     # Partitioning type does not appear when GPT disk used, GPT is default for UEFI
     # With storage-ng GPT is default, so no partitioning type
@@ -97,9 +105,16 @@ sub addraid {
         type_string "\t$chunksize";
     }
     send_key $cmd{next};
+    unless ($older_product) {
+        assert_screen 'expert-partitioner';
+        send_key 'alt-p';    # Partitions drop-down menu
+        assert_screen 'partition-dropdown-open';
+        assert_and_click 'add-partition';
+        assert_screen "partition-size";
+        send_key $cmd{next};
+    }
     assert_screen 'partition-role';
-    send_key "alt-o";    # Operating System
-
+    send_key "alt-o";        # Operating System
     wait_screen_change { send_key $cmd{next} };
 }
 
@@ -308,6 +323,9 @@ sub is_boot_raid_partition_required {
 }
 
 sub run {
+    # for newer storage-ng toolbar has changed
+    $cmd{addraid} = 'alt-d' unless $older_product;
+
     # create partitioning
     send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
 
