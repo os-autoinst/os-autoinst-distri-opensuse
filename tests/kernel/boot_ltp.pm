@@ -90,6 +90,8 @@ sub run {
 
     script_run('ps axf') if ($is_network || $is_ima);
 
+    script_run('aa-enabled; aa-status');
+
     if ($is_network) {
         # poo#18762: Sometimes there is physical NIC which is not configured.
         # One of the reasons can be renaming by udev rule in
