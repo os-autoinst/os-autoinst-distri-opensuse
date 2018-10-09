@@ -1512,6 +1512,7 @@ sub load_extra_tests_textmode {
         loadtest "console/openqa_review";
         loadtest "console/zbar";
         loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
+        loadtest "console/znc";
         loadtest "console/weechat";
         loadtest "console/nano";
         loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
