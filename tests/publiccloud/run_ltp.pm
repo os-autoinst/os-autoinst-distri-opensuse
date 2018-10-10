@@ -18,12 +18,22 @@ use utils;
 use serial_terminal 'select_virtio_console';
 use Data::Dumper;
 
+sub run_ssh
+{
+    my ($instance, $cmd) = @_;
+
+    my $ssh_cmd = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ';
+    $ssh_cmd .= '-i ' . $instance->{ssh_key} . ' ';
+    $ssh_cmd .= $instance->{username} . '@' . $instance->{ip} . ' ';
+    $ssh_cmd .= '-- ' . $cmd;
+
+    assert_script_run($ssh_cmd);
+}
+
 sub run {
     my ($self) = @_;
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/SLE_12_SP3/home:metan.repo');
     select_virtio_console();
-
-    zypper_call('-q in perl-JSON perl-Expect');
 
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init();
@@ -37,22 +47,34 @@ sub run {
         image_id      => $image_id
     );
 
-    assert_script_run("curl " . data_url('publiccloud/run_ltp_ssh.pl') . " -o ~/run_ltp_ssh.pl");
+    assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
+    assert_script_run('chmod +x ~/restart_instance.sh');
 
+    assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
-    my $cmd = "perl run_ltp_ssh.pl "
-      . '--username ' . $instance->{username} . ' '
-      . '--password ' . $instance->{ssh_key} . ' '
-      . '--host ' . $instance->{ip} . ' '
-      . '--ltp-test ' . get_required_var('COMMAND_FILE') . ' '
-      . '--ltp-exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' '
-      . '--repo \'' . $ltp_repo . '\' '
-      . '--json-file ltp.json';
-    assert_script_run($cmd, timeout => 60 * 30);
+    # Install ltp from package on remote
+    run_ssh($instance, 'sudo zypper ar ' . $ltp_repo);
+    run_ssh($instance, 'sudo zypper -q --gpg-auto-import-keys in -y ltp');
 
-    upload_logs('ltp_log.txt', failok => 1);
-    upload_logs('ltp_out.txt', failok => 1);
-    parse_extra_log(LTP => 'ltp.json');
+    my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
+    $reset_cmd .= $instance->{instance_id} . ' ' . $instance->{ip};
+
+    my $cmd = 'perl -I ltp/tools/runltp-ng ltp/tools/runltp-ng/runltp-ng ';
+    $cmd .= '--logname=ltp_log ';
+    $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
+    $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
+    $cmd .= '--backend=ssh';
+    $cmd .= ':user=' . $instance->{username};
+    $cmd .= ':key_file=' . $instance->{ssh_key};
+    $cmd .= ':host=' . $instance->{ip};
+    $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
+    $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
+    $cmd .= '--json-format=openqa ';
+
+    assert_script_run($cmd, timeout => 30 * 60);
+
+    upload_logs('ltp_log.raw', failok => 1);
+    parse_extra_log(LTP => 'ltp_log.json');
 
     $provider->cleanup();
 }
@@ -64,9 +86,8 @@ sub post_fail_hook {
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
 
-    upload_logs('ltp_log.txt', failok => 1);
-    upload_logs('ltp_out.txt', failok => 1);
-    parse_extra_log(LTP => 'ltp.json') if (script_run('test -f ltp.json') == 0);
+    upload_logs('ltp_log.raw', failok => 1);
+    parse_extra_log(LTP => 'ltp_log.json') if (script_run('test -f ltp_log.json') == 0);
 
     if ($self->{provider}) {
         $self->{provider}->cleanup();

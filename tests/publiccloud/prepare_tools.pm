@@ -48,7 +48,7 @@ sub run {
         $tools_repo = 'http://download.opensuse.org/repositories/Cloud:/Tools/' . $dist . "_" . $version . '/Cloud:Tools.repo';
     }
     zypper_call('ar ' . $tools_repo);
-    zypper_call('--gpg-auto-import-keys in python3-ipa python3-ipa-tests');
+    zypper_call('--gpg-auto-import-keys in python3-ipa python3-ipa-tests git-core');
 
     # WAR install awscli from pip instead of using the package bsc#1095041
     zypper_call('in gcc python3-pip');
