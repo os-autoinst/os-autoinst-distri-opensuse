@@ -35,10 +35,7 @@ sub run {
         my $svirt = console('svirt');
         $svirt->change_domain_element(os => boot => {dev => 'hd'});
     }
-    wait_screen_change {
-        send_key 'alt-o';    # Reboot
-    };
-
+    send_key 'alt-o';    # Reboot
     power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
 }
 
