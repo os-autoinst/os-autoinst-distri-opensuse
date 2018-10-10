@@ -19,6 +19,7 @@ sub run {
     wait_still_screen();
     send_key $cmd{next};
     assert_screen "after-partitioning";
+    send_key $cmd{next};
 }
 
 1;
