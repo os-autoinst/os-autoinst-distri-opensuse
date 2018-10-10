@@ -92,7 +92,8 @@ sub kgraft_state {
 
 sub install_lock_kernel {
     my $version = shift;
-    if ($version eq '4.12.14-25.13.1') { $wk_ker = 1; }
+    if ($version eq '4.12.14-25.13.1')     { $wk_ker = 1; }
+    if ($version eq '3.12.74-60.64.104.1') { $wk_ker = 2; }
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
@@ -123,7 +124,7 @@ sub install_lock_kernel {
     }
 
     # workaround for SLE15 - 4.12.4-25.13.1
-    if ($wk_ker) {
+    if ($wk_ker == 1) {
         @packages = grep { $_ ne 'kernel-source-4.12.14-25.13.1' } @packages;
     }
 
@@ -221,8 +222,11 @@ sub update_kgraft {
             sleep 15;
         }
         # Use single patch or patch list
-        if ($wk_ker) {
+        if ($wk_ker == 1) {
             zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        }
+        elsif ($wk_ker == 2) {
+            zypper_call("in -l kgraft-patch-3_12_74-60_64_104-xen kgraft-patch-3_12_74-60_64_104-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
         }
         else {
             zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
