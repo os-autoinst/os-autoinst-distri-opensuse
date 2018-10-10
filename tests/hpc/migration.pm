@@ -29,7 +29,7 @@ sub run {
     script_run('SUSEConnect -s');
     add_suseconnect_product('sle-module-hpc',           '12');
     add_suseconnect_product('sle-module-web-scripting', '12');
-    assert_script_run("switch_to_sle-hpc -e testing\@suse.com -r $scc_code");
+    assert_script_run("switch_to_sle-hpc -e testing\@suse.com -r $scc_code", 600);
     assert_script_run('ls -la /etc/products.d/');
 }
 
