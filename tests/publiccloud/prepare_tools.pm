@@ -71,6 +71,13 @@ sub run {
     assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
     zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
     zypper_call('install --from azure-cli -y azure-cli');
+
+    # Install Google Cloud SDK
+    assert_script_run("wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-220.0.0-linux-x86_64.tar.gz");
+    assert_script_run("tar zxf google-cloud-sdk-220.0.0-linux-x86_64.tar.gz google-cloud-sdk");
+    assert_script_run("cd google-cloud-sdk/ && ./install.sh -q");
+    assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
+    assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
 }
 
 sub test_flags {
@@ -81,7 +88,7 @@ sub test_flags {
 
 =head1 Discussion
 
-Install public cloud tools in SLE image. This image gets published and can be used 
+Install public cloud tools in SLE image. This image gets published and can be used
 for specific tests for azure, amazon and google CSPs.
 
 =head1 Configuration
@@ -92,7 +99,7 @@ Activate this test module by setting this variable.
 
 =head2 PUBLIC_CLOUD_TOOLS_REPO
 
-The URL to the cloud:tools repo (optional). 
+The URL to the cloud:tools repo (optional).
 (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo)
 
 =cut
