@@ -61,13 +61,9 @@ sub run {
         barrier_create("CLUSTER_MD_CHECKED_$cluster_name",          $num_nodes);
         barrier_create("HAWK_INIT_$cluster_name",                   $num_nodes);
         barrier_create("HAWK_CHECKED_$cluster_name",                $num_nodes);
-
-        # Create barrier for some upgrade tests
-        if (check_var('HDDVERSION', '11-SP4')) {
-            barrier_create("SLE11_UPGRADE_INIT_$cluster_name",  $num_nodes);
-            barrier_create("SLE11_UPGRADE_START_$cluster_name", $num_nodes);
-            barrier_create("SLE11_UPGRADE_DONE_$cluster_name",  $num_nodes);
-        }
+        barrier_create("SLE11_UPGRADE_INIT_$cluster_name",          $num_nodes);
+        barrier_create("SLE11_UPGRADE_START_$cluster_name",         $num_nodes);
+        barrier_create("SLE11_UPGRADE_DONE_$cluster_name",          $num_nodes);
 
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
