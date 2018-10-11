@@ -1094,6 +1094,7 @@ sub load_consoletests {
     loadtest "console/lvm_thin_check" if get_var('LVM_THIN_LV');
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
@@ -1567,7 +1568,8 @@ sub load_extra_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'console/integration_services'   if is_hyperv;
     loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
@@ -1600,7 +1602,8 @@ sub load_filesystem_tests {
     # setup $serialdev permission and so on
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'console/integration_services'   if is_hyperv;
     loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
