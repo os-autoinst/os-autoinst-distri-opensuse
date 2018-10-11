@@ -20,6 +20,7 @@ use version_utils 'is_sle';
 use registration 'add_suseconnect_product';
 use publiccloud::ec2;
 use publiccloud::azure;
+use publiccloud::google;
 
 sub prepare_os {
 
@@ -94,7 +95,7 @@ added if PUBLIC_CLOUD_IMAGE_LOCATION is set.
 
 =head2 PUBLIC_CLOUD_PROVIDER
 
-The type of the CSP (e.g. AZURE, EC2)
+The type of the CSP (e.g. AZURE, EC2, GOOGLE)
 
 =head2 PUBLIC_CLOUD_IMAGE_LOCATION
 
@@ -111,7 +112,7 @@ The CSP credentials secret used to access API.
 
 =head2 PUBLIC_CLOUD_REGION
 
-The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
+The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1)
 
 =head2 PUBLIC_CLOUD_TENANT_ID
 
