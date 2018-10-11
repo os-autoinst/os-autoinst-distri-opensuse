@@ -49,6 +49,7 @@ sub create_ssh_key {
           . "' --query 'KeyMaterial' --output text > " . $out_file;
         my $ret = script_run($cmd);
         if (defined($ret) && $ret == 0) {
+            assert_script_run('chmod 600 ' . $out_file);
             $self->ssh_key($key_name);
             $self->ssh_key_file($out_file);
             return $key_name;
@@ -97,9 +98,66 @@ sub upload_img {
     return $ami;
 }
 
+sub ipa {
+    my ($self, %args) = @_;
+
+    $args{instance_type} //= 't2.large';
+    $args{cleanup}       //= 1;
+    $args{tests}         //= '';
+    $args{timeout}       //= 60 * 20;
+    $args{results_dir}   //= 'ipa_results';
+    $args{distro}        //= 'sles';
+    my $user = 'ec2-user';
+    my $ssh_key_file =
+
+      $args{tests} =~ s/,/ /g;
+
+    die("Create key-pair failed") unless ($self->create_ssh_key($self->prefix . time, 'QA_SSH_KEY.pem'));
+
+    my $cmd = "ipa --no-color test ec2 ";
+    $cmd .= '--debug ';
+    $cmd .= "--access-key-id '" . $self->key_id . "' ";
+    $cmd .= "--secret-access-key '" . $self->key_secret . "' ";
+    $cmd .= "--distro " . $args{distro} . " ";
+    $cmd .= '--region "' . $self->region . '" ';
+    $cmd .= '--results-dir "' . $args{results_dir} . '" ';
+    $cmd .= '-u ' . $user . ' ';
+    $cmd .= ($args{cleanup}) ? '--cleanup ' : '--no-cleanup ';
+    $cmd .= '--instance-type "' . $args{instance_type} . '" ';
+    $cmd .= "--ssh-private-key-file '" . $self->ssh_key_file . "' ";
+    $cmd .= "--ssh-key-name '" . $self->ssh_key . "' ";
+    if (exists($args{running_instance_id})) {
+        $cmd .= '--running-instance-id "' . $args{running_instance_id} . '" ';
+    } else {
+        $cmd .= '--image-id "' . $args{image_id} . '" ';
+    }
+    $cmd .= $args{tests};
+
+    my $output = script_output($cmd . ' 2>&1', $args{timeout}, proceed_on_failure => 1);
+    my $ipa = $self->parse_ipa_output($output);
+    die($output) unless (defined($ipa));
+
+    # retrieves username and password for ssh login
+    $ipa->{username} = $user;
+    $ipa->{ssh_key}  = $self->ssh_key_file;
+
+    $self->{running_instances} //= {};
+    if ($args{cleanup}) {
+        delete($self->{running_instances}->{$ipa->{instance_id}});
+    } else {
+        $self->{running_instances}->{$ipa->{instance_id}} = $ipa;
+    }
+
+    return $ipa;
+}
+
 sub cleanup {
     my ($self) = @_;
 
+    for my $i (keys(%{$self->{running_instances}})) {
+        my $instance = $self->{running_instances}->{$i};
+        $self->ipa(cleanup => 1, running_instance_id => $instance->{instance_id});
+    }
     $self->delete_ssh_key;
 }
 
