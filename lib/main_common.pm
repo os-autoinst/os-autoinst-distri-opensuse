@@ -418,9 +418,13 @@ sub load_svirt_vm_setup_tests {
     }
 }
 
-sub load_boot_tests {
+sub is_remote_backend {
     # s390x uses only remote repos
-    if (get_var("ISO_MAXSIZE") && !check_var('ARCH', 's390x')) {
+    return check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+}
+
+sub load_boot_tests {
+    if (get_var("ISO_MAXSIZE") && !is_remote_backend) {
         loadtest "installation/isosize";
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
     }
