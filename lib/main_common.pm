@@ -1093,12 +1093,12 @@ sub load_consoletests {
     if (get_var("ADDONS", "") =~ /rt/) {
         loadtest "rt/kmp_modules";
     }
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "console/lvm_thin_check" if get_var('LVM_THIN_LV');
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
