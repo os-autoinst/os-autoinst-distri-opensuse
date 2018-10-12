@@ -234,7 +234,7 @@ sub ha_export_logs {
 
 sub check_cluster_state {
     assert_script_run "$crm_mon_cmd";
-    assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'";
+    assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
     assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
     assert_script_run 'crm_verify -LV';
@@ -242,7 +242,8 @@ sub check_cluster_state {
 
 # Wait for resources to be started
 sub wait_until_resources_started {
-    my @cmds    = ('crm cluster wait_for_startup', "$crm_mon_cmd | grep -i 'no inactive resources'");
+    my @cmds = ('crm cluster wait_for_startup');
+    push @cmds, "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     my $timeout = 120;
     my $ret     = undef;
 
