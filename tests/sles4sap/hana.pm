@@ -16,12 +16,26 @@ use testapi;
 use utils 'turn_off_gnome_screensaver';
 use utils 'type_string_slow';
 
+sub get_total_mem {
+    if (check_var('BACKEND', 'qemu')) {
+        return get_required_var('QEMURAM');
+    }
+    my $mem = 0;
+    open(my $MEMINFO, "<", "/proc/meminfo") or die("Could not open /proc/meminfo");
+    while (<$MEMINFO>) {
+        $mem = int((split(/:\s+/))[1] / 1024) if (/^MemTotal:/);
+        last;
+    }
+    close $MEMINFO;
+    return $mem;
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = split m|://|, get_required_var('MEDIA');
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
-    my $QEMURAM = get_required_var('QEMURAM');
-    die "QEMURAM=$QEMURAM. The SUT needs at least 32G of RAM" if $QEMURAM < 32768;
+    my $RAM = get_total_mem();
+    die "RAM=$RAM. The SUT needs at least 32G of RAM" if $RAM < 32000;
     # Don't change this. The needle has this SID.
     my $sid      = 'NDB';
     my $password = 'Qwerty_123';
