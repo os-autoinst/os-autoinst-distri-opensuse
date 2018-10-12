@@ -20,6 +20,10 @@ use version_utils 'is_sle';
 use qam;
 
 sub run {
+    if (get_var('AZURE')) {
+        record_info("Azure don't have kGraft/LP infrastructure");
+        return;
+    }
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
     my ($test_type) = $git_repo =~ /qa_test_(\w+).git/;
 
