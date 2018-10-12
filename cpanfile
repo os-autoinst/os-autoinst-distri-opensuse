@@ -13,6 +13,7 @@ requires 'Selenium::Remote::Driver';
 requires 'Selenium::Chrome';
 requires 'Selenium::Waiter';
 requires 'Selenium::Remote::WDKeys';
+requires 'Digest::file';
 
 on 'test' => sub {
   requires 'Code::DRY';
