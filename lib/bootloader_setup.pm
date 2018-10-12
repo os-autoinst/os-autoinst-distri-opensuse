@@ -370,6 +370,7 @@ sub bootmenu_default_params {
             type_string_very_slow " textmode=1";
         }
         type_string_very_slow " Y2DEBUG=1 ";
+        bootmenu_type_extra_boot_params;
     }
     else {
         # On JeOS and CaaSP we don't have YaST installer.
@@ -393,27 +394,25 @@ sub bootmenu_default_params {
             }
         }
 
-    }
+        if (!get_var("NICEVIDEO")) {
+            if (is_caasp) {
+                bootmenu_type_console_params $args{baud_rate};
+            }
+            elsif (!is_jeos) {
+                # make plymouth go graphical
+                type_string_very_slow "plymouth.ignore-serial-consoles " unless $args{pxe};
+                type_string_very_slow "linuxrc.log=/dev/$serialdev ";
+                bootmenu_type_console_params $args{baud_rate};
+                # Do not assert on pxe boot as it's unreliable due to multiline input
+                assert_screen "inst-consolesettingstyped", 30 unless $args{pxe};
 
-    if (!get_var("NICEVIDEO")) {
-        if (is_caasp) {
-            bootmenu_type_console_params $args{baud_rate};
+                # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
+                type_string_very_slow "linuxrc.core=/dev/$serialdev ";
+                type_string_very_slow "linuxrc.debug=4,trace ";
+            }
+            bootmenu_type_extra_boot_params;
         }
-        elsif (!is_jeos) {
-            # make plymouth go graphical
-            type_string_very_slow "plymouth.ignore-serial-consoles " unless $args{pxe};
-            type_string_very_slow "linuxrc.log=/dev/$serialdev ";
-            bootmenu_type_console_params $args{baud_rate};
-            # Do not assert on pxe boot as it's unreliable due to multiline input
-            assert_screen "inst-consolesettingstyped", 30 unless $args{pxe};
-
-            # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-            type_string_very_slow "linuxrc.core=/dev/$serialdev ";
-            type_string_very_slow "linuxrc.debug=4,trace ";
-        }
-        bootmenu_type_extra_boot_params;
     }
-
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
     # we have to use something else.
