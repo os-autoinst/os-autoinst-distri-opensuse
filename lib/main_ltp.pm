@@ -56,12 +56,11 @@ sub parse_runtest_file {
 
     open(my $rfile, $path) or die "Can not open runtest asset $path: $!";
     while (my $line = <$rfile>) {
-        if ($line =~ /(^#)|(^$)/) {
-            next;
-        }
+        next if ($line =~ /(^#)|(^$)/);
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
         if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
+            next if (check_var('BACKEND', 'svirt') && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
             my $test = {name => $1, command => $2};
             my $tinfo = testinfo($test_result_export, test => $test);
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
