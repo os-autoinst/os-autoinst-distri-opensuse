@@ -1572,8 +1572,7 @@ sub load_extra_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    loadtest 'console/integration_services'   if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     if (any_desktop_is_applicable()) {
         load_extra_tests_desktop;
@@ -1606,8 +1605,7 @@ sub load_filesystem_tests {
     # setup $serialdev permission and so on
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    loadtest 'console/integration_services'   if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
