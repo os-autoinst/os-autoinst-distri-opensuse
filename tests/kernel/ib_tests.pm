@@ -127,9 +127,12 @@ sub run {
 }
 
 sub post_fail_hook {
+    my $self = @_;
     # remove non-printable characters from the results file
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
+
+    $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
 }
 
 1;
