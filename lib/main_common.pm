@@ -1809,8 +1809,7 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_developertool";
     loadtest "x11/firefox/firefox_rss";
     loadtest "x11/firefox/firefox_ssl";
-    # evolution is not installed without WE addon
-    loadtest "x11/firefox/firefox_emaillink" if (get_var('MRU_ADDONS') || get_var('HDD_1')) =~ /we/;
+    loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
     # IcedTea-Web plugin is part of NPAPI dropped in version 52 available only on DESKTOP with currently 45.2
     loadtest "x11/firefox/firefox_java" if get_var('FLAVOR') =~ /Desktop/;
