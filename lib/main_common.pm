@@ -64,8 +64,8 @@ our @EXPORT = qw(
   load_common_x11
   load_consoletests
   load_create_hdd_tests
-  load_docker_tests
   load_extra_tests
+  load_extra_tests_docker
   load_filesystem_tests
   load_inst_tests
   load_iso_in_external_tests
@@ -516,25 +516,6 @@ sub load_slepos_tests {
     }
     elsif (get_var("SLEPOS") =~ /^terminal-offline/) {
         loadtest "slepos/boot_image";
-    }
-}
-
-sub load_docker_tests {
-    loadtest "console/docker";
-    loadtest "console/docker_runc";
-    if (is_sle('=12-SP3')) {
-        loadtest "console/sle2docker";
-        loadtest "console/docker_image";
-    }
-    elsif (is_sle('=15')) {
-        loadtest "console/docker_image";
-    }
-    if (is_tumbleweed) {
-        loadtest "console/docker_image_rpm";
-        loadtest "console/docker_compose";
-    }
-    elsif (is_opensuse && !is_tumbleweed) {
-        loadtest "console/docker_compose";
     }
 }
 
@@ -1451,54 +1432,59 @@ sub load_extra_tests_desktop {
     }
 }
 
-sub load_extra_tests_textmode {
+sub load_extra_tests_zypper {
     loadtest "console/zypper_lr_validate";
+    loadtest "console/zypper_ref";
+    unless (is_jeos) {
+        loadtest "console/zypper_info";
+    }
+    # Check for availability of packages and the corresponding repository, as of now only makes sense for SLE
+    loadtest 'console/validate_packages_and_patterns' if is_sle '12-sp2+';
+}
+
+sub load_extra_tests_kdump {
+    return unless kdump_is_applicable;
+    loadtest "console/kdump_and_crash";
+}
+
+sub load_extra_tests_opensuse {
+    return unless is_opensuse;
+    loadtest "console/rabbitmq";
+    loadtest "console/salt";
+    loadtest "console/rails";
+    loadtest "console/machinery";
+    loadtest "console/pcre";
+    loadtest "console/openqa_review";
+    loadtest "console/zbar";
+    loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
+    loadtest "console/znc";
+    loadtest "console/weechat";
+    loadtest "console/nano";
+    loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
+}
+
+sub load_extra_tests_console {
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
     # dependency of git test
     loadtest "console/sshd";
-    loadtest "console/zypper_ref";
-    # The test can't be run on JeOS as it's heavily dependant on SLES build number we don't have in JeOS
-    unless (is_jeos) {
-        loadtest "console/zypper_info";
-    }
-    loadtest "console/update_alternatives";
     # start extra console tests from here
+    loadtest "console/update_alternatives";
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
     }
     loadtest "console/command_not_found";
     if (is_sle '12-sp2+') {
-        # Check for availability of packages and the corresponding repository, as of now only makes sense for SLE
-        loadtest 'console/validate_packages_and_patterns';
         loadtest 'console/openssl_alpn';
         loadtest 'console/autoyast_removed';
     }
-    elsif (check_var('DISTRI', 'opensuse')) {
-        loadtest "console/rabbitmq";
-        loadtest "console/salt";
-        loadtest "console/rails";
-        loadtest "console/machinery";
-        loadtest "console/pcre";
-        loadtest "console/openqa_review";
-        loadtest "console/zbar";
-        loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging
-        loadtest "console/znc";
-        loadtest "console/weechat";
-        loadtest "console/nano";
-        loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
-    }
     loadtest "console/cron";
     loadtest "console/syslog";
-    if (!is_sle && !is_jeos) {
-        loadtest "console/ntp_client";
-    }
+    loadtest "console/ntp_client" if (!is_sle && !is_jeos);
     loadtest "console/mta" unless is_jeos;
     loadtest "console/check_default_network_manager";
-    if (get_var("IPSEC")) {
-        loadtest "console/ipsec_tools_h2h";
-    }
+    loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";
     loadtest "console/java";
     loadtest "console/sysctl";
@@ -1512,28 +1498,37 @@ sub load_extra_tests_textmode {
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
-    if (sle_version_at_least('12-SP2') && !(sle_version_at_least('15'))) {
+    if (is_sle('12-SP2+') && !(is_sle('15+'))) {
         loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
     }
     # bind need source package and legacy and development module on SLE15+
-    loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
-    if (is_sle('>=15')) {
-        loadtest 'console/systemd_testsuite';
-    }
+    loadtest 'console/bind'              if get_var('MAINT_TEST_REPO');
+    loadtest 'console/systemd_testsuite' if is_sle('15+');
     loadtest 'console/mdadm' unless is_jeos;
-    if (get_var("SYSAUTHTEST")) {
-        # sysauth test scenarios run in the console
-        loadtest "sysauth/sssd";
-    }
-    # schedule the docker tests later as it needs the containers module on
-    # SLE>=15 and therefore would potentially pollute other test modules.
-    # Currently for our SLE12 validation tests we are not using a
-    # registered SLE installation so we should not schedule the test
-    # modules.
-    load_docker_tests if (check_var('ARCH', 'x86_64') && (is_sle('12-SP3+') || !is_sle));
-    loadtest "console/kdump_and_crash" if kdump_is_applicable;
     loadtest 'console/journalctl';
-    loadtest "console/consoletest_finish";
+    # sysauth test scenarios run in the console
+    loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
+}
+
+sub load_extra_tests_docker {
+    return unless check_var('ARCH', 'x86_64');
+    return unless is_sle('12-SP3+') || !is_sle;
+    loadtest "console/docker";
+    loadtest "console/docker_runc";
+    if (is_sle('=12-SP3')) {
+        loadtest "console/sle2docker";
+        loadtest "console/docker_image";
+    }
+    elsif (is_sle('=15')) {
+        loadtest "console/docker_image";
+    }
+    if (is_tumbleweed) {
+        loadtest "console/docker_image_rpm";
+        loadtest "console/docker_compose";
+    }
+    elsif (is_opensuse && !is_tumbleweed) {
+        loadtest "console/docker_compose";
+    }
 }
 
 sub load_extra_tests {
@@ -1553,7 +1548,33 @@ sub load_extra_tests {
         load_extra_tests_desktop;
     }
     else {
-        load_extra_tests_textmode;
+        # Extra tests are too long, split the test into subtest according to the
+        # EXTRATEST variable; to maintain compatibility, run all tests if the
+        # variable is equal 1
+        if (check_var('EXTRATEST', 1)) {
+            load_extra_tests_zypper;
+            load_extra_tests_console;
+            load_extra_tests_opensuse;
+            # schedule the docker tests later as it needs the containers module on
+            # SLE>=15 and therefore would potentially pollute other test modules.
+            # Currently for our SLE12 validation tests we are not using a
+            # registered SLE installation so we should not schedule the test
+            # modules.
+            load_extra_tests_docker;
+            load_extra_tests_kdump;
+        }
+        else {
+            loadtest "console/zypper_ref" unless get_var('EXTRATEST') =~ /zypper/;
+            foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
+                if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
+                    $test_to_run->();
+                }
+                else {
+                    diag "unknown scenario for EXTRATEST value $test_name";
+                }
+            }
+        }
+        loadtest "console/consoletest_finish";
     }
     return 1;
 }

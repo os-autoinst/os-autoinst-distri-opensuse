@@ -404,7 +404,7 @@ elsif (get_var('SYSTEMD_TESTSUITE')) {
 }
 elsif (get_var('DOCKER_IMAGE_TEST')) {
     boot_hdd_image;
-    load_docker_tests;
+    load_extra_tests_docker;
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
