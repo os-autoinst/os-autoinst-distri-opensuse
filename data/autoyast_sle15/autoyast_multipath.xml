@@ -25,11 +25,6 @@ pre init scripts feature. See poo#20818.
       </addon>
     </addons>
   </suse_register>
-  <bootloader>
-      <global>
-          <timeout config:type="integer">-1</timeout>
-      </global>
-  </bootloader>
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>
@@ -86,11 +81,11 @@ pre init scripts feature. See poo#20818.
       <activate>true</activate>
       <append>mce=dont_log_ce edd=off consoleblank=0 rd.lvm.vg=system biosdevname=0 elevator=deadline</append>
       <boot_mbr>true</boot_mbr>
-      <timeout config:type="integer">8</timeout>
       <secure-boot>off</secure-boot>
       <suse_btrfs config:type="boolean">false</suse_btrfs>
       <os_prober>false</os_prober>
       <terminal>console</terminal>
+      <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
