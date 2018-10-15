@@ -38,7 +38,14 @@ for prod in json.loads(stdout, encoding="utf-8"):
             prod['result'] = 'mismatch'
     else:
         if dist['VERSION_ID'] != prod['version']:
-            prod['result'] = 'mismatch'
+            # Live Patching is seen as Module before SLE12SP3, then seen as extension since SLE12SP3
+            # So its version should equal the base product's base version before SLE12SP3, while equal 
+            # the base product's version since SLE12SP3. 
+            if dist['VERSION_ID'] >= '12.3':
+                prod['result'] = 'mismatch'
+            else:
+                if dist['BASE_VERSION'] != prod['version']:
+                   prod['result'] = 'mismatch'
 
     if prod['result'] == 'mismatch':
         ret += 1
