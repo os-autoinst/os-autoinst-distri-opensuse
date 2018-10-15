@@ -99,6 +99,52 @@ sub setup_tuntap {
     assert_script_run('ip a');
 }
 
+sub setup_tunnel {
+    my ($self, $config, $type) = @_;
+    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    my $tunnel_ip = $self->get_ip(is_wicked_ref => 0, type => $type);
+    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
+    assert_script_run("sed \'s/tunnel_ip/$tunnel_ip/\' -i $config");
+    assert_script_run("cat $config");
+    assert_script_run("wicked ifup --timeout infinite $type");
+    assert_script_run('ip a');
+}
+
+sub create_tunnel_with_commands {
+    my ($self, $type, $mode, $sub_mask) = @_;
+    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
+    my $tunnel_ip = $self->get_ip(is_wicked_ref => 1, type => $type);
+    assert_script_run("ip tunnel add $type mode $mode remote $remote_ip local $local_ip");
+    assert_script_run("ip link set $type up");
+    assert_script_run("ip addr add $tunnel_ip/$sub_mask dev $type");
+    assert_script_run("ip addr");
+}
+
+sub setup_bridge {
+    my ($self, $config, $dummy) = @_;
+    my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
+    assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
+    assert_script_run("cat $config");
+    assert_script_run("wicked ifup --timeout infinite br0");
+    if ($dummy ne '') {
+        assert_script_run("cat $dummy");
+        assert_script_run("wicked ifup --timeout infinite dummy0");
+    }
+    assert_script_run('ip a');
+}
+
+sub setup_openvpn_client {
+    my ($self, $device) = @_;
+    my $openvpn_client = '/etc/openvpn/client.conf';
+    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
+    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
+    assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
+}
+
 sub cleanup {
     my ($self, $config, $type) = @_;
     assert_script_run("ifdown $type");
@@ -115,6 +161,20 @@ sub before_scenario {
         setup_static_network(ip => $self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
     }
     record_info($title, $text);
+}
+
+sub get_test_result {
+    my ($self, $type, $ip_version) = @_;
+    my $timeout = "60";
+    my $ip      = $self->get_ip(is_wicked_ref => 1, type => $type);
+    my $ret     = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
+    if (!$ret) {
+        record_info("PING FAILED", "Can't ping IP $ip", result => 'fail');
+        return "FAILED";
+    }
+    else {
+        return "PASSED";
+    }
 }
 
 1;

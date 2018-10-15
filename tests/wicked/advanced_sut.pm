@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,61 +31,10 @@ use network_utils 'iface';
 use lockapi;
 use mmapi;
 
-our $openvpn_client = '/etc/openvpn/client.conf';
-
-sub get_test_result {
-    my ($self, $type, $ip_version) = @_;
-    my $timeout = "60";
-    my $ip      = $self->get_ip(is_wicked_ref => 1, type => $type);
-    my $ret     = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
-    if (!$ret) {
-        record_info("PING FAILED", "Can't ping IP $ip", result => 'fail');
-        return "FAILED";
-    }
-    else {
-        return "PASSED";
-    }
-}
-
-sub setup_tunnel {
-    my ($self, $config, $type) = @_;
-    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
-    my $tunnel_ip = $self->get_ip(is_wicked_ref => 0, type => $type);
-    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
-    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
-    assert_script_run("sed \'s/tunnel_ip/$tunnel_ip/\' -i $config");
-    assert_script_run("cat $config");
-    assert_script_run("wicked ifup --timeout infinite $type");
-    assert_script_run('ip a');
-}
-
-sub setup_bridge {
-    my ($self, $config, $dummy) = @_;
-    my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
-    assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
-    assert_script_run("cat $config");
-    assert_script_run("wicked ifup --timeout infinite br0");
-    if ($dummy ne '') {
-        assert_script_run("cat $dummy");
-        assert_script_run("wicked ifup --timeout infinite dummy0");
-    }
-    assert_script_run('ip a');
-}
-
-sub setup_openvpn_client {
-    my ($self, $device) = @_;
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
-    $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
-    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
-    assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
-}
-
 sub run {
     my ($self) = @_;
     my %results;
     my $iface = iface();
-
 
     $self->before_scenario('Test 1', 'Create a gre interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-gre1';
