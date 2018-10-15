@@ -26,6 +26,10 @@ sub run {
 
     record_info('Test 1', 'Bridge - ifreload');
     mutex_wait('test_1_ready');
+
+    record_info('Test 2', 'Bridge - ifup, ifreload');
+    mutex_wait('test_2_ready');
+
 }
 
 1;

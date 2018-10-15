@@ -125,7 +125,7 @@ sub run {
     my $dummy = '/etc/sysconfig/network/ifcfg-dummy0';
     $self->get_from_data('wicked/ifcfg/br0',    $config);
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
-    $self->setup_bridge($config, $dummy);
+    $self->setup_bridge($config, $dummy, 'ifup');
     $results{11} = $self->get_test_result("br0", "");
     mutex_create("test_11_ready");
     $self->cleanup($config, "br0");
@@ -136,7 +136,7 @@ sub run {
     $self->get_from_data('wicked/xml/bridge.xml', $config);
     assert_script_run("ifdown eth0");
     assert_script_run("rm /etc/sysconfig/network/ifcfg-eth0");
-    $self->setup_bridge($config, '');
+    $self->setup_bridge($config, '', 'ifup');
     $results{12} = $self->get_test_result("br0", "");
     mutex_create("test_12_ready");
     $self->cleanup($config, "br0");

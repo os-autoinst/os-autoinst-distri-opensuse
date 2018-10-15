@@ -126,7 +126,6 @@ sub create_tunnel_with_commands {
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
-    $command = 'ifup' if (!$command);
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
     assert_script_run("wicked $command --timeout infinite br0");
