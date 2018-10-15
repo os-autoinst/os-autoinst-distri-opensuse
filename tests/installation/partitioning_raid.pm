@@ -20,6 +20,24 @@ use version_utils qw(is_storage_ng is_sle is_leap is_tumbleweed);
 # tumbleweed is not older product, but it didn't roll out yet
 my $older_product = is_sle('<15') || is_leap('<15.1') || is_tumbleweed;
 
+sub switch_partitions_tab {
+    $cmd{addpart} = 'alt-r';
+    send_key 'alt-p';
+    assert_screen "partitions-tab";
+}
+
+# With storage ng, we go directly to expert partitioner and invalidate configuration by rescan
+sub rescan_devices {
+    # start with existing partitions
+    send_key 'down' for (1 .. 2);
+    send_key 'ret';
+    assert_screen 'expert-partitioner';
+    send_key $cmd{rescandevices};              # Rescan devices
+    assert_screen 'rescan-devices-warning';    # Confirm rescan
+    send_key 'alt-y';
+    wait_still_screen;                         # Wait until rescan is done
+}
+
 # add a new primary partition
 #   $type == 3 => 0xFD Linux RAID
 sub addpart {
@@ -34,11 +52,7 @@ sub addpart {
     else                         { die 'Unknown argument'; }
 
     assert_screen "expert-partitioner";
-    unless ($older_product) {
-        $cmd{addpart} = 'alt-r';
-        send_key 'alt-p';
-        assert_screen "partitions-tab";
-    }
+    switch_partitions_tab unless ($older_product);
     send_key $cmd{addpart};
     # Partitioning type does not appear when GPT disk used, GPT is default for UEFI
     # With storage-ng GPT is default, so no partitioning type
@@ -191,10 +205,13 @@ sub modify_uefi_boot_partition {
     assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
     # edit first partition
     send_key 'alt-e';
+    assert_screen 'partition-role';
+    send_key $cmd{next};
     assert_screen 'partition-format';
     # We have different shortcut for Format option when editing partition
-    send_key 'alt-a';
-    assert_screen 'partitioning_raid-format_default_UEFI';
+    send_key $older_product ? 'alt-a' : 'alt-f';
+    send_key 'home';
+    send_key_until_needlematch 'partitioning_raid-format_default_UEFI', 'down';
     # format as FAT (first choice)
     send_key 'tab';
     type_string 'fat';
@@ -273,7 +290,8 @@ sub add_prep_boot_partition {
     if (is_storage_ng) {
         send_key 'down';
         assert_screen 'partitioning_raid-disk_vda-selected';
-        send_key 'alt-d';
+        switch_partitions_tab unless ($older_product);
+        send_key $cmd{addpart};
     }
     else {
         send_key 'alt-p';
@@ -322,39 +340,9 @@ sub is_boot_raid_partition_required {
     return !get_var('UEFI') && (!is_storage_ng || get_var('OFW'));
 }
 
-sub run {
-    # for newer storage-ng toolbar has changed
-    $cmd{addraid} = 'alt-d' unless $older_product;
-
-    # create partitioning
-    send_key(is_storage_ng() ? $cmd{expertpartitioner} : $cmd{createpartsetup});
-
-    # With storage ng, we go directly to expert partitioner and invalidate configuration by rescan
-    if (is_storage_ng) {
-        # start with existing partitions
-        send_key 'down' for (1 .. 2);
-        send_key 'ret';
-        assert_screen 'expert-partitioner';
-        send_key $cmd{rescandevices};              # Rescan devices
-        assert_screen 'rescan-devices-warning';    # Confirm rescan
-        send_key 'alt-y';
-        wait_still_screen;                         # Wait until rescan is done
-    }
-    else {
-        assert_screen 'createpartsetup';
-        # user defined
-        send_key $cmd{custompart};
-        assert_screen 'custompart_option-selected';
-        send_key $cmd{next};
-    }
-    assert_screen 'custompart';
-    send_key "tab";
-
-    assert_screen 'custompart_systemview-selected';
-    send_key "down";
-    assert_screen 'partitioning_raid-hard_disks-selected';
-
-    if (get_var("OFW")) {    ## no RAID /boot partition for ppc
+sub add_partitions {
+    ## no RAID /boot partition for ppc
+    if (get_var("OFW")) {
         add_prep_boot_partition;
     }
     else {
@@ -405,10 +393,10 @@ sub run {
         send_key "shift-tab" unless is_storage_ng;
         send_key "shift-tab" unless is_storage_ng;
     }
+}
 
-    # select RAID add
+sub add_raid {
     send_key_until_needlematch 'partitioning_raid-raid-selected', 'down';
-
     send_key $cmd{addraid};
 
     assert_screen 'partitioning_raid-menu_add_raid';
@@ -448,7 +436,9 @@ sub run {
     if (is_boot_raid_partition_required) {
         add_raid_boot;
     }
+}
 
+sub add_raid_swap {
     # select RAID add
     send_key $cmd{addraid};
     assert_screen 'partitioning_raid-menu_add_raid';
@@ -485,10 +475,9 @@ sub run {
         set_lvm();
         assert_screen('partitioning_raid-root_volume_created');
     }
+}
 
-    # done
-    send_key $cmd{accept};
-
+sub check_warnings {
     # accept 8GB disk space with snapshots in RAID test fate#320416
     if (check_screen 'partition-small-for-snapshots', 5) {
         send_key 'alt-y';
@@ -510,6 +499,42 @@ sub run {
     else {
         assert_screen('acceptedpartitioningraid' . get_var("RAIDLEVEL"));
     }
+}
+
+sub enter_partitioning {
+    # create partitioning
+    if (is_storage_ng) {
+        send_key $cmd{expertpartitioner};
+        save_screenshot;
+        rescan_devices;
+    }
+    else {
+        send_key $cmd{createpartsetup};
+        save_screenshot;
+        assert_screen 'createpartsetup';
+        # user defined
+        send_key $cmd{custompart};
+        assert_screen 'custompart_option-selected';
+        send_key $cmd{next};
+    }
+    assert_screen 'custompart';                               # verify available storage
+    send_key "tab";
+    assert_screen 'custompart_systemview-selected';           # select system (hostname) on System View
+    send_key "down";
+    assert_screen 'partitioning_raid-hard_disks-selected';    # select Hard Disks on System View
+}
+
+sub run {
+    # for newer storage-ng toolbar has changed
+    $cmd{addraid} = 'alt-d' unless $older_product;
+
+    enter_partitioning;
+    add_partitions;
+    add_raid;
+    add_raid_swap;
+
+    send_key $cmd{accept};
+    check_warnings;
 }
 
 1;
