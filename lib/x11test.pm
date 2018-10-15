@@ -616,10 +616,10 @@ sub firefox_check_default {
 sub firefox_check_popups {
     # Check whether there are any pop up windows and handle them one by one
     for (1 .. 2) {
-        # wait for any popup to showup but not expect a too long still time
-        # because of dynamic openSUSE start page background logo
-        wait_still_screen(3);
-        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 60;
+        # assert loaded webpage
+        assert_screen 'firefox-url-loaded', 60;
+        # check pop-ups
+        assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox-launch)];
         # handle the tracking protection pop up
         if (match_has_tag('firefox_trackinfo')) {
             wait_screen_change { assert_and_click 'firefox_trackinfo'; };
