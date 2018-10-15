@@ -330,11 +330,10 @@ sub fill_in_registration_data {
                     send_key "home";
                     # move the list of addons down until the current addon is found
                     if ($addon eq 'phub') {
-                        # Record soft-failure for 12-SP4 and 15-SP1
+                        # Record soft-failure when we do not have phub yet
                         my $bugref =
-                          is_sle('=12-SP4')   ? 'bsc#1092568'
-                          : is_sle('=15-SP1') ? 'bsc#1106085'
-                          :                     undef;
+                          is_sle('=15-SP1') ? 'bsc#1106085'
+                          :                   undef;
                         if ($bugref) {
                             record_soft_failure $bugref;
                             next;
