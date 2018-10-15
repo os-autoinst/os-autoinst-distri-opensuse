@@ -102,12 +102,23 @@ sub generateXML {
         if (!get_var('QA_TESTSUITE') && ($case_status eq 'failure' || $case_status eq 'skipped')) {
             (my $test_path = $test) =~ s/-/\//;
             $test_path = '/opt/log/' . $test_path;
-            my $test_out_content = script_output("cat $test_path| sed \"s/'//g\"", 600);
+            my $test_out_content = script_output("cat $test_path| sed \"s/'//g\" | sed \"s/[\\x00-\\x08\\x0B-\\x0C\\x0E-\\x1F]//g\"", 600);
             $writer->startTag('system-out');
             $writer->characters($test_out_content);
             $writer->endTag('system-out');
             if ($case_status eq 'failure') {
-                my $test_err_content = script_output("echo '====out.bad log====';if [ -f $test_path.out.bad ];then cat $test_path.out.bad|sed \"s/'//g\";else echo '$test_path.out.bad not exist';fi;echo '====full log====';if [ -f $test_path.full ]; then cat $test_path.full| sed \"s/'//g\"; else echo '$test_path.full not exist';fi;", 600);
+                my $test_err_content = script_output("
+                    echo '====out.bad log====';
+                    if [ -f $test_path.out.bad ];
+                        then cat $test_path.out.bad|sed \"s/'//g\"|sed \"s/[\\x00-\\x08\\x0B-\\x0C\\x0E-\\x1F]//g\";
+                    else echo '$test_path.out.bad not exist';
+                    fi;
+                    echo '====full log====';
+                    if [ -f $test_path.full ];
+                        then cat $test_path.full|sed \"s/'//g\"|sed \"s/[\\x00-\\x08\\x0B-\\x0C\\x0E-\\x1F]//g\";
+                    else echo '$test_path.full not exist';
+                    fi;
+                ", 600);
                 $writer->startTag('system-err');
                 $writer->characters($test_err_content);
                 $writer->endTag('system-err');
