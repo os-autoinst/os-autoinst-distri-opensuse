@@ -73,9 +73,8 @@ sub run {
     zypper_call('install --from azure-cli -y azure-cli');
 
     # Install Google Cloud SDK
-    assert_script_run("wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-220.0.0-linux-x86_64.tar.gz");
-    assert_script_run("tar zxf google-cloud-sdk-220.0.0-linux-x86_64.tar.gz google-cloud-sdk");
-    assert_script_run("cd google-cloud-sdk/ && ./install.sh -q");
+    assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
+    assert_script_run("curl sdk.cloud.google.com | bash");
     assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
     assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
 }
