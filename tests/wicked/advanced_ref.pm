@@ -18,18 +18,6 @@ use utils 'systemctl';
 use lockapi;
 use mmapi;
 
-sub create_tunnel_with_commands {
-
-    my ($self, $type, $mode, $sub_mask) = @_;
-    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
-    my $tunnel_ip = $self->get_ip(is_wicked_ref => 1, type => $type);
-    assert_script_run("ip tunnel add $type mode $mode remote $remote_ip local $local_ip");
-    assert_script_run("ip link set $type up");
-    assert_script_run("ip addr add $tunnel_ip/$sub_mask dev $type");
-    assert_script_run("ip addr");
-}
-
 sub run {
     my ($self) = @_;
     my $openvpn_server = '/etc/openvpn/server.conf';

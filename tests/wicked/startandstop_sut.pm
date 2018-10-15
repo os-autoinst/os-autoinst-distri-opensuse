@@ -1,0 +1,72 @@
+# SUSE's openQA tests
+#
+# Copyright © 2018 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# Summary: Startandstop test cases for wicked. SUT machine.
+# Test scenarios:
+# Test 1  : Bridge - ifreload
+# Test 2  : Bridge - ifup, ifreload
+# Test 3  : Bridge - ifup, remove all config, ifreload
+# Test 4  : Bridge - ifup, remove one config, ifreload
+# Test 5  : Standalone card - ifdown, ifreload
+# Test 6  : VLAN - ifdown, modify config, ifreload
+# Test 7  : Bridge - ifdown, create new config, ifreload, ifdown, ifup
+# Test 8  : Bridge - ifdown, remove one config, ifreload, ifdown, ifup
+# Test 9  : VLAN - ifdown, modify one config, ifreload, ifdown, ifup
+# Test 10 : VLAN - ifup all, ifdown one card
+# Test 11 : Complex layout - ifup twice
+# Test 12 : Complex layout - ifup 3 times
+# Test 13 : Complex layout - ifdown
+# Test 14 : Complex layout - ifdown twice
+# Test 15 : Complex layout - ifdown 3 times
+# Test 16 : Complex layout - ifreload
+# Test 17 : Complex layout - ifreload twice
+# Test 18 : Complex layout - ifreload, config change, ifreload
+# Test 19 : Complex layout - ifup, ifstatus
+# Test 20 : Complex layout - ifup, ifstatus, ifdown, ifstatus
+# Test 21 : SIT tunnel - ifdown
+# Test 22 : OpenVPN tunnel - ifdown
+#
+# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
+#             Jose Lausuch <jalausuch@suse.com>
+#             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+
+use base 'wickedbase';
+use strict;
+use testapi;
+use utils 'systemctl';
+use network_utils 'iface';
+use lockapi;
+use mmapi;
+
+sub run {
+    my ($self) = @_;
+    my %results;
+    my $iface = iface();
+
+    $self->before_scenario('Test 1', 'Bridge - ifreload');
+    my $config = '/etc/sysconfig/network/ifcfg-br0';
+    # Do actions here
+    # $results{1} = $self->get_test_result("ifcfg-br0", "");
+    $results{1} = 'PASSED';
+    mutex_create("test_1_ready");
+    #$self->cleanup($config, "ifcfg-br0");
+
+
+    ## processing overall results
+    wait_for_children;
+    my $failures = grep { $_ eq "FAILED" } values %results;
+    if ($failures > 0) {
+        foreach my $key (sort keys %results) {
+            diag "\n Test$key --- " . $results{$key};
+        }
+        die "Some tests failed";
+    }
+}
+
+1;
