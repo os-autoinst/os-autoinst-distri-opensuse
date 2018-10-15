@@ -32,7 +32,12 @@ sub run {
     wait_still_screen 3;
     send_key "e";
     unless (sle_version_at_least('15')) {
-        assert_screen('firefox-email_link-welcome', 90);
+        assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt'], 90);
+        if (match_has_tag('firefox-email-mutt')) {
+            # if evolution is not installed, e.g. when WE is not pressent, mutt in terminal is used poo#42500
+            $self->exit_firefox;
+            return;
+        }
 
         send_key $next_key;
 
