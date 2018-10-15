@@ -627,11 +627,13 @@ sub installzdupstep_is_applicable {
 }
 
 sub snapper_is_applicable {
-    #XXX needs too much needling in yast2_snapper and some more logic to not
-    #apply this in upgrade tests from older distros
-    return 0 if is_opensuse;
-    my $fs = get_var("FILESYSTEM", 'btrfs');
-    return (!get_var("LIVETEST") && $fs eq "btrfs" && get_var("HDDSIZEGB", 10) > 10);
+    # run snapper tests on opensuse only for system_performance testsuite
+    return 0 if (is_opensuse && !get_var('SOFTFAIL_BSC1063638'));
+
+    # snapshots are only proposed by the installer if the available space is
+    # big enough
+    my $snapshots_available = get_var('FILESYSTEM', 'btrfs') =~ /btrfs/ && get_var("HDDSIZEGB", 10) > 10;
+    return (!get_var('LIVETEST') && $snapshots_available);
 }
 
 sub chromestep_is_applicable {
