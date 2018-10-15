@@ -25,9 +25,7 @@ sub run {
     my $openvpn_server = '/etc/openvpn/server.conf';
 
     record_info('Test 1', 'Bridge - ifreload');
-    # Do actions here
     mutex_wait('test_1_ready');
-    # Clean up test
 
 }
 
