@@ -14,10 +14,21 @@ use Exporter;
 
 use strict;
 use testapi;
-use version_utils qw(is_storage_ng is_sle is_tumbleweed);
+use version_utils qw(is_storage_ng is_sle is_tumbleweed is_opensuse);
 use installation_user_settings 'await_password_check';
 
-our @EXPORT = qw(addboot addpart addlv addvg create_new_partition_table enable_encryption_guided_setup select_first_hard_disk take_first_disk %partition_roles);
+our @EXPORT = qw(
+  addboot
+  addpart
+  addlv
+  addvg
+  create_new_partition_table
+  enable_encryption_guided_setup
+  resize_partition
+  select_first_hard_disk
+  take_first_disk
+  %partition_roles
+);
 
 our %partition_roles = qw(
   OS alt-o
@@ -104,6 +115,47 @@ sub mount_device {
     type_string "$mount";
 }
 
+# We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
+sub is_storage_ng_newui {
+    return is_storage_ng && (is_sle('15-SP1+') || (is_opensuse && !is_leap('<=15')));
+}
+
+# Set size when adding or resizing partition
+sub set_partition_size {
+    my (%args) = @_;
+    assert_screen 'partition-size';
+    # Return if do not want to change size
+    return unless $args{size};
+    if (is_storage_ng) {
+        # maximum size is selected by default
+        send_key $cmd{customsize};
+        assert_screen 'partition-custom-size-selected';
+        send_key 'alt-s';
+    }
+    for (1 .. 10) {
+        send_key 'backspace';
+    }
+    type_string $args{size} . 'mb';
+}
+
+# Method assumes that correct disk is already selected
+# Sleect Maximum size by default
+sub resize_partition {
+    my (%args) = @_;
+    if (is_storage_ng_newui) {
+        send_key 'alt-m';
+        # start with preconfigured partitions
+        send_key_until_needlematch 'modify-partition-resize', 'down', 5, 3;
+        send_key 'ret';
+    } else {
+        send_key $cmd{resize};
+    }
+    # Set maximum size for the partition
+    set_partition_size;
+    assert_screen 'partition-maximum-size-selected';
+    send_key((is_storage_ng) ? "$cmd{next}" : "$cmd{ok}");
+}
+
 sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
@@ -112,19 +164,7 @@ sub addpart {
         assert_screen 'partitioning-type';
         send_key $cmd{next};
     }
-    assert_screen 'partition-size';
-    if ($args{size}) {
-        if (is_storage_ng) {
-            # maximum size is selected by default
-            send_key $cmd{customsize};
-            assert_screen 'partition-custom-size-selected';
-            send_key 'alt-s';
-        }
-        for (1 .. 10) {
-            send_key 'backspace';
-        }
-        type_string $args{size} . 'mb';
-    }
+    set_partition_size(size => $args{size});
     send_key $cmd{next};
     assert_screen 'partition-role';
     send_key $partition_roles{$args{role}};

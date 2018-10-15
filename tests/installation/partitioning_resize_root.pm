@@ -17,6 +17,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils 'is_storage_ng';
+use partition_setup 'resize_partition';
 
 sub run {
     die "Test needs at least 40 GB HDD size" unless (get_required_var('HDDSIZEGB') > 40);
@@ -30,9 +31,7 @@ sub run {
     send_key_until_needlematch 'volume-management', 'down';
     send_key 'tab';
     send_key_until_needlematch 'volume-management-root-selected', 'down';
-    send_key $cmd{resize};
-    assert_screen 'volume-management-resize-maximum-selected';
-    send_key((is_storage_ng) ? "$cmd{next}" : "$cmd{ok}");
+    resize_partition;
     send_key $cmd{accept};
     assert_screen 'partitioning-subvolumes-shown';
 }
