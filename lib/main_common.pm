@@ -574,6 +574,10 @@ sub load_docker_tests {
     loadtest "console/docker_runc";
     if (is_sle('=12-SP3')) {
         loadtest "console/sle2docker";
+        loadtest "console/docker_image";
+    }
+    elsif (is_sle('=15')) {
+        loadtest "console/docker_image";
     }
     if (is_tumbleweed) {
         loadtest "console/docker_image_rpm";
