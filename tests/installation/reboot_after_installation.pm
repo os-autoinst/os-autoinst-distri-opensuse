@@ -35,8 +35,10 @@ sub run {
         my $svirt = console('svirt');
         $svirt->change_domain_element(os => boot => {dev => 'hd'});
     }
+    testapi::query_isotovideo('backend_set_ssh_half_open_expected');
     send_key 'alt-o';    # Reboot
     power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
+    testapi::query_isotovideo('backend_clean_ssh_half_open_expected');
 }
 
 1;
