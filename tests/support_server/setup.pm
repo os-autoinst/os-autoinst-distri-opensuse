@@ -408,16 +408,18 @@ sub setup_iscsi_server {
 
 sub setup_aytests {
     # install the aytests-tests package and export the tests over http
-    my $aytests_repo = get_var("AYTESTS_REPO");
+    my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
     $setup_script .= "
-    zypper -n --no-gpg-checks ar '$aytests_repo' aytests
-    zypper -n --no-gpg-checks in aytests-tests
-
+    # Install git if not already
+    zypper -n --no-gpg-checks in git-core
+    # Get profiles
+    git clone --single-branch -b $aytests_repo https://github.com/yast/aytests-tests.git /tmp/ay
+    mv -f /tmp/ay/aytests /srv/www/htdocs/
+    # Download apache configuration and cgi script used for dynamically set paramaters expansion
     curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf
     curl -f -v " . autoinst_url . "/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests
     chmod 755 /srv/www/cgi-bin/aytests
 
-    cp -pr /var/lib/autoinstall/aytests /srv/www/htdocs/aytests
     # Expand variables
     sed -i -e 's|{{SCC_REGCODE}}|" . get_var('SCC_REGCODE') . "|g' \\
            -e 's|{{SCC_URL}}|" . get_var('SCC_URL') . "|g' \\
@@ -474,7 +476,6 @@ sub run {
     my %server_roles = map { $_ => 1 } @server_roles;
 
     setup_networks();
-
     # Wait until all nodes boot first
     if (get_var 'SLENKINS_CONTROL') {
         barrier_wait 'HOSTNAMES_CONFIGURED';
@@ -556,7 +557,7 @@ sub run {
 
     bmwqemu::log_call(setup_script => $setup_script);
 
-    script_output($setup_script, 200);
+    script_output($setup_script, 300);
     assert_script_run opensusebasetest::firewall . ' stop' if $disable_firewall;
 
     # Create mutexes for running services
