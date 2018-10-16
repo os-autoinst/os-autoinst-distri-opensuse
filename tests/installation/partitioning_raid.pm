@@ -18,7 +18,7 @@ use testapi;
 use version_utils qw(is_storage_ng is_sle is_leap is_tumbleweed);
 
 # tumbleweed is not older product, but it didn't roll out yet
-my $older_product = is_sle('<15') || is_leap('<15.1') || is_tumbleweed;
+my $older_product = is_sle('<=15') || is_leap('<15.1') || is_tumbleweed;
 
 sub switch_partitions_tab {
     $cmd{addpart} = 'alt-r';
@@ -154,8 +154,10 @@ sub set_lvm {
 
     # create volume group
     send_key "alt-d";
-    send_key "down";
-    send_key "ret";
+    if ($older_product) {
+        send_key "down";
+        send_key "ret";
+    }
 
     assert_screen 'lvmsetupraid';
     # add all unformated lvm devices
