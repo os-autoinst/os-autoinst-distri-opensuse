@@ -1162,6 +1162,7 @@ sub load_consoletests {
     if (!is_krypton_argon) {
         loadtest "console/curl_https";
     }
+    # puppet does not exist anymore in openSUSE Tumbleweed/Leap
     if (is_sle && (check_var_array('SCC_ADDONS', 'asmm') && !sle_version_at_least('15'))
         || (check_var_array('SCC_ADDONS', 'phub') && sle_version_at_least('15')))
     {
