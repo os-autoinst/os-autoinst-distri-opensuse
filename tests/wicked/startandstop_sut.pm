@@ -47,16 +47,30 @@ use mmapi;
 sub run {
     my ($self) = @_;
     my %results;
+    my $config;
+    my $dummy;
     my $iface = iface();
 
-    $self->before_scenario('Test 1', 'Bridge - ifreload');
-    my $config = '/etc/sysconfig/network/ifcfg-br0';
-    # Do actions here
-    # $results{1} = $self->get_test_result("ifcfg-br0", "");
-    $results{1} = 'PASSED';
+    $self->before_scenario('Test 1', 'Bridge - ifreload', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-br0';
+    $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
+    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->setup_bridge($config, $dummy, 'ifreload');
+    $results{1} = $self->get_test_result("br0", "");
     mutex_create("test_1_ready");
-    #$self->cleanup($config, "ifcfg-br0");
+    $self->cleanup($config, "br0");
+    $self->cleanup($dummy,  "dummy0");
 
+    $self->before_scenario('Test 2', 'Bridge - ifup, ifreload', $iface);
+    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->setup_bridge($config, $dummy, 'ifup');
+    $self->setup_bridge($config, $dummy, 'ifreload');
+    $results{2} = $self->get_test_result("br0", "");
+    mutex_create("test_2_ready");
+    $self->cleanup($config, "br0");
+    $self->cleanup($dummy,  "dummy0");
 
     ## processing overall results
     wait_for_children;
