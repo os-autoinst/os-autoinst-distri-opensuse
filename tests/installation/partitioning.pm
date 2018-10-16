@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils qw(is_leap is_storage_ng is_sle sle_version_at_least is_tumbleweed);
-use partition_setup '%partition_roles';
+use partition_setup qw(%partition_roles is_storage_ng_newui);
 
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
@@ -39,7 +39,9 @@ sub run {
     if (match_has_tag('storage-ng')) {
         set_var('STORAGE_NG', 1);
         # Define changed shortcuts
-        $cmd{addraid}          = 'alt-r';
+        $cmd{addraid} = 'alt-r';
+        # for newer storage-ng toolbar has changed
+        $cmd{addraid}          = 'alt-d' if is_storage_ng_newui;
         $cmd{customsize}       = 'alt-o';
         $cmd{donotformat}      = 'alt-t';
         $cmd{exp_part_finish}  = 'alt-n';
@@ -49,7 +51,9 @@ sub run {
         $cmd{resize}           = 'alt-r';
         $cmd{raw_volume}       = 'alt-r';
         $cmd{enable_snapshots} = 'alt-a';
-        $cmd{addpart}          = 'alt-r' unless is_tumbleweed;
+        $cmd{addpart}          = 'alt-r' if is_storage_ng_newui;
+        $cmd{addvg}            = 'alt-d';
+        $cmd{addlv}            = 'alt-g';
         # Set shortcut for role selection when creating partition
         $partition_roles{raw} = $cmd{raw_volume};
 
