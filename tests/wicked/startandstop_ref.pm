@@ -39,6 +39,14 @@ sub run {
     record_info('Test 5', 'Standalone card - ifdown, ifreload');
     mutex_wait('test_5_ready');
 
+    record_info('Test 22', 'OpenVPN tunnel - ifdown');
+    my $config = '/etc/sysconfig/network/ifcfg-tun1';
+    $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
+    $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
+    assert_script_run("sed \'s/device/tun1/\' -i $openvpn_server");
+    $self->setup_tuntap($config, "tun1", 1);
+    mutex_wait('test_22_ready');
+    $self->cleanup($config, "tun1");
 }
 
 1;
