@@ -100,12 +100,16 @@ sub run {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # containers state can be saved to a docker image
-    my $output = script_output("docker container exec $container_name zypper -n in curl", 300);
-    die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
+    my $exit_code = script_run("docker container exec $container_name zypper -n in curl", 300);
+    if ($exit_code) {
+        record_info('poo#40958 - curl install failure, try with force-resolution.');
+        my $output = script_output("docker container exec $container_name zypper in --force-resolution -y -n curl", 300);
+        die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
+    }
     assert_script_run("docker container commit $container_name tw:saved");
 
     # network is working inside of the containers
-    $output = script_output('docker container run tw:saved curl -I google.de');
+    my $output = script_output('docker container run tw:saved curl -I google.de');
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
     # Using an init process as PID 1
