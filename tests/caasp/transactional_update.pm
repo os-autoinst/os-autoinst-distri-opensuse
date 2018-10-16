@@ -100,7 +100,7 @@ sub run {
 }
 
 sub test_flags {
-    return {norollback => 1};
+    return {no_rollback => 1};
 }
 
 1;
