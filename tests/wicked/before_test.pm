@@ -44,7 +44,7 @@ sub run {
     record_info('INFO', 'Checking that network service is up');
     systemctl('is-active network');
     systemctl('is-active wicked');
-    zypper_call('--quiet in openvpn', timeout => 200) if (check_var('WICKED', 'advanced'));
+    zypper_call('--quiet in openvpn', timeout => 200) if (check_var('WICKED', 'advanced') || check_var('WICKED', 'startandstop'));
 }
 
 sub test_flags {
