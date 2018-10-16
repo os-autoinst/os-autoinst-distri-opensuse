@@ -11,10 +11,9 @@ package partition_setup;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use testapi;
-use version_utils qw(is_storage_ng is_sle is_tumbleweed is_opensuse);
+use version_utils qw(is_storage_ng is_sle is_tumbleweed is_leap is_opensuse);
 use installation_user_settings 'await_password_check';
 
 our @EXPORT = qw(
@@ -28,6 +27,7 @@ our @EXPORT = qw(
   select_first_hard_disk
   take_first_disk
   %partition_roles
+  is_storage_ng_newui
 );
 
 our %partition_roles = qw(
@@ -37,6 +37,11 @@ our %partition_roles = qw(
   efi alt-e
   raw alt-a
 );
+
+# We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
+sub is_storage_ng_newui {
+    return is_storage_ng && (is_sle('15-SP1+') || is_leap('15.1+'));
+}
 
 sub wipe_existing_partitions_storage_ng {
     send_key_until_needlematch "expert-partitioner-hard-disks", 'right';
@@ -75,7 +80,7 @@ sub create_new_partition_table {
     my $expert_menu_key = (is_storage_ng) ? 'alt-r' : 'alt-x';    # expert menu keys
     $expert_menu_key = 'alt-e' if is_tumbleweed;
 
-    if (is_storage_ng and (!is_tumbleweed)) {
+    if (is_storage_ng_newui) {
         # partition table management has been moved from Partitions tab to Overview
         send_key 'alt-o';
         assert_screen 'expert-partitioner-overview';
@@ -87,7 +92,7 @@ sub create_new_partition_table {
     save_screenshot;
     send_key 'ret';
 
-    if (is_storage_ng and (!is_tumbleweed)) {
+    if (is_storage_ng_newui) {
         assert_screen 'expert-partitioner-confirm-dev-removal';
         send_key 'alt-y';
     }
@@ -113,11 +118,6 @@ sub mount_device {
     wait_still_screen 1;
     send_key 'alt-m';
     type_string "$mount";
-}
-
-# We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
-sub is_storage_ng_newui {
-    return is_storage_ng && (is_sle('15-SP1+') || (is_opensuse && !is_leap('<=15')));
 }
 
 # Set size when adding or resizing partition
@@ -147,7 +147,8 @@ sub resize_partition {
         # start with preconfigured partitions
         send_key_until_needlematch 'modify-partition-resize', 'down', 5, 3;
         send_key 'ret';
-    } else {
+    }
+    else {
         send_key $cmd{resize};
     }
     # Set maximum size for the partition
@@ -218,12 +219,15 @@ sub addvg {
 
     assert_screen 'expert-partitioner';
     send_key $cmd{system_view};
+    send_key 'home';
     send_key_until_needlematch('volume_management_feature', 'down');
-    send_key $cmd{addpart};
     wait_still_screen 2;
-    save_screenshot;
-    send_key 'down';
-    send_key 'ret';
+    send_key(is_storage_ng_newui() ? $cmd{addvg} : $cmd{addpart});
+    if (!is_storage_ng_newui) {
+        send_key 'down';
+        send_key 'ret';
+        save_screenshot;
+    }
     assert_screen 'partition-add-volume-group';
     send_key 'alt-v';
     type_string $args{name};
@@ -236,19 +240,33 @@ sub addvg {
 
 sub addlv {
     my (%args) = @_;
-    send_key $cmd{addpart};
-    send_key 'down';
-    send_key 'down';
+
+    assert_screen 'expert-partitioner';
+    send_key $cmd{system_view};
+    send_key 'home';
+    send_key_until_needlematch('volume_management_feature', 'down');
+    # Expand collapsed list with VGs
+    send_key 'right' if is_sle('<15');
+    send_key_until_needlematch 'partition-select-vg-' . "$args{vg}", 'down';
+    # Expand collapsed list with LVs
+    send_key 'right' if is_sle('<15');
+    send_key 'alt-i' if (is_storage_ng_newui);
     wait_still_screen 2;
-    save_screenshot;
-    send_key 'ret';    # create logical volume
+    send_key(
+        is_storage_ng_newui ? $cmd{addlv} : $cmd{addpart});
+    if (!is_storage_ng) {
+        send_key 'down' for (0..1);
+        save_screenshot;
+    }
     assert_screen 'partition-lv-type';
+    send_key 'alt-g';
+    wait_still_screen 2;
     type_string $args{name};
-
-    send_key($args{thinpool} ? 'alt-t' : $args{thinvolume} ? 'alt-i' : 'alt-o');
-
+    send_key($args{thinpool} ? 'alt-t' : $args{thinvolume} ? 'alt-i' : 'alt-o'
+    );
     send_key $cmd{next};
     assert_screen 'partition-lv-size';
+
     if ($args{size}) {    # use default max size if not defined
         send_key((is_storage_ng) ? 'alt-t' : $cmd{customsize});    # custom size
         assert_screen 'partition-custom-size-selected';
@@ -258,6 +276,7 @@ sub addlv {
         send_key 'backspace';
         type_string $args{size} . 'mb';
     }
+
     send_key $cmd{next};
     return if $args{thinpool};
     assert_screen 'partition-role';
