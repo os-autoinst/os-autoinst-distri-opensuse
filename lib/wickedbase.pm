@@ -55,6 +55,18 @@ sub get_ip {
     }
 }
 
+sub get_current_ip {
+    my ($self, $ifc, %args) = @_;
+    $args{ip_version} //= 'v4';
+    die("Missing mandatory parameter ifc") unless ($ifc);
+
+    my $out = script_output('ip -o ' . ($args{ip_version} eq 'v6' ? '-6' : '-4') . ' addr list ' . $ifc . ' | awk \'{print $4}\' | cut -d/ -f1');
+    my @ips = split('\r?\n', $out);
+
+    return $ips[0] if (@ips);
+    return;
+}
+
 sub save_and_upload_wicked_log {
     my $log_path = '/tmp/journal.log';
     assert_script_run("journalctl -o short-precise > $log_path");
@@ -78,6 +90,7 @@ sub post_fail_hook {
 
 sub ping_with_timeout {
     my ($self, %args) = @_;
+    $args{ip_version} //= 'v4';
     my $timeout = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     while ($timeout > 0) {
@@ -166,7 +179,7 @@ sub before_scenario {
 sub get_test_result {
     my ($self, $type, $ip_version) = @_;
     my $timeout = "60";
-    my $ip      = $self->get_ip(is_wicked_ref => 1, type => $type);
+    my $ip      = $self->get_ip(is_wicked_ref => 1, type => $type, no_mask => 1);
     my $ret     = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
     if (!$ret) {
         record_info("PING FAILED", "Can't ping IP $ip", result => 'fail');
