@@ -1571,6 +1571,7 @@ sub load_extra_tests_textmode {
     # modules.
     load_docker_tests if (check_var('ARCH', 'x86_64') && (is_sle('12-SP3+') || !is_sle));
     loadtest "console/kdump_and_crash" if kdump_is_applicable;
+    loadtest 'console/journalctl';
     loadtest "console/consoletest_finish";
 }
 
