@@ -75,6 +75,9 @@ sub patching_sle {
     # Install extra packages as required
     install_packages() if (get_var('PACKAGES'));
 
+    # Install salt packages as required
+    install_salt_packages() if (check_var_array('SCC_ADDONS', 'asmm'));
+
     # Remove test repos after system being patched
     remove_test_repositories;
 
@@ -122,6 +125,12 @@ sub install_packages {
             zypper_call "in -t package $pk";
         }
     }
+}
+
+# Install packages salt-master salt-minion before migration, to ensure salt
+# regression test work well even the asmm is disabled after migration.
+sub install_salt_packages {
+    zypper_call('in -t package salt-master salt-minion');
 }
 
 # Install extra patterns if var PATTERNS is set
