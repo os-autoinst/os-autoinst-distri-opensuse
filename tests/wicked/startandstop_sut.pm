@@ -72,6 +72,16 @@ sub run {
     $self->cleanup($config, "br0");
     $self->cleanup($dummy,  "dummy0");
 
+    $self->before_scenario('Test 3', 'Bridge - ifup, remove all config, ifreload', $iface);
+    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->setup_bridge($config, $dummy, 'ifup');
+    assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface $config $dummy");
+    assert_script_run("wicked ifreload --timeout infinite all");
+    my $res = script_run("ip link|grep 'dummy0\|br0'");
+    $results{3} = $res ? "PASSED" : "FAILED";
+    mutex_create("test_3_ready");
+
     ## processing overall results
     wait_for_children;
     my $failures = grep { $_ eq "FAILED" } values %results;
