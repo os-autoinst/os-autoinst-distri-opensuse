@@ -1163,9 +1163,8 @@ sub load_consoletests {
         loadtest "console/curl_https";
     }
     # puppet does not exist anymore in openSUSE Tumbleweed/Leap
-    if (is_sle && (check_var_array('SCC_ADDONS', 'asmm') && !sle_version_at_least('15'))
-        || (check_var_array('SCC_ADDONS', 'phub') && sle_version_at_least('15')))
-    {
+    my $puppet_addon = is_sle('15+') ? 'phub' : 'asmm';
+    if (is_sle && check_var_array('SCC_ADDONS', $puppet_addon)) {
         loadtest "console/puppet";
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
