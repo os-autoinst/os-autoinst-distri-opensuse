@@ -20,15 +20,15 @@ use version_utils "is_sle";
 sub run {
     select_console "root-console";
 
-    my @image_names = ();
+    my @image_names  = ();
+    my @stable_names = ();
     if (is_sle("=12-SP3")) {
-        my @suffixes = ("container/sles12:sp3", "container-next/sles12/caasp-dex:2.7.1", "container-next/sles12/chartmuseum:0.2.8", "container-next/sles12/dnsmasq-nanny:1.0.0", "container-next/sles12/flannel:0.9.1", "container-next/sles12/haproxy:1.6.0", "container-next/sles12/kubedns:1.0.0", "container-next/sles12/mariadb:10.0", "container-next/sles12/openldap:10.0", "container-next/sles12/pause:1.0.0", "container-next/sles12/portus:2.3.2", "container-next/sles12/pv-recycler-node:1.0.0", "container-next/sles12/salt-api:2016.11.4", "container-next/sles12/salt-master:2016.11.4", "container-next/sles12/salt-minion:2016.11.4", "container-next/sles12/sidecar:1.0.0", "container-next/sles12/tiller:2.8.2", "container-next/sles12/velum:0.0");
-        foreach my $suffix (@suffixes) {
-            push @image_names, "registry.suse.de/suse/sle-12-sp3/update/products/casp30/$suffix";
-        }
+        push @image_names,  "registry.suse.de/suse/sle-12-sp3/docker/update/cr/images/suse/sles12sp3:latest";
+        push @stable_names, "registry.suse.com/suse/sles12sp3:latest";
     }
     elsif (is_sle("=15")) {
-        push @image_names, "registry.suse.de/suse/sle-15/update/cr/images/suse/sle15:latest";
+        push @image_names,  "registry.suse.de/suse/sle-15/update/cr/images/suse/sle15:latest";
+        push @stable_names, "registry.suse.com/suse/sle15:latest";
     }
     else {
         die("This test only works at SLE12SP3 and SLE15.");
@@ -58,30 +58,32 @@ sub run {
         chmod +x container-diff-linux-amd64 && sudo mv container-diff-linux-amd64 /usr/local/bin/container-diff"
     );
 
-    foreach my $image_name (@image_names) {
+    for my $i (0 .. $#image_names) {
         # Load the image
-        assert_script_run("docker pull $image_name", 120);
+        assert_script_run("docker pull $image_names[$i]", 120);
         # Running executables works
-        assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_name -c 'echo "I work" | grep "I work"'};
+        assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'echo "I work" | grep "I work"'};
         # It is the right SLE version
         if (is_sle("=12-SP3")) {
-            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 12 SP3"/ });
+            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 12 SP3"/ });
         }
         elsif (is_sle("=15")) {
-            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 15"/ });
+            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 15"/ });
         }
         # zypper lr
-        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper lr -s'", 120);
+        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'zypper lr -s'", 120);
         # zypper ref
-        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_name -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
 
         # container-diff
-        my $image_file = $image_name =~ s/\/|:/-/gr;
-        assert_script_run("container-diff analyze daemon://$image_name --type=rpm > /tmp/container-diff-$image_file.txt");
-        upload_asset("/tmp/container-diff-$image_file.txt");
+        my $image_file = $image_names[$i] =~ s/\/|:/-/gr;
+        assert_script_run("docker pull $image_names[$i]");
+        assert_script_run("docker pull $stable_names[$i]");
+        assert_script_run("container-diff diff daemon://$image_names[$i] daemon://$stable_names[$i] --type=rpm --type=file --type=history > /tmp/container-diff-$image_file.txt");
+        upload_logs("/tmp/container-diff-$image_file.txt");
 
         # Remove the image again to save space
-        assert_script_run("docker image rm --force $image_name");
+        assert_script_run("docker image rm --force $image_names[$i]");
     }
 }
 
