@@ -14,13 +14,14 @@
 use base "x11test";
 use strict;
 use testapi;
+use utils 'assert_screen_with_soft_timeout';
 
 sub run {
     x11_start_program 'dolphin';
 
     # Go to ~/Documents
     assert_and_click 'dolphin_icon_documents';
-    assert_screen 'dolphin_documents_empty';
+    assert_screen_with_soft_timeout('dolphin_documents_empty', timeout => 90, soft_timeout => 30, 'boo#1112021');
 
     # Create a new folder
     send_key 'f10';
