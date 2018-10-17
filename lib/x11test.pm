@@ -544,8 +544,8 @@ sub start_clean_firefox {
 
     # get rid of the reader & tracking pop-up once, first test should have milestone flag
     $self->firefox_open_url('eu.httpbin.org/html');
-    # no reader view pop-up on sle15+
-    if (is_sle('<15')) {
+    wait_still_screen(3);
+    if (check_screen 'firefox_readerview_window') {
         wait_still_screen(3);
         assert_and_click 'firefox_readerview_window';
     }

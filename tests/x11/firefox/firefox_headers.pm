@@ -32,6 +32,7 @@ sub run {
     assert_and_click('firefox-headers-select-other');
     # refresh page
     send_key 'f5';
+    wait_still_screen 3;
     assert_screen 'firefox-url-loaded';
     assert_and_click('firefox-headers-select-gnu.org');
     assert_screen('firefox-headers-first_item');
