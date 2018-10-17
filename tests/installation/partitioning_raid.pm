@@ -16,9 +16,7 @@ use warnings;
 use base 'y2logsstep';
 use testapi;
 use version_utils qw(is_storage_ng is_sle is_leap is_tumbleweed);
-
-# tumbleweed is not older product, but it didn't roll out yet
-my $older_product = is_sle('<=15') || is_leap('<15.1') || is_tumbleweed;
+use partition_setup 'is_storage_ng_newui';
 
 sub switch_partitions_tab {
     $cmd{addpart} = 'alt-r';
@@ -52,7 +50,7 @@ sub addpart {
     else                         { die 'Unknown argument'; }
 
     assert_screen "expert-partitioner";
-    switch_partitions_tab unless ($older_product);
+    switch_partitions_tab if (is_storage_ng_newui);
     send_key $cmd{addpart};
     # Partitioning type does not appear when GPT disk used, GPT is default for UEFI
     # With storage-ng GPT is default, so no partitioning type
@@ -119,7 +117,7 @@ sub addraid {
         type_string "\t$chunksize";
     }
     send_key $cmd{next};
-    unless ($older_product) {
+    if (is_storage_ng_newui) {
         assert_screen 'expert-partitioner';
         send_key 'alt-p';    # Partitions drop-down menu
         assert_screen 'partition-dropdown-open';
@@ -154,7 +152,7 @@ sub set_lvm {
 
     # create volume group
     send_key "alt-d";
-    if ($older_product) {
+    unless (is_storage_ng_newui) {
         send_key "down";
         send_key "ret";
     }
@@ -172,7 +170,7 @@ sub set_lvm {
     wait_still_screen;
 
     # create logical volume
-    if ($older_product) {
+    if (is_storage_ng_newui) {
         send_key "alt-d";
         send_key "down";
         send_key "down";
@@ -217,7 +215,7 @@ sub modify_uefi_boot_partition {
     send_key $cmd{next};
     assert_screen 'partition-format';
     # We have different shortcut for Format option when editing partition
-    send_key $older_product ? 'alt-a' : 'alt-f';
+    send_key is_storage_ng_newui ? 'alt-f' : 'alt-a';
     send_key 'home';
     send_key_until_needlematch 'partitioning_raid-format_default_UEFI', 'down';
     # format as FAT (first choice)
@@ -298,7 +296,7 @@ sub add_prep_boot_partition {
     if (is_storage_ng) {
         send_key 'down';
         assert_screen 'partitioning_raid-disk_vda-selected';
-        switch_partitions_tab unless ($older_product);
+        switch_partitions_tab if (is_storage_ng_newui);
         send_key $cmd{addpart};
     }
     else {
@@ -533,8 +531,6 @@ sub enter_partitioning {
 }
 
 sub run {
-    # for newer storage-ng toolbar has changed
-    $cmd{addraid} = 'alt-d' unless $older_product;
 
     enter_partitioning;
     add_partitions;
