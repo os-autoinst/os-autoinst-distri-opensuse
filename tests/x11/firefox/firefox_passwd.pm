@@ -32,7 +32,7 @@ sub run {
 
     send_key "alt-shift-u";
     wait_still_screen 3;
-    send_key 'spc' if is_sle('15+');
+    send_key 'spc' unless is_sle('=12-sp4');
 
     assert_screen('firefox-passwd-master_setting');
 
