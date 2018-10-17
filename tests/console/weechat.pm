@@ -28,18 +28,27 @@ sub run {
     script_run("weechat; echo weechat-status-\$? > /dev/$serialdev", 0);
     assert_screen('weechat');
 
-    type_string("/server add znc localhost/12345 -ssl -ssl_verify=0 -username=bernhard/freenode -password=$testapi::password\n");
+    run_weechat_command("/server add znc localhost/12345 -ssl -ssl_verify=0 -username=bernhard/freenode -password=$testapi::password");
     assert_screen('weechat-server-added');
 
-    type_string("/connect znc\n");
+    run_weechat_command("/connect znc");
     assert_screen('weechat-welcome_to_znc');
 
-    type_string("/query *status\n");
-    type_string("Version\n");
+    run_weechat_command("/query *status");
+    type_string("\n");
+
+    run_weechat_command("Version");
     assert_screen('weechat-znc-status-version');
 
-    type_string("/quit\n");
+    run_weechat_command("/quit");
     wait_serial("weechat-status-0") || die "'weechat' could not finish successfully";
+}
+
+sub run_weechat_command {
+    type_string(shift);
+    wait_still_screen 2;
+    save_screenshot;
+    type_string("\n");
 }
 
 1;
