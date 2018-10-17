@@ -59,7 +59,7 @@ sub run {
     type_string("\n");
 
     wait_serial('Server host');
-    type_string("\n");
+    type_string("this.remote.irc.server.does.not.exist\n");
 
     wait_serial('Server uses SSL');
     type_string("\n");

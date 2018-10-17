@@ -32,7 +32,7 @@ sub run {
     assert_screen('weechat-server-added');
 
     type_string("/connect znc\n");
-    assert_screen('weechat-no-longer-away');
+    assert_screen('weechat-welcome_to_znc');
 
     type_string("/query *status\n");
     type_string("Version\n");
