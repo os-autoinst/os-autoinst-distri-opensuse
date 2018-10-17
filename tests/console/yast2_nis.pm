@@ -44,21 +44,22 @@ sub run() {
     send_key 'alt-m';
     assert_screen 'nis-client-automounter-enabled';    # this checks if nis and automounter got really enabled
     send_key 'alt-i';                                  # enter Nis domain for enter string suse.de
+    send_key_until_needlematch 'nis-domain-empty-field', 'backspace';    # clear NIS Domain field if it is prefilled
     type_string "suse.de";
     send_key 'alt-a';
     type_string "10.162.0.1";
-    wait_screen_change { send_key 'alt-p' };           # check Netconfif NIS Policy
+    wait_screen_change { send_key 'alt-p' };                             # check Netconfif NIS Policy
     send_key 'up';
     wait_screen_change { send_key 'ret' };
-    assert_screen 'only-manual-changes';               # check the needle
-    send_key 'alt-p';                                  # enter Netconfif NIS Policy again for custom policy
+    assert_screen 'only-manual-changes';                                 # check the needle
+    send_key 'alt-p';                                                    # enter Netconfif NIS Policy again for custom policy
     wait_screen_change { send_key 'down' };
     send_key 'ret';
-    wait_screen_change { send_key 'alt-x' };           # check Expert...
+    wait_screen_change { send_key 'alt-x' };                             # check Expert...
     wait_screen_change { send_key 'alt-b' };
-    assert_screen 'expert_settings';                   # check the needle enable Broken server
+    assert_screen 'expert_settings';                                     # check the needle enable Broken server
     send_key 'alt-y';
-    wait_screen_change { type_string "-c" };           # only checks if the config file has syntax errors and exits
+    wait_screen_change { type_string "-c" };                             # only checks if the config file has syntax errors and exits
     wait_screen_change { send_key 'alt-o' };
     send_key_until_needlematch('nfs-client-configuration', 'alt-s', 2, 5);    # enter NFS configuration, sometimes fails, retry
     send_key 'alt-a';                                                         # add nfs settings
