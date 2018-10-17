@@ -82,6 +82,21 @@ sub run {
     $results{3} = $res ? "PASSED" : "FAILED";
     mutex_create("test_3_ready");
 
+    $self->before_scenario('Test 5', 'Standalone card - ifdown, ifreload', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-' . $iface;
+    $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
+    assert_script_run("ifdown $iface");
+    assert_script_run("wicked ifreload  $iface");
+    my $static_ip = $self->get_ip(type => 'host', no_mask => 1);
+    my $dhcp_ip = $self->get_current_ip($iface);
+    if (defined($dhcp_ip) && $static_ip ne $dhcp_ip) {
+        $results{5} = $self->get_test_result('host');
+    } else {
+        record_info('DHCP failed', 'current ip: ' . ($dhcp_ip || 'none'), result => 'fail');
+        $results{5} = 'FAILED';
+    }
+    mutex_create("test_5_ready");
+
     ## processing overall results
     wait_for_children;
     my $failures = grep { $_ eq "FAILED" } values %results;
