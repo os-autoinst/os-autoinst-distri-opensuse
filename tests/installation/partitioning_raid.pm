@@ -19,7 +19,6 @@ use version_utils qw(is_storage_ng is_sle is_leap is_tumbleweed);
 use partition_setup 'is_storage_ng_newui';
 
 sub switch_partitions_tab {
-    $cmd{addpart} = 'alt-r';
     send_key 'alt-p';
     assert_screen "partitions-tab";
 }
@@ -166,7 +165,7 @@ sub set_lvm {
     type_string "root";
     assert_screen 'volumegroup-name-root';
 
-    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     wait_still_screen;
 
     # create logical volume
@@ -194,7 +193,7 @@ sub set_lvm {
     assert_screen('volume-pick-os-role');
     send_key $cmd{next};
     assert_screen 'volume-mount-as-root';
-    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
 sub modify_uefi_boot_partition {
@@ -215,7 +214,7 @@ sub modify_uefi_boot_partition {
     send_key $cmd{next};
     assert_screen 'partition-format';
     # We have different shortcut for Format option when editing partition
-    send_key is_storage_ng_newui ? 'alt-f' : 'alt-a';
+    send_key(is_storage_ng_newui() ? 'alt-f' : 'alt-a');
     send_key 'home';
     send_key_until_needlematch 'partitioning_raid-format_default_UEFI', 'down';
     # format as FAT (first choice)
@@ -228,9 +227,9 @@ sub modify_uefi_boot_partition {
     # enter mount point
     type_string '/boot/efi';
     assert_screen 'partitioning_raid-mount_point_boot_efi';
-    send_key is_storage_ng() ? $cmd{next} : $cmd{finish};
+    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     assert_screen 'expert-partitioner';
-    send_key is_storage_ng() ? 'tab' : 'shift-tab';
+    send_key(is_storage_ng() ? 'tab' : 'shift-tab');
     send_key 'shift-tab' unless is_storage_ng;
     # go to top "Hard Disks" node
     send_key 'left';
