@@ -57,16 +57,16 @@ sub dl_pause {
     send_key "p";
 }
 
-# firefox 62 in sle15 does not have option or shortcut to cancel only button
+# firefox 60.2 does not have option or shortcut to cancel only button
 sub dl_cancel {
-    if (is_sle('15+')) {
-        assert_and_click('firefox-downloading-cancel-button');
-    }
-    else {
+    if (is_sle('=12sp4')) {
         dl_pause();
         dl_menu();
         send_key "c";
         wait_still_screen 3, 6;
+    }
+    else {
+        assert_and_click('firefox-downloading-cancel-button');
     }
 }
 
