@@ -19,7 +19,7 @@ use testapi;
 sub run {
     if (script_run('command -v man') == 0) {
         my $output = script_output('man -P cat journalctl');
-        record_soft_failure('bsc#1063066 - broken manpage') if ($output =~ m/\.SH "NAME"/);
+        record_soft_failure('bsc#1063066 - broken manpage') if ($output =~ m/\s+\.SH /);
     }
 }
 
