@@ -608,6 +608,12 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
+    if (get_var('PREPARE_RPI')) {
+        loadtest "boot/boot_to_desktop";
+        loadtest "jeos/prepare_rpi_image";
+        loadtest "shutdown/shutdown";
+        return;
+    }
     unless (get_var('LTP_COMMAND_FILE')) {
         load_boot_tests();
         loadtest "jeos/firstrun";
