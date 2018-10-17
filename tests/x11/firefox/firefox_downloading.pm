@@ -33,7 +33,7 @@ sub dl_location_switch {
     else {
         send_key "alt-shift-a";    #"Always ask me where to save files"
     }
-    send_key "ctrl-w" if is_sle('<15');
+    send_key "ctrl-w" if is_sle('=12-sp4');
 }
 
 sub dl_save {
