@@ -1803,8 +1803,6 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_localfiles";
     loadtest "x11/firefox/firefox_headers";
     loadtest "x11/firefox/firefox_pdf";
-    # firefox health was removed in 59 https://techdows.com/2017/11/firefox-59-mozilla-removes-firefox-health-report.html
-    loadtest "x11/firefox/firefox_health" if is_sle('<15');
     loadtest "x11/firefox/firefox_pagesaving";
     loadtest "x11/firefox/firefox_private";
     # could not find UnMHT addon, home page is dead http://www.unmht.org/unmht/en_index.html
