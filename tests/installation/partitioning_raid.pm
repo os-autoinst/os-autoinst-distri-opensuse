@@ -172,11 +172,17 @@ sub set_lvm {
     wait_still_screen;
 
     # create logical volume
-    send_key "alt-d";
-    send_key "down";
-    send_key "down";
-    send_key "ret";
-
+    if ($older_product) {
+        send_key "alt-d";
+        send_key "down";
+        send_key "down";
+        send_key "ret";
+    }
+    else {
+        send_key 'alt-o';
+        assert_screen 'logical-volumes-dropdown-open';
+        assert_and_click 'add-logical-volume';
+    }
     # create normal volume with name root
     assert_screen 'add-lvm-on-root';
     type_string "root";
