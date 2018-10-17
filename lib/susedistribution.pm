@@ -656,7 +656,8 @@ sub activate_console {
     }
     elsif ($console eq 'svirt') {
         my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
-        handle_password_prompt;
+        # On Hyper-V 'svirt' console is Hyper-V host
+        handle_password_prompt unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
         $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         save_svirt_pty;
     }
