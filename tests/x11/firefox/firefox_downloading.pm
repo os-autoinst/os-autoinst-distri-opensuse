@@ -59,7 +59,7 @@ sub dl_pause {
 
 # firefox 60.2 does not have option or shortcut to cancel only button
 sub dl_cancel {
-    if (is_sle('=12sp4')) {
+    if (is_sle('=12-sp4')) {
         dl_pause();
         dl_menu();
         send_key "c";
