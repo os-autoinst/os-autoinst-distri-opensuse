@@ -26,8 +26,8 @@ our @EXPORT = qw(
   resize_partition
   select_first_hard_disk
   take_first_disk
-  %partition_roles
   is_storage_ng_newui
+  %partition_roles
 );
 
 our %partition_roles = qw(
