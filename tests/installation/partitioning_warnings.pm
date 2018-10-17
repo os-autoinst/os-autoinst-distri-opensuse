@@ -35,7 +35,7 @@ sub process_warning {
 
 sub process_missing_special_partitions {
     # Have missing boot/zipl partition warning only in storage_ng
-    if (is_storage_ng && check_var('ARCH', 's390x')) {    # s390x needs /boot/zipl on ext partition
+    if (is_storage_ng() && check_var('ARCH', 's390x')) {    # s390x needs /boot/zipl on ext partition
         process_warning(warning => 'no-boot-zipl', key => 'alt-n');
     }
     elsif (get_var('OFW')) {                              # ppc64le needs PReP /boot
@@ -51,7 +51,7 @@ sub process_missing_special_partitions {
 }
 
 sub remove_partition {
-    my $remove_key = (is_storage_ng) ? 'alt-e' : 'alt-t';
+    my $remove_key = ((is_storage_ng()) ? 'alt-e' : 'alt-t');
     $remove_key = 'alt-t' if is_tumbleweed;
     wait_screen_change { send_key($remove_key) };
     assert_screen 'remove-partition';
@@ -93,7 +93,7 @@ sub run {
     send_key $cmd{accept};
     # Check no root partition warning (has different keys, with storage-ng it's an error)
     record_info('Test: No root', 'Test warning for missing root partition');
-    process_warning(warning => 'no-root-partition', key => (is_storage_ng) ? 'alt-o' : 'alt-n');
+    process_warning(warning => 'no-root-partition', key => ((is_storage_ng()) ? 'alt-o' : 'alt-n'));
     if (!is_storage_ng) {
         record_info('Test: No boot', "Missing boot partition for " . get_var('ARCH'));
         process_missing_special_partitions;

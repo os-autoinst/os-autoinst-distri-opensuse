@@ -103,7 +103,7 @@ sub create_new_partition_table {
         assert_screen "create-new-partition-table";
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
-        send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
+        send_key((is_storage_ng()) ? $cmd{next} : $cmd{ok});    # OK
         send_key 'alt-p' if (is_storage_ng and (!is_tumbleweed));    # return back to Partitions tab
     }
     unless (is_storage_ng and (!is_tumbleweed)) {
@@ -154,7 +154,7 @@ sub resize_partition {
     # Set maximum size for the partition
     set_partition_size;
     assert_screen 'partition-maximum-size-selected';
-    send_key((is_storage_ng) ? "$cmd{next}" : "$cmd{ok}");
+    send_key((is_storage_ng()) ? "$cmd{next}" : "$cmd{ok}");
 }
 
 sub addpart {
@@ -179,9 +179,9 @@ sub addpart {
         else {
             send_key 'alt-a' if is_storage_ng;    # Select to format partition, not selected by default
             wait_still_screen 1;
-            send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
+            send_key((is_storage_ng()) ? 'alt-f' : 'alt-s');
             wait_screen_change { send_key 'home' };    # start from the top of the list
-            assert_screen(((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
+            assert_screen(((is_storage_ng()) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
     }
@@ -211,7 +211,7 @@ sub addpart {
         send_key 'tab';
         type_password;
     }
-    send_key((is_storage_ng) ? $cmd{next} : $cmd{finish});
+    send_key((is_storage_ng()) ? $cmd{next} : $cmd{finish});
 }
 
 sub addvg {
@@ -266,7 +266,7 @@ sub addlv {
     assert_screen 'partition-lv-size';
 
     if ($args{size}) {    # use default max size if not defined
-        send_key((is_storage_ng) ? 'alt-t' : $cmd{customsize});    # custom size
+        send_key((is_storage_ng()) ? 'alt-t' : $cmd{customsize});    # custom size
         assert_screen 'partition-custom-size-selected';
         send_key 'alt-s' if is_storage_ng;
         # Remove text
