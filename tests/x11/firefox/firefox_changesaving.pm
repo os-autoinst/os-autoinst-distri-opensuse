@@ -37,7 +37,7 @@ sub run {
     send_key "alt-e";
     wait_still_screen 3;
     send_key "n";
-    assert_screen('firefox-changesaving-preferences', 30);
+    assert_screen('firefox-preferences');
 
     if (is_sle('15+')) {
         assert_and_click 'firefox-changesaving-showblankpage';

@@ -25,7 +25,7 @@ sub dl_location_switch {
         send_key "alt-e";
     };
     send_key "n";
-    assert_screen('firefox-downloading-preferences', 30);
+    assert_screen('firefox-preferences');
 
     if ($tg ne "ask") {
         send_key "alt-shift-v";    #"Save files to Downloads"
