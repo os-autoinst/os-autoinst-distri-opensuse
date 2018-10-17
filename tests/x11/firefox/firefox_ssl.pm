@@ -28,7 +28,7 @@ sub run {
     send_key "tab";
     send_key "ret";
     # firefox 60.2+ has checkbox above buttons (2 tabs) and rest has checkbox under buttons (3 tabs)
-    my $count = is_sle('=12sp4') ? 3 : 2;
+    my $count = is_sle('=12-sp4') ? 3 : 2;
     for (1 .. $count) { send_key "tab"; }
     send_key "ret";
 
