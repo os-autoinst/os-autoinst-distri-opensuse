@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,13 +39,13 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    if (is_sle('15+')) {
-        assert_and_click 'firefox-changesaving-showblankpage';
-    }
-    else {
+    if (is_sle('=12-sp4')) {
         send_key "alt-shift-s";
         send_key "down";    #Show a blank page
         assert_screen('firefox-changesaving-showblankpage', 30);
+    }
+    else {
+        assert_and_click 'firefox-changesaving-showblankpage';
     }
 
     send_key "alt-tab";     #Switch to xterm
