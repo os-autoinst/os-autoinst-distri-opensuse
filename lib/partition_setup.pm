@@ -252,18 +252,16 @@ sub addlv {
     send_key 'right' if is_sle('<15');
     send_key 'alt-i' if (is_storage_ng_newui);
     wait_still_screen 2;
-    send_key(
-        is_storage_ng_newui ? $cmd{addlv} : $cmd{addpart});
+    send_key(is_storage_ng_newui() ? $cmd{addlv} : $cmd{addpart});
     if (!is_storage_ng) {
-        send_key 'down' for (0..1);
+        send_key 'down' for (0 .. 1);
         save_screenshot;
     }
     assert_screen 'partition-lv-type';
     send_key 'alt-g';
     wait_still_screen 2;
     type_string $args{name};
-    send_key($args{thinpool} ? 'alt-t' : $args{thinvolume} ? 'alt-i' : 'alt-o'
-    );
+    send_key($args{thinpool} ? 'alt-t' : $args{thinvolume} ? 'alt-i' : 'alt-o');
     send_key $cmd{next};
     assert_screen 'partition-lv-size';
 
