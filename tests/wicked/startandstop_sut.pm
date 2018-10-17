@@ -97,7 +97,7 @@ sub run {
     $self->before_scenario('Test 5', 'Standalone card - ifdown, ifreload', $iface);
     $config = '/etc/sysconfig/network/ifcfg-' . $iface;
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
-    assert_script_run("ifdown $iface");
+    assert_script_run('wicked ifdown --timeout infinite ' . $iface);
     assert_script_run("wicked ifreload  $iface");
     my $static_ip = $self->get_ip(type => 'host', no_mask => 1);
     my $dhcp_ip = $self->get_current_ip($iface);
@@ -137,6 +137,18 @@ sub run {
     }
     $self->cleanup($dummy, "dummy0");
     mutex_create("test_8_ready");
+
+    $self->before_scenario('Test 21', 'SIT tunnel - ifdown', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-sit1';
+    $self->get_from_data('wicked/ifcfg/sit1', $config);
+    $self->setup_tunnel($config, 'sit1');
+    $results{21} = $self->get_test_result('sit1', 'v6');
+    if ($results{21} ne 'FAILED') {
+        assert_script_run("wicked ifdown --timeout infinite sit1");
+        $results{21} = 'FAILED' if (!script_run('ip link | grep sit1'));
+    }
+    $self->cleanup($config, 'sit1');
+    mutex_create('test_21_ready');
 
     $self->before_scenario('Test 22', 'OpenVPN tunnel - ifdown', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tun1';

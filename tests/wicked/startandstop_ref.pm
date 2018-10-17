@@ -42,6 +42,12 @@ sub run {
     record_info('Test 8', 'Bridge - ifdown, remove one config, ifreload, ifdown, ifup');
     mutex_wait('test_8_ready');
 
+    record_info('Test 21', 'SIT tunnel - ifdown');
+    $self->create_tunnel_with_commands('sit1', 'sit', '127');
+    mutex_wait('test_21_ready');
+    assert_script_run('ip addr flush dev sit1');
+    assert_script_run('ip tunnel delete sit1');
+
     record_info('Test 22', 'OpenVPN tunnel - ifdown');
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
     $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
