@@ -92,7 +92,7 @@ sub run {
     dl_save($self, $dl_link_01);
 
     # on 60.2+ is by default saved without save to window
-    unless (is_sle('=12-sp4')) {
+    if (is_sle('=12-sp4')) {
         assert_screen('firefox-downloading-saving_box', 90);
         wait_still_screen 3, 6;
         send_key "alt-s";
