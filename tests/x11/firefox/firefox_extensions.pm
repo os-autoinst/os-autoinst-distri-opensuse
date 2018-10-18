@@ -34,7 +34,8 @@ sub run {
     else {
         assert_and_click('firefox-extensions-flagfox');
         assert_and_click('firefox-extensions-add-to-firefox');
-        assert_and_click('firefox-extensions-confirm-add');
+        wait_still_screen 6;
+        send_key 'alt-a';
         # close the flagfox relase notes tab
         wait_still_screen 3;
         save_screenshot;
