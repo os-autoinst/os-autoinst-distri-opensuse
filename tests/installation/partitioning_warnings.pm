@@ -158,6 +158,7 @@ sub run {
         ## Add boot partition ID with under limit boot partition size
         foreach (keys %roles) {
             addpart(role => $roles{$_}{role}, size => $roles{$_}{size}, format => $roles{$_}{format}, mount => $roles{$_}{mount}, fsid => $roles{$_}{fsid});
+            assert_screen 'expert-partitioner';
             send_key $cmd{accept};
             record_info("Test: $_", "Wrong partition ID or boot partition is too small");
             process_missing_special_partitions;
