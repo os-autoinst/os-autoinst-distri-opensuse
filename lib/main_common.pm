@@ -897,9 +897,6 @@ sub load_inst_tests {
         if (is_sles4sap and !sle_version_at_least('15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        if (get_var('MAINT_TEST_REPO')) {
-            loadtest 'installation/add_update_test_repo';
-        }
         loadtest "installation/addon_products_sle";
         loadtest 'installation/releasenotes_origin' if get_var('CHECK_RELEASENOTES_ORIGIN');
     }
@@ -1698,7 +1695,10 @@ sub load_x11_installation {
     loadtest "x11/x11_setup";
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest "console/sle15_workarounds" if is_sle and sle_version_at_least('15');
-    loadtest "console/hostname"              unless is_bridged_networking;
+    loadtest "console/hostname" unless is_bridged_networking;
+    if (get_var('MAINT_TEST_REPO')) {
+        loadtest 'console/add_update_test_repo';
+    }
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
     load_shutdown_tests;
@@ -1816,8 +1816,8 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_ssl";
     loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
-    # IcedTea-Web plugin is part of NPAPI dropped in version 52 available only on DESKTOP with currently 45.2
-    loadtest "x11/firefox/firefox_java" if get_var('FLAVOR') =~ /Desktop/;
+    # IcedTea-Web plugin is part of NPAPI dropped in version 52 available only on 12-sp4
+    loadtest "x11/firefox/firefox_java" if is_sle('=12-sp4');
     loadtest "x11/firefox/firefox_extcontent";
     loadtest "x11/firefox/firefox_gnomeshell";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
