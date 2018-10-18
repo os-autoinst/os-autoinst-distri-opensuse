@@ -1644,6 +1644,7 @@ sub load_filesystem_tests {
         # kernel module required by thin-LVM
         loadtest 'console/snapper_thin_lvm' unless is_jeos;
     }
+    loadtest 'console/snapper_used_space';
 }
 
 sub load_wicked_tests {
