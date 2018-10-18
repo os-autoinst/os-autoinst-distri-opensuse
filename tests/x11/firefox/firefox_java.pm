@@ -71,7 +71,7 @@ sub run {
     send_key "ctrl-shift-a";
 
     assert_screen("firefox-java-addonsmanager");
-    assert_and_click('firefox-java-extensions');
+    assert_and_click('firefox-extensions');
 
     send_key "/";
     type_string "iced\n";

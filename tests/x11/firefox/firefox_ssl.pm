@@ -41,15 +41,15 @@ sub run {
     wait_still_screen 3;
     send_key "n";
 
-    if (is_sle('15+')) {
-        assert_and_click('firefox-preferences-search');
-        type_string "cert\n";
-        assert_and_click('firefox-ssl-preference-view-certificate');
-    }
-    else {
+    if (is_sle('=12-sp4')) {
         assert_and_click('firefox-ssl-preference_advanced');
         assert_and_click('firefox-ssl-advanced_certificate');
         send_key "alt-shift-c";
+    }
+    else {
+        assert_and_click('firefox-preferences-search');
+        type_string "cert\n";
+        assert_and_click('firefox-ssl-preference-view-certificate');
     }
 
     sleep 1;
@@ -60,14 +60,7 @@ sub run {
     send_key "down";
 
     sleep 1;
-    # alt-shift-e does not work in openQA on 12 & 12sp1, but manually does (no idea why)
-    if (is_sle('<12-sp2')) {
-        for (1 .. 2) { send_key 'tab'; }
-        send_key 'spc';
-    }
-    else {
-        send_key "alt-shift-e";
-    }
+    send_key "alt-shift-e";
 
     sleep 1;
     send_key "spc";
