@@ -232,8 +232,13 @@ sub addvg {
     assert_screen 'partition-add-volume-group';
     send_key 'alt-v';
     type_string $args{name};
-    assert_and_click 'partition-select-first-from-top';
-    send_key 'alt-a';
+    if ($args{add_all_pvs}) {
+        send_key 'alt-d';
+    }
+    else {
+        assert_and_click 'partition-select-first-from-top';
+        send_key 'alt-a';
+    }
     wait_still_screen 2;
     save_screenshot;
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});

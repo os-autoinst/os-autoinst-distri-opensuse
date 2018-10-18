@@ -17,33 +17,17 @@ use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use partition_setup;
+use partition_setup qw(create_new_partition_table addboot addpart addvg addlv);
 use version_utils 'is_storage_ng';
 
 sub run {
     create_new_partition_table;
     addboot;
-
     addpart(role => 'raw', encrypt => 1);
-    assert_screen 'expert-partitioner';
-    send_key 'alt-s';    # select System view
-    send_key_until_needlematch('volume_management_feature', 'down');    # select Volume Management
-    send_key $cmd{addpart};                                             # add
-    wait_still_screen 2;
-    save_screenshot;
-    send_key 'down';
-    send_key 'ret';                                                     # create volume group
-    assert_screen 'partition-add-volume-group';
-    send_key 'alt-v';                                                   # volume group name
-    type_string 'vg-system';
-    send_key 'alt-d';                                                   # add all
-    wait_still_screen 2;
-    save_screenshot;
-    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
-    addlv(name => 'lv-swap', role => 'swap', size => 2000);
-    assert_screen 'expert-partitioner';
-    addlv(name => 'lv-root', role => 'OS');
-    assert_screen 'expert-partitioner';
+    addvg(name => 'vg-system', add_all_pvs => 1);
+    addlv(name => 'lv-swap', role => 'swap', vg => 'vg-system', size => 2000);
+    addlv(name => 'lv-root', role => 'OS', vg => 'vg-system');
+    # move to layout overview
     send_key $cmd{accept};
     if (get_var('UNENCRYPTED_BOOT')) {
         assert_screen 'partitioning-full-lvm-encrypt-unencrypted-boot';
