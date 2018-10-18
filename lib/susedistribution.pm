@@ -17,11 +17,20 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_s
 
 
 sub handle_password_prompt {
-    if (!get_var("LIVETEST") && !get_var('LIVECD')) {
-        assert_screen "password-prompt";
-        type_password;
-        send_key('ret');
+    my ($console) = @_;
+
+    return if get_var("LIVETEST") || get_var('LIVECD');
+    assert_screen "password-prompt";
+    if ($console eq 'hyperv-intermediary') {
+        type_string get_required_var('VIRSH_GUEST_PASSWORD');
     }
+    elsif ($console eq 'svirt') {
+        type_string(get_required_var(check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'HYPERV_PASSWORD' : 'VIRSH_PASSWORD'));
+    }
+    else {
+        type_password;
+    }
+    send_key('ret');
 }
 
 sub init {
@@ -654,10 +663,9 @@ sub activate_console {
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
     }
-    elsif ($console eq 'svirt') {
-        my $os_type = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'windows' : 'linux';
-        # On Hyper-V 'svirt' console is Hyper-V host
-        handle_password_prompt unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    elsif ($console eq 'svirt' || $console eq 'hyperv-intermediary') {
+        my $os_type = (check_var('VIRSH_VMM_FAMILY', 'hyperv') && $console eq 'svirt') ? 'windows' : 'linux';
+        handle_password_prompt($console);
         $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         save_svirt_pty;
     }
