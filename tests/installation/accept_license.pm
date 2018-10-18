@@ -39,14 +39,14 @@ sub run {
     if (match_has_tag('inst-welcome-no-product-list')) {
         return send_key $cmd{next} unless match_has_tag('license-agreement');
     }
-    $self->verify_license_has_to_be_accepted;
+    $self->accept_license;
     $self->verify_license_translations;
     send_key $cmd{next};
     # workaround for bsc#1059317, multiple times clicking accept license
     my $count = 5;
     while (check_screen('license-not-accepted', 3) && $count >= 1) {
         record_soft_failure 'bsc#1059317';
-        $self->verify_license_has_to_be_accepted;
+        $self->accept_license;
         send_key $cmd{next};
         $count--;
     }
