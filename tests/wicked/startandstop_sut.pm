@@ -57,7 +57,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/br0',    $config);
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifreload');
-    $results{1} = $self->get_test_result("br0", "");
+    $results{1} = $self->get_test_result('br0');
     mutex_create("test_1_ready");
     $self->cleanup($config, "br0");
     $self->cleanup($dummy,  "dummy0");
@@ -67,7 +67,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     $self->setup_bridge($config, $dummy, 'ifreload');
-    $results{2} = $self->get_test_result("br0", "");
+    $results{2} = $self->get_test_result('br0');
     mutex_create("test_2_ready");
     $self->cleanup($config, "br0");
     $self->cleanup($dummy,  "dummy0");
@@ -78,7 +78,7 @@ sub run {
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface $config $dummy");
     assert_script_run("wicked ifreload --timeout infinite all");
-    my $res = script_run("ip link|grep 'dummy0\|br0'");
+    my $res = script_run("ip link | grep 'dummy0\|br0'");
     $results{3} = $res ? "PASSED" : "FAILED";
     mutex_create("test_3_ready");
 
@@ -88,8 +88,8 @@ sub run {
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run("rm $config");
     assert_script_run("wicked ifreload --timeout infinite all");
-    my $res1 = script_run("ip link|grep br0");
-    my $res2 = script_run("ip link|grep dummy0");
+    my $res1 = script_run("ip link | grep br0");
+    my $res2 = script_run("ip link | grep dummy0");
     $results{4} = $res1 && !$res2 ? "PASSED" : "FAILED";
     $self->cleanup($dummy, "dummy0");
     mutex_create("test_4_ready");
@@ -109,6 +109,35 @@ sub run {
     }
     mutex_create("test_5_ready");
 
+    $self->before_scenario('Test 8', 'Bridge - ifdown, remove one config, ifreload, ifdown, ifup', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-br0';
+    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->setup_bridge($config, $dummy, 'ifup');
+    assert_script_run("wicked ifdown --timeout infinite br0");
+    assert_script_run("wicked ifdown --timeout infinite dummy0");
+    $res = script_run("ip link | grep 'dummy0\|br0'");
+    if ($res == 0) {
+        $results{8} = "FAILED";
+    }
+    else {
+        assert_script_run("rm $config");
+        assert_script_run("wicked ifreload --timeout infinite all");
+        my $res1 = script_run("ip link | grep br0");
+        my $res2 = script_run("ip link | grep dummy0");
+        my $res3 = script_run("ip link | grep eth0");
+        if (!$res1 || $res2 || $res3) {
+            $results{8} = "FAILED";
+        }
+        else {
+            assert_script_run("wicked ifdown --timeout infinite all");
+            assert_script_run("wicked ifup --timeout infinite all");
+            $results{8} = $self->get_test_result('host');
+        }
+    }
+    $self->cleanup($dummy, "dummy0");
+    mutex_create("test_8_ready");
+
     $self->before_scenario('Test 22', 'OpenVPN tunnel - ifdown', $iface);
     $config = '/etc/sysconfig/network/ifcfg-tun1';
     $self->get_from_data('wicked/ifcfg/tun1_sut', $config);
@@ -123,8 +152,8 @@ sub run {
             $results{22} = 'FAILED';
         }
     }
-    mutex_create("test_22_ready");
     $self->cleanup($config, "tun1");
+    mutex_create("test_22_ready");
 
     ## processing overall results
     wait_for_children;
