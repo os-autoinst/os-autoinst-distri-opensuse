@@ -39,6 +39,9 @@ sub run {
     record_info('Test 5', 'Standalone card - ifdown, ifreload');
     mutex_wait('test_5_ready');
 
+    record_info('Test 7', 'Bridge - ifdown, create new config, ifreload, ifdown, ifup');
+    mutex_wait('test_7_ready');
+
     record_info('Test 8', 'Bridge - ifdown, remove one config, ifreload, ifdown, ifup');
     mutex_wait('test_8_ready');
 
