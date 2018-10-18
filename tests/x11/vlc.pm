@@ -35,15 +35,8 @@ sub run {
     assert_and_click "vlc-play_button";
     # The video is actually 23 seconds long so give a bit of headroom for
     # startup
-    assert_screen [qw(vlc-video-info-only vlc-done-playing), 90];
-    if (match_has_tag 'vlc-done-playing') {
-        wait_still_screen;
-        assert_and_click "close_vlc";
-    }
-    elsif (match_has_tag 'vlc-video-info-only') {
-        wait_screen_change(sub { send_key 'alt-f4'; }, 90);
-        record_soft_failure('boo#1102838 - VLC fails to play video');
-    }
+    assert_screen "vlc-done-playing", 90;
+    assert_and_click "close_vlc";
 }
 
 1;
