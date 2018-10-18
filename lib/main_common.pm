@@ -1654,8 +1654,19 @@ sub load_wicked_tests {
         loadtest 'wicked/config_files';
     }
     elsif (check_var('WICKED', 'advanced')) {
-        loadtest 'wicked/advanced_ref' if check_var('IS_WICKED_REF', '1');
-        loadtest 'wicked/advanced_sut' if check_var('IS_WICKED_REF', '0');
+        my $f = get_var('IS_WICKED_REF') ? 'ref' : 'sut';
+        loadtest 'wicked/advanced/' . $f . '/t01_gre_tunnel_legacy';
+        loadtest 'wicked/advanced/' . $f . '/t02_gre_tunnel_xml';
+        loadtest 'wicked/advanced/' . $f . '/t03_sit_tunnel_legacy';
+        loadtest 'wicked/advanced/' . $f . '/t04_sit_tunnel_xml';
+        loadtest 'wicked/advanced/' . $f . '/t05_ipip_tunnel_legacy';
+        loadtest 'wicked/advanced/' . $f . '/t06_ipip_tunnel_xml';
+        loadtest 'wicked/advanced/' . $f . '/t07_tun_interface_legacy';
+        loadtest 'wicked/advanced/' . $f . '/t08_tun_interface_xml';
+        loadtest 'wicked/advanced/' . $f . '/t09_tap_interface_legacy';
+        loadtest 'wicked/advanced/' . $f . '/t10_tap_interface_xml';
+        loadtest 'wicked/advanced/' . $f . '/t11_bridge_interface_legacy';
+        loadtest 'wicked/advanced/' . $f . '/t12_bridge_interface_xml';
     }
     elsif (check_var('WICKED', 'startandstop')) {
         loadtest 'wicked/startandstop_ref' if check_var('IS_WICKED_REF', '1');
