@@ -170,15 +170,15 @@ sub set_lvm {
 
     # create logical volume
     if (is_storage_ng_newui) {
+        send_key 'alt-o';
+        assert_screen 'logical-volumes-dropdown-open';
+        assert_and_click 'add-logical-volume';
+    }
+    else {
         send_key "alt-d";
         send_key "down";
         send_key "down";
         send_key "ret";
-    }
-    else {
-        send_key 'alt-o';
-        assert_screen 'logical-volumes-dropdown-open';
-        assert_and_click 'add-logical-volume';
     }
     # create normal volume with name root
     assert_screen 'add-lvm-on-root';
@@ -210,8 +210,10 @@ sub modify_uefi_boot_partition {
     assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
     # edit first partition
     send_key 'alt-e';
-    assert_screen 'partition-role';
-    send_key $cmd{next};
+    if (is_storage_ng_newui) {
+        assert_screen 'partition-role';
+        send_key $cmd{next};
+    }
     assert_screen 'partition-format';
     # We have different shortcut for Format option when editing partition
     send_key(is_storage_ng_newui() ? 'alt-f' : 'alt-a');
@@ -530,7 +532,6 @@ sub enter_partitioning {
 }
 
 sub run {
-
     enter_partitioning;
     add_partitions;
     add_raid;
