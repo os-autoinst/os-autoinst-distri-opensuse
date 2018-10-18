@@ -1,0 +1,9 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+
+VLAN_PROTOCOL='ieee802-1q'
+ETHERDEVICE='eth1'
+VLAN_ID='42'
+
+IPADDR='ip_address/24'
+IPADDR6='fd00:4242:4242::123/48'

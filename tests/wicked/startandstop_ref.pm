@@ -39,6 +39,13 @@ sub run {
     record_info('Test 5', 'Standalone card - ifdown, ifreload');
     mutex_wait('test_5_ready');
 
+    record_info('Test 6', 'VLAN - ifdown, modify config, ifreload');
+    my $iface = iface();
+    assert_script_run("vconfig add $iface 42");
+    assert_script_run('ip addr add ' . $self->get_ip(is_wicked_ref => 1, type => 'vlan_changed') . "/24 dev $iface.42");
+    assert_script_run("ip link set up $iface.42");
+    mutex_wait('test_6_ready');
+
     record_info('Test 8', 'Bridge - ifdown, remove one config, ifreload, ifdown, ifup');
     mutex_wait('test_8_ready');
 
@@ -50,6 +57,7 @@ sub run {
     $self->setup_tuntap($config, "tun1", 1);
     mutex_wait('test_22_ready');
     $self->cleanup($config, "tun1");
+
 }
 
 1;

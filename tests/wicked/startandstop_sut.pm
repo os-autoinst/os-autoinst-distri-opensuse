@@ -109,6 +109,22 @@ sub run {
     }
     mutex_create("test_5_ready");
 
+    $self->before_scenario('Test 6', 'VLAN - ifdown, modify config, ifreload', $iface);
+    $config = "/etc/sysconfig/network/ifcfg-$iface.42";
+    $self->get_from_data('wicked/ifcfg/eth1.42', $config);
+    my $local_ip = $self->get_ip(is_wicked_ref => 0, type => 'vlan');
+    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
+    script_run("cat $config");
+    assert_script_run("wicked ifup --timeout infinite $iface.42");
+    assert_script_run('ip a');
+    assert_script_run("wicked ifdown --timeout infinite $iface.42");
+    my $changed_ip = $self->get_ip(is_wicked_ref => 0, type => 'vlan_changed');
+    assert_script_run("sed \'s/$local_ip/$changed_ip/\' -i $config");
+    script_run("cat $config");
+    assert_script_run("wicked ifreload --timeout infinite $iface.42");
+    $self->cleanup($config, $face . ".42");
+    mutex_create("test_6_ready");
+
     $self->before_scenario('Test 8', 'Bridge - ifdown, remove one config, ifreload, ifdown, ifup', $iface);
     $config = '/etc/sysconfig/network/ifcfg-br0';
     $self->get_from_data('wicked/ifcfg/br0',    $config);
@@ -154,6 +170,7 @@ sub run {
     }
     $self->cleanup($config, "tun1");
     mutex_create("test_22_ready");
+
 
     ## processing overall results
     wait_for_children;

@@ -53,6 +53,12 @@ sub get_ip {
     elsif ($args{type} eq 'br0') {
         return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
     }
+    elsif ($args{type} eq 'vlan') {
+        return $args{is_wicked_ref} ? '42.42.42.123' : '42.42.42.1';
+    }
+    elsif ($args{type} eq 'vlan_changed') {
+        return $args{is_wicked_ref} ? '42.42.42.223' : '42.42.42.111';
+    }
 }
 
 sub get_current_ip {
