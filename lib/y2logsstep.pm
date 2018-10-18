@@ -209,13 +209,16 @@ sub deal_with_dependency_issues {
     }
 }
 
-sub verify_license_has_to_be_accepted {
-    # license+lang
+sub accept_license {
+    my ($self, $verify_license_has_to_be_accepted) = @_;
     if (get_var('HASLICENSE')) {
-        send_key $cmd{next};
-        assert_screen 'license-not-accepted';
-        send_key $cmd{ok};
-        wait_still_screen 1;
+        # explicitly check that the license has to be accepted
+        if ($verify_license_has_to_be_accepted) {
+            send_key $cmd{next};
+            assert_screen 'license-not-accepted';
+            send_key $cmd{ok};
+            wait_still_screen 1;
+        }
         send_key $cmd{accept};    # accept license
         wait_still_screen 1;
         save_screenshot;
