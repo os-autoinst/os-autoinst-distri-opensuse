@@ -18,6 +18,7 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_s
 
 sub handle_password_prompt {
     my ($console) = @_;
+    $console //= '';
 
     return if get_var("LIVETEST") || get_var('LIVECD');
     assert_screen "password-prompt";
