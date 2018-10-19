@@ -1669,8 +1669,16 @@ sub load_wicked_tests {
         loadtest 'wicked/advanced/' . $f . '/t12_bridge_interface_xml';
     }
     elsif (check_var('WICKED', 'startandstop')) {
-        loadtest 'wicked/startandstop_ref' if check_var('IS_WICKED_REF', '1');
-        loadtest 'wicked/startandstop_sut' if check_var('IS_WICKED_REF', '0');
+        my $f = get_var('IS_WICKED_REF') ? 'ref' : 'sut';
+        loadtest 'wicked/startandstop/' . $f . '/t01_standalone_card_ifdown_ifreload';
+        loadtest 'wicked/startandstop/' . $f . '/t02_bridge_ifreload';
+        loadtest 'wicked/startandstop/' . $f . '/t03_bridge_ifup_ifreload';
+        loadtest 'wicked/startandstop/' . $f . '/t04_bridge_ifup_remove_all_config_ifreload';
+        loadtest 'wicked/startandstop/' . $f . '/t05_bridge_ifup_remove_one_config_ifreload';
+        loadtest 'wicked/startandstop/' . $f . '/t06_bridge_ifdown_create_new_config_ifreload_ifdown_ifup';
+        loadtest 'wicked/startandstop/' . $f . '/t07_bridge_ifdown_remove_one_config_ifreload_ifdown_ifup';
+        loadtest 'wicked/startandstop/' . $f . '/t08_sit_tunnel_ifdown';
+        loadtest 'wicked/startandstop/' . $f . '/t09_openvpn_tunnel_ifdown';
     }
     else {
         die 'Unhandled WICKED test selection: ' . get_var('WICKED');
