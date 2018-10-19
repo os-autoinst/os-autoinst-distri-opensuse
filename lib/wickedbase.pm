@@ -15,8 +15,9 @@ package wickedbase;
 use base 'opensusebasetest';
 use utils 'systemctl';
 use network_utils;
-use testapi;
 use lockapi;
+use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal;
 
 sub assert_wicked_state {
     my ($self, %args) = @_;
@@ -31,29 +32,37 @@ sub assert_wicked_state {
 
 sub get_ip {
     my ($self, %args) = @_;
+    my $ip;
+
     if ($args{type} eq 'host') {
-        if ($args{no_mask}) {
-            return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
-        }
-        else {
-            return $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
-        }
+        $ip = $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
     }
     elsif ($args{type} eq 'gre1') {
-        return $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
+        $ip = $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
     }
     elsif ($args{type} eq 'sit1') {
-        return $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
+        $ip = $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
     }
     elsif ($args{type} eq 'tunl1') {
-        return $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
+        $ip = $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
     }
     elsif ($args{type} eq 'tun1' || $args{type} eq 'tap1') {
-        return $args{is_wicked_ref} ? '192.168.2.10' : '192.168.2.11';
+        $ip = $args{is_wicked_ref} ? '192.168.2.10' : '192.168.2.11';
     }
     elsif ($args{type} eq 'br0') {
-        return $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
+        $ip = $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
     }
+    elsif ($args{type} eq 'vlan') {
+        $ip = $args{is_wicked_ref} ? '42.42.42.10/24' : '42.42.42.11/24';
+    }
+    elsif ($args{type} eq 'vlan_changed') {
+        $ip = $args{is_wicked_ref} ? '42.42.42.110/24' : '42.42.42.111/24';
+    }
+
+    if (defined($ip) && $args{no_mask}) {
+        $ip =~ s'/\d+$'';
+    }
+    return $ip if (defined($ip));
 }
 
 sub get_current_ip {
@@ -209,4 +218,16 @@ sub done {
     }
     $self->SUPER::done();
 }
+
+sub pre_run_hook {
+    my ($self) = @_;
+    if (is_serial_terminal()) {
+        my $coninfo = '## START: ' . $self->{name};
+        wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
+        type_string($coninfo);
+        wait_serial($coninfo, undef, 0, no_regex => 1);
+        type_string("\n");
+    }
+}
+
 1;

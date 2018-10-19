@@ -17,7 +17,7 @@ use Exporter;
 use strict;
 use testapi;
 
-our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface);
+our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists);
 
 =head2 setup_static_network
 Configure static IP on SUT with setting up default GW.
@@ -77,6 +77,11 @@ sub recover_network {
     script_run 'ip r s';
 
     return can_upload_logs();
+}
+
+sub ifc_exists {
+    my ($ifc) = @_;
+    return !script_run('ip link show dev ' . $ifc);
 }
 
 1;

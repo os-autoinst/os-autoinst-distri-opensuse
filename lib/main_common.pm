@@ -1679,6 +1679,7 @@ sub load_wicked_tests {
         loadtest 'wicked/startandstop/' . $f . '/t07_bridge_ifdown_remove_one_config_ifreload_ifdown_ifup';
         loadtest 'wicked/startandstop/' . $f . '/t08_sit_tunnel_ifdown';
         loadtest 'wicked/startandstop/' . $f . '/t09_openvpn_tunnel_ifdown';
+        loadtest 'wicked/startandstop/' . $f . '/t10_vlan_ifup_all_ifdown_one_card';
     }
     else {
         die 'Unhandled WICKED test selection: ' . get_var('WICKED');
