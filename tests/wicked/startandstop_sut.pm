@@ -109,6 +109,39 @@ sub run {
     }
     mutex_create("test_5_ready");
 
+    $self->before_scenario('Test 7', 'Bridge - ifdown, create new config, ifreload, ifdown, ifup', $iface);
+    $config = '/etc/sysconfig/network/ifcfg-br0';
+    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->setup_bridge($config, $dummy, 'ifup');
+    assert_script_run('wicked ifdown --timeout infinite br0');
+    assert_script_run('wicked ifdown --timeout infinite dummy0');
+    $results{7} = sub {
+        $res = script_run(q(ip link | grep 'dummy0\|br0'));
+        return 'FAILED' if ($res == 0);
+
+        assert_script_run('wicked ifreload --timeout infinite all');
+        my $res1 = script_run('ip link | grep br0');
+        my $res2 = script_run('ip link | grep dummy0');
+        return 'FAILED' if ($res1 || $res2);
+
+        my $current_ip = $self->get_current_ip('br0');
+        my $expected_ip = $self->get_ip(type => 'br0', no_mask => 1);
+        if (!defined($current_ip) || $current_ip ne $expected_ip) {
+            record_info('IP missmatch', 'IP is ' . ($current_ip || 'none')
+                  . ' but expected was ' . $expected_ip, result => 'fail');
+            return 'FAILED';
+        }
+        return 'FAILED' if ($self->get_test_result('br0') eq 'FAILED');
+
+        assert_script_run('wicked ifdown --timeout infinite all');
+        assert_script_run('wicked ifup --timeout infinite all');
+        return $self->get_test_result('br0');
+    }->();
+    $self->cleanup($config, 'br0');
+    $self->cleanup($dummy,  'dummy0');
+    mutex_create("test_7_ready");
+
     $self->before_scenario('Test 8', 'Bridge - ifdown, remove one config, ifreload, ifdown, ifup', $iface);
     $config = '/etc/sysconfig/network/ifcfg-br0';
     $self->get_from_data('wicked/ifcfg/br0',    $config);
