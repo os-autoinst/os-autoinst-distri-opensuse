@@ -319,6 +319,7 @@ sub set_standard_prompt {
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
         type_string "prompt $prompt_sign\n";
+        type_string "cls\n";    # clear the screen
     }
     elsif ($os_type eq 'linux') {
         type_string "which tput 2>&1 && PS1=\"\\\[\$(tput bold 2; tput setaf 1)\\\]$prompt_sign\\\[\$(tput sgr0)\\\] \"\n";
