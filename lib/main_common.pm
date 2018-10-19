@@ -426,6 +426,7 @@ sub is_remote_backend {
 sub load_boot_tests {
     if (get_var("ISO_MAXSIZE") && !is_remote_backend) {
         loadtest "installation/isosize";
+        loadtest "installation/data_integrity" if data_integrity_is_applicable;
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_uefi";
