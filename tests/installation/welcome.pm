@@ -112,7 +112,7 @@ sub run {
         }
     }
     else {
-        $self->accept_license;
+        $self->verify_license_has_to_be_accepted;
     }
 
     assert_screen 'languagepicked';
