@@ -109,7 +109,7 @@ sub y2snapper_clean_and_quit {
     wait_screen_change { send_key "alt-l"; };
 
     if ($ncurses) {
-        wait_serial("yast2-snapper-status-0", 180) || die "yast2 snapper failed";
+        wait_serial("yast2-snapper-status-0", 240) || die "yast2 snapper failed";
     }
     else {
         # Wait until root gnome terminal is focussed, delete the directory and close window
