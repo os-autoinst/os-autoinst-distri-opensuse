@@ -24,9 +24,18 @@ sub run {
     send_key "ctrl-n";                                # New keyring
     assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
-    assert_screen "seahorse-name-new-keyring";        # Dialog  "Add a password keyring; name it"
-    type_string "Default Keyring";                    # Name of the keyring
-    send_key "alt-o";                                 # &Ok
+    my @tags = qw(seahorse-name-new-keyring ok_on_top);
+    assert_screen \@tags;                             # "Add a password keyring; name it"
+                                                      # may be with ok buttom on top or bottom of popup
+    if (match_has_tag "ok_on_top") {
+        record_info 'alt-o ignored', 'poo#42686 so try ret key';
+        type_string "Default Keyring";                # Name of the keyring
+        send_key "ret";                               # &Ok
+    }
+    else {
+        type_string "Default Keyring";                # Name of the keyring
+        send_key "alt-o";                             # &Ok
+    }
     assert_screen "seahorse-password-dialog";         # Dialog "Passphrase for the new keyring"
     type_password;                                    # Users password (for auto unlock, it has to be the same)
     send_key "ret";                                   # Next field (confirm PW)
