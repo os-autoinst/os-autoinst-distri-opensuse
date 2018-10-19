@@ -27,6 +27,9 @@ Verify image data integrity by comparing SHA256 checksums
 sub verify_checksum {
     my ($dir_path) = shift;    # for backends other than qemu, image directory path needs to be set
 
+    # Since this operation can take up some time, pause the CPU on QEMU backends
+    freeze_vm() if (check_var('BACKEND', 'qemu'));
+
     diag "Comparing data integrity calculated with SHA256 digest against checksum from IBS/OBS via rsync.pl";
     foreach my $image (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) {
         my $checksum = get_required_var $image;
@@ -38,6 +41,9 @@ sub verify_checksum {
         my $msg_fail = "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum";
         record_info("$image Fail", $msg_fail, result => 'fail');
     }
+
+    resume_vm() if (check_var('BACKEND', 'qemu'));
+
 }
 
 1;
