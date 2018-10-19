@@ -89,11 +89,6 @@ use constant SLOW_TYPING_SPEED => 13;
 # mangling
 use constant VERY_SLOW_TYPING_SPEED => 4;
 
-# Due to missed keys on boot parameters on Leap 42.3 workers, try with even
-# slower typing speed until they are upgraded to Leap 15.0
-# https://progress.opensuse.org/issues/40670
-use constant EXTREME_SLOW_TYPING_SPEED => 2;
-
 # openQA internal ftp server url
 our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
 
