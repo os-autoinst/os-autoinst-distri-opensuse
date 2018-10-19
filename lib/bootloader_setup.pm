@@ -852,6 +852,7 @@ C<$modifiers> for sed replacement, e.g. "g".
 sub change_grub_config {
     die((caller(0))[3] . ' expects from 2 to 4 arguments') unless (@_ >= 2 && @_ <= 4);
     my ($old, $new, $search, $modifiers) = @_;
+    $modifiers //= '';
     $search = "/$search/" if defined $search;
 
     assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
