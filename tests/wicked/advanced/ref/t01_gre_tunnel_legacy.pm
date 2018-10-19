@@ -24,11 +24,10 @@ sub run {
     my ($self) = @_;
     record_info('Info', 'Create a GRE interface from legacy ifcfg files');
     $self->create_tunnel_with_commands('gre1', 'gre', '24');
-    mutex_wait('test_gre_tunnel_legacy_ready');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;

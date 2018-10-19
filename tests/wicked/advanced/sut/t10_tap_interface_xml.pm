@@ -28,12 +28,11 @@ sub run {
     $self->setup_openvpn_client('tap1');
     $self->setup_tuntap($config, 'tap1', 0);
     my $res = $self->get_test_result('tap1');
-    mutex_create('test_tap_interface_xml_ready');
     die if ($res eq 'FAILED');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;

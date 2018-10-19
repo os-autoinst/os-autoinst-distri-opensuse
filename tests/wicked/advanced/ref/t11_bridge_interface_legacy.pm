@@ -25,11 +25,10 @@ sub run {
     record_info('Info', 'Create Bridge interface from legacy ifcfg files');
     # Note: No need to create a bridge interface, as the SUT will ping
     #       the IP of eth0 already configured.
-    mutex_wait('test_bridge_interface_legacy_ready');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;

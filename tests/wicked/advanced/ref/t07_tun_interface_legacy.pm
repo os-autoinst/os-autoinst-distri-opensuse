@@ -29,11 +29,10 @@ sub run {
     $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed 's/device/tun1/' -i $openvpn_server");
     $self->setup_tuntap($config, 'tun1', 1);
-    mutex_wait('test_tun_interface_legacy_ready');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;

@@ -27,12 +27,11 @@ sub run {
     $self->get_from_data('wicked/xml/gre.xml', $config);
     $self->setup_tunnel($config, 'gre1');
     my $res = $self->get_test_result('gre1');
-    mutex_create('test_gre_tunnel_xml_ready');
     die if ($res eq 'FAILED');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;

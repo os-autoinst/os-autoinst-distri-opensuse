@@ -27,12 +27,11 @@ sub run {
     $self->get_from_data('wicked/ifcfg/tunl1', $config);
     $self->setup_tunnel($config, 'tunl1');
     my $res = $self->get_test_result('tunl1');
-    mutex_create('test_ipip_tunnel_legacy_ready');
     die if ($res eq 'FAILED');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;
