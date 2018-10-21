@@ -177,6 +177,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^mpich-ofi.*gnu-hpc-macros-devel/;
     # python-tdb is used by default currently
     return 1 if $pkg =~ /^python3-tdb/;
+    # conflicts python-ldb-devel
+    return 1 if $pkg =~ /^python3-ldb-devel/;
 
     return;
 }
