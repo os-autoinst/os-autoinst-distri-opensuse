@@ -173,8 +173,10 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^skelcd-installer-net-openSUSE/;
     # conflicts with openafs-client, fuse client is experimental
     return 1 if $pkg =~ /^openafs-fuse_client/;
-    # conclifcts with namespace:otherproviders(mpich-hpc-macros-devel)
+    # conflicts with namespace:otherproviders(mpich-hpc-macros-devel)
     return 1 if $pkg =~ /^mpich-ofi.*gnu-hpc-macros-devel/;
+    # python-tdb is used by default currently
+    return 1 if $pkg =~ /^python3-tdb/;
 
     return;
 }
