@@ -25,6 +25,10 @@ sub run {
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
+    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
+    # Doing early due to bsc#1103199 and bsc#1112109
+    systemctl "stop serial-getty\@$testapi::serialdev";
+    systemctl "disable serial-getty\@$testapi::serialdev";
     # init
     check_console_font;
 
@@ -57,8 +61,6 @@ sub run {
         assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
 
-    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
-    systemctl "stop serial-getty\@$testapi::serialdev";
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
     systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
 

@@ -46,6 +46,8 @@ our @EXPORT = qw (
   is_pre_15
   is_virtualization_server
   is_aarch64_uefi_boot_hdd
+  is_remote_backend
+  is_svirt_except_s390x
 );
 
 sub is_leap;
@@ -273,4 +275,13 @@ sub is_pre_15 {
 
 sub is_aarch64_uefi_boot_hdd {
     return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
+}
+
+sub is_svirt_except_s390x {
+    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
+}
+
+sub is_remote_backend {
+    # s390x uses only remote repos
+    return check_var('ARCH', 's390x') || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 }
