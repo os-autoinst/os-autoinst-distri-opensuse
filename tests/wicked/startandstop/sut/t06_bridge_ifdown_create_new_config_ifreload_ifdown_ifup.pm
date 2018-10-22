@@ -31,7 +31,7 @@ sub run {
     my $res2 = script_run('ip link | grep dummy0');
     die if ($res1 || $res2);
     my $current_ip = $self->get_current_ip('br0');
-    my $expected_ip = $self->get_ip(type => 'br0', no_mask => 1);
+    my $expected_ip = $self->get_ip(type => 'br0');
     if (!defined($current_ip) || $current_ip ne $expected_ip) {
         record_info('IP missmatch', 'IP is ' . ($current_ip || 'none')
               . ' but expected was ' . $expected_ip, result => 'fail');

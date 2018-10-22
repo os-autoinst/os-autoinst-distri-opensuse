@@ -18,6 +18,7 @@ use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
+use Carp;
 
 sub assert_wicked_state {
     my ($self, %args) = @_;
@@ -30,9 +31,39 @@ sub assert_wicked_state {
     script_run('ip addr show ' . $args{iface}) if $args{iface};
 }
 
+=head2 get_remote_ip
+
+  get_remote_ip(type => <type> [, netmask => <bool>])
+
+Calls internally C<get_ip()> and retrieves the corresponding IP of the remote site.
+
+=cut
+
+sub get_remote_ip {
+    my ($self, %args) = @_;
+    $args{is_wicked_ref} = !check_var('IS_WICKED_REF', '1');
+    return $self->get_ip(%args);
+}
+
+=head2 get_ip
+
+  get_ip(type => [host|gre1|sit1|tunl1|tun1|br0|vlan|vlan_changed] [, is_wicked_ref => <bool>, netmask => <bool>])
+
+The mendatory parameter C<type> specify the interfaces type.
+If parameter C<netmask> is set, the IP address contains the C</xx> netmask prefix, if specified.
+With C<is_wicked_ref> you can specify which IP address you like to retrives. If C<is_wicked_ref> isn't
+set the job variable C<IS_WICKED_REF> will be used. See also C<get_remote_ip()>.
+
+Retrives IP address as C<string> in IPv4 or IPv6 format and netmask prefix if C<netmask> is set.
+
+=cut
+
 sub get_ip {
     my ($self, %args) = @_;
     my $ip;
+
+    $args{is_wicked_ref} //= check_var('IS_WICKED_REF', '1');
+    $args{netmask} //= 0;
 
     if ($args{type} eq 'host') {
         $ip = $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
@@ -58,11 +89,14 @@ sub get_ip {
     elsif ($args{type} eq 'vlan_changed') {
         $ip = $args{is_wicked_ref} ? '42.42.42.110/24' : '42.42.42.111/24';
     }
+    else {
+        croak('Unknown ip type ' . ($args{type} || 'undef'));
+    }
 
-    if (defined($ip) && $args{no_mask}) {
+    if (!$args{netmask}) {
         $ip =~ s'/\d+$'';
     }
-    return $ip if (defined($ip));
+    return $ip;
 }
 
 sub get_current_ip {
@@ -112,9 +146,9 @@ sub ping_with_timeout {
 }
 
 sub setup_tuntap {
-    my ($self, $config, $type, $is_wicked_ref) = @_;
-    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => $is_wicked_ref,  type => $type);
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => !$is_wicked_ref, type => $type);
+    my ($self, $config, $type) = @_;
+    my $local_ip = $self->get_ip(type => $type);
+    my $remote_ip = $self->get_remote_ip(type => $type);
     assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("cat $config");
@@ -124,9 +158,9 @@ sub setup_tuntap {
 
 sub setup_tunnel {
     my ($self, $config, $type) = @_;
-    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
-    my $tunnel_ip = $self->get_ip(is_wicked_ref => 0, type => $type);
+    my $local_ip = $self->get_ip(type => 'host');
+    my $remote_ip = $self->get_remote_ip(type => 'host');
+    my $tunnel_ip = $self->get_ip(type => $type);
     assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("sed \'s/tunnel_ip/$tunnel_ip/\' -i $config");
@@ -137,9 +171,9 @@ sub setup_tunnel {
 
 sub create_tunnel_with_commands {
     my ($self, $type, $mode, $sub_mask) = @_;
-    my $local_ip  = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
-    my $tunnel_ip = $self->get_ip(is_wicked_ref => 1, type => $type);
+    my $local_ip = $self->get_ip(type => 'host');
+    my $remote_ip = $self->get_remote_ip(type => 'host');
+    my $tunnel_ip = $self->get_ip(type => $type);
     assert_script_run("ip tunnel add $type mode $mode remote $remote_ip local $local_ip");
     assert_script_run("ip link set $type up");
     assert_script_run("ip addr add $tunnel_ip/$sub_mask dev $type");
@@ -148,7 +182,7 @@ sub create_tunnel_with_commands {
 
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
-    my $local_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 0, type => 'host');
+    my $local_ip = $self->get_ip(type => 'host');
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
     assert_script_run("wicked $command --timeout infinite br0");
@@ -162,7 +196,7 @@ sub setup_bridge {
 sub setup_openvpn_client {
     my ($self, $device) = @_;
     my $openvpn_client = '/etc/openvpn/client.conf';
-    my $remote_ip = $self->get_ip(no_mask => 1, is_wicked_ref => 1, type => 'host');
+    my $remote_ip = $self->get_remote_ip(type => 'host');
     $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
     assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
@@ -181,7 +215,7 @@ sub before_scenario {
         assert_script_run("ifbind.sh unbind $iface");
         script_run("rm /etc/sysconfig/network/ifcfg-$iface");
         assert_script_run("ifbind.sh bind $iface");
-        setup_static_network(ip => $self->get_ip(is_wicked_ref => check_var('IS_WICKED_REF', 1), type => 'host'));
+        setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1));
     }
     record_info($title, $text);
 }
@@ -189,7 +223,7 @@ sub before_scenario {
 sub get_test_result {
     my ($self, $type, $ip_version) = @_;
     my $timeout = "60";
-    my $ip      = $self->get_ip(is_wicked_ref => 1, type => $type, no_mask => 1);
+    my $ip      = $self->get_remote_ip(type => $type);
     my $ret     = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
     if (!$ret) {
         record_info("PING FAILED", "Can't ping IP $ip", result => 'fail');

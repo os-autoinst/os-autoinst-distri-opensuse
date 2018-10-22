@@ -28,7 +28,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
     $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed 's/device/tun1/' -i $openvpn_server");
-    $self->setup_tuntap($config, 'tun1', 1);
+    $self->setup_tuntap($config, 'tun1');
 }
 
 sub test_flags {

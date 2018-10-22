@@ -27,7 +27,7 @@ sub run {
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
     assert_script_run('wicked ifdown --timeout infinite ' . $iface);
     assert_script_run('wicked ifreload ' . $iface);
-    my $static_ip = $self->get_ip(type => 'host', no_mask => 1);
+    my $static_ip = $self->get_ip(type => 'host');
     my $dhcp_ip = $self->get_current_ip($iface);
     if (defined($dhcp_ip) && $static_ip ne $dhcp_ip) {
         $res = $self->get_test_result('host');
