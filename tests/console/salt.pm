@@ -21,9 +21,17 @@ use registration 'add_suseconnect_product';
 
 sub run {
     if (is_jeos) {
+        select_console 'root-console';
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
-        add_suseconnect_product('sle-module-adv-systems-management', $version);
+        if ($version == '12') {
+            add_suseconnect_product('sle-module-adv-systems-management', $version);
+        }
+        elsif ($version == '15') {
+            $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
+            add_suseconnect_product('sle-module-server-applications', "$version");
+        }
     }
+
     select_console 'root-console';
     pkcon_quit;
     zypper_call('in salt-master salt-minion');
