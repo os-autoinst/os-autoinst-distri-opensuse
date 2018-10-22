@@ -28,6 +28,8 @@ sub run {
     type_string 'stuff';
     assert_screen 'dolphin_new_folder';
     send_key 'ret';
+    # Check new folder is created
+    assert_screen 'dolphin_stuff_folder';
     # Enter the new folder
     send_key 'ret';
 
