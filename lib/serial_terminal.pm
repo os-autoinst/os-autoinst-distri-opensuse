@@ -101,12 +101,17 @@ sub select_virtio_console {
     my %args = shift;
     my $is_virtio = $args{force} || get_var('VIRTIO_CONSOLE');
 
-    if ($is_virtio && !get_var('S390_ZKVM')) {
-        select_console('root-virtio-terminal');
-        return 1;
+    if ($is_virtio) {
+        if (get_var('S390_ZKVM')) {
+            bmwqemu::fctwarn("Cannot use virtio console on s390 on ZKVM");
+        } elsif (check_var('BACKEND', 'ipmi')) {
+            bmwqemu::fctwarn("Cannot use virtio console on IPMI");
+        } else {
+            select_console('root-virtio-terminal');
+            return 1;
+        }
     }
 
-    bmwqemu::fctwarn("Cannot use virtio console on s390 on ZKVM") if $is_virtio;
     select_console('root-console');
     return 0;
 }
