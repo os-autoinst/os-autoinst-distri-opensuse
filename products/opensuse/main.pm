@@ -73,6 +73,12 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+# Set serial failures
+my $serial_failures = [];
+push @$serial_failures, {type => 'soft', message => 'bsc#1112109', pattern => qr/serial-getty.*service: Service RestartSec=.*ms expired, scheduling restart/};
+
+$testapi::distri->set_expected_serial_failures($serial_failures);
+
 unless (get_var("DESKTOP")) {
     if (check_var("VIDEOMODE", "text")) {
         set_var("DESKTOP", "textmode");

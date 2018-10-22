@@ -671,6 +671,7 @@ my $serial_failures = [];
 if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
     push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
 }
+push @$serial_failures, {type => 'soft', message => 'bsc#1112109', pattern => qr/serial-getty.*service: Service hold-off time over, scheduling restart/};
 if (is_kernel_test()) {
     my $type = is_ltp_test() ? 'soft' : 'hard';
     push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
