@@ -260,8 +260,9 @@ sub get_delayed {
         if ($drole = get_job_info($job_id)->{settings}->{DELAYED}) {
             if ($role) {
                 return $job_id if $role eq $drole;
+            } else {
+                $count++;
             }
-            $count++;
         }
     }
     return $count;
