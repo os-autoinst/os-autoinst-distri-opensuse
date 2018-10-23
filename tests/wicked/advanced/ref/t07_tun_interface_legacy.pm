@@ -16,9 +16,6 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use utils 'systemctl';
-use lockapi;
-use mmapi;
 
 sub run {
     my ($self)         = @_;
