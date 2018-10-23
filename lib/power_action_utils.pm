@@ -229,7 +229,7 @@ sub power_action {
     }
     # The timeout is increased as shutdown takes longer on Live CD
     if (get_var('LIVECD')) {
-        $soft_fail_data = {soft_timeout => 60, timeout => $shutdown_timeout *= 4, bugref=>"bsc#1096241"};
+        $soft_fail_data = {soft_timeout => 60, timeout => $shutdown_timeout *= 4, bugref => "bsc#1096241"};
     }
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $soft_fail_data = {bugref => 'bsc#1057637', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
