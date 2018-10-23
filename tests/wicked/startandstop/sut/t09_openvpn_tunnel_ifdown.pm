@@ -24,7 +24,7 @@ sub run {
     $self->setup_openvpn_client('tun1');
     $self->setup_tuntap($config, 'tun1');
     die if ($self->get_test_result('tun1') eq 'FAILED');
-    assert_script_run('wicked ifdown --timeout infinite tun1');
+    $self->wicked_command('ifdown', 'tun1');
     die if (ifc_exists('tun1'));
     die if (script_run('systemctl -q is-active openvpn@client') == 0);
 }
