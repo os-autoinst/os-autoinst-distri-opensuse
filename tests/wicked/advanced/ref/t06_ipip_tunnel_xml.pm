@@ -24,11 +24,10 @@ sub run {
     my ($self) = @_;
     record_info('Info', 'Create a IPIP interface from Wicked XML files');
     $self->create_tunnel_with_commands('tunl1', 'ipip', '24');
-    mutex_wait('test_ipip_tunnel_xml_ready');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => 1, wicked_need_sync => 1};
 }
 
 1;

@@ -16,6 +16,7 @@ use base 'opensusebasetest';
 use utils 'systemctl';
 use network_utils;
 use testapi;
+use lockapi;
 
 sub assert_wicked_state {
     my ($self, %args) = @_;
@@ -190,4 +191,22 @@ sub get_test_result {
     }
 }
 
+sub do_mutex {
+    my ($self) = @_;
+    my $mutex_name = 'test_' . $self->{name} . '_ready';
+    if (check_var('IS_WICKED_REF', '1')) {
+        mutex_wait($mutex_name);
+    } else {
+        mutex_create($mutex_name);
+    }
+}
+
+sub done {
+    my ($self) = @_;
+    my $flags = $self->test_flags();
+    if ($flags->{wicked_need_sync}) {
+        $self->do_mutex();
+    }
+    $self->SUPER::done();
+}
 1;
