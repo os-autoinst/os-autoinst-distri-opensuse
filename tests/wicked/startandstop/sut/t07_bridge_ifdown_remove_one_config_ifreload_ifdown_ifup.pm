@@ -15,6 +15,7 @@
 use base 'wickedbase';
 use strict;
 use testapi;
+use network_utils 'ifc_exists';
 
 sub run {
     my ($self) = @_;
@@ -27,26 +28,15 @@ sub run {
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run("wicked ifdown --timeout infinite br0");
     assert_script_run("wicked ifdown --timeout infinite dummy0");
-    my $out = script_run("ip link | grep 'dummy0\|br0'");
-    if ($out == 0) {
-        $res = "FAILED";
-    }
-    else {
-        assert_script_run("rm $config");
-        assert_script_run("wicked ifreload --timeout infinite all");
-        my $res1 = script_run("ip link | grep br0");
-        my $res2 = script_run("ip link | grep dummy0");
-        my $res3 = script_run("ip link | grep eth0");
-        if (!$res1 || $res2 || $res3) {
-            $res = "FAILED";
-        }
-        else {
-            assert_script_run("wicked ifdown --timeout infinite all");
-            assert_script_run("wicked ifup --timeout infinite all");
-            $res = $self->get_test_result('host');
-        }
-    }
-    die if ($res eq 'FAILED');
+    die if (ifc_exists('dummy0'));
+    die if (ifc_exists('br0'));
+    assert_script_run("rm $config");
+    assert_script_run("wicked ifreload --timeout infinite all");
+    die if (ifc_exists('br0'));
+    die unless (ifc_exists('dummy0') && ifc_exists('eth0'));
+    assert_script_run("wicked ifdown --timeout infinite all");
+    assert_script_run("wicked ifup --timeout infinite all");
+    die if ($self->get_test_result('host') eq 'FAILED');
 }
 
 sub test_flags {
