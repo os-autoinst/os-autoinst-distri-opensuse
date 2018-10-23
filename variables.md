@@ -87,6 +87,7 @@ USBBOOT | boolean | false | Indicates booting to the usb device.
 USEIMAGES |||
 VERSION | string | | Contains major version of the product. E.g. 15-SP1 or 15.1
 VIDEOMODE | string | | Indicates/defines video mode used for the installation. Empty value uses default, other possible values `text`, `ssh-x` for installation ncurses and x11 over ssh respectivelyю
+VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the svirt host (only relevant for the svirt backend).
 UNENCRYPTED_BOOT | boolean | false | Indicates/defines existence of unencrypted boot partition in the SUT.
 WAYLAND | boolean | false | Enables wayland tests in the system.
 XDMUSED | boolean | false | Indicates availability of xdm.

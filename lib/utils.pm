@@ -75,6 +75,7 @@ our @EXPORT = qw(
   set_hostname
   zypper_ar
   show_tasks_in_blocked_state
+  svirt_host_basedir
 );
 
 
@@ -1035,6 +1036,10 @@ sub show_tasks_in_blocked_state {
         # info will be sent to serial tty
         wait_serial('SysRq : Show Blocked State', 1);
     }
+}
+
+sub svirt_host_basedir {
+    return get_var('VIRSH_OPENQA_BASEDIR', '/var/lib');
 }
 
 1;

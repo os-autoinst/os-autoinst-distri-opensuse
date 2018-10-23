@@ -747,7 +747,8 @@ sub zkvm_add_disk {
     my ($svirt) = @_;
     if (my $hdd = get_var('HDD_1')) {
         my $basename = basename($hdd);
-        my $hdd_dir  = "/var/lib/openqa/share/factory/hdd";
+        my $basedir  = svirt_host_basedir();
+        my $hdd_dir  = "$basedir/openqa/share/factory/hdd";
         chomp(my $hdd_path = `find $hdd_dir -name $basename | head -n1`);
         diag("HDD path found: $hdd_path");
         if (get_var('PATCHED_SYSTEM')) {
