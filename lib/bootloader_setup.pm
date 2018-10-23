@@ -19,7 +19,7 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_jeos is_leap is_sle);
+use version_utils qw(is_caasp is_jeos is_leap is_sle is_remote_backend);
 use caasp 'pause_until';
 use mm_network;
 
@@ -307,8 +307,8 @@ sub bootmenu_type_console_params {
     type_string_very_slow "console=${serialdev}${baud_rate} ";
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
-    # and doesn't work if set to serial device. Don't want this on ipmi backend.
-    type_string_very_slow "console=tty " unless check_var('BACKEND', 'ipmi');
+    # and doesn't work if set to serial device. Don't want this on remote backends.
+    type_string_very_slow "console=tty " unless (is_remote_backend);
 }
 
 sub uefi_bootmenu_params {
