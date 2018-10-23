@@ -15,6 +15,7 @@
 use base 'wickedbase';
 use strict;
 use testapi;
+use network_utils 'ifc_exists';
 
 sub run {
     my ($self) = @_;
@@ -25,18 +26,13 @@ sub run {
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run('wicked ifdown --timeout infinite br0');
     assert_script_run('wicked ifdown --timeout infinite dummy0');
-    die if (script_run(q(ip link | grep 'dummy0\|br0')) == 0);
+    die if (ifc_exists('dummy0') || ifc_exists('br0'));
     assert_script_run('wicked ifreload --timeout infinite all');
-    my $res1 = script_run('ip link | grep br0');
-    my $res2 = script_run('ip link | grep dummy0');
-    die if ($res1 || $res2);
+    die unless (ifc_exists('br0') && ifc_exists('dummy0'));
     my $current_ip = $self->get_current_ip('br0');
-    my $expected_ip = $self->get_ip(type => 'br0', no_mask => 1);
-    if (!defined($current_ip) || $current_ip ne $expected_ip) {
-        record_info('IP missmatch', 'IP is ' . ($current_ip || 'none')
-              . ' but expected was ' . $expected_ip, result => 'fail');
-        die;
-    }
+    my $expected_ip = $self->get_ip(type => 'br0');
+    die('IP missmatch', 'IP is ' . ($current_ip || 'none') . ' but expected was ' . $expected_ip)
+      if (!defined($current_ip) || $current_ip ne $expected_ip);
     die if ($self->get_test_result('br0') eq 'FAILED');
     assert_script_run('wicked ifdown --timeout infinite all');
     assert_script_run('wicked ifup --timeout infinite all');

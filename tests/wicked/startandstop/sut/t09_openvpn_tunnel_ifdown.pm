@@ -15,23 +15,18 @@
 use base 'wickedbase';
 use strict;
 use testapi;
+use network_utils 'ifc_exists';
 
 sub run {
     my ($self) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
     $self->get_from_data('wicked/ifcfg/tun1_sut', $config);
     $self->setup_openvpn_client('tun1');
-    $self->setup_tuntap($config, 'tun1', 0);
-    my $res = $self->get_test_result('tun1');
-    if ($res ne 'FAILED') {
-        assert_script_run('wicked ifdown --timeout infinite tun1');
-        my $res1 = script_run('ip link | grep tun1');
-        my $res2 = script_run('systemctl -q is-active openvpn@client');
-        if (!$res1 || !$res2) {
-            $res = 'FAILED';
-        }
-    }
-    die if ($res eq 'FAILED');
+    $self->setup_tuntap($config, 'tun1');
+    die if ($self->get_test_result('tun1') eq 'FAILED');
+    assert_script_run('wicked ifdown --timeout infinite tun1');
+    die if (ifc_exists('tun1'));
+    die if (script_run('systemctl -q is-active openvpn@client') == 0);
 }
 
 sub test_flags {

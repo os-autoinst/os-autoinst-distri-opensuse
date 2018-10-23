@@ -15,6 +15,7 @@
 use base 'wickedbase';
 use strict;
 use testapi;
+use network_utils 'ifc_exists';
 
 sub run {
     my ($self) = @_;
@@ -23,7 +24,7 @@ sub run {
     $self->setup_tunnel($config, 'sit1');
     if ($self->get_test_result('sit1', 'v6') ne 'FAILED') {
         assert_script_run("wicked ifdown --timeout infinite sit1");
-        die if (!script_run('ip link | grep sit1'));
+        die if (ifc_exists('sit1'));
     }
 }
 

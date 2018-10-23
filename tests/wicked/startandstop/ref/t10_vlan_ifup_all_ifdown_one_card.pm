@@ -7,8 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Advanced test cases for wicked
-# Test 2 : Create a GRE interface from wicked XML files
+# Summary: VLAN - ifup all, ifdown one card
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -19,12 +18,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    my $config = '/etc/wicked/ifconfig/gre.xml';
-    record_info('Info', 'Create a GRE interface from wicked XML files');
-    $self->get_from_data('wicked/xml/gre.xml', $config);
-    $self->setup_tunnel($config, 'gre1');
-    my $res = $self->get_test_result('gre1');
-    die if ($res eq 'FAILED');
+    record_info('Info', 'VLAN - ifup all, ifdown one card');
 }
 
 sub test_flags {

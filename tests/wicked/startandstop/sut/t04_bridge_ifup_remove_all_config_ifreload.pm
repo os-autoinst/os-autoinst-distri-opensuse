@@ -15,7 +15,7 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use network_utils 'iface';
+use network_utils qw(iface ifc_exists);
 
 sub run {
     my ($self) = @_;
@@ -27,7 +27,7 @@ sub run {
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface $config $dummy");
     assert_script_run("wicked ifreload --timeout infinite all");
-    die if (!script_run("ip link | grep 'dummy0\|br0'"));
+    die if (ifc_exists('dummy0') || ifc_exists('br0'));
 }
 
 sub test_flags {

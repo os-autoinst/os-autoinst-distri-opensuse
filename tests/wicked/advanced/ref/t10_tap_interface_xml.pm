@@ -16,9 +16,6 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use utils 'systemctl';
-use lockapi;
-use mmapi;
 
 sub run {
     my ($self)         = @_;
@@ -28,7 +25,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/tap1_ref',      $config);
     $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     assert_script_run("sed 's/device/tap1/' -i $openvpn_server");
-    $self->setup_tuntap($config, 'tap1', 1);
+    $self->setup_tuntap($config, 'tap1');
 }
 
 sub test_flags {

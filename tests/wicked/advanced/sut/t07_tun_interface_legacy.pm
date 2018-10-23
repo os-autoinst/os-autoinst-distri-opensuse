@@ -16,9 +16,6 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use utils 'systemctl';
-use lockapi;
-use mmapi;
 
 sub run {
     my ($self) = @_;
@@ -26,7 +23,7 @@ sub run {
     record_info('Info', 'Create a tun interface from legacy ifcfg files');
     $self->get_from_data('wicked/ifcfg/tun1_sut', $config);
     $self->setup_openvpn_client('tun1');
-    $self->setup_tuntap($config, 'tun1', 0);
+    $self->setup_tuntap($config, 'tun1');
     my $res = $self->get_test_result('tun1');
     die if ($res eq 'FAILED');
 }
