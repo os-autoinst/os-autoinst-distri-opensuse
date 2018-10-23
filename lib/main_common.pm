@@ -17,29 +17,7 @@ use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
-use version_utils qw(
-  is_caasp
-  is_desktop_installed
-  is_gnome_next
-  is_hyperv
-  is_hyperv_in_gui
-  is_installcheck
-  is_jeos
-  is_krypton_argon
-  is_leap
-  is_opensuse
-  is_remote_backend
-  is_rescuesystem
-  is_sle
-  is_sles4sap
-  is_sles4sap_standard
-  is_staging
-  is_svirt_except_s390x
-  is_tumbleweed
-  is_upgrade
-  is_virtualization_server
-  sle_version_at_least
-);
+use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use bmwqemu ();
 use strict;
 use warnings;
