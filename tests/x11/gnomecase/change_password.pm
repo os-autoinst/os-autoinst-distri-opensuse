@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -144,7 +144,7 @@ sub run {
 
     #delete the added user: test
     # We should kill the active user test in SLE15
-    assert_script_run 'loginctl kill-user test' if (sle_version_at_least('15'));
+    assert_script_run 'loginctl terminate-user test' if (sle_version_at_least('15'));
     wait_still_screen;
     type_string "userdel -f test\n";
     assert_screen "user-test-deleted";
