@@ -17,9 +17,7 @@ use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
-use version_utils qw(
-  is_hyperv is_hyperv_in_gui is_jeos is_gnome_next is_krypton_argon is_leap is_opensuse is_sle is_sles4sap is_sles4sap_standard sle_version_at_least is_desktop_installed is_installcheck is_rescuesystem is_staging is_tumbleweed is_virtualization_server is_caasp is_upgrade
-);
+use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use bmwqemu ();
 use strict;
 use warnings;
@@ -418,19 +416,14 @@ sub load_svirt_vm_setup_tests {
     }
 }
 
-sub is_remote_backend {
-    # s390x uses only remote repos
-    return check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
-}
-
 sub load_boot_tests {
-    if (get_var("ISO_MAXSIZE") && !is_remote_backend) {
+    if (get_var("ISO_MAXSIZE") && (!is_remote_backend() || is_svirt_except_s390x())) {
         loadtest "installation/isosize";
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/bootloader_uefi";
     }
-    elsif (check_var("BACKEND", "svirt") && !check_var("ARCH", "s390x")) {
+    elsif (is_svirt_except_s390x()) {
         load_svirt_vm_setup_tests;
     }
     elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {

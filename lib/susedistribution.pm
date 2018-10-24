@@ -4,7 +4,7 @@ use serial_terminal ();
 use strict;
 use utils
   qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions pkcon_quit zypper_call);
-use version_utils qw(is_hyperv_in_gui is_sle is_leap);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
 use ipmi_backend_utils 'use_ssh_serial_console';
 
 # Base class implementation of distribution class necessary for testapi
@@ -355,7 +355,7 @@ sub init_consoles {
     }
 
     # svirt backend, except s390x ARCH
-    if (!get_var('S390_ZKVM') and check_var('BACKEND', 'svirt')) {
+    if (is_svirt_except_s390x) {
         my $hostname = get_var('VIRSH_GUEST');
         my $port = get_var('VIRSH_INSTANCE', 1) + 5900;
 
@@ -371,7 +371,7 @@ sub init_consoles {
     }
 
     if (get_var('BACKEND', '') =~ /qemu|ikvm|generalhw/
-        || (check_var('BACKEND', 'svirt') && !get_var('S390_ZKVM')))
+        || is_svirt_except_s390x)
     {
         $self->add_console('install-shell',  'tty-console', {tty => 2});
         $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});

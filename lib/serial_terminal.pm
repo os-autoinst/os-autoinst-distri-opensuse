@@ -15,6 +15,7 @@ use autotest;
 use base 'Exporter';
 use Exporter;
 use bmwqemu ();
+use version_utils qw(is_sle is_leap);
 
 BEGIN {
     our @EXPORT = qw(
@@ -53,7 +54,9 @@ wait_serial(get_login_message(), 300);
 =cut
 sub get_login_message {
     my $arch = get_required_var("ARCH");
-    return check_var('VERSION', 'Tumbleweed') ? qr/Welcome to openSUSE Tumbleweed 20.*/ : qr/Welcome to SUSE Linux Enterprise .*\($arch\)/;
+    return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+      : is_leap()   ? qr/Welcome to openSUSE Leap.*/
+      :               qr/Welcome to openSUSE Tumbleweed 20.*/;
 }
 
 =head2 login

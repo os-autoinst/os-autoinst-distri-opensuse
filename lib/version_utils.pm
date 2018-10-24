@@ -21,31 +21,55 @@ use strict;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
 
-our @EXPORT = qw (
-  is_caasp
-  is_hyperv
-  is_hyperv_in_gui
-  is_gnome_next
-  is_jeos
-  is_krypton_argon
-  is_leap
-  is_opensuse
-  is_sle
-  is_staging
-  is_sles4sap
-  is_sles4sap_standard
-  is_tumbleweed
-  is_storage_ng
-  is_upgrade
-  is_sle12_hdd_in_upgrade
-  is_installcheck
-  is_rescuesystem
-  sle_version_at_least
-  is_desktop_installed
-  is_system_upgrading
-  is_pre_15
-  is_virtualization_server
-  is_aarch64_uefi_boot_hdd
+use constant {
+    VERSION => [
+        qw(
+          is_sle
+          is_pre_15
+          is_caasp
+          is_gnome_next
+          is_jeos
+          is_krypton_argon
+          is_leap
+          is_opensuse
+          is_tumbleweed
+          is_rescuesystem
+          is_sles4sap
+          is_sles4sap_standard
+          is_staging
+          is_storage_ng
+          sle_version_at_least
+          )
+    ],
+    BACKEND => [
+        qw(
+          is_hyperv
+          is_hyperv_in_gui
+          is_aarch64_uefi_boot_hdd
+          is_remote_backend
+          is_svirt_except_s390x
+          is_remote_backend
+          is_svirt_except_s390x
+          )
+    ],
+    SCENARIO => [
+        qw(
+          is_upgrade
+          is_sle12_hdd_in_upgrade
+          is_installcheck
+          is_desktop_installed
+          is_system_upgrading
+          is_virtualization_server
+          )
+      ]
+};
+
+our @EXPORT = (@{(+VERSION)}, @{(+SCENARIO)}, @{+BACKEND});
+
+our %EXPORT_TAGS = (
+    VERSION  => (VERSION),
+    BACKEND  => (BACKEND),
+    SCENARIO => (SCENARIO)
 );
 
 sub is_leap;
@@ -273,4 +297,13 @@ sub is_pre_15 {
 
 sub is_aarch64_uefi_boot_hdd {
     return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
+}
+
+sub is_svirt_except_s390x {
+    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
+}
+
+sub is_remote_backend {
+    # s390x uses only remote repos
+    return check_var('ARCH', 's390x') || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 }

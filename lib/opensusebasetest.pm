@@ -6,7 +6,8 @@ use testapi;
 use strict;
 use utils;
 use lockapi 'mutex_wait';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd);
+use serial_terminal 'get_login_message';
+use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_remote_backend);
 use isotovideo;
 use IO::Socket::INET;
 
@@ -330,7 +331,7 @@ sub wait_boot {
     reset_consoles;
     # reconnect s390
     if (check_var('ARCH', 's390x')) {
-        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+        my $login_ready = get_login_message();
         if (check_var('BACKEND', 's390x')) {
             my $console = console('x3270');
             handle_grub_zvm($console);
@@ -456,6 +457,8 @@ sub wait_boot {
 
     # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
     unlock_if_encrypted if !get_var('S390_ZKVM');
+    # On remote backends we sync on Welcome message already where possible, mitigating bsc#1112109
+    wait_serial(get_login_message()) unless is_remote_backend;
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
