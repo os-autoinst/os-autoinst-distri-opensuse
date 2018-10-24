@@ -24,12 +24,10 @@ sub wait_boot_windows {
     my %args            = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
 
-    assert_screen 'windows-bootsplash', 600;
+    assert_screen 'windows-screensaver', 600;
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
-
-    assert_screen 'windows-screensaver', 600;
 
     send_key 'esc';    # press shutdown button
 
