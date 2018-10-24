@@ -230,7 +230,8 @@ sub run {
         elsif (match_has_tag('autoyast-postpartscript')) {
             @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
-        } elsif (match_has_tag('autoyast-error')) {
+        }
+        elsif (match_has_tag('autoyast-error')) {
             die 'Error detected during first stage of the installation';
         }
     }
@@ -259,7 +260,6 @@ sub run {
     # CaaSP does not have second stage
     return if is_caasp;
     # Second stage starts here
-    mouse_hide(1);
     $maxtime = 1000;
     $timer   = 0;
     $stage   = 'stage2';
@@ -280,7 +280,8 @@ sub run {
         }
         elsif (match_has_tag('warning-pop-up')) {
             handle_warnings;    # Process warnings during stage 2
-        } elsif (match_has_tag('autoyast-error')) {
+        }
+        elsif (match_has_tag('autoyast-error')) {
             die 'Error detected during second stage of the installation';
         }
     }
