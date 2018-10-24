@@ -131,7 +131,7 @@ sub process_unsigned_files {
 sub deal_with_dependency_issues {
     my ($self) = @_;
 
-    return unless check_screen 'manual-intervention', 10;
+    return unless check_screen 'manual-intervention', 0;
 
     record_info 'dependency warning', "Dependency warning, working around dependency issues", result => 'fail';
 
