@@ -77,5 +77,8 @@ sub run {
     assert_script_run 'diff -b <(tail -n1 /etc/fstab) <(tail -n1 fstab_before)';
 }
 
-1;
+sub test_flags {
+    return {always_rollback => 1};
+}
 
+1;

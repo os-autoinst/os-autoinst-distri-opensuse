@@ -68,4 +68,8 @@ sub post_fail_hook {
     upload_logs '/etc/sysconfig/network/dhcp';
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;

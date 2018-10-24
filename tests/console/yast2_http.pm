@@ -118,4 +118,8 @@ sub run {
     wait_serial("yast2-http-server-status-0", 240) || die "'yast2 http-server' didn't finish";
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;

@@ -36,4 +36,8 @@ sub post_fail_hook {
     $self->y2snapper_failure_analysis;
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;

@@ -102,4 +102,8 @@ sub run {
     assert_script_run "echo $server_string | cmp - test";
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;

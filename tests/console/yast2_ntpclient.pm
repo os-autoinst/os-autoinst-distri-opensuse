@@ -184,4 +184,9 @@ sub run {
     # check ntp synchronization service state
     systemctl "show -p ActiveState $ntp_service.service | grep ActiveState=active";
 }
+
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;
