@@ -39,6 +39,8 @@ use constant {
           is_staging
           is_storage_ng
           sle_version_at_least
+          is_using_system_role
+          is_using_system_role_first_flow
           )
     ],
     BACKEND => [
@@ -306,4 +308,27 @@ sub is_svirt_except_s390x {
 sub is_remote_backend {
     # s390x uses only remote repos
     return check_var('ARCH', 's390x') || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+}
+
+sub is_using_system_role {
+    #system_role selection during installation was added as a new feature since sles12sp2
+    #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
+    #no matter with or without INSTALL_TO_OTHERS tag
+    # On SLE 15 SP0 we unconditionally have system roles screen
+    # SLE 15 SP1 has system roles only if more than one is available, meaning either registered or with all packages DVD
+    # On kubic, leap 15.1+, TW we have it instead of desktop selection screen
+    return is_sle('>=12-SP2') && is_sle('<15')
+      && check_var('ARCH', 'x86_64')
+      && is_server()
+      && (!is_sles4sap() || is_sles4sap_standard())
+      && (install_this_version() || install_to_other_at_least('12-SP2'))
+      || is_sle('=15')
+      || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
+      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW
+      || is_caasp('kubic');                    # And Kubic
+}
+
+# On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
+sub is_using_system_role_first_flow {
+    return is_leap('=15.0') || is_using_system_role;
 }
