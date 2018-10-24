@@ -61,7 +61,6 @@ sub run {
     assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
     validate_script_output("ip address show dev $iface", sub { m/inet/g; });
     validate_script_output("wicked show dev $iface",     sub { m/\[dhcp\]/g; });
-    $self->save_and_upload_wicked_log();
 }
 
 1;

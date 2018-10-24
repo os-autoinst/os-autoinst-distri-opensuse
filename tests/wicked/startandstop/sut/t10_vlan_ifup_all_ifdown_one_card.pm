@@ -27,10 +27,10 @@ sub run {
     assert_script_run("sed 's/ip_address/$local_ip/' -i $config");
     assert_script_run("sed 's/interface/$iface/' -i $config");
     script_run("cat $config");
-    assert_script_run('wicked ifup --timeout infinite all');
+    $self->wicked_command('ifup', 'all');
     assert_script_run('ip a');
     die if (!ifc_exists($iface . '.42'));
-    assert_script_run("wicked ifdown --timeout infinite $iface.42");
+    $self->wicked_command('ifdown', "$iface.42");
     die if (ifc_exists($iface . '.42'));
     die if (!ifc_exists($iface));
 }

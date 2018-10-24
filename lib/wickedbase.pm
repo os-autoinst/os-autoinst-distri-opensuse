@@ -22,9 +22,12 @@ use Carp;
 
 sub wicked_command {
     my ($self, $action, $iface) = @_;
-    my $cmd = q(/usr/sbin/wicked --debug all --log-target syslog ) . $action . ' --timeout infinite ' . $iface;
+    my $cmd = '/usr/sbin/wicked --log-target syslog ' . $action . ' --timeout infinite ' . $iface;
+    assert_script_run(q(echo -e "\n# ") . $cmd . ' >> /tmp/wicked_serial.log');
     record_info('wicked cmd', $cmd);
-    assert_script_run($cmd);
+    assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
+    assert_script_run(q(echo -e "\n# ip addr" >> /tmp/wicked_serial.log));
+    assert_script_run('ip addr 2>&1 | tee -a /tmp/wicked_serial.log');
 }
 
 sub assert_wicked_state {
@@ -118,25 +121,11 @@ sub get_current_ip {
     return;
 }
 
-sub save_and_upload_wicked_log {
-    my $log_path = '/tmp/journal.log';
-    assert_script_run("journalctl -o short-precise > $log_path");
-    upload_logs($log_path);
-}
-
 sub get_from_data {
     my ($self, $source, $target, %args) = @_;
     $source .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut' if $args{add_suffix};
     assert_script_run("wget --quiet " . data_url($source) . " -O $target");
     assert_script_run("chmod +x $target") if $args{executable};
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    systemctl('start network');
-    systemctl('start wicked');
-    recover_network() if !can_upload_logs();
-    save_and_upload_wicked_log();
 }
 
 sub ping_with_timeout {
@@ -235,6 +224,32 @@ sub get_test_result {
     }
 }
 
+sub upload_wicked_logs {
+    my ($self, $prefix) = @_;
+    my $dir_name = $self->{name} . '_' . $prefix;
+    my $logs_dir = "/tmp/$dir_name";
+    record_info('Logs', "Collecting logs in $logs_dir");
+    script_run("mkdir -p $logs_dir");
+    script_run("date +'%Y-%m-%d %T.%6N' > $logs_dir/date");
+    script_run("journalctl -b -o short-precise|tail -n +2 > $logs_dir/journalctl.log");
+    script_run("wicked ifstatus --verbose all > $logs_dir/wicked_ifstatus.log 2>&1");
+    script_run("wicked show-config > $logs_dir/wicked_config.log 2>&1");
+    script_run("wicked show-xml > $logs_dir/wicked_xml.log 2>&1");
+    script_run("ip addr show > $logs_dir/ip_addr.log 2>&1");
+    script_run("ip route show table all > $logs_dir/ip_route.log 2>&1");
+    script_run("cp /tmp/wicked_serial.log $logs_dir/");
+    script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
+    eval {
+        upload_logs("$dir_name.tar.gz", failok => 0, log_name => " ");
+        1;
+    } or do {
+        my $e = $@;
+        record_info('Info', 'Need to re-configure the network to upload logs as the test removed all the setup');
+        recover_network();
+        upload_logs("$dir_name.tar.gz", failok => 1, log_name => " ");
+    };
+}
+
 sub do_mutex {
     my ($self) = @_;
     my $mutex_name = 'test_' . $self->{name} . '_ready';
@@ -251,6 +266,7 @@ sub done {
     if ($flags->{wicked_need_sync}) {
         $self->do_mutex();
     }
+    $self->upload_wicked_logs('post');
     $self->SUPER::done();
 }
 
@@ -262,6 +278,7 @@ sub pre_run_hook {
         type_string($coninfo);
         wait_serial($coninfo, undef, 0, no_regex => 1);
         type_string("\n");
+        $self->upload_wicked_logs('pre');
     }
 }
 
