@@ -112,6 +112,8 @@ sub run {
 }
 
 sub post_fail_hook {
+    # xev seems to hang, send control-c to ensure that we can actually type
+    send_key "ctrl-c";
     upload_logs('/tmp/xev_log', failok => 1);
 }
 
