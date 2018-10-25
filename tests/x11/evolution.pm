@@ -35,13 +35,14 @@ sub run {
         }
         assert_screen 'test-evolution-1';
     }
-    # Evolution 3.26 launches the main window before the new account assistant
-    if (match_has_tag('evolution-mainwindow-launched')) {
-        send_key "alt-f4";        # close the new account assistant
-        assert_screen("evolution-main-window");
+
+    #close assistant
+    send_key 'alt-f4';
+
+    assert_screen(['generic-desktop', 'evolution-main-window'], timeout => 30);
+    if (match_has_tag 'evolution-main-window') {
+        send_key 'alt-f4';
     }
-    send_key "ctrl-q";            # really quit (alt-f4 just backgrounds)
-    send_key "alt-f4";
 }
 
 1;
