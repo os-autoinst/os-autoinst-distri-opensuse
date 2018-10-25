@@ -99,7 +99,8 @@ sub run {
     bootmenu_network_source;
     specific_bootmenu_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
-    type_string_slow " sshd=1 sshpassword=$testapi::password\n";
+    type_string_slow remote_install_bootmenu_params;
+    type_string_slow "\n";
 
     assert_screen "pvm-grub-command-line-fresh-prompt", 180;    # kernel is downloaded while waiting
     type_string_slow "initrd $mntpoint/initrd\n";

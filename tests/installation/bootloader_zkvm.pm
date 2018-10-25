@@ -29,17 +29,7 @@ sub set_svirt_domain_elements {
         my $cmdline = get_var('VIRSH_CMDLINE') . " install=$repo ";
         my $name    = $svirt->name;
 
-        if (check_var("VIDEOMODE", "text")) {
-            $cmdline .= "ssh=1 ";    # trigger ssh-text installation
-        }
-        else {
-            $cmdline .= "sshd=1 vnc=1 VNCPassword=$testapi::password ";    # trigger default VNC installation
-        }
-
-        # we need ssh access to gather logs
-        # 'ssh=1' and 'sshd=1' are equal, both together don't work
-        # so let's just set the password here
-        $cmdline .= "sshpassword=$testapi::password ";
+        $cmdline .= remote_install_bootmenu_params;
 
         if (get_var('UPGRADE')) {
             $cmdline .= "upgrade=1 ";

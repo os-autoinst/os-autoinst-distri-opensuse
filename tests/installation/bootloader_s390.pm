@@ -72,14 +72,7 @@ sub prepare_parmfile {
     $params .= " " . get_var('S390_NETWORK_PARAMS');
     $params .= " " . get_var('EXTRABOOTPARAMS');
 
-    if (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
-        $params .= " ssh=1 ";    # trigger ssh-text installation
-    }
-    else {
-        $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
-    }
-
-    $params .= "sshpassword=$testapi::password ";
+    $params .= remote_install_bootmenu_params;
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(

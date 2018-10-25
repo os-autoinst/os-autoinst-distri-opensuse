@@ -36,6 +36,7 @@ our @EXPORT = qw(
   type_hyperv_fb_video_resolution
   bootmenu_network_source
   specific_bootmenu_params
+  remote_install_bootmenu_params
   specific_caasp_params
   select_bootmenu_video_mode
   select_bootmenu_language
@@ -609,6 +610,23 @@ sub specific_bootmenu_params {
 
     type_string_very_slow $args;
     save_screenshot;
+}
+
+sub remote_install_bootmenu_params {
+    my $params = "";
+    if (check_var("BACKEND", "spvm")) {
+        $params .= " sshd=1 ";    # only start ssh daemon
+    }
+    elsif (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
+        $params .= " ssh=1 ";     # trigger ssh-text installation
+    }
+    else {
+        $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+    }
+
+    $params .= "sshpassword=$testapi::password ";
+
+    return $params;
 }
 
 sub select_bootmenu_video_mode {
