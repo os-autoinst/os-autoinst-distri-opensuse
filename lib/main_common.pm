@@ -314,12 +314,6 @@ sub is_desktop {
     return get_var('FLAVOR', '') =~ /^Desktop/ || check_var('SLE_PRODUCT', 'sled');
 }
 
-sub is_leanos {
-    return 1 if get_var('FLAVOR', '') =~ /^Leanos/;
-    return 1 if get_var('FLAVOR', '') =~ /^Installer-/;
-    return 0;
-}
-
 sub is_desktop_module_selected {
     # desktop applications module is selected if following variables have following values:
     # ha require desktop applications on sle <15, so it's preselected
