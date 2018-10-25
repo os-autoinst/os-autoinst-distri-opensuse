@@ -209,21 +209,40 @@ sub deal_with_dependency_issues {
     }
 }
 
+=head2 verify_license_has_to_be_accepted
+
+    verify_license_has_to_be_accepted;
+
+Explicitly check that the license has to be accepted.
+
+Press 'Next' button to trigger a popup saying that the License has to be accepted then close the popup.
+
+=cut
+
 sub verify_license_has_to_be_accepted {
-    # license+lang
-    if (get_var('HASLICENSE')) {
-        send_key $cmd{next};
-        assert_screen 'license-not-accepted';
-        send_key $cmd{ok};
-        wait_still_screen 1;
-        send_key $cmd{accept};    # accept license
-        wait_still_screen 1;
-        save_screenshot;
-    }
+    send_key $cmd{next};
+    assert_screen 'license-not-accepted';
+    send_key $cmd{ok};
+    wait_still_screen 1;
+}
+
+=head2 accept_license
+
+    accept_license;
+
+Select checkbox accepting the License agreement and check if it is actually selected.
+
+Mark the test as failed if the checkbox is not selected after sending an appropriate command, otherwise proceed further.
+
+=cut
+
+sub accept_license {
+    send_key $cmd{accept};
+    assert_screen('license-agreement-accepted');
 }
 
 sub verify_license_translations {
-    return if (!get_var('INSTALLER_EXTENDED_TEST') || (is_sle && get_var("BETA")) || check_var('VIDEOMODE', 'text'));
+    return if (is_sle && get_var("BETA") || check_var('VIDEOMODE', 'text'));
     for my $language (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
         wait_screen_change { send_key 'alt-l' };
         send_key 'home';
