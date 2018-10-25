@@ -25,8 +25,8 @@ sub run {
     $self->before_scenario('Test 01', 'Standalone card - ifdown, ifreload', $iface);
     record_info('Info', 'Standalone card - ifdown, ifreload');
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
-    assert_script_run('wicked ifdown --timeout infinite ' . $iface);
-    assert_script_run('wicked ifreload ' . $iface);
+    $self->wicked_command('ifdown',   $iface);
+    $self->wicked_command('ifreload', $iface);
     my $static_ip = $self->get_ip(type => 'host');
     my $dhcp_ip = $self->get_current_ip($iface);
     if (defined($dhcp_ip) && $static_ip ne $dhcp_ip) {

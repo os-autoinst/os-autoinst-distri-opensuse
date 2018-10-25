@@ -20,6 +20,13 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
 use Carp;
 
+sub wicked_command {
+    my ($self, $action, $iface) = @_;
+    my $cmd = q(/usr/sbin/wicked --debug all --log-target syslog ) . $action . ' --timeout infinite ' . $iface;
+    record_info('wicked cmd', $cmd);
+    assert_script_run($cmd);
+}
+
 sub assert_wicked_state {
     my ($self, %args) = @_;
     systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
@@ -152,7 +159,7 @@ sub setup_tuntap {
     assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("wicked ifup --timeout infinite $type");
+    $self->wicked_command('ifup', $type);
     assert_script_run('ip a');
 }
 
@@ -165,7 +172,7 @@ sub setup_tunnel {
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
     assert_script_run("sed \'s/tunnel_ip/$tunnel_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("wicked ifup --timeout infinite $type");
+    $self->wicked_command('ifup', $type);
     assert_script_run('ip a');
 }
 
@@ -185,10 +192,10 @@ sub setup_bridge {
     my $local_ip = $self->get_ip(type => 'host');
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("cat $config");
-    assert_script_run("wicked $command --timeout infinite br0");
+    $self->wicked_command($command, 'br0');
     if ($dummy ne '') {
         assert_script_run("cat $dummy");
-        assert_script_run("wicked $command --timeout infinite dummy0");
+        $self->wicked_command($command, 'dummy0');
     }
     assert_script_run('ip a');
 }
@@ -200,12 +207,6 @@ sub setup_openvpn_client {
     $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
     assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
-}
-
-sub cleanup {
-    my ($self, $config, $type) = @_;
-    assert_script_run("ifdown $type");
-    assert_script_run("rm $config");
 }
 
 sub before_scenario {

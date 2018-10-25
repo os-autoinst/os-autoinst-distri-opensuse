@@ -24,18 +24,18 @@ sub run {
     $self->get_from_data('wicked/ifcfg/br0',    $config);
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
-    assert_script_run('wicked ifdown --timeout infinite br0');
-    assert_script_run('wicked ifdown --timeout infinite dummy0');
+    $self->wicked_command('ifdown', 'br0');
+    $self->wicked_command('ifdown', 'dummy0');
     die if (ifc_exists('dummy0') || ifc_exists('br0'));
-    assert_script_run('wicked ifreload --timeout infinite all');
+    $self->wicked_command('ifreload', 'all');
     die unless (ifc_exists('br0') && ifc_exists('dummy0'));
     my $current_ip = $self->get_current_ip('br0');
     my $expected_ip = $self->get_ip(type => 'br0');
     die('IP missmatch', 'IP is ' . ($current_ip || 'none') . ' but expected was ' . $expected_ip)
       if (!defined($current_ip) || $current_ip ne $expected_ip);
     die if ($self->get_test_result('br0') eq 'FAILED');
-    assert_script_run('wicked ifdown --timeout infinite all');
-    assert_script_run('wicked ifup --timeout infinite all');
+    $self->wicked_command('ifdown', 'all');
+    $self->wicked_command('ifup',   'all');
     die if ($self->get_test_result('br0') eq 'FAILED');
 }
 

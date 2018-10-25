@@ -23,7 +23,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/sit1', $config);
     $self->setup_tunnel($config, 'sit1');
     if ($self->get_test_result('sit1', 'v6') ne 'FAILED') {
-        assert_script_run("wicked ifdown --timeout infinite sit1");
+        $self->wicked_command('ifdown', 'sit1');
         die if (ifc_exists('sit1'));
     }
 }

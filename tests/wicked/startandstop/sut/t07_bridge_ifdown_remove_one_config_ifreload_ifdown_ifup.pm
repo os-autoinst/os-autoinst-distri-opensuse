@@ -26,16 +26,16 @@ sub run {
     $self->get_from_data('wicked/ifcfg/br0',    $config);
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
-    assert_script_run("wicked ifdown --timeout infinite br0");
-    assert_script_run("wicked ifdown --timeout infinite dummy0");
+    $self->wicked_command('ifdown', 'br0');
+    $self->wicked_command('ifdown', 'dummy0');
     die if (ifc_exists('dummy0'));
     die if (ifc_exists('br0'));
     assert_script_run("rm $config");
-    assert_script_run("wicked ifreload --timeout infinite all");
+    $self->wicked_command('ifreload', 'all');
     die if (ifc_exists('br0'));
     die unless (ifc_exists('dummy0') && ifc_exists('eth0'));
-    assert_script_run("wicked ifdown --timeout infinite all");
-    assert_script_run("wicked ifup --timeout infinite all");
+    $self->wicked_command('ifdown', 'all');
+    $self->wicked_command('ifup',   'all');
     die if ($self->get_test_result('host') eq 'FAILED');
 }
 

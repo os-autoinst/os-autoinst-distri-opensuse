@@ -26,7 +26,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface $config $dummy");
-    assert_script_run("wicked ifreload --timeout infinite all");
+    $self->wicked_command('ifreload', 'all');
     die if (ifc_exists('dummy0') || ifc_exists('br0'));
 }
 
