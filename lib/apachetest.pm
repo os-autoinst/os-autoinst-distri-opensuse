@@ -20,7 +20,7 @@ use version_utils 'is_sle';
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql);
 
-# Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP5, PHP7
+# Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
 # Example: setup_apache2(mode => 'SSL');
 sub setup_apache2 {
     my %args      = @_;
@@ -40,20 +40,11 @@ sub setup_apache2 {
         zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
     }
 
-    if ($mode eq "PHP5") {
-        push @packages, qw(apache2-mod_php5 php5);
-        zypper_call("rm -u apache2-mod_php7 php7", exitcode => [0, 104]);
-    }
-
     # Make sure the packages are installed
     zypper_call("in @packages");
 
-    # Enable php5 or php7
-    if ($mode eq "PHP5") {
-        assert_script_run 'a2enmod -d php7';
-        assert_script_run 'a2enmod php5';
-    }
-    elsif ($mode eq "PHP7") {
+    # Enable php7
+    if ($mode eq "PHP7") {
         assert_script_run 'a2enmod -d php5';
         assert_script_run 'a2enmod php7';
     }

@@ -14,15 +14,13 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
 use apachetest;
 
 sub run {
     select_console 'root-console';
 
-    my $pgsql_server = sle_version_at_least('15') ? 'postgresql10-server' : 'postgresql96-server';
     # install the postgresql server package
-    zypper_call "in $pgsql_server sudo";
+    zypper_call "in postgresql-server sudo";
 
     # start the postgresql service
     systemctl 'start postgresql.service', timeout => 200;
