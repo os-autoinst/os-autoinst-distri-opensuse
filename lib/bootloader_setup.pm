@@ -19,7 +19,7 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_jeos is_leap is_sle);
+use version_utils qw(is_caasp is_jeos is_leap is_sle is_remote_backend);
 use caasp 'pause_until';
 use mm_network;
 
@@ -36,6 +36,7 @@ our @EXPORT = qw(
   type_hyperv_fb_video_resolution
   bootmenu_network_source
   specific_bootmenu_params
+  remote_install_bootmenu_params
   specific_caasp_params
   select_bootmenu_video_mode
   select_bootmenu_language
@@ -307,8 +308,8 @@ sub bootmenu_type_console_params {
     type_string_very_slow "console=${serialdev}${baud_rate} ";
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
-    # and doesn't work if set to serial device. Don't want this on ipmi backend.
-    type_string_very_slow "console=tty " unless check_var('BACKEND', 'ipmi');
+    # and doesn't work if set to serial device. Don't want this on remote backends.
+    type_string_very_slow "console=tty " unless (is_remote_backend);
 }
 
 sub uefi_bootmenu_params {
@@ -609,6 +610,23 @@ sub specific_bootmenu_params {
 
     type_string_very_slow $args;
     save_screenshot;
+}
+
+sub remote_install_bootmenu_params {
+    my $params = "";
+    if (check_var("BACKEND", "spvm")) {
+        $params .= " sshd=1 ";    # only start ssh daemon
+    }
+    elsif (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
+        $params .= " ssh=1 ";     # trigger ssh-text installation
+    }
+    else {
+        $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+    }
+
+    $params .= "sshpassword=$testapi::password ";
+
+    return $params;
 }
 
 sub select_bootmenu_video_mode {
