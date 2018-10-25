@@ -564,6 +564,7 @@ sub remount_tmp_if_ro {
 ## of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
 sub post_fail_hook {
     my ($self) = @_;
+    record_info('post fail hook', 'Post fail hook started for test distribution.');
     return if testapi::is_serial_terminal();    # in case it is VIRTIO_CONSOLE=1 nothing below make sense
 
     show_tasks_in_blocked_state;
