@@ -33,9 +33,9 @@ sub run {
     );
 
     select_console 'root-console';
-    # Get gcc packages, ignore conflicting gcc6-ada and libada6 packages
+    # Get gcc packages, ignore conflicting gcc6-ada and libada6 and cross-nvptx-newlib7 packages
     my $gcc_packages
-      = script_output "zypper -q se -ur SLE-Module-Toolchain12-Updates -t package | awk -F '|' '{print \$2}' | tail -n +3 | grep -vE '(gcc6-ada|libada6)'", 300;
+      = script_output "zypper -q se -ur SLE-Module-Toolchain12-Updates -t package | awk -F '|' '{print \$2}' | tail -n +3 | grep -vE '(gcc6-ada|libada6|cross-nvptx-newlib7)'", 300;
     # Create list by removing blank symbols and new lines
     $gcc_packages =~ s/(\R|\s)+/ /g;
     # Install gcc packages
