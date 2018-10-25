@@ -13,7 +13,7 @@ use warnings;
 use testapi qw(check_var get_var get_required_var set_var);
 use lockapi;
 use needle;
-use version_utils ':VERSION';
+use version_utils qw(is_opensuse is_sle);
 use File::Find;
 use File::Basename;
 
