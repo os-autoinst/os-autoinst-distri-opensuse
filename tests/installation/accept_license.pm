@@ -24,32 +24,14 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my @tags = qw(network-settings-button license-agreement);
-
-    # During upgrade to sle 15, license agreement is shown as soon as possible
-    # when we know which product to upgrade:
-    # - s390x and aarch64 installation media contain always just one product,
-    #   so the license agreement is shown at welcome screen
-    # - other architectures contain more products, the license agreement won't
-    #   be shown until user chooses which product to upgrade
-    push @tags, 'inst-welcome-no-product-list' if is_sle('15+') && get_var('UPGRADE');
-
-    assert_screen \@tags;
-    die 'It seems that license agreement is missing, please check!' if match_has_tag('network-settings-button');
-    if (match_has_tag('inst-welcome-no-product-list')) {
-        return send_key $cmd{next} unless match_has_tag('license-agreement');
-    }
-    $self->verify_license_has_to_be_accepted;
-    $self->verify_license_translations;
-    send_key $cmd{next};
-    # workaround for bsc#1059317, multiple times clicking accept license
-    my $count = 5;
-    while (check_screen('license-not-accepted', 3) && $count >= 1) {
-        record_soft_failure 'bsc#1059317';
+    assert_screen('license-agreement');
+    # optional checks for the extended installation
+    if (get_var('INSTALLER_EXTENDED_TEST')) {
         $self->verify_license_has_to_be_accepted;
-        send_key $cmd{next};
-        $count--;
+        $self->verify_license_translations;
     }
+    $self->accept_license;
+    send_key $cmd{next};
 }
 
 1;

@@ -18,7 +18,6 @@ use testapi;
 use version_utils 'is_sle';
 
 sub switch_keyboard_layout {
-    return unless get_var('INSTALL_KEYBOARD_LAYOUT');
     my $keyboard_layout = get_var('INSTALL_KEYBOARD_LAYOUT');
     # for instance, select france and test "querty"
     send_key 'alt-k';    # Keyboard Layout
@@ -41,11 +40,7 @@ sub switch_keyboard_layout {
 
 sub run {
     switch_keyboard_layout;
-
-    send_key $cmd{next} unless (is_sle('15+') && get_var('UPGRADE'));
-    if (!check_var('INSTLANG', 'en_US') && check_screen 'langincomplete', 1) {
-        send_key 'alt-f';
-    }
+    send_key $cmd{next};
 }
 
 1;
