@@ -26,7 +26,7 @@ sub run {
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
     assert_screen "seahorse-name-new-keyring";        # Dialog  "Add a password keyring; name it"
     type_string "Default Keyring";                    # Name of the keyring
-    send_key "ret";                                   # &Ok
+    send_key "alt-o";                                 # &Ok
     assert_screen "seahorse-password-dialog";         # Dialog "Passphrase for the new keyring"
     type_password;                                    # Users password (for auto unlock, it has to be the same)
     send_key "ret";                                   # Next field (confirm PW)
