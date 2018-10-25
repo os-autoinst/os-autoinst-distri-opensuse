@@ -20,6 +20,7 @@ use strict;
 use testapi;
 use utils;
 use mm_network;
+use version_utils ':SCENARIO';
 
 our @EXPORT = qw(
   configure_static_network

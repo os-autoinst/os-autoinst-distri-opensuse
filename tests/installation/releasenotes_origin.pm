@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils 'is_sle';
+use version_utils ':VERSION';
 
 sub run {
     assert_screen('release-notes-button');
@@ -31,7 +31,9 @@ sub run {
         }
     }
     type_string "exit\n";
-    assert_screen 'system-role-default-system', 180;
+    # If we don't have system role screen, release notes origin is verified on partitioning screen
+    my $current_screen = is_using_system_role ? 'system-role-default-system' : 'partitioning-edit-proposal-button';
+    assert_screen $current_screen, 180;
 }
 
 1;

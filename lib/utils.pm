@@ -41,7 +41,6 @@ our @EXPORT = qw(
   workaround_type_encrypted_passphrase
   select_user_gnome
   ensure_unlocked_desktop
-  install_to_other_at_least
   is_bridged_networking
   set_bridged_networking
   ensure_fullscreen
@@ -482,25 +481,6 @@ sub ensure_unlocked_desktop {
         wait_still_screen 2;           # slow down loop
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
     }
-}
-
-#Check the real version of the test machine is at least some value, rather than the VERSION variable
-#It is for version checking for tests with variable "INSTALL_TO_OTHERS".
-sub install_to_other_at_least {
-    my $version = shift;
-
-    if (!check_var("INSTALL_TO_OTHERS", "1")) {
-        return 0;
-    }
-
-    #setup the var for real VERSION
-    my $real_installed_version = get_var("REPO_0_TO_INSTALL");
-    $real_installed_version =~ /.*SLES?-(\d+-SP\d+)-.*/m;
-    $real_installed_version = $1;
-    set_var("REAL_INSTALLED_VERSION", $real_installed_version);
-    bmwqemu::save_vars();
-
-    return sle_version_at_least($version, version_variable => "REAL_INSTALLED_VERSION");
 }
 
 sub is_bridged_networking {
