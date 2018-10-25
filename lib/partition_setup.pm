@@ -13,7 +13,7 @@ use base Exporter;
 use Exporter;
 use strict;
 use testapi;
-use version_utils qw(is_storage_ng is_sle is_tumbleweed is_leap is_opensuse);
+use version_utils ':VERSION';
 use installation_user_settings 'await_password_check';
 
 our @EXPORT = qw(
@@ -40,7 +40,7 @@ our %partition_roles = qw(
 
 # We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
 sub is_storage_ng_newui {
-    return is_storage_ng && (is_sle('15-SP1+') || is_leap('15.1+'));
+    return is_storage_ng && (is_sle('15-SP1+') || is_leap('15.1+') || get_var('STORAGE_NG_NEW_UI') || check_var('VERSION', 'Staging:H'));
 }
 
 sub wipe_existing_partitions_storage_ng {
