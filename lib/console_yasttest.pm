@@ -30,4 +30,8 @@ sub post_run_hook {
     $self->clear_and_verify_console;
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
