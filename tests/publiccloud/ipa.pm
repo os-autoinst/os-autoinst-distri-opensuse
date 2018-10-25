@@ -197,6 +197,9 @@ sub run {
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         az_run_ipa($self);
     }
+    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GOOGLE')) {
+        record_info('info', 'to be implemented');
+    }
     else {
         die('Unknown PUBLIC_CLOUD_PROVIDER given');
     }

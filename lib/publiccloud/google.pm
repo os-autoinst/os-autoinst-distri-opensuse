@@ -46,7 +46,7 @@ sub init {
     assert_script_run('source ~/.bashrc');
     assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
-    assert_script_run('gcloud auth activate-service-account ' . $self->service_acount_name . ' --key-file=' . $credentials_file . ' --project=' . $self->project_id);
+    assert_script_run('gcloud auth activate-service-account --key-file=' . $credentials_file . ' --project=' . $self->project_id);
 }
 
 sub file2name {
@@ -61,8 +61,10 @@ sub file2name {
 sub find_img {
     my ($self, $name) = @_;
     my $img_name = $self->file2name($name);
-    return $img_name if (script_output("gcloud compute images list --filter='name~$img_name' |grep -v NAME|grep -v Listed"));
-    return;
+    my $out = script_output("gcloud compute images list --filter='name~$img_name'|grep -v NAME", 10, proceed_on_failure => 1);
+    return if (!$out || $out =~ m/0 items/);
+    my ($image) = $out =~ /(\w+)/;
+    return $image;
 }
 
 sub upload_img {
@@ -77,6 +79,10 @@ sub upload_img {
         die("Cannot find image after upload!");
     }
     return $img_name;
+}
+
+sub cleanup {
+    record_info('info', 'to be implemented');
 }
 
 1;
