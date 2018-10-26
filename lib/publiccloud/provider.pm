@@ -20,9 +20,9 @@ has region     => undef;
 has prefix     => 'openqa';
 
 =head1 METHODS
- 
+
 =head2 init
- 
+
 Needs provider specific credentials, e.g. key_id, key_secret, region.
 
 =cut
@@ -58,6 +58,30 @@ This method is called called after each test on failure or success.
 
 =cut
 sub cleanup {
+}
+
+=head2 ipa
+
+  ipa(instance_type => <string>, cleanup => <bool>, tests => <string>, timeout => <seconds>, results_dir => <string>, distro => <string>);
+
+Call ipa tool and retrieves a hashref as result. Do not die if ipa call exit with error.
+  $result_hash = {
+        instance_id => <string>,    # unique CSP instance id
+        ip          => <ipaddress>, # public IP of instance
+        username    => <string>,    # username for ssh connection
+        ssh_key     => <string>,    # path to ssh-key for connection
+        logfile     => <string>,    # the pytest logfile
+        results     => <string>,    # json results file
+        tests       => <int>,       # total number of tests
+        pass        => <int>,       # successful tests
+        skip        => <int>,       # skipped tests
+        fail        => <int>,       # number of failed tests
+        error       => <int>,       # number of errors
+  };
+
+=cut
+sub ipa {
+    die('ipa() isn\'t implemented');
 }
 
 =head2 parse_ipa_output

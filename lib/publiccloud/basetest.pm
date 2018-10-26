@@ -51,4 +51,13 @@ sub provider_factory {
     }
 }
 
+sub get_image_id {
+    my ($provider) = @_;
+
+    my $image_id = get_var('PUBLIC_CLOUD_IMAGE_ID');
+    $image_id //= $provider->find_img(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
+    die('Missing valid image_id') unless ($image_id);
+    return $image_id;
+}
+
 1;
