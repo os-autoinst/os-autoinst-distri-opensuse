@@ -403,5 +403,5 @@ configuration, otherwise returns false (0).
 =cut
 
 sub has_license_on_welcome_screen {
-    return get_var('HASLICENSE') && (!has_product_selection || is_sle('<15'));
+    return get_var('HASLICENSE') && ((is_sle('15+') && check_var('ARCH', 's390x')) || is_sle('<15'));
 }
