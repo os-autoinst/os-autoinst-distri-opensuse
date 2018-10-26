@@ -32,7 +32,7 @@ sub run {
     }
     type_string "exit\n";
     # If we don't have system role screen, release notes origin is verified on partitioning screen
-    my $current_screen = is_using_system_role ? 'system-role-default-system' : 'partitioning-edit-proposal-button';
+    my $current_screen = is_using_system_role() ? 'system-role-default-system' : 'partitioning-edit-proposal-button';
     assert_screen $current_screen, 180;
 }
 
