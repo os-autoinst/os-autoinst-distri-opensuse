@@ -60,7 +60,6 @@ sub run {
     $self->before_scenario('Test 6', 'Set up static routes from wicked XML files', $iface);
     assert_script_run("wicked ifup --ifconfig /data/static_address/static-addresses-and-routes.xml $iface");
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
-    $self->save_and_upload_wicked_log();
 }
 
 1;
