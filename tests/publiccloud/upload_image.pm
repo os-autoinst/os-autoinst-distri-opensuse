@@ -20,7 +20,7 @@ use version_utils 'is_sle';
 use registration 'add_suseconnect_product';
 use publiccloud::ec2;
 use publiccloud::azure;
-use publiccloud::google;
+use publiccloud::gce;
 
 sub prepare_os {
 
@@ -57,7 +57,7 @@ sub run {
     my ($img_name) = $img_url =~ /([^\/]+)$/;
 
     if (my $img_id = $provider->find_img($img_name)) {
-        record_info("Image $img_name already exists!");
+        record_info('Info', "Image $img_name already exists!");
         set_var('PUBLIC_CLOUD_IMAGE_ID', $img_id);
         return;
     }

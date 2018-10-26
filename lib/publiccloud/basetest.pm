@@ -16,7 +16,7 @@ use base 'opensusebasetest';
 use testapi;
 use publiccloud::azure;
 use publiccloud::ec2;
-use publiccloud::google;
+use publiccloud::gce;
 
 sub provider_factory {
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
@@ -36,14 +36,15 @@ sub provider_factory {
             subscription => get_required_var('PUBLIC_CLOUD_SUBSCRIPTION_ID')
         );
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GOOGLE')) {
-        return publiccloud::google->new(
+    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
+        return publiccloud::gce->new(
             account             => get_required_var('PUBLIC_CLOUD_ACCOUNT'),
             service_acount_name => get_required_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),
             project_id          => get_required_var('PUBLIC_CLOUD_PROJECT_ID'),
             private_key_id      => get_required_var('PUBLIC_CLOUD_KEY_ID'),
             private_key         => get_required_var('PUBLIC_CLOUD_KEY'),
-            client_id           => get_required_var('PUBLIC_CLOUD_CLIENT_ID')
+            client_id           => get_required_var('PUBLIC_CLOUD_CLIENT_ID'),
+            region              => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b')
         );
     }
     else {

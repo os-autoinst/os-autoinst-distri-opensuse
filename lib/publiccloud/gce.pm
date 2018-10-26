@@ -12,11 +12,13 @@
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 #             Jose Lausuch <jalausuch@suse.de>
 
-package publiccloud::google;
+package publiccloud::gce;
 use Mojo::Base 'publiccloud::provider';
 use testapi;
 use strict;
 use utils;
+
+use constant CREDENTIALS_FILE => 'google_credentials.json';
 
 has account             => undef;
 has project_id          => undef;
@@ -26,9 +28,8 @@ has service_acount_name => undef;
 has client_id           => undef;
 
 sub init {
-    my ($self)           = @_;
-    my $credentials_file = 'google_credentials.json';
-    my $credentials      = "{" . $/
+    my ($self) = @_;
+    my $credentials = "{" . $/
       . '"type": "service_account", ' . $/
       . '"project_id": "' . $self->project_id . '", ' . $/
       . '"private_key_id": "' . $self->private_key_id . '", ' . $/
@@ -40,13 +41,13 @@ sub init {
       . '"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs", ' . $/
       . '"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/' . $self->service_acount_name . '%40' . $self->project_id . '.iam.gserviceaccount.com"' . $/
       . '}';
-    save_tmp_file($credentials_file, $credentials);
-    assert_script_run('curl -O ' . autoinst_url . "/files/" . $credentials_file);
+    save_tmp_file(CREDENTIALS_FILE, $credentials);
+    assert_script_run('curl -O ' . autoinst_url . "/files/" . CREDENTIALS_FILE);
 
     assert_script_run('source ~/.bashrc');
     assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
-    assert_script_run('gcloud auth activate-service-account --key-file=' . $credentials_file . ' --project=' . $self->project_id);
+    assert_script_run('gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
 }
 
 sub file2name {
@@ -81,8 +82,15 @@ sub upload_img {
     return $img_name;
 }
 
-sub cleanup {
-    record_info('info', 'to be implemented');
+sub ipa {
+    my ($self, %args) = @_;
+
+    $args{credentials_file} = CREDENTIALS_FILE;
+    $args{instance_type} //= 'n1-standard-2';
+    $args{user}          //= 'susetest';
+    $args{provider}      //= 'gce';
+
+    return $self->run_ipa(%args);
 }
 
 1;
