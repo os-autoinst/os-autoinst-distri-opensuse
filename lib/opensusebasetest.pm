@@ -457,8 +457,6 @@ sub wait_boot {
 
     # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
     unlock_if_encrypted if !get_var('S390_ZKVM');
-    # On remote backends we sync on Welcome message already where possible, mitigating bsc#1112109
-    wait_serial(get_login_message()) unless is_remote_backend;
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];

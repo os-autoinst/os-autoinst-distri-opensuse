@@ -29,6 +29,8 @@ sub run {
     # Doing early due to bsc#1103199 and bsc#1112109
     systemctl "stop serial-getty\@$testapi::serialdev";
     systemctl "disable serial-getty\@$testapi::serialdev";
+    # Mask if is qemu backend as use serial in remote installations e.g. during reboot
+    systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
     # init
     check_console_font;
 
@@ -60,9 +62,6 @@ sub run {
         # grep all also compressed files e.g. y2log-1.gz
         assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
-
-    # Mask if is qemu backend as use serial in remote installations e.g. during reboot
-    systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
 
     save_screenshot;
     $self->clear_and_verify_console;
