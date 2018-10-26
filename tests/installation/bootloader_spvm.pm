@@ -88,7 +88,6 @@ sub run {
 
     # clear the prompt (and create an error) in case the above went wrong
     type_string "\n";
-    wait_still_screen;
 
     my $repo     = get_required_var('REPO_0');
     my $mirror   = get_netboot_mirror;
@@ -104,8 +103,6 @@ sub run {
 
     assert_screen "pvm-grub-command-line-fresh-prompt", 180;    # kernel is downloaded while waiting
     type_string_slow "initrd $mntpoint/initrd\n";
-    wait_still_screen;
-    save_screenshot;
 
     assert_screen "pvm-grub-command-line-fresh-prompt", 180;    # initrd is downloaded while waiting
     type_string "boot\n";
