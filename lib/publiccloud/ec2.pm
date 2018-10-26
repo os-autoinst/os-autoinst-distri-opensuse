@@ -108,9 +108,8 @@ sub ipa {
     $args{results_dir}   //= 'ipa_results';
     $args{distro}        //= 'sles';
     my $user = 'ec2-user';
-    my $ssh_key_file =
 
-      $args{tests} =~ s/,/ /g;
+    $args{tests} =~ s/,/ /g;
 
     die("Create key-pair failed") unless ($self->create_ssh_key($self->prefix . time, 'QA_SSH_KEY.pem'));
 

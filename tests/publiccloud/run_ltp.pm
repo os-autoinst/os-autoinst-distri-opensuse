@@ -38,13 +38,10 @@ sub run {
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init();
 
-    my $image_id = get_var('PUBLIC_CLOUD_IMAGE_ID');
-    $image_id //= $provider->find_img(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
-
     my $instance = $provider->ipa(
         instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
         cleanup       => 0,
-        image_id      => $image_id
+        image_id      => $self->get_image_id($provider)
     );
 
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
