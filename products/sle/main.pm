@@ -737,6 +737,12 @@ elsif (is_installcheck) {
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login";
     loadtest "support_server/setup";
+    if (get_var("SUPPORT_SERVER_MODULES")) {
+        my @modules = split(/,/, get_var('SUPPORT_SERVER_MODULES', ''));
+        foreach my $module (@modules) {
+            loadtest "$module";
+        }
+    }
     if (get_var("REMOTE_CONTROLLER")) {
         loadtest "remote/remote_controller";
         load_inst_tests();
