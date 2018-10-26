@@ -43,6 +43,7 @@ HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and val
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
 EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=' as a kernel cmd line argument)
+INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
 INSTALLONLY | boolean | false | Indicates that test suite conducts only installation. Is recommended to be used for all jobs which create and publish images
 INSTLANG | string | en_US | Installation locale settings.
 IPXE | boolean | false | Indicates ipxe boot.
@@ -52,6 +53,7 @@ LAPTOP |||
 LIVECD | boolean | false | Indicates live image being used.
 LIVETEST | boolean | false | Indicates test of live system.
 LVM | boolean | false | Use lvm for partitioning.
+LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
