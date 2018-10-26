@@ -1039,14 +1039,9 @@ sub load_console_server_tests {
         loadtest "console/pcre" if is_sle;
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mysql_odbc" if is_opensuse;
-        if (is_leap('<15.0') || is_sle('<15')) {
-            loadtest "console/php5";
-            loadtest "console/php5_mysql";
-            loadtest "console/php5_postgresql96";
-        }
         loadtest "console/php7";
         loadtest "console/php7_mysql";
-        loadtest "console/php7_postgresql96";
+        loadtest "console/php7_postgresql";
     }
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     loadtest "console/apache_ssl" if is_sle;
