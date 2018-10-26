@@ -65,6 +65,8 @@ use constant {
           is_system_upgrading
           is_virtualization_server
           is_server
+          has_product_selection
+          has_license_on_welcome_screen
           )
       ]
 };
@@ -365,4 +367,41 @@ sub is_using_system_role {
 # On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
 sub is_using_system_role_first_flow {
     return is_leap('=15.0') || is_using_system_role;
+}
+
+=head2 has_product_selection
+
+    has_product_selection;
+
+Identify cases when Installer has to show Product Selection screen.
+
+Starting with SLE 15, all products are distributed using one medium, and Product
+to install has to be chosen explicitly.
+
+Though, there are some exceptions (like s390x) when there is only one Product,
+so that License agreement is shown directly, skipping the Product selection step.
+Also, Product Selection screen is not shown during upgrade.
+
+Returns true (1) if Product Selection step has to be shown for the certain
+configuration, otherwise returns false (0).
+
+=cut
+
+sub has_product_selection {
+    return is_sle('15+') && !(check_var('ARCH', 's390x') || get_var('UPGRADE'));
+}
+
+=head2 has_license_on_welcome_screen
+
+    has_license_on_welcome_screen;
+
+Identify cases when License Agreement has to be shown on Welcome screen and should be accepted there.
+
+Returns true (1) if License Agreement has to be shown on Welcome screen for the certain
+configuration, otherwise returns false (0).
+
+=cut
+
+sub has_license_on_welcome_screen {
+    return get_var('HASLICENSE') && (!has_product_selection || is_sle('<15'));
 }

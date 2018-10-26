@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
-use version_utils qw(is_sle sle_version_at_least is_staging);
+use version_utils qw(is_sle sle_version_at_least is_staging has_product_selection has_license_on_welcome_screen);
 
 sub run {
     my ($self) = @_;
@@ -90,33 +90,33 @@ sub run {
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
-    if (is_sle('15+')) {
-        # On s390x there will be only one product which means there is no product selection
-        # In upgrade mode, there is no product list shown in welcome screen
-        unless (check_var('ARCH', 's390x') || get_var('UPGRADE')) {
-            assert_screen('select-product');
-            my $product = get_required_var('SLE_PRODUCT');
-            if (check_var('VIDEOMODE', 'text')) {
-                my %hotkey = (
-                    sles     => 's',
-                    sled     => 'u',
-                    sles4sap => get_var('OFW') ? 'u' : 'i',
-                    hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
-                );
-                send_key 'alt-' . $hotkey{$product};
-            }
-            else {
-                assert_and_click('before-select-product-' . $product);
-            }
-            assert_screen('select-product-' . $product);
+    if (has_product_selection) {
+        assert_screen('select-product');
+        my $product = get_required_var('SLE_PRODUCT');
+        if (check_var('VIDEOMODE', 'text')) {
+            my %hotkey = (
+                sles     => 's',
+                sled     => 'u',
+                sles4sap => get_var('OFW') ? 'u' : 'i',
+                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
+            );
+            send_key 'alt-' . $hotkey{$product};
         }
+        else {
+            assert_and_click('before-select-product-' . $product);
+        }
+        assert_screen('select-product-' . $product);
     }
-    else {
-        $self->verify_license_has_to_be_accepted;
+    # Accept the License on installations where License Agreement is shown on Welcome screen.
+    elsif (has_license_on_welcome_screen) {
+        if (get_var('INSTALLER_EXTENDED_TEST')) {
+            $self->verify_license_has_to_be_accepted;
+            $self->verify_license_translations unless is_sle('15+');
+        }
+        $self->accept_license;
     }
 
-    assert_screen 'languagepicked';
-    $self->verify_license_translations unless is_sle('15+');
+    send_key $cmd{next} unless get_var('INSTALL_KEYBOARD_LAYOUT');
 }
 
 1;
