@@ -19,13 +19,32 @@ use testapi;
 use File::Basename;
 use Digest::file 'digest_file_hex';
 
-our @EXPORT = 'verify_checksum';
+our @EXPORT = qw(verify_checksum get_image_digest);
+
+=head2
+Returns image digest. Digest retrieval is platform-specific depends.
+=cut
+sub get_image_digest {
+    my ($image_path) = shift;
+
+    my $digest;
+    if (check_var('BACKEND', 'svirt')) {
+        $digest = console('svirt')->get_cmd_output("sha256sum $image_path");
+        # On Hyper-V the hash starts with '\'
+        my $start = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1 : 0;
+        $digest = substr $digest, $start, 64;    # extract SHA256 from the output
+    }
+    else {
+        $digest = digest_file_hex($image_path, "SHA-256");
+    }
+    return $digest;
+}
 
 =head2 verify_checksum
 Verify image data integrity by comparing SHA256 checksums
 =cut
 sub verify_checksum {
-    my ($dir_path) = shift;    # for backends other than qemu, image directory path needs to be set
+    my ($dir_path) = shift;
 
     diag "Comparing data integrity calculated with SHA256 digest against checksum from IBS/OBS via rsync.pl";
     foreach my $image (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) {
@@ -33,8 +52,8 @@ sub verify_checksum {
         $image =~ s/CHECKSUM_//;
         my $image_path = get_required_var $image;
         $image_path = $dir_path . basename($image_path) if $dir_path;
-        my $digest = digest_file_hex($image_path, "SHA-256");
-        record_info("$image Ok", "$image_path: Ok") && next if $checksum eq $digest;
+        my $digest = get_image_digest($image_path);
+        record_info("$image OK", "$image_path: OK") && next if $checksum eq $digest;
         my $msg_fail = "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum";
         record_info("$image Fail", $msg_fail, result => 'fail');
     }
