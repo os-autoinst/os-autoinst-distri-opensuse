@@ -28,9 +28,16 @@ sub run {
 
     microos_login;
     if (check_var('DISTRI', 'kubic')) {
-        zypper_call("mr -da");
-        my $mirror = get_required_var('MIRROR_HTTP');
-        zypper_call("--no-gpg-check ar -f '$mirror' mirror_http");
+        zypper_call("lr");
+        if (get_var("MIRROR_HTTP")) {
+            record_info('Staging Repos', "Using staging repositories");
+            zypper_call("mr -da");
+            my $mirror = get_required_var('MIRROR_HTTP');
+            zypper_call("--no-gpg-check ar -f '$mirror' mirror_http");
+        }
+        else {
+            record_info('Default Repos', "Using default repositories");
+        }
         zypper_call('ref');
     }
 

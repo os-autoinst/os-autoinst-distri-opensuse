@@ -140,7 +140,6 @@ sub load_feature_tests {
         loadtest 'console/docker_runc';
         # OCI Containers
         if (is_caasp('kubic') && check_var('SYSTEM_ROLE', 'plain')) {
-            loadtest 'console/kubeadm';
             loadtest 'console/skopeo';
             loadtest 'console/umoci';
             loadtest 'console/runc';
@@ -203,40 +202,105 @@ sub stack_init {
     barrier_create("DELAYED_NODES_ONLINE", $stack_delayed + 1);
 }
 
-if (get_var('STACK_ROLE')) {
-    # ==== CaaSP tests ====
-    if (check_var 'STACK_ROLE', 'controller') {
-        stack_init;
-        loadtest "support_server/login";
-        loadtest "support_server/setup";
+# === Test Scheduling === #
+
+### openSUSE Kubic ###
+# ================== #
+if (is_caasp('kubic')) {
+    # Cluster/Multimachine Tests
+    if (get_var('STACK_ROLE')) {
+        # No MM tests yet
     }
+
+    # Single node Tests
     else {
-        if (update_scheduled 'dup') {
-            loadtest 'caasp/shift_version', name => 'ver=dec';
+        ## System Role: Kubeadm node
+        if (check_var 'SYSTEM_ROLE', 'kubeadm') {
+            ### Scenario: ISO Installation
+            if ((check_var 'SCENARIO', 'installation') && (check_var 'FLAVOR', 'DVD')) {
+                load_caasp_boot_tests;
+                load_caasp_inst_tests;
+                loadtest 'caasp/first_boot';
+                loadtest 'shutdown/shutdown';
+            }
+            ### Scenario: Kubeadm Certified
+            if ((check_var 'SCENARIO', 'kubeadm_certified') && (check_var 'FLAVOR', 'DVD')) {
+                loadtest 'caasp/first_boot';
+                loadtest 'console/kubeadm_init';
+                #loadtest 'console/kubeadm_join';
+                #loadtest 'console/kubeadm_upgrade';
+                #loadtest 'console/kubeadm_token';
+                #loadtest 'console/kubeadm_reset';
+                #loadtest 'console/kubeadm_version';
+                #loadtest 'shutdown/shutdown';
+            }
         }
-        load_caasp_boot_tests;
-        load_caasp_inst_tests if is_caasp('DVD');
-        loadtest 'caasp/first_boot';
-    }
-    load_stack_tests;
-}
-else {
-    # ==== MicroOS tests ====
-    load_caasp_boot_tests;
-    if (is_caasp 'DVD') {
-        if (get_var('EXTRA', '') =~ /RCSHELL/) {
+
+        ## System Role: Micro OS
+        if (check_var 'SYSTEM_ROLE', 'microos') {
+            ### Scenario: microos
+            if ((check_var 'EXTRA', 'FEATURES') && (check_var 'FLAVOR', 'DVD')) {
+                load_caasp_boot_tests;
+                load_caasp_inst_tests;
+                loadtest 'caasp/first_boot';
+                load_feature_tests;
+            }
+            ### Scenario: microos_10G-disk
+            if ((check_var 'HDDSIZEGB', '10') && (check_var 'FLAVOR', 'DVD')) {
+                load_caasp_boot_tests;
+                load_caasp_inst_tests;
+            }
+        }
+
+        ## No System Role (tests before installation)
+        if ((check_var 'EXTRA', 'RCSHELL') && (check_var 'FLAVOR', 'DVD')) {
+            load_caasp_boot_tests;
             load_rcshell_tests;
             return 1;
         }
-        load_caasp_inst_tests;
-        return 1 if get_var 'FAIL_EXPECTED';
     }
-    loadtest 'caasp/first_boot';
 }
 
-# MicroOS feature tests
-if (get_var('EXTRA', '') =~ /FEATURES/) {
-    load_feature_tests;
+### SUSE CaaSP ###
+# ============== #
+else {
+
+    # CaaSP Cluster/Multimachine Tests
+    if (get_var('STACK_ROLE')) {
+        if (check_var 'STACK_ROLE', 'controller') {
+            stack_init;
+            loadtest "support_server/login";
+            loadtest "support_server/setup";
+        }
+        else {
+            if (update_scheduled 'dup') {
+                loadtest 'caasp/shift_version', name => 'ver=dec';
+            }
+            load_caasp_boot_tests;
+            load_caasp_inst_tests if is_caasp('DVD');
+            loadtest 'caasp/first_boot';
+        }
+        load_stack_tests;
+    }
+
+    # CaaSP MicroOS tests ====
+    else {
+        load_caasp_boot_tests;
+        if (is_caasp 'DVD') {
+            if (get_var('EXTRA', '') =~ /RCSHELL/) {
+                load_rcshell_tests;
+                return 1;
+            }
+            load_caasp_inst_tests;
+            return 1 if get_var 'FAIL_EXPECTED';
+        }
+        loadtest 'caasp/first_boot';
+    }
+
+    # CaaSP MicroOS feature tests
+    if (get_var('EXTRA', '') =~ /FEATURES/) {
+        load_feature_tests;
+    }
 }
 
 1;
