@@ -1284,7 +1284,6 @@ sub load_x11tests {
     }
     if (is_opensuse && !is_livesystem) {
         if (!is_staging) {
-            loadtest "x11/gnucash";
             loadtest "x11/hexchat";
         }
         loadtest "x11/vlc";
@@ -1425,6 +1424,7 @@ sub load_extra_tests_desktop {
         }
         # wine is only in openSUSE for various reasons, including legal ones
         loadtest 'x11/wine' if get_var('ARCH', '') =~ /x86_64|i586/;
+        loadtest "x11/gnucash";
 
     }
     # the following tests care about network and need some DE specific
