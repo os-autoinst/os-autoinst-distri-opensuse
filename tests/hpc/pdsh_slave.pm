@@ -18,7 +18,6 @@ use strict;
 use testapi;
 use lockapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 
 sub run {
     my $self            = shift;
@@ -53,7 +52,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    select_virtio_console(force => 1);
+    $self->select_serial_terminal;
     upload_logs '/tmp/pdsh.log';
     $self->upload_service_log('munge');
 }

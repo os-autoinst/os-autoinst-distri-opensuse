@@ -16,11 +16,10 @@ use testapi;
 use strict;
 use utils;
 use lockapi;
-use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $trex_dir = "/tmp/trex-core";
 

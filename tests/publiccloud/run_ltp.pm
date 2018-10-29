@@ -15,7 +15,6 @@ use base "publiccloud::basetest";
 use strict;
 use testapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 use Data::Dumper;
 
 sub run_ssh
@@ -33,7 +32,7 @@ sub run_ssh
 sub run {
     my ($self) = @_;
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/SLE_12_SP3/home:metan.repo');
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init();

@@ -14,13 +14,12 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use utils;
-use serial_terminal 'select_virtio_console';
 use testapi qw(is_serial_terminal :DEFAULT);
 
 sub system_login {
     my $self = shift;
     $self->wait_boot;
-    select_virtio_console();
+    $self->select_serial_terminal;
 }
 
 # Add and refresh repos

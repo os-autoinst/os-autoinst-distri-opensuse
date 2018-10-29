@@ -15,7 +15,6 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use bootloader_setup 'boot_grub_item';
-use serial_terminal 'select_virtio_console';
 
 sub run {
     my ($self, $tinfo) = @_;
@@ -33,8 +32,7 @@ sub run {
         $self->wait_boot(ready_time => 500);
     }
 
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    $self->select_serial_terminal;
 
     assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 

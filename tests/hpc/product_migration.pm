@@ -16,13 +16,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 use registration 'add_suseconnect_product';
 
 sub run {
     my $self            = shift;
     my $suseconnect_str = ' -e testing@suse.com -r ';
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     script_run('ls -la /etc/products.d/');
     my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);

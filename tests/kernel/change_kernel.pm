@@ -14,7 +14,6 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use serial_terminal 'select_virtio_console';
 use kernel 'remove_kernel_packages';
 
 sub from_repo {
@@ -39,8 +38,7 @@ sub run {
     my $pkg  = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
 
     $self->wait_boot;
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    $self->select_serial_terminal;
 
     # Avoid conflicts by removing any existing kernels
     remove_kernel_packages();

@@ -26,7 +26,6 @@ use utils;
 use lockapi;
 use mmapi;
 use version_utils 'is_sle';
-use serial_terminal 'select_virtio_console';
 
 sub get_trafficgen_ip {
     my $host1 = get_required_var('NFVTEST_IP1');
@@ -37,8 +36,8 @@ sub get_trafficgen_ip {
 }
 
 sub run {
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my ($self)         = @_;
     my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";

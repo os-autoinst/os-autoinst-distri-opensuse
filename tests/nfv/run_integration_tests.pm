@@ -16,11 +16,11 @@ use base "opensusebasetest";
 use testapi;
 use strict;
 use utils;
-use serial_terminal 'select_virtio_console';
 use mmapi;
 
 sub run {
-    select_virtio_console();
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $self        = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";

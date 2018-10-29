@@ -15,7 +15,6 @@ use base "publiccloud::basetest";
 use strict;
 use testapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 use version_utils 'is_sle';
 use registration 'add_suseconnect_product';
 use publiccloud::ec2;
@@ -24,7 +23,7 @@ use publiccloud::gce;
 
 sub run {
     my ($self) = @_;
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init;

@@ -21,7 +21,6 @@ use strict;
 use testapi;
 use utils;
 use susedistribution;
-use serial_terminal 'select_virtio_console';
 
 sub run {
     my $self = shift;
@@ -36,6 +35,8 @@ sub run {
 
     # check service status
     systemctl 'status conman';
+
+    select_console('root-console');
 
     # run netcat on this socket
     type_string("netcat -ClU /tmp/testsocket &\n");
@@ -71,7 +72,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    select_virtio_console(force => 1);
+    $self->select_serial_terminal;
     $self->upload_service_log('conmand');
     $self->SUPER::post_fail_hook;
 }

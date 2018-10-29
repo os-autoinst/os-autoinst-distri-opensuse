@@ -13,7 +13,6 @@ use 5.018;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 
 =head2 grub_version
 
@@ -104,7 +103,7 @@ sub run {
     my $self = shift;
     $self->wait_boot;
 
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     my $url = get_required_var("INSTALL_KOTD");
     if ($url !~ /^https?:\/\//) {
