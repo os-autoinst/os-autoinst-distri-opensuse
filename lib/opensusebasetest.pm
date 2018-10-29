@@ -556,6 +556,50 @@ sub remount_tmp_if_ro {
     script_run 'touch /tmp/test_ro || mount -t tmpfs /dev/shm /tmp';
 }
 
+=head2 select_serial_terminal
+
+    select_serial_terminal($root);
+
+Select most suitable text console with root user. The choice is made by
+BACKEND and other variables.
+
+Optional C<root> parameter specifies, whether use root user (C<root>=1, also
+default when parameter not specified) or prefer non-root user if available.
+=cut
+sub select_serial_terminal {
+    my ($self, $root) = @_;
+    $root //= 1;
+
+    my $backend = get_required_var('BACKEND');
+    my $console;
+
+    if ($backend eq 'qemu') {
+        if (check_var('VIRTIO_CONSOLE', 0)) {
+            $console = $root ? 'root-console' : 'user-console';
+        } else {
+            $console = $root ? 'root-virtio-terminal' : 'virtio-terminal';
+        }
+    } elsif (get_var('S390_ZKVM')) {
+        $console = $root ? 'root-console' : 'user-console';
+    } elsif ($backend =~ /^(ikvm|ipmi|spvm)$/) {
+        $console = 'root-ssh';
+    }
+
+    die "No support for backend '$backend', add it" if ($console eq '');
+    select_console($console);
+}
+
+=head2 select_user_serial_terminal
+
+    select_user_serial_terminal();
+
+Select most suitable text console with non-root user.
+The choice is made by BACKEND and other variables.
+=cut
+sub select_user_serial_terminal {
+    select_serial_terminal(0);
+}
+
 # useful post_fail_hook for any module that calls wait_boot and x11_start_program
 ##
 ## we could use the same approach in all cases of boot/reboot/shutdown in case
