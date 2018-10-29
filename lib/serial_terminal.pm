@@ -96,19 +96,23 @@ sub login {
 
    select_virtio_console();
 
-Helper to select console 'root-virtio-terminal' or 'root-console'.
-Select 'root-virtio-terminal' in case VIRTIO_CONSOLE=1 or if C<force=1> passed to function
+Helper to select console 'root-virtio-terminal'
+Select 'root-virtio-terminal' in case VIRTIO_CONSOLE=1 or if C<force=1> passed
+otherwise to 'root-console'.
+Virtio console is only on QEMU (see poo#36457), so fallback to root-ssh console on IPMI.
 =cut
 # TODO: Move here optional init with add_serial_console($console);
 sub select_virtio_console {
     my %args = shift;
-    my $is_virtio = $args{force} || get_var('VIRTIO_CONSOLE');
+    my $want_virtio = $args{force} || get_var('VIRTIO_CONSOLE');
 
-    if ($is_virtio) {
+    if ($want_virtio) {
         if (get_var('S390_ZKVM')) {
             bmwqemu::fctwarn("Cannot use virtio console on s390 on ZKVM");
         } elsif (check_var('BACKEND', 'ipmi')) {
-            bmwqemu::fctwarn("Cannot use virtio console on IPMI");
+            bmwqemu::fctwarn("Cannot use virtio console on ipmi");
+            select_console('root-ssh');
+            return 0;
         } else {
             select_console('root-virtio-terminal');
             return 1;
