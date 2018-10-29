@@ -64,7 +64,11 @@ elsif (check_var('VALIDATE_PCM_PATTERN', 'aws')) {
     # Define more packages with the same set of expectations
     $software{'update-test-interactive'} = $software{'update-test-feature'};
     $software{'update-test-security'}    = $software{'update-test-feature'};
-    $software{'update-test-trival'}      = $software{'update-test-feature'};
+    if (is_sle('15+')) {
+        $software{'update-test-trivial'} = $software{'update-test-feature'};
+    } else {
+        $software{'update-test-trival'} = $software{'update-test-feature'};
+    }
 }
 
 sub verify_installation_and_repo {
