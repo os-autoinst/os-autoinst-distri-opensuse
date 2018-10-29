@@ -25,20 +25,22 @@ use mm_network;
 use mm_tests;
 use opensusebasetest 'firewall';
 use registration 'scc_version';
+use iscsi;
 
-my $pxe_server_set   = 0;
-my $quemu_proxy_set  = 0;
-my $http_server_set  = 0;
-my $ftp_server_set   = 0;
-my $tftp_server_set  = 0;
-my $dns_server_set   = 0;
-my $dhcp_server_set  = 0;
-my $nfs_mount_set    = 0;
-my $ntp_server_set   = 0;
-my $xvnc_server_set  = 0;
-my $ssh_server_set   = 0;
-my $xdmcp_server_set = 0;
-my $iscsi_server_set = 0;
+my $pxe_server_set       = 0;
+my $quemu_proxy_set      = 0;
+my $http_server_set      = 0;
+my $ftp_server_set       = 0;
+my $tftp_server_set      = 0;
+my $dns_server_set       = 0;
+my $dhcp_server_set      = 0;
+my $nfs_mount_set        = 0;
+my $ntp_server_set       = 0;
+my $xvnc_server_set      = 0;
+my $ssh_server_set       = 0;
+my $xdmcp_server_set     = 0;
+my $iscsi_server_set     = 0;
+my $iscsi_tgt_server_set = 0;
 
 my $setup_script;
 my $disable_firewall = 0;
@@ -406,6 +408,35 @@ sub setup_iscsi_server {
     $iscsi_server_set = 1;
 }
 
+sub setup_iscsi_tgt_server {
+    return if $iscsi_tgt_server_set;
+
+    systemctl 'start tgtd';
+
+    # Configure default iscsi iqn
+    my $iqn = get_var("ISCSI_IQN", "iqn.2016-02.de.openqa");
+
+    # Get device for iscsi export
+    my $device = script_output "ls /dev/[sv]db";
+    die "detection of disk for iSCSI LUN failed" unless $device;
+
+    # Create new iqn target with target id 1
+    tgt_new_target(1, $iqn);
+    # Add device lun 1 to target with id 1
+    tgt_new_lun(1, 1, "$device");
+    # Export same device twice with same scsi_id for multipath test
+    if (get_var('ISCSI_MULTIPATH')) {
+        tgt_new_lun(1, 2, "$device");
+        tgt_update_lun_params(1, 1, "scsi_id=\"mpatha\"");
+        tgt_update_lun_params(1, 2, "scsi_id=\"mpatha\"");
+    }
+    # Authorize all clients
+    tgt_auth_all(1);
+    # Show details about configured iscsi server
+    tgt_show;
+    $iscsi_tgt_server_set = 1;
+}
+
 sub setup_aytests {
     # install the aytests-tests package and export the tests over http
     my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
@@ -543,6 +574,10 @@ sub run {
     if (exists $server_roles{iscsi}) {
         setup_iscsi_server();
         push @mutexes, 'iscsi';
+    }
+    if (exists $server_roles{iscsi_tgt}) {
+        setup_iscsi_tgt_server();
+        push @mutexes, 'iscsi_tgt';
     }
     if (exists $server_roles{stunnel}) {
         setup_stunnel_server;
