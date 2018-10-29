@@ -62,8 +62,9 @@ sub run {
     $svirt->change_domain_element(on_reboot => undef);
     $svirt->change_domain_element(on_reboot => 'destroy');
 
-    my $dev_id = 'a';
-    my $isodir = '/var/lib/openqa/share/factory/iso /var/lib/openqa/share/factory/iso/fixed';
+    my $dev_id  = 'a';
+    my $basedir = svirt_host_basedir();
+    my $isodir  = "$basedir/openqa/share/factory/iso $basedir/openqa/share/factory/iso/fixed";
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
     if (my $isofile = get_var('ISO')) {
         my $isopath = copy_image($isofile, $isodir);
@@ -89,7 +90,7 @@ sub run {
         }
     }
 
-    my $hdddir = '/var/lib/openqa/share/factory/hdd /var/lib/openqa/share/factory/hdd/fixed';
+    my $hdddir = "$basedir/openqa/share/factory/hdd $basedir/openqa/share/factory/hdd/fixed";
     my $size_i = get_var('HDDSIZEGB', '10');
     foreach my $n (1 .. get_var('NUMDISKS')) {
         if (my $hdd = get_var('HDD_' . $n)) {
