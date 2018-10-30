@@ -77,7 +77,6 @@ QEMUCPUS=4
 QEMURAM=4096
 START_AFTER_TEST=create_hdd_textmode
 TEST='nvmftests'
-VIRTIO_CONSOLE=1
 
 For SLE the configuration is similar, but the two repositories need to be adjusted with the correct builds.
 

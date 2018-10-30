@@ -606,7 +606,7 @@ sub select_user_serial_terminal {
 ## of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
 sub post_fail_hook {
     my ($self) = @_;
-    return if testapi::is_serial_terminal();    # in case it is VIRTIO_CONSOLE=1 nothing below make sense
+    return if testapi::is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
 
     show_tasks_in_blocked_state;
 

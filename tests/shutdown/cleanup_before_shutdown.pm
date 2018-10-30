@@ -31,7 +31,7 @@ sub run {
     if (get_var('DROP_PERSISTENT_NET_RULES')) {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
     }
-    if (!sle_version_at_least('12-SP2') && check_var('VIRTIO_CONSOLE', 1)) {
+    if (!sle_version_at_least('12-SP2') && !check_var('VIRTIO_CONSOLE', 0)) {
         add_serial_console('hvc0');
     }
     # Proceed with dhcp cleanup on qemu backend only.

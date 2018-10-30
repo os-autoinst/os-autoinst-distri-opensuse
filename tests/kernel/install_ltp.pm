@@ -265,7 +265,7 @@ sub run {
     }
 
     # poo#18980
-    if (get_var('OFW') && check_var('VIRTIO_CONSOLE', 1)) {
+    if (get_var('OFW') && !check_var('VIRTIO_CONSOLE', 0)) {
         select_console('root-console');
         add_serial_console('hvc1');
     }
