@@ -23,9 +23,12 @@ sub run {
     # start steam in terminal to watch the progress on initial startup, e.g.
     # the update progress
     script_run 'steam', 0;
-    assert_and_click 'steam-accept-agreement';
-    assert_and_click 'steam-agreement-ok';
-    assert_screen([qw(steam-login steam-startup-libgl_error)], 600);
+    assert_screen([qw(steam-accept-agreement steam-login steam-startup-libgl_error)], 600);
+    if (match_has_tag('steam-accept-agreement')) {
+        assert_and_click 'steam-accept-agreement';
+        assert_and_click 'steam-agreement-ok';
+        assert_screen([qw(steam-login steam-startup-libgl_error)], 600);
+    }
     if (match_has_tag 'steam-startup-libgl_error') {
         # https://github.com/ValveSoftware/steam-for-linux/issues/4768
         # https://wiki.archlinux.org/index.php/Steam/Troubleshooting#Steam_runtime
