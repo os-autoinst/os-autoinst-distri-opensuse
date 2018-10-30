@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Test installation of puppet master and slave on the same host
-# Maintainer: Dumitru Gutu <dgutu@suse.de>
+# Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use base "consoletest";
 use strict;
@@ -32,7 +32,7 @@ echo '[master]' >> /etc/puppet/puppet.conf
 echo 'certname = puppetmaster.local' >> /etc/puppet/puppet.conf
 echo 'dns_alt_names = puppetmaster.local' >> /etc/puppet/puppet.conf
 systemctl start puppetmaster
-systemctl start puppet
+for i in {1..10}; do sleep 1 && systemctl is-active puppetmaster && systemctl start puppet && break; done
 EOF
     assert_script_run($_) foreach (split /\n/, $puppet_conf);
     validate_script_output $output, sub { m/puppetslave\.local/ };
