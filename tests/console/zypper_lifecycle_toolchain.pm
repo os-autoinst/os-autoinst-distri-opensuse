@@ -39,7 +39,7 @@ sub run {
     # Create list by removing blank symbols and new lines
     $gcc_packages =~ s/(\R|\s)+/ /g;
     # Install gcc packages
-    zypper_call("in $gcc_packages");
+    zypper_call("in $gcc_packages", 600);
     # Get lifecycle information for installed toolchain packages
     my $output = script_output "zypper lifecycle $gcc_packages", 300;
     diag($output);
