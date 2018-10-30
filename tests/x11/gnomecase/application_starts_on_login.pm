@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap sle_version_at_least);
+use version_utils qw(is_leap is_tumbleweed sle_version_at_least);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
@@ -26,7 +26,10 @@ sub tweak_startupapp_menu {
     }
     else {
         # tweak-tool entry is not in gnome-control-center of SLE15;
-        x11_start_program 'gnome-tweak-tool';
+	if (is_tumbleweed) {
+	       	x11_start_program 'gnome-tweaks';
+	}
+	else x11_start_program 'gnome-tweak-tool';
     }
     assert_screen "tweak-tool";
     # increase the default timeout - the switching can be slow
