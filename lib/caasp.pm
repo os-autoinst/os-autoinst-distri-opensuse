@@ -55,8 +55,9 @@ sub send_alt {
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
-    my $q = shift;
-    my $d = get_var 'DISTRI';
+    my $q    = shift;
+    my $d    = get_var 'DISTRI';
+    my $arch = get_var('ARCH');
 
     # package name | initial version
     my %rpm = (
@@ -69,13 +70,21 @@ sub rpmver {
             in => '5.3.61',
         });
 
+    if ("$arch" eq "aarch64") {
+        %rpm = (
+            kubic => {
+                fn => '5-4.3',
+                in => '4.3',
+            });
+    }
+
     # Returns expected package version after installation / update
     if ($q eq 'in') {
         return $rpm{$d}{$q};
     }
     # Returns rpm path for initial installation
     else {
-        return " update-test-trival/update-test-$q-$rpm{$d}{fn}.x86_64.rpm";
+        return " update-test-trival/update-test-$q-$rpm{$d}{fn}.$arch.rpm";
     }
 }
 
