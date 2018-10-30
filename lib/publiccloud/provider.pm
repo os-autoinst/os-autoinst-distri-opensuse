@@ -12,7 +12,9 @@
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 package publiccloud::provider;
+use testapi;
 use Mojo::Base -base;
+use Data::Dumper;
 
 has key_id     => undef;
 has key_secret => undef;
@@ -52,13 +54,6 @@ sub upload_image {
     die('find_image() isn\'t implemented');
 }
 
-=head2 cleanup
-
-This method is called called after each test on failure or success.
-
-=cut
-sub cleanup {
-}
 
 =head2 ipa
 
@@ -126,6 +121,89 @@ sub parse_ipa_output {
     return $ret;
 }
 
+=head2 create_ssh_key
+
+Creates an ssh keypair in a given file path by $args{ssh_private_key_file}
+
+=cut
+sub create_ssh_key {
+    my ($self, %args) = @_;
+    if (script_run('test -f ' . $args{ssh_private_key_file}) != 0) {
+        assert_script_run('SSH_DIR=`dirname ' . $args{ssh_private_key_file} . '`; mkdir -p $SSH_DIR');
+        assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ' . $args{ssh_private_key_file});
+    }
+}
+
+=head2 run_ipa
+
+called by childs within ipa function
+
+=cut
+sub run_ipa {
+    my ($self, %args) = @_;
+    $args{cleanup}              //= 1;
+    $args{ssh_private_key_file} //= '.ssh/id_rsa';
+    $args{tests}                //= '';
+    $args{timeout}              //= 60 * 20;
+    $args{results_dir}          //= 'ipa_results';
+    $args{distro}               //= 'sles';
+    $args{tests} =~ s/,/ /g;
+
+    $self->create_ssh_key(ssh_private_key_file => $args{ssh_private_key_file});
+
+    my $cmd = 'ipa --no-color test ' . $args{provider};
+    $cmd .= ' --debug ';
+    $cmd .= "--distro " . $args{distro} . " ";
+    $cmd .= '--region "' . $self->region . '" ';
+    $cmd .= '--results-dir "' . $args{results_dir} . '" ';
+    $cmd .= ($args{cleanup}) ? '--cleanup ' : '--no-cleanup ';
+    $cmd .= '--instance-type "' . $args{instance_type} . '" ';
+    $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
+    $cmd .= "--access-key-id '" . $args{key_id} . "' "                  if ($args{key_id});
+    $cmd .= "--secret-access-key '" . $args{key_secret} . "' "          if ($args{key_secret});
+    $cmd .= "--ssh-key-name '" . $args{key_name} . "' "                 if ($args{key_name});
+    $cmd .= '-u ' . $args{user} . ' '                                   if ($args{user});
+    $cmd .= '--ssh-private-key-file "' . $args{ssh_private_key_file} . '" ';
+
+    if (exists($args{running_instance_id})) {
+        $cmd .= '--running-instance-id "' . $args{running_instance_id} . '" ';
+    } else {
+        $cmd .= '--image-id "' . $args{image_id} . '" ';
+    }
+    $cmd .= $args{tests};
+    record_info("ipa cmd", $cmd);
+
+    my $output = script_output($cmd . ' 2>&1', $args{timeout}, proceed_on_failure => 1);
+    my $ipa = $self->parse_ipa_output($output);
+    die($output) unless (defined($ipa));
+
+    $ipa->{username} = $args{user};
+    $ipa->{ssh_key}  = $args{ssh_private_key_file};
+
+    $self->{running_instances} //= {};
+    if ($args{cleanup}) {
+        delete($self->{running_instances}->{$ipa->{instance_id}});
+    } else {
+        $self->{running_instances}->{$ipa->{instance_id}} = $ipa;
+    }
+
+    return $ipa;
+}
+
+
+=head2 cleanup
+
+This method is called called after each test on failure or success.
+
+=cut
+sub cleanup {
+    my ($self) = @_;
+
+    print Dumper($self->{running_instances});
+    for my $i (keys(%{$self->{running_instances}})) {
+        my $instance = $self->{running_instances}->{$i};
+        $self->ipa(cleanup => 1, running_instance_id => $instance->{instance_id});
+    }
+}
 
 1;
-
