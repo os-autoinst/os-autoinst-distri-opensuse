@@ -34,18 +34,73 @@ sub handle_dhcp_popup {
     }
 }
 
+
+sub check_etc_hosts_update {
+    my $looprun = 1;
+    assert_script_run "cat /etc/hosts";
+    until ($looprun == 3) {
+        script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
+        assert_screen "yast2_lan";
+        send_key 'alt-i';    # edit NIC
+        assert_screen 'yast_ncurses_network_card_setup';
+        send_key 'alt-t';    # set to static ip
+        assert_screen 'yast_ncurses_set_static_ip';
+        send_key 'tab';
+        if ($looprun == 1) {
+            send_key_until_needlematch('NICsetup_ncurses_IP_empty', 'backspace');    # "delete existing IP if any
+            type_string "192.168.122.10";
+        }
+        send_key 'tab';
+        # "delete existing netmask if any
+        if ($looprun == 1) {
+            send_key_until_needlematch('NICsetup_ncurses_mask_empty', 'backspace');
+            type_string "/24";
+        }
+        send_key 'tab';
+        send_key_until_needlematch('NICsetup_ncurses_host_empty', 'backspace');
+        type_string "susetest.test$looprun";
+        assert_screen 'yast_ncurses_static_ip_set';
+        send_key 'alt-n';
+        wait_still_screen;
+        send_key 'alt-o';
+        wait_still_screen;
+        wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
+        script_run("egrep \"192.168.122.10\\ssusetest.test$looprun\\ssusetest\" /etc/hosts", 30)
+          && die "Expected entry : \"192.168.122.10    susetest.test$looprun susetest\" was not found in /etc/hosts";
+        assert_script_run "cat /etc/hosts";
+        $looprun++;
+    }
+    # Revert changes
+    script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
+    assert_screen "yast2_lan";
+    send_key 'alt-i';
+    assert_screen 'yast_ncurses_network_card_setup';
+    send_key 'alt-y';    # set back to DHCP
+    assert_screen 'yast_ncurses_set_dhcp';
+    send_key 'alt-n';
+    wait_still_screen;
+    send_key 'alt-o';
+    wait_still_screen;
+    wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
+    # "delete created entry in /etc/hosts, bug #tobesubmitted
+    assert_script_run 'sed -i /192.168.122.10/d /etc/hosts';
+
+    assert_script_run "cat /etc/hosts";
+}
+
+
 sub run {
     my $self = shift;
 
-    select_console 'user-console';
-    assert_script_sudo "zypper -n in yast2-network";    # make sure yast2 lan module installed
+    select_console 'root-console';
+    assert_script_run "zypper -n in yast2-network";    # make sure yast2 lan module installed
 
     # those two are for debugging purposes only
     script_run('ip a');
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
     assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
     handle_dhcp_popup;
@@ -71,10 +126,10 @@ sub run {
     assert_screen [qw(yast2_lan-hostname-tab dhcp-popup)];
     handle_dhcp_popup;
     send_key "tab";
-    for (1 .. 15) { send_key "backspace" }
+    send_key_until_needlematch 'hostname_ncurses_hostname_empty', 'backspace';
     type_string $hostname;
     send_key "tab";
-    for (1 .. 15) { send_key "backspace" }
+    send_key_until_needlematch 'hostname_ncurses_domain_empty', 'backspace';
     type_string $domain;
     assert_screen 'test-yast2_lan-1';
 
@@ -82,6 +137,7 @@ sub run {
     wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
 
     wait_still_screen;
+    check_etc_hosts_update;
     $self->clear_and_verify_console;
     assert_script_run "hostname|grep $hostname";
 
@@ -92,4 +148,3 @@ sub run {
 }
 
 1;
-
