@@ -613,11 +613,13 @@ sub firefox_check_default {
     }
 }
 
+# Check whether there are any pop up windows and handle them one by one
 sub firefox_check_popups {
-    # Check whether there are any pop up windows and handle them one by one
-    for (1 .. 2) {
-        # assert loaded webpage
-        assert_screen 'firefox-url-loaded', 60;
+    # assert loaded webpage
+    assert_screen 'firefox-url-loaded', 90;
+    for (1 .. 3) {
+        # slow down loop and give firefox time to show pop-up
+        sleep 5;
         # check pop-ups
         assert_screen [qw(firefox_trackinfo firefox_readerview_window firefox-launch)];
         # handle the tracking protection pop up
