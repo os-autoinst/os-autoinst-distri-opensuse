@@ -110,7 +110,6 @@ sub verify_timeout_and_check_screen {
         #Die explicitly in case of infinite loop when we match some needle
         die "timeout hit on during $stage";
     }
-    mouse_hide(1);
     return check_screen $needles, $check_time;
 }
 
@@ -155,7 +154,6 @@ sub run {
     my $num_errors = 0;
     my $timer      = 0;    # Prevent endless loop
 
-    mouse_hide(1);
     check_screen \@needles, $check_time;
     until (match_has_tag('reboot-after-installation')
           || match_has_tag('bios-boot')
