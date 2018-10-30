@@ -22,6 +22,7 @@ sub run {
     select_virtio_console();
 
     my $provider = $self->{provider} = $self->provider_factory();
+    $provider->init;
 
     my $ipa = $provider->ipa(
         instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
@@ -114,4 +115,3 @@ This is B<only for azure> and used to create the service account file.
 This is B<only for azure> and used to create the service account file.
 
 =cut
-

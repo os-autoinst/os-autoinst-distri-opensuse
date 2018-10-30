@@ -18,6 +18,7 @@ use utils;
 use registration 'add_suseconnect_product';
 use serial_terminal 'select_virtio_console';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
+use version_utils 'is_sle';
 
 
 sub run {
@@ -48,16 +49,35 @@ sub run {
         $tools_repo = 'http://download.opensuse.org/repositories/Cloud:/Tools/' . $dist . "_" . $version . '/Cloud:Tools.repo';
     }
     zypper_call('ar ' . $tools_repo);
-    zypper_call('--gpg-auto-import-keys in python3-ipa python3-ipa-tests git-core');
+    zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core');
 
-    # WAR install awscli from pip instead of using the package bsc#1095041
-    zypper_call('in gcc python3-pip');
+    # Install AWS cli
+    zypper_call('-q in gcc python3-pip');
     if (is_opensuse) {
-        zypper_call('in python3-devel');
-        assert_script_run("pip3 install pycrypto");
+        zypper_call('-q in python3-devel');
+        assert_script_run("pip3 install -q pycrypto");
+        assert_script_run("pip3 install -q awscli");
+        assert_script_run("pip3 install -q keyring");
     }
-    assert_script_run("pip3 install awscli");
-    assert_script_run("pip3 install keyring");
+    elsif (is_sle) {
+        zypper_call('rr Cloud_Tools');
+        zypper_call('ref');
+        zypper_call('-q in aws-cli');
+    }
+    zypper_call('-q in python-ec2uploadimg');
+    assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
+
+    # install azure cli
+    zypper_call('-q in curl');
+    assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
+    zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
+    zypper_call('-q in --from azure-cli -y azure-cli');
+
+    # Install Google Cloud SDK
+    assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
+    assert_script_run("curl sdk.cloud.google.com | bash");
+    assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
+    assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
 
     # Create some directories, ipa will need them
     assert_script_run("mkdir -p ~/ipa/tests/");
@@ -65,18 +85,6 @@ sub run {
     assert_script_run("touch .config/ipa/config");
     assert_script_run("ipa list");
     assert_script_run("ipa --version");
-
-    # install azure cli
-    zypper_call('in curl');
-    assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
-    zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
-    zypper_call('install --from azure-cli -y azure-cli');
-
-    # Install Google Cloud SDK
-    assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
-    assert_script_run("curl sdk.cloud.google.com | bash");
-    assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
-    assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
 }
 
 sub test_flags {
