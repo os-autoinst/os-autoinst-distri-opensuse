@@ -110,11 +110,7 @@ sub handle_addon {
     # SES6 on SLE15 in development has untrusted key warning
     addon_license($addon) unless is_sle('15+') && $addon !~ /^ses$|^rt$/;
     # might involve some network lookup of products, licenses, etc.
-    assert_screen ['addon-products', 'import-untrusted-gpg-key'], 90;
-    if (match_has_tag('import-untrusted-gpg-key')) {
-        send_key 'alt-t';
-        assert_screen 'addon-products';
-    }
+    assert_screen 'addon-products', 90;
     send_key 'tab';    # select addon-products-$addon
     wait_still_screen 10;
     if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
