@@ -29,21 +29,14 @@ sub run {
     install_docker_when_needed();
 
     if (is_tumbleweed) {
-        my $defname = check_var('ARCH', 'aarch64') ? 'container_ARM'
-          : check_var('ARCH', 'ppc64le') ? 'container_PowerPC'
-          :                                'container';
-
-        $repo_url = "https://download.opensuse.org/repositories/Virtualization:containers:images:openSUSE-Tumbleweed/$defname/Virtualization:containers:images:openSUSE-Tumbleweed.repo";
         $image_name = 'opensuse/tumbleweed:current';
         $image_path = '/usr/share/suse-docker-images/native/*-image*.tar.xz';
 
         # For Tumbleweed, the image is wrapped inside an RPM
-        zypper_call "ar -fGn virtualization $repo_url";
         zypper_call "in opensuse-tumbleweed-image";
-        zypper_call "rr virtualization";
     }
     else {
-        die 'Only know about Tumbleweed and Leap 15.0+ docker images';
+        die 'Only know about Tumbleweed';
     }
 
     # Load the image
