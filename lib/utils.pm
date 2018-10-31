@@ -215,7 +215,12 @@ sub unlock_if_encrypted {
 sub systemctl {
     my ($command, %args) = @_;
     my $expect_false = $args{expect_false} ? '!' : '';
-    assert_script_run "$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message};
+    my @script_params = ("$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
+    if ($args{ignore_failure}) {
+        script_run(@script_params);
+    } else {
+        assert_script_run(@script_params);
+    }
 }
 
 sub turn_off_kde_screensaver {
