@@ -53,28 +53,25 @@ sub run {
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
     my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry);
-    if (get_var("UPGRADE")) {
-        push(@tags, 'ERROR-removing-package');
-        push(@tags, 'DIALOG-packages-notifications');
-        $timeout = 5500;    # upgrades are slower
-    }
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        $timeout = 5500;    # our Hyper-V server is just too slow
-    }
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
     }
-    # SCC might mean we install everything from the slow internet
-    if (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL')) {
-        $timeout = 5500;
+    if (get_var("UPGRADE")) {
+        push(@tags, 'ERROR-removing-package');
+        push(@tags, 'DIALOG-packages-notifications');
     }
-    if (check_var('REGISTER', 'installation') && is_caasp) {
+    # upgrades are slower
+    # our Hyper-V server is just too slow
+    # SCC might mean we install everything from the slow internet
+    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && (!get_var('SCC_URL') || is_caasp))) {
         $timeout = 5500;
     }
     # aarch64 can be particularily slow depending on the hardware
     $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
     # encryption, LVM and RAID makes it even slower
     $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
+    # "allpatterns" tests install a lot of packages
+    $timeout *= 2 if check_var_array('PATTERNS', 'all');
     # multipath installations seem to take longer (failed some time)
     $timeout *= 2 if check_var('MULTIPATH', 1);
     # on s390 we might need to install additional packages depending on the installation method
