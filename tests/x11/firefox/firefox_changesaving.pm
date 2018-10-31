@@ -59,7 +59,7 @@ sub run {
     assert_script_run 'cp dfa dfb';
     assert_script_run 'rm -vf df*';    #Clear
 
-    send_key_until_needlematch 'firefox-url-loaded', 'alt-tab';    #Switch to firefox
+    send_key_until_needlematch 'firefox-preferences', 'alt-tab';    #Switch to firefox
 
     $self->exit_firefox;
 }
