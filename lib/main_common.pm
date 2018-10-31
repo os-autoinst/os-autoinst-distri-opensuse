@@ -1484,6 +1484,9 @@ sub load_extra_tests_textmode {
         loadtest "console/nano";
         loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
     }
+    unless (is_sle '<15') {
+        loadtest "console/ntp_client";
+    }
     if (get_var("IPSEC")) {
         loadtest "console/ipsec_tools_h2h";
     }
