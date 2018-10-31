@@ -34,6 +34,24 @@ sub get_script_run {
     return $pre_test_cmd;
 }
 
+sub analyzeResult {
+    my ($self, $text) = @_;
+    my $result;
+    if ($text !~ /Overall guest upgrade result is:(.*)Test done/s) {
+        die "The sub tests results are not listed in the test output. \n";
+    }
+    my $rough_result = $1;
+
+    foreach (split("\n", $rough_result)) {
+        if ($_ =~ /(?<testcase_name>\S+)\s+\-{3}\s+(PASS|FAIL|SKIP|TIMEOUT)(\s+\-{3}\s+(.*))?/ig) {
+            my ($testcase_name, $status, $error) = ($+{testcase_name}, $2, $4);
+            $result->{$testcase_name}->{status} = $status =~ /pass/i ? 'PASSED' : 'FAILED';
+            $result->{$testcase_name}->{error}  = $error             ? $error   : 'none';
+        }
+    }
+    return $result;
+}
+
 sub run {
     my $self = shift;
     my $timeout = get_var("MAX_TEST_TIME", "36000") + 10;
@@ -42,7 +60,8 @@ sub run {
     #to use openqa daily build installer repo and module repo for guests,
     #and it will be copied into guests to be used during guest upgrade test
     repl_module_in_sourcefile();
-    $self->run_test($timeout, "guest_upgrade_test ... ... PASSED", "no", "yes", "/var/log/qa/", "guest-upgrade-logs");
+    $self->{"package_name"} = "Guest Upgrade Test";
+    $self->run_test($timeout, "", "yes", "yes", "/var/log/qa/", "guest-upgrade-logs");
 }
 
 1;
