@@ -15,7 +15,7 @@
 #
 # Summary: test for 'zypper lifecycle' for toolchain module
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
-# Tags: fate#32205
+# Tags: fate#322050
 
 use base "consoletest";
 use strict;
