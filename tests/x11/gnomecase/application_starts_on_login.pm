@@ -29,7 +29,9 @@ sub tweak_startupapp_menu {
 	if (is_tumbleweed) {
 	       	x11_start_program 'gnome-tweaks';
 	}
-	else x11_start_program 'gnome-tweak-tool';
+	else {
+		x11_start_program 'gnome-tweak-tool';
+	}
     }
     assert_screen "tweak-tool";
     # increase the default timeout - the switching can be slow
