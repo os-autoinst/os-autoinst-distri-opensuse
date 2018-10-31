@@ -23,6 +23,7 @@ use strict;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl);
 use version_utils qw(is_sle is_caasp sle_version_at_least is_sle12_hdd_in_upgrade);
+use constant ADDONS_COUNT => 50;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -182,6 +183,23 @@ sub assert_registration_screen_present {
     }
 }
 
+sub verify_preselected_modules {
+    my $modules_needle = shift;
+
+    return if check_screen($modules_needle, 30);    # pre-selected modules visible without scrolling
+    my @modules = ('basesystem', 'server', split(/,/, get_var('ADDONS', '')));
+    my @needles = map { 'addon-' . $_ } @modules;
+    for (1 .. ADDONS_COUNT) {
+        check_screen \@needles, 0;
+        for my $needle (@needles) {
+            @needles = grep { $_ ne $needle } @needles if match_has_tag($needle);
+        }
+        last if (!@needles || check_screen('scrolled-to-bottom', 0));
+        send_key('down');
+    }
+    die 'Scroll reached to bottom not finding individual needles for each module.' if @needles;
+}
+
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
@@ -193,7 +211,7 @@ sub fill_in_registration_data {
       import-untrusted-gpg-key-idv-key-A5665AC46976A827
     );
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        my $counter = 50;
+        my $counter = ADDONS_COUNT;
         my @tags
           = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server refreshing-repository);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
@@ -265,7 +283,7 @@ sub fill_in_registration_data {
             assert_screen('scc-beta-filter-checkbox');
             send_key('alt-i');
         }
-        assert_screen($modules_needle);
+        verify_preselected_modules($modules_needle);
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
         if (check_var('SLE_PRODUCT', 'sles')
@@ -310,7 +328,7 @@ sub fill_in_registration_data {
                 assert_screen('scc-beta-filter-unchecked');
             }
             my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
-            # remove emty elements
+            # remove empty elements
             @scc_addons = grep { $_ ne '' } @scc_addons;
 
             for my $addon (@scc_addons) {
@@ -339,7 +357,7 @@ sub fill_in_registration_data {
                             next;
                         }
                     }
-                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", 40;
+                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", ADDONS_COUNT;
                     if (match_has_tag("scc-module-$addon")) {
                         # checkmark the requested addon
                         assert_and_click "scc-module-$addon";
@@ -356,7 +374,7 @@ sub fill_in_registration_data {
                 assert_screen 'scc-registration-already-registered';
                 wait_screen_change { send_key $cmd{next} };
                 for my $addon (@scc_addons) {
-                    assert_screen "scc-module-$addon-selected";
+                    send_key_until_needlematch "scc-module-$addon-selected", "down", ADDONS_COUNT;
                 }
             }
             wait_screen_change { send_key $cmd{next} };    # all addons selected
@@ -370,7 +388,7 @@ sub fill_in_registration_data {
                 wait_still_screen 2;
             }
             # start addons/modules registration, it needs longer time if select multiple or all addons/modules
-            my $counter = 50;
+            my $counter = ADDONS_COUNT;
             while ($counter--) {
                 die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
                 assert_screen [
