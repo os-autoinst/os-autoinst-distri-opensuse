@@ -23,7 +23,7 @@ use caasp_controller;
 use strict;
 use testapi;
 use caasp 'pause_until';
-use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver);
+use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver zypper_call);
 
 sub firefox_import_ca {
     # Setup ssh
@@ -40,12 +40,12 @@ sub firefox_import_ca {
 sub run {
     select_console 'x11';
     x11_start_program('xterm');
+
     become_root;
     ensure_serialdev_permissions;
+    zypper_call 'up kubernetes-client';
     type_string "exit\n";
     turn_off_gnome_screensaver;
-    # Update kubectl
-    assert_script_sudo "zypper -n up kubernetes-client", 300;
 
     # Leave xterm open for kubernetes tests
     save_screenshot;

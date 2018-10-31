@@ -109,10 +109,8 @@ sub load_rcshell_tests {
 
 # Feature tests after installation finishes
 sub load_feature_tests {
-    # Feature tests
-    # 'create_autoyast' uses serial line heavily, which is notentirely
+    # 'create_autoyast' uses serial line heavily, which is not entirely
     # reliable on Hyper-V, no point in executing it as it always fails.
-    # Container Tests
     loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/filesystem_ro';
@@ -135,10 +133,8 @@ sub load_feature_tests {
     loadtest 'caasp/journal_check';
 
     # Container Tests
-    if (is_caasp 'caasp') {
-        loadtest 'console/docker';
-        loadtest 'console/docker_runc';
-    }
+    loadtest 'console/docker';
+    loadtest 'console/docker_runc';
 }
 
 sub load_stack_tests {
@@ -152,18 +148,19 @@ sub load_stack_tests {
         loadtest 'caasp/stack_kubernetes';
         if (update_scheduled) {
             loadtest 'caasp/stack_update';
-        }
-        else {
+        } else {
             loadtest 'caasp/stack_reboot';
         }
         if (update_scheduled 'dup') {
             loadtest 'caasp/shift_version', name => 'ver=inc';
         }
         loadtest 'caasp/stack_add_remove' if get_delayed;
+
+        # Section for long running tests
         unless (is_caasp('staging') || is_caasp('local')) {
+            loadtest 'caasp/stack_cap' unless is_caasp('qam');
             loadtest 'caasp/stack_conformance';
         }
-
         loadtest 'caasp/stack_finalize';
     }
     else {

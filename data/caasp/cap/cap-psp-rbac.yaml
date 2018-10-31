@@ -1,0 +1,97 @@
+---
+apiVersion: extensions/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: suse.cap.psp
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
+spec:
+  # Privileged
+  #default in suse.caasp.psp.unprivileged
+  #privileged: false
+  privileged: true
+  # Volumes and File Systems
+  volumes:
+    # Kubernetes Pseudo Volume Types
+    - configMap
+    - secret
+    - emptyDir
+    - downwardAPI
+    - projected
+    - persistentVolumeClaim
+    # Networked Storage
+    - nfs
+    - rbd
+    - cephFS
+    - glusterfs
+    - fc
+    - iscsi
+    # Cloud Volumes
+    - cinder
+    - gcePersistentDisk
+    - awsElasticBlockStore
+    - azureDisk
+    - azureFile
+    - vsphereVolume
+  allowedFlexVolumes: []
+  # hostPath volumes are not allowed; pathPrefix must still be specified
+  allowedHostPaths:      
+    - pathPrefix: /opt/kubernetes-hostpath-volumes
+  readOnlyRootFilesystem: false
+  # Users and groups
+  runAsUser:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  # Privilege Escalation
+  #default in suse.caasp.psp.unprivileged
+  #allowPrivilegeEscalation: false
+  allowPrivilegeEscalation: true
+  #default in suse.caasp.psp.unprivileged
+  #defaultAllowPrivilegeEscalation: false
+  # Capabilities
+  allowedCapabilities: []
+  defaultAddCapabilities: []
+  requiredDropCapabilities: []
+  # Host namespaces
+  hostPID: false
+  hostIPC: false
+  hostNetwork: false
+  hostPorts:
+  - min: 0
+    max: 65535
+  # SELinux
+  seLinux:
+    # SELinux is unsed in CaaSP
+    rule: 'RunAsAny'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: suse:cap:psp
+rules:
+- apiGroups: ['extensions']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames: ['suse.cap.psp']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cap:clusterrole
+roleRef:
+  kind: ClusterRole
+  name: suse:cap:psp
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: uaa
+- kind: ServiceAccount
+  name: default
+  namespace: scf
+- kind: ServiceAccount
+  name: default
+  namespace: stratos
