@@ -52,17 +52,6 @@ sub check_service_listening {
     }
 }
 
-sub check_firewall_open_vnc {
-    my $cmd_check_firewall = 'firewall-cmd --list-services | grep \'tigervnc tigervnc-https\'';
-    if (script_run($cmd_check_firewall)) {
-        record_soft_failure 'boo#1088647 - firewalld does not create rule for vnc';
-        assert_script_run('firewall-cmd --zone=public --add-service=tigervnc --permanent');
-        assert_script_run('firewall-cmd --zone=public --add-service=tigervnc-https --permanent');
-        assert_script_run('firewall-cmd --reload');
-        assert_script_run($cmd_check_firewall);
-    }
-}
-
 sub test_setup {
     select_console 'root-console';
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
@@ -74,13 +63,10 @@ sub test_setup {
 }
 
 sub run {
-    my $self = shift;
-
     test_setup;
     configure_remote_admin;
     return if check_var('ARCH', 's390x');    # exit here as port is already open for s390x
     check_service_listening;
-    check_firewall_open_vnc if ($self->firewall eq 'firewalld');
 }
 
 1;
