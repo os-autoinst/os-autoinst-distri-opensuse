@@ -548,19 +548,23 @@ sub get_addon_fullname {
 
     # extensions product list
     my %product_list = (
-        'ha'    => 'sle-ha',
-        'geo'   => 'sle-ha-geo',
-        'we'    => 'sle-we',
-        'sdk'   => 'sle-sdk',
-        'ses'   => 'ses',
-        'live'  => 'sle-live-patching',
-        'asmm'  => 'sle-module-adv-systems-management',
-        'contm' => 'sle-module-containers',
-        'hpcm'  => 'sle-module-hpc',
-        'lgm'   => 'sle-module-legacy',
-        'pcm'   => 'sle-module-public-cloud',
-        'tcm'   => 'sle-module-toolchain',
-        'wsm'   => 'sle-module-web-scripting',
+        'ha'        => 'sle-ha',
+        'geo'       => 'sle-ha-geo',
+        'we'        => 'sle-we',
+        'sdk'       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
+        'ses'       => 'ses',
+        'live'      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
+        'asmm'      => 'sle-module-adv-systems-management',
+        'base'      => 'sle-module-basesystem',
+        'contm'     => 'sle-module-containers',
+        'desktop'   => 'sle-module-desktop-applications',
+        'hpcm'      => 'sle-module-hpc',
+        'legacy'    => 'sle-module-legacy',
+        'lgm'       => 'sle-module-legacy',
+        'pcm'       => 'sle-module-public-cloud',
+        'serverapp' => 'sle-module-server-applications',
+        'tcm'       => 'sle-module-toolchain',
+        'wsm'       => 'sle-module-web-scripting',
     );
     return $product_list{"$addon"};
 }
