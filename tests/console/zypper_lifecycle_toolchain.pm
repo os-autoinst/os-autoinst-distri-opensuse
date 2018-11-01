@@ -27,8 +27,8 @@ sub run {
         gcc5      => 'Now',
         libada5   => 'Now',
         gcc6      => 'Now',
-        gcc7      => '2024-10-30',
-        libada7   => '2024-10-30',
+        gcc7      => '2019-04-30',
+        libada7   => '2019-04-30',
         toolchain => '2024-10-30',
     );
 
