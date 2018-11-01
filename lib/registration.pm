@@ -500,6 +500,14 @@ sub registration_bootloader_cmdline {
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
     if (my $url = get_var('SMT_URL') || get_var('SCC_URL')) {
+        # build scc_url for sle12 from addons with different build no
+        # http://Server-0451.proxy.scc.suse.de -> http://Server-0451.wsm-0451.sdk-0351.proxy.scc.suse.de
+        if (is_sle('<15') && get_var('SCC_ADDONS')) {
+            my $sdk_num    = get_var('BUILD_SDK');
+            my $url_addons = '.';
+            $url_addons .= "sdk" . "-" . "$sdk_num." if (get_var('SCC_ADDONS') =~ m/sdk/);
+            $url =~ s/\./$url_addons/;
+        }
         my $cmdline = " regurl=$url";
         $cmdline .= " regcert=$url" if get_var('SCC_CERT');
         return $cmdline;
