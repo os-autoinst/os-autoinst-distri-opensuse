@@ -562,6 +562,7 @@ sub get_addon_fullname {
         'hpcm'      => 'sle-module-hpc',
         'legacy'    => 'sle-module-legacy',
         'lgm'       => 'sle-module-legacy',
+        'ltss'      => 'SLES-LTSS',
         'pcm'       => 'sle-module-public-cloud',
         'script'    => 'sle-module-web-scripting',
         'serverapp' => 'sle-module-server-applications',
