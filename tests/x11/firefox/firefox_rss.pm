@@ -35,7 +35,7 @@ sub run {
 
     $self->firefox_open_url('https://linux.slashdot.org/');
     assert_and_click("slashdot-cookies-agree") if check_screen("slashdot-cookies", 0);
-    wait_still_screen 3;
+    wait_still_screen;
     assert_and_click "firefox-rss-button_enabled", "left";
     assert_screen("firefox-rss-page", 60);
 
