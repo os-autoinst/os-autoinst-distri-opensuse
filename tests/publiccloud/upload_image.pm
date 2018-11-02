@@ -22,33 +22,9 @@ use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
 
-sub prepare_os {
-
-    if (is_sle) {
-        my $modver = get_required_var('VERSION') =~ s/-SP\d+//r;
-        add_suseconnect_product('sle-module-public-cloud', $modver);
-    }
-
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        if (is_sle) {
-            # disable Cloud_tools for this test
-            zypper_call('rr Cloud_Tools');
-            if (script_run('pip list | grep awscli') == 0) {
-                assert_script_run('pip uninstall -y awscli');
-            }
-            zypper_call('ref');
-            zypper_call('in aws-cli');
-        }
-        zypper_call('in python-ec2uploadimg');
-        assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
-    }
-}
-
 sub run {
     my ($self) = @_;
     select_virtio_console();
-
-    prepare_os();
 
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init;

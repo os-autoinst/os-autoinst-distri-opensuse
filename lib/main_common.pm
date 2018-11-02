@@ -2072,10 +2072,18 @@ sub load_toolchain_tests {
 }
 
 sub load_publiccloud_tests {
-    loadtest "publiccloud/prepare_tools" if get_var('PUBLIC_CLOUD_PREPARE_TOOLS');
-    loadtest "publiccloud/upload_image"  if get_var('PUBLIC_CLOUD_IMAGE_LOCATION');
-    loadtest "publiccloud/ipa"           if get_var('PUBLIC_CLOUD_IPA_TESTS');
-    loadtest 'publiccloud/run_ltp'       if get_var('PUBLIC_CLOUD_LTP');
+    if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
+        loadtest "publiccloud/prepare_tools";
+    }
+    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS')) {
+        loadtest "publiccloud/ipa";
+    }
+    elsif (get_var('PUBLIC_CLOUD_LTP')) {
+        loadtest 'publiccloud/run_ltp';
+    }
+    elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        loadtest "publiccloud/upload_image";
+    }
 }
 
 sub load_common_opensuse_sle_tests {
