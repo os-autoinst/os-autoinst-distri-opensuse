@@ -63,4 +63,8 @@ sub run {
     validate_script_output("wicked show dev $iface",     sub { m/\[dhcp\]/g; });
 }
 
+sub test_flags {
+    return {always_rollback => 1, wicked_need_sync => 1};
+}
+
 1;

@@ -1599,8 +1599,14 @@ sub load_filesystem_tests {
 sub load_wicked_tests {
     loadtest 'wicked/before_test';
     if (check_var('WICKED', 'basic')) {
-        loadtest 'wicked/basic';
-        loadtest 'wicked/config_files';
+
+        loadtest 'wicked/basic/t01_basic';
+        loadtest 'wicked/basic/t02_static_addresses_legacy';
+        loadtest 'wicked/basic/t03_static_addresses_xml';
+        loadtest 'wicked/basic/t04_dynamic_addresses_legacy';
+        loadtest 'wicked/basic/t05_dynamic_addresses_xml';
+        loadtest 'wicked/basic/t06_static_routes_legacy';
+        loadtest 'wicked/basic/t06_static_routes_xml';
     }
     elsif (check_var('WICKED', 'advanced')) {
         my $f = get_var('IS_WICKED_REF') ? 'ref' : 'sut';
