@@ -70,6 +70,7 @@ sub repl_module_in_sourcefile {
 
     my $replaced_item = "(source.(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools|Web-Scripting).sles-" . $version . "-64=)";
     $version =~ s/-sp0//;
+    $version = uc($version);
     my $daily_build_module = "http://openqa.suse.de/assets/repo/SLE-${version}-Module-\\2-POOL-x86_64-Build" . get_required_var('BUILD') . "-Media1/";
     my $source_file        = "/usr/share/qa/virtautolib/data/sources.*";
     my $command            = "sed -ri 's#^.*${replaced_item}.*\$#\\1$daily_build_module#g' $source_file";
