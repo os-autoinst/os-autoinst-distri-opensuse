@@ -144,7 +144,7 @@ sub run_ipa {
     $args{cleanup}              //= 1;
     $args{ssh_private_key_file} //= '.ssh/id_rsa';
     $args{tests}                //= '';
-    $args{timeout}              //= 60 * 20;
+    $args{timeout}              //= 60 * 30;
     $args{results_dir}          //= 'ipa_results';
     $args{distro}               //= 'sles';
     $args{tests} =~ s/,/ /g;
