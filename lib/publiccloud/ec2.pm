@@ -84,6 +84,7 @@ sub upload_img {
           . "--machine 'x86_64' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . (($img_name =~ /hvm/i) ? "--virt-type hvm --sriov-support " : "--virt-type para ")
+          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '')
           . "--verbose "
           . "--regions '" . $self->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
