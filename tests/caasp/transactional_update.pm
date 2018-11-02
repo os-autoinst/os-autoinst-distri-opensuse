@@ -63,7 +63,10 @@ sub run {
     trup_call "ptf install" . rpmver('security');
     check_reboot_changes;
     check_package 'in';
-    my $snap = script_output "snapper list | tail -1 | awk '{print \$3}'";
+
+    # Find snapshot number for rollback
+    my $f = is_caasp('kubic') ? 1 : 3;
+    my $snap = script_output "snapper list | tail -1 | cut -d'|' -f$f | tr -d ' *'";
 
     record_info 'Update #1', 'Add repository and update - snapshot #2';
     # Only CaaSP needs an additional repo for testing
