@@ -28,11 +28,18 @@ if (check_var('VALIDATE_PCM_PATTERN', 'azure')) {
         condition => sub { check_var_array('PATTERNS', 'azure') },
         pattern   => 1,
         packages  => [qw(azuremetadata
-              cloud-regionsrv-client docker-img-store-setup growpart supportutils-plugin-suse-public-cloud
-              patterns-public-cloud-Microsoft-Azure python-azure-agent python-azurectl python-susepubliccloudinfo
-              regionServiceClientConfigAzure
+              cloud-regionsrv-client docker-img-store-setup growpart
+              supportutils-plugin-suse-public-cloud
+              python-azure-agent regionServiceClientConfigAzure
               )],
     };
+    if (is_sle('15+')) {
+        push @{$software{$azure_pattern}->{packages}}, ('python3-susepubliccloudinfo',
+            'patterns-public-cloud-15-Microsoft-Azure');
+    } else {
+        push @{$software{$azure_pattern}->{packages}}, ('python-azurectl',
+            'python-susepubliccloudinfo', 'patterns-public-cloud-Microsoft-Azure');
+    }
 }
 elsif (check_var('VALIDATE_PCM_PATTERN', 'aws')) {
     # Different pattern and packages names on SLE 15 and SLE 12
