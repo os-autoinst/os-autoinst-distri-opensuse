@@ -1010,8 +1010,8 @@ sub zypper_ar {
 }
 
 sub show_tasks_in_blocked_state {
-    # sending sysrqs doesn't work for hyperv
-    if (!check_var('MACHINE', 'svirt-hyperv')) {
+    # sending sysrqs doesn't work for svirt
+    if (!check_var('BACKEND', 'svirt')) {
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
         wait_serial('SysRq : Show Blocked State', 1);
