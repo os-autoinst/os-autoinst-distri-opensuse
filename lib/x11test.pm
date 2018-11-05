@@ -606,7 +606,7 @@ sub firefox_check_default {
     # needle can sometimes match before firefox start to load page
     wait_still_screen;
     # Set firefox as default browser if asked
-    assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 150;
+    assert_screen [qw(firefox_default_browser firefox-url-loaded)], 150;
     if (match_has_tag('firefox_default_browser')) {
         wait_screen_change {
             assert_and_click 'firefox_default_browser_yes';
