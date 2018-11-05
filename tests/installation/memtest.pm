@@ -20,7 +20,7 @@ sub run {
     my $self = shift;
     ensure_shim_import;
     $self->select_bootmenu_more('inst-onmemtest', 1);
-    assert_screen('pass-complete', 700);
+    assert_screen('pass-complete', 1000);
 }
 
 sub test_flags {
