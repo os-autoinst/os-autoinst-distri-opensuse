@@ -20,6 +20,7 @@ sub run() {
     my ($self) = shift;
 
     $self->start_firefox;
+    wait_still_screen;
     send_key "alt-h";
     assert_screen 'firefox-help-menu';
     send_key "a";
