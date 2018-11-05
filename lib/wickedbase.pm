@@ -254,20 +254,23 @@ sub do_mutex {
     my ($self) = @_;
     my $mutex_name = 'test_' . $self->{name} . '_ready';
     if (check_var('IS_WICKED_REF', '1')) {
+        record_info('mutex wait', $mutex_name);
         mutex_wait($mutex_name);
     } else {
+        record_info('mutex create', $mutex_name);
         mutex_create($mutex_name);
     }
 }
 
-sub done {
+sub post_run {
     my ($self) = @_;
+    $self->{wicked_post_run} = 1;
+
     my $flags = $self->test_flags();
     if ($flags->{wicked_need_sync}) {
         $self->do_mutex();
     }
     $self->upload_wicked_logs('post');
-    $self->SUPER::done();
 }
 
 sub pre_run_hook {
@@ -280,6 +283,16 @@ sub pre_run_hook {
         type_string("\n");
         $self->upload_wicked_logs('pre');
     }
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->post_run() unless $sefl->{wicked_post_run};
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->post_run() unless $sefl->{wicked_post_run};
 }
 
 1;
