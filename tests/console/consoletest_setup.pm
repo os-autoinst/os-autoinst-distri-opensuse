@@ -27,7 +27,7 @@ sub run {
 
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
-    systemctl "stop serial-getty\@$testapi::serialdev";
+    systemctl "stop serial-getty\@$testapi::serialdev", ignore_failure => 1;
     systemctl "disable serial-getty\@$testapi::serialdev";
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
     systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
