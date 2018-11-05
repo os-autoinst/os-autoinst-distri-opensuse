@@ -102,11 +102,13 @@ sub __get_text {
         $statement->delete;
     }
     }
-    # test_flags are duplicates
-    for my $sub (@{$Document->find('PPI::Statement::Sub')}) {
-    if ($sub->name eq 'test_flags') {
-        $sub->delete;
-    }
+
+    # check if file contains any sub-routine declaration
+    for my $sub (@{$Document->find('PPI::Statement::Sub') || []}) {
+        # test_flags can be duplicates, ignore them
+        if ($sub->name eq 'test_flags') {
+            $sub->delete;
+        }
     }
 
     #my $lines = _dump($Document, []);
@@ -156,7 +158,7 @@ my $last_lcp = 0;
 
     # filter out when the lcp for this index is smaller than our requested minimal length
     my $lcp;    # length of match
-    my $res = ($lcp = Code::DRY::get_len_at($_)) >= $minlength; 
+    my $res = ($lcp = Code::DRY::get_len_at($_)) >= $minlength;
 
     $res = $res && $lcp != $last_lcp;
 
