@@ -40,7 +40,11 @@ our %partition_roles = qw(
 
 # We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
 sub is_storage_ng_newui {
-    return is_storage_ng && (is_sle('15-SP1+') || is_leap('15.1+') || is_tumbleweed || get_var('STORAGE_NG_NEW_UI'));
+    return is_storage_ng && (
+        is_sle('15-SP1+')
+        || (is_opensuse && !is_leap('<15.1'))
+        || get_var('STORAGE_NG_NEW_UI')
+    );
 }
 
 sub wipe_existing_partitions_storage_ng {
