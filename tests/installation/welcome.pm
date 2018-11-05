@@ -97,7 +97,7 @@ sub run {
             my %hotkey = (
                 sles     => 's',
                 sled     => 'u',
-                sles4sap => get_var('OFW') ? 'u' : 'i',
+                sles4sap => get_var('OFW') ? 'u' : 'x',
                 hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
             );
             send_key 'alt-' . $hotkey{$product};
