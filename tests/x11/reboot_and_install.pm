@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -40,7 +40,7 @@ sub run {
     }
     bootmenu_default_params;
     specific_bootmenu_params;
-    registration_bootloader_params;
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
 
     # Stop the bootloader timeout in "zdup" upgrade where we expect the
     # bootloader entry to be still shown later on and just in case it is
