@@ -599,11 +599,12 @@ sub restart_firefox {
     assert_screen 'xterm';
     type_string "$cmd\n";
     type_string "firefox $url >>firefox.log 2>&1 &\n";
-    sleep 5;
     $self->firefox_check_default;
 }
 
 sub firefox_check_default {
+    # needle can sometimes match before firefox start to load page
+    wait_still_screen;
     # Set firefox as default browser if asked
     assert_screen [qw(firefox_default_browser firefox_trackinfo firefox_readerview_window firefox-url-loaded)], 150;
     if (match_has_tag('firefox_default_browser')) {
