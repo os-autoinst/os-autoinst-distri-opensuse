@@ -1485,6 +1485,7 @@ sub load_extra_tests_textmode {
         loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
     }
     loadtest "console/cron";
+    loadtest "console/syslog";
     unless (is_sle '<15') {
         loadtest "console/ntp_client";
     }
