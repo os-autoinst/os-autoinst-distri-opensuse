@@ -24,7 +24,7 @@ use warnings;
 use base 'y2logsstep';
 use testapi;
 use partition_setup qw(create_new_partition_table addpart addboot);
-use version_utils qw(is_opensuse is_storage_ng is_tumbleweed);
+use version_utils qw(is_opensuse is_storage_ng);
 
 sub process_warning {
     my (%args) = @_;
@@ -52,7 +52,6 @@ sub process_missing_special_partitions {
 
 sub remove_partition {
     my $remove_key = (is_storage_ng) ? 'alt-e' : 'alt-t';
-    $remove_key = 'alt-t' if is_tumbleweed;
     wait_screen_change { send_key($remove_key) };
     assert_screen 'remove-partition';
     send_key 'alt-y';
