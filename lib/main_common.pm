@@ -965,8 +965,10 @@ sub load_inst_tests {
         elsif (get_var('IMPORT_USER_DATA')) {
             loadtest 'installation/user_import';
         }
-        else {
-            loadtest "installation/user_settings" if !is_caasp('kubic');
+        elsif (is_caasp 'kubic') {
+            loadtest "installation/kubeadm_settings" if check_var('SYSTEM_ROLE', 'kubeadm');
+        } else {
+            loadtest "installation/user_settings";
         }
         if (is_sle || get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
             loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-node') || check_var('SYSTEM_ROLE', 'hpc-server');
