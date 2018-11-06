@@ -7,28 +7,28 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Advanced test cases for wicked
-# Test 2 : Create a GRE interface from wicked XML files
+# Summary: Standalone card - ifdown, ifreload
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base 'wickedbase';
+use base 'opensusebasetest';
 use strict;
 use testapi;
+use lockapi;
+use mmapi;
 
 sub run {
-    my ($self) = @_;
-    my $config = '/etc/wicked/ifconfig/gre.xml';
-    record_info('Info', 'Create a GRE interface from wicked XML files');
-    $self->get_from_data('wicked/xml/gre.xml', $config);
-    $self->setup_tunnel($config, 'gre1');
-    my $res = $self->get_test_result('gre1');
-    die if ($res eq 'FAILED');
-}
+    my ($self, $args) = @_;
 
-sub test_flags {
-    return {always_rollback => 1};
+    my $children     = get_children();
+    my $num_children = scalar(keys %$children) + 1;    # +1 for it self
+    for my $test (@{$args->{wicked_tests}}) {
+        my $barrier_name = 'test_' . $test . '_ready';
+
+        record_info('barrier create', $barrier_name . ' num_children:' . $num_children);
+        barrier_create($barrier_name, $num_children);
+    }
 }
 
 1;

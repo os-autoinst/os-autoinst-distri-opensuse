@@ -13,6 +13,7 @@
 package main_common;
 use base Exporter;
 use File::Basename;
+use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
@@ -1606,47 +1607,47 @@ sub load_filesystem_tests {
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
 }
 
+sub get_wicked_tests {
+    my (%args)     = @_;
+    my $basedir    = $bmwqemu::vars{CASEDIR} . '/tests/';
+    my $wicked_dir = $basedir . 'wicked/';
+    my $suite      = get_required_var('WICKED');
+    my $type = get_required_var('IS_WICKED_REF') ? 'ref' : 'sut';
+    my $exclude   = get_var('WICKED_EXCLUDE', '$a');
+    my $suite_dir = $wicked_dir . $suite . '/';
+    my $tests_dir = $suite_dir . $type . '/';
+    my @tests;
+    $args{only_names} //= 0;
+
+    die "Unsupported WICKED suite: $suite" unless (-d $suite_dir);
+
+    find({wanted => sub {
+                return unless -f $_;
+                return unless $_ =~ /\.pm$/;
+                my $name = substr($_, length($basedir), -3);
+                return if (basename($name) =~ $exclude);
+                push(@tests, $name);
+    }, no_chdir => 1}, $tests_dir);
+    @tests = sort(@tests);
+
+    unshift(@tests, 'wicked/before_test');
+    if ($args{only_names}) {
+        @tests = map(basename($_), @tests);
+    }
+    return @tests;
+}
+
+sub load_wicked_barrier {
+    my $args = OpenQA::Test::RunArgs->new();
+    my @wicked_tests = get_wicked_tests(only_names => 1);
+    $args->{wicked_tests} = \@wicked_tests;
+    loadtest('wicked/barrier_init', run_args => $args);
+}
+
 sub load_wicked_tests {
-    loadtest 'wicked/before_test';
-    if (check_var('WICKED', 'basic')) {
-        loadtest 'wicked/basic/t01_basic';
-        loadtest 'wicked/basic/t02_static_addresses_legacy';
-        loadtest 'wicked/basic/t03_static_addresses_xml';
-        loadtest 'wicked/basic/t04_dynamic_addresses_legacy';
-        loadtest 'wicked/basic/t05_dynamic_addresses_xml';
-        loadtest 'wicked/basic/t06_static_routes_legacy';
-        loadtest 'wicked/basic/t07_static_routes_xml';
-    }
-    elsif (check_var('WICKED', 'advanced')) {
-        my $f = get_var('IS_WICKED_REF') ? 'ref' : 'sut';
-        loadtest 'wicked/advanced/' . $f . '/t01_gre_tunnel_legacy';
-        loadtest 'wicked/advanced/' . $f . '/t02_gre_tunnel_xml';
-        loadtest 'wicked/advanced/' . $f . '/t03_sit_tunnel_legacy';
-        loadtest 'wicked/advanced/' . $f . '/t04_sit_tunnel_xml';
-        loadtest 'wicked/advanced/' . $f . '/t05_ipip_tunnel_legacy';
-        loadtest 'wicked/advanced/' . $f . '/t06_ipip_tunnel_xml';
-        loadtest 'wicked/advanced/' . $f . '/t07_tun_interface_legacy';
-        loadtest 'wicked/advanced/' . $f . '/t08_tun_interface_xml';
-        loadtest 'wicked/advanced/' . $f . '/t09_tap_interface_legacy';
-        loadtest 'wicked/advanced/' . $f . '/t10_tap_interface_xml';
-        loadtest 'wicked/advanced/' . $f . '/t11_bridge_interface_legacy';
-        loadtest 'wicked/advanced/' . $f . '/t12_bridge_interface_xml';
-    }
-    elsif (check_var('WICKED', 'startandstop')) {
-        my $f = get_var('IS_WICKED_REF') ? 'ref' : 'sut';
-        loadtest 'wicked/startandstop/' . $f . '/t01_standalone_card_ifdown_ifreload';
-        loadtest 'wicked/startandstop/' . $f . '/t02_bridge_ifreload';
-        loadtest 'wicked/startandstop/' . $f . '/t03_bridge_ifup_ifreload';
-        loadtest 'wicked/startandstop/' . $f . '/t04_bridge_ifup_remove_all_config_ifreload';
-        loadtest 'wicked/startandstop/' . $f . '/t05_bridge_ifup_remove_one_config_ifreload';
-        loadtest 'wicked/startandstop/' . $f . '/t06_bridge_ifdown_create_new_config_ifreload_ifdown_ifup';
-        loadtest 'wicked/startandstop/' . $f . '/t07_bridge_ifdown_remove_one_config_ifreload_ifdown_ifup';
-        loadtest 'wicked/startandstop/' . $f . '/t08_sit_tunnel_ifdown';
-        loadtest 'wicked/startandstop/' . $f . '/t09_openvpn_tunnel_ifdown';
-        loadtest 'wicked/startandstop/' . $f . '/t10_vlan_ifup_all_ifdown_one_card';
-    }
-    else {
-        die 'Unhandled WICKED test selection: ' . get_var('WICKED');
+    load_wicked_barrier() if get_var('IS_WICKED_REF');
+    for my $test (get_wicked_tests()) {
+        loadtest $test;
     }
 }
 
