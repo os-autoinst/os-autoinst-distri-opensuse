@@ -204,8 +204,9 @@ sub is_leap {
 }
 
 sub is_opensuse {
-    return 0 unless check_var('DISTRI', 'opensuse');
-    return 1;
+    return 1 if check_var('DISTRI', 'opensuse');
+    return 1 if check_var('DISTRI', 'kubic');
+    return 0;
 }
 
 # Check if distribution is SLE with optional filter for:
@@ -360,8 +361,7 @@ sub is_using_system_role {
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || is_sle('=15')
       || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
-      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW
-      || is_caasp('kubic');                    # And Kubic
+      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, Kubic
 }
 
 # On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
