@@ -47,7 +47,7 @@ sub run {
     assert_script_run("ifup $iface");
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
     $self->before_scenario('Test 4', 'Set up dynamic addresses from wicked XML files', $iface);
-    assert_script_run("wicked ifup --ifconfig /data/static_address/static-addresses.xml $iface");
+    assert_script_run("wicked ifup --ifconfig /data/dynamic_address/dynamic-addresses.xml $iface");
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
     $self->before_scenario('Test 5', 'Set up static routes from legacy ifcfg files', $iface);
     assert_script_run("cp /data/static_address/ifcfg-$iface /etc/sysconfig/network");

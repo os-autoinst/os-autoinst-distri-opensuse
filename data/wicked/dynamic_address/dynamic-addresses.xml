@@ -10,11 +10,11 @@
   </ipv4:dhcp>
 
   <ipv6>
-    <enabled>true</enabled>
+    <enabled>false</enabled>
   </ipv6>
 
   <ipv6:dhcp>
-    <enabled>true</enabled>
+    <enabled>false</enabled>
     <defer-timeout>10</defer-timeout>
     <acquire-timeout>10</acquire-timeout>
   </ipv6:dhcp>
