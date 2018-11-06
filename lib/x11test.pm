@@ -604,7 +604,9 @@ sub restart_firefox {
 
 sub firefox_check_default {
     # needle can sometimes match before firefox start to load page
-    wait_still_screen;
+    # svirt is special case with TIMEOUT_SCALE=3 which does not affect wait_still_screen
+    my $stilltime = get_var('TIMEOUT_SCALE') ? 30 : 5;
+    wait_still_screen $stilltime;
     # Set firefox as default browser if asked
     assert_screen [qw(firefox_default_browser firefox-url-loaded)], 150;
     if (match_has_tag('firefox_default_browser')) {
