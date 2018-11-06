@@ -49,19 +49,43 @@ sub analyzeResult {
             $result->{$testcase_name}->{error}  = $error             ? $error   : 'none';
         }
     }
+
+    # if there are failing guest installation
+    unless ($text =~ /Congratulations! No guest failed in installation/) {
+        $text =~ /The guests failed in guest installation phase before core test are:(.*)Installation failed guest list done./s;
+        my $installation_failed_guests = $1;
+        foreach my $guest (split('\n', $installation_failed_guests)) {
+            next unless $guest !~ /^\s*$/;
+            $result->{$guest}->{status} = 'FAILED';
+            $result->{$guest}->{error}  = "Guest $guest installation failed.";
+        }
+    }
     return $result;
 }
 
 sub run {
-    my $self = shift;
-    my $timeout = get_var("MAX_TEST_TIME", "36000") + 10;
+    my $self            = shift;
+    my $timeout         = get_var('MAX_TEST_TIME', '36000') + 10;
+    my $upload_log_name = 'guest-upgrade-logs';
     script_run("echo \"Debug info: max_test_time is $timeout\"");
-    #Modify source configuration file sources.* of virtauto-data pkg on host
-    #to use openqa daily build installer repo and module repo for guests,
-    #and it will be copied into guests to be used during guest upgrade test
+    # Modify source configuration file sources.* of virtauto-data pkg on host
+    # to use openqa daily build installer repo and module repo for guests,
+    # and it will be copied into guests to be used during guest upgrade test
     repl_module_in_sourcefile();
-    $self->{"package_name"} = "Guest Upgrade Test";
-    $self->run_test($timeout, "", "yes", "yes", "/var/log/qa/", "guest-upgrade-logs");
+
+    $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);
+
+    $self->run_test($timeout, '', 'no', 'yes', '/var/log/qa/', $upload_log_name);
+
+    # display test result
+    # print the test output to the openQA output
+    my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Executing VM installation/,/[0-9]* fail [0-9]* succeed/p'";
+    my $guest_upgrade_log_content = script_output($cmd);
+    save_screenshot;
+
+    # print the sub test junit log
+    $self->{'package_name'} = 'Guest Upgrade Test';
+    $self->add_junit_log($guest_upgrade_log_content);
 }
 
 1;
