@@ -34,9 +34,11 @@ sub run {
         assert_script_run "btrfs subvolume show /var/lib/cni";
     }
 
-
-    # bsc#1051762 - Docker is on btrfs partition
-    assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
+    # kubeadm role uses CRI-O
+    unless (check_var('SYSTEM_ROLE', 'kubeadm')) {
+        # bsc#1051762 - Docker is on btrfs partition
+        assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
+    }
 
     if (check_var('SYSTEM_ROLE', 'worker')) {
         # poo#16574 - Check salt master configuration
