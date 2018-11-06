@@ -417,12 +417,12 @@ sub pre_run_hook {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->post_run() unless $sefl->{wicked_post_run};
+    $self->post_run() unless $self->{wicked_post_run};
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    $self->post_run() unless $sefl->{wicked_post_run};
+    $self->post_run() unless $self->{wicked_post_run};
 }
 
 1;
