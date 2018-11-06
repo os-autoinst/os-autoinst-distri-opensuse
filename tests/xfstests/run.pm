@@ -241,7 +241,7 @@ sub shuffle {
 # Copy log to ready to save
 sub copy_log {
     my ($category, $num, $log_type) = @_;
-    my $cmd = "cat /opt/xfstests/results/$category/$num.$log_type | tee $LOG_DIR/$category/$num.$log_type";
+    my $cmd = "if [ -e /opt/xfstests/results/$category/$num.$log_type ]; then cat /opt/xfstests/results/$category/$num.$log_type | tee $LOG_DIR/$category/$num.$log_type; fi";
     script_run($cmd);
 }
 
