@@ -475,16 +475,11 @@ sub ensure_unlocked_desktop {
             last;            # desktop is unlocked, mission accomplished
         }
         if (match_has_tag 'screenlock') {
-            unless (get_var('DESKTOP', '') =~ m/gnome/ && check_screen('blackscreen')) {
-                # Only xscreensaver has a blackscreen as screenlock but gnome might
-                # show a black screen here as a transient screen due to switch to x11.
-                # Pressing 'esc' in this case will break the user selection by pressing 'ret'.
-                wait_screen_change {
-                    send_key 'esc';    # end screenlock
-                };
-            }
+            wait_screen_change {
+                send_key 'esc';    # end screenlock
+            };
         }
-        wait_still_screen 2;           # slow down loop
+        wait_still_screen 2;       # slow down loop
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
     }
 }
