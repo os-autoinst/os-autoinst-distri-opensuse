@@ -74,7 +74,7 @@ sub load_caasp_inst_tests {
         loadtest 'autoyast/installation';
     }
     else {
-        if (get_var 'MULTI_STEP_KUBIC_FLOW') {
+        if (is_caasp 'kubic') {
             load_inst_tests;
         }
         else {
