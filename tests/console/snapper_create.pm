@@ -15,13 +15,12 @@ use base 'btrfs_test';
 use testapi;
 use utils;
 
+# In many cases script output returns not only script execution results
+# but other data which was written to serial device. We have to ensure
+# that we got what we expect. See poo#25716
 sub get_last_snap_number {
-    # In many cases script output returns not only script execution results
-    # but other data which was written to serial device. We have to ensure
-    # that we got what we expect. See poo#25716
-
-    # get snapshot id column
-    my $snap_head         = script_output("snapper list | head -n1");
+    # get snapshot id column, tail before head to avoid SIGPIPE
+    my $snap_head         = script_output("snapper list | tail -n +1 | head -n1");
     my $snap_col_found    = 0;
     my $snap_id_col_index = 1;
     for my $field (split(/\|/, $snap_head)) {
@@ -35,7 +34,7 @@ sub get_last_snap_number {
     }
     die "Unable to determine snapshot id column index" unless ($snap_col_found);
 
-    my $output = script_output("snapper list | tail -n1 | awk -F '|' '{ print \$$snap_id_col_index }' | tr -d '[:space:]' | awk '{ print \">>>\" \$1 \"<<<\" }'");
+    my $output = script_output("snapper list | tail -n1 | awk -F '|' '{ print \$$snap_id_col_index }' | tr -d '[:space:]*' | awk '{ print \">>>\" \$1 \"<<<\" }'");
     if ($output =~ />>>(?<snap_number>\d+)<<</) {
         return $+{snap_number};
     }
