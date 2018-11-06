@@ -18,18 +18,44 @@ use testapi;
 use utils 'ensure_fullscreen';
 use version_utils qw(is_sle sle_version_at_least is_staging has_product_selection has_license_on_welcome_screen);
 
-sub run {
-    my ($self) = @_;
+sub handle_popups {
+    # See poo#19832, sometimes manage to match same tag twice and test fails due to broken sequence
+    wait_still_screen 5;
+    assert_screen(\@welcome_tags, 500);
+    # Normal exit condition
+    if (match_has_tag 'inst-betawarning' || match_has_tag 'inst-welcome' || match_has_tag 'inst-welcome-no-product-list') {
+        last;
+    }
+    if (match_has_tag 'scc-invalid-url') {
+        die 'SCC reg URL is invalid' if !get_var('SCC_URL_VALID');
+        send_key 'alt-r';    # registration URL field
+        send_key_until_needlematch 'scc-invalid-url-deleted', 'backspace';
+        type_string get_var('SCC_URL_VALID');
+        wait_still_screen 2;
+        # Press Ok to confirm scc url
+        wait_screen_change { send_key 'alt-o' };
+        next;
+    }
+    if (match_has_tag 'inst-welcome-confirm-self-update-server') {
+        wait_screen_change { send_key $cmd{ok} };
+        next;
+    }
+    if (match_has_tag('untrusted-ca-cert')) {
+        send_key 'alt-t';
+        wait_still_screen 5;
+        next;
+    }
+    if (match_has_tag 'linuxrc-dhcp-question') {
+        send_key 'ret';
+    }
+}
+
+sub assert_welcome_screen {
     my $iterations;
 
     my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
     my $expect_beta_warn = get_var('BETA');
-    if ($expect_beta_warn) {
-        push @welcome_tags, 'inst-betawarning';
-    }
-    else {
-        push @welcome_tags, 'inst-welcome';
-    }
+    push @welcome_tags, $expect_beta_warn ? 'inst-betawarning' : 'inst-welcome';
     # Add tag for untrusted-ca-cert with SMT
     push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
@@ -40,75 +66,66 @@ sub run {
     ensure_fullscreen;
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
-    while ($iterations++ < scalar(@welcome_tags)) {
-        # See poo#19832, sometimes manage to match same tag twice and test fails due to broken sequence
-        wait_still_screen 5;
-        assert_screen(\@welcome_tags, 500);
-        # Normal exit condition
-        if (match_has_tag 'inst-betawarning' || match_has_tag 'inst-welcome' || match_has_tag 'inst-welcome-no-product-list') {
-            last;
-        }
-        if (match_has_tag 'scc-invalid-url') {
-            die 'SCC reg URL is invalid' if !get_var('SCC_URL_VALID');
-            send_key 'alt-r';    # registration URL field
-            send_key_until_needlematch 'scc-invalid-url-deleted', 'backspace';
-            type_string get_var('SCC_URL_VALID');
-            wait_still_screen 2;
-            # Press Ok to confirm scc url
-            wait_screen_change { send_key 'alt-o' };
-            next;
-        }
-        if (match_has_tag 'inst-welcome-confirm-self-update-server') {
-            wait_screen_change { send_key $cmd{ok} };
-            next;
-        }
-        if (match_has_tag('untrusted-ca-cert')) {
-            send_key 'alt-t';
-            wait_still_screen 5;
-            next;
-        }
-        if (match_has_tag 'linuxrc-dhcp-question') {
-            send_key 'ret';
-        }
-    }
+    handle_popups while ($iterations++ < scalar(@welcome_tags));
+}
 
-    # Process beta warning if expected
-    if ($expect_beta_warn) {
-        assert_screen 'inst-betawarning';
-        wait_screen_change { send_key 'ret' };
-    }
+sub process_beta_warning_if_expected {
+    return unless get_var('BETA');
+    assert_screen 'inst-betawarning';
+    wait_screen_change { send_key 'ret' };
+}
+
+sub ensure_steady_welcome_screen {
     assert_screen((is_sle('15+') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
     mouse_hide;
     wait_still_screen(3);
+}
 
+sub assert_product_selection {
+    assert_screen('select-product');
+    my $product = get_required_var('SLE_PRODUCT');
+    if (check_var('VIDEOMODE', 'text')) {
+        my %hotkey = (
+            sles     => 's',
+            sled     => 'u',
+            sles4sap => get_var('OFW') ? 'u' : 'x',
+            hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
+        );
+        send_key 'alt-' . $hotkey{$product};
+    }
+    else {
+        assert_and_click('before-select-product-' . $product);
+    }
+    assert_screen('select-product-' . $product);
+}
+
+sub assert_license_accepted {
+    if (get_var('INSTALLER_EXTENDED_TEST')) {
+        $self->verify_license_has_to_be_accepted;
+        $self->verify_license_translations unless is_sle('15+');
+    }
+    $self->accept_license;
+}
+
+sub assert_product_or_license_selection {
+    my ($self) = @_;
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
     if (has_product_selection) {
-        assert_screen('select-product');
-        my $product = get_required_var('SLE_PRODUCT');
-        if (check_var('VIDEOMODE', 'text')) {
-            my %hotkey = (
-                sles     => 's',
-                sled     => 'u',
-                sles4sap => get_var('OFW') ? 'u' : 'x',
-                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
-            );
-            send_key 'alt-' . $hotkey{$product};
-        }
-        else {
-            assert_and_click('before-select-product-' . $product);
-        }
-        assert_screen('select-product-' . $product);
+        assert_product_selection;
     }
     # Accept the License on installations where License Agreement is shown on Welcome screen.
     elsif (has_license_on_welcome_screen) {
-        if (get_var('INSTALLER_EXTENDED_TEST')) {
-            $self->verify_license_has_to_be_accepted;
-            $self->verify_license_translations unless is_sle('15+');
-        }
-        $self->accept_license;
+        assert_license_accepted;
     }
+}
 
+sub run {
+    my ($self) = @_;
+    assert_welcome_screen;
+    process_beta_warning_if_expected;
+    ensure_steady_welcome_screen;
+    $self->assert_product_or_license_selection();
     send_key $cmd{next} unless get_var('INSTALL_KEYBOARD_LAYOUT');
 }
 
