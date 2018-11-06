@@ -407,10 +407,10 @@ elsif (get_var('DOCKER_IMAGE_TEST')) {
     load_docker_tests;
 }
 else {
-    if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION')) {
+    if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
         load_boot_tests();
         loadtest "installation/finish_desktop";
-        if (get_var('LIVE_INSTALLATION')) {
+        if (get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
             loadtest "installation/live_installation";
             load_inst_tests();
             load_reboot_tests();

@@ -280,7 +280,7 @@ sub select_bootmenu_option {
         send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 10, 5;
     }
     else {
-        if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION')) {
+        if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
             send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 10, 5;
         }
         elsif (get_var('OFW')) {

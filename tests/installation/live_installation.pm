@@ -20,6 +20,7 @@
 use base "installbasetest";
 use testapi;
 use utils;
+use version_utils "is_upgrade";
 use strict;
 
 sub send_key_and_wait {
@@ -33,7 +34,12 @@ sub run {
     # stop packagekit, root password is not needed on live system
     x11_start_program('systemctl stop packagekit.service', target_match => 'generic-desktop');
     turn_off_kde_screensaver;
-    assert_and_click 'live-installation';
+    if (is_upgrade) {
+        assert_and_click 'live-upgrade';
+    }
+    else {
+        assert_and_click 'live-installation';
+    }
     assert_and_click 'maximize';
     mouse_hide;
     # Wait until the first screen is shown, only way to make sure it's idle
