@@ -1058,7 +1058,6 @@ sub load_consoletests {
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest "console/lvm_thin_check" if get_var('LVM_THIN_LV');
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "locale/keymap_or_locale";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
@@ -2005,9 +2004,7 @@ sub load_systemd_patches_tests {
     loadtest 'console/systemd_testsuite';
 }
 
-sub load_create_hdd_tests {
-    return unless get_var('INSTALLONLY');
-    # install SES packages and deepsea testsuites
+sub load_system_prepare_tests {
     loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
@@ -2019,6 +2016,12 @@ sub load_create_hdd_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
+}
+
+sub load_create_hdd_tests {
+    return unless get_var('INSTALLONLY');
+    # install SES packages and deepsea testsuites
+    load_system_prepare_tests;
     load_shutdown_tests;
     if (check_var('BACKEND', 'svirt')) {
         if (is_hyperv) {
@@ -2088,12 +2091,24 @@ sub load_publiccloud_tests {
     }
 }
 
+# Scheduling set for validation of specific installation
+sub load_installation_validation_tests {
+    load_system_prepare_tests;
+    # See description of INSTALLATION_VALIDATION in variables.md
+    # Possible values:
+    # - console/lvm_thin_check for thin LVM
+    for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
+        loadtest $module;
+    }
+}
+
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
+    load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
 }
 
 sub load_ssh_key_import_tests {
