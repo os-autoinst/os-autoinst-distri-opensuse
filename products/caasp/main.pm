@@ -74,7 +74,7 @@ sub load_caasp_inst_tests {
         loadtest 'autoyast/installation';
     }
     else {
-        if (get_var 'MULTI_STEP_KUBIC_FLOW') {
+        if (is_caasp 'kubic') {
             load_inst_tests;
         }
         else {
@@ -135,17 +135,9 @@ sub load_feature_tests {
     loadtest 'caasp/journal_check';
 
     # Container Tests
-    if (!check_var('SYSTEM_ROLE', 'microos')) {
+    if (is_caasp 'caasp') {
         loadtest 'console/docker';
         loadtest 'console/docker_runc';
-        # OCI Containers
-        if (is_caasp('kubic') && check_var('SYSTEM_ROLE', 'plain')) {
-            loadtest 'console/kubeadm';
-            loadtest 'console/skopeo';
-            loadtest 'console/umoci';
-            loadtest 'console/runc';
-            loadtest 'console/rootless';
-        }
     }
 }
 

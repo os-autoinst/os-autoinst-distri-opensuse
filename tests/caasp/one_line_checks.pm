@@ -34,9 +34,11 @@ sub run {
         assert_script_run "btrfs subvolume show /var/lib/cni";
     }
 
-
-    # bsc#1051762 - Docker is on btrfs partition
-    assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
+    # kubeadm role uses CRI-O
+    unless (check_var('SYSTEM_ROLE', 'kubeadm')) {
+        # bsc#1051762 - Docker is on btrfs partition
+        assert_script_run 'stat -fc %T /var/lib/docker | grep -q btrfs';
+    }
 
     if (check_var('SYSTEM_ROLE', 'worker')) {
         # poo#16574 - Check salt master configuration
@@ -59,19 +61,17 @@ sub run {
     }
 
     # Checks are applicable only on Kubic now
-    if (is_caasp '4.0+') {
-        assert_script_run 'which docker';
-
-        # Should have unconfigured Kubernetes & container runtime environment
-        if (check_var('SYSTEM_ROLE', 'plain')) {
-            assert_script_run 'zypper se -i kubernetes | tee /dev/tty | grep -c kubernetes | grep 6';
-            assert_script_run 'rpm -q etcd';
-        }
-
+    if (is_caasp 'kubic') {
         # Should not include any container runtime
         if (check_var('SYSTEM_ROLE', 'microos')) {
+            assert_script_run 'which docker';
             assert_script_run '! zypper se -i kubernetes';
             assert_script_run '! rpm -q etcd';
+        }
+        # Should have unconfigured Kubernetes & container runtime environment
+        if (check_var('SYSTEM_ROLE', 'kubeadm')) {
+            assert_script_run 'which crio';
+            assert_script_run 'zypper se -i kubernetes';
         }
     }
 }
