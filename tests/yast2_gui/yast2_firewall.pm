@@ -85,9 +85,10 @@ sub verify_service_stopped {
     }
     assert_screen 'yast2_firewall_service_status_stopped';
     wait_screen_change { send_key $cmd{accept} };
+    assert_screen 'generic-desktop';
 
     select_console 'root-console';
-    if (script_run("firewall-cmd --state 2>&1 | grep 'not running'")) {
+    if (script_run("firewall-cmd --state 2>&1 | grep 'not running'") != 0) {
         record_soft_failure "bsc#1114807 - service does not stop ";
         return;
     }
@@ -108,6 +109,7 @@ sub verify_service_started {
     }
     assert_screen 'yast2_firewall_service_status_running';
     wait_screen_change { send_key $cmd{accept} };
+    assert_screen 'generic-desktop';
 
     select_console 'root-console';
     assert_script_run "firewall-cmd --state | grep running";
