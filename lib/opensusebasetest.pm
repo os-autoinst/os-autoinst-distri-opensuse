@@ -320,7 +320,7 @@ sub wait_boot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // 200;
+    my $ready_time      = $args{ready_time} // 300;
     my $in_grub         = $args{in_grub} // 0;
     my $nologin         = $args{nologin};
     my $forcenologin    = $args{forcenologin};
