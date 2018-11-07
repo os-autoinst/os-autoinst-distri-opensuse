@@ -22,7 +22,7 @@ sub run {
 
     assert_script_run '! rpm -q syslog-ng';
 
-    if (!is_tumbleweed) {
+    if (!is_tumbleweed && !is_jeos) {
         # check if rsyslogd is installed, enabled and running
         assert_script_run 'rpm -q rsyslog';
         systemctl 'is-enabled rsyslog';
