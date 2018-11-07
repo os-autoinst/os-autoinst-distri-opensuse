@@ -1489,7 +1489,7 @@ sub load_extra_tests_textmode {
     unless (is_sle '<15') {
         loadtest "console/ntp_client";
     }
-    loadtest "console/mta";
+    loadtest "console/mta" unless is_jeos;
     if (get_var("IPSEC")) {
         loadtest "console/ipsec_tools_h2h";
     }
