@@ -2,8 +2,17 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
-use utils
-  qw(type_string_slow ensure_unlocked_desktop save_svirt_pty get_root_console_tty get_x11_console_tty ensure_serialdev_permissions pkcon_quit zypper_call);
+use utils qw(
+  disable_serial_getty
+  ensure_serialdev_permissions
+  ensure_unlocked_desktop
+  get_root_console_tty
+  get_x11_console_tty
+  pkcon_quit
+  save_svirt_pty
+  type_string_slow
+  zypper_call
+);
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
 use ipmi_backend_utils 'use_ssh_serial_console';
 
@@ -331,6 +340,7 @@ sub become_root {
     my ($self) = @_;
 
     $self->script_sudo('bash', 0);
+    disable_serial_getty;
     type_string "whoami > /dev/$testapi::serialdev\n";
     wait_serial('root') || die "Root prompt not there";
     type_string "cd /tmp\n";
