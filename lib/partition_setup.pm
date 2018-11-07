@@ -40,7 +40,11 @@ our %partition_roles = qw(
 
 # We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
 sub is_storage_ng_newui {
-    return is_storage_ng && (is_sle('15-SP1+') || is_leap('15.1+') || is_tumbleweed || get_var('STORAGE_NG_NEW_UI'));
+    return is_storage_ng && (
+        is_sle('15-SP1+')
+        || (is_opensuse && !is_leap('<15.1'))
+        || get_var('STORAGE_NG_NEW_UI')
+    );
 }
 
 sub wipe_existing_partitions_storage_ng {
@@ -78,7 +82,6 @@ sub create_new_partition_table {
 
     # empty disk partitions by creating new partition table
     my $expert_menu_key = (is_storage_ng) ? 'alt-r' : 'alt-x';    # expert menu keys
-    $expert_menu_key = 'alt-e' if is_tumbleweed;
 
     if (is_storage_ng_newui) {
         # partition table management has been moved from Partitions tab to Overview
@@ -104,9 +107,9 @@ sub create_new_partition_table {
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
-        send_key 'alt-p' if (is_storage_ng and (!is_tumbleweed));    # return back to Partitions tab
+        send_key 'alt-p' if (is_storage_ng);                  # return back to Partitions tab
     }
-    unless (is_storage_ng and (!is_tumbleweed)) {
+    unless (is_storage_ng) {
         assert_screen 'partition-create-new-table';
         send_key 'alt-y';
     }
