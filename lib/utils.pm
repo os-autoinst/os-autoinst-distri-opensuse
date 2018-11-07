@@ -77,6 +77,7 @@ our @EXPORT = qw(
   show_tasks_in_blocked_state
   svirt_host_basedir
   prepare_ssh_localhost_key_login
+  disable_serial_getty
 );
 
 
@@ -884,6 +885,29 @@ sub ensure_serialdev_permissions {
     else {
         assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
     }
+}
+
+=head2 disable_serial_getty
+Serial getty service pollutes serial output with login propmt, which
+interferes with the output, e.g. when calling script_output.
+Login prompt messages on serial are used on some remote backend to
+identify that system has been booted, so do not mask on non-qemu backends
+=cut
+sub disable_serial_getty {
+    my ($self) = @_;
+    my $service_name = "stop serial-getty\@$testapi::serialdev";
+    # Do not run on zVM as running agetty is required by iucvconn in order to work
+    return if check_var('BACKEND', 's390x');
+    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
+    # Doing early due to bsc#1103199 and bsc#1112109
+    # Return if already disabled
+    return if script_run "systemctl is-enabled $service_name";
+    systemctl "stop $service_name",    ignore_failure => 1;
+    systemctl "disable $service_name", ignore_failure => 1;
+    record_info 'serial-getty', "Serial getty disabled for $testapi::serialdev";
+    # Mask if is qemu backend as use serial in remote installations e.g. during reboot
+    systemctl "mask $service_name", ignore_failure => 1 if check_var('BACKEND', 'qemu');
+    record_info 'serial-getty', "Serial getty mask for $testapi::serialdev";
 }
 
 =head2 exec_and_insert_password
