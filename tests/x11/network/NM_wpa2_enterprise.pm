@@ -26,7 +26,7 @@ sub run {
 
     # the root console will most likely be polluted with dmesg output
     select_console 'root-console', await_console => 0;
-    wait_still_screen 3;
+    wait_still_screen 6;
     clear_console;
     assert_screen 'root-console';
     $self->NM_disable_ip;
