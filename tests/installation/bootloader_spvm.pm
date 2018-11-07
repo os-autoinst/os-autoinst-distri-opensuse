@@ -92,7 +92,7 @@ sub run {
     my $repo     = get_required_var('REPO_0');
     my $mirror   = get_netboot_mirror;
     my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
-    assert_screen "pvm-grub-command-line-fresh-prompt";
+    assert_screen "pvm-grub-command-line-fresh-prompt", no_wait => 1;
     type_string_slow "linux $mntpoint/linux vga=normal install=$mirror ";
     bootmenu_default_params;
     bootmenu_network_source;
@@ -101,10 +101,10 @@ sub run {
     type_string_slow remote_install_bootmenu_params;
     type_string_slow "\n";
 
-    assert_screen "pvm-grub-command-line-fresh-prompt", 180;    # kernel is downloaded while waiting
+    assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # kernel is downloaded while waiting
     type_string_slow "initrd $mntpoint/initrd\n";
 
-    assert_screen "pvm-grub-command-line-fresh-prompt", 180;    # initrd is downloaded while waiting
+    assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # initrd is downloaded while waiting
     type_string "boot\n";
     save_screenshot;
 
