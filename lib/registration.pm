@@ -279,7 +279,7 @@ sub fill_in_registration_data {
             send_key('alt-i');
         }
         elsif (!check_screen($modules_needle, 0)) {
-            record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
+            record_info('bsc#1094457', 'bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
             assert_screen('scc-beta-filter-checkbox');
             send_key('alt-i');
         }
