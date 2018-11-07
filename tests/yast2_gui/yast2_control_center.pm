@@ -39,6 +39,9 @@ sub search {
         send_key 'backspace';
     }
     wait_screen_change { type_string $name; } if $name;
+    # After typing some icons get detected before it's filetered
+    # Adding extra sync point before trying to click
+    wait_still_screen 3;
 }
 
 sub start_addon_products {
