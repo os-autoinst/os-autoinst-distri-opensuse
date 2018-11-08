@@ -1530,14 +1530,10 @@ sub load_extra_tests_docker {
         loadtest "console/sle2docker";
         loadtest "console/docker_image";
     }
-    elsif (is_sle('=15')) {
+    elsif (is_sle('=15') || is_opensuse) {
         loadtest "console/docker_image";
     }
-    if (is_tumbleweed) {
-        loadtest "console/docker_image_rpm";
-        loadtest "console/docker_compose";
-    }
-    elsif (is_opensuse && !is_tumbleweed) {
+    if (is_opensuse) {
         loadtest "console/docker_compose";
     }
 }
