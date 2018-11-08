@@ -41,6 +41,8 @@ sub run {
         systemctl('restart network');
     }
     $self->get_from_data('wicked/ifbind.sh', '/bin/ifbind.sh', executable => 1);
+    assert_script_run("ifbind.sh unbind eth0");
+    assert_script_run("ifbind.sh bind eth0");
     record_info('INFO', 'Checking that network service is up');
     systemctl('is-active network');
     systemctl('is-active wicked');
