@@ -269,7 +269,8 @@ sub run {
         select_console('root-console');
         add_serial_console('hvc1');
     }
-    select_virtio_console();
+    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
+    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');
