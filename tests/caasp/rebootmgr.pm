@@ -110,7 +110,7 @@ sub run {
     record_info 'Maint-window', 'Test maint-window strategy';
     check_strategy_maint_window;
 
-    if (!check_var('SYSTEM_ROLE', 'microos')) {
+    if (!is_caasp('kubic')) {
         record_info 'Etcd', 'Test etcd locking strategy';
         check_strategy_etcd_lock;
     }
