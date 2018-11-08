@@ -16,6 +16,7 @@ use base "opensusebasetest";
 use testapi;
 use caasp;
 use utils;
+use version_utils 'is_caasp';
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
