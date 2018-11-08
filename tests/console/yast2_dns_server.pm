@@ -47,6 +47,7 @@ sub run {
         assert_screen 'yast2-dns-server-start-named-now';
     }
     else {
+        assert_screen 'yast2-dns-server-open-port-firewall-focused';    # ensure dialog content loaded
         change_service_configuration(
             after_writing => {start         => 'alt-t'},
             after_reboot  => {start_on_boot => 'alt-a'}
