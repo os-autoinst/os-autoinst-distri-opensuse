@@ -299,24 +299,24 @@ sub fill_in_registration_data {
         # The value of SCC_ADDONS is a list of abbreviation of addons/modules
         # Following are abbreviations defined for modules and some addons
         #
-        # sdk - Software Development Kit
-        # we - Workstation
-        # ha - High Availability
-        # geo - Geo Clustering for SUSE Linux Enterprise High Availability
-        # ltss - Long Term Service Pack Support
-        # live - Live Patching
-        # asmm - Advanced System Management Module
+        #  asmm - Advanced System Management Module
         # certm - Certifications Module
         # contm - Containers Module
-        # hpcm - HPC Module
-        # lgm - Legacy Module
-        # pcm - Public Cloud Module
-        # tcm - Toolchain Module
-        # wsm - Web and Scripting Module
-        # idu - IBM DLPAR Utils (ppc64le only)
-        # ids - IBM DLPAR sdk (ppc64le only)
-        # phub - PackageHub
-        # ses - SUSE Enterprise Storage
+        #   geo - Geo Clustering for SUSE Linux Enterprise High Availability
+        #    ha - High Availability
+        #  hpcm - HPC Module
+        #   ids - IBM DLPAR sdk (ppc64le only)
+        #   idu - IBM DLPAR Utils (ppc64le only)
+        #   lgm - Legacy Module
+        #  live - Live Patching
+        #  ltss - Long Term Service Pack Support
+        #   pcm - Public Cloud Module
+        #  phub - PackageHub
+        #   sdk - Software Development Kit
+        #   ses - SUSE Enterprise Storage
+        #   tcm - Toolchain Module
+        #    we - Workstation
+        #   wsm - Web and Scripting Module
         if (get_var('SCC_ADDONS')) {
             if (check_screen('scc-beta-filter-checkbox', 5)) {
                 if (get_var('SP3ORLATER')) {
