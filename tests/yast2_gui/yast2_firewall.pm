@@ -70,6 +70,18 @@ sub susefirewall2 {
     send_key "alt-f";
 }
 
+sub detect_bsc_1114677 {
+    my $needle = shift;
+
+    assert_screen [$needle, 'generic-desktop'], no_wait => 1;
+    if (match_has_tag('generic-desktop')) {
+        record_soft_failure "bsc#1114677 - Dialog dissapear after switching service status";
+    }
+    else {
+        wait_still_screen 3;    # it failed to detect the flickering even with no_wait flag
+    }
+}
+
 sub verify_service_stopped {
     my $self = shift;
 
@@ -79,10 +91,7 @@ sub verify_service_stopped {
     assert_screen 'yast2_firewall_start-up';
     assert_screen 'yast2_firewall_service_status_running';
     send_key $fw{service_stop};
-    assert_screen [qw(yast2_firewall_service_status_stopped generic-desktop)];
-    if (match_has_tag('generic-desktop')) {
-        record_soft_failure "bsc#1114677 - Dialog dissapear after switching service status";
-    }
+    detect_bsc_1114677 'yast2_firewall_service_status_stopped';
     assert_screen 'yast2_firewall_service_status_stopped';
     wait_screen_change { send_key $cmd{accept} };
     assert_screen 'generic-desktop';
@@ -90,8 +99,9 @@ sub verify_service_stopped {
     select_console 'root-console';
     if (script_run("firewall-cmd --state 2>&1 | grep 'not running'") != 0) {
         record_soft_failure "bsc#1114807 - service does not stop ";
-        return;
+        return 0;
     }
+    return 1;
 }
 
 sub verify_service_started {
@@ -103,10 +113,7 @@ sub verify_service_started {
     assert_screen 'yast2_firewall_start-up';
     assert_screen 'yast2_firewall_service_status_stopped';
     send_key $fw{service_start};
-    assert_screen [qw(yast2_firewall_service_status_running generic-desktop)];
-    if (match_has_tag('generic-desktop')) {
-        record_soft_failure "bsc#1114677 - Dialog dissapear after switching service status";
-    }
+    detect_bsc_1114677 'yast2_firewall_service_status_running';
     assert_screen 'yast2_firewall_service_status_running';
     wait_screen_change { send_key $cmd{accept} };
     assert_screen 'generic-desktop';
@@ -211,6 +218,7 @@ sub run {
     my $self = shift;
 
     if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
+        # Check if service is stopped: bsc#1114677
         if ($self->verify_service_stopped) {
             $self->verify_service_started;
         }
