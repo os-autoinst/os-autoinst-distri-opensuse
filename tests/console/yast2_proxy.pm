@@ -26,7 +26,7 @@ my %sub_menu_needles = (
     cache_dir     => 'yast2_proxy_http_cache_directory_selected',
     access_ctrl   => 'yast2_proxy_http_access_control_selected',
     log_timeouts  => 'yast2_proxy_logging_timeouts_selected',
-    miscellaneous  => 'yast2_proxy_miscellaneous_selected'
+    miscellaneous => 'yast2_proxy_miscellaneous_selected'
 );
 
 sub select_sub_menu {
@@ -205,9 +205,7 @@ sub run {
     wait_still_screen 1;
     # change subnet for 192.168.0.0/16 to 192.168.0.0/18
     wait_screen_change { send_key 'tab'; };
-    wait_screen_change { send_key 'down'; };
-    wait_screen_change { send_key 'down'; };
-    assert_screen 'yast2_proxy_acl_group_localnet';
+    send_key_until_needlematch 'yast2_proxy_acl_group_localnet', 'down';
     wait_still_screen 1;
     send_key 'alt-i';
     assert_screen 'yast2_proxy_acl_group_edit';
@@ -269,7 +267,7 @@ sub run {
     # move to Start-Up and start proxy server now
     #	for (1..35) {send_key 'tab'; save_screenshot;}
     send_key_until_needlematch 'yast2_proxy_miscellaneous_selected', 'shift-tab';
-    send_key_until_needlematch 'yast2_proxy_start-up',              'up';
+    send_key_until_needlematch 'yast2_proxy_start-up',               'up';
     wait_still_screen 1;
     send_key 'ret';
 
