@@ -143,8 +143,16 @@ sub process_reboot {
     # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
     # kubic - will risk occasional failure because it disabled grub2 timeout
     if (is_caasp 'kubic') {
-        assert_screen 'grub2';
-        send_key 'ret';
+        assert_screen [qw(grub2 linux-login-casp)], 150;
+        if (match_has_tag 'linux-login-casp') {
+            record_info('poo#28648', 'Skip looking for grub2 needle - the system has already been booted');
+        }
+        elsif (match_has_tag 'grub2') {
+            send_key 'ret';
+        }
+        else {
+            die 'Kubic did not manage to reboot properly';
+        }
     }
     microos_login;
 }
