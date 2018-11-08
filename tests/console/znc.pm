@@ -19,7 +19,7 @@ sub run {
 
     script_run("sudo -u znc znc --makeconf | tee /dev/$serialdev; echo zncconf-status-\$? > /dev/$serialdev", 0);
 
-    wait_serial('Listen on port');
+    wait_serial('Listen on port') || die "znc --makeconf failed";
     type_string("12345\n");
 
     wait_serial('Listen using SSL');
