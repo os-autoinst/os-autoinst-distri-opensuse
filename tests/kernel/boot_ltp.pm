@@ -33,9 +33,8 @@ sub run {
         $self->wait_boot(ready_time => 500);
     }
 
-    if (select_virtio_console()) {
-        script_run('dmesg --console-level 7');
-    }
+    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
+    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
     assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 

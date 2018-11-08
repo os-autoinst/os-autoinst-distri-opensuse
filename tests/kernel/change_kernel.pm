@@ -39,7 +39,8 @@ sub run {
     my $pkg  = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
 
     $self->wait_boot;
-    select_virtio_console();
+    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
+    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
 
     # Avoid conflicts by removing any existing kernels
     remove_kernel_packages();
