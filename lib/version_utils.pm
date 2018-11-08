@@ -65,6 +65,7 @@ use constant {
           is_system_upgrading
           is_virtualization_server
           is_server
+          is_s390x
           has_product_selection
           has_license_on_welcome_screen
           )
@@ -311,10 +312,15 @@ sub is_svirt_except_s390x {
     return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
 }
 
+sub is_s390x {
+    return check_var('ARCH', 's390x');
+}
+
 sub is_remote_backend {
     # s390x uses only remote repos
-    return check_var('ARCH', 's390x') || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+    return is_s390x() || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 }
+
 
 sub is_server {
     return 1 if is_sles4sap();
@@ -388,7 +394,7 @@ configuration, otherwise returns false (0).
 =cut
 
 sub has_product_selection {
-    return is_sle('15+') && !(check_var('ARCH', 's390x') || get_var('UPGRADE'));
+    return is_sle('15+') && !(is_s390x() || get_var('UPGRADE'));
 }
 
 =head2 has_license_on_welcome_screen
@@ -403,5 +409,5 @@ configuration, otherwise returns false (0).
 =cut
 
 sub has_license_on_welcome_screen {
-    return get_var('HASLICENSE') && ((is_sle('15+') && check_var('ARCH', 's390x')) || is_sle('<15'));
+    return get_var('HASLICENSE') && ((is_sle('15+') && is_s390x()) || is_sle('<15'));
 }
