@@ -14,107 +14,139 @@
 use base "x11test";
 use strict;
 use testapi;
-use mm_network;
-use lockapi;
-use mmapi;
+use lockapi 'mutex_create';
+use mmapi 'wait_for_children';
 use utils qw(systemctl turn_off_gnome_screensaver);
+use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
+use version_utils 'is_sle';
 
-sub run {
-    my ($self) = @_;
-    x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
-    become_root;
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
-    configure_default_gateway;
-    configure_static_ip('10.0.2.1/24');
-    configure_static_dns(get_host_resolv_conf());
-    # added nfs for sle15
-    assert_script_run 'zypper -n in yast2-nis-server yast2-nfs-server';
-    if ($self->firewall eq 'firewalld') {
-        my $firewalld_ypserv_service = get_test_data('x11/workaround_ypserv.xml');
-        my $firewalld_nfs_service    = get_test_data('x11/workaround_nfs-kernel-server.xml');
+sub setup_verification {
+    script_run 'rpcinfo -u localhost ypserv';    # ypserv is running
+    script_run 'rpcinfo -u localhost nfs';       # nfs is running
+    script_run 'showmount -e localhost';         # show exprots
+                                                 # check file created by client
+    assert_script_run 'grep ' . "$setup_nis_nfs_x11{message} " . $setup_nis_nfs_x11{nfs_dir} . '/test';
+    assert_script_run "cat /etc/exports | grep $setup_nis_nfs_x11{nfs_dir}";
+    assert_script_run "cat /etc/exports | grep $setup_nis_nfs_x11{nfs_opts}";
+}
 
-        record_soft_failure('bsc#1083486');
-        assert_script_run("echo \"$firewalld_ypserv_service\" > /usr/lib/firewalld/services/ypserv.xml");
-        assert_script_run("echo \"$firewalld_nfs_service\" > /usr/lib/firewalld/services/nfs-kernel-server.xml");
-        assert_script_run('firewall-cmd --reload');
-    }
-
-    type_string "yast2 nis_server\n";
-    assert_screen 'nis-server-setup-status';
-    send_key 'alt-m';    # NIS master server
-    wait_still_screen 4;
-    send_key $cmd{next};
-    assert_screen 'nis-server-master-server-setup', 90;
-    send_key 'tab';      # jump to NIS domain name
-    type_string 'nis.openqa.suse.de';
-    wait_screen_change { send_key 'alt-a' };    # unselect active slave NIS server exists checkbox
-    send_key 'alt-f';                           # open firewall port
-    wait_still_screen 4;
+sub nis_server_configuration {
+    # NIS Server Setup
+    assert_screen 'nis-server-setup-status', 150;
+    send_key 'alt-m';                            # NIS master server
     save_screenshot;
-    send_key 'alt-o';                           # other global setting button
-    assert_screen 'nis-server-master-server-detail-setup';
-    send_key 'alt-o';                           # OK
     send_key $cmd{next};
+    # Master Setup
+    assert_screen 'nis-server-master-server-setup', 90;
+    send_key 'tab';                              # jump to NIS domain name
+    type_string $setup_nis_nfs_x11{nis_domain};
+    assert_screen 'nis-server-master-server-setup-nis-domain';
+    send_key 'alt-f';                            # open firewall port
+    assert_screen 'nis-master-server-tab-opened-fw';
+    wait_screen_change { send_key 'alt-a' };
+    # unselect active slave NIS server exists checkbox
+    assert_screen 'nis-master-server-setup-finished';
+    send_key 'alt-o';                            # other global setting button
+                                                 # NIS Master Server Details Setup
+    assert_screen 'nis-server-master-server-detail-setup';
+    send_key 'alt-o';                            # OK
+    send_key $cmd{next};
+    # NIS Server Maps Setup
     assert_screen 'nis-server-server-maps-setup';
-    send_key 'tab';                             # jump to map list
-    my $c = 1;                                  # select all maps
+    send_key 'tab';                              # jump to map list
+    my $c = 1;                                   # select all maps
     while ($c <= 11) {
         send_key 'spc';
         send_key 'down';
         $c++;
     }
-    wait_still_screen 4;
-    save_screenshot;
+    assert_screen 'nis-server-server-maps-setup-finished';
     send_key $cmd{next};
-    send_key 'alt-a';                           # add
-    wait_still_screen 4, 4;                     # blinking cursor
-    type_string '255.255.255.0';
+    # NIS Server Query Hosts
+    assert_screen 'nis-server-query-hosts-setup';
+    send_key 'alt-a';                            # add
+    assert_screen 'nis-server-network-conf-popup';
+    type_string $setup_nis_nfs_x11{net_mask};
     send_key 'tab';
-    type_string '10.0.2.0';
-    send_key 'alt-o';                           # OK
-    save_screenshot;
-    send_key 'alt-f';                           # finish
-    assert_screen 'yast2_closed_xterm_visible';
-    mutex_create('nis_ready');                  # setup is done client can connect
-    type_string "yast2 nfs_server\n";
+    type_string $setup_nis_nfs_x11{net_address};
+    assert_screen 'nis-server-edit-netmask-network';
+    wait_screen_change { send_key 'alt-o' };     # OK
+    assert_screen 'nis-server-query-hosts-setup-finished';
+    send_key 'alt-f';                            # finish
+}
+
+sub nfs_server_configuration {
+    # NFS Server Configuration
     assert_screen 'nfs-server-configuration';
-    send_key 'alt-f';                           # open port in firewall
-    send_key 'alt-m';                           # NFSv4 domain name field
-    type_string 'nfs.openqa.suse.de';
-    wait_still_screen 4, 4;                     # blinking cursor
-    send_key 'alt-s';                           # start nfs server
-    wait_still_screen 4, 4;                     # blinking cursor
-    send_key 'alt-n';                           # next / OK
+    send_key 'alt-f';                            # open port in firewall
+    assert_screen 'nfs-server-configuration-opened-fw';
+    wait_screen_change { send_key 'alt-s' };     # start nfs server
+    send_key 'alt-m';                            # NFSv4 domain name field
+    type_string $setup_nis_nfs_x11{nfs_domain};
+    assert_screen 'nfs-server-configuration-nfsv4-domain';
+    send_key 'alt-n';                            # next / OK
+
+    # Setup Directories to Export
     assert_screen 'nfs-server-export';
     send_key 'alt-d';
-    wait_still_screen 4, 4;                     # blinking cursor
-    type_string '/home/nis_user';
-    send_key 'alt-o';                           # OK
+    assert_screen 'nfs-server-export-popup';
+    type_string $setup_nis_nfs_x11{nfs_dir};
+    assert_screen 'nfs-server-export-popup-nfs-test-dir';
+    send_key 'alt-o';                            # OK
     assert_screen 'nfs-server-directory-does-not-exist';
-    send_key 'alt-y';                           # yes, create it
-    wait_still_screen 4, 4;                     # blinking cursor
-    send_key 'alt-p';                           # go to options field
-    wait_still_screen 4, 4;                     # blinking cursor
-    send_key 'left';                            # unselect options and leave cursor at beginning
-    wait_still_screen 4, 4;                     # blinking cursor
-    send_key 'delete';
-    send_key 'delete';
-    send_key 'delete';
-    type_string 'rw,no_';                       # rw,no_root_squash
-    wait_still_screen 4, 4;                     # blinking cursor
+    send_key 'alt-y';                            # yes, create it
+    assert_screen 'nfs-server-directory-mount-opts';
+    send_key 'alt-p';                            # go to options field
+    assert_screen 'nfs-server-directory-mount-opts-selected';
+    send_key 'left';                             # unselect options and leave cursor at beginning
+    wait_still_screen 4, 4;                      # blinking cursor
+    send_key 'delete' for (0 .. 2);
+    type_string $setup_nis_nfs_x11{nfs_opts};
+    assert_screen 'nfs-server-directory-check-opts';
     save_screenshot;
-    send_key 'alt-o';                           # OK
+    send_key 'alt-o';                            # OK
     assert_screen 'nfs-server-export';
-    send_key 'alt-f';                           # finish
+    send_key 'alt-f';                            # finish
+}
+
+sub run {
+    my ($self) = @_;
+    x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    become_root;
+    setup_static_mm_network($setup_nis_nfs_x11{server_address});
+    assert_script_run 'zypper -n in yast2-nis-server yast2-nfs-server';
+    # Workarounds:
+    # Yast2 does not open ports for SuseFirewall2 (bsc#999873)
+    # Missing firewalld service files for NFS/NIS -> lack of support for RPC (bsc#1083486)
+    if ($self->firewall eq 'firewalld') {
+        record_soft_failure('bsc#1083486');
+        my $firewalld_ypserv_service = get_test_data('x11/workaround_ypserv.xml');
+        type_string("echo \"$firewalld_ypserv_service\" > /usr/lib/firewalld/services/ypserv.xml\n");
+        my $firewalld_nfs_service = get_test_data('x11/workaround_nfs-kernel-server.xml');
+        type_string("echo \"$firewalld_nfs_service\" > /usr/lib/firewalld/services/nfs-kernel-server.xml\n");
+        assert_script_run('firewall-cmd --reload', fail_message => "Firewalld reload failed!");
+    }
+    if (is_sle) {
+        systemctl 'stop ' . $self->firewall;
+        record_soft_failure('bsc#999873');
+    }
+    script_run("yast2 nis_server; echo yast2-nis-server-status-\$? > /dev/$serialdev", 0);
+    nis_server_configuration();
+    wait_serial("yast2-nis-server-status-0", 360) || die "'yast2 nis server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible';
-    systemctl 'stop ' . $self->firewall;                              # bsc#999873
-    script_run 'rpcinfo -u localhost ypserv';                         # ypserv is running
-    script_run 'rpcinfo -u localhost nfs';                            # nfs is running
-    script_run 'showmount -e localhost';                              # show exprots
-    mutex_create('nfs_ready');                                        # setup is done client can connect
+    # NIS Server is configured and running, configuration continues on client side
+    mutex_create('nis_ready');
+    script_run("yast2 nfs_server; echo yast2-nfs-server-status-\$? > /dev/$serialdev", 0);
+    nfs_server_configuration();
+    wait_serial("yast2-nfs-server-status-0", 360) || die "'yast2 nfs server' didn't finish";
+    assert_screen 'yast2_closed_xterm_visible', 90;
+    # NFS Server is configured and running, configuration continues on client side
+    mutex_create('nfs_ready');
     wait_for_children;
-    assert_script_run 'grep "nfs is working" /home/nis_user/test';    # check file created by client
-    type_string "killall xterm\n";                                    # game over -> xterm
+    # Read content of a file created by the client
+    setup_verification();
+    type_string "killall xterm\n";    # game over -> xterm
 }
 
 sub test_flags {

@@ -14,80 +14,110 @@
 use base "x11test";
 use strict;
 use testapi;
-use mm_network;
-use lockapi;
+use lockapi 'mutex_lock';
 use utils qw(systemctl turn_off_gnome_screensaver);
 use version_utils 'is_sle';
+use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
+
+sub setup_nis_client {
+    if (is_sle('>=15')) {
+        assert_screen 'nis-client-install-missing-package';
+        send_key 'alt-i';    # install missing ypbind rpm
+    }
+    assert_screen 'nis-client-configuration', 120;
+    send_key 'alt-u';        # use NIS radio button
+    wait_still_screen 4;
+    send_key 'alt-l';        # open firewall port
+    assert_screen 'nis-client-fw-opened';
+    send_key 'alt-i';        # NIS domain
+    type_string $setup_nis_nfs_x11{nis_domain};
+    send_key 'alt-m';        # start automounter
+    wait_still_screen 4;
+    send_key 'alt-d';        # find NIS server
+    assert_screen 'nis-client-server-in-domain', 120;
+    send_key 'spc';          # select found NIS server
+    assert_screen 'nis-client-server-in-domain-selected';
+    send_key 'alt-o';        # OK
+    save_screenshot;
+}
+
+sub nfs_settings_tab {
+    assert_screen 'nis-client-enter-nfs-configuration';
+    send_key 'alt-s';        # nfs configuation button
+    assert_screen 'nis-client-nfs-client-configuration';
+    send_key 'alt-s';        # nfs settings tab
+    assert_screen 'nis-client-nfs-settings-tab';
+    send_key 'alt-v';        # nfsv4 domain name field
+    type_string $setup_nis_nfs_x11{nfs_domain};
+    send_key 'alt-f';        # open firewall port
+    assert_screen 'nis-client-nfs-settings-tab-opened-fw';
+    wait_still_screen 4, 4;    # blinking cursor
+    save_screenshot;
+}
+
+sub nfs_shares_tab {
+    send_key 'alt-n';          # nfs shares tab
+    assert_screen 'nis-client-nfs-client-shares-conf';
+    send_key 'alt-a';          # add
+    wait_still_screen 4;
+    send_key 'alt-v';          # NFSV4 share checkbox
+    send_key 'alt-s';          # choose NFS server button
+    assert_screen 'nis-client-nfs-server';
+    send_key 'alt-o';          # OK
+    send_key 'alt-r';          # remote directory text field
+    type_string $setup_nis_nfs_x11{nfs_dir};
+    send_key 'alt-m';          # mount point text field
+    type_string $setup_nis_nfs_x11{nfs_dir};
+    send_key 'alt-o';          # OK
+    assert_screen 'nis-client-nfs-client-configuration';
+    send_key 'alt-o';          # OK
+    assert_screen 'nis-client-fw-opened';
+    send_key 'alt-f';          # finish
+}
+
+sub setup_verification {
+    assert_screen 'yast2_closed_xterm_visible', 90;
+    script_run 'mount|grep nfs';    # print nfs mounts
+    if (is_sle('>=15')) {
+        record_soft_failure('bsc#1090886');
+        script_run("mount -vt nfs $setup_nis_nfs_x11{nfs_dir}");
+        script_run 'mount|grep nfs';    # verify mounted nfs
+    }
+    (my $server_ip = $setup_nis_nfs_x11{server_address}) =~ m/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
+    script_run "cat /proc/mounts | grep -i $server_ip:";
+    # create file with text, will be checked by server
+    script_run 'echo ' . $setup_nis_nfs_x11{message} . " > " . $setup_nis_nfs_x11{nfs_dir} . '/test';
+}
 
 sub run {
     my ($self) = @_;
     x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
-    become_root;
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
-    configure_default_gateway;
-    configure_static_ip('10.0.2.3/24');
-    configure_static_dns(get_host_resolv_conf());
-    if ($self->firewall eq 'firewalld') {
-        my $firewalld_ypbind_service = get_test_data('x11/workaround_ypbind.xml');
+    become_root;
+    setup_static_mm_network($setup_nis_nfs_x11{client_address});
+    assert_script_run 'zypper -n in yast2-nis-server';
 
-        record_soft_failure('bsc#1089851');
-        assert_script_run("echo \"$firewalld_ypbind_service\" > /usr/lib/firewalld/services/ypbind.xml");
+    if ($self->firewall eq 'firewalld') {
+        record_soft_failure('bsc#1083487');
+        my $firewalld_ypbind_service = get_test_data('x11/workaround_ypbind.xml');
+        type_string("echo \"$firewalld_ypbind_service\" > /usr/lib/firewalld/services/ypbind.xml\n");
         assert_script_run('firewall-cmd --reload');
     }
-    systemctl 'stop ' . $self->firewall;    # bsc#999873
-    assert_script_run 'zypper -n in yast2-nis-server';
-    mutex_lock('nis_ready');                # wait for NIS server setup
-    type_string "yast2 nis\n";
-    if (is_sle('>=15')) {
-        assert_screen 'nis-client-install-missing-package';
-        send_key 'alt-i';                   # install missing ypbind rpm
+
+    if (is_sle) {
+        systemctl 'stop ' . $self->firewall;
+        record_soft_failure('bsc#999873');
     }
-    assert_screen 'nis-client-configuration';
-    send_key 'alt-u';                       # use NIS radio button
-    wait_still_screen 4;
-    send_key 'alt-i';                       # NIS domain
-    type_string 'nis.openqa.suse.de';
-    send_key 'alt-l';                       # open firewall port
-    wait_still_screen 4;
-    send_key 'alt-d';                       # find NIS server
-    assert_screen 'nis-client-server-in-domain', 120;
-    send_key 'spc';                         # select found NIS server
-    send_key 'alt-o';                       # OK
-    send_key 'alt-m';                       # start automounter
-    mutex_lock('nfs_ready');                # wait for NFS server setup
-    send_key 'alt-s';                       # nfs configuation button
-    assert_screen 'nis-client-nfs-client-configuration';
-    send_key 'alt-s';                       # nfs settings tab
-    send_key 'alt-f';                       # open firewall port
-    send_key 'alt-v';                       # nfsv4 domain name field
-    type_string 'nfs.openqa.suse.de';
-    wait_still_screen 4, 4;                 # blinking cursor
-    save_screenshot;
-    send_key 'alt-n';                       # nfs shares tab
-    send_key 'alt-a';                       # add
-    wait_still_screen 4;
-    send_key 'alt-v';                       # NFSV4 share checkbox
-    send_key 'alt-s';                       # choose NFS server button
-    assert_screen 'nis-client-nfs-server';
-    send_key 'alt-o';                       # OK
-    send_key 'alt-r';                       # remote directory text field
-    type_string '/home/nis_user';
-    send_key 'alt-m';                       # mount point text field
-    type_string '/home/nis_user';
-    send_key 'alt-o';                       # OK
-    assert_screen 'nis-client-nfs-client-configuration';
-    send_key 'alt-o';                       # OK
-    assert_screen 'nis-client-configuration';
-    send_key 'alt-f';                       # finish
-    assert_screen 'yast2_closed_xterm_visible', 90;
-    script_run 'mount|grep nfs';            # print nfs mounts
-    if (is_sle('>=15')) {
-        record_soft_failure('bsc#1090886');
-        script_run('mount -vt nfs /home/nis_user');
-    }
-    script_run 'mount|grep nfs';                                 # verify mounted nfs
-    script_run 'echo "nfs is working" > /home/nis_user/test';    # create file with text, will be checked by server
-    type_string "killall xterm\n";                               # game over -> xterm
+
+    mutex_lock('nis_ready');    # wait for NIS server setup
+    script_run("yast2 nis; echo yast2-nis-status-\$? > /dev/$serialdev", 0);
+    setup_nis_client();
+    mutex_lock('nfs_ready');    # wait for NFS server setup
+    nfs_settings_tab();
+    nfs_shares_tab();
+    wait_serial("yast2-nis-status-0", 360) || die "'yast2 nis client' didn't finish";
+    setup_verification();
+    type_string "killall xterm\n";    # game over -> xterm
 }
 
 1;
