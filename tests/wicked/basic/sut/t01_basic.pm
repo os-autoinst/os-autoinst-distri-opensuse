@@ -16,7 +16,10 @@
 # Test 5: List the network interfaces with wicked
 # Test 6: Bring an interface down with wicked
 # Test 7: Bring an interface up with wicked
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, Sebastian Chlad <schlad@suse.de>
+
+# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
+#             Jose Lausuch <jalausuch@suse.com>
+#             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 use base 'wickedbase';
 use strict;
@@ -60,7 +63,7 @@ sub run {
     assert_script_run("ifup $iface");
     assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
     validate_script_output("ip address show dev $iface", sub { m/inet/g; });
-    validate_script_output("wicked show dev $iface",     sub { m/\[dhcp\]/g; });
+    validate_script_output("wicked show dev $iface",     sub { m/\[static\]/g; });
 }
 
 sub test_flags {

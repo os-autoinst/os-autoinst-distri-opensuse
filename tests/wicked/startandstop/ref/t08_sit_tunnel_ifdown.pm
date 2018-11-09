@@ -23,7 +23,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1, wicked_need_sync => 1};
+    return {always_rollback => 1};
 }
 
 1;
