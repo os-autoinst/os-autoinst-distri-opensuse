@@ -315,6 +315,7 @@ sub fill_in_registration_data {
         #   sdk - Software Development Kit
         #   ses - SUSE Enterprise Storage
         #   tcm - Toolchain Module
+        #   tsm - Transactional Server Module
         #    we - Workstation
         #   wsm - Web and Scripting Module
         if (get_var('SCC_ADDONS')) {
