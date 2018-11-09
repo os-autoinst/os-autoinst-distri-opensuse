@@ -27,12 +27,6 @@ sub run {
     }
 
     microos_login;
-    if (check_var('DISTRI', 'kubic')) {
-        zypper_call("mr -da");
-        my $mirror = get_required_var('MIRROR_HTTP');
-        zypper_call("--no-gpg-check ar -f '$mirror' mirror_http");
-        zypper_call('ref');
-    }
 
     if (is_caasp 'VMX') {
         # Help cloud-init on cluster tests
