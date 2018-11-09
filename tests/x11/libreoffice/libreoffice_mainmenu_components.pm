@@ -93,8 +93,9 @@ sub run {
     # launch components from Activities overview
     $self->open_overview();
     type_string "base";
+    assert_screen([qw(base-install overview-office-base)]);
     # tag is base-install means libreoffice-base not installed
-    if (check_screen 'base-install') {
+    if (match_has_tag 'base-install') {
         send_key 'esc';
         send_key 'esc';
         x11_start_program('xterm');
