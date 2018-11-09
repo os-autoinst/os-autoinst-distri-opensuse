@@ -366,6 +366,7 @@ sub bootmenu_default_params {
         send_key "down";
         send_key "down";
         wait_screen_change { send_key "end" };
+        wait_still_screen(1);
         # load kernel manually with append
         if (check_var('VIDEOMODE', 'text')) {
             type_string_very_slow " textmode=1";
