@@ -41,7 +41,7 @@ sub run {
 
     assert_screen(['generic-desktop', 'evolution-main-window'], timeout => 30);
     if (match_has_tag 'evolution-main-window') {
-        send_key 'alt-f4';
+        assert_and_click "close_evolution";
     }
 }
 
