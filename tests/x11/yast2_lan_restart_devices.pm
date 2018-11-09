@@ -17,11 +17,18 @@ use strict;
 use testapi;
 use y2lan_restart_common qw(initialize_y2lan open_network_settings close_network_settings check_network_status);
 
+sub check_bsc1111483 {
+    return 0 unless match_has_tag('yast2_lan_device_bsc1111483');
+    record_soft_failure 'bsc#1111483 - default VLAN name changed';
+    close_network_settings;
+    return 1;
+}
+
 sub add_device {
     my $device = shift;
+
     assert_screen 'yast2_closed_xterm_visible', 120;
     open_network_settings;
-
     if ($device eq 'bond') {
         wait_screen_change { send_key 'home' };
         send_key_until_needlematch 'yast2_lan_select_eth_card', 'down';
@@ -79,11 +86,13 @@ sub add_device {
 
 sub select_special_device_tab {
     my $device = shift;
+
     open_network_settings;
     send_key 'tab';
     send_key 'tab';
     send_key 'home';
-    send_key_until_needlematch "yast2_lan_device_${device}_selected", 'down';
+    send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_workaround-bsc1004643"], 'down', 5;
+    return if check_bsc1111483;
     send_key 'alt-i';                     # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     if ($device eq 'bridge') {
@@ -100,16 +109,17 @@ sub select_special_device_tab {
     }
     wait_still_screen;
     send_key 'alt-n';
-    close_network_settings;
 }
 
 sub delete_device {
     my $device = shift;
+
     open_network_settings;
     send_key 'tab';
     send_key 'tab';
     send_key 'home';
-    send_key_until_needlematch "yast2_lan_device_${device}_selected", 'down';
+    send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_workaround-bsc1004643"], 'down', 5;
+    return if check_bsc1111483;
     send_key 'alt-t';    # Delete NIC
     wait_still_screen;
     save_screenshot;
@@ -123,6 +133,7 @@ sub delete_device {
 
 sub check_device {
     my $device = shift;
+
     add_device($device);
     select_special_device_tab($device);
     check_network_status('', $device);
