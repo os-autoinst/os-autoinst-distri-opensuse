@@ -16,6 +16,14 @@ use warnings;
 use testapi;
 use utils;
 use lockapi;
+use registration 'add_suseconnect_product';
+
+sub ensure_registered {
+    assert_script_run('SUSEConnect --cleanup', 200);
+    add_suseconnect_product('SLES', get_var('VERSION'), get_var('ARCH'), ' -e testing@suse.com -r ' . get_required_var('SCC_REGCODE'));
+    add_suseconnect_product('sle-module-hpc',           get_var('VERSION'));
+    add_suseconnect_product('sle-module-web-scripting', get_var('VERSION'));
+}
 
 sub run {
     my ($self) = @_;
@@ -27,7 +35,7 @@ sub run {
     # Stop firewall
     systemctl 'stop ' . $self->firewall;
     set_hostname(get_var('HOSTNAME', 'susetest'));
-
+    ensure_registered();
     if (get_var('HPC_REPO')) {
         my $repo     = get_var('HPC_REPO');
         my $reponame = get_required_var('HPC_REPONAME');
