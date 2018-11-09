@@ -1,8 +1,25 @@
 package y2x11test;
-use base "opensusebasetest";
+use Exporter;
+#use base "opensusebasetest";
+use mm_network qw(configure_default_gateway configure_static_ip configure_static_dns get_host_resolv_conf);
+use base "Exporter";
 use strict;
 use utils;
 use testapi;
+
+our @EXPORT            = qw(launch_yast2_module_x11 setup_static_mm_network %setup_nis_nfs_x11);
+our %setup_nis_nfs_x11 = (
+    nis_domain     => 'nis.openqa.suse.de',
+    nfs_domain     => 'nfs.openqa.suse.de',
+    nfs_dir        => '/home/nis_user',
+    client_address => '10.0.2.3/24',
+    server_address => '10.0.2.1/24',
+    net_mask       => '255.255.255.0',
+    net_address    => '10.0.2.0',
+    message        => q/"nfs is working"/,
+    # nfs mount options -> rw,no_root_squash
+    nfs_opts => 'rw,no_'
+);
 
 =head2 launch_yast2_module_x11
 
@@ -48,6 +65,13 @@ sub post_fail_hook {
 
 sub post_run_hook {
     assert_screen('generic-desktop');
+}
+
+sub setup_static_mm_network {
+    my $ip = shift;
+    configure_default_gateway;
+    configure_static_ip($ip);
+    configure_static_dns(get_host_resolv_conf());
 }
 
 1;
