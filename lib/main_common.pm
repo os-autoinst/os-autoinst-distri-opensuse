@@ -826,7 +826,7 @@ sub load_inst_tests {
     if (is_opensuse && noupdatestep_is_applicable() && !get_var("LIVECD")) {
         loadtest "installation/installation_mode";
     }
-    if (!get_var("LIVECD") && get_var("UPGRADE")) {
+    if (is_upgrade) {
         loadtest "installation/upgrade_select";
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_fill";

@@ -650,7 +650,7 @@ sub addon_products_is_applicable {
 }
 
 sub noupdatestep_is_applicable {
-    return !get_var("UPGRADE");
+    return !get_var("UPGRADE") && !get_var("LIVE_UPGRADE");
 }
 
 sub random_string {
