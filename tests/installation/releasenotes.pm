@@ -55,7 +55,7 @@ sub run {
     }
 
     # no release-notes for WE and all modules
-    my @no_relnotes = qw(we lgm asmm certm contm pcm tcm wsm hpcm ids idu phub all-packages sapapp);
+    my @no_relnotes = qw(all-packages asmm certm contm hpcm ids idu lgm pcm phub sapapp tcm we wsm);
 
     # No release-notes for basic modules and Live-Patching on SLE 15
     if (is_sle('15+')) {
