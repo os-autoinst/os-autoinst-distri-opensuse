@@ -59,15 +59,22 @@ sub loadtests {
 #######################
 # Testing starts here #
 #######################
-loadtests 'boot_from_dvd';
-if (get_var 'SYSTEM_ROLE') {
-    loadtests 'installation';
+if (get_var 'STACK_ROLE') {
     loadtests 'boot_from_disk';
     loadtests 'feature' if (check_var 'EXTRA', 'FEATURES');
     loadtest 'shutdown/shutdown';
 }
 else {
-    loadtests('rcshell') if (check_var 'EXTRA', 'RCSHELL');
+    loadtests 'boot_from_dvd';
+    if (get_var 'SYSTEM_ROLE') {
+        loadtests 'installation';
+        loadtests 'boot_from_disk';
+        loadtests 'feature' if (check_var 'EXTRA', 'FEATURES');
+        loadtest 'shutdown/shutdown';
+    }
+    else {
+        loadtests('rcshell') if (check_var 'EXTRA', 'RCSHELL');
+    }
 }
 
 1;
