@@ -57,9 +57,14 @@ sub assert_system_role {
         change_system_role(get_var('SYSTEM_ROLE', get_var('DESKTOP')));
     }
     else {
-        assert_screen('system-role-default-system', 180);
         my $system_role = get_var('SYSTEM_ROLE', 'default');
-        change_system_role($system_role) if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
+        if ($system_role eq 'serverro') {
+            assert_screen('system-role-transactional-server');
+        }
+        else {
+            assert_screen('system-role-default-system', 180);
+            change_system_role($system_role) if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
+        }
     }
     send_key $cmd{next};
 }
