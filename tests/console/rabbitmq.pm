@@ -20,7 +20,7 @@ use utils 'systemctl';
 
 sub run {
     select_console 'root-console';
-    assert_script_run('zypper -n in rabbitmq-server');
+    assert_script_run('zypper -n in rabbitmq-server wget');
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
     assert_script_run('zypper -n in python-pika');
