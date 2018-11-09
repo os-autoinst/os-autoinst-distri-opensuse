@@ -16,15 +16,13 @@ use strict;
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';
-use serial_terminal 'select_virtio_console';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 use version_utils 'is_sle';
-
 
 sub run {
     my ($self) = @_;
 
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     if (is_sle) {
         my $modver = get_required_var('VERSION') =~ s/-SP\d+//gr;

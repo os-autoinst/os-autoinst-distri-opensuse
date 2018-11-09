@@ -17,9 +17,9 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use y2logsstep;
-use serial_terminal 'select_virtio_console';
 
 sub run {
+    my $self     = shift;
     my $lv_stats = {
         write_access => qr/\s{2}LV Write Access \s+ read\/write/,
         status       => qr/\s{2}LV Status \s+ available/,
@@ -28,7 +28,7 @@ sub run {
         block_device => qr/\s{2}Block device \s+ 254:\d/
     };
 
-    select_virtio_console();
+    $self->select_serial_terminal;
     record_info('INFO', 'Print lvm setup');
     assert_script_run 'lsblk';
     assert_script_run 'lvmdiskscan';

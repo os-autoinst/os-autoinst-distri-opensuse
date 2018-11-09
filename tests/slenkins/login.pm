@@ -19,10 +19,10 @@
 use strict;
 use base 'basetest';
 use testapi;
-use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_virtio_console();
+    my $self = shift;
+    $self->select_serial_terminal;
 }
 
 sub test_flags {

@@ -14,12 +14,11 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use strict;
-use serial_terminal 'select_virtio_console';
 use upload_system_log;
 
 sub run {
     my ($self) = @_;
-    select_virtio_console();
+    $self->select_serial_terminal;
     my $trinity     = 'trinity-1.8';
     my $trinity_log = script_output("echo ~$testapi::username/trinity.log");
     my $syscall_cnt = 1000000;

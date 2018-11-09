@@ -17,7 +17,6 @@ use warnings;
 use base 'opensusebasetest';
 use utils 'zypper_call';
 use power_action_utils 'power_action';
-use serial_terminal 'select_virtio_console';
 use kdump_utils;
 use testapi;
 

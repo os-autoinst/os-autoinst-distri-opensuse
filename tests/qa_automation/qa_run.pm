@@ -17,7 +17,6 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use utils;
-use serial_terminal 'select_virtio_console';
 use testapi qw(is_serial_terminal :DEFAULT);
 
 sub test_run_list {
@@ -48,7 +47,8 @@ sub system_status {
 
 
 sub system_login {
-    select_virtio_console();
+    my $self = shift;
+    $self->select_serial_terminal;
 }
 
 # Call test_run_list and write the result into /root/qaset/config

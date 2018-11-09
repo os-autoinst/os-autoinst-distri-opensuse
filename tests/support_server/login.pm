@@ -21,7 +21,6 @@ use base 'basetest';
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 use version_utils 'is_desktop_installed';
 
 sub run {
@@ -32,7 +31,7 @@ sub run {
 
     # the supportserver image can be different version than the currently tested system
     # so try to login without use of needles
-    select_virtio_console();
+    $self->select_serial_terminal;
 }
 
 sub test_flags {

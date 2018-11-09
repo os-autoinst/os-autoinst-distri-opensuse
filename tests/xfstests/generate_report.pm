@@ -15,7 +15,6 @@ use strict;
 use 5.018;
 use warnings;
 use base 'opensusebasetest';
-use serial_terminal 'select_virtio_console';
 use File::Basename;
 use testapi;
 use ctcs2_to_junit;
@@ -45,7 +44,7 @@ sub upload_subdirs {
 
 sub run {
     my $self = shift;
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);

@@ -16,10 +16,10 @@ use testapi;
 
 use utils 'zypper_call';
 use power_action_utils 'power_action';
-use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_virtio_console();
+    my $self = shift;
+    $self->select_serial_terminal;
 
     zypper_call('ar -f -G ' . get_required_var('BENCHMARK_REPO'));
     if (get_var('DEVEL_LANG_PYTHON_REPO')) {
@@ -77,7 +77,6 @@ QEMUCPUS=4
 QEMURAM=4096
 START_AFTER_TEST=create_hdd_textmode
 TEST='nvmftests'
-VIRTIO_CONSOLE=1
 
 For SLE the configuration is similar, but the two repositories need to be adjusted with the correct builds.
 
@@ -85,7 +84,7 @@ For SLE the configuration is similar, but the two repositories need to be adjust
 Set this to "1" to enable the execution of nvmftests
 
 =head2 DEVEL_LANG_PYTHON_REPO
-This variable points to the devel_languages:python project's repo in OBS. 
+This variable points to the devel_languages:python project's repo in OBS.
 
 =head2 BENCHMARK_REPO
 This variable points to the benchmark project's repo in OBS.

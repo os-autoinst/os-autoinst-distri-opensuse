@@ -19,7 +19,6 @@ use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
-use serial_terminal 'select_virtio_console';
 
 our $device1 = '/dev/mst/mt4119_pciconf0';
 our $device2 = '/dev/mst/mt4119_pciconf0.1';
@@ -30,8 +29,8 @@ sub show_links {
 }
 
 sub run {
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $mft_version = get_required_var('MFT_VERSION');
     my $protocol = get_var('MLX_PROTOCOL') || 2;

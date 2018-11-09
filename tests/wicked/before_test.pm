@@ -15,11 +15,10 @@ use strict;
 use testapi;
 use utils qw(zypper_call systemctl);
 use network_utils 'setup_static_network';
-use serial_terminal 'select_virtio_console';
 
 sub run {
     my ($self) = @_;
-    select_virtio_console();
+    $self->select_serial_terminal;
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
     my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");

@@ -20,7 +20,7 @@ use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
 use power_action_utils 'power_action';
-use serial_terminal qw(add_serial_console select_virtio_console);
+use serial_terminal 'add_serial_console';
 use version_utils qw(is_sle sle_version_at_least is_opensuse is_jeos);
 
 sub add_repos {
@@ -265,12 +265,11 @@ sub run {
     }
 
     # poo#18980
-    if (get_var('OFW') && check_var('VIRTIO_CONSOLE', 1)) {
+    if (get_var('OFW') && !check_var('VIRTIO_CONSOLE', 0)) {
         select_console('root-console');
         add_serial_console('hvc1');
     }
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    $self->select_serial_terminal;
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');
