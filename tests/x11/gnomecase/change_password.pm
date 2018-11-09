@@ -49,13 +49,15 @@ sub reboot_system {
     reboot_x11;
     $self->{await_reboot} = 1;
     $self->wait_boot(nologin => 1);
-    assert_screen "displaymanager", 200;
-    $self->{await_reboot} = 0;
-    # The keyboard focus is different between SLE15 and SLE12
-    send_key 'up' if sle_version_at_least('15');
-    send_key "ret";
-    wait_still_screen;
-    type_string "$newpwd\n";
+    if (check_var('NOAUTOLOGIN', 1)) {
+        assert_screen "displaymanager", 200;
+        $self->{await_reboot} = 0;
+        # The keyboard focus is different between SLE15 and SLE12
+        send_key 'up' if sle_version_at_least('15');
+        send_key "ret";
+        wait_still_screen;
+        type_string "$newpwd\n";
+    }
     assert_screen "generic-desktop";
 }
 
@@ -114,6 +116,10 @@ sub run {
     lock_screen;
     logout_and_login;
     $self->reboot_system;
+    if (is_tumbleweed && !get_var('NOAUTOLOGIN')) {
+        set_var('NOAUTOLOGIN', 1);
+        $self->auto_login_alter;
+    }
 
     #swtich to new added user then switch back
     switch_user;
