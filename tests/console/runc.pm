@@ -21,8 +21,6 @@ use caasp;
 
 sub run {
     select_console("root-console");
-    my $runc = '/usr/sbin/runc';
-
     record_info 'Test #1', 'Test: Installation';
     trup_install('runc skopeo umoci');
 
@@ -30,33 +28,10 @@ sub run {
     assert_script_run('mkdir test_runc && cd test_runc');
     assert_script_run('skopeo copy docker://docker.io/opensuse/tumbleweed oci:opensuse:tumbleweed', 600);
     assert_script_run('umoci unpack --image opensuse:tumbleweed bundle');
-    # Modify the configuration to run the container in background
-    script_run('cd bundle && cp config.json config.json.backup');
-    assert_script_run("sed -i -e '/\"terminal\":/ s/: .*/: false,/' config.json");
-    assert_script_run("sed -i -e 's/\"\\/bin\\/bash\"/\"echo\", \"42km\"/' config.json");
+    $self->setup_container_in_background();
 
     record_info 'Test #2', 'Run OCI container (detached)';
-    assert_script_run("$runc run marathon | grep 42km");
-    # Restore the default configuration
-    assert_script_run('mv config.json.backup config.json');
-    assert_script_run("sed -i -e '/\"terminal\":/ s/: .*/: false,/' config.json");
-    assert_script_run("sed -i -e 's/\"\\/bin\\/bash\"/\"sleep\", \"120\"/' config.json");
-
-    # Container Lifecycle
-    record_info 'Test #3', 'Test: Create a container';
-    assert_script_run("$runc create life");
-    assert_script_run("$runc state life | grep status | grep created");
-    record_info 'Test #4', 'Test: List containers';
-    assert_script_run("$runc list | grep life");
-    record_info 'Test #5', 'Test: Start a container';
-    assert_script_run("$runc start life");
-    assert_script_run("$runc state life | grep running");
-    record_info 'Test #6', 'Test: Pause a container';
-    assert_script_run("$runc pause life");
-    assert_script_run("$runc state life | grep paused");
-    record_info 'Test #7', 'Test: Resume a container';
-    assert_script_run("$runc resume life");
-    assert_script_run("$runc state life | grep running");
+    $self->runc_test();
     record_info 'Test #8', 'Test: Stop a container';
     assert_script_run("$runc kill life KILL");
     assert_script_run("$runc state life | grep stopped");

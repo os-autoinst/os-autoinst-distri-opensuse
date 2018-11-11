@@ -548,23 +548,6 @@ sub assert_and_click_until_screen_change {
     return $i;
 }
 
-=head2 handle_livecd_reboot_failure
-
-Handle a potential failure on a live CD related to boo#993885 that the reboot
-action from a desktop session does not work and we are stuck on the desktop.
-=cut
-sub handle_livecd_reboot_failure {
-    mouse_hide;
-    wait_still_screen;
-    assert_screen([qw(generic-desktop-after_installation grub2)]);
-    if (match_has_tag('generic-desktop-after_installation')) {
-        record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
-        select_console 'install-shell';
-        type_string "reboot\n";
-        save_screenshot;
-    }
-}
-
 =head2 assert_screen_with_soft_timeout
 
   assert_screen_with_soft_timeout($mustmatch [,timeout => $timeout] [, bugref => $bugref] [,soft_timeout => $soft_timeout] [,soft_failure_reason => $soft_failure_reason]);

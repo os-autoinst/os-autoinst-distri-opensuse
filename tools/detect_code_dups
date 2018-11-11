@@ -76,7 +76,7 @@ sub match_file {
 }
 
 my $verbose             = 1;
-my $minlength           = 13;
+my $minlength           = 11;
 my $ignoreContentFilter = qr(\A(?:^\s*(?:\#.*)?$)*\z);
 
 Code::DRY::clearData;
