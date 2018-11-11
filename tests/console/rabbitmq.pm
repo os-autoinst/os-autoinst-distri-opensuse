@@ -20,10 +20,10 @@ use utils 'systemctl';
 
 sub run {
     select_console 'root-console';
-    assert_script_run('zypper -n in rabbitmq-server wget');
+    assert_script_run('zypper -n in rabbitmq-server');
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
-    assert_script_run('zypper -n in python-pika');
+    assert_script_run('zypper -n in python-pika wget');
     my $cmd = <<'EOF';
 mkdir rabbitmq
 cd rabbitmq
