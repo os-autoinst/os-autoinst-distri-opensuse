@@ -31,7 +31,7 @@ sub post_run_hook {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {fatal => 0};
 }
 
 1;

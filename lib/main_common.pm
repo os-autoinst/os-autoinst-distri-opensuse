@@ -1354,31 +1354,29 @@ sub load_yast2_ncurses_tests {
         return;
     }
     # start extra yast console tests (self-contained only) from here
+    loadtest "console/yast2_proxy";
     loadtest "console/yast2_ntpclient";
     loadtest "console/yast2_tftp";
-    # We don't schedule some tests on s390x as they are unstable, see poo#42692
-    unless (is_s390x) {
-        loadtest "console/yast2_proxy";
-        loadtest "console/yast2_vnc";
-        loadtest "console/yast2_samba";
-        # internal nis server in suse network is used, but this is not possible for
-        # openqa.opensuse.org
-        loadtest "console/yast2_nis" if is_sle;
-        loadtest "console/yast2_http";
-        loadtest "console/yast2_ftp";
-        loadtest "console/yast2_apparmor";
-    }
+    loadtest "console/yast2_vnc";
     # TODO https://progress.opensuse.org/issues/20200
     # softfail record #bsc1049433 for samba and xinetd
-
+    loadtest "console/yast2_samba";
     loadtest "console/yast2_xinetd" if is_sle('<15') || is_leap('<15.0');
+    loadtest "console/yast2_apparmor";
     loadtest "console/yast2_lan_hostname";
+    # internal nis server in suse network is used, but this is not possible for
+    # openqa.opensuse.org
+    if (check_var('DISTRI', 'sle')) {
+        loadtest "console/yast2_nis";
+    }
     # yast-lan related tests do not work when using networkmanager.
     # (Livesystem and laptops do use networkmanager)
     if (!get_var("LIVETEST") && !get_var("LAPTOP")) {
         loadtest "console/yast2_dns_server";
         loadtest "console/yast2_nfs_client";
     }
+    loadtest "console/yast2_http";
+    loadtest "console/yast2_ftp";
     loadtest "console/yast2_snapper_ncurses";
     # back to desktop
     loadtest "console/consoletest_finish";
