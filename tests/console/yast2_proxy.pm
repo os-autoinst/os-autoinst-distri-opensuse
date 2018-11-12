@@ -7,11 +7,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test thast squid proxy can be started after setup with YaST
+# Summary: Test that squid proxy can be started after setup with YaST
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
 use base "console_yasttest";
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
@@ -25,7 +26,7 @@ my %sub_menu_needles = (
     cache_dir     => 'yast2_proxy_http_cache_directory_selected',
     access_ctrl   => 'yast2_proxy_http_access_control_selected',
     log_timeouts  => 'yast2_proxy_logging_timeouts_selected',
-    miscellanous  => 'yast2_proxy_miscellanous_selected'
+    miscellaneous => 'yast2_proxy_miscellaneous_selected'
 );
 
 sub select_sub_menu {
@@ -204,9 +205,7 @@ sub run {
     wait_still_screen 1;
     # change subnet for 192.168.0.0/16 to 192.168.0.0/18
     wait_screen_change { send_key 'tab'; };
-    wait_screen_change { send_key 'down'; };
-    wait_screen_change { send_key 'down'; };
-    assert_screen 'yast2_proxy_acl_group_localnet';
+    send_key_until_needlematch 'yast2_proxy_acl_group_localnet', 'down';
     wait_still_screen 1;
     send_key 'alt-i';
     assert_screen 'yast2_proxy_acl_group_edit';
@@ -251,8 +250,8 @@ sub run {
     # check above changes for logging and timeouts
     assert_screen 'yast2_proxy_logging_timeouts_new';
 
-    #	move to miscellanous now for change language into de-de and admin email
-    select_sub_menu 'log_timeouts', 'miscellanous';
+    #	move to miscellaneous now for change language into de-de and admin email
+    select_sub_menu 'log_timeouts', 'miscellaneous';
     wait_screen_change { send_key 'alt-l'; };
     for (1 .. 5) {
         wait_screen_change { send_key 'up'; };
@@ -263,12 +262,12 @@ sub run {
     type_string 'webmaster@localhost';
 
     # check language and email now
-    assert_screen 'yast2_proxy_miscellanous';
+    assert_screen 'yast2_proxy_miscellaneous';
 
     # move to Start-Up and start proxy server now
     #	for (1..35) {send_key 'tab'; save_screenshot;}
-    send_key_until_needlematch 'yast2_proxy_miscellanous_selected', 'shift-tab';
-    send_key_until_needlematch 'yast2_proxy_start-up',              'up';
+    send_key_until_needlematch 'yast2_proxy_miscellaneous_selected', 'shift-tab';
+    send_key_until_needlematch 'yast2_proxy_start-up',               'up';
     wait_still_screen 1;
     send_key 'ret';
 
