@@ -19,11 +19,12 @@ use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem sle_versio
 use registration 'registration_bootloader_cmdline';
 use File::Basename;
 
-sub copy_image {
-    my ($file, $dir) = @_;
+sub search_image_on_svirt_host {
+    my ($svirt, $file, $dir) = @_;
     my $basename = basename($file);
-    my $path     = `find $dir -name $basename | head -n1 | tr -d '\n'`;
-    diag("Path found: $path");
+    my $path     = $svirt->get_cmd_output("find $dir -name $basename | head -n1 | tr -d '\n'");
+    die "Unable to find image $basename in $dir" unless $path;
+    diag("Image found: $path");
     type_string("# Copying image $basename...\n");
     return $path;
 }
@@ -67,7 +68,7 @@ sub run {
     my $isodir  = "$basedir/openqa/share/factory/iso $basedir/openqa/share/factory/iso/fixed";
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
     if (my $isofile = get_var('ISO')) {
-        my $isopath = copy_image($isofile, $isodir);
+        my $isopath = search_image_on_svirt_host($svirt, $isofile, $isodir);
         $svirt->add_disk(
             {
                 cdrom  => 1,
@@ -79,7 +80,7 @@ sub run {
     # Add addon media (if present at all)
     foreach my $n (1 .. 9) {
         if (my $addon_isofile = get_var("ISO_" . $n)) {
-            my $addon_isopath = copy_image($addon_isofile, $isodir);
+            my $addon_isopath = search_image_on_svirt_host($svirt, $addon_isofile, $isodir);
             $svirt->add_disk(
                 {
                     cdrom  => 1,
@@ -94,7 +95,7 @@ sub run {
     my $size_i = get_var('HDDSIZEGB', '10');
     foreach my $n (1 .. get_var('NUMDISKS')) {
         if (my $hdd = get_var('HDD_' . $n)) {
-            my $hddpath = copy_image($hdd, $hdddir);
+            my $hddpath = search_image_on_svirt_host($svirt, $hdd, $hdddir);
             $svirt->add_disk(
                 {
                     backingfile => 1,
