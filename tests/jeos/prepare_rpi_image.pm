@@ -27,6 +27,7 @@ sub run {
     select_console('root-console');
 
     # System should be registered already - we need qemu-img binary
+    zypper_call('ref');
     zypper_call('in --no-recommends qemu-tools');
 
     # Download, prepare and upload the image
