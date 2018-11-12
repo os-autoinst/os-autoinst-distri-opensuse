@@ -15,6 +15,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use version;
 
 
 sub run {
@@ -36,10 +37,22 @@ sub run {
     script_run "zypper -n refresh && zypper -n in @test_subjects";
     script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 
+    # Get sssd version, as 2.0+ behaves differently
+    my $sssd_version = script_output('rpm -q sssd --qf \'%{VERSION}\'');
+
     # The test scenarios are now ready to run
     my @scenario_failures;
 
-    foreach my $scenario (qw(local ldap ldap-no-auth ldap-nested-groups krb)) {
+    my @scenario_list;
+    push @scenario_list, 'local' if (version->parse($sssd_version) < version->parse(2.0.0));    # sssd 2.0+ removed support of 'local'
+    push @scenario_list, qw(
+      ldap
+      ldap-no-auth
+      ldap-nested-groups
+      krb
+    );
+
+    foreach my $scenario (@scenario_list) {
         # Download the source code of test scenario
         script_run "cd ~/sssd && mkdir $scenario && curl -L -v " . autoinst_url . "/data/sssd-tests/$scenario > $scenario/cdata";
         script_run "cd $scenario && cpio -idv < cdata && mv data/* ./; ls";
