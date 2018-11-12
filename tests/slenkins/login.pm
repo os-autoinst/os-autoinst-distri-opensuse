@@ -17,7 +17,7 @@
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
-use base 'basetest';
+use base "opensusebasetest";
 use testapi;
 
 sub run {
