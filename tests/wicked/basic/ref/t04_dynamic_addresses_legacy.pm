@@ -16,19 +16,10 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use network_utils 'iface';
 
 sub run {
     my ($self) = @_;
-    my $iface = iface();
     record_info('Info', 'Set up dynamic addresses from legacy ifcfg files');
-    $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', "/etc/sysconfig/network/ifcfg-$iface");
-    assert_script_run("ifup $iface");
-    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

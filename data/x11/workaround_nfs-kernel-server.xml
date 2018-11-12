@@ -4,10 +4,4 @@
   <description>The nfs-kernel-server workaround</description>
   <port protocol=\"tcp\" port=\"2049\"/>
   <port protocol=\"udp\" port=\"2049\"/>
-  <port protocol=\"tcp\" port=\"20048\"/>
-  <port protocol=\"udp\" port=\"20048\"/>
-  <port protocol=\"udp\" port=\"51068\"/>
-  <port protocol=\"tcp\" port=\"52385\"/>
-  <port protocol=\"tcp\" port=\"46095\"/>
-  <port protocol=\"udp\" port=\"35672\"/>
 </service>

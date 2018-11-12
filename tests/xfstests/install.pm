@@ -15,7 +15,6 @@ use 5.018;
 use strict;
 use warnings;
 use base 'opensusebasetest';
-use serial_terminal 'select_virtio_console';
 use utils;
 use testapi;
 
@@ -30,7 +29,7 @@ sub log_create {
 
 sub run {
     my $self = shift;
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     # Add QA repo
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');

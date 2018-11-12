@@ -51,6 +51,8 @@ ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 LAPTOP |||
 LIVECD | boolean | false | Indicates live image being used.
+LIVE_INSTALLATION | boolean | false | If set, boots the live media and starts the builtin NET installer.
+LIVE_UPGRADE | boolean | false | If set, boots the live media and starts the builtin NET installer in upgrade mode.
 LIVETEST | boolean | false | Indicates test of live system.
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,

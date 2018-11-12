@@ -13,11 +13,10 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
-use serial_terminal 'select_virtio_console';
 
 sub run {
-    select_console 'root-ssh' if (check_var('BACKEND', 'ipmi'));
-    select_virtio_console()   if (check_var('BACKEND', 'qemu'));
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $hugepages  = get_required_var('HUGEPAGES');
     my $hugepagesz = get_required_var('HUGEPAGESZ');

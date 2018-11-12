@@ -41,7 +41,7 @@ sub prepare_for_kdump_sle {
     if (defined $url) {
         zypper_call("ar -f $url SLES-Server-Debug");
         install_kernel_debuginfo;
-        script_run 'zypper -n rr SLES-Server-Debug';
+        zypper_call('-n rr SLES-Server-Debug');
         return;
     }
     my $counter = 0;
@@ -58,7 +58,7 @@ sub prepare_for_kdump_sle {
     install_kernel_debuginfo;
     script_run(q(zypper mr -d $(zypper lr | awk '/Debug/ {print $1}')), 60);
     for my $i (1 .. $counter) {
-        script_run "zypper rr DEBUG_$i";
+        zypper_call("rr DEBUG_$i");
     }
 }
 
@@ -76,7 +76,7 @@ sub prepare_for_kdump {
     if (my $snapshot_debuginfo_repo = get_var('REPO_OSS_DEBUGINFO')) {
         zypper_call('ar -f ' . get_var('MIRROR_HTTP') . "-debuginfo $snapshot_debuginfo_repo");
         install_kernel_debuginfo;
-        script_run "zypper -n rr $snapshot_debuginfo_repo";
+        zypper_call("-n rr $snapshot_debuginfo_repo");
         return;
     }
     my $opensuse_debug_repos = 'repo-debug ';

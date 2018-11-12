@@ -15,7 +15,7 @@ use strict;
 use testapi;
 
 sub run {
-    assert_screen 'startshell', 120;
+    assert_screen 'startshell', 150;
 }
 
 1;

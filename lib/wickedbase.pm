@@ -33,7 +33,7 @@ This function saves the command and the stdout and stderr to a file to be upload
 =cut
 sub wicked_command {
     my ($self, $action, $iface) = @_;
-    my $cmd = '/usr/sbin/wicked --log-target syslog ' . $action . ' --timeout infinite ' . $iface;
+    my $cmd = '/usr/sbin/wicked --log-target syslog ' . $action . ' ' . $iface;
     assert_script_run(q(echo -e "\n# ") . $cmd . ' >> /tmp/wicked_serial.log');
     record_info('wicked cmd', $cmd);
     assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
@@ -296,26 +296,6 @@ sub setup_openvpn_client {
     assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
 }
 
-=head2 before_scenario
-
-  before_scenario($title, $text, $iface)
-
-Regenerates the network (default VM NIC given by C<iface>) using ifbind.sh.
-It also displays the message given by C<title> and C<text>.
-
-=cut
-sub before_scenario {
-    my ($self, $title, $text, $iface) = @_;
-    if ($iface) {
-        assert_script_run("ifdown $iface");
-        assert_script_run("ifbind.sh unbind $iface");
-        script_run("rm /etc/sysconfig/network/ifcfg-$iface");
-        assert_script_run("ifbind.sh bind $iface");
-        setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1));
-    }
-    record_info($title, $text);
-}
-
 =head2 get_test_result
 
   get_test_result($type, $ip_version => v4)
@@ -382,25 +362,18 @@ Used to syncronize the wicked tests for SUT and REF creating the corresponding m
 =cut
 sub do_mutex {
     my ($self) = @_;
-    my $mutex_name = 'test_' . $self->{name} . '_ready';
-    if (check_var('IS_WICKED_REF', '1')) {
-        record_info('mutex wait', $mutex_name);
-        mutex_wait($mutex_name);
-    } else {
-        record_info('mutex create', $mutex_name);
-        mutex_create($mutex_name);
-    }
+    my $barrier_name = 'test_' . $self->{name} . '_ready';
+    barrier_wait($barrier_name);
 }
 
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
 
-    my $flags = $self->test_flags();
-    if ($flags->{wicked_need_sync}) {
-        $self->do_mutex();
-    }
-    $self->upload_wicked_logs('post');
+    eval {
+        $self->upload_wicked_logs('post');
+    };
+    $self->do_mutex();
 }
 
 sub pre_run_hook {

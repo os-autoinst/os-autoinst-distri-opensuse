@@ -17,9 +17,9 @@ use testapi;
 use version_utils qw(is_sle is_opensuse);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
-use serial_terminal 'select_virtio_console';
 
 sub run {
+    my $self = shift;
     select_console 'root-console';
 
     # Install for TW and generate profile
@@ -35,7 +35,7 @@ sub run {
     }
     wait_serial('yast2-clone-system-status-0') || die "'yast2 clone_system' didn't finish";
 
-    select_virtio_console;
+    $self->select_serial_terminal;
     # Replace unitialized email variable - bsc#1015158
     assert_script_run 'sed -i "/server_email/ s/postmaster@/\0suse.com/" /root/autoinst.xml';
 

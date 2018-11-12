@@ -238,7 +238,7 @@ sub is_storage_ng {
 }
 
 sub is_upgrade {
-    return get_var('UPGRADE') || get_var('ONLINE_MIGRATION') || get_var('ZDUP') || get_var('AUTOUPGRADE');
+    return get_var('UPGRADE') || get_var('ONLINE_MIGRATION') || get_var('ZDUP') || get_var('AUTOUPGRADE') || get_var('LIVE_UPGRADE');
 }
 
 sub is_sle12_hdd_in_upgrade {

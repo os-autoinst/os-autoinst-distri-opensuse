@@ -22,7 +22,6 @@ sub run {
     my $iface  = iface();
     my $config = '/etc/sysconfig/network/ifcfg-' . $iface;
     my $res;
-    $self->before_scenario('Test 01', 'Standalone card - ifdown, ifreload', $iface);
     record_info('Info', 'Standalone card - ifdown, ifreload');
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
     $self->wicked_command('ifdown',   $iface);
@@ -39,7 +38,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1, wicked_need_sync => 1};
+    return {always_rollback => 1};
 }
 
 1;

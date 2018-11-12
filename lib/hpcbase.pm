@@ -18,7 +18,8 @@ sub upload_service_log {
 }
 
 sub post_fail_hook {
-    select_virtio_console(force => 1);
+    my ($self) = @_;
+    $self->select_serial_terminal;
     script_run("journalctl -o short-precise > /tmp/journal.log");
     script_run('cat /tmp/journal.log');
     upload_logs('/tmp/journal.log', failok => 1);

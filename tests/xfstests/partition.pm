@@ -15,13 +15,12 @@ use 5.018;
 use strict;
 use warnings;
 use base 'opensusebasetest';
-use serial_terminal 'select_virtio_console';
 use utils;
 use testapi;
 
 sub run {
     my $self = shift;
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     # Create partitions
     my $filesystem = get_required_var('XFSTESTS');

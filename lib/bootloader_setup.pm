@@ -280,7 +280,7 @@ sub select_bootmenu_option {
         send_key_until_needlematch 'inst-onupgrade', get_var('OFW') ? 'up' : 'down', 10, 5;
     }
     else {
-        if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION')) {
+        if (get_var('PROMO') || get_var('LIVETEST') || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
             send_key_until_needlematch 'boot-live-' . get_var('DESKTOP'), 'down', 10, 5;
         }
         elsif (get_var('OFW')) {
@@ -366,6 +366,7 @@ sub bootmenu_default_params {
         send_key "down";
         send_key "down";
         wait_screen_change { send_key "end" };
+        wait_still_screen(1);
         # load kernel manually with append
         if (check_var('VIDEOMODE', 'text')) {
             type_string_very_slow " textmode=1";

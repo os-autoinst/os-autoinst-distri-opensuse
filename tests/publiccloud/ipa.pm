@@ -14,12 +14,11 @@
 use base "publiccloud::basetest";
 use strict;
 use testapi;
-use serial_terminal 'select_virtio_console';
 
 sub run {
     my ($self) = @_;
 
-    select_virtio_console();
+    $self->select_serial_terminal;
 
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init;
