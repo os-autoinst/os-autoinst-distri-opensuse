@@ -71,6 +71,9 @@ sub cleanup_needles {
     $tounregister = sle_version_at_least('15') ? '0' : '1';
     unregister_needle_tags("ENV-15ORLATER-$tounregister");
 
+    $tounregister = sle_version_at_least('15-SP1') ? '0' : '1';
+    unregister_needle_tags("ENV-15SP1ORLATER-$tounregister");
+
     if (!is_server) {
         unregister_needle_tags("ENV-FLAVOR-Server-DVD");
     }
