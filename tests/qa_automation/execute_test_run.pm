@@ -34,6 +34,7 @@ sub run {
 
     #output result to serial0 and upload test log
     if (get_var("QA_TESTSUITE")) {
+        assert_script_run("sync");
         my $tarball = "/tmp/testlog.tar.bz2";
         assert_script_run("tar cjf $tarball -C /var/log/qa/ctcs2 `ls /var/log/qa/ctcs2/`");
         upload_logs($tarball, timeout => 600);
