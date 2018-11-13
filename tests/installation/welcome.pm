@@ -45,7 +45,7 @@ sub run {
         wait_still_screen 5;
         assert_screen(\@welcome_tags, 500);
         # Normal exit condition
-        if (match_has_tag 'inst-betawarning' || match_has_tag 'inst-welcome' || match_has_tag 'inst-welcome-no-product-list') {
+        if ((match_has_tag 'inst-betawarning') || (match_has_tag 'inst-welcome') || (match_has_tag 'inst-welcome-no-product-list')) {
             last;
         }
         if (match_has_tag 'scc-invalid-url') {
