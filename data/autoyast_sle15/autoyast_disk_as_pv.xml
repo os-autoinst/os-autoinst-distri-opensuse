@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <suse_register>
+        <do_registration config:type="boolean">true</do_registration>
+        <email/>
+        <reg_code>{{SCC_REGCODE}}</reg_code>
+        <install_updates config:type="boolean">true</install_updates>
+        <reg_server>{{SCC_URL}}</reg_server>
+        <addons config:type="list">
+            <addon>
+                <name>sle-module-server-applications</name>
+                <version>{{VERSION}}</version>
+                <arch>{{ARCH}}</arch>
+            </addon>
+        </addons>
+    </suse_register>
+    <bootloader>
+        <global>
+            <timeout config:type="integer">-1</timeout>
+        </global>
+    </bootloader>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+        <products config:type="list">
+            <product>SLES</product>
+        </products>
+    </software>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+    <report>
+        <errors>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </errors>
+        <messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </messages>
+        <warnings>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </warnings>
+        <yesno_messages>
+            <log config:type="boolean">true</log>
+            <show config:type="boolean">true</show>
+            <timeout config:type="integer">0</timeout>
+        </yesno_messages>
+    </report>
+    <partitioning config:type="list">
+        <drive>
+            <type config:type="symbol">CT_DISK</type>
+            <use>all</use>
+            <device>/dev/sda</device>
+            <disklabel>none</disklabel>
+            <partitions config:type="list">
+                <partition>
+                    <format config:type="boolean">true</format>
+                    <create config:type="boolean">false</create>
+                    <mount>/</mount>
+                    <size>max</size>
+                </partition>
+            </partitions>
+        </drive>
+        <drive>
+            <device>/dev/sdb</device>
+            <disklabel>none</disklabel>
+            <partitions config:type="list">
+                <partition>
+                    <lvm_group>system</lvm_group>
+                </partition>
+            </partitions>
+            <type config:type="symbol">CT_DISK</type>
+            <use>all</use>
+        </drive>
+        <drive>
+            <device>/dev/system</device>
+            <type config:type="symbol">CT_LVM</type>
+            <partitions config:type="list">
+                <partition>
+                    <lv_name>swap</lv_name>
+                    <filesystem config:type="symbol">swap</filesystem>
+                    <mount>swap</mount>
+                    <size>2G</size>
+                </partition>
+                <partition>
+                    <lv_name>home</lv_name>
+                    <filesystem config:type="symbol">ext4</filesystem>
+                    <mount>/home</mount>
+                    <size>5GiB</size>
+                </partition>
+            </partitions>
+        </drive>
+    </partitioning>
+</profile>

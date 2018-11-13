@@ -21,10 +21,10 @@ use strict;
 use base 'basetest';
 use testapi;
 use version_utils 'is_sle';
+use xml_utils;
 use XML::LibXML;
 
 #Xpath parser
-my $dom;
 my $xpc;
 
 
@@ -33,24 +33,21 @@ sub run {
     my $errors;
     # Copy file content to variable
     my $autoinst = script_output("cat /root/autoinst.xml");
-    # Init parser
-    $dom = XML::LibXML->load_xml(string => $autoinst);
     # Init xml namespace
-    $xpc = XML::LibXML::XPathContext->new($dom);
-    $xpc->registerNs('ns', 'http://www.suse.com/1.0/yast2ns');
+    $xpc = get_xpc($autoinst);
 
     ### Verify mount options enable_snapshots
-    my $result_str = verify_option('//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:enable_snapshots', 'true');
+    my $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:enable_snapshots', expected_val => 'true');
     $errors .= "enable_snapshots option check failed: $result_str\n" if ($result_str);
 
     ### Verify mount options btrfs_set_default_subvolume_name, this is valid only for SLE12, with storage-ng subvolumes_prefix is used
     if (is_sle '15+') {
         # Verify empty subvolume prefix for '/' mount point
-        $result_str = verify_option('//ns:partition[ns:mount="/"]/ns:subvolumes_prefix', '');
+        $result_str = verify_option(xpc => $xpc, xpath => '//ns:partition[ns:mount="/"]/ns:subvolumes_prefix', expected_val => '');
         $errors .= "subvolumes_prefix option check failed: $result_str\n" if ($result_str);
     }
     else {
-        $result_str = verify_option('//ns:btrfs_set_default_subvolume_name', 'false');
+        $result_str = verify_option(xpc => $xpc, xpath => '//ns:btrfs_set_default_subvolume_name', expected_val => 'false');
         $errors .= "btrfs_set_default_subvolume_name option check failed: $result_str\n" if ($result_str);
     }
 
@@ -74,26 +71,6 @@ sub run {
 
     ### Fail test in case of any failed checks
     die $errors if ($errors);
-}
-
-sub verify_option {
-    my ($xpath, $expected_val) = @_;
-
-    my $nodeset = $xpc->findnodes($xpath);
-    for my $node ($nodeset->get_nodelist) {
-        print $node->to_literal;
-    }
-    my @nodes = $nodeset->get_nodelist;
-    ## Verify that there is node found by xpath and it's single one
-    if (scalar @nodes != 1) {
-        return "Generated autoinst.xml contains unexpected number of nodes for xpath: $xpath. Found: " . scalar @nodes . ", expected: 1.";
-    }
-    if ($nodes[0]->to_literal ne $expected_val) {
-        return "Unexpected value for xpath $xpath. Expected: '$expected_val', got: '$nodes[0]'";
-    }
-
-    return '';
-
 }
 
 sub verify_subvolumes {
