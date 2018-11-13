@@ -62,7 +62,12 @@ sub run {
     type_string " pvmctl lpar power-off -i id=$lpar_id --hard\n";
     assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
 
-    # we assume the lpar is configured to boot normally
+    # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
+    # see https://progress.opensuse.org/issues/39785#note-14
+    type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
+    assert_screen 'pvm-bootmode-set-normal';
+
+    # we assume the lpar is configured to boot normally - boot to SMS this time only
     # pvmctl lpar update -i id=<LPARID> --set-fields LogicalPartition.bootmode=Normal
     type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode sms\n";
     assert_screen "pvm-poweron-successful";
