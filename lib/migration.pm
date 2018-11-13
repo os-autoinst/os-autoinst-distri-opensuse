@@ -80,7 +80,15 @@ sub register_system_in_textmode {
     if (is_sle('12-SP2+', get_var('HDDVERSION'))) {
         set_var('HDD_SP2ORLATER', 1);
     }
+    # Tag the test as being called from this module, so accept_addons_license
+    # (called by yast_scc_registration) can handle license agreements from modules
+    # that do not show license agreement during installation but do when registering
+    # after install
+    set_var('IN_PATCH_SLE', 1);
     yast_scc_registration;
+    # Once SCC registration is done, disable IN_PATCH_SLE so it does not interfere
+    # with further calls to accept_addons_license (in upgrade for example)
+    set_var('IN_PATCH_SLE', 0);
 }
 
 # Remove LTSS product and manually remove its relevant package before migration

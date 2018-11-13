@@ -68,7 +68,7 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
-our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm);
+our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm live);
 our @SLE15_ADDONS_WITH_LICENSE_NOINSTALL = qw(ha we);
 
 # Method to determine if a short name references a module based on what's defined
@@ -86,7 +86,7 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo live rt idu ids lgm);
+    my @addons_with_license = qw(geo rt idu ids lgm);
     if (is_sle('15+')) {
         record_soft_failure 'bsc#1118497';
     }
