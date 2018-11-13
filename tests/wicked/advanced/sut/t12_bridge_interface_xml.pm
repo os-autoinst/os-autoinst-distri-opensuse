@@ -16,14 +16,16 @@
 use base 'wickedbase';
 use strict;
 use testapi;
+use network_utils 'iface';
 
 sub run {
     my ($self) = @_;
     my $config = '/etc/wicked/ifconfig/bridge.xml';
+    my $iface  = iface();
     record_info('Info', 'Create a Bridge interface from Wicked XML files');
     $self->get_from_data('wicked/xml/bridge.xml', $config);
-    assert_script_run('ifdown eth0');
-    assert_script_run('rm /etc/sysconfig/network/ifcfg-eth0');
+    assert_script_run("ifdown $iface");
+    assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface");
     $self->setup_bridge($config, '', 'ifup');
     my $res = $self->get_test_result('br0');
     die if ($res eq 'FAILED');

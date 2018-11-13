@@ -24,7 +24,7 @@ sub run {
     record_info('Info', 'Set up static routes from legacy ifcfg files');
     $self->get_from_data('wicked/static_address/ifcfg-eth0',   "/etc/sysconfig/network/ifcfg-$iface");
     $self->get_from_data('wicked/static_address/ifroute-eth0', "/etc/sysconfig/network/ifroute-$iface");
-    assert_script_run("ifup $iface");
+    $self->wicked_command('ifup', $iface);
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
     validate_script_output("ip -4 route show", sub { m/default via 10\.0\.2\.2/ });
     assert_script_run('ip -4 route show | grep "default" | grep -v "via' . $iface . '"');

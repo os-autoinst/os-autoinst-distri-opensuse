@@ -30,7 +30,6 @@ use network_utils 'iface';
 sub run {
     my ($self) = @_;
     my $iface = iface();
-    $self->{iface} = $iface;
     record_info('Test 1', 'Bring down the wicked client service');
     systemctl('stop wicked.service');
     $self->assert_wicked_state(wicked_client_down => 1, interfaces_down => 1);
@@ -56,14 +55,14 @@ sub run {
         die "Wrong list of interfaces from wicked";
     }
     record_info('Test 6', 'Bring an interface down with wicked');
-    assert_script_run("ifdown $iface");
-    assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2 2>&1 | grep -q ' Network is unreachable'");
-    assert_script_run("! \$(ip address show dev $iface | grep -q 'inet')");
+    $self->wicked_command('ifdown', $iface);
+    die('IP should not be reachable') if ($self->ping_with_timeout(ip => '10.0.2.2', timeout => '2'));
+    die if ($self->get_current_ip($iface));
     record_info('Test 7', 'Bring an interface up with wicked');
-    assert_script_run("ifup $iface");
-    assert_script_run("ping -q -c1 -W1 -I $iface 10.0.2.2");
+    $self->wicked_command('ifup', $iface);
+    die('IP is unreachable') if (!$self->ping_with_timeout(ip => '10.0.2.2'));
     validate_script_output("ip address show dev $iface", sub { m/inet/g; });
-    validate_script_output("wicked show dev $iface",     sub { m/\[static\]/g; });
+    validate_script_output("wicked show dev $iface",     sub { m/\[dhcp\]/g; });
 }
 
 sub test_flags {

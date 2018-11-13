@@ -184,6 +184,7 @@ C<ip_version> defines the ping command to be used, 'ping' by default and 'ping6'
 sub ping_with_timeout {
     my ($self, %args) = @_;
     $args{ip_version} //= 'v4';
+    $args{timeout}    //= '60';
     my $timeout = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     while ($timeout > 0) {
@@ -270,7 +271,9 @@ C<command> determines the wicked command to bring up/down the interface
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(type => 'host');
+    my $iface = iface();
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
+    assert_script_run("sed \'s/iface/$iface/\' -i $config");
     assert_script_run("cat $config");
     $self->wicked_command($command, 'br0');
     if ($dummy ne '') {
