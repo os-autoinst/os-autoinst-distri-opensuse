@@ -33,7 +33,7 @@ sub run {
     # Download, prepare and upload the image
     assert_script_run("time curl --fail -s -O -L $rpi_image_url");
     assert_script_run("time unxz $rpi_image_rawxz",                                            600);
-    assert_script_run("time qemu-img resize -f raw $rpi_image_raw 16G",                        600);
+    assert_script_run("time qemu-img resize -f raw $rpi_image_raw 24G",                        600);
     assert_script_run("time qemu-img convert -f raw -O qcow2 $rpi_image_raw $rpi_image_qcow2", 600);
     upload_asset("$rpi_image_qcow2", 1);
 }
