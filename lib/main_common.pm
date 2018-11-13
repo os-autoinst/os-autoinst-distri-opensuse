@@ -1497,8 +1497,10 @@ sub load_extra_tests_textmode {
     }
     loadtest "console/cron";
     loadtest "console/syslog";
-    loadtest "console/ntp_client" unless is_sle;
-    loadtest "console/mta"        unless is_jeos;
+    if (!is_sle && !is_jeos) {
+        loadtest "console/ntp_client";
+    }
+    loadtest "console/mta" unless is_jeos;
     loadtest "console/check_default_network_manager";
     if (get_var("IPSEC")) {
         loadtest "console/ipsec_tools_h2h";
