@@ -26,6 +26,7 @@ has private_key_id      => undef;
 has private_key         => undef;
 has service_acount_name => undef;
 has client_id           => undef;
+has storage_name        => undef;
 
 sub init {
     my ($self) = @_;
@@ -71,7 +72,7 @@ sub find_img {
 sub upload_img {
     my ($self, $file) = @_;
     my $img_name = $self->file2name($file);
-    my $uri      = 'openqa-storage/' . $file;
+    my $uri      = $self->storage_name . '/' . $file;
 
     assert_script_run("gsutil cp $file gs://$uri",                                     timeout => 60 * 60);
     assert_script_run("gcloud compute images create $img_name --source-uri gs://$uri", timeout => 60 * 10);

@@ -44,7 +44,8 @@ sub provider_factory {
             private_key_id      => get_required_var('PUBLIC_CLOUD_KEY_ID'),
             private_key         => get_required_var('PUBLIC_CLOUD_KEY'),
             client_id           => get_required_var('PUBLIC_CLOUD_CLIENT_ID'),
-            region              => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b')
+            region              => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
+            storage_name        => get_var('PUBLIC_CLOUD_STORAGE', 'openqa-storage')
         );
     }
     else {
