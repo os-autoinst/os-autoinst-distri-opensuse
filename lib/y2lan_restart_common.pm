@@ -48,6 +48,7 @@ sub open_network_settings {
     type_string "yast2 lan\n";
     accept_warning_network_manager_default;
     assert_screen 'yast2_lan', 100;       # yast2 lan overview tab
+    send_key 'home';                      # select first device
     wait_still_screen(2);
 }
 

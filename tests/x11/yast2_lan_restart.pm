@@ -55,6 +55,7 @@ sub check_default_gateway {
 
 sub change_hw_device_name {
     my $dev_name = shift;
+
     send_key 'alt-i';        # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     send_key 'alt-w';        # Hardware tab
@@ -86,6 +87,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+
     assert_script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
     $self->SUPER::post_fail_hook;
