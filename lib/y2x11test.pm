@@ -1,8 +1,6 @@
 package y2x11test;
-use Exporter;
-#use base "opensusebasetest";
+use base "opensusebasetest";
 use mm_network qw(configure_default_gateway configure_static_ip configure_static_dns get_host_resolv_conf);
-use base "Exporter";
 use strict;
 use utils;
 use testapi;
@@ -20,6 +18,7 @@ our %setup_nis_nfs_x11 = (
     # nfs mount options -> rw,no_root_squash
     nfs_opts => 'rw,no_'
 );
+use Exporter 'import';
 
 =head2 launch_yast2_module_x11
 
