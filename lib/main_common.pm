@@ -1496,10 +1496,8 @@ sub load_extra_tests_textmode {
     }
     loadtest "console/cron";
     loadtest "console/syslog";
-    unless (is_sle '<15') {
-        loadtest "console/ntp_client";
-    }
-    loadtest "console/mta" unless is_jeos;
+    loadtest "console/ntp_client" unless is_sle;
+    loadtest "console/mta"        unless is_jeos;
     if (get_var("IPSEC")) {
         loadtest "console/ipsec_tools_h2h";
     }
