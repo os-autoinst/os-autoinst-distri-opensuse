@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils qw(sle_version_at_least is_upgrade);
 
 sub check_bsc982138 {
     if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {
@@ -29,7 +29,7 @@ sub run {
     # installation seems to be exceptionally slow.
     # Also, virtual machines for testing can be really slow in this step
     my $started_timeout = get_var('LIVECD') ? 1200 : 300;
-    if (get_var("UPGRADE")) {
+    if (is_upgrade) {
         send_key $cmd{update};
         sleep 1;
         assert_screen [qw(startupdate startupdate-conflict license-popup)], 5;

@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_upgrade);
 
 sub run {
     my ($self) = shift;
@@ -38,7 +38,7 @@ sub run {
 
     # Config bootloader is not be supported during an upgrade
     # Add exception for SLES11SP4 base update, configure grub for this scenario
-    if (get_var('UPGRADE') && (!is_sle('<15') || !is_leap('<15.0')) && (!check_var('HDDVERSION', '11-SP4'))) {
+    if (is_upgrade && (!is_sle('<15') || !is_leap('<15.0')) && (!check_var('HDDVERSION', '11-SP4'))) {
         assert_screen([qw(bootloader-config-unsupport inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
         if (match_has_tag 'bootloader-config-unsupport') {
             send_key 'ret';
