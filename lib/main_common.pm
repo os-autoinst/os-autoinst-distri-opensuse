@@ -1453,6 +1453,7 @@ sub load_extra_tests_desktop {
             loadtest 'x11/network/yast2_network_use_nm';
             loadtest 'x11/network/NM_wpa2_enterprise';
         }
+        loadtest "console/check_default_network_manager";
     }
 }
 
@@ -1498,6 +1499,7 @@ sub load_extra_tests_textmode {
     loadtest "console/syslog";
     loadtest "console/ntp_client" unless is_sle;
     loadtest "console/mta"        unless is_jeos;
+    loadtest "console/check_default_network_manager";
     if (get_var("IPSEC")) {
         loadtest "console/ipsec_tools_h2h";
     }
