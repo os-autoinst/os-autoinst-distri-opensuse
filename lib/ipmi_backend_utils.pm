@@ -31,7 +31,6 @@ our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_vh switch_from_ssh
 
 #use it after SUT boot finish, as it requires ssh connection to SUT to interact with SUT, including window and serial console
 sub use_ssh_serial_console {
-    console('sol')->disable if check_var('BACKEND', 'ipmi');
     select_console('root-ssh');
     $serialdev = 'sshserial';
     set_var('SERIALDEV', $serialdev);
@@ -47,7 +46,6 @@ sub switch_from_ssh_to_sol_console {
     set_var('SERIALDEV', '');
     $serialdev = 'ttyS1';
     bmwqemu::save_vars();
-    console('sol')->disable;
     if ($opts{'reset_console_flag'} eq "on") {
         reset_consoles;
     }
