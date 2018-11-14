@@ -27,14 +27,22 @@ use XML::LibXML;
 #Xpath parser
 my $xpc;
 
+sub test_setup {
+    select_console('root-console');
+    my $profile_path = '/root/autoinst.xml';
+    # Generate pofile if doesn't exist
+    assert_script_run("[ -e $profile_path ] | yast2 clone_system");
+
+    my $autoinst = script_output("cat $profile_path");
+    # get XPathContext
+    $xpc = get_xpc($autoinst);
+}
 
 sub run {
     # Accumulate errors in this variable if any
     my $errors;
-    # Copy file content to variable
-    my $autoinst = script_output("cat /root/autoinst.xml");
-    # Init xml namespace
-    $xpc = get_xpc($autoinst);
+
+    test_setup;
 
     ### Verify mount options enable_snapshots
     my $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:enable_snapshots', expected_val => 'true');
