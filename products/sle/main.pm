@@ -1032,6 +1032,16 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
+    elsif (get_var("QAM_OPENVPN")) {
+        loadtest "boot/boot_to_desktop";
+        set_var('INSTALLONLY', 1);
+        if (check_var('HOSTNAME', 'server')) {
+            loadtest "network/openvpn_server";
+        }
+        else {
+            loadtest "network/openvpn_client";
+        }
+    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
         # Set origin and target version
