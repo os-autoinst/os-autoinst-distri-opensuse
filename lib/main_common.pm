@@ -473,13 +473,7 @@ sub load_autoyast_tests {
     else {
         loadtest("autoyast/repos");
         loadtest("autoyast/clone");
-        if (get_var('SP3ORLATER') && check_var('FILESYSTEM', 'btrfs')) {
-            loadtest "autoyast/verify_autoinst_btrfs";
-        }
         loadtest("autoyast/logs");
-    }
-    if (get_var('SP3ORLATER') && check_var('FILESYSTEM', 'btrfs')) {
-        loadtest "autoyast/verify_btrfs";
     }
     loadtest("autoyast/autoyast_reboot");
     #    next boot in load_reboot_tests
@@ -2115,7 +2109,13 @@ sub load_installation_validation_tests {
     load_system_prepare_tests;
     # See description of INSTALLATION_VALIDATION in variables.md
     # Possible values:
-    # - console/lvm_thin_check for thin LVM
+    # - console/lvm_thin_check: validate thin LVM installation
+    # - autoyast/verify_disk_as_pv validates: installation using autoyast_disk_as_pv.xml profile
+    # - autoyast/verify_disk_as_pv_clone: validates generated profile when cloning system
+    #                                      installed using autoyast_disk_as_pv.xml profile
+    # - autoyast/verify_btrfs: validates installation using autoyast_btrfs.xml profile
+    # - autoyast/verify_btrfs_clone: validates enerated profile when cloning system
+    #                                      installed using autoyast_btrfs.xml profile
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }
