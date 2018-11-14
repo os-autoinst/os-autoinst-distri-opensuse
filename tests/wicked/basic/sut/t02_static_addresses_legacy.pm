@@ -23,7 +23,7 @@ sub run {
     my $iface = iface();
     record_info('Info', 'Set up static addresses from legacy ifcfg files');
     $self->get_from_data('wicked/static_address/ifcfg-eth0', "/etc/sysconfig/network/ifcfg-$iface");
-    assert_script_run("ifup $iface");
+    $self->wicked_command('ifup', $iface);
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
 }
 

@@ -6,7 +6,7 @@
     <forward-delay>15</forward-delay>
     <ports>
       <port>
-        <device>eth0</device>
+        <device>iface</device>
       </port>
       <port>
         <device>dummy0</device>
@@ -28,7 +28,7 @@
 </interface>
 
 <interface>
-  <name>eth0</name>
+  <name>iface</name>
 </interface>
 
 <interface>

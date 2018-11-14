@@ -15,12 +15,13 @@
 use base 'wickedbase';
 use strict;
 use testapi;
-use network_utils 'ifc_exists';
+use network_utils qw(iface ifc_exists);
 
 sub run {
     my ($self) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-br0';
     my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
+    my $iface  = iface();
     my $res;
     $config = '/etc/sysconfig/network/ifcfg-br0';
     $self->get_from_data('wicked/ifcfg/br0',    $config);
@@ -33,7 +34,7 @@ sub run {
     assert_script_run("rm $config");
     $self->wicked_command('ifreload', 'all');
     die if (ifc_exists('br0'));
-    die unless (ifc_exists('dummy0') && ifc_exists('eth0'));
+    die unless (ifc_exists('dummy0') && ifc_exists($iface));
     $self->wicked_command('ifdown', 'all');
     $self->wicked_command('ifup',   'all');
     die if ($self->get_test_result('host') eq 'FAILED');

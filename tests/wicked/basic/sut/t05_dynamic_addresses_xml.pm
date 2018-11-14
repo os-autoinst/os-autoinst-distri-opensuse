@@ -24,7 +24,6 @@ sub run {
     record_info('Info', 'Set up dynamic addresses from wicked XML files');
     $self->get_from_data('wicked/dynamic_address/dynamic-addresses.xml', "/data/dynamic_address/dynamic-addresses.xml");
     assert_script_run("sed -i 's/xxx/$iface/g' /data/dynamic_address/dynamic-addresses.xml");
-    assert_script_run("ifdown $iface");
     $self->wicked_command('ifup --ifconfig /data/dynamic_address/dynamic-addresses.xml', $iface);
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
 }
