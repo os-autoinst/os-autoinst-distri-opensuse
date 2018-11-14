@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_caasp';
 
 
 sub ensure_ssh_unblocked {
@@ -48,10 +48,16 @@ sub run {
     my ($self) = shift;
     # overview-generation
     # this is almost impossible to check for real
-    assert_screen "installation-settings-overview-loaded", 150;
-    $self->deal_with_dependency_issues;
-    assert_screen "inst-xen-pattern" if get_var('XEN');
-    ensure_ssh_unblocked;
+    if (is_caasp && check_var('HDDSIZEGB', '10')) {
+        # boo#1099762
+        assert_screen('installation-settings-overview-loaded-impossible-proposal');
+    }
+    else {
+        assert_screen "installation-settings-overview-loaded", 150;
+        $self->deal_with_dependency_issues;
+        assert_screen "inst-xen-pattern" if get_var('XEN');
+        ensure_ssh_unblocked;
+    }
 }
 
 1;

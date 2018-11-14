@@ -15,37 +15,65 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+sub load_boot_from_dvd_tests {
+    loadtest 'installation/bootloader_uefi' if (get_var("UEFI"));
+    loadtest 'installation/bootloader' unless (get_var("UEFI"));
+}
+
+sub load_boot_from_disk_tests {
+    # Preparation for start testing
+    loadtest 'kubic/disk_boot';
+    loadtest 'kubic/networking';
+    loadtest 'kubic/repositories';
+}
+
+sub load_feature_tests {
+    # Feature tests for Micro OS operating system
+    loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    loadtest 'caasp/libzypp_config';
+    loadtest 'caasp/one_line_checks';
+    loadtest 'caasp/filesystem_ro';
+    loadtest 'caasp/services_enabled';
+    loadtest 'caasp/transactional_update';
+    loadtest 'caasp/rebootmgr';
+    loadtest 'caasp/journal_check';
+}
+
 sub loadtests {
     my $filter = shift;
     return 1 unless $filter;
 
     if ($filter eq 'boot_from_dvd') {
-        loadtest 'installation/bootloader_uefi' if (get_var("UEFI"));
-        loadtest 'installation/bootloader' unless (get_var("UEFI"));
+        load_boot_from_dvd_tests;
     }
 
     if ($filter eq 'boot_from_disk') {
-        # Preparation for start testing
-        loadtest 'kubic/disk_boot';
-        loadtest 'kubic/networking';
-        loadtest 'kubic/repositories';
+        load_boot_from_disk_tests;
     }
 
     if ($filter eq 'installation') {
-        # Full list of installation test-modules can be found at 'main_common.pm'
-        load_inst_tests;
+        if (check_var('HDDSIZEGB', '10')) {
+            # boo#1099762
+            # undefined method "safe_copy" for nil:NilClass
+            # YaST2 crashes if disk is too small for a viable proposal
+            loadtest('installation/welcome');
+            loadtest('installation/installation_mode');
+            loadtest('installation/logpackages');
+            loadtest('installation/system_role');
+            loadtest('installation/user_settings_root');
+            loadtest('installation/installation_overview');
+        }
+        else {
+            # Full list of installation test-modules can be found at 'main_common.pm'
+            load_inst_tests;
+            load_boot_from_disk_tests;
+            load_feature_tests if (check_var 'EXTRA', 'FEATURES');
+            loadtest 'shutdown/shutdown';
+        }
     }
 
     if ($filter eq 'feature') {
-        # Feature tests for Micro OS operating system
-        loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        loadtest 'caasp/libzypp_config';
-        loadtest 'caasp/one_line_checks';
-        loadtest 'caasp/filesystem_ro';
-        loadtest 'caasp/services_enabled';
-        loadtest 'caasp/transactional_update';
-        loadtest 'caasp/rebootmgr';
-        loadtest 'caasp/journal_check';
+        load_feature_tests;
     }
 
     if ($filter eq 'rcshell') {
@@ -68,9 +96,6 @@ else {
     loadtests 'boot_from_dvd';
     if (get_var 'SYSTEM_ROLE') {
         loadtests 'installation';
-        loadtests 'boot_from_disk';
-        loadtests 'feature' if (check_var 'EXTRA', 'FEATURES');
-        loadtest 'shutdown/shutdown';
     }
     else {
         loadtests('rcshell') if (check_var 'EXTRA', 'RCSHELL');
