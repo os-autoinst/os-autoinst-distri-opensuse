@@ -57,13 +57,13 @@ sub orchestrate_velum_reboot {
     }
     assert_and_click "velum-update-all";
 
-    # 5 minutes per node
+    # 15 minutes per node
     my @tags = qw(velum-retry velum-bootstrap-done);
-    assert_screen \@tags, $n * 300;
+    assert_screen \@tags, $n * 900;
     if (match_has_tag 'velum-retry') {
         record_soft_failure 'bsc#000000 - Should have passed first time';
         assert_and_click 'velum-retry';
-        assert_screen 'velum-bootstrap-done', $n * 300;
+        assert_screen 'velum-bootstrap-done', $n * 900;
     }
     die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
 }
@@ -106,18 +106,19 @@ sub update_setup_repos {
 
 # ./update.sh -n will install new package (QAM) if any
 sub install_new_packages {
-    record_info "New Package", "This maintenance incident includes a NEW package";
+    record_info "NEW Package", "Check if this maintenance incident includes NEW package and if so then install it.";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -n' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
         # Reboot the cluster
+        record_info "Installed NEW Package", "This maintenance incident includes NEW package we just installed.";
         orchestrate_velum_reboot;
         update_check_changes;
     }
     elsif ($returnCode == 0) {
-        record_info 'No New Package', 'No new packages for this maintenance incident';
+        record_info 'No NEW Package', 'No NEW packages included in this maintenance incident.';
     }
     else {
-        die "Package installation failed";
+        die "NEW Package installation failed";
     }
 }
 
@@ -131,23 +132,27 @@ sub is_needed {
         record_info 'Skip Update', 'This maintenance incident was just one single new package';
         return 0;
     }
-    return 1;
+    else {
+        record_info 'Ready to update', 'We are ready to perform the update.';
+        return 1;
+    }
 }
 
-# ./update.sh -u will install missing packages (QAM)
+# ./update.sh -i will install missing packages (QAM)
 sub install_missing_packages {
-    record_info 'Prepare', 'Install packages that are not part of the DVD but they are part of this incident';
+    record_info "MISSING Package", "Check if this maintenance incident includes MISSING package and if so then install it.";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
         # Reboot the cluster
+        record_info 'Installed MISSING Package', 'This maintenance incident includes MISSING package we just installed.';
         orchestrate_velum_reboot;
         update_check_changes;
     }
     elsif ($returnCode == 0) {
-        record_info 'Skip Prepare', 'All packages included in this maintenance incident are pre-installed (DVD).';
+        record_info 'No MISSING Package', 'All packages included in this maintenance incident are pre-installed (DVD).';
     }
     else {
-        die "Package installation failed";
+        die "MISSING Package installation failed";
     }
 }
 
