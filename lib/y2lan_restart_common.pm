@@ -74,6 +74,7 @@ sub close_network_settings {
 sub check_network_status {
     my ($expected_status, $device) = @_;
     $expected_status //= 'no_restart';
+    assert_screen 'yast2_closed_xterm_visible';
     assert_script_run 'ip a';
     if ($device eq 'bond') {
         record_soft_failure 'bsc#992113';

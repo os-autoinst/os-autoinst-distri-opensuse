@@ -91,7 +91,7 @@ sub select_special_device_tab {
     send_key 'tab';
     send_key 'tab';
     send_key 'home';
-    send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_workaround-bsc1004643"], 'down', 5;
+    send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_bsc1111483"], 'down', 5;
     return if check_bsc1111483;
     send_key 'alt-i';                     # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
@@ -109,6 +109,8 @@ sub select_special_device_tab {
     }
     wait_still_screen;
     send_key 'alt-n';
+    assert_screen 'yast2_lan';
+    send_key $cmd{ok};
 }
 
 sub delete_device {
@@ -118,7 +120,7 @@ sub delete_device {
     send_key 'tab';
     send_key 'tab';
     send_key 'home';
-    send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_workaround-bsc1004643"], 'down', 5;
+    send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_bsc1111483"], 'down', 5;
     return if check_bsc1111483;
     send_key 'alt-t';    # Delete NIC
     wait_still_screen;
