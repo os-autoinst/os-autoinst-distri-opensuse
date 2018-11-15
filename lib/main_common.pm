@@ -1006,7 +1006,10 @@ sub load_inst_tests {
         if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }
-
+        # For create_hdd_gnome-wayland and create_hdd_gnome-x11
+        if (get_var('SWITCH_TO_X11')) {
+            loadtest "installation/gnome_switch_to_x11";
+        }
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_release";
         }
