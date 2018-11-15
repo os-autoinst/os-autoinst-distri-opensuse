@@ -1799,8 +1799,6 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_ssl";
     loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
-    # IcedTea-Web plugin is part of NPAPI dropped in version 52 available only on 12-sp4
-    loadtest "x11/firefox/firefox_java" if is_sle('=12-sp4');
     loadtest "x11/firefox/firefox_extcontent";
     loadtest "x11/firefox/firefox_gnomeshell";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
