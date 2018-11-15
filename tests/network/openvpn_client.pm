@@ -19,12 +19,7 @@ use utils qw(systemctl zypper_call exec_and_insert_password);
 use strict;
 
 sub run {
-    my ($self) = @_;
     select_console "root-console";
-
-    # Configure static network, disable firewall
-    systemctl 'stop ' . $self->firewall;
-    setup_static_mm_network('10.0.2.102/24');
 
     # Install openvpn
     zypper_call('in openvpn');

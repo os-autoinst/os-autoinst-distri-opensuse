@@ -1033,13 +1033,27 @@ else {
         return 1;
     }
     elsif (get_var("QAM_OPENVPN")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {
             loadtest "network/openvpn_server";
         }
         else {
             loadtest "network/openvpn_client";
+        }
+    }
+    elsif (get_var("QAM_SALT")) {
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        set_var('INSTALLONLY', 1);
+        if (check_var('HOSTNAME', 'master')) {
+            loadtest "network/salt_master";
+        }
+        else {
+            loadtest "network/salt_minion";
         }
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {

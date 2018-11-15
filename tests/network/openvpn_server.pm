@@ -20,7 +20,6 @@ use utils qw(systemctl zypper_call exec_and_insert_password);
 use strict;
 
 sub run {
-    my ($self) = @_;
     barrier_create('OPENVPN_STATIC_START',    2);
     barrier_create('OPENVPN_STATIC_STARTED',  2);
     barrier_create('OPENVPN_STATIC_FINISHED', 2);
@@ -31,10 +30,6 @@ sub run {
 
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
     zypper_call("ar -Gf '$qa_head_repo'/ qa-ibs");
-
-    # Configure static network, disable firewall
-    systemctl 'stop ' . $self->firewall;
-    setup_static_mm_network('10.0.2.101/24');
 
     # Install openvpn, generate static key
     zypper_call('in openvpn easy-rsa');
