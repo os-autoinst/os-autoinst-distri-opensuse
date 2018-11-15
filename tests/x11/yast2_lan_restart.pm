@@ -62,20 +62,17 @@ sub change_hw_device_name {
     assert_screen 'yast2_lan_hardware_tab';
     send_key 'alt-e';        # Change device name
     assert_screen 'yast2_lan_device_name';
-    send_key 'alt-m';        # Udev rule based on MAC
-    send_key 'tab';
-    send_key 'tab';
-    send_key 'tab';
-    send_key 'tab';
-    type_string "$dev_name";
+    send_key 'tab' for (1 .. 2);
+    type_string $dev_name;
+    wait_screen_change { send_key 'alt-m' };    # Udev rule based on MAC
     save_screenshot;
-    send_key 'alt-o';
-    send_key 'alt-n';
+    send_key $cmd{ok};
+    send_key $cmd{next};
 }
 
 sub run {
     initialize_y2lan;
-    verify_network_configuration;    # check simple access to Overview tab
+    verify_network_configuration;               # check simple access to Overview tab
     verify_network_configuration(\&check_network_settings_tabs);
     unless (is_network_manager_default) {
         verify_network_configuration(\&check_network_card_setup_tabs);
