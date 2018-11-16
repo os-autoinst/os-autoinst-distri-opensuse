@@ -22,9 +22,7 @@ sub verify_default_keymap_textmode {
         select_console($tty{console});
     }
     else {
-        wait_screen_change {
-            send_key('alt-f3');
-        }
+        send_key('alt-f3');
         assert_screen([qw(linux-login cleared-console)]);
     }
 
