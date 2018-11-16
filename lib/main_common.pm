@@ -1497,6 +1497,7 @@ sub load_extra_tests_textmode {
     loadtest "console/git";
     loadtest "console/java";
     loadtest "console/sysctl";
+    loadtest "console/sysstat";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
     loadtest "console/unzip";
