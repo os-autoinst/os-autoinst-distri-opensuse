@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
 
 my %role_hotkey = (
     gnome    => 's',
@@ -36,6 +36,9 @@ sub change_system_role {
         else {
             assert_and_click "system-role-$system_role";
             assert_screen "system-role-$system_role-selected";
+            if (check_var('SYSTEM_ROLE', 'serverro')) {
+                assert_screen "system-role-$system_role-selected-sle" if is_sle;
+            }
         }
     }
     else {
