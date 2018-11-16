@@ -586,6 +586,7 @@ sub load_jeos_tests {
             loadtest "console/suseconnect_scc";
         }
     }
+    loadtest "jeos/glibc_locale" if sle_version_at_least('15') && get_var('JEOSINSTLANG');
 }
 
 sub installzdupstep_is_applicable {

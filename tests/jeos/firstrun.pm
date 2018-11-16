@@ -8,12 +8,12 @@
 # without any warranty.
 
 # Summary: Configure JeOS
-# Maintainer: Michal Nowak <mnowak@suse.com>
+# Maintainer: Ciprian Cret <mnowak@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle sle_version_at_least);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 
 sub post_fail_hook {
@@ -26,7 +26,7 @@ sub post_fail_hook {
 sub verify_user_info {
     my (%args) = @_;
     my $user = $args{user_is_root};
-    my $lang = get_var('JEOSINSTLANG', 'en_US');
+    my $lang = sle_version_at_least('15') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
     my %tz_data = ('en_US' => 'UTC', 'de_DE' => 'Europe/Berlin');
     assert_script_run("timedatectl | awk '\$1 ~ /Time/ { print \$3 }' | grep ^" . $tz_data{$lang} . "\$");
@@ -44,7 +44,8 @@ sub verify_user_info {
 }
 
 sub run {
-    my $lang = get_var('JEOSINSTLANG', 'en_US');
+    my $lang = sle_version_at_least('15') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
+
     my %keylayout_key = ('en_US' => 'e', 'de_DE' => 'd');
     # For 'en_US' pick 'en_US', for 'de_DE' select 'de_DE'
     my %locale_key = ('en_US' => 'e', 'de_DE' => 'd');
