@@ -424,7 +424,7 @@ sub wait_boot {
             push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
 
             check_screen(\@tags, 15)
-              || die 'niether grub2 or tianocore-mainmenu needles found';
+              || die 'neither grub2 nor tianocore-mainmenu needles found';
             if (match_has_tag('tianocore-mainmenu')) {
                 $self->handle_uefi_boot_disk_workaround();
                 check_screen('encrypted-disk-password-prompt', 10);
