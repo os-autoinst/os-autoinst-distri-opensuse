@@ -190,6 +190,36 @@ sub run_ipa {
     return $ipa;
 }
 
+=head2 run_ssh_command
+
+Runs a command C<cmd> via ssh in the given VM.
+C<instance> should be an object returned by ipa subroutine, e.g. $provider->ipa()
+
+=cut
+sub run_ssh_command {
+    my ($self, %args) = @_;
+
+    die('Need to provide instance and cmd') if (!$args{instance} || !$args{cmd});
+
+    my $ssh_cmd = sprintf('ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i %s %s@%s -- %s',
+        $args{instance}->{ssh_key}, $args{instance}->{username}, $args{instance}->{ip}, $args{cmd});
+    assert_script_run($ssh_cmd);
+}
+
+=head2 create_instance
+
+Creates an instance on the public cloud provider using ipa command without cleanup
+
+=cut
+sub create_instance {
+    my ($self, %args) = @_;
+
+    return $self->ipa(
+        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        cleanup       => 0,
+        image_id      => $args{image}
+    );
+}
 
 =head2 cleanup
 

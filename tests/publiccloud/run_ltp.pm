@@ -17,18 +17,6 @@ use testapi;
 use utils;
 use Data::Dumper;
 
-sub run_ssh
-{
-    my ($instance, $cmd) = @_;
-
-    my $ssh_cmd = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ';
-    $ssh_cmd .= '-i ' . $instance->{ssh_key} . ' ';
-    $ssh_cmd .= $instance->{username} . '@' . $instance->{ip} . ' ';
-    $ssh_cmd .= '-- ' . $cmd;
-
-    assert_script_run($ssh_cmd);
-}
-
 sub run {
     my ($self) = @_;
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/SLE_12_SP3/home:metan.repo');
@@ -37,11 +25,7 @@ sub run {
     my $provider = $self->{provider} = $self->provider_factory();
     $provider->init();
 
-    my $instance = $provider->ipa(
-        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        cleanup       => 0,
-        image_id      => $self->get_image_id($provider)
-    );
+    my $instance = $provider->create_instance(image => $self->get_image_id($provider));
 
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
     assert_script_run('chmod +x ~/restart_instance.sh');
@@ -49,8 +33,8 @@ sub run {
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
     # Install ltp from package on remote
-    run_ssh($instance, 'sudo zypper ar ' . $ltp_repo);
-    run_ssh($instance, 'sudo zypper -q --gpg-auto-import-keys in -y ltp');
+    $provider->run_ssh_command(instance => $instance, cmd => 'sudo zypper ar ' . $ltp_repo);
+    $provider->run_ssh_command(instance => $instance, cmd => 'sudo zypper -q --gpg-auto-import-keys in -y ltp');
 
     my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
     $reset_cmd .= $instance->{instance_id} . ' ' . $instance->{ip};
