@@ -22,11 +22,8 @@ sub run {
     wait_still_screen 1;
     send_key "ctrl-shift-p";
     assert_screen 'firefox-private-browsing';
-    type_string "gnu.org\n";
-    assert_screen('firefox-private-gnu', 90);
-    send_key "alt-d";
-    type_string "facebook.com\n";
-    assert_screen('firefox-private-facebook', 90);
+    $self->firefox_open_url('facebook.com');
+    assert_screen('firefox-private-facebook');
 
     $self->restart_firefox;
 
