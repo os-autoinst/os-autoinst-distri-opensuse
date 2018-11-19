@@ -574,7 +574,7 @@ sub start_firefox_with_profile {
     # Start Firefox
     type_string "firefox $url >firefox.log 2>&1 &\n";
     wait_still_screen 3;
-    assert_screen 'firefox-url-loaded', 90;
+    assert_screen 'firefox-url-loaded', 300;
 }
 
 sub start_firefox {
@@ -608,7 +608,7 @@ sub firefox_check_default {
     my $stilltime = get_var('TIMEOUT_SCALE') ? 100 : 10;
     wait_still_screen $stilltime, 100;
     # Set firefox as default browser if asked
-    assert_screen [qw(firefox_default_browser firefox-url-loaded)], 150;
+    assert_screen [qw(firefox_default_browser firefox-url-loaded)], 300;
     if (match_has_tag('firefox_default_browser')) {
         wait_screen_change {
             assert_and_click 'firefox_default_browser_yes';
@@ -619,7 +619,7 @@ sub firefox_check_default {
 # Check whether there are any pop up windows and handle them one by one
 sub firefox_check_popups {
     # assert loaded webpage
-    assert_screen 'firefox-url-loaded', 90;
+    assert_screen 'firefox-url-loaded', 300;
     for (1 .. 3) {
         # slow down loop and give firefox time to show pop-up
         sleep 5;
@@ -663,7 +663,7 @@ sub firefox_open_url {
     wait_still_screen 2, 4;
     # this is because of adobe flash, screensaver will activate sooner than the page
     unless ($do_not_check_loaded_url) {
-        assert_screen 'firefox-url-loaded', 90;
+        assert_screen 'firefox-url-loaded', 300;
     }
 }
 
