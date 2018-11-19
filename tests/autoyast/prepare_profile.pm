@@ -16,6 +16,7 @@ use base "opensusebasetest";
 use testapi;
 use version_utils 'is_sle';
 use registration 'scc_version';
+use autoyast 'expand_template';
 use File::Copy 'copy';
 use File::Path 'make_path';
 
@@ -25,6 +26,9 @@ sub run {
     my $profile = get_test_data($path);
     # Return if profile is not available
     return unless $profile;
+
+    # Profile is a template, expand and rename
+    $profile = expand_template($profile) if $path =~ s/^(.*\.xml)\.ep$/$1/;
 
     # Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
     if (my $version = scc_version(get_var('VERSION', ''))) {
