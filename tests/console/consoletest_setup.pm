@@ -19,12 +19,17 @@ use utils;
 use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
+sub disable_bash_mail_notification {
+    assert_script_run "unset MAILCHECK >> ~/.bashrc";
+    assert_script_run "unset MAILCHECK";
+}
+
 sub run {
     my $self = shift;
     # let's see how it looks at the beginning
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
-
+    disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
     systemctl "stop serial-getty\@$testapi::serialdev", ignore_failure => 1;
@@ -67,7 +72,7 @@ sub run {
     $self->clear_and_verify_console;
 
     select_console 'user-console';
-
+    disable_bash_mail_notification;
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " > test.data";
     assert_script_run " cpio -id < test.data";
     script_run "ls -al data";
