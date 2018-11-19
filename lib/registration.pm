@@ -563,6 +563,7 @@ sub get_addon_fullname {
         'legacy'    => 'sle-module-legacy',
         'lgm'       => 'sle-module-legacy',
         'pcm'       => 'sle-module-public-cloud',
+        'script'    => 'sle-module-web-scripting',
         'serverapp' => 'sle-module-server-applications',
         'tcm'       => 'sle-module-toolchain',
         'wsm'       => 'sle-module-web-scripting',
