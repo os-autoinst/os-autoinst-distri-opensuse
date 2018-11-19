@@ -950,6 +950,9 @@ elsif (get_var("EXTRATEST")) {
     }
     load_extra_tests();
 }
+elsif (get_var('TOOLKITS')) {
+    load_toolkit_tests;
+}
 elsif (get_var("FILESYSTEM_TEST")) {
     boot_hdd_image;
     if (is_updates_tests) {

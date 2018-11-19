@@ -65,6 +65,7 @@ our @EXPORT = qw(
   load_consoletests
   load_create_hdd_tests
   load_extra_tests
+  load_toolkit_tests
   load_extra_tests_docker
   load_filesystem_tests
   load_inst_tests
@@ -1577,6 +1578,22 @@ sub load_extra_tests {
         }
         loadtest "console/consoletest_finish";
     }
+    return 1;
+}
+
+sub load_toolkit_tests {
+    loadtest "boot/boot_to_desktop";
+    loadtest "console/consoletest_setup";
+    loadtest "x11/toolkits/prepare";
+    loadtest "x11/toolkits/x11";
+    loadtest "x11/toolkits/tk";
+    loadtest "x11/toolkits/fltk";
+    loadtest "x11/toolkits/motif";
+    loadtest "x11/toolkits/gtk2";
+    loadtest "x11/toolkits/gtk3";
+    loadtest "x11/toolkits/qt4" if is_opensuse;
+    loadtest "x11/toolkits/qt5";
+    loadtest "x11/toolkits/swing";
     return 1;
 }
 

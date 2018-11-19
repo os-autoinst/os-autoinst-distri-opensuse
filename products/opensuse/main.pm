@@ -337,6 +337,9 @@ elsif (get_var('GNUHEALTH')) {
     loadtest 'gnuhealth/gnuhealth_client_preconfigure';
     loadtest 'gnuhealth/gnuhealth_client_first_time';
 }
+elsif (get_var('TOOLKITS')) {
+    load_toolkit_tests;
+}
 elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
