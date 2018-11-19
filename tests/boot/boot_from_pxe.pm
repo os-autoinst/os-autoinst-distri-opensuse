@@ -31,7 +31,7 @@ sub run {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu prague-icecream-pxe-menu pxe-menu)], 300);
     my $image_path = "";
     my $type_speed = 20;
     #detect pxe location
@@ -73,6 +73,17 @@ sub run {
         my $interface = get_var('WORKER_CLASS') eq 'hornet' ? 'eth1' : 'eth4';
         my $node = get_var('WORKER_CLASS');
         type_string "ifcfg=$interface=dhcp4 ", $type_speed;
+    }
+    elsif (match_has_tag('prague-icecream-pxe-menu')) {
+        # Fix problem with sol on ttyS2
+        $testapi::serialdev = get_var('SERIALDEV') if get_var('SERIALDEV');
+        send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
+
+        my $arch = get_var('ARCH');
+        my ($image_name) = get_var('ISO') =~ s/^.*?([^\/]+)-DVD-${arch}-([^-]+)-DVD1\.iso/$1-$2/r;
+        $image_path .= "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
+        $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
+        $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1";
     }
     elsif (match_has_tag('pxe-menu')) {
         # select network (second entry)
