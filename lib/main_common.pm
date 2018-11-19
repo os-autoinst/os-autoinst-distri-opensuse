@@ -529,7 +529,6 @@ sub load_system_role_tests {
         if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
             loadtest "installation/logpackages";
         }
-        loadtest "installation/disable_online_repos" if get_var('DISABLE_ONLINE_REPOS') && !get_var('OFFLINE_SUT');
     }
     if (is_using_system_role) {
         loadtest "installation/system_role";
@@ -805,7 +804,9 @@ sub load_inst_tests {
     if (get_var('MULTIPATH')) {
         loadtest "installation/multipath";
     }
-    if (is_opensuse && noupdatestep_is_applicable() && !get_var("LIVECD")) {
+    if (is_opensuse && noupdatestep_is_applicable() && !is_livecd) {
+        # See https://github.com/yast/yast-packager/pull/385
+        loadtest "installation/online_repos";
         loadtest "installation/installation_mode";
     }
     if (is_upgrade) {
@@ -813,7 +814,11 @@ sub load_inst_tests {
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_fill";
         }
-        loadtest "installation/upgrade_select_opensuse" if is_opensuse;
+        if (is_opensuse) {
+            # See https://github.com/yast/yast-packager/pull/385
+            loadtest "installation/online_repos";
+            loadtest "installation/upgrade_select_opensuse";
+        }
     }
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
