@@ -274,15 +274,23 @@ sub fill_in_registration_data {
     # Process modules on sle 15
     if (is_sle '15+') {
         my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
-        if (check_var('BETA', '1')) {
-            assert_screen('scc-beta-filter-checkbox');
-            send_key('alt-i');
+        # Check needle 'scc-beta-filter-checkbox', if yes means product still in BETA phase, then continue assert process;
+        # if not means product already out of BETA phase, then do not need to assert the 'scc-beta-filter-checkbox' any more.
+
+        # Assert multi tags scc-beta-filter-checkbox and scc-without-beta-filter-checkbox to ensure catch all conditions.
+        assert_screen [qw(scc-beta-filter-checkbox scc-without-beta-filter-checkbox)];
+        if (match_has_tag('scc-beta-filter-checkbox')) {
+            if (check_var('BETA', '1')) {
+                assert_screen('scc-beta-filter-checkbox');
+                send_key('alt-i');
+            }
+            elsif (!check_screen($modules_needle, 0)) {
+                record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
+                assert_screen('scc-beta-filter-checkbox');
+                send_key('alt-i');
+            }
         }
-        elsif (!check_screen($modules_needle, 0)) {
-            record_info('bsc#1094457', 'bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
-            assert_screen('scc-beta-filter-checkbox');
-            send_key('alt-i');
-        }
+
         verify_preselected_modules($modules_needle);
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
