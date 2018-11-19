@@ -1488,6 +1488,7 @@ sub load_extra_tests_console {
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";
     loadtest "console/java";
+    loadtest "console/ant";
     loadtest "console/sysctl";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
