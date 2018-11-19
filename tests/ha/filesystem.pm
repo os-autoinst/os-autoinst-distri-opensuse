@@ -94,11 +94,11 @@ sub run {
         else {
             if ($resource eq 'drbd_passive') {
                 assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:Master'\" crm configure edit";
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc inf: ms_$resource:promote $fs_rsc:start'\" crm configure edit";
+                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start'\" crm configure edit";
             }
             else {
                 assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource'\" crm configure edit";
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc inf: vg_$resource $fs_rsc'\" crm configure edit";
+                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc'\" crm configure edit";
             }
 
             # Sometimes we need to cleanup the resource
