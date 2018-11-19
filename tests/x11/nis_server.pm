@@ -140,7 +140,7 @@ sub run {
     script_run("yast2 nfs_server; echo yast2-nfs-server-status-\$? > /dev/$serialdev", 0);
     nfs_server_configuration();
     wait_serial("yast2-nfs-server-status-0", 360) || die "'yast2 nfs server' didn't finish";
-    assert_screen 'yast2_closed_xterm_visible', 90;
+    assert_screen 'yast2_closed_xterm_visible', 200;
     # NFS Server is configured and running, configuration continues on client side
     mutex_create('nfs_ready');
     wait_for_children;
