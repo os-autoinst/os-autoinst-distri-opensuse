@@ -33,9 +33,9 @@ sub run {
     assert_script_run "curl -f -v " . autoinst_url . "/data/ha/corosync.conf -o ${corosync_conf}" if is_node(1);
 
     # Activate/deactivate needed services
-    systemctl 'disable --now xinetd';
+    systemctl 'disable --now xinetd', ignore_failure => 1;
     systemctl 'enable --now csync2.socket';
-    systemctl 'enable --now hawk';
+    systemctl 'enable --now hawk', ignore_failure => 1;
     systemctl 'enable sbd';
     systemctl 'enable pacemaker';
 
