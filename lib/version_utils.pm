@@ -66,6 +66,7 @@ use constant {
           is_virtualization_server
           is_server
           is_s390x
+          is_livecd
           has_product_selection
           has_license_on_welcome_screen
           )
@@ -112,6 +113,10 @@ sub is_rescuesystem {
 
 sub is_virtualization_server {
     return get_var('SYSTEM_ROLE', '') =~ /(kvm|xen)/;
+}
+
+sub is_livecd {
+    return get_var("LIVECD");
 }
 
 # Works only for versions comparable by string (not leap 42.X)
