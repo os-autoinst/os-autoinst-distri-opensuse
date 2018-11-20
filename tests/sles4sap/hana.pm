@@ -14,7 +14,8 @@ use base 'sles4sap';
 use strict;
 use testapi;
 use utils 'turn_off_gnome_screensaver';
-use utils 'type_string_slow';
+use utils qw(type_string_slow zypper_call);
+use version_utils 'is_sle';
 
 sub get_total_mem {
     if (check_var('BACKEND', 'qemu')) {
@@ -45,9 +46,15 @@ sub run {
     # Add host's IP to /etc/hosts
     select_console 'root-console';
     assert_script_run 'echo $(ip -4 addr show dev eth0 | sed -rne "/inet/s/[[:blank:]]*inet ([0-9\.]*).*/\1/p") $(hostname) >> /etc/hosts';
+    if (is_sle('>=15')) {
+        my $arch       = get_required_var('ARCH');
+        my $os_version = script_output('sed -rn "s/^VERSION_ID=\"(.*)\"/\1/p" /etc/os-release');
+        assert_script_run "SUSEConnect -p sle-module-legacy/$os_version/$arch";
+        zypper_call('in libopenssl1_0_0');
+    }
     select_console 'x11';
 
-    x11_start_program('xterm', target_match => 'xterm-susetest');
+    x11_start_program('xterm');
     turn_off_gnome_screensaver;
     type_string "killall xterm\n";
     assert_screen 'generic-desktop';
@@ -75,6 +82,7 @@ sub run {
     assert_screen 'sap-wizard-performing-installation', 60;
     assert_screen 'sap-wizard-profile-ready',           300;
     send_key $cmd{next};
+    send_key 'alt-o' if (check_screen 'sap-wizard-partition-issues',      60);
     send_key 'alt-y' if (check_screen 'sap-wizard-continue-installation', 30);
     assert_screen 'sap-product-installation';
     assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], 4000;
