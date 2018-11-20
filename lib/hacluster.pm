@@ -237,7 +237,13 @@ sub check_cluster_state {
     assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
     assert_script_run 'crm_mon -s | grep "$(crm node list | wc -l) nodes online"';
-    assert_script_run 'crm_verify -LV';
+    # As some options may be deprecated, test shouldn't die on 'crm_verify'
+    if (get_var('HDDVERSION')) {
+        script_run 'crm_verify -LV';
+    }
+    else {
+        assert_script_run 'crm_verify -LV';
+    }
 }
 
 # Wait for resources to be started

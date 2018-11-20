@@ -463,6 +463,7 @@ sub load_ha_cluster_tests {
     if (get_var('HDDVERSION')) {
         loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
         loadtest 'ha/check_after_reboot';
+        loadtest 'ha/check_hawk';
         return 1;
     }
 
