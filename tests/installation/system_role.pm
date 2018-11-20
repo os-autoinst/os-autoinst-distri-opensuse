@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
+use version_utils qw(is_opensuse is_sle);
 
 my %role_hotkey = (
     gnome    => 's',
