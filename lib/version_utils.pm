@@ -36,6 +36,7 @@ use constant {
           is_rescuesystem
           is_sles4sap
           is_sles4sap_standard
+          is_rt
           is_staging
           is_storage_ng
           sle_version_at_least
@@ -67,6 +68,7 @@ use constant {
           is_server
           is_s390x
           is_livecd
+          is_x86_64
           has_product_selection
           has_license_on_welcome_screen
           )
@@ -235,6 +237,10 @@ sub is_sles4sap_standard {
     return is_sles4sap && check_var('SLES4SAP_MODE', 'sles');
 }
 
+sub is_rt {
+    return check_var('SLE_PRODUCT', 'rt');
+}
+
 sub is_staging {
     return get_var('STAGING');
 }
@@ -321,6 +327,10 @@ sub is_s390x {
     return check_var('ARCH', 's390x');
 }
 
+sub is_x86_64 {
+    return check_var('ARCH', 'x86_64');
+}
+
 sub is_remote_backend {
     # s390x uses only remote repos
     return is_s390x() || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
@@ -363,7 +373,9 @@ sub is_using_system_role {
     #so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2
     #no matter with or without INSTALL_TO_OTHERS tag
     # On SLE 15 SP0 we unconditionally have system roles screen
-    # SLE 15 SP1 has system roles only if more than one is available, meaning either registered or with all packages DVD
+    # SLE 15 SP1:
+    #   * Has system roles only if more than one is available, meaning either registered or with all packages DVD;
+    #   * RT Product has only one (minimal) role.
     # On kubic, leap 15.1+, TW we have it instead of desktop selection screen
     return is_sle('>=12-SP2') && is_sle('<15')
       && check_var('ARCH', 'x86_64')
@@ -371,7 +383,7 @@ sub is_using_system_role {
       && (!is_sles4sap() || is_sles4sap_standard())
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || is_sle('=15')
-      || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
+      || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') && !is_rt() || get_var('ADDONS') || get_var('ADDONURL')))
       || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, Kubic
 }
 

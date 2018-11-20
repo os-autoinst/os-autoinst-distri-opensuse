@@ -16,7 +16,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
-use version_utils qw(is_sle sle_version_at_least is_staging has_product_selection has_license_on_welcome_screen);
+use version_utils qw(:VERSION :SCENARIO);
 
 sub run {
     my ($self) = @_;
@@ -91,8 +91,10 @@ sub run {
                 sles     => 's',
                 sled     => 'u',
                 sles4sap => get_var('OFW') ? 'u' : 'x',
-                hpc      => check_var('ARCH', 'x86_64') ? 'x' : 'u'
+                hpc      => is_x86_64() ? 'x' : 'u',
+                rt       => is_x86_64() ? 'u' : undef
             );
+            die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
             send_key 'alt-' . $hotkey{$product};
         }
         else {
