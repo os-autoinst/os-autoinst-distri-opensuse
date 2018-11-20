@@ -51,7 +51,9 @@ sub run {
     # Online repos are not configurable if no network conneciton is available
     return if get_var('OFFLINE_SUT');
     ## Do not enable online repos by default
-    assert_screen([qw(online-repos-popup before-role-selection inst-networksettings partitioning-edit-proposal-button inst-instmode)]);
+    ## List possible screens if pop-up is not there as a fallback
+    my @needles = qw(online-repos-popup before-role-selection inst-networksettings partitioning-edit-proposal-button inst-instmode network-not-configured list-of-online-repositories);
+    assert_screen(\@needles);
 
     # Do nothing if pop-up is not found
     return unless match_has_tag('online-repos-popup');
