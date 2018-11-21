@@ -51,8 +51,6 @@ use constant {
           is_aarch64_uefi_boot_hdd
           is_remote_backend
           is_svirt_except_s390x
-          is_remote_backend
-          is_svirt_except_s390x
           )
     ],
     SCENARIO => [
