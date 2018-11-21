@@ -35,6 +35,10 @@ check-links: tools/tidy tools/lib/ os-autoinst/
 tidy: check-links
 	tools/tidy --check
 
+.PHONY: unit-test
+unit-test:
+	prove -Ios-autoinst/ t/
+
 .PHONY: test-compile
 test-compile: check-links
 	export PERL5LIB=${PERL5LIB_} ; ( git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/ ) | parallel perl -c 2>&1 | grep -v " OK$$" && exit 2; true
@@ -73,7 +77,7 @@ test-no-wait_idle:
 	@! git grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-record_soft_failure-no-reference
+test-static: unit-test tidy test-merge test-dry test-no-wait_idle test-unused-modules test-record_soft_failure-no-reference
 
 .PHONY: test
 ifeq ($(TESTS),compile)
