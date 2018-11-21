@@ -8,13 +8,14 @@
 # without any warranty.
 
 # Summary: Snapshot creation and rollback on JeOS
-# Maintainer: Michal Nowak <mnowak@suse.com>
+# Maintainer: Ciprian Cret <ccret@suse.com>
 
 use base 'consoletest';
 use testapi;
 use utils;
 use strict;
 use power_action_utils 'power_action';
+use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;
@@ -27,9 +28,10 @@ sub run {
     my $openqalatest = 'openqalatest';
     assert_script_run("snapper create -d $openqalatest");
     assert_script_run("snapper list");
-    my $openqainit_snapshot = script_output("snapper list | grep -w $openqainit | awk '{ print \$3 }' | tr -d '\\n'");
-    my $latest_snapshot     = script_output("snapper list | grep -w $openqalatest | awk '{ print \$3 }' | tr -d '\\n'");
-    my $init_snapshot       = script_output("snapper list | grep 'single.*$openqainit' | awk '{ print \$3 }' | tr -d '\\n'");
+    my $snap_id             = sle_version_at_least('15') ? "'{ print \$1 }'" : "'{ print \$3 }'";
+    my $openqainit_snapshot = script_output("snapper list | grep -w $openqainit | awk $snap_id | tr -d '\\n'");
+    my $latest_snapshot     = script_output("snapper list | grep -w $openqalatest | awk $snap_id | tr -d '\\n'");
+    my $init_snapshot       = script_output("snapper list | grep 'single.*$openqainit' | awk $snap_id | tr -d '\\n'");
     my $openqarollback      = 'openqarollback';
     assert_script_run("snapper rollback -d $openqarollback $init_snapshot");
     assert_script_run("snapper list");
