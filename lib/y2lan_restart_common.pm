@@ -47,7 +47,7 @@ sub initialize_y2lan {
 sub open_network_settings {
     type_string "yast2 lan\n";
     accept_warning_network_manager_default;
-    assert_screen 'yast2_lan', 100;       # yast2 lan overview tab
+    assert_screen 'yast2_lan', 180;       # yast2 lan overview tab
     send_key 'home';                      # select first device
     wait_still_screen(2);
 }
@@ -56,7 +56,7 @@ sub close_network_settings {
     wait_still_screen;
     send_key 'alt-o';
     # new: warning pops up for firewall, alt-y for assign it to zone
-    assert_screen([qw(yast2-lan-restart_firewall_active_warning yast2_closed_xterm_visible yast2_lan_packages_need_to_be_installed)], 120);
+    assert_screen([qw(yast2-lan-restart_firewall_active_warning yast2_closed_xterm_visible yast2_lan_packages_need_to_be_installed)], 180);
     if (match_has_tag 'yast2-lan-restart_firewall_active_warning') {
         send_key 'alt-y';
         wait_still_screen 1;
@@ -67,7 +67,7 @@ sub close_network_settings {
     elsif (match_has_tag 'yast2_lan_packages_need_to_be_installed') {
         send_key 'alt-i';
     }
-    assert_screen 'yast2_closed_xterm_visible', 120;    # ensure coming back to root console
+    assert_screen 'yast2_closed_xterm_visible', 180;    # ensure coming back to root console
     type_string "\n\n";                                 # make space for better readability of the console
 }
 
@@ -94,13 +94,13 @@ sub check_network_status {
 }
 
 sub verify_network_configuration {
-    my ($fn, $dev_name, $expected_status, $workaround) = @_;
+    my ($fn, $dev_name, $expected_status, $workaround, $no_network_check) = @_;
     open_network_settings;
 
     $fn->($dev_name) if $fn;                                          # verify specific action
 
     close_network_settings;
-    check_network_status($expected_status, $workaround);
+    check_network_status($expected_status, $workaround) unless defined $no_network_check;
 }
 
 1;
