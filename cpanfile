@@ -17,4 +17,6 @@ requires 'Digest::file';
 
 on 'test' => sub {
   requires 'Code::DRY';
+  requires 'Test::Exception';
+  requires 'Test::Warnings';
 };
