@@ -77,13 +77,13 @@ test-no-wait_idle:
 	@! git grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: unit-test tidy test-merge test-dry test-no-wait_idle test-unused-modules test-record_soft_failure-no-reference
+test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-record_soft_failure-no-reference
 
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
 else
-test: test-static test-compile
+test: unit-test test-static test-compile
 endif
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
