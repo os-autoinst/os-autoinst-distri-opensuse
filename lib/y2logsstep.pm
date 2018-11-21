@@ -243,11 +243,15 @@ sub accept_license {
 
 sub verify_license_translations {
     return if (is_sle && get_var("BETA") || check_var('VIDEOMODE', 'text'));
-    for my $language (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
+    my $current_lang = 'english-us';
+    for my $lang (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
         wait_screen_change { send_key 'alt-l' };
-        send_key 'home';
-        send_key_until_needlematch("license-language-selected-$language", 'down', 60, 3);
-        assert_screen "license-content-$language";    # needs wait for loading content
+        assert_and_click "license-language-selected-$current_lang";
+        wait_screen_change { type_string(substr($lang, 0, 1)) };
+        send_key_until_needlematch("license-language-selected-dropbox-$lang", 'down', 60);
+        send_key 'ret';
+        assert_screen "license-content-$lang";
+        $current_lang = $lang;
     }
 }
 
