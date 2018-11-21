@@ -29,6 +29,7 @@ sub run {
     # let's see how it looks at the beginning
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    # Prevent mail notification messages to show up in shell and interfere with running console tests
     disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
@@ -72,6 +73,7 @@ sub run {
     $self->clear_and_verify_console;
 
     select_console 'user-console';
+    # Shell enviromental variable MAILCHECK has to be updated for both users
     disable_bash_mail_notification;
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " > test.data";
     assert_script_run " cpio -id < test.data";
