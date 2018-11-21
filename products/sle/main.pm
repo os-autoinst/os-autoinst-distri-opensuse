@@ -1057,6 +1057,13 @@ else {
             loadtest "network/salt_minion";
         }
     }
+    elsif (get_var('QAM_VSFTPD')) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'network/vsftpd';
+    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
         # Set origin and target version
