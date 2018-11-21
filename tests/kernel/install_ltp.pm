@@ -21,6 +21,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
 use power_action_utils 'power_action';
 use serial_terminal 'add_serial_console';
+use upload_system_log;
 use version_utils qw(is_sle sle_version_at_least is_opensuse is_jeos);
 
 sub add_repos {
@@ -318,8 +319,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
-    script_run("dmesg > /tmp/dmesg.txt");
-    upload_logs("/tmp/dmesg.txt", failok => 1);
+    upload_system_logs();
 
     # bsc#1024050
     script_run('pkill pidstat');
