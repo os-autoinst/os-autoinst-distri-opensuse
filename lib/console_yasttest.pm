@@ -17,9 +17,9 @@ sub post_fail_hook {
 
     show_tasks_in_blocked_state if ($defer_blocked_task_info);
 
-    upload_logs('/var/log/zypper.log');
     $self->remount_tmp_if_ro;
     $self->save_upload_y2logs;
+    upload_logs('/var/log/zypper.log');
     $self->save_system_logs;
     $self->save_strace_gdb_output('yast');
 }
