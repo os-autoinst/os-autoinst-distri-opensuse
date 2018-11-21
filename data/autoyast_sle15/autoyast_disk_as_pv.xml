@@ -65,9 +65,27 @@
     </report>
     <partitioning config:type="list">
         <drive>
+            <device>/dev/sda</device>
+            <disklabel>gpt</disklabel>
+            <initialize config:type="boolean">true</initialize>
+            <partitions config:type="list">
+                <partition>
+                    <create config:type="boolean">true</create>
+                    <format config:type="boolean">false</format>
+                    <size>8Mib</size>
+                </partition>
+                <partition>
+                    <format config:type="boolean">true</format>
+                    <create config:type="boolean">false</create>
+                    <mount>/boot</mount>
+                    <size>256M</size>
+                </partition>
+            </partitions>
+        </drive>
+        <drive>
             <type config:type="symbol">CT_DISK</type>
             <use>all</use>
-            <device>/dev/sda</device>
+            <device>/dev/sdb</device>
             <disklabel>none</disklabel>
             <partitions config:type="list">
                 <partition>
@@ -79,7 +97,7 @@
             </partitions>
         </drive>
         <drive>
-            <device>/dev/sdb</device>
+            <device>/dev/sdc</device>
             <disklabel>none</disklabel>
             <partitions config:type="list">
                 <partition>

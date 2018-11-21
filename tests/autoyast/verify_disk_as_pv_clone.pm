@@ -33,7 +33,7 @@ sub validate_disk_labels {
     my $errors = '';
     my $result_str;
     record_info 'Disk labels', 'Validate disk labels, should be set to none';
-    for my $disk (qw(sda sdb)) {
+    for my $disk (qw(sdb sdc)) {
         $result_str = verify_option(xpc => $xpc, xpath => "//ns:partitioning/ns:drive[ns:device=\"/dev/$disk\"]/ns:disklabel", expected_val => 'none');
         $errors .= "/dev/$disk disk does NOT have disklabel set to none: $result_str\n" if $result_str;
     }
@@ -43,10 +43,10 @@ sub validate_disk_labels {
 sub validate_disk_as_lvm_vg {
     my $errors = '';
     record_info 'Test LVM', 'Validate lvm setup';
-    my $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/sdb"]/ns:disklabel', expected_val => 'none');
+    my $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/sdc"]/ns:disklabel', expected_val => 'none');
     $errors .= "/dev/sdb disk does NOT have disklabel set to none: $result_str\n" if $result_str;
 
-    $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/sdb"]/ns:partitions/ns:partition/ns:lvm_group', expected_val => 'system');
+    $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/sdc"]/ns:partitions/ns:partition/ns:lvm_group', expected_val => 'system');
     $errors .= "No system lvm_group found for sdb device: $result_str\n" if $result_str;
     # Verify swap and /home are listed with correct mount points
     my %mounts = (swap => 'swap', home => '/home');
@@ -61,22 +61,16 @@ sub validate_disk_as_lvm_vg {
 sub validate_disk_as_partition {
     my $errors = '';
     record_info 'Test disk as PV', 'Validate whole disk as partition';
-    my $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/sda"]/ns:partitions/ns:partition/ns:mount', expected_val => '/');
-    $errors .= "No mount point for / found for /dev/sda: $result_str\n" if $result_str;
+    my $result_str = verify_option(xpc => $xpc, xpath => '//ns:partitioning/ns:drive[ns:device="/dev/sdb"]/ns:partitions/ns:partition/ns:mount', expected_val => '/');
+    $errors .= "No mount point for / found for /dev/sdb: $result_str\n" if $result_str;
 }
 
 sub run {
     my $errors = '';
     test_setup;
-    sleep 300;
     $errors .= validate_disk_as_lvm_vg;
-    # Currently these will fail
-    if (validate_disk_labels) {
-        record_soft_failure('bsc#1115807');
-    }
-    if (validate_disk_as_partition) {
-        record_soft_failure('bsc#1115807');
-    }
+    $errors .= validate_disk_labels;
+    $errors .= validate_disk_as_partition;
 
     die("Test failed:\n$errors") if $errors;
 }
