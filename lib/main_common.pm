@@ -1508,8 +1508,8 @@ sub load_extra_tests_console {
         loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
     }
     # bind need source package and legacy and development module on SLE15+
-    loadtest 'console/bind'              if get_var('MAINT_TEST_REPO');
-    loadtest 'console/systemd_testsuite' if is_sle('15+');
+    loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
+    loadtest 'console/systemd_testsuite' if is_sle('15+') && get_var('QA_HEAD_REPO');
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';
     # sysauth test scenarios run in the console
