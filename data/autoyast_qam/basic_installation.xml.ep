@@ -6,7 +6,6 @@
     <email><%= $get_var->('SCC_EMAIL') %></email>
     <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
     <install_updates config:type="boolean">true</install_updates>
-    <reg_server><%= $get_var->('SCC_URL') %></reg_server>
     % if (keys %$addons) {
     <addons config:type="list">
       % while (my ($key, $addon) = each (%$addons)) {
@@ -14,8 +13,11 @@
         <name><%= $addon->{name} %></name>
         <version><%= $addon->{version} %></version>
         <arch><%= $addon->{arch} %></arch>
-        % if ($key eq 'we') {
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sles')) {
         <reg_code><%= $get_var->('SCC_REGCODE_WE') %></reg_code>
+        % }
+        % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
+        <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
         % }
         % if ($key eq 'ltss') {
         <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>

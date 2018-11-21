@@ -48,18 +48,18 @@ sub expand_patterns {
               get_var('SCC_ADDONS') =~ m/desktop/;
         }
         elsif (is_sle('12+')) {
-            push @all, qw(base Minimal documentation 32bit apparmor x11 WBEM
+            push @all, qw(Minimal documentation 32bit apparmor x11 WBEM
               Basis-Devel laptop gnome-basic);
             push @all, qw(yast2 smt) if
-              is_sle('12-sp3+');
-            push @all, qw(xen_tools kvm_tools file_server mail_server
+              is_sle('12-sp3+') && check_var('SLE_PRODUCT', 'sles');
+            push @all, qw(base xen_tools kvm_tools file_server mail_server
               gnome-basic lamp_server gateway_server dhcp_dns_server
               directory_server kvm_server xen_server fips sap_server
               oracle_server ofed printing) if
               check_var('SLE_PRODUCT', 'sles');
             push @all, qw(default desktop-base desktop-gnome fonts
               desktop-gnome-devel desktop-gnome-laptop kernel-devel
-              virtualization-client) if
+              virtualization_client) if
               check_var('SLE_PRODUCT', 'sled');
             push @all, qw(SDK-C-C++ SDK-Certification SDK-Doc SDK-YaST) if
               get_var('SCC_ADDONS') =~ m/sdk/;
@@ -98,8 +98,10 @@ sub expand_template {
         addons   => expand_addons,
         repos    => [split(/,/, get_var('MAINT_TEST_REPO'))],
         patterns => expand_patterns,
-        # pass reference to get_var function to be able to fetch other variables
-        get_var => \&get_var,
+        # pass reference to get_required_var function to be able to fetch other variables
+        get_var => \&get_required_var,
+        # pass reference to check_var
+        check_var => \&check_var
     };
     my $output = $template->render($profile, $vars);
     return $output;
