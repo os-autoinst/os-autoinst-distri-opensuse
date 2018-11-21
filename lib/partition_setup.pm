@@ -342,7 +342,7 @@ sub select_first_hard_disk {
     else {
         assert_and_click 'hard-disk-dev-sdb-selected' if match_has_tag('hard-disk-dev-sdb-selected');
         if (match_has_tag('hard-disk-dev-non-sda-selected')) {
-            foreach my $tag (grep { $_ =~ /hard-disk-dev-sd[a-z]/ } @{$matched_needle->{needle}->{tags}}) {
+            foreach my $tag (grep { $_ =~ /hard-disk-dev-(sd[a-z]|pmem[0-9])/ } @{$matched_needle->{needle}->{tags}}) {
                 assert_and_click "$tag-selected";
             }
         }
