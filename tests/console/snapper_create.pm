@@ -20,7 +20,15 @@ use utils;
 # that we got what we expect. See poo#25716
 sub get_last_snap_number {
     # get snapshot id column, tail before head to avoid SIGPIPE
-    my $snap_head         = script_output("snapper list | tail -n +1 | head -n1");
+    my $snap_head = script_output("snapper list | tail -n +1 | head -n1");
+
+    # strip kernel messages - for some reason we always get something like this at this very position:
+    # [ 1248.663412] BTRFS info (device vda2): qgroup scan completed (inconsistency flag cleared)
+    my @lines = split(/\n/, $snap_head);
+    @lines = grep(/\|/, @lines);
+    die "Unable to receive snapshot list column header line" unless (@lines);
+    $snap_head = $lines[0];
+
     my $snap_col_found    = 0;
     my $snap_id_col_index = 1;
     for my $field (split(/\|/, $snap_head)) {
