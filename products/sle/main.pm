@@ -917,6 +917,20 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
 }
+elsif(get_var("PERF_KERNEL")) {
+    if (get_var("PERF_INSTALL")) {
+        load_boot_tests();
+        load_inst_tests();
+    }
+    elsif (get_var("PERF_SETUP")) {
+        loadtest "kernel_performance/login_console";
+        loadtest "kernel_performance/install_qatestset";
+    }
+    elsif (get_var("PERF_RUNCASE")) {
+        loadtest "kernel_performance/login_console";
+        loadtest "kernel_performance/run_perf_case";
+    }
+}
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
     loadtest "qam-minimal/install_update";
