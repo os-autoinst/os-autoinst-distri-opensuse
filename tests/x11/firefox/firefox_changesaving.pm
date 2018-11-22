@@ -48,8 +48,11 @@ sub run {
         assert_and_click 'firefox-changesaving-showblankpage';
     }
 
-    send_key "alt-tab";     #Switch to xterm
+    wait_still_screen 2, 4;    #There might be a notification
+    send_key "alt-tab";        #Switch to xterm
     wait_still_screen 2, 4;
+    assert_screen 'xterm-left-open';
+
     assert_script_run "$changesaving_checktimestamp > dfb";
 
     # check and fail if timestamp is same
