@@ -415,8 +415,9 @@ sub fill_in_registration_data {
                     # yast shows the software install dialog
                     wait_screen_change { send_key 'alt-a' };
                     while (
+                        # install packages take time if select many extensions and modules
                         assert_screen(
-                            ['yast_scc-license-dialog', 'yast_scc-automatic-changes', 'yast_scc-prompt-reboot', 'yast_scc-installation-summary'], 900
+                            ['yast_scc-license-dialog', 'yast_scc-automatic-changes', 'yast_scc-prompt-reboot', 'yast_scc-installation-summary'], 1800
                         ))
                     {
                         if (match_has_tag('yast_scc-license-dialog')) {
