@@ -15,6 +15,7 @@ use strict;
 use testapi;
 use utils;
 use migration;
+use version_utils 'is_sle';
 
 sub set_scc_proxy_url {
     if (my $u = get_var('SCC_PROXY_URL')) {
@@ -63,7 +64,7 @@ sub run {
 
     # according to comment 19 of bsc#985647, uninstall all kgraft-patch* packages prior to migration as a workaround to
     # solve conflict during online migration with live patching addon
-    remove_kgraft_patch;
+    remove_kgraft_patch if is_sle('<15');
 }
 
 sub test_flags {
