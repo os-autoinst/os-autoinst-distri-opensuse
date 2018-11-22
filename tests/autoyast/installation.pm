@@ -21,7 +21,7 @@ use base 'y2logsstep';
 use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_released);
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -30,6 +30,9 @@ my $check_time         = 50;                                    #Period to check
 
 # Downloading updates takes long time
 $maxtime = 5500 if is_caasp('qam');
+# Full install with updates can take extremely long time
+$maxtime = 5500 * get_var('TIMEOUT_SCALE', 1) if is_released;
+
 
 sub accept_license {
     send_key $cmd{accept};
