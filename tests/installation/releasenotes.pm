@@ -14,9 +14,14 @@
 use base "y2logsstep";
 use strict;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_upgrade);
 
 sub run {
+    # workround for bsc#1112866
+    if (is_sle('>=15') && is_upgrade) {
+        record_soft_failure 'bsc#1112866 - Release notes button not found during upgrade from SLE12 SP3';
+        return;
+    }
     assert_screen('release-notes-button', 60);
 
     # workaround for bsc#1014178
