@@ -20,14 +20,14 @@ sub validate_disk_as_partition {
     my $errors = '';
     record_info('Verify root partition as disk');
     # Validate type of the partition
-    my $output = script_output('lsblk /dev/sda --noheading --output TYPE');
+    my $output = script_output('lsblk /dev/sdb --noheading --output TYPE');
     if ($output !~ 'disk') {
-        $errors .= "Expected type disk for /dev/vda, got: $output\n";
+        $errors .= "Expected type disk for /dev/sdb, got: $output\n";
     }
     # Validate mount point of the partition
-    $output = script_output('lsblk /dev/sda --noheading --output MOUNTPOINT');
+    $output = script_output('lsblk /dev/sdb --noheading --output MOUNTPOINT');
     if ($output !~ '/') {
-        $errors .= "Expected '/' mount point disk for /dev/vda, got: $output\n";
+        $errors .= "Expected '/' mount point disk for /dev/sdb, got: $output\n";
     }
     return $errors;
 }
