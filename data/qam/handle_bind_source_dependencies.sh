@@ -33,7 +33,10 @@ if [ -e /tmp/REMOVE_ADDED_PRODUCTS ]; then
     fi
     if is_sle12; then
         zypper rr SUSE_SLE-12_GA
-        zypper -n rm gpg-offline
+        # only 12.3 has this obsolete dependency
+        if [ $VERSION_ID = '12.3' ]; then
+            zypper -n rm gpg-offline
+        fi
     fi
     rm -f /tmp/REMOVE_ADDED_PRODUCTS
 else
