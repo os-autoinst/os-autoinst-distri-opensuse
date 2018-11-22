@@ -21,13 +21,18 @@ use mmapi;
 sub run {
     my ($self, $args) = @_;
 
-    my $children     = get_children();
-    my $num_children = scalar(keys %$children) + 1;    # +1 for it self
-    for my $test (@{$args->{wicked_tests}}) {
-        my $barrier_name = 'test_' . $test . '_ready';
+    if (get_var('IS_WICKED_REF')) {
+        for my $test (@{$args->{wicked_tests}}) {
+            my $barrier_name = 'test_' . $test . '_ready';
 
-        record_info('barrier create', $barrier_name . ' num_children:' . $num_children);
-        barrier_create($barrier_name, $num_children);
+            record_info('barrier create', $barrier_name . ' num_children: 2');
+            barrier_create($barrier_name, 2);
+        }
+        mutex_create('wicked_barriers_created');
+    }
+    else {
+        #we need this to make sure that we will not start using barriers before they created
+        mutex_wait('wicked_barriers_created');
     }
 }
 
