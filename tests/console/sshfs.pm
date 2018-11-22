@@ -16,17 +16,15 @@
 use base "consoletest";
 use strict;
 use testapi;
-use utils 'zypper_call';
+use utils;
 
 sub run {
     select_console 'root-console';
     zypper_call('in sshfs');
+    prepare_ssh_localhost_key_login 'root';
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt', 0);
     assert_screen 'accept-ssh-host-key';
     type_string "yes\n";    # trust ssh host key
-    assert_screen 'password-prompt';
-    type_password;
-    send_key 'ret';
     assert_screen 'sshfs-accepted';
     assert_script_run('zypper -n in xdelta3', fail_message => 'rpm/zypper calls statfs and might stumble over fuse fs');
     assert_script_run('rpm -e xdelta3');
