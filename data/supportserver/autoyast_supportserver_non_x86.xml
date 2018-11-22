@@ -60,9 +60,10 @@
 		<package>less</package>
 		<package>nfs-client</package>
 		<package>autofs</package>
-                <package>bind</package>
+		<package>bind</package>
 		<package>atftp</package>
 		<package>yast2-iscsi-lio-server</package>
+		<package>tgt</package>
     </packages>
    <patterns config:type="list">
           <pattern>base</pattern>
