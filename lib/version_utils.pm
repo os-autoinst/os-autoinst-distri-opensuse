@@ -119,7 +119,6 @@ sub is_livecd {
     return get_var("LIVECD");
 }
 
-# Works only for versions comparable by string (not leap 42.X)
 # Query format: [= > < >= <=] version [+] (Example: <=12-sp3 =12-sp1 <4.0 >=15 3.0+)
 # Regex format: matches version number (Example: /\d{2}\.\d/)
 sub check_version {
