@@ -27,18 +27,26 @@ sub install_package {
     assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
 
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
+    #workaround for dependency on bridge-utils for qa_lib_virtauto on sles15sp0
     my $repo_0_to_install = get_var("REPO_0_TO_INSTALL", '');
-    my $dependency_repo = '';
+    my $dependency_repo   = '';
+    my $dependency_rpms   = '';
     if ($repo_0_to_install =~ /SLES-11-SP4/m) {
         $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-11:/Update/standard/';
+        $dependency_rpms = 'xmlstarlet';
     }
     elsif ($repo_0_to_install =~ /SLE-12-SP1/m) {
         $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/';
+        $dependency_rpms = 'xmlstarlet';
+    }
+    elsif ($repo_0_to_install =~ /SLE-15-Installer/m) {
+        $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/';
+        $dependency_rpms = 'bridge-utils';
     }
     if ($dependency_repo) {
         assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f ${dependency_repo} dependency_repo");
         assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
-        assert_script_run("zypper --non-interactive -n in xmlstarlet");
+        assert_script_run("zypper --non-interactive -n in $dependency_rpms");
         assert_script_run("zypper --non-interactive -n rr dependency_repo");
     }
     #install qa_lib_virtauto
