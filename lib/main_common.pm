@@ -65,6 +65,7 @@ our @EXPORT = qw(
   load_consoletests
   load_create_hdd_tests
   load_extra_tests
+  load_toolkit_tests
   load_extra_tests_docker
   load_filesystem_tests
   load_inst_tests
@@ -1550,38 +1551,50 @@ sub load_extra_tests {
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv;
     loadtest "console/hostname";
-    if (any_desktop_is_applicable()) {
+    # Extra tests are too long, split the test into subtest according to the
+    # EXTRATEST variable; to maintain compatibility, run all tests if the
+    # variable is equal 1
+    if (check_var('EXTRATEST', 1) && any_desktop_is_applicable()) {
         load_extra_tests_desktop;
     }
+    elsif (check_var('EXTRATEST', 1)) {
+        load_extra_tests_zypper;
+        load_extra_tests_console;
+        load_extra_tests_opensuse;
+        # schedule the docker tests later as it needs the containers module on
+        # SLE>=15 and therefore would potentially pollute other test modules.
+        # Currently for our SLE12 validation tests we are not using a
+        # registered SLE installation so we should not schedule the test
+        # modules.
+        load_extra_tests_docker;
+        load_extra_tests_kdump;
+    }
     else {
-        # Extra tests are too long, split the test into subtest according to the
-        # EXTRATEST variable; to maintain compatibility, run all tests if the
-        # variable is equal 1
-        if (check_var('EXTRATEST', 1)) {
-            load_extra_tests_zypper;
-            load_extra_tests_console;
-            load_extra_tests_opensuse;
-            # schedule the docker tests later as it needs the containers module on
-            # SLE>=15 and therefore would potentially pollute other test modules.
-            # Currently for our SLE12 validation tests we are not using a
-            # registered SLE installation so we should not schedule the test
-            # modules.
-            load_extra_tests_docker;
-            load_extra_tests_kdump;
-        }
-        else {
-            loadtest "console/zypper_ref" unless get_var('EXTRATEST') =~ /zypper/;
-            foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
-                if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
-                    $test_to_run->();
-                }
-                else {
-                    diag "unknown scenario for EXTRATEST value $test_name";
-                }
+        loadtest "console/zypper_ref" unless get_var('EXTRATEST') =~ /zypper/;
+        foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
+            if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
+                $test_to_run->();
+            }
+            else {
+                diag "unknown scenario for EXTRATEST value $test_name";
             }
         }
         loadtest "console/consoletest_finish";
     }
+    return 1;
+}
+
+sub load_extra_tests_toolkits {
+    loadtest "x11/toolkits/prepare";
+    loadtest "x11/toolkits/x11";
+    loadtest "x11/toolkits/tk";
+    loadtest "x11/toolkits/fltk";
+    loadtest "x11/toolkits/motif";
+    loadtest "x11/toolkits/gtk2";
+    loadtest "x11/toolkits/gtk3";
+    loadtest "x11/toolkits/qt4" if is_opensuse;
+    loadtest "x11/toolkits/qt5";
+    loadtest "x11/toolkits/swing";
     return 1;
 }
 
