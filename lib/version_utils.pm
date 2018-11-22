@@ -120,22 +120,19 @@ sub is_livecd {
     return get_var("LIVECD");
 }
 
+# Usage: check_version('>15.0', get_var('VERSION'), '\d{2}')
 # Query format: [= > < >= <=] version [+] (Example: <=12-sp3 =12-sp1 <4.0 >=15 3.0+)
-# Regex format: matches version number (Example: /\d{2}\.\d/)
+# Check agains: product version to check against - probably get_var('VERSION')
+# Regex format: checks query version format (Example: /\d{2}\.\d/)
 sub check_version {
-    my $query = shift;
-    my $regex = shift;
+    my $query = lc shift;
+    my $pv    = lc shift;
+    my $regex = shift // qr/[^<>=+]+/;
 
     # Matches operator($op), version($qv), plus($plus) - regex101.com to debug ;)
-    if (uc($query) =~ /^(?(?!.*\+$)(?<op>[<>=]|[<>]=))(?<qv>$regex)(?<plus>\+)?$/) {
-        my $pv = uc get_var('VERSION');
-        my $qv = $+{qv};
-        # Hacks for staging and HG2G
-        if (is_leap) {
-            $qv =~ s/^42/14/;
-            $pv =~ s/^42/14/;
-            $pv =~ s/:(Core|S)[:\w]*//i;
-        }
+    if ($query =~ /^(?(?!.*\+$)(?<op>[<>=]|[<>]=))(?<qv>$regex)(?<plus>\+)?$/i) {
+        my $qv = $+{qv} or die "Query $query not matching required format $regex";
+
         # Compare versions if they can be parsed
         if (is_lax($pv) && is_lax($qv)) {
             $pv = version->declare($pv);
@@ -169,7 +166,7 @@ sub is_caasp {
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
-        return check_version($filter, qr/\d\.\d/);
+        return check_version($filter, get_var('VERSION'), qr/\d\.\d/);
     }
     elsif ($filter =~ /kubic|caasp/) {
         return check_var('DISTRI', $filter);
@@ -199,14 +196,19 @@ sub is_tumbleweed {
 # Version: <=42.2 =15.0 >15.0 >=42.3 15.0+
 sub is_leap {
     my $query = shift;
+    my $version = get_var('VERSION', '');
 
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 0 unless get_var('VERSION', '') =~ /^\d{2,}\.\d/;
+    return 0 unless $version =~ /^\d{2,}\.\d/;
     return 1 unless $query;
 
-    # Version check
-    return check_version($query, qr/\d{2,}\.\d/);
+    # Hacks for staging and HG2G :)
+    $query =~ s/^([<>=]*)42/${1}14/;
+    $version =~ s/^42/14/;
+    $version =~ s/:(Core|S)[:\w]*//i;
+
+    return check_version($query, $version, qr/\d{2,}\.\d/);
 }
 
 sub is_opensuse {
@@ -218,13 +220,14 @@ sub is_opensuse {
 # Check if distribution is SLE with optional filter for:
 # Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
 sub is_sle {
-    my $query = shift;
+    my $query   = shift;
+    my $version = shift // get_var('VERSION');
 
     return 0 unless check_var('DISTRI', 'sle');
     return 1 unless $query;
 
     # Version check
-    return check_version($query, qr/\d{2}(?:-sp\d)?/i);
+    return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
 }
 
 sub is_sles4sap {
