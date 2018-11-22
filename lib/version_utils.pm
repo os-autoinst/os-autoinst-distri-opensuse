@@ -36,6 +36,7 @@ use constant {
           is_rescuesystem
           is_sles4sap
           is_sles4sap_standard
+          is_released
           is_rt
           is_staging
           is_storage_ng
@@ -236,6 +237,10 @@ sub is_sles4sap_standard {
 
 sub is_rt {
     return check_var('SLE_PRODUCT', 'rt');
+}
+
+sub is_released {
+    return get_var('FLAVOR') =~ /Incidents/ || get_var('FLAVOR') =~ /Updates/;
 }
 
 sub is_staging {
