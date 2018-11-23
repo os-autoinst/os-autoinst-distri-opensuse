@@ -2141,6 +2141,7 @@ sub load_installation_validation_tests {
     # - autoyast/verify_btrfs: validates installation using autoyast_btrfs.xml profile
     # - autoyast/verify_btrfs_clone: validates enerated profile when cloning system
     #                                      installed using autoyast_btrfs.xml profile
+    # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }
