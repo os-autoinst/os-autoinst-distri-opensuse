@@ -59,6 +59,7 @@ our @EXPORT = qw(
   handle_relogin
   handle_emergency
   handle_grub_zvm
+  handle_untrusted_gpg_key
   service_action
   assert_gui_app
   run_scripted_command_slow
@@ -137,6 +138,17 @@ sub handle_grub_zvm {
     }
     else {
         $console->sequence_3270("ENTER", "ENTER", "ENTER", "ENTER");
+    }
+}
+
+sub handle_untrusted_gpg_key {
+    if (match_has_tag('import-known-untrusted-gpg-key')) {
+        record_info('Import', 'Known untrusted gpg key is imported');
+        wait_screen_change { send_key 'alt-t' };    # import
+    }
+    else {
+        record_info('Cancel import', 'Untrusted gpg key is NOT imported');
+        wait_screen_change { send_key 'alt-c' };    # cancel
     }
 }
 
