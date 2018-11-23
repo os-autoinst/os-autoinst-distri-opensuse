@@ -1,0 +1,35 @@
+env:    
+  # Enter the domain you created for your CAP cluster
+  DOMAIN: 10.161.59.61.xip.io
+
+    
+  # UAA host and port
+  UAA_HOST: uaa.10.161.59.61.xip.io
+  UAA_PORT: 2793
+
+kube:
+  # # The IP address assigned to the kube node pointed to by the domain.
+  external_ips: ["10.161.59.61"]
+    
+  # Run kubectl get storageclasses
+  # to view your available storage classes
+  storage_class:
+    persistent: "nfs-client"
+    shared: "shared"
+        
+  # The registry the images will be fetched from.
+  # The values below should work for
+  # a default installation from the SUSE registry.
+  registry:
+    hostname: "registry.suse.com"
+    username: ""
+    password: ""
+  organization: "cap"
+  auth: "rbac"
+
+secrets:
+  # Create a password for your CAP cluster
+  CLUSTER_ADMIN_PASSWORD: password
+    
+  # Create a password for your UAA client secret
+  UAA_ADMIN_CLIENT_SECRET: password
