@@ -328,9 +328,19 @@ sub addboot {
     }
 }
 
+sub skip_select_first_hard_disk {
+    return 1 if match_has_tag 'existing-partitions';    # no selection of hard-disk is required
+    if (match_has_tag('select-hard-disks-one-selected')) {    # first hd is already pre-selected
+        send_key $cmd{next};
+        return 1;
+    }
+    return 0;
+}
+
 sub select_first_hard_disk {
-    my $matched_needle = assert_screen [qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-non-sda-selected)];
-    return if match_has_tag 'existing-partitions';
+    my @tags           = qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-non-sda-selected select-hard-disks-one-selected);
+    my $matched_needle = assert_screen \@tags;
+    return if skip_select_first_hard_disk;
     # SUT may have any number disks, only keep the first, unselect all other disks
     # In text mode, the needle has tag 'hard-disk-dev-non-sda-selected' and multiple hotkey_? tags as hints for unselecting
     if (check_var('VIDEOMODE', 'text') && match_has_tag('hard-disk-dev-non-sda-selected')) {
