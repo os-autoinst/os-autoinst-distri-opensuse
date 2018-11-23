@@ -77,7 +77,7 @@ test-no-wait_idle:
 	@! git grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-record_soft_failure-no-reference
+test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
 
 .PHONY: test
 ifeq ($(TESTS),compile)
@@ -96,6 +96,6 @@ perlcritic: tools/lib/
 test-unused-modules:
 	tools/detect_unused_modules
 
-.PHONY: test-record_soft_failure-no-reference
-test-record_soft_failure-no-reference:
-	@! git grep -E -e 'record_soft_failure.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+.PHONY: test-soft_failure-no-reference
+test-soft_failure-no-reference:
+	@! git grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
