@@ -388,9 +388,10 @@ sub wait_boot {
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
         my @tags = ('grub2');
         push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
-        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');             # LIVETEST won't to do installation and no grub2 menu show up
         push @tags, 'bootloader'                      if get_var('OFW');
         push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
+        push @tags, 'linux-login'                     if get_var('KEEP_GRUB_TIMEOUT');    # Also wait for linux-login if grub timeout was not disabled
         if (get_var('ONLINE_MIGRATION')) {
             push @tags, 'migration-source-system-grub2';
         }
@@ -440,7 +441,8 @@ sub wait_boot {
             workaround_type_encrypted_passphrase;
             assert_screen "grub2", 15;
         }
-        elsif (!match_has_tag("grub2")) {
+        # If KEEP_GRUB_TIMEOUT is set, SUT may be at linux-login already, so no need to abort in that case
+        elsif (!match_has_tag("grub2") and !match_has_tag('linux-login')) {
             # check_screen timeout
             die "needle 'grub2' not found";
         }
