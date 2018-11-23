@@ -847,7 +847,7 @@ sub load_inst_tests {
             loadtest "installation/livecd_network_settings";
         }
         # Run system_role/desktop selection tests if using the new openSUSE installation flow
-        if (is_using_system_role_first_flow) {
+        if (is_using_system_role_first_flow && requires_role_selection) {
             load_system_role_tests;
         }
         if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default') and !is_upgrade()) {
@@ -939,7 +939,7 @@ sub load_inst_tests {
             loadtest "installation/hostname_inst";
         }
         # Do not run system_role/desktop selection if using the new openSUSE installation flow
-        if (!is_using_system_role_first_flow) {
+        if (!is_using_system_role_first_flow && requires_role_selection) {
             load_system_role_tests;
         }
         if (is_sles4sap()) {
