@@ -386,7 +386,8 @@ sub is_using_system_role {
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || is_sle('=15')
       || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') && !is_rt() || get_var('ADDONS') || get_var('ADDONURL')))
-      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, Kubic
+      # Also on Leap 15.1+, TW, Kubic, but not Krypton as it has only one option, so the selection is skipped
+      || (is_opensuse && !is_leap('<15.1') && get_var('FLAVOR', '') !~ /Krypton/)
 }
 
 # On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
