@@ -14,7 +14,7 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils 'addon_license';
+use utils qw(addon_license handle_untrusted_gpg_key);
 use version_utils qw(is_sle sle_version_at_least);
 use qam 'advance_installer_window';
 use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE);
@@ -110,7 +110,10 @@ sub handle_addon {
     # SES6 on SLE15 in development has untrusted key warning
     addon_license($addon) unless is_sle('15+') && $addon !~ /^ses$|^rt$/;
     # might involve some network lookup of products, licenses, etc.
-    assert_screen 'addon-products', 90;
+    assert_screen ['addon-products', 'import-untrusted-gpg-key'], 90;
+    if (match_has_tag('import-untrusted-gpg-key')) {
+        handle_untrusted_gpg_key;
+    }
     send_key 'tab';    # select addon-products-$addon
     wait_still_screen 10;
     if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
@@ -207,7 +210,7 @@ sub run {
                 assert_screen 'addon-products', 90;
             }
             elsif (match_has_tag('import-untrusted-gpg-key')) {
-                send_key 'alt-t';
+                handle_untrusted_gpg_key;
             }
             send_key "tab";                                        # select addon-products-$addon
             wait_still_screen 10;                                  # wait until repo is added and list is initialized

@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
 use version_utils qw(is_sle is_caasp sle_version_at_least is_sle12_hdd_in_upgrade);
 use constant ADDONS_COUNT => 50;
 
@@ -204,12 +204,6 @@ sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
 
-    my @known_untrusted_keys = qw(
-      import-trusted-gpg-key-nvidia-F5113243C66B6EAE
-      import-trusted-gpg-key-phub-9C214D4065176565
-      import-untrusted-gpg-key-ids-key-A5665AC46976A827
-      import-untrusted-gpg-key-idv-key-A5665AC46976A827
-    );
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my $counter = ADDONS_COUNT;
         my @tags
@@ -223,13 +217,8 @@ sub fill_in_registration_data {
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen(\@tags);
-            if (match_has_tag("import-untrusted-gpg-key")) {
-                if (check_var("IMPORT_UNTRUSTED_KEY", 1) || check_screen(\@known_untrusted_keys, 0)) {
-                    wait_screen_change { send_key "alt-t" };    # import
-                }
-                else {
-                    wait_screen_change { send_key "alt-c" };    # cancel
-                }
+            if (match_has_tag('import-untrusted-gpg-key')) {
+                handle_untrusted_gpg_key;
                 next;
             }
             elsif (match_has_tag('contacting-registration-server')) {
@@ -403,12 +392,7 @@ sub fill_in_registration_data {
                 assert_screen [
                     qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
                 if (match_has_tag('import-untrusted-gpg-key')) {
-                    if (!check_screen(\@known_untrusted_keys, 0)) {
-                        die 'untrusted gpg key';
-                    }
-                    wait_screen_change {
-                        send_key 'alt-t';
-                    };
+                    handle_untrusted_gpg_key;
                     next;
                 }
                 elsif (match_has_tag('yast_scc-pkgtoinstall')) {
