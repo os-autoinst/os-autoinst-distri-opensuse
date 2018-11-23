@@ -19,63 +19,24 @@ use version_utils qw(is_sle is_jeos);
 my %software = ();
 
 # Define test data
-if (check_var('VALIDATE_PCM_PATTERN', 'azure')) {
-    # We have different pattern names on SLE 15 and SLE 12
-    my $azure_pattern = is_sle('15+') ? 'Microsoft_Azure' : 'Microsoft-Azure';
-    $software{$azure_pattern} = {
-        repo      => 'Module-Public-Cloud',
-        installed => 1,
-        condition => sub { check_var_array('PATTERNS', 'azure') },
-        pattern   => 1,
-        packages  => [qw(azuremetadata
-              cloud-regionsrv-client docker-img-store-setup growpart
-              supportutils-plugin-suse-public-cloud
-              python-azure-agent regionServiceClientConfigAzure
-              )],
-    };
-    if (is_sle('15+')) {
-        push @{$software{$azure_pattern}->{packages}}, ('python3-susepubliccloudinfo',
-            'patterns-public-cloud-15-Microsoft-Azure');
-    } else {
-        push @{$software{$azure_pattern}->{packages}}, ('python-azurectl',
-            'python-susepubliccloudinfo', 'patterns-public-cloud-Microsoft-Azure');
-    }
-}
-elsif (check_var('VALIDATE_PCM_PATTERN', 'aws')) {
-    # Different pattern and packages names on SLE 15 and SLE 12
-    my %aws_specific = is_sle('15+') ? (name => 'Amazon_Web_Services', sle_version => '15-', py_version => 'python3') :
-      (name => 'Amazon-Web-Services', sle_version => '', py_version => 'python');
-    $software{$aws_specific{name}} = {
-        repo      => 'Module-Public-Cloud',
-        installed => 1,
-        condition => sub { check_var_array('PATTERNS', 'aws') },
-        pattern   => 1,
-        packages  => ['aws-cli', 'cloud-init', 'cloud-regionsrv-client', 'cloud-regionsrv-client-plugin-ec2',
-            'docker-img-store-setup', 'growpart', 'patterns-public-cloud-' . $aws_specific{sle_version} . 'Amazon-Web-Services',
-            $aws_specific{py_version} . '-ec2deprecateimg', $aws_specific{py_version} . '-ec2metadata',
-            $aws_specific{py_version} . '-ec2publishimg',   $aws_specific{py_version} . '-ec2uploadimg',
-            $aws_specific{py_version} . '-s3transfer',      $aws_specific{py_version} . '-susepubliccloudinfo',
-            'regionServiceClientConfigEC2', 's3fs', 'supportutils-plugin-suse-public-cloud'],
-    };
+
+$software{salt} = {
+    repo      => 'Basesystem',
+    installed => is_jeos() ? 1 : 0,       # On JeOS Salt is present in the default image
+    condition => sub { is_sle('15+') },
+};
+$software{'update-test-feature'} = {      # See poo#36451
+    repo      => is_sle('15+') ? 'Basesystem' : 'SLES',
+    installed => 0,
+    available => sub { get_var('BETA') },
+};
+# Define more packages with the same set of expectations
+$software{'update-test-interactive'} = $software{'update-test-feature'};
+$software{'update-test-security'}    = $software{'update-test-feature'};
+if (is_sle('15+')) {
+    $software{'update-test-trivial'} = $software{'update-test-feature'};
 } else {
-    $software{salt} = {
-        repo      => 'Basesystem',
-        installed => is_jeos() ? 1 : 0,       # On JeOS Salt is present in the default image
-        condition => sub { is_sle('15+') },
-    };
-    $software{'update-test-feature'} = {      # See poo#36451
-        repo      => is_sle('15+') ? 'Basesystem' : 'SLES',
-        installed => 0,
-        available => sub { get_var('BETA') },
-    };
-    # Define more packages with the same set of expectations
-    $software{'update-test-interactive'} = $software{'update-test-feature'};
-    $software{'update-test-security'}    = $software{'update-test-feature'};
-    if (is_sle('15+')) {
-        $software{'update-test-trivial'} = $software{'update-test-feature'};
-    } else {
-        $software{'update-test-trival'} = $software{'update-test-feature'};
-    }
+    $software{'update-test-trival'} = $software{'update-test-feature'};
 }
 
 sub verify_installation_and_repo {
