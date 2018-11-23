@@ -1496,6 +1496,7 @@ sub load_extra_tests_console {
     loadtest "console/java";
     loadtest "console/ant";
     loadtest "console/sysctl";
+    loadtest "console/sysstat";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
     loadtest "console/unzip";
