@@ -2261,8 +2261,6 @@ sub load_public_cloud_patterns_validation_tests {
     boot_hdd_image;
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
-    # validate packages of pcm
-    loadtest 'console/validate_packages_and_patterns';
     loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
     loadtest 'console/validate_pcm_aws'   if check_var('VALIDATE_PCM_PATTERN', 'aws');
     loadtest "console/consoletest_finish";
