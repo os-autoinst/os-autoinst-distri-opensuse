@@ -55,7 +55,10 @@ sub try_reclaiming_space {
     # Always leave at least 25Gb free on /dev/system/root for packages and Hana
     $root_free -= 25;
     $root_size -= $root_free if ($root_free > 0);
-    assert_script_run "lvreduce --yes --force --size $root_size$units /dev/system/root" if ($root_size >= ($root_used + 25));
+    if ($root_size >= ($root_used + 25)) {
+        assert_script_run "btrfs filesystem resize $root_size$units /";
+        assert_script_run "lvreduce --yes --force --size $root_size$units /dev/system/root";
+    }
     $output = script_output q@pvscan | sed -n '/system/s/\[//p' | awk '(NSIZE=$6-$9+1) {print $2","NSIZE","$10}'@;
     my ($device, $newsize, $unit) = split(/,/, $output);
     $unit = substr($unit, 0, 1);
