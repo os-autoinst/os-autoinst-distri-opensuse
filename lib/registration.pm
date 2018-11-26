@@ -22,7 +22,7 @@ use strict;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
-use version_utils qw(is_sle is_caasp sle_version_at_least is_sle12_hdd_in_upgrade);
+use version_utils qw(is_sle is_caasp is_sle12_hdd_in_upgrade);
 use constant ADDONS_COUNT => 50;
 
 our @EXPORT = qw(
@@ -607,7 +607,7 @@ sub fill_in_reg_server {
 sub scc_deregistration {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
-    if (sle_version_at_least('12-SP1', version_variable => $args{version_variable})) {
+    if (is_sle('12-SP1+', get_var($args{version_variable}))) {
         assert_script_run('SUSEConnect -d --cleanup', 200);
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;

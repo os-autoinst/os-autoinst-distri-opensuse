@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(sle_version_at_least is_upgrade);
+use version_utils 'is_upgrade';
 
 sub check_bsc982138 {
     if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {

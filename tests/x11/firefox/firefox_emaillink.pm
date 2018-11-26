@@ -15,13 +15,13 @@ use strict;
 use base "x11test";
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
     my $next_key = "alt-o";
 
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         $next_key = "alt-n";
     }
 
@@ -31,7 +31,7 @@ sub run {
     send_key "alt-f";
     wait_still_screen 3;
     send_key "e";
-    unless (sle_version_at_least('15')) {
+    unless (is_sle('15+')) {
         assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt'], 90);
         if (match_has_tag('firefox-email-mutt')) {
             # if evolution is not installed, e.g. when WE is not pressent, mutt in terminal is used poo#42500
@@ -57,7 +57,7 @@ sub run {
         type_string "imap.suse.com";
         send_key "alt-n";    #Username
         type_string "test";
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             assert_and_click "evolution-option-next";
             wait_still_screen 3;
             assert_and_click "evolution-option-next";
@@ -76,7 +76,7 @@ sub run {
         };
 
         wait_still_screen 3;
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             assert_and_click "evolution-option-next";
         }
         else {

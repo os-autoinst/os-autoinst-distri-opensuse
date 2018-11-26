@@ -17,7 +17,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils qw(handle_login handle_emergency);
-use version_utils qw(sle_version_at_least is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
+use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use base 'opensusebasetest';
 
 sub run {
@@ -32,7 +32,7 @@ sub run {
     }
     my $boot_timeout = (get_var('SES5_DEPLOY') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 450 : 200;
     # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
-    return if check_var('ARCH', 's390x') && sle_version_at_least('15');
+    return if check_var('ARCH', 's390x') && is_sle('15+');
     if (check_var('WORKER_CLASS', 'hornet')) {
         # hornet does not show the console output
         diag "waiting $boot_timeout seconds to let hornet boot and finish initial script";

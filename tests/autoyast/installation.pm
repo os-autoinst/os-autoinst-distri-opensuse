@@ -21,7 +21,7 @@ use base 'y2logsstep';
 use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
-use version_utils qw(is_caasp is_released);
+use version_utils qw(is_sle is_caasp is_released);
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -177,7 +177,7 @@ sub run {
         }
         elsif (match_has_tag('warning-pop-up')) {
             # Softfail only on sle, as timeout is there on CaaSP
-            if (check_var('DISTRI', 'sle') && check_screen('warning-partition-reduced', 0)) {
+            if (is_sle && check_screen('warning-partition-reduced', 0)) {
                 # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
                 record_info('bsc#1045470',
                     "There is no timeout on sle for reduced partition screen by default.\n"

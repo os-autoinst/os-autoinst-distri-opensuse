@@ -40,7 +40,6 @@ use constant {
           is_rt
           is_staging
           is_storage_ng
-          sle_version_at_least
           is_using_system_role
           is_using_system_role_first_flow
           )
@@ -259,52 +258,7 @@ sub is_upgrade {
 }
 
 sub is_sle12_hdd_in_upgrade {
-    return is_upgrade && !sle_version_at_least('15', version_variable => 'HDDVERSION');
-}
-
-# =====================================
-# Deprecated, please use is_sle instead
-# =====================================
-sub sle_version_at_least {
-    my ($version, %args) = @_;
-    my $version_variable = $args{version_variable} // 'VERSION';
-
-    if ($version eq '12') {
-        return !(
-            check_var($version_variable, '11-SP1')
-            or check_var($version_variable, '11-SP2')
-            or check_var($version_variable, '11-SP3')
-            or check_var($version_variable, '11-SP4'));
-    }
-
-    if ($version eq '12-SP1') {
-        return sle_version_at_least('12', version_variable => $version_variable) && !check_var($version_variable, '12');
-    }
-
-    if ($version eq '12-SP2') {
-        return sle_version_at_least('12-SP1', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP1');
-    }
-
-    if ($version eq '12-SP3') {
-        return sle_version_at_least('12-SP2', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP2');
-    }
-
-    if ($version eq '12-SP4') {
-        return sle_version_at_least('12-SP3', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP3');
-    }
-
-    if ($version eq '15') {
-        return sle_version_at_least('12-SP4', version_variable => $version_variable)
-          && !check_var($version_variable, '12-SP4');
-    }
-    if ($version eq '15-SP1') {
-        return sle_version_at_least('15', version_variable => $version_variable)
-          && !check_var($version_variable, '15');
-    }
-    die "unsupported SLE $version_variable $version in check";
+    return is_upgrade && is_sle('<15', get_var('HDDVERSION'));
 }
 
 sub is_desktop_installed {
@@ -370,7 +324,7 @@ sub install_to_other_at_least {
     set_var("REAL_INSTALLED_VERSION", $real_installed_version);
     bmwqemu::save_vars();
 
-    return sle_version_at_least($version, version_variable => "REAL_INSTALLED_VERSION");
+    return is_sle(">=$version", $real_installed_version);
 }
 
 sub is_using_system_role {

@@ -560,7 +560,7 @@ sub load_jeos_tests {
             loadtest "console/suseconnect_scc";
         }
     }
-    loadtest "jeos/glibc_locale" if sle_version_at_least('15') && get_var('JEOSINSTLANG');
+    loadtest "jeos/glibc_locale" if is_sle('15+') && get_var('JEOSINSTLANG');
 }
 
 sub installzdupstep_is_applicable {
@@ -654,7 +654,7 @@ sub lxdestep_is_applicable {
 
 sub is_smt {
     # Smt is replaced with rmt in SLE 15, see bsc#1061291
-    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && !sle_version_at_least('15');
+    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && is_sle('<15');
 }
 
 sub is_rmt {
@@ -795,7 +795,7 @@ sub load_inst_tests {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation";
         }
-        elsif (!sle_version_at_least('12-SP2')) {
+        elsif (is_sle('<12-SP2')) {
             loadtest "installation/skip_disk_activation";
         }
     }
@@ -824,7 +824,7 @@ sub load_inst_tests {
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
         # SCC registration is not required in media based upgrade since SLE15
-        unless (sle_version_at_least('15') && get_var('MEDIA_UPGRADE')) {
+        unless (is_sle('15+') && get_var('MEDIA_UPGRADE')) {
             if (check_var('SCC_REGISTER', 'installation')) {
                 loadtest "installation/scc_registration";
             }
@@ -832,7 +832,7 @@ sub load_inst_tests {
                 loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
             }
         }
-        if (is_sles4sap and !sle_version_at_least('15') and !is_upgrade()) {
+        if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         if (get_var('MAINT_TEST_REPO')) {
@@ -850,7 +850,7 @@ sub load_inst_tests {
         if (is_using_system_role_first_flow) {
             load_system_role_tests;
         }
-        if (is_sles4sap() and sle_version_at_least('15') and check_var('SYSTEM_ROLE', 'default') and !is_upgrade()) {
+        if (is_sles4sap() and is_sle('15+') and check_var('SYSTEM_ROLE', 'default') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         # Kubic doesn't have a partitioning step
@@ -918,7 +918,7 @@ sub load_inst_tests {
     # need to be able to do installations on it. The release notes
     # functionality needs to be covered by other backends
     # Skip release notes test on sle 15 if have addons
-    if (is_sle && !check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') && !(sle_version_at_least('15') && get_var('ADDONURL'))) {
+    if (is_sle && !check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') && !(is_sle('15+') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }
 
@@ -945,7 +945,7 @@ sub load_inst_tests {
         if (is_sles4sap()) {
             if (
                 is_sles4sap_standard()    # Schedule module only for SLE15 with non-default role
-                || sle_version_at_least('15') && get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))
+                || is_sle('15+') && get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))
             {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
@@ -968,7 +968,7 @@ sub load_inst_tests {
         elsif (
             is_sle
             && (!check_var('DESKTOP', default_desktop)
-                && (!sle_version_at_least('15') || check_var('DESKTOP', 'minimalx'))))
+                && (is_sle('<15') || check_var('DESKTOP', 'minimalx'))))
         {
             # With SLE15 we change desktop using role and not by unselecting packages (Use SYSTEM_ROLE variable),
             # If we have minimalx, as there is no such a role, there we use old approach
@@ -1022,7 +1022,7 @@ sub load_console_server_tests {
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-    if (is_sle && sle_version_at_least('12-SP1')) {    # shibboleth-sp not available on SLES 12 GA
+    if (is_sle('12-SP1+')) {    # shibboleth-sp not available on SLES 12 GA
         loadtest "console/shibboleth";
     }
     if (!is_staging && (is_opensuse || get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/)) {
@@ -1109,7 +1109,7 @@ sub load_consoletests {
     }
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
     # SLES but not SLED
-    if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || sle_version_at_least('15') && !is_desktop)) {
+    if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
     if (check_var('ARCH', 'x86_64')
@@ -1125,7 +1125,7 @@ sub load_consoletests {
     if (!get_var("LIVETEST")) {
         loadtest "console/yast2_bootloader";
     }
-    loadtest "console/vim" if is_opensuse || !sle_version_at_least('15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
+    loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
 # textmode install comes without firewall by default atm on openSUSE. For virtualizatoin server xen and kvm is disabled by default: https://fate.suse.com/324207
     if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon && !is_virtualization_server) {
         loadtest "console/firewall_enabled";
@@ -1160,9 +1160,9 @@ sub load_consoletests {
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
     }
-    if (!is_staging() && is_sle && sle_version_at_least('12-SP2')) {
+    if (!is_staging() && is_sle('12-SP2+')) {
         loadtest "console/zypper_lifecycle";
-        if (check_var_array('SCC_ADDONS', 'tcm') && !sle_version_at_least('15')) {
+        if (check_var_array('SCC_ADDONS', 'tcm') && is_sle('<15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
     }
@@ -1721,7 +1721,7 @@ sub load_x11_installation {
     load_reboot_tests();
     loadtest "x11/x11_setup";
     # temporary adding test modules which applies hacks for missing parts in sle15
-    loadtest "console/sle15_workarounds" if is_sle and sle_version_at_least('15');
+    loadtest "console/sle15_workarounds" if is_sle('15+');
     loadtest "console/hostname"              unless is_bridged_networking;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
@@ -1800,7 +1800,7 @@ sub load_x11_other {
     if (get_var("DESKTOP") =~ /kde|gnome/) {
         loadtest "x11/tracker/prep_tracker";
         # tracker-gui/tracker-needle was dropped since version 1.99.0
-        if (!sle_version_at_least('15')) {
+        if (is_sle('<15')) {
             loadtest "x11/tracker/tracker_starts";
             loadtest "x11/tracker/tracker_searchall";
             loadtest "x11/tracker/tracker_pref_starts";

@@ -22,7 +22,7 @@ use main_common 'get_ltp_tag';
 use power_action_utils 'power_action';
 use serial_terminal 'add_serial_console';
 use upload_system_log;
-use version_utils qw(is_sle sle_version_at_least is_opensuse is_jeos);
+use version_utils qw(is_sle is_opensuse is_jeos);
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -35,7 +35,7 @@ sub add_we_repo_if_available {
 
     my $ar_url;
     my $we_repo = get_var('REPO_SLE_WE_POOL');
-    if ($we_repo && check_var('DISTRI', 'sle') && sle_version_at_least('15')) {
+    if ($we_repo && is_sle('15+')) {
         $ar_url = "http://openqa.suse.de/assets/repo/$we_repo";
     }
     # productQA test with enabled we as iso_2

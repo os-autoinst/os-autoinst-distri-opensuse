@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem sle_version_at_least);
+use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle);
 use registration 'registration_bootloader_cmdline';
 use File::Basename;
 
@@ -245,7 +245,7 @@ sub run {
         }
         type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
         type_string "echo -en ' $cmdline' > \$pty\n";
-        if (sle_version_at_least('12-SP2') or is_caasp) {
+        if (is_sle('12-SP2+') or is_caasp) {
             type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
             type_string "echo -en ' console=hvc console=tty ' > \$pty\n";                                         # set consoles
         }

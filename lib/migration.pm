@@ -24,7 +24,7 @@ use testapi;
 use utils;
 use registration;
 use qam qw/remove_test_repositories/;
-use version_utils qw(sle_version_at_least is_sle is_sles4sap);
+use version_utils qw(is_sle is_sles4sap);
 
 our @EXPORT = qw(
   setup_sle
@@ -77,7 +77,7 @@ sub register_system_in_textmode {
 
     # register system and addons in textmode for all archs
     set_var("VIDEOMODE", 'text');
-    if (sle_version_at_least('12-SP2', version_variable => 'HDDVERSION')) {
+    if (is_sle('12-SP2+', get_var('HDDVERSION'))) {
         set_var('HDD_SP2ORLATER', 1);
     }
     yast_scc_registration;

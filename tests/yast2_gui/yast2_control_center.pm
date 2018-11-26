@@ -18,7 +18,7 @@ use base 'y2x11test';
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_opensuse is_sle sle_version_at_least is_leap is_tumbleweed is_storage_ng);
+use version_utils qw(is_opensuse is_sle is_leap is_tumbleweed is_storage_ng);
 
 sub search {
     my ($name) = @_;
@@ -108,7 +108,7 @@ sub start_printer {
     search('printer');
     # for now only test on SLE as openSUSE looks different. Can be extended
     # later
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
         search('print');
         assert_and_click 'yast2_control-center_printer';
         assert_screen 'yast2_control-center_printer_running-cups-daemon', timeout => 60;
@@ -146,7 +146,7 @@ sub start_printer {
         send_key 'alt-o';
         assert_screen 'yast2-control-center-ui', timeout => 60;
     }
-    elsif (check_var('DISTRI', 'opensuse')) {
+    elsif (is_opensuse) {
         search('print');
         assert_and_click 'yast2_control-center_printer';
         assert_screen 'yast2_control-center_printer_configurations', timeout => 180;
@@ -343,7 +343,7 @@ sub run {
         start_kernel_dump;
         # YaST2 CA management has been dropped from SLE15, see
         # https://bugzilla.suse.com/show_bug.cgi?id=1059569#c14
-        if (sle_version_at_least('15')) {
+        if (is_sle('15+')) {
             start_directory_server;
         }
         else {
@@ -352,7 +352,7 @@ sub run {
         }
         start_wake_on_lan;
     }
-    if (check_var('DISTRI', 'opensuse')) {
+    if (is_opensuse) {
         start_kernel_settings;
     }
     # only available on openSUSE or at least not SLES

@@ -14,7 +14,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub validatelr {
     my ($args) = @_;
@@ -79,7 +79,7 @@ sub validatelr {
     # medium and the system is registered to SCC the repo should be disabled
     # if the system is SLE 12 SP2 and later; enabled otherwise, see PR#11460 and
     # FATE#320494.
-    my $scc_install_sle12sp2 = check_var('SCC_REGISTER', 'installation') and sle_version_at_least('12-SP2');
+    my $scc_install_sle12sp2 = check_var('SCC_REGISTER', 'installation') and is_sle('12-SP2+');
     my $enabled_repo;
     if ($args->{enabled_repo}) {
         $enabled_repo = $args->{enabled_repo};
@@ -106,8 +106,8 @@ sub validatelr {
         $cmd
           = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$product\[\[:space:\]\[:punct:\]\[:space:\]\]*$enabled_repo $uri\"";
     }
-    elsif (check_var('DISTRI', 'sle')) {
-        if (sle_version_at_least('15')) {
+    elsif (is_sle) {
+        if (is_sle('15+')) {
             my $distri = uc(get_var('DISTRI'));
             $cmd
               = "zypper lr --uri | awk -F \'|\' -v OFS=\' \' \'{ print \$2,\$3,\$4,\$NF }\' | tr -s \' \' | grep --color \"$distri\[\[:alnum:\]\[:punct:\]\]*-*$version-$product_channel $distri\[\[:alnum:\]\[:punct:\]\[:space:\]\]*-*$version-$product_channel $enabled_repo $uri\"";
@@ -149,7 +149,7 @@ sub validate_repos_sle {
     @h_scc_addons{@scc_addons_keys} = ();
 
     my $base_product;
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
         $base_product = (get_var('FLAVOR') =~ m{Desktop-DVD}) ? 'SLED' : 'SLES';
     }
 
@@ -168,10 +168,10 @@ sub validate_repos_sle {
             if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
                 $uri = "http[s]*://.*suse";
             }
-            elsif (get_var('USBBOOT') && sle_version_at_least('12-SP3')) {
+            elsif (get_var('USBBOOT') && is_sle('12-SP3+')) {
                 $uri = "hd:///.*usb-";
             }
-            elsif (get_var('USBBOOT') && sle_version_at_least('12-SP2')) {
+            elsif (get_var('USBBOOT') && is_sle('12-SP2+')) {
                 $uri = "hd:///.*usbstick";
             }
             validatelr({product => "SLES", uri => $uri, version => $version});
@@ -331,7 +331,7 @@ sub validate_repos {
     script_run "clear";
     assert_script_run "zypper lr -d | tee /dev/$serialdev", 180;
 
-    if (check_var('DISTRI', 'sle') and !get_var('STAGING') and sle_version_at_least('12-SP1')) {
+    if (!get_var('STAGING') and is_sle('12-SP1+')) {
         validate_repos_sle($version);
     }
 }
