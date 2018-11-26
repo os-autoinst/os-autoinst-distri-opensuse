@@ -148,7 +148,7 @@ sub check_rollback_system {
     assert_script_run("zypper mr -d -m cd -m dvd");
     # Verify registration status matches current system version
     # system is un-registered during media based upgrade
-    assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python3') unless get_var('MEDIA_UPGRADE');
+    assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python') unless get_var('MEDIA_UPGRADE');
 }
 
 # Reset tty for x11 and root consoles
