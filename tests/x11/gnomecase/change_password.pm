@@ -103,6 +103,13 @@ sub add_user {
     send_key "alt-f4";
 }
 
+sub auto_login_alter {
+    my ($self) = @_;
+    $self->unlock_user_settings;
+    send_key "alt-u";
+    send_key "alt-f4";
+}
+
 sub run {
     my ($self) = @_;
 
@@ -111,7 +118,6 @@ sub run {
     $self->unlock_user_settings;
     change_pwd;
     add_user;
-
     #verify changed password work well in the following scenario:
     lock_screen;
     logout_and_login;
@@ -123,6 +129,7 @@ sub run {
 
     #swtich to new added user then switch back
     switch_user;
+    wait_still_screen 5;
     send_key "esc";
     assert_and_click 'displaymanager-test';
     assert_screen "testUser-login-dm";
@@ -156,6 +163,11 @@ sub run {
     assert_screen "user-test-deleted";
     send_key "alt-f4";
     send_key "ret";
+
+    if (is_tumbleweed && get_var('NOAUTOLOGIN')) {
+        set_var('NOAUTOLOGIN', '');
+        $self->auto_login_alter;
+    }
 }
 
 1;

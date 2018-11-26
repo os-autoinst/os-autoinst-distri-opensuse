@@ -30,7 +30,12 @@ sub run {
     assert_screen "generic-desktop";
     $self->auto_login_alter;
     my $ov = get_var('NOAUTOLOGIN');
-    set_var('NOAUTOLOGIN', '');
+    if (!$ov) {
+        set_var('NOAUTOLOGIN', 1);
+    }
+    else {
+        set_var('NOAUTOLOGIN', '');
+    }
     power_action('reboot');
     $self->wait_boot(bootloader_time => 300);
     set_var('NOAUTOLOGIN', $ov);
