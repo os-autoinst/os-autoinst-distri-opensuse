@@ -1676,15 +1676,15 @@ sub get_wicked_tests {
     return @tests;
 }
 
-sub load_wicked_barrier {
+sub wicked_init_locks {
     my $args = OpenQA::Test::RunArgs->new();
     my @wicked_tests = get_wicked_tests(only_names => 1);
     $args->{wicked_tests} = \@wicked_tests;
-    loadtest('wicked/barrier_init', run_args => $args);
+    loadtest('wicked/locks_init', run_args => $args);
 }
 
 sub load_wicked_tests {
-    load_wicked_barrier() if get_var('IS_WICKED_REF');
+    wicked_init_locks();
     for my $test (get_wicked_tests()) {
         loadtest $test;
     }
