@@ -15,7 +15,7 @@ use strict;
 use base "y2logsstep";
 use testapi;
 use utils qw(addon_license handle_untrusted_gpg_key);
-use version_utils qw(is_sle sle_version_at_least);
+use version_utils 'is_sle';
 use qam 'advance_installer_window';
 use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE);
 use LWP::Simple 'head';
@@ -45,7 +45,7 @@ sub handle_all_packages_medium {
     push @addons, 'legacy' if get_var('UPGRADE') && !grep(/^legacy$/, @addons);
 
     # For SLES12SPx and SLES11SPx to SLES15 migration, need add the demand module at least for media migration manually
-    if (get_var('MEDIA_UPGRADE') && !sle_version_at_least('15', version_variable => 'HDDVERSION') && !check_var('SLE_PRODUCT', 'sled')) {
+    if (get_var('MEDIA_UPGRADE') && is_sle('<15', get_var('HDDVERSION')) && !check_var('SLE_PRODUCT', 'sled')) {
         my @demand_addon = qw(desktop legacy serverapp script);
         for my $a (@demand_addon) {
             push @addons, $a if !grep(/^$a$/, @addons);

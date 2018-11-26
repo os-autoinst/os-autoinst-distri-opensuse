@@ -16,7 +16,7 @@
 use base 'x11test';
 use strict;
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     x11_start_program('nautilus');
@@ -25,7 +25,7 @@ sub run {
     assert_screen 'nautilus-ftp-login';
     send_key 'ret';
     assert_screen 'nautilus-ftp-suse-com';
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         assert_and_click 'unselected-pub';
         assert_and_click 'ftp-path-selected';
         wait_still_screen(2);

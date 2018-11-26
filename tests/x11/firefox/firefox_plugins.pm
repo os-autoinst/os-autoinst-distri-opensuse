@@ -16,7 +16,6 @@
 use strict;
 use base "x11test";
 use testapi;
-use version_utils 'sle_version_at_least';
 
 sub run {
     my ($self) = @_;

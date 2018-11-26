@@ -15,14 +15,14 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_leap is_storage_ng is_sle sle_version_at_least is_tumbleweed);
+use version_utils qw(is_leap is_storage_ng is_sle is_tumbleweed);
 use partition_setup qw(%partition_roles is_storage_ng_newui);
 
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
 
     if (get_var("DUALBOOT")) {
-        if (is_sle && sle_version_at_least('15')) {
+        if (is_sle('15+')) {
             record_soft_failure('bsc#1089723 Make sure keep the existing windows partition');
             assert_screen "delete-partition";
             send_key "alt-g";

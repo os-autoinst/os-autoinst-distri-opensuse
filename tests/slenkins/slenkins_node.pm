@@ -22,7 +22,6 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
-use version_utils 'sle_version_at_least';
 use opensusebasetest 'firewall';
 
 sub run {

@@ -15,7 +15,7 @@ use testapi;
 use utils;
 use strict;
 use power_action_utils 'power_action';
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -28,7 +28,7 @@ sub run {
     my $openqalatest = 'openqalatest';
     assert_script_run("snapper create -d $openqalatest");
     assert_script_run("snapper list");
-    my $snap_id             = sle_version_at_least('15') ? "'{ print \$1 }'" : "'{ print \$3 }'";
+    my $snap_id             = is_sle('15+') ? "'{ print \$1 }'" : "'{ print \$3 }'";
     my $openqainit_snapshot = script_output("snapper list | grep -w $openqainit | awk $snap_id | tr -d '\\n'");
     my $latest_snapshot     = script_output("snapper list | grep -w $openqalatest | awk $snap_id | tr -d '\\n'");
     my $init_snapshot       = script_output("snapper list | grep 'single.*$openqainit' | awk $snap_id | tr -d '\\n'");

@@ -17,7 +17,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem sle_version_at_least is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+  qw(is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -59,19 +59,19 @@ sub cleanup_needles {
         unregister_needle_tags("ENV-VERSION-11-SP4");
     }
 
-    my $tounregister = sle_version_at_least('12') ? '0' : '1';
+    my $tounregister = is_sle('12+') ? '0' : '1';
     unregister_needle_tags("ENV-12ORLATER-$tounregister");
 
-    $tounregister = sle_version_at_least('12-SP2') ? '0' : '1';
+    $tounregister = is_sle('12-SP2+') ? '0' : '1';
     unregister_needle_tags("ENV-SP2ORLATER-$tounregister");
 
-    $tounregister = sle_version_at_least('12-SP3') ? '0' : '1';
+    $tounregister = is_sle('12-SP3+') ? '0' : '1';
     unregister_needle_tags("ENV-SP3ORLATER-$tounregister");
 
-    $tounregister = sle_version_at_least('15') ? '0' : '1';
+    $tounregister = is_sle('15+') ? '0' : '1';
     unregister_needle_tags("ENV-15ORLATER-$tounregister");
 
-    $tounregister = sle_version_at_least('15-SP1') ? '0' : '1';
+    $tounregister = is_sle('15-SP1+') ? '0' : '1';
     unregister_needle_tags("ENV-15SP1ORLATER-$tounregister");
 
     if (!is_server) {
@@ -119,7 +119,7 @@ set_var('NOAUTOLOGIN', 1);
 set_var('HASLICENSE',  1);
 set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
 # Always register against SCC if SLE 15
-if (sle_version_at_least('15')) {
+if (is_sle('15+')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
     # depending on registration only limited system roles are available
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', is_desktop_module_available() ? 'default' : 'minimal'));
@@ -132,7 +132,7 @@ if (sle_version_at_least('15')) {
 }
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
-if (sle_version_at_least('15')) {
+if (is_sle('15+')) {
     if (check_var('ARCH', 's390x') and get_var('DESKTOP', '') =~ /gnome|minimalx/) {
         diag 'BUG: bsc#1058071 - No VNC server available in SUT, disabling X11 tests. Re-enable after bug is fixed';
         set_var('DESKTOP', 'textmode');
@@ -148,7 +148,7 @@ set_var('REMOTE_CONNECTION', 'vnc') if get_var('BACKEND', '') =~ /s390x|svirt|ip
 
 # Set serial console for Xen PV
 if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) {
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         set_var('SERIALDEV', 'hvc0');
     }
     else {
@@ -156,11 +156,11 @@ if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')
     }
 }
 
-if (sle_version_at_least('12-SP2')) {
+if (is_sle('12-SP2+')) {
     set_var('SP2ORLATER', 1);
 }
 
-if (sle_version_at_least('12-SP3')) {
+if (is_sle('12-SP3+')) {
     set_var('SP3ORLATER', 1);
 }
 
@@ -193,7 +193,7 @@ if (check_var('DESKTOP', 'minimalx')) {
 # This setting is used to set veriables properly when SDK or Development-Tools are required.
 # For SLE 15 we add Development-Tools during using SCC, and using ftp url in case of other versions.
 if (get_var('DEV_IMAGE')) {
-    if (sle_version_at_least('15')) {
+    if (is_sle('15+')) {
         # On SLE 15 activate Development-Tools module with SCC
         my $addons = (get_var('SCC_ADDONS') ? get_var('SCC_ADDONS') . ',' : '') . 'sdk';
         set_var('SCC_ADDONS', $addons);
@@ -255,7 +255,7 @@ if (check_var('SCC_REGISTER', 'installation') && get_var('ALL_ADDONS') && !get_v
 
 # This is workaround setting which will be removed once SCC add repos and allows adding modules
 # TODO: place it somewhere else since test module suseconnect_scc will use it
-if (sle_version_at_least('15') && !check_var('SCC_REGISTER', 'installation')) {
+if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
     my @modules;
     if (get_var('ALL_MODULES')) {
         # By default add all modules
@@ -362,7 +362,7 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 }
 
 if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
-    if (sle_version_at_least('15')) {
+    if (is_sle('15+')) {
         # Add only modules which are not pre-selected
         # 'pcm' should be treated special as it is only applicable to cloud
         # installations

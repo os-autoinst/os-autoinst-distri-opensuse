@@ -8,7 +8,7 @@ use testapi;
 use LWP::Simple;
 use Config::Tiny;
 use utils;
-use version_utils qw(is_sle is_tumbleweed sle_version_at_least);
+use version_utils qw(is_sle is_tumbleweed);
 use POSIX 'strftime';
 
 sub post_fail_hook {
@@ -33,11 +33,11 @@ sub switch_wm {
     assert_and_click "user-logout-sector";
     assert_and_click "logout-system";
     assert_screen "logout-dialogue";
-    send_key 'tab' if sle_version_at_least('15');
+    send_key 'tab' if is_sle('15+');
     send_key "ret";
     assert_screen "displaymanager";
     # The keyboard focus was losing in gdm of SLE15 bgo#657996
-    mouse_set(520, 350) if sle_version_at_least('15');
+    mouse_set(520, 350) if is_sle('15+');
     send_key "ret";
     assert_screen "originUser-login-dm";
     type_password;
@@ -59,7 +59,7 @@ sub prepare_sle_classic {
     # Log out and switch back to default session
     $self->switch_wm;
     assert_and_click "displaymanager-settings";
-    if (sle_version_at_least('15')) {
+    if (is_sle('15+')) {
         assert_and_click 'dm-gnome-shell';
         send_key 'ret';
         assert_screen 'desktop-gnome-shell', 120;
@@ -225,7 +225,7 @@ sub check_new_mail_evolution {
     assert_screen "evolution_mail-online", 240;
     assert_and_click "evolution-send-receive";
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             send_key "alt-p";
         }
         type_password $mail_passwd;
@@ -282,7 +282,7 @@ sub send_meeting_request {
     wait_still_screen;
     type_string "$mail_box";
     send_key "alt-s";
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         send_key "alt-s";    #only need in sp2
     }
     type_string "$mail_subject this is a evolution test meeting";
@@ -293,7 +293,7 @@ sub send_meeting_request {
     assert_screen "evolution_mail-sendinvite_meeting", 60;
     send_key "ret";
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             send_key "alt-a";    #disable keyring option, only need in SP2 or later
             send_key "alt-p";
         }
@@ -328,7 +328,7 @@ sub start_evolution {
     my ($self, $mail_box) = @_;
 
     $self->{next} = "alt-o";
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         $self->{next} = "alt-n";
     }
     mouse_hide(1);
@@ -372,7 +372,7 @@ sub evolution_add_self_signed_ca {
     else {
         send_key $self->{next};
     }
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         send_key "ret";    #only need in SP2 or later
     }
 }
@@ -436,7 +436,7 @@ sub setup_mail_account {
     save_screenshot;
     assert_screen "evolution_wizard-receiving-opts";
     send_key $self->{next};
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         send_key "ret";    #only need in SP2 or later
     }
 
@@ -486,14 +486,14 @@ sub setup_mail_account {
     send_key "ret";
     assert_screen "evolution_wizard-account-summary";
     send_key $self->{next};
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         send_key "alt-n";    #only in sp2
         send_key "ret";
     }
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
         }
@@ -504,7 +504,7 @@ sub setup_mail_account {
         send_key "super-up";
     }
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             send_key "alt-p";
         }
         type_password $mail_passwd;
@@ -832,13 +832,13 @@ sub evolution_send_message {
     assert_and_click "evolution_mail-message-body";
     type_string "Test email send and receive.";
     send_key "ctrl-ret";
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         if (check_screen "evolution_mail_send_mail_dialog", 30) {
             send_key "ret";
         }
     }
     if (check_screen "evolution_mail-auth", 30) {
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             send_key "alt-a";    #disable keyring option, only in SP2
             send_key "alt-p";
         }

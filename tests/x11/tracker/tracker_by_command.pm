@@ -16,12 +16,12 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 
 sub run {
     x11_start_program('xterm');
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         script_run 'tracker search emtpyfile';
         record_soft_failure 'bsc#1074582 tracker can not index empty file automatically' if check_screen 'tracker-cmdsearch-noemptyfile', 30;
         # Wait 20s for tracker to index the test file

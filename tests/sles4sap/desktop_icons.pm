@@ -12,7 +12,7 @@
 
 use base "sles4sap";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 use strict;
 
 sub run {
@@ -30,7 +30,7 @@ sub run {
         # Verify that there is at least a generic desktop and
         # fail unless we're in SLE-15 where there are no icons
         assert_screen 'generic-desktop';
-        record_soft_failure 'bsc#1072646' unless sle_version_at_least('15');
+        record_soft_failure 'bsc#1072646' unless is_sle('15+');
     }
 }
 

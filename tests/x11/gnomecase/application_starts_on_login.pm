@@ -14,11 +14,11 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap sle_version_at_least);
+use version_utils qw(is_leap is_sle);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
-    unless (sle_version_at_least('15')) {
+    unless (is_sle('15+')) {
         $self->start_gnome_settings;
         type_string "tweak";
         assert_screen "settings-tweak-selected";
@@ -35,7 +35,7 @@ sub tweak_startupapp_menu {
 
 sub start_dconf {
     my ($self) = @_;
-    unless (sle_version_at_least('15')) {
+    unless (is_sle('15+')) {
         $self->start_gnome_settings;
         type_string "dconf";
         assert_screen "settings-dconf";
@@ -59,7 +59,7 @@ sub alter_status_auto_save_session {
     my ($self) = @_;
     $self->start_dconf;
     # Old behavior for non SLE15 or non TW
-    if (!sle_version_at_least('15') && !is_leap('15.0+')) {
+    if (!is_sle('15+') && !is_leap('15.0+')) {
         send_key_until_needlematch "dconf-org", "down";
         assert_and_click "unfold";
         send_key_until_needlematch "dconf-org-gnome", "down";
@@ -88,7 +88,7 @@ sub alter_status_auto_save_session {
 sub restore_status_auto_save_session {
     my ($self) = @_;
     $self->start_dconf;
-    assert_and_click "auto-save-session" unless (sle_version_at_least('15'));
+    assert_and_click "auto-save-session" unless is_sle('15+');
     assert_and_click "auto-save-session-alter-use-default";
     assert_and_click "auto-save-session-apply";
     send_key "alt-f4";
@@ -103,7 +103,7 @@ sub run {
     $self->tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
-    if (sle_version_at_least('12-SP2')) {
+    if (is_sle('12-SP2+')) {
         assert_and_click "startupApp-searching";
         wait_still_screen;
         assert_screen "focused-on-search";
@@ -147,7 +147,7 @@ sub run {
     ##auto-save-session functionality has been abandoned;
     ##current status: just firefox works
     ##so in the future will consider remove openqa code for this session
-    unless (sle_version_at_least('15')) {
+    unless (is_sle('15+')) {
         # Install dconf-editor for TW
         if (check_var('VERSION', 'Tumbleweed')) {
             select_console('root-console');
@@ -169,7 +169,7 @@ sub run {
         send_key "ret";
         wait_still_screen;
 
-        if (sle_version_at_least('12-SP2')) {
+        if (is_sle('12-SP2+')) {
             $self->restore_status_auto_save_session;
         }
         else {

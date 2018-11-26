@@ -13,10 +13,10 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use version_utils 'sle_version_at_least';
+use version_utils 'is_sle';
 
 sub run {
-    if (sle_version_at_least('15')) {
+    if (is_sle('15+')) {
         my $expected_needle = check_var('SLES4SAP_MODE', 'sles4sap_wizard') ? "sles4sap-wizard-option-selected" : "sles4sap-wizard-option-not-selected";
         assert_screen [qw(sles4sap-wizard-option-selected sles4sap-wizard-option-not-selected)];
         send_key "alt-a" unless (match_has_tag($expected_needle));

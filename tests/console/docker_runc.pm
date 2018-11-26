@@ -18,7 +18,7 @@
 use base "consoletest";
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_sle sle_version_at_least);
+use version_utils qw(is_caasp is_sle);
 use registration;
 use strict;
 

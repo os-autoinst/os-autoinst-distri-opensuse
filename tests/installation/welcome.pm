@@ -33,7 +33,7 @@ sub run {
     # Add tag for untrusted-ca-cert with SMT
     push @welcome_tags, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Add tag for sle15 upgrade mode, where product list should NOT be shown
-    push @welcome_tags, 'inst-welcome-no-product-list' if sle_version_at_least('15') and get_var('UPGRADE');
+    push @welcome_tags, 'inst-welcome-no-product-list' if is_sle('15+') and get_var('UPGRADE');
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';

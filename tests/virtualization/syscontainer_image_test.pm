@@ -13,11 +13,12 @@
 use base "basetest";
 use testapi;
 use strict;
+use version_utils 'is_sle';
 
 sub run() {
     select_console 'root-console';
 
-    return if check_var('DISTRI', 'sle') && !(get_var('SCC_REGCODE') || get_var('HDD_SCC_REGISTERED'));
+    return if is_sle && !(get_var('SCC_REGCODE') || get_var('HDD_SCC_REGISTERED'));
 
     # Check the repositories on the host first
     assert_script_run("zypper lr");
@@ -28,7 +29,7 @@ sub run() {
     # Create XML file
     assert_script_run('curl -f ' . autoinst_url . '/data/virtualization/syscontainer.xml -o /tmp/test.xml');
 
-    if (check_var('DISTRI', 'sle')) {
+    if (is_sle) {
         my $scccredentials_mount
           = '<filesystem type=\"mount\" accessmode=\"passthrough\">'
           . '  <source dir=\"/etc/zypp/credentials.d/SCCcredentials\"/>'
