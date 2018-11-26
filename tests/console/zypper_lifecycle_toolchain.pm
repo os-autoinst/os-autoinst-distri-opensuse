@@ -29,7 +29,7 @@ sub run {
         gcc6      => 'Now',
         gcc7      => '2019-04-30',
         libada7   => '2019-04-30',
-        toolchain => '2024-10-30',
+        toolchain => '2024-10-31',
     );
 
     select_console 'root-console';
