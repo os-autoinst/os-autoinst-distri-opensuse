@@ -1529,7 +1529,7 @@ sub load_extra_tests_console {
 }
 
 sub load_extra_tests_docker {
-    return unless check_var('ARCH', 'x86_64');
+    return unless get_var('ARCH', '') =~ /x86_64/ppc64le/aarch64/;
     return unless is_sle('12-SP3+') || !is_sle;
     loadtest "console/docker";
     loadtest "console/docker_runc";
