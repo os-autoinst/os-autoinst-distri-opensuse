@@ -203,19 +203,25 @@ sub run_ssh_command {
 
     my $ssh_cmd = sprintf('ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i %s %s@%s -- %s',
         $args{instance}->{ssh_key}, $args{instance}->{username}, $args{instance}->{ip}, $args{cmd});
-    assert_script_run($ssh_cmd);
+    return script_output($ssh_cmd);
 }
 
 =head2 create_instance
 
-Creates an instance on the public cloud provider using ipa command without cleanup
+Creates an instance on the public cloud provider using ipa command without cleanup.
+
+C<image>         defines the image_id to create the instance.
+C<instance_type> defines the flavor of the instance. If not specified, it will load it
+                     from PUBLIC_CLOUD_INSTANCE_TYPE.
 
 =cut
 sub create_instance {
     my ($self, %args) = @_;
+    $args{instance_type} //= get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
 
+    record_info('INFO', "Creating instance $args{instance_type} from $args{image} ...");
     return $self->ipa(
-        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        instance_type => $args{instance_type},
         cleanup       => 0,
         image_id      => $args{image}
     );
