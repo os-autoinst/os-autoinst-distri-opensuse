@@ -16,19 +16,19 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_opensuse);
+use version_utils 'is_sle';
 
 sub run {
     x11_start_program('xterm');
-    if (is_opensuse || is_sle('12-SP2+')) {
+    if (is_sle('<12-SP2')) {
+        script_run "tracker-search newfile";
+    }
+    else {
         script_run 'tracker search emtpyfile';
         record_soft_failure 'bsc#1074582 tracker can not index empty file automatically' if check_screen 'tracker-cmdsearch-noemptyfile', 30;
         # Wait 20s for tracker to index the test file
         wait_still_screen 20;
         script_run "tracker search newfile";
-    }
-    else {
-        script_run "tracker-search newfile";
     }
     assert_screen 'tracker-cmdsearch-newfile';
     send_key 'alt-f4';
