@@ -52,9 +52,8 @@ sub command_register {
         my $reg_code = get_required_var("SCC_REGCODE");
         $version =~ s/\-SP/./;
         script_run("(SUSEConnect -p SLES/$version/$arch --regcode $reg_code) | tee /dev/$serialdev", 0);
-        my $out = wait_serial($zypper_conflict, 240) if (get_var("ZDUP"));    # zdup migration will have confilct
-        my $out = wait_serial($registered) if (!get_var("ZDUP"));             # just register a bare system
-
+        # zdup migration will have conflict or just register a bare system
+        my $out = get_var("ZDUP") ? wait_serial($zypper_conflict, 240) : wait_serial($registered);
         #resolve potential conflict by zypper
         if ($out =~ $zypper_conflict) {
             save_screenshot;

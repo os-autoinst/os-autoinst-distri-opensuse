@@ -288,7 +288,7 @@ sub ensure_installed {
     send_key("alt-f4");    # close xterm
 }
 
-sub script_sudo($$) {
+sub script_sudo {
     my ($self, $prog, $wait) = @_;
 
     my $str = time;

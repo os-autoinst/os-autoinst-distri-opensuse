@@ -19,6 +19,7 @@ use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
 use Carp;
+use strict;
 
 =head2 wicked_command
 

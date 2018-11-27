@@ -17,6 +17,7 @@ use testapi;
 use publiccloud::azure;
 use publiccloud::ec2;
 use publiccloud::gce;
+use strict;
 
 sub provider_factory {
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {

@@ -64,7 +64,7 @@ sub setup_apache2 {
     }
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
-        my $gensslcert_C_opt = '-C $(hostname)' unless is_sle('15+');
+        my $gensslcert_C_opt = !is_sle('15+') ? '-C $(hostname)' : '';
         assert_script_run "gensslcert -n \$(hostname) $gensslcert_C_opt -e webmaster@\$(hostname)", 900;
         assert_script_run 'ls /etc/apache2/ssl.crt/$(hostname)-server.crt /etc/apache2/ssl.key/$(hostname)-server.key';
     }
