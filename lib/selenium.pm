@@ -191,8 +191,8 @@ sub select_input {
     my ($id) = @_;
     $driver->mouse_move_to_location(element => wait_for_xpath("//input[\@id=\'$id\']"));
     $driver->click();
-    $driver->send_keys_to_active_element(KEYS->{'control'}, 'a');
-    $driver->send_keys_to_active_element(KEYS->{'control'});
+    $driver->send_keys_to_active_element(KEYS->{control}, 'a');
+    $driver->send_keys_to_active_element(KEYS->{control});
 }
 
 1;

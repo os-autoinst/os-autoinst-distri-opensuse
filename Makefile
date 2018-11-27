@@ -87,7 +87,8 @@ test: unit-test test-static test-compile
 endif
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet \
-	--exclude Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval
+	--exclude Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval \
+	--include Perl::Critic::Policy::HashKeyQuote
 
 .PHONY: perlcritic
 perlcritic: tools/lib/

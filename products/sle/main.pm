@@ -222,22 +222,22 @@ if (check_var('SCC_REGISTER', 'installation') && get_var('ALL_ADDONS') && !get_v
     my %common_modules    = ('12-SP3' => 'pcm,tcm,wsm');
     #Below $external* store external extensions/modules list on each ARCH.
     my %external_addons_12SP3 = (
-        'x86_64'  => 'ha,geo,we,live,asmm,contm,lgm,hpcm',
-        'ppc64le' => 'ha,live,asmm,contm,lgm',
-        's390x'   => 'ha,geo,asmm,contm,lgm',
-        'aarch64' => 'hpcm'
+        'x86_64' => 'ha,geo,we,live,asmm,contm,lgm,hpcm',
+        ppc64le  => 'ha,live,asmm,contm,lgm',
+        s390x    => 'ha,geo,asmm,contm,lgm',
+        aarch64  => 'hpcm'
     );
     my %external_modules_12SP3 = (
-        'x86_64'  => 'asmm,contm,lgm,hpcm',
-        'ppc64le' => 'asmm,contm,lgm',
-        's390x'   => 'asmm,contm,lgm',
-        'aarch64' => 'hpcm'
+        'x86_64' => 'asmm,contm,lgm,hpcm',
+        ppc64le  => 'asmm,contm,lgm',
+        s390x    => 'asmm,contm,lgm',
+        aarch64  => 'hpcm'
     );
     my %external_extensions_12SP3 = (
-        'x86_64'  => 'ha,geo,we,live',
-        'ppc64le' => 'ha,live',
-        's390x'   => 'ha,geo',
-        'aarch64' => ''
+        'x86_64' => 'ha,geo,we,live',
+        ppc64le  => 'ha,live',
+        s390x    => 'ha,geo',
+        aarch64  => ''
     );
     # ALL_ADDONS = 'addons' : all addons, 'extensions' : all extensions, 'modules' : all modules.
     if (is_sle('12-SP3+')) {
