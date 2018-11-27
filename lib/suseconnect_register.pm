@@ -21,7 +21,7 @@ use utils;
 use registration;
 
 
-our @EXPORT = qw (suseconnect_registration command_register is_module assert_module);
+our @EXPORT = qw(suseconnect_registration command_register is_module assert_module);
 
 sub suseconnect_registration {
     my $product_version = get_required_var('VERSION');

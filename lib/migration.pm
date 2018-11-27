@@ -23,8 +23,8 @@ use strict;
 use testapi;
 use utils;
 use registration;
-use qam qw/remove_test_repositories/;
-use version_utils qw(is_sle is_sles4sap);
+use qam 'remove_test_repositories';
+use version_utils qw(sle_version_at_least is_sle is_sles4sap);
 
 our @EXPORT = qw(
   setup_sle

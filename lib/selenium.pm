@@ -35,7 +35,7 @@ use version_utils 'is_sle';
 
 use Selenium::Remote::Driver;
 use Selenium::Chrome;
-use Selenium::Waiter qw/wait_until/;
+use Selenium::Waiter 'wait_until';
 use Selenium::Remote::WDKeys;
 
 my $port = 4444;

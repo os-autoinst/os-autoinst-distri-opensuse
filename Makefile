@@ -88,7 +88,8 @@ endif
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet \
 	--exclude Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval \
-	--include Perl::Critic::Policy::HashKeyQuote
+	--include Perl::Critic::Policy::HashKeyQuote \
+	--include Perl::Critic::Policy::ConsistentQuoteLikeWords
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
