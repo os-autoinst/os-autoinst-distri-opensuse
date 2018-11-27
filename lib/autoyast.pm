@@ -30,8 +30,11 @@ sub expand_patterns {
             return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis x11 gnome_basic)] if check_var('DESKTOP', 'gnome');
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
-            return [qw(Minimal apparmor base documentation 32bit yast2)] if check_var('DESKTOP', 'textmode');
-            return [qw(Minimal apparmor base x11 documentation gnome-basic 32bit yast2)] if check_var('DESKTOP', 'gnome');
+            my @patterns;
+            push @patterns, qw(Minimal apparmor base documentation 32bit)                 if check_var('DESKTOP', 'textmode');
+            push @patterns, qw(Minimal apparmor base x11 documentation gnome-basic 32bit) if check_var('DESKTOP', 'gnome');
+            push @patterns, qw(yast2)                                                     if is_sle('>=12-sp3');
+            return [@patterns];
         }
         # SLED12 has different patterns
         else {
