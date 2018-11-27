@@ -385,5 +385,6 @@ configuration, otherwise returns false (0).
 =cut
 
 sub has_license_on_welcome_screen {
+    return 1 if is_caasp('caasp');
     return get_var('HASLICENSE') && ((is_sle('15+') && is_s390x()) || is_sle('<15'));
 }

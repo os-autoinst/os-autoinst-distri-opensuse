@@ -18,9 +18,9 @@ use version_utils 'is_caasp';
 
 # Set password on autoyast nodes - bsc#1030876
 sub set_autoyast_password {
-    script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
-    script_run 'pw=$(python -c "import crypt; print crypt.crypt(\'nots3cr3t\', \'\$6\$susetest\')")';
-    script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"', 60;
+    assert_script_run q#id=$(docker ps | grep salt-master | awk '{print $1}')#;
+    assert_script_run q#pw=$(grep root /etc/shadow | cut -d':' -f2)#;
+    assert_script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"', 60;
 
     # Unlock and wait for propagation
     unpause 'AUTOYAST_PW_SET';

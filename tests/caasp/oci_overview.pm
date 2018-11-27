@@ -19,23 +19,16 @@ use version_utils 'is_caasp';
 sub run {
     my $timeout = 120;
     if (get_var('BETA')) {
-        assert_screen 'oci-betawarning', $timeout;
+        assert_screen 'inst-betawarning', $timeout;
         send_key 'ret';
         $timeout = 30;
     }
-    if (get_var('HDDSIZEGB') < 12) {
-        assert_screen 'error-small-disk', $timeout;
-        send_key 'ret';
-        $timeout = 30;
-    }
-    assert_screen 'oci-overview', $timeout;
+
+    assert_screen 'inst-overview', $timeout;
     mouse_hide;
 
     # Check release notes
-    if (is_caasp '=4.0') {
-        record_soft_failure 'bsc#1099477 - Release notes button is missing';
-    }
-    else {
+    if (is_caasp '<4.0') {
         if (check_var('VIDEOMODE', 'text')) {
             send_key 'alt-e';
             assert_screen 'release-notes-' . get_var('VERSION');
