@@ -25,10 +25,19 @@ our @EXPORT = qw(expand_template);
 
 sub expand_patterns {
     if (get_var('PATTERNS') =~ m/^\s*$/) {
-        return [qw(base minimal_base enhanced_base apparmor sw_management
-              yast2_basis)] if check_var('DESKTOP', 'textmode');
-        return [qw(base minimal_base enhanced_base apparmor sw_management
-              yast2_basis x11 gnome_basic)] if check_var('DESKTOP', 'gnome');
+        if (is_sle('15+')) {
+            return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis)] if check_var('DESKTOP', 'textmode');
+            return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis x11 gnome_basic)] if check_var('DESKTOP', 'gnome');
+        }
+        elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
+            return [qw(Minimal apparmor base documentation 32bit yast2)] if check_var('DESKTOP', 'textmode');
+            return [qw(Minimal apparmor base x11 documentation gnome-basic 32bit yast2)] if check_var('DESKTOP', 'gnome');
+        }
+        # SLED12 has different patterns
+        else {
+            return [qw(apparmor desktop-base documentation 32bit)] if check_var('DESKTOP', 'textmode');
+            return [qw(apparmor x11 desktop-base documentation gnome-basic desktop-gnome 32bit)] if check_var('DESKTOP', 'gnome');
+        }
     }
     if (check_var('PATTERNS', 'all')) {
         my @all;
@@ -61,8 +70,9 @@ sub expand_patterns {
               desktop-gnome-devel desktop-gnome-laptop kernel-devel
               virtualization_client) if
               check_var('SLE_PRODUCT', 'sled');
+            # SLED12 - > bsc#1117335
             push @all, qw(SDK-C-C++ SDK-Certification SDK-Doc SDK-YaST) if
-              get_var('SCC_ADDONS') =~ m/sdk/;
+              (get_var('SCC_ADDONS') =~ m/sdk/ && check_var('SLE_PRODUCT', 'sles'));
         }
         return [@all];
     }
