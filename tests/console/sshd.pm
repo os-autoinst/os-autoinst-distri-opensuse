@@ -8,57 +8,77 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Very old test to verify sshd starts up.
+# Summary: Test to verify sshd starts and accepts connections.
 #  We need this test to succeed for followup tests using ssh localhost
-# Maintainer: Stephan Kulow <coolo@suse.de>
+#  This regression test has also an interactive part (in VirtIO console)
+# Maintainer: Pavel Dostál <pdostal@suse.cz>
 
+use warnings;
 use base "consoletest";
 use strict;
 use testapi;
-use utils;
+use utils qw(systemctl exec_and_insert_password);
 use version_utils qw(is_virtualization_server is_upgrade);
 
-# check if sshd works
 sub run {
     my $self = shift;
     # new user to test sshd
     my $ssh_testman        = "sshboy";
-    my $ssh_testman_passwd = "let3me2in1";
+    my $ssh_testman_passwd = $testapi::password;
 
     select_console 'root-console';
 
+    # Stop the firewall if it's available
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
         record_info("SuSEfirewall2 not available", "bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15");
     }
     else {
         systemctl 'stop ' . $self->firewall if !is_virtualization_server;
     }
-    script_run('chkconfig sshd on');
-    assert_script_run("chkconfig sshd on", 60);
-    assert_script_run("rcsshd restart",    60);    # will do nothing if it is already running
 
-    sleep 3;                                       # give the daemon some time to start
+    # Restart sshd and check it's status
+    systemctl 'restart sshd';
+    systemctl 'status sshd';
 
-    script_run('rcsshd status', 0);
-    assert_screen 'test-sshd-1';
+    # Check that the daemons listens on right addresses/ports
+    assert_script_run q(ss -pnl4 | egrep 'tcp.*LISTEN.*:22.*sshd');
+    assert_script_run q(ss -pnl6 | egrep 'tcp.*LISTEN.*:22.*sshd');
 
     # create a new user to test sshd
     my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
-    assert_script_run("useradd -m $ssh_testman",    60);
-    assert_script_run("echo $changepwd | chpasswd", 60);
-    $self->clear_and_verify_console;
-    select_console 'user-console';
+    assert_script_run("useradd -m $ssh_testman");
+    assert_script_run("echo $changepwd | chpasswd");
 
-    # we output the exit status, but we don't care - we want to see the echo on screen
-    # but for debugging, it's easier to check the serial file later
-    my $str = "SSH-" . time;
-    # login use new user account
-    script_run("ssh -v $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL; echo $str-\$?- > /dev/$serialdev", 0);
-    assert_screen "ssh-login", 60;
+    opensusebasetest::select_serial_terminal();
+
+    # Make interactive SSH connection as the new user
+    type_string "ssh -v -l $ssh_testman localhost -t\n";
+    wait_serial('Are you sure you want to continue connecting (yes/no)?', undef, 0, no_regex => 1);
     type_string "yes\n";
-    assert_screen 'password-prompt', 60;
+    wait_serial('Password:', undef, 0, no_regex => 1);
     type_string "$ssh_testman_passwd\n";
-    assert_screen "ssh-login-ok";
+    wait_serial('sshboy@susetest:~>', undef, 0, no_regex => 1);
+    type_string "export PS1='# '\n";
+
+    # Check that we are really in the SSH session
+    assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
+    assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
+    assert_script_run "whoami | grep $ssh_testman";
+    assert_script_run "mkdir .ssh";
+
+    # Exit properly and check we're root again
+    script_run("exit", 0);
+    assert_script_run "whoami | grep root";
+
+    select_console 'root-console';
+
+    # Generate RSA key for SSH and SCP it to our new user's profile
+    assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
+    exec_and_insert_password("scp ~/.ssh/id_rsa.pub $ssh_testman\@localhost:~/.ssh/authorized_keys");
+
+    # Test non-interactive SSH and after that remove RSA keys
+    assert_script_run "ssh -4v $ssh_testman\@localhost bash -c 'whoami | grep $ssh_testman'";
+    assert_script_run "rm -r ~/.ssh/";
 }
 
 sub test_flags {
