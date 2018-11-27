@@ -16,12 +16,12 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_opensuse);
 
 
 sub run {
     x11_start_program('xterm');
-    if (is_sle('12-SP2+')) {
+    if (is_opensuse || is_sle('12-SP2+')) {
         script_run "tracker info newpl.pl";
     }
     else {
