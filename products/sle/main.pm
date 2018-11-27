@@ -1059,6 +1059,10 @@ else {
     }
     elsif (get_var('QAM_VSFTPD')) {
         set_var('INSTALLONLY', 1);
+        if (check_var('HOSTNAME', 'server')) {
+            barrier_create('VSFTPD_SUITE_READY', 2);
+            barrier_create('VSFTPD_FINISHED',    2);
+        }
         boot_hdd_image;
         loadtest 'network/setup_multimachine';
         loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;

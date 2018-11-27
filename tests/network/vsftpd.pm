@@ -20,8 +20,6 @@ use utils 'zypper_call';
 sub run {
     select_console 'root-console';
     if (check_var('HOSTNAME', 'server')) {
-        barrier_create('VSFTPD_SUITE_READY', 2);
-        barrier_create('VSFTPD_FINISHED',    2);
         zypper_call 'in vsftpd';
     }
     # export slenkins variables
