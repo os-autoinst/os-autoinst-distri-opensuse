@@ -36,16 +36,7 @@ sub run {
     my $md5_initial_sh   = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_sh.sh');
     my $md5_initial_tar  = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_tar.tar');
 
-    # in case localhost is already inside known_hosts
-    if (script_run('! test -e ~/.ssh')) {
-        assert_script_run('ssh-keygen -R localhost');
-    }
-
-    if (is_opensuse) {
-        clear_console;
-        assert_script_run("sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config");
-        systemctl 'restart sshd';
-    }
+    prepare_ssh_localhost_key_login 'root';
 
     type_string("rsync -avzr /tmp/rsync_test_folder_a/ root\@localhost:/tmp/rsync_test_folder_b; echo \$\? > /tmp/rsync_return_code.txt\n");
 
@@ -56,9 +47,6 @@ sub run {
         assert_screen('accept-ssh-host-key');
     }
     type_string('yes');
-    send_key('ret');
-    assert_screen('password-prompt');
-    type_password;
     send_key('ret');
     assert_screen('rsync');
     assert_script_run('$(exit $(cat /tmp/rsync_return_code.txt))');
