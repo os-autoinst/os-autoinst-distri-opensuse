@@ -21,4 +21,3 @@ install:
   - make prepare
 script:
   - make test
-  - make perlcritic

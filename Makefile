@@ -83,13 +83,10 @@ test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test
 ifeq ($(TESTS),compile)
 test: test-compile
 else
-test: unit-test test-static test-compile
+test: unit-test test-static test-compile perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet \
-	--exclude Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval \
-	--include Perl::Critic::Policy::HashKeyQuote \
-	--include Perl::Critic::Policy::ConsistentQuoteLikeWords
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
