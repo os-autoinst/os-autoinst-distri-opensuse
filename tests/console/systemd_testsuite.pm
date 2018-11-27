@@ -18,12 +18,14 @@ use utils;
 use version_utils qw(is_leap is_tumbleweed is_sle);
 
 sub run {
-    my $qa_head_repo = get_required_var('QA_HEAD_REPO');
-    if (is_leap('=15.0')) {
-        $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/Leap:/15/openSUSE_Leap_15.0/';
-    }
-    elsif (is_sle('=15')) {
-        $qa_head_repo = 'http://download.suse.de/ibs/QA:/SLE15/standard/';
+    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
+    if (!$qa_head_repo) {
+        if (is_leap('15.0+')) {
+            $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/Leap:/15/openSUSE_Leap_15.0/';
+        }
+        elsif (is_sle('15+')) {
+            $qa_head_repo = 'http://download.suse.de/ibs/QA:/SLE15/standard/';
+        }
     }
 
     # install systemd testsuite
