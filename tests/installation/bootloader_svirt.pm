@@ -79,7 +79,7 @@ sub run {
         $svirt->add_disk(
             {
                 cdrom  => 1,
-                file   => ($vmm_family eq 'vmware') ? basename($isopath) : $isopath,
+                file   => $isopath,
                 dev_id => $dev_id
             });
         $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
@@ -91,7 +91,7 @@ sub run {
             $svirt->add_disk(
                 {
                     cdrom  => 1,
-                    file   => ($vmm_family eq 'vmware') ? basename($addon_isopath) : $addon_isopath,
+                    file   => $addon_isopath,
                     dev_id => $dev_id
                 });
             $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
@@ -107,7 +107,7 @@ sub run {
                 {
                     backingfile => 1,
                     dev_id      => $dev_id,
-                    file        => ($vmm_family eq 'vmware') ? basename($hddpath) : $hddpath
+                    file        => $hddpath
                 });
         }
         else {
