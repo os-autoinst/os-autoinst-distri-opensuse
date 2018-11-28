@@ -713,6 +713,7 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
+    load_xen_tests if check_var("REGRESSION", "xen");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();

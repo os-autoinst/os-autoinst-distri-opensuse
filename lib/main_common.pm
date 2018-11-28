@@ -100,6 +100,7 @@ our @EXPORT = qw(
   load_virtualization_tests
   load_wicked_tests
   load_x11tests
+  load_xen_tests
   load_yast2_gui_tests
   load_yast2_ncurses_tests
   load_zdup_tests
@@ -2097,6 +2098,30 @@ sub load_virtualization_tests {
     loadtest "virtualization/virtman_install";
     loadtest "virtualization/virtman_view";
     return 1;
+}
+
+sub load_xen_tests {
+    return unless check_var('HOST_HYPERVISOR', 'xen');
+    # Install hypervisor via autoyast or manually
+    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
+    load_boot_tests;
+    if (get_var("AUTOYAST")) {
+        loadtest "autoyast/installation";
+        loadtest "virt_autotest/reboot_and_wait_up_normal";
+    }
+    else {
+        load_inst_tests;
+        loadtest "virt_autotest/login_console";
+    }
+    # Load guest installation tests
+    loadtest 'virtualization/xen/prepare_guests';
+    # Apply updates
+    loadtest 'virtualization/xen/patch_and_reboot';
+    # Load real tests
+    loadtest 'virtualization/xen/hotplugging';
+    loadtest 'virtualization/xen/save_and_restore';
+    loadtest 'virtualization/xen/dom_metrics';
+    loadtest 'virtualization/xen/guest_management';
 }
 
 sub load_syscontainer_tests() {
