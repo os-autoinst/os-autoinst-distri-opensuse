@@ -19,10 +19,11 @@ use utils 'zypper_call';
 use power_action_utils 'power_action';
 use kdump_utils;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
 
     # Also panic when softlockup
     # workaround bsc#1104778, skip s390x in 12SP4
