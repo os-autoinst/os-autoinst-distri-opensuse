@@ -86,7 +86,9 @@ sub run {
     workaround_type_encrypted_passphrase;
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
-    assert_screen 'grub2', $timeout;
+    # If grub timeout was not disabled, we wait for linux-login instead
+    my $tag = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
+    assert_screen $tag, $timeout;
     stop_grub_timeout;
     set_vmware_videomode if check_var('VIRSH_VMM_FAMILY', 'vmware');
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");

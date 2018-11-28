@@ -430,12 +430,16 @@ sub workaround_type_encrypted_passphrase {
 sub select_user_gnome {
     my ($myuser) = @_;
     $myuser //= $username;
-    assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected)];
+    assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected dm-nousers)];
     if (match_has_tag('displaymanager-user-notselected')) {
         assert_and_click "displaymanager-$myuser";
         record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
     }
     elsif (match_has_tag('displaymanager-user-selected')) {
+        send_key 'ret';
+    }
+    elsif (match_has_tag('dm-nousers')) {
+        type_string $myuser;
         send_key 'ret';
     }
 }
