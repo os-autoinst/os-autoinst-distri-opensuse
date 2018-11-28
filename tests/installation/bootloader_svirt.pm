@@ -38,6 +38,12 @@ sub run {
     my $name  = $svirt->name;
     my $repo;
 
+    # Clear datastore on VMware host
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        my $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
+        $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+    }
+
     # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/901) is deployed
     my $n = get_var('NUMDISKS', 1);
     set_var('NUMDISKS', defined get_var('RAIDLEVEL') ? 4 : $n);
@@ -60,6 +66,7 @@ sub run {
     }
 
     # Unless os-autoinst PR#956 is deployed we have to remove 'on_reboot' first
+    # This has no effect on VMware ('restart' is kept).
     $svirt->change_domain_element(on_reboot => undef);
     $svirt->change_domain_element(on_reboot => 'destroy');
 
@@ -260,6 +267,10 @@ sub run {
 
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;
