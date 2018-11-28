@@ -82,6 +82,10 @@ sub run {
     else {
         sleep 2;    # textmode is sometimes pressing alt-i too early
         send_key $cmd{install};
+        if (check_var('FAIL_EXPECTED', 'SMALL-DISK')) {
+            assert_screen 'installation-proposal-error';
+            return;
+        }
         wait_screen_change { send_key 'alt-o' } if match_has_tag('inst-overview-error-found', 0);
         while (check_screen([qw(confirmlicense startinstall activate_flag_not_set)], 5)) {
             last if match_has_tag("startinstall");

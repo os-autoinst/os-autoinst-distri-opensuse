@@ -11,6 +11,7 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use caasp;
 use testapi;

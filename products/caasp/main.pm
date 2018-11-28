@@ -74,12 +74,27 @@ sub load_caasp_inst_tests {
         loadtest 'autoyast/installation';
     }
     else {
-        if (is_caasp 'kubic') {
-            load_inst_tests;
-        }
-        else {
+        # One Click Installer removed in CaaSP 4.0
+        if (is_caasp('4.0+')) {
             loadtest 'caasp/oci_overview';
+            loadtest 'caasp/oci_keyboard';
+            loadtest 'installation/accept_license';
+            if (check_var('REGISTER', 'installation')) {
+                loadtest 'installation/scc_registration';
+            } else {
+                loadtest 'installation/skip_registration';
+            }
+            loadtest 'installation/system_role';
+            loadtest 'installation/caasp_roleconf' unless check_var('SYSTEM_ROLE', 'plain');
+            loadtest 'installation/user_settings_root';
+            loadtest 'installation/releasenotes';
+            loadtest 'installation/installation_overview';
+            loadtest 'installation/start_install';
 
+            # Can not start installation with partitioning error
+            return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
+        } else {
+            loadtest 'caasp/oci_overview';
             # Check keyboard layout
             loadtest 'caasp/oci_keyboard';
             # Register system
@@ -90,13 +105,8 @@ sub load_caasp_inst_tests {
             loadtest 'caasp/oci_role';
             # Start installation
             loadtest 'caasp/oci_install';
-
-            # Can not start installation with partitioning error
-            return if check_var('FAIL_EXPECTED', 'SMALL-DISK');
-            return if check_var('FAIL_EXPECTED', 'BSC_1043619');
-
-            load_common_installation_steps_tests;
         }
+        load_common_installation_steps_tests;
     }
 }
 

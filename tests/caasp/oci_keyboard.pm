@@ -18,7 +18,7 @@ use caasp 'send_alt';
 
 sub run {
     # Switch to UK keyboard
-    send_alt 'keyboard';
+    send_alt 'kb_layout';
     send_key 'up';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 
@@ -26,13 +26,13 @@ sub run {
     sleep 1;
 
     # Check that UK layout is active
-    send_alt 'registration';
+    send_alt 'kb_test';
     type_string '~@#\"|';    # writes ¬"£#@~
     assert_screen 'keyboard-layout-uk';
     for (1 .. 6) { send_key 'backspace' }
 
     # Switch back to US keyboard
-    send_alt 'keyboard';
+    send_alt 'kb_layout';
     send_key 'down';
     send_key 'ret' if check_var('VIDEOMODE', 'text');
 }

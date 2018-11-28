@@ -522,12 +522,12 @@ sub load_slepos_tests {
 
 sub load_system_role_tests {
     # This part is relevant only for openSUSE
-    unless (is_sle) {
+    if (is_opensuse) {
         if (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
             loadtest "installation/setup_online_repos";
         }
         # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-        if (!get_var("REMOTE_CONTROLLER") && !check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
+        if (!check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
             loadtest "installation/logpackages";
         }
     }
@@ -855,7 +855,7 @@ sub load_inst_tests {
             loadtest "installation/sles4sap_product_installation_mode";
         }
         # Kubic doesn't have a partitioning step
-        if (!is_caasp('kubic')) {
+        unless (is_caasp) {
             loadtest "installation/partitioning";
             if (defined(get_var("RAIDLEVEL"))) {
                 loadtest "installation/partitioning_raid";
@@ -924,7 +924,7 @@ sub load_inst_tests {
     }
 
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/installer_timezone" if !is_caasp('kubic');
+        loadtest "installation/installer_timezone" unless is_caasp;
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).

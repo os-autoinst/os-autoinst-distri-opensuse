@@ -28,9 +28,9 @@ our @EXPORT = qw(
 # Shorcuts for gui / textmode (optional) oci installer
 # Version 3.0 (default)
 my %keys = (
-    keyboard => ['e', 'y'],
-    password => ['w', 'a'],
-    registration => ['g'],
+    kb_layout    => ['e', 'y'],
+    kb_test      => ['g'],
+    password     => ['w', 'a'],
     role         => ['s'],
     partitioning => ['p'],
     booting      => ['b'],
@@ -38,6 +38,9 @@ my %keys = (
     kdump        => ['k'],
     install      => ['i'],
     ntpserver    => ['t'],
+    next         => ['n'],
+    no           => ['n'],
+    ok           => ['o'],
 );
 
 # Send alt shortcut by name
@@ -46,9 +49,9 @@ sub send_alt {
     my $txt = check_var('VIDEOMODE', 'text');
 
     if (is_caasp '4.0+') {
-        $keys{keyboard} = ['y', 'e'];
-        $keys{password} = ['a', 'a'];
-        $keys{ntpserver} = ['r'];
+        $keys{kb_layout} = ['k'];
+        $keys{kb_test}   = ['y'];
+        $keys{password}  = ['a', 'a'];
     }
     send_key "alt-$keys{$key}[$txt]";
 }
