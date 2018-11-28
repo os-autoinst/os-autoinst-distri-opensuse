@@ -719,6 +719,10 @@ sub console_selected {
     $args{await_console} //= 1;
     $args{tags}          //= $console;
     $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
+    # If we connect to 'sut' VNC display "too early" the VNC server won't be
+    # ready and we will be left with a blank screen.
+    sleep 5 if check_var('VIRSH_VMM_FAMILY', 'vmware') && $console eq 'sut';
+
     if ($args{tags} =~ $args{ignore} || !$args{await_console}) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;

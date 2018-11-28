@@ -22,7 +22,6 @@ sub run {
     power_action('reboot');
     # If we connect to 'sut' VNC display "too early" the VNC server won't be
     # ready we will be left with a blank screen.
-    sleep 2 if check_var('VIRSH_VMM_FAMILY', 'vmware');
     if (check_var('VIRSH_VMM_TYPE', 'hvm')) {
         $self->wait_boot;
     }

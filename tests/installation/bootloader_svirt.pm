@@ -258,10 +258,6 @@ sub run {
         save_screenshot;
     }
 
-    # If we connect to 'sut' VNC display "too early" the VNC server won't be
-    # ready we will be left with a blank screen.
-    sleep 2 if $vmm_family eq 'vmware';
-
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
 }
