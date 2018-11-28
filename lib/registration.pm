@@ -68,7 +68,8 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
-our @SLE15_ADDONS_WITHOUT_LICENSE = qw(ha sdk wsm we hpcm);
+our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm);
+our @SLE15_ADDONS_WITH_LICENSE_NOINSTALL = qw(ha we);
 
 # Method to determine if a short name references a module based on what's defined
 # on %SLE15_MODULES
@@ -90,6 +91,8 @@ sub accept_addons_license {
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
     push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
+    # HA and WE have licenses when calling yast2 scc
+    push @addons_with_license, @SLE15_ADDONS_WITH_LICENSE_NOINSTALL if (is_sle('15+') and get_var('IN_PATCH_SLE'));
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them

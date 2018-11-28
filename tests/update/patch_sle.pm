@@ -173,7 +173,15 @@ sub sle_register {
     # SLE 12 and later use SCC, but SLE 11 uses NCC
     if ($action eq 'register') {
         if (is_sle('12+')) {
+            # Tag the test as being called from this module, so accept_addons_license
+            # (called by yast_scc_registration) can handle license agreements from modules
+            # that do not show license agreement during installation but do when registering
+            # after install
+            set_var('IN_PATCH_SLE', 1);
             yast_scc_registration();
+            # Once SCC registration is done, disable IN_PATCH_SLE so it does not interfere
+            # with further calls to accept_addons_license (in upgrade for example)
+            set_var('IN_PATCH_SLE', 0);
         }
         else {
             # Erase all local files created from a previous executed registration
