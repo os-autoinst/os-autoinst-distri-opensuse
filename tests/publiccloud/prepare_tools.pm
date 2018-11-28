@@ -83,6 +83,12 @@ sub run {
     assert_script_run("touch .config/ipa/config");
     assert_script_run("ipa list");
     assert_script_run("ipa --version");
+
+    # Download and Install Terraform
+    my $terraform_url = get_var('TERRAFORM_URL', 'https://releases.hashicorp.com/terraform/0.11.10/terraform_0.11.10_linux_amd64.zip');
+    assert_script_run("wget -q $terraform_url");
+    assert_script_run('unzip terraform_* terraform -d /usr/bin/');
+    assert_script_run('terraform -v');
 }
 
 sub test_flags {
