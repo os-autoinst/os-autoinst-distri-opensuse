@@ -62,7 +62,7 @@ test-merge:
 	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master 2>/dev/null` | grep 'tests.*pm') ;\
 	  for file in $$FILES; do if test -f $$file; then \
 	    tools/check_metadata $$file || touch failed; \
-	    git grep wait_idle $$file && touch failed; \
+	    git grep -q wait_idle $$file && touch failed; \
 	    ${PERLCRITIC} $$file || (echo $$file ; touch failed) ;\
 	  fi ; done; \
 	fi
@@ -74,7 +74,7 @@ test-dry:
 
 .PHONY: test-no-wait_idle
 test-no-wait_idle:
-	@! git grep wait_idle lib/ tests/
+	@! git grep -q wait_idle lib/ tests/
 
 .PHONY: test-static
 test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
@@ -90,7 +90,7 @@ PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
-	${PERLCRITIC} .
+	${PERLCRITIC} $$(git ls-files "*.p[ml]")
 
 .PHONY: test-unused-modules
 test-unused-modules:
@@ -98,4 +98,4 @@ test-unused-modules:
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
-	@! git grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+	@! git grep -q -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
