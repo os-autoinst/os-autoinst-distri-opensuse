@@ -121,7 +121,8 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
     # VMware specific
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        $self->save_and_upload_log('systemctl status vmtoolsd vgauthd', "vmware-services.txt", {screenshot => 1, noupload => 1});
+        assert_script_run('vm-support');
+        upload_logs('vm-*.*.tar.gz');
         clear_console;
     }
 
