@@ -16,6 +16,7 @@ use base 'y2logsstep';
 use testapi;
 use lockapi;
 use utils;
+use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 sub run {

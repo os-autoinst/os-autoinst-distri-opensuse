@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2017 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,7 +19,9 @@
 use strict;
 use base 'y2logsstep';
 use testapi;
-use ipmi_backend_utils;
+# TODO: is_remote_backend we need to ensure if for autoyast we want this or
+# this also applies for other backends
+use Utils::Backends qw (use_ssh_serial_console is_remote_backend);
 
 sub run {
     my $self = shift;

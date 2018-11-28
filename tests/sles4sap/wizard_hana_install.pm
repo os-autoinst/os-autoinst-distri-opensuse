@@ -15,7 +15,7 @@ use base 'sles4sap';
 use strict;
 use testapi;
 use utils qw(type_string_slow zypper_call turn_off_gnome_screensaver);
-use ipmi_backend_utils 'use_ssh_serial_console';
+use Utils::Backends 'use_ssh_serial_console';
 use version_utils 'is_sle';
 
 sub get_total_mem {
