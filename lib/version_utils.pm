@@ -51,7 +51,6 @@ use constant {
           is_hyperv
           is_hyperv_in_gui
           is_aarch64_uefi_boot_hdd
-          is_remote_backend
           is_svirt_except_s390x
           )
     ],
@@ -294,11 +293,6 @@ sub is_s390x {
 
 sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
-}
-
-sub is_remote_backend {
-    # s390x uses only remote repos
-    return is_s390x() || check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 }
 
 
