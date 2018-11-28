@@ -17,7 +17,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -1110,7 +1110,7 @@ else {
         if (get_var("INSTALLONLY")) {
             loadtest "console/system_prepare";
             loadtest "console/consoletest_setup";
-            loadtest 'console/integration_services' if is_hyperv;
+            loadtest 'console/integration_services' if is_hyperv || is_vmware;
             loadtest "console/zypper_lr";
         }
     }
