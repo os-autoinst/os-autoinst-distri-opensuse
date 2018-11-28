@@ -66,6 +66,23 @@ sub run {
 
         capture_state('between', 1);
 
+        # check if latest kernel has valid secure boot signature
+        if (check_var('MACHINE', 'uefi')) {
+            assert_script_run 'kexec -l -s /boot/vmlinuz --initrd=/boot/initrd --reuse-cmdline';
+            script_run 'umount -a';
+            script_run 'mount -o remount,ro /';
+            type_string "kexec -e\n";
+            assert_screen 'linux-login';
+            type_string "root\n";
+            wait_still_screen 3;
+            type_password;
+            wait_still_screen 3;
+            send_key 'ret';
+            assert_script_run 'uname -a';
+            assert_script_run 'mokutil --sb-state';
+            assert_script_run 'mokutil --list-enrolled';
+        }
+
         prepare_system_shutdown;
         type_string "reboot\n";
         $self->wait_boot;
