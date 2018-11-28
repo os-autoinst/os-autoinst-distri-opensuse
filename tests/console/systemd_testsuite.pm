@@ -26,6 +26,7 @@ sub run {
         elsif (is_sle('15+')) {
             $qa_head_repo = 'http://download.suse.de/ibs/QA:/SLE15/standard/';
         }
+        die '$qa_head_repo is not set' unless ($qa_head_repo);
     }
 
     # install systemd testsuite
