@@ -312,7 +312,7 @@ sub assert_shutdown_with_soft_timeout {
     $args->{soft_timeout} //= 0;
     $args->{bugref}       //= "No bugref specified";
     if ($args->{soft_timeout}) {
-        diag($args->{soft_timeout});
+        diag("assert_shutdown_with_soft_timeout(): soft_timeout=" . $args->{soft_timeout});
         die "soft timeout has to be smaller than timeout" unless ($args->{soft_timeout} < $args->{timeout});
         my $ret = check_shutdown $args->{soft_timeout};
         return if $ret;
