@@ -46,6 +46,7 @@ use constant {
     ],
     BACKEND => [
         qw(
+          is_vmware
           is_hyperv
           is_hyperv_in_gui
           is_aarch64_uefi_boot_hdd
@@ -85,6 +86,10 @@ sub is_leap;
 
 sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
+}
+
+sub is_vmware {
+    return check_var('VIRSH_VMM_FAMILY', 'vmware');
 }
 
 sub is_hyperv {
