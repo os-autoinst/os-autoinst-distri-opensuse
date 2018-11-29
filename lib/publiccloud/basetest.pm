@@ -19,8 +19,10 @@ use publiccloud::ec2;
 use publiccloud::gce;
 
 sub provider_factory {
+    my ($self) = @_;
+    my $provider;
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        return publiccloud::ec2->new(
+        $provider = publiccloud::ec2->new(
             key_id     => get_required_var('PUBLIC_CLOUD_KEY_ID'),
             key_secret => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
             region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
@@ -28,7 +30,7 @@ sub provider_factory {
 
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
-        return publiccloud::azure->new(
+        $provider = publiccloud::azure->new(
             key_id       => get_required_var('PUBLIC_CLOUD_KEY_ID'),
             key_secret   => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
             region       => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
@@ -37,7 +39,7 @@ sub provider_factory {
         );
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
-        return publiccloud::gce->new(
+        $provider = publiccloud::gce->new(
             account             => get_required_var('PUBLIC_CLOUD_ACCOUNT'),
             service_acount_name => get_required_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),
             project_id          => get_required_var('PUBLIC_CLOUD_PROJECT_ID'),
@@ -51,16 +53,42 @@ sub provider_factory {
     else {
         die('Unknown PUBLIC_CLOUD_PROVIDER given');
     }
+
+    $provider->init();
+    $self->{provider} //= [];
+    push(@{$self->{provider}}, $provider);
+    return $provider;
 }
 
-sub get_image_id {
-    my ($self, $provider) = @_;
-    my $img_url    = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
-    my ($img_name) = $img_url =~ /([^\/]+)$/;
-    my $image_id   = $provider->find_img($img_name);
-    die("Image $img_name is not available in the cloud provider") unless ($image_id);
-    set_var('PUBLIC_CLOUD_IMAGE_ID', $image_id);
-    return $image_id;
+sub cleanup {
+    # to be overridden by tests
+    return;
 }
+
+sub _cleanup {
+    my ($self) = @_;
+    die("Cleanup called twice!") if ($self->{cleanup_called});
+    $self->{cleanup_called} = 1;
+
+    eval { $self->cleanup(); } or bmwqemu::fctwarn($@);
+
+    $self->{provider} //= [];
+    for my $provider (@{$self->{provider}}) {
+        eval { $provider->cleanup(); } or bmwqemu::fctwarn($@);
+    }
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->_cleanup() unless $self->{cleanup_called};
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->_cleanup() unless $self->{cleanup_called};
+}
+
+
+
 
 1;

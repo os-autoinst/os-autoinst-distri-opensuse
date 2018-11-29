@@ -22,10 +22,8 @@ sub run {
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/SLE_12_SP3/home:metan.repo');
     $self->select_serial_terminal;
 
-    my $provider = $self->{provider} = $self->provider_factory();
-    $provider->init();
-
-    my $instance = $provider->create_instance(image => $self->get_image_id($provider));
+    my $provider = $self->provider_factory();
+    my $instance = $provider->create_instance();
 
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
     assert_script_run('chmod +x ~/restart_instance.sh');
@@ -33,34 +31,29 @@ sub run {
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
     # Install ltp from package on remote
-    $provider->run_ssh_command(instance => $instance, cmd => 'sudo zypper ar ' . $ltp_repo);
-    $provider->run_ssh_command(instance => $instance, cmd => 'sudo zypper -q --gpg-auto-import-keys in -y ltp');
+    $instance->run_ssh_command('sudo zypper ar ' . $ltp_repo);
+    $instance->run_ssh_command('sudo zypper -q --gpg-auto-import-keys in -y ltp');
 
     my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
-    $reset_cmd .= $instance->{instance_id} . ' ' . $instance->{ip};
+    $reset_cmd .= $instance->instance_id . ' ' . $instance->public_ip;
 
     my $cmd = 'perl -I ltp/tools/runltp-ng ltp/tools/runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log ';
     $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
     $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
     $cmd .= '--backend=ssh';
-    $cmd .= ':user=' . $instance->{username};
-    $cmd .= ':key_file=' . $instance->{ssh_key};
-    $cmd .= ':host=' . $instance->{ip};
+    $cmd .= ':user=' . $instance->username;
+    $cmd .= ':key_file=' . $instance->ssh_key;
+    $cmd .= ':host=' . $instance->public_ip;
     $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
     $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
     $cmd .= '--json-format=openqa ';
 
     assert_script_run($cmd, timeout => 30 * 60);
-
-    upload_logs('ltp_log.raw', failok => 1);
-    parse_extra_log(LTP => 'ltp_log.json');
-
-    $provider->cleanup();
 }
 
 
-sub post_fail_hook {
+sub cleanup {
     my ($self) = @_;
 
     # Ensure that the ltp script gets killed
@@ -68,10 +61,6 @@ sub post_fail_hook {
 
     upload_logs('ltp_log.raw', failok => 1);
     parse_extra_log(LTP => 'ltp_log.json') if (script_run('test -f ltp_log.json') == 0);
-
-    if ($self->{provider}) {
-        $self->{provider}->cleanup();
-    }
 }
 
 1;

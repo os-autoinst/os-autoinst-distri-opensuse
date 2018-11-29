@@ -14,6 +14,7 @@
 package publiccloud::provider;
 use testapi;
 use Mojo::Base -base;
+use publiccloud::instance;
 use Data::Dumper;
 
 has key_id     => undef;
@@ -61,17 +62,14 @@ sub upload_image {
 
 Call ipa tool and retrieves a hashref as result. Do not die if ipa call exit with error.
   $result_hash = {
-        instance_id => <string>,    # unique CSP instance id
-        ip          => <ipaddress>, # public IP of instance
-        username    => <string>,    # username for ssh connection
-        ssh_key     => <string>,    # path to ssh-key for connection
-        logfile     => <string>,    # the pytest logfile
-        results     => <string>,    # json results file
-        tests       => <int>,       # total number of tests
-        pass        => <int>,       # successful tests
-        skip        => <int>,       # skipped tests
-        fail        => <int>,       # number of failed tests
-        error       => <int>,       # number of errors
+        instance    => <publiccloud:instance>,    # instance object
+        logfile     => <string>,                  # the pytest logfile
+        results     => <string>,                  # json results file
+        tests       => <int>,                     # total number of tests
+        pass        => <int>,                     # successful tests
+        skip        => <int>,                     # skipped tests
+        fail        => <int>,                     # number of failed tests
+        error       => <int>,                     # number of errors
   };
 
 =cut
@@ -177,38 +175,50 @@ sub run_ipa {
     my $ipa = $self->parse_ipa_output($output);
     die($output) unless (defined($ipa));
 
-    $ipa->{username} = $args{user};
-    $ipa->{ssh_key}  = $args{ssh_private_key_file};
+    my $instance = $ipa->{instance} = publiccloud::instance->new(
+        public_ip   => $ipa->{ip},
+        instance_id => $ipa->{instance_id},
+        username    => $args{user},
+        ssh_key     => $args{ssh_private_key_file},
+        provider    => $self
+    );
+    delete($ipa->{instance_id});
+    delete($ipa->{ip});
 
     $self->{running_instances} //= {};
     if ($args{cleanup}) {
-        delete($self->{running_instances}->{$ipa->{instance_id}});
+        delete($self->{running_instances}->{$instance->instance_id});
     } else {
-        $self->{running_instances}->{$ipa->{instance_id}} = $ipa;
+        $self->{running_instances}->{$instance->instance_id} = $instance;
     }
 
     return $ipa;
 }
 
-=head2 run_ssh_command
+=head2 get_image_id
 
-Runs a command C<cmd> via ssh in the given VM.
-C<instance> should be an object returned by ipa subroutine, e.g. $provider->ipa()
+    get_image_id([$img_url]);
 
+Retrieves the CSP image id if exists, otherwise exception is thrown.
+The given C<$img_url> is optional, if not present it retrieves from
+PUBLIC_CLOUD_IMAGE_LOCATION.
 =cut
-sub run_ssh_command {
-    my ($self, %args) = @_;
-
-    die('Need to provide instance and cmd') if (!$args{instance} || !$args{cmd});
-
-    my $ssh_cmd = sprintf('ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i %s %s@%s -- %s',
-        $args{instance}->{ssh_key}, $args{instance}->{username}, $args{instance}->{ip}, $args{cmd});
-    return script_output($ssh_cmd);
+sub get_image_id {
+    my ($self, $img_url) = @_;
+    $img_url //= get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
+    my ($img_name) = $img_url =~ /([^\/]+)$/;
+    $self->{image_cache} //= {};
+    return $self->{image_cache}->{$img_name} if ($self->{image_cache}->{$img_name});
+    my $image_id = $self->find_img($img_name);
+    die("Image $img_name is not available in the cloud provider") unless ($image_id);
+    $self->{image_cache}->{$img_name} = $image_id;
+    return $image_id;
 }
 
 =head2 create_instance
 
-Creates an instance on the public cloud provider using ipa command without cleanup.
+Creates an instance on the public cloud provider. Retrieves a publiccloud::instance
+object.
 
 C<image>         defines the image_id to create the instance.
 C<instance_type> defines the flavor of the instance. If not specified, it will load it
@@ -218,13 +228,24 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
 sub create_instance {
     my ($self, %args) = @_;
     $args{instance_type} //= get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
+    $args{image} //= $self->get_image_id();
 
     record_info('INFO', "Creating instance $args{instance_type} from $args{image} ...");
-    return $self->ipa(
+    my $ipa = $self->ipa(
         instance_type => $args{instance_type},
         cleanup       => 0,
         image_id      => $args{image}
     );
+    return $ipa->{instance};
+}
+
+=head2 destroy_instance
+
+Destroy a instance previously created with this provider. Require a C<publiccloud::instance> object.
+=cut
+sub destroy_instance {
+    my ($self, $instance) = @_;
+    $self->ipa(cleanup => 1, running_instance_id => $instance->instance_id);
 }
 
 =head2 cleanup
@@ -235,10 +256,10 @@ This method is called called after each test on failure or success.
 sub cleanup {
     my ($self) = @_;
 
-    print Dumper($self->{running_instances});
     for my $i (keys(%{$self->{running_instances}})) {
         my $instance = $self->{running_instances}->{$i};
-        $self->ipa(cleanup => 1, running_instance_id => $instance->{instance_id});
+        record_info('INFO', 'Destroy instance ' . $instance->instance_id . '(' . $instance->public_ip . ')');
+        $self->destroy_instance($instance);
     }
 }
 
