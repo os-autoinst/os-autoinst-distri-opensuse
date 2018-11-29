@@ -19,7 +19,8 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_jeos is_leap is_sle is_remote_backend);
+use Utils::Backends 'is_remote_backend';
+use version_utils qw(is_caasp is_jeos is_leap is_sle);
 use caasp 'pause_until';
 use mm_network;
 
