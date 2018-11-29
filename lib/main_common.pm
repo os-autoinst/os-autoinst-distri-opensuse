@@ -1494,7 +1494,7 @@ sub load_extra_tests_console {
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";
     loadtest "console/java";
-    loadtest "console/ant";
+    loadtest "console/ant" if is_sle('<15-sp1');
     loadtest "console/sysctl";
     loadtest "console/sysstat";
     loadtest "console/curl_ipv6";

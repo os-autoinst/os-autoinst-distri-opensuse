@@ -16,13 +16,12 @@ use strict;
 use testapi;
 use utils 'zypper_call';
 
-
 my $java_hello_world = <<'EOF';
 package test;
 
 public class Hello{
      public static void main (String argv[]){
-         System.out.println("Hello World!");
+         System.out.println("Hello World");
      }
 }
 EOF
@@ -78,8 +77,12 @@ sub run {
     my $dir = "/root/ant_test";
 
     select_console 'root-console';
+
+    # Install ant
     zypper_call 'in ant';
-    assert_script_run('rpm -qi ant');
+
+    # Set JAVA_HOME to the jdk installation directory
+    assert_script_run("export JAVA_HOME=`update-alternatives --list javac| awk -F 'bin' '{split(\$0, a); print a[1]}'`");
 
     # Set up
     assert_script_run "mkdir $dir";
@@ -92,7 +95,7 @@ sub run {
     # Check that ant builds succesfully
     assert_script_run "ant";
     # Check that ant runs the application succesfully
-    assert_script_run 'ant run| grep "Hello World!"';
+    assert_script_run 'ant run| grep "Hello World"';
 }
 
 1;
