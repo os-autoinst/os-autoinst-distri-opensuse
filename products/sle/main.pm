@@ -671,6 +671,11 @@ testapi::set_distribution(susedistribution->new());
 
 # Set serial failures
 my $serial_failures = [];
+# Detect general problems with qemu, we can simply die hard
+push @$serial_failures, {type => 'hard', message => 'poo#44432', pattern => quotemeta 'VCPU can only run on primary'};
+push @$serial_failures, {type => 'hard', message => 'poo#36559', pattern => quotemeta 'kvm run failed Device or resource busy'};
+
+push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
 # Detect bsc#1093797 on aarch64
 if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
     push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
