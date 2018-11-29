@@ -68,7 +68,6 @@ sub post_run_hook {
     assert_script_run('rm /tmp/rsync_return_code.txt');
 
     if (is_opensuse) {
-        assert_script_run("sed -i 's/PermitRootLogin yes/#PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config");
         systemctl 'restart sshd';
     }
 }
