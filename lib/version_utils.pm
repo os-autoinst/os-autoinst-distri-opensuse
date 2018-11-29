@@ -295,7 +295,6 @@ sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
 }
 
-
 sub is_server {
     return 1 if is_sles4sap();
     return 1 if get_var('FLAVOR', '') =~ /^Server/;
