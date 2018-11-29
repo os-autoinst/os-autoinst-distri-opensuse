@@ -25,33 +25,18 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $provider = $self->{provider} = $self->provider_factory();
-    $provider->init;
+    my $provider = $self->provider_factory();
 
     my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
 
     if (my $img_id = $provider->find_img($img_name)) {
         record_info('Info', "Image $img_name already exists!");
-        set_var('PUBLIC_CLOUD_IMAGE_ID', $img_id);
         return;
     }
 
     assert_script_run("wget $img_url -O $img_name", timeout => 60 * 10);
-
-    my $img_id = $provider->upload_img($img_name);
-
-    set_var('PUBLIC_CLOUD_IMAGE_ID', $img_id);
-
-    $provider->cleanup();
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-
-    if ($self->{provider}) {
-        $self->{provider}->cleanup();
-    }
+    $provider->upload_img($img_name);
 }
 
 sub test_flags {

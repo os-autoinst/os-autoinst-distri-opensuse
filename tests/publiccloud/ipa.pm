@@ -20,22 +20,18 @@ sub run {
 
     $self->select_serial_terminal;
 
-    my $provider = $self->{provider} = $self->provider_factory();
-    $provider->init;
+    my $provider = $self->provider_factory();
 
     my $ipa = $provider->ipa(
         instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
         cleanup       => 1,
-        image_id      => $self->get_image_id($provider),
+        image_id      => $provider->get_image_id(),
         tests         => get_required_var('PUBLIC_CLOUD_IPA_TESTS'),
         results_dir   => 'ipa_results'
     );
 
     upload_logs($ipa->{logfile});
     parse_extra_log(IPA => $ipa->{results});
-
-    $provider->cleanup();
-    delete $self->{provider};
     assert_script_run('rm -rf ipa_results');
 
     # fail, if at least one test failed
@@ -45,15 +41,13 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
 
-    if ($self->{provider}) {
-        $self->{provider}->cleanup();
-    }
-
     # upload logs on unexpected failure
     my $ret = script_run('test -d ipa_results');
-    return if (!defined($ret) || $ret != 0);
-    assert_script_run('tar -zcvf ipa_results.tar.gz ipa_results');
-    upload_logs('ipa_results.tar.gz', failok => 1);
+    if (defined($ret) && $ret == 0) {
+        assert_script_run('tar -zcvf ipa_results.tar.gz ipa_results');
+        upload_logs('ipa_results.tar.gz', failok => 1);
+    }
+    $self->SUPER->post_fail_hook();
 }
 
 1;
@@ -71,11 +65,9 @@ IPA get installed in and not to the public cloud image.
 
 =head1 Configuration
 
-=head2 PUBLIC_CLOUD_IMAGE_ID or PUBLIC_CLOUD_IMAGE_LOCATION
+=head2 PUBLIC_CLOUD_IMAGE_LOCATION
 
-The image ID which is used to instantiate a VM and run tests on it.
-It is taken from C<PUBLIC_CLOUD_IMAGE_ID> or if not exists it will be retrived from CSP
-by searching for the file given with C<PUBLIC_CLOUD_IMAGE_LOCATION>.
+Is used to retrieve the actually image ID from CSP via C<$provider->get_image_id()>
 
 For azure, the name of the image, e.g. B<SLES12-SP4-Azure-BYOS.x86_64-0.9.0-Build3.23.vhd>.
 For ec2 the AMI, e.g. B<ami-067a77ef88a35c1a5>.
