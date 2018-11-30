@@ -32,10 +32,8 @@ sub load_feature_tests {
     loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/one_line_checks';
-    loadtest 'caasp/filesystem_ro';
     loadtest 'caasp/services_enabled';
-    loadtest 'caasp/transactional_update';
-    loadtest 'caasp/rebootmgr';
+    load_readonly_fs_tests;
     loadtest 'caasp/journal_check';
 }
 
