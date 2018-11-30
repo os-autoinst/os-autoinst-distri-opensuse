@@ -1561,6 +1561,15 @@ sub load_extra_tests_docker {
     }
 }
 
+sub load_extra_tests_prepare {
+    # setup $serialdev permission and so on
+    loadtest "console/prepare_test_data";
+    loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
+    loadtest "console/hostname";
+    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
+}
+
 sub load_extra_tests {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -1570,16 +1579,10 @@ sub load_extra_tests {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
-    # setup $serialdev permission and so on
-    loadtest "console/prepare_test_data";
-    loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/hostname";
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
-    # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
-    # EXTRATEST=desktop in dektop tests
-    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
+    # EXTRATEST=prepare,zypper,console,opensuse,docker,kdump in textmode or
+    # EXTRATEST=prepare,desktop in dektop tests
     foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
         if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
             $test_to_run->();
