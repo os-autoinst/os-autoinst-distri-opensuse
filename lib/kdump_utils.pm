@@ -13,7 +13,7 @@ use Exporter;
 use strict;
 use testapi;
 use utils;
-use List::Util qw(maxstr);
+use List::Util 'maxstr';
 use version_utils qw(is_sle is_jeos);
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);

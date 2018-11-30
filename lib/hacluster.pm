@@ -214,7 +214,7 @@ sub ha_export_logs {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $hb_log        = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
-    my $report_opt    = '-f0' unless is_sle('12-sp4+');
+    my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
     my @y2logs;
 
     # Extract HA logs and upload them

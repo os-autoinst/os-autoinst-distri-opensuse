@@ -260,10 +260,10 @@ sub get_ltp_tag {
 {
     local $@;
 
-    eval 'use main_ltp;';
+    eval 'use main_ltp';
     if ($@) {
         bmwqemu::fctwarn("Failed to load main_ltp.pm:\n$@", 'main_common.pm');
-        eval q%
+        eval q%{
             sub load_kernel_tests {
                 if (is_kernel_test())
                 {
@@ -331,7 +331,7 @@ sub is_desktop_module_selected {
 
 sub default_desktop {
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return undef   if get_var('VERSION', '') lt '12';
+    return         if get_var('VERSION', '') lt '12';
     return 'gnome' if get_var('VERSION', '') lt '15';
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;

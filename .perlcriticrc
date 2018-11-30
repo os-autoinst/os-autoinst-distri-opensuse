@@ -1,0 +1,9 @@
+[-Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval]
+
+[Perl::Critic::Policy::HashKeyQuotes]
+
+[Perl::Critic::Policy::ConsistentQuoteLikeWords]
+
+[Perl::Critic::Policy::ControlStructures::ProhibitDeepNests]
+severity = 5
+max_nests = 5

@@ -203,6 +203,179 @@ sub verify_preselected_modules {
     die 'Scroll reached to bottom not finding individual needles for each module.' if @needles;
 }
 
+sub process_scc_register_addons {
+    # The value of SCC_ADDONS is a list of abbreviation of addons/modules
+    # Following are abbreviations defined for modules and some addons
+    #
+    #  asmm - Advanced System Management Module
+    # certm - Certifications Module
+    # contm - Containers Module
+    #   geo - Geo Clustering for SUSE Linux Enterprise High Availability
+    #    ha - High Availability
+    #  hpcm - HPC Module
+    #   ids - IBM DLPAR sdk (ppc64le only)
+    #   idu - IBM DLPAR Utils (ppc64le only)
+    #   lgm - Legacy Module
+    #  live - Live Patching
+    #  ltss - Long Term Service Pack Support
+    #   pcm - Public Cloud Module
+    #  phub - PackageHub
+    #   sdk - Software Development Kit
+    #   ses - SUSE Enterprise Storage
+    #   tcm - Toolchain Module
+    #   tsm - Transactional Server Module
+    #    we - Workstation
+    #   wsm - Web and Scripting Module
+    if (get_var('SCC_ADDONS')) {
+        if (check_screen('scc-beta-filter-checkbox', 5)) {
+            if (get_var('SP3ORLATER')) {
+                send_key 'alt-i';    # uncheck 'Hide Beta Versions'
+            }
+            else {
+                send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+            }
+            assert_screen('scc-beta-filter-unchecked');
+        }
+        my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
+        # remove empty elements
+        @scc_addons = grep { $_ ne '' } @scc_addons;
+
+        for my $addon (@scc_addons) {
+            if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
+                # The actions of selecting scc addons have been changed on SP2 or later in textmode
+                # For online migration, we have to do registration on pre-created HDD, set a flag
+                # to distinguish the sle version of HDD and perform addons selection based on it
+                if (get_var('ONLINE_MIGRATION') || get_var('PATCH')) {
+                    select_addons_in_textmode($addon, get_var('HDD_SP2ORLATER'));
+                }
+                else {
+                    select_addons_in_textmode($addon, get_var('SP2ORLATER'));
+                }
+            }
+            else {
+                # go to the top of the list before looking for the addon
+                send_key "home";
+                # move the list of addons down until the current addon is found
+                if ($addon eq 'phub') {
+                    # Record soft-failure when we do not have phub yet
+                    my $bugref =
+                      is_sle('=15-SP1') ? 'bsc#1106085'
+                      :                   undef;
+                    if ($bugref) {
+                        record_soft_failure $bugref;
+                        next;
+                    }
+                }
+                send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", ADDONS_COUNT;
+                if (match_has_tag("scc-module-$addon")) {
+                    # checkmark the requested addon
+                    assert_and_click "scc-module-$addon";
+                }
+                else {
+                    record_info("Module preselected", "Module $addon is already selected and installed by default");
+                }
+            }
+        }
+        save_screenshot;
+        # go back and forward, checked checkboxes have to remember state poo#17840
+        if (check_var('SCC_REGISTER', 'yast')) {
+            wait_screen_change { send_key 'alt-b' };
+            assert_screen 'scc-registration-already-registered';
+            wait_screen_change { send_key $cmd{next} };
+            for my $addon (@scc_addons) {
+                send_key_until_needlematch "scc-module-$addon-selected", "down", ADDONS_COUNT;
+            }
+        }
+        wait_screen_change { send_key $cmd{next} };    # all addons selected
+        wait_still_screen 2;
+        # Process addons licenses
+        accept_addons_license @scc_addons;
+        # Press next only if entered reg code for any addon
+        if (register_addons @scc_addons) {
+            assert_screen 'ext-modules-reg-codes';
+            send_key $cmd{next};
+            wait_still_screen 2;
+        }
+        # start addons/modules registration, it needs longer time if select multiple or all addons/modules
+        my $counter = ADDONS_COUNT;
+        while ($counter--) {
+            die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
+            assert_screen [
+                qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
+            if (match_has_tag('import-untrusted-gpg-key')) {
+                handle_untrusted_gpg_key;
+                next;
+            }
+            elsif (match_has_tag('yast_scc-pkgtoinstall')) {
+                # yast shows the software install dialog
+                wait_screen_change { send_key 'alt-a' };
+                while (
+                    # install packages take time if select many extensions and modules
+                    assert_screen(
+                        ['yast_scc-license-dialog', 'yast_scc-automatic-changes', 'yast_scc-prompt-reboot', 'yast_scc-installation-summary'], 1800
+                    ))
+                {
+                    if (match_has_tag('yast_scc-license-dialog')) {
+                        send_key 'alt-a';
+                        next;
+                    }
+                    # yast may pop up dependencies or reboot prompt window
+                    if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
+                        send_key 'alt-o';
+                        next;
+                    }
+                    if (match_has_tag('yast_scc-installation-summary')) {
+                        send_key 'alt-f';
+                        last;
+                    }
+                }
+                last;
+            }
+            # yast would display empty pkg install screen if no addon selected on sle12 sp0
+            # set check_screen timeout longer to ensure the screen checked in this case
+            elsif (match_has_tag('yast-scc-emptypkg')) {
+                if (check_screen('yast-scc-emptypkg', 5)) {
+                    send_key 'alt-a';
+                    last;    # Exit yast scc register, no package need be install
+                }
+                else {
+                    record_soft_failure 'bsc#1040758';
+                    next;    # Yast may popup dependencies or software install dialog, enter determine statement again.
+                }
+            }
+            elsif (match_has_tag('contacting-registration-server')) {
+                sleep 5;
+                next;
+            }
+            elsif (match_has_tag('refreshing-repository')) {
+                sleep 5;
+                next;
+            }
+            elsif (match_has_tag('inst-addon')) {
+                # it would show Add On Product screen if scc registration correctly during installation
+                # it would show software install dialog if scc registration correctly by yast2 scc
+                last;
+            }
+        }
+    }
+    else {
+        send_key $cmd{next};
+        if (check_var('HDDVERSION', '12')) {
+            assert_screen 'yast-scc-emptypkg';
+            send_key 'alt-a';
+        }
+    }
+}
+
+sub process_scc_register {
+    if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
+        process_scc_register_addons;
+    }
+    elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
+        send_key $cmd{next};
+    }
+}
+
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
@@ -295,174 +468,7 @@ sub fill_in_registration_data {
         }
     }
 
-    if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
-        # The value of SCC_ADDONS is a list of abbreviation of addons/modules
-        # Following are abbreviations defined for modules and some addons
-        #
-        #  asmm - Advanced System Management Module
-        # certm - Certifications Module
-        # contm - Containers Module
-        #   geo - Geo Clustering for SUSE Linux Enterprise High Availability
-        #    ha - High Availability
-        #  hpcm - HPC Module
-        #   ids - IBM DLPAR sdk (ppc64le only)
-        #   idu - IBM DLPAR Utils (ppc64le only)
-        #   lgm - Legacy Module
-        #  live - Live Patching
-        #  ltss - Long Term Service Pack Support
-        #   pcm - Public Cloud Module
-        #  phub - PackageHub
-        #   sdk - Software Development Kit
-        #   ses - SUSE Enterprise Storage
-        #   tcm - Toolchain Module
-        #   tsm - Transactional Server Module
-        #    we - Workstation
-        #   wsm - Web and Scripting Module
-        if (get_var('SCC_ADDONS')) {
-            if (check_screen('scc-beta-filter-checkbox', 5)) {
-                if (get_var('SP3ORLATER')) {
-                    send_key 'alt-i';    # uncheck 'Hide Beta Versions'
-                }
-                else {
-                    send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
-                }
-                assert_screen('scc-beta-filter-unchecked');
-            }
-            my @scc_addons = split(/,/, get_var('SCC_ADDONS', ''));
-            # remove empty elements
-            @scc_addons = grep { $_ ne '' } @scc_addons;
-
-            for my $addon (@scc_addons) {
-                if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
-                    # The actions of selecting scc addons have been changed on SP2 or later in textmode
-                    # For online migration, we have to do registration on pre-created HDD, set a flag
-                    # to distinguish the sle version of HDD and perform addons selection based on it
-                    if (get_var('ONLINE_MIGRATION') || get_var('PATCH')) {
-                        select_addons_in_textmode($addon, get_var('HDD_SP2ORLATER'));
-                    }
-                    else {
-                        select_addons_in_textmode($addon, get_var('SP2ORLATER'));
-                    }
-                }
-                else {
-                    # go to the top of the list before looking for the addon
-                    send_key "home";
-                    # move the list of addons down until the current addon is found
-                    if ($addon eq 'phub') {
-                        # Record soft-failure when we do not have phub yet
-                        my $bugref =
-                          is_sle('=15-SP1') ? 'bsc#1106085'
-                          :                   undef;
-                        if ($bugref) {
-                            record_soft_failure $bugref;
-                            next;
-                        }
-                    }
-                    send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", ADDONS_COUNT;
-                    if (match_has_tag("scc-module-$addon")) {
-                        # checkmark the requested addon
-                        assert_and_click "scc-module-$addon";
-                    }
-                    else {
-                        record_info("Module preselected", "Module $addon is already selected and installed by default");
-                    }
-                }
-            }
-            save_screenshot;
-            # go back and forward, checked checkboxes have to remember state poo#17840
-            if (check_var('SCC_REGISTER', 'yast')) {
-                wait_screen_change { send_key 'alt-b' };
-                assert_screen 'scc-registration-already-registered';
-                wait_screen_change { send_key $cmd{next} };
-                for my $addon (@scc_addons) {
-                    send_key_until_needlematch "scc-module-$addon-selected", "down", ADDONS_COUNT;
-                }
-            }
-            wait_screen_change { send_key $cmd{next} };    # all addons selected
-            wait_still_screen 2;
-            # Process addons licenses
-            accept_addons_license @scc_addons;
-            # Press next only if entered reg code for any addon
-            if (register_addons @scc_addons) {
-                assert_screen 'ext-modules-reg-codes';
-                send_key $cmd{next};
-                wait_still_screen 2;
-            }
-            # start addons/modules registration, it needs longer time if select multiple or all addons/modules
-            my $counter = ADDONS_COUNT;
-            while ($counter--) {
-                die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-                assert_screen [
-                    qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
-                if (match_has_tag('import-untrusted-gpg-key')) {
-                    handle_untrusted_gpg_key;
-                    next;
-                }
-                elsif (match_has_tag('yast_scc-pkgtoinstall')) {
-                    # yast shows the software install dialog
-                    wait_screen_change { send_key 'alt-a' };
-                    while (
-                        # install packages take time if select many extensions and modules
-                        assert_screen(
-                            ['yast_scc-license-dialog', 'yast_scc-automatic-changes', 'yast_scc-prompt-reboot', 'yast_scc-installation-summary'], 1800
-                        ))
-                    {
-                        if (match_has_tag('yast_scc-license-dialog')) {
-                            send_key 'alt-a';
-                            next;
-                        }
-                        # yast may pop up dependencies or reboot prompt window
-                        if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
-                            send_key 'alt-o';
-                            next;
-                        }
-                        if (match_has_tag('yast_scc-installation-summary')) {
-                            send_key 'alt-f';
-                            last;
-                        }
-                    }
-                    last;
-                }
-                # yast would display empty pkg install screen if no addon selected on sle12 sp0
-                # set check_screen timeout longer to ensure the screen checked in this case
-                elsif (match_has_tag('yast-scc-emptypkg')) {
-                    if (check_screen('yast-scc-emptypkg', 5)) {
-                        send_key 'alt-a';
-                        last;    # Exit yast scc register, no package need be install
-                    }
-                    else {
-                        record_soft_failure 'bsc#1040758';
-                        next;    # Yast may popup dependencies or software install dialog, enter determine statement again.
-                    }
-                }
-                elsif (match_has_tag('contacting-registration-server')) {
-                    sleep 5;
-                    next;
-                }
-                elsif (match_has_tag('refreshing-repository')) {
-                    sleep 5;
-                    next;
-                }
-                elsif (match_has_tag('inst-addon')) {
-                    # it would show Add On Product screen if scc registration correctly during installation
-                    # it would show software install dialog if scc registration correctly by yast2 scc
-                    last;
-                }
-            }
-        }
-        else {
-            send_key $cmd{next};
-            if (check_var('HDDVERSION', '12')) {
-                assert_screen 'yast-scc-emptypkg';
-                send_key 'alt-a';
-            }
-        }
-    }
-    else {
-        if (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
-            send_key $cmd{next};
-        }
-    }
+    process_scc_register;
 }
 
 sub select_addons_in_textmode {
@@ -545,25 +551,25 @@ sub get_addon_fullname {
 
     # extensions product list
     my %product_list = (
-        'ha'        => 'sle-ha',
-        'geo'       => 'sle-ha-geo',
-        'we'        => 'sle-we',
-        'sdk'       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
-        'ses'       => 'ses',
-        'live'      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
-        'asmm'      => 'sle-module-adv-systems-management',
-        'base'      => 'sle-module-basesystem',
-        'contm'     => 'sle-module-containers',
-        'desktop'   => 'sle-module-desktop-applications',
-        'hpcm'      => 'sle-module-hpc',
-        'legacy'    => 'sle-module-legacy',
-        'lgm'       => 'sle-module-legacy',
-        'ltss'      => 'SLES-LTSS',
-        'pcm'       => 'sle-module-public-cloud',
-        'script'    => 'sle-module-web-scripting',
-        'serverapp' => 'sle-module-server-applications',
-        'tcm'       => 'sle-module-toolchain',
-        'wsm'       => 'sle-module-web-scripting',
+        ha        => 'sle-ha',
+        geo       => 'sle-ha-geo',
+        we        => 'sle-we',
+        sdk       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
+        ses       => 'ses',
+        live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
+        asmm      => 'sle-module-adv-systems-management',
+        base      => 'sle-module-basesystem',
+        contm     => 'sle-module-containers',
+        desktop   => 'sle-module-desktop-applications',
+        hpcm      => 'sle-module-hpc',
+        legacy    => 'sle-module-legacy',
+        lgm       => 'sle-module-legacy',
+        ltss      => 'SLES-LTSS',
+        pcm       => 'sle-module-public-cloud',
+        script    => 'sle-module-web-scripting',
+        serverapp => 'sle-module-server-applications',
+        tcm       => 'sle-module-toolchain',
+        wsm       => 'sle-module-web-scripting',
     );
     return $product_list{"$addon"};
 }

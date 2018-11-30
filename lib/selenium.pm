@@ -35,7 +35,7 @@ use version_utils 'is_sle';
 
 use Selenium::Remote::Driver;
 use Selenium::Chrome;
-use Selenium::Waiter qw/wait_until/;
+use Selenium::Waiter 'wait_until';
 use Selenium::Remote::WDKeys;
 
 my $port = 4444;
@@ -191,8 +191,8 @@ sub select_input {
     my ($id) = @_;
     $driver->mouse_move_to_location(element => wait_for_xpath("//input[\@id=\'$id\']"));
     $driver->click();
-    $driver->send_keys_to_active_element(KEYS->{'control'}, 'a');
-    $driver->send_keys_to_active_element(KEYS->{'control'});
+    $driver->send_keys_to_active_element(KEYS->{control}, 'a');
+    $driver->send_keys_to_active_element(KEYS->{control});
 }
 
 1;

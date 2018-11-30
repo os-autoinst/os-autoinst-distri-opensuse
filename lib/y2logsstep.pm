@@ -281,7 +281,7 @@ sub save_upload_y2logs {
 }
 
 sub get_available_compression {
-    my %extensions = ('bzip2' => '.bz2', 'gzip' => '.gz', 'xz' => '.xz');
+    my %extensions = (bzip2 => '.bz2', gzip => '.gz', xz => '.xz');
     foreach my $binary (sort keys %extensions) {
         return $extensions{$binary} unless script_run("type $binary");
     }
