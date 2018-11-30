@@ -26,8 +26,11 @@ our @EXPORT = qw(expand_template);
 sub expand_patterns {
     if (get_var('PATTERNS') =~ m/^\s*$/) {
         if (is_sle('15+')) {
-            return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis)] if check_var('DESKTOP', 'textmode');
-            return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis x11 gnome_basic)] if check_var('DESKTOP', 'gnome');
+            my @sle15;
+            push @sle15, qw(base minimal_base enhanced_base apparmor sw_management yast2_basis);
+            push @sle15, qw(x11 gnome_basic fonts) if check_var('DESKTOP', 'gnome');
+            push @sle15, qw(gnome gnome_x11 office x11_enhanced gnome_imaging gnome_multimedia x11_yast) if check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS') =~ m/we/;
+            return [@sle15];
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
             my @sle12;
@@ -57,7 +60,7 @@ sub expand_patterns {
               get_var('SCC_ADDONS') =~ m/serverapp/;
             push @all, qw(devel_basis devel_kernel devel_yast) if
               get_var('SCC_ADDONS') =~ m/sdk/;
-            push @all, qw(gnome_x11 gnome_multimedia gnome_imaging office
+            push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
               technical_writing books) if get_var('SCC_ADDONS') =~ m/we/;
             push @all, qw(gnome_basic multimedia laptop imaging) if
               get_var('SCC_ADDONS') =~ m/desktop/;
