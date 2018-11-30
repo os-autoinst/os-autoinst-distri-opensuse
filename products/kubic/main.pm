@@ -37,48 +37,31 @@ sub load_feature_tests {
     loadtest 'caasp/journal_check';
 }
 
-sub loadtests {
-    my $filter = shift;
-    return 1 unless $filter;
+sub load_rcshell_tests {
+    # Tests before the YaST installation
+    loadtest 'caasp/rcshell_start';
+    loadtest 'caasp/libzypp_config';
+    loadtest 'caasp/one_line_checks';
+}
 
-    if ($filter eq 'boot_from_dvd') {
-        load_boot_from_dvd_tests;
+sub load_installation_tests {
+    if (check_var('HDDSIZEGB', '10')) {
+        # boo#1099762
+        # undefined method "safe_copy" for nil:NilClass
+        # YaST2 crashes if disk is too small for a viable proposal
+        loadtest('installation/welcome');
+        loadtest('installation/installation_mode');
+        loadtest('installation/logpackages');
+        loadtest('installation/system_role');
+        loadtest('installation/user_settings_root');
+        loadtest('installation/installation_overview');
     }
-
-    if ($filter eq 'boot_from_disk') {
+    else {
+        # Full list of installation test-modules can be found at 'main_common.pm'
+        load_inst_tests;
         load_boot_from_disk_tests;
-    }
-
-    if ($filter eq 'installation') {
-        if (check_var('HDDSIZEGB', '10')) {
-            # boo#1099762
-            # undefined method "safe_copy" for nil:NilClass
-            # YaST2 crashes if disk is too small for a viable proposal
-            loadtest('installation/welcome');
-            loadtest('installation/installation_mode');
-            loadtest('installation/logpackages');
-            loadtest('installation/system_role');
-            loadtest('installation/user_settings_root');
-            loadtest('installation/installation_overview');
-        }
-        else {
-            # Full list of installation test-modules can be found at 'main_common.pm'
-            load_inst_tests;
-            load_boot_from_disk_tests;
-            load_feature_tests if (check_var 'EXTRA', 'FEATURES');
-            loadtest 'shutdown/shutdown';
-        }
-    }
-
-    if ($filter eq 'feature') {
-        load_feature_tests;
-    }
-
-    if ($filter eq 'rcshell') {
-        # Tests before the YaST installation
-        loadtest 'caasp/rcshell_start';
-        loadtest 'caasp/libzypp_config';
-        loadtest 'caasp/one_line_checks';
+        load_feature_tests if (check_var 'EXTRA', 'FEATURES');
+        loadtest 'shutdown/shutdown';
     }
 }
 
@@ -86,17 +69,17 @@ sub loadtests {
 # Testing starts here #
 #######################
 if (get_var 'STACK_ROLE') {
-    loadtests 'boot_from_disk';
-    loadtests 'feature' if (check_var 'EXTRA', 'FEATURES');
+    load_boot_from_disk_tests;
+    load_feature_tests() if (check_var 'EXTRA', 'FEATURES');
     loadtest 'shutdown/shutdown';
 }
 else {
-    loadtests 'boot_from_dvd';
+    load_boot_from_dvd_tests;
     if (get_var 'SYSTEM_ROLE') {
-        loadtests 'installation';
+        load_installation_tests;
     }
-    else {
-        loadtests('rcshell') if (check_var 'EXTRA', 'RCSHELL');
+    elsif (check_var 'EXTRA', 'RCSHELL') {
+        load_rcshell_tests;
     }
 }
 
