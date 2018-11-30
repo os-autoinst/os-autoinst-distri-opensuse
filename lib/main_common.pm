@@ -1945,6 +1945,15 @@ sub load_common_x11 {
         loadtest "boot/boot_to_desktop";
         load_x11_webbrowser_extra();
     }
+    # Used by ibus tests
+    elsif (check_var("REGRESSION", "ibus")) {
+        loadtest "boot/boot_to_desktop";
+        loadtest "x11/ibus/ibus_installation";
+        loadtest "x11/ibus/ibus_test_ch";
+        loadtest "x11/ibus/ibus_test_jp";
+        loadtest "x11/ibus/ibus_test_kr";
+        loadtest "x11/ibus/ibus_clean";
+    }
 }
 
 # The function name load_security_tests_* is to avoid confusing since

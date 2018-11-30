@@ -70,7 +70,7 @@ NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
-REGRESSION | string | | Define scope of regression testing.
+REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.
 RESCUECD | boolean | false | Indicates rescue image to be used.
 RESCUESYSTEM | boolean | false | Indicates rescue system under test.
