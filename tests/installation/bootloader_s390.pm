@@ -66,6 +66,13 @@ sub split_lines {
 
 use backend::console_proxy;
 
+sub create_infofile {
+    my ($bootinfo) = @_;
+    my $path = 's390x_bootinfo';
+    save_tmp_file($path, $bootinfo);
+    return shorten_url(autoinst_url . "/files/$path");
+}
+
 sub prepare_parmfile {
     my ($repo) = @_;
     my $params = '';
@@ -78,9 +85,12 @@ sub prepare_parmfile {
     # create a too long parameter ;(
     my $instsrc = get_var('INSTALL_SOURCE', 'ftp') . '://' . get_var('REPO_HOST', 'openqa') . '/';
     if (check_var('INSTALL_SOURCE', 'smb')) {
-        $instsrc .= "inst/";
+        $instsrc .= "inst/" . $repo;
+        $params  .= " info=" . create_infofile("install: $instsrc");
     }
-    $params .= " install=" . $instsrc . $repo . " ";
+    else {
+        $params .= " install=" . $instsrc . $repo . " ";
+    }
 
     if (get_var('UPGRADE')) {
         $params .= 'upgrade=1 ';
