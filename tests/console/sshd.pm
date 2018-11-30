@@ -61,4 +61,8 @@ sub run {
     assert_screen "ssh-login-ok";
 }
 
+sub test_flags {
+    return {milestone => 1};
+}
+
 1;
