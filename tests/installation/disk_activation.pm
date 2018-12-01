@@ -111,12 +111,6 @@ sub run {
     }
     assert_screen 'disk-activation', 15;
     send_key $cmd{next};
-
-    # check for multipath popup
-    if (check_screen('detected-multipath', 10)) {
-        wait_screen_change { send_key 'alt-y' };
-        send_key 'alt-n';
-    }
 }
 
 1;
