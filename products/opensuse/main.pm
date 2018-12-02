@@ -16,6 +16,7 @@ use needle;
 use version_utils ':VERSION';
 use File::Find;
 use File::Basename;
+use YAML::Syck 'LoadFile';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -145,6 +146,96 @@ if (get_var("WITH_UPDATE_REPO")
 
 $needle::cleanuphandler = \&cleanup_needles;
 
+# YAML::Any seems to be a good choice but we do not have that package it
+# seems, YAML::Tiny does not seem to support JSON-like arrays
+my %declared_schedule = %{LoadFile(dirname(__FILE__) . '/main.yml')};
+
+=head2 eval_yaml
+
+  eval_yaml($string)
+
+Evaluates the string as either a test variable when the string is just a single non-space string or tries to evaluate as a a more complex perl expression.
+=cut
+
+sub eval_yaml {
+    my ($expression) = @_;
+    return get_var($expression) if $expression =~ /[a-zA-Z0-9_]/;
+    {
+        return eval { $expression };
+    }
+    die "YAML expression failed to evaluate: $@" if $@;
+}
+
+=head2 load_module
+
+  load_module($module)
+
+Load one test module from a schedule hash. The inclusion/exclusion of the
+module can be controlled by specifying the module with C<module> and the key
+C<only> or <except> next to the module.
+
+We could have this logic to include/exclude specific modules in the modules itself but this would contradict
+https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/150
+even though we still have C<is_applicable> in basetest.pm in os-autoinst.
+
+=cut
+
+sub load_module {
+    my ($module) = @_;
+    return $module unless ref $module eq 'HASH';
+    my %module = %{$module};
+    return $module{module} if ($module{module} && ($module{only} && eval_yaml($module{only})) && !($module{except} && !eval_yaml($module{except})));
+}
+
+=head2 load_schedule
+
+  load_schedule($tests)
+
+Loads test modules or groups of tests by identifier from C<main.yml> in the same directory as the current file.
+
+In the simple case of just scheduling a list of test modules specify them as an array directly:
+
+ my_tests:
+   - module1
+   - module2
+
+or in shorter JSON style:
+
+ my_tests: [module_1, module_2]
+
+More advanced instructions are possible by specifying according keys in the
+section. In this case the test modules must be specified in an array with the
+name C<modules>. The keywords C<only> an C<except> denote a test variable or a
+perl expression that must evaluate to a true respectively false value for the
+section to load. Other sections can be referenced with C<groups>. Test
+variables specified like perl variables are expanded.
+Inclusion/exclusion of single modules within the modules list is also possible
+by specifying the module with C<module> and the key C<only> or <except> next
+to the module.
+
+An advanced example:
+
+ my_tests_advanced:
+   only: is_advanced()
+   except: VAR1
+   modules:
+     - module1
+     - module2
+     - module: module3
+       except: NO_MOD3
+
+=cut
+
+sub load_schedule {
+    my ($key) = @_;
+    die "Schedule reference '$key' not found in any definition files." unless exists $declared_schedule{$key};
+    my $section = $declared_schedule{$key};
+    return map { load_module($_) } $section if ref $section eq 'ARRAY';
+    return 0 if $section->{only} and eval_yaml($section->{only});
+
+
+}
+
 # dump other important ENV:
 logcurrentenv(
     qw(ADDONURL BTRFS DESKTOP LIVETEST LVM
@@ -156,81 +247,6 @@ logcurrentenv(
 
 sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
-}
-
-sub load_fixup_network {
-    # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
-    # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
-    # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)
-    my @old_hdds = qw(openSUSE-13.1-gnome openSUSE-13.2);
-    return unless grep { check_var('HDDVERSION', $_) } @old_hdds;
-
-    loadtest "fixup/network_configuration";
-
-}
-
-sub load_fixup_firewall {
-    # The openSUSE 13.1 GNOME disk image has the firewall disabled
-    # Upon upgrading to a new system the service state is supposed to remain as pre-configured
-    # If the service is disabled here, we enable it here
-    # For the older openSUSE base images we also see a problem with the
-    # firewall being disabled since
-    # https://build.opensuse.org/request/show/483163
-    # which seems to be in openSUSE Tumbleweed since 20170413
-    return unless get_var('HDDVERSION', '') =~ /openSUSE-(13.1-gnome)/;
-    loadtest 'fixup/enable_firewall';
-}
-
-sub load_consoletests_minimal {
-    return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
-    # Stagings should test yast2-bootloader in miniuefi at least but not all
-    loadtest "console/system_prepare";
-    loadtest "console/consoletest_setup";
-    loadtest "console/textinfo";
-    loadtest "console/hostname";
-    if (!get_var("LIVETEST")) {
-        loadtest "console/yast2_bootloader";
-    }
-    loadtest "console/consoletest_finish";
-}
-
-sub load_otherDE_tests {
-    if (get_var("DE_PATTERN")) {
-        my $de = get_var("DE_PATTERN");
-        loadtest "console/system_prepare";
-        loadtest "console/consoletest_setup";
-        loadtest "console/hostname";
-        loadtest "update/zypper_clear_repos";
-        loadtest "console/install_otherDE_pattern";
-        loadtest "console/consoletest_finish";
-        loadtest "x11/${de}_reconfigure_openqa";
-        loadtest "x11/reboot_icewm";
-        # here comes the actual desktop specific test
-        if ($de =~ /^awesome$/)       { load_awesome_tests(); }
-        if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
-        if ($de =~ /^mate$/)          { load_mate_tests(); }
-        if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
-        load_shutdown_tests;
-        return 1;
-    }
-    return 0;
-}
-
-sub load_awesome_tests {
-    loadtest "x11/awesome_menu";
-    loadtest "x11/awesome_xterm";
-}
-
-sub load_enlightenment_tests {
-    loadtest "x11/enlightenment_first_start";
-    loadtest "x11/terminology";
-}
-
-sub load_lxqt_tests {
-}
-
-sub load_mate_tests {
-    loadtest "x11/mate_terminal";
 }
 
 sub install_online_updates {
@@ -465,18 +481,18 @@ else {
         || load_qam_install_tests()
         || load_extra_tests()
         || load_virtualization_tests()
-        || load_otherDE_tests()
+        || load_schedule('otherDE')
         || load_slenkins_tests())
     {
-        load_fixup_network();
-        load_fixup_firewall();
+        load_schedule('fixup_network');
+        load_schedule('fixup_firewall');
         load_system_update_tests();
         load_rescuecd_tests();
         if (consolestep_is_applicable) {
             load_consoletests();
         }
         elsif (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon) {
-            load_consoletests_minimal();
+            load_schedule('consoletests_minimal');
         }
         load_x11tests();
         if (get_var('ROLLBACK_AFTER_MIGRATION') && (snapper_is_applicable())) {

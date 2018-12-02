@@ -1,0 +1,5 @@
+extends: default
+
+ignore: |
+  data/nfv/*.yaml
+  data/caasp/cap/*.yaml

@@ -1,0 +1,61 @@
+---
+fixup_firewall:
+    # The openSUSE 13.1 GNOME disk image has the firewall disabled
+    # Upon upgrading to a new system the service state is supposed
+    # to remain as pre-configured.
+    # If the service is disabled here, we enable it here
+    # For the older openSUSE base images we also see a problem with the
+    # firewall being disabled since
+    # https://build.opensuse.org/request/show/483163
+    # which seems to be in openSUSE Tumbleweed since 20170413
+    except: get_var('HDDVERSION', '') =~ /openSUSE-(13.1-gnome)/
+    modules: fixup/enable_firewall
+
+fixup_network:
+    # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not
+    # applying predictable names (despite being configured).
+    # A maintenance update breaking networking names sounds worse than just
+    # accepting that 13.2 -> TW breaks with virtio-net.
+    # At this point, the system has been updated, but our network interface
+    # changed name (thus we lost network connection).
+    old_hdds: openSUSE-13.1-gnome, openSUSE-13.2
+    only: grep { check_var('HDDVERSION', $_) } @old_hdds
+    modules: fixup/network_configuration
+
+consoletests_minimal:
+    except: is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon
+    # Stagings should test yast2-bootloader in miniuefi at least but not all
+    modules:
+        - console/system_prepare
+        - console/consoletest_setup
+        - console/textinfo
+        - console/hostname
+        - console/yast2_bootloader
+        - module: console/yast2_bootloader
+          except: LIVETEST
+        - console/consoletest_finish
+
+otherDE:
+    only: DE_PATTERN
+    modules:
+        - console/system_prepare
+        - console/consoletest_setup
+        - console/hostname
+        - update/zypper_clear_repos
+        - console/install_otherDE_pattern
+        - console/consoletest_finish
+        - x11/${PATTERN}_reconfigure_openqa
+        - x11/reboot_icewm
+    groups:
+        # here comes the actual desktop specific test
+        - ${PATTERN}
+        - shutdown
+
+awesome: [x11/awesome_menu, x11/awesome_xterm]
+
+enlightenment: x11/enlightenment_first_start, x11/terminology
+
+lxqt:
+
+mate:
+    - x11/mate_terminal
