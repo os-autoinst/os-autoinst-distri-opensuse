@@ -42,6 +42,7 @@ use constant {
           is_storage_ng
           is_using_system_role
           is_using_system_role_first_flow
+          requires_role_selection
           )
     ],
     BACKEND => [
@@ -349,6 +350,11 @@ sub is_using_system_role {
 # On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
 sub is_using_system_role_first_flow {
     return is_leap('=15.0') || is_using_system_role;
+}
+
+# If there is only one role, there is no selection offered
+sub requires_role_selection {
+    return get_var('FLAVOR', '') !~ /Krypton/;
 }
 
 =head2 has_product_selection
