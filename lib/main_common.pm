@@ -75,7 +75,7 @@ our @EXPORT = qw(
   load_nfv_master_tests
   load_nfv_trafficgen_tests
   load_public_cloud_patterns_validation_tests
-  load_readonly_fs_tests
+  load_transactional_role_tests
   load_reboot_tests
   load_rescuecd_tests
   load_rollback_tests
@@ -2301,7 +2301,7 @@ sub load_public_cloud_patterns_validation_tests {
     loadtest "console/consoletest_finish";
 }
 
-sub load_readonly_fs_tests {
+sub load_transactional_role_tests {
     loadtest 'caasp/filesystem_ro';
     loadtest 'caasp/transactional_update';
     loadtest 'caasp/rebootmgr';

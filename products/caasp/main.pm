@@ -128,7 +128,7 @@ sub load_feature_tests {
     loadtest 'caasp/one_line_checks';
     loadtest 'caasp/nfs_client' if get_var('NFS_SHARE');
 
-    load_readonly_fs_tests;
+    load_transactional_role_tests;
 
     # Tests that require registered system
     if (get_var 'REGISTER') {
