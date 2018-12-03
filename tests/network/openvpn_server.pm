@@ -20,12 +20,6 @@ use utils qw(systemctl zypper_call exec_and_insert_password);
 use strict;
 
 sub run {
-    barrier_create('OPENVPN_STATIC_START',    2);
-    barrier_create('OPENVPN_STATIC_STARTED',  2);
-    barrier_create('OPENVPN_STATIC_FINISHED', 2);
-    barrier_create('OPENVPN_CA_START',        2);
-    barrier_create('OPENVPN_CA_STARTED',      2);
-    barrier_create('OPENVPN_CA_FINISHED',     2);
     select_console "root-console";
 
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
