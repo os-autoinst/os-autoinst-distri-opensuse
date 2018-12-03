@@ -159,6 +159,18 @@ sub clean_up_red_disks {
     my $get_swaps_not_need = "$get_disks_fs_overview | grep -v -e \"sd[a].*\" | grep -i \"\\\[SWAP\\\]\" | grep -o -e \"sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
     my $swaps_not_used = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
 
+    my $wipe_fs_cmd = "";
+    my $installed_os_ver = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
+    ($installed_os_ver) = $installed_os_ver =~ /^(\d+)/;
+    if ($installed_os_ver eq '11') {
+        $wipe_fs_cmd = "wipefs -a";
+    }
+    else {
+        $wipe_fs_cmd = "wipefs -a -f";
+    }
+
+    $make_fs_cmd = "mkfs.$fs_type_supported -f" if ($fs_type_supported eq 'btrfs');
+
     if ($swaps_not_used) {
         my @swaps_nu_array = split(/\n+/, $swaps_not_used);
         foreach my $swapitem (@swaps_nu_array) {
@@ -171,7 +183,7 @@ sub clean_up_red_disks {
     if (($disks_nu_length eq $disks_nu_num) && $disks_nu_num && $fs_type_supported) {
         foreach my $item (@disks_nu_array) {
             if ($item =~ /^\/dev\/sd[b-z]$/) {
-                assert_script_run("wipefs -a -f $item && $make_fs_cmd $item", $wait_script);
+                assert_script_run("echo \"y\\n\" | $wipe_fs_cmd $item &&  echo \"y\\n\" | $make_fs_cmd $item", $wait_script);
             }
         }
         diag("Debug info: Redundant disks have already been formatted using mkfs.");
