@@ -33,6 +33,7 @@ our @EXPORT = qw(
   save_svirt_pty
   type_line_svirt
   integration_services_check
+  integration_services_check_ip
   unlock_if_encrypted
   get_netboot_mirror
   zypper_call
@@ -153,23 +154,40 @@ sub handle_untrusted_gpg_key {
     }
 }
 
+=head2 integration_services_check_ip
+Check that guest IP address that host and guest see is the same.
+=cut
+sub integration_services_check_ip {
+    # Host-side of Integration Services
+    my $vmname = console('svirt')->name;
+    my $ips_host_pov;
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        $ips_host_pov = console('svirt')->get_cmd_output(
+            'powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        $ips_host_pov = console('svirt')->get_cmd_output(
+            "set -x; vmid=\$(vim-cmd vmsvc/getallvms | awk '/$vmname/ { print \$1 }');" .
+              "if [ \$vmid ]; then vim-cmd vmsvc/get.guest \$vmid | awk '/ipAddress/ {print \$3}' " .
+              "| head -n1 | sed -e 's/\"//g' | sed -e 's/,//g'; fi", {domain => 'sshVMwareServer'});
+    }
+    $ips_host_pov =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
+    $ips_host_pov = $1;
+    # Guest-side of Integration Services
+    my $ips_guest_pov = script_output("default_iface=\$(awk '\$2 == 00000000 { print \$1 }' /proc/net/route); ip addr show dev \"\$default_iface\" | awk '\$1 == \"inet\" { sub(\"/.*\", \"\", \$2); print \$2 }'");
+    record_info('IP (host)',  $ips_host_pov);
+    record_info('IP (guest)', $ips_guest_pov);
+    die "ips_host_pov=<$ips_host_pov> ips_guest_pov=<$ips_guest_pov>" if $ips_host_pov ne $ips_guest_pov;
+    die 'Client nor host see IP address of the VM' unless $ips_host_pov;
+}
+
 =head2 integration_services_check
 Make sure integration services (e.g. kernel modules, utilities, services)
-are present and in working condition. Just Hyper-V for now.
+are present and in working condition.
 =cut
 sub integration_services_check {
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        # Host-side of Integration Services
-        my $vmname       = console('svirt')->name;
-        my $ips_host_pov = console('svirt')
-          ->get_cmd_output('powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
-        $ips_host_pov =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
-        $ips_host_pov = $1;
-        my $ips_guest_pov = script_output("ip address show up scope global | awk '/inet/ { print \$2 }' | sed 's|/.*||' | tr -d '\\n'");
-        record_info('IP (host)',  $ips_host_pov);
-        record_info('IP (guest)', $ips_guest_pov);
-        die "ips_host_pov=<$ips_host_pov> ips_guest_pov=<$ips_guest_pov>" if $ips_host_pov ne $ips_guest_pov;
-        die 'Client nor host see IP address of the VM' unless $ips_host_pov;
+        integration_services_check_ip;
         # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
@@ -185,6 +203,14 @@ sub integration_services_check {
         systemctl('is-active hv_vss_daemon.service');
         # 'Guest Services' are not enabled by default on our VMs
         assert_script_run('systemctl list-unit-files | grep hv_fcopy_daemon.service');
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        integration_services_check_ip;
+        assert_script_run('rpmquery open-vm-tools');
+        assert_script_run('rpmquery open-vm-tools-desktop') unless check_var('DESKTOP', 'textmode');
+        assert_script_run('modinfo vmw_vmci');
+        systemctl('is-active vmtoolsd');
+        systemctl('is-active vgauthd');
     }
 }
 

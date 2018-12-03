@@ -1049,7 +1049,7 @@ sub load_consoletests {
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "locale/keymap_or_locale";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
@@ -1322,7 +1322,7 @@ sub load_yast2_ncurses_tests {
     boot_hdd_image;
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "console/hostname";
     loadtest "console/zypper_lr";
     loadtest "console/zypper_ref";
@@ -1551,7 +1551,7 @@ sub load_extra_tests {
 
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "console/hostname";
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; to maintain compatibility, run all tests if the
@@ -1622,7 +1622,7 @@ sub load_filesystem_tests {
     # setup $serialdev permission and so on
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
@@ -2070,7 +2070,7 @@ sub load_system_prepare_tests {
     loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
-    loadtest 'console/integration_services' if is_hyperv;
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/system_prepare';
     loadtest 'console/force_scheduled_tasks' unless is_jeos;

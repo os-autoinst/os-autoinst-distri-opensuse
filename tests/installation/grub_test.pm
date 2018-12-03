@@ -19,7 +19,6 @@ use utils;
 use version_utils 'is_sle';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
-
 =head2 set_vmware_videomode
 
 bsc#997263 - VMware screen resolution defaults to 800x600
@@ -28,13 +27,14 @@ By default VMware starts with Grub2 in 640x480 mode and then boots the system to
 Permanent - system-wise - solution is in console/consoletest_setup.pm.
 =cut
 sub set_vmware_videomode {
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        send_key 'c';
-        type_string "gfxmode=1024x768x32; gfxpayload=1024x768x32; terminal_output console; terminal_output gfxterm\n";
-        wait_still_screen;
-        send_key 'esc';
-    }
-
+    return unless check_var('VIRSH_VMM_FAMILY', 'vmware');
+    send_key 'c';
+    type_string 'gfxmode=1024x768x32; gfxpayload=1024x768x32; terminal_output console; terminal_output gfxterm';
+    save_screenshot;
+    send_key 'ret';
+    wait_still_screen;
+    save_screenshot;
+    send_key 'esc';
 }
 
 =head2 handle_installer_medium_bootup
@@ -90,7 +90,7 @@ sub run {
     my $tag = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
     assert_screen $tag, $timeout;
     stop_grub_timeout;
-    set_vmware_videomode if check_var('VIRSH_VMM_FAMILY', 'vmware');
+    set_vmware_videomode;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
     if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
