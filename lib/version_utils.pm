@@ -159,7 +159,7 @@ sub check_version {
 # Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 sub is_caasp {
     my $filter = shift;
-    return 0 unless get_var('DISTRI') =~ /casp|caasp|kubic/;
+    return 0 unless get_var('DISTRI') =~ /caasp|kubic/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {

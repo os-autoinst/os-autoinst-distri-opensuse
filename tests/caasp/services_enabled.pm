@@ -19,10 +19,9 @@ use version_utils 'is_caasp';
 
 my %services_for = (
     default => [qw(sshd cloud-init-local cloud-init cloud-config cloud-final issue-generator issue-add-ssh-keys transactional-update.timer)],
-    cluster => [qw(container-feeder)],
+    cluster => [qw(chronyd)],
     admin   => [qw(docker kubelet etcd)],
     worker  => [qw(salt-minion systemd-timesyncd)],
-    microos => undef,
     plain   => undef
 );
 
@@ -36,14 +35,9 @@ sub check_services {
 sub run {
     my $role = get_var('SYSTEM_ROLE');
 
-    push @{$services_for{admin}}, is_caasp('4.0+') ? 'chronyd' : 'ntpd';
-
     check_services $services_for{default};
-    check_services $services_for{$role} if $role;
-    if (check_var('DISTRI', 'caasp')) {
-        check_services $services_for{cluster} if $role =~ /admin|worker/;
-    }
-
+    check_services $services_for{$role}   if $role;
+    check_services $services_for{cluster} if $role =~ /admin|worker/;
 }
 
 1;
