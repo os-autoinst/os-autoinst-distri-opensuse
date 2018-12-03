@@ -19,8 +19,6 @@ use y2x11test 'setup_static_mm_network';
 use utils qw(zypper_call systemctl);
 
 sub run {
-    barrier_create('SALT_MINIONS_READY', 2);
-    barrier_create('SALT_FINISHED',      2);
     select_console 'root-console';
 
     # Install both salt master and minion and run the master daemon
