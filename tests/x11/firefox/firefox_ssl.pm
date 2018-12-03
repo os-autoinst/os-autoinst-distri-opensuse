@@ -27,9 +27,7 @@ sub run {
     # go to advanced button and press it
     send_key "tab";
     send_key "ret";
-    # firefox 60.2+ has checkbox above buttons (2 tabs) and rest has checkbox under buttons (3 tabs)
-    my $count = is_sle('=12-sp4') ? 3 : 2;
-    for (1 .. $count) { send_key "tab"; }
+    for (1 .. 2) { send_key "tab"; }
     send_key "ret";
 
     assert_screen('firefox-ssl-addexception', 60);
@@ -40,17 +38,9 @@ sub run {
     send_key "alt-e";
     wait_still_screen 3;
     send_key "n";
-
-    if (is_sle('=12-sp4')) {
-        assert_and_click('firefox-ssl-preference_advanced');
-        assert_and_click('firefox-ssl-advanced_certificate');
-        send_key "alt-shift-c";
-    }
-    else {
-        assert_and_click('firefox-preferences-search');
-        type_string "cert\n";
-        assert_and_click('firefox-ssl-preference-view-certificate');
-    }
+    assert_and_click('firefox-preferences-search');
+    type_string "cert\n";
+    assert_and_click('firefox-ssl-preference-view-certificate');
 
     sleep 1;
     assert_and_click('firefox-ssl-certificate_table');

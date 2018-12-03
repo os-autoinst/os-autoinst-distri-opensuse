@@ -1831,8 +1831,6 @@ sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_pdf";
     loadtest "x11/firefox/firefox_pagesaving";
     loadtest "x11/firefox/firefox_private";
-    # could not find UnMHT addon, home page is dead http://www.unmht.org/unmht/en_index.html
-    loadtest "x11/firefox/firefox_mhtml" if is_sle('=12-sp4');
     loadtest "x11/firefox/firefox_extensions";
     loadtest "x11/firefox/firefox_appearance";
     loadtest "x11/firefox/firefox_passwd";

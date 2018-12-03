@@ -27,24 +27,18 @@ sub run {
     assert_and_click "firefox-extensions";
     assert_and_click "firefox-searchall-addon";
     type_string "flagfox\n";
-    if (is_sle('=12-sp4')) {
-        assert_and_click('firefox-extensions-flagfox', 'right');
-        assert_and_click('firefox-extensions-flagfox_install');
-    }
-    else {
-        assert_and_click('firefox-extensions-flagfox');
-        assert_and_click('firefox-extensions-add-to-firefox');
-        wait_still_screen 6;
-        send_key 'alt-a';
-        # close the flagfox relase notes tab
-        wait_still_screen 3;
-        save_screenshot;
-        send_key 'ctrl-w';
-        # close the flagfox search tab
-        send_key 'ctrl-w';
-    }
+    assert_and_click('firefox-extensions-flagfox');
+    assert_and_click('firefox-extensions-add-to-firefox');
+    wait_still_screen 6;
+    send_key 'alt-a';
+    # close the flagfox relase notes tab
+    wait_still_screen 3;
+    save_screenshot;
+    send_key 'ctrl-w';
+    # close the flagfox search tab
+    send_key 'ctrl-w';
     # refresh the page to see addon buttons
-    send_key 'f5' unless is_sle('=12-sp4');
+    send_key 'f5';
     assert_screen('firefox-extensions-flagfox_installed', 90);
 
     send_key "alt-1";

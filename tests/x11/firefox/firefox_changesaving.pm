@@ -38,16 +38,7 @@ sub run {
     wait_still_screen 3;
     send_key "n";
     assert_screen('firefox-preferences');
-
-    if (is_sle('=12-sp4')) {
-        send_key "alt-shift-s";
-        send_key "down";    #Show a blank page
-        assert_screen('firefox-changesaving-showblankpage', 30);
-    }
-    else {
-        assert_and_click 'firefox-changesaving-showblankpage';
-    }
-
+    assert_and_click 'firefox-changesaving-showblankpage';
     wait_still_screen 2, 4;    #There might be a notification
     send_key "alt-tab";        #Switch to xterm
     wait_still_screen 2, 4;
