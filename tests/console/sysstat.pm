@@ -49,19 +49,20 @@ sub run {
     #header integrity checks:
     if (is_sle('>=12-SP3')) {
         validate_script_output "sar -r", sub { /kbmemfree   kbavail kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
-        validate_script_output "pidstat",    sub { /UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command/ };
-        validate_script_output "iostat",     sub { /avg-cpu:  %user   %nice %system %iowait  %steal   %idle/ };
-        validate_script_output "mpstat",     sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
-        validate_script_output "sar -u",     sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
-        validate_script_output "sar -n DEV", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
-        validate_script_output "sar -b",     sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
-        validate_script_output "sar -B",     sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
-        validate_script_output "sar -H",     sub { /kbhugfree kbhugused  %hugused/ };
-        validate_script_output "sar -S",     sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
+        validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command/ };
     } else {
         validate_script_output "sar -r",  sub { /kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
         validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest    %CPU   CPU  Command/ };
     }
+
+    validate_script_output "iostat",     sub { /avg-cpu:  %user   %nice %system %iowait  %steal   %idle/ };
+    validate_script_output "mpstat",     sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
+    validate_script_output "sar -u",     sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
+    validate_script_output "sar -n DEV", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
+    validate_script_output "sar -b",     sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
+    validate_script_output "sar -B",     sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
+    validate_script_output "sar -H",     sub { /kbhugfree kbhugused  %hugused/ };
+    validate_script_output "sar -S",     sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
 }
 
 1;
