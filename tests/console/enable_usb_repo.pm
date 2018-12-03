@@ -19,9 +19,12 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    # actually not checking that the first repo is a USB repo but just
-    # assuming that the first repo is the install repo should be good enough.
-    zypper_call('mr -e 1');
+    my $repo_num = script_output 'zypper lr --uri | grep "hd:///?device=/dev/disk/by-id/usb-" | awk \'{print $1}\'';
+    if ($repo_num !~ /^\d+$/) {
+        record_info("Serial polluted", "Serial output was polluted: Assuming first repo is USB", result => 'fail');
+        $repo_num = 1;
+    }
+    zypper_call("mr -e $repo_num");
 }
 
 1;
