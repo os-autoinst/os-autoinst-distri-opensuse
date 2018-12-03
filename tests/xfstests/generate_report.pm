@@ -18,6 +18,7 @@ use base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use ctcs2_to_junit;
+use upload_system_log;
 
 my $STATUS_LOG = '/opt/status.log';
 my $LOG_DIR    = '/opt/log';
@@ -57,6 +58,9 @@ sub run {
     unless (get_var('NO_KDUMP')) {
         upload_subdirs($KDUMP_DIR, 1200);
     }
+
+    #upload system log
+    upload_system_logs();
 
     # Junit xml report
     my $script_output = script_output("cat $STATUS_LOG", 600);
