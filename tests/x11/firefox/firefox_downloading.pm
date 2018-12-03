@@ -33,7 +33,6 @@ sub dl_location_switch {
     else {
         send_key "alt-shift-a";    #"Always ask me where to save files"
     }
-    send_key "ctrl-w" if is_sle('=12-sp4');
 }
 
 sub dl_save {
@@ -59,15 +58,7 @@ sub dl_pause {
 
 # firefox 60.2 does not have option or shortcut to cancel only button
 sub dl_cancel {
-    if (is_sle('=12-sp4')) {
-        dl_pause();
-        dl_menu();
-        send_key "c";
-        wait_still_screen 3, 6;
-    }
-    else {
-        assert_and_click('firefox-downloading-cancel-button');
-    }
+    assert_and_click('firefox-downloading-cancel-button');
 }
 
 sub dl_resume {
@@ -88,18 +79,8 @@ sub run {
     $self->start_firefox_with_profile;
 
     dl_location_switch("ask");
-
     dl_save($self, $dl_link_01);
-
-    # on 60.2+ is by default saved without save to window
-    if (is_sle('=12-sp4')) {
-        assert_screen('firefox-downloading-saving_box', 90);
-        wait_still_screen 3, 6;
-        send_key "alt-s";
-    }
-
     assert_and_click('firefox-downloading-saving_dialog', 'left', 90);
-
     assert_screen('firefox-downloading-library', 90);
 
     # Pause

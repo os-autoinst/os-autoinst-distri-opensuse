@@ -32,7 +32,7 @@ sub run {
 
     send_key "alt-shift-u";
     wait_still_screen 3;
-    send_key 'spc' unless is_sle('=12-sp4');
+    send_key 'spc';
 
     assert_screen('firefox-passwd-master_setting');
 
@@ -70,7 +70,7 @@ sub run {
     type_string $masterpw. "\n";
     send_key "alt-shift-l";
     wait_still_screen 3;
-    send_key 'spc' unless is_sle('=12-sp4');
+    send_key 'spc';
     assert_screen('firefox-passwd-saved');
 
     send_key "alt-shift-a";    #"Remove"

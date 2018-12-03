@@ -21,8 +21,7 @@ sub run {
     $self->start_firefox_with_profile;
 
     # open network monitor tab in developer tools
-    my $key = is_sle('=12-sp4') ? 'q' : 'e';
-    send_key "ctrl-shift-$key";
+    send_key 'ctrl-shift-e';
     assert_screen 'firefox-headers-inspector';
     $self->firefox_open_url('gnu.org');
     assert_screen('firefox-headers-website');
