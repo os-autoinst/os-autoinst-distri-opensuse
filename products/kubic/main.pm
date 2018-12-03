@@ -33,7 +33,7 @@ sub load_feature_tests {
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/one_line_checks';
     loadtest 'caasp/services_enabled';
-    load_readonly_fs_tests;
+    load_transactional_role_tests;
     loadtest 'caasp/journal_check';
 }
 
