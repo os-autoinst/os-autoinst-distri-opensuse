@@ -31,12 +31,13 @@ sub run {
         "no", "yes", "/var/log/qa/", "host-upgrade-prepAndUpgrade");
 
     #replace module url with openqa daily build modules link
-    my $upgrade_product = get_required_var('UPGRADE_PRODUCT');
-    my ($upgrade_release) = lc($upgrade_product) =~ /sles-([0-9]+)-sp/;
-    if ($upgrade_release >= 15) {
+    my $installed_product = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
+    my ($installed_release) = $installed_product =~ /^(\d+)/;
+    my $upgrade_product     = get_required_var('UPGRADE_PRODUCT');
+    my ($upgrade_release)   = lc($upgrade_product) =~ /sles-([0-9]+)-sp/;
+    if (($upgrade_release >= 15) && ($installed_release ne $upgrade_release)) {
         upload_logs('/root/autoupg.xml');
     }
 }
 
 1;
-
