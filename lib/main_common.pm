@@ -1052,7 +1052,7 @@ sub load_consoletests {
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "locale/keymap_or_locale";
-    loadtest "console/repo_orphaned_packages_check" if is_jeos;
+    loadtest "console/orphaned_packages_check" if is_jeos;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
@@ -1505,6 +1505,7 @@ sub load_extra_tests_console {
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/shells";
+    loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
