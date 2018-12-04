@@ -26,20 +26,26 @@ our @EXPORT = qw(expand_template);
 sub expand_patterns {
     if (get_var('PATTERNS') =~ m/^\s*$/) {
         if (is_sle('15+')) {
-            return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis)] if check_var('DESKTOP', 'textmode');
-            return [qw(base minimal_base enhanced_base apparmor sw_management yast2_basis x11 gnome_basic)] if check_var('DESKTOP', 'gnome');
+            my @sle15;
+            push @sle15, qw(base minimal_base enhanced_base apparmor sw_management yast2_basis);
+            push @sle15, qw(x11 gnome_basic fonts) if check_var('DESKTOP', 'gnome');
+            push @sle15, qw(gnome gnome_x11 office x11_enhanced gnome_imaging gnome_multimedia x11_yast) if check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS') =~ m/we/;
+            return [@sle15];
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
-            my @patterns;
-            push @patterns, qw(Minimal apparmor base documentation 32bit)                 if check_var('DESKTOP', 'textmode');
-            push @patterns, qw(Minimal apparmor base x11 documentation gnome-basic 32bit) if check_var('DESKTOP', 'gnome');
-            push @patterns, qw(yast2)                                                     if is_sle('>=12-sp3');
-            return [@patterns];
+            my @sle12;
+            push @sle12, qw(Minimal apparmor base documentation 32bit)                 if check_var('DESKTOP', 'textmode');
+            push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic 32bit) if check_var('DESKTOP', 'gnome');
+            push @sle12, qw(desktop-base desktop-gnome)                                if get_var('SCC_ADDONS') =~ m/we/;
+            push @sle12, qw(yast2)                                                     if is_sle('>=12-sp3');
+            return [@sle12];
         }
         # SLED12 has different patterns
         else {
-            return [qw(apparmor desktop-base documentation 32bit)] if check_var('DESKTOP', 'textmode');
-            return [qw(apparmor x11 desktop-base documentation gnome-basic desktop-gnome 32bit)] if check_var('DESKTOP', 'gnome');
+            my @sled12;
+            push @sled12, qw(Minimal Minimal-32bit apparmor apparmor-32bit base base-32bit  desktop-base documentation documentation-32bit 32bit yast2 yast2-32bit);
+            push @sled12, qw(gnome gnome-basic desktop-gnome x11 x11-32bit ) if check_var('DESKTOP', 'gnome');
+            return [@sled12];
         }
     }
     if (check_var('PATTERNS', 'all')) {
@@ -54,7 +60,7 @@ sub expand_patterns {
               get_var('SCC_ADDONS') =~ m/serverapp/;
             push @all, qw(devel_basis devel_kernel devel_yast) if
               get_var('SCC_ADDONS') =~ m/sdk/;
-            push @all, qw(gnome_x11 gnome_multimedia gnome_imaging office
+            push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
               technical_writing books) if get_var('SCC_ADDONS') =~ m/we/;
             push @all, qw(gnome_basic multimedia laptop imaging) if
               get_var('SCC_ADDONS') =~ m/desktop/;
@@ -70,9 +76,9 @@ sub expand_patterns {
               oracle_server ofed printing) if
               check_var('SLE_PRODUCT', 'sles');
             push @all, qw(default desktop-base desktop-gnome fonts
-              desktop-gnome-devel desktop-gnome-laptop kernel-devel
-              virtualization_client) if
-              check_var('SLE_PRODUCT', 'sled');
+              desktop-gnome-devel desktop-gnome-laptop kernel-devel) if
+              check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS') =~ m/we/;
+            push @all, qw(virtualization_client) if check_var('SLE_PRODUCT', 'sled');
             # SLED12 - > bsc#1117335
             push @all, qw(SDK-C-C++ SDK-Certification SDK-Doc SDK-YaST) if
               (get_var('SCC_ADDONS') =~ m/sdk/ && check_var('SLE_PRODUCT', 'sles'));
