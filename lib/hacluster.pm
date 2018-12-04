@@ -121,6 +121,7 @@ sub ensure_process_running {
     my $timeout   = 30;
     my $starttime = time;
     my $ret       = undef;
+    $timeout *= get_var('TIMEOUT_SCALE', 1);
 
     while ($ret = script_run "ps -A | grep -q '\\<$process\\>'") {
         my $timerun = time - $starttime;
@@ -141,6 +142,7 @@ sub ensure_resource_running {
     my $timeout   = 30;
     my $starttime = time;
     my $ret       = undef;
+    $timeout *= get_var('TIMEOUT_SCALE', 1);
 
     while ($ret = script_run "crm resource status $rsc | grep -E -q '$regex'") {
         my $timerun = time - $starttime;
@@ -252,6 +254,7 @@ sub wait_until_resources_started {
     push @cmds, "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     my $timeout = 120;
     my $ret     = undef;
+    $timeout *= get_var('TIMEOUT_SCALE', 1);
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
