@@ -366,6 +366,7 @@ elsif (get_var('DOCKER_IMAGE_TEST')) {
 }
 elsif (check_var('SYSTEM_ROLE', 'serverro')) {
     load_default_tests;
+    loadtest 'console/consoletest_setup';
     load_transactional_role_tests unless get_var('INSTALLONLY');
 }
 else {

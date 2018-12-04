@@ -14,16 +14,17 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_leap is_tumbleweed);
 
 sub run {
+    select_console 'root-console' if (check_var('DISTRI', 'opensuse'));
     assert_script_run "! touch /should_fail";
     assert_script_run "touch /etc/should_succeed";
     assert_script_run "touch /var/log/should_succeed";
 
     assert_script_run 'btrfs property get / ro | grep "ro=true"';
 
-    if (is_caasp '4.0+') {
+    if (is_caasp('4.0+') || is_leap('15.0+') || is_tumbleweed) {
         assert_script_run 'btrfs property get /var ro | grep "ro=false"';
     }
     else {
