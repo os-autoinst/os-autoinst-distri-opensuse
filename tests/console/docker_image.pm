@@ -36,9 +36,8 @@ sub run {
         push @stable_names, "docker.io/opensuse/tumbleweed";
     }
     elsif (is_leap(">15.0")) {
-        push @image_names, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
-        #push @stable_names, "docker.io/opensuse/leap:${version}";
-        push @stable_names, "docker.io/opensuse/leap:15.0";
+        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @stable_names, "docker.io/opensuse/leap:${version}";
     }
     else {
         die("No image locations defined for this distro.");
@@ -93,10 +92,14 @@ sub run {
 
         # container-diff
         my $image_file = $image_names[$i] =~ s/\/|:/-/gr;
-        assert_script_run("docker pull $image_names[$i]",  600);
-        assert_script_run("docker pull $stable_names[$i]", 600);
-        assert_script_run("container-diff diff daemon://$image_names[$i] daemon://$stable_names[$i] --type=rpm --type=file --type=history > /tmp/container-diff-$image_file.txt", 300);
-        upload_logs("/tmp/container-diff-$image_file.txt");
+        if (script_run("docker pull $stable_names[$i]", 600) == 0) {
+            assert_script_run("container-diff diff daemon://$image_names[$i] daemon://$stable_names[$i] --type=rpm --type=file --type=history > /tmp/container-diff-$image_file.txt", 300);
+            upload_logs("/tmp/container-diff-$image_file.txt");
+            assert_script_run("docker image rm --force $stable_names[$i]");
+        }
+        else {
+            record_soft_failure("Could not compare $image_names[$i] to $stable_names[$i] as $stable_names[$i] could not be downloaded");
+        }
 
         # Remove the image again to save space
         assert_script_run("docker image rm --force $image_names[$i]");
