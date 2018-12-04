@@ -35,9 +35,7 @@ sub run {
     # to /etc/hosts if name resolution is failing
     if (is_node(1) or is_node(2)) {
         my $hostname = get_hostname;
-        my $partner  = $hostname;
-        $partner =~ s/node([0-9]+)$/node/;
-        $partner = $1 eq '01' ? $partner . "02" : $partner . "01";
+        my $partner = is_node(1) ? choose_node(2) : choose_node(1);
 
         my $ret_q1 = script_run "host $hostname";
         my $ret_q2 = script_run "host $partner";
