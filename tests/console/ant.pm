@@ -82,7 +82,8 @@ sub run {
     zypper_call 'in ant';
 
     # Set JAVA_HOME to the jdk installation directory
-    assert_script_run("export JAVA_HOME=`update-alternatives --list javac| awk -F 'bin' '{split(\$0, a); print a[1]}'`");
+    assert_script_run("export JAVA_HOME=`update-alternatives --list javac| awk -F 'java' '{split(\$0, a); print a[1]; exit}'`'java'");
+    assert_script_run("export ANT_HOME=/usr/share/ant");
 
     # Set up
     assert_script_run "mkdir $dir";
