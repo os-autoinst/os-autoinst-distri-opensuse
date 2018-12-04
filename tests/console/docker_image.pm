@@ -27,6 +27,10 @@ sub run {
         push @image_names,  "registry.suse.de/suse/sle-12-sp3/docker/update/cr/images/suse/sles12sp3:latest";
         push @stable_names, "registry.suse.com/suse/sles12sp3:latest";
     }
+    elsif (is_sle("=12-SP4")) {
+        push @image_names,  "registry.suse.de/suse/sle-12-sp4/docker/update/cr/images/suse/sles12sp4:latest";
+        push @stable_names, "registry.suse.com/suse/sles12sp4:latest";
+    }
     elsif (is_sle("=15")) {
         push @image_names,  "registry.suse.de/suse/sle-15/update/cr/images/suse/sle15:latest";
         push @stable_names, "registry.suse.com/suse/sle15:latest";
@@ -65,19 +69,20 @@ sub run {
         systemctl('restart docker');
     }
 
-    assert_script_run(
-        "curl -LO https://storage.googleapis.com/container-diff/latest/container-diff-linux-amd64 &&
-        chmod +x container-diff-linux-amd64 && mv container-diff-linux-amd64 /usr/local/bin/container-diff"
-    );
+    assert_script_run('curl -LO https://storage.googleapis.com/container-diff/latest/container-diff-linux-amd64', 240);
+    assert_script_run('chmod +x container-diff-linux-amd64 && sudo mv container-diff-linux-amd64 /usr/local/bin/container-diff');
 
     for my $i (0 .. $#image_names) {
         # Load the image
-        assert_script_run("docker pull $image_names[$i]", 600);
+        assert_script_run("docker pull $image_names[$i]", 900);
         # Running executables works
         assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'echo "I work" | grep "I work"'};
         # It is the right version
         if (is_sle("=12-SP3")) {
             validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 12 SP3"/ });
+        }
+        elsif (is_sle("=12-SP4")) {
+            validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 12 SP4"/ });
         }
         elsif (is_sle("=15")) {
             validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server 15"/ });
@@ -107,3 +112,4 @@ sub run {
 }
 
 1;
+
