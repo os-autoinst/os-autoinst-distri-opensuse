@@ -31,7 +31,7 @@ sub run {
     my ($img_name) = $img_url =~ /([^\/]+)$/;
 
     if (my $img_id = $provider->find_img($img_name)) {
-        record_info('Info', "Image $img_name already exists!");
+        record_info('Info', "Image $img_id already exists!");
         return;
     }
 
