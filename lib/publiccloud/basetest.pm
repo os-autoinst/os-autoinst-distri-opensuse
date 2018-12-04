@@ -26,7 +26,8 @@ sub provider_factory {
         $provider = publiccloud::ec2->new(
             key_id     => get_required_var('PUBLIC_CLOUD_KEY_ID'),
             key_secret => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
-            region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
+            region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
+            username   => 'ec2-user'
         );
 
     }
@@ -36,7 +37,8 @@ sub provider_factory {
             key_secret   => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
             region       => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
             tenantid     => get_required_var('PUBLIC_CLOUD_TENANT_ID'),
-            subscription => get_required_var('PUBLIC_CLOUD_SUBSCRIPTION_ID')
+            subscription => get_required_var('PUBLIC_CLOUD_SUBSCRIPTION_ID'),
+            username     => 'azureuser'
         );
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
@@ -48,7 +50,8 @@ sub provider_factory {
             private_key         => get_required_var('PUBLIC_CLOUD_KEY'),
             client_id           => get_required_var('PUBLIC_CLOUD_CLIENT_ID'),
             region              => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
-            storage_name        => get_var('PUBLIC_CLOUD_STORAGE', 'openqa-storage')
+            storage_name        => get_var('PUBLIC_CLOUD_STORAGE', 'openqa-storage'),
+            username            => 'susetest'
         );
     }
     else {

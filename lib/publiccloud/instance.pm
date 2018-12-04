@@ -19,6 +19,8 @@ has instance_id => undef;               # unique CSP instance id
 has public_ip   => undef;               # public IP of instance
 has username    => undef;               # username for ssh connection
 has ssh_key     => undef;               # path to ssh-key for connection
+has image_id    => undef;               # image from where the VM is booted
+has type        => undef;
 has provider    => undef, weak => 1;    # back reference to the provider
 
 =head2 run_ssh_command
