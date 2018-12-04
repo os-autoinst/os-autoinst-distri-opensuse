@@ -80,6 +80,8 @@ our @EXPORT = qw(
   load_reboot_tests
   load_rescuecd_tests
   load_rollback_tests
+  load_applicationstests
+  load_security_tests
   load_security_tests_apparmor
   load_security_tests_apparmor_profile
   load_security_tests_core
@@ -1982,6 +1984,16 @@ sub load_common_x11 {
     }
 }
 
+sub load_applicationstests {
+    if (my $val = get_var("APPTESTS")) {
+        for my $test (split(/,/, $val)) {
+            loadtest "$test";
+        }
+        return 1;
+    }
+    return 0;
+}
+
 # The function name load_security_tests_* is to avoid confusing since
 # openSUSE does NOT have FIPS mode
 # Some tests are valid only for FIPS Regression testing. Use
@@ -2089,6 +2101,50 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
 }
+
+sub load_security_tests {
+    if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/system_prepare";
+        loadtest "console/consoletest_setup";
+        loadtest "console/hostname";
+    }
+    if (check_var("SECURITY_TEST", "fips_setup")) {
+        # Setup system into fips mode
+        loadtest "fips/fips_setup";
+    }
+    elsif (check_var("SECURITY_TEST", "core")) {
+        load_security_tests_core;
+    }
+    elsif (check_var("SECURITY_TEST", "web")) {
+        load_security_tests_web;
+    }
+    elsif (check_var("SECURITY_TEST", "misc")) {
+        load_security_tests_misc;
+    }
+    elsif (check_var("SECURITY_TEST", "crypt")) {
+        load_security_tests_crypt;
+    }
+    elsif (check_var("SECURITY_TEST", "ipsec")) {
+        loadtest "console/ipsec_tools_h2h";
+    }
+    elsif (check_var("SECURITY_TEST", "mmtest")) {
+        # Load client tests by APPTESTS variable
+        load_applicationstests;
+    }
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
+        load_security_tests_apparmor;
+    }
+    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
+        load_security_tests_apparmor_profile;
+    }
+    elsif (check_var("SECURITY_TEST", "openscap")) {
+        load_security_tests_openscap;
+    }
+    elsif (check_var("SECURITY_TEST", "selinux")) {
+        load_security_tests_selinux;
+    }
+}
+
 
 sub load_systemd_patches_tests {
     boot_hdd_image;

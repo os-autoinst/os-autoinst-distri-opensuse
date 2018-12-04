@@ -418,16 +418,6 @@ logcurrentenv(
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
-sub load_applicationstests {
-    if (my $val = get_var("APPTESTS")) {
-        for my $test (split(/,/, $val)) {
-            loadtest "$test";
-        }
-        return 1;
-    }
-    return 0;
-}
-
 sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {
         my $parents = get_parents;
@@ -752,45 +742,7 @@ elsif (get_var("SLEPOS")) {
 }
 elsif (get_var("SECURITY_TEST")) {
     prepare_target();
-    if (get_var('BOOT_HDD_IMAGE')) {
-        loadtest "console/system_prepare";
-        loadtest "console/consoletest_setup";
-    }
-    if (check_var("SECURITY_TEST", "fips_setup")) {
-        # Setup system into fips mode
-        loadtest "fips/fips_setup";
-    }
-    elsif (check_var("SECURITY_TEST", "core")) {
-        load_security_tests_core;
-    }
-    elsif (check_var("SECURITY_TEST", "web")) {
-        load_security_tests_web;
-    }
-    elsif (check_var("SECURITY_TEST", "misc")) {
-        load_security_tests_misc;
-    }
-    elsif (check_var("SECURITY_TEST", "crypt")) {
-        load_security_tests_crypt;
-    }
-    elsif (check_var("SECURITY_TEST", "ipsec")) {
-        loadtest "console/ipsec_tools_h2h";
-    }
-    elsif (check_var("SECURITY_TEST", "mmtest")) {
-        # Load client tests by APPTESTS variable
-        load_applicationstests;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor")) {
-        load_security_tests_apparmor;
-    }
-    elsif (check_var("SECURITY_TEST", "openscap")) {
-        load_security_tests_openscap;
-    }
-    elsif (check_var("SECURITY_TEST", "selinux")) {
-        load_security_tests_selinux;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
-        load_security_tests_apparmor_profile;
-    }
+    load_security_tests;
 }
 elsif (get_var('SMT')) {
     prepare_target();

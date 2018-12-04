@@ -373,33 +373,7 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
 }
 elsif (get_var('SECURITY_TEST')) {
     boot_hdd_image;
-    loadtest "console/system_prepare";
-    loadtest "console/consoletest_setup";
-    loadtest "console/hostname";
-    if (check_var('SECURITY_TEST', 'core')) {
-        load_security_tests_core;
-    }
-    elsif (check_var('SECURITY_TEST', 'web')) {
-        load_security_tests_web;
-    }
-    elsif (check_var('SECURITY_TEST', 'misc')) {
-        load_security_tests_misc;
-    }
-    elsif (check_var('SECURITY_TEST', 'crypt')) {
-        load_security_tests_crypt;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor")) {
-        load_security_tests_apparmor;
-    }
-    elsif (check_var("SECURITY_TEST", "openscap")) {
-        load_security_tests_openscap;
-    }
-    elsif (check_var("SECURITY_TEST", "selinux")) {
-        load_security_tests_selinux;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
-        load_security_tests_apparmor_profile;
-    }
+    load_security_tests;
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
