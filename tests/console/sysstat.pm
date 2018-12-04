@@ -12,7 +12,7 @@
 
 use base 'consoletest';
 use utils qw(zypper_call systemctl);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_opensuse);
 use strict;
 use testapi;
 
@@ -25,7 +25,7 @@ sub run {
     systemctl 'restart sysstat.service';
 
     #compare todays date with todays generated file.
-    if (is_sle('>=12-SP3')) {
+    if (is_sle('>=12-SP3') || is_opensuse) {
         assert_script_run "test -e /var/log/sa/sa`date +'%Y%m%d'`";
     } else {
         assert_script_run "test -e /var/log/sa/sa`date +'%d'`";
@@ -47,7 +47,7 @@ sub run {
     validate_script_output "mpstat -P ALL 2 5 |grep all |wc -l", sub { /6/ };
 
     #header integrity checks:
-    if (is_sle('>=12-SP3')) {
+    if (is_sle('>=12-SP3') || is_opensuse) {
         validate_script_output "sar -r", sub { /kbmemfree   kbavail kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
         validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command/ };
     } else {
