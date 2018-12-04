@@ -364,6 +364,10 @@ elsif (get_var('DOCKER_IMAGE_TEST')) {
     boot_hdd_image;
     load_extra_tests_docker;
 }
+elsif (check_var('SYSTEM_ROLE', 'serverro')) {
+    load_default_tests;
+    load_transactional_role_tests unless get_var('INSTALLONLY');
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
         load_boot_tests();
