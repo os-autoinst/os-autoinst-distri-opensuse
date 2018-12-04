@@ -25,7 +25,10 @@ sub run {
     barrier_wait("HAWK_INIT_$cluster_name");
 
     # Test the Hawk service
-    if (systemctl 'show -p ActiveState hawk.service | grep ActiveState=active', ignore_failure => 1) {
+    if (!systemctl 'status hawk.service', ignore_failure => 1) {
+        # Test if Hawk service state is set to enable
+        assert_script_run("systemctl show -p UnitFileState hawk.service | grep UnitFileState=enabled");
+
         # Test the Hawk port
         assert_script_run "ss -nap | grep '.*LISTEN.*:$hawk_port\[[:blank:]]*'";
 
@@ -41,6 +44,9 @@ sub run {
             record_info 'Hawk', 'Hawk is failing! Analysis is requiring and consider to open a bug if needed!';
         }
     }
+
+    # Keep a screenshot for this test
+    save_screenshot;
 
     barrier_wait("HAWK_CHECKED_$cluster_name");
 }
