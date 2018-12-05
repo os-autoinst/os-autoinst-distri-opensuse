@@ -49,8 +49,8 @@ sub send_alt {
     my $txt = check_var('VIDEOMODE', 'text');
 
     if (is_caasp '4.0+') {
-        $keys{kb_layout} = ['k'];
-        $keys{kb_test}   = ['y'];
+        $keys{kb_layout} = ['k', 'k'];
+        $keys{kb_test}   = ['y', 'e'];
         $keys{password}  = ['a', 'a'];
     }
     send_key "alt-$keys{$key}[$txt]";

@@ -153,6 +153,12 @@ sub load_stack_tests {
         loadtest 'caasp/stack_configure';
         loadtest 'caasp/stack_bootstrap';
         loadtest 'caasp/stack_kubernetes';
+
+        # CAP deployment needs a lot of resources
+        if (check_var('MACHINE', 'cap_x86_64')) {
+            loadtest 'caasp/stack_cap';
+        }
+        # [Update or] Reboot to check cluster will survive
         if (update_scheduled) {
             loadtest 'caasp/stack_update';
         } else {
@@ -161,11 +167,11 @@ sub load_stack_tests {
         if (update_scheduled 'dup') {
             loadtest 'caasp/shift_version', name => 'ver=inc';
         }
+        # Add and remove cluster nodes
         loadtest 'caasp/stack_add_remove' if get_delayed;
 
         # Section for long running tests
         unless (is_caasp('staging') || is_caasp('local')) {
-            loadtest 'caasp/stack_cap' unless is_caasp('qam');
             loadtest 'caasp/stack_conformance';
         }
         loadtest 'caasp/stack_finalize';

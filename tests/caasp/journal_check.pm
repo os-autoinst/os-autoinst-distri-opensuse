@@ -30,6 +30,7 @@ sub run {
         bsc_1028060_FEATURE => '.*getting etcd lock took too long, reboot canceld.*',
         bsc_1071224         => '.*Failed to start Mask tmp.mount by default on SUSE systems.*',
         poo_31951_FEATURE   => '.*Spectre V2 \:.*LFENCE not serializing.*',
+        bsc_1118321         => '.*update-checker-migration.timer.*(Failed to parse calendar specification|Timer unit lacks value setting).*',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
