@@ -31,8 +31,16 @@ sub run {
     if (get_var('DROP_PERSISTENT_NET_RULES')) {
         type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
     }
-    if (is_sle('<12-SP2') && !check_var('VIRTIO_CONSOLE', 0)) {
-        add_serial_console('hvc0');
+    # Configure serial consoles for virtio support
+    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
+    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
+    if (!check_var('VIRTIO_CONSOLE', 0)) {
+        if (is_sle('<12-SP2')) {
+            add_serial_console('hvc0');
+        }
+        elsif (get_var('OFW')) {
+            add_serial_console('hvc1');
+        }
     }
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
