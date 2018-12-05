@@ -43,8 +43,8 @@ sub expand_patterns {
         # SLED12 has different patterns
         else {
             my @sled12;
-            push @sled12, qw(Minimal Minimal-32bit apparmor apparmor-32bit base base-32bit  desktop-base documentation documentation-32bit 32bit yast2 yast2-32bit);
-            push @sled12, qw(gnome gnome-basic desktop-gnome x11 x11-32bit ) if check_var('DESKTOP', 'gnome');
+            push @sled12, qw(Minimal apparmor desktop-base documentation 32bit);
+            push @sled12, qw(gnome-basic desktop-gnome x11) if check_var('DESKTOP', 'gnome');
             return [@sled12];
         }
     }
@@ -99,7 +99,7 @@ sub get_product_version {
 
 sub expand_addons {
     my %addons;
-    my @addons = grep { defined $_ } split(/,/, get_var('SCC_ADDONS'));
+    my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS'));
     foreach my $addon (@addons) {
         $addons{$addon} = {
             name    => get_addon_fullname($addon),

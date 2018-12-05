@@ -29,6 +29,7 @@ sub run {
 
     # Profile is a template, expand and rename
     $profile = expand_template($profile) if $path =~ s/^(.*\.xml)\.ep$/$1/;
+    die $profile if $profile->isa('Mojo::Exception');
 
     # Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
     if (my $version = scc_version(get_var('VERSION', ''))) {
