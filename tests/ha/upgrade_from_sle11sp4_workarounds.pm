@@ -44,10 +44,11 @@ sub run {
             record_info "Name resolution failing", "Cannot resolve own name or name of partner. Will attempt to add hosts to /etc/hosts", result => 'softfail';
             my $device = get_var('SUT_NETDEVICE', 'eth0');
             my $addr = script_output "ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
-            if ($addr =~ m/10\.0\.2/) {    # Expected addresses are 10.0.2.17 and 10.0.2.18
+            if ($addr =~ m/10\.0\.2/) {    # Expected addresses are in 10.0.2/24 and start with 10.0.2.15
                 assert_script_run "echo \"$addr  $hostname\" >> /etc/hosts";
                 $addr =~ s/\.([0-9]+)$/\./;
-                $addr = $1 eq '17' ? $addr . "18" : $addr . "17";
+                $addr = $addr . sprintf("%02d", $1 + 1) if ($1 % 2);
+                $addr = $addr . sprintf("%02d", $1 - 1) if (!($1 % 2));
                 assert_script_run "echo \"$addr  $partner\" >> /etc/hosts";
             }
             else {
