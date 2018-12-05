@@ -153,9 +153,6 @@ sub process_reboot {
         elsif (match_has_tag 'grub2') {
             send_key 'ret';
         }
-        else {
-            die 'Kubic did not manage to reboot properly';
-        }
     }
     microos_login;
 }
