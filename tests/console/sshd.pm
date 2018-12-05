@@ -24,7 +24,7 @@ sub run {
     my $self = shift;
     # new user to test sshd
     my $ssh_testman        = "sshboy";
-    my $ssh_testman_passwd = $testapi::password;
+    my $ssh_testman_passwd = "let3me2in1";
 
     select_console 'root-console';
 
@@ -72,9 +72,9 @@ sub run {
 
     select_console 'root-console';
 
-    # Generate RSA key for SSH and SCP it to our new user's profile
+    # Generate RSA key for SSH and copy it to our new user's profile
     assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
-    exec_and_insert_password("scp ~/.ssh/id_rsa.pub $ssh_testman\@localhost:~/.ssh/authorized_keys");
+    assert_script_run "install -m 644 -o $ssh_testman ~/.ssh/id_rsa.pub /home/$ssh_testman/.ssh/authorized_keys";
 
     # Test non-interactive SSH and after that remove RSA keys
     assert_script_run "ssh -4v $ssh_testman\@localhost bash -c 'whoami | grep $ssh_testman'";
