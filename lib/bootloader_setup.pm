@@ -450,6 +450,17 @@ sub bootmenu_network_source {
                 # As we use boot options, no extra action is required
                 return;
             }
+
+            # fate#322276
+            # Point linuxrc to a repomd repository and load the installation system from local medium
+            if (($m_protocol eq "http") && (get_var('REMOTE_REPOINST'))) {
+                type_string_very_slow " install=$m_mirror";
+                # Specifies the installation system to use, e.g. from where to load installer
+                my $arch = get_var('ARCH');
+                type_string_very_slow " instsys=disk:/boot/$arch/root";
+                return;
+            }
+
             my ($m_server, $m_share, $m_directory);
 
             # Parse SUSEMIRROR into variables
