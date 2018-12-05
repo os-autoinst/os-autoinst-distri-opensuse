@@ -251,12 +251,18 @@ sub unlock_if_encrypted {
     }
 }
 
+=head2 systemctl
+Wrapper around systemctl call to be able to add some useful options.
+
+Please note that return code of this function is handle by 'script_run' or
+'assert_script_run' function, and as such, can be different.
+=cut
 sub systemctl {
     my ($command, %args) = @_;
     my $expect_false = $args{expect_false} ? '!' : '';
     my @script_params = ("$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
     if ($args{ignore_failure}) {
-        script_run(@script_params);
+        script_run($script_params[0], $args{timeout});
     } else {
         assert_script_run(@script_params);
     }
