@@ -81,6 +81,7 @@ our @EXPORT = qw(
   load_rescuecd_tests
   load_rollback_tests
   load_security_tests_apparmor
+  load_security_tests_apparmor_profile
   load_security_tests_core
   load_security_tests_crypt
   load_security_tests_misc
@@ -2026,6 +2027,12 @@ sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
     loadtest "security/apparmor/aa_notify";
+}
+
+sub load_security_tests_apparmor_profile {
+    loadtest "security/apparmor_profile/usr_sbin_dovecot";
+    loadtest "security/apparmor_profile/usr_sbin_traceroute";
+    loadtest "security/apparmor_profile/usr_sbin_nscd";
 }
 
 sub load_security_tests_openscap {
