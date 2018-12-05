@@ -99,7 +99,7 @@ sub get_product_version {
 
 sub expand_addons {
     my %addons;
-    my @addons = grep { defined $_ } split(/,/, get_var('SCC_ADDONS'));
+    my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS'));
     foreach my $addon (@addons) {
         $addons{$addon} = {
             name    => get_addon_fullname($addon),
