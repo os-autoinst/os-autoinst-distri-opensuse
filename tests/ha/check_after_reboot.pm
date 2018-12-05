@@ -18,6 +18,8 @@ use hacluster;
 
 sub run {
     my $cluster_name = get_cluster_name;
+    # In ppc64le and aarch64, workers are slower
+    set_var('TIMEOUT_SCALE', 2) unless (check_var('ARCH', 'x86_64'));
 
     # Check cluster state *after* reboot
     barrier_wait("CHECK_AFTER_REBOOT_BEGIN_$cluster_name");

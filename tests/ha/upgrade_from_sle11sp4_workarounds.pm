@@ -29,6 +29,34 @@ sub run {
     # We execute this test after a reboot, so we need to log in
     select_console 'root-console';
 
+    # In 2-node migration from SLES+HA 11-SP4, host name resolution
+    # is needed earlier than in other test cases to apply the workarounds
+    # needed by the cluster after migration. We'll add the hosts
+    # to /etc/hosts if name resolution is failing
+    if (is_node(1) or is_node(2)) {
+        my $hostname = get_hostname;
+        my $partner = is_node(1) ? choose_node(2) : choose_node(1);
+
+        my $ret_q1 = script_run "host $hostname";
+        my $ret_q2 = script_run "host $partner";
+
+        if ($ret_q1 or $ret_q2) {
+            record_info "Name resolution failing", "Cannot resolve own name or name of partner. Will attempt to add hosts to /etc/hosts", result => 'softfail';
+            my $device = get_var('SUT_NETDEVICE', 'eth0');
+            my $addr = script_output "ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
+            if ($addr =~ m/10\.0\.2/) {    # Expected addresses are in 10.0.2/24 and start with 10.0.2.15
+                assert_script_run "echo \"$addr  $hostname\" >> /etc/hosts";
+                $addr =~ s/\.([0-9]+)$/\./;
+                $addr = $addr . sprintf("%02d", $1 + 1) if ($1 % 2);
+                $addr = $addr . sprintf("%02d", $1 - 1) if (!($1 % 2));
+                assert_script_run "echo \"$addr  $partner\" >> /etc/hosts";
+            }
+            else {
+                record_info "Unexpected IP Address", "Could not determine IP addresses. Got $addr";
+            }
+        }
+    }
+
     # Modify the Corosync configuration only on the first node
     assert_script_run "curl -f -v " . autoinst_url . "/data/ha/corosync.conf -o ${corosync_conf}" if is_node(1);
 
