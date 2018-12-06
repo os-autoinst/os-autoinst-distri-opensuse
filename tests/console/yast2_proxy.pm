@@ -62,9 +62,6 @@ sub post_fail_hook {
 
 sub run {
     select_console 'root-console';
-    if (is_sle '15+') {
-        zypper_call('in squid');
-    }
 
     # install yast2-squid, yast2-proxy, squid package at first
     zypper_call("in squid yast2-squid yast2-proxy", timeout => 180);
@@ -205,7 +202,7 @@ sub run {
     wait_still_screen 1;
     # change subnet for 192.168.0.0/16 to 192.168.0.0/18
     wait_screen_change { send_key 'tab'; };
-    send_key_until_needlematch 'yast2_proxy_acl_group_localnet', 'down';
+    send_key_until_needlematch 'yast2_proxy_acl_group_localnet_selected', 'down';
     wait_still_screen 1;
     send_key 'alt-i';
     assert_screen 'yast2_proxy_acl_group_edit';
