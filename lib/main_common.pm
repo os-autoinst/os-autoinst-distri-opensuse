@@ -1392,6 +1392,7 @@ sub load_yast2_gui_tests {
 }
 
 sub load_extra_tests_desktop {
+    return unless any_desktop_is_applicable;
     if (check_var('DISTRI', 'sle')) {
         # start extra x11 tests from here
         loadtest 'x11/vnc_two_passwords';
@@ -1563,35 +1564,19 @@ sub load_extra_tests {
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "console/hostname";
     # Extra tests are too long, split the test into subtest according to the
-    # EXTRATEST variable; to maintain compatibility, run all tests if the
-    # variable is equal 1
-    if (check_var('EXTRATEST', 1) && any_desktop_is_applicable()) {
-        load_extra_tests_desktop;
-    }
-    elsif (check_var('EXTRATEST', 1)) {
-        load_extra_tests_zypper;
-        load_extra_tests_console;
-        load_extra_tests_opensuse;
-        # schedule the docker tests later as it needs the containers module on
-        # SLE>=15 and therefore would potentially pollute other test modules.
-        # Currently for our SLE12 validation tests we are not using a
-        # registered SLE installation so we should not schedule the test
-        # modules.
-        load_extra_tests_docker;
-        load_extra_tests_kdump;
-    }
-    else {
-        loadtest "console/zypper_ref" unless get_var('EXTRATEST') =~ /zypper/;
-        foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
-            if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
-                $test_to_run->();
-            }
-            else {
-                diag "unknown scenario for EXTRATEST value $test_name";
-            }
+    # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
+    # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
+    # EXTRATEST=desktop in dektop tests
+    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
+    foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
+        if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
+            $test_to_run->();
         }
-        loadtest "console/consoletest_finish";
+        else {
+            diag "unknown scenario for EXTRATEST value $test_name";
+        }
     }
+    loadtest "console/consoletest_finish" if console_is_applicable;
     return 1;
 }
 
