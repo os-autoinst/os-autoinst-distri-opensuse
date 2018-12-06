@@ -32,7 +32,16 @@ sub run {
     }
 
     # program 'sestatus' can be found in policycoreutils pkgs
-    zypper_call("in policycoreutils policycoreutils-python");
+    zypper_call("in policycoreutils");
+    my $ret = script_run('zypper -n in policycoreutils-python');
+    if ($ret) {
+        if (defined $ret && $ret == 104) {
+            record_soft_failure 'bsc#1116288 - package policycoreutils-python not found in module SLE-Module-Development-Tools';
+        }
+        else {
+            die "Package policycoreutils-python installation failed";
+        }
+    }
 
     my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -w srcpackage | cut -d '|' -f 2`");
     zypper_call("in $pkgs", timeout => 3000);
