@@ -27,7 +27,7 @@ sub run {
     x11_start_program("gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing');
 
     # It may happen that the screen sharing is not available
-    assert_screen [qw(with_screensharing without_screensharing)];
+    assert_screen [qw(with_screensharing without_screensharing disabled_screensharing)];
     if (match_has_tag 'without_screensharing') {
         record_info 'vino missing', 'After the installation the screen sharing is not available - vino is missing and we need to install it now.';
         send_key 'ctrl-q';
@@ -39,6 +39,9 @@ sub run {
 
         # Run the gnome-control-center to ensure the same state as we were while entering this if block
         x11_start_program("gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing');
+    }
+    if (match_has_tag 'disabled_screensharing') {
+        assert_and_click 'disabled_screensharing';
     }
 
     # Finally ensure that the screen sharing is available
