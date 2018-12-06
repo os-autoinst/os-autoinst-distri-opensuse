@@ -1049,6 +1049,9 @@ sub load_consoletests {
     }
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/system_prepare";
+    loadtest "console/check_network";
+    loadtest "console/system_state";
+    loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "locale/keymap_or_locale";
@@ -1322,6 +1325,9 @@ sub load_x11tests {
 sub load_yast2_ncurses_tests {
     boot_hdd_image;
     # setup $serialdev permission and so on
+    loadtest "console/check_network";
+    loadtest "console/system_state";
+    loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "console/hostname";
@@ -1552,6 +1558,7 @@ sub load_extra_tests {
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
     # setup $serialdev permission and so on
+    loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest "console/hostname";
@@ -2140,6 +2147,9 @@ sub load_syscontainer_tests() {
 
     # setup $serialdev permission and so on
     loadtest "console/system_prepare";
+    loadtest "console/check_network";
+    loadtest "console/system_state";
+    loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
 
     # Install needed pieces
