@@ -585,6 +585,8 @@ sub select_serial_terminal {
         }
     } elsif (get_var('S390_ZKVM')) {
         $console = $root ? 'root-console' : 'user-console';
+    } elsif ($backend eq 'svirt') {
+        $console = $root ? 'root-console' : 'user-console';
     } elsif ($backend =~ /^(ikvm|ipmi|spvm)$/) {
         $console = 'root-ssh';
     }

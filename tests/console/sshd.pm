@@ -16,7 +16,7 @@
 use warnings;
 use base "consoletest";
 use strict;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(systemctl exec_and_insert_password);
 use version_utils qw(is_virtualization_server is_upgrade);
 
@@ -50,31 +50,39 @@ sub run {
     assert_script_run("echo $changepwd | chpasswd");
 
     opensusebasetest::select_serial_terminal();
+    if (is_serial_terminal()) {
+        # Make interactive SSH connection as the new user
+        type_string "ssh -v -l $ssh_testman localhost -t\n";
+        wait_serial('Are you sure you want to continue connecting (yes/no)?', undef, 0, no_regex => 1);
+        type_string "yes\n";
+        wait_serial('Password:', undef, 0, no_regex => 1);
+        type_string "$ssh_testman_passwd\n";
+        wait_serial('sshboy@susetest:~>', undef, 0, no_regex => 1);
+        type_string "export PS1='# '\n";
 
-    # Make interactive SSH connection as the new user
-    type_string "ssh -v -l $ssh_testman localhost -t\n";
-    wait_serial('Are you sure you want to continue connecting (yes/no)?', undef, 0, no_regex => 1);
-    type_string "yes\n";
-    wait_serial('Password:', undef, 0, no_regex => 1);
-    type_string "$ssh_testman_passwd\n";
-    wait_serial('sshboy@susetest:~>', undef, 0, no_regex => 1);
-    type_string "export PS1='# '\n";
+        # Check that we are really in the SSH session
+        assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
+        assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
+        assert_script_run "whoami | grep $ssh_testman";
+        assert_script_run "mkdir .ssh";
 
-    # Check that we are really in the SSH session
-    assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
-    assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
-    assert_script_run "whoami | grep $ssh_testman";
-    assert_script_run "mkdir .ssh";
-
-    # Exit properly and check we're root again
-    script_run("exit", 0);
-    assert_script_run "whoami | grep root";
+        # Exit properly and check we're root again
+        script_run("exit", 0);
+        assert_script_run "whoami | grep root";
+    }
+    else {
+        record_info("VirtIO N/A", "The VirtIO serial terminal is not available over here");
+        # Since we don't have the VirtIO serial terminal we need to gather public keys manually
+        assert_script_run "install -m 1700 -d ~/.ssh";
+        assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 > ~/.ssh/known_hosts";
+    }
 
     select_console 'root-console';
 
     # Generate RSA key for SSH and copy it to our new user's profile
     assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
-    assert_script_run "install -m 644 -o $ssh_testman ~/.ssh/id_rsa.pub /home/$ssh_testman/.ssh/authorized_keys";
+    assert_script_run "install -m 1700 -o $ssh_testman -d /home/$ssh_testman/.ssh";
+    assert_script_run "install -m 0644 -o $ssh_testman ~/.ssh/id_rsa.pub /home/$ssh_testman/.ssh/authorized_keys";
 
     # Test non-interactive SSH and after that remove RSA keys
     assert_script_run "ssh -4v $ssh_testman\@localhost bash -c 'whoami | grep $ssh_testman'";
