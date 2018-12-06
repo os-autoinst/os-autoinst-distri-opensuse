@@ -67,7 +67,7 @@ sub run {
         send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
     }
     else {
-        if (get_var("PROMO") || get_var('LIVETEST')) {
+        if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
         }
         elsif (!is_jeos && !is_caasp('VMX')) {
