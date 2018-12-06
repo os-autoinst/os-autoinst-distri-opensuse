@@ -14,10 +14,14 @@
 package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
+use Data::Dumper;
 use testapi;
 
-has tenantid     => undef;
-has subscription => undef;
+has tenantid        => undef;
+has subscription    => undef;
+has resource_group  => 'openqa-upload';
+has storage_account => 'openqa';
+has container       => 'sle-images';
 
 sub init {
     my ($self) = @_;
@@ -26,40 +30,53 @@ sub init {
           . $self->key_secret . ' -t ' . $self->tenantid);
 }
 
-sub filename_to_resgroup {
-    my ($self, $name) = @_;
-
-    ($name) = $name =~ m/([^\/]+)$/;
-    $name =~ s/\.xz$//;
-    $name =~ s/\.vhdfixed$/.vhd/;
-    $name = $self->prefix . "-" . $name;
-    return $name;
-}
-
-sub find_resgroup {
-    my ($self, $name) = @_;
-
-    my $jgroups = decode_json(script_output("az group list"));
-    for my $g (@{$jgroups}) {
-        if ($name eq $g->{name}) {
-            return $name;
-        }
-    }
-
-    return;
+sub resource_exist {
+    my ($self) = @_;
+    my $output = script_output(q(az group list --query "[?name=='openqa-upload']"));
+    return ($output ne '[]');
 }
 
 sub find_img {
     my ($self, $name) = @_;
 
-    $name = $self->filename_to_resgroup($name);
-    return unless $self->find_resgroup($name);
+    return if (!$self->resource_exist());
 
-    my $images = decode_json(script_output("az image list --resource-group '$name'"));
+    ($name) = $name =~ m/([^\/]+)$/;
+    $name =~ s/\.xz$//;
+    $name =~ s/\.vhdfixed$/.vhd/;
+    my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
+    record_info('INFO', $json);
+    eval {
+        my $image = decode_json($json);
+        return $image->{name};
+    };
+}
 
-    #retrives the first image of the resource group
-    return $images->[0]->{name} if (@{$images});
-    return;
+sub get_storage_account_keys {
+    my ($self, %args) = @_;
+    my $output = script_output("az storage account keys list --resource-group "
+          . $self->resource_group . " --account-name " . $self->storage_account);
+    my $json = decode_json($output);
+    my $key  = undef;
+    if (@{$json} > 0) {
+        $key = $json->[0]->{value};
+    }
+    die("Storage account key not found!") unless $key;
+    return $key;
+}
+
+sub create_resources {
+    my ($self) = @_;
+    my $timeout = 60 * 5;
+    record_info('INFO', 'Create resource group ' . $self->resource_group);
+    assert_script_run('az group create --name ' . $self->resource_group . ' -l ' . $self->region, $timeout);
+    record_info('INFO', 'Create storage account ' . $self->storage_account);
+    assert_script_run('az storage account create --resource-group ' . $self->resource_group . ' -l '
+          . $self->region . ' --name ' . $self->storage_account . ' --kind Storage --sku Standard_LRS', $timeout);
+    my $key = $self->get_storage_account_keys($self->resource_group, $self->storage_account);
+    record_info('INFO', 'Create storage container ' . $self->container);
+    assert_script_run('az storage container create --account-name ' . $self->storage_account
+          . ' --name ' . $self->container, $timeout);
 }
 
 sub upload_img {
@@ -70,44 +87,24 @@ sub upload_img {
         $file =~ s/\.xz$//;
     }
 
-    my $suffix = time();
     my ($img_name) = $file =~ /([^\/]+)$/;
     $img_name =~ s/\.vhdfixed/.vhd/;
+    my $disk_name = $img_name;
 
-    my $group     = $self->filename_to_resgroup($file);
-    my $acc       = $self->prefix . "-" . $suffix;
-    my $container = $self->prefix . "-" . $suffix;
-    my $disk_name = $self->prefix . "-" . $suffix;
+    my $rg_exist = $self->resource_exist();
 
-    $acc = uc($acc);
-    $acc =~ s/[^\da-z]//g;
-    $acc = substr($acc, 0, 24);
+    $self->create_resources() if (!$rg_exist);
 
-    assert_script_run("az group create --name $group -l " . $self->region);
+    my $key = $self->get_storage_account_keys();
 
-    assert_script_run("az storage account create --resource-group $group "
-          . "-l " . $self->region . " --name $acc --kind Storage --sku Standard_LRS");
+    assert_script_run('az storage blob upload --max-connections 4 --account-name '
+          . $self->storage_account . ' --account-key ' . $key . ' --container-name ' . $self->container
+          . ' --type page --file ' . $file . ' --name ' . $img_name, timeout => 60 * 60 * 2);
+    assert_script_run('az disk create --resource-group ' . $self->resource_group . ' --name ' . $disk_name
+          . ' --source https://' . $self->storage_account . '.blob.core.windows.net/' . $self->container . '/' . $img_name);
 
-    my $output = script_output("az storage account keys list "
-          . "--resource-group $group --account-name $acc");
-    my $json = decode_json($output);
-    my $key  = undef;
-    if (@{$json} > 0) {
-        $key = $json->[0]->{value};
-    }
-    die("Storage account key not found!") unless $key;
-
-    assert_script_run("az storage container create --account-name $acc "
-          . "--name $container");
-
-    assert_script_run("az storage blob upload --max-connections 4 "
-          . "--account-name $acc --account-key $key --container-name $container "
-          . "--type page --file '$file' --name $img_name", timeout => 60 * 60 * 2);
-    assert_script_run("az disk create --resource-group $group --name $disk_name "
-          . "--source https://$acc.blob.core.windows.net/$container/$img_name");
-
-    assert_script_run("az image create --resource-group $group --name $img_name "
-          . "--os-type Linux --source='$disk_name'");
+    assert_script_run('az image create --resource-group ' . $self->resource_group . ' --name ' . $img_name
+          . ' --os-type Linux --source=' . $disk_name);
 
     return $img_name;
 }
