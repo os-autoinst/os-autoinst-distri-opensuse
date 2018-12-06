@@ -254,7 +254,7 @@ sub install_online_updates {
 sub load_qam_install_tests {
     return 0 unless get_var('INSTALL_PACKAGES');
     loadtest "console/system_prepare";
-    loadtest "console/prepare_test_data.pm";
+    loadtest "console/prepare_test_data";
     loadtest 'console/consoletest_setup';
     loadtest 'console/import_gpg_keys';
     loadtest 'update/zypper_up';
