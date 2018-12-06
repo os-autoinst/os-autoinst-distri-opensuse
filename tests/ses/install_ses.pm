@@ -29,7 +29,7 @@ sub run {
     }
     # SES6 latest packages
     my $arch = get_var('ARCH');
-    zypper_call "ar http://download.suse.de/ibs/SUSE:/SLE-15:/Update:/Products:/SES6/images/repo/SUSE-Enterprise-Storage-6-POOL-$arch-Media1/ SES6"
+    zypper_call "ar http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/SES6/images/repo/SUSE-Enterprise-Storage-6-POOL-$arch-Media1/ SES6"
       if is_sle('>=15');
     # install SES packages, chrony and git
     zypper_call 'in chrony git-core deepsea ceph';
@@ -37,7 +37,7 @@ sub run {
     if (get_var('DEEPSEA_TESTSUITE_STABLE')) {
         my $deepsea_qa
           = is_sle('>=15') ?
-          'http://download.suse.de/ibs/SUSE:/SLE-15:/Update:/Products:/SES6/standard/SUSE:SLE-15:Update:Products:SES6.repo'
+          'http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/SES6/standard/SUSE:SLE-15-SP1:Update:Products:SES6.repo'
           : 'http://download.suse.de/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/SES5:/Update/standard/SUSE:SLE-12-SP3:Update:Products:SES5:Update.repo';
         zypper_call "ar $deepsea_qa";
         zypper_call 'in deepsea-qa';
