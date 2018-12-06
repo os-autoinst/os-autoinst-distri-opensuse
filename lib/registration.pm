@@ -86,7 +86,13 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo live rt idu ids lgm ses);
+    my @addons_with_license = qw(geo live rt idu ids lgm);
+    if (is_sle('15+')) {
+        record_soft_failure 'bsc#1118497';
+    }
+    else {
+        push @addons_with_license, 'ses';
+    }
 
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
