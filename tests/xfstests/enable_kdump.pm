@@ -33,8 +33,15 @@ sub run {
     }
 
     # Activate kdump
+    # x86_64 is infect with bsc#1116305, and aarcha64/ppc64le has different alloc_mem size.
+    # In case aarcha64/ppc64le works well with yast, I leave them setting by yast.
     prepare_for_kdump;
-    activate_kdump;
+    if (check_var('ARCH', 'x86_64')) {
+        script_run('yast2 kdump startup enable alloc_mem=72,174');
+    }
+    else {
+        activate_kdump;
+    }
 
     # Reboot
     power_action('reboot');
