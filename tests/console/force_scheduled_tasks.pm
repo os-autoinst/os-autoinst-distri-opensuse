@@ -49,7 +49,7 @@ sub run {
     if (!get_var('SOFTFAIL_BSC1063638') && script_run("! [ -d /usr/share/btrfsmaintenance/ ]")) {
         assert_script_run('find /usr/share/btrfsmaintenance/ -type f -exec ln -fs /bin/true {} \;');
     }
-    sleep 3;    # some head room for the load average to rise
+    assert_script_run "sync";
     settle_load;
 
     # return dmesg output to normal
