@@ -257,7 +257,7 @@ sub setup_xvnc_server {
     return if $xvnc_server_set;
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
-        zypper_call('ar http://openqa.suse.de/assets/repo/SLE-12-SP3-SERVER-POOL-x86_64-Media1-CURRENT/ sles12sp3dvd1_repo');
+        zypper_call('ar http://openqa.suse.de/assets/repo/fixed/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1/ sles12sp3dvd1_repo');
         zypper_call('ref');
     }
     script_run("yast remote; echo yast-remote-status-\$? > /dev/$serialdev", 0);
