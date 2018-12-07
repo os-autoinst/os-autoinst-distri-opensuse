@@ -11,7 +11,7 @@
 # Summary: Boot from existing image to desktop
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base 'opensusebasetest';
+use base 'bootbasetest';
 use strict;
 use testapi;
 use version_utils qw(is_upgrade is_sles4sap);
