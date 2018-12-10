@@ -731,7 +731,9 @@ sub handle_login {
     $myuser //= $username;
     $user_selected //= 0;
 
-    assert_screen 'displaymanager', 90;    # wait for DM, then try to login
+    save_screenshot();
+    # wait for DM, avoid screensaver and try to login
+    send_key_until_needlematch('displaymanager', 'esc', 30, 3);
     wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
