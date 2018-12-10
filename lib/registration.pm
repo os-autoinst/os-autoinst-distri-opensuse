@@ -162,10 +162,14 @@ sub register_addons {
     for my $addon (@scc_addons) {
         # no need to input registration code if register via SMT
         last if (get_var('SMT_URL'));
-        $uc_addon = uc $addon;    # change to uppercase to match variable
+        # change to uppercase to match variable
+        $uc_addon = uc $addon;
+        # WE doesn't need code on SLED
+        my @addons_with_code = qw(ha geo live rt ltss ses);
+        push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
-            next unless grep { $addon eq $_ } qw(ha geo we live rt ltss ses);
+            next unless grep { $addon eq $_ } @addons_with_code;
             if (check_var('VIDEOMODE', 'text')) {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
