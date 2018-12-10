@@ -51,13 +51,18 @@ sub expand_patterns {
     if (check_var('PATTERNS', 'all')) {
         my @all;
         if (is_sle('15+')) {
-            push @all, qw(base minimal_base enhanced_base documentation 32bit
-              apparmor x11 x11_enhanced yast2_basis sw_management fonts) if
-              get_var('SCC_ADDONS') =~ m/base/;
-            push @all, qw(xen_tools kvm_tools file_server mail_server gnome_basic
-              lamp_server gateway_server dhcp_dns_server directory_server
-              kvm_server xen_server fips sap_server oracle_server ofed) if
-              get_var('SCC_ADDONS') =~ m/serverapp/;
+            if (get_var('SCC_ADDONS') =~ m/base/) {
+                push @all, qw(base minimal_base enhanced_base documentation
+                  apparmor x11 x11_enhanced yast2_basis sw_management fonts);
+                push @all, qw(32bit) unless check_var('ARCH', 's390x');
+            }
+            if (get_var('SCC_ADDONS') =~ m/serverapp/) {
+                push @all, qw(kvm_tools file_server mail_server gnome_basic
+                  lamp_server gateway_server dhcp_dns_server directory_server
+                  kvm_server fips sap_server ofed);
+                push @all, qw(xen_server xen_tools) unless check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64');
+                push @all, qw(oracle_server) unless check_var('ARCH', 'aarch64');
+            }
             push @all, qw(devel_basis devel_kernel devel_yast) if
               get_var('SCC_ADDONS') =~ m/sdk/;
             push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
