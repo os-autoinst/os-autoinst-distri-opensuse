@@ -240,7 +240,7 @@ sub power_action {
         || check_var('VIRSH_VMM_FAMILY', 'xen')
         || (get_var('S390_ZKVM') && !get_var('BOOT_HDD_IMAGE') && !get_var('AUTOYAST') && $args{first_reboot}))
     {
-        assert_shutdown_and_restore_system($action, $shutdown_timeout);
+        assert_shutdown_and_restore_system($action, $shutdown_timeout *= 3);
     }
     else {
         assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
