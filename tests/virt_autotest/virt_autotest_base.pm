@@ -40,7 +40,7 @@ sub generateXML {
     my $pass_nums = 0;
     my $fail_nums = 0;
     my $skip_nums = 0;
-    my $writer    = XML::Writer->(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
+    my $writer    = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
 
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
