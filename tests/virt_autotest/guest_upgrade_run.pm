@@ -37,8 +37,11 @@ sub get_script_run {
 sub analyzeResult {
     my ($self, $text) = @_;
     my $result;
+    # In the case the log does not tell the exact failure
     if ($text !~ /Overall guest upgrade result is:(.*)Test done/s) {
-        die "The sub tests results are not listed in the test output. \n";
+        $result->{'subtest'}->{status} = 'FAILED';
+        $result->{'subtest'}->{error}  = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
+        return $result;
     }
     my $rough_result = $1;
 
@@ -79,7 +82,7 @@ sub run {
 
     # display test result
     # print the test output to the openQA output
-    my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Executing VM installation/,/[0-9]* fail [0-9]* succeed/p'";
+    my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Overall guest upgrade result/,/[0-9]* fail [0-9]* succeed/p'";
     my $guest_upgrade_log_content = script_output($cmd);
     save_screenshot;
 
