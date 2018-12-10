@@ -1082,7 +1082,11 @@ sub load_consoletests {
         loadtest "console/xorg_vt";
     }
     loadtest "console/zypper_lr";
-    loadtest 'console/enable_usb_repo' if check_var('USBBOOT', 1);
+    # Enable installation repo from the usb, unless we boot from USB, but don't use it
+    # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror
+    if (check_var('USBBOOT', 1) && !is_livecd && !get_var('NETBOOT')) {
+        loadtest 'console/enable_usb_repo';
+    }
 
     # Do not clear repos twice if replace repos for openSUSE
     # On staging repos are already removed, using CLEAR_REPOS flag variable
