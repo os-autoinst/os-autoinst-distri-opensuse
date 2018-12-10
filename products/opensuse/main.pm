@@ -185,6 +185,7 @@ sub load_consoletests_minimal {
     return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
     # Stagings should test yast2-bootloader in miniuefi at least but not all
     loadtest "console/system_prepare";
+    loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest "console/textinfo";
     loadtest "console/hostname";
