@@ -626,7 +626,7 @@ sub post_fail_hook {
             record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
         }
     }
-    return unless ($self->{in_wait_boot} || $self->{in_boot_desktop});
+
     if ($self->{in_wait_boot}) {
         record_info('shutdown', 'At least we reached target Shutdown') if (wait_serial 'Reached target Shutdown');
     }
