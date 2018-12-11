@@ -23,7 +23,7 @@ sub run {
     zypper_call 'in -C libc.so.6';
     assert_script_run "/lib/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
     assert_script_run '/lib/libc.so.6 | grep --color "i686-suse-linux"';
-    return if check_var('ARCH', 'i586');    # On Tumbleweed we still support 32-bit x86
+    return if !check_var('ARCH', 'x86_64');    # On Tumbleweed we still support 32-bit x86
     zypper_call 'in -C "libc.so.6()(64bit)"';
     assert_script_run "/lib64/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
     assert_script_run '/lib64/libc.so.6 | grep --color "x86_64-suse-linux"';
