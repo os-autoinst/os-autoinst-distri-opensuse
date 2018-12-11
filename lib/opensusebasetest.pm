@@ -445,7 +445,8 @@ sub wait_boot {
         # If KEEP_GRUB_TIMEOUT is set, SUT may be at linux-login already, so no need to abort in that case
         elsif (!match_has_tag("grub2") and !match_has_tag('linux-login')) {
             # check_screen timeout
-            die "needle 'grub2' not found";
+            my $failneedle = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
+            die "needle '$failneedle' not found";
         }
         mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
