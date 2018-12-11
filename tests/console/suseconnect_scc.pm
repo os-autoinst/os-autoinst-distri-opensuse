@@ -34,7 +34,9 @@ sub run {
 
     select_console 'root-console';
     assert_script_run "SUSEConnect --url $scc_url -r $reg_code";
-    assert_script_run 'SUSEConnect --list-extensions';
+    my $expected_suseconnect_output = 'SUSEConnect -p';
+    $expected_suseconnect_output = 'transactional-update register -p' if (get_var('SYSTEM_ROLE') =~ /microos|serverro/);
+    validate_script_output('SUSEConnect --list-extensions', sub { $expected_suseconnect_output });
 
     # add modules
     if (is_sle '15+') {
