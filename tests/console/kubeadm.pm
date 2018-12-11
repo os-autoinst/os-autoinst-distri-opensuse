@@ -20,7 +20,7 @@ sub run {
     select_console("root-console");
 
     record_info 'Test #1', 'Test: Initialize kubeadm';
-    assert_script_run('kubeadm init --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 | tee /dev/$serialdev', 180);
+    assert_script_run("kubeadm init --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 | tee /dev/$serialdev", 180);
 
     record_info 'Test #2', 'Test: Configure kubectl';
     assert_script_run('mkdir -p ~/.kube');
@@ -32,8 +32,8 @@ sub run {
     record_info 'Test #4', 'Test: Record cluster info';
     # Cluster isn't ready immediately
     sleep 60;
-    script_run('kubectl config view --flatten=true | tee /dev/$serialdev');
-    script_run('kubectl get pods --all-namespaces | tee /dev/$serialdev');
+    script_run("kubectl config view --flatten=true | tee /dev/$serialdev");
+    script_run("kubectl get pods --all-namespaces | tee /dev/$serialdev");
 
     record_info 'Test #5', 'Test: Confirm node is ready';
     assert_script_run('kubectl get nodes | grep "Ready" | grep -v "NotReady"');
