@@ -27,6 +27,7 @@ BEGIN {
 }
 use utils;
 use main_common;
+use known_bugs;
 
 init_main();
 
@@ -669,23 +670,8 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-# Set serial failures
-my $serial_failures = [];
-# Detect bsc#1093797 on aarch64
-if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
-    push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
-}
-push @$serial_failures, {type => 'soft', message => 'bsc#1112109', pattern => qr/serial-getty.*service: Service hold-off time over, scheduling restart/};
-if (is_kernel_test()) {
-    my $type = is_ltp_test() ? 'soft' : 'hard';
-    push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
-    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
-    push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
-    push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted',      pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
-    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => quotemeta 'BUG: failure at'};
-    push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
-}
-$testapi::distri->set_expected_serial_failures($serial_failures);
+# set serial failures
+$testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 
 if (is_jeos) {
     load_jeos_tests();
