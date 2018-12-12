@@ -16,9 +16,10 @@ use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
 sub run {
+    my $self = shift;
     # let's see how it looks at the beginning
     save_screenshot;
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
 
     # https://fate.suse.com/320347 https://bugzilla.suse.com/show_bug.cgi?id=988157
     if (check_var('NETWORK_INIT_PARAM', 'ifcfg=eth0=dhcp')) {

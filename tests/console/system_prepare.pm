@@ -19,7 +19,7 @@ use strict;
 
 sub run {
     my ($self) = @_;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
 
     ensure_serialdev_permissions;
 

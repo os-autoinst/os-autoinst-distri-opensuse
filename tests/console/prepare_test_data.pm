@@ -17,7 +17,8 @@ use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
 sub run {
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     select_console 'user-console';
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " > test.data";

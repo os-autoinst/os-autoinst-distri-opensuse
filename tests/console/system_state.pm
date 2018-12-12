@@ -18,7 +18,8 @@ use ipmi_backend_utils 'use_ssh_serial_console';
 use strict;
 
 sub run {
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     script_run "ps axf > /tmp/psaxf.log";
     script_run "cat /proc/loadavg > /tmp/loadavg_consoletest_setup.txt";
 }

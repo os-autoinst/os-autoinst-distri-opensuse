@@ -28,7 +28,7 @@ sub run {
     my $self = shift;
     # let's see how it looks at the beginning
     save_screenshot;
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
     # Prevent mail notification messages to show up in shell and interfere with running console tests
     disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
