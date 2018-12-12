@@ -64,8 +64,11 @@ sub login_to_console {
             #assert_screen([qw(grub2 grub1)], 120);
 
             my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
-            ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
-            if ($host_installed_version eq '11') {
+            ($host_installed_version) = $host_installed_version =~ /^(\d+)/im;
+            my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');         #format sles-15-sp0
+            my $host_upgrade_relver  = $host_upgrade_version =~ /sles-(\d+)-sp/i;
+            my $host_upgrade_spver   = $host_upgrade_version =~ /sp(\d+)$/im;
+            if (($host_installed_version eq '11') && ($host_upgrade_relver eq '15') && ($host_upgrade_spver eq '0')) {
                 assert_screen('sshd-server-started-config', 180);
                 use_ssh_serial_console;
                 save_screenshot;
