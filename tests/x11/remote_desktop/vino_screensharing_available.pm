@@ -24,10 +24,15 @@ use utils;
 
 sub run {
     # Run the gnome-control-center - the sharing section
-    x11_start_program("gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing');
+    x11_start_program "gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing';
+
+    # Always check the common sharing functionality is enabled
+    if (check_screen 'disabled_sharing') {
+        assert_and_click 'disabled_sharing';
+    }
 
     # It may happen that the screen sharing is not available
-    assert_screen [qw(with_screensharing without_screensharing disabled_screensharing)];
+    assert_screen [qw(with_screensharing without_screensharing)];
     if (match_has_tag 'without_screensharing') {
         record_info 'vino missing', 'After the installation the screen sharing is not available - vino is missing and we need to install it now.';
         send_key 'ctrl-q';
@@ -35,17 +40,20 @@ sub run {
         # Install the vino package which is probably the case of missing screen sharing option
         ensure_installed 'vino';
 
+        # Log of and back in to ensure the vino feature gets enabled
         handle_relogin;
 
         # Run the gnome-control-center to ensure the same state as we were while entering this if block
-        x11_start_program("gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing');
-    }
-    if (match_has_tag 'disabled_screensharing') {
-        assert_and_click 'disabled_screensharing';
+        x11_start_program "gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing';
+
+        # Always check the common sharing functionality is enabled
+        if (check_screen 'disabled_sharing') {
+            assert_and_click 'disabled_sharing';
+        }
     }
 
     # Finally ensure that the screen sharing is available
-    assert_screen 'with_screensharing';
+    assert_screen "with_screensharing";
     record_info 'vino present', 'Vino and the screen sharing are present';
     send_key 'ctrl-q';
 }
