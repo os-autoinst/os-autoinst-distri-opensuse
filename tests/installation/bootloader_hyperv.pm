@@ -177,7 +177,7 @@ sub run {
         # the default is 'Production' (i.e. snapshot on guest level).
         hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016';
         if ($iso) {
-            hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0");
+            hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0") unless $winserver eq '2012' and get_var('UEFI');
             hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
         }
         foreach my $disk_path (@disk_paths) {
