@@ -46,12 +46,12 @@ sub set_network {
         send_key 'alt-t';    # set to static ip
         assert_screen 'yast_ncurses_set_static_ip';
         send_key 'tab';
-        if ($args{ip}) {  # To spare time, no update what to is already filled from previous run
+        if ($args{ip}) {     # To spare time, no update what to is already filled from previous run
             send_key_until_needlematch('NICsetup_ncurses_IP_empty', 'backspace');    # delete existing IP if any
             type_string $args{ip};
         }
         send_key 'tab';
-        if ($args{mask}) {  # To spare time, no update what to is already filled from previous run
+        if ($args{mask}) {                                                           # To spare time, no update what to is already filled from previous run
             send_key_until_needlematch('NICsetup_ncurses_mask_empty', 'backspace');    # delete existing netmask if any
             type_string $args{mask};
         }
@@ -91,7 +91,7 @@ In order to targer bugs bsc#1115644 and bsc#1052042, we want to :
     script_run "cat /etc/hosts";
     until ($looprun == 4) {
         $hostname = "tst-$looprun";
-        $fqdn = $hostname . '.com';
+        $fqdn     = $hostname . '.com';
         set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => '/24');
         script_run("egrep \"$ip\\s$fqdn\\s$hostname\" /etc/hosts", 30)
           && record_soft_failure "bsc#1115644 Expected entry : \"192.168.1.10    $fqdn $hostname\" was not found in /etc/hosts";
@@ -163,5 +163,8 @@ sub run {
     assert_script_run('getent ahosts ' . get_var("OPENQA_HOSTNAME"));
 }
 
+sub test_flags {
+    return {always_rollback => 1};    # Should only affect backends that have snapshot feature
+}
 
 1;
