@@ -552,6 +552,24 @@
     <copy_config config:type="boolean">false</copy_config>
     <import config:type="boolean">false</import>
   </ssh_import>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+    <zones>
+      <zone>
+        <name>public</name>
+        <interfaces>
+          <interface>eth0</interface>
+        </interfaces>
+        <services config:type="list">
+          <service>ssh</service>
+        </services>
+        <ports config:type="list">
+          <port>22/tcp</port>
+        </ports>
+      </zone>
+    </zones>
+  </firewall>
   <timezone>
     <hwclock>UTC</hwclock>
     <timezone>Europe/Prague</timezone>

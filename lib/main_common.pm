@@ -102,7 +102,8 @@ our @EXPORT = qw(
   load_toolchain_tests
   load_virtualization_tests
   load_x11tests
-  load_xen_tests
+  load_xen_hypervisor_tests
+  load_xen_client_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -2168,7 +2169,7 @@ sub load_virtualization_tests {
     return 1;
 }
 
-sub load_xen_tests {
+sub load_xen_hypervisor_tests {
     return unless check_var('HOST_HYPERVISOR', 'xen');
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
@@ -2183,13 +2184,41 @@ sub load_xen_tests {
     }
     # Load guest installation tests
     loadtest 'virtualization/xen/prepare_guests';
-    # Apply updates
+    # Apply updates and reboot
     loadtest 'virtualization/xen/patch_and_reboot';
-    # Load real tests
-    loadtest 'virtualization/xen/hotplugging';
+    loadtest "virt_autotest/login_console";
+    # List running machines
+    loadtest 'virtualization/xen/list_guests';
+}
+
+sub load_xen_client_tests() {
+    loadtest 'boot/boot_to_desktop';
+    # Install the virt-manager package
+    loadtest 'virtualization/xen/install_virtmanager';
+    # Connect to hypervisor using SSH
+    loadtest 'virtualization/xen/ssh_hypervisor';
+    # Connect to guests using SSH
+    loadtest 'virtualization/xen/ssh_guests';
+    # Connect to the Xen hypervisor using virt-manager
+    loadtest 'virtualization/xen/virtmanager';
+    # Try to save and restore the state of the guest
     loadtest 'virtualization/xen/save_and_restore';
-    loadtest 'virtualization/xen/dom_metrics';
+    # Try to change properties of guests
+    loadtest 'virtualization/xen/hotplugging';
+    # Try to shutdown, start, suspend and resume the guest
     loadtest 'virtualization/xen/guest_management';
+    # Stop libvirt guests
+    loadtest 'virtualization/xen/virsh_stop';
+    # Clone guests using the xl Xen tool
+    loadtest 'virtualization/xen/xl_create';
+    # Install vhostmd and vm-dump-metrics
+    loadtest 'virtualization/xen/dom_install';
+    # Collect some sample metrics
+    loadtest 'virtualization/xen/dom_metrics';
+    # Stop guests created by the xl Xen tool
+    loadtest 'virtualization/xen/xl_stop';
+    # Start virsh guests again
+    loadtest 'virtualization/xen/virsh_start';
 }
 
 sub load_extra_tests_syscontainer {
