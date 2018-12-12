@@ -81,7 +81,8 @@ sub create_new_partition_table {
     send_key_until_needlematch "expert-partitioner-vda", 'right';
 
     # empty disk partitions by creating new partition table
-    my $expert_menu_key = (is_storage_ng) ? 'alt-r' : 'alt-x';    # expert menu keys
+    # in sle15sp1 is called Pa{r}tition Table
+    my $expert_menu_key = (is_storage_ng) ? ((is_storage_ng_newui) ? 'alt-r' : 'alt-e') : 'alt-x';    # expert menu keys
 
     if (is_storage_ng_newui) {
         # partition table management has been moved from Partitions tab to Overview
@@ -89,7 +90,8 @@ sub create_new_partition_table {
         assert_screen 'expert-partitioner-overview';
     }
 
-    wait_screen_change { send_key $expert_menu_key };             # enter Partition table menu
+    # enter Partition table menu
+    wait_screen_change { send_key $expert_menu_key };
     send_key 'down';
     wait_still_screen 2;
     save_screenshot;
@@ -109,7 +111,7 @@ sub create_new_partition_table {
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
         send_key 'alt-p' if (is_storage_ng);                  # return back to Partitions tab
     }
-    unless (is_storage_ng) {
+    unless (is_storage_ng_newui) {
         assert_screen 'partition-create-new-table';
         send_key 'alt-y';
     }
