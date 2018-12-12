@@ -36,27 +36,28 @@ sub handle_dhcp_popup {
 
 
 sub set_network {
+    my (%args) = @_;
     my ($loop, $param) = @_;
     script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
     assert_screen "yast2_lan";
     send_key 'alt-i';    # edit NIC
     assert_screen 'yast_ncurses_network_card_setup';
-    if ("$param" eq "set_static_ip") {
+    if ($args{static}) {
         send_key 'alt-t';    # set to static ip
         assert_screen 'yast_ncurses_set_static_ip';
         send_key 'tab';
-        if ($loop != 2) {
+        if ($args{ip}) {  # To spare time, no update what to is already filled from previous run
             send_key_until_needlematch('NICsetup_ncurses_IP_empty', 'backspace');    # delete existing IP if any
-            type_string "192.168.122.10";
+            type_string $args{ip};
         }
         send_key 'tab';
-        if ($loop != 2) {
+        if ($args{mask}) {  # To spare time, no update what to is already filled from previous run
             send_key_until_needlematch('NICsetup_ncurses_mask_empty', 'backspace');    # delete existing netmask if any
-            type_string "/24";
+            type_string $args{mask};
         }
         send_key 'tab';
         send_key_until_needlematch('NICsetup_ncurses_host_empty', 'backspace');
-        type_string "tst-$loop.com";
+        type_string $args{fqdn};
         assert_screen 'yast_ncurses_static_ip_set';
     }
     else {
@@ -84,13 +85,18 @@ In order to targer bugs bsc#1115644 and bsc#1052042, we want to :
 =cut
 
     my $looprun = 1;
+    my $hostname;
+    my $fqdn;
+    my $ip = '192.168.122.10';
     script_run "cat /etc/hosts";
     until ($looprun == 4) {
-        set_network($looprun, "set_static_ip");
-        script_run("egrep \"192.168.122.10\\stst-$looprun.com\\stst-$looprun\" /etc/hosts", 30)
-          && record_soft_failure "bsc#1115644 Expected entry : \"192.168.1.10    tst-$looprun.com tst-$looprun\" was not found in /etc/hosts";
+        $hostname = "tst-$looprun";
+        $fqdn = $hostname . '.com';
+        set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => '/24');
+        script_run("egrep \"$ip\\s$fqdn\\s$hostname\" /etc/hosts", 30)
+          && record_soft_failure "bsc#1115644 Expected entry : \"192.168.1.10    $fqdn $hostname\" was not found in /etc/hosts";
         if ($looprun == 2) {
-            set_network;    # Without parameter, set as dhcp
+            set_network(fqdn => $fqdn);    # Without parameter, set as dhcp, step is necessary to make sure
         }
         script_run "cat /etc/hosts";
         $looprun++;
@@ -157,8 +163,5 @@ sub run {
     assert_script_run('getent ahosts ' . get_var("OPENQA_HOSTNAME"));
 }
 
-sub test_flags {
-    return {always_rollback => 1} if (check_var('BACKEND', 'qemu'));
-}
 
 1;
