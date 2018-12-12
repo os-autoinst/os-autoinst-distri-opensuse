@@ -14,6 +14,7 @@
 use strict;
 use base "opensusebasetest";
 use testapi;
+use transactional_system;
 use caasp;
 use utils;
 use version_utils 'is_caasp';
