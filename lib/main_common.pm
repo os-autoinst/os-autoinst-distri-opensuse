@@ -1511,6 +1511,7 @@ sub load_extra_tests_console {
     loadtest "console/sysstat";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
+    loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
     loadtest "console/salt" if is_jeos;
     loadtest "console/gpg";
