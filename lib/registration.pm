@@ -87,7 +87,7 @@ sub accept_addons_license {
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
     my @addons_with_license = qw(geo rt idu ids lgm);
-    if (is_sle('15+')) {
+    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
         record_soft_failure 'bsc#1118497';
     }
     else {
