@@ -182,7 +182,7 @@ sub run {
     }
 
     send_key "alt-n";
-    assert_screen 'yast2-migration-startupgrade';
+    assert_screen 'yast2-migration-startupgrade', 90;
     send_key "alt-u";
     assert_screen "yast2-migration-upgrading";
 
