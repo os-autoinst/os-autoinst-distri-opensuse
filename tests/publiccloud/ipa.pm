@@ -21,13 +21,12 @@ sub run {
     $self->select_serial_terminal;
 
     my $provider = $self->provider_factory();
+    my $instance = $provider->create_instance();
 
     my $ipa = $provider->ipa(
-        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        cleanup       => 1,
-        image_id      => $provider->get_image_id(),
-        tests         => get_required_var('PUBLIC_CLOUD_IPA_TESTS'),
-        results_dir   => 'ipa_results'
+        instance    => $instance,
+        tests       => get_required_var('PUBLIC_CLOUD_IPA_TESTS'),
+        results_dir => 'ipa_results'
     );
 
     upload_logs($ipa->{logfile});

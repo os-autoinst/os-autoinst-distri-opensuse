@@ -16,11 +16,17 @@ use testapi;
 use Mojo::Base -base;
 use publiccloud::instance;
 use Data::Dumper;
+use Mojo::JSON 'decode_json';
 
-has key_id     => undef;
-has key_secret => undef;
-has region     => undef;
-has prefix     => 'openqa';
+use constant TERRAFORM_DIR     => '/root/terraform';
+use constant TERRAFORM_TIMEOUT => 600;
+
+has key_id            => undef;
+has key_secret        => undef;
+has region            => undef;
+has username          => undef;
+has prefix            => 'openqa';
+has terraform_applied => 0;
 
 =head1 METHODS
 
@@ -30,9 +36,12 @@ Needs provider specific credentials, e.g. key_id, key_secret, region.
 
 =cut
 sub init {
-    die('init() isn\'t implemented');
+    my ($self) = @_;
+    my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
+    assert_script_run('mkdir -p ' . TERRAFORM_DIR);
+    assert_script_run('curl ' . data_url('publiccloud/terraform/' . $file . '.tf') . ' -o ' . TERRAFORM_DIR . '/plan.tf');
+    $self->create_ssh_key();
 }
-
 
 =head2 find_img
 
@@ -113,7 +122,7 @@ sub parse_ipa_output {
         }
     }
 
-    for my $k (qw(instance_id ip logfile results tests pass skip fail error)) {
+    for my $k (qw(ip logfile results tests pass skip fail error)) {
         return unless (exists($ret->{$k}));
     }
     return $ret;
@@ -126,6 +135,7 @@ Creates an ssh keypair in a given file path by $args{ssh_private_key_file}
 =cut
 sub create_ssh_key {
     my ($self, %args) = @_;
+    $args{ssh_private_key_file} //= '/root/.ssh/id_rsa';
     if (script_run('test -f ' . $args{ssh_private_key_file}) != 0) {
         assert_script_run('SSH_DIR=`dirname ' . $args{ssh_private_key_file} . '`; mkdir -p $SSH_DIR');
         assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ' . $args{ssh_private_key_file});
@@ -139,58 +149,40 @@ called by childs within ipa function
 =cut
 sub run_ipa {
     my ($self, %args) = @_;
-    $args{cleanup}              //= 1;
-    $args{ssh_private_key_file} //= '.ssh/id_rsa';
-    $args{tests}                //= '';
-    $args{timeout}              //= 60 * 30;
-    $args{results_dir}          //= 'ipa_results';
-    $args{distro}               //= 'sles';
-    $args{tests} =~ s/,/ /g;
+    die('Must provide an instance object') if (!$args{instance});
 
-    $self->create_ssh_key(ssh_private_key_file => $args{ssh_private_key_file});
+    $args{tests}       //= '';
+    $args{timeout}     //= 60 * 30;
+    $args{results_dir} //= 'ipa_results';
+    $args{distro}      //= 'sles';
+    $args{tests} =~ s/,/ /g;
 
     my $cmd = 'ipa --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
     $cmd .= "--distro " . $args{distro} . " ";
     $cmd .= '--region "' . $self->region . '" ';
     $cmd .= '--results-dir "' . $args{results_dir} . '" ';
-    $cmd .= ($args{cleanup}) ? '--cleanup ' : '--no-cleanup ';
-    $cmd .= '--instance-type "' . $args{instance_type} . '" ';
+    $cmd .= '--no-cleanup ';
     $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
-    $cmd .= "--access-key-id '" . $args{key_id} . "' "                  if ($args{key_id});
-    $cmd .= "--secret-access-key '" . $args{key_secret} . "' "          if ($args{key_secret});
-    $cmd .= "--ssh-key-name '" . $args{key_name} . "' "                 if ($args{key_name});
-    $cmd .= '-u ' . $args{user} . ' '                                   if ($args{user});
-    $cmd .= '--ssh-private-key-file "' . $args{ssh_private_key_file} . '" ';
+    $cmd .= "--access-key-id '" . $args{key_id} . "' " if ($args{key_id});
+    $cmd .= "--secret-access-key '" . $args{key_secret} . "' " if ($args{key_secret});
+    $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
+    $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
+    $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
+    $cmd .= '--running-instance-id "' . $args{instance}->instance_id . '" ';
 
-    if (exists($args{running_instance_id})) {
-        $cmd .= '--running-instance-id "' . $args{running_instance_id} . '" ';
-    } else {
-        $cmd .= '--image-id "' . $args{image_id} . '" ';
-    }
     $cmd .= $args{tests};
-    record_info("ipa cmd", $cmd);
+    record_info("IPA cmd", $cmd);
 
     my $output = script_output($cmd . ' 2>&1', $args{timeout}, proceed_on_failure => 1);
+    record_info("IPA output", $output);
     my $ipa = $self->parse_ipa_output($output);
+    record_info("IPA results", Dumper($ipa));
     die($output) unless (defined($ipa));
 
-    my $instance = $ipa->{instance} = publiccloud::instance->new(
-        public_ip   => $ipa->{ip},
-        instance_id => $ipa->{instance_id},
-        username    => $args{user},
-        ssh_key     => $args{ssh_private_key_file},
-        provider    => $self
-    );
+    $args{instance}->public_ip($ipa->{ip});
     delete($ipa->{instance_id});
     delete($ipa->{ip});
-
-    $self->{running_instances} //= {};
-    if ($args{cleanup}) {
-        delete($self->{running_instances}->{$instance->instance_id});
-    } else {
-        $self->{running_instances}->{$instance->instance_id} = $instance;
-    }
 
     return $ipa;
 }
@@ -227,26 +219,78 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
 =cut
 sub create_instance {
     my ($self, %args) = @_;
-    $args{instance_type} //= get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
-    $args{image} //= $self->get_image_id();
 
-    record_info('INFO', "Creating instance $args{instance_type} from $args{image} ...");
-    my $ipa = $self->ipa(
-        instance_type => $args{instance_type},
-        cleanup       => 0,
-        image_id      => $args{image}
-    );
-    return $ipa->{instance};
+    my @vms      = $self->terraform_apply();
+    my $instance = $vms[0];
+    record_info('INSTANCE', Dumper($instance));
+
+    for (1 .. 60) {
+        return $instance if script_run("nc -vz -w 1 $instance->{public_ip} 22") == 0;
+        sleep 5;
+    }
+    die('Cannot reach port 22 on IP ' . $instance->{public_ip});
 }
 
-=head2 destroy_instance
+=head2 terraform_apply
 
-Destroy a instance previously created with this provider. Require a C<publiccloud::instance> object.
+Calls terraform tool and applies the corresponding configuration .tf file
+
 =cut
-sub destroy_instance {
-    my ($self, $instance) = @_;
-    $self->ipa(cleanup => 1, running_instance_id => $instance->instance_id);
+sub terraform_apply {
+    my ($self, %args) = @_;
+    my @instances;
+
+    $args{count} //= '1';
+    my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
+    my $image                = $self->get_image_id();
+    my $ssh_private_key_file = '/root/.ssh/id_rsa';
+
+    record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
+
+    assert_script_run('cd ' . TERRAFORM_DIR);
+    record_info('INFO', "Creating instance $args{instance_type} from $args{image} ...");
+    assert_script_run('terraform init', TERRAFORM_TIMEOUT);
+
+    my $cmd = sprintf("terraform plan -var 'image_id=%s' -var 'count=%s' -var 'type=%s' -var 'region=%s' -out myplan",
+        $image, $args{count}, $instance_type, $self->region);
+
+    assert_script_run($cmd);
+    assert_script_run('terraform apply myplan', TERRAFORM_TIMEOUT);
+
+    $self->terraform_applied(1);
+
+    my $vms = decode_json(script_output("terraform output -json vm_name"))->{value};
+    my $ips = decode_json(script_output("terraform output -json public_ip"))->{value};
+
+    foreach my $i (0 .. $#{$vms}) {
+        my $instance = publiccloud::instance->new(
+            public_ip   => @{$ips}[$i],
+            instance_id => @{$vms}[$i],
+            username    => $self->username,
+            ssh_key     => $ssh_private_key_file,
+            image_id    => $image,
+            region      => $self->region,
+            type        => $instance_type,
+            provider    => $self
+        );
+        push @instances, $instance;
+    }
+    # Return an ARRAY of objects 'instance'
+    return @instances;
 }
+
+=head2 terraform_destroy
+
+Destroys the current terraform deployment
+
+=cut
+sub terraform_destroy {
+    my ($self) = @_;
+    record_info('INFO', 'Removing terraform plan...');
+    assert_script_run('cd ' . TERRAFORM_DIR);
+    script_run('terraform destroy -auto-approve', TERRAFORM_TIMEOUT);
+}
+
 
 =head2 cleanup
 
@@ -255,12 +299,7 @@ This method is called called after each test on failure or success.
 =cut
 sub cleanup {
     my ($self) = @_;
-
-    for my $i (keys(%{$self->{running_instances}})) {
-        my $instance = $self->{running_instances}->{$i};
-        record_info('INFO', 'Destroy instance ' . $instance->instance_id . '(' . $instance->public_ip . ')');
-        $self->destroy_instance($instance);
-    }
+    $self->terraform_destroy() if ($self->terraform_applied);
 }
 
 1;
