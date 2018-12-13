@@ -24,8 +24,5 @@ sub run {
     #       the IP of eth0 already configured.
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
 
 1;
