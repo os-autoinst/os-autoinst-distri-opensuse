@@ -151,7 +151,7 @@ sub run {
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
-    assert_and_click 'ooffice-writing-area', 'left', 10;
+    assert_and_click('ooffice-writing-area', timeout => 10);
     send_key "ctrl-q";                                                               #close writer
 }
 

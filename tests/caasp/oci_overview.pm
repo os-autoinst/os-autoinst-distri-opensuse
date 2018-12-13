@@ -22,7 +22,7 @@ sub run {
 
     # Check DUD - poo#17072
     if (get_var('DUD')) {
-        assert_and_click 'oci-caption-dud', 'left', $timeout;
+        assert_and_click('oci-caption-dud', timeout => $timeout);
         $timeout = 30;
     }
 
