@@ -14,7 +14,7 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle is_tumbleweed);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
@@ -26,7 +26,12 @@ sub tweak_startupapp_menu {
     }
     else {
         # tweak-tool entry is not in gnome-control-center of SLE15;
-        x11_start_program 'gnome-tweak-tool';
+        if (is_tumbleweed) {
+            x11_start_program 'gnome-tweaks';
+        }
+        else {
+            x11_start_program 'gnome-tweak-tool';
+        }
     }
     assert_screen "tweak-tool";
     # increase the default timeout - the switching can be slow
@@ -132,7 +137,12 @@ sub run {
     #remove firefox from startup application
     $self->tweak_startupapp_menu;
     assert_screen "startapp-firefox-added";
-    assert_and_click "startapp-delete";
+    # assert_and_click "startapp-delete";
+    check_screen "startapp-delete";
+    send_key "right";
+    send_key "down";
+    send_key "right";
+    send_key "ret";
     send_key "alt-f4";
     wait_still_screen;
     send_key "alt-f4";
