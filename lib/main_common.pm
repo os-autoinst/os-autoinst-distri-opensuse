@@ -1288,10 +1288,6 @@ sub load_x11tests {
         }
         loadtest "x11/vlc";
     }
-    # https://progress.opensuse.org/issues/37342
-    if (is_sle() && gnomestep_is_applicable() && !is_staging()) {
-        loadtest "x11/remote_desktop/vino_screensharing_available";
-    }
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
@@ -1433,6 +1429,10 @@ sub load_extra_tests_desktop {
         loadtest "x11/gnucash";
 
     }
+    # https://progress.opensuse.org/issues/37342
+    if (is_sle() && gnomestep_is_applicable()) {
+        loadtest "x11/remote_desktop/vino_screensharing_available";
+    }
     # the following tests care about network and need some DE specific
     # needles. For now we only have them for gnome and do not want to
     # support more than just this DE. Probably for later at least the wifi
@@ -1470,7 +1470,6 @@ sub load_extra_tests_kdump {
 sub load_extra_tests_opensuse {
     return unless is_opensuse;
     loadtest "console/rabbitmq";
-    loadtest "console/salt";
     loadtest "console/rails";
     loadtest "console/machinery";
     loadtest "console/pcre";
@@ -1514,7 +1513,7 @@ sub load_extra_tests_console {
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
-    loadtest "console/salt" if is_jeos;
+    loadtest "console/salt" if (is_jeos || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/shells";
