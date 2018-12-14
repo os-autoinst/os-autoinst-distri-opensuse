@@ -2305,9 +2305,9 @@ sub load_public_cloud_patterns_validation_tests {
 }
 
 sub load_transactional_role_tests {
-    loadtest 'caasp/filesystem_ro';
-    loadtest 'caasp/transactional_update';
-    loadtest 'caasp/rebootmgr';
+    loadtest 'transactional_system/filesystem_ro';
+    loadtest 'transactional_system/transactional_update';
+    loadtest 'transactional_system/rebootmgr';
 }
 
 1;
