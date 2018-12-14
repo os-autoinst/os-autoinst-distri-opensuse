@@ -73,8 +73,9 @@ sub y2snapper_show_changes_and_delete {
     }
     # Make sure it shows the new files from the unpacked tarball
     send_key_until_needlematch 'yast2_snapper-show_testdata', 'up';
-    send_key_until_needlematch('yast2_snapper-new_snapshot', 'alt-c', 5, 10);
     # Close the dialog and make sure it is closed
+    send_key 'alt-c';
+    die '"Selected Snapshot Overview" window is not closed after sending alt-c' unless check_screen('yast2_snapper-new_snapshot', 100);
     wait_screen_change { send_key 'end' };
     send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Dele't'e the snapshot
