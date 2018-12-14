@@ -12,7 +12,7 @@
 
 use base "consoletest";
 use testapi;
-use ipmi_backend_utils 'use_ssh_serial_console';
+use Utils::Backends 'use_ssh_serial_console';
 use strict;
 
 sub run {

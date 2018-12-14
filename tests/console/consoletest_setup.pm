@@ -16,7 +16,7 @@
 use base "consoletest";
 use testapi;
 use utils;
-use ipmi_backend_utils 'use_ssh_serial_console';
+use Utils::Backends 'use_ssh_serial_console';
 use strict;
 
 sub disable_bash_mail_notification {

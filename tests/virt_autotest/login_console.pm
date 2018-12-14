@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 sub login_to_console {

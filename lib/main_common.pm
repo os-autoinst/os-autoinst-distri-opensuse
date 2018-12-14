@@ -19,6 +19,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
+use Utils::Backends 'is_remote_backend';
 use bmwqemu ();
 use strict;
 use warnings;
