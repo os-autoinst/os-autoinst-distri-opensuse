@@ -164,9 +164,11 @@ sub register_addons {
         last if (get_var('SMT_URL'));
         # change to uppercase to match variable
         $uc_addon = uc $addon;
+        my @addons_with_code = qw(geo live rt ltss ses);
         # WE doesn't need code on SLED
-        my @addons_with_code = qw(ha geo live rt ltss ses);
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
+        # HA doesn't need code on SLES4SAP
+        push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap'));
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
