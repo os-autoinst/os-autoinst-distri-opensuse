@@ -21,8 +21,12 @@ sub run {
     # open the partinioner
     assert_screen 'edit-proposal-settings';
     wait_screen_change { send_key $cmd{guidedsetup} };
-
-    select_first_hard_disk if (check_screen('select-hard-disks', 0) && check_var('BACKEND', 'ipmi'));
+    # Process disk selection if screen is shown. Is relevant for ipmi only as have
+    # multiple disks attached there which might contain previous installation
+    if (check_var('BACKEND', 'ipmi')) {
+        assert_screen([qw(select-hard-disks partition-scheme)]);
+        select_first_hard_disk if match_has_tag 'select-hard-disks';
+    }
 
     if (get_var('PARTITIONING_WARNINGS')) {
         assert_screen 'proposal-will-overwrite-manual-changes';
