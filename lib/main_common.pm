@@ -1539,7 +1539,7 @@ sub load_extra_tests_docker {
     return unless is_sle('12-SP3+') || !is_sle;
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    if (is_sle('12-SP3+')) {
+    if (is_sle('12-SP3+') && is_sle('<15')) {
         loadtest "console/sle2docker";
         loadtest "console/docker_image";
     }
