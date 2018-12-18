@@ -793,6 +793,9 @@ elsif (get_var("SECURITY_TEST")) {
     elsif (check_var("SECURITY_TEST", "selinux")) {
         load_security_tests_selinux;
     }
+    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
+        load_security_tests_apparmor_profile;
+    }
 }
 elsif (get_var('SMT')) {
     prepare_target();

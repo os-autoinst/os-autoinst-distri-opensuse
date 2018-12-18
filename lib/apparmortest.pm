@@ -25,6 +25,12 @@ use version_utils qw(is_sle is_leap);
 
 use base 'consoletest';
 
+our @EXPORT = qw (
+  $audit_log
+);
+
+our $audit_log = "/var/log/audit/audit.log";
+
 # Disable stdout buffering to make pipe works
 sub aa_disable_stdout_buf {
     my ($self, $app) = @_;
@@ -122,7 +128,14 @@ sub pre_run_hook {
     my ($self) = @_;
 
     select_console 'root-console';
+    systemctl('restart auditd');
     systemctl('restart apparmor');
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    upload_logs("$audit_log");
+    $self->SUPER::post_fail_hook;
 }
 
 1;
