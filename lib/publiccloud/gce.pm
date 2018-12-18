@@ -26,6 +26,7 @@ has private_key_id      => undef;
 has private_key         => undef;
 has service_acount_name => undef;
 has client_id           => undef;
+has storage_name        => undef;
 
 sub init {
     my ($self) = @_;
