@@ -22,7 +22,7 @@ use strict;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
-use version_utils qw(is_sle is_caasp is_sle12_hdd_in_upgrade);
+use version_utils qw(is_sle is_caasp is_upgrade);
 use constant ADDONS_COUNT => 50;
 
 our @EXPORT = qw(
@@ -87,7 +87,7 @@ sub accept_addons_license {
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
     my @addons_with_license = qw(geo rt idu ids lgm);
-    if (is_sle('15+')) {
+    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
         record_soft_failure 'bsc#1118497';
     }
     else {
@@ -399,7 +399,7 @@ sub fill_in_registration_data {
         }
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
-        push @tags, 'inst-addon' if is_sle('15+') && is_sle12_hdd_in_upgrade;
+        push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen(\@tags);

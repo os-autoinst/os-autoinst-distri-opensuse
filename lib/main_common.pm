@@ -19,6 +19,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
+use Utils::Backends 'is_remote_backend';
 use bmwqemu ();
 use strict;
 use warnings;
@@ -1511,6 +1512,7 @@ sub load_extra_tests_console {
     loadtest "console/sysstat";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
+    loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
     loadtest "console/salt" if is_jeos;
     loadtest "console/gpg";
@@ -1537,7 +1539,7 @@ sub load_extra_tests_docker {
     return unless is_sle('12-SP3+') || !is_sle;
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    if (is_sle('=12-SP3')) {
+    if (is_sle('12-SP3+') && is_sle('<15')) {
         loadtest "console/sle2docker";
         loadtest "console/docker_image";
     }

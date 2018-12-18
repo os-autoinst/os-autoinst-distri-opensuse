@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
+use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 

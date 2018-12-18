@@ -7,8 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Advanced test cases for wicked
-# Test 12: Create a Bridge interface from Wicked XML files
+# Summary: VLAN - ifdown, modify one config, ifreload, ifdown, ifup
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -20,16 +19,14 @@ use network_utils 'iface';
 
 sub run {
     my ($self) = @_;
-    my $config = '/etc/wicked/ifconfig/bridge.xml';
-    my $iface  = iface();
-    record_info('Info', 'Create a Bridge interface from Wicked XML files');
-    $self->get_from_data('wicked/xml/bridge.xml', $config);
-    assert_script_run("ifdown $iface");
-    assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface");
-    $self->setup_bridge($config, '', 'ifup');
-    my $res = $self->get_test_result('br0');
-    die if ($res eq 'FAILED');
+    my $iface = iface();
+    my $local_ip = $self->get_ip(type => 'vlan_changed', netmask => 1);
+    record_info('Info', 'VLAN - ifdown, modify one config, ifreload, ifdown, ifup');
+    assert_script_run("ip link add link $iface name $iface.42 type vlan id 42");
+    assert_script_run('ip link');
+    assert_script_run("ip -d link show $iface.42");
+    assert_script_run("ip addr add $local_ip dev $iface.42");
+    assert_script_run("ip link set dev $iface.42 up");
 }
-
 
 1;

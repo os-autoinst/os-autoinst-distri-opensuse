@@ -14,7 +14,7 @@ use utils qw(
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
-use ipmi_backend_utils 'use_ssh_serial_console';
+use Utils::Backends 'use_ssh_serial_console';
 
 # Base class implementation of distribution class necessary for testapi
 

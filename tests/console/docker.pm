@@ -53,7 +53,7 @@ sub run {
     test_seccomp();
 
     # images can be searched on the Docker Hub
-    validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
+    validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ }, 120);
 
     # images can be pulled from the Docker Hub
     #   - pull minimalistic alpine image of declared version using tag

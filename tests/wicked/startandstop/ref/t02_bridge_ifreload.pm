@@ -21,8 +21,5 @@ sub run {
     record_info('Info', 'Bridge - ifreload');
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
 
 1;
