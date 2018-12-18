@@ -24,8 +24,8 @@ sub provider_factory {
     my $provider;
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         $provider = publiccloud::ec2->new(
-            key_id     => get_required_var('PUBLIC_CLOUD_KEY_ID'),
-            key_secret => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
+            key_id     => get_var('PUBLIC_CLOUD_KEY_ID'),
+            key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
             region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
             username   => 'ec2-user'
         );

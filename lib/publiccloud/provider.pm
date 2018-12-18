@@ -291,6 +291,24 @@ sub terraform_destroy {
     script_run('terraform destroy -auto-approve', TERRAFORM_TIMEOUT);
 }
 
+sub do_rest_api {
+    my ($self, $path, %args) = @_;
+    my $method    = $args{method} // 'get';
+    my $ua        = Mojo::UserAgent->new;
+    my $url       = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $max_tries = 3;
+    my $res;
+
+    $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
+    for my $cnt (1 .. $max_tries) {
+        $res = $ua->$method($url . $path)->result;
+        if ($res->is_success) {
+            return decode_json($res->body);
+        }
+        bmwqemu::diag('Retry[' . $cnt . '] REST(' . $method . ') request: ' . $path);
+    }
+    die($res->message);
+}
 
 =head2 cleanup
 

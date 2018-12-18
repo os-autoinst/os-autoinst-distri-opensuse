@@ -17,13 +17,60 @@ use testapi;
 
 has ssh_key      => undef;
 has ssh_key_file => undef;
+has credentials  => undef;
+
+sub create_credentials {
+    my ($self) = @_;
+
+    if (!defined($self->credentials)) {
+        my $credentials = $self->do_rest_api('/ec2/users', method => 'post');
+        die("Missing key") if (!defined($credentials->{keys}));
+        for my $key (@{$credentials->{keys}}) {
+            next if (!defined($key->{secret}));
+            next if ($key->{status} ne 'active');
+            $self->key_id($key->{key_id});
+            $self->key_secret($key->{secret});
+        }
+        $self->credentials($credentials);
+        die('Failed to create credentials') unless (defined($self->key_id) && defined($self->key_secret));
+    }
+
+    return $self->credentials;
+}
+
+sub delete_credentials {
+    my ($self) = @_;
+
+    return unless (defined($self->credentials));
+
+    my $username = $self->credentials->{name};
+    $self->do_rest_api('/credentials/users/' . $username, method => 'delete');
+    $self->credentials(undef);
+}
+
+sub _check_credentials {
+    my ($self) = @_;
+    my $max_tries = 6;
+    for my $i (1 .. $max_tries) {
+        my $out = script_output('aws ec2 describe-images --dry-run', 60, proceed_on_failure => 1);
+        return 1 if ($out !~ /AuthFailure/m);
+        sleep 30;
+    }
+}
 
 sub init {
     my ($self, %params) = @_;
     $self->SUPER::init();
+
+    if (!defined($self->key_id) || !defined($self->key_secret)) {
+        $self->create_credentials();
+    }
+
     assert_script_run("export AWS_ACCESS_KEY_ID=" . $self->key_id);
     assert_script_run("export AWS_SECRET_ACCESS_KEY=" . $self->key_secret);
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
+
+    die('Credentials are invalid') unless ($self->_check_credentials());
 }
 
 sub find_img {
@@ -117,6 +164,7 @@ sub cleanup {
     my ($self) = @_;
     $self->SUPER::cleanup();
     $self->delete_keypair();
+    $self->delete_credentials();
 }
 
 1;
