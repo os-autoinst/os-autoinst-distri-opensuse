@@ -75,7 +75,10 @@ sub y2snapper_show_changes_and_delete {
     send_key_until_needlematch 'yast2_snapper-show_testdata', 'up';
     # Close the dialog and make sure it is closed
     send_key 'alt-c';
-    die '"Selected Snapshot Overview" window is not closed after sending alt-c' unless check_screen('yast2_snapper-new_snapshot', 100);
+    # If snapshot list very long cannot show at one page, the 'yast2_snapper-new_snapshot' will never show up
+    # Added 'yast2_snapper-snapshots' needle to confirm the 'alt-c' closed the window
+    # Refer ticket: https://progress.opensuse.org/issues/45107
+    die '"Selected Snapshot Overview" window is not closed after sending alt-c' unless check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-snapshots)], 100);
     wait_screen_change { send_key 'end' };
     send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Dele't'e the snapshot
