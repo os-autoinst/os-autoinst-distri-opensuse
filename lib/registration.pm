@@ -529,7 +529,7 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-    type_string "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
+    type_string "yast2 scc; echo sccreg-done-\$?- > /dev/$serialdev\n";
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,
@@ -539,8 +539,8 @@ sub yast_scc_registration {
 
     fill_in_registration_data;
 
-    my $ret = wait_serial "yast-scc-done-\\d+-";
-    die "yast scc failed" unless (defined $ret && $ret =~ /yast-scc-done-0-/);
+    my $ret = wait_serial "sccreg-done-\\d+-";
+    die "yast scc failed" unless (defined $ret && $ret =~ /sccreg-done-0-/);
 
     # To check repos validity after registration, call 'validate_repos' as needed
 }
