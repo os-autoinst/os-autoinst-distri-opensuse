@@ -20,6 +20,8 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
+    zypper_call("in cups", exitcode => [0, 102, 103]);
+
     script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
     validate_script_output 'cupsd -t', sub { m/is OK/ };
     systemctl 'enable cups.service';
