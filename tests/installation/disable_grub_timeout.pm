@@ -55,7 +55,7 @@ sub run {
     # Select Timeout dropdown box and disable
     send_key 'alt-t';
     wait_still_screen(1);
-    my $timeout = "-1";
+    my $timeout = check_var('BACKEND', 'ipmi') ? '15' : '-1';
     # SLE-12 GA only accepts positive integers in range [0,300]
     $timeout = "60" if is_sle('<12-SP1');
     type_string $timeout;
