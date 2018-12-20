@@ -1528,6 +1528,10 @@ sub load_extra_tests_console {
     }
     # bind need source package and legacy and development module on SLE15+
     loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
+    unless (is_sle('<12-SP3')) {
+        loadtest 'x11/evolution/evolution_prepare_servers';
+        loadtest 'console/mutt';
+    }
     loadtest 'console/systemd_testsuite' if is_sle('15+') && get_var('QA_HEAD_REPO');
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';

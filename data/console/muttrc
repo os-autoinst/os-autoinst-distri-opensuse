@@ -1,0 +1,35 @@
+set abort_nosubject = no
+set abort_unmodified = no
+set askbcc = no
+set askcc = no
+set delete = yes
+set editor = "vim"
+set fast_reply = yes
+set imap_keepalive = 300
+set imap_passive= no
+set include = yes
+set mail_check = 0
+set mbox_type = Maildir
+set print_command = ""
+set quit = yes
+set reply_to = yes
+set send_charset = "us-ascii:utf-8"
+set ssl_ca_certificates_file = /etc/ssl/private/dovecot.crt
+set ssl_starttls = yes
+set ssl_use_sslv3 = no
+set ssl_use_tlsv1 = no
+set ssl_use_tlsv1_1 = no
+set ssl_verify_host = no
+set use_from = yes
+set wait_key = no
+
+unset record
+unset postponed
+
+set from = "nimda@localhost"
+set imap_user = "nimda@localhost"
+set imap_pass = "password123"
+set folder = imaps://$imap_user:993
+set spoolfile = +INBOX
+
+set smtp_url = smtp://localhost:25
