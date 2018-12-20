@@ -32,21 +32,15 @@ sub run {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu prague-icecream-pxe-menu pxe-menu)], 300);
     my $image_path = "";
+    assert_screen([qw(pxe-menu-bei pxe-menu-nue pxe-menu-prg pxe-menu)], 300);
     #detect pxe location
-    if (match_has_tag("virttest-pxe-menu")) {
-        #BeiJing
-        # Login to command line of pxe management
-        send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 60, 1;
-
+    if (match_has_tag('pxe-menu-bei')) {    # BeiJing
+        send_key_until_needlematch 'pxe-edit-prompt', 'esc', 60, 1;
         $image_path = get_var("HOST_IMG_URL");
     }
-    elsif (match_has_tag("qa-net-selection")) {
-        #Nuremberg
-        send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
-
-        my $image_name = "";
+    elsif (match_has_tag('pxe-menu-nue')) {     # Nuremberg
+        send_key_until_needlematch 'pxe-edit-prompt', 'esc', 8, 3;
         if (check_var("INSTALL_TO_OTHERS", 1)) {
             $image_name = get_var("REPO_0_TO_INSTALL");
         }
@@ -64,22 +58,21 @@ sub run {
         }
         $image_path = "$path/linux initrd=$path/initrd install=$repo ";
     }
-    elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'pxe-stable-iso-entry', 'down';
         send_key 'ret';
         send_key_until_needlematch 'pxe-sle-12-sp3-entry', 'down';
         send_key 'tab';
         my $node = get_var('WORKER_CLASS');
     }
-    elsif (match_has_tag('prague-icecream-pxe-menu')) {
         # Fix problem with sol on ttyS2
         $testapi::serialdev = get_var('SERIALDEV') if get_var('SERIALDEV');
-        send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
 
         my $arch = get_var('ARCH');
         my ($image_name) = get_var('ISO') =~ s/^.*?([^\/]+)-DVD-${arch}-([^-]+)-DVD1\.iso/$1-$2/r;
         $image_path .= "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
         $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
+    elsif (match_has_tag('pxe-menu-prg')) {      # Prague
+        send_key_until_needlematch 'pxe-edit-prompt', 'esc', 8, 3;
             my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
             $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
     }

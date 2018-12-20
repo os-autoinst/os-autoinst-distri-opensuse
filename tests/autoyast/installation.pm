@@ -123,7 +123,7 @@ sub run {
         assert_screen 'installation-done', 750;
         reset_consoles;
         select_console 'sol', await_console => 0;
-        assert_screen 'prague-pxe-menu', 400;
+        assert_screen([qw(pxe-menu-bei pxe-menu-nue pxe-menu-prg pxe-menu)], 400);
         send_key 'ret';    # boot from hard disk
         return;
     }

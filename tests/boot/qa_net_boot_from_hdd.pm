@@ -18,7 +18,7 @@ sub run {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen "qa-net-selection", 300;
+    assert_screen 'pxe-menu-nue', 300;
     # boot to hard disk is default
     send_key 'ret';
 
