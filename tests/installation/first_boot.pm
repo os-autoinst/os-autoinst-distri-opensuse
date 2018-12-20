@@ -22,6 +22,16 @@ use base 'opensusebasetest';
 
 sub run {
     my ($self) = @_;
+    if (get_var('IPMI_AUTOYAST')) {
+        reset_consoles;
+        select_console 'sol', await_console => 0;
+        # grub will show up if serial terminal is setup in autoyast profile
+        if (check_screen 'grub2', 30) {
+            send_key 'ret';
+        }
+        # second stage of autoyast installation can take some time
+        assert_screen 'linux-login', 300;
+    }
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
     my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
