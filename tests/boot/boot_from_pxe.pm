@@ -22,6 +22,7 @@ use testapi;
 use utils 'type_string_very_slow';
 
 sub run {
+    my $interface = get_var('SUT_NETDEVICE', 'eth0');
     # In autoyast tests we need to wait until pxe is available
     if (get_var('AUTOYAST') && get_var('DELAYED_START')) {
         mutex_lock('pxe');
@@ -59,20 +60,17 @@ sub run {
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo = $openqa_url . "/assets/repo/${image_name}";
-        $image_path = "$path/linux initrd=$path/initrd install=$repo";
         if (check_var('BACKEND', 'ipmi')) {
-            my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
-            $image_path .= "?device=$netdevice";
+            $repo .= "?device=$interface";
         }
+        $image_path = "$path/linux initrd=$path/initrd install=$repo ";
     }
     elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'pxe-stable-iso-entry', 'down';
         send_key 'ret';
         send_key_until_needlematch 'pxe-sle-12-sp3-entry', 'down';
         send_key 'tab';
-        my $interface = get_var('WORKER_CLASS') eq 'hornet' ? 'eth1' : 'eth4';
         my $node = get_var('WORKER_CLASS');
-        type_string "ifcfg=$interface=dhcp4 ", $type_speed;
     }
     elsif (match_has_tag('prague-icecream-pxe-menu')) {
         # Fix problem with sol on ttyS2
@@ -83,7 +81,8 @@ sub run {
         my ($image_name) = get_var('ISO') =~ s/^.*?([^\/]+)-DVD-${arch}-([^-]+)-DVD1\.iso/$1-$2/r;
         $image_path .= "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
         $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
-        $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1";
+            my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
+            $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
     }
     elsif (match_has_tag('pxe-menu')) {
         # select network (second entry)
@@ -94,8 +93,8 @@ sub run {
     type_string ${image_path} . " ", $type_speed;
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
-    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
-        my $cmdline = '';
+    if (check_var('BACKEND', 'ipmi')) {
+        $cmdline = "ifcfg=$interface=dhcp4 plymouth.enable=0 ";
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
         }

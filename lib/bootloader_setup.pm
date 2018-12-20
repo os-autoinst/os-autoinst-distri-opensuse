@@ -554,8 +554,9 @@ sub specific_bootmenu_params {
             # due to BSC#932692 (SLE-12). 'SetHostname=0' has to be set because autoyast
             # profile has DHCLIENT_SET_HOSTNAME="yes" in /etc/sysconfig/network/dhcp,
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
-            # have them both as it's not deterministic.
-            $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp SetHostname=0");
+            # have them both as it's not deterministic. Don't set on IPMI with net interface defined in SUT_NETDEVICE.
+            my $ifcfg = check_var('BACKEND', 'ipmi') ? '' : 'ifcfg=*=dhcp SetHostname=0';
+            $netsetup = get_var("NETWORK_INIT_PARAM", "$ifcfg");
             $args .= " $netsetup ";
             $args .= autoyast_boot_params;
         }
