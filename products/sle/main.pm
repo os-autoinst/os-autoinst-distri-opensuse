@@ -1009,7 +1009,7 @@ elsif (get_var('VALIDATE_PCM_PATTERN')) {
     load_public_cloud_patterns_validation_tests;
 }
 else {
-    if (get_var("SES5_DEPLOY")) {
+    if (get_var('IPMI_AUTOYAST')) {
         loadtest "boot/boot_from_pxe";
         loadtest "autoyast/installation";
         loadtest "installation/first_boot";

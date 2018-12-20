@@ -119,7 +119,7 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
-    if (check_var('BACKEND', 'ipmi') && get_var("SES5_DEPLOY")) {
+    if (check_var('BACKEND', 'ipmi') && get_var('IPMI_AUTOYAST')) {
         assert_screen 'installation-done', 750;
         reset_consoles;
         select_console 'sol', await_console => 0;
