@@ -19,7 +19,7 @@ use File::Basename;
 use lockapi;
 use registration;
 use testapi;
-use utils 'type_string_very_slow';
+use utils 'type_string_slow';
 
 sub run {
     my $interface = get_var('SUT_NETDEVICE', 'eth0');
@@ -34,7 +34,6 @@ sub run {
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu prague-icecream-pxe-menu pxe-menu)], 300);
     my $image_path = "";
-    my $type_speed = 20;
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
@@ -90,7 +89,7 @@ sub run {
         send_key "tab";
     }
     # Execute installation command on pxe management cmd console
-    type_string ${image_path} . " ", $type_speed;
+    type_string_slow ${image_path};
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if (check_var('BACKEND', 'ipmi')) {
@@ -106,15 +105,14 @@ sub run {
         # 'ssh=1' and 'sshd=1' are equal, both together don't work
         # so let's just set the password here
         $cmdline .= "sshpassword=$testapi::password ";
-        type_string $cmdline, $type_speed;
+        type_string_slow $cmdline;
     }
 
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
-        type_string(registration_bootloader_cmdline, $type_speed);
+        type_string_slow(registration_bootloader_cmdline);
     }
 
     specific_bootmenu_params;
-
     send_key 'ret';
     save_screenshot;
 
@@ -125,8 +123,8 @@ sub run {
 
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-            type_string('DISPLAY= ', $type_speed) if check_var('VIDEOMODE', 'text');
-            type_string("yast.ssh\n", $type_speed);
+            type_string_slow('DISPLAY= ') if check_var('VIDEOMODE', 'text');
+            type_string_slow("yast.ssh\n");
         }
         wait_still_screen;
     }
