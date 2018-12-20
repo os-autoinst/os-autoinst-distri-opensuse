@@ -1,0 +1,320 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list">
+<!-- will be added in following update_kernel.pm
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Live-Patching/15/x86_64/product]]></media_url>
+        <product>kgraft-pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Live-Patching/15/x86_64/update]]></media_url>
+        <product>kgraft-update</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://dist.nue.suse.com/ibs/QA:/Head/SLE-15]]></media_url>
+        <product>qa_repo</product>
+        <product_dir/>
+      </listentry>
+-->
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Product-SLES/15/x86_64/product]]></media_url>
+        <product>SLES:15::pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/15/x86_64/update]]></media_url>
+        <product>SLES:15::update</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/15/x86_64/product]]></media_url>
+        <product>sle-module-basesystem:15::pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/15/x86_64/update]]></media_url>
+        <product>sle-module-basesystem:15::update</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/15/x86_64/product]]></media_url>
+        <product>sle-module-desktop-applications:15::pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Desktop-Applications/15/x86_64/update]]></media_url>
+        <product>sle-module-desktop-applications:15::update</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/15/x86_64/product]]></media_url>
+        <product>sle-module-development-tools:15::pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/15/x86_64/update]]></media_url>
+        <product>sle-module-development-tools:15::update</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Public-Cloud/15/x86_64/product]]></media_url>
+        <product>sle-module-public-cloud:15::pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/15/x86_64/update]]></media_url>
+        <product>sle-module-public-cloud:15::update</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/15/x86_64/product]]></media_url>
+        <product>sle-module-server-applications:15::pool</product>
+        <product_dir/>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/15/x86_64/update]]></media_url>
+        <product>sle-module-server-applications:15::update</product>
+        <product_dir/>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <bootloader>
+    <global>
+      <activate>true</activate>
+      <boot_mbr>true</boot_mbr>
+      <append>splash=silent quiet console=tty1 console=ttyS1,115200</append>
+      <serial>serial --speed=115200 --unit=1</serial>
+      <terminal>serial</terminal>
+      <timeout config:type="integer">15</timeout>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">false</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">false</format>
+          <partition_id config:type="integer">263</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>8M</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>2G</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <create_subvolumes config:type="boolean">true</create_subvolumes>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+          <subvolumes config:type="list">
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/home</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">4</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>5G</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/sdb</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">false</enable_snapshots>
+      <initialize config:type="boolean">false</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">false</format>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <resize config:type="boolean">false</resize>
+          <size>6G</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+        <service>auditid</service>
+        <service>dnsmasq</service>
+        <service>nfsserver</service>
+        <service>rpcbind</service>
+        <service>vsftpd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <image/>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+    <packages config:type="list">
+      <package>screen</package>
+      <package>sysstat</package>
+      <package>iputils</package>
+      <package>acl</package>
+      <package>audit</package>
+      <package>binutils</package>
+      <package>dosfstools</package>
+      <package>evmctl</package>
+      <package>net-tools</package>
+      <package>nfs-kernel-server</package>
+      <package>numactl</package>
+      <package>psmisc</package>
+      <package>quota</package>
+      <package>sssd-tools</package>
+      <package>sudo</package>
+      <package>tpm-tools</package>
+      <package>wget</package>
+      <package>xfsprogs</package>
+      <package>iptables</package>
+      <package>tcpdump</package>
+      <package>dhcp-client</package>
+      <package>telnet</package>
+      <package>dhcp-server</package>
+      <package>dnsmasq</package>
+      <package>rpcbind</package>
+      <package>rsync</package>
+      <package>vsftpd</package>
+      <package>apparmor-utils</package>
+      <package>apparmor-parser</package>
+      <package>bzip2</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>minimal_base</pattern>
+    </patterns>
+    <products config:type="list">
+      <product>SLES</product>
+      <product>sle-module-live-patching</product>
+    </products>
+  </software>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_code>32d819432ec25403</reg_code>
+    <slp_discovery config:type="boolean">false</slp_discovery>
+  </suse_register>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$Q7j41x6B/mnN$FA1mrMw4UjW9bBEgEoxDD9RRv6pau9sdUeSSfOwoC7ajssr83tVBDefYPnZ7jCamwqhCnXor6KABo5vDeva4k0</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$mjXHVqyFsxGB$aVnx8nBzUnFgyI9kXTBkQr9K/mN1GnWzPTmhJezemKdKB.qGAGgl35A6IwSOoTiOuIyvbFPGBreYmvFxkt4uq0</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
