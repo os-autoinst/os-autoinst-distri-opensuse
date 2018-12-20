@@ -41,15 +41,16 @@ sub run {
 
     # Check if enable 'install recommended package', if not, enable it
     # Testcase according to https://progress.opensuse.org/issues/44864
-    send_key 'alt-d';
-    assert_screen [qw(yast2-sw_install_recommended_packages_enabled yast2-sw_install_recommended_packages_disabled)];
-    if (match_has_tag('yast2-sw_install_recommended_packages_disabled')) {
-        wait_screen_change { send_key 'alt-r' };
-    } else {
-        wait_screen_change { send_key 'esc' };
+    if (!check_var('VERSION', '12')) {
+        send_key 'alt-d';
+        assert_screen [qw(yast2-sw_install_recommended_packages_enabled yast2-sw_install_recommended_packages_disabled)];
+        if (match_has_tag('yast2-sw_install_recommended_packages_disabled')) {
+            wait_screen_change { send_key 'alt-r' };
+        } else {
+            wait_screen_change { send_key 'esc' };
+        }
+        send_key 'alt-p';
     }
-    send_key 'alt-p';
-
     # Testcase according to https://fate.suse.com/318099
     # UC1:
     # Select a certain package, check that another gets selected/installed
