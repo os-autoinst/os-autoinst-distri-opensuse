@@ -113,10 +113,10 @@
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
-    <zones>
+    <zones config:type="list">
       <zone>
         <name>public</name>
-        <interfaces>
+        <interfaces config:type="list">
           <interface>eth0</interface>
         </interfaces>
         <services config:type="list">
