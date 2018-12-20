@@ -39,7 +39,7 @@ sub run {
         send_key_until_needlematch 'pxe-edit-prompt', 'esc', 60, 1;
         $image_path = get_var("HOST_IMG_URL");
     }
-    elsif (match_has_tag('pxe-menu-nue')) {     # Nuremberg
+    elsif (match_has_tag('pxe-menu-nue')) {    # Nuremberg
         send_key_until_needlematch 'pxe-edit-prompt', 'esc', 8, 3;
         if (check_var("INSTALL_TO_OTHERS", 1)) {
             $image_name = get_var("REPO_0_TO_INSTALL");
@@ -57,7 +57,7 @@ sub run {
         }
         $image_path = "$path/linux initrd=$path/initrd install=$repo ";
     }
-    elsif (match_has_tag('pxe-menu-prg')) {      # Prague
+    elsif (match_has_tag('pxe-menu-prg')) {    # Prague
         send_key_until_needlematch 'pxe-edit-prompt', 'esc', 8, 3;
         if (get_var('PXE_ENTRY')) {
             my $entry = get_var('PXE_ENTRY');

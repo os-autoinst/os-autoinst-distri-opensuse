@@ -15,6 +15,7 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use bootloader_setup 'boot_grub_item';
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my ($self, $tinfo) = @_;
@@ -32,7 +33,12 @@ sub run {
         $self->wait_boot(ready_time => 500);
     }
 
-    $self->select_serial_terminal;
+    if (check_var('BACKEND', 'ipmi')) {
+        use_ssh_serial_console;
+    }
+    else {
+        $self->select_serial_terminal;
+    }
 
     assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
