@@ -96,6 +96,11 @@ sub patching_sle {
 
     assert_script_run("zypper mr --enable --all");
 
+    # Disable old repositories during AutoYaST driven upgrade
+    if (get_var('AUTOUPGRADE')) {
+        disable_installation_repos;
+    }
+
     # Restore the old value of VIDEOMODE and SCC_REGISTER
     # For example, in case of SLE 12 offline migration tests with smt pattern
     # or modules, we need set SCC_REGISTER=installation at test suite settings
