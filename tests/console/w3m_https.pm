@@ -17,12 +17,13 @@
 use base "consoletest";
 use strict;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
     select_console "root-console";
 
     assert_script_run('rpm -q w3m');
-    script_run("zypper --no-refresh se -it pattern fips");
+    zypper_call('--no-refresh search -it pattern fips');
 
     my %https_url = (
         google => "https://www.google.com/ncr",
