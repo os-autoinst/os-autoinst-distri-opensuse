@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console);
+our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console use_sol_serial_console do_ipmi_mc_reset);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -29,20 +29,37 @@ our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console);
 #We will mostly rely on ikvm to continue the test flow.
 #TODO: we need the serial output to debug issues in reboot, coolo will help add it.
 
+sub use_sol_serial_console {
+    set_var('SERIALDEV', '');
+    $serialdev = 'ttyS1';
+    bmwqemu::save_vars();
+    select_console 'sol', await_console => 0;
+    save_screenshot;
+}
+
 sub switch_from_ssh_to_sol_console {
     my (%opts) = @_;
 
     #close root-ssh console
     prepare_system_shutdown;
-    #switch to sol console
-    set_var('SERIALDEV', '');
-    $serialdev = 'ttyS1';
-    bmwqemu::save_vars();
-    if ($opts{'reset_console_flag'} eq "on") {
+
+    #ipmi mc reset
+    if ($opts{mc_reset_flag} eq 'on') {
+        do_ipmi_mc_reset();
+    }
+
+    if ($opts{reset_console_flag} eq 'on') {
         reset_consoles;
     }
-    select_console 'sol', await_console => 0;
-    save_screenshot;
+
+    #switch to sol console
+    use_sol_serial_console;
+
+    #this is necessary for sol console to show timely data or it will be blank
+    if ($opts{mc_reset_flag} eq 'on') {
+        send_key 'ret';
+        save_screenshot;
+    }
 }
 
 my $grub_ver;
@@ -241,6 +258,15 @@ sub set_serial_console_on_vh {
         &umount_installation_disk("$mount_point");
     }
 
+}
+
+# reset ipmi main board via mc reset cmd
+sub do_ipmi_mc_reset {
+    die "You should only do mc reset when backend is ipmi!" unless check_var('BACKEND', 'ipmi');
+
+    bmwqemu::diag("Start do_ipmi_mc_reset in test code!!!");
+    console('sol')->do_mc_reset;
+    bmwqemu::diag("do_ipmi_mc_reset in test code ends!!!");
 }
 
 1;

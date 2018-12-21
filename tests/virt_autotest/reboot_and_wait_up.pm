@@ -28,8 +28,16 @@ sub reboot_and_wait_up {
         $self->reboot($test_machine, $reboot_timeout);
     }
     else {
-        #leave ssh console and switch to sol console
-        switch_from_ssh_to_sol_console(reset_console_flag => 'off');
+        # leave ssh console and switch to sol console
+        # Now we support resetting ipmi main board during test via
+        # a testsuite setting switch MC_RESET_BEFORE_REBOOT.
+        # Reboot is a weak point which suffers ipmi sol unstability
+        # So do ipmi mc reset before reboot can increase stability
+        my $mc_reset_flag = 'off';
+        if (check_var('MC_RESET_BEFORE_REBOOT', 1)) {
+            $mc_reset_flag = 'on';
+        }
+        switch_from_ssh_to_sol_console(mc_reset_flag => $mc_reset_flag);
         #login
         #The timeout can't be too small since autoyast installation
         #need to wait 2nd phase install to finish
