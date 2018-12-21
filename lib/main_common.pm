@@ -2000,7 +2000,7 @@ sub load_security_tests_web {
     loadtest "console/apache_ssl";
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/mozilla_nss/apache_nssfips";
-        loadtest "console/libmicrohttpd";
+        loadtest "console/libmicrohttpd" if is_sle('<15');
     }
     loadtest "console/consoletest_finish";
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
