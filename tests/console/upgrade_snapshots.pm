@@ -23,12 +23,12 @@ sub run {
 
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'before update' is there
-    wait_serial('pre\s*(\|[^|]*){4,}\s*\|\s*number\s*\|\s*before (update|online migration)\s*\|\s*important=yes', 20)
+    wait_serial('pre\s*(\|[^|]*){4,}\s*\|\s*number\s*\|\s*before (update|online migration)\s*\|\s*important=yes', 40)
       || die 'upgrade snapshots test failed';
 
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'after update' is there
-    wait_serial('post\s*(\|[^|]*){4,}\s*\|\s*number\s*\|\s*after (update|online migration)\s*\|\s*important=yes', 20)
+    wait_serial('post\s*(\|[^|]*){4,}\s*\|\s*number\s*\|\s*after (update|online migration)\s*\|\s*important=yes', 40)
       || die 'upgrade snapshots test failed';
 }
 
