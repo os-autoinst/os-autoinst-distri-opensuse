@@ -147,8 +147,7 @@ sub investigate_yast2_failure {
         'No textdomain configured',                      # Detecting missing translations
         'nothing provides',                              # Detecting missing required packages
         'but this requirement cannot be provided',       # and package conflicts
-        'Could not load icon',                           # Detecting missing icons
-        'Couldn\'t load pixmap'                          # additionally with this line, but if not caught with the message above
+        'Could not load icon'                            # Detecting missing icons
     );
     for my $y2log_error (@y2log_errors) {
         if (my $y2log_error_result = script_output 'grep -B 3 \'' . $y2log_error . '\' /var/log/YaST2/y2log | tail -n 20 || true') {
