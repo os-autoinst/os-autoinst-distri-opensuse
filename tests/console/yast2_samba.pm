@@ -406,7 +406,7 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-    $self->save_upload_y2logs();
+    $self->SUPER::post_fail_hook;
     upload_logs('/etc/samba/smb.conf');
     upload_logs('/tmp/failed_smb_directives.log');
 }
