@@ -1887,6 +1887,21 @@ sub load_x11_remote {
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_client')) {
         loadtest 'x11/remote_desktop/vino_client';
     }
+    # load xrdp testing
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'win_client')) {
+        loadtest 'x11/remote_desktop/windows_network_setup';
+        loadtest 'x11/remote_desktop/windows_client_remotelogin';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'xrdp_server')) {
+        loadtest 'x11/remote_desktop/xrdp_server';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'xrdp_client')) {
+        loadtest 'x11/remote_desktop/xrdp_client';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'win_server')) {
+        loadtest 'x11/remote_desktop/windows_network_setup';
+        loadtest 'x11/remote_desktop/windows_server_setup';
+    }
 }
 
 
@@ -1922,8 +1937,12 @@ sub load_common_x11 {
         load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
-        loadtest 'boot/boot_to_desktop';
-        loadtest "x11/window_system";
+        if (check_var("REMOTE_DESKTOP_TYPE", "win_client") || check_var('REMOTE_DESKTOP_TYPE', "win_server")) {
+            loadtest "x11/remote_desktop/windows_client_boot";
+        } else {
+            loadtest 'boot/boot_to_desktop';
+            loadtest "x11/window_system";
+        }
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
