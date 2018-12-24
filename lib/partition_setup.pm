@@ -28,6 +28,7 @@ our @EXPORT = qw(
   take_first_disk
   is_storage_ng_newui
   %partition_roles
+  mount_device
 );
 
 our %partition_roles = qw(
@@ -117,13 +118,24 @@ sub create_new_partition_table {
     }
 }
 
+# Set mount point and volume label
 sub mount_device {
     my ($mount) = shift;
     send_key 'alt-o' if is_storage_ng;
     wait_still_screen 1;
     send_key 'alt-m';
+    for (1 .. 10) { send_key "backspace" }
     type_string "$mount";
     wait_still_screen 1;
+    if (get_var('SETUP_VOLUME_LABEL')) {
+        send_key((is_storage_ng) ? 'alt-s' : 'alt-t');
+        wait_still_screen 1;
+        send_key 'alt-m';
+        for (1 .. 45) { send_key "backspace" }
+        type_string get_var('SETUP_VOLUME_LABEL');
+        wait_still_screen 1;
+        send_key 'alt-o';
+    }
 }
 
 # Set size when adding or resizing partition

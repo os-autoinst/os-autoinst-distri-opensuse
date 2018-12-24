@@ -896,6 +896,10 @@ sub load_inst_tests {
             if (get_var("EXPERTPARTITIONER")) {
                 loadtest "installation/partitioning_expert";
             }
+            #kernel performance test need install on specific disk
+            if (get_var("SPECIFIC_DISK")) {
+                loadtest "installation/partitioning_specific_disk";
+            }
             if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
                 loadtest "installation/installation_enlargeswap";
             }
@@ -909,7 +913,7 @@ sub load_inst_tests {
             if (get_var("IBFT")) {
                 loadtest "installation/partitioning_iscsi";
             }
-            if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
+            if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) && !get_var("SPECIFIC_DISK") || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
                 loadtest "installation/partitioning_firstdisk";
             }
             loadtest "installation/partitioning_finish";
