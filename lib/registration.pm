@@ -333,7 +333,7 @@ sub process_scc_register_addons {
                     }
                     # yast may pop up dependencies or reboot prompt window
                     if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
-                        send_key 'alt-o';
+                        wait_screen_change { send_key "alt-o" };
                         next;
                     }
                     if (match_has_tag('yast_scc-installation-summary')) {
