@@ -666,6 +666,14 @@ sub load_default_autoyast_tests {
     load_reboot_tests;
 }
 
+sub load_suseconnect_tests {
+    prepare_target;
+    loadtest "console/system_prepare";
+    loadtest "console/consoletest_setup";
+    loadtest "console/suseconnect";
+}
+
+
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
@@ -699,7 +707,8 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_xen_tests if check_var("REGRESSION", "xen");
+    load_xen_tests         if check_var("REGRESSION", "xen");
+    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
