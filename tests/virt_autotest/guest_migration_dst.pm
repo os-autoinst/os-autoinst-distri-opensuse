@@ -40,15 +40,22 @@ sub run {
     save_screenshot;
     #workaround end
 
-    #mark ready state and wait for child finish
+    #mark ready state
     $self->execute_script_run("rm -r /var/log/qa/ctcs2/* /tmp/prj3* -r", 30);
     mutex_create('DST_READY_TO_START');
-    wait_for_children;
 
-    #upload logs
+    #wait for src host core test finish to upload dst log
+    my $src_test_timeout = $self->get_var_from_child("MAX_MIGRATE_TIME") || 10800;
+    $self->workaround_for_reverse_lock("SRC_TEST_DONE", $src_test_timeout);
     script_run("xl dmesg > /tmp/xl-dmesg.log");
     my $logs = "/var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log";
     &virt_autotest_base::upload_virt_logs($logs, "guest-migration-dst-logs");
+
+    #mark dst upload log done
+    mutex_create('DST_UPLOAD_LOG_DONE');
+
+    #wait for child finish
+    wait_for_children;
 }
 
 1;

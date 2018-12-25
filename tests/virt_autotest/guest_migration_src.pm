@@ -98,14 +98,19 @@ sub run {
     $self->run_test($timeout, "", "no", "yes", "$log_dirs", "$upload_log_name");
 
     #display test result
-    my $cmd = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Executing check validation/,/[0-9]* fail [0-9]* succeed/p'";
-
+    my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Executing check validation/,/[0-9]* fail [0-9]* succeed/p'";
     my $guest_migrate_log_content = &script_output("$cmd");
     save_screenshot;
 
     #upload junit log
     $self->{"package_name"} = "Guest Migration Test";
     $self->add_junit_log("$guest_migrate_log_content");
+
+    #let dst host upload logs
+    set_var('SRC_TEST_DONE', 1);
+    bmwqemu::save_vars();
+    mutex_lock('DST_UPLOAD_LOG_DONE');
+    mutex_unlock('DST_UPLOAD_LOG_DONE');
 
     #mark test result
     if ($guest_migrate_log_content =~ /0 succeed/m) {
