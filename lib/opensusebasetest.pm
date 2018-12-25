@@ -7,7 +7,7 @@ use strict;
 use utils;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd);
+use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed);
 use isotovideo;
 use IO::Socket::INET;
 
@@ -499,6 +499,9 @@ sub wait_boot {
             #assert_screen "dm-password-input", 10;
             elsif (check_var('DESKTOP', 'gnome')) {
                 # In GNOME/gdm, we do not have to enter a username, but we have to select it
+                if (is_tumbleweed) {
+                    send_key 'tab';
+                }
                 send_key 'ret';
             }
 

@@ -608,8 +608,7 @@ sub firefox_check_default {
     my $stilltime = get_var('TIMEOUT_SCALE') ? 100 : 10;
     wait_still_screen $stilltime, 100;
     # Set firefox as default browser if asked
-    assert_screen [qw(firefox_default_browser firefox-url-loaded)], 300;
-    if (match_has_tag('firefox_default_browser')) {
+    if (check_screen('firefox_default_browser')) {
         wait_screen_change {
             assert_and_click 'firefox_default_browser_yes';
         };
