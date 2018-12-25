@@ -83,7 +83,7 @@ sub run {
     my $ip_out = $self->execute_script_run('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('SRC_IP',   $ip_out);
     set_var('SRC_USER', "root");
-    set_var('SRC_PASS', "nots3cr3t");
+    set_var('SRC_PASS', $password);
     bmwqemu::save_vars();
 
     #wait for destination to be ready

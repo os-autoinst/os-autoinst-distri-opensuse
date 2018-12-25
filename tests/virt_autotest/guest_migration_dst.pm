@@ -23,7 +23,7 @@ sub run {
     my $ip_out = $self->execute_script_run('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('DST_IP',   $ip_out);
     set_var('DST_USER', "root");
-    set_var('DST_PASS', "nots3cr3t");
+    set_var('DST_PASS', $password);
     bmwqemu::save_vars();
 
     #workaround for weird mount failure

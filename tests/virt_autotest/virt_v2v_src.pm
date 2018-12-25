@@ -23,7 +23,7 @@ sub run {
     my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 30);
     set_var('SRC_IP',   $ip_out);
     set_var('SRC_USER', "root");
-    set_var('SRC_PASS', "nots3cr3t");
+    set_var('SRC_PASS', $password);
     bmwqemu::save_vars();
 
     $self->execute_script_run("rm -r /var/log/qa/ctcs2/* /tmp/virt-v2v/* -r", 30);
