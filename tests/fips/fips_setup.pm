@@ -27,6 +27,10 @@ use utils;
 sub run {
     select_console 'root-console';
 
+    # Disable Packagekit
+    systemctl 'mask packagekit.service';
+    systemctl 'stop packagekit.service';
+
     zypper_call('in -t pattern fips');
 
     # If FIPS_ENV_MODE, then set ENV for some FIPS modules. It is a
