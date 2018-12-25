@@ -32,6 +32,7 @@ sub run {
     my $zypper_migration_failed       = qr/^Migration failed/m;
     my $zypper_migration_license      = qr/Do you agree with the terms of the license\? \[y/m;
     my $zypper_migration_urlerror     = qr/URI::InvalidURIError/m;
+    my $zypper_migration_reterror     = qr/^No migration available|^Can't get available migrations/m;
 
     # start migration
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
@@ -40,7 +41,7 @@ sub run {
     my $migration_checks = [
         $zypper_migration_target, $zypper_disable_repos,      $zypper_continue,               $zypper_migration_done,
         $zypper_migration_error,  $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
-        $zypper_migration_failed, $zypper_migration_license
+        $zypper_migration_failed, $zypper_migration_license,  $zypper_migration_reterror
     ];
     my $zypper_migration_error_cnt = 0;
     my $out = wait_serial($migration_checks, $timeout);
@@ -50,6 +51,9 @@ sub run {
             $version =~ s/-/ /;
             if ($out =~ /(\d+)\s+\|\s+SUSE Linux Enterprise.*?$version/m) {
                 send_key "$1";
+            }
+            else {
+                die 'No expected migration target found';
             }
             send_key "ret";
             save_screenshot;
@@ -92,6 +96,7 @@ sub run {
             send_key "ret";
         }
         elsif ($out =~ $zypper_migration_done) {
+            die 'Migration failed with zypper error' if ($out =~ $zypper_migration_reterror);
             last;
         }
         $out = wait_serial($migration_checks, $timeout);
