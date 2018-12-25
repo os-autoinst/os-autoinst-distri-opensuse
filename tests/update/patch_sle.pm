@@ -147,7 +147,7 @@ sub install_patterns {
 
     # install all patterns from product.
     if (check_var('PATTERNS', 'all')) {
-        @pt_list_un = split(/ /, script_output("zypper pt -u | grep '^ ' | awk '{print \$2}' | sort -u | xargs"));
+        @pt_list_un = split(/ /, script_output("zypper pt -u | grep '^  |' | awk -F '|' '{print \$2}' | sort -u | xargs"));
     }
     # install certain pattern from parameter.
     else {
