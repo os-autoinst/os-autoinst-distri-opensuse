@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,8 +9,9 @@
 
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 
-# Summary: Add fips firefox nss test
-# Maintainer: mitiao <mitiao@gmail.com>
+# Summary: FIPS mozilla-nss test for firefox
+# Maintainer: mitiao <mitiao@gmail.com>,
+#             wnereiz <wnereiz@fsf.member.org>
 
 use base "x11test";
 use strict;
@@ -24,53 +25,71 @@ sub quit_firefox {
 }
 
 sub run {
-    # define fips password for firefox, and it should be consisted by:
+    my ($self) = shift;
+
+    # Define FIPS password for firefox, and it should be consisted by:
     # - at least 8 characters
     # - at least one upper case
     # - at least one non-alphabet-non-number character (like: @-.=%)
     my $fips_password = 'openqa@SUSE';
 
-    # launch firefox first and enable FIPS mode
-    x11_start_program('firefox', target_match => 'firefox-launch', match_timeout => 90);
-    send_key "alt-d";
-    type_string "about:preferences#security\n";
-    assert_screen "firefox-preferences-security";
-    send_key "alt-shift-u";
-    assert_screen "firefox-passwd-master_setting";
+    $self->start_firefox;
+
+    # Firfox Preferences
+    send_key "alt-e";
+    wait_still_screen 2;
+    send_key "n";
+    assert_screen('firefox-preferences');
+
+    type_string "Forms";       # Search "Forms & Passwords" section
+    send_key "tab";            # Hide blinking cursor in the search box
+    wait_still_screen 2;
+    send_key "alt-shift-u";    # Use a master password
+    assert_screen('firefox-passwd-master_setting');
+
     type_string $fips_password;
     send_key "tab";
     type_string $fips_password;
     send_key "ret";
     assert_screen "firefox-password-change-succeeded";
     send_key "ret";
-    send_key "alt-d";
-    type_string "about:preferences#advanced\n";
-    assert_and_click "firefox-ssl-advanced_certificate";
-    wait_still_screen;
-    send_key "alt-shift-d";
+    wait_still_screen 3;
+
+    send_key "ctrl-f";
+    type_string "certificates";    # Search "Certificates" section
+    send_key "tab";
+    wait_still_screen 2;
+
+    send_key "alt-shift-d";        # Device Manager
     assert_screen "firefox-device-manager";
-    # Enable FIPS mode
-    send_key "alt-shift-f";
-    assert_screen "firefox-fips-password-inputfiled", 300;
-    type_string $fips_password;
-    send_key "ret";
-    # No shortcut to close device manager, quit firefox directly
+
+    send_key "alt-shift-f";        # Enable FIPS mode
+    assert_screen "firefox-confirm-fips_enabled";
+    send_key "esc";                # Quit device manager
+
     quit_firefox;
     assert_screen "generic-desktop";
 
-    # launch firefox again and check FIPS mode is enabled
-    x11_start_program('firefox', target_match => 'firefox-fips-password-inputfiled', match_timeout => 90);
+    # "start_firefox" will be not used, since the master password is
+    # required when firefox launching in FIPS mode
+    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled');
     type_string $fips_password;
     send_key "ret";
-    # Need click on tab area twice to make sure it is selected
-    assert_and_click "firefox-homepage", 90;
-    assert_and_click "firefox-homepage";
-    send_key "alt-d";
-    type_string "about:preferences#advanced\n";
-    assert_screen "firefox-preferences-advanced";
-    send_key "alt-shift-d";
+    assert_screen "firefox-url-loaded";
+
+    # Firfox Preferences
+    send_key "alt-e";
+    wait_still_screen 2;
+    send_key "n";
+    assert_screen('firefox-preferences');
+
+    type_string "certificates";    # Search "Certificates" section
+    send_key "tab";
+    wait_still_screen 2;
+    send_key "alt-shift-d";        # Device Manager
     assert_screen "firefox-device-manager";
     assert_screen "firefox-confirm-fips_enabled";
+
     quit_firefox;
     assert_screen "generic-desktop";
 }
