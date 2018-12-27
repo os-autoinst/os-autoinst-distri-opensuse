@@ -62,16 +62,18 @@ sub reboot_x11 {
             wait_still_screen(3);                                               # 981299#c41
             type_string $testapi::password, max_interval => 5;
             wait_still_screen(3);                                               # 981299#c41
-            wait_screen_change {
-                # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-                assert_and_click 'reboot-auth-typed', 'right';
-            };
-            wait_screen_change {
-                # Click the 'Show Text' Option to enable the display of the typed text
-                assert_and_click 'reboot-auth-showtext';
-            };
-            # Check the password is correct
-            assert_screen 'reboot-auth-correct-password';
+            if (get_var('REBOOT_DEBUG')) {
+                wait_screen_change {
+                    # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
+                    assert_and_click 'reboot-auth-typed', 'right';
+                };
+                wait_screen_change {
+                    # Click the 'Show Text' Option to enable the display of the typed text
+                    assert_and_click 'reboot-auth-showtext';
+                };
+                # Check the password is correct
+                assert_screen 'reboot-auth-correct-password';
+            }
             # we need to kill ssh for iucvconn here,
             # because after pressing return, the system is down
             prepare_system_shutdown;
