@@ -29,7 +29,7 @@ EOF
 
 sub run {
     # The repository for the sonobuoy package
-    my $repo = get_var('SONOBUOY_REPO');
+    my $repo = get_var('SONOBUOY_REPO', 'https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo');
 
     my $json_name = "sonobuoy.json";
     my $logs_dir  = "sonobuoy_logs";
