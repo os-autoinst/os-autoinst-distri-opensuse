@@ -11,7 +11,7 @@
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use strict;
-use base "x11test";
+use base "opensusebasetest";
 use testapi;
 use utils;
 use version_utils "is_sle";
@@ -20,14 +20,19 @@ sub run() {
     select_console('root-console');
     pkcon_quit;
 
-    my $dovecot_repo = get_required_var("DOVECOT_REPO");
-    # Add dovecot repository and install dovecot
-    zypper_call("ar ${dovecot_repo} dovecot_repo");
+    if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
+        my $dovecot_repo = get_required_var("DOVECOT_REPO");
+        # Add dovecot repository and install dovecot
+        zypper_call("ar ${dovecot_repo} dovecot_repo");
 
-    zypper_call("--gpg-auto-import-keys ref");
-    zypper_call("in dovecot", exitcode => [0, 102, 103]);
-    zypper_call("rr dovecot_repo");
-    save_screenshot;
+        zypper_call("--gpg-auto-import-keys ref");
+        zypper_call("in dovecot", exitcode => [0, 102, 103]);
+        zypper_call("rr dovecot_repo");
+        save_screenshot;
+    }
+    else {
+        zypper_call("in dovecot", exitcode => [0, 102, 103]);
+    }
 
     # configure dovecot
     assert_script_run "sed -i -e 's/#mail_location =/mail_location = mbox:~\\/mail:INBOX=\\/var\\/mail\\/%u/g' /etc/dovecot/conf.d/10-mail.conf";
@@ -40,8 +45,7 @@ sub run() {
     #  unix_listener /var/spool/postfix/private/auth {
     #   mode = 0666
     # }
-    my $uncomment_lines = is_sle("15+") ? "107,109" : "96,98";
-    assert_script_run "sed -i -e '${uncomment_lines} s/#//g' /etc/dovecot/conf.d/10-master.conf";
+    assert_script_run "sed -i -e '/unix_listener .*postfix.* {/,/}/ s/#//g' /etc/dovecot/conf.d/10-master.conf";
 
     # Generate SSL DH parameters
     assert_script_run "openssl dhparam -out /etc/dovecot/dh.pem 2048", 300;
@@ -81,7 +85,7 @@ sub run() {
     systemctl 'status dovecot';
     systemctl 'status postfix';
 
-    select_console 'x11';
+    select_console 'x11' unless check_var('DESKTOP', 'textmode');
 }
 
 sub test_flags() {
