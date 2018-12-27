@@ -69,6 +69,10 @@ NICEVIDEO |||
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
+PERF_KERNEL | boolean | false | Enables kernel performance testing.
+PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
+PERF_SETUP | boolean | false | Enables kernel performance testing deployment part.
+PERF_RUNCASE | boolean | false | Enables kernel performance testing run case part.
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
@@ -81,6 +85,7 @@ SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certi
 SLE_PRODUCT | string | | Defines SLE product. Possible values: `sles`, `sled`, `sles4sap`. Is mainly used for SLE 15 installation flow.
 SOFTFAIL_BSC1063638 | boolean | false | Enable bsc#1063638 detection.
 STAGING | boolean | false | Indicates staging environment.
+SPECIFIC_DISK | boolean | false | Enables installation/partitioning_olddisk test module.
 SPLITUSR | boolean | false | Enables `installation/partitioning_splitusr` test module.
 SUSEMIRROR | string | | Mirror url of the installation medium.
 SYSAUTHTEST | boolean | false | Enable system authentication test (`sysauth/sssd`)

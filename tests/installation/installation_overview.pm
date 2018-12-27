@@ -41,6 +41,20 @@ sub ensure_ssh_unblocked {
                 send_key_until_needlematch 'ssh-open', 'tab';
             }
         }
+        #performance ci need disable firewall
+        if (get_var('DISABLE_FIREWALL')) {
+            send_key_until_needlematch [qw(firewall-enable firewall-disable)], 'tab';
+            if (match_has_tag 'firewall-enable') {
+                send_key 'alt-c';
+                assert_screen 'inst-overview-options';
+                send_key 'alt-f';
+                assert_screen 'firewall-config';
+                send_key 'alt-e';
+                assert_screen 'firewall-config-dis';
+                send_key 'alt-o';
+                assert_screen 'back_to_installation_settings';
+            }
+        }
     }
 }
 
