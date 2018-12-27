@@ -35,12 +35,12 @@ sub run {
         zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython';
     }
     # enable source repositories to get latest source packages
-    assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print$5}\'`;do zypper mr -e -f $r;done';
+    assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
     # install bind sources to build and run testsuite
     zypper_call 'si bind';
     assert_script_run 'rpm -q bind';
     # disable previously enabled source repositories
-    assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print$5}\'`;do zypper mr -d -F $r;done';
+    assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -d --no-refresh $r;done';
     assert_script_run 'cd /usr/src/packages';
     # build the bind package with tests
     assert_script_run 'rpmbuild -bc SPECS/bind.spec', 500;
