@@ -13,7 +13,6 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use caasp 'script_retry';
 use version_utils 'is_caasp';
 
 sub run_rcshell_checks {
