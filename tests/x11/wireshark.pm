@@ -40,6 +40,8 @@ sub run {
     become_root;
     pkcon_quit;
     zypper_call "in wireshark";
+    # disable offload feature
+    assert_script_run "ethtool -K eth0 rx off tx off";
 
     # start
     if (check_var("VERSION", "Tumbleweed")) {
