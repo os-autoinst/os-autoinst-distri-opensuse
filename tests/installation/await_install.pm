@@ -97,7 +97,16 @@ sub run {
             }
         }
         else {
-            assert_screen \@tags, $timeout;
+            # need end test if find screen not change for 300s
+            while (1) {
+                last if check_screen(\@tags, 20);
+                if (wait_screen_change(sub { send_key '1'; }, 300)) {
+                    next;
+                }
+                else {
+                    assert_screen \@tags, 10;
+                }
+            }
         }
 
         if (match_has_tag('yast2_wrong_digest')) {
