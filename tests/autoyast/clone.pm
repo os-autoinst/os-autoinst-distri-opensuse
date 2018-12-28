@@ -1,4 +1,4 @@
-# Copyright (C) 2015 SUSE Linux GmbH
+# Copyright (C) 2015-2018 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +23,13 @@ use testapi;
 sub run {
     my $self = shift;
     assert_script_run 'rm -f /root/autoinst.xml';
-    assert_script_run 'yast2 --ncurses clone_system', 400;
+    script_run("(yast2 --ncurses clone_system; echo yast2-clone_system-status-\$?) | tee /dev/$serialdev", 0);
+    assert_screen(['yast2_console-finished', 'autoyast2-install-accept'], 400);
+    if (match_has_tag('autoyast2-install-accept')) {
+        assert_screen 'autoyast2-install-accept';
+        send_key 'alt-i';    # confirm package installation
+    }
+    wait_serial("yast2-clone_system-status-0", 120) || die "'yast2 clone_system' exited with non-zero code";
     upload_logs '/root/autoinst.xml';
 
     # original autoyast on kernel cmdline
