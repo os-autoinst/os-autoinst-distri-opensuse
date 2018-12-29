@@ -1434,8 +1434,7 @@ sub load_extra_tests_desktop {
         loadtest "x11/gnucash";
 
     }
-    # https://progress.opensuse.org/issues/37342
-    if (is_sle() && gnomestep_is_applicable()) {
+    if (gnomestep_is_applicable()) {
         loadtest "x11/remote_desktop/vino_screensharing_available";
     }
     # the following tests care about network and need some DE specific
