@@ -75,7 +75,7 @@ sub load_caasp_inst_tests {
     }
     else {
         # One Click Installer removed in CaaSP 4.0
-        if (is_caasp('4.0+')) {
+        if (is_caasp('4.0+') && !update_scheduled('dup')) {
             loadtest 'caasp/oci_overview';
             loadtest 'caasp/oci_keyboard';
             loadtest 'installation/accept_license';

@@ -112,7 +112,7 @@ sub run {
     record_info 'Maint-window', 'Test maint-window strategy';
     check_strategy_maint_window;
 
-    if (!is_caasp('kubic')) {
+    if (is_caasp 'caasp') {
         record_info 'Etcd', 'Test etcd locking strategy';
         check_strategy_etcd_lock;
     }
