@@ -2035,9 +2035,6 @@ sub load_security_tests_misc {
 }
 
 sub load_security_tests_crypt {
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
-        loadtest "fips/ecryptfs_fips";
-    }
     loadtest "console/gpg";
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
