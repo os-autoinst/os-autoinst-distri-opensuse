@@ -47,15 +47,14 @@ sub velum_config {
 
 # Upload autoyast profile
 sub upload_autoyast {
-    send_key 'alt-tab';    # switch to xterm
-    assert_screen 'xterm';
+    switch_to 'xterm';
     assert_script_run "curl --location $admin_fqdn/autoyast --output autoyast.xml";
     upload_logs('autoyast.xml');
-    send_key 'alt-tab';    # switch to xterm
+    switch_to 'velum';
 }
 
 sub run {
-    x11_start_program("firefox $admin_fqdn", target_match => 'firefox');
+    x11_start_program("firefox $admin_fqdn", target_match => 'firefox-url-loaded');
     send_key 'f11';
     wait_still_screen 3;
 
@@ -71,11 +70,8 @@ sub run {
     assert_screen 'velum-signup';
     velum_login(1);
 
-    # Login and configure cluster
-    velum_config;
-
-    # Upload the logs of autoyast (if any)
-    upload_autoyast;
+    velum_config;       # Login and configure cluster
+    upload_autoyast;    # Upload the logs of autoyast (if any)
 }
 
 1;
