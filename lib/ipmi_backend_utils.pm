@@ -220,7 +220,7 @@ sub set_pxe_efiboot {
     my $pxeboot_entry_ip4       = "";
     my $pxeboot_entry_ip4_count = "";
     if ($pxeboot_entry_eif_count gt 1) {
-        $get_pxeboot_entry_ip4   = "echo $get_pxeboot_entry_eif | grep -i -e \"IP4|IPv4\"";
+        $get_pxeboot_entry_ip4   = "$get_pxeboot_entry_eif | grep -i -E \"IP4|IPv4\"";
         $pxeboot_entry_ip4       = script_output($get_pxeboot_entry_ip4, $wait_script, type_command => 1, proceed_on_failure => 0);
         $pxeboot_entry_ip4_count = script_output("$get_pxeboot_entry_ip4 | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
     }
@@ -228,7 +228,7 @@ sub set_pxe_efiboot {
     my $pxeboot_entry_pxe       = "";
     my $pxeboot_entry_pxe_count = "";
     if ($pxeboot_entry_ip4_count gt 1) {
-        $get_pxeboot_entry_pxe   = "echo $get_pxeboot_entry_ip4 | grep -i \"PXE\"";
+        $get_pxeboot_entry_pxe   = "$get_pxeboot_entry_ip4 | grep -i \"PXE\"";
         $pxeboot_entry_pxe       = script_output($get_pxeboot_entry_pxe, $wait_script, type_command => 1, proceed_on_failure => 0);
         $pxeboot_entry_pxe_count = script_output("$get_pxeboot_entry_pxe | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
         if ($pxeboot_entry_pxe_count gt 1) {
