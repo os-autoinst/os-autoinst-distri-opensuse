@@ -44,12 +44,14 @@ sub run {
     assert_screen "yast2-$module-ui", 30;
     #	OK => Exit
     wait_screen_change { send_key "alt-o"; };
+    # Check that entry was correctly edited in /etc/hosts
+    select_console "root-console";
+    assert_script_run q#grep '195\.135\.221\.134\sdownload\.opensuse\.org\sdownload-srv' /etc/hosts#;
 }
 
-# override for base class to allow a longer timeout for package installation
-# before returning to desktop
+# Test ends in root-console, default post_run_hook does not work here
 sub post_run_hook {
-    assert_screen 'generic-desktop', 600;
+    set_var('YAST2_GUI_TERMINATE_PREVIOUS_INSTANCES', 1);
 }
 
 1;
