@@ -66,7 +66,7 @@ sub query_space_several_snapshot {
     # Create a new higher level qgroup
     assert_script_run 'btrfs qgroup create 1/1 /';
     # Add snapshots to the group
-    assert_script_run "! btrfs qgroup assign 0/$_ 1/1 /" foreach (@ids);
+    assert_script_run "btrfs qgroup assign 0/$_ 1/1 /" foreach (@ids);
     # run quota
     assert_script_run 'btrfs quota rescan -w /';
     # query the exclusive space
