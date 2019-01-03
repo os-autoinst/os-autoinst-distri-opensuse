@@ -31,12 +31,8 @@ sub run {
     assert_and_click('firefox-extensions-add-to-firefox');
     wait_still_screen 6;
     send_key 'alt-a';
-    # close the flagfox relase notes tab
-    wait_still_screen 3;
-    save_screenshot;
-    send_key 'ctrl-w';
-    # close the flagfox search tab
-    send_key 'ctrl-w';
+    # close the flagfox relase notes tab and flagfox search tab
+    send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
     # refresh the page to see addon buttons
     send_key 'f5';
     assert_screen('firefox-extensions-flagfox_installed', 90);
