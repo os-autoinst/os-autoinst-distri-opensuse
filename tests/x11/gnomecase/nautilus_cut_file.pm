@@ -23,11 +23,19 @@ sub run {
     send_key "ctrl-x";
     send_key_until_needlematch 'nautilus-Downloads-matched', 'left', 5;
     send_key "ret";
-    send_key "ctrl-v";    #paste to dir ~/Downloads
-    assert_screen "nautilus-newfile-moved";
-    send_key "alt-up";                      #back to home dir from ~/Downloads
-    assert_screen 'nautilus-no-newfile';    #assure newfile moved
-    send_key "ctrl-w";                      #close nautilus
+    # paste to ~/Downloads
+    send_key "ctrl-v";
+    # assure file moved, no matter file is highlighted or not
+    assert_screen([qw(nautilus-newfile-moved nautilus-newfile-moved-no-focus)]);
+    if (match_has_tag('nautilus-newfile-moved-no-focus')) {
+        record_soft_failure 'poo#45527 [tw][desktop] pasted files not always highlighted in openqa';
+        save_screenshot;
+    }
+    # back to home dir
+    send_key "alt-up";
+    assert_screen 'nautilus-no-newfile';
+    # close nautilus
+    send_key "ctrl-w";
 
     #remove the newfile, rm via cmd to avoid file moving to trash
     x11_start_program("rm Downloads/newfile", valid => 0);

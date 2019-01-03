@@ -157,7 +157,7 @@ sub run {
 
     #delete the added user: test
     # We should kill the active user test in SLE15
-    assert_script_run 'loginctl terminate-user test' if is_sle('15+');
+    assert_script_run 'loginctl terminate-user test' if is_sle('15+') || is_tumbleweed;
     wait_still_screen;
     type_string "userdel -f test\n";
     assert_screen "user-test-deleted";
