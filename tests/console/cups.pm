@@ -68,8 +68,8 @@ sub run {
     record_info "lpadmin -x", "Removing printers";
     assert_script_run "lpadmin -x $_" foreach (qw/printer_tmp printer_null/);
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ };
-    systemctl 'stop cups.service';
     systemctl 'disable cups.service';
+    systemctl 'stop cups.service';
     validate_script_output 'systemctl status cups.service || test $? -eq 3', sub { m/Active:\s*inactive/ };
 }
 
