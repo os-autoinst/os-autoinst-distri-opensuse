@@ -878,7 +878,7 @@ sub get_root_console_tty {
 =head2 get_x11_console_tty
 Returns tty number used designed to be used for X.
 Since SLE 15 gdm is always running on tty7, currently the main GUI session
-is running on tty2 by default, except for Xen PV (bsc#1086243).
+is running on tty2 by default, except for Xen PV and Hyper-V (bsc#1086243).
 See also: bsc#1054782
 =cut
 sub get_x11_console_tty {
@@ -886,7 +886,8 @@ sub get_x11_console_tty {
       = !is_sle('<15')
       && !is_leap('<15.0')
       && !is_caasp
-      && !check_var('VIRSH_VMM_TYPE', 'linux')
+      && !check_var('VIRSH_VMM_FAMILY', 'hyperv')
+      && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
