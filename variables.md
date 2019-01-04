@@ -20,6 +20,7 @@ BETA | boolean | false | Enables checks and processing of beta warnings. Defines
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
 CASEDIR | string | | Path to the directory which contains tests.
+CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test module.
 CHECK_RELEASENOTES_ORIGIN | boolean | false | Loads `installation/releasenotes_origin` test module.
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
 DEV_IMAGE | boolean | false | This setting is used to set veriables properly when SDK or Development-Tools are required.
