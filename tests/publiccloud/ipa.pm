@@ -29,6 +29,15 @@ sub run {
         results_dir => 'ipa_results'
     );
 
+    if (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
+        my $kernel_max_boot_time = 60;
+        my $system_max_boot_time = 120;
+        my $out                  = script_output('grep "^Startup finished in" ' . $ipa->{logfile});
+        record_info('Startup time', $out);
+        die 'Fail to find boot time in log' unless $out =~ /Startup finished in (\d{1,4}\.\d{3})s \(kernel\) \+ \d{1,4}\.\d{3}s \(initrd\) \+ \d{1,4}\.\d{3}s \(userspace\) = (\d{1,4}\.\d{3})s/;
+        record_info('Kernel boot is too slow',         result => 'fail') if $1 > $kernel_max_boot_time;
+        record_info('Overall system boot is too slow', result => 'fail') if $2 > $system_max_boot_time;
+    }
     upload_logs($ipa->{logfile});
     parse_extra_log(IPA => $ipa->{results});
     assert_script_run('rm -rf ipa_results');
