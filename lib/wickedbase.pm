@@ -121,10 +121,10 @@ sub get_ip {
         $ip = $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
     }
     elsif ($args{type} eq 'vlan') {
-        $ip = $args{is_wicked_ref} ? '42.42.42.10/24' : '42.42.42.11/24';
+        $ip = $args{is_wicked_ref} ? '192.0.2.10/24' : '192.0.2.11/24';
     }
     elsif ($args{type} eq 'vlan_changed') {
-        $ip = $args{is_wicked_ref} ? '42.42.42.110/24' : '42.42.42.111/24';
+        $ip = $args{is_wicked_ref} ? '192.0.2.110/24' : '192.0.2.111/24';
     }
     else {
         croak('Unknown ip type ' . ($args{type} || 'undef'));
