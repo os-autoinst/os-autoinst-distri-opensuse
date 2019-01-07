@@ -163,6 +163,7 @@ sub run_ipa {
     $cmd .= '--region "' . $self->region . '" ';
     $cmd .= '--results-dir "' . $args{results_dir} . '" ';
     $cmd .= '--no-cleanup ';
+    $cmd .= '--collect-vm-info ';
     $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
     $cmd .= "--access-key-id '" . $args{key_id} . "' " if ($args{key_id});
     $cmd .= "--secret-access-key '" . $args{key_secret} . "' " if ($args{key_secret});
