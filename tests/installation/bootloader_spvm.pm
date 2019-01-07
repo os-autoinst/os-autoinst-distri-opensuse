@@ -114,7 +114,7 @@ sub run {
     save_screenshot;
 
     assert_screen("novalink-successful-first-boot", 120);
-    assert_screen("run-yast-ssh",                   30);
+    assert_screen("run-yast-ssh",                   60);
 
     select_console('installation');
     type_string("yast.ssh\n");

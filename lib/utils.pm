@@ -72,7 +72,7 @@ our @EXPORT = qw(
   assert_and_click_until_screen_change
   exec_and_insert_password
   shorten_url
-  reconnect_s390
+  reconnect_mgmt_console
   set_hostname
   zypper_ar
   show_tasks_in_blocked_state
@@ -1032,48 +1032,67 @@ sub _handle_login_not_found {
     die "unknown error, system couldn't boot. Detailed bootup log:\n$error_details";
 }
 
-=head2 reconnect_s390
-After each reboot we have to reconnect to s390 host
+=head2 reconnect_mgmt_console
+After each reboot we have to reconnect to the management console on remote backends
 =cut
-sub reconnect_s390 {
+sub reconnect_mgmt_console {
     my (%args) = @_;
     $args{timeout} //= 300;
 
-    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
-    console('installation')->disable_vnc_stalls;
+    if (check_var('ARCH', 's390x')) {
+        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+        console('installation')->disable_vnc_stalls;
 
-    # different behaviour for z/VM and z/KVM
-    if (check_var('BACKEND', 's390x')) {
-        my $console = console('x3270');
-        # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
-        handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
-        my $r;
-        eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
-        if ($@) {
-            my $ret = $@;
-            _handle_login_not_found($ret);
-        }
-        reset_consoles;
+        # different behaviour for z/VM and z/KVM
+        if (check_var('BACKEND', 's390x')) {
+            my $console = console('x3270');
+            # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
+            handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
+            my $r;
+            eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
+            if ($@) {
+                my $ret = $@;
+                _handle_login_not_found($ret);
+            }
+            reset_consoles;
 
-        # reconnect the ssh for serial grab
-        select_console('iucvconn');
-    }
-    else {
-        # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
-        if (get_var('ENCRYPT')) {
-            wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            # reconnect the ssh for serial grab
+            select_console('iucvconn');
         }
         else {
-            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
-            select_console('svirt');
-            save_svirt_pty;
-            type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+            # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
+            if (get_var('ENCRYPT')) {
+                wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            }
+            else {
+                wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+                select_console('svirt');
+                save_svirt_pty;
+                type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+            }
+        }
+
+        # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
+        if (!check_var('DESKTOP', 'textmode') && is_sle('<15')) {
+            select_console('x11', await_console => 0);
         }
     }
-
-    # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
-    if (!check_var('DESKTOP', 'textmode') && is_sle('<15')) {
-        select_console('x11', await_console => 0);
+    elsif (check_var('ARCH', 'ppc64le')) {
+        if (check_var('BACKEND', 'spvm')) {
+            select_console 'novalink-ssh';
+            type_string " mkvterm --id " . get_required_var('NOVALINK_LPAR_ID') . "\n";
+        }
+    }
+    elsif (check_var('ARCH', 'x86_64')) {
+        if (check_var('BACKEND', 'ipmi')) {
+            select_console 'sol', await_console => 0;
+            assert_screen "qa-net-selection", 300;
+            # boot to hard disk is default
+            send_key 'ret';
+        }
+    }
+    else {
+        diag 'nothing special needed to reconnect management console';
     }
 }
 
