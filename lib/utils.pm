@@ -934,7 +934,7 @@ identify that system has been booted, so do not mask on non-qemu backends
 =cut
 sub disable_serial_getty {
     my ($self) = @_;
-    my $service_name = "stop serial-getty\@$testapi::serialdev";
+    my $service_name = "serial-getty\@$testapi::serialdev";
     # Do not run on zVM as running agetty is required by iucvconn in order to work
     return if check_var('BACKEND', 's390x');
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
