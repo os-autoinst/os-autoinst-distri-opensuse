@@ -45,20 +45,22 @@ sub get_version_for_daily_build_guest {
 
 sub repl_repo_in_sourcefile {
     # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
-    my $veritem = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
+    my $verorig = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
+    my $veritem = check_var('ARCH', 'x86_64') ? $verorig : get_required_var('ARCH') . ".$verorig";
     if (get_var("REPO_0")) {
         my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
         $location =~ s/[\r\n]+$//;
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
         my $shell_cmd
-          = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
+          = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         assert_script_run($shell_cmd);
         assert_script_run("grep \"$veritem\" $soucefile");
     }
     else {
         print "Do not need to change resource for $veritem item\n";
     }
+    save_screenshot;
 }
 # Replace module repos configured in sources.* with openqa daily build repos
 sub repl_module_in_sourcefile {
@@ -68,12 +70,13 @@ sub repl_module_in_sourcefile {
     # We only support sle product, and only products >= sle15 has module link
     return unless (is_sle && $release >= 15);
 
-    my $replaced_item = "(source.(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools|Web-Scripting).sles-" . $version . "-64=)";
+    my $replaced_orig = "source.(Basesystem|Desktop-Applications|Legacy|Server-Applications|Development-Tools|Web-Scripting).sles-" . $version . "-64=";
+    my $replaced_item = get_required_var('ARCH') . ".$replaced_orig";
     $version =~ s/-sp0//;
     $version = uc($version);
-    my $daily_build_module = "http://openqa.suse.de/assets/repo/SLE-${version}-Module-\\2-POOL-x86_64-Build" . get_required_var('BUILD') . "-Media1/";
-    my $source_file        = "/usr/share/qa/virtautolib/data/sources.*";
-    my $command            = "sed -ri 's#^.*${replaced_item}.*\$#\\1$daily_build_module#g' $source_file";
+    my $daily_build_module = "http://openqa.suse.de/assets/repo/SLE-${version}-Module-\\2-POOL-" . get_required_var('ARCH') . "-Build" . get_required_var('BUILD') . "-Media1/";
+    my $source_file = "/usr/share/qa/virtautolib/data/sources.*";
+    my $command     = "sed -ri 's#^(${replaced_item}).*\$#\\1$daily_build_module#g' $source_file";
     print "Debug: the command to execute is:\n$command \n";
     assert_script_run($command);
     save_screenshot;
