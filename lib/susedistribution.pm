@@ -14,7 +14,6 @@ use utils qw(
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
-use Utils::Backends 'use_ssh_serial_console';
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -598,7 +597,7 @@ sub activate_console {
         }
         elsif (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
             # Select configure serial and redirect to root-ssh instead
-            use_ssh_serial_console;
+            opensusebasetest::select_serial_terminal();
             return;
         }
         else {
@@ -609,7 +608,7 @@ sub activate_console {
     }
     elsif ($console =~ m/root-console$/ && check_var('BACKEND', 'spvm')) {
         # Select configure serial and redirect to root-ssh instead
-        use_ssh_serial_console;
+        opensusebasetest::select_serial_terminal();
         return;
     }
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,6 @@ use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
 use power_action_utils 'power_action';
-
 
 my $wk_ker = 0;
 
@@ -242,11 +241,15 @@ sub update_kgraft {
     }
 }
 
+sub boot_to_console {
+    my ($self) = @_;
+    $self->wait_boot;
+    $self->select_serial_terminal;
+}
+
 sub run {
     my $self = shift;
-    $self->wait_boot;
-
-    select_console('root-console');
+    boot_to_console($self);
 
     my $repo = get_required_var('INCIDENT_REPO');
 
@@ -256,8 +259,7 @@ sub run {
     if (get_var('KGRAFT')) {
         my $qa_head = get_required_var('QA_HEAD_REPO');
         prepare_kgraft($repo, $incident_id);
-        $self->wait_boot;
-        select_console('root-console');
+        boot_to_console($self);
 
         # dependencies for heavy load script
         if (!$wk_ker) {
@@ -274,8 +276,7 @@ sub run {
         }
         power_action('reboot', textmode => 1);
 
-        $self->wait_boot;
-        select_console('root-console');
+        boot_to_console($self);
 
         kgraft_state;
     }

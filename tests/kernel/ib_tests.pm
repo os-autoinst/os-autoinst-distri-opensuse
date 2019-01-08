@@ -17,7 +17,6 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 
@@ -97,11 +96,12 @@ sub ibtest_master {
 }
 
 sub run {
+    my ($self) = @_;
     my $role = get_required_var('IBTEST_ROLE');
     $master = get_required_var('IBTEST_IP1');
     $slave  = get_required_var('IBTEST_IP2');
 
-    use_ssh_serial_console;
+    $self->select_serial_terminal;
 
     # Add the GA repository
     zypper_call("ar -f -G " . get_required_var('GA_REPO'));
