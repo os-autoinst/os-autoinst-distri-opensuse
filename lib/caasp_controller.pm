@@ -74,6 +74,7 @@ sub velum_login {
 sub confirm_insecure_https {
     wait_still_screen 3;
     assert_and_click 'velum-https-advanced';
+    send_key 'end';
     assert_and_click 'velum-https-add_exception';
     assert_and_click 'velum-https-confirm';
 }

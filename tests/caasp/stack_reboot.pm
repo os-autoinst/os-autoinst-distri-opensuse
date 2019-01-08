@@ -39,6 +39,7 @@ sub run {
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
     switch_to 'velum';
+    assert_screen 'velum-bootstrap-done';
 }
 
 1;
