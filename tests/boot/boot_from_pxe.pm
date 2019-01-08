@@ -68,7 +68,7 @@ sub run {
         }
 
         #IPMI Backend
-        $image_path .= "?device=$interface" if check_var('BACKEND', 'ipmi');
+        $image_path .= "?device=$interface " if check_var('BACKEND', 'ipmi');
     }
     elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
