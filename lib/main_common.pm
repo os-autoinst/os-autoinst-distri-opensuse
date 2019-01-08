@@ -812,8 +812,6 @@ sub load_inst_tests {
         loadtest "installation/multipath";
     }
     if (is_opensuse && noupdatestep_is_applicable() && !is_livecd) {
-        # See https://github.com/yast/yast-packager/pull/385
-        loadtest "installation/online_repos";
         loadtest "installation/installation_mode";
     }
     if (is_upgrade) {
@@ -852,6 +850,8 @@ sub load_inst_tests {
         if (get_var("LIVECD") && !is_krypton_argon) {
             loadtest "installation/livecd_network_settings";
         }
+        # See https://github.com/yast/yast-packager/pull/385
+        loadtest "installation/online_repos" if is_opensuse;
         # Run system_role/desktop selection tests if using the new openSUSE installation flow
         if (is_using_system_role_first_flow && requires_role_selection) {
             load_system_role_tests;
