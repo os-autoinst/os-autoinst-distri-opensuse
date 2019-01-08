@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -882,43 +882,51 @@ sub grep_grub_cmdline_settings {
 
 =head2 change_grub_config
 
-    change_grub_config($old, $new [, $search ] [, $modifiers ]);
+    change_grub_config($old, $new [, $search ] [, $modifiers ], [, $update_grub ]);
 
 Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$search> meant to be for changing only particular line for sed,
 C<$modifiers> for sed replacement, e.g. "g".
+C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
 sub change_grub_config {
-    die((caller(0))[3] . ' expects from 2 to 4 arguments') unless (@_ >= 2 && @_ <= 4);
-    my ($old, $new, $search, $modifiers) = @_;
-    $modifiers //= '';
+    die((caller(0))[3] . ' expects from 3 to 5 arguments') unless (@_ >= 3 && @_ <= 5);
+    my ($old, $new, $search, $modifiers, $update_grub) = @_;
+    $modifiers   //= '';
+    $update_grub //= 0;
     $search = "/$search/" if defined $search;
 
     assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+
+    if ($update_grub) {
+        grub_mkconfig();
+        upload_logs(GRUB_CFG_FILE,     failok => 1);
+        upload_logs(GRUB_DEFAULT_FILE, failok => 1);
+    }
 }
 
 =head2 add_grub_cmdline_settings
 
-    add_grub_cmdline_settings($add);
+    add_grub_cmdline_settings($add [, $update_grub ]);
 
 Add C<$add> into /etc/default/grub, using sed.
+C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
 sub add_grub_cmdline_settings {
-    my $add = shift;
-
-    change_grub_config('"$', " $add\"", get_cmdline_var(), "g");
+    my ($add, $update_grub) = @_;
+    change_grub_config('"$', " $add\"", get_cmdline_var(), "g", $update_grub);
 }
 
 =head2 replace_grub_cmdline_settings
 
-    replace_grub_cmdline_settings($old, $new);
+    replace_grub_cmdline_settings($old, $new [, $update_grub ]);
 
 Replace C<$old> with C<$new> in /etc/default/grub, using sed.
+C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
 =cut
 sub replace_grub_cmdline_settings {
-    my ($old, $new) = @_;
-
-    change_grub_config($old, $new, get_cmdline_var(), "g");
+    my ($old, $new, $update_grub) = @_;
+    change_grub_config($old, $new, get_cmdline_var(), "g", $update_grub);
 }
 
 =head2 remove_grub_cmdline_settings
