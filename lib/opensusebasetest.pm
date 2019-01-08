@@ -386,6 +386,12 @@ sub wait_boot {
             select_console('x11', await_console => 0);
         }
     }
+    elsif (check_var('BACKEND', 'ipmi')) {
+        select_console 'sol', await_console => 0;
+        # boot from harddrive
+        assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 200);
+        send_key 'ret';
+    }
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
         my @tags = ('grub2');
