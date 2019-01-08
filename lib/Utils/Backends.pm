@@ -29,6 +29,7 @@ use constant {
     ],
     CONSOLES => [
         qw(
+          use_ssh_serial_console
           )
       ]
 };
@@ -39,6 +40,15 @@ our %EXPORT_TAGS = (
     CONSOLES => (CONSOLES),
     BACKEND  => (BACKEND)
 );
+
+# Use it after SUT boot finish, as it requires ssh connection to SUT to
+# interact with SUT, including window and serial console
+sub use_ssh_serial_console {
+    select_console('root-ssh');
+    $serialdev = 'sshserial';
+    set_var('SERIALDEV', $serialdev);
+    bmwqemu::save_vars();
+}
 
 sub is_remote_backend {
 

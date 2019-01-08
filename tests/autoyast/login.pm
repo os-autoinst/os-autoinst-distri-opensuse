@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 use strict;
 use base 'y2logsstep';
 use testapi;
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 
 sub run {
     my $self = shift;
@@ -30,7 +31,7 @@ sub run {
     # too sure if it would make sense for svirt or s390 for example
     if (check_var('BACKEND', 'ipmi')) {
         #use console based on ssh to avoid unstable ipmi
-        opensusebasetest::select_serial_terminal();
+        use_ssh_serial_console;
     }
     assert_script_run 'echo "checking serial port"';
     type_string "cat /proc/cmdline\n";
@@ -43,3 +44,4 @@ sub test_flags {
 }
 
 1;
+
