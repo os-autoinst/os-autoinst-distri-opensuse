@@ -68,7 +68,7 @@ sub run {
         capture_state('between', 1);
 
         # check if latest kernel has valid secure boot signature
-        if (check_var('MACHINE', 'uefi') && is_sle('12+')) {
+        if (check_var('MACHINE', 'uefi') && is_sle('12-sp1+')) {
             assert_script_run 'kexec -l -s /boot/vmlinuz --initrd=/boot/initrd --reuse-cmdline';
             script_run 'umount -a';
             script_run 'mount -o remount,ro /';
