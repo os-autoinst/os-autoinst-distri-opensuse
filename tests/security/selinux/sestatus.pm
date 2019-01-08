@@ -19,6 +19,7 @@
 
 use base 'opensusebasetest';
 use power_action_utils "power_action";
+use bootloader_setup 'add_grub_cmdline_settings';
 use strict;
 use testapi;
 use utils;
@@ -30,10 +31,8 @@ sub run {
     # SELinux by default
     validate_script_output("sestatus", sub { m/SELinux status: .*disabled/ });
 
-    # SELinux enabled
-    assert_script_run("sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/s/\"/& security=selinux selinux=1 enforcing=0 /' /etc/default/grub");
-    assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
-    assert_script_run("cat /etc/default/grub");
+    # enable SELinux in grub
+    add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 1);
 
     power_action("reboot", textmode => 1);
     $self->wait_boot;
