@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,9 +19,10 @@ use File::Basename;
 use lockapi;
 use registration;
 use testapi;
-use utils 'type_string_very_slow';
+use utils 'type_string_slow';
 
 sub run {
+    my $interface = get_var('SUT_NETDEVICE', 'eth0');
     # In autoyast tests we need to wait until pxe is available
     if (get_var('AUTOYAST') && get_var('DELAYED_START')) {
         mutex_lock('pxe');
@@ -33,7 +34,6 @@ sub run {
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu prague-icecream-pxe-menu pxe-menu)], 300);
     my $image_path = "";
-    my $type_speed = 20;
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
@@ -70,19 +70,14 @@ sub run {
         }
 
         #IPMI Backend
-        if (check_var('BACKEND', 'ipmi')) {
-            my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
-            $image_path .= "?device=$netdevice";
-        }
+        $image_path .= "?device=$interface" if check_var('BACKEND', 'ipmi');
     }
     elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'pxe-stable-iso-entry', 'down';
         send_key 'ret';
         send_key_until_needlematch 'pxe-sle-12-sp3-entry', 'down';
         send_key 'tab';
-        my $interface = get_var('WORKER_CLASS') eq 'hornet' ? 'eth1' : 'eth4';
         my $node = get_var('WORKER_CLASS');
-        type_string "ifcfg=$interface=dhcp4 ", $type_speed;
     }
     elsif (match_has_tag('prague-icecream-pxe-menu')) {
         # Fix problem with sol on ttyS2
@@ -93,15 +88,20 @@ sub run {
         my ($image_name) = get_var('ISO') =~ s/^.*?([^\/]+)-DVD-${arch}-([^-]+)-DVD1\.iso/$1-$2/r;
         $image_path .= "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
         $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
-        $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1";
+        my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
+        $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
     }
     elsif (match_has_tag('pxe-menu')) {
         # select network (second entry)
         send_key "down";
         send_key "tab";
     }
+    if (check_var('BACKEND', 'ipmi')) {
+        $image_path .= "ifcfg=$interface=dhcp4 " unless get_var('NETWORK_INIT_PARAM');
+        $image_path .= 'plymouth.enable=0 ';
+    }
     # Execute installation command on pxe management cmd console
-    type_string ${image_path} . " ", $type_speed;
+    type_string_slow ${image_path};
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
@@ -117,11 +117,11 @@ sub run {
         # 'ssh=1' and 'sshd=1' are equal, both together don't work
         # so let's just set the password here
         $cmdline .= "sshpassword=$testapi::password ";
-        type_string $cmdline, $type_speed;
+        type_string_slow $cmdline;
     }
 
     if (check_var('SCC_REGISTER', 'installation') && !(check_var('VIRT_AUTOTEST', 1) && check_var('INSTALL_TO_OTHERS', 1))) {
-        type_string(registration_bootloader_cmdline, $type_speed);
+        type_string_slow(registration_bootloader_cmdline);
     }
 
     specific_bootmenu_params;
@@ -152,8 +152,8 @@ sub run {
         save_screenshot;
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-            type_string('DISPLAY= ', $type_speed) if check_var('VIDEOMODE', 'text');
-            type_string("yast.ssh\n", $type_speed);
+            type_string_slow('DISPLAY= ') if check_var('VIDEOMODE', 'text');
+            type_string_slow("yast.ssh\n");
         }
         wait_still_screen;
     }
