@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,14 +17,15 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#40358
 
-use base "consoletest";
+use base 'opensusebasetest';
 use strict;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # for opensuse, e.g, Tumbleweed, add the repo in case rather than by default
     if (!is_sle && !is_leap) {

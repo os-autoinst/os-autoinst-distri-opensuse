@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#40358, tc#1682592
 
-use base "consoletest";
+use base 'opensusebasetest';
 use power_action_utils "power_action";
 use strict;
 use testapi;
@@ -25,7 +25,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # SELinux by default
     validate_script_output("sestatus", sub { m/SELinux status: .*disabled/ });
@@ -33,13 +33,11 @@ sub run {
     # SELinux enabled
     assert_script_run("sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/s/\"/& security=selinux selinux=1 enforcing=0 /' /etc/default/grub");
     assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
-
     assert_script_run("cat /etc/default/grub");
-    power_action("reboot", keepconsole => 1, textmode => 1);
-    $self->wait_boot(textmode => 1, bootloader_time => 300, ready_time => 600);
 
-    # NOTE: have to add this line for x86 arch, otherwise this case will fail on wait_boot()
-    select_console "root-console";
+    power_action("reboot", textmode => 1);
+    $self->wait_boot;
+    $self->select_serial_terminal;
 
     validate_script_output(
         "sestatus",

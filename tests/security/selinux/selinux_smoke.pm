@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#40361, tc#1682591
 
-use base "consoletest";
+use base 'opensusebasetest';
 use strict;
 use testapi;
 use utils;
@@ -29,7 +29,8 @@ use registration "add_suseconnect_product";
 use version_utils "is_sle";
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # make sure SELinux is "enabled" and in "permissive" mode
     validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });
