@@ -65,6 +65,10 @@ sub run {
     $v .= '-dev' if check_var('BETA', 'DEV');
     assert_screen "velum-footer-version-$v";
 
+    # Temporary workaround for staging image
+    record_soft_failure 'bsc#1121064';
+    sleep 30;
+
     # Register to velum
     assert_and_click 'create-an-account';
     assert_screen 'velum-signup';
