@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,12 +13,13 @@
 use base "consoletest";
 use testapi;
 use utils;
+use Utils::Backends 'use_ssh_serial_console';
 use strict;
 
 sub run {
-    my $self = @_;
-    $self->select_serial_terminal(0);
+    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
+    select_console 'user-console';
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " > test.data";
     assert_script_run " cpio -id < test.data";
     script_run "ls -al data";

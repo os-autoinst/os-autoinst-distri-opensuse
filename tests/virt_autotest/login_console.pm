@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 sub login_to_console {
@@ -48,7 +49,7 @@ sub login_to_console {
             assert_screen('sshd-server-started', 180);
             save_screenshot;
             #switch to ssh console
-            opensusebasetest::select_serial_terminal();
+            use_ssh_serial_console;
             save_screenshot;
             #start upgrade
             type_string("DISPLAY= yast.ssh\n");
@@ -70,7 +71,7 @@ sub login_to_console {
             my $host_upgrade_spver   = $host_upgrade_version =~ /sp(\d+)$/im;
             if (($host_installed_version eq '11') && ($host_upgrade_relver eq '15') && ($host_upgrade_spver eq '0')) {
                 assert_screen('sshd-server-started-config', 180);
-                opensusebasetest::select_serial_terminal();
+                use_ssh_serial_console;
                 save_screenshot;
                 #start system first configuration after finishing upgrading from sles-11-sp4
                 type_string("yast.ssh\n");
@@ -90,7 +91,7 @@ sub login_to_console {
 
     assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
     #use console based on ssh to avoid unstable ipmi
-    opensusebasetest::select_serial_terminal();
+    use_ssh_serial_console;
 }
 
 sub run {

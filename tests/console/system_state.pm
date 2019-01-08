@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,11 +14,11 @@
 use base "consoletest";
 use testapi;
 use utils;
+use Utils::Backends 'use_ssh_serial_console';
 use strict;
 
 sub run {
-    my $self = @_;
-    $self->select_serial_terminal;
+    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
     script_run "ps axf > /tmp/psaxf.log";
     script_run "cat /proc/loadavg > /tmp/loadavg_consoletest_setup.txt";
 }
