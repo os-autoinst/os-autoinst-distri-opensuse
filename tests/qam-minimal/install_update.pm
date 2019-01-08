@@ -24,6 +24,7 @@ use warnings;
 
 use utils;
 use power_action_utils 'prepare_system_shutdown';
+use version_utils 'is_sle';
 use qam;
 use testapi;
 
@@ -67,7 +68,7 @@ sub run {
         capture_state('between', 1);
 
         # check if latest kernel has valid secure boot signature
-        if (check_var('MACHINE', 'uefi')) {
+        if (check_var('MACHINE', 'uefi') && is_sle('12+')) {
             assert_script_run 'kexec -l -s /boot/vmlinuz --initrd=/boot/initrd --reuse-cmdline';
             script_run 'umount -a';
             script_run 'mount -o remount,ro /';
