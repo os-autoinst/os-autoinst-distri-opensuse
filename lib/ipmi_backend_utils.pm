@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console);
+our @EXPORT = qw(use_ssh_serial_console set_serial_console_on_vh switch_from_ssh_to_sol_console set_pxe_efiboot);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -203,6 +203,66 @@ sub get_installation_partition {
     save_screenshot;
 
     return $partition;
+}
+
+sub set_pxe_efiboot {
+    my ($root_prefix) = @_;
+    $root_prefix //= "/";
+    my $wait_script    = "30";
+    my $get_active_eif = "ip link show | grep \"state UP\" | grep -v \"lo\" | cut -d: -f2 | cut -d\' \' -f2 | head -1";
+    my $active_eif     = script_output($get_active_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_active_eif_maddr = "ip link show | grep $active_eif -A1 | awk \'/link\\\/ether/ \{print \$2\}\' | awk \'\{print \$1,\$2,\$3,\$4,\$5,\$6\}\' FS=\":\" OFS=\"\"";
+    my $active_eif_maddr        = script_output($get_active_eif_maddr, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_pxeboot_entry_eif   = "$root_prefix/usr/sbin/efibootmgr -v | grep -i $active_eif_maddr";
+    my $pxeboot_entry_eif       = script_output($get_pxeboot_entry_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $pxeboot_entry_eif_count = script_output("$get_pxeboot_entry_eif | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_pxeboot_entry_ip4   = "";
+    my $pxeboot_entry_ip4       = "";
+    my $pxeboot_entry_ip4_count = "";
+    if ($pxeboot_entry_eif_count gt 1) {
+        $get_pxeboot_entry_ip4   = "$get_pxeboot_entry_eif | grep -i -E \"IP4|IPv4\"";
+        $pxeboot_entry_ip4       = script_output($get_pxeboot_entry_ip4, $wait_script, type_command => 1, proceed_on_failure => 0);
+        $pxeboot_entry_ip4_count = script_output("$get_pxeboot_entry_ip4 | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
+    }
+    my $get_pxeboot_entry_pxe   = "";
+    my $pxeboot_entry_pxe       = "";
+    my $pxeboot_entry_pxe_count = "";
+    if ($pxeboot_entry_ip4_count gt 1) {
+        $get_pxeboot_entry_pxe   = "$get_pxeboot_entry_ip4 | grep -i \"PXE\"";
+        $pxeboot_entry_pxe       = script_output($get_pxeboot_entry_pxe, $wait_script, type_command => 1, proceed_on_failure => 0);
+        $pxeboot_entry_pxe_count = script_output("$get_pxeboot_entry_pxe | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
+        if ($pxeboot_entry_pxe_count gt 1) {
+            die "The number of PXE boot entries can not be narrowed down to 1";
+        }
+    }
+    my $get_pxeboot_entry_num_grep = "grep -o -i -e \"Boot[0-9]\\\{1,\\\}\" | grep -o -e \"[0-9]\\\{1,\\\}\"";
+    my $get_pxeboot_entry_num      = '';
+    my $pxeboot_entry_num          = '';
+    if ($pxeboot_entry_eif_count eq '1') {
+        $get_pxeboot_entry_num = "echo \"$pxeboot_entry_eif\" | $get_pxeboot_entry_num_grep";
+    }
+    elsif ($pxeboot_entry_ip4_count eq '1') {
+        $get_pxeboot_entry_num = "echo \"$pxeboot_entry_ip4\" | $get_pxeboot_entry_num_grep";
+    }
+    else {
+        $get_pxeboot_entry_num = "echo \"$pxeboot_entry_pxe\" | $get_pxeboot_entry_num_grep";
+    }
+    $pxeboot_entry_num = script_output($get_pxeboot_entry_num, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_current_boot_num   = "$root_prefix/usr/sbin/efibootmgr | grep -i BootCurrent | awk \'{print \$2}\'";
+    my $current_boot_num       = script_output($get_current_boot_num, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_current_boot_order = "$root_prefix/usr/sbin/efibootmgr | grep -i BootOrder | awk \'{print \$2}\'";
+    my $current_boot_order     = (script_output($get_current_boot_order, $wait_script, type_command => 1, proceed_on_failure => 0));
+    my @current_order_list     = split(',', $current_boot_order);
+    my @new_order_list         = grep { $_ ne $current_boot_num && $_ ne $pxeboot_entry_num } @current_order_list;
+    my $new_boot_order         = '';
+    if ($pxeboot_entry_num ne $current_boot_num) {
+        $new_boot_order = join(',', $pxeboot_entry_num, $current_boot_num, @new_order_list);
+    }
+    else {
+        $new_boot_order = join(',', $pxeboot_entry_num, @new_order_list);
+    }
+    assert_script_run("$root_prefix/usr/sbin/efibootmgr -o $new_boot_order");
+    assert_script_run("$root_prefix/usr/sbin/efibootmgr -n $pxeboot_entry_num");
 }
 
 #Usage:
