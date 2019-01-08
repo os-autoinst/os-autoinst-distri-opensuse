@@ -80,6 +80,8 @@ our @EXPORT = qw(
   load_reboot_tests
   load_rescuecd_tests
   load_rollback_tests
+  load_applicationstests
+  load_security_tests
   load_security_tests_apparmor
   load_security_tests_apparmor_profile
   load_security_tests_core
@@ -1561,6 +1563,15 @@ sub load_extra_tests_docker {
     }
 }
 
+sub load_extra_tests_prepare {
+    # setup $serialdev permission and so on
+    loadtest "console/prepare_test_data";
+    loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
+    loadtest "console/hostname";
+    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
+}
+
 sub load_extra_tests {
     # Put tests that filled the conditions below
     # 1) you don't want to run in stagings below here
@@ -1570,16 +1581,10 @@ sub load_extra_tests {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
-    # setup $serialdev permission and so on
-    loadtest "console/prepare_test_data";
-    loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/hostname";
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
-    # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
-    # EXTRATEST=desktop in dektop tests
-    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
+    # EXTRATEST=prepare,zypper,console,opensuse,docker,kdump in textmode or
+    # EXTRATEST=prepare,desktop in dektop tests
     foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
         if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
             $test_to_run->();
@@ -1979,6 +1984,16 @@ sub load_common_x11 {
     }
 }
 
+sub load_applicationstests {
+    if (my $val = get_var("APPTESTS")) {
+        for my $test (split(/,/, $val)) {
+            loadtest "$test";
+        }
+        return 1;
+    }
+    return 0;
+}
+
 # The function name load_security_tests_* is to avoid confusing since
 # openSUSE does NOT have FIPS mode
 # Some tests are valid only for FIPS Regression testing. Use
@@ -2086,6 +2101,50 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
 }
+
+sub load_security_tests {
+    if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/system_prepare";
+        loadtest "console/consoletest_setup";
+        loadtest "console/hostname";
+    }
+    if (check_var("SECURITY_TEST", "fips_setup")) {
+        # Setup system into fips mode
+        loadtest "fips/fips_setup";
+    }
+    elsif (check_var("SECURITY_TEST", "core")) {
+        load_security_tests_core;
+    }
+    elsif (check_var("SECURITY_TEST", "web")) {
+        load_security_tests_web;
+    }
+    elsif (check_var("SECURITY_TEST", "misc")) {
+        load_security_tests_misc;
+    }
+    elsif (check_var("SECURITY_TEST", "crypt")) {
+        load_security_tests_crypt;
+    }
+    elsif (check_var("SECURITY_TEST", "ipsec")) {
+        loadtest "console/ipsec_tools_h2h";
+    }
+    elsif (check_var("SECURITY_TEST", "mmtest")) {
+        # Load client tests by APPTESTS variable
+        load_applicationstests;
+    }
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
+        load_security_tests_apparmor;
+    }
+    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
+        load_security_tests_apparmor_profile;
+    }
+    elsif (check_var("SECURITY_TEST", "openscap")) {
+        load_security_tests_openscap;
+    }
+    elsif (check_var("SECURITY_TEST", "selinux")) {
+        load_security_tests_selinux;
+    }
+}
+
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
