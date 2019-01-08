@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    $self->wait_boot if check_var('BACKEND', 'ipmi');
     select_console 'root-console';
 }
 

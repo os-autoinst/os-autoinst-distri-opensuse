@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2017 SUSE Linux GmbH
+# Copyright (C) 2015-2019 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -119,14 +119,6 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
-    if (check_var('BACKEND', 'ipmi') && get_var("SES5_DEPLOY")) {
-        assert_screen 'installation-done', 750;
-        reset_consoles;
-        select_console 'sol', await_console => 0;
-        assert_screen 'prague-pxe-menu', 400;
-        send_key 'ret';    # boot from hard disk
-        return;
-    }
     my @needles           = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');

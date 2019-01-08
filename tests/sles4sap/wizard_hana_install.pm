@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,6 @@ use base 'sles4sap';
 use strict;
 use testapi;
 use utils qw(type_string_slow zypper_call turn_off_gnome_screensaver);
-use Utils::Backends 'use_ssh_serial_console';
 use version_utils 'is_sle';
 
 sub get_total_mem {
@@ -83,7 +82,7 @@ sub run {
     set_var('PASSWORD', $password);
     set_var('SAPADM',   lc($sid) . 'adm');
 
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
     my $RAM = get_total_mem();
     die "RAM=$RAM. The SUT needs at least 32G of RAM" if $RAM < 32000;
 
@@ -154,7 +153,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
     assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
     assert_script_run "save_y2logs /tmp/y2logs.tar.xz";

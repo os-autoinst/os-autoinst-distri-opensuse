@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,6 @@
 use base 'consoletest';
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
 use version_utils qw(is_sle);
 use serial_terminal 'add_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
@@ -21,7 +20,7 @@ use strict;
 
 sub run {
     my ($self) = @_;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
 
     ensure_serialdev_permissions;
 
