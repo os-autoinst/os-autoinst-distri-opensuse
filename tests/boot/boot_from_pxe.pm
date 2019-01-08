@@ -14,17 +14,18 @@ use base 'opensusebasetest';
 
 use strict;
 use warnings;
-use bootloader_setup;
-use File::Basename;
 use lockapi;
-use registration;
 use testapi;
+use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params);
+use registration 'registration_bootloader_cmdline';
 use utils 'type_string_slow';
 
 sub run {
+    my ($image_path, $image_name, $cmdline);
+    my $arch = get_var('ARCH');
     my $interface = get_var('SUT_NETDEVICE', 'eth0');
     # In autoyast tests we need to wait until pxe is available
-    if (get_var('AUTOYAST') && get_var('DELAYED_START')) {
+    if (get_var('AUTOYAST') && get_var('DELAYED_START') && !check_var('BACKEND', 'ipmi')) {
         mutex_lock('pxe');
         mutex_unlock('pxe');
         resume_vm();
@@ -33,7 +34,6 @@ sub run {
         select_console 'sol', await_console => 0;
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu prague-icecream-pxe-menu pxe-menu)], 300);
-    my $image_path = "";
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
@@ -43,7 +43,6 @@ sub run {
         $image_path = get_var("HOST_IMG_URL");
     }
     elsif (match_has_tag("qa-net-selection")) {
-        my $image_name = "";
         if (check_var("INSTALL_TO_OTHERS", 1)) {
             $image_name = get_var("REPO_0_TO_INSTALL");
         }
@@ -51,7 +50,6 @@ sub run {
             $image_name = get_var("REPO_0");
         }
 
-        my $arch       = get_var('ARCH');
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo = $openqa_url . "/assets/repo/${image_name}";
@@ -73,23 +71,20 @@ sub run {
         $image_path .= "?device=$interface" if check_var('BACKEND', 'ipmi');
     }
     elsif (match_has_tag('prague-pxe-menu')) {
-        send_key_until_needlematch 'pxe-stable-iso-entry', 'down';
-        send_key 'ret';
-        send_key_until_needlematch 'pxe-sle-12-sp3-entry', 'down';
-        send_key 'tab';
-        my $node = get_var('WORKER_CLASS');
-    }
-    elsif (match_has_tag('prague-icecream-pxe-menu')) {
-        # Fix problem with sol on ttyS2
-        $testapi::serialdev = get_var('SERIALDEV') if get_var('SERIALDEV');
         send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
-
-        my $arch = get_var('ARCH');
-        my ($image_name) = get_var('ISO') =~ s/^.*?([^\/]+)-DVD-${arch}-([^-]+)-DVD1\.iso/$1-$2/r;
-        $image_path .= "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
-        $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
-        my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
-        $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
+        if (get_var('PXE_ENTRY')) {
+            my $entry = get_var('PXE_ENTRY');
+            send_key_until_needlematch "pxe-$entry-entry", 'down';
+            send_key 'tab';
+        }
+        else {
+            my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
+            my $release = get_var('BETA') ? 'LATEST' : 'GM';
+            $image_name = get_var('ISO') =~ s/.*\/(.*)-DVD-${arch}-.*\.iso/$1-$release/r;
+            $image_path = "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
+            $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
+            $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
+        }
     }
     elsif (match_has_tag('pxe-menu')) {
         # select network (second entry)
@@ -105,7 +100,6 @@ sub run {
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
-        my $cmdline = '';
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
         }
@@ -131,14 +125,13 @@ sub run {
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 300;
-        my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
-        my @tags = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
+        my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
+        my @tags              = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
         assert_screen \@tags, $ssh_vnc_wait_time;
 
         if (match_has_tag("orthos-grub-boot-linux")) {
             my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
-            my $arch       = get_var('ARCH');
-            my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+            my $args = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
             type_string $args;
             send_key 'ret';
             assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
