@@ -1021,12 +1021,7 @@ elsif (get_var('VALIDATE_PCM_PATTERN')) {
     load_public_cloud_patterns_validation_tests;
 }
 else {
-    if (get_var("SES5_DEPLOY")) {
-        loadtest "boot/boot_from_pxe";
-        loadtest "autoyast/installation";
-        loadtest "installation/first_boot";
-    }
-    elsif (get_var("SES_NODE")) {
+    if (get_var("SES_NODE")) {
         boot_hdd_image;
         if (get_var("DEEPSEA_TESTSUITE")) {
             loadtest "ses/nodes_preparation";

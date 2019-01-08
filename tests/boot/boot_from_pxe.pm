@@ -104,7 +104,7 @@ sub run {
     type_string ${image_path} . " ", $type_speed;
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
-    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
+    if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
         my $cmdline = '';
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
@@ -129,8 +129,8 @@ sub run {
     send_key 'ret';
     save_screenshot;
 
-    if ((check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) || get_var('SES5_DEPLOY')) {
-        my $ssh_vnc_wait_time = get_var('SES5_DEPLOY') ? 300 : 210;
+    if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
+        my $ssh_vnc_wait_time = 300;
         my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
         assert_screen \@tags, $ssh_vnc_wait_time;
