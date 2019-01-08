@@ -46,7 +46,7 @@ sub run {
     $profile =~ s/\{\{HostIP\}\}/$hostip/g if $hostip;
 
     # Expand other variables
-    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH);
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH LOADER_TYPE);
     for my $var (@vars) {
         # Skip if value is not defined
         next unless my ($value) = get_var($var);
