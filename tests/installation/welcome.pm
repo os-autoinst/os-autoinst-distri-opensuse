@@ -18,6 +18,28 @@ use testapi;
 use utils 'ensure_fullscreen';
 use version_utils qw(:VERSION :SCENARIO);
 
+sub switch_keyboard_layout {
+    record_info 'keyboard layout', 'Check keyboard layout switching to another language';
+    my $keyboard_layout = get_var('INSTALL_KEYBOARD_LAYOUT');
+    # for instance, select france and test "querty"
+    send_key 'alt-k';    # Keyboard Layout
+    send_key_until_needlematch("keyboard-layout-$keyboard_layout", 'down', 60);
+    if (check_var('DESKTOP', 'textmode')) {
+        send_key 'ret';
+        assert_screen "keyboard-layout-$keyboard_layout-selected";
+        send_key 'alt-e';    # Keyboard Test in text mode
+    }
+    else {
+        send_key 'alt-y';    # Keyboard Test in graphic mode
+    }
+    type_string "azerty";
+    assert_screen "keyboard-test-$keyboard_layout";
+    # Select back default keyboard layout
+    send_key 'alt-k';
+    send_key_until_needlematch("keyboard-layout", 'up', 60);
+    wait_screen_change { send_key 'ret' } if (check_var('DESKTOP', 'textmode'));
+}
+
 sub run {
     my ($self) = @_;
     my $iterations;
@@ -125,7 +147,8 @@ sub run {
         save_screenshot;
     }
 
-    send_key $cmd{next} unless get_var('INSTALL_KEYBOARD_LAYOUT');
+    switch_keyboard_layout if get_var('INSTALL_KEYBOARD_LAYOUT');
+    send_key $cmd{next};
 }
 
 1;
