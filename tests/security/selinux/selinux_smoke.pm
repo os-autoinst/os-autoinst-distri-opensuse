@@ -46,7 +46,7 @@ sub run {
     if (is_sle) {
         my $SCC_REGCODE = get_required_var("SCC_REGCODE");
         assert_script_run("SUSEConnect -r $SCC_REGCODE");
-        add_suseconnect_product("sle-sdk");
+        add_suseconnect_product("sle-module-web-scripting");
     }
 
     # install & remove patterns, e.g., mail_server

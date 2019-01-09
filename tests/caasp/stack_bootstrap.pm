@@ -91,6 +91,7 @@ sub run {
         send_key_until_needlematch 'velum-bootstrap-page', 'f5', 30, 60;
     }
     barrier_wait {name => "NODES_ONLINE", check_dead_job => 1};
+    sleep 30;    # Wait for salt-minion requests
 
     accept_nodes;
     select_roles;

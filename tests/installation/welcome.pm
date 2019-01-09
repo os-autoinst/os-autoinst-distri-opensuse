@@ -111,6 +111,20 @@ sub run {
         $self->accept_license;
     }
 
+    # Verify install arguments passed by bootloader
+    # Linuxrc writes its settings in /etc/install.inf
+    if (get_var('NETBOOT') && !check_var('BACKEND', 'ipmi')) {
+        wait_screen_change { send_key 'ctrl-alt-shift-x' };
+        my $method     = uc get_required_var('INSTALL_SOURCE');
+        my $mirror_src = get_var("MIRROR_$method");
+        my $rc         = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
+        die "Install source mismatch in boot parameters!\n" unless ($rc == 0);
+        $rc = script_run "grep --color=always -e \"^RepoURL: $mirror_src\" -e \"^ZyppRepoURL: $mirror_src\" /etc/install.inf";
+        die "Install source mismatch in linuxrc settings!\n" unless ($rc == 0);
+        wait_screen_change { send_key 'ctrl-d' };
+        save_screenshot;
+    }
+
     send_key $cmd{next} unless get_var('INSTALL_KEYBOARD_LAYOUT');
 }
 

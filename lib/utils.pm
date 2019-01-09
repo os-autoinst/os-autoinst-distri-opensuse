@@ -731,7 +731,9 @@ sub handle_login {
     $myuser //= $username;
     $user_selected //= 0;
 
-    assert_screen 'displaymanager', 90;    # wait for DM, then try to login
+    save_screenshot();
+    # wait for DM, avoid screensaver and try to login
+    send_key_until_needlematch('displaymanager', 'esc', 30, 3);
     wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
@@ -876,7 +878,7 @@ sub get_root_console_tty {
 =head2 get_x11_console_tty
 Returns tty number used designed to be used for X.
 Since SLE 15 gdm is always running on tty7, currently the main GUI session
-is running on tty2 by default, except for Xen PV (bsc#1086243).
+is running on tty2 by default, except for Xen PV and Hyper-V (bsc#1086243).
 See also: bsc#1054782
 =cut
 sub get_x11_console_tty {
@@ -884,7 +886,8 @@ sub get_x11_console_tty {
       = !is_sle('<15')
       && !is_leap('<15.0')
       && !is_caasp
-      && !check_var('VIRSH_VMM_TYPE', 'linux')
+      && !check_var('VIRSH_VMM_FAMILY', 'hyperv')
+      && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');
     return (check_var('DESKTOP', 'gnome') && get_var('NOAUTOLOGIN') && $new_gdm) ? 2 : 7;
 }
@@ -931,7 +934,7 @@ identify that system has been booted, so do not mask on non-qemu backends
 =cut
 sub disable_serial_getty {
     my ($self) = @_;
-    my $service_name = "stop serial-getty\@$testapi::serialdev";
+    my $service_name = "serial-getty\@$testapi::serialdev";
     # Do not run on zVM as running agetty is required by iucvconn in order to work
     return if check_var('BACKEND', 's390x');
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt

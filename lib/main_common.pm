@@ -19,6 +19,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use autotest;
 use utils;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
+use Utils::Backends 'is_remote_backend';
 use bmwqemu ();
 use strict;
 use warnings;
@@ -79,7 +80,10 @@ our @EXPORT = qw(
   load_reboot_tests
   load_rescuecd_tests
   load_rollback_tests
+  load_applicationstests
+  load_security_tests
   load_security_tests_apparmor
+  load_security_tests_apparmor_profile
   load_security_tests_core
   load_security_tests_crypt
   load_security_tests_misc
@@ -894,6 +898,10 @@ sub load_inst_tests {
             if (get_var("EXPERTPARTITIONER")) {
                 loadtest "installation/partitioning_expert";
             }
+            #kernel performance test need install on specific disk
+            if (get_var("SPECIFIC_DISK")) {
+                loadtest "installation/partitioning_specific_disk";
+            }
             if (get_var("ENLARGESWAP") && get_var("QEMURAM", 1024) > 4098) {
                 loadtest "installation/installation_enlargeswap";
             }
@@ -907,7 +915,7 @@ sub load_inst_tests {
             if (get_var("IBFT")) {
                 loadtest "installation/partitioning_iscsi";
             }
-            if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
+            if ((uses_qa_net_hardware() && !get_var('FILESYSTEM')) && !get_var("SPECIFIC_DISK") || get_var('SELECT_FIRST_DISK') || get_var("ISO_IN_EXTERNAL_DRIVE")) {
                 loadtest "installation/partitioning_firstdisk";
             }
             loadtest "installation/partitioning_finish";
@@ -920,7 +928,9 @@ sub load_inst_tests {
     # need to be able to do installations on it. The release notes
     # functionality needs to be covered by other backends
     # Skip release notes test on sle 15 if have addons
-    if (is_sle && !check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') && !(is_sle('15+') && get_var('ADDONURL'))) {
+    if (get_var('CHECK_RELEASENOTES') &&
+        is_sle && !check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') &&
+        !(is_sle('15+') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }
 
@@ -1287,10 +1297,6 @@ sub load_x11tests {
         }
         loadtest "x11/vlc";
     }
-    # https://progress.opensuse.org/issues/37342
-    if (is_sle() && gnomestep_is_applicable() && !is_staging()) {
-        loadtest "x11/remote_desktop/vino_screensharing_available";
-    }
     if (kdestep_is_applicable()) {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
@@ -1432,6 +1438,9 @@ sub load_extra_tests_desktop {
         loadtest "x11/gnucash";
 
     }
+    if (gnomestep_is_applicable()) {
+        loadtest "x11/remote_desktop/vino_screensharing_available";
+    }
     # the following tests care about network and need some DE specific
     # needles. For now we only have them for gnome and do not want to
     # support more than just this DE. Probably for later at least the wifi
@@ -1469,7 +1478,6 @@ sub load_extra_tests_kdump {
 sub load_extra_tests_opensuse {
     return unless is_opensuse;
     loadtest "console/rabbitmq";
-    loadtest "console/salt";
     loadtest "console/rails";
     loadtest "console/machinery";
     loadtest "console/pcre";
@@ -1505,14 +1513,16 @@ sub load_extra_tests_console {
     loadtest "console/check_default_network_manager";
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";
+    loadtest "console/cups";
     loadtest "console/java";
     loadtest "console/ant" if is_sle('<15-sp1');
     loadtest "console/sysctl";
     loadtest "console/sysstat";
     loadtest "console/curl_ipv6";
     loadtest "console/wget_ipv6";
+    loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
-    loadtest "console/salt" if is_jeos;
+    loadtest "console/salt" if (is_jeos || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/shells";
@@ -1525,6 +1535,10 @@ sub load_extra_tests_console {
     }
     # bind need source package and legacy and development module on SLE15+
     loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
+    unless (is_sle('<12-SP3')) {
+        loadtest 'x11/evolution/evolution_prepare_servers';
+        loadtest 'console/mutt';
+    }
     loadtest 'console/systemd_testsuite' if is_sle('15+') && get_var('QA_HEAD_REPO');
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';
@@ -1537,20 +1551,25 @@ sub load_extra_tests_docker {
     return unless is_sle('12-SP3+') || !is_sle;
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    if (is_sle('=12-SP3')) {
+    if (is_sle('12-SP3+') && is_sle('<15')) {
         loadtest "console/sle2docker";
         loadtest "console/docker_image";
     }
-    elsif (is_sle('=15')) {
+    elsif (is_sle('=15') || is_opensuse) {
         loadtest "console/docker_image";
     }
-    if (is_tumbleweed) {
-        loadtest "console/docker_image_rpm";
+    if (is_opensuse) {
         loadtest "console/docker_compose";
     }
-    elsif (is_opensuse && !is_tumbleweed) {
-        loadtest "console/docker_compose";
-    }
+}
+
+sub load_extra_tests_prepare {
+    # setup $serialdev permission and so on
+    loadtest "console/prepare_test_data";
+    loadtest "console/consoletest_setup";
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
+    loadtest "console/hostname";
+    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
 }
 
 sub load_extra_tests {
@@ -1562,16 +1581,10 @@ sub load_extra_tests {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
-    # setup $serialdev permission and so on
-    loadtest "console/prepare_test_data";
-    loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/hostname";
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
-    # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
-    # EXTRATEST=desktop in dektop tests
-    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
+    # EXTRATEST=prepare,zypper,console,opensuse,docker,kdump in textmode or
+    # EXTRATEST=prepare,desktop in dektop tests
     foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
         if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
             $test_to_run->();
@@ -1888,6 +1901,21 @@ sub load_x11_remote {
     elsif (check_var('REMOTE_DESKTOP_TYPE', 'vino_client')) {
         loadtest 'x11/remote_desktop/vino_client';
     }
+    # load xrdp testing
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'win_client')) {
+        loadtest 'x11/remote_desktop/windows_network_setup';
+        loadtest 'x11/remote_desktop/windows_client_remotelogin';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'xrdp_server')) {
+        loadtest 'x11/remote_desktop/xrdp_server';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'xrdp_client')) {
+        loadtest 'x11/remote_desktop/xrdp_client';
+    }
+    elsif (check_var('REMOTE_DESKTOP_TYPE', 'win_server')) {
+        loadtest 'x11/remote_desktop/windows_network_setup';
+        loadtest 'x11/remote_desktop/windows_server_setup';
+    }
 }
 
 
@@ -1923,8 +1951,12 @@ sub load_common_x11 {
         load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
-        loadtest 'boot/boot_to_desktop';
-        loadtest "x11/window_system";
+        if (check_var("REMOTE_DESKTOP_TYPE", "win_client") || check_var('REMOTE_DESKTOP_TYPE', "win_server")) {
+            loadtest "x11/remote_desktop/windows_client_boot";
+        } else {
+            loadtest 'boot/boot_to_desktop';
+            loadtest "x11/window_system";
+        }
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
@@ -1950,6 +1982,16 @@ sub load_common_x11 {
         loadtest "x11/ibus/ibus_test_kr";
         loadtest "x11/ibus/ibus_clean";
     }
+}
+
+sub load_applicationstests {
+    if (my $val = get_var("APPTESTS")) {
+        for my $test (split(/,/, $val)) {
+            loadtest "$test";
+        }
+        return 1;
+    }
+    return 0;
 }
 
 # The function name load_security_tests_* is to avoid confusing since
@@ -1982,7 +2024,7 @@ sub load_security_tests_web {
     loadtest "console/apache_ssl";
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/mozilla_nss/apache_nssfips";
-        loadtest "console/libmicrohttpd";
+        loadtest "console/libmicrohttpd" if is_sle('<15');
     }
     loadtest "console/consoletest_finish";
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
@@ -2009,9 +2051,6 @@ sub load_security_tests_misc {
 }
 
 sub load_security_tests_crypt {
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
-        loadtest "fips/ecryptfs_fips";
-    }
     loadtest "console/gpg";
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
@@ -2028,6 +2067,12 @@ sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
     loadtest "security/apparmor/aa_notify";
+}
+
+sub load_security_tests_apparmor_profile {
+    loadtest "security/apparmor_profile/usr_sbin_dovecot";
+    loadtest "security/apparmor_profile/usr_sbin_traceroute";
+    loadtest "security/apparmor_profile/usr_sbin_nscd";
 }
 
 sub load_security_tests_openscap {
@@ -2056,6 +2101,50 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
 }
+
+sub load_security_tests {
+    if (get_var('BOOT_HDD_IMAGE')) {
+        loadtest "console/system_prepare";
+        loadtest "console/consoletest_setup";
+        loadtest "console/hostname";
+    }
+    if (check_var("SECURITY_TEST", "fips_setup")) {
+        # Setup system into fips mode
+        loadtest "fips/fips_setup";
+    }
+    elsif (check_var("SECURITY_TEST", "core")) {
+        load_security_tests_core;
+    }
+    elsif (check_var("SECURITY_TEST", "web")) {
+        load_security_tests_web;
+    }
+    elsif (check_var("SECURITY_TEST", "misc")) {
+        load_security_tests_misc;
+    }
+    elsif (check_var("SECURITY_TEST", "crypt")) {
+        load_security_tests_crypt;
+    }
+    elsif (check_var("SECURITY_TEST", "ipsec")) {
+        loadtest "console/ipsec_tools_h2h";
+    }
+    elsif (check_var("SECURITY_TEST", "mmtest")) {
+        # Load client tests by APPTESTS variable
+        load_applicationstests;
+    }
+    elsif (check_var("SECURITY_TEST", "apparmor")) {
+        load_security_tests_apparmor;
+    }
+    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
+        load_security_tests_apparmor_profile;
+    }
+    elsif (check_var("SECURITY_TEST", "openscap")) {
+        load_security_tests_openscap;
+    }
+    elsif (check_var("SECURITY_TEST", "selinux")) {
+        load_security_tests_selinux;
+    }
+}
+
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
@@ -2300,9 +2389,9 @@ sub load_public_cloud_patterns_validation_tests {
 }
 
 sub load_transactional_role_tests {
-    loadtest 'caasp/filesystem_ro';
-    loadtest 'caasp/transactional_update';
-    loadtest 'caasp/rebootmgr';
+    loadtest 'transactional_system/filesystem_ro';
+    loadtest 'transactional_system/transactional_update';
+    loadtest 'transactional_system/rebootmgr';
 }
 
 1;

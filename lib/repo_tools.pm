@@ -147,11 +147,19 @@ sub prepare_source_repo {
     }
     # source repository is disabled by default
     else {
+        # OSS_SOURCE is expected to be added
         if (script_run('zypper lr repo-source') != 0) {
             # re-add the source repo
             my $version = lc get_required_var('VERSION');
-            my $source_name = is_tumbleweed() ? $version : 'distribution/leap/' . $version;
-            zypper_call("ar -f http://download.opensuse.org/source/$source_name/repo/oss repo-source");
+            my $repourl;
+            # if REPO_OSS_SOURCE is defined - use it, if not fallback to download.opensuse.org
+            if (my $repo_basename = get_var("REPO_OSS_SOURCE")) {
+                $repourl = get_required_var('MIRROR_PREFIX') . "/" . $repo_basename;
+            } else {
+                my $source_name = is_tumbleweed() ? $version : 'distribution/leap/' . $version;
+                $repourl = "http://download.opensuse.org/source/$source_name/repo/oss";
+            }
+            zypper_call("ar -f $repourl repo-source");
         }
         else {
             zypper_call("mr -e repo-source");

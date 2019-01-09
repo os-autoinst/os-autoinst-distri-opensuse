@@ -25,9 +25,15 @@ has container       => 'sle-images';
 
 sub init {
     my ($self) = @_;
-
+    $self->SUPER::init();
     assert_script_run('az login --service-principal -u ' . $self->key_id . ' -p '
           . $self->key_secret . ' -t ' . $self->tenantid);
+    assert_script_run("export ARM_SUBSCRIPTION_ID=" . $self->subscription);
+    assert_script_run("export ARM_CLIENT_ID=" . $self->key_id);
+    assert_script_run("export ARM_CLIENT_SECRET=" . $self->key_secret);
+    assert_script_run('export ARM_TENANT_ID="' . $self->tenantid . '"');
+    assert_script_run('export ARM_ENVIRONMENT="public"');
+    assert_script_run('export ARM_TEST_LOCATION="' . $self->region . '"');
 }
 
 sub resource_exist {

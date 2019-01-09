@@ -17,7 +17,7 @@
 use strict;
 use base "consoletest";
 use testapi;
-use caasp;
+use transactional_system 'trup_install';
 
 sub run {
     select_console("root-console");

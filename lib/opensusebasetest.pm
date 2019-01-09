@@ -7,7 +7,7 @@ use strict;
 use utils;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd);
+use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed);
 use isotovideo;
 use IO::Socket::INET;
 
@@ -147,10 +147,11 @@ sub investigate_yast2_failure {
         'No textdomain configured',                      # Detecting missing translations
         'nothing provides',                              # Detecting missing required packages
         'but this requirement cannot be provided',       # and package conflicts
-        'Could not load icon'                            # Detecting missing icons
+        'Could not load icon',                           # Detecting missing icons
+        'Couldn\'t load pixmap'                          # additionally with this line, but if not caught with the message above
     );
     for my $y2log_error (@y2log_errors) {
-        if (my $y2log_error_result = script_output 'grep -B 3 \'' . $y2log_error . '\' /var/log/YaST2/y2log | tail -n 20 || true') {
+        if (my $y2log_error_result = script_output 'grep -B 3 "' . $y2log_error . '" /var/log/YaST2/y2log | tail -n 20 || true') {
             record_info 'YaST2 log error detected', "Details:\n\n$y2log_error_result", result => 'fail';
             $error_detected = 1;
         }
@@ -385,6 +386,12 @@ sub wait_boot {
             select_console('x11', await_console => 0);
         }
     }
+    elsif (check_var('BACKEND', 'ipmi')) {
+        select_console 'sol', await_console => 0;
+        # boot from harddrive
+        assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 200);
+        send_key 'ret';
+    }
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
         my @tags = ('grub2');
@@ -445,7 +452,8 @@ sub wait_boot {
         # If KEEP_GRUB_TIMEOUT is set, SUT may be at linux-login already, so no need to abort in that case
         elsif (!match_has_tag("grub2") and !match_has_tag('linux-login')) {
             # check_screen timeout
-            die "needle 'grub2' not found";
+            my $failneedle = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
+            die "needle '$failneedle' not found";
         }
         mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
         # confirm default choice
@@ -498,6 +506,9 @@ sub wait_boot {
             #assert_screen "dm-password-input", 10;
             elsif (check_var('DESKTOP', 'gnome')) {
                 # In GNOME/gdm, we do not have to enter a username, but we have to select it
+                if (is_tumbleweed) {
+                    send_key 'tab';
+                }
                 send_key 'ret';
             }
 
@@ -626,7 +637,7 @@ sub post_fail_hook {
             record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
         }
     }
-    return unless ($self->{in_wait_boot} || $self->{in_boot_desktop});
+
     if ($self->{in_wait_boot}) {
         record_info('shutdown', 'At least we reached target Shutdown') if (wait_serial 'Reached target Shutdown');
     }

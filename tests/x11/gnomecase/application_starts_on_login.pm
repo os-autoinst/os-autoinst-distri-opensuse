@@ -14,19 +14,22 @@ use base "x11test";
 use strict;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle is_tumbleweed);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
-    unless (is_sle('15+')) {
+    if (is_tumbleweed) {
+        x11_start_program 'gnome-tweaks';
+    }
+    elsif (is_sle('15+')) {
+        # tweak-tool entry is not in gnome-control-center of SLE15;
+        x11_start_program 'gnome-tweak-tool';
+    }
+    else {
         $self->start_gnome_settings;
         type_string "tweak";
         assert_screen "settings-tweak-selected";
         send_key "ret";
-    }
-    else {
-        # tweak-tool entry is not in gnome-control-center of SLE15;
-        x11_start_program 'gnome-tweak-tool';
     }
     assert_screen "tweak-tool";
     # increase the default timeout - the switching can be slow
@@ -35,19 +38,20 @@ sub tweak_startupapp_menu {
 
 sub start_dconf {
     my ($self) = @_;
-    unless (is_sle('15+')) {
+
+    if (is_tumbleweed || is_sle('15+')) {
+        # dconf-editor entry is not in gnome-control-center of SLE15;
+        x11_start_program 'dconf-editor';
+    }
+    else {
         $self->start_gnome_settings;
         type_string "dconf";
         assert_screen "settings-dconf";
         send_key "ret";
     }
-    else {
-        # dconf-editor entry is not in gnome-control-center of SLE15;
-        x11_start_program 'dconf-editor';
-    }
+
     # dconf-editor can show the notice to be careful after the main window
     # popped up so we have to wait for it to settle down
-    wait_still_screen(3);
     assert_screen([qw(dconf-editor will-be-careful)]);
     if (match_has_tag('will-be-careful')) {
         assert_and_click 'will-be-careful';
@@ -103,7 +107,7 @@ sub run {
     $self->tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
-    if (is_sle('12-SP2+')) {
+    if (is_sle('12-SP2+') || is_tumbleweed) {
         assert_and_click "startupApp-searching";
         wait_still_screen;
         assert_screen "focused-on-search";
@@ -133,7 +137,6 @@ sub run {
     $self->tweak_startupapp_menu;
     assert_screen "startapp-firefox-added";
     assert_and_click "startapp-delete";
-    send_key "alt-f4";
     wait_still_screen;
     send_key "alt-f4";
     assert_screen "generic-desktop";
@@ -147,14 +150,7 @@ sub run {
     ##auto-save-session functionality has been abandoned;
     ##current status: just firefox works
     ##so in the future will consider remove openqa code for this session
-    unless (is_sle('15+')) {
-        # Install dconf-editor for TW
-        if (check_var('VERSION', 'Tumbleweed')) {
-            select_console('root-console');
-            pkcon_quit;
-            zypper_call('in dconf-editor');
-            select_console('x11');
-        }
+    unless (is_sle('15+') || is_tumbleweed) {
         $self->alter_status_auto_save_session;
 
         x11_start_program('firefox');

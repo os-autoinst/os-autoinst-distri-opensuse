@@ -19,7 +19,8 @@ use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_jeos is_leap is_sle is_remote_backend);
+use Utils::Backends 'is_remote_backend';
+use version_utils qw(is_caasp is_jeos is_leap is_sle);
 use caasp 'pause_until';
 use mm_network;
 
@@ -193,9 +194,12 @@ sub boot_local_disk {
         wait_screen_change { send_key 'ret' };
         # Currently the bootloader would bounce back to inst-bootmenu screen after pressing 'ret'
         # on 'local' menu-item, we have to check it and send 'ret' again to make booting properly
-        if (check_screen(['bootloader', 'inst-bootmenu'], 30)) {
+        my $counter = 3;
+        while (check_screen(['bootloader', 'inst-bootmenu'], 30) && $counter) {
             record_info 'bounce back to inst-bootmenu, send ret again';
             send_key 'ret';
+            wait_still_screen(1);
+            $counter--;
         }
         my @tags = qw(inst-slof bootloader grub2 inst-bootmenu);
         push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
@@ -554,8 +558,9 @@ sub specific_bootmenu_params {
             # due to BSC#932692 (SLE-12). 'SetHostname=0' has to be set because autoyast
             # profile has DHCLIENT_SET_HOSTNAME="yes" in /etc/sysconfig/network/dhcp,
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
-            # have them both as it's not deterministic.
-            $netsetup = get_var("NETWORK_INIT_PARAM", "ifcfg=*=dhcp SetHostname=0");
+            # have them both as it's not deterministic. Don't set on IPMI with net interface defined in SUT_NETDEVICE.
+            my $ifcfg = check_var('BACKEND', 'ipmi') ? '' : 'ifcfg=*=dhcp SetHostname=0';
+            $netsetup = get_var("NETWORK_INIT_PARAM", "$ifcfg");
             $args .= " $netsetup ";
             $args .= autoyast_boot_params;
         }

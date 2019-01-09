@@ -28,6 +28,7 @@ our @EXPORT = qw(
   take_first_disk
   is_storage_ng_newui
   %partition_roles
+  mount_device
 );
 
 our %partition_roles = qw(
@@ -81,7 +82,8 @@ sub create_new_partition_table {
     send_key_until_needlematch "expert-partitioner-vda", 'right';
 
     # empty disk partitions by creating new partition table
-    my $expert_menu_key = (is_storage_ng) ? 'alt-r' : 'alt-x';    # expert menu keys
+    # in sle15sp1 is called Pa{r}tition Table
+    my $expert_menu_key = (is_storage_ng) ? ((is_storage_ng_newui) ? 'alt-r' : 'alt-e') : 'alt-x';    # expert menu keys
 
     if (is_storage_ng_newui) {
         # partition table management has been moved from Partitions tab to Overview
@@ -89,7 +91,8 @@ sub create_new_partition_table {
         assert_screen 'expert-partitioner-overview';
     }
 
-    wait_screen_change { send_key $expert_menu_key };             # enter Partition table menu
+    # enter Partition table menu
+    wait_screen_change { send_key $expert_menu_key };
     send_key 'down';
     wait_still_screen 2;
     save_screenshot;
@@ -109,19 +112,30 @@ sub create_new_partition_table {
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
         send_key 'alt-p' if (is_storage_ng);                  # return back to Partitions tab
     }
-    unless (is_storage_ng) {
+    unless (is_storage_ng_newui) {
         assert_screen 'partition-create-new-table';
         send_key 'alt-y';
     }
 }
 
+# Set mount point and volume label
 sub mount_device {
     my ($mount) = shift;
     send_key 'alt-o' if is_storage_ng;
     wait_still_screen 1;
     send_key 'alt-m';
+    for (1 .. 10) { send_key "backspace" }
     type_string "$mount";
     wait_still_screen 1;
+    if (get_var('SETUP_VOLUME_LABEL')) {
+        send_key((is_storage_ng) ? 'alt-s' : 'alt-t');
+        wait_still_screen 1;
+        send_key 'alt-m';
+        for (1 .. 45) { send_key "backspace" }
+        type_string get_var('SETUP_VOLUME_LABEL');
+        wait_still_screen 1;
+        send_key 'alt-o';
+    }
 }
 
 # Set size when adding or resizing partition

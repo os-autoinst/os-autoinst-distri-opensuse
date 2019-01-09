@@ -27,6 +27,7 @@ BEGIN {
 }
 use utils;
 use main_common;
+use known_bugs;
 
 init_main();
 
@@ -417,16 +418,6 @@ logcurrentenv(
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
 
-sub load_applicationstests {
-    if (my $val = get_var("APPTESTS")) {
-        for my $test (split(/,/, $val)) {
-            loadtest "$test";
-        }
-        return 1;
-    }
-    return 0;
-}
-
 sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {
         my $parents = get_parents;
@@ -665,27 +656,20 @@ sub load_default_autoyast_tests {
     load_reboot_tests;
 }
 
+sub load_suseconnect_tests {
+    prepare_target;
+    loadtest "console/system_prepare";
+    loadtest "console/consoletest_setup";
+    loadtest "console/suseconnect";
+}
+
+
 my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-# Set serial failures
-my $serial_failures = [];
-# Detect bsc#1093797 on aarch64
-if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
-    push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
-}
-push @$serial_failures, {type => 'soft', message => 'bsc#1112109', pattern => qr/serial-getty.*service: Service hold-off time over, scheduling restart/};
-if (is_kernel_test()) {
-    my $type = is_ltp_test() ? 'soft' : 'hard';
-    push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
-    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
-    push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
-    push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted',      pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
-    push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => quotemeta 'BUG: failure at'};
-    push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
-}
-$testapi::distri->set_expected_serial_failures($serial_failures);
+# set serial failures
+$testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 
 if (is_jeos) {
     load_jeos_tests();
@@ -713,7 +697,8 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_xen_tests if check_var("REGRESSION", "xen");
+    load_xen_tests         if check_var("REGRESSION", "xen");
+    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -757,42 +742,7 @@ elsif (get_var("SLEPOS")) {
 }
 elsif (get_var("SECURITY_TEST")) {
     prepare_target();
-    if (get_var('BOOT_HDD_IMAGE')) {
-        loadtest "console/system_prepare";
-        loadtest "console/consoletest_setup";
-    }
-    if (check_var("SECURITY_TEST", "fips_setup")) {
-        # Setup system into fips mode
-        loadtest "fips/fips_setup";
-    }
-    elsif (check_var("SECURITY_TEST", "core")) {
-        load_security_tests_core;
-    }
-    elsif (check_var("SECURITY_TEST", "web")) {
-        load_security_tests_web;
-    }
-    elsif (check_var("SECURITY_TEST", "misc")) {
-        load_security_tests_misc;
-    }
-    elsif (check_var("SECURITY_TEST", "crypt")) {
-        load_security_tests_crypt;
-    }
-    elsif (check_var("SECURITY_TEST", "ipsec")) {
-        loadtest "console/ipsec_tools_h2h";
-    }
-    elsif (check_var("SECURITY_TEST", "mmtest")) {
-        # Load client tests by APPTESTS variable
-        load_applicationstests;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor")) {
-        load_security_tests_apparmor;
-    }
-    elsif (check_var("SECURITY_TEST", "openscap")) {
-        load_security_tests_openscap;
-    }
-    elsif (check_var("SECURITY_TEST", "selinux")) {
-        load_security_tests_selinux;
-    }
+    load_security_tests;
 }
 elsif (get_var('SMT')) {
     prepare_target();
@@ -919,6 +869,20 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/guest_migration_dst";
     }
 }
+elsif (get_var("PERF_KERNEL")) {
+    if (get_var("PERF_INSTALL")) {
+        load_boot_tests();
+        load_inst_tests();
+    }
+    elsif (get_var("PERF_SETUP")) {
+        loadtest "virt_autotest/login_console";
+        loadtest "kernel_performance/install_qatestset";
+    }
+    elsif (get_var("PERF_RUNCASE")) {
+        loadtest "virt_autotest/login_console";
+        loadtest "kernel_performance/run_perf_case";
+    }
+}
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
     loadtest "qam-minimal/install_update";
@@ -1009,12 +973,7 @@ elsif (get_var('VALIDATE_PCM_PATTERN')) {
     load_public_cloud_patterns_validation_tests;
 }
 else {
-    if (get_var("SES5_DEPLOY")) {
-        loadtest "boot/boot_from_pxe";
-        loadtest "autoyast/installation";
-        loadtest "installation/first_boot";
-    }
-    elsif (get_var("SES_NODE")) {
+    if (get_var("SES_NODE")) {
         boot_hdd_image;
         if (get_var("DEEPSEA_TESTSUITE")) {
             loadtest "ses/nodes_preparation";

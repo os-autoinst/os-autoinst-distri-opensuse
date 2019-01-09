@@ -18,7 +18,7 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use version_utils 'is_caasp';
-use caasp;
+use transactional_system;
 
 # Download files needed for transactional update test
 sub get_utt_packages {
@@ -81,7 +81,10 @@ sub run {
 
     # Check that zypper does not return 0 if update was aborted
     record_info 'Broken pkg', 'Install broken package poo#18644 - snapshot #3';
-    if (is_caasp('DVD')) {
+    if (is_caasp('=4.0')) {
+        record_info 'Test skipped - broken image needs breaking again';
+    }
+    elsif (is_caasp('DVD')) {
         my $broken_pkg = is_caasp('caasp') ? 'trival' : 'broken';
         trup_call "pkg install" . rpmver($broken_pkg);
         check_reboot_changes;

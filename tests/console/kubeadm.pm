@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test kubeadm installation and bootstrap single k8s cluster
-# Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
+# Summary: Test kubeadm to bootstrap single node k8s cluster. Intended for use in Kubic (only place where k8s is supported)
+# Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>, Richard Brown <rbrown@suse.com>
 
 use strict;
 use base "consoletest";
@@ -19,24 +19,24 @@ use utils "systemctl";
 sub run {
     select_console("root-console");
 
-    record_info 'etcd', 'Stop etcd and clean up';
-    systemctl 'disable --now etcd';
-    script_run 'rm -r /var/lib/etcd/*';
-
-    record_info 'Setup', 'Test: Package Installation';
-    my $packages = 'kubernetes-client kubernetes-kubelet kubernetes-kubeadm docker-kubic cri-tools';
-    trup_install($packages);
-
-    record_info 'Prepare', 'Test: Enable and start required services';
-    systemctl('enable --now kubelet docker');
-    systemctl('is-active docker');
-    systemctl('is-active kubelet');
-
     record_info 'Test #1', 'Test: Initialize kubeadm';
-    record_soft_failure "bsc#1093132" if script_run('kubeadm init');
-    script_run('kubeadm reset');
-    assert_script_run('kubeadm init', 180);
+    assert_script_run("kubeadm init --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 | tee /dev/$serialdev", 180);
 
+    record_info 'Test #2', 'Test: Configure kubectl';
+    assert_script_run('mkdir -p ~/.kube');
+    assert_script_run('cp -i /etc/kubernetes/admin.conf ~/.kube/config');
+
+    record_info 'Test #3', 'Test: Configure flannel';
+    assert_script_run('kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml');
+
+    record_info 'Test #4', 'Test: Record cluster info';
+    # Cluster isn't ready immediately
+    sleep 60;
+    script_run("kubectl config view --flatten=true | tee /dev/$serialdev");
+    script_run("kubectl get pods --all-namespaces | tee /dev/$serialdev");
+
+    record_info 'Test #5', 'Test: Confirm node is ready';
+    assert_script_run('kubectl get nodes | grep "Ready" | grep -v "NotReady"');
 }
 
 1;

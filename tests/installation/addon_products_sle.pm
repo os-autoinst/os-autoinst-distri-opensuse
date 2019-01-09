@@ -45,6 +45,10 @@ sub handle_all_packages_medium {
     # According to bsc#1089455, migrating from SLED12 to SLED15, legacy shouldn't be selected by the testcase.
     push @addons, 'legacy' if get_var('UPGRADE') && !grep(/^legacy$/, @addons) && !check_var('SLE_PRODUCT', 'sled');
 
+    # The development-tool module is required if upgrade from previous version
+    # Refer to https://fate.suse.com/325293
+    push @addons, 'sdk' if get_var('UPGRADE') && !grep(/^sdk$/, @addons) && (check_var('SLE_PRODUCT', 'sles') || check_var('SLE_PRODUCT', 'rt') || check_var('SLE_PRODUCT', 'hpc'));
+
     # For SLES12SPx and SLES11SPx to SLES15 migration, need add the demand module at least for media migration manually
     if (get_var('MEDIA_UPGRADE') && is_sle('<15', get_var('HDDVERSION')) && !check_var('SLE_PRODUCT', 'sled')) {
         my @demand_addon = qw(desktop legacy serverapp script);

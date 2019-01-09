@@ -13,7 +13,6 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use caasp 'script_retry';
 use version_utils 'is_caasp';
 
 sub run_rcshell_checks {
@@ -33,7 +32,7 @@ sub run_common_checks {
 }
 
 sub run_caasp_checks {
-    unless (check_var('SYSTEM_ROLE', 'plain')) {
+    if (get_var('SYSTEM_ROLE', '') =~ /admin|worker/) {
         # poo#18668 - Check ntp client configuration
         assert_script_run 'grep "^pool ns.openqa.test" /etc/chrony.conf';
     }

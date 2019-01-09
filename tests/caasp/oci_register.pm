@@ -16,9 +16,9 @@ use testapi;
 
 sub run {
     send_key 'alt-g';
-    type_string get_var('REGCODE');
+    type_string(get_required_var 'REGCODE');
 
-    save_screenshot;
+    wait_still_screen 1;
 }
 
 1;

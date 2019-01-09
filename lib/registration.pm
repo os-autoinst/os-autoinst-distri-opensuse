@@ -22,7 +22,7 @@ use strict;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
-use version_utils qw(is_sle is_caasp is_sle12_hdd_in_upgrade);
+use version_utils qw(is_sle is_caasp is_upgrade);
 use constant ADDONS_COUNT => 50;
 
 our @EXPORT = qw(
@@ -87,7 +87,7 @@ sub accept_addons_license {
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
     my @addons_with_license = qw(geo rt idu ids lgm);
-    if (is_sle('15+')) {
+    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
         record_soft_failure 'bsc#1118497';
     }
     else {
@@ -164,9 +164,11 @@ sub register_addons {
         last if (get_var('SMT_URL'));
         # change to uppercase to match variable
         $uc_addon = uc $addon;
+        my @addons_with_code = qw(geo live rt ltss ses);
         # WE doesn't need code on SLED
-        my @addons_with_code = qw(ha geo live rt ltss ses);
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
+        # HA doesn't need code on SLES4SAP
+        push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap'));
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
@@ -331,7 +333,7 @@ sub process_scc_register_addons {
                     }
                     # yast may pop up dependencies or reboot prompt window
                     if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
-                        send_key 'alt-o';
+                        wait_screen_change { send_key "alt-o" };
                         next;
                     }
                     if (match_has_tag('yast_scc-installation-summary')) {
@@ -399,7 +401,7 @@ sub fill_in_registration_data {
         }
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
-        push @tags, 'inst-addon' if is_sle('15+') && is_sle12_hdd_in_upgrade;
+        push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen(\@tags);
@@ -527,7 +529,7 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-    type_string "yast2 scc; echo yast-scc-done-\$?- > /dev/$serialdev\n";
+    type_string "yast2 scc; echo sccreg-done-\$?- > /dev/$serialdev\n";
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,
@@ -537,8 +539,8 @@ sub yast_scc_registration {
 
     fill_in_registration_data;
 
-    my $ret = wait_serial "yast-scc-done-\\d+-";
-    die "yast scc failed" unless (defined $ret && $ret =~ /yast-scc-done-0-/);
+    my $ret = wait_serial "sccreg-done-\\d+-";
+    die "yast scc failed" unless (defined $ret && $ret =~ /sccreg-done-0-/);
 
     # To check repos validity after registration, call 'validate_repos' as needed
 }

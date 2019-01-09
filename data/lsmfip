@@ -181,6 +181,8 @@ sub problem_can_be_skipped {
     return 1 if $pkg =~ /^python3-ldb-devel/;
     # conflict with the non-debug counterparts
     return 1 if $pkg =~ /^dapl-debug(|-devel|-libs|-utils)/;
+    # conflict with ghostscript,-devel
+    return 1 if $pkg =~ /^ghostscript(-devel)?-mini/;
 
     return;
 }

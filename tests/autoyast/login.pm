@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2017 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,12 +19,16 @@
 use strict;
 use base 'y2logsstep';
 use testapi;
-use ipmi_backend_utils;
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 
 sub run {
     my $self = shift;
     assert_screen("autoyast-system-login-console", 20);
-    $self->result('fail');    # default result
+    # default result
+    $self->result('fail');
+
+    # TODO: is_remote_backend could be a better fit here, but not
+    # too sure if it would make sense for svirt or s390 for example
     if (check_var('BACKEND', 'ipmi')) {
         #use console based on ssh to avoid unstable ipmi
         use_ssh_serial_console;

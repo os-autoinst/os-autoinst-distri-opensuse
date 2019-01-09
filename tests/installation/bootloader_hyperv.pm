@@ -32,27 +32,38 @@ sub hyperv_cmd_with_retry {
 
     my $attempts = $args->{attempts} // 7;
     my $sleep    = $args->{sleep} // 300;
-    my $msg      = $args->{msg} // 'The operation cannot be performed while the object is in use.';
+    # Common messages
+    my @msgs = $args->{msgs} // (
+        'Failed to create the virtual hard disk',
+        'The operation cannot be performed while the object is in use',
+        'The process cannot access the file because it is being used by another process');
     for my $retry (1 .. $attempts) {
         my @out = (console('svirt')->get_cmd_output($cmd, {wantarray => 1}))[0];
-        my $stdout = $out[0][0] || '';
         my $stderr = $out[0][1] || '';
-        chomp($stdout, $stderr);
-        if ($stderr && $stderr =~ /$msg/) {
-            # Non-fatal error we can ignore for couple of times.
-            diag "Attempt $retry/$attempts: Command failed with $stderr.\nSleeping for $sleep seconds...";
+        chomp($stderr);
+        # Command succeeded, we are done here
+        return unless $stderr;
+        diag "Attempt $retry/$attempts: Command failed";
+        my $msg_found = 0;
+        foreach my $msg (@msgs) {
+            diag "Looking for message: '$msg'";
+            # Narrow the error message for an easy match
+            my $s = $stderr;
+            # Remove Windows-style new lines (<CR><LF>)
+            $s =~ s{\r\n}{}g;
+            # Error message is not the expected error message in this cycle,
+            # try the next one
+            next unless $s =~ /$msg/;
+            $msg_found = 1;
+            # Error message is the expected one, sleep
+            diag "Sleeping for $sleep seconds...";
             sleep $sleep;
-            next;
-        }
-        elsif ($stderr) {
-            # Error we don't know how to resurrect from.
-            die "Command failed with unhandled error:\n$stderr.";
-        }
-        else {
-            # Command succeeded.
             last;
         }
+        # Error we don't know if we should attempt to recover from
+        die 'Command failed with unhandled error' unless $msg_found;
     }
+    die 'Run out of attempts';
 }
 
 sub run {
@@ -75,11 +86,12 @@ sub run {
 
     # Mount openQA NFS share to drive N:
     hyperv_cmd_with_retry("if not exist N: ( mount \\\\openqa.suse.de\\var\\lib\\openqa\\share\\factory N: )",
-        {msg => 'Another instance of this command is already running'});
+        {msgs => ('Another instance of this command is already running')});
 
     # Copy assets from NFS to Hyper-V cache
     for my $n ('', 1 .. 9) {
-        $n = "_$n" if $n;    # Look for {ISO,HDD}, {ISO,HDD}_1, ... variables
+        # Look for {ISO,HDD}, {ISO,HDD}_1, ... variables
+        $n = "_$n" if $n;
         if (my $iso = get_var("ISO$n")) {
             for my $isopath ("iso", "iso\\fixed") {
                 # Copy ISO from NFS share to local cache on Hyper-V in 'network-restartable' mode
@@ -177,7 +189,7 @@ sub run {
         # the default is 'Production' (i.e. snapshot on guest level).
         hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016';
         if ($iso) {
-            hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0");
+            hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0") unless $winserver eq '2012' and get_var('UEFI');
             hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
         }
         foreach my $disk_path (@disk_paths) {

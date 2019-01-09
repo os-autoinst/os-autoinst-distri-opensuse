@@ -35,8 +35,5 @@ sub run {
     die if (!ifc_exists($iface));
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
 
 1;

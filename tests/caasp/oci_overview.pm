@@ -18,6 +18,13 @@ use version_utils 'is_caasp';
 
 sub run {
     my $timeout = 120;
+
+    # Check DUD - poo#17072
+    if (get_var('DUD')) {
+        assert_and_click 'oci-caption-dud', 'left', $timeout;
+        $timeout = 30;
+    }
+
     if (get_var('BETA')) {
         assert_screen 'inst-betawarning', $timeout;
         send_key 'ret';
@@ -40,9 +47,6 @@ sub run {
             assert_and_click 'release-notes-close';
         }
     }
-
-    # Check DUD - poo#17072
-    assert_screen 'oci-caption-dud' if get_var('DUD');
 }
 
 1;

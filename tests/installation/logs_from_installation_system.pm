@@ -16,6 +16,7 @@ use base 'y2logsstep';
 use testapi;
 use lockapi;
 use utils;
+use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 sub run {
@@ -35,6 +36,7 @@ sub run {
         # set serial console for xen
         set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
         set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE', 'kvm'));
+        set_pxe_efiboot('/mnt') if check_var('ARCH', 'aarch64');
     }
     else {
         # avoid known issue in FIPS mode: bsc#985969

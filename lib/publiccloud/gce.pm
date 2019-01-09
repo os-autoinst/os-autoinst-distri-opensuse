@@ -18,7 +18,7 @@ use testapi;
 use strict;
 use utils;
 
-use constant CREDENTIALS_FILE => 'google_credentials.json';
+use constant CREDENTIALS_FILE => '/root/google_credentials.json';
 
 has account             => undef;
 has project_id          => undef;
@@ -30,6 +30,7 @@ has storage_name        => undef;
 
 sub init {
     my ($self) = @_;
+    $self->SUPER::init();
     my $credentials = "{" . $/
       . '"type": "service_account", ' . $/
       . '"project_id": "' . $self->project_id . '", ' . $/

@@ -10,7 +10,7 @@
 # Summary: Run CNCF K8s Conformance tests
 #   Maintain certified status of CaaSP under k8s certification
 #   Project: https://github.com/cncf/k8s-conformance
-# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, George Gkioulis <ggkioulis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
@@ -21,29 +21,48 @@ use testapi;
 use caasp 'script_retry';
 use version_utils 'is_caasp';
 
+my $config_json = <<'EOF';
+{
+  "plugins": [ { "name": "e2e" } ]
+}
+EOF
+
 sub run {
-    switch_to 'xterm';
+    # The repository for the sonobuoy package
+    my $repo = get_var('SONOBUOY_REPO', 'https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo');
 
-    # CaaSP 2.0 has Kubernetes 1.8.9 which doesn't work with v1.10.0 testsuite
-    my $branch = is_caasp('qam') ? '6179d790e6bfc799afef5058ce50a2f314983fa2' : 'master';
+    my $json_name = "sonobuoy.json";
+    my $logs_dir  = "sonobuoy_logs";
 
-    # https://github.com/cncf/k8s-conformance/blob/master/instructions.md
-    my $sb_yaml = "https://raw.githubusercontent.com/cncf/k8s-conformance/$branch/sonobuoy-conformance.yaml";
-    my $sb_exit = '"no-exit was specified, sonobuoy is now blocking"';
     my $sb_pass = '"SUCCESS! -- [1-9][0-9]\+ Passed | 0 Failed | 0 Pending.*PASS"';
     my $sb_test = '"Test Suite Passed"';
 
-    # Run conformance tests and wait 90 minutes for result
-    assert_script_run "curl -L $sb_yaml | kubectl apply -f -";
-    script_retry "kubectl -n sonobuoy logs sonobuoy | grep $sb_exit", retry => 90, delay => 60;
+    switch_to 'xterm';
+    become_root;
 
-    # Results available at /tmp/sonobuoy/201801191307_sonobuoy_be1dbeae-f889-4735-9aa9-4cc04ad13cd5.tar.gz
-    my $path = script_output "kubectl -n sonobuoy logs sonobuoy | grep -o 'Results.*tar.gz'  | cut -d' ' -f4";
-    assert_script_run "kubectl cp sonobuoy/sonobuoy:$path sonobuoy.tgz";
+    # Add the repo
+    zypper_call " ar -Gf $repo";
+
+    # Install the sonobuoy package on the controller node
+    zypper_call "-n in sonobuoy";
+
+    type_string "exit\n";
+
+    # Create config file
+    assert_script_run "echo '$config_json' >> $json_name";
+
+    # Run the testsuite
+    assert_script_run("sonobuoy run --config $json_name");
+
+    # Check every 60 seconds that the testsuite has finished running
+    # Times out after 90 checks.
+    script_retry "sonobuoy status| grep complete", retry => 90, delay => 60;
+
+    assert_script_run("sonobuoy retrieve $logs_dir");
+    assert_script_run("cd $logs_dir");
+    assert_script_run("tar xzf *.tar.gz");
 
     # Expect: SUCCESS! -- 123 Passed | 0 Failed | 0 Pending | 586 Skipped PASS
-    script_run 'tar -xzf sonobuoy.tgz';
-    upload_logs 'sonobuoy.tgz';
     upload_logs 'plugins/e2e/results/e2e.log';
     assert_script_run "tail -10 plugins/e2e/results/e2e.log | tee /dev/tty | grep $sb_pass";
     assert_script_run "tail -10 plugins/e2e/results/e2e.log | grep $sb_test";

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 sub login_to_console {
@@ -64,8 +65,11 @@ sub login_to_console {
             #assert_screen([qw(grub2 grub1)], 120);
 
             my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
-            ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
-            if ($host_installed_version eq '11') {
+            ($host_installed_version) = $host_installed_version =~ /^(\d+)/im;
+            my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');         #format sles-15-sp0
+            my $host_upgrade_relver  = $host_upgrade_version =~ /sles-(\d+)-sp/i;
+            my $host_upgrade_spver   = $host_upgrade_version =~ /sp(\d+)$/im;
+            if (($host_installed_version eq '11') && ($host_upgrade_relver eq '15') && ($host_upgrade_spver eq '0')) {
                 assert_screen('sshd-server-started-config', 180);
                 use_ssh_serial_console;
                 save_screenshot;

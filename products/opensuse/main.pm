@@ -23,7 +23,7 @@ BEGIN {
 use utils;
 use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumbleweed is_rescuesystem is_desktop_installed is_opensuse is_sle is_staging);
 use main_common;
-
+use known_bugs;
 init_main();
 
 sub cleanup_needles {
@@ -74,10 +74,7 @@ require $distri;
 testapi::set_distribution(susedistribution->new());
 
 # Set serial failures
-my $serial_failures = [];
-push @$serial_failures, {type => 'soft', message => 'bsc#1112109', pattern => qr/serial-getty.*service: Service RestartSec=.*ms expired, scheduling restart/};
-
-$testapi::distri->set_expected_serial_failures($serial_failures);
+$testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 
 unless (get_var("DESKTOP")) {
     if (check_var("VIDEOMODE", "text")) {
@@ -376,30 +373,7 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
 }
 elsif (get_var('SECURITY_TEST')) {
     boot_hdd_image;
-    loadtest "console/system_prepare";
-    loadtest "console/consoletest_setup";
-    loadtest "console/hostname";
-    if (check_var('SECURITY_TEST', 'core')) {
-        load_security_tests_core;
-    }
-    elsif (check_var('SECURITY_TEST', 'web')) {
-        load_security_tests_web;
-    }
-    elsif (check_var('SECURITY_TEST', 'misc')) {
-        load_security_tests_misc;
-    }
-    elsif (check_var('SECURITY_TEST', 'crypt')) {
-        load_security_tests_crypt;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor")) {
-        load_security_tests_apparmor;
-    }
-    elsif (check_var("SECURITY_TEST", "openscap")) {
-        load_security_tests_openscap;
-    }
-    elsif (check_var("SECURITY_TEST", "selinux")) {
-        load_security_tests_selinux;
-    }
+    load_security_tests;
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
