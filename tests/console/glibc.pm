@@ -23,7 +23,7 @@ sub run
 
     if (is_sle('<15'))
     {
-        record_info("Skipped","This test is disabled for <SLE15 at the moment because the test suite is broken.");
+        record_info("Skipped", "This test is disabled for <SLE15 at the moment because the test suite is broken.");
         return;
     }
 
@@ -45,18 +45,18 @@ sub run
     record_info 'Build glibc', 'Build glibc from sources to get access to the test suite. Expected time: 10 minutes.';
     type_string "rpmbuild -bc SPECS/glibc.spec && echo -e '\nBUILD_SUCCEEDED' > /dev/$serialdev || echo -e '\nBUILD_FAILED' > /dev/$serialdev\n";
 
-    my $build_result = wait_serial(['BUILD_FAILED','BUILD_SUCCEEDED'], 3600);
+    my $build_result = wait_serial(['BUILD_FAILED', 'BUILD_SUCCEEDED'], 3600);
     save_screenshot;
 
     # extract our marker from the serial output
     $build_result =~ /(^BUILD_[A-Z]+$)/m;
 
-    if ($1 eq 'BUILD_FAILED' )
+    if ($1 eq 'BUILD_FAILED')
     {
         die 'Building glibc from source failed.';
     }
 
-    if ($1 ne 'BUILD_SUCCEEDED' )
+    if ($1 ne 'BUILD_SUCCEEDED')
     {
         die "Expected BUILD_SUCCEEDED on the serial console, but found $build_result instead.";
     }
@@ -68,17 +68,17 @@ sub run
     my $make_check_log = 'make-check.log';
     type_string "set -o pipefail ; make check 2>&1 | tee $make_check_log && echo -e '\nGLIBC_TEST_SUCCEEDED' > /dev/$serialdev || echo -e '\nGLIBC_TEST_FAILED' > /dev/$serialdev\n";
 
-    my $test_result = wait_serial(['GLIBC_TEST_FAILED', 'GLIBC_TEST_SUCCEEDED' ], 7200);
+    my $test_result = wait_serial(['GLIBC_TEST_FAILED', 'GLIBC_TEST_SUCCEEDED'], 7200);
     save_screenshot;
 
     # extract our marker from the serial output
     $test_result =~ /(^GLIBC_TEST_[A-Z]+$)/m;
 
-    if ($1 eq 'GLIBC_TEST_FAILED' )
+    if ($1 eq 'GLIBC_TEST_FAILED')
     {
         record_soft_failure 'Testing glibc failed.';
     }
-    elsif ($1 eq 'GLIBC_TEST_SUCCEEDED' )
+    elsif ($1 eq 'GLIBC_TEST_SUCCEEDED')
     {
         record_info 'Test passed', 'Testing glibc passed!';
         return;
