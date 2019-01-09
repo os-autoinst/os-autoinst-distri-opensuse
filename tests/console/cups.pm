@@ -15,12 +15,14 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_jeos';
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     zypper_call("in cups", exitcode => [0, 102, 103]);
+    zypper_call("in cups-filters", exitcode => [0, 102, 103]) if is_jeos;
 
     script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
     validate_script_output 'cupsd -t', sub { m/is OK/ };
@@ -37,7 +39,7 @@ sub run {
     assert_script_run 'lpoptions -d printer_tmp';
     validate_script_output 'lpstat -p -d -o', sub { m/printer_tmp is idle/ };
 
-    assert_script_run 'wget ' . data_url('console/sample.ps');
+    assert_script_run 'curl --fail -s -O -L ' . data_url('console/sample.ps');
 
     # Submit print job to the queue, list them and cancel them
     record_info "lp, lpstat, cancel", "Submitting and canceling jobs";
