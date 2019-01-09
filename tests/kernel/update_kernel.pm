@@ -20,6 +20,7 @@ use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
 use power_action_utils 'power_action';
+use Utils::Backends 'use_ssh_serial_console';
 
 
 my $wk_ker = 0;
@@ -242,11 +243,20 @@ sub update_kgraft {
     }
 }
 
+sub boot_to_console {
+    my ($self) = @_;
+    $self->wait_boot;
+    if (check_var('BACKEND', 'ipmi')) {
+        use_ssh_serial_console;
+    }
+    else {
+        select_console('root-console');
+    }
+}
+
 sub run {
     my $self = shift;
-    $self->wait_boot;
-
-    select_console('root-console');
+    boot_to_console($self);
 
     my $repo = get_required_var('INCIDENT_REPO');
 
@@ -256,8 +266,7 @@ sub run {
     if (get_var('KGRAFT')) {
         my $qa_head = get_required_var('QA_HEAD_REPO');
         prepare_kgraft($repo, $incident_id);
-        $self->wait_boot;
-        select_console('root-console');
+        boot_to_console($self);
 
         # dependencies for heavy load script
         if (!$wk_ker) {
@@ -274,8 +283,7 @@ sub run {
         }
         power_action('reboot', textmode => 1);
 
-        $self->wait_boot;
-        select_console('root-console');
+        boot_to_console($self);
 
         kgraft_state;
     }
