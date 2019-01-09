@@ -320,10 +320,6 @@ elsif (get_var("FILESYSTEM_TEST")) {
     boot_hdd_image;
     load_filesystem_tests();
 }
-elsif (get_var("SYSCONTAINER_IMAGE_TEST")) {
-    boot_hdd_image;
-    load_syscontainer_tests();
-}
 elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
     loadtest 'gnuhealth/gnuhealth_install';

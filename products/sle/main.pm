@@ -925,10 +925,6 @@ elsif (get_var('Y2UITEST_NCURSES')) {
 elsif (get_var('Y2UITEST_GUI')) {
     load_yast2_gui_tests;
 }
-elsif (get_var("SYSCONTAINER_IMAGE_TEST")) {
-    boot_hdd_image;
-    load_syscontainer_tests();
-}
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
 }

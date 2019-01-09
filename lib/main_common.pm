@@ -96,7 +96,6 @@ our @EXPORT = qw(
   load_ssh_key_import_tests
   load_svirt_boot_tests
   load_svirt_vm_setup_tests
-  load_syscontainer_tests
   load_systemd_patches_tests
   load_system_update_tests
   loadtest
@@ -2218,7 +2217,7 @@ sub load_xen_tests {
     loadtest 'virtualization/xen/guest_management';
 }
 
-sub load_syscontainer_tests() {
+sub load_extra_tests_syscontainer {
     return unless get_var('SYSCONTAINER_IMAGE_TEST');
     # pre-conditions for system container tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
