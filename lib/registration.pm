@@ -468,7 +468,7 @@ sub fill_in_registration_data {
             }
         }
 
-        verify_preselected_modules($modules_needle);
+        verify_preselected_modules($modules_needle) if get_var('CHECK_PRESELECTED_MODULES');
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
         if (check_var('SLE_PRODUCT', 'sles')
