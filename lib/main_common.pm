@@ -103,7 +103,6 @@ our @EXPORT = qw(
   load_testdir
   load_toolchain_tests
   load_virtualization_tests
-  load_wicked_tests
   load_x11tests
   load_xen_tests
   load_yast2_gui_tests
@@ -1694,7 +1693,7 @@ sub wicked_init_locks {
     loadtest('wicked/locks_init', run_args => $args);
 }
 
-sub load_wicked_tests {
+sub load_extra_tests_wicked {
     wicked_init_locks();
     for my $test (get_wicked_tests()) {
         loadtest $test;

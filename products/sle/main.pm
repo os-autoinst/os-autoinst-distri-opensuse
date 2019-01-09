@@ -687,10 +687,6 @@ elsif (get_var('IBTESTS')) {
     load_baremetal_tests();
     load_infiniband_tests();
 }
-elsif (get_var("WICKED")) {
-    boot_hdd_image();
-    load_wicked_tests();
-}
 elsif (get_var("NFV")) {
     load_baremetal_tests();
     load_nfv_tests();

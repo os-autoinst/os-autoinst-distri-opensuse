@@ -300,10 +300,6 @@ elsif (get_var("NETWORKD")) {
     boot_hdd_image();
     load_networkd_tests();
 }
-elsif (get_var("WICKED")) {
-    boot_hdd_image();
-    load_wicked_tests();
-}
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
