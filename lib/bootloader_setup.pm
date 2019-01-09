@@ -884,7 +884,7 @@ sub grep_grub_cmdline_settings {
 
     change_grub_config($old, $new [, $search ] [, $modifiers ]);
 
-Replace $old with $new in /etc/default/grub, using sed.
+Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$search> meant to be for changing only particular line for sed,
 C<$modifiers> for sed replacement, e.g. "g".
 =cut
@@ -901,7 +901,7 @@ sub change_grub_config {
 
     add_grub_cmdline_settings($add);
 
-Add $add into /etc/default/grub, using sed.
+Add C<$add> into /etc/default/grub, using sed.
 =cut
 sub add_grub_cmdline_settings {
     my $add = shift;
@@ -913,7 +913,7 @@ sub add_grub_cmdline_settings {
 
     replace_grub_cmdline_settings($old, $new);
 
-Replace $old with $new in /etc/default/grub, using sed.
+Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 =cut
 sub replace_grub_cmdline_settings {
     my ($old, $new) = @_;
@@ -925,7 +925,7 @@ sub replace_grub_cmdline_settings {
 
     remove_grub_cmdline_settings($remove);
 
-Remove $remove from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
+Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
 =cut
 sub remove_grub_cmdline_settings {
     my $remove = shift;
