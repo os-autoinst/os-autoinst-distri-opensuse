@@ -170,8 +170,6 @@ sub configure_zone {
     }
     if ($args{port}) {
         send_key $fw{zones_ports};
-        assert_screen 'yast2_firewall_zone_service_warning';
-        send_key $fw{yes};
         assert_screen 'yast2_firewall_zone_ports_tab_selected';
         send_key $fw{tcp};
         type_string '7777';
