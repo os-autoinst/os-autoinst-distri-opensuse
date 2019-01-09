@@ -16,8 +16,8 @@ use strict;
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_opensuse);
+use repo_tools 'generate_version';
 
 sub run {
     my ($self) = @_;
@@ -32,19 +32,7 @@ sub run {
 
     my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO', '');
     if ($tools_repo eq '') {
-        my $dist    = get_required_var('DISTRI');
-        my $version = get_required_var('VERSION');
-        if (is_sle) {
-            $dist = 'SLE';
-            $version =~ s/-/_/;
-        }
-        elsif (is_tumbleweed) {
-            $dist = 'openSUSE';
-        }
-        elsif (is_leap) {
-            $dist = 'openSUSE_Leap';
-        }
-        $tools_repo = 'http://download.opensuse.org/repositories/Cloud:/Tools/' . $dist . "_" . $version . '/Cloud:Tools.repo';
+        $tools_repo = 'http://download.opensuse.org/repositories/Cloud:/Tools/' . generate_version() . '/Cloud:Tools.repo';
     }
     zypper_call('ar ' . $tools_repo);
     zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core');

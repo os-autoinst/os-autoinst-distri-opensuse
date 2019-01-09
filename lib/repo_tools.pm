@@ -21,7 +21,17 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 
-our @EXPORT = qw(smt_wizard smt_mirror_repo rmt_wizard rmt_mirror_repo prepare_source_repo disable_source_repo get_repo_var_name prepare_oss_repo disable_oss_repo);
+our @EXPORT = qw(
+  smt_wizard
+  smt_mirror_repo
+  rmt_wizard
+  rmt_mirror_repo
+  prepare_source_repo
+  disable_source_repo
+  get_repo_var_name
+  prepare_oss_repo
+  disable_oss_repo
+  generate_version);
 
 =head2 get_repo_var_name
 This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter
@@ -178,8 +188,18 @@ sub disable_source_repo {
     }
 }
 
-sub test_flags {
-    return {fatal => 1};
+sub generate_version {
+    my $dist    = get_required_var('DISTRI');
+    my $version = get_required_var('VERSION');
+    if (is_sle) {
+        $dist = 'SLE';
+        $version =~ s/-/_/;
+    } elsif (is_tumbleweed) {
+        $dist = 'openSUSE';
+    } elsif (is_leap) {
+        $dist = 'openSUSE_Leap';
+    }
+    return $dist . "_" . $version;
 }
 
 1;
