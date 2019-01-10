@@ -48,7 +48,7 @@ sub create_list_of_serial_failures {
     }
 
 
-    push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'};
+    push @$serial_failures, {type => 'soft', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'};
 
     return $serial_failures;
 }
