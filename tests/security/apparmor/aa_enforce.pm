@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,31 +18,37 @@
 # Tags: poo#36877, tc#1621145
 
 use strict;
-use base "consoletest";
+use base "apparmortest";
 use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+
+    my $executable_name = "/usr/sbin/nscd";
+    my $profile_name    = "usr.sbin.nscd";
+    my $named_profile   = "";
+    #select_console 'root-console';
 
     systemctl('restart apparmor');
 
-    validate_script_output "aa-disable usr.sbin.nscd", sub {
+    validate_script_output "aa-disable $executable_name", sub {
         m/Disabling.*nscd/;
     };
 
-    # Check if /usr/sbin/ntpd is really disabled
-    die "/usr/sbin/nscd should be disabled"
-      if (script_run("aa-status |grep /usr/sbin/nscd") == 0);
+    # Recalculate profile name in case
+    $named_profile = $self->get_named_profile($profile_name);
 
-    validate_script_output "aa-enforce usr.sbin.nscd", sub {
+    # Check if /usr/sbin/ntpd is really disabled
+    die "$executable_name should be disabled"
+      if (script_run("aa-status | sed 's/[ \t]*//g' | grep -x $named_profile") == 0);
+
+    validate_script_output "aa-enforce $executable_name", sub {
         m/Setting.*nscd to enforce mode/;
     };
 
-    validate_script_output "aa-status", sub {
-        m/\/usr\/sbin\/nscd/;
-    };
-
+    # Check if $named_profile is in "enforce" mode
+    $self->aa_status_stdout_check($named_profile, "enforce");
 }
 
 1;

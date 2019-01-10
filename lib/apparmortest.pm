@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 SUSE LLC
+# Copyright (C) 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ sub aa_disable_stdout_buf {
         assert_script_run "export PYTHONUNBUFFERED=1";
     }
 }
-
 
 # $prof_dir_tmp: The target temporary directory
 # $type:
@@ -122,6 +121,29 @@ sub aa_interactive_run {
             }
         } while ($output);
     }
+}
+
+# Get the named profile for an executable program
+sub get_named_profile {
+    my ($self, $profile_name) = @_;
+
+    # Recalculate profile name in case
+    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//'");
+    if ($profile_name =~ m/profile /) {
+        $profile_name = script_output("echo $profile_name | cut -d ' ' -f2");
+    }
+    return $profile_name;
+}
+
+# Check the output of aa-status: if a given profile belongs to a given mode
+sub aa_status_stdout_check {
+    my ($self, $profile_name, $profile_mode) = @_;
+
+    my $start_line = script_output("aa-status | grep -n 'profiles are in' | grep $profile_mode | cut -d ':' -f1");
+    my $total_line = script_output("aa-status | grep 'profiles are in' | grep $profile_mode | cut -d ' ' -f1");
+    my $lines      = $start_line + $total_line;
+
+    assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
 }
 
 sub pre_run_hook {
