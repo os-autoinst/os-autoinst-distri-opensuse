@@ -23,19 +23,12 @@ sub create_credentials {
     my ($self) = @_;
 
     if (!defined($self->credentials)) {
-        my $credentials = $self->do_rest_api('/ec2/users', method => 'post');
-        die("Missing key") if (!defined($credentials->{keys}));
-        for my $key (@{$credentials->{keys}}) {
-            next if (!defined($key->{secret}));
-            next if ($key->{status} ne 'active');
-            $self->key_id($key->{key_id});
-            $self->key_secret($key->{secret});
-        }
+        my $credentials = $self->do_rest_api('/ec2/key', method => 'post');
         $self->credentials($credentials);
-        die('Failed to create credentials') unless (defined($self->key_id) && defined($self->key_secret));
+        $self->key_id($credentials->{key_id});
+        $self->key_secret($credentials->{secret});
     }
-
-    return $self->credentials;
+    die('Failed to retrieve key') unless (defined($self->key_id) && defined($self->key_secret));
 }
 
 sub delete_credentials {
@@ -43,8 +36,8 @@ sub delete_credentials {
 
     return unless (defined($self->credentials));
 
-    my $username = $self->credentials->{name};
-    $self->do_rest_api('/credentials/users/' . $username, method => 'delete');
+    my $key_id = $self->credentials->{key_id};
+    $self->do_rest_api('/ec2/key/' . $key_id, method => 'delete');
     $self->credentials(undef);
 }
 
