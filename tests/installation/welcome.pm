@@ -113,9 +113,9 @@ sub run {
 
     # Verify install arguments passed by bootloader
     # Linuxrc writes its settings in /etc/install.inf
-    if (get_var('NETBOOT') && !check_var('BACKEND', 'ipmi')) {
+    if (get_var('NETBOOT') && !check_var('BACKEND', 'ipmi') && get_var('INSTALL_SOURCE')) {
         wait_screen_change { send_key 'ctrl-alt-shift-x' };
-        my $method     = uc get_required_var('INSTALL_SOURCE');
+        my $method     = uc get_var('INSTALL_SOURCE');
         my $mirror_src = get_var("MIRROR_$method");
         my $rc         = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
         die "Install source mismatch in boot parameters!\n" unless ($rc == 0);
