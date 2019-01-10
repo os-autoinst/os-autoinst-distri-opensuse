@@ -22,7 +22,10 @@ use File::Basename;
 sub search_image_on_svirt_host {
     my ($svirt, $file, $dir) = @_;
     my $basename = basename($file);
-    my $path     = $svirt->get_cmd_output("find $dir -name $basename | head -n1 | tr -d '\n'");
+    my $domain = check_var('VIRSH_VMM_FAMILY', 'vmware') ? 'sshVMwareServer' : undef;
+    # Need to use only commands, which are on all platforms
+    # (e.g. Linux, VMware ESXi). E.g. `tr' is not on VMware ESXi.
+    my $path = $svirt->get_cmd_output("find $dir -name $basename | head -n1 | awk 1 ORS=''", {domain => $domain});
     die "Unable to find image $basename in $dir" unless $path;
     diag("Image found: $path");
     type_string("# Copying image $basename...\n");
@@ -70,9 +73,13 @@ sub run {
     $svirt->change_domain_element(on_reboot => undef);
     $svirt->change_domain_element(on_reboot => 'destroy');
 
+    # This needs to be set by the user per environment on VMware (e.g to '/vmfs/volumes')
+    get_required_var('VIRSH_OPENQA_BASEDIR') if check_var('VIRSH_VMM_FAMILY', 'vmware');
     my $dev_id  = 'a';
     my $basedir = svirt_host_basedir();
-    my $isodir  = "$basedir/openqa/share/factory/iso $basedir/openqa/share/factory/iso/fixed";
+    # This part of the path-to-image is missing on VMware
+    my $share_factory = check_var('VIRSH_VMM_FAMILY', 'vmware') ? '' : 'share/factory/';
+    my $isodir = "$basedir/openqa/${share_factory}iso $basedir/openqa/${share_factory}iso/fixed";
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
     if (my $isofile = get_var('ISO')) {
         my $isopath = search_image_on_svirt_host($svirt, $isofile, $isodir);
@@ -98,7 +105,7 @@ sub run {
         }
     }
 
-    my $hdddir = "$basedir/openqa/share/factory/hdd $basedir/openqa/share/factory/hdd/fixed";
+    my $hdddir = "$basedir/openqa/${share_factory}hdd $basedir/openqa/${share_factory}hdd/fixed";
     my $size_i = get_var('HDDSIZEGB', '10');
     foreach my $n (1 .. get_var('NUMDISKS')) {
         if (my $hdd = get_var('HDD_' . $n)) {
