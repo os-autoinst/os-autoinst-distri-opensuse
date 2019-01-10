@@ -1524,6 +1524,7 @@ sub load_extra_tests_console {
     loadtest "console/salt" if (is_jeos || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
+    loadtest "console/clamav";
     loadtest "console/shells";
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
