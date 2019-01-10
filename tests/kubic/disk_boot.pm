@@ -17,8 +17,7 @@ use testapi;
 use caasp "microos_login";
 
 sub run {
-    assert_screen 'grub2';
-    send_key 'ret';
+    shift->wait_boot(bootloader_time => 300);
     microos_login;
 }
 
