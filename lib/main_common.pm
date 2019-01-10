@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -2103,9 +2103,11 @@ sub load_security_tests_selinux {
 
 sub load_security_tests {
     if (get_var('BOOT_HDD_IMAGE')) {
-        loadtest "console/system_prepare";
-        loadtest "console/consoletest_setup";
-        loadtest "console/hostname";
+        if (!check_var("SECURITY_TEST", "selinux")) {
+            loadtest "console/system_prepare";
+            loadtest "console/consoletest_setup";
+            loadtest "console/hostname";
+        }
     }
     if (check_var("SECURITY_TEST", "fips_setup")) {
         # Setup system into fips mode
