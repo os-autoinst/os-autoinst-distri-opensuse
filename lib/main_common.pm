@@ -348,7 +348,7 @@ sub default_desktop {
 }
 
 sub uses_qa_net_hardware {
-    return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
+    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
 sub load_shutdown_tests {
@@ -408,6 +408,8 @@ sub load_boot_tests {
 }
 
 sub load_reboot_tests {
+    return if check_var("IPXE", "1");
+
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
     if ((check_var("ARCH", "s390x") && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
         loadtest "boot/reconnect_mgmt_console";

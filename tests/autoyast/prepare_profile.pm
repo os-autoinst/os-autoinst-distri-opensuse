@@ -56,6 +56,9 @@ sub run {
         next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;
     }
+    if (check_var('IPXE', '1')) {
+        $path = get_required_var('SUT_IP') + $path;
+    }
     # Upload modified profile
     save_tmp_file($path, $profile);
     # Copy profile to ulogs directory, so profile is available in job logs
