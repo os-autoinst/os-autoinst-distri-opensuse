@@ -10,7 +10,7 @@
       <generic_mbr>false</generic_mbr>
       <timeout config:type="integer">5</timeout>
     </global>
-    <loader_type>grub2</loader_type>
+    <loader_type>{{LOADER_TYPE}}</loader_type>
   </bootloader>
   <general>
     <mode>
