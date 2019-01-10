@@ -14,7 +14,7 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use version_utils "is_sle";
+use version_utils qw(is_sle is_jeos);
 
 sub run() {
     select_console('root-console');
@@ -32,6 +32,7 @@ sub run() {
     }
     else {
         zypper_call("in dovecot", exitcode => [0, 102, 103]);
+        zypper_call("in postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
     # configure dovecot
@@ -51,7 +52,8 @@ sub run() {
     assert_script_run "openssl dhparam -out /etc/dovecot/dh.pem 2048", 300;
 
     # Generate default certificate for dovecot and postfix
-    assert_script_run "cd /usr/share/doc/packages/dovecot;bash mkcert.sh";
+    my $dovecot_path = is_jeos() ? '/usr/share/dovecot' : '/usr/share/doc/packages/dovecot';
+    assert_script_run "cd $dovecot_path;bash mkcert.sh";
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
