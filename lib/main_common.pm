@@ -1366,13 +1366,12 @@ sub load_extra_tests_y2uitest_ncurses {
     loadtest "console/yast2_snapper_ncurses";
 }
 
-sub load_yast2_gui_tests {
+sub load_extra_tests_y2uitest_gui {
     return
       unless (!get_var("INSTALLONLY")
         && is_desktop_installed()
         && !get_var("DUALBOOT")
         && !get_var("RESCUECD"));
-    boot_hdd_image;
     loadtest 'yast2_gui/yast2_control_center';
     loadtest "yast2_gui/yast2_bootloader";
     loadtest "yast2_gui/yast2_datetime";
