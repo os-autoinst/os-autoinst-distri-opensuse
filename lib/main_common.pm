@@ -67,7 +67,6 @@ our @EXPORT = qw(
   load_create_hdd_tests
   load_extra_tests
   load_extra_tests_docker
-  load_filesystem_tests
   load_inst_tests
   load_iso_in_external_tests
   load_jeos_tests
@@ -1608,8 +1607,10 @@ sub load_rollback_tests {
     }
 }
 
-sub load_filesystem_tests {
-    return unless get_var('FILESYSTEM_TEST');
+sub load_extra_tests_filesystem {
+    if (is_updates_tests) {
+        loadtest "qa_automation/patch_and_reboot";
+    }
     # pre-conditions for filesystem tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 

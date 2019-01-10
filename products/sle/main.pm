@@ -912,13 +912,6 @@ elsif (get_var("EXTRATEST")) {
     }
     load_extra_tests();
 }
-elsif (get_var("FILESYSTEM_TEST")) {
-    boot_hdd_image;
-    if (is_updates_tests) {
-        loadtest "qa_automation/patch_and_reboot";
-    }
-    load_filesystem_tests();
-}
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
 }
