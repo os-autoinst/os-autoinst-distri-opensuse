@@ -16,7 +16,7 @@ use base 'y2logsstep';
 use testapi;
 use lockapi;
 use utils;
-use version_utils qw(is_hyperv_in_gui is_caasp);
+use version_utils qw(:VERSION :BACKEND);
 use ipmi_backend_utils;
 
 sub handle_livecd_screenlock {
@@ -59,6 +59,9 @@ sub run {
     if (get_var("UPGRADE")) {
         push(@tags, 'ERROR-removing-package');
         push(@tags, 'DIALOG-packages-notifications');
+        # There is a dialog with packages that updates are available from
+        # the official repo, do not use those as want to use not published repos only
+        push(@tags, 'package-update-found') if is_opensuse;
     }
     # upgrades are slower
     # our Hyper-V server is just too slow
@@ -131,6 +134,11 @@ sub run {
         }
         if (match_has_tag('additional-packages')) {
             send_key 'alt-i';
+            next;
+        }
+        #
+        if (match_has_tag 'package-update-found') {
+            send_key 'alt-n';
             next;
         }
         last;
