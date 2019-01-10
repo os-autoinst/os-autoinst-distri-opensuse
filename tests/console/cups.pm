@@ -28,7 +28,7 @@ sub run {
     validate_script_output 'cupsd -t', sub { m/is OK/ };
     systemctl 'enable cups.service';
     systemctl 'start cups.service';
-    validate_script_output 'systemctl status cups.service', sub { m/Active:\s*active/ };
+    validate_script_output 'systemctl --no-pager status cups.service | cat', sub { m/Active:\s*active/ };
 
     # Add printers
     record_info "lpadmin", "Try to add printers and enable them";
@@ -52,7 +52,7 @@ sub run {
     }
 
     systemctl 'restart cups.service';
-    validate_script_output 'systemctl status cups.service', sub { m/Active:\s*active/ };
+    validate_script_output 'systemctl --no-pager status cups.service | cat', sub { m/Active:\s*active/ };
 
     # Do the printing
     record_info "lp, lpq", "Printing jobs";
@@ -72,7 +72,7 @@ sub run {
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ };
     systemctl 'disable cups.service';
     systemctl 'stop cups.service';
-    validate_script_output 'systemctl status cups.service || test $? -eq 3', sub { m/Active:\s*inactive/ };
+    validate_script_output '{ systemctl --no-pager status cups.service | cat; } || test $? -eq 3', sub { m/Active:\s*inactive/ };
 }
 
 1;
