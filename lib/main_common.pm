@@ -1559,6 +1559,7 @@ sub load_extra_tests_docker {
     if (is_opensuse) {
         loadtest "console/docker_compose";
     }
+    loadtest "console/zypper_docker";
 }
 
 sub load_extra_tests_prepare {
