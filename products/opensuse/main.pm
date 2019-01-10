@@ -335,9 +335,6 @@ elsif (is_rescuesystem) {
 elsif (get_var("LINUXRC")) {
     loadtest "linuxrc/system_boot";
 }
-elsif (get_var('Y2UITEST_NCURSES')) {
-    load_yast2_ncurses_tests;
-}
 elsif (get_var('Y2UITEST_GUI')) {
     load_yast2_gui_tests;
 }

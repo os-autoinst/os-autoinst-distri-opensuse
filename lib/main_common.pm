@@ -105,7 +105,6 @@ our @EXPORT = qw(
   load_x11tests
   load_xen_tests
   load_yast2_gui_tests
-  load_yast2_ncurses_tests
   load_zdup_tests
   logcurrentenv
   map_incidents_to_repo
@@ -1328,17 +1327,7 @@ sub load_x11tests {
     }
 }
 
-sub load_yast2_ncurses_tests {
-    boot_hdd_image;
-    # setup $serialdev permission and so on
-    loadtest "console/check_network";
-    loadtest "console/system_state";
-    loadtest "console/prepare_test_data";
-    loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/hostname";
-    loadtest "console/zypper_lr";
-    loadtest "console/zypper_ref";
+sub load_extra_tests_y2uitest_ncurses {
     # split YaST2 UI tests relying on external development controlled test
     # suites and self-contained ones
     if (get_var('Y2UITEST_DEVEL')) {
@@ -1375,8 +1364,6 @@ sub load_yast2_ncurses_tests {
         loadtest "console/yast2_nfs_client";
     }
     loadtest "console/yast2_snapper_ncurses";
-    # back to desktop
-    loadtest "console/consoletest_finish";
 }
 
 sub load_yast2_gui_tests {

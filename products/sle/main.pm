@@ -919,9 +919,6 @@ elsif (get_var("FILESYSTEM_TEST")) {
     }
     load_filesystem_tests();
 }
-elsif (get_var('Y2UITEST_NCURSES')) {
-    load_yast2_ncurses_tests;
-}
 elsif (get_var('Y2UITEST_GUI')) {
     load_yast2_gui_tests;
 }
