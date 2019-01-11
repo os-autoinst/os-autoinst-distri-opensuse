@@ -96,7 +96,7 @@ sub run {
         $image_path .= 'plymouth.enable=0 ';
     }
     # Execute installation command on pxe management cmd console
-    type_string_slow ${image_path};
+    type_string_slow ${image_path} . " ";
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
