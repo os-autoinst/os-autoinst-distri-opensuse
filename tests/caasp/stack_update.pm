@@ -39,7 +39,7 @@ sub orchestrate_velum_reboot {
 
     # Update all nodes - this part takes long time (~2 minutes per node)
     my @needles_array = ('velum-sorry', "velum-$n-nodes-outdated");
-    assert_screen [@needles_array], 300;
+    assert_screen [@needles_array], 900;
     if (match_has_tag 'velum-sorry') {
         record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
         # workaround for meltdown
