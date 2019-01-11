@@ -53,7 +53,7 @@ sub run {
     test_seccomp();
 
     # images can be searched on the Docker Hub
-    validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ }, 120);
+    validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
 
     # images can be pulled from the Docker Hub
     #   - pull minimalistic alpine image of declared version using tag
@@ -64,8 +64,7 @@ sub run {
     #   - https://store.docker.com/images/hello-world
     assert_script_run("docker image pull hello-world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    my $last_released_leap_version = '42.3';
-    assert_script_run("docker image pull opensuse:$last_released_leap_version", timeout => 600);
+    assert_script_run("docker image pull opensuse/leap", timeout => 600);
     #   - pull image of openSUSE Tumbleweed
     assert_script_run('docker image pull opensuse/tumbleweed', timeout => 600);
 
@@ -77,8 +76,8 @@ sub run {
     assert_script_run(qq{docker image ls hello-world | grep "hello-world\\s*latest"});
     #   - all local images
     my $local_images_list = script_output('docker image ls');
-    die('docker image opensuse/tumbleweed not found')                  unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
-    die("docker image opensuse:$last_released_leap_version not found") unless ($local_images_list =~ /opensuse\s*\Q$last_released_leap_version\E/);
+    die('docker image opensuse/tumbleweed not found') unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
+    die("docker image opensuse/leap not found")       unless ($local_images_list =~ /opensuse\/leap\s*latest/);
 
     # containers can be spawned
     #   - using 'run'
@@ -148,13 +147,13 @@ sub run {
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
 
     # images can be deleted
-    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse:$last_released_leap_version opensuse/tumbleweed tw:saved";
+    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse/leap opensuse/tumbleweed tw:saved";
     my $output_deleted = script_output($cmd_docker_rmi);
-    die("error: docker image rm opensuse:$last_released_leap_version") unless ($output_deleted =~ m/Untagged: opensuse:$last_released_leap_version/);
-    die('error: docker image rm opensuse/tumbleweed')                  unless ($output_deleted =~ m/Untagged: opensuse\/tumbleweed/);
-    die('error: docker image rm tw:saved')                             unless ($output_deleted =~ m/Untagged: tw:saved/);
-    die("error: docker image rm alpine:$alpine_image_version")         unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
-    die('error: docker image rm hello-world:latest')                   unless ($output_deleted =~ m/Untagged: hello-world:latest/);
+    die("error: docker image rm opensuse/leap")                unless ($output_deleted =~ m/Untagged: opensuse\/leap/);
+    die('error: docker image rm opensuse/tumbleweed')          unless ($output_deleted =~ m/Untagged: opensuse\/tumbleweed/);
+    die('error: docker image rm tw:saved')                     unless ($output_deleted =~ m/Untagged: tw:saved/);
+    die("error: docker image rm alpine:$alpine_image_version") unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
+    die('error: docker image rm hello-world:latest')           unless ($output_deleted =~ m/Untagged: hello-world:latest/);
 }
 
 1;
