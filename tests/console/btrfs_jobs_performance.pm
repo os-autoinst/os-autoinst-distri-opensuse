@@ -1,6 +1,6 @@
-# suse's openQA tests
+# SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,6 @@ use strict;
 use testapi;
 use utils 'clear_console';
 use List::Util qw(max);
-
-my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
 
 sub get_space {
     my $script = @_;
@@ -33,52 +31,79 @@ sub get_space {
 }
 
 my $dest = "/mnt/sv";
+
 sub run {
     my ($self) = @_;
-    my ($number, $scratchfile_mb, $safety_margin_mb, $initially_free);
     select_console 'root-console';
 
     # Set up
     assert_script_run "mkdir $dest";
-    assert_script_run "lsblk";
-    # $self->set_playground_disk;
-    # works with hardcoded disk path
-    my $disk = "/dev/vdb"; # get_required_var('PLAYGROUNDDISK');
+    $self->set_playground_disk;
+    my $disk = get_required_var('PLAYGROUNDDISK');
     assert_script_run "mkfs.btrfs -f $disk && mount $disk $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
     
+    # Create subvolumes, qgroups, assigns and limits
+    #      2/1
+    #     /   \
+    #   1/1   1/2
+    #  /   \ / | \
+    # a     b  c  d(k)
+    assert_script_run "for c in {a..d}; do btrfs subvolume create \$c; done";
+    assert_script_run "for c in 1/1 1/2 2/1; do btrfs qgroup create \$c .; done";
 
-    $scratchfile_mb = 1024;
-    $safety_margin_mb = 300 + $scratchfile_mb;
-    # $initially_free = get_space("$btrfs_fs_usage | awk -F ' ' '/Free .estimated.:.*min:/{print\$3}'");    # bytes
+    assert_script_run "for c in a b; do btrfs qgroup assign \$c 1/1 .; done";
+    assert_script_run "for c in b c d; do btrfs qgroup assign \$c 1/2 .; done";
+    assert_script_run "for c in 1/1 1/2; do btrfs qgroup assign \$c 2/1 .; done";
 
-    # Copied from snapper_cleanup to calculate number of write operations
-    # $number = int(($initially_free / ( $scratchfile_mb * $scratchfile_mb) - $safety_margin_mb ) / $scratchfile_mb) * 2;
-    $number = 3;
+    # Set limits
+    assert_script_run "btrfs qgroup limit 20g a .";
+    assert_script_run "btrfs qgroup limit 20g 1/1 .";
+    assert_script_run "btrfs qgroup limit 20g 2/1 .";
 
-    assert_script_run('btrfs subvolume create subvol1');
-    assert_script_run("for i in {1..$number}; do dd if=/dev/zero of=subvol1/data.\$i bs=1M count=$scratchfile_mb; done");
-    # create btrfs snapshot of directory
-    assert_script_run("btrfs subvolume snapshot subvol1 subvol2");
-    assert_script_run("rm subvol1/data.*");
-    assert_script_run("ls subvol1 subvol2");
-    
-    # repeat (from line 44) a few times in different directories
+    # Fill with data
+    assert_script_run "for c in {1..4};  do dd if=/dev/zero bs=1M count=100 of=a/file\$c; done";
+    assert_script_run "for c in {1..4};  do dd if=/dev/zero bs=1M count=100 of=b/file\$c; done";
+    assert_script_run "for c in {1..20}; do dd if=/dev/zero bs=1M count=100 of=c/file\$c; done";
+    assert_script_run "for c in {1..15}; do dd if=/dev/zero bs=1M count=100 of=d/file\$c; done";
 
-    # start btrfs maintanance scripts
+    # Create snapshots
+    assert_script_run "btrfs subvolume snapshot a k";
+    assert_script_run "btrfs subvolume snapshot b l";
+    assert_script_run "btrfs subvolume snapshot c m";
+    assert_script_run "btrfs subvolume snapshot d n";
+
+    # Remove data in original subvolume
+    assert_script_run "rm {a,b,c,d}/file*";
+
+    # Re-fill original subvolumes
+    assert_script_run "for c in {1..4};  do dd if=/dev/zero bs=1M count=100 of=a/file\$c; done";
+    assert_script_run "for c in {1..4};  do dd if=/dev/zero bs=1M count=100 of=b/file\$c; done";
+    assert_script_run "for c in {1..20}; do dd if=/dev/zero bs=1M count=100 of=c/file\$c; done";
+    assert_script_run "for c in {1..15}; do dd if=/dev/zero bs=1M count=100 of=d/file\$c; done";
+
+    # Remove original data in original subvolume
+    assert_script_run "rm {a,b,c,d}/file*";
+
+    assert_script_run "for c in {a..d}; do btrfs subvolume delete \$c; done";
+
+    # start btrfs maintanance scripts -> should be done via systemctl
     assert_script_run("/usr/share/btrfsmaintenance/btrfs-balance.sh");
-    assert_script_run("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
+    assert_script_run("/usr/share/btrfsmaintenance/btrfs-scrub.sh");
+    assert_script_run("/usr/share/btrfsmaintenance/btrfs-trim.sh");
+    # This should be improved, just take 100 looks for now
+    for (1..100) {
+	my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
+    	if ($io_status > 100)
+    	{
+	    # Or just fail hard here
+	    record_soft_failure 'bsc#1063638';
+    	}
+    }
 
-    # until $END {# find a way to determine the test is over 
-    # 	# watch /proc/diskstats for numbers higher than (this needs more investigation) 100
-    # 	my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
-    # 	if ($io_status > 100)
-    # 	{
-    # 	    # fail here
-    # 	}
-    # }
-
-
+    assert_script_run "cd; umount $dest";
+    assert_script_run "btrfsck $disk";
+    $self->cleanup_partition_table;
 }
 1;
 		      
