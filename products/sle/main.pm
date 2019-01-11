@@ -687,10 +687,6 @@ elsif (get_var('IBTESTS')) {
     load_baremetal_tests();
     load_infiniband_tests();
 }
-elsif (get_var("WICKED")) {
-    boot_hdd_image();
-    load_wicked_tests();
-}
 elsif (get_var("NFV")) {
     load_baremetal_tests();
     load_nfv_tests();
@@ -915,23 +911,6 @@ elsif (get_var("EXTRATEST")) {
         loadtest "qa_automation/patch_and_reboot";
     }
     load_extra_tests();
-}
-elsif (get_var("FILESYSTEM_TEST")) {
-    boot_hdd_image;
-    if (is_updates_tests) {
-        loadtest "qa_automation/patch_and_reboot";
-    }
-    load_filesystem_tests();
-}
-elsif (get_var('Y2UITEST_NCURSES')) {
-    load_yast2_ncurses_tests;
-}
-elsif (get_var('Y2UITEST_GUI')) {
-    load_yast2_gui_tests;
-}
-elsif (get_var("SYSCONTAINER_IMAGE_TEST")) {
-    boot_hdd_image;
-    load_syscontainer_tests();
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";

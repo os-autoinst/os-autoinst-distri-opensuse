@@ -300,10 +300,6 @@ elsif (get_var("NETWORKD")) {
     boot_hdd_image();
     load_networkd_tests();
 }
-elsif (get_var("WICKED")) {
-    boot_hdd_image();
-    load_wicked_tests();
-}
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
@@ -320,14 +316,6 @@ elsif (is_memtest) {
         loadtest "installation/memtest";
     }
 }
-elsif (get_var("FILESYSTEM_TEST")) {
-    boot_hdd_image;
-    load_filesystem_tests();
-}
-elsif (get_var("SYSCONTAINER_IMAGE_TEST")) {
-    boot_hdd_image;
-    load_syscontainer_tests();
-}
 elsif (get_var('GNUHEALTH')) {
     boot_hdd_image;
     loadtest 'gnuhealth/gnuhealth_install';
@@ -342,12 +330,6 @@ elsif (is_rescuesystem) {
 }
 elsif (get_var("LINUXRC")) {
     loadtest "linuxrc/system_boot";
-}
-elsif (get_var('Y2UITEST_NCURSES')) {
-    load_yast2_ncurses_tests;
-}
-elsif (get_var('Y2UITEST_GUI')) {
-    load_yast2_gui_tests;
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot";
