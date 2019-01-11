@@ -64,6 +64,8 @@ sub install_runtime_dependencies {
     # ntfsprogs are for SLE in WE, openSUSE has it in default repository
     my @maybe_deps = qw(
       acl
+      apparmor-parser
+      apparmor-utils
       audit
       binutils
       dosfstools
