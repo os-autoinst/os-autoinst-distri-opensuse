@@ -73,4 +73,8 @@ sub run {
     select_console "root-console";
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
