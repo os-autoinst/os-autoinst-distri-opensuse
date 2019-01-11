@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ sub run {
 
     # Run the command in background so that we could run other commands
     script_run("(aa-genprof -d $aa_tmp_prof nscd|tee /dev/$serialdev) &", 0);
-    sleep 2;
+    sleep 5;
     send_key 'ret';    # Back to the shell prompt
 
     systemctl('restart nscd');
