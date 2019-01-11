@@ -23,7 +23,7 @@ sub run {
         # Any pkg installation from now on, should come from the MIRROR_HTTP
         zypper_call("mr -da");
         my $mirror = get_required_var('MIRROR_HTTP');
-        zypper_call("--no-gpg-check ar -f '$mirror' mirror_http");
+        zypper_call("--no-gpg-check ar -f '$mirror' mirror_http2");
     }
     zypper_call('ref');
 }
