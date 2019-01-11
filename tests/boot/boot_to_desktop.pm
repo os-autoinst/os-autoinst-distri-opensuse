@@ -19,6 +19,7 @@ use version_utils qw(is_upgrade is_sles4sap);
 sub run {
     my ($self) = @_;
     $self->{in_boot_desktop} = 1;
+    record_info('poo#44327', 'If you can see this message this means poo#44327 is done :)');
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
     my $timeout = get_var('UEFI') ? 140 : 80;
