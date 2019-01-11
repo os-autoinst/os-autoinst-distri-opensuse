@@ -2367,8 +2367,8 @@ sub load_sles4sap_tests {
     loadtest "sles4sap/sapconf";
     loadtest "sles4sap/saptune";
     if (get_var('NW')) {
-        loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
-        loadtest "sles4sap/netweaver_ascs";
+        loadtest "sles4sap/netweaver_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+        loadtest "sles4sap/netweaver_test_instance";
     }
 }
 
@@ -2399,8 +2399,9 @@ sub load_ha_cluster_tests {
     loadtest 'console/hostname';
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
-    # 'default' System Role is 'HA node' if HA Product i selected
-    loadtest 'console/yast2_ntpclient' unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
+    # 'default' System Role is 'HA node' if HA Product is selected
+    # NTP is also already configured in SLES4SAP
+    loadtest 'console/yast2_ntpclient' unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/ || is_sles4sap);
 
     # Update the image if needed
     if (get_var('FULL_UPDATE')) {
@@ -2416,7 +2417,10 @@ sub load_ha_cluster_tests {
     loadtest 'ha/iscsi_client';
     loadtest 'ha/watchdog';
 
-    # Cluster initilisation
+    # Some patterns/packages may be needed for SLES4SAP
+    loadtest 'sles4sap/patterns' if is_sles4sap;
+
+    # Cluster initialisation
     if (get_var('HA_CLUSTER_INIT')) {
         # Node1 creates a cluster
         loadtest 'ha/ha_cluster_init';
@@ -2426,22 +2430,34 @@ sub load_ha_cluster_tests {
         loadtest 'ha/ha_cluster_join';
     }
 
-    # Test Hawk Web interface
-    loadtest 'ha/check_hawk';
+    # Cluster tests are different if we use SLES4SAP
+    if (is_sles4sap) {
+        # Test NetWeaver cluster
+        if (get_var('NW')) {
+            loadtest 'sles4sap/netweaver_network';
+            loadtest 'sles4sap/netweaver_filesystems';
+            loadtest 'sles4sap/netweaver_install';
+            loadtest 'sles4sap/netweaver_cluster';
+        }
+    }
+    else {
+        # Test Hawk Web interface
+        loadtest 'ha/check_hawk';
 
-    # Lock manager configuration
-    loadtest 'ha/dlm';
-    loadtest 'ha/clvmd_lvmlockd';
+        # Lock manager configuration
+        loadtest 'ha/dlm';
+        loadtest 'ha/clvmd_lvmlockd';
 
-    # Test cluster-md feature
-    loadtest 'ha/cluster_md';
-    loadtest 'ha/vg';
-    loadtest 'ha/filesystem';
-
-    # Test DRBD feature
-    if (get_var('HA_CLUSTER_DRBD')) {
-        loadtest 'ha/drbd_passive';
+        # Test cluster-md feature
+        loadtest 'ha/cluster_md';
+        loadtest 'ha/vg';
         loadtest 'ha/filesystem';
+
+        # Test DRBD feature
+        if (get_var('HA_CLUSTER_DRBD')) {
+            loadtest 'ha/drbd_passive';
+            loadtest 'ha/filesystem';
+        }
     }
 
     # Show HA cluster status *before* fencing test and execute fencing test

@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Checks NetWeaver's ASCS installation as performed by sles4sap/netweaver_ascs_install
-# Requires: sles4sap/netweaver_ascs_install, ENV variable SAPADM
+# Summary: Checks NetWeaver installation as performed by sles4sap/netweaver_install
+# Requires: sles4sap/netweaver_install, ENV variables INSTANCE_SID, INSTANCE_TYPE and INSTANCE_ID
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "sles4sap";
@@ -18,12 +18,12 @@ use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
-    my $pscmd = $self->set_ps_cmd('ASCS');
+    my $pscmd = $self->set_ps_cmd(get_required_var('INSTANCE_TYPE'));
 
     select_console 'root-console';
 
-    # The SAP Admin was set in sles4sap/netweaver_ascs_install
-    $self->set_sap_info(get_required_var('SAPADM'));
+    # The SAP Admin was set in sles4sap/netweaver_install
+    $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     $self->become_sapadm;
 
     $self->test_version_info;
