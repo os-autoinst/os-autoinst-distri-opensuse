@@ -35,8 +35,13 @@ sub load_feature_tests {
     loadtest 'caasp/services_enabled';
     load_transactional_role_tests;
     loadtest 'caasp/journal_check';
+    loadtest 'console/podman';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
+    }
+    else {
+        # Docker only present on MicroOS, not kubeadm roles
+        loadtest 'console/docker';
     }
 }
 
