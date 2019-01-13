@@ -612,6 +612,18 @@ sub rescuecdstep_is_applicable {
     return get_var("RESCUECD");
 }
 
+sub salt_is_applicable {
+    return 0 if is_staging;
+    return 1 if is_opensuse;
+    # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
+    # SLES but not SLED
+    if (is_sle('15+')) {
+        return !is_desktop;
+    } else {
+        check_var_array('SCC_ADDONS', 'asmm');
+    }
+}
+
 sub ssh_key_import {
     return get_var("SSH_KEY_IMPORT") || get_var("SSH_KEY_DO_NOT_IMPORT");
 }
@@ -1122,11 +1134,7 @@ sub load_consoletests {
     if (is_sle('<15') && check_var_array('SCC_ADDONS', 'asmm')) {
         loadtest "console/puppet";
     }
-    # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
-    # SLES but not SLED
-    if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
-        loadtest "console/salt";
-    }
+    loadtest "console/salt" if salt_is_applicable;
     if (check_var('ARCH', 'x86_64')
         || check_var('ARCH', 'i686')
         || check_var('ARCH', 'i586'))
