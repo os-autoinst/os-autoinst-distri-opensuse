@@ -1106,6 +1106,11 @@ else {
         load_boot_tests();
         loadtest "remote/remote_target";
     }
+    elsif (get_var("KIWI_IMAGE_TESTS")) {
+        loadtest "kiwi_images_test/kiwi_boot";
+        loadtest "kiwi_images_test/login_reboot";
+        loadtest "kiwi_images_test/validate_build";
+    }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
             loadtest 'installation/boot_s390';
