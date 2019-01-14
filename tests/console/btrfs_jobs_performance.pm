@@ -14,27 +14,16 @@ use base 'btrfs_test';
 use strict;
 use testapi;
 use utils 'clear_console';
-use List::Util qw(max);
-
-sub get_space {
-    my $script = @_;
-    my $script_output = script_output($script);
-    # Problem is that sometimes we get kernel messages or other output when execute the script
-    # So we assume that biggest number returned is size we are looking for
-    if ($script_output =~ /^(\d+)$/) {
-	return $script_output;
-    }
-    record_soft_failure('bsc#1011815');
-    my @numbers = $script_output =~ /^(\d+)/g;
-
-    return max(@numbers);
-}
 
 my $dest = "/mnt/sv";
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
+
+    assert_script_run("zypper --non-interactive install stress-ng");
+
+    my $start_perf = script_output("stress-ng --class io --sequential 0 --hdd 1 | awk '{print $5}'");
 
     # Set up
     assert_script_run "mkdir $dest";
@@ -52,8 +41,8 @@ sub run {
     assert_script_run "for c in {a..d}; do btrfs subvolume create \$c; done";
     assert_script_run "for c in 1/1 1/2 2/1; do btrfs qgroup create \$c .; done";
 
-    assert_script_run "for c in a b; do btrfs qgroup assign \$c 1/1 .; done";
-    assert_script_run "for c in b c d; do btrfs qgroup assign \$c 1/2 .; done";
+    assert_script_run "for c in a b; do btrfs qgroup assign --no-rescan \$c 1/1 .; done";
+    assert_script_run "for c in b c d; do btrfs qgroup assign --no-rescan \$c 1/2 .; done";
     assert_script_run "for c in 1/1 1/2; do btrfs qgroup assign \$c 2/1 .; done";
 
     # Set limits
@@ -73,6 +62,10 @@ sub run {
     assert_script_run "btrfs subvolume snapshot c m";
     assert_script_run "btrfs subvolume snapshot d n";
 
+    assert_script_run "for c in k l; do btrfs qgroup assign --no-rescan \$c 1/1 .; done";
+    assert_script_run "for c in l m; do btrfs qgroup assign --no-rescan \$c 1/2 .; done";
+    assert_script_run "btrfs qgroup assign --rescan n 1/2 .";
+
     # Remove data in original subvolume
     assert_script_run "rm {a,b,c,d}/file*";
 
@@ -87,19 +80,24 @@ sub run {
 
     assert_script_run "for c in {a..d}; do btrfs subvolume delete \$c; done";
 
-    # start btrfs maintanance scripts -> should be done via systemctl
-    assert_script_run("/usr/share/btrfsmaintenance/btrfs-balance.sh");
-    assert_script_run("/usr/share/btrfsmaintenance/btrfs-scrub.sh");
-    assert_script_run("/usr/share/btrfsmaintenance/btrfs-trim.sh");
+    # start btrfs maintanance scripts via systemctl
+    my $systemd_tasks_cmd = 'echo "Triggering systemd timed service $i" && systemctl start $i.service && systemctl mask $i.{service,timer}';
+    assert_script_run('for i in btrfs{-balance,-scrub,-trim}; do ' . $systemd_tasks_cmd . '; done');
+
+    # Generate load
+
+    my $end_perf = script_output("stress-ng --class io --sequential 0 --hdd 1 | awk '{print $5}'");
+
+    return 0 unless (($start_perf - $end_perf) < 100);
     # This should be improved, just take 100 looks for now
-    for (1..100) {
-	my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
-    	if ($io_status > 100)
-    	{
-	    # Or just fail hard here
-	    record_soft_failure 'bsc#1063638';
-    	}
-    }
+    # for (1..100) {
+    # 	my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
+    # 	if ($io_status > 100)
+    # 	{
+    # 	    # Or just fail hard here
+    # 	    record_soft_failure 'bsc#1063638';
+    # 	}
+    # }
 
     assert_script_run "cd; umount $dest";
     assert_script_run "btrfsck $disk";
