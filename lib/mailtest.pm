@@ -72,7 +72,7 @@ sub prepare_mail_server {
 sub prepare_mail_client {
 
     $mail_server_name = get_var("MAIL_SERVER_NAME", "mail.openqa.suse");
-    $mail_server_ip = get_var("MAIL_SERVER_IP");
+    $mail_server_ip   = get_var("MAIL_SERVER_IP");
 
     # Stop PackageKit
     pkcon_quit;

@@ -87,7 +87,7 @@ sub configure_static_dns {
 sub parse_network_configuration {
     my @networks = ('fixed');
     @networks = split /\s*,\s*/, get_var("NETWORKS") if get_var("NETWORKS");
-    my @mac = split /\s*,\s*/, get_var("NICMAC");
+    my @mac      = split /\s*,\s*/, get_var("NICMAC");
     my $net_conf = {};
 
     for (my $i = 0; $networks[$i]; $i++) {
@@ -123,7 +123,7 @@ sub parse_network_configuration {
             my ($ip, $mask) = split /\//, $net->{subnet};
             $net->{subnet_ip} = $ip;
             if ($mask =~ /^\d+$/) {
-                my $n = 0xffffffff << (32 - $mask);
+                my $n  = 0xffffffff << (32 - $mask);
                 my $n4 = $n % 256;
                 $n /= 256;
                 my $n3 = $n % 256;

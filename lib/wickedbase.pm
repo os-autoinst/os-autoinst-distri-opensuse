@@ -100,7 +100,7 @@ sub get_ip {
     my $ip;
 
     $args{is_wicked_ref} //= check_var('IS_WICKED_REF', '1');
-    $args{netmask} //= 0;
+    $args{netmask}       //= 0;
 
     if ($args{type} eq 'host') {
         $ip = $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
@@ -186,7 +186,7 @@ sub ping_with_timeout {
     my ($self, %args) = @_;
     $args{ip_version} //= 'v4';
     $args{timeout}    //= '60';
-    my $timeout = $args{timeout};
+    my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     while ($timeout > 0) {
         return 1 if script_run("$ping_command -c 1 $args{ip}") == 0;
@@ -272,7 +272,7 @@ C<command> determines the wicked command to bring up/down the interface
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(type => 'host');
-    my $iface = iface();
+    my $iface    = iface();
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("sed \'s/iface/$iface/\' -i $config");
     assert_script_run("cat $config");
@@ -294,7 +294,7 @@ Setups the openvpn client using the interface given by C<device>
 sub setup_openvpn_client {
     my ($self, $device) = @_;
     my $openvpn_client = '/etc/openvpn/client.conf';
-    my $remote_ip = $self->get_remote_ip(type => 'host');
+    my $remote_ip      = $self->get_remote_ip(type => 'host');
     $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
     assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");

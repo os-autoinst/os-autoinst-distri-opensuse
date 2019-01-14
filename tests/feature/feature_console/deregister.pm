@@ -42,7 +42,7 @@ sub run {
     add_suseconnect_product($module, $version, get_required_var('ARCH'), "--de-register");
 
     # check if ONE module is deregistered
-    my $count_dereg = script_output("SUSEConnect --status-text | grep -c \"^\\s*Registered\"", 200);
+    my $count_dereg  = script_output("SUSEConnect --status-text | grep -c \"^\\s*Registered\"", 200);
     my $count_expect = $count - 1;
     if ($count_dereg ne $count_expect) {
         die "SUSEConnect deregister didn't work properly!";

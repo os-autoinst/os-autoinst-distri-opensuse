@@ -33,7 +33,7 @@ sub run {
     $self->select_serial_terminal;
 
     my $mft_version = get_required_var('MFT_VERSION');
-    my $protocol = get_var('MLX_PROTOCOL') || 2;
+    my $protocol    = get_var('MLX_PROTOCOL') || 2;
 
     if (is_sle('>=15')) {
         zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media1/  dev_1");

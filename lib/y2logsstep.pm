@@ -38,7 +38,7 @@ sub get_ip_address {
 
 sub get_to_console {
     my @tags = qw(yast-still-running linuxrc-install-fail linuxrc-repo-not-found);
-    my $ret = check_screen(\@tags, 5);
+    my $ret  = check_screen(\@tags, 5);
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
         send_key "ctrl-alt-f9";
         assert_screen "inst-console";
@@ -355,7 +355,7 @@ sub save_strace_gdb_output {
             assert_script_run 'extend gdb';
         }
         my $gdb_output = '/tmp/yast_gdb.log';
-        my $gdb_ret = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
+        my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
         upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
     }
 }

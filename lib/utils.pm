@@ -728,7 +728,7 @@ Example:
 =cut
 sub handle_login {
     my ($myuser, $user_selected) = @_;
-    $myuser //= $username;
+    $myuser        //= $username;
     $user_selected //= 0;
 
     save_screenshot();

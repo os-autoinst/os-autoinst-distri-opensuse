@@ -35,7 +35,7 @@ sub run {
     # to /etc/hosts if name resolution is failing
     if (is_node(1) or is_node(2)) {
         my $hostname = get_hostname;
-        my $partner = is_node(1) ? choose_node(2) : choose_node(1);
+        my $partner  = is_node(1) ? choose_node(2) : choose_node(1);
 
         my $ret_q1 = script_run "host $hostname";
         my $ret_q2 = script_run "host $partner";
@@ -43,7 +43,7 @@ sub run {
         if ($ret_q1 or $ret_q2) {
             record_info "Name resolution failing", "Cannot resolve own name or name of partner. Will attempt to add hosts to /etc/hosts", result => 'softfail';
             my $device = get_var('SUT_NETDEVICE', 'eth0');
-            my $addr = script_output "ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
+            my $addr   = script_output "ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
             if ($addr =~ m/10\.0\.2/) {    # Expected addresses are in 10.0.2/24 and start with 10.0.2.15
                 assert_script_run "echo \"$addr  $hostname\" >> /etc/hosts";
                 $addr =~ s/\.([0-9]+)$/\./;

@@ -206,8 +206,8 @@ sub update_scheduled {
 sub script_retry {
     my ($cmd, %args) = @_;
     my $ecode = $args{expect} // 0;
-    my $retry = $args{retry} // 10;
-    my $delay = $args{delay} // 30;
+    my $retry = $args{retry}  // 10;
+    my $delay = $args{delay}  // 30;
 
     my $ret;
     for (1 .. $retry) {

@@ -195,7 +195,7 @@ sub run {
 
             wait_screen_change { send_key 'tab' };
             wait_screen_change { send_key 'ret' };
-            @needles = grep { $_ ne 'autoyast-confirm' } @needles;
+            @needles   = grep { $_ ne 'autoyast-confirm' } @needles;
             $confirmed = 1;
         }
         elsif (match_has_tag('autoyast-license')) {
@@ -221,7 +221,7 @@ sub run {
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
-            @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
+            @needles        = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
         elsif (match_has_tag('autoyast-error')) {

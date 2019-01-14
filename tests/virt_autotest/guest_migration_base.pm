@@ -27,7 +27,7 @@ sub set_common_settings {
 
     #Detect the host product version
     $scenario_name = get_var('NAME');
-    $hyper_visor = ($scenario_name =~ /xen/) ? "xen" : "kvm";
+    $hyper_visor   = ($scenario_name =~ /xen/) ? "xen" : "kvm";
 
     #Setup different var on different products
     my $host_os = get_var('HOST_OS');

@@ -22,7 +22,7 @@ use utils 'type_string_slow';
 
 sub run {
     my ($image_path, $image_name, $cmdline);
-    my $arch = get_var('ARCH');
+    my $arch      = get_var('ARCH');
     my $interface = get_var('SUT_NETDEVICE', 'eth0');
     # In autoyast tests we need to wait until pxe is available
     if (get_var('AUTOYAST') && get_var('DELAYED_START') && !check_var('BACKEND', 'ipmi')) {
@@ -131,7 +131,7 @@ sub run {
 
         if (match_has_tag("orthos-grub-boot-linux")) {
             my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
-            my $args = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+            my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
             type_string $args;
             send_key 'ret';
             assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;

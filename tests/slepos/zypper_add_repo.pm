@@ -25,7 +25,7 @@ sub run {
     my $slepos_updates_repo = get_var('SLEPOS_UPDATES_REPO');
 
     if (get_var('VERSION') =~ /^11/) {
-        $slepos_repo //= 'dvd:///?devices=/dev/sr1';
+        $slepos_repo         //= 'dvd:///?devices=/dev/sr1';
         $slepos_updates_repo //= 'http://' . $smt . '/repo/$RCE/SLE11-POS-SP3-Updates/sle-11-x86_64/';
         assert_script_run "zypper ar '$slepos_repo' SLE-11-POS";
         assert_script_run "zypper ar '$slepos_updates_repo' SLE-11-POS-UPDATES";

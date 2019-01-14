@@ -16,7 +16,7 @@ addons:
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl
   - echo "requires 'Code::DRY';" >> cpanfile
-  - echo "requires 'Perl::Tidy', '== 20180220';" >> cpanfile
+  - echo "requires 'Perl::Tidy', '== 20181120';" >> cpanfile
 install:
   - make prepare
 script:

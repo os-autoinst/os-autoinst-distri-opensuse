@@ -159,7 +159,7 @@ sub install_patterns {
         $installed_pt{$_} = 1;
     }
     @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
-    $pcm = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
+    $pcm     = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
 
     for my $pt (@pt_list) {
         # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
