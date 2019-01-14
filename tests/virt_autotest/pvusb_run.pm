@@ -20,7 +20,7 @@ use testapi;
 
 sub get_script_run {
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-pvusb-run";
-    my $which_usb = get_var("PVUSB_DEVICE", "");
+    my $which_usb    = get_var("PVUSB_DEVICE", "");
     if ($which_usb eq "") {
         die "The PVUSB_DEVICE is not properly set in workers.ini.";
     }

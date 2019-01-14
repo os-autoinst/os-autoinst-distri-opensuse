@@ -27,11 +27,11 @@ sub run {
                                               # create volume group for root and swap non thin lvs
     addvg(name => 'vg-no-thin');
     addlv(name => 'lv-swap', role => 'swap', vg => 'vg-no-thin', size => 2000);
-    addlv(name => 'lv-root', role => 'OS', vg => 'vg-no-thin');
+    addlv(name => 'lv-root', role => 'OS',   vg => 'vg-no-thin');
     # create volume group for thin lv
     addvg(name => 'vg-thin');
-    addlv(name => 'thin_pool', vg => 'vg-thin', thinpool => 1);
-    addlv(name => 'thin_lv_home', role => 'data', vg => 'vg-thin', thinvolume => 1);
+    addlv(name => 'thin_pool',    vg   => 'vg-thin', thinpool => 1);
+    addlv(name => 'thin_lv_home', role => 'data',    vg       => 'vg-thin', thinvolume => 1);
     save_screenshot;
     send_key $cmd{accept};
 

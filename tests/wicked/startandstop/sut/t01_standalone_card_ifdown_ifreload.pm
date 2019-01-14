@@ -27,7 +27,7 @@ sub run {
     $self->wicked_command('ifdown',   $iface);
     $self->wicked_command('ifreload', $iface);
     my $static_ip = $self->get_ip(type => 'host');
-    my $dhcp_ip = $self->get_current_ip($iface);
+    my $dhcp_ip   = $self->get_current_ip($iface);
     if (defined($dhcp_ip) && $static_ip ne $dhcp_ip) {
         $res = $self->get_test_result('host');
     } else {

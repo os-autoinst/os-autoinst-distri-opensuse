@@ -31,7 +31,7 @@ use constant {
         qw(
           use_ssh_serial_console
           )
-      ]
+    ]
 };
 
 our @EXPORT = (@{(+CONSOLES)}, @{+BACKEND});

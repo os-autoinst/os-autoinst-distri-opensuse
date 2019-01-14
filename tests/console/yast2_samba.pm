@@ -299,7 +299,7 @@ sub setup_samba_trusted_domains {
 sub setup_samba_ldap {
     record_info 'Samba Configuration', 'LDAP Settings';
     my $administratio_dn = is_sle('<15') ? $ldap_directives{dir_manager_dn} . ",$ldap_directives{dir_suffix}" : $ldap_directives{dir_manager_dn};
-    my %actions = (
+    my %actions          = (
         ldap                 => {shortcut => 'alt-l'},
         use_password_backend => {shortcut => 'alt-b'},
         yes                  => {shortcut => 'alt-y'},

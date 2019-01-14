@@ -443,7 +443,7 @@ sub bootmenu_network_source {
         }
         else {
             my $m_protocol = get_var('INSTALL_SOURCE', 'http');
-            my $m_mirror = get_netboot_mirror;
+            my $m_mirror   = get_netboot_mirror;
             die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
             # In case of https we have to use boot options and not UI
             if ($m_protocol eq "https") {

@@ -132,7 +132,7 @@ sub y2snapper_failure_analysis {
     my ($self) = @_;
     # snapper actions can put the system under quite some load so we want to
     # give some more time, e.g. for login in the consoles
-    my $factor = 30;
+    my $factor                 = 30;
     my $previous_timeout_scale = get_var('TIMEOUT_SCALE', 1);
     set_var('TIMEOUT_SCALE', $previous_timeout_scale * $factor);
     select_console('log-console', await_console => 0);

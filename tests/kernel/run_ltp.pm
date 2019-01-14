@@ -249,7 +249,7 @@ sub run {
     my ($self, $tinfo) = @_;
     my $cmd_file = get_var 'LTP_COMMAND_FILE';
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $cmd_file;
-    my $timeout = get_var('LTP_TIMEOUT') || 900;
+    my $timeout  = get_var('LTP_TIMEOUT') || 900;
     my $is_posix = $cmd_file =~ m/^\s*openposix\s*$/i;
 
     unless (defined $tinfo) {

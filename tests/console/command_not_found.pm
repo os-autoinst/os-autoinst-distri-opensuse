@@ -31,7 +31,7 @@ sub run {
     }
 
     my $not_installed_pkg = is_sle('15+') ? 'wireshark' : 'xosview';
-    my $cnf_cmd = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
+    my $cnf_cmd           = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
 
     save_screenshot;
     # Return if command execution was successful

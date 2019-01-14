@@ -71,7 +71,7 @@ use constant {
           has_product_selection
           has_license_on_welcome_screen
           )
-      ]
+    ]
 };
 
 our @EXPORT = (@{(+VERSION)}, @{(+SCENARIO)}, @{+BACKEND});
@@ -199,7 +199,7 @@ sub is_tumbleweed {
 # Check if distribution is Leap with optional filter for:
 # Version: <=42.2 =15.0 >15.0 >=42.3 15.0+
 sub is_leap {
-    my $query = shift;
+    my $query   = shift;
     my $version = get_var('VERSION', '');
 
     # Leap and its stagings
@@ -208,7 +208,7 @@ sub is_leap {
     return 1 unless $query;
 
     # Hacks for staging and HG2G :)
-    $query =~ s/^([<>=]*)42/${1}14/;
+    $query   =~ s/^([<>=]*)42/${1}14/;
     $version =~ s/^42/14/;
     $version =~ s/:(Core|S)[:\w]*//i;
 

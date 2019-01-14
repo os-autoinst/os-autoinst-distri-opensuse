@@ -33,7 +33,7 @@ sub extract_assets {
     my $name   = $args->{name};
     my $format = $args->{format};
 
-    my $hyperv_disk = get_var('HYPERV_DISK', 'D:');
+    my $hyperv_disk    = get_var('HYPERV_DISK', 'D:');
     my $root           = $hyperv_disk . get_var('HYPERV_ROOT', '');
     my $image_storage  = "$root\\cache";
     my $svirt_img_name = $image_storage . '\\' . $args->{svirt_name} . ".$format";

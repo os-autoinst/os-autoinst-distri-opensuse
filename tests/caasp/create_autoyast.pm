@@ -26,7 +26,7 @@ sub run {
     # Generate autoyast profile using all possible arguments with fake values
     my $autoinst_with_args = script_output("create_autoyast_profile --salt-master $salt_master --smt-url $smt_url --regcode $regcode --reg-email $reg_email");
 
-    my $xml = XML::Simple->new;
+    my $xml  = XML::Simple->new;
     my $data = $xml->XMLin($autoinst_with_args, ForceArray => ['script']);
 
     # Check autoyast scripts in XML

@@ -44,7 +44,7 @@ sub run {
     my ($self) = @_;
     my $iterations;
 
-    my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
+    my @welcome_tags     = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
     my $expect_beta_warn = get_var('BETA');
     if ($expect_beta_warn) {
         push @welcome_tags, 'inst-betawarning';

@@ -73,7 +73,7 @@ sub add_test_repositories {
     my $counter = 0;
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
-    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    my @repos   = split(/,/, get_var('MAINT_TEST_REPO', ''));
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.

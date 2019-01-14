@@ -1638,7 +1638,7 @@ sub get_wicked_tests {
     my $basedir    = $bmwqemu::vars{CASEDIR} . '/tests/';
     my $wicked_dir = $basedir . 'wicked/';
     my $suite      = get_required_var('WICKED');
-    my $type = get_required_var('IS_WICKED_REF') ? 'ref' : 'sut';
+    my $type      = get_required_var('IS_WICKED_REF') ? 'ref' : 'sut';
     my $exclude   = get_var('WICKED_EXCLUDE', '$a');
     my $suite_dir = $wicked_dir . $suite . '/';
     my $tests_dir = $suite_dir . $type . '/';
@@ -1664,7 +1664,7 @@ sub get_wicked_tests {
 }
 
 sub wicked_init_locks {
-    my $args = OpenQA::Test::RunArgs->new();
+    my $args         = OpenQA::Test::RunArgs->new();
     my @wicked_tests = get_wicked_tests(only_names => 1);
     $args->{wicked_tests} = \@wicked_tests;
     loadtest('wicked/locks_init', run_args => $args);

@@ -31,7 +31,7 @@ sub hyperv_cmd_with_retry {
     die 'Command not provided' unless $cmd;
 
     my $attempts = $args->{attempts} // 7;
-    my $sleep    = $args->{sleep} // 300;
+    my $sleep    = $args->{sleep}    // 300;
     # Common messages
     my @msgs = $args->{msgs} // (
         'Failed to create the virtual hard disk',
@@ -77,8 +77,8 @@ sub run {
     # as a quotation).
     # Example: HYPERV_DISK="C:" HYPERV_ROOT="\\Users\\root\\VM"
     my $hyperv_disk = get_var('HYPERV_DISK', 'D:');
-    my $root = $hyperv_disk . get_var('HYPERV_ROOT', '');
-    my $root_nfs = 'N:';
+    my $root        = $hyperv_disk . get_var('HYPERV_ROOT', '');
+    my $root_nfs    = 'N:';
 
     # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/901) is deployed
     my $n = get_var('NUMDISKS', 1);
@@ -164,9 +164,9 @@ sub run {
     hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
 
     my $hddsize = get_var('HDDSIZEGB', 20);
-    my $vm_generation = get_var('UEFI') ? 2 : 1;
+    my $vm_generation      = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
-    my @disk_paths = ();
+    my @disk_paths         = ();
     if ($winserver eq '2012' || $winserver eq '2016') {
         for my $n (1 .. get_var('NUMDISKS')) {
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");

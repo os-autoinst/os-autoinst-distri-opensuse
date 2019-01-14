@@ -297,7 +297,7 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
               "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1"
               : "$prefix-Product-$full_name-POOL-$arch-Build$build-Media1";
             my $module_repo_name = get_var($repo_variable_name, $default_repo_name);
-            my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
+            my $url              = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
             if (head($url)) {
                 set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");

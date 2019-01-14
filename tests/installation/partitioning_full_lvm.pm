@@ -26,7 +26,7 @@ sub run {
     addpart(role => 'raw', encrypt => 1);
     addvg(name => 'vg-system', add_all_pvs => 1);
     addlv(name => 'lv-swap', role => 'swap', vg => 'vg-system', size => 2000);
-    addlv(name => 'lv-root', role => 'OS', vg => 'vg-system');
+    addlv(name => 'lv-root', role => 'OS',   vg => 'vg-system');
     # move to layout overview
     send_key $cmd{accept};
     if (get_var('UNENCRYPTED_BOOT')) {

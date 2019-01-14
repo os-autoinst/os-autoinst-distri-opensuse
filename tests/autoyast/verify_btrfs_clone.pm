@@ -85,7 +85,7 @@ sub verify_subvolumes {
     my ($mount_path, %subvolume_opts) = @_;
     # Path to subvolumes differs on SLE 15 and SLE 12
     my $subvolumes_path = "//ns:partition[ns:mount=\"$mount_path\"]/ns:subvolumes/ns:" . (is_sle('15+') ? 'subvolume' : 'listentry');
-    my $nodeset = $xpc->findnodes($subvolumes_path);
+    my $nodeset         = $xpc->findnodes($subvolumes_path);
 
     ##Verify that is no subvolumes are expected, there are no entries
     if (!%subvolume_opts && $nodeset) {

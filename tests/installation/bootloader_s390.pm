@@ -120,7 +120,7 @@ sub get_to_yast {
 
     # qaboot
     my $dir_with_suse_ins = get_var('REPO_UPGRADE_BASE_0') ? get_required_var('REPO_UPGRADE_BASE_0') : get_required_var('REPO_0');
-    my $repo_host = get_var('REPO_HOST', 'openqa.suse.de');
+    my $repo_host         = get_var('REPO_HOST', 'openqa.suse.de');
 
     my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
     my $sequence                = <<"EO_frickin_boot_parms";

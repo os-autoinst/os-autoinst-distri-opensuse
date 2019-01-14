@@ -27,7 +27,7 @@ sub handle_all_packages_medium {
     # For SLE installation / upgrade with the all-packages media, user has
     # to select the required extensions / modules manually
     my $sle_prod = get_required_var('SLE_PRODUCT');
-    my @addons = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
+    my @addons   = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
 
     # According to installation guide, select a sle product is mandatory
     # when install with the all-packages media, so add the base product
@@ -81,7 +81,7 @@ sub handle_all_packages_medium {
     # Check the addon license agreement
     # To avoid repetition to much, set a counter to match:
     # addon licenses, sles(d) license (as workaround), and addon-products
-    my $counter = 2 + (scalar @addons_license_tags);
+    my $counter           = 2 + (scalar @addons_license_tags);
     my $addon_license_num = 0;
     while ($counter--) {
         assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 60);
