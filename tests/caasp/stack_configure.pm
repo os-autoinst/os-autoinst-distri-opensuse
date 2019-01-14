@@ -66,8 +66,10 @@ sub run {
     assert_screen "velum-footer-version-$v";
 
     # Temporary workaround for staging image
-    record_soft_failure 'bsc#1121064';
-    sleep 30;
+    if (is_caasp '=4.0') {
+        record_soft_failure 'bsc#1121064';
+        sleep 30;
+    }
 
     # Register to velum
     assert_and_click 'create-an-account';
