@@ -1610,9 +1610,6 @@ sub load_rollback_tests {
 
 sub load_extra_tests_filesystem {
     loadtest "console/system_prepare";
-    loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/hostname";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
         loadtest "console/btrfs_autocompletion";
