@@ -18,7 +18,6 @@ use installation_user_settings;
 use version_utils qw(is_storage_ng is_leap is_sle);
 
 sub run {
-    record_soft_failure 'boo#1093372' if (!get_var('TOGGLEHOME') && is_leap('15.1+'));
     send_key $cmd{guidedsetup};
     if (is_storage_ng) {
         assert_screen [qw(existing-partitions partition-scheme)];
