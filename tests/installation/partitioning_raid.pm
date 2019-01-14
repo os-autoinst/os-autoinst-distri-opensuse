@@ -196,51 +196,6 @@ sub set_lvm {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
-sub modify_uefi_boot_partition {
-    send_key 'tab' if is_storage_ng;
-    assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
-    # fold the drive tree
-    send_key 'left';
-    send_key 'left' if is_storage_ng;    # With storage-ng first press folds vdd
-    assert_screen 'partitioning_raid-hard_disks-unfolded';
-    # select first partition of the first disk (usually vda1), bit of a short-cut
-    send_key 'right';
-    # In storage ng other partition of the first disk can be selected, so select vda1 in the tree
-    send_key 'right' if is_storage_ng;
-    assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
-    # edit first partition
-    send_key 'alt-e';
-    if (is_storage_ng_newui) {
-        assert_screen 'partition-role';
-        send_key $cmd{next};
-    }
-    assert_screen 'partition-format';
-    # We have different shortcut for Format option when editing partition
-    send_key(is_storage_ng_newui() ? 'alt-f' : 'alt-a');
-    send_key 'home';
-    send_key_until_needlematch 'partitioning_raid-format_default_UEFI', 'down';
-    # format as FAT (first choice)
-    send_key 'tab';
-    type_string 'fat';
-    # mount point selection
-    send_key 'alt-o';
-    send_key 'alt-m';
-    assert_screen 'partitioning_raid-mount_point-focused';
-    # enter mount point
-    type_string '/boot/efi';
-    assert_screen 'partitioning_raid-mount_point_boot_efi';
-    send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
-    assert_screen 'expert-partitioner';
-    send_key(is_storage_ng() ? 'tab' : 'shift-tab');
-    send_key 'shift-tab' unless is_storage_ng;
-    # go to top "Hard Disks" node
-    send_key 'left';
-    send_key 'up' if is_storage_ng;
-    assert_screen 'partitioning_raid-hard_disks-unfolded';
-    # fold the drive tree again
-    send_key 'left';
-}
-
 sub add_raid_boot {
     # select RAID add
     send_key $cmd{addraid};
@@ -282,15 +237,6 @@ sub add_raid_boot {
     else {
         send_key_until_needlematch 'partitioning_raid-raid_ext4_added', 'down';
     }
-}
-
-sub add_bios_boot_partition {
-    send_key_until_needlematch 'partitioning_raid-disk_vda-selected', 'down';
-    addpart 'bios-boot';
-    send_key 'down';
-    send_key_until_needlematch 'custompart', 'left';
-    send_key 'alt-s';    #System view
-    send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
 }
 
 sub add_prep_boot_partition {
@@ -389,12 +335,6 @@ sub add_partitions {
         # select next disk
         send_key "shift-tab" unless is_storage_ng;
         send_key "shift-tab" unless is_storage_ng;
-
-        # As a last step edit the last partition and format it as EFI ESP, preparation for fate#322485.
-        # Only KVM and Hyper-V currently support UEFI.
-        if ($_ =~ /[sv]dd/ and get_var('UEFI')) {
-            modify_uefi_boot_partition;
-        }
 
         # select next disk
         send_key "shift-tab" unless is_storage_ng;
