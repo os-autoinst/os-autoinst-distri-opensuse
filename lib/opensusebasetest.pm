@@ -407,7 +407,11 @@ sub wait_boot {
         # order on UEFI" the USB install medium is priority and will always be
         # booted so we have to handle that
         # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
-        push @tags, 'inst-bootmenu' if ((get_var('USBBOOT') and get_var('UEFI')) || (check_var('ARCH', 'aarch64') and get_var('UEFI')) || get_var('OFW'));
+        push @tags, 'inst-bootmenu'
+          if (get_var('USBBOOT') && get_var('UEFI')
+            || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
+            || get_var('OFW')
+            || (check_var('BOOTFROM', 'd')));
         $self->handle_uefi_boot_disk_workaround
           if (is_aarch64_uefi_boot_hdd
             && !$in_grub
