@@ -819,7 +819,6 @@ sub load_inst_tests {
         if (is_opensuse) {
             # See https://github.com/yast/yast-packager/pull/385
             loadtest "installation/online_repos";
-            loadtest "installation/upgrade_select_opensuse";
         }
     }
     if (is_sle) {

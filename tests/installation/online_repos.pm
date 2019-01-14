@@ -61,9 +61,6 @@ sub run {
     # Test online repos dialog explicitly
     if (get_var('DISABLE_ONLINE_REPOS')) {
         disable_online_repos_explicitly;
-    } elsif (is_upgrade) {
-        # Click yes to get repos list, handled in upgrade_select_opensuse
-        open_online_repos_dialog;
     } else {
         # If click No, step is skipped, which is default behavior
         wait_screen_change { send_key 'alt-n' };
