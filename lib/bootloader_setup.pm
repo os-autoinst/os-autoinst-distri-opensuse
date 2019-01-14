@@ -120,7 +120,6 @@ sub add_custom_grub_entries {
     upload_logs($script_new, failok => 1);
     grub_mkconfig();
     upload_logs(GRUB_CFG_FILE, failok => 1);
-    assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old") if is_jeos;
 
     my $distro      = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
     my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
