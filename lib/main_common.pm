@@ -1610,13 +1610,6 @@ sub load_rollback_tests {
 }
 
 sub load_extra_tests_filesystem {
-    if (is_updates_tests) {
-        loadtest "qa_automation/patch_and_reboot";
-    }
-    # pre-conditions for filesystem tests ie. the tests are running based on preinstalled image
-    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
-
-    # setup $serialdev permission and so on
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
