@@ -366,8 +366,11 @@ elsif (get_var('DOCKER_IMAGE_TEST')) {
 }
 elsif (check_var('SYSTEM_ROLE', 'serverro')) {
     load_default_tests;
-    loadtest 'console/consoletest_setup';
-    load_transactional_role_tests unless get_var('INSTALLONLY');
+    unless (get_var('INSTALLONLY')) {
+        loadtest 'console/system_prepare';
+        loadtest 'console/consoletest_setup';
+        load_transactional_role_tests;
+    }
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
