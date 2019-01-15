@@ -13,9 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Obtain the dom0 metrics
+# Summary: This tries to ping and SSH to every guest we created.
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
-
 
 use base "x11test";
 use xen;
@@ -31,15 +30,13 @@ sub run {
 
     x11_start_program('xterm');
     send_key 'super-up';
-    assert_script_run "ssh root\@$hypervisor 'vhostmd'";
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Obtaining dom0 metrics on xl-$guest";
-
-        assert_script_run "ssh root\@$hypervisor 'xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro'";
-        assert_script_run "ssh root\@$guest.$domain 'vm-dump-metrics' | grep 'SUSE LLC'";
-        assert_script_run "ssh root\@$hypervisor 'xl block-detach xl-$guest xvdc'";
-
+        record_info "$guest", "Establishing SSH connection to $guest";
+        assert_script_run "ssh root\@$hypervisor 'ping -c5 -W1 $guest.$domain'";
+        assert_script_run "ssh-keyscan $guest.$domain >> ~/.ssh/known_hosts";
+        exec_and_insert_password "ssh-copy-id root\@$guest.$domain";
+        assert_script_run "ssh root\@$guest.$domain hostname";
         clear_console;
     }
 

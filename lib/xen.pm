@@ -22,25 +22,17 @@ use utils;
 #   * autoyast profile
 #   * extra parameters for virsh create / xl create
 our %guests = (
-    A_sles12_PV => {
+    'xen-sles12PV' => {
         autoyast     => 'autoyast_xen/xen-SLES12-SP3-PV.xml',
         extra_params => '--paravirt',
+        macaddress   => '52:54:00:78:73:a1',
         location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
     },
-    A_sles12_HVM => {
+    'xen-sles12HVM' => {
         autoyast     => 'autoyast_xen/xen-SLES12-SP3-FV.xml',
         extra_params => '--hvm',
+        macaddress   => '52:54:00:78:73:a2',
         location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-    },
-    A_sles15_PV => {
-        autoyast     => 'autoyast_xen/xen-SLES15-PV.xml',
-        extra_params => '--paravirt',
-        location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
-    },
-    A_sles15_HVM => {
-        autoyast     => 'autoyast_xen/xen-SLES15-FV.xml',
-        extra_params => '--hvm',
-        location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
     },
 );
 
@@ -50,6 +42,7 @@ sub create_guest {
 
     my $location     = $guests{$guest}->{location};
     my $autoyast     = $guests{$guest}->{autoyast};
+    my $macaddress   = $guests{$guest}->{macaddress};
     my $extra_params = $guests{$guest}->{extra_params} // "";
 
     if ($method eq 'virt-install') {
@@ -58,9 +51,9 @@ sub create_guest {
         # Run unattended installation for selected guest
         assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
         assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 10G";
-        assert_script_run "virt-install --connect xen:/// --virt-type xen $extra_params --name $guest --memory 2048 --disk /var/lib/libvirt/images/xen/$guest.raw --network bridge=br0 --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "'", timeout => 1800;
+        assert_script_run "virt-install --connect xen:/// --virt-type xen $extra_params --name $guest --memory 2048 --disk /var/lib/libvirt/images/xen/$guest.raw --network bridge=br0,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "'", timeout => 1800;
         # Wait for post-installation reboot as the previous command returns upon first reboot
-        script_run 'sleep 30';
+        sleep 90;
     }
 }
 
