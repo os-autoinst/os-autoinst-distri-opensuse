@@ -246,7 +246,7 @@ sub run {
     # We use startshell boot option on s390x to sync actions with reboot, normally is not used
     # Cannot verify second stage properly on s390x, so recoonect to already installed system
     if (check_var('ARCH', 's390x')) {
-        reconnect_s390(timeout => 500);
+        reconnect_mgmt_console(timeout => 500);
         return;
     }
 

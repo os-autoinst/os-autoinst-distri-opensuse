@@ -406,11 +406,8 @@ sub load_boot_tests {
 
 sub load_reboot_tests {
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if (check_var("ARCH", "s390x") && !get_var('ENCRYPT')) {
-        loadtest "installation/reconnect_s390";
-    }
-    if (uses_qa_net_hardware()) {
-        loadtest "boot/qa_net_boot_from_hdd";
+    if ((check_var("ARCH", "s390x") && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
+        loadtest "boot/reconnect_mgmt_console";
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
@@ -424,7 +421,7 @@ sub load_reboot_tests {
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
             if (check_var('ARCH', 's390x')) {
-                loadtest "installation/reconnect_s390";
+                loadtest "boot/reconnect_mgmt_console";
             }
         }
         loadtest "installation/first_boot";

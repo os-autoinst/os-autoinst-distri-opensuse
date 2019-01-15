@@ -17,18 +17,7 @@ use utils;
 use power_action_utils 'power_action';
 
 sub run {
-    # on remote installations we can not try to switch to the installation
-    # console but we never switched away, see
-    # logs_from_installation_system.pm, so we should be safe to ignore this
-    # call
-    if (check_var('BACKEND', 'spvm')) {
-        # this will only work for serial install
-        select_console 'novalink-ssh', await_console => 0;
-        assert_screen 'rebootnow';
-    }
-    else {
-        select_console 'installation' unless get_var('REMOTE_CONTROLLER');
-    }
+    select_console 'installation' unless get_var('REMOTE_CONTROLLER');
 
     # svirt: Make sure we will boot from hard disk next time
     if (check_var('VIRSH_VMM_FAMILY', 'kvm') || check_var('VIRSH_VMM_FAMILY', 'xen')) {
