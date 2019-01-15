@@ -973,6 +973,11 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
+    elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {
+        loadtest 'boot/boot_from_pxe';
+        loadtest 'console/microcode_update';
+        return 1;
+    }
     elsif (get_var("QAM_OPENVPN")) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {

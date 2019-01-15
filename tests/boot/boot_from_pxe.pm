@@ -34,6 +34,12 @@ sub run {
         select_console 'sol', await_console => 0;
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+    # boot bare-metal/IPMI machine
+    if (check_var('BACKEND', 'ipmi') && get_var('BOOT_IPMI_SYSTEM')) {
+        send_key 'ret';
+        assert_screen 'linux-login', 100;
+        return 1;
+    }
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
