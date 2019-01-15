@@ -44,6 +44,7 @@ HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and val
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
 EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=' as a kernel cmd line argument)
+INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
 INSTALLONLY | boolean | false | Indicates that test suite conducts only installation. Is recommended to be used for all jobs which create and publish images
 INSTLANG | string | en_US | Installation locale settings.
@@ -60,6 +61,7 @@ LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partit
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
+MIRROR_{protocol} | string | | Specify source address
 MOZILLATEST |||
 NAME | string | | Name of the test run including distribution, build, machine name and job id.
 NET | boolean | false | Indicates net installation.
@@ -96,6 +98,7 @@ UEFI | boolean | false | Indicates UEFI in the testing environment.
 UPGRADE | boolean | false | Indicates upgrade scenario.
 USBBOOT | boolean | false | Indicates booting to the usb device.
 USEIMAGES |||
+VALIDATE_INST_SRC | boolean | false | Validate installation source in /etc/install.inf
 VERSION | string | | Contains major version of the product. E.g. 15-SP1 or 15.1
 VIDEOMODE | string | | Indicates/defines video mode used for the installation. Empty value uses default, other possible values `text`, `ssh-x` for installation ncurses and x11 over ssh respectivelyю
 VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the svirt host (only relevant for the svirt backend).
