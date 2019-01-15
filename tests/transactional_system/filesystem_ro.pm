@@ -14,7 +14,7 @@
 use base "opensusebasetest";
 use strict;
 use testapi;
-use version_utils qw(is_caasp is_leap is_tumbleweed);
+use version_utils qw(is_caasp is_leap);
 
 sub run {
     select_console 'root-console' if (check_var('DISTRI', 'opensuse'));
