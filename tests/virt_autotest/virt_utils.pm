@@ -26,7 +26,7 @@ use virt_autotest_base;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -48,14 +48,29 @@ sub repl_repo_in_sourcefile {
     my $verorig = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
     my $veritem = check_var('ARCH', 'x86_64') ? $verorig : get_required_var('ARCH') . ".$verorig";
     if (get_var("REPO_0")) {
-        my $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
-        $location =~ s/[\r\n]+$//;
+        my $location = '';
+        if (!check_var('ARCH', 's390x')) {
+            $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+            $location =~ s/[\r\n]+$//;
+        }
+        else {
+            #S390x LPAR just be only located at DE now.
+            #No plan move S390x LPAR to the other location.
+            #So, define variable location as "de" for S390x LPAR.
+            $location = 'de';
+        }
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
-        assert_script_run($shell_cmd);
-        assert_script_run("grep \"$veritem\" $soucefile");
+        if (check_var('ARCH', 's390x')) {
+            lpar_cmd("$shell_cmd");
+            lpar_cmd("grep \"$veritem\" $soucefile");
+        }
+        else {
+            assert_script_run($shell_cmd);
+            assert_script_run("grep \"$veritem\" $soucefile");
+        }
     }
     else {
         print "Do not need to change resource for $veritem item\n";
@@ -78,11 +93,18 @@ sub repl_module_in_sourcefile {
     my $source_file = "/usr/share/qa/virtautolib/data/sources.*";
     my $command     = "sed -ri 's#^(${replaced_item}).*\$#\\1$daily_build_module#g' $source_file";
     print "Debug: the command to execute is:\n$command \n";
-    assert_script_run($command);
-    save_screenshot;
-    assert_script_run("grep Module $source_file -r");
-    save_screenshot;
-    upload_logs "/usr/share/qa/virtautolib/data/sources.de";
+    if (check_var('ARCH', 's390x')) {
+        lpar_cmd("$command");
+        lpar_cmd("grep Module $source_file -r");
+        upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;
+    }
+    else {
+        assert_script_run($command);
+        save_screenshot;
+        assert_script_run("grep Module $source_file -r");
+        save_screenshot;
+        upload_logs "/usr/share/qa/virtautolib/data/sources.de";
+    }
 }
 
 sub repl_addon_with_daily_build_module_in_files {
@@ -196,6 +218,21 @@ sub clean_up_red_disks {
     }
     my $disks_fs_overview = script_output($get_disks_fs_overview, $wait_script, type_command => 1, proceed_on_failure => 1);
     diag("Debug info: Disks and File Systems Overview:\n $disks_fs_overview");
+}
+
+sub lpar_cmd {
+    my ($cmd, $args) = @_;
+    die 'Command not provided' unless $cmd;
+
+    $args->{ignore_return_code} ||= 0;
+    my $ret = console('svirt')->run_cmd($cmd);
+    if ($ret == 0) {
+        record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS");
+    }
+    unless ($args->{ignore_return_code} || !$ret) {
+        record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
+        die 'Find new failure, please check manually';
+    }
 }
 
 1;

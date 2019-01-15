@@ -728,13 +728,18 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
     else {
-        load_boot_tests();
-        if (get_var("AUTOYAST")) {
-            loadtest "autoyast/installation";
-            loadtest "virt_autotest/reboot_and_wait_up_normal";
+        if (!check_var('ARCH', 's390x')) {
+            load_boot_tests();
+            if (get_var("AUTOYAST")) {
+                loadtest "autoyast/installation";
+                loadtest "virt_autotest/reboot_and_wait_up_normal";
+            }
+            else {
+                load_inst_tests();
+                loadtest "virt_autotest/login_console";
+            }
         }
-        else {
-            load_inst_tests();
+        elsif (check_var('ARCH', 's390x')) {
             loadtest "virt_autotest/login_console";
         }
         loadtest "virt_autotest/install_package";

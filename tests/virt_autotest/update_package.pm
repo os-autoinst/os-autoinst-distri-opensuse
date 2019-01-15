@@ -31,11 +31,17 @@ sub update_package {
     }
 
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
-    $ret            = $self->execute_script_run($update_pkg_cmd, 7200);
-    upload_logs("/tmp/update_virt_rpms.log");
-    save_screenshot;
-    if ($ret !~ /Need to reboot system to make the rpms work/m) {
-        die " Update virt rpms fail, going to terminate following test!";
+    if (check_var('ARCH', 's390x')) {
+        lpar_cmd("$update_pkg_cmd");
+        upload_asset "/tmp/update_virt_rpms.log", 1, 1;
+    }
+    else {
+        $ret = $self->execute_script_run($update_pkg_cmd, 7200);
+        upload_logs("/tmp/update_virt_rpms.log");
+        save_screenshot;
+        if ($ret !~ /Need to reboot system to make the rpms work/m) {
+            die " Update virt rpms fail, going to terminate following test!";
+        }
     }
 
 }
@@ -43,8 +49,10 @@ sub update_package {
 sub run {
     my $self = shift;
     $self->update_package();
-    set_serial_console_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
-    set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm"));
+    if (!check_var('ARCH', 's390x')) {
+        set_serial_console_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
+        set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm"));
+    }
     update_guest_configurations_with_daily_build();
 }
 

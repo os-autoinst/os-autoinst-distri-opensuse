@@ -23,6 +23,13 @@ sub login_to_console {
     my ($self, $timeout) = @_;
     $timeout //= 240;
 
+    if (check_var('ARCH', 's390x')) {
+        #Switch to s390x lpar console
+        reset_consoles;
+        my $svirt = select_console('svirt', await_console => 0);
+        return;
+    }
+
     reset_consoles;
     select_console 'sol', await_console => 0;
 
