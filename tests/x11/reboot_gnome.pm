@@ -21,7 +21,11 @@ sub run {
     # 'keepconsole => 1' is workaround for bsc#1044072
     power_action('reboot', keepconsole => 1);
 
-    $self->wait_boot(bootloader_time => 300);
+    # In 88388900d2dfe267230972c6905b3cc18fb288cf the wait timeout was
+    # bumped, due to tianocore being a bit slower, this brings this module
+    # in sync
+    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 400 : 300;
+    $self->wait_boot(bootloader_time => $bootloader_timeout);
 }
 
 sub post_fail_hook {
