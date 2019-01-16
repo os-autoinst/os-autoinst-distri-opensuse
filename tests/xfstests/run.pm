@@ -263,6 +263,7 @@ sub run {
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
+        type_string("echo $test > /dev/$serialdev\n");
         test_run($test);
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {
