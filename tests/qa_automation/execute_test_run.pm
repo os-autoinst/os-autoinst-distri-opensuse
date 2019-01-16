@@ -19,6 +19,7 @@ use testapi;
 use ctcs2_to_junit;
 use upload_system_log;
 use base "opensusebasetest";
+use version_utils "is_jeos";
 
 sub run {
     my $timeout  = abs(get_var("MAX_JOB_TIME", 9600) - 1200);         #deduct 20 minutes for previous steps, due to poo#30183
@@ -33,7 +34,9 @@ sub run {
     save_screenshot;
 
     #output result to serial0 and upload test log
-    if (get_var("QA_TESTSUITE")) {
+    #we skip the log conversion on JeOS because we do not use the junit logs and
+    #starting with 15SP1 bzip2 is no longer included in the JeOS images
+    if (get_var("QA_TESTSUITE") && !is_jeos) {
         assert_script_run('sync', 180);
         my $tarball = "/tmp/testlog.tar.bz2";
         assert_script_run("tar cjf $tarball -C /var/log/qa/ctcs2 `ls /var/log/qa/ctcs2/`");
