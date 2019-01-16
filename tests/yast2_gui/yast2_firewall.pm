@@ -214,6 +214,7 @@ sub verify_firewalld_configuration {
 
 sub run {
     my $self = shift;
+    select_console 'x11';
 
     if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
         # Check if service is stopped: bsc#1114677

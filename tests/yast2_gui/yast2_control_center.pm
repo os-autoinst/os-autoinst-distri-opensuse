@@ -314,6 +314,7 @@ sub start_fonts {
 
 sub run {
     my $self = shift;
+    select_console 'x11';
     if (is_sle '15+') {
         # kdump is disabled by default, so ensure that it's installed
         ensure_installed 'yast2-kdump';

@@ -31,6 +31,7 @@ sub run {
     $cmd{hostname_dns_tab}   = 'alt-s';
     $cmd{routing_tab}        = 'alt-u';
 
+    select_console 'x11';
     $self->launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 60);
     if (match_has_tag 'yast2_still_susefirewall2') {
         send_key $cmd{install};
