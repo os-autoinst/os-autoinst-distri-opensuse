@@ -34,7 +34,7 @@ sub run {
     if ((!check_var('ARCH', 's390x') or is_storage_ng()) and !match_has_tag('disabledhome')) {
         # older versions have radio buttons and no separate swap block
         if (match_has_tag 'inst-partition-radio-buttons') {
-            $cmd{toggle_home} = 'alt-r';
+            $cmd{toggle_home} = 'alt-o';
         }    # Have different shortkey on storage-ng without LVM
         elsif (is_storage_ng && !get_var('LVM')) {
             $cmd{toggle_home} = 'alt-o';
