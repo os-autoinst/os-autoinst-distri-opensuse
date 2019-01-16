@@ -20,6 +20,7 @@ use testapi;
 
 sub run {
     my $self = shift;
+    select_console 'x11';
     $self->launch_yast2_module_x11('language', match_timeout => 240);
 
     # check language details and change detailed locale setting

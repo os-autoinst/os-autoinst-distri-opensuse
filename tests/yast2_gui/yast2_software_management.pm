@@ -17,6 +17,7 @@ use testapi;
 
 sub run {
     my $self = shift;
+    select_console 'x11';
     $self->launch_yast2_module_x11('sw_single', match_timeout => 120);
     send_key "alt-a";    # Accept => Exit
 }
