@@ -52,6 +52,8 @@ sub install_package {
     #install qa_lib_virtauto
     assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
     assert_script_run("zypper --non-interactive -n in qa_lib_virtauto",      1800);
+    #install guestfs-tools, which provides additional vm administration utilities
+    assert_script_run("zypper --non-interactive -n in guestfs-tools", 1800);
 
     if (get_var("PROXY_MODE")) {
         if (get_var("XEN")) {
