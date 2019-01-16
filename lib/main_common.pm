@@ -2079,11 +2079,9 @@ sub load_security_tests_selinux {
 
 sub load_security_tests {
     if (get_var('BOOT_HDD_IMAGE')) {
-        if (!check_var("SECURITY_TEST", "selinux")) {
-            loadtest "console/system_prepare";
-            loadtest "console/consoletest_setup";
-            loadtest "console/hostname";
-        }
+        loadtest "console/system_prepare";
+        loadtest "console/consoletest_setup";
+        loadtest "console/hostname";
     }
     if (check_var("SECURITY_TEST", "fips_setup")) {
         # Setup system into fips mode
