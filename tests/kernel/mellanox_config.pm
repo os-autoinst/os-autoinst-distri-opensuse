@@ -40,7 +40,7 @@ sub run {
         zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media2/  dev_2");
         zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA/standard/SUSE:SLE-15-SP1:GA.repo");
     }
-    zypper_call('--quiet in kernel-source rpm-build', timeout => 200);
+    zypper_call('--quiet in kernel-source rpm-build wget pciutils', timeout => 200);
 
     # Install Mellanox Firmware Tool (MFT)
     assert_script_run("wget http://www.mellanox.com/downloads/MFT/" . $mft_version . ".tgz");
