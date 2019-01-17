@@ -32,7 +32,9 @@ sub run {
     # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
     if ((!check_var('ARCH', 's390x') or is_storage_ng()) and !match_has_tag('disabledhome')) {
         # older versions have radio buttons and no separate swap block
-        if (match_has_tag 'inst-partition-radio-buttons') {
+        # For SLE 15 SP1 we got Cancel button instead of Abort, so have new shortcut now
+        # Expecting it for TW and Leap 15.1, but not yet there
+        if (match_has_tag('inst-partition-radio-buttons') || is_sle('15-SP1+')) {
             $cmd{toggle_home} = 'alt-r';
         }    # Have different shortkey on storage-ng without LVM
         elsif (is_storage_ng && !get_var('LVM')) {
