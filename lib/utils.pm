@@ -507,8 +507,8 @@ sub ensure_unlocked_desktop {
         }
         if (match_has_tag 'generic-desktop') {
             send_key 'esc';
-            unless (get_var('DESKTOP', '') =~ m/minimalx|awesome|enlightenment|lxqt|mate/) {
-                # gnome might show the old 'generic desktop' screen although that is
+            unless (get_var('DESKTOP', '') =~ m/awesome|enlightenment|lxqt/) {
+                # gnome/mate/minimalx might show the old 'generic desktop' screen although that is
                 # just a left over in the framebuffer but actually the screen is
                 # already locked so we have to try something else to check
                 # responsiveness.
