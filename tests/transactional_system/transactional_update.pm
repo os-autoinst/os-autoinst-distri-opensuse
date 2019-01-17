@@ -30,7 +30,7 @@ sub get_utt_packages {
     if (get_var('ARCH') eq 'aarch64') {
         $tarball = get_var('DISTRI') . '-utt-aarch64.tgz';
     }
-    assert_script_run 'curl -O ' . data_url("caasp/$tarball");
+    assert_script_run 'curl -O ' . data_url("transactional_system/$tarball");
     assert_script_run "tar xzvf $tarball";
 }
 
