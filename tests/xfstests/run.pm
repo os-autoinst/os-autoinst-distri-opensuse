@@ -136,7 +136,7 @@ sub test_name {
 sub log_add {
     my ($file, $test, $status, $time) = @_;
     my $name = test_name($test);
-    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync";
+    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
     type_string("\n");
     assert_script_run($cmd);
 }

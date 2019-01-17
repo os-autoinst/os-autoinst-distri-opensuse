@@ -24,7 +24,13 @@ sub run {
 
     # Create partitions
     my $filesystem = get_required_var('XFSTESTS');
-    assert_script_run("/usr/share/qa/qa_test_xfstests/partition.py --delhome $filesystem && sync", 600);
+    my $device     = get_var('XFSTESTS_DEVICE');
+    if ($device) {
+        assert_script_run("parted $device --script -- mklabel gpt");
+        assert_script_run("/usr/share/qa/qa_test_xfstests/partition.py --device $device $filesystem && sync", 600);
+    } else {
+        assert_script_run("/usr/share/qa/qa_test_xfstests/partition.py --delhome $filesystem && sync", 600);
+    }
 }
 
 sub test_flags {

@@ -775,7 +775,7 @@ elsif (get_var("XFSTESTS")) {
     if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP4')) {
         set_var('NO_KDUMP', 1);
     }
-    boot_hdd_image;
+    prepare_target;
     unless (get_var('NO_KDUMP')) {
         loadtest "xfstests/enable_kdump";
     }
