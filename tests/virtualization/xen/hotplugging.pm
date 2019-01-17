@@ -10,23 +10,16 @@
 # Summary: Virtual network and virtual block device hotplugging
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
+    my ($self)     = @_;
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
     my $domain     = get_required_var('QAM_XEN_DOMAIN');
-
-    x11_start_program('xterm');
-    send_key 'super-up';
-
-    # Ensure virsh is installed
-    assert_script_run "ssh root\@$hypervisor 'zypper -n in libvirt-client'", 180;
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Processing $guest now";
@@ -34,7 +27,12 @@ sub run {
         # Virtual network
         assert_script_run "ssh root\@$hypervisor 'virsh attach-interface --domain $guest --type bridge --source br0 --live'";
         assert_script_run "ssh root\@$hypervisor 'virsh domiflist $guest'";
-        assert_script_run "ssh root\@$guest.$domain 'ip l'";
+        for (my $i = 0; $i <= 120; $i++) {
+            if (script_run("ssh root\@$guest.$domain 'ip l'") == 0) {
+                last;
+            }
+            sleep 3;
+        }
 
         # Disk
         assert_script_run "ssh root\@$hypervisor 'mkdir -p /var/lib/libvirt/images/add/'";
@@ -55,10 +53,7 @@ sub run {
         assert_script_run "ssh root\@$hypervisor 'virsh setmem --domain $guest --size 1024M --live'";
         assert_script_run "ssh root\@$guest.$domain 'free'";
         assert_script_run "ssh root\@$hypervisor 'xl list'";
-        clear_console;
     }
-
-    wait_screen_change { send_key 'alt-f4'; };
 }
 
 sub test_flags {

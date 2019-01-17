@@ -27,7 +27,7 @@ sub login_to_console {
     select_console 'sol', await_console => 0;
 
     # Wait for bootload for the first time.
-    assert_screen([qw(grub2 grub1)], 150);
+    assert_screen([qw(grub2 grub1)], 210);
 
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {

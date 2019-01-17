@@ -404,28 +404,49 @@ sub take_first_disk_storage_ng {
     select_first_hard_disk;
 
     assert_screen [qw(existing-partitions partition-scheme)];
-    # If drive is not formatted, we have select hard disks page
-    # On ipmi we always have unformatted drive
-    # Sometimes can have existing installation on iscsi
+    # If drive(s) is/are not formatted, we have select hard disks page
     if (match_has_tag 'existing-partitions') {
-        send_key $cmd{next};
-        assert_screen 'partition-scheme';
+        if (check_var('BACKEND', 'ipmi')) {
+            send_key_until_needlematch("remove-menu", "tab");
+            while (check_screen('remove-menu', 3)) {
+                send_key 'spc';
+                send_key 'down';
+                send_key 'ret';
+                send_key 'tab';
+            }
+            save_screenshot;
+            send_key $cmd{next};
+            if (check_screen([qw(filesystems-options partition-scheme)], 3)) {
+                send_key $cmd{next};
+            }
+            if (check_screen([qw(filesystems-options partition-scheme)], 3)) {
+                send_key $cmd{next};
+            }
+            assert_screen "after-partitioning";
+        }
+        else {
+            send_key $cmd{next};
+            assert_screen 'partition-scheme';
+        }
     }
-    send_key $cmd{next};
 
-    # select btrfs file system
-    if (check_var('VIDEOMODE', 'text')) {
-        assert_screen 'select-root-filesystem';
-        send_key 'alt-f';
-        send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
-        send_key 'ret';
+    if (!check_var('BACKEND', 'ipmi')) {
+        send_key $cmd{next};
+        save_screenshot;
+        # select btrfs file system
+        if (check_var('VIDEOMODE', 'text')) {
+            assert_screen 'select-root-filesystem';
+            send_key 'alt-f';
+            send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
+            send_key 'ret';
+        }
+        else {
+            assert_and_click 'default-root-filesystem';
+            assert_and_click "filesystem-btrfs";
+        }
+        assert_screen "btrfs-selected";
+        send_key $cmd{next};
     }
-    else {
-        assert_and_click 'default-root-filesystem';
-        assert_and_click "filesystem-btrfs";
-    }
-    assert_screen "btrfs-selected";
-    send_key $cmd{next};
 }
 
 sub take_first_disk {

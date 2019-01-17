@@ -2214,6 +2214,7 @@ sub load_xen_hypervisor_tests {
     }
     # Load guest installation tests
     loadtest 'virtualization/xen/prepare_guests';
+    loadtest 'virtualization/xen/waitfor_guests';
     # Apply updates and reboot
     loadtest 'virtualization/xen/patch_and_reboot';
     loadtest "virt_autotest/login_console";
@@ -2227,10 +2228,14 @@ sub load_xen_client_tests() {
     loadtest 'virtualization/xen/install_virtmanager';
     # Connect to hypervisor using SSH
     loadtest 'virtualization/xen/ssh_hypervisor';
-    # Connect to guests using SSH
-    loadtest 'virtualization/xen/ssh_guests';
     # Connect to the Xen hypervisor using virt-manager
     loadtest 'virtualization/xen/virtmanager';
+    # Exchange SSH keys with guests
+    loadtest 'virtualization/xen/ssh_guests_init';
+    # Connect to guests using SSH
+    loadtest 'virtualization/xen/ssh_guests';
+    # Add test repositories and patch our guests
+    loadtest 'virtualization/xen/patch_guests';
     # Try to save and restore the state of the guest
     loadtest 'virtualization/xen/save_and_restore';
     # Try to change properties of guests
@@ -2249,6 +2254,10 @@ sub load_xen_client_tests() {
     loadtest 'virtualization/xen/xl_stop';
     # Start virsh guests again
     loadtest 'virtualization/xen/virsh_start';
+    # Connect to the Xen hypervisor using virt-manager
+    loadtest 'virtualization/xen/virtmanager';
+    # Connect to guests using SSH
+    loadtest 'virtualization/xen/ssh_guests';
 }
 
 sub load_extra_tests_syscontainer {

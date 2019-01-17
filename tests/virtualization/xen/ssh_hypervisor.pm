@@ -16,7 +16,7 @@
 # Summary: This test connects to hypervisor using SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use testapi;
@@ -24,16 +24,23 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
+    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
 
-    x11_start_program('xterm');
-
+    # Exchange SSH keys
     assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
     assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";
     exec_and_insert_password "ssh-copy-id root\@$hypervisor";
 
-    wait_screen_change { send_key 'alt-f4'; };
+    # Do the same for normal user because of GUI software
+    assert_script_run "sudo -u $testapi::username sh -c \"ssh-keygen -t rsa -P '' -C 'localhost' -f /home/$testapi::username/.ssh/id_rsa\"";
+    assert_script_run "sudo -u $testapi::username sh -c \"ssh-keyscan $hypervisor > /home/$testapi::username/.ssh/known_hosts\"";
+    exec_and_insert_password "sudo -u $testapi::username sh -c \"ssh-copy-id root\@$hypervisor\"";
+
+    # Test the connection
+    assert_script_run "ssh root\@$hypervisor 'hostname -f'";
+    assert_script_run "ssh root\@$hypervisor 'zypper -n in iputils'";
 }
 
 sub test_flags {

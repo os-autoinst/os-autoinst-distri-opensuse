@@ -16,34 +16,23 @@
 # Summary: Prepare the dom0 metrics environment
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
+    my ($self)     = @_;
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
     my $domain     = get_required_var('QAM_XEN_DOMAIN');
-
-    x11_start_program('xterm');
-    send_key 'super-up';
 
     assert_script_run "ssh root\@$hypervisor 'zypper -n in vhostmd'";
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Install vm-dump-metrics on xl-$guest";
-
         assert_script_run "ssh root\@$guest.$domain 'zypper -n in vm-dump-metrics'";
-
-        clear_console;
     }
-
-    wait_screen_change { send_key 'alt-f4'; };
-
 }
 
 sub test_flags {

@@ -10,30 +10,38 @@
 # Summary: Test basic VM guest management
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
+    my ($self)     = @_;
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
-
-    x11_start_program('xterm');
-    send_key 'super-up';
+    my $domain     = get_required_var('QAM_XEN_DOMAIN');
 
     record_info "SHUTDOWN", "Shut all guests down";
     assert_script_run "ssh root\@$hypervisor 'virsh shutdown $_'" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
+    for (my $i = 0; $i <= 120; $i++) {
+        if (script_run("ssh root\@$hypervisor 'virsh list --all | grep -v Domain-0 | grep running'") == 1) {
+            last;
+        }
+        sleep 1;
+    }
 
     record_info "START", "Start all guests";
     assert_script_run "ssh root\@$hypervisor 'virsh start $_'" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
+    foreach my $guest (keys %xen::guests) {
+        for (my $i = 0; $i <= 60; $i++) {
+            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
+                last;
+            }
+            sleep 1;
+        }
+    }
 
     record_info "REBOOT", "Reboot all guests";
-    sleep 60;
     assert_script_run "ssh root\@$hypervisor 'virsh reboot $_'" foreach (keys %xen::guests);
     assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
 
@@ -52,9 +60,14 @@ sub run {
     record_info "RESUME", "Resume all guests";
     assert_script_run "ssh root\@$hypervisor 'virsh resume $_'" foreach (keys %xen::guests);
     assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
-    clear_console;
-
-    wait_screen_change { send_key 'alt-f4'; };
+    foreach my $guest (keys %xen::guests) {
+        for (my $i = 0; $i <= 60; $i++) {
+            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
+                last;
+            }
+            sleep 1;
+        }
+    }
 }
 
 sub test_flags {
