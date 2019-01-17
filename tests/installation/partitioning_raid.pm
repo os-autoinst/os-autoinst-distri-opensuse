@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base 'y2logsstep';
 use testapi;
-use version_utils qw(is_storage_ng is_sle is_leap is_tumbleweed);
+use version_utils qw(is_storage_ng);
 use partition_setup 'is_storage_ng_newui';
 
 sub switch_partitions_tab {
@@ -218,10 +218,7 @@ sub modify_uefi_boot_partition {
     # We have different shortcut for Format option when editing partition
     send_key(is_storage_ng_newui() ? 'alt-f' : 'alt-a');
     send_key 'home';
-    send_key_until_needlematch 'partitioning_raid-format_default_UEFI', 'down';
-    # format as FAT (first choice)
-    send_key 'tab';
-    type_string 'fat';
+    send_key_until_needlematch 'partitioning_raid-fat_format-selected', 'down';
     # mount point selection
     send_key 'alt-o';
     send_key 'alt-m';
@@ -282,15 +279,6 @@ sub add_raid_boot {
     else {
         send_key_until_needlematch 'partitioning_raid-raid_ext4_added', 'down';
     }
-}
-
-sub add_bios_boot_partition {
-    send_key_until_needlematch 'partitioning_raid-disk_vda-selected', 'down';
-    addpart 'bios-boot';
-    send_key 'down';
-    send_key_until_needlematch 'custompart', 'left';
-    send_key 'alt-s';    #System view
-    send_key_until_needlematch 'partitioning_raid-hard_disks-unfolded', 'right';
 }
 
 sub add_prep_boot_partition {
