@@ -31,16 +31,21 @@ sub run {
     assert_screen [qw(inst-partition-radio-buttons enabledhome disabledhome)];
     # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
     if ((!check_var('ARCH', 's390x') or is_storage_ng()) and !match_has_tag('disabledhome')) {
-        # older versions have radio buttons and no separate swap block
-        # For SLE 15 SP1 we got Cancel button instead of Abort, so have new shortcut now
-        # Expecting it for TW and Leap 15.1, but not yet there
-        if (match_has_tag('inst-partition-radio-buttons') || is_sle('15-SP1+')) {
-            $cmd{toggle_home} = 'alt-r';
-        }    # Have different shortkey on storage-ng without LVM
-        elsif (is_storage_ng && !get_var('LVM')) {
-            $cmd{toggle_home} = 'alt-o';
+
+        if (check_var('VIDEOMODE', 'text') || match_has_tag('inst-partition-radio-buttons')) {
+            # older versions have radio buttons and no separate swap block
+            # For SLE 15 SP1 we got Cancel button instead of Abort, so have new shortcut now
+            # Expecting it for TW and Leap 15.1, but not yet there
+            if (match_has_tag('inst-partition-radio-buttons')) {
+                $cmd{toggle_home} = 'alt-r';
+            }    # Have different shortkey on storage-ng without LVM
+            elsif (is_storage_ng && !get_var('LVM')) {
+                $cmd{toggle_home} = 'alt-o';
+            }
+            send_key $cmd{toggle_home};
+        } else {
+            assert_and_click 'enabledhome';
         }
-        send_key $cmd{toggle_home};
         assert_screen 'disabledhome';
     }
     send_key(is_storage_ng() ? 'alt-n' : 'alt-o');    # finish editing settings
