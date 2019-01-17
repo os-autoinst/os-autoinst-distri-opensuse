@@ -15,11 +15,19 @@
 use base 'consoletest';
 use strict;
 use testapi;
+use version_utils qw(:VERSION :SCENARIO);
 
 sub run {
     my ($self) = @_;
     if ($self->firewall eq 'firewalld') {
-        assert_script_run('firewall-cmd --state');
+        if (script_run('firewall-cmd --state') != 0) {
+            # soft-fail for leap upgrade scenarios (see poo#46127)
+            if (is_upgrade() && is_leap('15.0+')) {
+                record_soft_failure 'bsc#1122769';
+            } else {
+                die "firewalld is not running";
+            }
+        }
     }
     else {
         assert_script_run('SuSEfirewall2 status');
