@@ -1129,6 +1129,8 @@ else {
     }
 }
 
+if (check_var('DESKTOP', 'minimalx')) { load_shutdown_tests; }
+
 load_common_opensuse_sle_tests;
 
 1;
