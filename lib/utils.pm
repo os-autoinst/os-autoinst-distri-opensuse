@@ -79,6 +79,7 @@ our @EXPORT = qw(
   svirt_host_basedir
   prepare_ssh_localhost_key_login
   disable_serial_getty
+  script_run_interactive
 );
 
 
@@ -1136,6 +1137,70 @@ sub prepare_ssh_localhost_key_login {
     else {
         assert_script_sudo('mkdir -p /root/.ssh');
         assert_script_sudo("cat /home/$source_user/.ssh/id_rsa.pub | tee -a /root/.ssh/authorized_keys");
+    }
+}
+
+=head2 script_run_interactive
+
+    script_run_interactive($cmd, $prompt, $timeout);
+
+For interactive command, input strings or keys according to the prompt message
+in the run time. Pass arrayref $prompt which contains the prompt message to
+be matched (regex) and the answer with string or key to be typed. for example:
+
+    [{
+        prompt => qr/\(A\)llow/m,
+        key    => 'a',
+      },
+      {
+        prompt => qr/Enter Password or Pin/m,
+        string => "testpasspw\n",
+      },]
+
+A "Script done." message comes from the typescript will be printed as a mark
+for the end of interaction after the command finished running.
+=cut
+sub script_run_interactive {
+    my ($cmd, $scan, $timeout) = @_;
+    my $output;
+    my @words;
+    $timeout //= 180;
+
+    if ($cmd) {
+        script_run("script -c \'", 0);
+        script_run($cmd,           0);
+
+        # Write to /dev/null since we want not to leave file there
+        script_run("\' /dev/null |& tee /dev/$serialdev", 0);
+    }
+
+    for my $k (@$scan) {
+        push(@words, $k->{prompt});
+    }
+
+    my $endmark = "Script done.*\/dev\/null";
+    push(@words, $endmark);
+
+    {
+        do {
+            $output = wait_serial(\@words, $timeout) || die "No message matched!";
+
+            last if ($output =~ /$endmark/m);
+            for my $i (@$scan) {
+                next if ($output !~ $i->{prompt});
+                if ($i->{string}) {
+                    type_string $i->{string};
+                    last;
+                }
+                elsif ($i->{key}) {
+                    send_key $i->{key};
+                    last;
+                }
+                else {
+                    die "$i->{prompt} - No flags specified";
+                }
+            }
+        } while ($output);
     }
 }
 
