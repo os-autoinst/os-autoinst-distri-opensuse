@@ -15,8 +15,6 @@ use base "publiccloud::basetest";
 use strict;
 use testapi;
 use utils;
-use version_utils 'is_sle';
-use registration 'add_suseconnect_product';
 use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
