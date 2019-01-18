@@ -41,7 +41,7 @@ sub shutdown_ltp {
 sub parse_openposix_runfile {
     my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
-    open(my $rfile, $path) or die "Can not open runfile asset $path: $!";    ## no critic
+    open(my $rfile, $path) or die "Can not open runfile asset $path: $!";    ## no critic (InputOutput::ProhibitTwoArgOpen)
     while (my $line = <$rfile>) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
@@ -55,7 +55,7 @@ sub parse_openposix_runfile {
 sub parse_runtest_file {
     my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
-    open(my $rfile, $path) or die "Can not open runtest asset $path: $!";    ## no critic
+    open(my $rfile, $path) or die "Can not open runtest asset $path: $!";    ## no critic (InputOutput::ProhibitTwoArgOpen)
     while (my $line = <$rfile>) {
         next if ($line =~ /(^#)|(^$)/);
 
