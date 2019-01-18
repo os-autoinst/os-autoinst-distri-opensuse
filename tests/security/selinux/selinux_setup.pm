@@ -34,13 +34,10 @@ sub run {
 
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
-    my $ret = script_run('zypper -n in policycoreutils-python');
-    if ($ret) {
-        if (defined $ret && $ret == 104) {
-            record_soft_failure 'bsc#1116288 - package policycoreutils-python not found in module SLE-Module-Development-Tools';
-        }
-        else {
-            die "Package policycoreutils-python installation failed";
+    if (!is_sle('>=15')) {
+        my $ret = script_run('zypper -n in policycoreutils-python');
+        if ($ret) {
+            record_soft_failure 'bsc#1119534 openQA test fails in selinux_setup: policycoreutils-python missing';
         }
     }
 
