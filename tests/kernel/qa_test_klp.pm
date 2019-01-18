@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,15 +30,13 @@ sub run {
     # Set and check patch variables
     my $incident_id = get_var('INCIDENT_ID');
     my $patch       = get_var('INCIDENT_PATCH');
-    check_patch_variables($patch, $incident_id);
+    check_patch_variables($patch, $incident_id) if (!get_var('BETA'));
 
     select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
     zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
-    if (is_sle('<15') and ($patch or $incident_id)) {
-        add_suseconnect_product("sle-sdk");
-    }
+    add_suseconnect_product("sle-sdk") if (is_sle('<15'));
 
     zypper_call('in -l git gcc kernel-devel make');
 
