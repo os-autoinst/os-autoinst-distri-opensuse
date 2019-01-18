@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -52,6 +52,12 @@ sub run {
 # Test ends in root-console, default post_run_hook does not work here
 sub post_run_hook {
     set_var('YAST2_GUI_TERMINATE_PREVIOUS_INSTANCES', 1);
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    upload_logs('/etc/hosts');
+    $self->SUPER::post_fail_hook;
 }
 
 1;
