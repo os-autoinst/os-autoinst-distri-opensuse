@@ -2258,7 +2258,7 @@ sub load_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
         loadtest "publiccloud/prepare_tools";
     }
-    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS')) {
+    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS') or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
         loadtest "publiccloud/ipa";
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
