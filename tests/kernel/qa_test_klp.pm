@@ -20,6 +20,8 @@ use version_utils 'is_sle';
 use qam;
 
 sub run {
+    my $self = shift;
+
     if (get_var('AZURE')) {
         record_info("Azure don't have kGraft/LP infrastructure");
         return;
@@ -32,7 +34,7 @@ sub run {
     my $patch       = get_var('INCIDENT_PATCH');
     check_patch_variables($patch, $incident_id) if (!get_var('BETA'));
 
-    select_console('root-console');
+    is_sle(">12-sp1") ? $self->select_serial_terminal() : select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
     zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
