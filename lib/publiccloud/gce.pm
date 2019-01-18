@@ -18,6 +18,7 @@ use Mojo::Util 'b64_decode';
 use Mojo::JSON 'decode_json';
 use testapi;
 use strict;
+use warnings;
 use utils;
 
 use constant CREDENTIALS_FILE => '/root/google_credentials.json';

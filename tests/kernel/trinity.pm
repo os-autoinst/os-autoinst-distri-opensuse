@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 use upload_system_log;
 use repo_tools 'generate_version';
 

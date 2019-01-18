@@ -12,6 +12,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';

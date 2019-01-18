@@ -17,6 +17,7 @@ use y2x11test;
 use mm_network;
 use utils qw(systemctl zypper_call exec_and_insert_password);
 use strict;
+use warnings;
 
 sub run {
     select_console "root-console";

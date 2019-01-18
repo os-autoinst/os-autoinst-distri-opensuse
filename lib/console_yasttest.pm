@@ -3,6 +3,7 @@
 package console_yasttest;
 use base 'y2logsstep';
 use strict;
+use warnings;
 use testapi;
 use utils 'show_tasks_in_blocked_state';
 

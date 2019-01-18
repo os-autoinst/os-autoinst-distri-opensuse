@@ -14,6 +14,7 @@
 
 use base "y2x11test";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);

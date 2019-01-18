@@ -10,6 +10,7 @@
 package qam;
 
 use strict;
+use warnings;
 
 use base "Exporter";
 use Exporter;

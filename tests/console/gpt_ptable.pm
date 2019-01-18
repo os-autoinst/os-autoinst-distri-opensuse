@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 # verify that the disks have a gpt partition label

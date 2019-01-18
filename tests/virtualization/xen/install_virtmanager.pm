@@ -18,6 +18,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use mm_network qw(configure_static_dns get_host_resolv_conf);

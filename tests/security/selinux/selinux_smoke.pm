@@ -23,6 +23,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use utils;
 use registration "add_suseconnect_product";

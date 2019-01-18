@@ -12,6 +12,7 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use utils;
 use testapi;
 use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);

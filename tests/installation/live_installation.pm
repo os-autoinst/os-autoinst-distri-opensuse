@@ -23,6 +23,7 @@ use testapi;
 use utils;
 use version_utils "is_upgrade";
 use strict;
+use warnings;
 use x11utils 'turn_off_kde_screensaver';
 
 sub send_key_and_wait {

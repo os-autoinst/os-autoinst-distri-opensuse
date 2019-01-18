@@ -15,6 +15,7 @@ use caasp_controller;
 use version_utils 'is_caasp';
 
 use strict;
+use warnings;
 use testapi;
 use caasp 'unpause';
 

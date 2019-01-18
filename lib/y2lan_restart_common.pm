@@ -14,6 +14,7 @@
 package y2lan_restart_common;
 
 use strict;
+use warnings;
 use Exporter 'import';
 use testapi;
 use utils 'systemctl';

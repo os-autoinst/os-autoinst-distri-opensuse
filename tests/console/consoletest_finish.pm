@@ -15,6 +15,7 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 use x11utils 'ensure_unlocked_desktop';
 
 sub run {

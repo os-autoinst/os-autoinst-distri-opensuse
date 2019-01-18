@@ -18,6 +18,7 @@
 # Tags: poo#36886, poo#45803
 
 use strict;
+use warnings;
 use base "apparmortest";
 use testapi;
 use utils;

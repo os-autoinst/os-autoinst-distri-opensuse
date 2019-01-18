@@ -18,6 +18,7 @@
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;
+use warnings;
 use base 'basetest';
 use testapi;
 use mmapi;

@@ -12,6 +12,7 @@
 # Tags: fate#321738
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use utils;
 use testapi;

@@ -4,6 +4,7 @@ use base 'basetest';
 use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
 use testapi;
 use strict;
+use warnings;
 use utils;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';

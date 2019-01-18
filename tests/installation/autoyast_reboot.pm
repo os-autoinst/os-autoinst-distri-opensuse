@@ -12,6 +12,7 @@
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 

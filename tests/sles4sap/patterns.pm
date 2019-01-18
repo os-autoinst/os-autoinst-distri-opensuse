@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_upgrade);
 use strict;
+use warnings;
 
 sub run {
     my ($self)      = @_;

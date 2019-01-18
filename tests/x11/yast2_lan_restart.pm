@@ -14,6 +14,7 @@
 use base 'y2logsstep';
 
 use strict;
+use warnings;
 use testapi;
 use y2lan_restart_common;
 use y2_common 'is_network_manager_default';

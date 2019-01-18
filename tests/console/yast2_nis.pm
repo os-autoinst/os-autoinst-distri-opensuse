@@ -11,6 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
+use warnings;
 use base "console_yasttest";
 use testapi;
 use utils 'zypper_call';

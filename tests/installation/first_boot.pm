@@ -14,6 +14,7 @@
 # Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use bootbasetest;
 use testapi;

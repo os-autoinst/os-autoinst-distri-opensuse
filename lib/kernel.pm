@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,6 +10,7 @@ use 5.018;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use warnings;
 
 our @EXPORT_OK = qw(
   remove_kernel_packages

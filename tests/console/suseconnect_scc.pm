@@ -19,6 +19,7 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use strict;
+use warnings;
 use base 'y2logsstep';
 
 use testapi;

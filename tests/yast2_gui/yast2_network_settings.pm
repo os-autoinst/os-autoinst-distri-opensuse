@@ -16,6 +16,7 @@
 
 use base "y2x11test";
 use strict;
+use warnings;
 use testapi;
 use y2_common 'is_network_manager_default';
 

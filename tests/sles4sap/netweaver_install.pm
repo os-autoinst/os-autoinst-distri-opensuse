@@ -17,6 +17,7 @@ use lockapi;
 use utils 'systemctl';
 use hacluster;
 use strict;
+use warnings;
 
 sub is_saptune_installed {
     my $ret = script_run "rpm -q saptune";

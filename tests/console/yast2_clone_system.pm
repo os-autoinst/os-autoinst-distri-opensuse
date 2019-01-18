@@ -13,6 +13,7 @@
 
 use base "console_yasttest";
 use strict;
+use warnings;
 use testapi;
 use version_utils qw(is_sle is_opensuse);
 use utils 'zypper_call';

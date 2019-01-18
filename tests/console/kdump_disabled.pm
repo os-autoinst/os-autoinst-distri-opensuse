@@ -17,6 +17,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 sub run {

@@ -15,6 +15,7 @@
 # Tags: poo#14444
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use version_utils 'is_caasp';

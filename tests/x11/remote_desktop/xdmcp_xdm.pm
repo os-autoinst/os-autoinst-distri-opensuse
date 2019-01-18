@@ -18,6 +18,7 @@
 # Tags: tc#1586204
 
 use strict;
+use warnings;
 use base 'x11test';
 use testapi;
 use lockapi;

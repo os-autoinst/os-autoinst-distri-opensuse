@@ -14,6 +14,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use rt_utils 'select_kernel';

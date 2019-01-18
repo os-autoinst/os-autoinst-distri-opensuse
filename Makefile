@@ -90,7 +90,7 @@ else
 test: unit-test test-static test-compile perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include "strict"
 
 .PHONY: perlcritic
 perlcritic: tools/lib/

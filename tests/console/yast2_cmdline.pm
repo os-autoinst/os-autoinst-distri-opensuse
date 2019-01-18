@@ -13,6 +13,7 @@
 
 use base "console_yasttest";
 use strict;
+use warnings;
 use testapi;
 use utils 'zypper_call';
 use repo_tools 'prepare_source_repo';

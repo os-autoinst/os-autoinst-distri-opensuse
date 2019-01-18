@@ -13,6 +13,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use bootloader_setup 'ensure_shim_import';
 

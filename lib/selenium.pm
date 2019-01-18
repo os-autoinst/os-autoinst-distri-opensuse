@@ -12,6 +12,7 @@
 
 package selenium;
 use 5.018;
+use warnings;
 
 use base 'Exporter';
 use Exporter;

@@ -13,6 +13,7 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 use lockapi 'mutex_create';
 use mmapi 'wait_for_children';

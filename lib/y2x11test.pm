@@ -2,6 +2,7 @@ package y2x11test;
 use base "opensusebasetest";
 use mm_network qw(configure_default_gateway configure_static_ip configure_static_dns get_host_resolv_conf);
 use strict;
+use warnings;
 use utils;
 use testapi;
 

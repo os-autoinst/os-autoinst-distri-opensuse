@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use version_utils 'is_sle';
 use testapi;
 use lockapi;

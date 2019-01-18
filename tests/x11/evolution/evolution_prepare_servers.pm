@@ -11,6 +11,7 @@
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;

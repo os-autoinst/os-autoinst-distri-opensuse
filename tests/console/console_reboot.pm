@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use strict;
+use warnings;
 
 sub run {
     my ($self) = @_;

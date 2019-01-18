@@ -17,6 +17,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
+use warnings;
 use base 'y2logsstep';
 use testapi;
 use Utils::Backends 'use_ssh_serial_console';

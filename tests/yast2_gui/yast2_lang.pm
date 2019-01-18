@@ -16,6 +16,7 @@
 
 use base "y2x11test";
 use strict;
+use warnings;
 use testapi;
 
 sub run {

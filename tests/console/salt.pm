@@ -14,6 +14,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils qw(zypper_call pkcon_quit systemctl);
 use version_utils qw(is_jeos is_opensuse);

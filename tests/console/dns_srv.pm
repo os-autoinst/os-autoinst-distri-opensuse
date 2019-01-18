@@ -11,6 +11,7 @@
 # Maintainer: sysrich <RBrownCCB@opensuse.org>
 
 use strict;
+use warnings;
 use base "consoletest";
 use testapi;
 use utils qw(is_bridged_networking systemctl);

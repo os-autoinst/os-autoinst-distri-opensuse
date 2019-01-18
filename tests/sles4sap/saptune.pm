@@ -14,6 +14,7 @@ use base "sles4sap";
 use testapi;
 use version_utils 'is_sle';
 use strict;
+use warnings;
 
 sub tuned_is {
     my $pattern = shift;

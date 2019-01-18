@@ -18,6 +18,7 @@
 
 use base "hpcbase";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use susedistribution;

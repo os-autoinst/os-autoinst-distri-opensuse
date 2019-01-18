@@ -13,6 +13,7 @@
 
 use base "qa_run";
 use strict;
+use warnings;
 use testapi;
 
 sub create_qaset_config {

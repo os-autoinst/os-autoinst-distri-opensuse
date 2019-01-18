@@ -11,6 +11,7 @@
 # Maintainer: John <xgwang@suse.com>
 
 use strict;
+use warnings;
 use testapi;
 use base "proxymode";
 sub run {

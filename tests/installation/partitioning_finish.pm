@@ -12,6 +12,7 @@
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 

@@ -16,6 +16,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 use testapi;
 use version_utils qw(is_opensuse is_leap);
 

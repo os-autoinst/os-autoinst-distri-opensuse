@@ -13,6 +13,7 @@
 use base "opensusebasetest";
 use testapi;
 use strict;
+use warnings;
 use lockapi;
 
 our $results_dir = '/tmp';

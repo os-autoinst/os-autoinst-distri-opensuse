@@ -18,6 +18,7 @@ use testapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
 use strict;
+use warnings;
 
 sub disable_bash_mail_notification {
     assert_script_run "unset MAILCHECK >> ~/.bashrc";

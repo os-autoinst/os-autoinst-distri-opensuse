@@ -17,6 +17,7 @@
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
 use strict;
+use warnings;
 use base "console_yasttest";
 use utils;
 use testapi;

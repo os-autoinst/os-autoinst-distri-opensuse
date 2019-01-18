@@ -11,6 +11,7 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use strict;
+use warnings;
 use base 'btrfs_test';
 use testapi;
 use utils;

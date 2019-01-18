@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use utils 'systemctl';
 
 sub run {

@@ -10,6 +10,7 @@
 # Summary: Library for parsing xml files
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 use strict;
+use warnings;
 use XML::LibXML;
 use Exporter 'import';
 

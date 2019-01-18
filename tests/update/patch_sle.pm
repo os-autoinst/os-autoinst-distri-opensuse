@@ -10,6 +10,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_desktop_installed is_upgrade is_sles4sap);

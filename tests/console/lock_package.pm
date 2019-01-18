@@ -13,6 +13,7 @@
 package lock_package;
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 our $locked_pkg_info = [];

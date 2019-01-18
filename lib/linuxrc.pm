@@ -2,6 +2,7 @@ package linuxrc;
 use base "opensusebasetest";
 use testapi;
 use strict;
+use warnings;
 
 #
 # Shared functionality for handling Linuxrc
