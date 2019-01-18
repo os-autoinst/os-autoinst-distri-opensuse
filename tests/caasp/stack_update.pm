@@ -19,6 +19,7 @@ use caasp_controller;
 use strict;
 use testapi;
 use caasp;
+use utils 'systemctl';
 use version_utils 'is_caasp';
 
 # Orchestrate the reboot via Velum
@@ -164,7 +165,18 @@ sub update_perform_update {
     $ret == 100 ? orchestrate_velum_reboot : die('Update process failed');
 }
 
+# Bug#1121797 - Nodes change IP address after migration from v3->v4
+sub setup_static_dhcp {
+    switch_to 'xterm';
+    become_root;
+    assert_script_run q#arp -n | awk '/52:54:00/ {printf "host h%s {\n  hardware ethernet %s;\n  fixed-address %s;\n}\n", ++h, $3, $1}' >> /etc/dhcpd.conf#;
+    systemctl 'restart dhcpd';
+    type_string "exit\n";
+}
+
 sub run {
+    setup_static_dhcp if update_scheduled('dup');
+
     # update.sh -s $repo
     update_setup_repos;
 
