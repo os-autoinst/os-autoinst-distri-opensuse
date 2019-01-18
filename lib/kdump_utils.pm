@@ -11,6 +11,7 @@ package kdump_utils;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi;
 use utils;
 use List::Util 'maxstr';

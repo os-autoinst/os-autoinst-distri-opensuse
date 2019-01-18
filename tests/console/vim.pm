@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_jeos';
 

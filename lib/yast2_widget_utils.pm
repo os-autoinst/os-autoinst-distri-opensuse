@@ -16,6 +16,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 use testapi;
 
 our @EXPORT = qw(change_service_configuration verify_service_configuration);

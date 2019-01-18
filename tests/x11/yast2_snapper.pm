@@ -13,6 +13,7 @@
 
 use base qw(y2snapper_common x11test);
 use strict;
+use warnings;
 use testapi;
 use utils;
 

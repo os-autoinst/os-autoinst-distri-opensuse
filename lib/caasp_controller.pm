@@ -2,6 +2,7 @@ package caasp_controller;
 use base "opensusebasetest";
 
 use strict;
+use warnings;
 use testapi;
 use caasp qw(unpause script_assert0);
 use lockapi 'barrier_destroy';

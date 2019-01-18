@@ -11,6 +11,7 @@
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
 use strict;
+use warnings;
 use testapi;
 use base 'opensusebasetest';
 

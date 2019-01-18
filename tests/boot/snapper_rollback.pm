@@ -14,6 +14,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 use migration qw(check_rollback_system boot_into_ro_snapshot);
 use power_action_utils 'power_action';
 

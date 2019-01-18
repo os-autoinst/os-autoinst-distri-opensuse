@@ -3,6 +3,7 @@ package sles4sap;
 use base "opensusebasetest";
 
 use strict;
+use warnings;
 use testapi;
 use utils;
 use isotovideo;

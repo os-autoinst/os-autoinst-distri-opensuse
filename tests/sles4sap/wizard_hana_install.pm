@@ -13,6 +13,7 @@
 
 use base 'sles4sap';
 use strict;
+use warnings;
 use testapi;
 use utils qw(type_string_slow zypper_call turn_off_gnome_screensaver);
 use Utils::Backends 'use_ssh_serial_console';

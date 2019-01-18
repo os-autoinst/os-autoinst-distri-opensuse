@@ -13,6 +13,7 @@
 
 use base qw(y2logsstep y2x11test);
 use strict;
+use warnings;
 use testapi;
 use registration 'fill_in_registration_data';
 use version_utils 'is_sle';

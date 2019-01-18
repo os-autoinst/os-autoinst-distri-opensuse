@@ -14,6 +14,7 @@
 use base "sles4sap";
 use testapi;
 use strict;
+use warnings;
 
 sub fix_path {
     my $path  = shift;

@@ -2,6 +2,7 @@ package btrfs_test;
 use base 'consoletest';
 
 use strict;
+use warnings;
 use testapi;
 use utils 'get_root_console_tty';
 

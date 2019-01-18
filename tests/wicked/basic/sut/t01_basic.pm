@@ -23,6 +23,7 @@
 
 use base 'wickedbase';
 use strict;
+use warnings;
 use testapi;
 use utils qw(systemctl arrays_differ);
 use network_utils 'iface';

@@ -1,6 +1,7 @@
 package y2snapper_common;
 
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils;

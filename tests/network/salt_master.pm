@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use lockapi;
 use y2x11test 'setup_static_mm_network';

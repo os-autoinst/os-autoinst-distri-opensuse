@@ -10,6 +10,7 @@
 # Summary: This module installs the KOTD (kernel of the day) and then reboots.
 # Maintainer: Nathan Zhao <jtzhao@suse.com>
 use 5.018;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;

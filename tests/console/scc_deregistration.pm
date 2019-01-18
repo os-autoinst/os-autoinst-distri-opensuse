@@ -17,6 +17,7 @@
 # Maintainer: Qingming Su <qmsu@suse.com>
 
 use strict;
+use warnings;
 use base "consoletest";
 use testapi;
 use registration "scc_deregistration";

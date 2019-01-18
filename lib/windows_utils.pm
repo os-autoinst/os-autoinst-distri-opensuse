@@ -13,6 +13,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 
 use testapi;
 

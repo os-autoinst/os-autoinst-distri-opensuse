@@ -13,6 +13,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 
 use File::Basename 'basename';
 use Time::HiRes 'sleep';

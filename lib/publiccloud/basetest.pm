@@ -18,6 +18,7 @@ use publiccloud::azure;
 use publiccloud::ec2;
 use publiccloud::gce;
 use strict;
+use warnings;
 
 sub provider_factory {
     my ($self) = @_;

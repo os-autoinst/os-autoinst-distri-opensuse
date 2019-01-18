@@ -12,6 +12,7 @@
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use utils qw(addon_license handle_untrusted_gpg_key);

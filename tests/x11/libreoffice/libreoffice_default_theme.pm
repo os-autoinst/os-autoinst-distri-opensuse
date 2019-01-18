@@ -16,6 +16,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
 use strict;
+use warnings;
 
 sub check_lo_theme {
     x11_start_program('ooffice');

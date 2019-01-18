@@ -11,6 +11,7 @@
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
 use strict;
+use warnings;
 use base "console_yasttest";
 use testapi;
 use utils;

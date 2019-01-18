@@ -2,6 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
+use warnings;
 use utils qw(
   desktop_runner_hotkey
   disable_serial_getty

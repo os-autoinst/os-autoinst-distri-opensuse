@@ -12,6 +12,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 # poo#11442

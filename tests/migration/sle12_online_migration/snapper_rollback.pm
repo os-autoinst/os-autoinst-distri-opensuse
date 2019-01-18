@@ -12,6 +12,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use power_action_utils 'power_action';
 use version_utils 'is_desktop_installed';

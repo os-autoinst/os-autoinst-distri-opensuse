@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils qw(pkcon_quit zypper_call);
 

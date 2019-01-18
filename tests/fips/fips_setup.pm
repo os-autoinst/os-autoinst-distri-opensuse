@@ -20,6 +20,7 @@
 # Tags: poo#39071
 
 use strict;
+use warnings;
 use base "consoletest";
 use testapi;
 use utils;

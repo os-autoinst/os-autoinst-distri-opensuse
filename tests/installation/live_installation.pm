@@ -22,6 +22,7 @@ use testapi;
 use utils;
 use version_utils "is_upgrade";
 use strict;
+use warnings;
 
 sub send_key_and_wait {
     my ($key, $wait_time) = @_;

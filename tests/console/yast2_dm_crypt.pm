@@ -14,6 +14,7 @@
 
 use base "console_yasttest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils 'is_desktop_installed';

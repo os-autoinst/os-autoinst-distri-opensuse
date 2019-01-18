@@ -12,6 +12,7 @@
 
 use base 'y2logsstep';
 use strict;
+use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';

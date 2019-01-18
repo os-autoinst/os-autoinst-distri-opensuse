@@ -27,6 +27,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 use registration;
 use version_utils qw(is_sle is_leap);
 

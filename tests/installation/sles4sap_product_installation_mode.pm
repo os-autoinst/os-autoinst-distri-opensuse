@@ -11,6 +11,7 @@
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils 'is_sle';

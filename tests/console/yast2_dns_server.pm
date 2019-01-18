@@ -13,6 +13,7 @@
 
 use base qw(console_yasttest y2logsstep);
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle);

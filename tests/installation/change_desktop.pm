@@ -15,6 +15,7 @@ package change_desktop;
 use base "y2logsstep";
 use base "installsummarystep";
 use strict;
+use warnings;
 use testapi;
 
 sub change_desktop {

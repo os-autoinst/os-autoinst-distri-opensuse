@@ -21,6 +21,7 @@ use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use testapi;
 use caasp 'pause_until';
 use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver zypper_call);

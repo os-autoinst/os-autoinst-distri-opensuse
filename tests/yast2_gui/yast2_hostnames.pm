@@ -16,6 +16,7 @@
 
 use base "y2x11test";
 use strict;
+use warnings;
 use testapi;
 use utils qw(type_string_slow clear_console);
 

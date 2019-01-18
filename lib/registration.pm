@@ -19,6 +19,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);

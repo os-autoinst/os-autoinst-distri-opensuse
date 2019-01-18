@@ -15,6 +15,7 @@
 
 use base 'wickedbase';
 use strict;
+use warnings;
 use testapi;
 use network_utils qw(iface ifc_exists);
 

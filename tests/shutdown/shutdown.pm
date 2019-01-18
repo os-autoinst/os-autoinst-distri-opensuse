@@ -17,6 +17,7 @@
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use power_action_utils 'power_action';

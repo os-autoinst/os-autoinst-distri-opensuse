@@ -18,6 +18,7 @@ package version_utils;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
 

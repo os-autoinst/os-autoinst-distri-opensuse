@@ -1,6 +1,7 @@
 package virtmanager;
 use testapi;
 use strict;
+use warnings;
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool

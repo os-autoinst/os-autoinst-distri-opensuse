@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 # show installed GNOME components, allows to look for possibly unwanted

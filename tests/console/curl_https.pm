@@ -16,6 +16,7 @@
 use base "consoletest";
 use testapi;
 use strict;
+use warnings;
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run {

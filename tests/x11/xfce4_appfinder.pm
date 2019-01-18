@@ -13,6 +13,7 @@
 
 use base 'x11test';
 use strict;
+use warnings;
 use testapi;
 use utils 'desktop_runner_hotkey';
 

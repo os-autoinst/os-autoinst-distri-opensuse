@@ -14,6 +14,7 @@
 use base 'consoletest';
 use testapi;
 use strict;
+use warnings;
 use lockapi qw(barrier_create barrier_wait);
 use utils 'zypper_call';
 

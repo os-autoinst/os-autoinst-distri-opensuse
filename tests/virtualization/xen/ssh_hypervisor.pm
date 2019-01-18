@@ -19,6 +19,7 @@
 use base "consoletest";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 

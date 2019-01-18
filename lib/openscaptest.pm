@@ -24,6 +24,7 @@ use Exporter;
 
 use consoletest;
 use strict;
+use warnings;
 use testapi;
 use utils;
 

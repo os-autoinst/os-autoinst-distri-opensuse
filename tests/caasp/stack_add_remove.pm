@@ -15,6 +15,7 @@ use caasp qw(pause_until get_delayed);
 use lockapi 'barrier_wait';
 
 use strict;
+use warnings;
 use testapi;
 
 

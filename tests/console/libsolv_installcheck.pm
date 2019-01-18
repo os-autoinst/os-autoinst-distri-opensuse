@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 
 sub run {
     my ($self) = @_;

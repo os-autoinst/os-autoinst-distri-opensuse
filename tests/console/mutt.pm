@@ -12,6 +12,7 @@
 
 use base 'consoletest';
 use strict;
+use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_jeos);
 use utils;

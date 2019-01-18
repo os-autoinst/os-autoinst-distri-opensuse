@@ -14,6 +14,7 @@
 use base "sles4sap";
 use testapi;
 use strict;
+use warnings;
 use utils 'ensure_serialdev_permissions';
 
 sub run {

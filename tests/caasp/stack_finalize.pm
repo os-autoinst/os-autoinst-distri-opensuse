@@ -13,6 +13,7 @@
 use parent 'caasp_controller';
 
 use strict;
+use warnings;
 use caasp 'unpause';
 use mmapi 'wait_for_children';
 

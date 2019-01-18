@@ -12,6 +12,7 @@ package partition_setup;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi;
 use version_utils ':VERSION';
 use installation_user_settings 'await_password_check';

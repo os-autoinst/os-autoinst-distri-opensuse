@@ -12,6 +12,7 @@
 
 use base "caasp_clusternode";
 use strict;
+use warnings;
 use testapi;
 use lockapi 'barrier_wait';
 use autotest 'query_isotovideo';

@@ -11,6 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@e13.suse.de>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 

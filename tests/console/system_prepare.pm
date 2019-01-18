@@ -18,6 +18,7 @@ use version_utils qw(is_sle);
 use serial_terminal 'add_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use strict;
+use warnings;
 
 sub run {
     my ($self) = @_;

@@ -17,6 +17,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 
 # Setup the required testing environment
 sub setup {

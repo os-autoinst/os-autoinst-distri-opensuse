@@ -15,6 +15,7 @@
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
+use warnings;
 use base 'y2logsstep';
 use testapi;
 use version_utils 'is_storage_ng';

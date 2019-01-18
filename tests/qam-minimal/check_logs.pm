@@ -19,6 +19,7 @@
 use base "consoletest";
 
 use strict;
+use warnings;
 
 use qam;
 use testapi;

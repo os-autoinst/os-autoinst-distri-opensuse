@@ -12,6 +12,7 @@
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils qw(is_storage_ng is_sle);

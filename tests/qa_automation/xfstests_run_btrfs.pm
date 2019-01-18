@@ -21,6 +21,7 @@ use base "xfstests_install";
 use base "xfstests_device";
 use base "xfstests_logs";
 use strict;
+use warnings;
 use testapi;
 
 sub run {

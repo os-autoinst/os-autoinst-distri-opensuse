@@ -13,6 +13,7 @@
 
 use base 'btrfs_test';
 use strict;
+use warnings;
 use testapi;
 
 use constant COLUMN_FILTER    => "awk -F '|' '{print \$1  \$6}'";                   # Filter by columns: # and Used Space

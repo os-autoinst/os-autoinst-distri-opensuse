@@ -7,6 +7,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 # Summary: Cleanup ssh test user to prevent the user showing up in

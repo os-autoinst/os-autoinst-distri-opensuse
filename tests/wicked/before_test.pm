@@ -12,6 +12,7 @@
 
 use base 'wickedbase';
 use strict;
+use warnings;
 use testapi;
 use utils qw(zypper_call systemctl);
 use network_utils qw(iface setup_static_network);

@@ -18,6 +18,7 @@
 # Tags: tc#1586203
 
 use strict;
+use warnings;
 use base 'basetest';
 use base 'x11test';
 use testapi;

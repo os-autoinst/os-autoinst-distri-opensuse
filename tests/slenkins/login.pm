@@ -17,6 +17,7 @@
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 

@@ -13,6 +13,7 @@
 use base "basetest";
 use testapi;
 use strict;
+use warnings;
 use version_utils 'is_sle';
 
 sub run() {

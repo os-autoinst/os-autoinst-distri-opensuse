@@ -14,6 +14,7 @@
 # Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use utils qw(handle_login handle_emergency);

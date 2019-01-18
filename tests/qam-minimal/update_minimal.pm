@@ -17,6 +17,7 @@
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 
 use utils;
