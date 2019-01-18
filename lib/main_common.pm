@@ -2119,6 +2119,11 @@ sub load_security_tests {
     elsif (check_var("SECURITY_TEST", "selinux")) {
         load_security_tests_selinux;
     }
+    elsif (check_var("SECURITY_TEST", "ima_setup")) {
+        # Setup system environment for IMA testing
+        loadtest "security/mokutil_sign";
+        loadtest "shutdown/shutdown";
+    }
 }
 
 
