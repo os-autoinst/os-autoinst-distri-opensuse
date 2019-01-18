@@ -46,7 +46,7 @@ sub run {
     wait_screen_change { send_key "alt-o"; };
     # Check that entry was correctly edited in /etc/hosts
     select_console "root-console";
-    assert_script_run q#grep '195\.135\.221\.134\sdownload\.opensuse\.org\sdownload-srv' /etc/hosts#;
+    assert_script_run q#grep '195\.135\.221\.134\s*download\.opensuse\.org\s*download-srv' /etc/hosts#;
 }
 
 # Test ends in root-console, default post_run_hook does not work here
