@@ -32,7 +32,7 @@ sub run {
 
     select_console 'root-console';
 
-    if (is_sle('>12')) {
+    if (is_sle('>=15')) {
         add_suseconnect_product("sle-module-desktop-applications");
         add_suseconnect_product("sle-module-development-tools");
     }
@@ -59,7 +59,7 @@ sub run {
     assert_script_run("openssl pkcs12 -export -inkey $pri_key -in $cert_pem -name kernel_cert -out $cert_p12 -passout pass:$key_pw");
     assert_script_run("openssl x509 -in $cert_pem -outform der -out $cert_der");
 
-    # certutil -N does not support password in command arguement, so the
+    # certutil -N does not support password in command argument, so the
     # interactive mode have to be applied here
     script_run_interactive(
         "certutil -d $work_dir -N",
@@ -80,7 +80,7 @@ sub run {
 
     my $kern = script_output("ls /boot/vmlinuz-*-default");
 
-    # Remove existed signature and sign with new one to ensure it will boot
+    # Remove existing signature and sign with new one to ensure it will boot
     # with MOK signed kernel
     assert_script_run("pesign -S -i $kern | tee /dev/$serialdev");
     assert_script_run("pesign -r -u 0 -i $kern -o /tmp/kerntmp");

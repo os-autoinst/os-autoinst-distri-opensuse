@@ -2122,6 +2122,7 @@ sub load_security_tests {
     elsif (check_var("SECURITY_TEST", "ima_setup")) {
         # Setup system environment for IMA testing
         loadtest "security/mokutil_sign";
+        loadtest "security/ima/ima_setup";
         loadtest "shutdown/shutdown";
     }
 }
