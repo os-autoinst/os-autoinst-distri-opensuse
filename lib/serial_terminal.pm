@@ -68,9 +68,8 @@ escape sequences (i.e. a single #) and changes the terminal width.
 =cut
 sub login {
     die 'Login expects two arguments' unless @_ == 2;
-    my $user        = shift;
-    my $escseq      = qr/(\e [\(\[] [\d\w]{1,2})/x;
-    my $pass_prompt = (get_var('JEOSINSTLANG') == 'de_DE') ? 'Passwort' : 'Password';
+    my $user   = shift;
+    my $escseq = qr/(\e [\(\[] [\d\w]{1,2})/x;
 
     $serial_term_prompt = shift;
 
@@ -81,7 +80,7 @@ sub login {
     type_string("\n");
     wait_serial(qr/login:\s*$/i);
     type_string("$user\n");
-    wait_serial(qr/$pass_prompt:\s*$/i);
+    wait_serial(qr/Password:\s*$/i);
     type_password;
     type_string("\n");
     wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
