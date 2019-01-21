@@ -169,22 +169,39 @@ sub setup_static_dhcp {
     type_string "exit\n";
 }
 
+sub perform_migration {
+    switch_to 'xterm';
+    my $build = get_required_var 'BUILD';
+    salt 'cmd.run zypper mr -d -l';
+    salt "cmd.run echo 'url: http://all-$build.proxy.scc.suse.de' > /etc/SUSEConnect";
+    salt 'cmd.run systemctl disable --now transactional-update.timer';
+    salt 'cmd.run transactional-update salt migration -n', timeout => 1500;
+    salt 'saltutil.refresh_grains';
+
+    orchestrate_velum_reboot;
+}
+
 sub run {
-    setup_static_dhcp if update_scheduled('dup');
-
-    # update.sh -s $repo
-    update_setup_repos;
-
+    # QAM update for new packages
     if (is_caasp 'qam') {
+        update_setup_repos;          # update.sh -s $repo
         install_new_packages;        # update.sh -n
         install_missing_packages;    # update.sh -i
+        update_perform_update if is_needed();
     }
 
-    # update.sh -u
-    update_perform_update if is_needed();
+    # Migration from last GM to current build
+    elsif (update_scheduled 'migration') {
+        setup_static_dhcp;
+        perform_migration;
+    }
 
-    # update.sh -c
-    update_check_changes if update_scheduled('fake');
+    # Fake update - checks that update stack works, not scheduled ATM
+    elsif (update_scheduled 'fake') {
+        update_setup_repos;
+        update_perform_update;
+        update_check_changes;
+    }
 }
 
 1;

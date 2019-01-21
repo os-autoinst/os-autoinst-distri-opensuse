@@ -177,7 +177,7 @@ sub get_delayed {
 
 
 # Return update repository without parameters
-# Optional filter for update type [qam|fake|dup]
+# Optional filter for update type [qam|fake|migration]
 sub update_scheduled {
     my $type = shift;
 
@@ -193,11 +193,7 @@ sub update_scheduled {
     return $repo unless $type;
     return $repo =~ 'Maintenance' if $type eq 'qam';
     return $repo =~ 'TestUpdate'  if $type eq 'fake';
-    if ($type eq 'dup') {
-        my $extracted_iso = get_var('REPO_0');
-        return 0 unless $extracted_iso;
-        return $repo =~ $extracted_iso;
-    }
+    return $repo =~ 'SCC-proxy'   if $type eq 'migration';
     die "Unrecognized type: '$type'";
 }
 
