@@ -64,6 +64,11 @@ where="-P roles:(admin|kube-(master|minion))"
 srun="docker exec -i $saltid salt --batch 7"
 runner="$srun $where cmd.run"
 
+# Manually Refresh the Grains (or wait up to 10 minutes)
+function refresh_grains {
+    $srun '*' saltutil.refresh_grains
+}
+
 if [ ! -z "${SETUP:-}" ]; then
     # Remove non-existent ISO repository
     $runner "zypper rr 1"
@@ -99,8 +104,7 @@ elif [ ! -z "${UPDATE:-}" ]; then
     $runner 'systemctl disable --now transactional-update.timer'
     $runner '/usr/sbin/transactional-update cleanup dup salt'
 
-    # Manually Refresh the Grains (or wait up to 10 minutes)
-    $srun '*' saltutil.refresh_grains
+    refresh_grains
     exit 100
 
 elif [ ! -z "${CHECK:-}" ]; then
@@ -170,9 +174,7 @@ elif [ ! -z "${NEWPKG:-}" ]; then
 
             # Install the packages
             $runner "/usr/sbin/transactional-update salt pkg install -y $(cat new_package.txt)"
-
-            # Refresh the Grains
-            $srun '*' saltutil.refresh_grains
+            refresh_grains
 
             # Orchestrate the reboot via Velum to complete the installation
             rm not_installed.txt
@@ -203,9 +205,7 @@ elif [ ! -z "${INSTALL:-}" ]; then
 
         # Install the packages
         $runner "/usr/sbin/transactional-update salt pkg install -y $(cat not_installed.txt)"
-
-        # Refresh the Grains
-        $srun '*' saltutil.refresh_grains
+        refresh_grains
 
         # Enable the update repo
         $runner "zypper mr -e UPDATE"
