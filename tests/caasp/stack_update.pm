@@ -95,11 +95,6 @@ sub update_setup_repos {
     record_info 'Repo', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
 
-    # Deregister before distribution update
-    if (update_scheduled 'dup') {
-        script_assert0 "ssh $admin_fqdn './update.sh -s dup' | tee /dev/$serialdev", 120;
-    }
-
     # Add UPDATE repository
     my $repo = update_scheduled;
     script_assert0 "ssh $admin_fqdn './update.sh -s $repo' | tee /dev/$serialdev", 120;

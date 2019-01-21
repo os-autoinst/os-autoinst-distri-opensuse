@@ -70,16 +70,9 @@ function refresh_grains {
 }
 
 if [ ! -z "${SETUP:-}" ]; then
-    # Remove non-existent ISO repository
-    $runner "zypper rr 1"
-    if [ "$SETUP" == "dup" ]; then
-        # Deregister system before update
-        $runner "SUSEConnect -d"
-    else
-        # Add repository to system vendors
-        $runner 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf'
-        $runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
-    fi
+    $runner 'zypper mr -d -l'
+    $runner 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf'
+    $runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
     $runner "zypper lr -U"
 
 elif [ ! -z "${TEST:-}" ]; then
