@@ -2,8 +2,7 @@
 set -exuo pipefail
 
 # Fake update repositories for QA tests
-# 2.0 -> 2.0 http://download.suse.de/ibs/Devel:/CASP:/2.0:/ControllerNode:/TestUpdate/standard/Devel:CASP:2.0:ControllerNode:TestUpdate.repo
-# 3.0 -> 3.0 TODO
+# 3.0 -> 3.0 http://download.suse.de/ibs/Devel:/CASP:/3.0:/ControllerNode:/TestUpdate/standard/Devel:CASP:3.0:ControllerNode:TestUpdate.repo
 
 # On success returns 0 or 100 if reboot is required
 usage() {
@@ -59,10 +58,13 @@ do
 done
 
 # Set up some shortcuts
-saltid=$(docker ps | grep salt-master | awk '{print $1}')
-where="-P roles:(admin|kube-(master|minion))"
-srun="docker exec -i $saltid salt --batch 7"
-runner="$srun $where cmd.run"
+DEFAULT_TARGET='roles:(admin|kube-(master|minion))'
+SALT_MASTER=$(docker ps | grep salt-master | awk '{print $1}')
+
+# Run salt command (needs target): $srun '*' test.ping
+srun="docker exec -i $SALT_MASTER salt --batch 11"
+# Run bash command (on all nodes): $runner 'zypper lr'
+runner="$srun -P $DEFAULT_TARGET cmd.run"
 
 # Manually Refresh the Grains (or wait up to 10 minutes)
 function refresh_grains {
@@ -132,9 +134,7 @@ elif [ ! -z "${CHECK:-}" ]; then
     docker exec -i $container_id ls /IMAGE_UPDATED
 
 elif [ ! -z "${REBOOT:-}" ]; then
-    where="-P roles:kube-(master|minion)"
-    srun="docker exec -d $saltid salt"
-    $srun $where system.reboot
+    docker exec -d $SALT_MASTER salt -P "roles:kube-(master|minion)" system.reboot
 
 elif [ ! -z "${NEWPKG:-}" ]; then
     # Fetch all the packages included for this QAM incident

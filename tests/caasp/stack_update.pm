@@ -11,7 +11,7 @@
 #   SSH keys are already generated
 #   SSH config was modified to not check identity
 #   Script is not run on admin to avoid mutex hell
-# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Georgios Gkioulis <ggkioulis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
@@ -40,7 +40,7 @@ sub orchestrate_velum_reboot {
 
     # Update all nodes - this part takes long time (~2 minutes per node)
     my @needles_array = ('velum-sorry', "velum-$n-nodes-outdated");
-    assert_screen [@needles_array], 900;
+    assert_screen [@needles_array], 600;
     if (match_has_tag 'velum-sorry') {
         record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
         # workaround for meltdown
@@ -160,7 +160,7 @@ sub update_perform_update {
     $ret == 100 ? orchestrate_velum_reboot : die('Update process failed');
 }
 
-# Bug#1121797 - Nodes change IP address after migration from v3->v4
+# bug#1121797 - Nodes change IP address after v3->v4 migration (feature)
 sub setup_static_dhcp {
     switch_to 'xterm';
     become_root;
