@@ -102,7 +102,7 @@ elif [ ! -z "${UPDATE:-}" ]; then
 
     # Manually Trigger Transactional Update (or wait up to 24 hours for it run by itself)
     $runner 'systemctl disable --now transactional-update.timer'
-    $runner '/usr/sbin/transactional-update cleanup dup salt'
+    $runner '/usr/sbin/transactional-update cleanup dup reboot'
 
     refresh_grains
     exit 100
