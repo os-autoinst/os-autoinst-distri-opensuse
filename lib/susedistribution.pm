@@ -403,7 +403,7 @@ sub init_consoles {
                 password => get_var('VIRSH_GUEST_PASSWORD')});
     }
 
-    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
+    if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -415,11 +415,11 @@ sub init_consoles {
             });
     }
 
-    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'spvm')) {
+    if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm/ || get_var('S390_ZKVM')) {
         my $hostname;
 
         $hostname = get_var('VIRSH_GUEST')     if get_var('S390_ZKVM');
-        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+        $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm/;
 
         if (check_var('BACKEND', 's390x')) {
 
@@ -596,7 +596,7 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }
-        elsif (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
+        elsif (get_var('BACKEND', '') =~ /ipmi|spvm/) {
             # Select configure serial and redirect to root-ssh instead
             use_ssh_serial_console;
             return;
@@ -627,8 +627,8 @@ sub activate_console {
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
-        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
-            diag 'backend s390x || zkvm || ipmi || spvm';
+        if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm/ || get_var('S390_ZKVM')) {
+            diag 'backend ipmi || spvm || s390x || zkvm';
             $user ||= 'root';
             handle_password_prompt;
             ensure_user($user);
@@ -683,8 +683,8 @@ sub activate_console {
     }
     elsif (
         $console eq 'installation'
-        && (((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm') || get_var('S390_ZKVM')))
-            && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
+        && ((get_var('BACKEND', '') =~ /ipmi|s390x|spvm/) || get_var('S390_ZKVM'))
+        && (get_var('VIDEOMODE', '') =~ /text|ssh-x/))
     {
         diag 'activate_console called with installation for ssh based consoles';
         $user ||= 'root';

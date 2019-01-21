@@ -52,12 +52,8 @@ sub use_ssh_serial_console {
 }
 
 sub is_remote_backend {
-
     # s390x uses only remote repos
-    return check_var('ARCH', 's390x') ||
-      check_var('BACKEND', 'svirt') ||
-      check_var('BACKEND', 'ipmi')  ||
-      check_var('BACKEND', 'spvm');
+    return check_var('ARCH', 's390x') || get_var('BACKEND', '') =~ /ipmi|spvm|svirt/;
 }
 
 # In some cases we are using a VNC connection provided by the hypervisor that

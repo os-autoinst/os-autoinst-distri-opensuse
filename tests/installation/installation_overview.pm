@@ -16,14 +16,11 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils 'is_caasp';
+use Utils::Backends 'is_remote_backend';
 
 
 sub ensure_ssh_unblocked {
-    my $need_ssh = check_var('ARCH', 's390x');    # s390x always needs SSH
-    $need_ssh = 1 if check_var('BACKEND', 'ipmi');    # we better be able to login
-    $need_ssh = 1 if check_var('BACKEND', 'spvm');    # we better be able to login
-
-    if (!get_var('UPGRADE') && $need_ssh) {
+    if (!get_var('UPGRADE') && is_remote_backend) {
 
         send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab';
         if (match_has_tag 'ssh-blocked') {
