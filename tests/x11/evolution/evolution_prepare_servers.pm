@@ -49,7 +49,7 @@ sub run() {
     assert_script_run "sed -i -e '/unix_listener .*postfix.* {/,/}/ s/#//g' /etc/dovecot/conf.d/10-master.conf";
 
     # Generate SSL DH parameters for Dovecot >=2.3
-    assert_script_run("openssl dhparam -out /etc/dovecot/dh.pem 2048", 300) unless is_sle('<15');
+    assert_script_run("openssl dhparam -out /etc/dovecot/dh.pem 2048", 900) unless is_sle('<15');
 
     # Generate default certificate for dovecot and postfix
     my $dovecot_path = is_jeos() ? '/usr/share/dovecot' : '/usr/share/doc/packages/dovecot';
