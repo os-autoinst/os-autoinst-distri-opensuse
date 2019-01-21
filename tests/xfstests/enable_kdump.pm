@@ -55,4 +55,16 @@ sub test_flags {
     return {fatal => 1};
 }
 
+sub enable_kdump_failure_analysis {
+    # Upload y2log for analysis if enable kdump fails
+    assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
+    upload_logs '/tmp/y2logs.tar.bz2';
+    save_screenshot;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->enable_kdump_failure_analysis;
+}
+
 1;
