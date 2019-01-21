@@ -71,6 +71,8 @@ sub export_cluster_logs {
         upload_logs('/var/log/transactional-update.log', failok => 1);
         upload_logs('/var/log/YaST2/y2log-1.gz') if get_var 'AUTOYAST';
     }
+    # Requested by SCC team
+    script_run 'SUSEConnect -d';
 }
 
 # Weak password warning should be displayed only once - bsc#1025835
