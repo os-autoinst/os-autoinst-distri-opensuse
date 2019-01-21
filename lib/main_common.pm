@@ -2130,7 +2130,12 @@ sub load_security_tests {
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
-    loadtest 'console/systemd_testsuite';
+    if (check_var('SYSTEMD_TESTSUITE', 'basic')) {
+        loadtest 'systemd_testsuite/test_01_basic';
+    }
+    else {
+        loadtest 'console/systemd_testsuite';
+    }
 }
 
 sub load_system_prepare_tests {
