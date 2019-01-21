@@ -19,6 +19,23 @@ use power_action_utils 'power_action';
 
 sub run {
     select_console 'root-console';
+    zypper_call 'in mypackage';
+    assert_script_run 'cd /var/opt/systemd-tests';
+    power_action('reboot', textmode => 1);
+    zypper_call 'in mypackage';
+    assert_script_run 'cd /var/opt/systemd-tests';
 }
+
+sub test_flags {
+    return { always_rollback => 1 };
+}
+
+# sub post_fail_hook {
+#     my ($self) = shift;
+#     $self->SUPER::post_fail_hook;
+#     assert_script_run('tar -cjf TEST-01-BASIC-logs.tar.bz2 logs/');
+#     upload_logs('TEST-01-BASIC-logs.tar.bz2');
+# }
+
 
 1;
