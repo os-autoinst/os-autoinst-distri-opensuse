@@ -163,10 +163,10 @@ sub get_admin_job {
 sub get_delayed {
     my $role = shift;
 
-    my ($drole, $count);
-    my @jobs = get_cluster_jobs;
+    my $count = 0;
+    my @jobs  = get_cluster_jobs;
     for my $job_id (@jobs) {
-        if ($drole = get_job_info($job_id)->{settings}->{DELAYED}) {
+        if (my $drole = get_job_info($job_id)->{settings}->{DELAYED}) {
             if ($role) {
                 return $job_id if $role eq $drole;
             } else {
