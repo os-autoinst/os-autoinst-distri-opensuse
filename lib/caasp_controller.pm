@@ -3,13 +3,13 @@ use base "opensusebasetest";
 
 use strict;
 use testapi;
-use caasp 'unpause';
+use caasp qw(unpause script_assert0);
 use lockapi 'barrier_destroy';
 use mmapi 'wait_for_children';
 use version_utils 'is_caasp';
 
 use Exporter 'import';
-our @EXPORT = qw($admin_fqdn $master_fqdn
+our @EXPORT = qw($admin_fqdn $master_fqdn salt
   confirm_insecure_https velum_login switch_to download_kubeconfig click_click xy);
 
 our $admin_fqdn = 'admin.openqa.test';
@@ -68,6 +68,20 @@ sub velum_login {
     sleep 1;
     save_screenshot;
     send_key 'ret';
+}
+
+# Executes salt command on admin node.
+# Escaping: ' is OK; " and spacial chars need to be escaped
+# Params: target [admin|kube-master|kube-minion]; timeout
+# Example: salt "cmd.run SUSEConnect -d", target => 'kube-(master|minion)', timeout => 20;
+sub salt {
+    my ($cmd, %args) = @_;
+
+    my $update_args = qq#-e "$cmd"#;
+    $update_args .= qq# -t "roles:$args{target}"# if $args{target};
+
+    record_info './update.sh exec', "ssh $admin_fqdn './update.sh $update_args'";
+    script_assert0("ssh $admin_fqdn './update.sh $update_args' | tee /dev/$serialdev", $args{timeout});
 }
 
 # Users have to confirm certificate 3 times during deployment

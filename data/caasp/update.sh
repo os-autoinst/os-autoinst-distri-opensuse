@@ -7,6 +7,8 @@ set -exuo pipefail
 # On success returns 0 or 100 if reboot is required
 usage() {
     echo "Usage: $0
+        [-e] Execute salt command
+        [-t] Target for executed salt commend
         [-s $REPO] Setup all nodes with update REPO
         [-u] Update all nodes
         [-c] Check that update was applied
@@ -17,8 +19,10 @@ usage() {
     exit 1
 }
 
-while getopts "s:curnti" opt; do
+while getopts "e:t:s:curnti" opt; do
 case $opt in
+    e)  EXECUTE=$OPTARG;;
+    t)  TARGET=$OPTARG;;
     s)
         SETUP=$OPTARG
         ;;
@@ -76,6 +80,14 @@ if [ ! -z "${SETUP:-}" ]; then
     $runner 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf'
     $runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
     $runner "zypper lr -U"
+
+elif [ ! -z "${EXECUTE:-}" ]; then
+    : ${TARGET:=$DEFAULT_TARGET}
+    if [[ $EXECUTE == cmd.run* ]]; then
+        $srun -P "$TARGET" cmd.run "${EXECUTE#* }"
+    else
+        $srun -P "$TARGET" "$EXECUTE"
+    fi
 
 elif [ ! -z "${TEST:-}" ]; then
     # Skip updating if the whole maintenance incident was just a single new package
