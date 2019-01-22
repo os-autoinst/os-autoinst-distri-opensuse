@@ -37,7 +37,7 @@ sub run {
     zypper_call('in salt-master salt-minion');
     my $cmd = <<'EOF';
 systemctl start salt-master
-systemctl status salt-master
+systemctl status --no-pager salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
 systemctl start salt-minion
 systemctl status --no-pager salt-minion
