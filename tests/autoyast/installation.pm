@@ -52,18 +52,6 @@ sub save_and_upload_stage_logs {
 }
 
 sub upload_autoyast_profile {
-    my ($self) = @_;
-    select_console 'install-shell';
-    # the network may be down with keep_install_network=false
-    # use static ip in that case if not on s390x
-    if (!check_var("BACKEND", "s390x")) {
-        type_string " if ! ping -c 1 10.0.2.2 ; then
-            ip addr add 10.0.2.200/24 dev eth0
-            ip link set eth0 up
-            route add default gw 10.0.2.2
-        fi
-        ";
-    }
     # Upload autoyast profile if file exists
     if (script_run '! test -e /tmp/profile/autoinst.xml') {
         upload_logs '/tmp/profile/autoinst.xml';
@@ -73,8 +61,6 @@ sub upload_autoyast_profile {
         upload_logs '/tmp/profile/modified.xml';
     }
     save_screenshot;
-    clear_console;
-    select_console 'installation';
 }
 
 sub handle_expected_errors {
@@ -289,8 +275,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->upload_autoyast_profile;
     $self->SUPER::post_fail_hook;
+    $self->upload_autoyast_profile;
 }
 
 1;
