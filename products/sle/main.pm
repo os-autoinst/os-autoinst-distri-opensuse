@@ -131,6 +131,10 @@ if (is_sle('15+')) {
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
 }
+# Register against SCC if SLE 12 SP5 for non-staging
+elsif (is_sle('12-SP5+') && !is_staging) {
+    set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
+}
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
 if (is_sle('15+')) {
