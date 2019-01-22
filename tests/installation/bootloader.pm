@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,13 +17,15 @@ use strict;
 use testapi;
 use lockapi 'mutex_wait';
 use bootloader_setup;
+use bootloader_spvm;
 use registration;
 use utils;
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
-    return if pre_bootmenu_setup == 3;
-    return if select_bootmenu_option == 3;
+    return boot_spvm if check_var('BACKEND', 'spvm');
+    return           if pre_bootmenu_setup == 3;
+    return           if select_bootmenu_option == 3;
     bootmenu_default_params;
     bootmenu_network_source;
     specific_bootmenu_params;
