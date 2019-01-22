@@ -84,7 +84,7 @@ sub run {
 
     if (check_var('DESKTOP', 'textmode')) {
         assert_screen([qw(linux-login cleared-console)]);
-        verify_default_keymap_textmode($keystrokes, "${expected}_keymap", console => 'extra-console');
+        verify_default_keymap_textmode($keystrokes, "${expected}_keymap");
         verify_default_keymap_textmode($keystrokes, "${expected}_keymap", console => 'root-console');
         ensure_serialdev_permissions;
         verify_default_keymap_textmode($keystrokes, "${expected}_keymap", console => 'user-console');

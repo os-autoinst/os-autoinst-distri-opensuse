@@ -392,7 +392,6 @@ sub init_consoles {
         $self->add_console('log-console',    'tty-console', {tty => 5});
         $self->add_console('displaymanager', 'tty-console', {tty => 7});
         $self->add_console('x11',            'tty-console', {tty => get_x11_console_tty});
-        $self->add_console('extra-console',  'tty-console', {tty => 3});
     }
 
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
@@ -570,8 +569,7 @@ sub console_nr {
     my ($name) = ($1) || return;
     my $nr = 4;
     $nr = get_root_console_tty if ($name eq 'root');
-    $nr = 5                    if ($name eq 'log');
-    $nr = 3                    if ($name eq 'extra');
+    $nr = 5 if ($name eq 'log');
     return $nr;
 }
 
