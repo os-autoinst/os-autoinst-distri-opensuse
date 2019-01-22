@@ -16,6 +16,7 @@ use File::Basename;
 use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
+use suse_container_urls qw(get_suse_container_urls);
 use autotest;
 use utils;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
@@ -1546,8 +1547,9 @@ sub load_extra_tests_console {
 }
 
 sub load_extra_tests_docker {
-    return unless check_var('ARCH', 'x86_64') || (is_opensuse && get_var('ARCH', '') =~ /aarch64|ppc64le/);
-    return unless is_sle('12-SP3+') || !is_sle;
+    my ($image_names, $stable_names) = get_suse_container_urls();
+    return unless @$image_names;
+
     loadtest "console/docker";
     loadtest "console/docker_runc";
     if (is_sle('12-SP3+') && is_sle('<15')) {
