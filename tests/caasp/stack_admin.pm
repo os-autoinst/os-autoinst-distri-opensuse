@@ -10,7 +10,7 @@
 # Summary: Start admin node (velum)
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use base "caasp_clusternode";
 use strict;
 use testapi;
 use caasp;
@@ -52,13 +52,6 @@ sub run() {
     }
 
     set_autoyast_password if is_caasp 'DVD';
-    export_cluster_logs;
-}
-
-sub post_fail_hook {
-    # Variable to enable failed cluster debug
-    sleep if check_var('DEBUG_SLEEP', 'admin');
-    export_cluster_logs;
 }
 
 1;

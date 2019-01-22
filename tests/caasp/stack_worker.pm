@@ -10,7 +10,7 @@
 # Summary: Start worker nodes
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use base "caasp_clusternode";
 use strict;
 use testapi;
 use lockapi 'barrier_wait';
@@ -31,9 +31,7 @@ sub run {
         barrier_wait "NODES_ONLINE";
     }
     pause_until 'CNTRL_FINISHED';
-}
 
-sub post_run_hook {
     # Some nodes were removed & powered off during test run
     return if query_isotovideo('backend_is_shutdown');
 
@@ -48,7 +46,6 @@ sub post_run_hook {
         reset_consoles;
         select_console 'root-console';
     }
-    export_cluster_logs;
 }
 
 1;

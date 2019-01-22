@@ -178,7 +178,6 @@ sub load_stack_tests {
     }
     else {
         loadtest 'caasp/stack_' . get_var('STACK_ROLE');
-        loadtest 'caasp/register_and_check' if is_caasp('qam');
     }
 }
 
