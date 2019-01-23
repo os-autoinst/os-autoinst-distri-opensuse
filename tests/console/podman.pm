@@ -91,6 +91,9 @@ sub run {
     my $output = script_output('podman container run tw:saved curl -I google.de');
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
+    # Using an init process as PID 1
+    assert_script_run 'podman run --rm --init opensuse/tumbleweed ps --no-headers -xo "pid args" | grep "1 /dev/init"';
+
     if (script_run('command -v man') == 0) {
         assert_script_run('man -P cat podman build | grep "podman-build - Build a container image using a Dockerfile"');
     }
