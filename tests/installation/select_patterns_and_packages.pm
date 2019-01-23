@@ -246,6 +246,8 @@ sub run {
         delete $patterns{all};
         my @unseen;
         foreach my $k (keys %patterns) {
+            #Remove - from the key in case of deselection
+            $k =~ s/^-//;
             push @unseen, $k if (not exists $processed_patterns{$k});
         }
         die "Not all patterns given in the job settings were processed:" . join(", ", @unseen) if @unseen;
