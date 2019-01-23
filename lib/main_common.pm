@@ -1537,7 +1537,7 @@ sub load_extra_tests_console {
         loadtest 'console/mutt';
     }
     loadtest 'console/systemd_testsuite' if is_sle('15+') && get_var('QA_HEAD_REPO');
-    loadtest 'console/supportutils' if is_sle;
+    loadtest 'console/supportutils' if (is_sle && !is_jeos);
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';
     loadtest 'console/vhostmd';
