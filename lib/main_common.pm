@@ -1560,6 +1560,7 @@ sub load_extra_tests_docker {
         loadtest "console/docker_image";
     }
     if (is_opensuse) {
+        loadtest "console/podman_image" if is_tumbleweed;
         loadtest "console/docker_compose";
     }
 }
