@@ -237,6 +237,15 @@ sub record_ltp_result {
         print $fh "Some test output could not be parsed: $results->{ignored_lines} lines were ignored.";
     }
 
+    push(@{$self->{extra_test_results}}, {
+            category => 'LTP',
+            name     => $export_details->{test_fqn},
+            flags    => {},
+            result   => $details->{result},
+            script   => 'tests/kernel/run_ltp.pm',
+            duration => $duration,
+            log      => $test_log});
+
     $self->commit_result($details, $fh);
     return (0, $export_details);
 }
