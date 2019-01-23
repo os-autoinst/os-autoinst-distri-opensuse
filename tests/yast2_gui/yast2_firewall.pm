@@ -83,7 +83,7 @@ sub verify_service_stopped {
     assert_screen 'generic-desktop';
 
     select_console 'root-console';
-    assert_script_run("firewall-cmd --state 2>&1 | grep 'not running'");
+    assert_script_run("! (firewall-cmd --state) | grep 'not running'");
 }
 
 sub verify_service_started {
