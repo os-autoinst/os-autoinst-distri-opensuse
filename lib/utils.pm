@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE LLC
+# Copyright (C) 2015-2018 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -484,11 +484,6 @@ sub select_user_gnome {
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        # In case, the screen is locked by some updated items
-        # Refer to: https://progress.opensuse.org/issues/45557
-        if (!check_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], 0) {
-            send_key 'ret';
-        }
         assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
