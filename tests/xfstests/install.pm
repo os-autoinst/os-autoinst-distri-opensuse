@@ -31,9 +31,15 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
+    # Disable PackageKit
+    # This is done by the previous module (enable_kdump) only if NO_KDUMP is not set
+    pkcon_quit;
+
     # Add QA repo
-    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
-    zypper_call("--no-gpg-check ar -f '$qa_head_repo' qa-ibs", timeout => 600);
+    if (script_run("zypper lr qa-ibs")) {
+        my $qa_head_repo = get_var('QA_HEAD_REPO', '');
+        zypper_call("--no-gpg-check ar -f '$qa_head_repo' qa-ibs", timeout => 600);
+    }
 
     # Install qa_test_xfstests
     zypper_call('--gpg-auto-import-keys ref', timeout => 600);

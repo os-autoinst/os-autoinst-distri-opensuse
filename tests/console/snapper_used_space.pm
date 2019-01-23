@@ -54,7 +54,7 @@ sub query_space_several_snapshot {
     record_info("Query multiple", "Query the exclusive space when data is included in several snapshots");
     my $args = '--cleanup number --print-number';
     foreach my $action (qw(create remove)) {
-        my $command = '"' . ($action eq "create" ? CREATE_BIG_FILE : REMOVE_BIG_FILE) . '"';
+        my $command     = '"' . ($action eq "create" ? CREATE_BIG_FILE : REMOVE_BIG_FILE) . '"';
         my $description = '"' . $action . ' big data"';
         # Create two pair of pre- and post- snapshots
         assert_script_run "snapper create --command $command --description $description $args";

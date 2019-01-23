@@ -367,7 +367,7 @@ sub init_consoles {
     # svirt backend, except s390x ARCH
     if (is_svirt_except_s390x) {
         my $hostname = get_var('VIRSH_GUEST');
-        my $port = get_var('VIRSH_INSTANCE', 1) + 5900;
+        my $port     = get_var('VIRSH_INSTANCE', 1) + 5900;
 
         $self->add_console(
             'sut',
@@ -418,7 +418,7 @@ sub init_consoles {
     if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'spvm')) {
         my $hostname;
 
-        $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
+        $hostname = get_var('VIRSH_GUEST')     if get_var('S390_ZKVM');
         $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
 
         if (check_var('BACKEND', 's390x')) {
@@ -628,7 +628,7 @@ sub activate_console {
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
         if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
-            diag 'backend s390x || zkvm || ipmi';
+            diag 'backend s390x || zkvm || ipmi || spvm';
             $user ||= 'root';
             handle_password_prompt;
             ensure_user($user);
@@ -683,7 +683,7 @@ sub activate_console {
     }
     elsif (
         $console eq 'installation'
-        && (((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || get_var('S390_ZKVM')))
+        && (((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm') || get_var('S390_ZKVM')))
             && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
     {
         diag 'activate_console called with installation for ssh based consoles';

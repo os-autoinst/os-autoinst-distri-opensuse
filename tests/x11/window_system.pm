@@ -19,7 +19,10 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    my $session_type = script_output "loginctl show-session \$(loginctl list-sessions | awk '/$testapi::username/ {print \$1};') -p Type | cut -f2 -d=";
+    my $session_type = script_output(
+        "loginctl show-session \$(loginctl list-sessions | awk '/$testapi::username/ {print \$1};') -p Type | cut -f2 -d=",
+        undef, type_command => 1,
+    );
 
     if ($session_type) {
         record_info("$session_type", "Current session type is $session_type");

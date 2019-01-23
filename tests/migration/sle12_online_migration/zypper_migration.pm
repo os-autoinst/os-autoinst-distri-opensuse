@@ -44,7 +44,7 @@ sub run {
         $zypper_migration_failed, $zypper_migration_license,  $zypper_migration_reterror
     ];
     my $zypper_migration_error_cnt = 0;
-    my $out = wait_serial($migration_checks, $timeout);
+    my $out                        = wait_serial($migration_checks, $timeout);
     while ($out) {
         if ($out =~ $zypper_migration_target) {
             my $version = get_var("VERSION");

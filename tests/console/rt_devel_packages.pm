@@ -16,7 +16,7 @@ use testapi;
 
 # https://fate.suse.com/316652
 sub run {
-    my $pkgs = "babeltrace-devel lttng-tools-devel kernel-rt-devel kernel-rt_debug-devel kernel-devel-rt libcpuset-devel";
+    my $pkgs  = "babeltrace-devel lttng-tools-devel kernel-rt-devel kernel-rt_debug-devel kernel-devel-rt libcpuset-devel";
     my $count = () = $pkgs =~ /\S+/g;
 
     validate_script_output "zypper -q search -r `zypper lr|grep SLERT|awk '{print \$3}'` $pkgs | grep -c package\$", sub { /^$count$/ };

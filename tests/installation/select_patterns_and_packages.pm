@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -79,6 +79,9 @@ sub gotopatterns {
     else {
         send_key 'tab';
     }
+    # pressing up and down to have selection more visible
+    wait_screen_change { send_key 'down' };
+    wait_screen_change { send_key 'up' };
     assert_screen 'patterns-list-selected';
 }
 
@@ -174,10 +177,11 @@ sub run {
         return 1;
     }
     if (get_var('PATTERNS')) {
-        my %patterns;
-        for my $p (split(/,/, get_var('PATTERNS'))) {
-            $patterns{$p} = 1;
-        }
+        my %patterns;              # set of patterns to be processed
+        my %processed_patterns;    # set of the processed patterns
+
+        # fill with variable values
+        @patterns{split(/,/, get_var('PATTERNS'))} = ();
 
         my $counter = 80;
         while (1) {
@@ -199,6 +203,8 @@ sub run {
                     if (match_has_tag("pattern-$p")) {
                         $needs_to_be_selected = $sel;
                         $current_pattern      = $p;
+                        # add pattern to the set of detected patterns
+                        $processed_patterns{$p} = undef;
                         record_info($current_pattern, $needs_to_be_selected);
                     }
                 }
@@ -234,7 +240,17 @@ sub run {
             movedownelseend;
             check12qtbug;
         }
+        # check if we have processed all patterns mentioned in the test suite settings
+        # delete special 'all' and 'default' keys from the check
+        delete $patterns{default};
+        delete $patterns{all};
+        my @unseen;
+        foreach my $k (keys %patterns) {
+            push @unseen, $k if (not exists $processed_patterns{$k});
+        }
+        die "Not all patterns given in the job settings were processed:" . join(", ", @unseen) if @unseen;
     }
+
     $self->package_action;
     unless (is_sle('15+') && check_var('PATTERNS', 'all') && $dep_issue) {
         $secondrun++;

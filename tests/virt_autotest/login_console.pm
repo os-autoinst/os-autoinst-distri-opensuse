@@ -21,13 +21,13 @@ use ipmi_backend_utils;
 
 sub login_to_console {
     my ($self, $timeout) = @_;
-    $timeout //= 120;
+    $timeout //= 240;
 
     reset_consoles;
     select_console 'sol', await_console => 0;
 
     # Wait for bootload for the first time.
-    assert_screen([qw(grub2 grub1)], 120);
+    assert_screen([qw(grub2 grub1)], 150);
 
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
@@ -89,8 +89,9 @@ sub login_to_console {
     save_screenshot;
     send_key 'ret';
 
-    assert_screen(['linux-login', 'virttest-displaymanager'], $timeout);
+    send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout / 5, 5);
     #use console based on ssh to avoid unstable ipmi
+    save_screenshot;
     use_ssh_serial_console;
 }
 

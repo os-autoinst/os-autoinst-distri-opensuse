@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,13 +72,14 @@ our @EXPORT = qw(
   assert_and_click_until_screen_change
   exec_and_insert_password
   shorten_url
-  reconnect_s390
+  reconnect_mgmt_console
   set_hostname
   zypper_ar
   show_tasks_in_blocked_state
   svirt_host_basedir
   prepare_ssh_localhost_key_login
   disable_serial_getty
+  script_run_interactive
 );
 
 
@@ -483,6 +484,11 @@ sub select_user_gnome {
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
+        # In case, the screen is locked by some updated items
+        # Refer to: https://progress.opensuse.org/issues/45557
+        if (!check_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], 0) {
+            send_key 'ret';
+        }
         assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
@@ -506,8 +512,8 @@ sub ensure_unlocked_desktop {
         }
         if (match_has_tag 'generic-desktop') {
             send_key 'esc';
-            unless (get_var('DESKTOP', '') =~ m/minimalx|awesome|enlightenment|lxqt|mate/) {
-                # gnome might show the old 'generic desktop' screen although that is
+            unless (get_var('DESKTOP', '') =~ m/awesome|enlightenment|lxqt/) {
+                # gnome/mate/minimalx might show the old 'generic desktop' screen although that is
                 # just a left over in the framebuffer but actually the screen is
                 # already locked so we have to try something else to check
                 # responsiveness.
@@ -728,7 +734,7 @@ Example:
 =cut
 sub handle_login {
     my ($myuser, $user_selected) = @_;
-    $myuser //= $username;
+    $myuser        //= $username;
     $user_selected //= 0;
 
     save_screenshot();
@@ -1033,48 +1039,67 @@ sub _handle_login_not_found {
     die "unknown error, system couldn't boot. Detailed bootup log:\n$error_details";
 }
 
-=head2 reconnect_s390
-After each reboot we have to reconnect to s390 host
+=head2 reconnect_mgmt_console
+After each reboot we have to reconnect to the management console on remote backends
 =cut
-sub reconnect_s390 {
+sub reconnect_mgmt_console {
     my (%args) = @_;
     $args{timeout} //= 300;
 
-    my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
-    console('installation')->disable_vnc_stalls;
+    if (check_var('ARCH', 's390x')) {
+        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+        console('installation')->disable_vnc_stalls;
 
-    # different behaviour for z/VM and z/KVM
-    if (check_var('BACKEND', 's390x')) {
-        my $console = console('x3270');
-        # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
-        handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
-        my $r;
-        eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
-        if ($@) {
-            my $ret = $@;
-            _handle_login_not_found($ret);
-        }
-        reset_consoles;
+        # different behaviour for z/VM and z/KVM
+        if (check_var('BACKEND', 's390x')) {
+            my $console = console('x3270');
+            # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
+            handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
+            my $r;
+            eval { $r = console('x3270')->expect_3270(output_delim => $login_ready, timeout => $args{timeout}); };
+            if ($@) {
+                my $ret = $@;
+                _handle_login_not_found($ret);
+            }
+            reset_consoles;
 
-        # reconnect the ssh for serial grab
-        select_console('iucvconn');
-    }
-    else {
-        # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
-        if (get_var('ENCRYPT')) {
-            wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            # reconnect the ssh for serial grab
+            select_console('iucvconn');
         }
         else {
-            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
-            select_console('svirt');
-            save_svirt_pty;
-            type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+            # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
+            if (get_var('ENCRYPT')) {
+                wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+            }
+            else {
+                wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+                select_console('svirt');
+                save_svirt_pty;
+                type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+            }
+        }
+
+        # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
+        if (!check_var('DESKTOP', 'textmode') && is_sle('<15')) {
+            select_console('x11', await_console => 0);
         }
     }
-
-    # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
-    if (!check_var('DESKTOP', 'textmode') && is_sle('<15')) {
-        select_console('x11', await_console => 0);
+    elsif (check_var('ARCH', 'ppc64le')) {
+        if (check_var('BACKEND', 'spvm')) {
+            select_console 'novalink-ssh';
+            type_string " mkvterm --id " . get_required_var('NOVALINK_LPAR_ID') . "\n";
+        }
+    }
+    elsif (check_var('ARCH', 'x86_64')) {
+        if (check_var('BACKEND', 'ipmi')) {
+            select_console 'sol', await_console => 0;
+            assert_screen "qa-net-selection", 300;
+            # boot to hard disk is default
+            send_key 'ret';
+        }
+    }
+    else {
+        diag 'nothing special needed to reconnect management console';
     }
 }
 
@@ -1117,6 +1142,70 @@ sub prepare_ssh_localhost_key_login {
     else {
         assert_script_sudo('mkdir -p /root/.ssh');
         assert_script_sudo("cat /home/$source_user/.ssh/id_rsa.pub | tee -a /root/.ssh/authorized_keys");
+    }
+}
+
+=head2 script_run_interactive
+
+    script_run_interactive($cmd, $prompt, $timeout);
+
+For interactive command, input strings or keys according to the prompt message
+in the run time. Pass arrayref $prompt which contains the prompt message to
+be matched (regex) and the answer with string or key to be typed. for example:
+
+    [{
+        prompt => qr/\(A\)llow/m,
+        key    => 'a',
+      },
+      {
+        prompt => qr/Enter Password or Pin/m,
+        string => "testpasspw\n",
+      },]
+
+A "Script done." message comes from the typescript will be printed as a mark
+for the end of interaction after the command finished running.
+=cut
+sub script_run_interactive {
+    my ($cmd, $scan, $timeout) = @_;
+    my $output;
+    my @words;
+    $timeout //= 180;
+
+    if ($cmd) {
+        script_run("script -c \'", 0);
+        script_run($cmd,           0);
+
+        # Write to /dev/null since we want not to leave file there
+        script_run("\' /dev/null |& tee /dev/$serialdev", 0);
+    }
+
+    for my $k (@$scan) {
+        push(@words, $k->{prompt});
+    }
+
+    my $endmark = "Script done.*\/dev\/null";
+    push(@words, $endmark);
+
+    {
+        do {
+            $output = wait_serial(\@words, $timeout) || die "No message matched!";
+
+            last if ($output =~ /$endmark/m);
+            for my $i (@$scan) {
+                next if ($output !~ $i->{prompt});
+                if ($i->{string}) {
+                    type_string $i->{string};
+                    last;
+                }
+                elsif ($i->{key}) {
+                    send_key $i->{key};
+                    last;
+                }
+                else {
+                    die "$i->{prompt} - No flags specified";
+                }
+            }
+        } while ($output);
     }
 }
 

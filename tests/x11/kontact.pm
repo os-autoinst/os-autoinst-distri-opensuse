@@ -35,7 +35,13 @@ sub run {
         # KF5-based account assistant ignores alt-f4
         wait_screen_change { send_key 'alt-c' } if match_has_tag('test-kontact-1');
     } until (match_has_tag('kontact-window'));
-    assert_and_click 'close_kontact';
+    assert_screen [qw(kontact-error close_kontact)];
+    if (match_has_tag('kontact-error')) {
+        return record_soft_failure('Encountered fatal error, boo#1105207');
+    }
+    else {
+        assert_and_click 'close_kontact';
+    }
     # Since gcc7 used for packages within openSUSE Factory kontact seems to
     # persist consistently as a process in the background causing kontact to
     # be "restored" after a re-login/reboot causing later tests to fail. To

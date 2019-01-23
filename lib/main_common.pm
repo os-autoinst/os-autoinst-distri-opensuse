@@ -102,7 +102,8 @@ our @EXPORT = qw(
   load_toolchain_tests
   load_virtualization_tests
   load_x11tests
-  load_xen_tests
+  load_xen_hypervisor_tests
+  load_xen_client_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -406,11 +407,8 @@ sub load_boot_tests {
 
 sub load_reboot_tests {
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if (check_var("ARCH", "s390x") && !get_var('ENCRYPT')) {
-        loadtest "installation/reconnect_s390";
-    }
-    if (uses_qa_net_hardware()) {
-        loadtest "boot/qa_net_boot_from_hdd";
+    if ((check_var("ARCH", "s390x") && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
+        loadtest "boot/reconnect_mgmt_console";
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
@@ -424,7 +422,7 @@ sub load_reboot_tests {
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
             if (check_var('ARCH', 's390x')) {
-                loadtest "installation/reconnect_s390";
+                loadtest "boot/reconnect_mgmt_console";
             }
         }
         loadtest "installation/first_boot";
@@ -1523,14 +1521,16 @@ sub load_extra_tests_console {
         loadtest 'console/mutt';
     }
     loadtest 'console/systemd_testsuite' if is_sle('15+') && get_var('QA_HEAD_REPO');
+    loadtest 'console/supportutils' if is_sle;
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';
+    loadtest 'console/vhostmd';
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
 }
 
 sub load_extra_tests_docker {
-    return unless check_var('ARCH', 'x86_64');
+    return unless check_var('ARCH', 'x86_64') || (is_opensuse && get_var('ARCH', '') =~ /aarch64|ppc64le/);
     return unless is_sle('12-SP3+') || !is_sle;
     loadtest "console/docker";
     loadtest "console/docker_runc";
@@ -1638,7 +1638,7 @@ sub get_wicked_tests {
     my $basedir    = $bmwqemu::vars{CASEDIR} . '/tests/';
     my $wicked_dir = $basedir . 'wicked/';
     my $suite      = get_required_var('WICKED');
-    my $type = get_required_var('IS_WICKED_REF') ? 'ref' : 'sut';
+    my $type      = get_required_var('IS_WICKED_REF') ? 'ref' : 'sut';
     my $exclude   = get_var('WICKED_EXCLUDE', '$a');
     my $suite_dir = $wicked_dir . $suite . '/';
     my $tests_dir = $suite_dir . $type . '/';
@@ -1664,7 +1664,7 @@ sub get_wicked_tests {
 }
 
 sub wicked_init_locks {
-    my $args = OpenQA::Test::RunArgs->new();
+    my $args         = OpenQA::Test::RunArgs->new();
     my @wicked_tests = get_wicked_tests(only_names => 1);
     $args->{wicked_tests} = \@wicked_tests;
     loadtest('wicked/locks_init', run_args => $args);
@@ -2120,12 +2120,23 @@ sub load_security_tests {
     elsif (check_var("SECURITY_TEST", "selinux")) {
         load_security_tests_selinux;
     }
+    elsif (check_var("SECURITY_TEST", "ima_setup")) {
+        # Setup system environment for IMA testing
+        loadtest "security/mokutil_sign";
+        loadtest "security/ima/ima_setup";
+        loadtest "shutdown/shutdown";
+    }
 }
 
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
-    loadtest 'console/systemd_testsuite';
+    if (check_var('SYSTEMD_TESTSUITE', 'basic')) {
+        loadtest 'systemd_testsuite/test_01_basic';
+    }
+    else {
+        loadtest 'console/systemd_testsuite';
+    }
 }
 
 sub load_system_prepare_tests {
@@ -2171,7 +2182,7 @@ sub load_virtualization_tests {
     return 1;
 }
 
-sub load_xen_tests {
+sub load_xen_hypervisor_tests {
     return unless check_var('HOST_HYPERVISOR', 'xen');
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
@@ -2186,13 +2197,41 @@ sub load_xen_tests {
     }
     # Load guest installation tests
     loadtest 'virtualization/xen/prepare_guests';
-    # Apply updates
+    # Apply updates and reboot
     loadtest 'virtualization/xen/patch_and_reboot';
-    # Load real tests
-    loadtest 'virtualization/xen/hotplugging';
+    loadtest "virt_autotest/login_console";
+    # List running machines
+    loadtest 'virtualization/xen/list_guests';
+}
+
+sub load_xen_client_tests() {
+    loadtest 'boot/boot_to_desktop';
+    # Install the virt-manager package
+    loadtest 'virtualization/xen/install_virtmanager';
+    # Connect to hypervisor using SSH
+    loadtest 'virtualization/xen/ssh_hypervisor';
+    # Connect to guests using SSH
+    loadtest 'virtualization/xen/ssh_guests';
+    # Connect to the Xen hypervisor using virt-manager
+    loadtest 'virtualization/xen/virtmanager';
+    # Try to save and restore the state of the guest
     loadtest 'virtualization/xen/save_and_restore';
-    loadtest 'virtualization/xen/dom_metrics';
+    # Try to change properties of guests
+    loadtest 'virtualization/xen/hotplugging';
+    # Try to shutdown, start, suspend and resume the guest
     loadtest 'virtualization/xen/guest_management';
+    # Stop libvirt guests
+    loadtest 'virtualization/xen/virsh_stop';
+    # Clone guests using the xl Xen tool
+    loadtest 'virtualization/xen/xl_create';
+    # Install vhostmd and vm-dump-metrics
+    loadtest 'virtualization/xen/dom_install';
+    # Collect some sample metrics
+    loadtest 'virtualization/xen/dom_metrics';
+    # Stop guests created by the xl Xen tool
+    loadtest 'virtualization/xen/xl_stop';
+    # Start virsh guests again
+    loadtest 'virtualization/xen/virsh_start';
 }
 
 sub load_extra_tests_syscontainer {
@@ -2231,7 +2270,7 @@ sub load_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
         loadtest "publiccloud/prepare_tools";
     }
-    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS')) {
+    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS') or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
         loadtest "publiccloud/ipa";
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {

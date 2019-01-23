@@ -72,7 +72,7 @@ sub start_online_update {
     # which are removed unless explicitly selected to be kept
     if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
         select_console 'root-console';
-        my $version = lc get_required_var('VERSION');
+        my $version     = lc get_required_var('VERSION');
         my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
         zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
         select_console 'x11', await_console => 0;
@@ -314,6 +314,7 @@ sub start_fonts {
 
 sub run {
     my $self = shift;
+    select_console 'x11';
     if (is_sle '15+') {
         # kdump is disabled by default, so ensure that it's installed
         ensure_installed 'yast2-kdump';

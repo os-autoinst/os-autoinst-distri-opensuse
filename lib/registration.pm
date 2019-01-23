@@ -388,6 +388,12 @@ sub process_scc_register {
     }
 }
 
+sub show_development_versions {
+    assert_screen('scc-beta-filter-checkbox');
+    send_key('alt-i');
+    assert_screen('scc-beta-filter-unchecked');
+}
+
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
@@ -458,13 +464,11 @@ sub fill_in_registration_data {
         assert_screen [qw(scc-beta-filter-checkbox scc-without-beta-filter-checkbox)];
         if (match_has_tag('scc-beta-filter-checkbox')) {
             if (check_var('BETA', '1')) {
-                assert_screen('scc-beta-filter-checkbox');
-                send_key('alt-i');
+                show_development_versions;
             }
             elsif (!check_screen($modules_needle, 0)) {
                 record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
-                assert_screen('scc-beta-filter-checkbox');
-                send_key('alt-i');
+                show_development_versions;
             }
         }
 

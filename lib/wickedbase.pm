@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -100,7 +100,7 @@ sub get_ip {
     my $ip;
 
     $args{is_wicked_ref} //= check_var('IS_WICKED_REF', '1');
-    $args{netmask} //= 0;
+    $args{netmask}       //= 0;
 
     if ($args{type} eq 'host') {
         $ip = $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
@@ -176,17 +176,19 @@ sub get_from_data {
 
 =head2 ping_with_timeout
 
-  ping_with_timeout(timeout => $timeout, ip => $ip [, ip_version => 'v4'])
+  ping_with_timeout(timeout => $timeout, ip => $ip [, ip_version => 'v4'], type => $type)
 
-Pings a given IP by the argument C<ip> with a given timeout by C<timeout>.
+Pings a given IP with a given C<timeout>.
 C<ip_version> defines the ping command to be used, 'ping' by default and 'ping6' for 'v6'.
-
+IP could be specified directly via C<ip> or using C<type> variable. In case of C<type> variable 
+it will be bypassed to C<get_remote_ip> function to get IP by label
 =cut
 sub ping_with_timeout {
     my ($self, %args) = @_;
     $args{ip_version} //= 'v4';
     $args{timeout}    //= '60';
-    my $timeout = $args{timeout};
+    $args{ip} = $self->get_remote_ip(%args) if $args{type};
+    my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     while ($timeout > 0) {
         return 1 if script_run("$ping_command -c 1 $args{ip}") == 0;
@@ -272,7 +274,7 @@ C<command> determines the wicked command to bring up/down the interface
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(type => 'host');
-    my $iface = iface();
+    my $iface    = iface();
     assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
     assert_script_run("sed \'s/iface/$iface/\' -i $config");
     assert_script_run("cat $config");
@@ -294,7 +296,7 @@ Setups the openvpn client using the interface given by C<device>
 sub setup_openvpn_client {
     my ($self, $device) = @_;
     my $openvpn_client = '/etc/openvpn/client.conf';
-    my $remote_ip = $self->get_remote_ip(type => 'host');
+    my $remote_ip      = $self->get_remote_ip(type => 'host');
     $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
     assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
     assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
@@ -368,6 +370,25 @@ sub do_mutex {
     my ($self) = @_;
     my $barrier_name = 'test_' . $self->{name} . '_ready';
     barrier_wait($barrier_name);
+}
+
+=head2 setup_vlan
+
+    setup_vlan($ip_type)
+
+Creating VLAN using only ip commands. Getting ip alias name for wickedbase::get_ip
+function
+
+=cut
+sub setup_vlan() {
+    my ($self, $ip_type) = @_;
+    my $iface    = iface();
+    my $local_ip = $self->get_ip(type => $ip_type, netmask => 1);
+    assert_script_run("ip link add link $iface name $iface.42 type vlan id 42");
+    assert_script_run('ip link');
+    assert_script_run("ip -d link show $iface.42");
+    assert_script_run("ip addr add $local_ip dev $iface.42");
+    assert_script_run("ip link set dev $iface.42 up");
 }
 
 sub post_run {

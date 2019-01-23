@@ -33,6 +33,7 @@ sub run {
     # Install ltp from package on remote
     $instance->run_ssh_command('sudo zypper ar ' . $ltp_repo);
     $instance->run_ssh_command('sudo zypper -q --gpg-auto-import-keys in -y ltp');
+    $instance->run_ssh_command('sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh');
 
     my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
     $reset_cmd .= $instance->instance_id . ' ' . $instance->public_ip;

@@ -65,7 +65,7 @@ sub run {
     }
 
     my $hostname = get_var('HOSTNAME', 'susetest');
-    my $domain = "zq1.de";
+    my $domain   = "zq1.de";
 
     send_key "alt-s";    # open hostname tab
     assert_screen [qw(yast2_lan-hostname-tab dhcp-popup)];

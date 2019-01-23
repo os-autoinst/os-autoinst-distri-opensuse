@@ -46,9 +46,17 @@ sub run {
         assert_script_run("pip3 install -q keyring");
     }
     elsif (is_sle) {
-        zypper_call('rr Cloud_Tools');
-        zypper_call('ref');
         zypper_call('-q in aws-cli');
+
+        if (script_output('aws --version', 60, proceed_on_failure => 1) =~ /No module named vendored.requests.packages.urllib3.exceptions/m) {
+            record_soft_failure('workaround for boo#1122199');
+            my $repo      = 'http://download.opensuse.org/repositories/devel:/languages:/python:/aws/' . generate_version();
+            my $repo_name = 'devel_languages_python_aws';
+            zypper_ar($repo, $repo_name);
+            zypper_call('-q in -f --repo ' . $repo_name . ' python-s3transfer');
+            zypper_call('rr ' . $repo_name);
+        }
+        assert_script_run('aws --version');
     }
     zypper_call('-q in python-ec2uploadimg');
     assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");

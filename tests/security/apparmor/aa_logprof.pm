@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,10 +21,11 @@ use base "apparmortest";
 use strict;
 use testapi;
 use utils;
+use version_utils qw(is_tumbleweed);
 
 sub run {
     my ($self) = @_;
-
+    my $log_file = $apparmortest::audit_log;
     my $output;
     my $aa_tmp_prof = "/tmp/apparmor.d";
 
@@ -58,16 +59,25 @@ sub run {
 
     validate_script_output "aa-complain -d $aa_tmp_prof usr.sbin.nscd", sub { m/Setting.*complain/ };
 
+    # For tumbleweed, unload /usr/sbin/nscd profile in case, clean up the audit.log
+    if (is_tumbleweed) {
+        script_run "echo '/usr/sbin/nscd {}' | apparmor_parser -R";
+    }
+    assert_script_run "echo > $log_file";
+
     systemctl('start nscd');
+
+    # Upload audit.log for reference
+    upload_logs "$log_file";
 
     $self->aa_interactive_run("aa-logprof -d $aa_tmp_prof", $scan_ans);
 
     validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub {
         m/
             include\s+<tunables\/global>.*
-            \/usr\/sbin\/nscd\s+flags=\(complain\)\s*\{.*
+            .*nscd\s+flags=\(complain\)\s*\{.*
             \/etc\/nscd\.conf\s+r.*
-            \/usr\/sbin\/nscd\s+mrix.*
+            \/usr\/.*bin.*\/nscd\s+mrix.*
             \}/sxx
     };
 

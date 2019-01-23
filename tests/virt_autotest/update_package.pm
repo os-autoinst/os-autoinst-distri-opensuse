@@ -31,7 +31,7 @@ sub update_package {
     }
 
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
-    $ret = $self->execute_script_run($update_pkg_cmd, 7200);
+    $ret            = $self->execute_script_run($update_pkg_cmd, 7200);
     upload_logs("/tmp/update_virt_rpms.log");
     save_screenshot;
     if ($ret !~ /Need to reboot system to make the rpms work/m) {

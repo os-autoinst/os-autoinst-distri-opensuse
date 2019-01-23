@@ -214,6 +214,8 @@ sub ha_export_logs {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $hb_log        = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
+    my $iscsi_devs    = '/tmp/iscsi_devices.list';
+    my $mdadm_conf    = '/etc/mdadm.conf';
     my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
     my @y2logs;
 
@@ -230,6 +232,14 @@ sub ha_export_logs {
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
     upload_logs("$packages_list", failok => 1);
+
+    # iSCSI devices and their real paths
+    script_run "ls -l /dev/disk/by-path/ > $iscsi_devs";
+    upload_logs($iscsi_devs, failok => 1);
+
+    # mdadm conf
+    script_run "touch $mdadm_conf";
+    upload_logs($mdadm_conf, failok => 1);
 }
 
 sub check_cluster_state {
@@ -251,7 +261,7 @@ sub wait_until_resources_started {
     my @cmds = ('crm cluster wait_for_startup');
     push @cmds, "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     my $timeout = 120 * get_var('TIMEOUT_SCALE', 1);
-    my $ret = undef;
+    my $ret     = undef;
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here

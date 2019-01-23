@@ -297,7 +297,7 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
               "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1"
               : "$prefix-Product-$full_name-POOL-$arch-Build$build-Media1";
             my $module_repo_name = get_var($repo_variable_name, $default_repo_name);
-            my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
+            my $url              = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
             if (head($url)) {
                 set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
@@ -693,8 +693,9 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_xen_tests         if check_var("REGRESSION", "xen");
-    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
+    load_xen_hypervisor_tests if check_var("REGRESSION", "xen-hypervisor");
+    load_xen_client_tests     if check_var("REGRESSION", "xen-client");
+    load_suseconnect_tests    if check_var("REGRESSION", "suseconnect");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -774,7 +775,7 @@ elsif (get_var("XFSTESTS")) {
     if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP4')) {
         set_var('NO_KDUMP', 1);
     }
-    boot_hdd_image;
+    prepare_target;
     unless (get_var('NO_KDUMP')) {
         loadtest "xfstests/enable_kdump";
     }
@@ -972,6 +973,11 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
+    elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {
+        loadtest 'boot/boot_from_pxe';
+        loadtest 'console/microcode_update';
+        return 1;
+    }
     elsif (get_var("QAM_OPENVPN")) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {
@@ -1103,7 +1109,7 @@ else {
     else {
         if (get_var('BOOT_EXISTING_S390')) {
             loadtest 'installation/boot_s390';
-            loadtest 'installation/reconnect_s390';
+            loadtest 'installation/reconnect_mgmt_console';
             loadtest 'installation/first_boot';
         }
         elsif (!is_jeos) {

@@ -19,10 +19,11 @@ use utils 'zypper_call';
 use power_action_utils 'power_action';
 use kdump_utils;
 use testapi;
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
 
     # Also panic when softlockup
     # workaround bsc#1104778, skip s390x in 12SP4
@@ -52,6 +53,18 @@ sub run {
 
 sub test_flags {
     return {fatal => 1};
+}
+
+sub enable_kdump_failure_analysis {
+    # Upload y2log for analysis if enable kdump fails
+    assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
+    upload_logs '/tmp/y2logs.tar.bz2';
+    save_screenshot;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->enable_kdump_failure_analysis;
 }
 
 1;

@@ -33,14 +33,14 @@ sub run {
     $self->select_serial_terminal;
 
     my $mft_version = get_required_var('MFT_VERSION');
-    my $protocol = get_var('MLX_PROTOCOL') || 2;
+    my $protocol    = get_var('MLX_PROTOCOL') || 2;
 
     if (is_sle('>=15')) {
         zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media1/  dev_1");
         zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media2/  dev_2");
         zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA/standard/SUSE:SLE-15-SP1:GA.repo");
     }
-    zypper_call('--quiet in kernel-source rpm-build', timeout => 200);
+    zypper_call('--quiet in kernel-source rpm-build wget pciutils', timeout => 200);
 
     # Install Mellanox Firmware Tool (MFT)
     assert_script_run("wget http://www.mellanox.com/downloads/MFT/" . $mft_version . ".tgz");

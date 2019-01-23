@@ -101,7 +101,7 @@ sub selenium_driver {
     die "Selenium support works only with openvswitch and tap devices" unless check_var('NICTYPE', 'tap');
 
     my @mac_parts = split(':', get_var('NICMAC'));
-    my $sut = "10.1." . hex($mac_parts[4]) . '.' . hex($mac_parts[5]);
+    my $sut       = "10.1." . hex($mac_parts[4]) . '.' . hex($mac_parts[5]);
 
     select_console('x11');
 

@@ -443,7 +443,7 @@ sub bootmenu_network_source {
         }
         else {
             my $m_protocol = get_var('INSTALL_SOURCE', 'http');
-            my $m_mirror = get_netboot_mirror;
+            my $m_mirror   = get_netboot_mirror;
             die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
             # In case of https we have to use boot options and not UI
             if ($m_protocol eq "https") {
@@ -632,11 +632,8 @@ sub specific_bootmenu_params {
 
 sub remote_install_bootmenu_params {
     my $params = "";
-    if (check_var("BACKEND", "spvm")) {
-        $params .= " sshd=1 ";    # only start ssh daemon
-    }
-    elsif (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
-        $params .= " ssh=1 ";     # trigger ssh-text installation
+    if (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
+        $params .= " ssh=1 ";    # trigger ssh-text installation
     }
     else {
         $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";

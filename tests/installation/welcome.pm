@@ -17,6 +17,7 @@ use base "y2logsstep";
 use testapi;
 use utils 'ensure_fullscreen';
 use version_utils qw(:VERSION :SCENARIO);
+use Utils::Backends 'is_remote_backend';
 
 sub switch_keyboard_layout {
     record_info 'keyboard layout', 'Check keyboard layout switching to another language';
@@ -44,7 +45,7 @@ sub run {
     my ($self) = @_;
     my $iterations;
 
-    my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
+    my @welcome_tags     = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
     my $expect_beta_warn = get_var('BETA');
     if ($expect_beta_warn) {
         push @welcome_tags, 'inst-betawarning';
@@ -135,10 +136,10 @@ sub run {
 
     # Verify install arguments passed by bootloader
     # Linuxrc writes its settings in /etc/install.inf
-    if (get_var('NETBOOT') && !check_var('BACKEND', 'ipmi') && get_var('INSTALL_SOURCE')) {
+    if (!is_remote_backend && get_var('VALIDATE_INST_SRC')) {
         wait_screen_change { send_key 'ctrl-alt-shift-x' };
-        my $method     = uc get_var('INSTALL_SOURCE');
-        my $mirror_src = get_var("MIRROR_$method");
+        my $method     = uc get_required_var('INSTALL_SOURCE');
+        my $mirror_src = get_required_var("MIRROR_$method");
         my $rc         = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
         die "Install source mismatch in boot parameters!\n" unless ($rc == 0);
         $rc = script_run "grep --color=always -e \"^RepoURL: $mirror_src\" -e \"^ZyppRepoURL: $mirror_src\" /etc/install.inf";

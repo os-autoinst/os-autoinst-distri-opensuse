@@ -30,7 +30,7 @@ sub run {
     # This test can be called multiple time
     if (read_tag eq 'cluster_md') {
         $resource = 'cluster_md';
-        $vg_luns = '/dev/md*' if is_node(1);
+        $vg_luns  = '/dev/md*' if is_node(1);
 
         # Use a named RAID in SLE15
         $vg_luns = "/dev/md/$resource" if (is_sle('15+') && is_node(1));
@@ -43,7 +43,7 @@ sub run {
     }
     elsif (read_tag eq 'drbd_active') {
         $resource = 'drbd_active';
-        $vg_luns = "/dev/$resource" if is_node(1);
+        $vg_luns  = "/dev/$resource" if is_node(1);
     }
     else {
         $vg_luns = get_lun . ' ' . get_lun if is_node(1);

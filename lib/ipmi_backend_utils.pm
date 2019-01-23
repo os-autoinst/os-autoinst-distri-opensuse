@@ -85,7 +85,7 @@ sub get_dom0_serialdev {
 sub setup_console_in_grub {
     my ($ipmi_console, $root_dir, $virt_type) = @_;
     $ipmi_console //= $serialdev;
-    $root_dir //= '/';
+    $root_dir     //= '/';
     #Ther is no default value for $virt_type, which has to be passed into function explicitly.
 
     #set grub config file

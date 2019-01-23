@@ -22,7 +22,7 @@ use File::Basename;
 sub search_image_on_svirt_host {
     my ($svirt, $file, $dir) = @_;
     my $basename = basename($file);
-    my $domain = check_var('VIRSH_VMM_FAMILY', 'vmware') ? 'sshVMwareServer' : undef;
+    my $domain   = check_var('VIRSH_VMM_FAMILY', 'vmware') ? 'sshVMwareServer' : undef;
     # Need to use only commands, which are on all platforms
     # (e.g. Linux, VMware ESXi). E.g. `tr' is not on VMware ESXi.
     my $path = $svirt->get_cmd_output("find $dir -name $basename | head -n1 | awk 1 ORS=''", {domain => $domain});
@@ -79,7 +79,7 @@ sub run {
     my $basedir = svirt_host_basedir();
     # This part of the path-to-image is missing on VMware
     my $share_factory = check_var('VIRSH_VMM_FAMILY', 'vmware') ? '' : 'share/factory/';
-    my $isodir = "$basedir/openqa/${share_factory}iso $basedir/openqa/${share_factory}iso/fixed";
+    my $isodir        = "$basedir/openqa/${share_factory}iso $basedir/openqa/${share_factory}iso/fixed";
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
     if (my $isofile = get_var('ISO')) {
         my $isopath = search_image_on_svirt_host($svirt, $isofile, $isodir);
@@ -203,7 +203,7 @@ sub run {
     if ($vmm_family eq 'vmware') {
         # `virsh iface-list' won't produce correct bridge name for VMware.
         # It should be provided by the worker or relied upon the default.
-        $ifacecfg{type} = 'bridge';
+        $ifacecfg{type}   = 'bridge';
         $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
     }
     elsif ($vmm_family eq 'kvm') {
@@ -217,11 +217,11 @@ sub run {
         # network and bridge are defined and active, bridge should be prefered as 'default' network
         # does not work.
         if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            $ifacecfg{type} = 'bridge';
+            $ifacecfg{type}   = 'bridge';
             $ifacecfg{source} = {bridge => $bridges};
         }
         elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            $ifacecfg{type} = 'network';
+            $ifacecfg{type}   = 'network';
             $ifacecfg{source} = {network => $networks};
         }
     }

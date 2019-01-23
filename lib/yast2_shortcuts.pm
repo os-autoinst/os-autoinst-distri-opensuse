@@ -22,14 +22,14 @@ our @EXPORT_OK = qw($is_older_product %remote_admin %firewall_settings %firewall
 
 # VNC configuration
 our $is_older_product = is_sle('<15') || is_leap('<15.0');
-our %remote_admin = (
+our %remote_admin     = (
     allow_remote_admin_with_session    => 'alt-a',
     allow_remote_admin_without_session => 'alt-l',
     do_not_allow_remote_admin          => 'alt-n'
 );
 our %firewall_settings = (
     open_port => $is_older_product ? 'alt-p' : 'alt-f',
-    details => 'alt-d'
+    details   => 'alt-d'
 );
 our %firewall_details = (
     network_interfaces => 'alt-e',

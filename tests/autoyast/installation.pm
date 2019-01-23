@@ -52,18 +52,6 @@ sub save_and_upload_stage_logs {
 }
 
 sub upload_autoyast_profile {
-    my ($self) = @_;
-    select_console 'install-shell';
-    # the network may be down with keep_install_network=false
-    # use static ip in that case if not on s390x
-    if (!check_var("BACKEND", "s390x")) {
-        type_string " if ! ping -c 1 10.0.2.2 ; then
-            ip addr add 10.0.2.200/24 dev eth0
-            ip link set eth0 up
-            route add default gw 10.0.2.2
-        fi
-        ";
-    }
     # Upload autoyast profile if file exists
     if (script_run '! test -e /tmp/profile/autoinst.xml') {
         upload_logs '/tmp/profile/autoinst.xml';
@@ -73,8 +61,6 @@ sub upload_autoyast_profile {
         upload_logs '/tmp/profile/modified.xml';
     }
     save_screenshot;
-    clear_console;
-    select_console 'installation';
 }
 
 sub handle_expected_errors {
@@ -195,7 +181,7 @@ sub run {
 
             wait_screen_change { send_key 'tab' };
             wait_screen_change { send_key 'ret' };
-            @needles = grep { $_ ne 'autoyast-confirm' } @needles;
+            @needles   = grep { $_ ne 'autoyast-confirm' } @needles;
             $confirmed = 1;
         }
         elsif (match_has_tag('autoyast-license')) {
@@ -221,7 +207,7 @@ sub run {
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
-            @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
+            @needles        = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
         elsif (match_has_tag('autoyast-error')) {
@@ -246,7 +232,7 @@ sub run {
     # We use startshell boot option on s390x to sync actions with reboot, normally is not used
     # Cannot verify second stage properly on s390x, so recoonect to already installed system
     if (check_var('ARCH', 's390x')) {
-        reconnect_s390(timeout => 500);
+        reconnect_mgmt_console(timeout => 500);
         return;
     }
 
@@ -289,8 +275,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->upload_autoyast_profile;
     $self->SUPER::post_fail_hook;
+    $self->upload_autoyast_profile;
 }
 
 1;

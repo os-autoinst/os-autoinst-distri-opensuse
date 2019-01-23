@@ -18,7 +18,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 
 # Create test partition and scratch partition, and make FS in them
 sub dev_create_partition {
-    my $self = shift;
+    my $self         = shift;
     my $test_fs_type = get_var('TEST_FS_TYPE', '');
     unless ($test_fs_type) {
         $test_fs_type = "xfs";
@@ -32,7 +32,7 @@ sub dev_create_partition {
 
     # seperate xfs partition(/home) into two same size xfs
     $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$2}\'";
-    my $partition_begin = script_output($cmd, 10);
+    my $partition_begin       = script_output($cmd, 10);
     my $extendpartition_begin = $partition_begin;
     $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$5 == \"xfs\") print \$3}\'";
     my $partition_end       = script_output($cmd, 10);
@@ -53,7 +53,7 @@ sub dev_create_partition {
 
     # reset test partition number, because sometimes this id changed after mkpart
     $test_partition_id = script_output($cmd, 10);
-    $test_partition = "/dev/vda" . $test_partition_id;
+    $test_partition    = "/dev/vda" . $test_partition_id;
 
     type_string "parted --script --machine -l\n", 5;
     #workaround bsc#1072549
@@ -62,7 +62,7 @@ sub dev_create_partition {
     # scratch partition number not always equal to test_partition + 1, so add these two line. poo#31156
     $cmd = "parted --script --machine -l 2>&1| awk -F \':\' \'{if(\$3 == \"$extendpartition_end\" && \$4~/MB|GB/) print \$1}\'";
     my $scratch_partition_id = script_output($cmd, 10);
-    my $scratch_partition = "/dev/vda" . $scratch_partition_id;
+    my $scratch_partition    = "/dev/vda" . $scratch_partition_id;
 
     assert_script_run("mkfs." . $test_fs_type . " -f " . $test_partition);
     assert_script_run("mkfs." . $test_fs_type . " -f " . $scratch_partition);
@@ -116,7 +116,7 @@ sub dev_update_fstab {
     my $self = shift;
     my ($test_partition, $scratch_partition, $test_fs_type) = @_;
     assert_script_run("cat /etc/fstab");
-    my $cmd = "blkid " . $test_partition . " 2>&1| awk -F \'\"\' \'{print \$2}\'";
+    my $cmd       = "blkid " . $test_partition . " 2>&1| awk -F \'\"\' \'{print \$2}\'";
     my $test_uuid = script_output($cmd, 10);
     $cmd = "blkid " . $scratch_partition . " 2>&1| awk -F \'\"\' \'{print \$2}\'";
     my $scratch_uuid = script_output($cmd, 10);

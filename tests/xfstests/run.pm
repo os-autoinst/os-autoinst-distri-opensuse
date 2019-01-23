@@ -136,7 +136,7 @@ sub test_name {
 sub log_add {
     my ($file, $test, $status, $time) = @_;
     my $name = test_name($test);
-    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync";
+    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
     type_string("\n");
     assert_script_run($cmd);
 }
@@ -263,6 +263,7 @@ sub run {
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
+        type_string("echo $test > /dev/$serialdev\n");
         test_run($test);
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {

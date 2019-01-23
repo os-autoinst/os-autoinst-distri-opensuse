@@ -55,7 +55,7 @@ sub init {
 sub file2name {
     my ($self, $file) = @_;
     my $name = $file;
-    $name = lc $file;           # lower case
+    $name = lc $file;    # lower case
     $name =~ s/[^a-z0-9]//g;    # only allowed characteres from Google Cloud
     $name =~ s/targz$//;        # removes targz
     return $name;
@@ -64,7 +64,7 @@ sub file2name {
 sub find_img {
     my ($self, $name) = @_;
     my $img_name = $self->file2name($name);
-    my $out = script_output("gcloud compute images list --filter='name~$img_name'|grep -v NAME", 10, proceed_on_failure => 1);
+    my $out      = script_output("gcloud compute images list --filter='name~$img_name'|grep -v NAME", 10, proceed_on_failure => 1);
     return if (!$out || $out =~ m/0 items/);
     my ($image) = $out =~ /(\w+)/;
     return $image;

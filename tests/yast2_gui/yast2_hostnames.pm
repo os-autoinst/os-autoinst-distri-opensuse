@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -46,12 +46,18 @@ sub run {
     wait_screen_change { send_key "alt-o"; };
     # Check that entry was correctly edited in /etc/hosts
     select_console "root-console";
-    assert_script_run q#grep '195\.135\.221\.134\sdownload\.opensuse\.org\sdownload-srv' /etc/hosts#;
+    assert_script_run q#grep '195\.135\.221\.134\s*download\.opensuse\.org\s*download-srv' /etc/hosts#;
 }
 
 # Test ends in root-console, default post_run_hook does not work here
 sub post_run_hook {
     set_var('YAST2_GUI_TERMINATE_PREVIOUS_INSTANCES', 1);
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    upload_logs('/etc/hosts');
+    $self->SUPER::post_fail_hook;
 }
 
 1;

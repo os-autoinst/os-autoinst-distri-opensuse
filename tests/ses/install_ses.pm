@@ -18,7 +18,7 @@ use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
-    my $git_deepsea = get_var('GIT_DEEPSEA', 'SUSE/DeepSea.git');
+    my $git_deepsea        = get_var('GIT_DEEPSEA', 'SUSE/DeepSea.git');
     my $git_deepsea_branch = get_var('GIT_DEEPSEA_BRANCH');
     $git_deepsea_branch ||= is_sle('<15') ? 'SES5' : 'master';
     # install missing git-core, curl and not importatnt virt-what

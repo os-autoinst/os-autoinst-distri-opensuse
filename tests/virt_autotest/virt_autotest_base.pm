@@ -152,7 +152,7 @@ sub run_test {
         $timeout = 300;
     }
 
-    my $test_cmd = $self->get_script_run();
+    my $test_cmd      = $self->get_script_run();
     my $script_output = $self->execute_script_run($test_cmd, $timeout);
 
     if ($add_junit_log_flag eq "yes") {

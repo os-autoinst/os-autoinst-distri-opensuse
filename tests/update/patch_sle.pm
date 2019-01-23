@@ -138,16 +138,56 @@ sub install_salt_packages {
     zypper_call('in -t package salt-master salt-minion');
 }
 
+#   Function: parse the output from script_output to get the pattern list
+#   Reason  : sometimes script_output with 'zypper pt -u' will cost a lot of time to return,
+#   which cause the console have some system message in the output. we need filt out these
+#   info before we process the result.
+#   parameters:
+#   $cmd   : the command line
+#   $start : the line that start with $start, which is we want
+#   return :  an array of pattern list
+sub get_pattern_list {
+    my ($cmd, $start) = @_;
+
+    my $pkg_name;
+    my @column   = ();
+    my @pkg_list = ();
+    my %seen     = ();
+    my @unique   = ();
+
+    my @pkg_lines = split(/\n/, script_output($cmd, 120));
+
+    foreach my $line (@pkg_lines) {
+        $line =~ s/^\s+|\s+$//g;
+        # In a regular expression, all chars between the \Q and \E are escaped.
+        next if ($line !~ m/^\Q$start\E/);
+        # filter out the spaces in each filed
+        @column = map { s/^\s*|\s*$//gr } split(/\|/, $line);
+        # pkg_name is the 2nd field seperated by '|'
+        $pkg_name = $column[1];
+        push @pkg_list, $pkg_name;
+    }
+
+    if (@pkg_list) {
+        # unique and sort the @pkg_list
+        %seen   = map { $_ => 1 } @pkg_list;
+        @unique = sort keys %seen;
+    }
+
+    return @unique;
+}
+
 # Install extra patterns if var PATTERNS is set
 sub install_patterns {
     my $pcm = 0;
     my @pt_list;
     my @pt_list_un;
-    my @pt_list_in = split(/ /, script_output("zypper pt -i | grep '^i' | awk -F '|' '{print \$2}' | sort -u | xargs"));
+    my @pt_list_in;
 
+    @pt_list_in = get_pattern_list "zypper pt -i", "i";
     # install all patterns from product.
     if (check_var('PATTERNS', 'all')) {
-        @pt_list_un = split(/ /, script_output("zypper pt -u | grep '^  |' | awk -F '|' '{print \$2}' | sort -u | xargs"));
+        @pt_list_un = get_pattern_list "zypper pt -u", "|";
     }
     # install certain pattern from parameter.
     else {
@@ -159,7 +199,7 @@ sub install_patterns {
         $installed_pt{$_} = 1;
     }
     @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
-    $pcm = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
+    $pcm     = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
 
     for my $pt (@pt_list) {
         # Cloud patterns are conflict by each other, only install cloud pattern from single vender.

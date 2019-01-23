@@ -162,7 +162,7 @@ sub clean_up_red_disks {
     my $get_swaps_not_need = "$get_disks_fs_overview | grep -v -e \"sd[a].*\" | grep -i \"\\\[SWAP\\\]\" | grep -o -e \"sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
     my $swaps_not_used = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
 
-    my $wipe_fs_cmd = "";
+    my $wipe_fs_cmd      = "";
     my $installed_os_ver = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
     ($installed_os_ver) = $installed_os_ver =~ /^(\d+)/;
     if ($installed_os_ver eq '11') {
