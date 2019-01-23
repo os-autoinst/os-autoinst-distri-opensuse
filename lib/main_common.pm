@@ -1381,6 +1381,22 @@ sub load_extra_tests_y2uitest_gui {
     loadtest "yast2_gui/yast2_users";
 }
 
+sub load_extra_tests_openqa_bootstrap {
+    if (get_var 'BOOTSTRAP_CONTAINER') {
+        loadtest 'openqa/install/openqa_bootstrap_container';
+    }
+    else {
+        loadtest 'openqa/install/openqa_bootstrap';
+        loadtest 'openqa/osautoinst/start_test';
+        loadtest 'openqa/osautoinst/test_running';
+    }
+    loadtest 'openqa/webui/dashboard';
+    loadtest 'openqa/webui/login';
+    unless (get_var 'BOOTSTRAP_CONTAINER') {
+        loadtest 'openqa/webui/test_results';
+    }
+}
+
 sub load_extra_tests_desktop {
     return unless any_desktop_is_applicable;
     if (check_var('DISTRI', 'sle')) {
