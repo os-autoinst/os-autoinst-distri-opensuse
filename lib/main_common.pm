@@ -1555,27 +1555,8 @@ sub load_extra_tests_prepare {
 }
 
 sub load_extra_tests {
-    # Put tests that filled the conditions below
-    # 1) you don't want to run in stagings below here
-    # 2) the application is not rely on desktop environment
-    # 3) running based on preinstalled image
-    return unless get_var('EXTRATEST');
-    # pre-conditions for extra tests ie. the tests are running based on preinstalled image
-    return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
-
-    # Extra tests are too long, split the test into subtest according to the
-    # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
-    # EXTRATEST=prepare,zypper,console,opensuse,docker,kdump in textmode or
-    # EXTRATEST=prepare,desktop in dektop tests
-    foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
-        if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
-            $test_to_run->();
-        }
-        else {
-            diag "unknown scenario for EXTRATEST value $test_name";
-        }
-    }
-    loadtest "console/consoletest_finish" if console_is_applicable;
+    # custom test plan
+    loadtest "console/zypper_moo";
     return 1;
 }
 
