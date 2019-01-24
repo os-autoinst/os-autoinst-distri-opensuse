@@ -66,7 +66,6 @@ our @EXPORT = qw(
   load_consoletests
   load_create_hdd_tests
   load_extra_tests
-  load_extra_tests_docker
   load_inst_tests
   load_iso_in_external_tests
   load_jeos_tests
