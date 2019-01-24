@@ -73,9 +73,12 @@ sub run {
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
     type_string $hostname;
-    send_key "tab";
-    for (1 .. 15) { send_key "backspace" }
-    type_string $domain;
+    # Starting from SLE 15 SP1, we don't have domain field
+    if (is_sle('<=15') || is_leap('<=15.0')) {
+        send_key "tab";
+        for (1 .. 15) { send_key "backspace" }
+        type_string $domain;
+    }
     assert_screen 'test-yast2_lan-1';
 
     send_key "alt-o";    # OK=>Save&Exit
@@ -92,4 +95,3 @@ sub run {
 }
 
 1;
-
