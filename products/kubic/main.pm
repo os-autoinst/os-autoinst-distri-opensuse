@@ -24,6 +24,7 @@ sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'installation/grub_test';
     loadtest 'installation/first_boot';
+    loadtest 'update/zypper_clear_repos';
     loadtest 'kubic/networking';
     loadtest 'kubic/repositories';
 }
