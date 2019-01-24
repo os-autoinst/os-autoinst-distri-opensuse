@@ -48,7 +48,8 @@ sub create_list_of_serial_failures {
     }
 
 
-    push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'};
+    # Disable CPU soft lockup detection on aarch64 until https://progress.opensuse.org/issues/46502 get resolved
+    push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
 
     return $serial_failures;
 }
