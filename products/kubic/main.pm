@@ -22,7 +22,8 @@ sub load_boot_from_dvd_tests {
 
 sub load_boot_from_disk_tests {
     # Preparation for start testing
-    loadtest 'kubic/disk_boot';
+    loadtest 'installation/grub_test';
+    loadtest 'installation/first_boot';
     loadtest 'kubic/networking';
     loadtest 'kubic/repositories';
 }

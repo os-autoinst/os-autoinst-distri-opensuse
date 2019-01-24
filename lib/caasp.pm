@@ -102,26 +102,6 @@ sub microos_login {
     assert_script_run 'clear';
 }
 
-# Process reboot with an option to trigger it
-sub process_reboot {
-    my $trigger = shift // 0;
-    power_action('reboot', observe => !$trigger, keepconsole => 1);
-
-    # No grub bootloader on xen-pv
-    # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
-    # kubic - will risk occasional failure because it disabled grub2 timeout
-    if (is_caasp 'kubic') {
-        assert_screen [qw(grub2 linux-login-casp)], 150;
-        if (match_has_tag 'linux-login-casp') {
-            record_info('poo#28648', 'Skip looking for grub2 needle - the system has already been booted');
-        }
-        elsif (match_has_tag 'grub2') {
-            send_key 'ret';
-        }
-    }
-    microos_login;
-}
-
 # Get current job id
 sub get_current_job {
     my $name = get_required_var('NAME');
