@@ -232,6 +232,19 @@ sub create_instance {
     die('Cannot reach port 22 on IP ' . $instance->{public_ip});
 }
 
+=head2 on_terraform_timeout
+
+This method can be overwritten but child classes to do some special
+cleanup task.
+Terraform was already terminated using the QUIT signal and openqa has a
+valid shell.
+The working directory is always the terraform directory, where the statefile
+and the *.tf is placed.
+
+=cut
+sub on_terraform_timeout {
+}
+
 =head2 terraform_apply
 
 Calls terraform tool and applies the corresponding configuration .tf file
@@ -256,7 +269,16 @@ sub terraform_apply {
         $image, $args{count}, $instance_type, $self->region);
 
     assert_script_run($cmd);
-    assert_script_run('terraform apply myplan', TERRAFORM_TIMEOUT);
+    my $ret = script_run('terraform apply myplan', TERRAFORM_TIMEOUT);
+    unless (defined $ret) {
+        type_string(qq(\c\\));        # Send QUIT signal
+        assert_script_run('true');    # make sure we have a prompt
+        record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
+        assert_script_run('cd ' . TERRAFORM_DIR);
+        $self->on_terraform_timeout();
+        die('Terraform apply failed with timeout');
+    }
+    die('Terraform exit with ' . $ret) if ($ret != 0);
 
     $self->terraform_applied(1);
 

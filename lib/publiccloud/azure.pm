@@ -143,4 +143,33 @@ sub ipa {
     return $self->run_ipa(%args);
 }
 
+sub on_terraform_timeout {
+    my ($self) = @_;
+    my $out = script_output('terraform state show azurerm_resource_group.openqa-group');
+    if ($out !~ /name\s+=\s+(openqa-[a-z0-9]+)/m) {
+        record_info('ERROR', 'Unable to get resource-group:' . $/ . $out, result => 'fail');
+        return;
+    }
+    my $resgroup = $1;
+
+    my $tries = 3;
+    while ($tries gt 0) {
+        $tries = $tries - 1;
+        eval {
+            my $bootlog_name = '/tmp/azure-bootlog.txt';
+            my $cmd_enable = 'az vm boot-diagnostics enable --ids $(az vm list -g ' . $resgroup . ' --query \'[].id\' -o tsv) --storage ' . $self->storage_account;
+            $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
+            record_info('INFO', $cmd_enable . $/ . $out);
+            script_run('az vm boot-diagnostics get-boot-log --ids $(az vm list -g ' . $resgroup . ' --query \'[].id\' -o tsv) > ' . $bootlog_name);
+            upload_logs($bootlog_name, failok => 1);
+            $tries = 0;
+        };
+        if ($@) {
+            type_string(qq(\c\\));
+        }
+    }
+
+    assert_script_run("az group delete --yes --no-wait --name $resgroup");
+}
+
 1;
