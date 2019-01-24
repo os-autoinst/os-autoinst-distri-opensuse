@@ -15,6 +15,7 @@ use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
+use version_utils ':VERSION';
 use y2_common 'accept_warning_network_manager_default';
 
 sub hostname_via_dhcp {
@@ -31,7 +32,13 @@ sub hostname_via_dhcp {
     # Hostname/DNS tab
     send_key $cmd{hostname_dns_tab};
     assert_screen "yast2_lan-hostname-tab";
-    for (1 .. 4) { send_key 'tab' }    # go to roll-down list
+    # We have different postition for this control
+    # go to roll-down list
+    if (is_sle('<=15') || is_leap('<=15.0')) {
+        for (1 .. 4) { send_key 'tab' }
+    } else {
+        for (1 .. 2) { send_key 'tab' }
+    }
     wait_screen_change { send_key 'down'; };    # open roll-down list
     send_key $cmd{home};
     assert_screen("yast2_lan-hostname-DHCP-no");    # check that topmost option is selected
