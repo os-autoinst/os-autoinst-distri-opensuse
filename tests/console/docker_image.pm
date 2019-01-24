@@ -52,7 +52,7 @@ sub run {
 
     for my $i (0 .. $#$image_names) {
         # Load the image
-        assert_script_run("docker pull $image_names->[$i]", 900);
+        assert_script_run("docker pull $image_names->[$i]", 1000);
         # Running executables works
         assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'echo "I work" | grep "I work"'};
         # It is the right version
