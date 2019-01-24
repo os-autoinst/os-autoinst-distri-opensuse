@@ -18,6 +18,8 @@ use strict;
 use base "opensusebasetest";
 use testapi;
 use version_utils 'is_caasp';
+use power_action_utils 'power_action';
+use caasp 'microos_login';
 use transactional_system;
 
 # Download files needed for transactional update test
@@ -61,7 +63,23 @@ sub run {
 
     record_info 'Install ptf', 'Install package - snapshot #1';
     trup_call "ptf install" . rpmver('security');
-    check_reboot_changes;
+    if (check_reboot_changes) {
+        # Reboot into new snapshot
+        power_action('reboot', observe => 0, keepconsole => 1);
+        # No grub bootloader on xen-pv
+        # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
+        # kubic - will risk occasional failure because it disabled grub2 timeout
+        if (is_caasp 'kubic') {
+            assert_screen [qw(grub2 linux-login-casp)], 150;
+            if (match_has_tag 'linux-login-casp') {
+                record_info('poo#28648', 'Skip looking for grub2 needle - the system has already been booted');
+            }
+            elsif (match_has_tag 'grub2') {
+                send_key 'ret';
+            }
+        }
+        microos_login;
+    }
     check_package 'in';
 
     # Find snapshot number for rollback
