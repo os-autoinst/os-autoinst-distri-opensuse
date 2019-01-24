@@ -40,6 +40,7 @@ sub run {
     validate_script_output 'lpstat -p -d -o', sub { m/printer_tmp is idle/ };
 
     assert_script_run 'curl --fail -s -O -L ' . data_url('console/sample.ps');
+    assert_script_run 'curl --fail -s -O -L ' . data_url('console/testpage.pdf');
 
     # Submit print job to the queue, list them and cancel them
     record_info "lp, lpstat, cancel", "Submitting and canceling jobs";
@@ -58,7 +59,7 @@ sub run {
     record_info "lp, lpq", "Printing jobs";
     foreach my $printer (qw/printer_tmp printer_null/) {
         assert_script_run "cupsenable $printer";
-        assert_script_run "lp -d $printer /usr/share/cups/data/default-testpage.pdf";
+        assert_script_run "lp -d $printer testpage.pdf";
         validate_script_output "lpq $printer", sub { m/is ready/ };
     }
 
