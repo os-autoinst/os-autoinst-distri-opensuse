@@ -1,15 +1,18 @@
 # openssl fips test
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-
+#
 # Summary: FIPS: In fips mode, openssl only works with the FIPS
-#   approved Cihper algorithms: AES and DES3
-# Maintainer: Qingming Su <qingming.su@suse.com>
+#          approved Cihper algorithms: AES and DES3
+#
+# Original Author: Qingming Su <qingming.su@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
+# Tags: poo#44837
 
 use base "consoletest";
 use testapi;
@@ -46,7 +49,7 @@ sub run {
     for my $cipher (@invalid_cipher) {
         validate_script_output
           "openssl enc -$cipher -e -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 || true",
-          sub { m/disabled for fips|unknown option/ };
+          sub { m/disabled for fips|unknown option|Unknown cipher/ };
     }
 
     script_run 'cd - && rm -rf fips-test';
