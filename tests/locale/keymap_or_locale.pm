@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use Utils::Backends 'is_remote_backend';
 
 sub verify_default_keymap_textmode {
     my ($test_string, $tag, %tty) = @_;
@@ -23,7 +24,9 @@ sub verify_default_keymap_textmode {
     }
     else {
         send_key('alt-f3');
-        assert_screen([qw(linux-login cleared-console)]);
+        # remote backends can not provide a "not logged in console" so we use
+        # a cleared remote terminal instead
+        assert_screen(is_remote_backend() ? 'cleared-console' : 'linux-login');
     }
 
     type_string($test_string);
