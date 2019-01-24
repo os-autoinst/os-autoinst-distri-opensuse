@@ -8,8 +8,8 @@
 # without any warranty.
 
 
-# Summary: QAM teradata test in openQA
-#    1) boots prepared teradata image
+# Summary: QAM incident install test in openQA
+#    1) boots prepared image / clean install
 #    2) update it to last released updates
 #    3) install packages mentioned in patch
 #    5) try install update and store install_logs

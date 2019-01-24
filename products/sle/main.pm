@@ -897,9 +897,9 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('DESKTOP',      'textmode');
     }
 }
-elsif (get_var("TERADATA")) {
+elsif (get_var("INSTALLTEST")) {
     boot_hdd_image;
-    loadtest "qam-teradata/teradata";
+    loadtest "qam-updinstall/update_install";
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
