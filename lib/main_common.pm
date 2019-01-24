@@ -1240,6 +1240,7 @@ sub load_x11tests {
         loadtest "x11/xfce4_terminal";
     }
     loadtest "x11/xterm";
+    loadtest "locale/keymap_or_locale_x11";
     loadtest "x11/sshxterm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
         load_system_update_tests();
