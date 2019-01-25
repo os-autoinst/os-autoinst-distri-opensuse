@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,12 +14,12 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Log into system installed with autoyast
-# Maintainer: Pavel Sladek <psladek@suse.cz>
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use base 'y2logsstep';
 use testapi;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;

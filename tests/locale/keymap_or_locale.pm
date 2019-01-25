@@ -8,13 +8,13 @@
 # without any warranty.
 
 # Summary: Keyboard layout test in console and display manager after boot
-# Maintainer: Martin Loviska <mloviska@suse.com>
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends 'has_ttys';
 
 sub verify_default_keymap_textmode {
     my ($test_string, $tag, %tty) = @_;
@@ -24,9 +24,9 @@ sub verify_default_keymap_textmode {
     }
     else {
         send_key('alt-f3');
-        # remote backends can not provide a "not logged in console" so we use
-        # a cleared remote terminal instead
-        assert_screen(is_remote_backend() ? 'cleared-console' : 'linux-login');
+        # some remote backends can not provide a "not logged in console" so we
+        # use a cleared remote terminal instead
+        assert_screen(has_ttys() ? 'linux-login' : 'cleared-console');
     }
 
     type_string($test_string);
