@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     zypper_call('in openQA-bootstrap');
-    assert_script_run('/usr/share/openqa/script/openqa-bootstrap', 1600);
+    assert_script_run('/usr/share/openqa/script/openqa-bootstrap', 4000);
 }
 
 sub test_flags {
