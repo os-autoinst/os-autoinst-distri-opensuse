@@ -58,8 +58,6 @@ sub run {
     send_key 'f11';
     wait_still_screen 3;
 
-    confirm_insecure_https if is_caasp('VMX');
-
     # Check that footer has proper tag
     my $v = get_var('VERSION');
     $v .= '-dev' if check_var('BETA', 'DEV');
