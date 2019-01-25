@@ -25,6 +25,7 @@ use constant {
     BACKEND => [
         qw(
           is_remote_backend
+          has_ttys
           )
     ],
     CONSOLES => [
@@ -57,6 +58,13 @@ sub is_remote_backend {
       check_var('BACKEND', 'svirt') ||
       check_var('BACKEND', 'ipmi')  ||
       check_var('BACKEND', 'spvm');
+}
+
+# In some cases we are using a VNC connection provided by the hypervisor that
+# allows access to the ttys same as for accessing any remote libvirt instance
+# but not what we use for s390x-kvm.
+sub has_ttys {
+    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm/) && !get_var('S390_ZKVM'));
 }
 
 1;
