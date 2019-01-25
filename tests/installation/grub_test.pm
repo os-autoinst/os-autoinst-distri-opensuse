@@ -81,6 +81,8 @@ sub bug_workaround_bsc1005313 {
 sub run {
     my ($self) = @_;
     my $timeout = get_var('GRUB_TIMEOUT', 90);
+    # on IPMI keys are sometimes lost in the bootloader
+    my $retry = check_var('BACKEND','ipmi') ? 1 : undef; 
 
     $self->handle_installer_medium_bootup;
     workaround_type_encrypted_passphrase;
@@ -101,6 +103,10 @@ sub run {
     else {
         # avoid timeout for booting to HDD
         send_key 'ret';
+        if ($retry) {
+            # on retry, wait 10 seconds if grub2 is still shown, if yes, send the key again
+            check_screen('grub2', 10) ? return : send_key 'ret';
+        }
     }
 }
 
