@@ -20,7 +20,7 @@ use version_utils 'is_caasp';
 use power_action_utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(
-  process_reboot microos_login send_alt
+  microos_login send_alt
   handle_simple_pw export_cluster_logs script_retry script_run0 script_assert0
   get_delayed update_scheduled
   pause_until unpause);

@@ -19,7 +19,6 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use caasp 'process_reboot';
 
 our @EXPORT = qw(
   check_reboot_changes

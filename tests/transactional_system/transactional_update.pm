@@ -57,6 +57,7 @@ sub check_package {
 }
 
 sub run {
+    my ($self) = @_;
     script_run "rebootmgrctl set-strategy off";
 
     get_utt_packages;
@@ -66,18 +67,7 @@ sub run {
     if (check_reboot_changes) {
         # Reboot into new snapshot
         power_action('reboot', observe => 0, keepconsole => 1);
-        # No grub bootloader on xen-pv
-        # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
-        # kubic - will risk occasional failure because it disabled grub2 timeout
-        if (is_caasp 'kubic') {
-            assert_screen [qw(grub2 linux-login-casp)], 150;
-            if (match_has_tag 'linux-login-casp') {
-                record_info('poo#28648', 'Skip looking for grub2 needle - the system has already been booted');
-            }
-            elsif (match_has_tag 'grub2') {
-                send_key 'ret';
-            }
-        }
+        $self->wait_boot(textmode=>1);
         microos_login;
     }
     check_package 'in';
