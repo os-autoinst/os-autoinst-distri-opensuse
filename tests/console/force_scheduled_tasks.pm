@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -43,7 +43,7 @@ sub run {
     my $systemd_tasks_cmd = 'echo "Triggering systemd timed service $i" && systemctl start $i';
     $systemd_tasks_cmd .= ' && systemctl mask $i.{service,timer}' unless get_var('SOFTFAIL_BSC1063638');
     assert_script_run(
-        'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do ' . $systemd_tasks_cmd . '; done');
+'for i in $(systemctl list-units --type=timer --state=active --no-legend | sed -e \'s/\(\S\+\)\.timer\s.*/\1/\'); do ' . $systemd_tasks_cmd . '; done', 150);
     record_soft_failure 'bsc#1063638 - review I/O scheduling parameters of btrfsmaintenance' if (time - $before) > 60 && get_var('SOFTFAIL_BSC1063638');
     # Disable cron jobs on older SLE12 by symlinking them to /bin/true
     if (!get_var('SOFTFAIL_BSC1063638') && script_run("! [ -d /usr/share/btrfsmaintenance/ ]")) {
