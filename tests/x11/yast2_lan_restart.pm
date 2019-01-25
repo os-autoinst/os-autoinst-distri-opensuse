@@ -84,10 +84,8 @@ sub run {
     type_string "killall xterm\n";
 }
 
-
 sub post_fail_hook {
     my ($self) = @_;
-
     assert_script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
     $self->SUPER::post_fail_hook;
@@ -95,10 +93,6 @@ sub post_fail_hook {
 
 sub test_flags {
     return {always_rollback => 1};
-}
-
-sub test_flags {
-    return {always_rollback => 1};    # Should only affect backends that have snapshot feature
 }
 
 1;

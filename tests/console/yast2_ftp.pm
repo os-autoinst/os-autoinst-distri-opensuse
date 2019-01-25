@@ -204,8 +204,4 @@ sub post_fail_hook {
     $self->save_upload_y2logs;
 }
 
-sub test_flags {
-    return {milestone => 1};
-}
-
 1;
