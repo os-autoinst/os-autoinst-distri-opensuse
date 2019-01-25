@@ -4,6 +4,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use version_utils 'is_caasp';
+use autotest 'query_isotovideo';
 
 # Export logs from cluster admin/workers
 sub export_cluster_logs {
@@ -35,6 +36,9 @@ sub deregister {
 }
 
 sub post_run_hook {
+    # Some nodes were removed & powered off during test run
+    return if query_isotovideo('backend_is_shutdown');
+
     export_cluster_logs;
     deregister;
 }
