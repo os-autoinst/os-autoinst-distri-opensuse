@@ -30,6 +30,8 @@ sub run {
         record_soft_fail("Session type is not defined");
     }
 
+    type_string "exit\n";    # logout
+
     select_console 'x11' unless check_var('DESKTOP', 'textmode');
 }
 
