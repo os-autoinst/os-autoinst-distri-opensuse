@@ -19,7 +19,7 @@
 use strict;
 use base 'y2logsstep';
 use testapi;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;
