@@ -424,6 +424,7 @@ sub wait_boot {
     my $in_grub         = $args{in_grub} // 0;
     my $nologin         = $args{nologin};
     my $forcenologin    = $args{forcenologin};
+    my $linux_boot_entry //= 14;
 
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
@@ -496,8 +497,20 @@ sub wait_boot {
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
         wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
-        # confirm default choice
-        send_key 'ret';
+        if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
+            # TODO do we already have code to control the boot parameters? I
+            # think so
+            wait_screen_change { send_key 'e' };
+            for (1 .. $linux_boot_entry) { send_key 'down' }
+            wait_screen_change { send_key 'end' };
+            type_string_very_slow "$boot_params ";
+            save_screenshot;
+            send_key 'ctrl-x';
+        }
+        else {
+            # confirm default choice
+            send_key 'ret';
+        }
     }
 
     # On Xen we have to re-connect to serial line as Xen closed it after restart
