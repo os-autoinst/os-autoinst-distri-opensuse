@@ -318,6 +318,86 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
 }
 
+=head2 wait_grub
+
+  wait_grub([bootloader_time => $bootloader_time] [,in_grub => $in_grub]);
+
+Makes sure the bootloader appears. Returns successfully when reached the bootloader menu, ready to control it further or continue. The time waiting for the bootloader can be configured with
+C<$bootloader_time> in seconds. Set C<$in_grub> to 1 when the
+SUT is already expected to be within the grub menu.
+=cut
+sub wait_grub {
+    my ($self, %args) = @_;
+    my $bootloader_time = $args{bootloader_time} // 100;
+    my $in_grub         = $args{in_grub}         // 0;
+    my @tags            = ('grub2');
+    push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
+    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');             # LIVETEST won't to do installation and no grub2 menu show up
+    push @tags, 'bootloader'                      if get_var('OFW');
+    push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
+    push @tags, 'linux-login'                     if get_var('KEEP_GRUB_TIMEOUT');    # Also wait for linux-login if grub timeout was not disabled
+    if (get_var('ONLINE_MIGRATION')) {
+        push @tags, 'migration-source-system-grub2';
+    }
+    # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
+    # order on UEFI" the USB install medium is priority and will always be
+    # booted so we have to handle that
+    # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
+    push @tags, 'inst-bootmenu'
+      if (get_var('USBBOOT') && get_var('UEFI')
+        || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
+        || get_var('OFW')
+        || (check_var('BOOTFROM', 'd')));
+    $self->handle_uefi_boot_disk_workaround
+      if (is_aarch64_uefi_boot_hdd
+        && !$in_grub
+        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
+    check_screen(\@tags, $bootloader_time);
+    if (match_has_tag("bootloader-shim-import-prompt")) {
+        send_key "down";
+        send_key "ret";
+        assert_screen "grub2", 15;
+    }
+    elsif (get_var("LIVETEST")) {
+        # prevent if one day booting livesystem is not the first entry of the boot list
+        if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
+            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
+        }
+    }
+    elsif (match_has_tag('inst-bootmenu')) {
+        # assuming the cursor is on 'installation' by default and 'boot from
+        # harddisk' is above
+        send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+        boot_local_disk;
+
+        my @tags = qw(grub2 tianocore-mainmenu);
+        push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+
+        check_screen(\@tags, 15)
+          || die 'neither grub2 nor tianocore-mainmenu needles found';
+        if (match_has_tag('tianocore-mainmenu')) {
+            $self->handle_uefi_boot_disk_workaround();
+            check_screen('encrypted-disk-password-prompt', 10);
+        }
+        if (match_has_tag('encrypted-disk-password-prompt')) {
+            workaround_type_encrypted_passphrase;
+            assert_screen('grub2');
+        }
+    }
+    elsif (match_has_tag('encrypted-disk-password-prompt')) {
+        # unlock encrypted disk before grub
+        workaround_type_encrypted_passphrase;
+        assert_screen "grub2", 15;
+    }
+    # If KEEP_GRUB_TIMEOUT is set, SUT may be at linux-login already, so no need to abort in that case
+    elsif (!match_has_tag("grub2") and !match_has_tag('linux-login')) {
+        # check_screen timeout
+        my $failneedle = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
+        die "needle '$failneedle' not found";
+    }
+    mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
+}
+
 =head2 wait_boot
 
   wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
@@ -415,72 +495,7 @@ sub wait_boot {
     }
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
-        my @tags = ('grub2');
-        push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
-        push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');             # LIVETEST won't to do installation and no grub2 menu show up
-        push @tags, 'bootloader'                      if get_var('OFW');
-        push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
-        push @tags, 'linux-login'                     if get_var('KEEP_GRUB_TIMEOUT');    # Also wait for linux-login if grub timeout was not disabled
-        if (get_var('ONLINE_MIGRATION')) {
-            push @tags, 'migration-source-system-grub2';
-        }
-        # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
-        # order on UEFI" the USB install medium is priority and will always be
-        # booted so we have to handle that
-        # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
-        push @tags, 'inst-bootmenu'
-          if (get_var('USBBOOT') && get_var('UEFI')
-            || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
-            || get_var('OFW')
-            || (check_var('BOOTFROM', 'd')));
-        $self->handle_uefi_boot_disk_workaround
-          if (is_aarch64_uefi_boot_hdd
-            && !$in_grub
-            && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
-        check_screen(\@tags, $bootloader_time);
-        if (match_has_tag("bootloader-shim-import-prompt")) {
-            send_key "down";
-            send_key "ret";
-            assert_screen "grub2", 15;
-        }
-        elsif (get_var("LIVETEST")) {
-            # prevent if one day booting livesystem is not the first entry of the boot list
-            if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
-                send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
-            }
-        }
-        elsif (match_has_tag('inst-bootmenu')) {
-            # assuming the cursor is on 'installation' by default and 'boot from
-            # harddisk' is above
-            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-            boot_local_disk;
-
-            my @tags = qw(grub2 tianocore-mainmenu);
-            push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
-
-            check_screen(\@tags, 15)
-              || die 'neither grub2 nor tianocore-mainmenu needles found';
-            if (match_has_tag('tianocore-mainmenu')) {
-                $self->handle_uefi_boot_disk_workaround();
-                check_screen('encrypted-disk-password-prompt', 10);
-            }
-            if (match_has_tag('encrypted-disk-password-prompt')) {
-                workaround_type_encrypted_passphrase;
-                assert_screen('grub2');
-            }
-        }
-        elsif (match_has_tag('encrypted-disk-password-prompt')) {
-            # unlock encrypted disk before grub
-            workaround_type_encrypted_passphrase;
-            assert_screen "grub2", 15;
-        }
-        # If KEEP_GRUB_TIMEOUT is set, SUT may be at linux-login already, so no need to abort in that case
-        elsif (!match_has_tag("grub2") and !match_has_tag('linux-login')) {
-            # check_screen timeout
-            my $failneedle = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
-            die "needle '$failneedle' not found";
-        }
-        mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
+        wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
         # confirm default choice
         send_key 'ret';
     }
