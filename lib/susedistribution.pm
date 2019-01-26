@@ -3,6 +3,7 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use utils qw(
+  desktop_runner_hotkey
   disable_serial_getty
   ensure_serialdev_permissions
   ensure_unlocked_desktop
@@ -139,18 +140,18 @@ sub init_cmd {
     ## keyboard cmd vars end
 }
 
-
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
     $timeout //= 30;
+    my $hotkey = desktop_runner_hotkey;
 
-    send_key(check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2');
+    send_key($hotkey);
 
     mouse_hide(1);
     if (!check_screen('desktop-runner', $timeout)) {
-        record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
+        record_info('workaround', "desktop-runner does not show up on $hotkey, retrying up to three times (see bsc#978027)");
         send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
-        send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
+        send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
     }
     # krunner may use auto-completion which sometimes gets confused by
     # too fast typing or looses characters because of the load caused (also
