@@ -51,13 +51,12 @@ sub run {
             \}/sxx
     };
 
-    assert_script_run "rm -f $aa_tmp_prof/usr.sbin.nscd";
-
     $self->aa_interactive_run("aa-autodep -d $aa_tmp_prof /usr/bin/pam* ; echo AUTODEP-DONE", $scan_ans, 300);
 
     # Output generated profiles list to serial console
     assert_script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
 
+    assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.nscd";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");
 }
 
