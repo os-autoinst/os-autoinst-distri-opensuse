@@ -24,7 +24,7 @@ sub install_package {
         bmwqemu::save_vars();
     }
     script_run "zypper --non-interactive rr server-repo";
-    assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f '$qa_server_repo' server-repo");
+    assert_script_run("zypper --non-interactive --no-gpg-check ar -f '$qa_server_repo' server-repo");
 
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
     #workaround for dependency on bridge-utils for qa_lib_virtauto on sles15sp0
@@ -44,18 +44,18 @@ sub install_package {
         $dependency_rpms = 'bridge-utils';
     }
     if ($dependency_repo) {
-        assert_script_run("zypper --non-interactive --no-gpg-check -n ar -f ${dependency_repo} dependency_repo");
+        assert_script_run("zypper --non-interactive --no-gpg-check ar -f ${dependency_repo} dependency_repo");
         assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
-        assert_script_run("zypper --non-interactive -n in $dependency_rpms");
-        assert_script_run("zypper --non-interactive -n rr dependency_repo");
+        assert_script_run("zypper --non-interactive in $dependency_rpms");
+        assert_script_run("zypper --non-interactive rr dependency_repo");
     }
     #install qa_lib_virtauto
     assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
-    assert_script_run("zypper --non-interactive -n in qa_lib_virtauto",      1800);
+    assert_script_run("zypper --non-interactive in qa_lib_virtauto",         1800);
 
     if (get_var("PROXY_MODE")) {
         if (get_var("XEN")) {
-            assert_script_run("zypper --non-interactive -n in -t pattern xen_server", 1800);
+            assert_script_run("zypper --non-interactive in -t pattern xen_server", 1800);
         }
     }
 }
