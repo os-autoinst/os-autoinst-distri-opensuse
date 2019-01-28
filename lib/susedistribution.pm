@@ -644,13 +644,24 @@ sub activate_console {
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
-            assert_screen \@tags, 60;
+            my $retry_num = 0;
+            # retry send ctrl-alt-f key since system not respond sometimes
+            while (!(check_screen \@tags, 60) && ($retry_num < 3) && !(check_var('VIRSH_VMM_FAMILY', 'hyperv'))) {
+                $retry_num++;
+                record_info("system not response refer to poo#45575,try send key again");
+                my $key = "ctrl-alt-f" . $nr;
+                send_key($key);
+            }
+
             if (match_has_tag("tty$nr-selected")) {
                 type_string "$user\n";
                 handle_password_prompt;
             }
             elsif (match_has_tag('text-logged-in-root')) {
                 ensure_user($user);
+            }
+            else {
+                die "Can not match tags @tags";
             }
         }
         assert_screen "text-logged-in-$user";
