@@ -10,7 +10,7 @@
 # Summary: Start admin node (velum)
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use base "caasp_clusternode";
 use strict;
 use testapi;
 use caasp;
@@ -29,7 +29,7 @@ sub set_autoyast_password {
 
 sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
-    script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 15;
+    script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 30;
     # Enable salt debug
     if (get_var 'DEBUG_SLEEP') {
         script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
@@ -52,13 +52,6 @@ sub run() {
     }
 
     set_autoyast_password if is_caasp 'DVD';
-    export_cluster_logs;
-}
-
-sub post_fail_hook {
-    # Variable to enable failed cluster debug
-    sleep if check_var('DEBUG_SLEEP', 'admin');
-    export_cluster_logs;
 }
 
 1;

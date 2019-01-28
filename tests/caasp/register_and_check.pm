@@ -24,7 +24,6 @@ sub run {
     # Check that registration was succeeded
     assert_script_run 'SUSEConnect --status-text | tee /dev/tty | grep -q "Status: ACTIVE"';
     assert_script_run 'test -f /etc/zypp/credentials.d/SCCcredentials';
-    # validate_repos; - needs modifications for CaaSP
 }
 
 1;

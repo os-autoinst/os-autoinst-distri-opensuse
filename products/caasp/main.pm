@@ -75,7 +75,7 @@ sub load_caasp_inst_tests {
     }
     else {
         # One Click Installer removed in CaaSP 4.0
-        if (is_caasp('4.0+') && !update_scheduled('dup')) {
+        if (is_caasp('4.0+') && !update_scheduled('migration')) {
             loadtest 'caasp/oci_overview';
             loadtest 'caasp/oci_keyboard';
             loadtest 'installation/accept_license';
@@ -146,7 +146,7 @@ sub load_feature_tests {
 
 sub load_stack_tests {
     if (check_var 'STACK_ROLE', 'controller') {
-        if (update_scheduled 'dup') {
+        if (update_scheduled 'migration') {
             loadtest 'caasp/shift_version', name => 'ver=dec';
         }
         loadtest 'caasp/stack_initialize';
@@ -164,7 +164,7 @@ sub load_stack_tests {
         } else {
             loadtest 'caasp/stack_reboot';
         }
-        if (update_scheduled 'dup') {
+        if (update_scheduled 'migration') {
             loadtest 'caasp/shift_version', name => 'ver=inc';
         }
         # Add and remove cluster nodes
@@ -178,7 +178,6 @@ sub load_stack_tests {
     }
     else {
         loadtest 'caasp/stack_' . get_var('STACK_ROLE');
-        loadtest 'caasp/register_and_check' if is_caasp('qam');
     }
 }
 
@@ -213,7 +212,7 @@ if (get_var('STACK_ROLE')) {
         loadtest "support_server/setup";
     }
     else {
-        if (update_scheduled 'dup') {
+        if (update_scheduled 'migration') {
             loadtest 'caasp/shift_version', name => 'ver=dec';
         }
         load_caasp_boot_tests;

@@ -11,7 +11,7 @@
 #   SSH keys are already generated
 #   SSH config was modified to not check identity
 #   Script is not run on admin to avoid mutex hell
-# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Georgios Gkioulis <ggkioulis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
@@ -40,7 +40,7 @@ sub orchestrate_velum_reboot {
 
     # Update all nodes - this part takes long time (~2 minutes per node)
     my @needles_array = ('velum-sorry', "velum-$n-nodes-outdated");
-    assert_screen [@needles_array], 900;
+    assert_screen [@needles_array], 600;
     if (match_has_tag 'velum-sorry') {
         record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
         # workaround for meltdown
@@ -94,11 +94,6 @@ sub update_check_changes {
 sub update_setup_repos {
     record_info 'Repo', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
-
-    # Deregister before distribution update
-    if (update_scheduled 'dup') {
-        script_assert0 "ssh $admin_fqdn './update.sh -s dup' | tee /dev/$serialdev", 120;
-    }
 
     # Add UPDATE repository
     my $repo = update_scheduled;
@@ -165,7 +160,7 @@ sub update_perform_update {
     $ret == 100 ? orchestrate_velum_reboot : die('Update process failed');
 }
 
-# Bug#1121797 - Nodes change IP address after migration from v3->v4
+# bug#1121797 - Nodes change IP address after v3->v4 migration (feature)
 sub setup_static_dhcp {
     switch_to 'xterm';
     become_root;
@@ -174,22 +169,39 @@ sub setup_static_dhcp {
     type_string "exit\n";
 }
 
+sub perform_migration {
+    switch_to 'xterm';
+    my $build = get_required_var 'BUILD';
+    salt 'cmd.run zypper mr -d -l';
+    salt "cmd.run echo 'url: http://all-$build.proxy.scc.suse.de' > /etc/SUSEConnect";
+    salt 'cmd.run systemctl disable --now transactional-update.timer';
+    salt 'cmd.run transactional-update salt migration -n', timeout => 1500;
+    salt 'saltutil.refresh_grains';
+
+    orchestrate_velum_reboot;
+}
+
 sub run {
-    setup_static_dhcp if update_scheduled('dup');
-
-    # update.sh -s $repo
-    update_setup_repos;
-
+    # QAM update for new packages
     if (is_caasp 'qam') {
+        update_setup_repos;          # update.sh -s $repo
         install_new_packages;        # update.sh -n
         install_missing_packages;    # update.sh -i
+        update_perform_update if is_needed();
     }
 
-    # update.sh -u
-    update_perform_update if is_needed();
+    # Migration from last GM to current build
+    elsif (update_scheduled 'migration') {
+        setup_static_dhcp;
+        perform_migration;
+    }
 
-    # update.sh -c
-    update_check_changes if update_scheduled('fake');
+    # Fake update - checks that update stack works, not scheduled ATM
+    elsif (update_scheduled 'fake') {
+        update_setup_repos;
+        update_perform_update;
+        update_check_changes;
+    }
 }
 
 1;
