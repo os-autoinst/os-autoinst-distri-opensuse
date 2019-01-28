@@ -1474,7 +1474,7 @@ sub load_extra_tests_opensuse {
     return unless is_opensuse;
     loadtest "console/rabbitmq";
     loadtest "console/rails";
-    loadtest "console/machinery";
+    loadtest "console/oneclick_install" if is_tumbleweed;
     loadtest "console/pcre";
     loadtest "console/openqa_review";
     loadtest "console/zbar";
@@ -1518,6 +1518,7 @@ sub load_extra_tests_console {
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
     loadtest "console/salt" if (is_jeos || is_opensuse);
+    loadtest "console/machinery";
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/clamav";
