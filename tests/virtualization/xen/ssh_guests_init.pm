@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test install the virt-manager libvirt GUI
+# Summary: This test fetch SSH keys of all guests and authorize the client one
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
+use xen;
 use strict;
 use testapi;
 use utils;
@@ -25,10 +26,15 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
     opensusebasetest::select_serial_terminal();
+    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $domain     = get_required_var('QAM_XEN_DOMAIN');
 
-    zypper_call 'in virt-manager';
-    systemctl 'stop ' . $self->firewall;
-    systemctl 'disable ' . $self->firewall;
+    foreach my $guest (keys %xen::guests) {
+        record_info "$guest", "Establishing SSH connection to $guest";
+        assert_script_run "ssh root\@$hypervisor 'ping -c3 -W1 $guest.$domain'";
+        assert_script_run "ssh-keyscan $guest.$domain >> ~/.ssh/known_hosts";
+        exec_and_insert_password "ssh-copy-id root\@$guest.$domain";
+    }
 }
 
 sub test_flags {

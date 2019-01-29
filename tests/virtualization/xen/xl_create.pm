@@ -16,20 +16,16 @@
 # Summary: Export XML from virsh and create new guests in xl stack
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
+    my ($self)     = @_;
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
     my $domain     = get_required_var('QAM_XEN_DOMAIN');
-
-    x11_start_program('xterm');
-    send_key 'super-up';
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Starting to clone $guest to xl-$guest";
@@ -51,13 +47,13 @@ sub run {
         assert_script_run "ssh root\@$hypervisor xl list xl-$guest";
 
         # Test that the new VM listens on SSH
-        assert_script_run "while true; do ssh root\@$guest.$domain hostname 2> /dev/null && break; done";
-
-        clear_console;
+        for (my $i = 0; $i <= 60; $i++) {
+            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
+                last;
+            }
+            sleep 1;
+        }
     }
-
-    wait_screen_change { send_key 'alt-f4'; };
-
 }
 
 sub test_flags {

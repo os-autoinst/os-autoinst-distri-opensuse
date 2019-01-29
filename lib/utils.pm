@@ -38,6 +38,7 @@ our @EXPORT = qw(
   get_netboot_mirror
   zypper_call
   fully_patch_system
+  ssh_fully_patch_system
   minimal_patch_system
   workaround_type_encrypted_passphrase
   select_user_gnome
@@ -420,6 +421,14 @@ sub fully_patch_system {
     zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500);
     # second run, full system update
     zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+}
+
+sub ssh_fully_patch_system {
+    my $host = shift;
+    # first run, possible update of packager -- exit code 103
+    assert_script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", exitcode => [0, 102, 103], timeout => 1500);
+    # second run, full system update
+    assert_script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", exitcode => [0, 102], timeout => 6000);
 }
 
 # zypper doesn't offer --updatestack-only option before 12-SP1, use patch for sp0 to update packager

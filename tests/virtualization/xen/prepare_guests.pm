@@ -29,19 +29,13 @@ sub run {
 
     # Show all guests
     assert_script_run 'xl list';
+    assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
     save_screenshot;
 
     # Install every defined guest
-    # TODO: It will be nice to run this in parallel
     foreach my $guest (keys %xen::guests) {
         $self->create_guest($guest, 'virt-install');
-        # Show guest details
-        assert_script_run "xl list $guest";
     }
-
-    # All guests should be now installed, show them
-    assert_script_run 'xl list';
-    save_screenshot;
 }
 
 1;
