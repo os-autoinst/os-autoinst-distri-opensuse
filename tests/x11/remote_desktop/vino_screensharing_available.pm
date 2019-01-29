@@ -23,6 +23,8 @@ use testapi;
 use utils;
 
 sub run {
+    select_console 'x11';
+
     # Run the gnome-control-center - the sharing section
     x11_start_program "gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing';
 
