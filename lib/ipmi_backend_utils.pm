@@ -208,6 +208,14 @@ sub get_installation_partition {
 sub set_pxe_efiboot {
     my ($root_prefix) = @_;
     $root_prefix //= "/";
+    my $installation_disk = "";
+
+    if ($root_prefix ne "/") {
+        $installation_disk = &get_installation_partition;
+        assert_script_run("cd /");
+        &mount_installation_disk("$installation_disk", "$root_prefix");
+    }
+
     my $wait_script    = "30";
     my $get_active_eif = "ip link show | grep \"state UP\" | grep -v \"lo\" | cut -d: -f2 | cut -d\' \' -f2 | head -1";
     my $active_eif     = script_output($get_active_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
@@ -263,6 +271,12 @@ sub set_pxe_efiboot {
     }
     assert_script_run("$root_prefix/usr/sbin/efibootmgr -o $new_boot_order");
     assert_script_run("$root_prefix/usr/sbin/efibootmgr -n $pxeboot_entry_num");
+
+    #cleanup mount
+    if ($root_prefix ne "/") {
+        assert_script_run("cd /");
+        &umount_installation_disk("$root_prefix");
+    }
 }
 
 #Usage:
