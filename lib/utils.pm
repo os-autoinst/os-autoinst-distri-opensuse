@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ use Mojo::UserAgent;
 our @EXPORT = qw(
   check_console_font
   clear_console
+  desktop_runner_hotkey
   type_string_slow
   type_string_very_slow
   save_svirt_pty
@@ -299,6 +300,8 @@ sub clear_console {
     type_string "clear\n";
 }
 
+sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2' }
+
 # assert_gui_app (optionally installs and) starts an application, checks it started
 # and closes it again. It's the most minimalistic way to test a GUI application
 # Mandatory parameter: application: the name of the application.
@@ -523,7 +526,7 @@ sub ensure_unlocked_desktop {
                 # responsiveness.
                 # open run command prompt (if screen isn't locked)
                 mouse_hide(1);
-                send_key 'alt-f2';
+                send_key desktop_runner_hotkey;
                 if (check_screen 'desktop-runner', 30) {
                     send_key 'esc';
                     assert_screen 'generic-desktop';

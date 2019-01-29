@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,13 +25,7 @@ sub run {
     my $mail_passwd   = $config->{internal_account_A}->{passwd};
     my $mail_sendport = $config->{internal_account_A}->{sendport};
 
-    #Open LibreOffice
-    send_key "alt-f2";
-    wait_screen_change {
-        type_string "libreoffice --writer";
-        send_key "ret";
-    };
-    assert_screen 'test-ooffice-1';
+    x11_start_program('libreoffice --writer', target_match => 'test-ooffice-1');
     #Open the mail Merge Email dialog
     send_key "alt-t";
     assert_screen('libreoffice-tool-droplist', 30);

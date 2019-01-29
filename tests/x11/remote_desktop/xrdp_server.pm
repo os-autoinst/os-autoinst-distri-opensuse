@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -44,10 +44,7 @@ sub run {
     assert_script_run "systemctl start xrdp";
     type_string "exit\n";
     wait_screen_change { send_key 'alt-f4' };
-
-    # logout
-    wait_screen_change { send_key "alt-f2" };
-    type_string "gnome-session-quit --logout --force\n";
+    x11_start_program('gnome-session-quit --logout --force', valid => 0);
 
     # Notice xrdp server is ready for remote access
     mutex_create 'xrdp_server_ready';
