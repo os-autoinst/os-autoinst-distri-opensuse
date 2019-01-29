@@ -1072,8 +1072,19 @@ else {
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         if (get_var("RT_TESTS")) {
-            set_var('INSTALLONLY', 1);
             loadtest "rt/boot_rt_kernel";
+            loadtest "console/prepare_test_data";
+            loadtest "console/consoletest_setup";
+            loadtest "console/hostname";
+            loadtest "console/zypper_ref";
+            loadtest "console/zypper_lr";
+            loadtest "console/system_prepare";
+            loadtest "rt/rt_is_realtime";
+            loadtest "rt/rt_devel_packages";
+            loadtest "rt/rt_peak_pci";
+            loadtest "rt/rt_preempt_test";
+            loadtest "rt/kmp_modules";
+            set_var('INSTALLONLY', 1);
         }
         else {
             load_bootloader_s390x();

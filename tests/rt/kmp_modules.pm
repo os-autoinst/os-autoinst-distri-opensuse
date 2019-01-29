@@ -16,36 +16,9 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
-
-sub select_kernel {
-    my $kernel = shift;
-
-    assert_screen ['grub2', "grub2-$kernel-selected"], 100;
-    if (match_has_tag "grub2-$kernel-selected") {    # if requested kernel is selected continue
-        send_key 'ret';
-    }
-    else {                                           # else go to that kernel thru grub2 advanced options
-        send_key_until_needlematch 'grub2-advanced-options', 'down';
-        send_key 'ret';
-        send_key_until_needlematch "grub2-$kernel-selected", 'down';
-        send_key 'ret';
-    }
-    if (get_var('NOAUTOLOGIN')) {
-        my $ret = assert_screen 'displaymanager', 200;
-        mouse_hide();
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string $username;
-        }
-        else {
-            wait_screen_change { send_key 'ret' };
-        }
-        type_password;
-        send_key 'ret';
-    }
-}
+use rt_utils 'select_kernel';
 
 sub run {
-    assert_screen 'generic-desktop';
     select_console 'root-console';
     # Stop packagekit
     systemctl 'mask packagekit.service';
@@ -70,7 +43,7 @@ sub run {
     for pkg in $(rpm -qa \*-kmp-rt); do
       for mod in $(rpm -ql $pkg | grep '\.ko$'); do
         modname=$(basename $mod .ko)
-        modprobe -v $modname || fail=1
+        modprobe -v $modname &>> /var/log/modprobe.out || fail=1
       done
     done
     if [ $fail ] ; then exit 1 ; fi
@@ -80,6 +53,16 @@ sub run {
     assert_script_run('./modprobe_kmp_modules.sh', 90, 'Failed to load modules below');
     type_string "exit\n";
     reset_consoles;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->save_and_upload_log("dmesg",                 "dmesg.log",        {screenshot => 1});
+    $self->save_and_upload_log("journalctl --no-pager", "journalctl.log",   {screenshot => 1});
+    $self->save_and_upload_log('rpm -qa *-kmp-rt',      "list_of_kmp_rpms", {screenshot => 1});
+    if ((script_run 'test -e /var/log/modprobe.out') == 0) {
+        upload_logs '/var/log/modprobe.out';
+    }
 }
 
 1;
