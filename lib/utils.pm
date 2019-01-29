@@ -768,7 +768,12 @@ sub handle_login {
             select_user_gnome($myuser);
         }
     }
-    assert_screen 'displaymanager-password-prompt', no_wait => 1;
+    assert_screen [qw(displaymanager-password-prompt displaymanager-focused-password-textbox)];
+    if (!match_has_tag('displaymanager-focused-password-textbox')) {
+        record_soft_failure('bsc#1122664 - password textbox is not focused');
+        assert_and_click 'displaymanager-password-prompt';
+        assert_screen 'displaymanager-focused-password-textbox';
+    }
     type_password;
     send_key "ret";
 }
