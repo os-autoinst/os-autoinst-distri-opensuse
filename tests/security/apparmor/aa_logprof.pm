@@ -50,7 +50,7 @@ sub run {
     $self->aa_disable_stdout_buf("/usr/sbin/aa-logprof");
     $self->aa_tmp_prof_prepare("$aa_tmp_prof", 1);
 
-    my @aa_logprof_items = ('\/usr.*\/nscd mrix', 'nscd\.conf');
+    my @aa_logprof_items = ('\/usr.*\/nscd mrix', 'nscd\.conf r');
 
     # Remove some rules from profile
     foreach my $item (@aa_logprof_items) {
@@ -72,14 +72,9 @@ sub run {
 
     $self->aa_interactive_run("aa-logprof -d $aa_tmp_prof", $scan_ans);
 
-    validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub {
-        m/
-            include\s+<tunables\/global>.*
-            .*nscd\s+flags=\(complain\)\s*\{.*
-            \/usr\/.*bin.*\/nscd\s+mrix.*
-            \/etc\/nscd\.conf\s+r.*
-            \}/sxx
-    };
+    foreach my $item (@aa_logprof_items) {
+        validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub { m/$item/ };
+    }
 
     $self->aa_tmp_prof_verify("$aa_tmp_prof", 'nscd');
     $self->aa_tmp_prof_clean("$aa_tmp_prof");

@@ -55,7 +55,7 @@ sub aa_tmp_prof_prepare {
         assert_script_run "mkdir $prof_dir_tmp";
         assert_script_run "cp -r $prof_dir/{tunables,abstractions} $prof_dir_tmp/";
         if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
-            assert_script_run "cp -r $prof_dir/program-chunks $prof_dir_tmp/";
+            assert_script_run "cp -r $prof_dir/program-chunks $prof_dir/disable $prof_dir_tmp/";
         }
     }
     else {
