@@ -15,7 +15,7 @@
 #
 # Summary: Test the utility for updating AppArmor security profiles
 # Maintainer: Wes <whdu@suse.com>
-# Tags: poo#36892, tc#1621143
+# Tags: poo#36892, poo#45803
 
 use base "apparmortest";
 use strict;
@@ -29,25 +29,9 @@ sub run {
     my $output;
     my $aa_tmp_prof = "/tmp/apparmor.d";
 
-    my $aa_logprof_allow = qr/\(A\)llow/m;
-    my $aa_logprof_save  = qr/\(S\)ave Changes/m;
-
-    my $scan_ans = [
-        {
-            word => qr/\(A\)llow/m,
-            key  => 'a',
-        },
-        {
-            word => qr/\(S\)ave Changes/m,
-            key  => 's',
-            end  => 1,
-        },
-    ];
-
     systemctl('stop nscd');
     systemctl('restart auditd');
 
-    $self->aa_disable_stdout_buf("/usr/sbin/aa-logprof");
     $self->aa_tmp_prof_prepare("$aa_tmp_prof", 1);
 
     my @aa_logprof_items = ('\/usr.*\/nscd mrix', 'nscd\.conf r');
@@ -70,7 +54,20 @@ sub run {
     # Upload audit.log for reference
     upload_logs "$log_file";
 
-    $self->aa_interactive_run("aa-logprof -d $aa_tmp_prof", $scan_ans);
+    script_run_interactive(
+        "aa-logprof -d $aa_tmp_prof",
+        [
+            {
+                prompt => qr/\(A\)llow/m,
+                key    => 'a',
+            },
+            {
+                prompt => qr/\(S\)ave Changes/m,
+                key    => 's',
+            },
+        ],
+        30
+    );
 
     foreach my $item (@aa_logprof_items) {
         validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub { m/$item/ };
