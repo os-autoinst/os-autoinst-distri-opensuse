@@ -14,6 +14,11 @@ use strict;
 use base "x11test";
 use testapi;
 
+sub upload_autoinst_log {
+    assert_script_run 'wget http://localhost/tests/1/file/autoinst-log.txt';
+    upload_logs('autoinst-log.txt', log_name => "nested");
+}
+
 sub run {
     # get rid of that horrible tutorial box
     wait_still_screen;
@@ -47,6 +52,16 @@ sub test_flags {
 
 sub post_run_hook {
     # do not assert generic desktop
+
+    select_console 'root-console';
+    upload_autoinst_log;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    upload_autoinst_log;
+    $self->SUPER::post_fail_hook;
 }
 
 1;
