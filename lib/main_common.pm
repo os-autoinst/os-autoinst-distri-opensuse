@@ -1502,7 +1502,7 @@ sub load_extra_tests_console {
         loadtest 'console/openssl_alpn';
         loadtest 'console/autoyast_removed';
     }
-    loadtest "console/cron";
+    loadtest "console/cron" unless is_jeos;
     loadtest "console/syslog";
     loadtest "console/ntp_client" if (!is_sle && !is_jeos);
     loadtest "console/mta" unless is_jeos;
