@@ -617,7 +617,7 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        if (is_sle('12-sp3+')) {
+        if (is_sle('>=15')) {
             send_key "alt-l";
         }
         else {
