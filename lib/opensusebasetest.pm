@@ -166,7 +166,7 @@ sub investigate_yast2_failure {
         "Could not load icon|Couldn't load pixmap"         => undef             # Detecting missing icons
     );
     for my $y2log_error (keys %y2log_errors) {
-        if (my $y2log_error_result = script_output 'grep -B 3 "' . $y2log_error . '" /var/log/YaST2/y2log || true') {
+        if (my $y2log_error_result = script_output 'grep -B 3 -E "' . $y2log_error . '" /var/log/YaST2/y2log || true') {
             if (my $bug = $y2log_errors{$y2log_error}) {
                 record_soft_failure("$bug\n\nDetails:\n\n$y2log_error_result");
             }
