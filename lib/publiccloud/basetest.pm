@@ -33,22 +33,22 @@ sub provider_factory {
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
         $provider = publiccloud::azure->new(
-            key_id       => get_required_var('PUBLIC_CLOUD_KEY_ID'),
-            key_secret   => get_required_var('PUBLIC_CLOUD_KEY_SECRET'),
+            key_id       => get_var('PUBLIC_CLOUD_KEY_ID'),
+            key_secret   => get_var('PUBLIC_CLOUD_KEY_SECRET'),
             region       => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
-            tenantid     => get_required_var('PUBLIC_CLOUD_TENANT_ID'),
-            subscription => get_required_var('PUBLIC_CLOUD_SUBSCRIPTION_ID'),
+            tenantid     => get_var('PUBLIC_CLOUD_TENANT_ID'),
+            subscription => get_var('PUBLIC_CLOUD_SUBSCRIPTION_ID'),
             username     => 'azureuser'
         );
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
         $provider = publiccloud::gce->new(
-            account             => get_required_var('PUBLIC_CLOUD_ACCOUNT'),
-            service_acount_name => get_required_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),
-            project_id          => get_required_var('PUBLIC_CLOUD_PROJECT_ID'),
-            private_key_id      => get_required_var('PUBLIC_CLOUD_KEY_ID'),
-            private_key         => get_required_var('PUBLIC_CLOUD_KEY'),
-            client_id           => get_required_var('PUBLIC_CLOUD_CLIENT_ID'),
+            account             => get_var('PUBLIC_CLOUD_ACCOUNT'),
+            service_acount_name => get_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),
+            project_id          => get_var('PUBLIC_CLOUD_PROJECT_ID'),
+            private_key_id      => get_var('PUBLIC_CLOUD_KEY_ID'),
+            private_key         => get_var('PUBLIC_CLOUD_KEY'),
+            client_id           => get_var('PUBLIC_CLOUD_CLIENT_ID'),
             region              => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
             storage_name        => get_var('PUBLIC_CLOUD_STORAGE', 'openqa-storage'),
             username            => 'susetest'
