@@ -33,13 +33,13 @@ sub get_suse_container_urls {
 
     my @image_names  = ();
     my @stable_names = ();
-    if (is_sle("=12-sp3") && is_sle('=12-SP4')) {
+    if (is_sle(">=12-sp3") && is_sle('<=12-SP4')) {
         my $lowerversion  = lc $version;
-        my $nodashversion = $version =~ s/-SP/sp/r;
+        my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
         if (!check_var('ARCH', 'aarch64')) {
-            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/images/suse/sle-${nodashversion}";
-            push @stable_names, "registry.suse.com/suse/${nodashversion}";
+            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/images/suse/sles${nodashversion}";
+            push @stable_names, "registry.suse.com/suse/sles${nodashversion}";
         }
     }
     elsif (is_sle(">=15")) {
