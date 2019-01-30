@@ -69,7 +69,7 @@ sub run() {
     systemctl 'restart postfix';
 
     # DH parameters are generated after start in Dovecot < 2.2.7
-    assert_script_run("( journalctl -f -u dovecot.service & ) | grep -q 'ssl-params: SSL parameters regeneration completed'", 300) if is_sle('<15');
+    assert_script_run("( journalctl -f -u dovecot.service & ) | grep -q 'ssl-params: SSL parameters regeneration completed'", 900) if is_sle('<15');
 
     # create test users
     assert_script_run "useradd -m admin";
