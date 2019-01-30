@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
+# Copyright (c) 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster;
+use hacluster qw(get_cluster_name ha_export_logs);
 
 sub run {
     my $cluster_name = get_cluster_name;

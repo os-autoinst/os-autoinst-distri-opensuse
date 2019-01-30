@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,9 +37,6 @@ sub get_trafficgen_ip {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
     my ($self)         = @_;
     my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";
     my $vsperf_version = get_required_var('VSPERF_VERSION');
@@ -48,6 +45,7 @@ sub run {
     my $children       = get_children();
     my $child_id       = (keys %$children)[0];
 
+    $self->select_serial_terminal;
     record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
     zypper_call('--quiet in git-core openvswitch-switch dpdk dpdk-tools qemu tcpdump', timeout => 60 * 4);
 
