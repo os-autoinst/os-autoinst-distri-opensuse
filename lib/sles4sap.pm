@@ -6,6 +6,7 @@ use strict;
 use testapi;
 use utils;
 use isotovideo;
+use x11utils 'ensure_unlocked_desktop';
 
 our @EXPORT = qw (
   set_ps_cmd

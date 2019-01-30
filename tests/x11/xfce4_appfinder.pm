@@ -14,7 +14,7 @@
 use base 'x11test';
 use strict;
 use testapi;
-use utils 'desktop_runner_hotkey';
+use x11utils 'desktop_runner_hotkey';
 
 
 sub run {

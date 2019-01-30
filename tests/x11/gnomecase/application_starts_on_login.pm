@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@ use strict;
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle is_tumbleweed);
+use x11utils 'handle_relogin';
 
 sub tweak_startupapp_menu {
     my ($self) = @_;

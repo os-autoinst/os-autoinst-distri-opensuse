@@ -13,7 +13,7 @@
 use strict;
 use base "x11test";
 use testapi;
-use utils;
+use x11utils 'ensure_unlocked_desktop';
 
 sub run {
     select_console 'x11';

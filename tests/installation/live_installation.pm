@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,6 +22,7 @@ use testapi;
 use utils;
 use version_utils "is_upgrade";
 use strict;
+use x11utils 'turn_off_kde_screensaver';
 
 sub send_key_and_wait {
     my ($key, $wait_time) = @_;

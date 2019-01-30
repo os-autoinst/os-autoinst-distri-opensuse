@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,9 +15,10 @@ use base "x11test";
 use strict;
 use testapi;
 use lockapi 'mutex_lock';
-use utils qw(systemctl turn_off_gnome_screensaver);
+use utils 'systemctl';
 use version_utils 'is_sle';
 use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
+use x11utils 'turn_off_gnome_screensaver';
 
 sub setup_nis_client {
     if (is_sle('>=15')) {

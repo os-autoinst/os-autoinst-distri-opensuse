@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,8 @@ use strict;
 use warnings;
 use testapi;
 use repo_tools;
-use utils qw(turn_off_gnome_screensaver zypper_call);
+use utils 'zypper_call';
+use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
