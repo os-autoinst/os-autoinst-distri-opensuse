@@ -1541,6 +1541,7 @@ sub load_extra_tests_console {
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';
     loadtest 'console/vhostmd';
+    loadtest 'console/rpcbind';
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
     loadtest "console/dracut";
