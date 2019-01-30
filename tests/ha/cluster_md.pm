@@ -19,7 +19,6 @@ use hacluster;
 
 sub run {
     my $mdadm_conf         = '/etc/mdadm.conf';
-    my $csync_conf         = '/etc/csync2/csync2.cfg';
     my $clustermd_lun_01   = get_lun(use_once => 0);
     my $clustermd_lun_02   = get_lun(use_once => 0);
     my $clustermd_rsc      = 'cluster_md';
@@ -52,11 +51,7 @@ sub run {
         assert_script_run "mdadm --detail --scan >> $mdadm_conf";
 
         # We need to add the configuration in csync2.conf
-        assert_script_run "grep -q $mdadm_conf $csync_conf || sed -i 's|^}\$|include $mdadm_conf;\\n}|' $csync_conf";
-
-        # Execute csync2 to synchronise the configuration files
-        # Sometimes we need to run csync2 twice to have all the files updated!
-        assert_script_run 'csync2 -v -x -F ; sleep 2 ; csync2 -v -x -F';
+        add_file_in_csync(value => "$mdadm_conf");
     }
     else {
         diag 'Wait until cluster-md device is created...';
