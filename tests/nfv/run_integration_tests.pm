@@ -20,11 +20,10 @@ use utils;
 use mmapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
     my $self        = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
+
+    $self->select_serial_terminal;
 
     # use conf file from data dir
     assert_script_run("curl " . data_url('nfv/vsperf_ovs_dummy.conf') . " -o $vsperf_conf");
