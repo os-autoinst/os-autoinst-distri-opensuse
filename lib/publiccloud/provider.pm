@@ -27,6 +27,8 @@ has region            => undef;
 has username          => undef;
 has prefix            => 'openqa';
 has terraform_applied => 0;
+has vault_token       => undef;
+has vault_lease_id    => undef;
 
 =head1 METHODS
 
@@ -314,24 +316,91 @@ sub terraform_destroy {
     script_run('terraform destroy -auto-approve', TERRAFORM_TIMEOUT);
 }
 
-sub do_rest_api {
-    my ($self, $path, %args) = @_;
-    my $method    = $args{method} // 'get';
-    my $ua        = Mojo::UserAgent->new;
-    my $url       = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
-    my $max_tries = 3;
-    my $res;
+=head2 vault_login
+
+Login to vault using C<_SECRET_PUBLIC_CLOUD_REST_USER> and
+C<_SECRET_PUBLIC_CLOUD_REST_PW>. The retrieved VAULT_TOKEN is stored in this
+instance and used for further C<publiccloud::provider::vault_api()> calls.
+=cut
+sub vault_login
+{
+    my ($self)   = @_;
+    my $url      = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $user     = get_required_var('_SECRET_PUBLIC_CLOUD_REST_USER');
+    my $password = get_required_var('_SECRET_PUBLIC_CLOUD_REST_PW');
+    my $ua       = Mojo::UserAgent->new;
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
-    for my $cnt (1 .. $max_tries) {
-        $res = $ua->$method($url . $path)->result;
-        if ($res->is_success) {
-            return decode_json($res->body);
+    $url = $url . '/v1/auth/userpass/login/' . $user;
+    my $res = $ua->post($url => json => {password => $password})->result;
+    if (!$res->is_success) {
+        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
+        if ($res->code == 400) {
+            for my $e (@{$res->json->{errors}}) {
+                bmwqemu::diag($e);
+            }
         }
-        bmwqemu::diag('Retry[' . $cnt . '] REST(' . $method . ') request: ' . $path);
+        die("Vault login failed - $url");
     }
-    die($res->message);
+
+    return $self->vault_token($res->json('/auth/client_token'));
 }
+
+=head2 vault_api
+
+Invoke a vault API call. It use _SECRET_PUBLIC_CLOUD_REST_URL as base
+url.
+Depending on the method (get|post) you can pass additional data as json.
+=cut
+sub vault_api {
+    my ($self, $path, %args) = @_;
+    my $method = $args{method} // 'get';
+    my $data   = $args{data}   // {};
+    my $ua     = Mojo::UserAgent->new;
+    my $url    = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $res;
+
+    $self->vault_login() unless ($self->vault_token);
+
+    $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
+    $url = $url . $path;
+    if ($method eq 'get') {
+        $res = $ua->get($url =>
+              {'X-Vault-Token' => $self->vault_token()})->result;
+    } elsif ($method eq 'post') {
+        $res = $ua->post($url =>
+              {'X-Vault-Token' => $self->vault_token()} =>
+              json => $data)->result;
+    } else {
+        die("Unknown method $method");
+    }
+
+    if (!$res->is_success) {
+        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
+        if ($res->code == 400) {
+            for my $e (@{$res->json->{errors}}) {
+                bmwqemu::diag($e);
+            }
+        }
+        die("Vault REST api call failed - $url");
+    }
+
+    return $res->json;
+}
+
+=head2 vault_revoke
+
+Revoke a previous retrieved credential
+=cut
+sub vault_revoke {
+    my ($self) = @_;
+
+    return unless (defined($self->vault_lease_id));
+
+    $self->vault_api('/v1/sys/leases/revoke', method => 'post', data => {lease_id => $self->vault_lease_id});
+    $self->vault_lease_id(undef);
+}
+
 
 =head2 cleanup
 
@@ -341,6 +410,7 @@ This method is called called after each test on failure or success.
 sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy() if ($self->terraform_applied);
+    $self->vault_revoke();
 }
 
 1;

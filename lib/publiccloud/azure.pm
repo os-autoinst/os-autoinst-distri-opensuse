@@ -22,18 +22,51 @@ has subscription    => undef;
 has resource_group  => 'openqa-upload';
 has storage_account => 'openqa';
 has container       => 'sle-images';
+has lease_id        => undef;
 
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    assert_script_run('az login --service-principal -u ' . $self->key_id . ' -p '
-          . $self->key_secret . ' -t ' . $self->tenantid);
+    $self->vault_create_credentials() unless ($self->key_id);
+    $self->az_login();
     assert_script_run("export ARM_SUBSCRIPTION_ID=" . $self->subscription);
     assert_script_run("export ARM_CLIENT_ID=" . $self->key_id);
     assert_script_run("export ARM_CLIENT_SECRET=" . $self->key_secret);
     assert_script_run('export ARM_TENANT_ID="' . $self->tenantid . '"');
     assert_script_run('export ARM_ENVIRONMENT="public"');
     assert_script_run('export ARM_TEST_LOCATION="' . $self->region . '"');
+}
+
+sub az_login {
+    my ($self)    = @_;
+    my $max_tries = 3;
+    my $login_cmd = sprintf('az login --service-principal -u %s -p %s -t %s',
+        $self->key_id, $self->key_secret, $self->tenantid);
+
+    for (1 .. $max_tries) {
+        my $ret = script_run($login_cmd);
+        return 1 if (defined($ret) && $ret == 0);
+        sleep 30;
+    }
+    die("Azure login failed!");
+}
+
+sub vault_create_credentials {
+    my ($self) = @_;
+
+    record_info('INFO', 'Get credentials from VAULT server.');
+    my $res = $self->vault_api('/v1/azure/creds/openqa-role', method => 'get');
+    $self->vault_lease_id($res->{lease_id});
+    $self->key_id($res->{data}->{client_id});
+    $self->key_secret($res->{data}->{client_secret});
+
+    $res = $self->vault_api('/v1/secret/azure/openqa-role', method => 'get');
+    $self->tenantid($res->{data}->{tenant_id});
+    $self->subscription($res->{data}->{subscription_id});
+
+    for my $i (('key_id', 'key_secret', 'tenantid', 'subscription')) {
+        die("Failed to retrieve key - missing $i") unless (defined($self->$i));
+    }
 }
 
 sub resource_exist {
