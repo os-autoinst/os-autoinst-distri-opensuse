@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -54,6 +54,12 @@ sub run {
     systemctl 'start libvirtd', timeout => 60;
     wait_screen_change { send_key 'ret' };
     systemctl 'status libvirtd', timeout => 60;
+    # manually start the 'default' network if it is not active
+    if (script_run("virsh net-info default |& grep '^Active.*no'")) {
+        record_soft_failure 'bsc#1123699';
+        record_info("start default network", "libvirtd did not start the network by default");
+        assert_script_run("virsh net-start default");
+    }
     send_key 'ret';
     # close the xterm
     send_key 'alt-f4';
