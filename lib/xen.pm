@@ -97,7 +97,7 @@ sub create_guest {
         record_info "$guest", "Going to create $guest guest";
         # Run unattended installation for selected guest
         assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 10G";
-        script_run "( virt-install --connect xen:/// --virt-type xen $extra_params --name $guest --memory 2048 --disk /var/lib/libvirt/images/xen/$guest.raw --network bridge=br0,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' & )";
+        script_run "( virt-install --connect xen:/// --virt-type xen $extra_params --name $guest --memory 2048 --disk /var/lib/libvirt/images/xen/$guest.raw --network bridge=br0,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
     }
 }
 

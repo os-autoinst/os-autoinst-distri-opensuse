@@ -5,7 +5,7 @@ use strict;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
   create_new_volume create_netinterface delete_netinterface
-  create_guest);
+  create_guest detect_login_screen);
 
 
 sub launch_virtmanager {
@@ -582,6 +582,30 @@ sub create_guest {
     }
     # install begin
     assert_and_click 'virtman_guest_begin_install';
+}
+
+# Expecting to see the guest screen
+sub detect_login_screen {
+    my $timeout = shift // 5;    # Can be increased f.e. if the guest is booting
+
+    return if check_screen 'virt-manager_login-screen', $timeout;
+    wait_still_screen 3;         # Connecting to guest's console
+    mouse_set(30, 200);          # Go inside of the guest's console
+    mouse_click();
+    save_screenshot();
+    hold_key "ctrl-alt";         # Escape from the guest's console
+    release_key "ctrl-alt";      # Now the mouse pointer is free
+    mouse_set(300, 70);
+
+    return if check_screen 'virt-manager_login-screen', 5;
+    send_key 'esc';
+    send_key 'backspace';
+
+    return if check_screen 'virt-manager_login-screen', 5;
+    assert_and_click 'virt-manager_send-key';
+    assert_and_click 'virt-manager_ctrl-alt-f2';
+
+    assert_screen "virt-manager_login-screen";
 }
 
 1;

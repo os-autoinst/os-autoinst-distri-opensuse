@@ -21,6 +21,7 @@ use xen;
 use strict;
 use testapi;
 use utils;
+use caasp 'script_retry';
 
 sub run {
     my ($self)     = @_;
@@ -47,12 +48,7 @@ sub run {
         assert_script_run "ssh root\@$hypervisor xl list xl-$guest";
 
         # Test that the new VM listens on SSH
-        for (my $i = 0; $i <= 60; $i++) {
-            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
-                last;
-            }
-            sleep 1;
-        }
+        script_retry "nmap $guest.$domain -PN -p ssh | grep open", delay => 3, retry => 20;
     }
 }
 

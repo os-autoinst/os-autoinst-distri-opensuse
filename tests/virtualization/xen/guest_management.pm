@@ -15,6 +15,7 @@ use xen;
 use strict;
 use testapi;
 use utils;
+use caasp 'script_retry';
 
 sub run {
     my ($self)     = @_;
@@ -23,23 +24,11 @@ sub run {
 
     record_info "SHUTDOWN", "Shut all guests down";
     assert_script_run "ssh root\@$hypervisor 'virsh shutdown $_'" foreach (keys %xen::guests);
-    for (my $i = 0; $i <= 120; $i++) {
-        if (script_run("ssh root\@$hypervisor 'virsh list --all | grep -v Domain-0 | grep running'") == 1) {
-            last;
-        }
-        sleep 1;
-    }
+    script_retry "ssh root\@$hypervisor 'virsh list --all | grep $_ | grep \"shut off\"'", delay => 3, retry => 20 foreach (keys %xen::guests);
 
     record_info "START", "Start all guests";
     assert_script_run "ssh root\@$hypervisor 'virsh start $_'" foreach (keys %xen::guests);
-    foreach my $guest (keys %xen::guests) {
-        for (my $i = 0; $i <= 60; $i++) {
-            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
-                last;
-            }
-            sleep 1;
-        }
-    }
+    script_retry "ssh root\@$hypervisor 'nmap $_.$domain -PN -p ssh | grep open'", delay => 3, retry => 60 foreach (keys %xen::guests);
 
     record_info "REBOOT", "Reboot all guests";
     assert_script_run "ssh root\@$hypervisor 'virsh reboot $_'" foreach (keys %xen::guests);
@@ -60,14 +49,7 @@ sub run {
     record_info "RESUME", "Resume all guests";
     assert_script_run "ssh root\@$hypervisor 'virsh resume $_'" foreach (keys %xen::guests);
     assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
-    foreach my $guest (keys %xen::guests) {
-        for (my $i = 0; $i <= 60; $i++) {
-            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
-                last;
-            }
-            sleep 1;
-        }
-    }
+    script_retry "ssh root\@$hypervisor 'nmap $_.$domain -PN -p ssh | grep open'", delay => 3, retry => 60 foreach (keys %xen::guests);
 }
 
 sub test_flags {

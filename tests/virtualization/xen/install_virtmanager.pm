@@ -20,13 +20,16 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils;
+use mm_network qw(configure_static_dns get_host_resolv_conf);
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
     opensusebasetest::select_serial_terminal();
 
-    zypper_call 'in virt-manager';
+    configure_static_dns(get_host_resolv_conf());
+
+    zypper_call 'in virt-manager nmap';
     systemctl 'stop ' . $self->firewall;
     systemctl 'disable ' . $self->firewall;
 }
