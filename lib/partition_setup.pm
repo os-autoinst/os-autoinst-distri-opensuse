@@ -268,11 +268,11 @@ sub addlv {
     send_key $cmd{system_view};
     send_key 'home';
     send_key_until_needlematch('volume_management_feature', 'down');
-    wait_still_screen 2;
+    wait_still_screen(stilltime => 3, timeout => 4);
     # Expand collapsed list with VGs
     send_key 'right' if is_sle('<15');
     send_key_until_needlematch 'partition-select-vg-' . "$args{vg}", 'down';
-    wait_still_screen 2;
+    wait_still_screen(stilltime => 3, timeout => 4);
     # Expand collapsed list with LVs
     send_key 'right' if is_sle('<15');
     send_key 'alt-i' if (is_storage_ng_newui);
