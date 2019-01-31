@@ -1546,6 +1546,7 @@ sub load_extra_tests_console {
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
     loadtest "console/dracut";
+    loadtest 'console/timezone';
 }
 
 sub load_extra_tests_docker {
