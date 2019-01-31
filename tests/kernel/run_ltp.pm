@@ -17,8 +17,9 @@ use base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
-use JSON;
 use serial_terminal;
+use Mojo::File 'path';
+use Mojo::JSON;
 require bmwqemu;
 
 sub start_result {
@@ -237,17 +238,39 @@ sub record_ltp_result {
         print $fh "Some test output could not be parsed: $results->{ignored_lines} lines were ignored.";
     }
 
-    push(@{$self->{extra_test_results}}, {
-            category => 'LTP',
-            name     => $export_details->{test_fqn},
-            flags    => {},
-            result   => $details->{result},
-            script   => 'tests/kernel/run_ltp.pm',
-            duration => $duration,
-            log      => $test_log});
-
+    $self->write_extra_test_result($export_details);
     $self->commit_result($details, $fh);
     return (0, $export_details);
+}
+
+sub write_extra_test_result {
+    my ($self, $details) = @_;
+    my $dir      = bmwqemu::result_dir();
+    my $filename = $details->{test_fqn} =~ s/:/_/gr;
+    my $result   = 'failed';
+    $result = 'passed'  if ($details->{test}->{result} eq 'PASS');
+    $result = 'skipped' if ($details->{test}->{result} eq 'CONF');
+
+    my $result_file = {
+        dents   => 0,
+        details => [{
+                _source => 'parser',
+                result  => $result,
+                text    => $filename . '.txt',
+                title   => $filename,
+        }],
+        result => $result,
+    };
+    path($dir, 'result-' . $filename . '.json')->spurt(Mojo::JSON::encode_json($result_file));
+    path($dir, $filename . '.txt')->spurt($details->{test}->{log});
+
+    my $test = {
+        name     => $filename,
+        category => 'LTP',
+        script   => 'unk',
+        flags    => {}
+    };
+    $self->register_extra_test_results([$test]);
 }
 
 sub thetime {
