@@ -68,6 +68,9 @@ sub get_suse_container_urls {
     elsif (is_leap(">15.0") && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'ppc64le'))) {
         # No image set up yet :-(
     }
+    elsif (is_sle("<=12-sp2")) {
+        # No images for old SLE
+    }
     else {
         die("Unknown combination of distro/arch.");
     }
