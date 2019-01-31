@@ -406,7 +406,7 @@ sub take_first_disk_storage_ng {
     assert_screen [qw(existing-partitions partition-scheme)];
     # If drive(s) is/are not formatted, we have select hard disks page
     if (match_has_tag 'existing-partitions') {
-        if (check_var('BACKEND', 'ipmi') && !chech_var('DESKTOP', 'textmode')) {
+        if (check_var('BACKEND', 'ipmi') && !check_var('DESKTOP', 'textmode')) {
             send_key_until_needlematch("remove-menu", "tab");
             while (check_screen('remove-menu', 3)) {
                 send_key 'spc';
