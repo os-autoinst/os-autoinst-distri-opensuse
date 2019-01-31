@@ -1547,6 +1547,7 @@ sub load_extra_tests_console {
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
     loadtest "console/dracut";
     loadtest 'console/timezone';
+    loadtest 'console/procps';
 }
 
 sub load_extra_tests_docker {
