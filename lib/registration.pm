@@ -87,6 +87,7 @@ sub accept_addons_license {
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
     my @addons_with_license = qw(geo rt idu ids);
+    push @addons_with_license, 'wsm' if is_sle('<15');
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
