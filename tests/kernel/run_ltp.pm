@@ -238,8 +238,8 @@ sub record_ltp_result {
         print $fh "Some test output could not be parsed: $results->{ignored_lines} lines were ignored.";
     }
 
-    $self->write_extra_test_result($export_details);
     $self->commit_result($details, $fh);
+    $self->write_extra_test_result($export_details);
     return (0, $export_details);
 }
 
@@ -264,13 +264,7 @@ sub write_extra_test_result {
     path($dir, 'result-' . $filename . '.json')->spurt(Mojo::JSON::encode_json($result_file));
     path($dir, $filename . '.txt')->spurt($details->{test}->{log});
 
-    my $test = {
-        name     => $filename,
-        category => 'LTP',
-        script   => 'unk',
-        flags    => {}
-    };
-    $self->register_extra_test_results([$test]);
+    push @{$self->{details}}, $result_file->{details}->[0];
 }
 
 sub thetime {
