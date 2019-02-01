@@ -54,13 +54,13 @@ sub run {
     systemctl 'start libvirtd', timeout => 60;
     wait_screen_change { send_key 'ret' };
     systemctl 'status libvirtd', timeout => 60;
+    send_key 'ret';
     # manually start the 'default' network if it is not active
     if (script_run("virsh net-info default |& grep '^Active.*no'") == 0) {
         record_soft_failure 'bsc#1123699';
         record_info("start default network", "libvirtd did not start the network by default");
         assert_script_run("virsh net-start default");
     }
-    send_key 'ret';
     # close the xterm
     send_key 'alt-f4';
 }
