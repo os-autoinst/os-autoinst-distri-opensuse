@@ -1548,6 +1548,7 @@ sub load_extra_tests_console {
     loadtest "console/dracut";
     loadtest 'console/timezone';
     loadtest 'console/procps';
+    loadtest "console/lshw";
 }
 
 sub load_extra_tests_docker {
