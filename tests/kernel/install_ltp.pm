@@ -23,6 +23,7 @@ use power_action_utils 'power_action';
 use serial_terminal 'add_serial_console';
 use upload_system_log;
 use version_utils qw(is_sle is_opensuse is_jeos);
+use Utils::Backends 'use_ssh_serial_console';
 
 sub add_repos {
     my $qa_head_repo = get_required_var('QA_HEAD_REPO');
@@ -272,7 +273,13 @@ sub run {
         select_console('root-console');
         add_serial_console('hvc1');
     }
-    $self->select_serial_terminal;
+
+    if (check_var('BACKEND', 'ipmi')) {
+        use_ssh_serial_console;
+    }
+    else {
+        $self->select_serial_terminal;
+    }
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');

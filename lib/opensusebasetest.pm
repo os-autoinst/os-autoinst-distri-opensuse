@@ -352,6 +352,13 @@ sub wait_boot {
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
+    # For IPMI machines PXE boot menu will appear first
+    if (check_var('BACKEND', 'ipmi')) {
+        select_console 'sol', await_console => 0;
+        # boot from harddrive
+        assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 200);
+        send_key 'ret';
+    }
     # reconnect s390
     if (check_var('ARCH', 's390x')) {
         my $login_ready = get_login_message();
@@ -405,12 +412,6 @@ sub wait_boot {
         else {
             select_console('x11', await_console => 0);
         }
-    }
-    elsif (check_var('BACKEND', 'ipmi')) {
-        select_console 'sol', await_console => 0;
-        # boot from harddrive
-        assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 200);
-        send_key 'ret';
     }
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
