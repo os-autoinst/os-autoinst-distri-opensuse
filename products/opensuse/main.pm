@@ -296,6 +296,9 @@ if (is_jeos) {
 if (is_kernel_test()) {
     load_kernel_tests();
 }
+elsif (get_var('TERRAFORM')) {
+    load_terraform_poc_tests();
+}
 elsif (get_var("NETWORKD")) {
     boot_hdd_image();
     load_networkd_tests();

@@ -107,6 +107,7 @@ our @EXPORT = qw(
   load_xen_client_tests
   load_yast2_gui_tests
   load_zdup_tests
+  load_terraform_poc_tests
   logcurrentenv
   map_incidents_to_repo
   need_clear_repos
@@ -2535,6 +2536,13 @@ sub load_transactional_role_tests {
     loadtest 'transactional_system/filesystem_ro';
     loadtest 'transactional_system/transactional_update';
     loadtest 'transactional_system/rebootmgr';
+}
+
+sub load_terraform_poc_tests {
+    boot_hdd_image;
+    loadtest 'terraform/create_hdd_controller' if check_var('TERRAFORM', 'create_hdd_controller');
+    loadtest 'terraform/create_hdd_sut'        if check_var('TERRAFORM', 'create_hdd_sut');
+    loadtest 'terraform/poc'                   if check_var('TERRAFORM', 'test');
 }
 
 1;
