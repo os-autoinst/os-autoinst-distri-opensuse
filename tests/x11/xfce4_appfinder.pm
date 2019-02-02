@@ -18,7 +18,7 @@ use utils 'desktop_runner_hotkey';
 
 
 sub run {
-    wait_screen_change { desktop_runner_hotkey };
+    wait_screen_change { send_key desktop_runner_hotkey };
     send_key "down";
     type_string "about\n";
     assert_screen 'test-xfce4_appfinder-1';
