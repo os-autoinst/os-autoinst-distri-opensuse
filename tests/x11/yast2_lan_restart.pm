@@ -15,7 +15,7 @@ use base 'y2logsstep';
 
 use strict;
 use testapi;
-use y2lan_restart_common;
+use y2lan_restart_common qw(initialize_y2lan verify_network_configuration);
 use y2_common 'is_network_manager_default';
 
 sub check_network_settings_tabs {
@@ -75,7 +75,6 @@ sub run {
     verify_network_configuration;               # check simple access to Overview tab
     verify_network_configuration(\&check_network_settings_tabs);
     unless (is_network_manager_default) {
-        check_etc_hosts_update() if (check_var('BACKEND', 'qemu'));
         verify_network_configuration(\&check_network_card_setup_tabs);
         verify_network_configuration(\&check_default_gateway);
         verify_network_configuration(\&change_hw_device_name, 'dyn0', 'restart');
@@ -89,10 +88,6 @@ sub post_fail_hook {
     assert_script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
     $self->SUPER::post_fail_hook;
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;
