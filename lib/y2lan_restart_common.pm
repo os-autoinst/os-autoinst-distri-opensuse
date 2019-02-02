@@ -20,13 +20,11 @@ use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
 use y2_common 'accept_warning_network_manager_default';
 
-our @EXPORT = qw(
-  check_etc_hosts_update
-  close_network_settings
-  check_network_status
+our @EXPORT_OK = qw(
   initialize_y2lan
   open_network_settings
-  validate_etc_hosts_entry
+  close_network_settings
+  check_network_status
   verify_network_configuration
 );
 
@@ -47,33 +45,30 @@ sub initialize_y2lan {
 }
 
 sub open_network_settings {
-    type_string "yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev\n";
+    type_string "yast2 lan\n";
     accept_warning_network_manager_default;
-    assert_screen 'yast2_lan', 180;       # yast2 lan overview tab
+    assert_screen 'yast2_lan', 100;       # yast2 lan overview tab
     send_key 'home';                      # select first device
-    wait_still_screen 1, 1;
+    wait_still_screen(2);
 }
 
 sub close_network_settings {
-    wait_still_screen 1, 1;
+    wait_still_screen;
     send_key 'alt-o';
     # new: warning pops up for firewall, alt-y for assign it to zone
-    if (!wait_serial("yast2-lan-status-0", 180)) {
-        check_screen([qw(yast2-lan-restart_firewall_active_warning yast2_lan_packages_need_to_be_installed)], 0);
-        if (match_has_tag 'yast2-lan-restart_firewall_active_warning') {
-            send_key 'alt-y';
-            wait_still_screen 1, 1;
-            send_key 'alt-n';
-            wait_still_screen 1, 1;
-            send_key 'alt-o';
-        }
-        elsif (match_has_tag 'yast2_lan_packages_need_to_be_installed') {
-            send_key 'alt-i';
-        }
-        wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish or exited with non-zero code";
+    assert_screen([qw(yast2-lan-restart_firewall_active_warning yast2_closed_xterm_visible yast2_lan_packages_need_to_be_installed)], 120);
+    if (match_has_tag 'yast2-lan-restart_firewall_active_warning') {
+        send_key 'alt-y';
+        wait_still_screen 1;
+        send_key 'alt-n';
+        wait_still_screen 1;
+        send_key 'alt-o';
     }
-
-    type_string "\n\n";    # make space for better readability of the console
+    elsif (match_has_tag 'yast2_lan_packages_need_to_be_installed') {
+        send_key 'alt-i';
+    }
+    assert_screen 'yast2_closed_xterm_visible', 120;    # ensure coming back to root console
+    type_string "\n\n";                                 # make space for better readability of the console
 }
 
 sub check_network_status {
@@ -91,101 +86,21 @@ sub check_network_status {
     if ($expected_status eq 'restart') {
         assert_script_run '[ -s journal.log ]';                       # journal.log size is greater than zero (network restarted)
     }
-
+    elsif (is_sle('<15') || is_leap('<15.0')) {
+        assert_script_run '[ ! -s journal.log ]';
+    }
     assert_script_run '> journal.log';                                # clear journal.log
     type_string "\n\n";                                               # make space for better readability of the console
 }
 
 sub verify_network_configuration {
-    my ($fn, $dev_name, $expected_status, $workaround, $no_network_check) = @_;
+    my ($fn, $dev_name, $expected_status, $workaround) = @_;
     open_network_settings;
 
     $fn->($dev_name) if $fn;                                          # verify specific action
 
     close_network_settings;
-    check_network_status($expected_status, $workaround) unless defined $no_network_check;
-}
-
-sub validate_etc_hosts_entry {
-    my (%args) = @_;
-
-    script_run("egrep \"@{[$args{ip}]}\\s@{[$args{fqdn}]}\\s@{[$args{host}]}\" /etc/hosts", 30)
-      && record_soft_failure "bsc#1115644 Expected entry:\n \"@{[$args{ip}]}    @{[$args{fqdn}]} @{[$args{host}]}\" was not found in /etc/hosts";
-    script_run "cat /etc/hosts";
-}
-
-sub set_network {
-    my (%args) = @_;
-
-    open_network_settings;
-    send_key 'alt-i';    # edit NIC
-    assert_screen 'yast2_lan_network_card_setup';
-    if ($args{static}) {
-        send_key 'alt-t';    # set to static ip
-        assert_screen 'yast2_lan_static_ip_selected';
-        send_key 'tab';
-        if ($args{ip}) {     # To spare time, no update what to is already filled from previous run
-            send_key_until_needlematch('ip_textfield_empty', 'backspace');    # delete existing IP if any
-            type_string $args{ip};
-        }
-        send_key 'tab';
-        if ($args{mask}) {                                                    # To spare time, no update what to is already filled from previous run
-            send_key_until_needlematch('mask_textfield_empty', 'backspace');    # delete existing netmask if any
-            type_string $args{mask};
-        }
-        send_key 'tab';
-        send_key_until_needlematch('hostname_textfield_empty', 'backspace');
-        type_string $args{fqdn};
-        assert_screen 'yast2_lan_static_ip_set';
-    }
-    else {
-        send_key 'alt-y';                                                       # set back to DHCP
-        assert_screen 'yast2_lan_dhcp_set';
-    }
-    # Exit
-    send_key 'alt-n';
-    assert_screen "yast2_lan";
-    close_network_settings;
-}
-
-
-=head2 check_etc_hosts_update
-
-In order to target bugs bsc#1115644 and bsc#1052042, we want to :
-- Set static IP and fqdn for first NIC in the list and check /etc/hosts formatting
-- Open yast2 lan again and change the fqdn, check if /etc/hosts is changed correctly ( bsc#1052042 )
-- Set it to DHCP
-- Set it again to static with  new FQDN and check if /etc/hosts is changed correctly ( bsc#1115644 )
-=cut
-sub check_etc_hosts_update {
-
-    my $ip   = '192.168.122.10';
-    my $mask = '255.255.255.0';
-    script_run "cat /etc/hosts";
-
-    record_info 'Test', 'Set static ip, FQDN and validate /etc/hosts entry';
-    my $hostname = "test-1";
-    my $fqdn     = $hostname . '.susetest.com';
-    set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
-    validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
-
-    record_info 'Test', 'Change FQDN and validate /etc/hosts entry';
-    $hostname = "test-2";
-    $fqdn     = $hostname . '.susetest.com';
-    set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
-    validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
-
-    # Set back to dhcp
-    set_network(fqdn => $fqdn);
-
-    record_info 'Test', 'Set to static from dchp, set FQDN and validate /etc/hosts entry';
-    $hostname = "test-3";
-    $fqdn     = $hostname . '.susetest.com';
-    set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
-    validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
-
-    # Set back to dhcp
-    set_network;
+    check_network_status($expected_status, $workaround);
 }
 
 1;

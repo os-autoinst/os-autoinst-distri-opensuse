@@ -17,7 +17,7 @@
 # Maintainer: Max Lin <mlin@suse.com>
 
 use strict;
-use base "console_yasttest";
+use base "consoletest";
 
 use testapi;
 use registration;
