@@ -98,6 +98,13 @@ sub login_to_console {
 sub run {
     my $self = shift;
     $self->login_to_console;
+
+    #workaround for bsc#1123942
+    script_run 'll /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
+    my $workaround_cmd = '(cat /etc/os-release | grep 15-SP1) && [ ! -e /usr/lib/grub2/x86_64-xen/grub.xen ] && mkdir -p /usr/lib/grub2/x86_64-xen && ln -s  /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
+    script_run($workaround_cmd);
+    script_run 'll /usr/lib/grub2/x86_64-xen/grub.xen';
+
 }
 
 1;
