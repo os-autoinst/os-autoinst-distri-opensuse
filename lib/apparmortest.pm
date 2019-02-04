@@ -31,17 +31,6 @@ our @EXPORT = qw (
 
 our $audit_log = "/var/log/audit/audit.log";
 
-# Disable stdout buffering to make pipe works
-sub aa_disable_stdout_buf {
-    my ($self, $app) = @_;
-    if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
-        assert_script_run "sed -i '/use strict;/a \$|=1;' $app";
-    }
-    else {                                      # apparmor >= 2.8.95
-        assert_script_run "export PYTHONUNBUFFERED=1";
-    }
-}
-
 # $prof_dir_tmp: The target temporary directory
 # $type:
 # 0  - Copy only the basic structure of profile directory
@@ -55,7 +44,7 @@ sub aa_tmp_prof_prepare {
         assert_script_run "mkdir $prof_dir_tmp";
         assert_script_run "cp -r $prof_dir/{tunables,abstractions} $prof_dir_tmp/";
         if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
-            assert_script_run "cp -r $prof_dir/program-chunks $prof_dir_tmp/";
+            assert_script_run "cp -r $prof_dir/program-chunks $prof_dir/disable $prof_dir_tmp/";
         }
     }
     else {
@@ -82,45 +71,6 @@ sub aa_tmp_prof_clean {
     my ($self, $prof_dir_tmp) = @_;
 
     assert_script_run "rm -rf $prof_dir_tmp";
-}
-
-# For interactive command, answer the question according to the contents
-# matched. Need an arrayref to pass the contents to be filtered and the
-# Answer send_key
-sub aa_interactive_run {
-    my ($self, $cmd, $scan, $timeout) = @_;
-    my $output;
-    my @words;
-    $timeout //= 180;
-
-    for my $k (@$scan) {
-        push(@words, $k->{word});
-    }
-
-    if ($cmd) {
-        script_run("(" . $cmd . ")| tee /dev/$serialdev", 0);
-    }
-
-  LOOP: {
-        do {
-            $output = wait_serial(\@words, $timeout) || die "Uknown Options!";
-            for my $i (@$scan) {
-                if ($output =~ $i->{word}) {
-                    if ($i->{key}) {
-                        send_key $i->{key};
-                        last LOOP if ($i->{end});
-                        last;
-                    }
-                    elsif ($i->{end}) {
-                        last LOOP;
-                    }
-                    else {
-                        die "$i->{word} - 'key' or 'end' should be specified";
-                    }
-                }
-            }
-        } while ($output);
-    }
 }
 
 # Get the named profile for an executable program

@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #
 # Summary: Guess basic AppArmor profile requirements with aa_autodep
 # Maintainer: Wes <whdu@suse.com>
-# Tags: poo#36889, tc#1621141
+# Tags: poo#36889, poo#45803
 
 use base 'apparmortest';
 use strict;
@@ -26,18 +26,7 @@ sub run {
     my ($self) = @_;
 
     my $aa_tmp_prof = "/tmp/apparmor.d";
-    my $scan_ans    = [
-        {
-            word => qr/Inactive local profile/m,
-            key  => 'c',
-        },
-        {
-            word => qr/AUTODEP-DONE/m,
-            end  => 1,
-        },
-    ];
 
-    $self->aa_disable_stdout_buf("/usr/sbin/aa-autodep");
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
 
     assert_script_run "aa-autodep -d $aa_tmp_prof/ nscd";
@@ -51,7 +40,16 @@ sub run {
             \}/sxx
     };
 
-    $self->aa_interactive_run("aa-autodep -d $aa_tmp_prof /usr/bin/pam* ; echo AUTODEP-DONE", $scan_ans, 300);
+    script_run_interactive(
+        "aa-autodep -d $aa_tmp_prof /usr/bin/pam*",
+        [
+            {
+                prompt => qr/Inactive local profile/m,
+                key    => 'c',
+            },
+        ],
+        30
+    );
 
     # Output generated profiles list to serial console
     assert_script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
