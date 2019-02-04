@@ -449,6 +449,7 @@ sub load_autoyast_clone_tests {
 
 sub load_zdup_tests {
     loadtest 'installation/setup_zdup';
+    loadtest 'installation/install_service';
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
@@ -457,6 +458,7 @@ sub load_zdup_tests {
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
     loadtest 'boot/boot_to_desktop';
+    loadtest 'console/check_upgraded_service';
 }
 
 sub load_autoyast_tests {
