@@ -46,14 +46,6 @@ sub test_package_output {
 sub run {
     select_console 'root-console';
 
-    if (is_leap('15.0+') and get_var('ARCH') =~ /aarch64|ppc64le/) {
-        record_soft_failure(
-            'for Leap:15.0:Ports aarch64 and ppc64le, do not enable source repo, waiting for solved issue https://progress.opensuse.org/issues/36256');
-        zypper_call("ref");
-        test_package_output;
-        return;
-    }
-
     # check for zypper info
     test_package_output;
 
