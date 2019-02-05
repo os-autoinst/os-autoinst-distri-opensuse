@@ -24,7 +24,6 @@ use version_utils 'is_caasp';
 
 # Orchestrate the reboot via Velum
 sub orchestrate_velum_reboot {
-    record_info 'Reboot', 'Orchestrate the reboot via Velum';
     switch_to 'velum';
 
     my $n = get_required_var('STACK_NODES');
@@ -92,7 +91,7 @@ sub update_check_changes {
 
 # ./update.sh -s will set up repositories
 sub update_setup_repos {
-    record_info 'Repo', 'Add the testing repository into each node of the cluster';
+    record_info 'Setup', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
 
     # Add UPDATE repository
@@ -102,53 +101,38 @@ sub update_setup_repos {
 
 # ./update.sh -n will install new package (QAM) if any
 sub install_new_packages {
-    record_info "NEW Package", "Check if this maintenance incident includes NEW package and if so then install it.";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -n' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
-        # Reboot the cluster
-        record_info "Installed NEW Package", "This maintenance incident includes NEW package we just installed.";
+        record_info 'Installed new', 'Incident package not installed & available only from UPDATE repo';
         orchestrate_velum_reboot;
         update_check_changes;
-    }
-    elsif ($returnCode == 0) {
-        record_info 'No NEW Package', 'No NEW packages included in this maintenance incident.';
-    }
-    else {
-        die "NEW Package installation failed";
+    } elsif ($returnCode != 0) {
+        die 'NEW package installation failed';
     }
 }
 
-# ./update.sh -t will decide if it makes sense to run update_perform_update
+# ./update.sh -q will decide if it makes sense to run update_perform_update
 sub is_needed {
-    # Always needed for QA scenarios
-    return 1 unless is_caasp('qam');
-
-    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -t' | tee /dev/$serialdev", 120);
+    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -q' | tee /dev/$serialdev", 120);
     if ($returnCode == 110) {
-        record_info 'Skip Update', 'This maintenance incident was just one single new package';
+        record_info 'Update skipped', 'All incident packages existed only in UPDATE repo';
         return 0;
-    }
-    else {
-        record_info 'Ready to update', 'We are ready to perform the update.';
+    } elsif ($returnCode == 0) {
         return 1;
     }
+    die './update.sh -q returned unexpected exit code';
 }
 
 # ./update.sh -i will install missing packages (QAM)
 sub install_missing_packages {
-    record_info "MISSING Package", "Check if this maintenance incident includes MISSING package and if so then install it.";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
-        # Reboot the cluster
-        record_info 'Installed MISSING Package', 'This maintenance incident includes MISSING package we just installed.';
+        record_info 'Installed missing', 'Incident package not installed & available from OS repo';
         orchestrate_velum_reboot;
         update_check_changes;
     }
-    elsif ($returnCode == 0) {
-        record_info 'No MISSING Package', 'All packages included in this maintenance incident are pre-installed (DVD).';
-    }
-    else {
-        die "MISSING Package installation failed";
+    elsif ($returnCode != 0) {
+        die 'MISSING package installation failed';
     }
 }
 

@@ -14,12 +14,12 @@ usage() {
         [-c] Check that update was applied
         [-n] Install new package
         [-i] Install package
-        [-t] Test if update is needed
+        [-q] Query if update is needed
         [-r] Just reboot cluster test" 1>&2
     exit 1
 }
 
-while getopts "e:t:s:curnti" opt; do
+while getopts "e:t:s:curnqi" opt; do
 case $opt in
     e)  EXECUTE=$OPTARG;;
     t)  TARGET=$OPTARG;;
@@ -41,7 +41,7 @@ case $opt in
     i)
         INSTALL=true
         ;;
-    t)
+    q)
         TEST=true
         ;;
     \?)
