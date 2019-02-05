@@ -29,7 +29,7 @@ sub setup_static_network {
     $args{ip} ||= '10.0.2.15';
     $args{gw} ||= testapi::host_ip();
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
-    assert_script_run('echo "NETCONFIG_DNS_STATIC_SERVERS=10.160.0.1" >> /etc/sysconfig/network/config');
+    assert_script_run('echo "NETCONFIG_DNS_STATIC_SERVERS=10.0.2.3" >> /etc/sysconfig/network/config');
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run 'rcnetwork restart';
