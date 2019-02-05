@@ -45,12 +45,14 @@ sub run {
     send_key 'ret';
 
     # Wait until logged in
-    assert_screen 'generic-desktop', 60;
+    wait_still_screen;
+    assert_screen([qw[generic-desktop displaymanager-password-prompt]], 60);
+    record_soft_failure('bsc#1124294 - login wayland crash') if (match_has_tag 'displaymanager-password-prompt');
 
     # We're now in a wayland session, which is in a different VT
     x11_start_program('xterm');
     my $tty = script_output('echo $XDG_VTNR');
-    send_key("alt-f4");                                # close xterm
+    send_key("alt-f4");    # close xterm
 
     console('x11')->set_tty(int($tty));
 }
