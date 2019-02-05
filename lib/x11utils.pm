@@ -21,6 +21,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_sle is_leap);
 
 our @EXPORT = qw(
   desktop_runner_hotkey
