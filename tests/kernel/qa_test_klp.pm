@@ -48,3 +48,18 @@ sub run {
 }
 
 1;
+
+=head1 Example configuration
+
+=head2 QA_HEAD_REPO
+
+RPM repository for used for hiworkload.
+QA_HEAD_REPO=http://dist.nue.suse.com/ibs/QA:/Head/SLE-%VERSION%
+QA_HEAD_REPO=http://dist.nue.suse.com/ibs/QA:/Head/openSUSE_%VERSION%
+
+=head2 QA_TEST_KLP_REPO
+
+Git repository for kernel live patching infrastructure tests.
+QA_TEST_KLP_REPO=https://github.com/lpechacek/qa_test_klp.git
+
+=cut
