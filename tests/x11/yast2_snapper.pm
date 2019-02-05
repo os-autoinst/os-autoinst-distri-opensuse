@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@ use base qw(y2snapper_common x11test);
 use strict;
 use testapi;
 use utils;
+use x11utils 'turn_off_gnome_screensaver';
 
 # Test for basic yast2-snapper functionality. It assumes the data of the
 # opensuse distri to be available at /home/$username/data (as granted by

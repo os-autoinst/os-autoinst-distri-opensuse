@@ -16,8 +16,9 @@
 use strict;
 use base "y2logsstep";
 use testapi;
-use utils qw(handle_login handle_emergency);
+use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
+use x11utils 'handle_login';
 use base 'opensusebasetest';
 
 sub run {

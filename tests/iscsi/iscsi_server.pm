@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,8 +18,9 @@ use mm_network;
 use lockapi;
 use version_utils qw(is_sle is_leap);
 use mmapi;
-use utils qw(zypper_call turn_off_gnome_screensaver);
+use utils 'zypper_call';
 use yast2_widget_utils 'change_service_configuration';
+use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     my $self = shift;

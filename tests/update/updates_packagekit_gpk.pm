@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,7 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
+use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
 
 sub setup_system {
     x11_start_program('xterm');

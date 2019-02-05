@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ use base 'basetest';
 use testapi;
 use lockapi;
 use utils;
+use x11utils 'handle_login';
 
 sub start_vncviewer {
     x11_start_program('vncviewer 10.0.2.1:1 -Fullscreen', target_match => [qw(displaymanager vncmanager-greeter vnc_certificate_warning)]);

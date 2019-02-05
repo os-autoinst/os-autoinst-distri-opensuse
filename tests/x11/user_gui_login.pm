@@ -13,7 +13,7 @@
 use base "x11test";
 use strict;
 use testapi;
-use utils;
+use x11utils 'handle_relogin';
 
 sub run {
     handle_relogin;

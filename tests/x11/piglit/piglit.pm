@@ -1,6 +1,6 @@
 # Piglit X11 regression tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,6 +17,7 @@ use warnings;
 use base "x11test";
 use testapi;
 use utils;
+use x11utils 'ensure_unlocked_desktop';
 
 
 sub run {

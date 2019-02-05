@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use strict;
 use testapi;
 use registration 'fill_in_registration_data';
 use version_utils 'is_sle';
-use utils 'turn_off_gnome_screensaver';
+use x11utils 'turn_off_gnome_screensaver';
 
 =head2 test_setup
 Define proxy SCC. For SLE 15 we need to clean existing registration

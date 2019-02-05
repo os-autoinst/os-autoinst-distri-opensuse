@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use power_action_utils 'reboot_x11';
 use version_utils;
+use x11utils 'handle_logout';
 
 #testcase 5255-1503803: Gnome:Change Password
 

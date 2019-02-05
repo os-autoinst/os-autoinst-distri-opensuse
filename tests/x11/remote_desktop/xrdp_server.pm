@@ -18,7 +18,8 @@ use lockapi;
 use mmapi;
 use mm_tests;
 use base 'opensusebasetest';
-use utils qw(zypper_call turn_off_gnome_screensaver);
+use utils 'zypper_call';
+use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     my ($self) = @_;

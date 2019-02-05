@@ -1,5 +1,5 @@
 # SUSE's openQA tests
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2019 SUSE LLC
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
@@ -18,6 +18,7 @@ use utils;
 use testapi;
 use lockapi;
 use isotovideo;
+use x11utils 'ensure_unlocked_desktop';
 
 our @EXPORT = qw(
   $crm_mon_cmd

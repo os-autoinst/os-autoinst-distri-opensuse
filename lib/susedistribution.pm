@@ -3,10 +3,8 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use utils qw(
-  desktop_runner_hotkey
   disable_serial_getty
   ensure_serialdev_permissions
-  ensure_unlocked_desktop
   get_root_console_tty
   get_x11_console_tty
   pkcon_quit
@@ -15,6 +13,7 @@ use utils qw(
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
+use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
 
 # Base class implementation of distribution class necessary for testapi

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@ use base "x11test";
 use strict;
 use utils;
 use testapi;
+use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);
 
 # Check if running kernel is the last installed
 sub kernel_updated {
