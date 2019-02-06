@@ -24,6 +24,7 @@ use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use Utils::Backends 'is_remote_backend';
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
+use lockapi 'barrier_create';
 use strict;
 use warnings;
 
@@ -101,6 +102,7 @@ our @EXPORT = qw(
   load_hypervisor_tests
   load_yast2_gui_tests
   load_zdup_tests
+  load_mm_autofs_tests
   logcurrentenv
   map_incidents_to_repo
   need_clear_repos
@@ -1684,6 +1686,7 @@ sub load_rollback_tests {
 sub load_extra_tests_filesystem {
     loadtest "console/system_prepare";
     loadtest "console/lsof";
+    loadtest "console/autofs";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
         loadtest "console/btrfs_autocompletion";
@@ -2728,6 +2731,26 @@ sub load_lvm_tests {
             loadtest 'installation/partitioning/lvm';
         }
     }
+}
+
+sub load_mm_autofs_tests {
+    if (get_var('AUTOFS')) {
+        set_var('INSTALLONLY', 1);
+        if (check_var('HOSTNAME', 'server')) {
+            barrier_create('AUTOFS_SUITE_READY', 2);
+            barrier_create('AUTOFS_FINISHED',    2);
+        }
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        if (check_var('HOSTNAME', 'server')) {
+            loadtest "network/autofs_server";
+        }
+        else {
+            loadtest "network/autofs_client";
+        }
+    }
+
 }
 
 1;
