@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use x11utils 'ensure_unlocked_desktop';
 
 sub run {
     my $self = shift;
@@ -35,6 +36,7 @@ sub run {
     # needle cannot match so we rely on the assert_and_click from
     # connect_to_network
     select_console 'x11', await_console => 0;
+    ensure_unlocked_desktop;
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;
