@@ -58,7 +58,7 @@ sub prepare_profile {
         [
             qw(root-console displaymanager displaymanager-password-prompt generic-desktop
               text-login linux-login started-x-displaymanager-info)
-        ]);
+        ], 120);
     select_console 'root-console' unless (match_has_tag 'root-console');
 
     if ($has_saptune) {
