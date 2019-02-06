@@ -669,6 +669,13 @@ sub post_fail_hook {
     elsif ($self->{in_boot_desktop}) {
         record_info('Startup', 'At least Startup is finished.') if (wait_serial 'Startup finished');
     }
+    # Find out in post-fail-hook if system is I/O-busy, poo#35877
+    else {
+        select_console 'log-console';
+        my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
+        record_info('System I/O status:', ($io_status =~ /^0$/) ? 'idle' : 'busy');
+    }
+
     # In case the system is stuck in shutting down or during boot up, press
     # 'esc' just in case the plymouth splash screen is shown and we can not
     # see any interesting console logs.
