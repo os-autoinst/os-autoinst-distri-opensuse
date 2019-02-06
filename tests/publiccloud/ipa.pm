@@ -47,7 +47,7 @@ sub run {
     die if ($ipa->{fail} > 0);
 }
 
-sub post_fail_hook {
+sub cleanup {
     my ($self) = @_;
 
     # upload logs on unexpected failure
@@ -56,7 +56,6 @@ sub post_fail_hook {
         assert_script_run('tar -zcvf ipa_results.tar.gz ipa_results');
         upload_logs('ipa_results.tar.gz', failok => 1);
     }
-    $self->SUPER->post_fail_hook();
 }
 
 1;
