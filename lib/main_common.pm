@@ -529,7 +529,7 @@ sub load_system_role_tests {
             loadtest "installation/setup_online_repos";
         }
         # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-        if (!check_var('BACKEND', 'ipmi') && !is_hyperv_in_gui && !get_var("LIVECD") && !check_var('BACKEND', 'spvm')) {
+        if (get_var('BACKEND', '') !~ /ipmi|spvm/ && !is_hyperv_in_gui && !get_var("LIVECD")) {
             loadtest "installation/logpackages";
         }
     }
@@ -940,9 +940,7 @@ sub load_inst_tests {
             and !get_var("REMOTE_CONTROLLER")
             and !is_hyperv_in_gui
             and !is_bridged_networking
-            and !check_var('BACKEND', 's390x')
-            and !check_var('BACKEND', 'ipmi')
-            and !check_var('BACKEND', 'spvm')
+            and get_var('BACKEND', '') !~ /ipmi|s390x|spvm/
             and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";

@@ -31,7 +31,7 @@ sub run {
     }
     # while technically SUT has a different network than the BMC
     # we require ssh installation anyway
-    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
+    if (get_var('BACKEND', '') =~ /ipmi|spvm/) {
         use_ssh_serial_console;
         # set serial console for xen
         set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));

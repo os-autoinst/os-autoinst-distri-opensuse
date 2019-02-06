@@ -32,7 +32,7 @@ our @EXPORT = qw(
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm/;
 
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {

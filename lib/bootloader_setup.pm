@@ -313,7 +313,7 @@ sub bootmenu_type_console_params {
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
     # and doesn't work if set to serial device. Don't want this on some backends.
-    type_string_very_slow "console=tty " unless (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm'));
+    type_string_very_slow "console=tty " unless (get_var('BACKEND', '') =~ /ipmi|spvm/);
 }
 
 sub uefi_bootmenu_params {
