@@ -23,6 +23,8 @@ use x11utils 'ensure_unlocked_desktop';
 our @EXPORT = qw(
   $crm_mon_cmd
   $softdog_timeout
+  exec_csync
+  add_file_in_csync
   get_cluster_name
   get_hostname
   get_node_to_join
@@ -55,6 +57,27 @@ our @EXPORT = qw(
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = 60;
 our $prev_console;
+
+sub exec_csync {
+    # Sometimes we need to run csync2 twice to have all the files updated!
+    assert_script_run 'csync2 -vxF ; sleep 2 ; csync2 -vxF';
+}
+
+sub add_file_in_csync {
+    my %args      = @_;
+    my $conf_file = $args{conf_file} // '/etc/csync2/csync2.cfg';
+
+    if (defined($conf_file) && defined($args{value})) {
+        # Check if conf_file is a valid value
+        assert_script_run "[[ -w $conf_file ]]";
+
+        # Add the value in conf_file and sync on all nodes
+        assert_script_run "grep -Fq $args{value} $conf_file || sed -i 's|^}\$|include $args{value};\\n}|' $conf_file";
+        exec_csync;
+    }
+
+    return 1;
+}
 
 sub get_cluster_name {
     return get_required_var('CLUSTER_NAME');

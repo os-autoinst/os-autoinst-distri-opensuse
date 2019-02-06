@@ -44,7 +44,7 @@ sub run {
     assert_script_run "crm configure property no-quorum-policy=$quorum_policy";
 
     # Execute csync2 to synchronise the configuration files
-    assert_script_run 'csync2 -v -x -F';
+    exec_csync;
 
     # State of SBD
     assert_script_run "sbd -d $sbd_device list";

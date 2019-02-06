@@ -92,6 +92,7 @@ our @EXPORT = qw(
   load_shutdown_tests
   load_slepos_tests
   load_sles4sap_tests
+  load_ha_cluster_tests
   load_ssh_key_import_tests
   load_svirt_boot_tests
   load_svirt_vm_setup_tests
@@ -2369,6 +2370,97 @@ sub load_sles4sap_tests {
         loadtest "sles4sap/netweaver_ascs_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_ascs";
     }
+}
+
+sub load_ha_cluster_tests {
+    return unless get_var('HA_CLUSTER');
+
+    # Standard boot
+    boot_hdd_image;
+
+    # Only SLE-15+ has support for lvmlockd
+    set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
+
+    # Wait for barriers to be initialized
+    loadtest 'ha/wait_barriers';
+
+    # Test HA after an upgrade, so no need to configure the HA stack
+    if (get_var('HDDVERSION')) {
+        loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
+        loadtest 'ha/check_after_reboot';
+        loadtest 'ha/check_hawk';
+        return 1;
+    }
+
+    # Patch (if needed) and basic configuration
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest "console/system_prepare";
+    loadtest 'console/consoletest_setup';
+    loadtest 'console/hostname';
+
+    # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
+    # 'default' System Role is 'HA node' if HA Product i selected
+    loadtest 'console/yast2_ntpclient' unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
+
+    # Update the image if needed
+    if (get_var('FULL_UPDATE')) {
+        loadtest 'update/zypper_up';
+        loadtest 'console/console_reboot';
+    }
+
+    # SLE15 workarounds
+    loadtest 'ha/sle15_workarounds' if is_sle('15+');
+
+    # Basic configuration
+    loadtest 'ha/firewall_disable';
+    loadtest 'ha/iscsi_client';
+    loadtest 'ha/watchdog';
+
+    # Cluster initilisation
+    if (get_var('HA_CLUSTER_INIT')) {
+        # Node1 creates a cluster
+        loadtest 'ha/ha_cluster_init';
+    }
+    else {
+        # Node2 joins the cluster
+        loadtest 'ha/ha_cluster_join';
+    }
+
+    # Test Hawk Web interface
+    loadtest 'ha/check_hawk';
+
+    # Lock manager configuration
+    loadtest 'ha/dlm';
+    loadtest 'ha/clvmd_lvmlockd';
+
+    # Test cluster-md feature
+    loadtest 'ha/cluster_md';
+    loadtest 'ha/vg';
+    loadtest 'ha/filesystem';
+
+    # Test DRBD feature
+    if (get_var('HA_CLUSTER_DRBD')) {
+        loadtest 'ha/drbd_passive';
+        loadtest 'ha/filesystem';
+    }
+
+    # Show HA cluster status *before* fencing test and execute fencing test
+    loadtest 'ha/fencing';
+
+    # Node1 will be fenced, so we have to wait for it to boot
+    boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
+
+    # Show HA cluster status *after* fencing test
+    loadtest 'ha/check_after_reboot';
+
+    # Check logs to find error and upload all needed logs if we are not
+    # in installation/publishing mode
+    loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
+
+    # If needed, do some actions prior to the shutdown
+    loadtest 'ha/prepare_shutdown' if get_var('INSTALLONLY');
+
+    return 1;
 }
 
 sub updates_is_applicable {
