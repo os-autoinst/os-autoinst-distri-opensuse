@@ -38,13 +38,28 @@ our @EXPORT = qw(
 
 sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2' }
 
+=head2 ensure_unlocked_desktop
+
+  ensure_unlocked_desktop([$needle_tag])
+
 # if stay under tty console for long time, then check
 # screen lock is necessary when switch back to x11
 # all possible options should be handled within loop to get unlocked desktop
+# When there is an application openede, generic-desktop won't match,
+# you can pass the tag name as parameter C<$needle_tag> to match that open application
+
+Example:
+
+  ensure_unlocked_desktop('gnome_setting-NM-fullscreen')
+
+=cut
 sub ensure_unlocked_desktop {
+    my $needle_tag = shift @_;
+    my @candidate_needles = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password);
+    push(@candidate_needles, $needle_tag) if ($needle_tag);
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
+        assert_screen(@candidate_needles, no_wait => 1);
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -65,7 +80,7 @@ sub ensure_unlocked_desktop {
             }
             send_key 'ret';
         }
-        if (match_has_tag 'generic-desktop') {
+        if (match_has_tag('generic-desktop') || $needle_tag && match_has_tag($needle_tag)) {
             send_key 'esc';
             unless (get_var('DESKTOP', '') =~ m/awesome|enlightenment|lxqt/) {
                 # gnome/mate/minimalx might show the old 'generic desktop' screen although that is
