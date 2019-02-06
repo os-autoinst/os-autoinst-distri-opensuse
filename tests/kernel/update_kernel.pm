@@ -296,6 +296,7 @@ sub run {
     }
 
     power_action('reboot', textmode => 1);
+    $self->wait_boot if get_var('LTP_BAREMETAL');
 }
 
 sub test_flags {
