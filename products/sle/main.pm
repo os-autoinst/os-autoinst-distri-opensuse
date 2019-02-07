@@ -22,6 +22,8 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 
+use DistributionProvider;
+
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
@@ -663,10 +665,7 @@ sub load_suseconnect_tests {
     loadtest "console/suseconnect";
 }
 
-
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
-require $distri;
-testapi::set_distribution(susedistribution->new());
+testapi::set_distribution(DistributionProvider->provide());
 
 # set serial failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());

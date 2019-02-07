@@ -859,11 +859,11 @@ sub load_inst_tests {
             if (defined(get_var("RAIDLEVEL"))) {
                 loadtest "installation/partitioning_raid";
             }
-            elsif (check_var('LVM', 0) && get_var('ENCRYPT')) {
-                loadtest 'installation/partitioning_crypt_no_lvm';
+            elsif (get_var('LVM')) {
+                load_lvm_tests();
             }
-            elsif (get_var("LVM")) {
-                loadtest "installation/partitioning_lvm";
+            elsif (check_var('LVM', 0) && get_var('ENCRYPT')) {
+                loadtest 'installation/partitioning/encrypt_no_lvm';
             }
             elsif (get_var('FULL_LVM_ENCRYPT')) {
                 loadtest 'installation/partitioning_full_lvm';
@@ -2424,6 +2424,31 @@ sub load_transactional_role_tests {
     loadtest 'transactional_system/filesystem_ro';
     loadtest 'transactional_system/transactional_update';
     loadtest 'transactional_system/rebootmgr';
+}
+
+# Tests to validate partitioning with LVM, both encrypted and not encrypted.
+# Also covered a case while installing on a system with a cryptlvm volume
+# present (e.g. previous clean installation using cryptlvm).
+# If 'ENCRYPT_FORCE_RECOMPUTE' variable is specified, call the test that
+# reconfigures lvm partition, otherwise partition suggestion based on existing
+# cryptlvm should compute encrypted system (currently it refers to bsc#993247).
+sub load_lvm_tests {
+    if (get_var("ENCRYPT")) {
+        if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+            if (get_var('ENCRYPT_FORCE_RECOMPUTE')) {
+                loadtest 'installation/partitioning/encrypt_lvm_ignore_existing';
+            }
+            else {
+                loadtest 'installation/partitioning/encrypt_lvm_reuse_existing';
+            }
+        }
+        else {
+            loadtest 'installation/partitioning/encrypt_lvm';
+        }
+    }
+    else {
+        loadtest 'installation/partitioning/lvm';
+    }
 }
 
 1;

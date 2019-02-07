@@ -16,6 +16,7 @@ use needle;
 use version_utils ':VERSION';
 use File::Find;
 use File::Basename;
+use DistributionProvider;
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -69,9 +70,7 @@ sub cleanup_needles {
 my @time = localtime();
 set_var('WINTER_IS_THERE', 1) if ($time[4] == 11 || $time[4] == 0);
 
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
-require $distri;
-testapi::set_distribution(susedistribution->new());
+testapi::set_distribution(DistributionProvider->provide());
 
 # Set serial failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
