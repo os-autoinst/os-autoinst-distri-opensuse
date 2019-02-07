@@ -1033,7 +1033,7 @@ else {
     else {
         if (get_var('BOOT_EXISTING_S390')) {
             loadtest 'installation/boot_s390';
-            loadtest 'installation/reconnect_mgmt_console';
+            loadtest 'boot/reconnect_mgmt_console';
             loadtest 'installation/first_boot';
         }
         elsif (!is_jeos) {
