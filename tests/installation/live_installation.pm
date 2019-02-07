@@ -18,6 +18,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "installbasetest";
+use warnings;
 use testapi;
 use utils;
 use version_utils "is_upgrade";
@@ -55,6 +56,7 @@ sub run {
     assert_screen 'context-menu-more_actions';
     # more
     send_key_and_wait 'alt-m';
+    assert_screen 'more_actions-fullscreen_opt';
     # fullscreen
     send_key_and_wait 'alt-f';
     assert_screen 'fullscreen-mode-information_dialog', 180;
