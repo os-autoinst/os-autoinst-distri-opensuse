@@ -1,0 +1,10 @@
+NAME='OVS Bridge'
+STARTMODE='auto'
+BOOTPROTO='static'
+
+OVS_BRIDGE='yes'
+OVS_BRIDGE_PORT_DEVICE_1='iface'
+OVS_BRIDGE_PORT_DEVICE_2='dummy0'
+
+IPADDR='ip_address/16'
+IPADDR6='fd00:c0de:ba5e:200::200/48'

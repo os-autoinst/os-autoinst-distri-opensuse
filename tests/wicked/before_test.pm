@@ -59,6 +59,11 @@ sub run {
         assert_script_run("rcwickedd restart");
         record_info('INFO', 'Setup OpenVPN');
         zypper_call('--quiet in openvpn', timeout => 200);
+        if (check_var('WICKED', 'advanced')) {
+            record_info('INFO', 'Setup OVS');
+            zypper_call('--quiet in openvswitch', timeout => 200);
+            assert_script_run("systemctl start openvswitch");
+        }
     }
 }
 
