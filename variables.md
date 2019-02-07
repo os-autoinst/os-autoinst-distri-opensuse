@@ -97,6 +97,7 @@ UEFI | boolean | false | Indicates UEFI in the testing environment.
 UPGRADE | boolean | false | Indicates upgrade scenario.
 USBBOOT | boolean | false | Indicates booting to the usb device.
 USEIMAGES |||
+VALIDATE_ETC_HOSTS | boolean | false | Validate changes in /etc/hosts when using YaST network module. Is used in yast2_lan and yast2_lan_restart test modules which test module in ncurses and x11 respectively.
 VALIDATE_INST_SRC | boolean | false | Validate installation source in /etc/install.inf
 VERSION | string | | Contains major version of the product. E.g. 15-SP1 or 15.1
 VIDEOMODE | string | | Indicates/defines video mode used for the installation. Empty value uses default, other possible values `text`, `ssh-x` for installation ncurses and x11 over ssh respectivelyю

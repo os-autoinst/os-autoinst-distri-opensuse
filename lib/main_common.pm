@@ -1352,6 +1352,7 @@ sub load_extra_tests_y2uitest_ncurses {
         loadtest "console/yast2_http";
         loadtest "console/yast2_ftp";
         loadtest "console/yast2_apparmor";
+        loadtest "console/yast2_lan";
     }
     # TODO https://progress.opensuse.org/issues/20200
     # softfail record #bsc1049433 for samba and xinetd
@@ -1374,6 +1375,7 @@ sub load_extra_tests_y2uitest_gui {
         && !get_var("DUALBOOT")
         && !get_var("RESCUECD"));
     loadtest 'yast2_gui/yast2_control_center';
+    loadtest "x11/yast2_lan_restart";
     loadtest "yast2_gui/yast2_bootloader";
     loadtest "yast2_gui/yast2_datetime";
     loadtest "yast2_gui/yast2_firewall";
