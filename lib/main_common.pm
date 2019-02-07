@@ -1253,9 +1253,6 @@ sub load_x11tests {
     if (is_opensuse && !get_var("OFW") && check_var('BACKEND', 'qemu') && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
-    if (gnomestep_is_applicable() && !(get_var("LIVECD") || is_sle)) {
-        loadtest "x11/thunderbird";
-    }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
         loadtest "x11/chromium";
     }
@@ -1915,16 +1912,23 @@ sub load_x11_webbrowser_extra {
 sub load_x11_message {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11/empathy/empathy_irc" if is_sle("<15");
-        loadtest "x11/evolution/evolution_smoke";
+        loadtest "x11/evolution/evolution_smoke" if !is_opensuse;
         loadtest "x11/evolution/evolution_prepare_servers";
-        loadtest "x11/evolution/evolution_mail_imap";
-        loadtest "x11/evolution/evolution_mail_pop";
-        loadtest "x11/evolution/evolution_timezone_setup";
-        loadtest "x11/evolution/evolution_meeting_imap";
-        loadtest "x11/evolution/evolution_meeting_pop";
-        loadtest "x11/groupwise/groupwise";
+        if (!is_opensuse) {
+            loadtest "x11/evolution/evolution_mail_imap";
+            loadtest "x11/evolution/evolution_mail_pop";
+            loadtest "x11/evolution/evolution_timezone_setup";
+            loadtest "x11/evolution/evolution_meeting_imap";
+            loadtest "x11/evolution/evolution_meeting_pop";
+        }
+        if (!is_pre_15 && (!is_server() || we_is_applicable())) {
+            loadtest "x11/thunderbird/thunderbird_install";
+            loadtest "x11/thunderbird/thunderbird_imap";
+            loadtest "x11/thunderbird/thunderbird_pop";
+        }
+        loadtest "x11/groupwise/groupwise" if !is_opensuse;
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_opensuse) {
         loadtest "x11/pidgin/prep_pidgin";
         loadtest "x11/pidgin/pidgin_IRC";
         loadtest "x11/pidgin/clean_pidgin";
