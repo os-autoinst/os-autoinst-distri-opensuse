@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_vmware);
 
 our @EXPORT = qw(
   prepare_system_shutdown
@@ -250,9 +250,16 @@ sub power_action {
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.
         handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
+        # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
+        select_console('svirt') if is_vmware && $action eq 'reboot';
         reset_consoles;
         if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
+        }
+        # When 'sut' is ready, select it
+        if (is_vmware && $action eq 'reboot') {
+            wait_serial('GNU GRUB') || die 'GRUB not found on serial console';
+            select_console('sut');
         }
     }
 }
