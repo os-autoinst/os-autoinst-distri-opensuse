@@ -36,7 +36,7 @@ sub run {
     # needle cannot match so we rely on the assert_and_click from
     # connect_to_network
     select_console 'x11', await_console => 0;
-    ensure_unlocked_desktop;
+    ensure_unlocked_desktop 'gnome_settings-generic_fullscreen';
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;

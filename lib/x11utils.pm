@@ -42,19 +42,19 @@ sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'al
 
   ensure_unlocked_desktop([$needle_tag])
 
-# if stay under tty console for long time, then check
-# screen lock is necessary when switch back to x11
-# all possible options should be handled within loop to get unlocked desktop
-# When there is an application openede, generic-desktop won't match,
-# you can pass the tag name as parameter C<$needle_tag> to match that open application
+If stay under tty console for long time, then check screen lock is
+necessary when switch back to x11 all possible options should be
+handled within loop to get unlocked desktop When there is an
+application opened, generic-desktop won't match, you can pass the tag
+name as parameter C<$needle_tag> to match that open application
 
 Example:
 
-  ensure_unlocked_desktop('gnome_setting-NM-fullscreen')
+  ensure_unlocked_desktop('gnome_settings-generic_fullscreen')
 
 =cut
 sub ensure_unlocked_desktop {
-    my $needle_tag = shift @_;
+    my ($needle_tag) = @_;
     my @candidate_needles = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password);
     push(@candidate_needles, $needle_tag) if ($needle_tag);
     my $counter = 10;
