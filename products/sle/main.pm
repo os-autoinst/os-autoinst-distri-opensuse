@@ -21,6 +21,7 @@ use version_utils
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
+use YAML::Tiny;
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -417,6 +418,47 @@ logcurrentenv(
       SYSTEM_ROLE SCC_REGISTER
       SLE_PRODUCT SPLITUSR VIDEOMODE)
 );
+
+sub parse_condition {
+    my ($schedule, $condition_name) = @_;
+    # Get condition hash
+    my $condition = $schedule->{conditional_schedule}->{$condition_name};
+    # Iterate over variables in the condition
+    foreach my $var (keys %{$condition}) {
+        next unless my $val = get_var($var);
+        # If value of the variable matched the conditions
+        # Iterate over the list of the modules to be loaded
+        for my $test (@{$condition->{$var}->{$val}}) {
+            loadtest $test;
+        }
+    }
+}
+
+sub parse_test_suite_setting {
+    my ($setting) = shift;
+    # allow comma spearated list
+    for my $test (split(',', get_var($setting))) {
+        loadtest $test;
+    }
+}
+
+if (my $yamlfile = get_var('YAML_SCHEDULE')) {
+    my $schedule = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../../' . $yamlfile);
+    #schedule/lvm_thin_provisioning.yml
+    for my $module (@{$schedule->{schedule}}) {
+        if ($module =~ s/\{\{(.*)\}\}/$1/) {
+            # load modules by evaluating conditions
+            parse_condition($schedule, $module);
+            next;
+        } elsif ($module =~ s/%(.*)%/$1/) {
+            # load modules which are injected by variable
+            parse_test_suite_setting($module);
+            next;
+        }
+        loadtest $module;
+    }
+    return 1;
+}
 
 sub load_slenkins_tests {
     if (get_var("SLENKINS_CONTROL")) {

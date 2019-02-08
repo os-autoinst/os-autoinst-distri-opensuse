@@ -1,0 +1,77 @@
+name:           lvm_thin_provisioning
+description:    >
+    Complete OS deployment with unencrypted LVM drive management.
+    Test creates 2 LVM and BIOS boot partitions.
+    Thin pool and thin lv resides on the second LVM partition,
+    where /home (XFS) is being mounted. Maintainer: mloviska, poo#39023
+conditional_schedule:
+    bootloader:
+        ARCH:
+            x86_64:
+                - installation/isosize
+                - installation/bootloader
+            s390x:
+                - installation/bootloader_zkvm
+            aarch64:
+                - installation/isosize
+                - installation/bootloader_uefi
+    addons_repos:
+        DISTRI:
+            opensuse:
+                - installation/online_repos
+                - installation/installation_mode
+                - installation/logpackages
+            sle:
+                - installation/scc_registration
+                - installation/addon_products_sle
+    hostname_inst:
+        DISTRI:
+            sle:
+                - installation/hostname_inst
+    user_settings_root:
+        DISTRI:
+            sle:
+                - installation/user_settings_root
+    reconnect_mgmt_console:
+        ARCH:
+            s390x:
+                - boot/reconnect_mgmt_console
+    sle15_workarounds:
+        DISTRI:
+            sle:
+                - console/sle15_workarounds
+    opensuse_repos:
+        DISTRI:
+            opensuse:
+                - update/zypper_clear_repos
+                - update/zypper_ar
+                - update/zypper_ref
+
+schedule:
+    - {{bootloader}}
+    - installation/welcome
+    - {{addons_repos}}
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_lvm_thin_provisioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - {{hostname_inst}}
+    - installation/user_settings
+    - {{user_settings_root}}
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - {{reconnect_mgmt_console}}
+    - installation/first_boot
+    - {{sle15_workarounds}}
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - {{opensuse_repos}}
+    - shutdown/grub_set_bootargs
+    - '%INSTALLATION_VALIDATION%'
