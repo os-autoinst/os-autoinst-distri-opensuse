@@ -301,20 +301,20 @@ sub handle_uefi_boot_disk_workaround {
     wait_screen_change { send_key 'ret' };
     send_key_until_needlematch 'tianocore-boot_from_file', 'down';
     wait_screen_change { send_key 'ret' };
-    save_screenshot;
+    # Device selection: HD or CDROM
+    send_key_until_needlematch 'tianocore-select_HD', 'down';
     wait_screen_change { send_key 'ret' };
     # cycle to last entry by going up in the next steps
     # <EFI>
     send_key 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
-    # <sles>
+    # <sles> or <opensuse>
     send_key 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # efi file
-    send_key 'up';
-    save_screenshot;
+    send_key_until_needlematch 'tianocore-select_grubaa64_efi', 'up';
     wait_screen_change { send_key 'ret' };
 }
 
