@@ -42,8 +42,8 @@ sub run {
     }
     validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
     prepare_ssh_localhost_key_login 'root';
-    assert_script_run 'machinery inspect localhost';
-    assert_script_run 'machinery show localhost | grep machinery';
+    assert_script_run 'machinery inspect localhost',               300;
+    assert_script_run 'machinery show localhost | grep machinery', 100;
 }
 
 1;
