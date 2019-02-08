@@ -22,14 +22,16 @@ our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_
 =head2 setup_static_network
 Configure static IP on SUT with setting up default GW.
 Also doing test ping to 10.0.2.2 to check that network is alive
+Set DNS server defined via required variable C<STATIC_DNS_SERVER>
 =cut
 sub setup_static_network {
     my (%args) = @_;
     # Set default values
     $args{ip} ||= '10.0.2.15';
     $args{gw} ||= testapi::host_ip();
+    my $dns_ip = get_required_var('STATIC_DNS_SERVER');
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
-    assert_script_run('echo "NETCONFIG_DNS_STATIC_SERVERS=10.0.2.3" >> /etc/sysconfig/network/config');
+    assert_script_run('echo "NETCONFIG_DNS_STATIC_SERVERS=' . $dns_ip . '" >> /etc/sysconfig/network/config');
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run 'rcnetwork restart';
