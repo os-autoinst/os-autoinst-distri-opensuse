@@ -151,11 +151,10 @@ sub handle_login {
             select_user_gnome($myuser);
         }
     }
-    assert_screen [qw(displaymanager-password-prompt displaymanager-focused-password-textbox)];
-    if (check_var('DESKTOP', 'kde') && !match_has_tag('displaymanager-focused-password-textbox')) {
-        record_soft_failure('bsc#1122664 - password textbox is not focused');
-        assert_and_click 'displaymanager-password-prompt';
-        assert_screen 'displaymanager-focused-password-textbox';
+    assert_screen [qw(displaymanager-password-prompt displaymanager-unfocused-password-prompt)];
+    if (check_var('DESKTOP', 'kde') && match_has_tag('displaymanager-unfocused-password-prompt')) {
+        record_soft_failure('bsc#1122664 - password prompt is not focused');
+        wait_screen_change { assert_and_click 'displaymanager-password-prompt' };
     }
     type_password;
     send_key "ret";
