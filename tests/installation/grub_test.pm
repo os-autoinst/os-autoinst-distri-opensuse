@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,24 +18,6 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
-
-=head2 set_vmware_videomode
-
-bsc#997263 - VMware screen resolution defaults to 800x600
-By default VMware starts with Grub2 in 640x480 mode and then boots the system to
-800x600. To avoid that we need to reconfigure Grub's gfxmode and gfxpayload.
-Permanent - system-wise - solution is in console/consoletest_setup.pm.
-=cut
-sub set_vmware_videomode {
-    return unless check_var('VIRSH_VMM_FAMILY', 'vmware');
-    send_key 'c';
-    type_string 'gfxmode=1024x768x32; gfxpayload=1024x768x32; terminal_output console; terminal_output gfxterm';
-    save_screenshot;
-    send_key 'ret';
-    wait_still_screen;
-    save_screenshot;
-    send_key 'esc';
-}
 
 =head2 handle_installer_medium_bootup
 
@@ -90,7 +72,6 @@ sub run {
     my $tag = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
     assert_screen_with_soft_timeout($tag, timeout => 2 * $timeout, soft_timeout => $timeout, bugref => 'boo#1120256');
     stop_grub_timeout;
-    set_vmware_videomode;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
     if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
