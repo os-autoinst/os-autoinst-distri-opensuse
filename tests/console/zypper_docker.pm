@@ -33,7 +33,7 @@ sub run {
     zypper_call('in zypper-docker');
     validate_script_output("zypper-docker -h", sub { m/zypper-docker - Patching Docker images safely/ }, 180);
 
-    my $testing_image = 'opensuse:42.3';
+    my $testing_image = 'opensuse/leap';
     # pull image and check zypper-docker's images funcionalities
     assert_script_run("docker image pull $testing_image", timeout => 600);
     my $local_images_list = script_output('docker images');
