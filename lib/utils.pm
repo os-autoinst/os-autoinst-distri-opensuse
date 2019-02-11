@@ -431,7 +431,7 @@ sub workaround_type_encrypted_passphrase {
     return if get_var('UNENCRYPTED_BOOT');
     return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
     # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !get_var('UEFI');
+    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
     return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
