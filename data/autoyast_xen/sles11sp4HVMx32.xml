@@ -8,46 +8,65 @@
     <device_map config:type="list">
       <device_map_entry>
         <firmware>hd0</firmware>
-        <linux>/dev/xvda</linux>
+        <linux>/dev/hda</linux>
       </device_map_entry>
     </device_map>
     <global>
       <activate>true</activate>
-      <default>Xen -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</default>
+      <default>SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</default>
       <generic_mbr>true</generic_mbr>
       <gfxmenu>(hd0,1)/boot/message</gfxmenu>
-      <lines_cache_id>1</lines_cache_id>
+      <lines_cache_id>2</lines_cache_id>
       <timeout config:type="integer">8</timeout>
     </global>
     <initrd_modules config:type="list">
       <initrd_module>
-        <module>xenblk</module>
+        <module>ata_piix</module>
+      </initrd_module>
+      <initrd_module>
+        <module>xen-vbd</module>
+      </initrd_module>
+      <initrd_module>
+        <module>ata_generic</module>
+      </initrd_module>
+      <initrd_module>
+        <module>xen-vnif</module>
       </initrd_module>
     </initrd_modules>
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/xvda1 splash=silent showopts</append>
-        <image>(hd0,1)/boot/vmlinuz-3.0.101-108.84-xen</image>
+        <append>resume=/dev/hda1 splash=silent showopts</append>
+        <image>(hd0,1)/boot/vmlinuz-3.0.101-63-pae</image>
         <initial>1</initial>
-        <initrd>(hd0,1)/boot/initrd-3.0.101-108.84-xen</initrd>
+        <initrd>(hd0,1)/boot/initrd-3.0.101-63-pae</initrd>
         <lines_cache_id>0</lines_cache_id>
-        <name>Xen -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</name>
+        <name>SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</name>
         <original_name>linux</original_name>
-        <root>/dev/xvda2</root>
+        <root>/dev/hda2</root>
+        <type>image</type>
+      </section>
+      <section>
+        <append>showopts ide=nodma apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe console=ttyS0</append>
+        <image>(hd0,1)/boot/vmlinuz-3.0.101-63-pae</image>
+        <initrd>(hd0,1)/boot/initrd-3.0.101-63-pae</initrd>
+        <lines_cache_id>1</lines_cache_id>
+        <name>Failsafe -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</name>
+        <original_name>failsafe</original_name>
+        <root>/dev/hda2</root>
         <type>image</type>
       </section>
     </sections>
   </bootloader>
   <ca_mgm>
     <CAName>YaST_Default_CA</CAName>
-    <ca_commonName>YaST Default CA (dhcp64)</ca_commonName>
+    <ca_commonName>YaST Default CA (dhcp229)</ca_commonName>
     <country>CZ</country>
     <locality></locality>
     <organisation></organisation>
     <organisationUnit></organisationUnit>
     <password>ENTER PASSWORD HERE</password>
-    <server_commonName>dhcp64.suse.cz</server_commonName>
+    <server_commonName>dhcp229.suse.cz</server_commonName>
     <server_email>postmaster@suse.cz</server_email>
     <state></state>
     <takeLocalServerName config:type="boolean">false</takeLocalServerName>
@@ -63,7 +82,7 @@
     <FW_CONFIGURATIONS_EXT></FW_CONFIGURATIONS_EXT>
     <FW_CONFIGURATIONS_INT></FW_CONFIGURATIONS_INT>
     <FW_DEV_DMZ></FW_DEV_DMZ>
-    <FW_DEV_EXT>any</FW_DEV_EXT>
+    <FW_DEV_EXT>any eth0</FW_DEV_EXT>
     <FW_DEV_INT></FW_DEV_INT>
     <FW_FORWARD_ALWAYS_INOUT_DEV></FW_FORWARD_ALWAYS_INOUT_DEV>
     <FW_FORWARD_MASQ></FW_FORWARD_MASQ>
@@ -452,6 +471,12 @@
         </names>
       </hosts_entry>
       <hosts_entry>
+        <host_address>127.0.0.2</host_address>
+        <names config:type="list">
+          <name>sles11sp4HVMx32.suse.cz sles11sp4HVMx32</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
         <host_address>::1</host_address>
         <names config:type="list">
           <name>localhost ipv6-localhost ipv6-loopback</name>
@@ -506,6 +531,8 @@
       <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
       <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
       <KDUMP_KERNELVER></KDUMP_KERNELVER>
+      <KDUMP_KMOD_BLACKLIST></KDUMP_KMOD_BLACKLIST>
+      <KDUMP_KMOD_LOAD></KDUMP_KMOD_LOAD>
       <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
       <KDUMP_NOTIFICATION_CC></KDUMP_NOTIFICATION_CC>
       <KDUMP_NOTIFICATION_TO></KDUMP_NOTIFICATION_TO>
@@ -549,18 +576,18 @@
   <login_settings/>
   <networking>
     <dhcp_options>
-      <dhclient_client_id></dhclient_client_id>
+      <dhclient_client_id>sles11sp4HVMx32</dhclient_client_id>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns>
-      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <domain>suse.cz</domain>
-      <hostname>dhcp64</hostname>
+      <hostname>sles11sp4HVMx32</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <searchlist config:type="list">
         <search>suse.cz</search>
       </searchlist>
-      <write_hostname config:type="boolean">false</write_hostname>
+      <write_hostname config:type="boolean">true</write_hostname>
     </dns>
     <interfaces config:type="list">
       <interface>
@@ -568,7 +595,6 @@
         <device>eth0</device>
         <name>Virtual Ethernet Card 0</name>
         <startmode>auto</startmode>
-        <usercontrol>no</usercontrol>
       </interface>
       <interface>
         <aliases>
@@ -600,7 +626,7 @@
       <rule>
         <name>eth0</name>
         <rule>ATTR{address}</rule>
-        <value>00:16:3e:bf:fe:3d</value>
+        <value>00:16:3e:e7:d2:a3</value>
       </rule>
     </net-udev>
     <routing>
@@ -668,7 +694,7 @@
         <type>__clock</type>
       </peer>
       <peer>
-        <address>mode7 </address>
+        <address>mode7  </address>
         <comment>
 # Allow ntpdc to stay backwards compatible with SLE-11 before SP4.
 </comment>
@@ -676,7 +702,7 @@
         <type>enable</type>
       </peer>
       <peer>
-        <address>/var/lib/ntp/drift/ntp.drift  </address>
+        <address>/var/lib/ntp/drift/ntp.drift   </address>
         <comment>
 # Clients from this (example!) subnet have unlimited access, but only if
 # cryptographically authenticated.
@@ -691,7 +717,7 @@
         <type>driftfile</type>
       </peer>
       <peer>
-        <address>/var/log/ntp		 </address>
+        <address>/var/log/ntp		  </address>
         <comment># path for drift file
 
 </comment>
@@ -699,7 +725,7 @@
         <type>logfile</type>
       </peer>
       <peer>
-        <address>/etc/ntp.keys		 </address>
+        <address>/etc/ntp.keys		  </address>
         <comment># alternate log file
 # logconfig =syncstatus + sysevents
 # logconfig =all
@@ -717,21 +743,21 @@
         <type>keys</type>
       </peer>
       <peer>
-        <address>1			 </address>
+        <address>1			  </address>
         <comment># path for keys file
 </comment>
         <options></options>
         <type>trustedkey</type>
       </peer>
       <peer>
-        <address>1			 </address>
+        <address>1			  </address>
         <comment># define trusted keys
 </comment>
         <options></options>
         <type>requestkey</type>
       </peer>
       <peer>
-        <address>1                    </address>
+        <address>1                     </address>
         <comment># key (7) for accessing server variables
 # controlkey 15			# key (6) for accessing server variables
 #
@@ -745,7 +771,7 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/xvda</device>
+      <device>/dev/hda</device>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
@@ -760,7 +786,7 @@
           <partition_id config:type="integer">130</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>1726119424</size>
+          <size>1545764352</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -774,7 +800,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>6711787520</size>
+          <size>6702661120</size>
         </partition>
       </partitions>
       <pesize></pesize>
@@ -834,10 +860,8 @@
       <package>libproxy0-config-gnome</package>
       <package>libtheora0</package>
       <package>libvisual</package>
-      <package>libyajl1</package>
       <package>sles-manuals_en</package>
-      <package>xen-libs</package>
-      <package>xen-tools-domU</package>
+      <package>xen-kmp-pae</package>
       <package>xorg-x11-driver-video-radeonhd</package>
       <package>yast2-trans-en_US</package>
     </packages>
@@ -887,7 +911,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>$2y$05$fyZ8IF1jEWNeXjm3ZhWhEOmq55lV2YCM84UvGIYwdLqR0WLOhGEHi</user_password>
+      <user_password>$2y$05$UjsX7s5xUq8iH2eo4NGJ6.n/0pcQNZtKoRvEdQlCvdCayMC37PkHq</user_password>
       <username>slemke</username>
     </user>
     <user>
@@ -1067,7 +1091,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$2y$10$fzw/Koa/FYFz0tcHN1dZVuAahw6KbU11i3ivDgkJT2nODIPEzLeta</user_password>
+      <user_password>$2y$10$haap.Dr3FtI.mOsU3hnYre.pKUEVXl0D36viZZ4MdMnFoITc.VK7.</user_password>
       <username>root</username>
     </user>
     <user>
@@ -1306,7 +1330,7 @@
     </user>
   </users>
   <x11>
-    <color_depth config:type="integer">32</color_depth>
+    <color_depth config:type="integer">16</color_depth>
     <display_manager>xdm</display_manager>
     <enable_3d config:type="boolean">true</enable_3d>
     <monitor>
@@ -1319,7 +1343,7 @@
       <monitor_device>Unknown</monitor_device>
       <monitor_vendor>Unknown</monitor_vendor>
     </monitor>
-    <resolution>800x600</resolution>
+    <resolution>800x600 (SVGA)</resolution>
     <window_manager>twm</window_manager>
   </x11>
 </profile>

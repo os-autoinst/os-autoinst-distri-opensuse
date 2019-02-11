@@ -27,25 +27,38 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
     opensusebasetest::select_serial_terminal();
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $hypervisor = get_required_var('HYPERVISOR');
+
+    # Generate the key pair
+    assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
+
+    # Configure the Master socket
+    assert_script_run "echo 'ControlMaster auto
+    ControlPath ~/.ssh/ssh_%r_%h_%p
+    ControlPersist 86400
+    
+    Host $hypervisor
+      Hostname $hypervisor
+      User root
+
+    Host sles*
+      ProxyJump $hypervisor
+    ' > ~/.ssh/config";
 
     # Exchange SSH keys
-    assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
     assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";
-    exec_and_insert_password "ssh-copy-id root\@$hypervisor";
-
-    # Do the same for normal user because of GUI software
-    assert_script_run "sudo -u $testapi::username sh -c \"ssh-keygen -t rsa -P '' -C 'localhost' -f /home/$testapi::username/.ssh/id_rsa\"";
-    assert_script_run "sudo -u $testapi::username sh -c \"ssh-keyscan $hypervisor > /home/$testapi::username/.ssh/known_hosts\"";
-    exec_and_insert_password "sudo -u $testapi::username sh -c \"ssh-copy-id root\@$hypervisor\"";
+    exec_and_insert_password "ssh-copy-id -f root\@$hypervisor";
 
     # Test the connection
     assert_script_run "ssh root\@$hypervisor 'hostname -f'";
-    assert_script_run "ssh root\@$hypervisor 'zypper -n in iputils'";
+
+    # Copy that also for normal user
+    assert_script_run "install -o $testapi::username -g users -m 0700 -d /home/$testapi::username/.ssh";
+    assert_script_run "install -o $testapi::username -g users -m 0600 ~/.ssh/config ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts /home/$testapi::username/.ssh/";
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

@@ -27,18 +27,13 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
     opensusebasetest::select_serial_terminal();
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
-    my $domain     = get_required_var('QAM_XEN_DOMAIN');
+    my $hypervisor = get_required_var('HYPERVISOR');
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
-        assert_script_run "ssh root\@$hypervisor 'ping -c3 -W1 $guest.$domain'";
-        assert_script_run "ssh root\@$guest.$domain hostname -f";
+        assert_script_run "ssh root\@$hypervisor 'ping -c3 -W1 $guest'";
+        assert_script_run "ssh root\@$guest hostname -f";
     }
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 0};
 }
 
 1;

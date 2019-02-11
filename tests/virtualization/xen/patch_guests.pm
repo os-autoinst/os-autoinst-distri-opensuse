@@ -20,17 +20,17 @@ use xen;
 
 sub run {
     my ($self) = @_;
-    my $domain = get_required_var('QAM_XEN_DOMAIN');
+    opensusebasetest::select_serial_terminal();
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Patching $guest";
-        ssh_add_test_repositories "$guest.$domain";
-        ssh_fully_patch_system "$guest.$domain";
+        ssh_add_test_repositories "$guest";
+        ssh_fully_patch_system "$guest";
     }
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

@@ -13,7 +13,7 @@
     </device_map>
     <global>
       <activate>true</activate>
-      <default>Xen -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</default>
+      <default>Xen -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</default>
       <generic_mbr>true</generic_mbr>
       <gfxmenu>(hd0,1)/boot/message</gfxmenu>
       <lines_cache_id>1</lines_cache_id>
@@ -27,12 +27,12 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>console=ttyS0</append>
-        <image>(hd0,1)/boot/vmlinuz-3.0.101-108.84-xen</image>
+        <append>resume=/dev/xvda1 splash=silent showopts</append>
+        <image>(hd0,1)/boot/vmlinuz-3.0.101-63-xen</image>
         <initial>1</initial>
-        <initrd>(hd0,1)/boot/initrd-3.0.101-108.84-xen</initrd>
+        <initrd>(hd0,1)/boot/initrd-3.0.101-63-xen</initrd>
         <lines_cache_id>0</lines_cache_id>
-        <name>Xen -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</name>
+        <name>Xen -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</name>
         <original_name>linux</original_name>
         <root>/dev/xvda2</root>
         <type>image</type>
@@ -41,13 +41,13 @@
   </bootloader>
   <ca_mgm>
     <CAName>YaST_Default_CA</CAName>
-    <ca_commonName>YaST Default CA (suse.cz)</ca_commonName>
+    <ca_commonName>YaST Default CA (dhcp64)</ca_commonName>
     <country>CZ</country>
     <locality></locality>
     <organisation></organisation>
     <organisationUnit></organisationUnit>
     <password>ENTER PASSWORD HERE</password>
-    <server_commonName>dhcp72.suse.cz</server_commonName>
+    <server_commonName>dhcp64.suse.cz</server_commonName>
     <server_email>postmaster@suse.cz</server_email>
     <state></state>
     <takeLocalServerName config:type="boolean">false</takeLocalServerName>
@@ -60,10 +60,10 @@
     <FW_ALLOW_FW_BROADCAST_EXT>no</FW_ALLOW_FW_BROADCAST_EXT>
     <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
     <FW_CONFIGURATIONS_DMZ></FW_CONFIGURATIONS_DMZ>
-    <FW_CONFIGURATIONS_EXT>sshd</FW_CONFIGURATIONS_EXT>
+    <FW_CONFIGURATIONS_EXT></FW_CONFIGURATIONS_EXT>
     <FW_CONFIGURATIONS_INT></FW_CONFIGURATIONS_INT>
     <FW_DEV_DMZ></FW_DEV_DMZ>
-    <FW_DEV_EXT>any eth0</FW_DEV_EXT>
+    <FW_DEV_EXT>any</FW_DEV_EXT>
     <FW_DEV_INT></FW_DEV_INT>
     <FW_FORWARD_ALWAYS_INOUT_DEV></FW_FORWARD_ALWAYS_INOUT_DEV>
     <FW_FORWARD_MASQ></FW_FORWARD_MASQ>
@@ -192,13 +192,6 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>113</gid>
-      <group_password>!</group_password>
-      <groupname>gdm</groupname>
-      <userlist></userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
       <gid>65534</gid>
       <group_password>x</group_password>
       <groupname>nogroup</groupname>
@@ -206,7 +199,7 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>114</gid>
+      <gid>112</gid>
       <group_password>!</group_password>
       <groupname>winbind</groupname>
       <userlist></userlist>
@@ -276,7 +269,7 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>107</gid>
+      <gid>106</gid>
       <group_password>!</group_password>
       <groupname>puppet</groupname>
       <userlist></userlist>
@@ -290,7 +283,7 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>108</gid>
+      <gid>107</gid>
       <group_password>!</group_password>
       <groupname>polkituser</groupname>
       <userlist></userlist>
@@ -304,7 +297,7 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>110</gid>
+      <gid>109</gid>
       <group_password>!</group_password>
       <groupname>pulse</groupname>
       <userlist></userlist>
@@ -339,16 +332,16 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>112</gid>
-      <group_password>!</group_password>
-      <groupname>suse-ncc</groupname>
+      <gid>49</gid>
+      <group_password>x</group_password>
+      <groupname>ftp</groupname>
       <userlist></userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>49</gid>
-      <group_password>x</group_password>
-      <groupname>ftp</groupname>
+      <gid>111</gid>
+      <group_password>!</group_password>
+      <groupname>suse-ncc</groupname>
       <userlist></userlist>
     </group>
     <group>
@@ -402,14 +395,7 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>106</gid>
-      <group_password>!</group_password>
-      <groupname>sfcb</groupname>
-      <userlist>root</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>109</gid>
+      <gid>108</gid>
       <group_password>!</group_password>
       <groupname>ntp</groupname>
       <userlist></userlist>
@@ -423,16 +409,9 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>111</gid>
+      <gid>110</gid>
       <group_password>!</group_password>
       <groupname>pulse-access</groupname>
-      <userlist></userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>71</gid>
-      <group_password>!</group_password>
-      <groupname>ntadmin</groupname>
       <userlist></userlist>
     </group>
     <group>
@@ -470,6 +449,12 @@
         <host_address>127.0.0.1</host_address>
         <names config:type="list">
           <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>127.0.0.2</host_address>
+        <names config:type="list">
+          <name>sles11sp4PVx32.suse.cz sles11sp4PVx32</name>
         </names>
       </hosts_entry>
       <hosts_entry>
@@ -527,6 +512,8 @@
       <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
       <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
       <KDUMP_KERNELVER></KDUMP_KERNELVER>
+      <KDUMP_KMOD_BLACKLIST></KDUMP_KMOD_BLACKLIST>
+      <KDUMP_KMOD_LOAD></KDUMP_KMOD_LOAD>
       <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
       <KDUMP_NOTIFICATION_CC></KDUMP_NOTIFICATION_CC>
       <KDUMP_NOTIFICATION_TO></KDUMP_NOTIFICATION_TO>
@@ -570,18 +557,18 @@
   <login_settings/>
   <networking>
     <dhcp_options>
-      <dhclient_client_id></dhclient_client_id>
+      <dhclient_client_id>sles11sp4PVx32</dhclient_client_id>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns>
-      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <domain>suse.cz</domain>
-      <hostname>dhcp76</hostname>
+      <hostname>sles11sp4PVx32</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <searchlist config:type="list">
         <search>suse.cz</search>
       </searchlist>
-      <write_hostname config:type="boolean">false</write_hostname>
+      <write_hostname config:type="boolean">true</write_hostname>
     </dns>
     <interfaces config:type="list">
       <interface>
@@ -589,6 +576,7 @@
         <device>eth0</device>
         <name>Virtual Ethernet Card 0</name>
         <startmode>auto</startmode>
+        <usercontrol>no</usercontrol>
       </interface>
       <interface>
         <aliases>
@@ -620,7 +608,7 @@
       <rule>
         <name>eth0</name>
         <rule>ATTR{address}</rule>
-        <value>00:16:3e:06:80:8b</value>
+        <value>00:16:3e:bf:fe:3d</value>
       </rule>
     </net-udev>
     <routing>
@@ -688,7 +676,7 @@
         <type>__clock</type>
       </peer>
       <peer>
-        <address>mode7 </address>
+        <address>mode7  </address>
         <comment>
 # Allow ntpdc to stay backwards compatible with SLE-11 before SP4.
 </comment>
@@ -696,7 +684,7 @@
         <type>enable</type>
       </peer>
       <peer>
-        <address>/var/lib/ntp/drift/ntp.drift  </address>
+        <address>/var/lib/ntp/drift/ntp.drift   </address>
         <comment>
 # Clients from this (example!) subnet have unlimited access, but only if
 # cryptographically authenticated.
@@ -711,7 +699,7 @@
         <type>driftfile</type>
       </peer>
       <peer>
-        <address>/var/log/ntp		 </address>
+        <address>/var/log/ntp		  </address>
         <comment># path for drift file
 
 </comment>
@@ -719,7 +707,7 @@
         <type>logfile</type>
       </peer>
       <peer>
-        <address>/etc/ntp.keys		 </address>
+        <address>/etc/ntp.keys		  </address>
         <comment># alternate log file
 # logconfig =syncstatus + sysevents
 # logconfig =all
@@ -737,21 +725,21 @@
         <type>keys</type>
       </peer>
       <peer>
-        <address>1			 </address>
+        <address>1			  </address>
         <comment># path for keys file
 </comment>
         <options></options>
         <type>trustedkey</type>
       </peer>
       <peer>
-        <address>1			 </address>
+        <address>1			  </address>
         <comment># define trusted keys
 </comment>
         <options></options>
         <type>requestkey</type>
       </peer>
       <peer>
-        <address>1                    </address>
+        <address>1                     </address>
         <comment># key (7) for accessing server variables
 # controlkey 15			# key (6) for accessing server variables
 #
@@ -780,7 +768,7 @@
           <partition_id config:type="integer">130</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>1751285248</size>
+          <size>1717730816</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -794,7 +782,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>6711787520</size>
+          <size>6703709696</size>
         </partition>
       </partitions>
       <pesize></pesize>
@@ -804,220 +792,7 @@
   </partitioning>
   <printer>
     <cups_remote_server/>
-    <server_settings>
-      <BrowseAllow config:type="list">
-        <listentry>all</listentry>
-      </BrowseAllow>
-      <BrowseOrder config:type="list">
-        <listentry>allow,deny</listentry>
-      </BrowseOrder>
-      <Browsing config:type="list">
-        <listentry>On</listentry>
-      </Browsing>
-      <DefaultAuthType config:type="list">
-        <listentry>Basic</listentry>
-      </DefaultAuthType>
-      <DefaultPolicy config:type="list">
-        <listentry>default</listentry>
-      </DefaultPolicy>
-      <Listen config:type="list">
-        <listentry>localhost:631</listentry>
-        <listentry>/var/run/cups/cups.sock</listentry>
-      </Listen>
-      <LogLevel config:type="list">
-        <listentry>info</listentry>
-      </LogLevel>
-      <SystemGroup config:type="list">
-        <listentry>root</listentry>
-      </SystemGroup>
-      <sections config:type="list">
-        <section>
-          <Allow config:type="list">
-            <listentry>127.0.0.2</listentry>
-          </Allow>
-          <Key>Location</Key>
-          <Order config:type="list">
-            <listentry>allow,deny</listentry>
-          </Order>
-          <Value>/</Value>
-        </section>
-        <section>
-          <Encryption config:type="list">
-            <listentry>Required</listentry>
-          </Encryption>
-          <Key>Location</Key>
-          <Order config:type="list">
-            <listentry>allow,deny</listentry>
-          </Order>
-          <Value>/admin</Value>
-        </section>
-        <section>
-          <AuthType config:type="list">
-            <listentry>Default</listentry>
-          </AuthType>
-          <Key>Location</Key>
-          <Order config:type="list">
-            <listentry>allow,deny</listentry>
-          </Order>
-          <Require config:type="list">
-            <listentry>user @SYSTEM</listentry>
-          </Require>
-          <Value>/admin/conf</Value>
-        </section>
-        <section>
-          <Key>Policy</Key>
-          <Value>default</Value>
-          <sections config:type="list">
-            <section>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @OWNER @SYSTEM</listentry>
-              </Require>
-              <Value>Send-Document Send-URI Hold-Job Release-Job Restart-Job Purge-Jobs Set-Job-Attributes Create-Job-Subscription Renew-Subscription Cancel-Subscription Get-Notifications Reprocess-Job Cancel-Current-Job Suspend-Current-Job Resume-Job CUPS-Move-Job</Value>
-            </section>
-            <section>
-              <AuthType config:type="list">
-                <listentry>Default</listentry>
-              </AuthType>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @SYSTEM</listentry>
-              </Require>
-              <Value>CUPS-Add-Modify-Printer CUPS-Delete-Printer CUPS-Add-Modify-Class CUPS-Delete-Class CUPS-Set-Default</Value>
-            </section>
-            <section>
-              <AuthType config:type="list">
-                <listentry>Default</listentry>
-              </AuthType>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @SYSTEM</listentry>
-              </Require>
-              <Value>Pause-Printer Resume-Printer Enable-Printer Disable-Printer Pause-Printer-After-Current-Job Hold-New-Jobs Release-Held-New-Jobs Deactivate-Printer Activate-Printer Restart-Printer Shutdown-Printer Startup-Printer Promote-Job Schedule-Job-After CUPS-Accept-Jobs CUPS-Reject-Jobs</Value>
-            </section>
-            <section>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @OWNER @SYSTEM</listentry>
-              </Require>
-              <Value>Cancel-Job CUPS-Authenticate-Job</Value>
-            </section>
-            <section>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Value>All</Value>
-            </section>
-          </sections>
-        </section>
-        <section>
-          <Key>Policy</Key>
-          <Value>easy</Value>
-          <sections config:type="list">
-            <section>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>allow,deny</listentry>
-              </Order>
-              <Satisfy config:type="list">
-                <listentry>any</listentry>
-              </Satisfy>
-              <Value>All</Value>
-            </section>
-          </sections>
-        </section>
-        <section>
-          <Key>Policy</Key>
-          <Value>paranoid</Value>
-          <sections config:type="list">
-            <section>
-              <Allow config:type="list">
-                <listentry>from 127.0.0.0/8</listentry>
-              </Allow>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @OWNER</listentry>
-              </Require>
-              <Value>Send-Document Send-URI Hold-Job Release-Job Restart-Job Purge-Jobs Set-Job-Attributes Create-Job-Subscription Renew-Subscription Cancel-Subscription Get-Notifications Reprocess-Job Cancel-Current-Job Suspend-Current-Job Resume-Job CUPS-Move-Job</Value>
-            </section>
-            <section>
-              <Allow config:type="list">
-                <listentry>from 127.0.0.0/8</listentry>
-              </Allow>
-              <AuthType config:type="list">
-                <listentry>Default</listentry>
-              </AuthType>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @SYSTEM</listentry>
-              </Require>
-              <Value>CUPS-Add-Modify-Printer CUPS-Delete-Printer CUPS-Add-Modify-Class CUPS-Delete-Class CUPS-Set-Default</Value>
-            </section>
-            <section>
-              <Allow config:type="list">
-                <listentry>from 127.0.0.0/8</listentry>
-              </Allow>
-              <AuthType config:type="list">
-                <listentry>Default</listentry>
-              </AuthType>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @SYSTEM</listentry>
-              </Require>
-              <Value>Pause-Printer Resume-Printer Enable-Printer Disable-Printer Pause-Printer-After-Current-Job Hold-New-Jobs Release-Held-New-Jobs Deactivate-Printer Activate-Printer Restart-Printer Shutdown-Printer Startup-Printer Promote-Job Schedule-Job-After CUPS-Accept-Jobs CUPS-Reject-Jobs</Value>
-            </section>
-            <section>
-              <Allow config:type="list">
-                <listentry>from 127.0.0.0/8</listentry>
-              </Allow>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @OWNER</listentry>
-              </Require>
-              <Value>Cancel-Job CUPS-Authenticate-Job</Value>
-            </section>
-            <section>
-              <Allow config:type="list">
-                <listentry>from 127.0.0.0/8</listentry>
-              </Allow>
-              <Key>Limit</Key>
-              <Order config:type="list">
-                <listentry>deny,allow</listentry>
-              </Order>
-              <Require config:type="list">
-                <listentry>user @OWNER @SYSTEM</listentry>
-              </Require>
-              <Value>All</Value>
-            </section>
-          </sections>
-        </section>
-      </sections>
-    </server_settings>
+    <server_settings/>
   </printer>
   <proxy>
     <enabled config:type="boolean">false</enabled>
@@ -1055,168 +830,20 @@
   </runlevel>
   <software>
     <packages config:type="list">
-      <package>ConsoleKit-32bit</package>
-      <package>Mesa-32bit</package>
-      <package>PolicyKit-32bit</package>
-      <package>PolicyKit-gnome-libs-32bit</package>
-      <package>aspell-32bit</package>
-      <package>at-spi-32bit</package>
-      <package>audiofile-32bit</package>
-      <package>audit-libs-32bit</package>
-      <package>bind-libs-32bit</package>
-      <package>cpufrequtils-32bit</package>
-      <package>cracklib-32bit</package>
-      <package>cryptconfig-32bit</package>
-      <package>cyrus-sasl-32bit</package>
-      <package>cyrus-sasl-gssapi-32bit</package>
-      <package>cyrus-sasl-plain-32bit</package>
-      <package>dbus-1-32bit</package>
-      <package>dbus-1-glib-32bit</package>
       <package>desktop-translations</package>
-      <package>device-mapper-32bit</package>
-      <package>evolution-data-server-32bit</package>
-      <package>fam-32bit</package>
-      <package>file-32bit</package>
-      <package>freeglut-32bit</package>
-      <package>freetype-32bit</package>
-      <package>fribidi-32bit</package>
-      <package>gconf2-32bit</package>
       <package>gconf2-branding-SLES</package>
-      <package>gdbm-32bit</package>
-      <package>gettext-runtime-32bit</package>
-      <package>giflib-32bit</package>
-      <package>glibc-locale-32bit</package>
-      <package>gnome-keyring-32bit</package>
-      <package>gnome-panel-32bit</package>
-      <package>gnome-vfs2-32bit</package>
-      <package>gpm-32bit</package>
       <package>gstreamer-0_10-plugins-base</package>
       <package>gstreamer-0_10-plugins-base-lang</package>
-      <package>hal-32bit</package>
-      <package>hunspell-32bit</package>
-      <package>libFLAC8-32bit</package>
-      <package>libHX13-32bit</package>
-      <package>libacl-32bit</package>
-      <package>libaio-32bit</package>
-      <package>libart_lgpl-32bit</package>
-      <package>libattr-32bit</package>
-      <package>libavahi-client3-32bit</package>
-      <package>libavahi-common3-32bit</package>
-      <package>libavahi-glib1-32bit</package>
-      <package>libblkid1-32bit</package>
-      <package>libbonobo-32bit</package>
-      <package>libbonoboui-32bit</package>
-      <package>libbz2-1-32bit</package>
-      <package>libcanberra-gtk-32bit</package>
-      <package>libcanberra-gtk0-32bit</package>
-      <package>libcanberra0-32bit</package>
-      <package>libcap2-32bit</package>
       <package>libcdda_interface0</package>
       <package>libcdda_paranoia0</package>
-      <package>libcroco-0_6-3-32bit</package>
-      <package>libcurl4-32bit</package>
-      <package>libdb-4_5-32bit</package>
-      <package>libdrm-32bit</package>
-      <package>libesd0-32bit</package>
-      <package>libfreebl3-32bit</package>
-      <package>libgcc43-32bit</package>
-      <package>libgcc46-32bit</package>
-      <package>libgcrypt11-32bit</package>
-      <package>libglade2-32bit</package>
-      <package>libgnome-32bit</package>
-      <package>libgnome-desktop-2-11-32bit</package>
-      <package>libgnomecanvas-32bit</package>
-      <package>libgnutls26-32bit</package>
-      <package>libgpg-error0-32bit</package>
-      <package>libgsf-1-114-32bit</package>
       <package>libgstapp-0_10-0</package>
       <package>libgstinterfaces-0_10-0</package>
-      <package>libgstreamer-0_10-0-32bit</package>
-      <package>libgweather1-32bit</package>
-      <package>libical0-32bit</package>
-      <package>libidl-32bit</package>
-      <package>libidn-32bit</package>
-      <package>libiniparser0-32bit</package>
-      <package>liblcms1-32bit</package>
-      <package>libldap-2_4-2-32bit</package>
-      <package>libltdl7-32bit</package>
-      <package>liblzma5-32bit</package>
-      <package>libmng-32bit</package>
-      <package>libnetpbm10-32bit</package>
-      <package>libnscd-32bit</package>
-      <package>libnsssharedhelper0-32bit</package>
-      <package>libogg0-32bit</package>
-      <package>libopenct1-32bit</package>
-      <package>libopensc2-32bit</package>
       <package>liborc-0_4-0</package>
-      <package>libpciaccess0-32bit</package>
-      <package>libproxy0-32bit</package>
       <package>libproxy0-config-gnome</package>
-      <package>libpulse0-32bit</package>
-      <package>libpython2_6-1_0-32bit</package>
-      <package>libqt4-32bit</package>
-      <package>libqt4-qt3support-32bit</package>
-      <package>libqt4-sql-32bit</package>
-      <package>libqt4-x11-32bit</package>
-      <package>libreiserfs-32bit</package>
-      <package>librsvg-32bit</package>
-      <package>libsepol1-32bit</package>
-      <package>libsmbclient0-32bit</package>
-      <package>libsmbios2-32bit</package>
-      <package>libsndfile-32bit</package>
-      <package>libsoftokn3-32bit</package>
-      <package>libsoup-2_4-1-32bit</package>
-      <package>libsqlite3-0-32bit</package>
-      <package>libstdc++33-32bit</package>
-      <package>libstdc++43-32bit</package>
-      <package>libstdc++46-32bit</package>
-      <package>libtalloc2-32bit</package>
-      <package>libtasn1-3-32bit</package>
-      <package>libtdb1-32bit</package>
-      <package>libtevent0-32bit</package>
       <package>libtheora0</package>
-      <package>libtool-32bit</package>
-      <package>libudev0-32bit</package>
       <package>libvisual</package>
-      <package>libvorbis-32bit</package>
-      <package>libwbclient0-32bit</package>
-      <package>libwnck-1-22-32bit</package>
-      <package>libxcrypt-32bit</package>
-      <package>libxml2-32bit</package>
-      <package>libxslt-32bit</package>
       <package>libyajl1</package>
-      <package>mozilla-nspr-32bit</package>
-      <package>mozilla-nss-32bit</package>
-      <package>mozilla-xulrunner192-32bit</package>
-      <package>nautilus-32bit</package>
-      <package>nautilus-cd-burner-32bit</package>
-      <package>opensc-32bit</package>
-      <package>openslp-32bit</package>
-      <package>opie-32bit</package>
-      <package>orbit2-32bit</package>
-      <package>pam-32bit</package>
-      <package>pam-modules-32bit</package>
-      <package>pam_mount-32bit</package>
-      <package>parted-32bit</package>
-      <package>pciutils-32bit</package>
-      <package>pcsc-lite-32bit</package>
-      <package>perl-32bit</package>
-      <package>popt-32bit</package>
-      <package>qt3-32bit</package>
-      <package>rpm-32bit</package>
-      <package>samba-32bit</package>
-      <package>samba-client-32bit</package>
-      <package>samba-winbind-32bit</package>
       <package>sles-manuals_en</package>
-      <package>sssd-32bit</package>
-      <package>startup-notification-32bit</package>
-      <package>strace-32bit</package>
-      <package>sysfsutils-32bit</package>
-      <package>tcl-32bit</package>
-      <package>tcpd-32bit</package>
-      <package>tk-32bit</package>
-      <package>utempter-32bit</package>
-      <package>xaw3d-32bit</package>
       <package>xen-libs</package>
       <package>xen-tools-domU</package>
       <package>xorg-x11-driver-video-radeonhd</package>
@@ -1268,7 +895,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>$2y$05$C4cWBDrwghelu2Dv1uzg8e6v/ftIYZK8Zx16btQL6LO6Vrs0ACSW.</user_password>
+      <user_password>$2y$05$fyZ8IF1jEWNeXjm3ZhWhEOmq55lV2YCM84UvGIYwdLqR0WLOhGEHi</user_password>
       <username>slemke</username>
     </user>
     <user>
@@ -1382,7 +1009,7 @@
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>Novell Customer Center User</fullname>
-      <gid>112</gid>
+      <gid>111</gid>
       <home>/var/lib/YaST2/suse-ncc-fakehome</home>
       <password_settings>
         <expire></expire>
@@ -1417,24 +1044,6 @@
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Gnome Display Manager daemon</fullname>
-      <gid>113</gid>
-      <home>/var/lib/gdm</home>
-      <password_settings>
-        <expire></expire>
-        <flag></flag>
-        <inact></inact>
-        <max>99999</max>
-        <min>0</min>
-        <warn>7</warn>
-      </password_settings>
-      <shell>/bin/false</shell>
-      <uid>108</uid>
-      <user_password>*</user_password>
-      <username>gdm</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
       <fullname>Batch jobs daemon</fullname>
       <gid>25</gid>
       <home>/var/spool/atjobs</home>
@@ -1466,7 +1075,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$2y$10$Cgc3GCy//IIKYgtqd2SVa.OJ.ycYw.Lgus/N7s8wRTbCzxc0JcTpu</user_password>
+      <user_password>$2y$10$fzw/Koa/FYFz0tcHN1dZVuAahw6KbU11i3ivDgkJT2nODIPEzLeta</user_password>
       <username>root</username>
     </user>
     <user>
@@ -1508,7 +1117,7 @@
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>NTP daemon</fullname>
-      <gid>109</gid>
+      <gid>108</gid>
       <home>/var/lib/ntp</home>
       <password_settings>
         <expire></expire>
@@ -1598,7 +1207,7 @@
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>Puppet daemon</fullname>
-      <gid>107</gid>
+      <gid>106</gid>
       <home>/var/lib/puppet</home>
       <password_settings>
         <expire></expire>
@@ -1634,7 +1243,7 @@
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>PolicyKit</fullname>
-      <gid>108</gid>
+      <gid>107</gid>
       <home>/var/run/PolicyKit</home>
       <password_settings>
         <expire></expire>
@@ -1688,7 +1297,7 @@
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>PulseAudio daemon</fullname>
-      <gid>110</gid>
+      <gid>109</gid>
       <home>/var/lib/pulseaudio</home>
       <password_settings>
         <expire></expire>
@@ -1706,7 +1315,7 @@
   </users>
   <x11>
     <color_depth config:type="integer">32</color_depth>
-    <display_manager>gdm</display_manager>
+    <display_manager>xdm</display_manager>
     <enable_3d config:type="boolean">true</enable_3d>
     <monitor>
       <display>
@@ -1719,6 +1328,6 @@
       <monitor_vendor>Unknown</monitor_vendor>
     </monitor>
     <resolution>800x600</resolution>
-    <window_manager>gnome</window_manager>
+    <window_manager>twm</window_manager>
   </x11>
 </profile>

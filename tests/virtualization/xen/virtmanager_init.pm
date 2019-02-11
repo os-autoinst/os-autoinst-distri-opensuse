@@ -26,29 +26,31 @@ use utils;
 sub run {
     my ($self) = @_;
     select_console 'x11';
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $hypervisor = get_required_var('HYPERVISOR');
 
     x11_start_program 'virt-manager';
 
     assert_screen 'virt-manager_add-connection';
-    send_key 'spc';
-    send_key 'down';
-    send_key 'down';
-    send_key 'spc';
-    wait_still_screen 1;    # XEN selected
+    if (check_var('REGRESSION', 'xen-client')) {
+        send_key 'spc';
+        send_key 'down';
+        send_key 'down';
+        send_key 'spc';
+        wait_still_screen 1;    # XEN selected
+    }
     send_key 'tab';
     send_key 'spc';
-    wait_still_screen 1;    # Connect to remote host ticked
+    wait_still_screen 1;        # Connect to remote host ticked
     send_key 'tab';
     send_key 'tab';
     type_string 'root';
-    wait_still_screen 1;    # root written
+    wait_still_screen 1;        # root written
     send_key 'tab';
     type_string "$hypervisor";
-    wait_still_screen 1;    # $hypervisor written
+    wait_still_screen 1;        # $hypervisor written
     send_key 'tab';
     send_key 'spc';
-    wait_still_screen 1;    # autoconnect ticked
+    wait_still_screen 1;        # autoconnect ticked
     send_key 'ret';
     assert_screen "virt-manager_connected";
 
@@ -56,7 +58,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

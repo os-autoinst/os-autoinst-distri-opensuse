@@ -13,13 +13,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Prepare the dom0 metrics environment
+# Summary: This checks all VMs over SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
-use xen;
 use strict;
 use warnings;
+use xen;
+use strict;
 use testapi;
 use utils;
 
@@ -28,16 +29,11 @@ sub run {
     opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
-    assert_script_run "ssh root\@$hypervisor 'zypper -n in vhostmd'";
-
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Install vm-dump-metrics on xl-$guest";
-        assert_script_run "ssh root\@$guest 'zypper -n in vm-dump-metrics'";
+        record_info "$guest", "Establishing SSH connection to $guest";
+        assert_script_run "ssh root\@$hypervisor 'ping -c3 -W1 $guest'";
+        assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
     }
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 0};
 }
 
 1;

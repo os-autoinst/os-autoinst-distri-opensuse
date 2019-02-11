@@ -2,12 +2,18 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
-    <add_on_products config:type="list"/>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/QA:/SLE12SP4/update/]]></media_url>
+        <product>qa</product>
+        <product_dir/>
+      </listentry>
+    </add_on_products>
   </add-on>
   <bootloader>
     <global>
       <activate>true</activate>
-      <append>resume=/dev/xvda1 splash=silent quiet showopts</append>
+      <append>resume=/dev/vda1 splash=silent quiet showopts crashkernel=172M,high</append>
       <boot_boot>false</boot_boot>
       <boot_extended>false</boot_extended>
       <boot_mbr>false</boot_mbr>
@@ -19,7 +25,8 @@
       <terminal>gfxterm</terminal>
       <timeout config:type="integer">8</timeout>
       <trusted_grub>false</trusted_grub>
-      <xen_kernel_append>vga=gfx-1024x768x16</xen_kernel_append>
+      <xen_append>crashkernel=172M,high</xen_append>
+      <xen_kernel_append>vga=gfx-1024x768x16 crashkernel=172M\&lt;4G</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
@@ -44,7 +51,7 @@
     <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
     <FW_BOOT_FULL_INIT>no</FW_BOOT_FULL_INIT>
     <FW_CONFIGURATIONS_DMZ>sshd</FW_CONFIGURATIONS_DMZ>
-    <FW_CONFIGURATIONS_EXT>sshd</FW_CONFIGURATIONS_EXT>
+    <FW_CONFIGURATIONS_EXT>hamsta sshd</FW_CONFIGURATIONS_EXT>
     <FW_CONFIGURATIONS_INT>sshd</FW_CONFIGURATIONS_INT>
     <FW_DEV_DMZ/>
     <FW_DEV_EXT/>
@@ -55,7 +62,7 @@
     <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
     <FW_IGNORE_FW_BROADCAST_INT>no</FW_IGNORE_FW_BROADCAST_INT>
     <FW_IPSEC_TRUST>no</FW_IPSEC_TRUST>
-    <FW_LOAD_MODULES/>
+    <FW_LOAD_MODULES>nf_conntrack_netbios_ns</FW_LOAD_MODULES>
     <FW_LOG_ACCEPT_ALL>no</FW_LOG_ACCEPT_ALL>
     <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
     <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
@@ -114,303 +121,9 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>9</gid>
-      <group_password>x</group_password>
-      <groupname>kmem</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>10</gid>
-      <group_password>x</group_password>
-      <groupname>wheel</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>0</gid>
-      <group_password>x</group_password>
-      <groupname>root</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>16</gid>
-      <group_password>x</group_password>
-      <groupname>dialout</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>65533</gid>
-      <group_password>x</group_password>
-      <groupname>nobody</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>2</gid>
-      <group_password>x</group_password>
-      <groupname>daemon</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>43</gid>
-      <group_password>x</group_password>
-      <groupname>modem</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>488</gid>
-      <group_password>x</group_password>
-      <groupname>vnc</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>25</gid>
-      <group_password>x</group_password>
-      <groupname>at</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>54</gid>
-      <group_password>x</group_password>
-      <groupname>lock</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>485</gid>
-      <group_password>x</group_password>
-      <groupname>pulse-access</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>21</gid>
-      <group_password>x</group_password>
-      <groupname>console</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>491</gid>
-      <group_password>x</group_password>
-      <groupname>systemd-timesync</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>6</gid>
-      <group_password>x</group_password>
-      <groupname>disk</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>498</gid>
-      <group_password>x</group_password>
-      <groupname>sshd</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>487</gid>
-      <group_password>x</group_password>
-      <groupname>rtkit</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>496</gid>
-      <group_password>x</group_password>
-      <groupname>polkitd</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>483</gid>
-      <group_password>x</group_password>
-      <groupname>gdm</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>41</gid>
-      <group_password>x</group_password>
-      <groupname>xok</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
       <gid>492</gid>
       <group_password>x</group_password>
-      <groupname>systemd-bus-proxy</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>13</gid>
-      <group_password>x</group_password>
-      <groupname>news</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>14</gid>
-      <group_password>x</group_password>
-      <groupname>uucp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>22</gid>
-      <group_password>x</group_password>
-      <groupname>utmp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>1</gid>
-      <group_password>x</group_password>
-      <groupname>bin</groupname>
-      <userlist>daemon</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>7</gid>
-      <group_password>x</group_password>
-      <groupname>lp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>17</gid>
-      <group_password>x</group_password>
-      <groupname>audio</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>62</gid>
-      <group_password>x</group_password>
-      <groupname>man</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>489</gid>
-      <group_password>x</group_password>
-      <groupname>ntp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>19</gid>
-      <group_password>x</group_password>
-      <groupname>floppy</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>65534</gid>
-      <group_password>x</group_password>
-      <groupname>nogroup</groupname>
-      <userlist>nobody</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>51</gid>
-      <group_password>x</group_password>
-      <groupname>postfix</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>497</gid>
-      <group_password>x</group_password>
-      <groupname>tape</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>494</gid>
-      <group_password>x</group_password>
-      <groupname>brlapi</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>20</gid>
-      <group_password>x</group_password>
-      <groupname>cdrom</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>71</gid>
-      <group_password>x</group_password>
-      <groupname>ntadmin</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>3</gid>
-      <group_password>x</group_password>
-      <groupname>sys</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>490</gid>
-      <group_password>x</group_password>
-      <groupname>input</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>40</gid>
-      <group_password>x</group_password>
-      <groupname>games</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>49</gid>
-      <group_password>x</group_password>
-      <groupname>ftp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>499</gid>
-      <group_password>x</group_password>
-      <groupname>messagebus</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>482</gid>
-      <group_password>x</group_password>
-      <groupname>adm</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>486</gid>
-      <group_password>x</group_password>
-      <groupname>pulse</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>32</gid>
-      <group_password>x</group_password>
-      <groupname>public</groupname>
+      <groupname>systemd-timesync</groupname>
       <userlist/>
     </group>
     <group>
@@ -422,45 +135,73 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>5</gid>
+      <gid>486</gid>
       <group_password>x</group_password>
-      <groupname>tty</groupname>
+      <groupname>pulse</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>59</gid>
+      <gid>17</gid>
       <group_password>x</group_password>
-      <groupname>maildrop</groupname>
-      <userlist>postfix</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>15</gid>
-      <group_password>x</group_password>
-      <groupname>shadow</groupname>
-      <userlist>vnc</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>484</gid>
-      <group_password>x</group_password>
-      <groupname>scard</groupname>
+      <groupname>audio</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>495</gid>
       <group_password>x</group_password>
-      <groupname>nscd</groupname>
+      <groupname>polkitd</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>12</gid>
+      <gid>22</gid>
       <group_password>x</group_password>
-      <groupname>mail</groupname>
-      <userlist>postfix</userlist>
+      <groupname>utmp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>485</gid>
+      <group_password>x</group_password>
+      <groupname>pulse-access</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>16</gid>
+      <group_password>x</group_password>
+      <groupname>dialout</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>2</gid>
+      <group_password>x</group_password>
+      <groupname>daemon</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>6</gid>
+      <group_password>x</group_password>
+      <groupname>disk</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>487</gid>
+      <group_password>x</group_password>
+      <groupname>brlapi</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>10</gid>
+      <group_password>x</group_password>
+      <groupname>wheel</groupname>
+      <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
@@ -478,9 +219,282 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
+      <gid>3</gid>
+      <group_password>x</group_password>
+      <groupname>sys</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>20</gid>
+      <group_password>x</group_password>
+      <groupname>cdrom</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>40</gid>
+      <group_password>x</group_password>
+      <groupname>games</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>491</gid>
+      <group_password>x</group_password>
+      <groupname>kvm</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>488</gid>
+      <group_password>x</group_password>
+      <groupname>rtkit</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>65534</gid>
+      <group_password>x</group_password>
+      <groupname>nogroup</groupname>
+      <userlist>nobody</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>21</gid>
+      <group_password>x</group_password>
+      <groupname>console</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>49</gid>
+      <group_password>x</group_password>
+      <groupname>ftp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>489</gid>
+      <group_password>x</group_password>
+      <groupname>scard</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>71</gid>
+      <group_password>x</group_password>
+      <groupname>ntadmin</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>15</gid>
+      <group_password>x</group_password>
+      <groupname>shadow</groupname>
+      <userlist>vnc</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>54</gid>
+      <group_password>x</group_password>
+      <groupname>lock</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>496</gid>
+      <group_password>x</group_password>
+      <groupname>input</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>59</gid>
+      <group_password>x</group_password>
+      <groupname>maildrop</groupname>
+      <userlist>postfix</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>41</gid>
+      <group_password>x</group_password>
+      <groupname>xok</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>25</gid>
+      <group_password>x</group_password>
+      <groupname>at</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
       <gid>8</gid>
       <group_password>x</group_password>
       <groupname>www</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>498</gid>
+      <group_password>x</group_password>
+      <groupname>sshd</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>12</gid>
+      <group_password>x</group_password>
+      <groupname>mail</groupname>
+      <userlist>postfix</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>484</gid>
+      <group_password>x</group_password>
+      <groupname>vnc</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>14</gid>
+      <group_password>x</group_password>
+      <groupname>uucp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>9</gid>
+      <group_password>x</group_password>
+      <groupname>kmem</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>98</gid>
+      <group_password>x</group_password>
+      <groupname>tss</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>65533</gid>
+      <group_password>x</group_password>
+      <groupname>nobody</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>1</gid>
+      <group_password>x</group_password>
+      <groupname>bin</groupname>
+      <userlist>daemon</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>13</gid>
+      <group_password>x</group_password>
+      <groupname>news</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>499</gid>
+      <group_password>x</group_password>
+      <groupname>messagebus</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>43</gid>
+      <group_password>x</group_password>
+      <groupname>modem</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>7</gid>
+      <group_password>x</group_password>
+      <groupname>lp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>494</gid>
+      <group_password>x</group_password>
+      <groupname>nscd</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>19</gid>
+      <group_password>x</group_password>
+      <groupname>floppy</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>32</gid>
+      <group_password>x</group_password>
+      <groupname>public</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>482</gid>
+      <group_password>x</group_password>
+      <groupname>adm</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>51</gid>
+      <group_password>x</group_password>
+      <groupname>postfix</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>497</gid>
+      <group_password>x</group_password>
+      <groupname>tape</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>483</gid>
+      <group_password>x</group_password>
+      <groupname>gdm</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>490</gid>
+      <group_password>x</group_password>
+      <groupname>ntp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>0</gid>
+      <group_password>x</group_password>
+      <groupname>root</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>62</gid>
+      <group_password>x</group_password>
+      <groupname>man</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>5</gid>
+      <group_password>x</group_password>
+      <groupname>tty</groupname>
       <userlist/>
     </group>
   </groups>
@@ -489,7 +503,7 @@
       <hosts_entry>
         <host_address>127.0.0.1</host_address>
         <names config:type="list">
-          <name>localhost</name>
+          <name>localhost sles12sp4 sles12sp4.suse</name>
         </names>
       </hosts_entry>
       <hosts_entry>
@@ -531,17 +545,17 @@
     </hosts>
   </host>
   <kdump>
-    <add_crash_kernel config:type="boolean">false</add_crash_kernel>
-    <crash_kernel>121M,high</crash_kernel>
-    <crash_xen_kernel>121M\&lt;4G</crash_xen_kernel>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel>172M,high</crash_kernel>
+    <crash_xen_kernel>172M\&lt;4G</crash_xen_kernel>
     <general>
       <KDUMPTOOL_FLAGS/>
       <KDUMP_COMMANDLINE/>
       <KDUMP_COMMANDLINE_APPEND/>
       <KDUMP_CONTINUE_ON_ERROR>true</KDUMP_CONTINUE_ON_ERROR>
       <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
-      <KDUMP_CPUS>1</KDUMP_CPUS>
-      <KDUMP_DUMPFORMAT>compressed</KDUMP_DUMPFORMAT>
+      <KDUMP_CPUS/>
+      <KDUMP_DUMPFORMAT>lzo</KDUMP_DUMPFORMAT>
       <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>
       <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
       <KDUMP_HOST_KEY/>
@@ -555,7 +569,7 @@
       <KDUMP_POSTSCRIPT/>
       <KDUMP_PRESCRIPT/>
       <KDUMP_REQUIRED_PROGRAMS/>
-      <KDUMP_SAVEDIR>file:///var/crash</KDUMP_SAVEDIR>
+      <KDUMP_SAVEDIR>/var/crash</KDUMP_SAVEDIR>
       <KDUMP_SMTP_PASSWORD/>
       <KDUMP_SMTP_SERVER/>
       <KDUMP_SMTP_USER/>
@@ -574,13 +588,13 @@
   <login_settings/>
   <networking>
     <dhcp_options>
-      <dhclient_client_id/>
+      <dhclient_client_id>sles12sp4</dhclient_client_id>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns>
       <dhcp_hostname config:type="boolean">true</dhcp_hostname>
-      <domain>suse.cz</domain>
-      <hostname>dhcp73</hostname>
+      <domain>suse</domain>
+      <hostname>sles12sp4</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">false</write_hostname>
     </dns>
@@ -609,7 +623,7 @@
       <rule>
         <name>eth0</name>
         <rule>ATTR{address}</rule>
-        <value>00:16:3e:12:eb:3b</value>
+        <value>00:16:3e:de:48:cf</value>
       </rule>
     </net-udev>
     <routing>
@@ -652,8 +666,8 @@
         <type>keys</type>
       </peer>
       <peer>
-        <address/>
-        <comment/>
+        <address>1</address>
+        <comment># define trusted keys</comment>
         <options/>
         <type>trustedkey</type>
       </peer>
@@ -668,6 +682,12 @@
         <comment># key (6) for accessing server variables</comment>
         <options/>
         <type>controlkey</type>
+      </peer>
+      <peer>
+        <address>ntp.suse.cz</address>
+        <comment/>
+        <options/>
+        <type>server</type>
       </peer>
     </peers>
     <restricts config:type="list">
@@ -690,16 +710,16 @@
         <target>::1</target>
       </restrict>
     </restricts>
-    <start_at_boot config:type="boolean">false</start_at_boot>
+    <start_at_boot config:type="boolean">true</start_at_boot>
     <start_in_chroot config:type="boolean">false</start_in_chroot>
     <sync_interval config:type="integer">5</sync_interval>
     <synchronize_time config:type="boolean">false</synchronize_time>
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/xvda</device>
+      <device>/dev/vda</device>
       <disklabel>msdos</disklabel>
-      <enable_snapshots config:type="boolean">false</enable_snapshots>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
@@ -713,8 +733,9 @@
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">130</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
-          <size>1553104384</size>
+          <size>2145549824</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -727,8 +748,9 @@
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
-          <size>9166814720</size>
+          <size>6711787520</size>
           <subvolumes config:type="list">
             <listentry>
               <copy_on_write config:type="boolean">true</copy_on_write>
@@ -1057,14 +1079,18 @@ DefaultPolicy default
     <services>
       <disable config:type="list"/>
       <enable config:type="list">
+        <service>apparmor</service>
         <service>btrfsmaintenance-refresh</service>
         <service>cron</service>
         <service>display-manager</service>
         <service>haveged</service>
         <service>irqbalance</service>
         <service>iscsi</service>
+        <service>kdump-early</service>
+        <service>kdump</service>
         <service>mcelog</service>
         <service>nscd</service>
+        <service>ntpd</service>
         <service>postfix</service>
         <service>purge-kernels</service>
         <service>rollback</service>
@@ -1081,7 +1107,6 @@ DefaultPolicy default
         <service>YaST2-Firstboot</service>
         <service>YaST2-Second-Stage</service>
         <service>getty@tty1</service>
-        <service>getty@tty7</service>
       </enable>
     </services>
   </services-manager>
@@ -1090,10 +1115,15 @@ DefaultPolicy default
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
+      <package>snapper</package>
       <package>sles-release</package>
+      <package>qa_test_ltp</package>
+      <package>qa-release</package>
       <package>openssh</package>
       <package>numactl</package>
       <package>kexec-tools</package>
+      <package>kernel-source</package>
+      <package>kdump</package>
       <package>irqbalance</package>
       <package>grub2</package>
       <package>glibc</package>
@@ -1102,21 +1132,26 @@ DefaultPolicy default
       <package>SuSEfirewall2</package>
     </packages>
     <patterns config:type="list">
+      <pattern>32bit</pattern>
       <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
       <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>sles-Minimal-32bit</pattern>
+      <pattern>sles-apparmor-32bit</pattern>
+      <pattern>sles-base-32bit</pattern>
+      <pattern>sles-documentation-32bit</pattern>
+      <pattern>sles-x11-32bit</pattern>
+      <pattern>sles-yast2</pattern>
+      <pattern>x11</pattern>
+      <pattern>yast2</pattern>
     </patterns>
   </software>
   <ssh_import>
     <copy_config config:type="boolean">false</copy_config>
     <import config:type="boolean">false</import>
   </ssh_import>
-  <firewall>
-    <enable_firewall config:type="boolean">false</enable_firewall>
-    <start_firewall config:type="boolean">false</start_firewall>
-    <FW_ALLOW_PING_FW>yes</FW_ALLOW_PING_FW>
-    <FW_DEV_EXT>eth0</FW_DEV_EXT>
-    <FW_SERVICES_ACCEPT_EXT>0/0,tcp,22</FW_SERVICES_ACCEPT_EXT>
-  </firewall>
   <timezone>
     <hwclock>UTC</hwclock>
     <timezone>Europe/Prague</timezone>
@@ -1135,9 +1170,9 @@ DefaultPolicy default
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>slemke</fullname>
+      <fullname>bhavel</fullname>
       <gid>100</gid>
-      <home>/home/slemke</home>
+      <home>/home/bhavel</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1148,14 +1183,14 @@ DefaultPolicy default
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>$6$OIxHzMaMULAr$IoCT8bLBFnE8iJeCXglxrPMWmEBdT1UsI2NMS/mJ3aSSdURddW/dAh8ZbPDcxQ9pBwz5LUeRSfykFGvY1e5J4/</user_password>
-      <username>slemke</username>
+      <user_password>$6$sbiMjflPp89o$i9YqD.rpfRPzRFFBoKMbIgvQ1JCL31MzTaGWEcQc.yGm8/ateImCWXc3OCucHYfKeyIkxeSGhiiW5gYclSZNR0</user_password>
+      <username>bhavel</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>nobody</fullname>
-      <gid>65533</gid>
-      <home>/var/lib/nobody</home>
+      <fullname>Batch jobs daemon</fullname>
+      <gid>25</gid>
+      <home>/var/spool/atjobs</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1165,15 +1200,69 @@ DefaultPolicy default
         <warn/>
       </password_settings>
       <shell>/bin/bash</shell>
-      <uid>65534</uid>
+      <uid>25</uid>
+      <user_password>!</user_password>
+      <username>at</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Unix-to-Unix CoPy system</fullname>
+      <gid>14</gid>
+      <home>/etc/uucp</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>10</uid>
       <user_password>*</user_password>
-      <username>nobody</username>
+      <username>uucp</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Postfix Daemon</fullname>
-      <gid>51</gid>
-      <home>/var/spool/postfix</home>
+      <fullname>user for VNC</fullname>
+      <gid>484</gid>
+      <home>/var/lib/empty</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>485</uid>
+      <user_password>!</user_password>
+      <username>vnc</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Daemon</fullname>
+      <gid>2</gid>
+      <home>/sbin</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>2</uid>
+      <user_password>*</user_password>
+      <username>daemon</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Mailer daemon</fullname>
+      <gid>12</gid>
+      <home>/var/spool/clientmqueue</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1183,15 +1272,123 @@ DefaultPolicy default
         <warn/>
       </password_settings>
       <shell>/bin/false</shell>
-      <uid>51</uid>
-      <user_password>!</user_password>
-      <username>postfix</username>
+      <uid>8</uid>
+      <user_password>*</user_password>
+      <username>mail</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>NTP daemon</fullname>
+      <fullname>SSH daemon</fullname>
+      <gid>498</gid>
+      <home>/var/lib/sshd</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>498</uid>
+      <user_password>!</user_password>
+      <username>sshd</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Secure FTP User</fullname>
+      <gid>65534</gid>
+      <home>/var/lib/empty</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>491</uid>
+      <user_password>!</user_password>
+      <username>ftpsecure</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>NFS statd daemon</fullname>
+      <gid>65534</gid>
+      <home>/var/lib/nfs</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>490</uid>
+      <user_password>!</user_password>
+      <username>statd</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>FTP account</fullname>
+      <gid>49</gid>
+      <home>/srv/ftp</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>40</uid>
+      <user_password>*</user_password>
+      <username>ftp</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>systemd Time Synchronization</fullname>
+      <gid>492</gid>
+      <home>/</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>492</uid>
+      <user_password>!!</user_password>
+      <username>systemd-timesync</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for polkitd</fullname>
+      <gid>495</gid>
+      <home>/var/lib/polkit</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>497</uid>
+      <user_password>!</user_password>
+      <username>polkitd</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Smart Card Reader</fullname>
       <gid>489</gid>
-      <home>/var/lib/ntp</home>
+      <home>/var/run/pcscd</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1200,12 +1397,119 @@ DefaultPolicy default
         <min/>
         <warn/>
       </password_settings>
-      <shell>/bin/false</shell>
-      <uid>74</uid>
+      <shell>/usr/sbin/nologin</shell>
+      <uid>489</uid>
       <user_password>!</user_password>
-      <username>ntp</username>
+      <username>scard</username>
     </user>
     <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>PulseAudio daemon</fullname>
+      <gid>486</gid>
+      <home>/var/lib/pulseaudio</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>487</uid>
+      <user_password>!</user_password>
+      <username>pulse</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>openslp daemon</fullname>
+      <gid>2</gid>
+      <home>/var/lib/empty</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>494</uid>
+      <user_password>!</user_password>
+      <username>openslp</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Games account</fullname>
+      <gid>100</gid>
+      <home>/var/games</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>12</uid>
+      <user_password>*</user_password>
+      <username>games</username>
+    </user>
+    <user>
+      <authorized_keys config:type="list">
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCXhKcpQFoQj3Abcwwohg3+L4OTe+kkavn8+kbHWfHeONgUs/azZzZ3aqtzxJ/7BILnGtAUPThfQaaDeTTUqcsihSZMNB820s0GC7Qifp/qVF41+G074Fx0iCyEytNNXWZqMNcDfhuU5GfoBvDImJaUVkXRyRg8GKiWbY66WFyczuXhIn86S1b5X/HdguQv54wlIjrak7YeXMylQHsber5JiLhb4gR3Th1s248GdFXHs116+lrXTwXoMVLbSJIpg3x+8jYV9oAhcAloY8ODnDVqv0+re+6P4DUuQr9dnOH+x9sTo8okjhJ/P9kyForKvLQtmbuopOWr46dhhaqNxuIv abodry@linkpad</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDzPeDKJW0N7OlFxVPEcnm5ThrtkjhA81wCA6DwKY667zJN1QCjzeWHn2cPwgB/WBMg+w9ovNBa0fUyogbFWMl+m0d9wX8+aMCqTyw/EhqUgyKfy1OxdNpF+BS5gpEueb0gX9tNVuWpfUnhtqInQOByYuCbkH4gbnw28pTCc2Fa1ngq0ZkhN1bctN9clf4hV/KOVGn9IvRdcSYyUsQKl0knLEX2ePxTjnLkdixjT7fUM8yfXWbxJcnlWUuPrTx0jBOQV3AKjFPD8JS9Oz+58J7UJoYpAx82D8mv9sC4Z2FNVhTnULeozDNE3HYEK55oy/aEXquSpmF08iQ4g5t2nfst antonio@linux-pnjx</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtF9QjP13xfNCy4ClpnUCNNFslY/MxXI8OlL/2BIb4v6gXN1iZ1/VOVIjpGKiPl/rIH4xXED+QH8//dbPqz93dIP5HtL6YFazQ+IQKCs3VVSq+kl+fP5Rei8KuqF/EX6Loss6FSJXxovfnV+MmD9JU03zkqb2Z19cBHqtCPMRn9ReAPG6LvcAN/NatgOuVY1IQe3XTyZwfRq+CY+DE3KXManezLuo6ydMKBLjjeGG/I1HmcmRbl4HwQSkGkjsTI9UloDmkhLcMpivY2TCPcJUnM/cqvftmctzcdyxg2RsekSlST7dRf7z52ExJsqzAHoT/FhGbOOsNyakhA1iGawLaw== akong</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4bJFzZoGkEl67WQjrIPm2LdDKyrRzUrspv3NcxcztHkZaT8b9hy5CYSEk46biDyhbfjjH+QVXOVTOd+fXkGt22MRlhWMtRztowFQfKGiLFeJGaPu9mqcFAVjNJ3FljjLBxfieYWf1Q+GInsSlEoV246Kuj0GqZbfGSbjDnAmmDwWlL1e/x76QItdp90En68RhXMVjfQKDoPTzY5O+wQRGgtvJ3h9wuPCMDdhkPjcdcUzsiaDbYI7JrB3bHmz8LlqXF2mKjO4Xb1QMAQIFM0DrDHsLCKIJB74sDN+GRtpuH5rnbA+GqOWcBSthxx3xyVrwO73RcntndMkXpF7edaM1 aliouliaki@dhcp108.suse.cz</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC4wxEXPwOvpnnnbOVuEQMSJbjo8hGwEtJl8lugFTWVNpK/rIln3L+pyIwIdJuuti1fVpEIr9GqyI408/nqqEtRmIyMzrspC8FddIgRSMI6/lFU5WKojoIb+op5myuZMKzlk7h+EOsF+TFADokhgeTsHkr2HWbkGTj8oLgh6Wnz1DakY48cqlJemlWJWHTLavFBuYxEe12hrGumy89D1Wv16prnZ8pthH9tpdvxTJ9js26MnjoZf+MWQ0arFi2ZBL26zqgR0VOSTIEuzvP5OjBIMwjOG429ZM6HmpzFJCcPGT419OjO5jIOVHn7Kn1wqu75RVb96Ru4jfW07E30e6x/Vv0dc8HR04tIeX2pmAgQHGxZ2lbuI4bw+7YlbaxTlfiBGgKtHv2sNXyCheg7VLi/1fHrgXrP3X2MkfOKV+GTKw2VsEhZA6e5cM996OoPrY7T+h2gbNCFM/Acjmr/ECVIaBV4nJbKTld/ouikeM9ggUS35uWd5v3mwg6gEG3RyoUD7v4kMPSE/kfAoTqksxQsZFnEwO1ZmGiHPaHGT48EKbyzZBw0IXqdfhe8Aro33tnlyY7LtRpuHLeLE8/CCNlINw7aLoB8GYVc0F3Db1pEgyY4zDOSL6kZi22OaqJmsjYpJguZhWY3Kb8wJDPB/MUCSfeo5pz1n/iV4AyMQhJi6Q== apappas</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDM2zzv4kHo2Qnka0dn/02QEQhFwMnvzX1CGPh3cC+uK4okPHqusClRvEZGbAGMIQsv7N3t16B1wix3NeQGRsGhzE0zP/9OHyjzPicKx9lrZl+vqqFxUXT8s19uFt77B/q06k3ooqwc7t16y9PNASq8HJlX3ZPDls/f6YlT+oNpHShj5n5j9O1uac4fgAYNl7+SeNVkO8CP2D9zcdXRun69ojCNr5HOSaQte+Hjd5gTXpiLKhg2pU3HDR8TFogJmpiU9dbbZRwXPYFzGvEli1In0cIsdjx4Pk//Vx3vF31TiiKlcq5HZp91OoaUK6IZF//P60UAY3m7yi7AiVhqATNt atanno@linux-617q</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDAD1XS+3hC5iITnHoj3Pgk+x+vPt2Qdm3hJ4/v24usyFFUmEom5B2LUannpB0ttUfFSSZ9XDpsGCIihyokenJMO3juW4qxJK39BeAOTl2TAA8ZT4jcww5cQxVk91u6Kh/ymGA0JBf5ya2BWZ/hc2MThajf/ICEhbtN60Bx3JTXhy2ULvsGiC3vbEXczWh3bhQGlP+agf1bmFIJVHDh9ZAsE9wHnUA47mPyUMvLbJkAn0GOR2OYO3UyGT+MNDqeNPJ87ohD3Ha5dVRDQFiRHSRE+jRlRFTG0Vl9PDmMp6/YNmHe72WduG8FVSF0IrtGz3736Zth4ozkO/4B1HHuKBUz atighineanu@e152</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDC96KGkd2pJUGTu9Jcz97lEiNs9uAhte+waY2grbA0+lOw+sPC/RlO4jgNPBAQd8LXYYLuCJBHw98mwcx0cb+BR4eidfq077u8/NbFEYVtzl0y8RWz4jksQHuLNhq6koEsndFhruakWbzULCwOzoe5KnmD/gjLiZqEEApB8MmekX/ffDeqZs4lDyT1SSdpFRDCgkhdiOnkFiBmI7KlT/Y8mrqKb0oiqKbF2qcvDFkV6JRh5qBIVv8Pbau98j3jHwtWP5wDP/pKDG7+kn1RmccxB4/sDrAxqY8psc3TyUIW6ElK1g3ABaYXxHk/DfksYvqX13YAv87HiRVskvI45dUJ jwbruno@linux-akhv</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDEfz0lP5oO03Rw8vSyzqwt06VIEFA4x478DERaSWHPTD5ULqqdZQS1vsFpTtAm1eT4Ix4njXvSh4T2d2aXYyCgB+ElJI1h0tpbtX7OtenJ7c3rUows61jqmXLFrnIfWbZL2uhomTsOziQwxKoXS3PRxFgoRaZGzHGD4J4HOEfiP8YHQ53igUKbmmDY8yVZya/dyEtKe8bukcbZbGIosKgMoaLsdpbNkln7bU1oLqMuogHGtqRdZ9gQLz2mz5I7Ml/lSeCEdbkqVbOjydVhF2Qm4bvbVjyER+n0VqhXOmeKcauEOQbEafYrJjWvDetMY4j8NwWCeJq0QA7gYRd7967 bhavel@blackbird.suse.cz</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAxs7poCgBwC6s753zkBVBQNdHjlbOJdlAuANbedPLqWWhftaNfej9TUlvL2YuO0rEwUIfVhmfQ2nH37Kyu4KP4Lo9A/PwvGGPpgKJfi2SOrt+r/oo6bIexmeehdLasIAuwmLzziT7r/3EQ22mNcoFaIn7YzWxjno6wHmsTYOxGshzPeJGpAnJp3xhjzUWd8asvBuqCMTMy/uhXEt8UTCwGW4jbRmdM7zWByXSsdQl+NSa995IpUY2TQ8NAdJ0MLH2Ztn5RX8qZpNuMuC4/+IHb96N2vAP4xvJfb3LIILmLmmvJ9s+a/QC9+kQecRf0gSoEkhKfcMxPrrU82ZoMskaqw== bootcrit@qam</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC+YVLmgvFkop8f+fAKbcWMaqL6NXgjPTRy9qerM9NT1oaTa/AW+5geUYCF80HLoS8ajNgcgcqcu9irRFCv/h5ycXOdApidcpsx3n2XtAt3AiLW74LVmLzQKgzFkcUBe7awYqNYuX7oMFgfSB4KVPfr6JvYh/X/vl9oT5mIgHkYmMYLZPzuAWUqPxv6gs2MhLHTRsY+SA2Yn8hcK2P0VrGzassqdAlvUxpZ1TXOdEqS1rcZrPogf1olY4d2ubApZM5Nop2OSmxdSZNtoy6n7SIUHeGo5MZxE5JV6FafnVg2Tvapgb9Rq051r0FIwuRzv7uP4unib16RF5zrjM+JsKSYO8brNoO6somT4OaTrc96UDWPyWiNkdZ8KfM+nr3prUPPt1EqFfzOOySjCiWdtdkNRQnEMxmHXIFD1OebovQICxDm+ZgvSMNOXkrt1Yxm1K6Edze+Qjfel8lM9HDGPLawpCUsIWrslUc/8fbSUK9eRg9OZC63Bwqb0DFUVAhLaacVWNcpFXVgyA4LUKTEeFPyIlBE8645YQSKugXpcwxTbKByJQWpim5839W5TCDy35GGznWg2GFYh466Rfy1k6CVqPJ4eHXrUxZWYyWTaCHX0OTHSS4V3Tx8X+TkuvsqCBedFlNvjaw7mklRJdDw0k3ujTWsX0+E7xGSriKDPK9ruQ== cdywan@suse.de</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDb3u+zG7OoUAX5h9PTaTuK6/R5AxsO4mw23IChgpUMp9HOTVkBtDpRViSiLwuHjUnMHA42Do3lNFAI0VzimX3MD/eyZwq9SdgWcjnJr8Ha/bpTvYOpV9l1OJZ1CnP1LyN71Kdg4ionzxPWidAT+hXEqsXgnOO06aEZ8KLftdg+gJGtbIusyTKb6JHJ6ppFGDXAQSFH/gpPlYADAKWvXpmLUr/IvFxXdXLIuF5DKMHpL+bi4WNVEJtV0daCKxiRUr0A6cIuIBVXi/Vsb78KcJi/4Iq+h68iGHgArH7FBD7japmA+RT45ZXpHtGH1PhKcxa+YMmHqKYyzTirHpkpDmrn cvarelas@</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCiHsIuHvNOAdNFc31JXBGzOdnnQM2a9Wnoe3oIC1vxL61rY01dj7lJbscku8UiX5Ju7LCxAcIesZ3mkhSpomNfMv+bf6p03KZZJtSZnZPJbM4df6K0mjbNBuX4frMPieBz3SDuUtLgEk7PSHWay7snClwXRR4fL4vN9j5NbuEvKAHUsUCz1r0ARIsWVWD1mVKLCIP6N3530iTUBGlTTOfMhhYLfy+EBDbShWxXQ3NQNo5WbjZP4sy9xDootxNQL+6GJnvt1fSc1V0X/0cYg6GxUomRBJlAqgHDvNxdSFxqzJIjwGMyTda1QD7pHpEJScR2cdQ/ROcA+89JZ5BF1rtt dabatianni@krystal.suse.de</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDI7nyw0aXrCv3QbdLpBA1PQ3mogiSFKIZbmwvk0ujtEaQUZIokV8de8E2xF11xFTOekqoMSYgDFFc9ECWy+WP7H484Pmc2k1R5t7WA3jKL52CuhUEvsB2oN8OzVRE4zy7l8OdNt8Vgh1q+Hv89IMgEF49jm69vIOZW4X5+SMSyNwGM5mJEnWWR/dM3wodW3rLy6XwejIsTUtsgQ3qLuSBK4xgmu+X+kstQVAnBn+ltwCWrAMYe/pr50cEt3HZEsjNo5u11A78sLbav9QluLdi8UYVjtg5aQMiIk4b09wwgXtmhzt4XP5NDcIgVpUO+YygIjW0bCiUMju2Ama0EesAB miura@linux-wixp</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDZym9EN2vPysSZzBr7iqu1ZPJp4C2vCRSSKpSLw1xgLU46ONKfUMTnXCZvz4CfBQPowJdawa6d0kHnq3goURPhQLfsVfpancamumCvbwOpnKmun881CG2MWHFS1LxmUjhbfjW4dwz1lq9L1tpO2QCOD8Xqk2OL0xDgFujGANREaWFPE9+6oHcNWCP2CPDm+X62QEhcqDHXBUlHz/OrEmWbEz2rKgGLyNAhStYpDG2I+jAVz2DCWnOlktzNeqmElh33ggLoFpC1wYcvVvB35/5x/wu1NH8w49MYAALdq4J3S5O+ZD1Ykz2eE53ER9xYzyqPwY7ybUUsstGZrfxWn8iZ fbergmann@suse.de</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDhfydsGzD3Pv4V8R/eJjNbV8e1bDH+NduoP1RJk8xvhd5z7+SpYIxH+g3HW4KQ0JLND5U31IiCPjfhe50aehCMAy7P2dQD618gOun34ow0HMd8vK+l+7u+7EZz/Q7Vm9puUjOdSCcV3d0dAT8dQTgqiBLJFBXV6q2MWxhvr15BRMqMy0o4CqhXUn7KVxQZb4BGnIyMK25n5jJ/6rzhUnjGf+mWSgM6z12W52UUwn3ZOUc4sNfD7juOcSsdw9ZRTvuZ1Skd+wARcW9eGdO0lq36nIpVSuBZlhpkl5M8dElrwFQkDRYGB2C7iueIcFqXFKlp4U2u7/X5IU2K0Fdvhe+iwipTywLAg2APlrVK1Rb2v7XEzBg6Ow1rrUudRqz+8Q+shGRKqBR0sYmoY1AT5cUS4RXCq/T1yPHIGmF/D5mFVhp//pg6hMe87VggEJKzPAIgR853lECKgwJmsjyey0Q1PGoTzBIKvyiI5Un/3Awu64IWPKzg9oCTYKsALjpMwbpVUpuvzAUag4Zb3zno7NNAf2F83yWga/XUtGi+gUHcfzCSf9n4libQTzy4DKPKYxkrLCP61gKZKs8Rb4tqTy6D9H0fOjmfyq6M0CaejY6dD5rGSoQJtYR4RYNk27hrmekYsUzhMXbdki7ghpGj1GTjVDEkF76G74t769e95ATrZQ== fschilling@g116</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC708wsMUXeEtcHN5r+YrXPj3FCMosPstPnja4O7Izmp/uoheBNo0i4npg8RtnhWg0fTgBUdN5PIHmev2TUO6xaHR70IVQx4RLIxqG5T0ELLHk9/NjX5wn8S61jZS3cAauJ1ZanBId6Ilw4VBlWFj/Blyo4zh6yV/uSiZMNH4sYK8OFUVbNP9dTCKeTSPbzpxRm0JmN6ykne+DvDq0OOxc7ZuzFPheYXanc2A1CTXF2XRbb3nFtvxZ8PmeIuNoWRsuRvf76moIkLPDqWbLqzPdqrmB84gGeWB+FP0Hh6CYWkb/tIOnD72HdipllqFq6Akzg56EyQ9QkWw52Pw2l3D5/ geor@linux-75e7</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCdI/gXp/Clv0eP8WzIdWXTfi4r/Sfx+00bxTm3gKq/WEAh0MY9KwIVBOyvhzKWhdU3p851I2A3kXj0j0/DiLV5AEoUHSFiFGRkSSVaiTpN1U47ch5vHuLAjER6vZtXsyvYqFUNYQbFEhNGCt6ROqte2NvEeFbb0BOABUYQMXPtsChf65AvxBnKtXs2cb4tTPYNCx5yYWJ7+gS3Zi8ueO80YiegC2XJ2kwKi11rOy00NjlnLmcRsj2nxJjP9p1XyCbjXASouXcAoN4FlQ97f4tRPXDc7kKOwmRQdos3eXrbEn6T57zTg19SBdhku9NdiYnuJeGT6EtYi1pi9No1eQsr jbaier@linux-ibbd</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCugQ3nxA5Zd3fZ0f4nZ81F3rsC9NULwUQe+Xabw6sPriXkFwfeKpqx9Rg21byMh7k7MCMFItIYIBYCxyHGbYlXiktiAkOxLyi3563huJ7JOtlpGZRF5F377z+1rAZqCJHZGZpQD+kZ3TbihfIYx2g+3QhSqjHzOGDNY3y8Rt8fu4EpRUPQhbP8vELs/ZelcugKrZfMMSVVi7qjV/KU1eoDqunmvsoi7AlMLWNqqZDJrimR3Wgegut9Gz8u1gf6FzZ78vB5O+QpyT/epFIIf/SKpbtdsqhWAShhfXA5pzFQzTXJj7RvKp71HhG7rrlQh5F62tifjh0H2fDoU7L5jYK5 jgwang@myhost</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3WEVRd5LeiiXJ0VMI6n+0gAmCFgYJD2HZkd+EK/4QnMIVGsZKDyLQzv+Asv7TlhKLwlxmpbs5spVKf0+BiEQ+kvP4m48BOo4IkLYYWB82VHG/m99FKhIvHypPj+TtF5/53Hn9acDNj8gXd2eAbnz2Bu7lli7ANOwQQadRkV4lvp42AQQ7rQ7gJJXiCwORnH2l+nHZ9FqDxXWFIiz/y3SJaltXVS0ELNtCH7D1zxDTjcy0HsMgmm9CBA97NhlAAzdr2GXbyHXCxUf7OaUHlOOg//wcturB7fd2ElH/ftJMz67PKwBfaW/mH/kJqgK5i68TzWo+ARULVu+dG9bavt3F jhura@ezkaton.suse.cz</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDP8+VZEZWcVDfUAmhuo97W+D//X1ztpXefdHDkXp+NTh7OJbvumqW5xNwNYlTprN7pAh3sDI2WAOKQtq27ZyBSiTJIr7N2XBbPgsQGtE30jA7E5LqwsLpJ9UFZEEHyvwfwNoOsloLlD6YYnVID8W1LL46MJ8mgdb1cHXZIQ+8I48Ok2y+HPilq5C57zQmKtw4ZLb/8X7TA4SW8n+N1ayO3VIdXlq+z+kA129AM4dQr9tuNgucKeQ3CeKSqYQ+suhI7k8GBYcZ7JpLGQTm1eoJLwXVkt1xRfVSCOAUbuMHLNixnEl3Nq5c/itg/mePx4FEkq0kUdHGKD+di4p5YEV97rYxLOb9QQB0EnCj5YbT+l/sd8AHRR61TZzxh6zsEoLCyr9BKTQ83bNY1V682Wff+Mjl35/e2qxCuUeICdY57BvzJ5/MB95pGkyMfzpyXBiN1s+zjazPGH5cCN5o5yWZPa2OkiSi11LbAcwWoh4cZGKBC4U2l3kgQEob9m+QTSCq8ND2ZiMqGXTpE33vfNQU3ZUlsvHpFrUCpWQPd1plchS3UBlr28B1zJLk3r8kVOd5FRKaHzOhxwm350wIPyCSK7LhIeVLgSwDU0cAIFEVWFJs4DF3UA/uzjW9m3rTem4D3FGHwNeRxXLaR+ogk6v8rgluJobX2fV3FjeCHtDhHXw== jkohoutek@linux-eye8.suse</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCm/z0MRb/MVoFeC0lCA45XIbUxyaZ+DTpMEEjQ30/PH2DFSdu4izguNyog+qMHmKAgBQWZWHr1DwXYTjZ4ZiQR6YShxb269S6QO0uqQ6U6SFBHwEyoaY1ooZgcPdCyjXKRSPieTHI1VojxiReDVNnDgrCObac4RWi5EU0JDSgKJI5HT+LjW9NLJGu+ikPuXbr479F6DFET5uV1ht09g5ppvkF2fDLojobaWf1og2JD7EPOg1E4MKX2juxrxSyhLFNaD1esBchKIryymQqIwAMqJsFeiU9YuAQ/N3xkvVUq3DSjeRU2okcpuo/FPP5ulHOTrRoyLQMkKl+BntCh5Sxj jpupava</listentry>
+        <listentry>ssh-dss AAAAB3NzaC1kc3MAAACBAPk04bTq/zI0tvb6yLy0aeC6+NDFpfRpNa7lw+lY13KphiAY9rq5qCv2mSxfQ4ZQjUzglEY5kmdPZUBT7McDl/UjQs/xvXmAhk6sBfX1fNoQGlGziwNIEjborwdC+SHHDu9F/bhGhMWfMuJ/jzKvBUXGAS8KoBm22o0fsVbZnsEXAAAAFQDvAq+kwDScccd2snfvERgFGIVjZwAAAIEA4Q5mk8/tFDDz2Ye1JOL0+oKpYmDzbeSla2MY9VyA18TUNgmIddVUdWdN6Exvx8wTwK9qIdsR3nE3+2np71fSljcHPmvEacByyxrGILqdId7ATtnl8ISC+3IT6DHqBGhMbx/Y9R/t00HwFilCvOxTHg/ObIwHPTH0to8VK3LI1PoAAACAPxxUSHpkSCxS1g0s2p9fAbOR/f7UcdzogagM2dGp8RlDfZcZXbSg/HpbePHtijxZaPpbogtJGf7PQhzNdGB2QF9Jy2kmVhzUX8HIEp/gBDs4RqONjuczvplgOssjgDWIjhaJK9hmNjkTQcCnf/PjcmapOA2rZpoauvx/B7oYImE= kgw@Zert180</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDO21pGr5lXFi1L3Xfnm5vkHLPCcLNsklgdiiZDKCSncrWDeQNtkgd7D6EEfX8FlsaWmIeN/UCHDQk6ZTwBUpGkwSAyD3B85nrZUkau1/gFdCsADktpo5TMzN5XYkOCRmAuVZ4OrofFYoJOFbh1WxNLovqT8qQll4Ytx97+SOFvl5lmHVnzLFj8wXr0GNNv8pvbUHcHbVaHrJo8JU+T2StO8cIo5Tcr0fOXwD9tvEM8orSzrluOXqz5mse2MtCA79dT1GeMV/eQ7kG8sQrMymQQAn8ce6xfl2IUd3lBXjkhFUH+7/2PdAKkH6ZCY3QanWxsA5Z8pJ8AIA2qPXDiYZGl kickstart@localhost</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDN9q3uKjv+E8uChhbxrKuWRa3KHAjGzVFDW+EwFixs5rQhX3BLnmHs49rYMlIg5nfPHIgk2zch9paQHC3LY9JMNOOk1WKhaz2XKHTlnsmxNAF3tAaJ3tHvgOIabHWtJS2YdaH9Sp3bEsLSEKm74g+19bGEUfDfNPLLFM/Zohj1SUAs+NAkNqvjgh2rMGCgR52RXf64upH6Lkym6+2CvKY2Wje4gfbUrfy8FRPsiBspotEs9rxTuzWe4isrhcvn1Ugw2wVMbCF1HG/sZXNWU+Uc3eOXOzuh5DYGneLYzL0uamPIAWmCWyE397XOLnL4q/NSoBUyZBhkzeEN5K0JJNzV ktsamis</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz0BkomTEgbSmwCdB2JKaGaR1hOuTB8z59Q+JZYtzBPxYTpOCZFNgFUNKteGZgDhIfrqRWTuENbCX28EDI+Ds7pqrRgyLxt2SQpZYl6FL2g+5Se1l0Tnw3lbOGdkSC5QXRVrJWhLQMRm5z3rKrSUtbMttJUfOolUuv+p+9LLWPrY5Ts/uTlBA67Si+hhKIq+gEAg/iDQRbXn7VpBWJGNvrsBh2fDBPPm+cerqPWpMceqSa0pP/7m0wzSS8UvRxvgDd2no06g7XnrptGHdquIQN1zNWP3aui/HgpPnQW+X20jSWCpAOSvJfvp5iA1r89JGBBneULMWTcgFxwALMotQ7 lpalovsky</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCoatVX9uqgiaDBPbfkU5rRTj1JaK7eUqXyMzM4tFVWBemMbO4VZYcfiJIVHDCypJaAzSZjmI7tvJMyLU0osGGGpbwshi4MTOLTC8W2aS652LsYnvot5gonaXgl9IY9HW2oWDZUCJNVG3rUYzXiulVajCdGmqQY+2Hu3g7n92fIu6Tu7j/ho2vaLeHqe2YIU5Br//WZQiJjJ/Ln2Tmsoj2YPcMKrDjfI8MPt3I5N60vdCHWQIZSXIwRXFF79QIDNErnKS3zNbwHsR5LRA0ymfFV6vefhlBN9vR9G7L5AXGe4yKTl1Aq5mnOrYZL2F5debDIw3E4pg/1Q5twieE19olN mli@simonmachine</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCz1IkJsGdejHECkCQFZOHaYrOzte5AdAbG+Xwo/jxrAvrXhC/8hXSTDk9mdvGSpAmtg3ATM5jNd7uKEc2c4f2gNAvLmiAYz9faxqk1ay87zbkVaN9lgtjT/hCDbR7d5mweVlOeSE4iMzVIJU8/06vYhEhWT8U6j6T+O6VPqlnlyg613ZiGEIvghW+qB7I1qMa/MT95nPB5v3h8pAeJF6jagsxvOUcTs+WqBpIBpSwjbiP7TppjII2M/ZS+pFwOZFh/OA7xt4SKxzzov3mhEvbtkVX2tFGUbEjGonB4psmrMGulHCJG5Kw/uU2vNoZG2uCIBtZbXm4vuOsyJIUdFQx7 martins@moya.casa</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCrFEV4FE1duRdfgMg3X+VON6vDUfO5UX328huK4hosXDfsLdBK0ip99dFBnXLVRjx0dMDnxwFnFLR1Rr3HJBO5KaY4Ml0DXQ1djDQDAZkQ5ljVe4x49ZgFzsaaAUuP0yKNEeozPv0kZmx1Bet2MiOkFHod7igtHlk3O53Lmi7AmlaOxpy8Yuegt4nmCMEAcLkSpm3uXye2gfB0JgaTNzu2TsfERtOo6mM6vngZAn+xqKwLQF4Ktgeb/R2tNj/GCGRQ9QupB9Sw39RmC3J3vDELajQ8q7S+a2Q8lUVrNUD7z3Zxp7g1Qy6XxnZixaAfGutk5TpLv8MlQdAkC116U/Ul mpluskal@daredevil.suse.cz</listentry>
+        <listentry>ssh-dss AAAAB3NzaC1kc3MAAACBAI7hS4HYQ+Uh6ylBWSZ7mNcVitvDERqRANEdSFeubMo/QsHcwlV+g8PIg+Cn72lhlU2B7ZJUDIvHTj7ciqsG45+g4D5MWVKWZqkZzEA3ofbmf/bB7iJv9uAQXB+D0uriZVJGij1lqwKNxT3BLN0mKMoWhjFPY7kYz/3SvIxkOsWjAAAAFQDc41ylTBQXiCpLijVN5UENS4tqTQAAAIAtyoOgrD8Tc+40vNWpJEB0Yc0m/lJDaxq8Ack5+QqP/XQOIEjRS0IIUFonbnrtq1v5oe2FIpxoLuSZHqnbuy/OfoyFnn2QEFCM7+oE5967nlBY18iyQal4xELkYk3Q7S1IghMtoJizdcUhTrlVFz9CFOILu8roE+07pklUmn2WyAAAAIAefJdsAFT9b2SvNwBf/smBUoZ1Ji49u0VD63Z9m9y0lJwOw6oAhyRQmbqceLV4dcH1ttK4eG2xttvsqspZKVT6Mpmjry6TjRcrvHt7kMvuFCKREaJBz8ZyUmNS1TbJnjzqqj0puJgToNk16eUkCa9JUo3xG0CI1bywLsv0h9Q+Uw== nagios@monitor</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAp0LjAk5qTRtNLX7s0AV2FVzC87m8iLCgRLpRO6m0lFIalATpi+pUZ7uSUPfpXtnJQ68lsVTl/ClMe1siCs8BUuUgsLYwYxeSboz3YxcZOG0QbkWGppKJd+qB8RAS/OLQ1kfycq6XiombMq3V5X7Yh+3ShrNmlWuItn9e2X3NdPwpcG8fCOTEOKOBl7nRpkLr4mptsGlVHoRda8Tv/HDLB2OoFbFTsww5DoG02kh3G/fN8sF42sxBztFtz+YSGPgSeYUSFuzPrA0RKu/s2uOR8wWTBtHlq1/WSAk5/HQZO7flAl9HCiu+A5/JxcYgCAs6jPUp4+gO3Bf2mNBzSTi3Xw== nagios@monitor</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtOQSI+PPZ97XvvxAFbL06DngIAL3yptiF8UTPChqlMDvuaSoafREQRITMT2jRpiPjNWN3YqQXiQu8+ckBR3tD2KaJ+UOq74JUaSU1TrmydLJNeLcOUMB1JKJVb67xhO2E3EAltd3hGXLy9s1TLkRmI34/cfDM9spAZekhfREr4nbs5lSRVGDILeg6yE4+T/XJatRwxWOevdvS/JUvmMGCrjoOkt8Fl44ry5Ifw7vp7jMzp2ZsrFmGLEjZTXqYaONVHG+V+UlL+AOdKucvKkWJx/utlgndw0QCJ29Clpk8W64En5WReoepW7z2G8qJFsNEiw+W7sp5e875JkVQ2SwP onalmpantis@linux-g901</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDIoE9o0u46QDGEmZUwa+1ZDGaGCopYv8uauQqt3d5mCaLGFw6t2z6Lv8rw9Nwa+iH9a7Uc7K7TdeoIrywio2LsjAstvcdOjAqFmY0Lc2Tds1vr2DIJuVEfrkwgZc9sCJgWeQm5NKQ+/dlPw64OieWFYVAHt9KCWk9YuDw/I7o5oGgICbQbtAOd2ecl5ECrIqUZjakWPmwldPOOQ3aToLsTGLJqWNsAU4sopkv2JaozBrFoe60g5B3qEviNZKKVwNj9FEzb1rC0sLqGHb7lvecGKWsVfat9aV1Lt6hY8hLKpLWGMo0qIHkWA5PRrKDE9rzpEJ6rVLrZ5IKCTp9n+lqT osukup@argus</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYh2YTtJ/3pzfH4aU3DH8WEkudgSLe/W6cekDSQLFiG5DqD8kpW1vPpyf14tF4Z/XG49ssYx7amZnP3S96O5LRxEYcA/2kvCOhz3piLQbhSMqCEXUEl2YQN7CVhxJzSAKWxTyHg67FSeHkUlAfd5xLTe1bJjfwn673nLSQTxE5IzqWagC6d4TctkDCg86C4E793FOOWc7J5mb2M3BG059onSasN0I3iXh41LSPPuzrCycchV7n8q2KmutllMJb87akL8XICKFoD6c55/mwSyb/F01KyhLKl/IuAS3B5COR+SzBN6VIyqAGta+5//QxKKrNVxMkvnowVexMPD6zMxND petr@pc-pha-base-1</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2beiZY6ugIsKQwP075ds/IxqR65vluwzD/fCjjMNCaiXQJap8WhSRAOv8BMfqzSQbuRFIRr+a8YLbQqMw/kEieVSATfhx9DM4GUVDTMvDho81No4nqe7aC+3U48wyeGy9LZGTGNEzt2zoPhxqAho8g4+9rc8VaYH01O21xW2Ep02vYystCc8/bAFbB7XsYo8YTlHGxtIHoLCGEEtqO4qkd9rYLHs8Hc0y7GGGMGhbDEskooGaMJeEzkUzzNf8qFCjGF6jZmaZgQsd7CMwAeIRZTcdhPHkviBCvQ/sNFtEH+Oo7PMTr4wtySt4z75otfsJkFUdNLOgiEaceZYsJ7VD pdostal@suse.com</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDMSmC0GfUo4Q3mA5JT9j4K+rIXbwraIAmmFIsd0lKANzQ4u8+OmaA19O/OrtEd+AZJpeLxHO2O8Q0swS53i8PNlS4PQ8hxElFAYmaV+CqDx3VccBcCwclTGHnsx2bo3ofzVsR3VSciJ/uLFE2ToSO5mTYuh5MC+t+RbhfILka5QZqL0atscsCKymMse9Wix3cZ11qpatWRHnXLXg+AK3Pb8ZaMQ8AOR8lIF+c5RChD3F1sJ+CyQ7R20GqJs1QEnHbUzWq/grugEAS8SaV33WjYD1p7WAIvcrEOGfdicnIFRvOZGzggJzPxUaMbwuLyHrOQJEN0gHQbeR29qpqtP1uVHgbScnV017CTCUa4aNiXKFlwAPyD7gPiDBIQilmxMXiGmIzoqcYkxWEuirsJHdiVcTzToalbJ265Xec3zACrD/AYRLxtvyNjE11NIC2OnsJYw3hv5Vv1DRxWZMYVDmtyHyzkj/+emPWK5dgGs7ZvAswBVpmuYjAXEcddN+OvnbEmNl1nAJOgItALYNAw1rPaJVmO+1ZjtauvVArtXco31DkZL569kklzVAcE6k8heXX5hEGcqMNP5UEVmBO0LOpSGZJRhhmxss8e78jFKXrscJNZetKc36Cjj8faL562j2326SpjQOHLzlogvmXuqq6xkaUWLmphX8hvby61fhioQ== pstivanin@suse.com</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCofCLD4g+p+RrGhdJUZQYOzu4v5pFLPg+Cg/sGWld0Ym1hEtiF89nxep9oJIGub1qAIP9lDJDZMs4Avx3n7ufjKaH5l8G9RKs3VEtV0lLgQq0luSaOAZ8koqqN0Sadymg9vxbuI3pUmxCYBCfy8MiEd9xsSSP9iSbN+nRz638KhBBmJ1VXJzX7jkwarfdxBhKHwKf3E/DqobqKUBEjSA/DY7E21EYCY0I8d8JZVEczRP8U4Os2H2LlfSxU5q2TQ1vD9Gy9mfKUCY4tMIxWvY5TeDHauPq/FUZAEHHW7kF8OZyYoxNcVEVbPVfYSh17+Sxrin7RFHkyVgAeVV1ghJo5 RMaliska@dhcp198.suse.cz</listentry>
+        <listentry>ssh-dss AAAAB3NzaC1kc3MAAACBAOhSfaq8WQuOgdDFCnvF0/7Bi1GQEobcxvQm1RgV/4TOsxmEtgRC9plhTGUjmWly5R5T0g23/CLw3UGMM7T5CK9/QGhuCC5Bm2qXD0/JnuAKrtE+k/ILXx0cX9gEjfWCnAefQpNTlJUzhnO9OwiR9o+e/HIBQRnZF3lXwyUvuCO7AAAAFQCNxioVFXvOoJtudJ9P566SiU2BFQAAAIEAkLxeu8ra1075k/4zR+2cCEFEf0uXUfnYr4IR4O4PEyvkmPV9QYyQ4sy4py/4eMVY+TfHMQjrm5LOP3dH1zRCNiOODlETtZg/WSqAguIHr71ZRHorbEICXMWm9JG5kAwDsgI1N6h2leSg+yBYu9Fy5/KtLcuxQ1IdYigaCcj0fQgAAACAQ1lr/YH5I2gPsCu5apI2lSEu7NjGJY4/BOzcXV3+YMx925C5UraOYqGsniylv/TJwfDpUsUk0ea3DPNG1C0ln4WXPlmCZPCxGhNO7kWB1LsBUmKvyde9qkgREVd9JMVN0+NhHeXE5A9vhXOvVM2c510q3iW338xVMVey/OVbLGA= rommel@poincare</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAr5b6cWBzXLXprUTfpYmEIrN4UyC9YAS46zzilRhb6LUKijiWvfdb0d6j+iRV2hn679jvWb8g0pLilHI3S/VDyTWxUVt/cSsEXmC1x6vG9el/PIf2HdvUZtQvDweK3Qrv9oQ3nK3x+rkOW2Oxmstl760wTnhQW47cTah6mpJWHZM= rommel@poincare</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvd/c+UtfvqICJarSw59GUrq4DwCQlw17KV//vVXfhmnyS5p+Z9S6WEEkRh7F89SkT5/zZfpITVezPz8XGwjh7jFOlzx6NSHMT4msMN2wJNa3ntQLNYPZEgvZHyKp+A0CcIgmBzRKFw1XTvvFUJyf2ucpyeQoJtR3HO4WJdgDrIezjZpkaoVf9pctxf6sV0TAKhODqw0WRpCAwN/utvAKLf6vSggrXvI3Qeoh0VKZstcu/kSktpRIG0kinNAjpNfH/AVIcoSPYLJzCUFHk7C4FooAmBHQwea9OUxQLeX4jqJMLUrZdSjREThRWx7+WeriqPmxx1nRMzwzJvcZE1vAHQ== shchang@linux-dwx7</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCqhWVTosH12864VGY5S3/k0yKc59GbV0m2WxD28gAf+uvJ1/y8gekD2wDzBv0DWqEekYLV7L68gpapDXyGosQeZ6n5OO/NZFZmW+Xq1P7P1QHJil6kVpwk927lzX440pwNf3+PRvTbLzlbuVFWJRpiykv+juJyIFjzXLJRF67wB2qgZVm5cRs/GOi4fnvTaou/Ae51mvsO8M3JL5cphApFKD/AO/X+3pHBhLjvaW33cYsp0Z4Rce1nm8wxSmvuJRF+HAfjBlknhDl5ZaJGA96RYA+g9WbAXimFprg4xeiRp7liPExQwtVgackJweoC4MahC1glmjC3eOh9dvrrxLnALOLMOkyCSK/tOF/iq2PJaLViObanPI8mnNkMLbdJyzUBf8hRGdSLcw98qxaf0sSZ+vz4VQS6e9CwX7ikkNNsTeYXjnJ+1yU3mfCW1CXJDr7kBDVG2OTLefCpMY8WBAYDiEaK0RW83cBcFIKfecKYd0qStHRaOsvmyWdFYgBh2vM1UWjro5WXlb+7aJPrUp8ZruapkUXUwhjHA7FwGA4ysE0tsOVVFm0Dw8tvyVVkVNm/9EObG28dWctioZ2+ZEzTWgMJU26Q+wOJ/U4qZyIvpMRUgPZc5nM9J8kcmvNWtb6DV9k/6p8h28kiOxPkxLtPP+3TlBCHjq//mhEnJZ/d8w== shshyukriev@suse.com</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAviz9q47QXlocFuD3qvy4Yw4yMHebHuokGK2kjpDSUOREBIqhBwOJysuDqU5PNQpJNG85C8+eM5/bS7YyIHR3hOF32daGb922g3bZcUgixrJC0Qwq1xHO7uf+/48It6BBcaG11F0uKzEzYJCayQRbSWUIGCF4EgDpDWNrR67pUh2n+U+rxY+Ll671a3lr2fwPrilXPy126EWBFJUxcxo1eet73fRKKfd38nYABT/elZKKveg6PJAvnDSB08lUpmYJ5S68rRdu1K6xGJy+Rga/ECFZLoO4JmYW4z9XnDc9s41TpS7pCIN12M7dPMHgww3zFsRfsXpKwrlnL2crEz47dw== skliu@tux</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqQ+zJeaCMN3F83/2sYUeG0CTqLRLw3jLtTNunfm2nP4hidH9Kg4ZhT4s+gXYGOKkAsIc6YbqG5nfq11LpwMY8GBglFHWGo8dkHrb9GqdcEfXJBAM6neEHtNu8aQ7eJT8ePvAqpgi7/6RTD+aIw1PQ09aiqgjn6wZDXengm2Ug93evd6PoyvIa3jFCnJr9jD5GhMz+QnY09U3Is5mDHQNH7C23zDiuBm5dWQ82UN2bRkhbIzFRl/09HWQHYlCwAlKu8vj9fSjwH9MCIRu4CoCF6CgKiC9MrH8l+VUMswhWhjp7uJYr0zGK1N3YGPIXYccPJn98ya5kXKfC236U9USZ slemke@</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCj4Kt1ioJt+s6bh9/4KvogqPsoRcauF06ocv19GjKw3sNwFRcR/hrP7OyIYtw7XxJ8TKJkJOvy3+H0CgTXdXG9uUamBMMNjrEPf0MBXMq/pR3zpT8I9V3Q2lk2l6vtGu//+KVTlBp16RJDMUA6Y1afXuavYGCb4nSueRP/hyrG84oSMWzGLAoAQfVHbZYXTSxj2MCZshvvPgxg62H67hjl+zmK0C/b6gcn9tenQzzCSuEzx2WoJ/B4R/opLKtM2FLAsJnp+DMyjnE23uw2RBWzsxklWHFkSDjT5eD3S2dNMz+whwoqtQDGiP7wxAmrIy9usNuAWJ4rODwYGsd6+g+frCKuxiBFWxBlB1wdLsd6s2jiKlj1Mq648/EcbdlTlMPs5RjXcw82sksaKmxdD5FjoLND5r85X/nRO8Ymc2Z7MVOjcW4SBxgRY4BB3N0384uZPILlL2SbMqlcejEMxeGWOF6NtnNgqlsLrfp4AsYmDAqZL0cnP750K91O5ON05O21XVnD7FjKA6IXKHEX62Sizao/f24s6aP5ROWX81GsNlcAm59rz7wk1gSxjoaUtSrJ6ZVd9v17ICr+bGgjGksf+1UMfATjjIBb/JW0YhzbBB2r7KHtyThmGJTSk85OFkMFp+e425RgjWa76WtIEQ/1W3y4Mq4DHOSPKs8dNre5eQ== tjyrinki@duuni</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApPAl5qwDZNMJ2rfGPOPqcfZImhQgY2EoXqMGzPanxLqr9+NOrRjkBZjA7TK8v15dcLHR6KyhZKzrhyH3ZEKiOZPUStaxL1dBBKQvNBXODBcUrGCmBJ9pbswrNRVYXeD1J8l+7EZc6dNDntM+qvpuREKc9SHWB+IsFyJO2ZX3Ol2NbL+x+ajrtJIPbIUyI2ofxJX8xkO1VOVvn4eGWi1AZcNDhIbC9NoaIhwTcV/bKOuDxPxbB+H7NUKkzLJXomm/gpOxQH83/BY5DI49EKs4dNEs4BfzBQbOnS2T9ruL+ysf53dVugfmNjhNYMj50PJQSuU3fRtWwm1tjhjC88s5gw== tyuan@sles-11-sp1</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDA5awrD4By2sc7cyYTQQ00EoAj3HN/uNAbN6artg2j8GQ8E8cD7a6rogTaoR1Awmb/QcvYEwf6l9C5i10PvA/T77D5kUAch9NGBiLlKcPkJb3luJ5OUJZp7z8gFJHhTJzhcClUN9HGEPdsctRfP8rdAAdefO/4vB+nv4u8SU3TeMRHTD2g3qJUN+PP46p2zLgSHb+lP/1qnPhlOHAD0pjCpla4MzMdQ2vH64DJvjRHAy2j+uS/Lsh8Puqv9Wjc1CecAuVo/CHSWKMuwLOF13tMSKqR1U513hYjN0HK37TYPzzObCLHFFbfZ6sRdORDhkADAtYQQqqdvLCmxY0hmPzv vcuadradojuan@suse.de</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA0SvnKlJU4QDg/F5nTV6JdTigJ/8nluhdk7i85p0b7FA/PXhrjbLxE1DjSwp7GoFVOoYw7GABzc8xucQteaq/96qDGvPhK6DSKkn+mFaxekBvKoaKMJ//SZtX4kdrvV2BozddsJBt2SkessEfZ7MddgmIxzRJRskzeaXWv3sB0aNIWPMq4dl8iMeapkjazX+OtcmeqCqW5YrLNKpH0ECuzylbku0AOblX+EJsd1dP/QbHOrUn+CXhonDtHKyY3lE04H4qqj9u2fyK9eZ/8ReCqvg1vhWsqr0xcmhzf30Mt9FdA4lW/gk6ibP7MxnQLgzcnO4oP1+3lxa7/ZDeBiQDyQ== vpelcak@vini</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDINt0FdONw9xs1VoD54m20DbFbb2ZywrZlkAqz7KZajPx3FDTwdKeIg46RemjvCp0JS1Y/Seg1Trgy5/4mcz7NgL29fE8+8tY6YcRptApBmJBZqM+GxnYtonOTW+rILvDCLJFgwsa2vqqIkoKzYDGuAhriR85EvbZ8hUl7kw3zHG5hAGo8DLDdKLh2Qwmd82V0GwCOqeWicF2P7ybspZT967oYQlIONhokGfcJG+k/BEJ2nSICgz07WGpdewiqmpGighoK356Lb7S/EnQin2ON+fDSlStuIMqYq0OBQaq8Ow2l7lZybEwcyqTLmhJ7K+NYwoQtQ0RKXtPZSfir9pwX vsistek@kobe.suse.cz</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/btcgaiVrttV5k27lKVobH7ovpM5b2PKM3oOJIg9aEnpZ+56xuwJ+W1y8lX7SwRdjLOX1FhX6bR6oKSb5FdcWEF1r6Wx/DR7GEDiKiPxRBKI6Es2G0IshoJ1LhBlCdIfOHym3nD1p9IyQWIBuySbSpnBlKV/F2DrNF2twVdZf+eX6LPtDGwFVwzAV07+SktR8eRET+O6Io+WNEnK4RshwM7rqDEkBbPoXpnbRaTZeJiaS4vIZX+sHwXKQ3+pExknFqglszOVys/hCLY5wzA0qh3GTx+rEU2Lyqhtj1w8G/PSf0CXEnR/bvwzGjvj9FP3OKgCdCo5+4alnHY7ipezV vsvecova</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRCckXwmjSPFDPc72OyQdTDzXlMfLvnXd7871dCXCbmJu0Kz39yICB15+rjquN0xdykvG+Wc1E8kT5wepTSMd2rQDiUJKU6CnEu1zQ3g9Pm8RI5F0bcomQgxGKGgR+GeiiycdIhnqVz2R1HoovWUW9g0vB9qXdQBZcT0Y3aE9EqpgyJNW8pwqJ4/8d8gMMy5bfKvVjI7c+713JVFHAyaFq5FvOfP3Hkuc4WNyzbJKwgLeVW1IdFN6kNp0clLZrtq9RMC8kL+K9Sf0wzEuF/Zq/tiuwFakRk5cfmvG3nWNiw2VwmNf59VmPjGjWcLMEz0sRpxYzXjfePpAG0x1lqru5 balogh@wurst</listentry>
+        <listentry>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDESLvddZq3NEvG8aGNBYKBdB8cTnE8EZS/giVhjXr0R+GJbbTKHhWFT2fToK6qbYtLWRPh2Ep5kA9gfj1I2J+XBbkDjDVCgqRUs1dY00bkf7Hej1RdivNbUT27p4Qzm+eePU22gymVKgR5cgEtgZ6h5XCZEMfUdD49YIRv6PiNmms5ik8kKaEUi0MkfCL3tUivE5cFgGI8pANyde3vJThbpoZFVMEz9ddjg+j3N7SLVFZVX+HAAR8oY2wg6q82yUHCTxbM5DP1ier27uost+d8KsBBiI/hJ7XAndO/NE9HFz6Jb0YQrNYeIBqS7lsTe4EGDfeZ6HPHbcFq4RBl+vp3 zkubala</listentry>
+      </authorized_keys>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <gid>0</gid>
@@ -1220,7 +1524,7 @@ DefaultPolicy default
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$5$fRX4.aZdaVU/Crn3$Ng.mgbwEtWdFfyg/54AC3ifRR2qr5jdEVSWO54FRF03</user_password>
+      <user_password>$6$0j9BcmPB$GiYIY25FbnEPQIL8Rs/ShAAm3UzN0ZunHQCW0e0hDzS.xT69dmNsAJI6gatBEskzeXT2hUkQUo8LnFB2JqlXW.</user_password>
       <username>root</username>
     </user>
     <user>
@@ -1243,9 +1547,9 @@ DefaultPolicy default
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Printing daemon</fullname>
-      <gid>7</gid>
-      <home>/var/spool/lpd</home>
+      <fullname>NTP daemon</fullname>
+      <gid>490</gid>
+      <home>/var/lib/ntp</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1254,88 +1558,16 @@ DefaultPolicy default
         <min/>
         <warn/>
       </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>4</uid>
-      <user_password>*</user_password>
-      <username>lp</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>bin</fullname>
-      <gid>1</gid>
-      <home>/bin</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>1</uid>
-      <user_password>*</user_password>
-      <username>bin</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Games account</fullname>
-      <gid>100</gid>
-      <home>/var/games</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>12</uid>
-      <user_password>*</user_password>
-      <username>games</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>FTP account</fullname>
-      <gid>49</gid>
-      <home>/srv/ftp</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>40</uid>
-      <user_password>*</user_password>
-      <username>ftp</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Batch jobs daemon</fullname>
-      <gid>25</gid>
-      <home>/var/spool/atjobs</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>25</uid>
+      <shell>/bin/false</shell>
+      <uid>74</uid>
       <user_password>!</user_password>
-      <username>at</username>
+      <username>ntp</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Daemon</fullname>
-      <gid>2</gid>
-      <home>/sbin</home>
+      <fullname>Gnome Display Manager daemon</fullname>
+      <gid>483</gid>
+      <home>/var/lib/gdm</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1344,106 +1576,16 @@ DefaultPolicy default
         <min/>
         <warn/>
       </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>2</uid>
-      <user_password>*</user_password>
-      <username>daemon</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>user for VNC</fullname>
-      <gid>488</gid>
-      <home>/var/lib/empty</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>487</uid>
-      <user_password>!</user_password>
-      <username>vnc</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>User for GeoClue D-Bus service</fullname>
-      <gid>65534</gid>
-      <home>/var/lib/srvGeoClue</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>490</uid>
-      <user_password>!</user_password>
-      <username>srvGeoClue</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Smart Card Reader</fullname>
-      <gid>484</gid>
-      <home>/var/run/pcscd</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/usr/sbin/nologin</shell>
+      <shell>/bin/false</shell>
       <uid>484</uid>
       <user_password>!</user_password>
-      <username>scard</username>
+      <username>gdm</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>NFS statd daemon</fullname>
-      <gid>65534</gid>
-      <home>/var/lib/nfs</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>489</uid>
-      <user_password>!</user_password>
-      <username>statd</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>User for nscd</fullname>
-      <gid>495</gid>
-      <home>/run/nscd</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>496</uid>
-      <user_password>!</user_password>
-      <username>nscd</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Secure FTP User</fullname>
-      <gid>65534</gid>
-      <home>/var/lib/empty</home>
+      <fullname>Postfix Daemon</fullname>
+      <gid>51</gid>
+      <home>/var/spool/postfix</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1453,153 +1595,9 @@ DefaultPolicy default
         <warn/>
       </password_settings>
       <shell>/bin/false</shell>
-      <uid>488</uid>
+      <uid>51</uid>
       <user_password>!</user_password>
-      <username>ftpsecure</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>RealtimeKit</fullname>
-      <gid>487</gid>
-      <home>/proc</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/false</shell>
-      <uid>486</uid>
-      <user_password>!</user_password>
-      <username>rtkit</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>User for polkitd</fullname>
-      <gid>496</gid>
-      <home>/var/lib/polkit</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>497</uid>
-      <user_password>!</user_password>
-      <username>polkitd</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>PulseAudio daemon</fullname>
-      <gid>486</gid>
-      <home>/var/lib/pulseaudio</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>485</uid>
-      <user_password>!</user_password>
-      <username>pulse</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>systemd Time Synchronization</fullname>
-      <gid>491</gid>
-      <home>/</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>491</uid>
-      <user_password>!!</user_password>
-      <username>systemd-timesync</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>User for D-Bus</fullname>
-      <gid>499</gid>
-      <home>/var/run/dbus</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/false</shell>
-      <uid>499</uid>
-      <user_password>!</user_password>
-      <username>messagebus</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>SSH daemon</fullname>
-      <gid>498</gid>
-      <home>/var/lib/sshd</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/false</shell>
-      <uid>498</uid>
-      <user_password>!</user_password>
-      <username>sshd</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Unix-to-Unix CoPy system</fullname>
-      <gid>14</gid>
-      <home>/etc/uucp</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>10</uid>
-      <user_password>*</user_password>
-      <username>uucp</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>openslp daemon</fullname>
-      <gid>2</gid>
-      <home>/var/lib/empty</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>494</uid>
-      <user_password>!</user_password>
-      <username>openslp</username>
+      <username>postfix</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
@@ -1621,6 +1619,78 @@ DefaultPolicy default
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
+      <fullname>RealtimeKit</fullname>
+      <gid>488</gid>
+      <home>/proc</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>488</uid>
+      <user_password>!</user_password>
+      <username>rtkit</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for GeoClue D-Bus service</fullname>
+      <gid>65534</gid>
+      <home>/var/lib/srvGeoClue</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>486</uid>
+      <user_password>!</user_password>
+      <username>srvGeoClue</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for D-Bus</fullname>
+      <gid>499</gid>
+      <home>/var/run/dbus</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>499</uid>
+      <user_password>!</user_password>
+      <username>messagebus</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Printing daemon</fullname>
+      <gid>7</gid>
+      <home>/var/spool/lpd</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>4</uid>
+      <user_password>*</user_password>
+      <username>lp</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
       <fullname>News system</fullname>
       <gid>13</gid>
       <home>/etc/news</home>
@@ -1636,24 +1706,6 @@ DefaultPolicy default
       <uid>9</uid>
       <user_password>*</user_password>
       <username>news</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>systemd Bus Proxy</fullname>
-      <gid>492</gid>
-      <home>/</home>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>492</uid>
-      <user_password>!!</user_password>
-      <username>systemd-bus-proxy</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
@@ -1675,9 +1727,9 @@ DefaultPolicy default
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Mailer daemon</fullname>
-      <gid>12</gid>
-      <home>/var/spool/clientmqueue</home>
+      <fullname>bin</fullname>
+      <gid>1</gid>
+      <home>/bin</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1686,16 +1738,34 @@ DefaultPolicy default
         <min/>
         <warn/>
       </password_settings>
-      <shell>/bin/false</shell>
-      <uid>8</uid>
+      <shell>/bin/bash</shell>
+      <uid>1</uid>
       <user_password>*</user_password>
-      <username>mail</username>
+      <username>bin</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Gnome Display Manager daemon</fullname>
-      <gid>483</gid>
-      <home>/var/lib/gdm</home>
+      <fullname>TSS daemon</fullname>
+      <gid>98</gid>
+      <home>/var/lib/tpm</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>98</uid>
+      <user_password>!</user_password>
+      <username>tss</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>nobody</fullname>
+      <gid>65533</gid>
+      <home>/var/lib/nobody</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -1704,10 +1774,28 @@ DefaultPolicy default
         <min/>
         <warn/>
       </password_settings>
-      <shell>/bin/false</shell>
-      <uid>483</uid>
+      <shell>/bin/bash</shell>
+      <uid>65534</uid>
+      <user_password>*</user_password>
+      <username>nobody</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for nscd</fullname>
+      <gid>494</gid>
+      <home>/run/nscd</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>496</uid>
       <user_password>!</user_password>
-      <username>gdm</username>
+      <username>nscd</username>
     </user>
   </users>
 </profile>

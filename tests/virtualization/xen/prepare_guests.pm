@@ -25,11 +25,16 @@ sub run {
     log_outputs="1:file:/var/log/libvirt/libvirtd.log"' >> /etc/libvirt/libvirtd.conf);
     systemctl 'restart libvirtd';
 
-    # Ensure additional package is installed
-    zypper_call '-t in libvirt-client';
+    assert_script_run "virsh net-start default";
+    assert_script_run "virsh net-autostart default";
+
+    if (check_var('XEN', '1')) {
+        # Ensure additional package is installed
+        zypper_call '-t in libvirt-client';
+    }
 
     # Show all guests
-    assert_script_run 'xl list';
+    assert_script_run 'virsh list --all';
     assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
     wait_still_screen 1;
 

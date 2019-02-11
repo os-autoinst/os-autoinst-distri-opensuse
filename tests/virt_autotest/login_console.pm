@@ -26,6 +26,15 @@ sub login_to_console {
     reset_consoles;
     select_console 'sol', await_console => 0;
 
+    assert_screen([qw(grub2 grub1 prague-pxe-menu)], 210);
+
+    # If a PXE menu will appear just select the default option (and save us the time)
+    if (match_has_tag('prague-pxe-menu')) {
+        send_key 'ret';
+
+        assert_screen([qw(grub2 grub1)], 30);
+    }
+
     # Wait for bootload for the first time.
     $self->wait_grub(bootloader_time => 210);
     send_key 'ret';
@@ -96,10 +105,12 @@ sub login_to_console {
     use_ssh_serial_console;
 
     #workaround for bsc#1123942
-    script_run 'll /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
-    my $workaround_cmd = '(cat /etc/os-release | grep 15-SP1) && [ ! -e /usr/lib/grub2/x86_64-xen/grub.xen ] && mkdir -p /usr/lib/grub2/x86_64-xen && ln -s  /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
-    script_run($workaround_cmd);
-    script_run 'll /usr/lib/grub2/x86_64-xen/grub.xen';
+    if (check_var('XEN', '1')) {
+        script_run 'll /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
+        my $workaround_cmd = '(cat /etc/os-release | grep 15-SP1) && [ ! -e /usr/lib/grub2/x86_64-xen/grub.xen ] && mkdir -p /usr/lib/grub2/x86_64-xen && ln -s  /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
+        script_run($workaround_cmd);
+        script_run 'll /usr/lib/grub2/x86_64-xen/grub.xen';
+    }
 }
 
 sub run {

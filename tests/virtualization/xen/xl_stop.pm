@@ -24,19 +24,20 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
+    my $hypervisor = get_required_var('HYPERVISOR');
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Stopping xl-$guest guests";
-        assert_script_run "ssh root\@$hypervisor xl shutdown -w xl-$guest";
+        record_info "$guest",                                               "Stopping xl-$guest guests";
+        assert_script_run "ssh root\@$hypervisor xl shutdown -w xl-$guest", 180;
     }
 
     script_retry "ssh root\@$hypervisor 'xl list | grep xl'", delay => 3, retry => 30, expect => 1;
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use virtmanager 'detect_login_screen';
+use virtmanager qw(detect_login_screen select_guest);
 
 sub run {
     my ($self) = @_;
@@ -34,7 +34,7 @@ sub run {
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "VM $guest will get some new devices";
 
-        assert_and_dclick "virt-manager_list-$guest";
+        select_guest($guest);
         detect_login_screen();
 
         assert_and_click 'virt-manager_details';
@@ -56,6 +56,7 @@ sub run {
         assert_and_click 'virt-manager_add-hardware-finish';
 
         assert_and_click 'virt-manager_disk2';
+        assert_screen 'virt-manager_disk2_name';
         assert_and_click 'virt-manager_nic2';
 
         assert_and_click 'virt-manager_graphical-console';
@@ -66,10 +67,6 @@ sub run {
     }
 
     wait_screen_change { send_key 'alt-f4'; };
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 0};
 }
 
 1;
