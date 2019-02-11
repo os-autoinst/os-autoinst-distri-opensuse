@@ -373,7 +373,8 @@ sub select_first_hard_disk {
             }
         }
     }
-    assert_screen 'select-hard-disks-one-selected';
+    assert_screen [qw(select-hard-disks-one-selected hard-disk-dev-sda-not-selected)];
+    assert_and_click 'hard-disk-dev-sda-not-selected' if match_has_tag('hard-disk-dev-sda-not-selected');
     send_key $cmd{next};
 }
 
