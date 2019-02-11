@@ -1562,14 +1562,12 @@ sub load_extra_tests_docker {
 
     loadtest "console/docker";
     loadtest "console/docker_runc";
-    if (is_sle(">=12-sp3") && is_sle('<=12-SP4')) {
-        loadtest "console/sle2docker";
-        loadtest "console/docker_image";
-    }
-    elsif (is_sle('=15') || is_opensuse) {
+    if (is_sle(">=12-sp3")) {
+        loadtest "console/sle2docker" if is_sle('<15');
         loadtest "console/docker_image";
     }
     if (is_opensuse) {
+        loadtest "console/docker_image";
         loadtest "console/podman_image" if is_tumbleweed;
         loadtest "console/docker_compose";
     }

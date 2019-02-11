@@ -33,7 +33,7 @@ sub get_suse_container_urls {
 
     my @image_names  = ();
     my @stable_names = ();
-    if (is_sle(">=12-sp3") && is_sle('<=12-SP4')) {
+    if (is_sle(">=12-sp3") && is_sle('<15')) {
         my $lowerversion  = lc $version;
         my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
