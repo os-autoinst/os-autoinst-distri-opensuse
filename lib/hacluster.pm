@@ -282,10 +282,14 @@ sub check_cluster_state {
 
 # Wait for resources to be started
 sub wait_until_resources_started {
-    my @cmds = ('crm cluster wait_for_startup');
-    push @cmds, "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
-    my $timeout = 120 * get_var('TIMEOUT_SCALE', 1);
+    my %args    = @_;
+    my @cmds    = ('crm cluster wait_for_startup');
+    my $timeout = ($args{timeout} // 120) * get_var('TIMEOUT_SCALE', 1);
     my $ret     = undef;
+
+    # Some CRM options can only been added on recent versions
+    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'" if is_sle '12-sp3+';
+    push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')" if is_sle '12-sp3+';
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here

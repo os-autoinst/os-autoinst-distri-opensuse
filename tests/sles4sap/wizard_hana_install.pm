@@ -78,11 +78,9 @@ sub run {
     my ($proto, $path) = split m|://|, get_required_var('MEDIA');
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
 
-    # Don't change this. The needle has this SID.
-    my $sid      = 'NDB';
+    my $sid      = get_required_var('INSTANCE_SID');
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
-    set_var('SAPADM',   lc($sid) . 'adm');
 
     check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
     my $RAM = get_total_mem();

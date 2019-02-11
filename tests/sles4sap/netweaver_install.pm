@@ -1,29 +1,22 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Perform an unattended installation of SAP NetWeaver ASCS
+# Summary: Perform an unattended installation of SAP NetWeaver
 # Requires: ENV variable NW pointing to installation media
-# Maintainer: Alvaro Carvajal <acarvajal@suse.de>
+# Maintainer: Alvaro Carvajal <acarvajal@suse.de> / Loic Devulder <ldevulder@suse.de>
 
 use base "sles4sap";
 use testapi;
+use lockapi;
+use utils 'systemctl';
+use hacluster;
 use strict;
-
-sub fix_path {
-    my $path  = shift;
-    my $proto = shift;
-    my @aux   = split '/', $path;
-
-    $aux[0] .= ':' if ($proto eq 'nfs');
-    $aux[0] = '//' . $aux[0] if ($proto eq 'cifs');
-    $path = join '/', @aux;
-}
 
 sub is_saptune_installed {
     my $ret = script_run "rpm -q saptune";
@@ -49,7 +42,7 @@ sub prepare_profile {
         assert_script_run "tuned-adm profile $profile";
     }
 
-    assert_script_run "systemctl restart systemd-logind.service";
+    systemctl 'restart systemd-logind.service';
     # 'systemctl restart systemd-logind' is causing the X11 console to move
     # out of tty2 on SLES4SAP-15, which in turn is causing the change back to
     # the previous console in post_run_hook() to fail when running on systems
@@ -65,7 +58,7 @@ sub prepare_profile {
         [
             qw(root-console displaymanager displaymanager-password-prompt generic-desktop
               text-login linux-login started-x-displaymanager-info)
-        ]);
+        ], 120);
     select_console 'root-console' unless (match_has_tag 'root-console');
 
     if ($has_saptune) {
@@ -84,20 +77,29 @@ sub prepare_profile {
 
 sub run {
     my ($self) = @_;
-    my ($proto, $path) = split m|://|, get_required_var('NW');
+    my ($proto, $path) = $self->fix_path(get_required_var('NW'));
+    my $instance_type = get_required_var('INSTANCE_TYPE');
+    my $instance_id   = get_required_var('INSTANCE_ID');
+    my $sid           = get_required_var('INSTANCE_SID');
+    my $hostname      = get_var('INSTANCE_ALIAS', '$(hostname)');
+    my $params_file   = "/sapinst/$instance_type.params";
+    my $nettout       = 900;                                        # Time out for NetWeaver's sources related commands
+    my $product_id    = undef;
+
+    # Set Product ID depending on the type of Instance
+    if ($instance_type eq 'ASCS') {
+        $product_id = 'NW_ABAP_ASCS';
+    }
+    elsif ($instance_type eq 'ERS') {
+        $product_id = 'NW_ERS';
+    }
+
     my @sapoptions = qw(
-      SAPINST_USE_HOSTNAME=$(hostname)
-      SAPINST_INPUT_PARAMETERS_URL=/sapinst/inifile.params
-      SAPINST_EXECUTE_PRODUCT_ID=NW_ABAP_ASCS:NW750.HDB.ABAPHA
+      SAPINST_START_GUISERVER=false SAPINST_SLP_MODE=false
       SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
-    my $nettout = 900;    # Time out for NetWeaver's sources related commands
-
-    $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
-    die "netweaver_ascs_install: currently only supported protocols are nfs and smb/smbfs/cifs"
-      unless ($proto eq 'nfs' or $proto eq 'cifs');
-
-    # Normalize path depending on the protocol
-    $path = fix_path($path, $proto);
+    push @sapoptions, "SAPINST_USE_HOSTNAME=$hostname";
+    push @sapoptions, "SAPINST_INPUT_PARAMETERS_URL=$params_file";
+    push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.ADA.ABAPHA";
 
     select_console 'root-console';
 
@@ -119,34 +121,55 @@ sub run {
     assert_script_run "umount /mnt";
     assert_script_run "md5sum -c /tmp/check-nw-media", $nettout;
 
-    # Define a valid hostname/IP address in /etc/hosts
-    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh > /tmp/add_ip_hostname2hosts.sh";
-    assert_script_run "/bin/bash -ex /tmp/add_ip_hostname2hosts.sh";
+    # Define a valid hostname/IP address in /etc/hosts, but not in HA
+    if (!get_var('HA_CLUSTER')) {
+        assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh > /tmp/add_ip_hostname2hosts.sh";
+        assert_script_run "/bin/bash -ex /tmp/add_ip_hostname2hosts.sh";
+    }
 
-    # Use the correct hostname in SAP's inifile.params
-    $cmd = q|sed -i "s/MyHostname/"$(hostname)"/" /sapinst/inifile.params|;
-    assert_script_run $cmd;
+    # Use the correct Hostname and InstanceNumber in SAP's params file
+    # Note: $hostname can be '$(hostname)', so we need to protect with '"'
+    assert_script_run "sed -i -e \"s/%HOSTNAME%/$hostname/g\" -e 's/%INSTANCE_ID%/$instance_id/g' $params_file";
 
     # Create an appropiate start_dir.cd file and an unattended installation directory
     $cmd = 'ls | while read d; do if [ -d "$d" -a ! -h "$d" ]; then echo $d; fi ; done | sed -e "s@^@/sapinst/@"';
-    assert_script_run "$cmd > /tmp/start_dir.cd";
-    type_string "mkdir -p /sapinst/unattended\n";
-    assert_script_run "mv /tmp/start_dir.cd /sapinst/unattended/";
+    assert_script_run 'mkdir -p /sapinst/unattended';
+    assert_script_run "$cmd > /sapinst/unattended/start_dir.cd";
 
     # Create sapinst group
     assert_script_run "groupadd sapinst";
     assert_script_run "chgrp -R sapinst /sapinst/unattended";
-    assert_script_run "chmod -R 0775 /sapinst/unattended";
-
-    # Set SAPADM to the SAP Admin user for future use
-    my $sid = script_output q|awk '/NW_GetSidNoProfiles.sid/ {print $NF}' inifile.params|, 10;
-    set_var('SAPADM', lc($sid) . 'adm');
+    assert_script_run "chmod 0775 /sapinst/unattended";
 
     # Start the installation
     type_string "cd /sapinst/unattended\n";
-    $cmd = "../SWPM/sapinst" . ' ' . join(' ', @sapoptions);
+    $cmd = '../SWPM/sapinst ' . join(' ', @sapoptions);
 
-    assert_script_run $cmd, $nettout;
+    # Synchronize with other nodes
+    if (get_var('HA_CLUSTER') && !is_node(1)) {
+        my $cluster_name = get_cluster_name;
+        barrier_wait("ASCS_INSTALLED_$cluster_name");
+    }
+
+    if ($instance_type eq 'ASCS') {
+        assert_script_run $cmd, $nettout;
+    }
+    elsif ($instance_type eq 'ERS') {
+        # We have to workaround an installation issue:
+        # ERS installation try to stop the ASCS server on first node and that doesn't work
+        script_run $cmd, $nettout;
+
+        # So we have to check in the log file that's the installation goes well
+        # We simply checking for the ASCS stop error message!
+        # TODO: change this to something more robust!
+        assert_script_run "grep -q 'Cannot stop instance.*ASCS' /sapinst/unattended/sapinst.log";
+    }
+
+    # Synchronize with other nodes
+    if (get_var('HA_CLUSTER') && is_node(1)) {
+        my $cluster_name = get_cluster_name;
+        barrier_wait("ASCS_INSTALLED_$cluster_name");
+    }
 }
 
 sub post_fail_hook {
@@ -158,6 +181,7 @@ sub post_fail_hook {
     $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
     upload_logs "/sapinst/unattended/sapinst.log";
     upload_logs "/sapinst/unattended/sapinst_dev.log";
+    upload_logs "/sapinst/unattended/start_dir.cd";
 }
 
 1;

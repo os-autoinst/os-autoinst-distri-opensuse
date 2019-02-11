@@ -15,6 +15,7 @@ use strict;
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils 'is_sles4sap';
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -35,7 +36,12 @@ sub run {
     select_console 'root-console' if (get_var('HDDVERSION'));
 
     # Wait for resources to be started
-    wait_until_resources_started;
+    if (is_sles4sap) {
+        wait_until_resources_started(timeout => 300);
+    }
+    else {
+        wait_until_resources_started;
+    }
 
     # And check for the state of the whole cluster
     check_cluster_state;
