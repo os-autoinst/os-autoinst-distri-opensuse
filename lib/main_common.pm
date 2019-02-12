@@ -548,6 +548,11 @@ sub load_jeos_tests {
         return;
     }
     unless (get_var('LTP_COMMAND_FILE')) {
+        if (check_var('ARCH', 'aarch64') && is_opensuse()) {
+            # Enable jeos-firstboot, due to boo#1020019
+            load_boot_tests();
+            loadtest "jeos/prepare_firstboot";
+        }
         load_boot_tests();
         loadtest "jeos/firstrun";
         loadtest "jeos/record_machine_id";
