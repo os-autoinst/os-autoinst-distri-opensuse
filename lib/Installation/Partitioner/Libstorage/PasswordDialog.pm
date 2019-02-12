@@ -23,17 +23,15 @@ use constant {
 };
 
 sub enter_password {
-    my ($self, $password) = @_;
     assert_screen(ENTER_PASSWORD_DIALOG);
     send_key('alt-p');
-    type_password($password);
+    type_password();
 }
 
 sub enter_password_confirmation {
-    my ($self, $password) = @_;
     assert_screen(ENTER_PASSWORD_DIALOG);
     send_key('alt-r');
-    type_password($password);
+    type_password();
 }
 
 sub press_ok {

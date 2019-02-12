@@ -23,7 +23,7 @@ use constant {
     ENABLED_LVM_CHECKBOX     => 'inst-partitioning-lvm-enabled'
 };
 
-sub enable_logical_volume_management {
+sub select_logical_volume_management_checkbox {
     assert_screen(PARTITIONING_SCHEME_PAGE);
     send_key('alt-e');
 }
@@ -40,17 +40,15 @@ sub select_enable_disk_encryption_checkbox {
 }
 
 sub enter_password {
-    my ($self, $password) = @_;
     assert_screen(PARTITIONING_SCHEME_PAGE);
     send_key('alt-p');
-    type_password($password);
+    type_password();
 }
 
 sub enter_password_confirmation {
-    my ($self, $password) = @_;
     assert_screen(PARTITIONING_SCHEME_PAGE);
     send_key('alt-v');
-    type_password($password);
+    type_password();
 }
 
 1;

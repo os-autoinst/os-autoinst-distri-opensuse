@@ -58,42 +58,53 @@ sub get_select_hard_disks_page {
     return $self->{SelectHardDisksPage};
 }
 
-sub create_encrypted_partition {
+sub edit_proposal {
     my ($self, %args) = @_;
-    my $is_lvm                = $args{is_lvm};
-    my $password              = $args{password};
-    my $confirmation_password = $args{confirmation_password};
     $self->get_suggested_partitioning_page()->press_guided_setup_button();
-    if ($is_lvm) {
-        $self->get_partitioning_scheme_page()->enable_logical_volume_management();
-    }
-    $self->get_partitioning_scheme_page()->select_enable_disk_encryption_checkbox();
-    $self->get_partitioning_scheme_page()->enter_password($password);
-    $self->get_partitioning_scheme_page()->enter_password_confirmation($confirmation_password);
-    $self->get_partitioning_scheme_page()->press_next();
-    $self->get_too_simple_password_dialog()->agree_with_too_simple_password();
-    $self->get_file_system_options_page()->press_next();
+    $self->_set_partitioning(%args);
 }
 
-sub create_partition {
+sub edit_proposal_for_existing_partition {
     my ($self, %args) = @_;
-    my $is_lvm = $args{is_lvm};
-    $self->get_suggested_partitioning_page()->press_guided_setup_button();
-    if ($is_lvm) {
-        $self->get_partitioning_scheme_page()->enable_logical_volume_management();
-    }
-    $self->get_partitioning_scheme_page()->press_next();
-    $self->get_file_system_options_page()->press_next();
-}
-
-sub configure_existing_encrypted_partition {
-    my ($self, %args) = @_;
-    my $is_lvm                = $args{is_lvm};
-    my $password              = $args{password};
-    my $confirmation_password = $args{confirmation_password};
     $self->get_suggested_partitioning_page()->press_guided_setup_button();
     $self->get_select_hard_disks_page()->press_next();
-    $self->create_encrypted_partition(is_lvm => $is_lvm, password => $password, confirmation_password => $confirmation_password);
+    $self->_set_partitioning(%args);
+}
+
+# The method proceeds through the Guided Setup Wizard and sets the data, that
+# is specified by the method parameters.
+# This allows a test to select the specified options, depending on the data that
+# it provides to the method, instead of making different set of methods for all
+# the required test combinations.
+sub _set_partitioning {
+    my ($self, %args) = @_;
+    my $is_lvm       = $args{is_lvm};
+    my $is_encrypted = $args{is_encrypted};
+    if ($is_lvm) {
+        $self->get_partitioning_scheme_page()->select_logical_volume_management_checkbox();
+    }
+    if ($is_encrypted) {
+        $self->_encrypt_with_too_simple_password();
+    }
+    else {
+        $self->get_partitioning_scheme_page()->press_next();
+    }
+    $self->get_file_system_options_page()->press_next();
+}
+
+# The default password which is used in the tests is determined as "too simple"
+# by the Libstorage-NG. This forces test to close the "too simple" popup each
+# time.
+# Random strong password would be preferable here, but due to current tests
+# infrastructure there is no simple solution to propogate random strong password
+# to another tests that require the password.
+sub _encrypt_with_too_simple_password {
+    my ($self) = @_;
+    $self->get_partitioning_scheme_page()->select_enable_disk_encryption_checkbox();
+    $self->get_partitioning_scheme_page()->enter_password();
+    $self->get_partitioning_scheme_page()->enter_password_confirmation();
+    $self->get_partitioning_scheme_page()->press_next();
+    $self->get_too_simple_password_dialog()->press_ok();
 }
 
 1;
