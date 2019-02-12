@@ -100,9 +100,4 @@ sub run {
     assert_script_run('getent ahosts ' . get_var("OPENQA_HOSTNAME"));
 }
 
-
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
