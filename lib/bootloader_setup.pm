@@ -21,6 +21,8 @@ use version_utils qw(is_caasp is_jeos is_leap is_sle);
 use caasp 'pause_until';
 use mm_network;
 
+use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT);
+
 our @EXPORT = qw(
   add_custom_grub_entries
   boot_grub_item
@@ -901,8 +903,20 @@ sub zkvm_add_disk {
 
 sub zkvm_add_pty {
     my ($svirt) = shift;
-    # need that for s390
-    $svirt->add_pty({pty_dev => 'console', pty_dev_type => 'pty', target_type => 'sclp', target_port => '0'});
+
+    # serial console used for the serial log
+    $svirt->add_pty({
+            pty_dev      => SERIAL_CONSOLE_DEFAULT_DEVICE,
+            pty_dev_type => 'pty',
+            target_type  => 'sclp',
+            target_port  => SERIAL_CONSOLE_DEFAULT_PORT});
+
+    # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
+    $svirt->add_pty({
+            pty_dev      => SERIAL_TERMINAL_DEFAULT_DEVICE,
+            pty_dev_type => 'pty',
+            target_type  => 'virtio',
+            target_port  => SERIAL_TERMINAL_DEFAULT_PORT});
 }
 
 sub zkvm_add_interface {
