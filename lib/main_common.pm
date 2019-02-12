@@ -1553,7 +1553,7 @@ sub load_extra_tests_console {
     loadtest "console/dracut";
     loadtest 'console/timezone';
     loadtest 'console/procps';
-    loadtest "console/lshw" if (is_sle('15+') || is_opensuse);
+    loadtest "console/lshw" if ((is_sle('15+') && check_var('ARCH', 'ppc64le')) || is_opensuse);
 }
 
 sub load_extra_tests_docker {
