@@ -176,6 +176,75 @@ sub test_pgsql {
 
     # verify that PHP successfully wrote the element in the database
     assert_script_run "sudo -u postgres psql -d openQAdb -c \"SELECT * FROM test\" | grep 'can php write this?'";
+
+    # add sudo rights to switch postgresql version and run script to determine oldest and latest version
+    assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
+    assert_script_run 'gpasswd -a postgres $(stat -c %G /dev/ttyS0)';
+    type_string "su - postgres\n", wait_still_screen => 1;
+    type_string "PS1='# '\n",      wait_still_screen => 1;
+    # upgrade db from oldest version to latest version
+    if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
+        assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
+        # due to orderless numbering untill version 94 is gone
+        my $pg_versions = <<'EOF';
+#!/bin/bash
+PG_VER=$(update-alternatives --list postgresql)
+if [[ $(echo $PG_VER|grep 94) ]]; then
+    export PG_OLDEST='postgresql94'
+elif [[ $(echo $PG_VER|grep 96) ]]; then
+    export PG_OLDEST='postgresql96'
+elif [[ $(echo $PG_VER|grep 10) ]]; then
+    export PG_OLDEST='postgresql10'
+elif [[ $(echo $PG_VER|grep 11) ]]; then
+    export PG_OLDEST='postgresql11'
+fi
+echo PG_OLDEST=/usr/lib/$PG_OLDEST >/tmp/pg_versions
+if [[ $(echo $PG_VER|grep 11) ]]; then
+    export PG_LATEST='postgresql11'
+elif [[ $(echo $PG_VER|grep 10) ]]; then
+    export PG_LATEST='postgresql10'
+elif [[ $(echo $PG_VER|grep 96) ]]; then
+    export PG_LATEST='postgresql96'
+elif [[ $(echo $PG_VER|grep 94) ]]; then
+    export PG_LATEST='postgresql94'
+fi
+echo PG_LATEST=/usr/lib/$PG_LATEST >>/tmp/pg_versions
+EOF
+        script_run "echo '$pg_versions' > pg_versions.sh";
+        assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
+        assert_script_run 'sudo bash pg_versions.sh && . /tmp/pg_versions';
+        assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
+        assert_script_run 'initdb -D /tmp/psql';
+        assert_script_run 'pg_ctl -D /tmp/psql start';
+        assert_script_run 'pg_ctl -D /tmp/psql status';
+        assert_script_run 'pg_ctl -D /tmp/psql stop';
+        assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
+        assert_script_run 'initdb -D /var/lib/pgsql/data2';
+        assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
+        assert_script_run 'pg_ctl -D /var/lib/pgsql/data start';
+        assert_script_run './analyze_new_cluster.sh';
+        assert_script_run './delete_old_cluster.sh';
+    }
+    # turn off pager, othwerwise assert_script_run can time out
+    assert_script_run 'export PAGER=cat';
+    assert_script_run 'alias p="psql -E"';
+    assert_script_run 'curl -O ' . data_url('console/dvdrental.zip');
+    assert_script_run 'unzip dvdrental.zip';
+    assert_script_run 'p -c "CREATE DATABASE dvdrental"';
+    assert_script_run 'psql -a -E -c "\l"|grep dvdrental';
+    assert_script_run 'pg_restore -d dvdrental -1 dvdrental.tar';
+    assert_script_run 'p -d dvdrental -c "\dt"';
+    assert_script_run 'p -d dvdrental -c "SELECT * FROM customer"|grep Davidson';
+    assert_script_run 'p -d dvdrental -c "INSERT INTO customer VALUES (\'600\', \'1\', \'openQA\', \'openQA\', \'openqa@openqa.com\', \'1\')"';
+    assert_script_run 'pg_dump --format=t dvdrental > dvdrental_dump.tar';
+    assert_script_run 'dropdb dvdrental';
+    assert_script_run 'p -c "CREATE DATABASE dvdrental"';
+    assert_script_run 'p -c "\l"|grep dvdrental';
+    assert_script_run 'pg_restore -d dvdrental -1 dvdrental_dump.tar';
+    # check if db contains old and new table row
+    assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE first_name = \'openQA\'"|grep openQA';
+    assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE last_name = \'Davidson\'"|grep Davidson';
+    type_string "exit\n", wait_still_screen => 1;
 }
 
 sub test_mysql {

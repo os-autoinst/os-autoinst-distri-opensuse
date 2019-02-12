@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,8 +29,8 @@ sub run {
     # ensure apache2 + php7 installed and running
     setup_apache2(mode => 'PHP7');
 
-    # install requirements
-    zypper_call 'in php7-pgsql postgresql*-server sudo';
+    # install requirements, all postgresql versions to test db upgrade if there are multiple versions
+    zypper_call 'in php7-pgsql postgresql*-contrib sudo';
 
     # start postgresql service
     systemctl 'start postgresql';
