@@ -21,7 +21,7 @@ use power_action_utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(
   process_reboot microos_login send_alt
-  handle_simple_pw script_retry script_run0 script_assert0
+  handle_simple_pw script_run0 script_assert0
   get_delayed update_scheduled
   pause_until unpause);
 
@@ -178,26 +178,6 @@ sub update_scheduled {
     return $repo =~ 'TestUpdate'  if $type eq 'fake';
     return $repo =~ 'SCC-proxy'   if $type eq 'migration';
     die "Unrecognized type: '$type'";
-}
-
-# Repeat command until expected result or timeout
-# script_retry 'ping -c1 -W1 machine', retry => 5
-sub script_retry {
-    my ($cmd, %args) = @_;
-    my $ecode = $args{expect} // 0;
-    my $retry = $args{retry}  // 10;
-    my $delay = $args{delay}  // 30;
-
-    my $ret;
-    for (1 .. $retry) {
-        type_string "# Trying $_ of $retry:\n";
-
-        $ret = script_run "timeout 25 $cmd";
-        last if defined($ret) && $ret == $ecode;
-
-        die("Waiting for Godot: $cmd") if $retry == $_;
-        sleep $delay;
-    }
 }
 
 # Wrapper returning PIPESTATUS[0]

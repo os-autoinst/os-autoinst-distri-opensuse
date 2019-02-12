@@ -15,7 +15,6 @@ use base 'xen';
 use strict;
 use testapi;
 use utils;
-use caasp 'script_retry';
 
 sub run {
     my $self   = shift;

@@ -72,6 +72,7 @@ our @EXPORT = qw(
   svirt_host_basedir
   prepare_ssh_localhost_key_login
   disable_serial_getty
+  script_retry
   script_run_interactive
 );
 
@@ -961,6 +962,26 @@ sub prepare_ssh_localhost_key_login {
     else {
         assert_script_sudo('mkdir -p /root/.ssh');
         assert_script_sudo("cat /home/$source_user/.ssh/id_rsa.pub | tee -a /root/.ssh/authorized_keys");
+    }
+}
+
+# Repeat command until expected result or timeout
+# script_retry 'ping -c1 -W1 machine', retry => 5
+sub script_retry {
+    my ($cmd, %args) = @_;
+    my $ecode = $args{expect} // 0;
+    my $retry = $args{retry}  // 10;
+    my $delay = $args{delay}  // 30;
+
+    my $ret;
+    for (1 .. $retry) {
+        type_string "# Trying $_ of $retry:\n";
+
+        $ret = script_run "timeout 25 $cmd";
+        last if defined($ret) && $ret == $ecode;
+
+        die("Waiting for Godot: $cmd") if $retry == $_;
+        sleep $delay;
     }
 }
 

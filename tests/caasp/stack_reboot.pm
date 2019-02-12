@@ -16,6 +16,7 @@ use caasp_controller;
 use strict;
 use testapi;
 use caasp;
+use utils 'script_retry';
 
 sub run {
     switch_to 'xterm';
