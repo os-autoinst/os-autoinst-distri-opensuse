@@ -1997,11 +1997,11 @@ sub load_applicationstests {
     return 0;
 }
 
-# The function name load_security_tests_* is to avoid confusing since
-# openSUSE does NOT have FIPS mode
+# The function name load_security_tests_crypt_* is to avoid confusing
+# since openSUSE does NOT have FIPS mode
 # Some tests are valid only for FIPS Regression testing. Use
 # "FIPS_ENABLED" to control whether to run these "FIPS only" cases
-sub load_security_tests_core {
+sub load_security_tests_crypt_core {
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/openssl/openssl_fips_alglist";
         loadtest "fips/openssl/openssl_fips_hash";
@@ -2020,7 +2020,7 @@ sub load_security_tests_core {
     loadtest "console/consoletest_finish";
 }
 
-sub load_security_tests_web {
+sub load_security_tests_crypt_web {
     loadtest "console/curl_https";
     loadtest "console/wget_https";
     loadtest "console/w3m_https";
@@ -2035,7 +2035,7 @@ sub load_security_tests_web {
     }
 }
 
-sub load_security_tests_misc {
+sub load_security_tests_crypt_misc {
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/curl_fips_rc4_seed";
         loadtest "console/aide_check";
@@ -2053,7 +2053,7 @@ sub load_security_tests_misc {
     loadtest "x11/libcamgm";
 }
 
-sub load_security_tests_crypt {
+sub load_security_tests_crypt_tool {
     loadtest "console/gpg";
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
@@ -2117,17 +2117,17 @@ sub load_security_tests {
         # Setup system into fips mode
         loadtest "fips/fips_setup";
     }
-    elsif (check_var("SECURITY_TEST", "core")) {
-        load_security_tests_core;
+    elsif (check_var("SECURITY_TEST", "crypt_core")) {
+        load_security_tests_crypt_core;
     }
-    elsif (check_var("SECURITY_TEST", "web")) {
-        load_security_tests_web;
+    elsif (check_var("SECURITY_TEST", "crypt_web")) {
+        load_security_tests_crypt_web;
     }
-    elsif (check_var("SECURITY_TEST", "misc")) {
-        load_security_tests_misc;
+    elsif (check_var("SECURITY_TEST", "crypt_misc")) {
+        load_security_tests_crypt_misc;
     }
-    elsif (check_var("SECURITY_TEST", "crypt")) {
-        load_security_tests_crypt;
+    elsif (check_var("SECURITY_TEST", "crypt_tool")) {
+        load_security_tests_crypt_tool;
     }
     elsif (check_var("SECURITY_TEST", "ipsec")) {
         loadtest "console/ipsec_tools_h2h";
