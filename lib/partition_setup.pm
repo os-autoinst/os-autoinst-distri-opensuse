@@ -266,7 +266,9 @@ sub addlv {
 
     assert_screen 'expert-partitioner';
     send_key $cmd{system_view};
-    send_key 'home';
+    assert_screen_change(sub {
+            send_key 'home';
+    }, 5);
     send_key_until_needlematch('volume_management_feature', 'down');
     wait_still_screen(stilltime => 2, timeout => 4);
     # Expand collapsed list with VGs
