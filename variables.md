@@ -34,7 +34,8 @@ DUD_ADDONS | string | | Comma separated list of addons added using DUD.
 DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combine with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
 EVERGREEN |||
-EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the bootloader.
+EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the installation bootloader.
+EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot process of a local installation.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
 FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DVD`, `Krypton`, `Argon`, `Gnome-Live`, `DVD`, `Rescue-CD`, etc.
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
