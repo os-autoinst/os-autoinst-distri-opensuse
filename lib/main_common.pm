@@ -2235,40 +2235,26 @@ sub load_xen_hypervisor_tests {
 
 sub load_xen_client_tests() {
     loadtest 'boot/boot_to_desktop';
-    # Install the virt-manager package
-    loadtest 'virtualization/xen/install_virtmanager';
-    # Connect to hypervisor using SSH
-    loadtest 'virtualization/xen/ssh_hypervisor';
-    # Connect to the Xen hypervisor using virt-manager
-    loadtest 'virtualization/xen/virtmanager';
-    # Exchange SSH keys with guests
-    loadtest 'virtualization/xen/ssh_guests_init';
-    # Connect to guests using SSH
-    loadtest 'virtualization/xen/ssh_guests';
-    # Add test repositories and patch our guests
-    loadtest 'virtualization/xen/patch_guests';
-    # Try to save and restore the state of the guest
-    loadtest 'virtualization/xen/save_and_restore';
-    # Try to change properties of guests
-    loadtest 'virtualization/xen/hotplugging';
-    # Try to shutdown, start, suspend and resume the guest
-    loadtest 'virtualization/xen/guest_management';
-    # Stop libvirt guests
-    loadtest 'virtualization/xen/virsh_stop';
-    # Clone guests using the xl Xen tool
-    loadtest 'virtualization/xen/xl_create';
-    # Install vhostmd and vm-dump-metrics
-    loadtest 'virtualization/xen/dom_install';
-    # Collect some sample metrics
-    loadtest 'virtualization/xen/dom_metrics';
-    # Stop guests created by the xl Xen tool
-    loadtest 'virtualization/xen/xl_stop';
-    # Start virsh guests again
-    loadtest 'virtualization/xen/virsh_start';
-    # Connect to the Xen hypervisor using virt-manager
-    loadtest 'virtualization/xen/virtmanager';
-    # Connect to guests using SSH
-    loadtest 'virtualization/xen/ssh_guests';
+    loadtest 'virtualization/xen/install_virtmanager';        # Install the virt-manager package
+    loadtest 'virtualization/xen/ssh_hypervisor';             # Connect to hypervisor using SSH
+    loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
+    loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
+    loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
+    loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
+    loadtest 'virtualization/xen/ssh_guests_init';            # Exchange SSH keys with guests
+    loadtest 'virtualization/xen/ssh_guests';                 # Connect to guests using SSH
+    loadtest 'virtualization/xen/patch_guests';               # Add test repositories and patch our guests
+    loadtest 'virtualization/xen/save_and_restore';           # Try to save and restore the state of the guest
+    loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
+    loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
+    loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
+    loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
+    loadtest 'virtualization/xen/dom_install';                # Install vhostmd and vm-dump-metrics
+    loadtest 'virtualization/xen/dom_metrics';                # Collect some sample metrics
+    loadtest 'virtualization/xen/xl_stop';                    # Stop guests created by the xl Xen tool
+    loadtest 'virtualization/xen/virsh_start';                # Start virsh guests again
+    loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
+    loadtest 'virtualization/xen/ssh_guests';                 # Connect to guests using SSH
 }
 
 sub load_extra_tests_syscontainer {

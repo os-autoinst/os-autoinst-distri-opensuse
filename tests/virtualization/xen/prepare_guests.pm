@@ -30,7 +30,7 @@ sub run {
     # Show all guests
     assert_script_run 'xl list';
     assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
-    save_screenshot;
+    wait_still_screen 1;
 
     # Install every defined guest
     foreach my $guest (keys %xen::guests) {

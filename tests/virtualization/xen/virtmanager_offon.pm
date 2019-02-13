@@ -13,26 +13,40 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This stops all xl VMs
+# Summary: This test turns all VMs off and then on again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "x11test";
 use xen;
 use strict;
 use testapi;
 use utils;
-use caasp 'script_retry';
+use virtmanager 'detect_login_screen';
 
 sub run {
     my ($self) = @_;
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    select_console 'x11';
+
+    x11_start_program 'virt-manager';
+    assert_screen "virt-manager_connected";
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Stopping xl-$guest guests";
-        assert_script_run "ssh root\@$hypervisor xl shutdown -w xl-$guest";
+        record_info "$guest", "VM $guest will be turned off and then on again";
+
+        assert_and_dclick "virt-manager_list-$guest";
+        detect_login_screen();
+
+        assert_and_click 'virt-manager_shutdown';
+        assert_screen 'virt-manager_notrunning';
+        assert_and_click 'virt-manager_poweron', 'left', 90;
+
+        detect_login_screen(120);
+        assert_and_click 'virt-manager_file';
+        assert_and_click 'virt-manager_close';
+
     }
 
-    script_retry "ssh root\@$hypervisor 'xl list | grep xl'", delay => 3, retry => 30, expect => 1;
+    wait_screen_change { send_key 'alt-f4'; };
 }
 
 sub test_flags {

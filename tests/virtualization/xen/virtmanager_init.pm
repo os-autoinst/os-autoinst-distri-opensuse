@@ -13,26 +13,45 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This stops all xl VMs
+# Summary: This test connects to hypervisor and check our VMs
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "x11test";
 use xen;
 use strict;
 use testapi;
 use utils;
-use caasp 'script_retry';
 
 sub run {
     my ($self) = @_;
+    select_console 'x11';
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
 
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Stopping xl-$guest guests";
-        assert_script_run "ssh root\@$hypervisor xl shutdown -w xl-$guest";
-    }
+    x11_start_program 'virt-manager';
 
-    script_retry "ssh root\@$hypervisor 'xl list | grep xl'", delay => 3, retry => 30, expect => 1;
+    assert_screen 'virt-manager_add-connection';
+    send_key 'spc';
+    send_key 'down';
+    send_key 'down';
+    send_key 'spc';
+    wait_still_screen 1;    # XEN selected
+    send_key 'tab';
+    send_key 'spc';
+    wait_still_screen 1;    # Connect to remote host ticked
+    send_key 'tab';
+    send_key 'tab';
+    type_string 'root';
+    wait_still_screen 1;    # root written
+    send_key 'tab';
+    type_string "$hypervisor";
+    wait_still_screen 1;    # $hypervisor written
+    send_key 'tab';
+    send_key 'spc';
+    wait_still_screen 1;    # autoconnect ticked
+    send_key 'ret';
+    assert_screen "virt-manager_connected";
+
+    wait_screen_change { send_key 'alt-f4'; };
 }
 
 sub test_flags {

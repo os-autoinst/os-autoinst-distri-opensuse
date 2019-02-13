@@ -15,10 +15,12 @@ use xen;
 use strict;
 use testapi;
 use utils;
+use caasp 'script_retry';
 
 sub run {
-    my ($self) = @_;
+    my ($self)     = @_;
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $domain     = get_required_var('QAM_XEN_DOMAIN');
 
     assert_script_run "ssh root\@$hypervisor 'zypper -n in libvirt-client'";
     assert_script_run "ssh root\@$hypervisor 'mkdir -p /var/lib/libvirt/images/saves/'";
@@ -37,6 +39,9 @@ sub run {
 
     record_info "Check", "Check restored states";
     assert_script_run "ssh root\@$hypervisor 'virsh list --all | grep $_ | grep running'" foreach (keys %xen::guests);
+
+    record_info "SSH", "Check hosts are listening on SSH";
+    script_retry "ssh root\@$hypervisor 'nmap $_.$domain -PN -p ssh | grep open'", delay => 3, retry => 60 foreach (keys %xen::guests);
 }
 
 sub test_flags {

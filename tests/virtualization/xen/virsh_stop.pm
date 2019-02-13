@@ -26,7 +26,7 @@ sub run {
     my ($self) = @_;
     my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
 
-    assert_script_run "ssh root\@$hypervisor 'virsh shutdown $_'" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$hypervisor 'virsh destroy $_'" foreach (keys %xen::guests);
     for (my $i = 0; $i <= 120; $i++) {
         if (script_run("ssh root\@$hypervisor 'virsh list --all | grep -v Domain-0 | grep running'") == 1) {
             last;
