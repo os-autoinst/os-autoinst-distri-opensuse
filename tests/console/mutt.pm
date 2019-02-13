@@ -21,6 +21,7 @@ sub run {
     $self->select_serial_terminal;
 
     zypper_call("in mutt", exitcode => [0, 102, 103]) if (is_tumbleweed || is_jeos);
+    zypper_call("in wget", exitcode => [0, 102, 103]) if is_jeos;
 
     # Mutt is Mutt (bsc#1094717) and has build in support for IMAP and SMTP
     validate_script_output 'mutt -v', sub { m/\+USE_IMAP/ && m/\+USE_SMTP/ && not m/NeoMutt/ };
