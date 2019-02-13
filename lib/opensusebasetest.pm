@@ -426,6 +426,7 @@ sub wait_boot {
     my $forcenologin    = $args{forcenologin};
     my $linux_boot_entry //= 14;
 
+    die "wait_boot: got undefined class" unless $self;
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
     # shutting down or booting up
@@ -497,7 +498,7 @@ sub wait_boot {
     }
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
-        wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+        $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
         if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
             # TODO do we already have code to control the boot parameters? I
             # think so
