@@ -277,7 +277,9 @@ sub save_upload_y2logs {
         script_run("cat /var/log/YaST/y2log > /dev/$serialdev");
     }
     save_screenshot();
-    $self->investigate_yast2_failure();
+    # We skip parsing yast2 logs in each installation scenario, but only if
+    # test has failed or we want to explicitly identify failures
+    $self->investigate_yast2_failure() unless $args{skip_logs_investigation};
 }
 
 sub get_available_compression {
