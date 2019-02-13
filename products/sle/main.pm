@@ -1039,6 +1039,11 @@ else {
             return 1 if load_default_tests;
         }
     }
+    # For virtualization testing we wan't to test some functionality, but not all of it
+    if (check_var('VIRTUALIZATION_TESTING', 'short')) {
+        load_consoletests;
+        return 1;
+    }
     unless (load_applicationstests() || load_slenkins_tests()) {
         load_rescuecd_tests();
         load_consoletests();
