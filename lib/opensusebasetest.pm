@@ -687,6 +687,23 @@ sub wait_boot {
 
             assert_screen 'displaymanager-password-prompt', no_wait => 1;
             type_password $password. "\n";
+            # Sometimes the screen back to displaymanager, so we try to retype password, see poo#45236 and bsc#1127317
+            my $count = 0;
+            while ($count < 3) {
+                if (!check_screen([qw(generic-desktop emergency-shell emergency-mode)], 10)) {
+                    if (check_screen('displaymanager', 5) && check_var('DESKTOP', 'gnome')) {
+                        record_soft_failure('bsc#1127317 - desktop can not show after gdm window');
+                        # In GNOME/gdm, we do not have to enter a username, but we have to select it
+                        wait_screen_change(sub { send_key 'tab'; }, 10) if is_tumbleweed;
+                        wait_screen_change(sub { send_key 'ret'; }, 10);
+                    }
+                    if (check_screen('displaymanager-password-prompt', 10)) {
+                        record_soft_failure('bsc#1127317 - desktop not show, then we retype password');
+                        type_password $password. "\n";
+                    }
+                }
+                $count++;
+            }
         }
         else {
             mouse_hide(1);
