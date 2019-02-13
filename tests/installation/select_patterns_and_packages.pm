@@ -208,7 +208,8 @@ sub select_specific_patterns_by_iteration {
                 }
             }
         }
-        last unless (scalar keys %patterns);       # exit earlier if all patterns where processed
+        # exit earlier if default and all patterns were processed
+        last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
 
         $needs_to_be_selected = 1 if get_var('PATTERNS', '') =~ /all/;
 
