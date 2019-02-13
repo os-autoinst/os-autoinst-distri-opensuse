@@ -74,7 +74,7 @@ test-dry:
 
 .PHONY: test-no-wait_idle
 test-no-wait_idle:
-	@! git grep -q wait_idle lib/ tests/
+	@! git --no-pager grep wait_idle lib/ tests/
 
 .PHONY: test-static
 test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
@@ -98,4 +98,4 @@ test-unused-modules:
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
-	@! git grep -q -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+	@! git --no-pager grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
