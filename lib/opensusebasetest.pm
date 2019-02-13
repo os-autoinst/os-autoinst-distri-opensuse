@@ -426,6 +426,7 @@ sub wait_boot {
     my $forcenologin    = $args{forcenologin};
     my $linux_boot_entry //= 14;
 
+    die "wait_boot: got undefined class" unless $self;
     # used to register a post fail hook being active while we are waiting for
     # boot to be finished to help investigate in case the system is stuck in
     # shutting down or booting up
