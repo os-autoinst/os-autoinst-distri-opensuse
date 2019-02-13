@@ -154,12 +154,15 @@ sub run {
     }
     elsif ($instance_type eq 'ERS') {
         # We have to workaround an installation issue:
-        # ERS installation try to stop the ASCS server on first node and that doesn't work
+        # ERS installation try to stop the ASCS server but that doesn't work
+        #  because ASCS is running on the first node!
+        # It's "normal" and documentation says that we have to install ERS on the 2nd node
+        #  in order to have the SAP environment correctly set-up.
         script_run $cmd, $nettout;
 
         # So we have to check in the log file that's the installation goes well
         # We simply checking for the ASCS stop error message!
-        # TODO: change this to something more robust!
+        # TODO: maybe change this to something more robust!
         assert_script_run "grep -q 'Cannot stop instance.*ASCS' /sapinst/unattended/sapinst.log";
     }
 
