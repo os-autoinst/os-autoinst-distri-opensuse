@@ -68,6 +68,7 @@ sub run {
         }
         elsif (match_has_tag("orthos-grub-boot")) {
             #Orthos
+            wait_still_screen 5;
             my $path_prefix = "auto/openqa/repo";
             my $path        = "${path_prefix}/${image_name}/boot/${arch}";
             $image_path = "linux $path/linux install=$repo";
@@ -138,6 +139,7 @@ sub run {
         if (match_has_tag("orthos-grub-boot-linux")) {
             my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
             my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+            wait_still_screen 5;
             type_string $args;
             send_key 'ret';
             assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
