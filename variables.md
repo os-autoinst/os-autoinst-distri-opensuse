@@ -82,6 +82,7 @@ REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified 
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.
 RESCUECD | boolean | false | Indicates rescue image to be used.
 RESCUESYSTEM | boolean | false | Indicates rescue system under test.
+ROOTONLY | boolean | false | Request installation to create only the root account, no user account.
 SCC_ADDONS | string | | Coma separated list of modules to be enabled using SCC/RMT.
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
 SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certificate validation of the remote source, e.g. when using self-signed https url.
