@@ -497,7 +497,7 @@ sub wait_boot {
     }
     # On Xen PV and svirt we don't see a Grub menu
     elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt'))) {
-        wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+        $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
         if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
             # TODO do we already have code to control the boot parameters? I
             # think so
