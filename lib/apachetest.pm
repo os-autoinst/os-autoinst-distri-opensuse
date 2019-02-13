@@ -179,7 +179,7 @@ sub test_pgsql {
 
     # add sudo rights to switch postgresql version and run script to determine oldest and latest version
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
-    assert_script_run 'gpasswd -a postgres $(stat -c %G /dev/ttyS0)';
+    assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
     type_string "su - postgres\n", wait_still_screen => 1;
     type_string "PS1='# '\n",      wait_still_screen => 1;
     # upgrade db from oldest version to latest version
