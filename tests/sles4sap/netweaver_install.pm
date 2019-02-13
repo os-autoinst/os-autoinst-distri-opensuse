@@ -94,12 +94,10 @@ sub run {
         $product_id = 'NW_ERS';
     }
 
-    my @sapoptions = qw(
-      SAPINST_START_GUISERVER=false SAPINST_SLP_MODE=false
-      SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
+    my @sapoptions = qw(SAPINST_START_GUISERVER=false SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
     push @sapoptions, "SAPINST_USE_HOSTNAME=$hostname";
     push @sapoptions, "SAPINST_INPUT_PARAMETERS_URL=$params_file";
-    push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.ADA.ABAPHA";
+    push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.HDB.ABAPHA";
 
     select_console 'root-console';
 
@@ -129,7 +127,7 @@ sub run {
 
     # Use the correct Hostname and InstanceNumber in SAP's params file
     # Note: $hostname can be '$(hostname)', so we need to protect with '"'
-    assert_script_run "sed -i -e \"s/%HOSTNAME%/$hostname/g\" -e 's/%INSTANCE_ID%/$instance_id/g' $params_file";
+    assert_script_run "sed -i -e \"s/%HOSTNAME%/$hostname/g\" -e 's/%INSTANCE_ID%/$instance_id/g' -e 's/%INSTANCE_SID%/$sid/g' $params_file";
 
     # Create an appropiate start_dir.cd file and an unattended installation directory
     $cmd = 'ls | while read d; do if [ -d "$d" -a ! -h "$d" ]; then echo $d; fi ; done | sed -e "s@^@/sapinst/@"';
@@ -156,12 +154,15 @@ sub run {
     }
     elsif ($instance_type eq 'ERS') {
         # We have to workaround an installation issue:
-        # ERS installation try to stop the ASCS server on first node and that doesn't work
+        # ERS installation try to stop the ASCS server but that doesn't work
+        #  because ASCS is running on the first node!
+        # It's "normal" and documentation says that we have to install ERS on the 2nd node
+        #  in order to have the SAP environment correctly set-up.
         script_run $cmd, $nettout;
 
         # So we have to check in the log file that's the installation goes well
         # We simply checking for the ASCS stop error message!
-        # TODO: change this to something more robust!
+        # TODO: maybe change this to something more robust!
         assert_script_run "grep -q 'Cannot stop instance.*ASCS' /sapinst/unattended/sapinst.log";
     }
 
