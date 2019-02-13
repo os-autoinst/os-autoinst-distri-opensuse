@@ -33,7 +33,7 @@ sub run {
     select_console("root-console");
 
     # images can be searched on the default registry
-    validate_script_output("podman search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
+    validate_script_output("podman search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
 
     # images can be pulled from the default registry
     #   - pull minimalistic alpine image of declared version using tag
