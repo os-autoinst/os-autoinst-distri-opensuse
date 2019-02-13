@@ -307,7 +307,8 @@ else {
         }
         chomp $n;
         if (!$requested{$n}) {
-            warn "no version specified for $n, can't verify\n";
+            print STDERR "ERROR: no version specified for $n, can't verify\n";
+            print "ERROR: no version specified for $n, can't verify\n";
             $exit_status = 1;
             next;
         }
@@ -317,13 +318,19 @@ else {
         #$sel->filter($pool->{installed}->Selection()) if $sel;
         my @solvables = $sel->solvables();
         if (!@solvables) {
-            print STDERR "$n-$v was not installed!\n";
+            print STDERR "ERROR: $n-$v was not installed!\n";
+            print "ERROR: $n-$v was not installed!\n";
             $exit_status = 1;
         }
         for my $s (@solvables) {
             print STDERR "i $s->{name}-$s->{evr}.$s->{arch}\n" if $options{verbose};
         }
     }
+}
+
+if ($exit_status) {
+	# the script is immediately followed by a clear, and the error is only visible in STDERR
+	sleep(5);
 }
 
 exit $exit_status;
