@@ -2544,18 +2544,16 @@ sub load_transactional_role_tests {
 # Tests to validate partitioning with LVM, both encrypted and not encrypted.
 # Also covered a case while installing on a system with a cryptlvm volume
 # present (e.g. previous clean installation using cryptlvm).
-# If 'ENCRYPT_FORCE_RECOMPUTE' variable is specified, call the test that
-# reconfigures lvm partition, otherwise partition suggestion based on existing
-# cryptlvm should compute encrypted system (currently it refers to bsc#993247).
 sub load_lvm_tests {
     if (get_var("ENCRYPT")) {
-        if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-            if (get_var('ENCRYPT_FORCE_RECOMPUTE')) {
-                loadtest 'installation/partitioning/encrypt_lvm_ignore_existing';
-            }
-            else {
-                loadtest 'installation/partitioning/encrypt_lvm_reuse_existing';
-            }
+        # In case if encryption should be explicitly made on the system with
+        # already encrypted partition, the test ignores the existing
+        # partitioning settings and configures them again.
+        if (get_var('ENCRYPT_FORCE_RECOMPUTE') || get_var('ENCRYPT_CANCEL_EXISTING')) {
+            loadtest 'installation/partitioning/encrypt_lvm_ignore_existing';
+        }
+        elsif (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+            loadtest 'installation/partitioning/encrypt_lvm_reuse_existing';
         }
         else {
             loadtest 'installation/partitioning/encrypt_lvm';

@@ -23,7 +23,7 @@ use constant {
     TOO_SIMPLE_PASSWORD_DIALOG => 'inst-userpasswdtoosimple'
 };
 
-sub agree_with_too_simple_password {
+sub press_ok {
     assert_screen(TOO_SIMPLE_PASSWORD_DIALOG);
     send_key('alt-y');
 }

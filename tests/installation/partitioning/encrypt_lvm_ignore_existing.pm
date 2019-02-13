@@ -19,7 +19,7 @@ use parent "installbasetest";
 sub run {
     my $partitioner = $testapi::distri->get_partitioner();
     $partitioner->get_suggested_partitioning_page()->check_existing_encrypted_partition_ignored();
-    $partitioner->configure_existing_encrypted_partition(is_lvm => 1);
+    $partitioner->edit_proposal_for_existing_partition(is_lvm => 1, is_encrypted => 1);
     $partitioner->get_suggested_partitioning_page()->assert_encrypted_partition_with_lvm_shown_in_the_list();
 }
 
