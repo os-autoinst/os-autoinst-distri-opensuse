@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,6 +9,7 @@
 
 # Summary: The module provides base and helper functions for powering off or rebooting a machine under test.
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
+
 package power_action_utils;
 
 use base Exporter;
@@ -42,7 +43,7 @@ sub prepare_system_shutdown {
         }
         console('installation')->disable_vnc_stalls;
     }
-    if (check_var('BACKEND', 'svirt')) {
+    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
         console('svirt')->stop_serial_grab;
@@ -253,7 +254,7 @@ sub power_action {
         # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
         select_console('svirt') if is_vmware && $action eq 'reboot';
         reset_consoles;
-        if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
+        if (check_var('VIRSH_VMM_FAMILY', 'xen') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
         }
         # When 'sut' is ready, select it

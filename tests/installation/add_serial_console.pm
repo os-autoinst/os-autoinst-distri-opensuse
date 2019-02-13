@@ -34,6 +34,11 @@ sub run {
     assert_script_run('sed -ie \'s/GRUB_TERMINAL.*//\' /etc/default/grub');
     assert_script_run('echo GRUB_TERMINAL_OUTPUT=\"serial gfxterm\" >> /etc/default/grub');
     assert_script_run('echo GRUB_SERIAL_COMMAND=\"serial\" >> /etc/default/grub');
+    # Set expected resolution for GRUB and kernel
+    assert_script_run('sed -ie \'s/GRUB_GFXMODE.*/GRUB_GFXMODE=\"1024x768x32\"/\' /etc/default/grub');
+    assert_script_run('echo GRUB_GFXPAYLOAD_LINUX=\"1024x768x32\" >> /etc/default/grub');
+    assert_script_run('grep ^[[:alpha:]] /etc/default/grub');
+    # Update GRUB
     assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
 
     # Exit chroot
