@@ -31,6 +31,11 @@ sub run {
 
     my $base_pattern = is_sle('>=15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
 
+    # If DVD Packages is used we need to (re-)enable the local repos
+    zypper_call 'mr -e -l'
+      if is_sle('15+')
+      and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
+
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
     $output = script_output("zypper info -t pattern sap_server");
