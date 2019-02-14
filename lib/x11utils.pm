@@ -200,6 +200,7 @@ sub select_user_gnome {
 }
 
 sub turn_off_kde_screensaver {
+    select_console 'x11';
     x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
     if (match_has_tag('kde-screenlock-enabled')) {
         assert_and_click('kde-disable-screenlock');
@@ -217,6 +218,7 @@ Disable screensaver in gnome. To be called from a command prompt, for example an
 
 =cut
 sub turn_off_gnome_screensaver {
+    select_console 'user-console';
     script_run 'gsettings set org.gnome.desktop.session idle-delay 0';
 }
 
