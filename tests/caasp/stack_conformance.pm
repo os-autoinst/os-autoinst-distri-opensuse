@@ -18,7 +18,6 @@ use caasp_controller;
 use strict;
 use utils;
 use testapi;
-use caasp 'script_retry';
 use version_utils 'is_caasp';
 
 my $config_json = <<'EOF';

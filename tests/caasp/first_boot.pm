@@ -14,10 +14,10 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl script_retry);
 use version_utils 'is_caasp';
 use bootloader_setup 'set_framebuffer_resolution';
-use caasp qw(process_reboot script_retry microos_login);
+use caasp qw(process_reboot microos_login);
 
 sub run {
     # On DVD images stall prevents reliable matching of BIOS needle - poo#28648

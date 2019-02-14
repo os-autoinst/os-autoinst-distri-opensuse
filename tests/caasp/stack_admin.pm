@@ -14,6 +14,7 @@ use base "caasp_clusternode";
 use strict;
 use testapi;
 use caasp;
+use utils 'script_retry';
 use version_utils 'is_caasp';
 
 # Set password on autoyast nodes - bsc#1030876
