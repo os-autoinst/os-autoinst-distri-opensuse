@@ -743,6 +743,7 @@ test user as well as root.
 =cut
 sub ensure_serialdev_permissions {
     my ($self) = @_;
+    return if get_var('ROOTONLY');
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
