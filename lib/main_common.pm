@@ -2562,7 +2562,13 @@ sub load_lvm_tests {
         }
     }
     else {
-        loadtest 'installation/partitioning/lvm';
+        if (get_var('ENCRYPT_CANCEL_EXISTING')) {
+            loadtest 'installation/partitioning/lvm_ignore_existing';
+        }
+        else {
+            loadtest 'installation/partitioning/lvm';
+        }
+
     }
 }
 
