@@ -69,7 +69,7 @@ sub create_new_partition_table {
         GPT   => 'alt-g',
     );
 
-    assert_screen('release-notes-button');
+    assert_screen 'partitioning-edit-proposal-button';
     send_key $cmd{expertpartitioner};
     if (is_storage_ng) {
         # start with existing configuration
