@@ -208,9 +208,6 @@ sub select_specific_patterns_by_iteration {
                 }
             }
         }
-        # exit earlier if default and all patterns were processed
-        last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
-
         $needs_to_be_selected = 1 if get_var('PATTERNS', '') =~ /all/;
 
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
@@ -228,6 +225,10 @@ sub select_specific_patterns_by_iteration {
         if (!$needs_to_be_selected && $selected) {
             switch_selection(action => 'unselect', needles => [qw(current-pattern-unselected current-pattern-autoselected)]);
         }
+
+        # exit earlier if default and all patterns were processed
+        last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
+
         move_down;
     }
     # check if we have processed all patterns mentioned in the test suite settings
