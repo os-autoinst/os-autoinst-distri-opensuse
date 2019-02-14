@@ -65,6 +65,7 @@ sub run {
 
 sub post_fail_hook {
     upload_logs '/var/log/salt/deepsea.log';
+    upload_logs '/var/log/zypper.log';
 }
 
 1;
