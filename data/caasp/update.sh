@@ -86,7 +86,7 @@ elif [ ! -z "${EXECUTE:-}" ]; then
     if [[ $EXECUTE == cmd.run* ]]; then
         $srun -P "$TARGET" cmd.run "${EXECUTE#* }"
     else
-        $srun -P "$TARGET" "$EXECUTE"
+        $srun -P "$TARGET" $EXECUTE
     fi
 
 elif [ ! -z "${TEST:-}" ]; then

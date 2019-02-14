@@ -83,7 +83,7 @@ sub update_check_changes {
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
-    # QA: fake repo with pre-defined values (hardcoded)
+    # QA: TestUpdate repo with pre-defined values (hardcoded)
     unless (is_caasp 'qam') {
         script_assert0 "ssh $admin_fqdn './update.sh -c' | tee /dev/$serialdev", 60;
     }
@@ -112,7 +112,7 @@ sub install_new_packages {
 }
 
 # ./update.sh -q will decide if it makes sense to run update_perform_update
-sub is_needed {
+sub update_available {
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -q' | tee /dev/$serialdev", 120);
     if ($returnCode == 110) {
         record_info 'Update skipped', 'All incident packages existed only in UPDATE repo';
@@ -153,6 +153,7 @@ sub setup_static_dhcp {
     type_string "exit\n";
 }
 
+# Migration from last GM to current build
 sub perform_migration {
     switch_to 'xterm';
     my $build = get_required_var 'BUILD';
@@ -161,30 +162,34 @@ sub perform_migration {
     salt 'cmd.run systemctl disable --now transactional-update.timer';
     salt 'cmd.run transactional-update salt migration -n', timeout => 1500;
     salt 'saltutil.refresh_grains';
+    orchestrate_velum_reboot;
+}
 
+# Fake update - set grains and reboot
+sub perform_fake_update {
+    switch_to 'xterm';
+    salt 'grains.setval tx_update_reboot_needed True';
+    salt 'saltutil.refresh_grains';
     orchestrate_velum_reboot;
 }
 
 sub run {
-    # QAM update for new packages
-    if (is_caasp 'qam') {
-        update_setup_repos;          # update.sh -s $repo
-        install_new_packages;        # update.sh -n
-        install_missing_packages;    # update.sh -i
-        update_perform_update if is_needed();
-    }
-
-    # Migration from last GM to current build
-    elsif (update_scheduled 'migration') {
+    if (is_caasp 'qam') {    # Use QAM Incident repository
+        update_setup_repos;
+        install_new_packages;
+        install_missing_packages;
+        update_perform_update if update_available();
+    } elsif (update_scheduled 'migration') {    # Use scc proxy repositories
         setup_static_dhcp;
         perform_migration;
-    }
-
-    # Fake update - checks that update stack works, not scheduled ATM
-    elsif (update_scheduled 'fake') {
+    } elsif (update_scheduled 'test') {         # Use TestUpdate repository
         update_setup_repos;
         update_perform_update;
         update_check_changes;
+    } elsif (update_scheduled 'fake') {         # No repository - hacking grains
+        perform_fake_update;
+    } else {
+        die 'Update module scheduled without actual update';
     }
 }
 
