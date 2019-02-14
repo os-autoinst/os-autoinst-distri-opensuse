@@ -154,6 +154,9 @@ sub handle_untrusted_gpg_key {
 Check that guest IP address that host and guest see is the same.
 =cut
 sub integration_services_check_ip {
+    # Workaround for poo#44771 "Can't call method "exec" on an undefined value"
+    select_console('svirt');
+    select_console('sut');
     # Host-side of Integration Services
     my $vmname = console('svirt')->name;
     my $ips_host_pov;
