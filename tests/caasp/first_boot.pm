@@ -28,6 +28,11 @@ sub run {
 
     microos_login;
 
+    # Preserve logs after reboot
+    unless (get_var 'AUTOYAST') {
+        assert_script_run 'mkdir /var/log/journal';
+    }
+
     if (is_caasp 'VMX') {
         # Help cloud-init on cluster tests
         if (get_var 'STACK_ROLE') {
