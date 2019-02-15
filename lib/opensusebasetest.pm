@@ -142,28 +142,11 @@ sub investigate_yast2_failure {
     }
     # Hash with expected errors in YaST2 and bug reference if any
     my %y2log_errors = (
-        "Internal error. Please report a bug report"       => undef,            # Detecting internal errors
-        "<3>.*no[t]? mount"                                => 'bsc#1092088',    # Detect not mounted partition
-        "<3>.*Error output: dracut:"                       => undef,            # Error output dracut
-        "<3>.*Reading install.inf"                         => undef,
-        "<3>.*shellcommand"                                => undef,
-        "<3>.*libstorage.*device not found"                => undef,
-        "<3>.*lib/cheetah.rb.*Error output"                => undef,
-        "<3>.*Slides.rb.*Directory.*does not exist"        => undef,
-        "<3>.*agent-ini.*(Can not open|Unable to stat)"    => undef,
-        "<3>.*Interpreter.*File not found"                 => undef,
-        "<3>.*Interpreter.*Couldn't find an agent"         => undef,
-        "<3>.*Interpreter.*Read.*failed"                   => undef,
-        "<3>.*ag_uid.*argument is not a path"              => undef,
-        "<3>.*ag_uid.*wrong command"                       => undef,
-        "<3>.*Interpreter.*'Syslog' failed"                => undef,
-        "<3>.*libycp.*No matching component found"         => undef,
-        "<3>.*Perl.*Perl call of Log"                      => undef,
-        "<3>.*Y2Ruby.*SSHAuthorizedKeys.write_keys failed" => undef,
-        "No textdomain configured"                         => undef,            # Detecting missing translations
-        "nothing provides"                                 => undef,            # Detecting missing required packages
-        "but this requirement cannot be provided"          => undef,            # Detecting package conflicts
-        "Could not load icon|Couldn't load pixmap"         => undef             # Detecting missing icons
+        "Internal error. Please report a bug report" => undef,    # Detecting internal errors
+        "No textdomain configured"                   => undef,    # Detecting missing translations
+        "nothing provides"                           => undef,    # Detecting missing required packages
+        "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
+        "Could not load icon|Couldn't load pixmap"   => undef     # Detecting missing icons
     );
     for my $y2log_error (keys %y2log_errors) {
         if (my $y2log_error_result = script_output 'grep -B 3 -E "' . $y2log_error . '" /var/log/YaST2/y2log || true') {
