@@ -32,8 +32,12 @@ tools/lib/: os-autoinst/
 check-links: tools/tidy tools/lib/ os-autoinst/
 
 .PHONY: check-links
-tidy: check-links
+tidy-check: check-links
 	tools/tidy --check
+
+.PHONY: tidy
+tidy:
+	tools/tidy
 
 .PHONY: unit-test
 unit-test:
@@ -77,7 +81,7 @@ test-no-wait_idle:
 	@! git --no-pager grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
+test-static: tidy-check test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
 
 .PHONY: test
 ifeq ($(TESTS),compile)
