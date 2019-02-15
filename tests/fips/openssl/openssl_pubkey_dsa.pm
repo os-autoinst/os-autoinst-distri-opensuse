@@ -1,6 +1,6 @@
 # openssl fips test
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,14 +10,18 @@
 # Test description: Verify openssl could generate DSA public key pair
 # and succeed to sign/verify message.
 # According to FIPS 186-4, approved DSA key sizes: 1024/2048/3072
-
+#
 # Summary: Add RSA/DSA public key tests for openssl-fips
 #    For RSA public key, test 2048/3072/4096 bits key pair generation,
 #    file encrypt/decrypt and message signing/verification.
 #
 #    For DSA public key, test 1024/2048/3072 bits key pair generation,
 #    and message signing/verification.
-# Maintainer: Qingming Su <qingming.su@suse.com>
+#    By openssl-1.1.0-fips.patch, remove 1024 bits DSA keysize generate check in fips mode
+#
+# Original Author: Qingming Su <qingming.su@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
+# Tags: poo#47471
 
 use base "consoletest";
 use testapi;
@@ -30,7 +34,7 @@ sub run {
     my $dgst_alg      = "sha256";
     my $file_dgt      = $file_raw . ".$dgst_alg";
     my $file_sig      = $file_dgt . ".sig";
-    my @dsa_key_sizes = (1024, 2048, 3072);
+    my @dsa_key_sizes = (2048, 3072);
 
     # Prepare temp directory and file for testing
     assert_script_run "mkdir fips-test && cd fips-test && echo Hello > $file_raw";
