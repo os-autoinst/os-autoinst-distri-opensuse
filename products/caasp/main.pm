@@ -154,15 +154,12 @@ sub load_stack_tests {
         loadtest 'caasp/stack_kubernetes';
 
         # CAP deployment needs a lot of resources
-        if (check_var('MACHINE', 'cap_x86_64')) {
-            loadtest 'caasp/stack_cap';
-        }
-        # [Update or] Reboot to check cluster will survive
-        if (update_scheduled) {
-            loadtest 'caasp/stack_update';
-        } else {
-            loadtest 'caasp/stack_reboot';
-        }
+        loadtest 'caasp/stack_cap' if check_var('MACHINE', 'cap_x86_64');
+
+        # Update & Reboot to check cluster will survive
+        loadtest 'caasp/stack_update' if update_scheduled();
+        loadtest 'caasp/stack_reboot';
+
         if (update_scheduled 'migration') {
             loadtest 'caasp/shift_version', name => 'ver=inc';
         }
