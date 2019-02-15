@@ -36,6 +36,9 @@ sub run {
     }
     script_run "zypper -n refresh && zypper -n in @test_subjects";
     script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
+    # save and upload sssd-tests.data
+    assert_script_run "tar czf /tmp/sssd-tests.data.tar.bz2 sssd-tests.data";
+    upload_logs "/tmp/sssd-tests.data.tar.bz2";
 
     # Get sssd version, as 2.0+ behaves differently
     my $sssd_version = script_output('rpm -q sssd --qf \'%{VERSION}\'');
