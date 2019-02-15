@@ -165,8 +165,14 @@ sub investigate_yast2_failure {
         "but this requirement cannot be provided"          => undef,            # Detecting package conflicts
         "Could not load icon|Couldn't load pixmap"         => undef             # Detecting missing icons
     );
+    # Test if zgrep is available
+    my $is_zgrep_available = (script_output('type zgrep') == 0);
+    my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep') . ' -B 3 -E';
+    # If zgrep is available, using wildcard to search in rolled archives,
+    # And only in y2log in case of grep
+    my $cmd_postfix = '/var/log/YaST2/' . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
     for my $y2log_error (keys %y2log_errors) {
-        if (my $y2log_error_result = script_output 'grep -B 3 -E "' . $y2log_error . '" /var/log/YaST2/y2log || true') {
+        if (my $y2log_error_result = script_output("$cmd_prefix \"$y2log_error\" $cmd_postfix")) {
             if (my $bug = $y2log_errors{$y2log_error}) {
                 record_soft_failure("$bug\n\nDetails:\n\n$y2log_error_result");
             }
