@@ -587,7 +587,7 @@ sub chromestep_is_applicable {
 }
 
 sub chromiumstep_is_applicable {
-    return chromestep_is_applicable();
+    return chromestep_is_applicable() || (is_opensuse && check_var('ARCH', 'aarch64'));
 }
 
 sub gnomestep_is_applicable {
