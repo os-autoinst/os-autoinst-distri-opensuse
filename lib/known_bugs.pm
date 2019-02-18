@@ -22,6 +22,7 @@ use version_utils;
 
 our @EXPORT = qw(
   create_list_of_serial_failures
+  check_journal
 );
 
 sub create_list_of_serial_failures {
@@ -52,6 +53,17 @@ sub create_list_of_serial_failures {
     push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
 
     return $serial_failures;
+}
+
+
+# check_journal module=>'sshd'
+sub check_journal {
+    my (%args) = @_;
+    my $module = $args{module};
+    my $command = ($module ? "journalctl -u $module" : "journalctl" );
+
+    select_console 'root-console';
+    assert_script_run "$command >> /dev/$serialdev \n";
 }
 
 1;
