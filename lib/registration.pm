@@ -585,6 +585,7 @@ sub get_addon_fullname {
         lgm       => 'sle-module-legacy',
         ltss      => 'SLES-LTSS',
         pcm       => 'sle-module-public-cloud',
+        rt        => 'SUSE-Linux-Enterprise-RT',
         script    => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
         tcm       => 'sle-module-toolchain',
