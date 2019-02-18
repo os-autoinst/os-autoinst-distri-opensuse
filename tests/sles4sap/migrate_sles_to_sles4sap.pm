@@ -35,7 +35,8 @@ sub run {
     type_string "\n";
     wait_serial "Please enter your activation code", timeout => 5;
     type_string "${regcode}\n";
-    assert_script_run "ls /tmp/OK" || die "Migration failed!";
+    assert_script_run "ls /tmp/OK";
+    zypper_call "in -y -t pattern sap_server";
 }
 
 sub test_flags {
