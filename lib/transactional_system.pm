@@ -90,7 +90,7 @@ sub trup_call {
     $cmd .= " > /dev/$serialdev";
     $cmd .= " ; echo trup-\$?- > /dev/$serialdev" if $check;
 
-    script_run "transactional-update $cmd", 0;
+    script_run "transactional-update --no-selfupdate $cmd", 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
