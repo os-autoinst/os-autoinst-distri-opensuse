@@ -59,6 +59,7 @@ our @EXPORT = qw(
   kdump_is_applicable
   load_autoyast_clone_tests
   load_autoyast_tests
+  load_ayinst_tests
   load_bootloader_s390x
   load_boot_tests
   load_common_installation_steps_tests
@@ -780,6 +781,13 @@ sub load_common_installation_steps_tests {
         loadtest 'installation/logs_from_installation_system';
     }
     loadtest 'installation/reboot_after_installation';
+}
+
+sub load_ayinst_tests {
+    loadtest("autoyast/installation");
+    loadtest("autoyast/console");
+    loadtest("autoyast/login");
+    loadtest("autoyast/autoyast_reboot");
 }
 
 sub load_inst_tests {

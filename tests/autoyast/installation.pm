@@ -114,6 +114,8 @@ sub run {
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
     push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x');
+    # Similar situation over IPMI backend, we can check against PXE menu
+    push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     # Import untrusted certification for SMT
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
@@ -130,6 +132,7 @@ sub run {
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
     my $confirmed      = 0;
+    my $pxe_boot_done  = 0;
 
     my $i          = 1;
     my $num_errors = 0;
@@ -146,6 +149,12 @@ sub run {
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
             last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
+        }
+        elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
+            @needles       = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
+            $pxe_boot_done = 1;
+            send_key 'ret';    # boot from harddisk
+            next;              # first stage is over, now we should see grub with autoyast-boot
         }
         #repeat until timeout or login screen
         elsif (match_has_tag('nonexisting-package')) {
@@ -236,6 +245,9 @@ sub run {
         return;
     }
 
+    # If we didn't see pxe, the reboot is going now
+    $self->wait_boot if check_var('BACKEND', 'ipmi') and not $pxe_boot_done;
+
     # CaaSP does not have second stage
     return if is_caasp;
     # Second stage starts here
@@ -245,6 +257,8 @@ sub run {
 
     check_screen \@needles, $check_time;
     @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error);
+    # There will be another reboot for IPMI backend
+    push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     until (match_has_tag 'reboot-after-installation') {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
@@ -256,6 +270,9 @@ sub run {
             # if we matched bios-boot tag during stage1 we may get grub menu, legacy behavior
             # keep it as a fallback if grub timeout is disabled
             send_key 'ret';
+        }
+        elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
+            last;    # we missed reboot-after-installation, wait for boot is in autoyast/console
         }
         elsif (match_has_tag('warning-pop-up')) {
             handle_warnings;    # Process warnings during stage 2
