@@ -24,17 +24,11 @@ sub run {
     $self->enter_NM_credentials;
     $self->handle_polkit_root_auth;
 
-    # the root console will most likely be polluted with dmesg output
-    select_console 'root-console', await_console => 0;
-    wait_still_screen 6;
-    clear_console;
-    assert_screen 'root-console';
+    x11_start_program('xterm');
+    become_root;
+    # disable IPv4 and IPv6 so NM thinks we are online even without dhcp
     $self->NM_disable_ip;
-
-    # we've the NetworkManager window open on x11 so the await_console
-    # needle cannot match so we rely on the assert_and_click from
-    # connect_to_network
-    select_console 'x11', await_console => 0;
+    wait_screen_change { send_key 'alt-f4' }
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;
@@ -116,7 +110,6 @@ sub handle_polkit_root_auth {
 }
 
 sub NM_disable_ip {
-    type_string "# disable IPv4 and IPv6 so NM thinks we are online even without dhcp\n";
     my $nm = 'nmcli connection ';
     assert_script_run "connection_uuid=\$($nm show | grep foobar | awk '{ print \$2 }')";
     assert_script_run "$nm modify \$connection_uuid ipv4.method disabled";
