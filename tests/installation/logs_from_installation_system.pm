@@ -43,7 +43,8 @@ sub run {
         $self->get_ip_address();
     }
     # We don't change network setup here, so should work
-    $self->save_upload_y2logs(no_ntwrk_recovery => 1);
+    # We don't parse logs unless it's detect_yast2_failures scenario
+    $self->save_upload_y2logs(no_ntwrk_recovery => 1, skip_logs_investigation => !get_var('ASSERT_Y2LOGS'));
 }
 
 sub test_flags {
