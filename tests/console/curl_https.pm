@@ -25,10 +25,10 @@ sub run {
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
-            validate_script_output('curl -f -v https://eu.httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?eu.httpbin.org["]? matched, });
+            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matched, });
         };
         last unless ($@);
-        diag "curl -f -v https://eu.httpbin.org/get failed: $@";
+        diag "curl -f -v https://httpbin.org/get failed: $@";
         diag "Maybe the network is busy. Retry: $_ of $max_retries";
     }
     die "curl failed (with retries)" if $@;
