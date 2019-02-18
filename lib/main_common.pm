@@ -966,10 +966,10 @@ sub load_inst_tests {
         elsif (is_caasp 'kubic') {
             loadtest "installation/kubeadm_settings" if check_var('SYSTEM_ROLE', 'kubeadm');
         } else {
-            loadtest "installation/user_settings";
+            loadtest "installation/user_settings" unless check_var('SYSTEM_ROLE', 'hpc-node');
         }
         if (is_sle || get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
-            loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-node') || check_var('SYSTEM_ROLE', 'hpc-server');
+            loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-server');
         }
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/installation_overview_before";
