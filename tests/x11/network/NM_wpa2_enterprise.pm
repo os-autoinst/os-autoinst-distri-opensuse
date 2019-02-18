@@ -28,7 +28,8 @@ sub run {
     become_root;
     # disable IPv4 and IPv6 so NM thinks we are online even without dhcp
     $self->NM_disable_ip;
-    wait_screen_change { send_key 'alt-f4' }
+    type_string "exit\n";
+    type_string "exit\n";
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;
