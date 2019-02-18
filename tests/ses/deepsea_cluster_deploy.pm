@@ -86,8 +86,13 @@ sub run {
 }
 
 sub post_fail_hook {
-    upload_logs '/var/log/salt/deepsea.log', failok => 1;
-    upload_logs '/var/log/zypper.log',       failok => 1;
+    select_console('log-console');
+    assert_script_run "tar czf /tmp/logs-salt.tar.bz2 /var/log/salt";
+    assert_script_run "tar czf /tmp/srv-pillar-ceph.tar.bz2 /srv/pillar/ceph";
+    upload_logs '/tmp/logs-salt.tar.bz2',	failok => 1;
+    upload_logs '/tmp/srv-pillar-ceph.tar.bz2', failok => 1;
+    upload_logs '/var/log/salt/deepsea.log',	failok => 1;
+    upload_logs '/var/log/zypper.log',		failok => 1;
 }
 
 sub test_flags {
