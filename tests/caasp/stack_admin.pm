@@ -19,7 +19,7 @@ use version_utils 'is_caasp';
 
 # Set password on autoyast nodes - bsc#1030876
 sub set_autoyast_password {
-    assert_script_run q#id=$(docker ps | grep salt-master | awk '{print $1}')#;
+    assert_script_run q#id=$(docker ps -qf name=salt-master)#;
     assert_script_run q#pw=$(grep root /etc/shadow | cut -d':' -f2)#;
     assert_script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"', 60;
 
@@ -33,7 +33,7 @@ sub run() {
     script_retry 'curl -kLI localhost | grep _velum_session', retry => 30, delay => 30;
     # Enable salt debug
     if (get_var 'DEBUG_SLEEP') {
-        script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
+        script_run 'id=$(docker ps -qf name=salt-master)';
         script_run 'echo "log_level: trace" > /etc/caasp/salt-master-custom.conf';
         script_run 'docker restart $id';
     }

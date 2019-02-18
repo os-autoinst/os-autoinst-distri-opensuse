@@ -63,7 +63,7 @@ done
 
 # Set up some shortcuts
 DEFAULT_TARGET='roles:(admin|kube-(master|minion))'
-SALT_MASTER=$(docker ps | grep salt-master | awk '{print $1}')
+SALT_MASTER=$(docker ps -qf name=salt-master)
 
 # Run salt command (needs target): $srun '*' test.ping
 srun="docker exec -i $SALT_MASTER salt --batch 11"
