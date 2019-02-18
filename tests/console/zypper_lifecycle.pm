@@ -35,7 +35,7 @@ sub run {
     # 3. verify that "zypper lifecycle" shows correct package eol based on the
     # data from step 2
     my ($base_repos, $package, $prod);
-    my $prod = script_output 'basename `readlink /etc/products.d/baseproduct ` .prod';
+    $prod = script_output 'basename `readlink /etc/products.d/baseproduct ` .prod';
     # select a package suitable for the following test
     # the package must be installed from base product repo
     my $output = script_output 'echo $(zypper -n -x se -i -t product -s ' . $prod . ')', 300;
