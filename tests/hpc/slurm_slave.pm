@@ -21,6 +21,7 @@ use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
+    $self->prepare_user_and_group();
 
     # Install slurm
     zypper_call('in slurm-munge');
