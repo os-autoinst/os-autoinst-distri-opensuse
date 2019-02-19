@@ -155,6 +155,12 @@ sub poweroff_x11 {
         send_key "alt-d";              # shut_d_own
         assert_screen 'logout-confirm-dialog', 10;
         send_key "alt-o";              # _o_k
+
+        if (!check_shutdown()) {
+            record_soft_failure 'bsc#1076817 manually shutting down';
+            select_console 'root-console';
+            systemctl 'poweroff';
+        }
     }
 
     if (check_var('BACKEND', 's390x')) {
