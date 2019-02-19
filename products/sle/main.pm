@@ -523,8 +523,9 @@ sub mellanox_config {
 }
 
 sub load_baremetal_tests {
+    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
     load_boot_tests();
-    load_inst_tests();
+    get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
     load_reboot_tests();
 }
 

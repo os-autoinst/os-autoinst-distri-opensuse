@@ -46,6 +46,9 @@
   </bootloader>
   <general>
     <mode>
+      % if ($check_var->('BACKEND', 'ipmi') or $check_var->('BACKEND', 'svirt')) {
+      <final_reboot config:type="boolean">true</final_reboot>
+      % }
       <confirm config:type="boolean">false</confirm>
     </mode>
     <signature-handling>
@@ -106,6 +109,12 @@
       % }
     </patterns>
   </software>
+  <partitioning config:type="list">
+  <drive>
+    <initialize config:type="boolean">true</initialize>
+    <use>all</use>
+    </drive>
+  </partitioning>
   <networking>
     <interfaces config:type="list">
       <interface>
