@@ -38,10 +38,6 @@ sub load_feature_tests {
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
     }
-    else {
-        # Docker only present on MicroOS, not kubeadm roles
-        loadtest 'console/docker';
-    }
     loadtest 'console/podman';
 }
 
