@@ -19,6 +19,9 @@
         % if ($key eq 'we' and $check_var->('SLE_PRODUCT', 'sled')) {
         <reg_code><%= $get_var->('SCC_REGCODE') %></reg_code>
         % }
+        % if ($key eq 'rt') {
+        <reg_code><%= $get_var->('SCC_REGCODE_RT') %></reg_code>
+        % }
         % if ($key eq 'ltss') {
         <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
         % }
@@ -94,6 +97,9 @@
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>
     </products>
+    % if ($get_var->('SCC_ADDONS') =~ m/\brt\b/) {
+    <kernel>kernel-rt</kernel>
+    % }
     <patterns config:type="list">
       % for my $pattern (@$patterns) {
       <pattern><%= $pattern %></pattern>
