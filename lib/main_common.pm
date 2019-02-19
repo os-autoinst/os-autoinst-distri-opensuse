@@ -81,14 +81,6 @@ our @EXPORT = qw(
   load_rollback_tests
   load_applicationstests
   load_security_tests
-  load_security_tests_apparmor
-  load_security_tests_apparmor_profile
-  load_security_tests_core
-  load_security_tests_crypt
-  load_security_tests_misc
-  load_security_tests_openscap
-  load_security_tests_selinux
-  load_security_tests_web
   load_shutdown_tests
   load_slepos_tests
   load_sles4sap_tests
@@ -2000,11 +1992,19 @@ sub load_applicationstests {
     return 0;
 }
 
+sub load_security_console_prepare {
+    loadtest "console/system_prepare";
+    loadtest "console/consoletest_setup";
+    loadtest "console/hostname";
+}
+
 # The function name load_security_tests_crypt_* is to avoid confusing
 # since openSUSE does NOT have FIPS mode
 # Some tests are valid only for FIPS Regression testing. Use
 # "FIPS_ENABLED" to control whether to run these "FIPS only" cases
 sub load_security_tests_crypt_core {
+    load_security_console_prepare;
+
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/openssl/openssl_fips_alglist";
         loadtest "fips/openssl/openssl_fips_hash";
@@ -2024,6 +2024,8 @@ sub load_security_tests_crypt_core {
 }
 
 sub load_security_tests_crypt_web {
+    load_security_console_prepare;
+
     loadtest "console/curl_https";
     loadtest "console/wget_https";
     loadtest "console/w3m_https";
@@ -2039,6 +2041,8 @@ sub load_security_tests_crypt_web {
 }
 
 sub load_security_tests_crypt_misc {
+    load_security_console_prepare;
+
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/curl_fips_rc4_seed";
         loadtest "console/aide_check";
@@ -2057,14 +2061,35 @@ sub load_security_tests_crypt_misc {
 }
 
 sub load_security_tests_crypt_tool {
+    load_security_console_prepare;
+
     loadtest "console/gpg";
     loadtest "console/yast2_dm_crypt";
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
 }
 
-# Other security tests other than FIPS
+sub load_security_tests_fips_setup {
+    # Setup system into fips mode
+    loadtest "fips/fips_setup";
+}
+
+sub load_security_tests_ipsec {
+    load_security_console_prepare;
+
+    loadtest "console/ipsec_tools_h2h";
+}
+
+sub load_security_tests_mmtest {
+    load_security_console_prepare;
+
+    # Load client tests by APPTESTS variable
+    load_applicationstests;
+}
+
 sub load_security_tests_apparmor {
+    load_security_console_prepare;
+
     loadtest "security/apparmor/aa_status";
     loadtest "security/apparmor/aa_enforce";
     loadtest "security/apparmor/aa_complain";
@@ -2076,6 +2101,8 @@ sub load_security_tests_apparmor {
 }
 
 sub load_security_tests_apparmor_profile {
+    load_security_console_prepare;
+
     loadtest "security/apparmor_profile/usr_sbin_dovecot";
     loadtest "security/apparmor_profile/usr_sbin_traceroute";
     loadtest "security/apparmor_profile/usr_sbin_nscd";
@@ -2083,6 +2110,8 @@ sub load_security_tests_apparmor_profile {
 
 sub load_security_tests_openscap {
     # ALWAYS run following tests in sequence because of the dependencies
+
+    load_security_console_prepare;
 
     # Setup - download test files and install necessary packages
     loadtest "security/openscap/oscap_setup";
@@ -2108,57 +2137,42 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/selinux_smoke";
 }
 
-sub load_security_tests {
-    if (get_var('BOOT_HDD_IMAGE')) {
-        if (!check_var("SECURITY_TEST", "selinux")) {
-            loadtest "console/system_prepare";
-            loadtest "console/consoletest_setup";
-            loadtest "console/hostname";
-        }
-    }
-    if (check_var("SECURITY_TEST", "fips_setup")) {
-        # Setup system into fips mode
-        loadtest "fips/fips_setup";
-    }
-    elsif (check_var("SECURITY_TEST", "crypt_core")) {
-        load_security_tests_crypt_core;
-    }
-    elsif (check_var("SECURITY_TEST", "crypt_web")) {
-        load_security_tests_crypt_web;
-    }
-    elsif (check_var("SECURITY_TEST", "crypt_misc")) {
-        load_security_tests_crypt_misc;
-    }
-    elsif (check_var("SECURITY_TEST", "crypt_tool")) {
-        load_security_tests_crypt_tool;
-    }
-    elsif (check_var("SECURITY_TEST", "ipsec")) {
-        loadtest "console/ipsec_tools_h2h";
-    }
-    elsif (check_var("SECURITY_TEST", "mmtest")) {
-        # Load client tests by APPTESTS variable
-        load_applicationstests;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor")) {
-        load_security_tests_apparmor;
-    }
-    elsif (check_var("SECURITY_TEST", "apparmor_profile")) {
-        load_security_tests_apparmor_profile;
-    }
-    elsif (check_var("SECURITY_TEST", "openscap")) {
-        load_security_tests_openscap;
-    }
-    elsif (check_var("SECURITY_TEST", "selinux")) {
-        load_security_tests_selinux;
-    }
-    elsif (check_var("SECURITY_TEST", "ima_setup")) {
-        # Setup system environment for IMA testing
-        loadtest "security/mokutil_sign";
-        loadtest "security/ima/ima_setup";
-        loadtest "shutdown/shutdown";
-    }
+sub load_security_tests_ima_setup {
+    load_security_console_prepare;
+
+    # Setup system environment for IMA testing
+    loadtest "security/mokutil_sign";
+    loadtest "security/ima/ima_setup";
+    loadtest "shutdown/shutdown";
 }
 
+sub load_security_tests_system_check {
+    loadtest "security/nproc_limits";
+}
+
+sub load_security_tests {
+    my @security_tests = qw /
+      fips_setup crypt_core crypt_web crypt_misc crypt_tool
+      ipsec mmtest
+      apparmor apparmor_profile selinux
+      openscap
+      ima_setup
+      system_check
+      /;
+
+    # Check SECURITY_TEST and call the load functions iteratively.
+    # The value of "SECURITY_TEST" should be same with the last part of the
+    # function name by this way.
+    foreach my $test_name (@security_tests) {
+        next unless (check_var("SECURITY_TEST", $test_name));
+        if (my $test_to_run = main_common->can("load_security_tests_$test_name")) {
+            $test_to_run->();
+        }
+        else {
+            diag "unknown scenario for SECRITY_TEST value $test_name";
+        }
+    }
+}
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
