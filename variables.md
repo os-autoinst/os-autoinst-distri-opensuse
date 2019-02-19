@@ -53,6 +53,7 @@ IPXE | boolean | false | Indicates ipxe boot.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 LAPTOP |||
+LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
 LIVECD | boolean | false | Indicates live image being used.
 LIVE_INSTALLATION | boolean | false | If set, boots the live media and starts the builtin NET installer.
 LIVE_UPGRADE | boolean | false | If set, boots the live media and starts the builtin NET installer in upgrade mode.
