@@ -414,7 +414,8 @@ sub load_reboot_tests {
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
         if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
-            loadtest "installation/grub_test";
+            # exclude this scenario for autoyast test with switched keyboard layaout
+            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT');
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
             }
@@ -426,7 +427,8 @@ sub load_reboot_tests {
                 loadtest "boot/reconnect_mgmt_console";
             }
         }
-        loadtest "installation/first_boot";
+        # exclude this scenario for autoyast test with switched keyboard layaout
+        loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
         if (check_var('ARCH', 'aarch64') && !get_var('INSTALLONLY')) {
             loadtest "installation/system_workarounds";
         }
@@ -467,6 +469,8 @@ sub load_zdup_tests {
 sub load_autoyast_tests {
     #    init boot in load_boot_tests
     loadtest("autoyast/installation");
+    #   library function like send_key or reboot will not work, therefore exiting earlier
+    return loadtest "locale/keymap_or_locale" if get_var('INSTALL_KEYBOARD_LAYOUT');
     loadtest("autoyast/console");
     loadtest("autoyast/login");
     loadtest("autoyast/wicked");

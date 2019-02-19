@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <!-- autoyast profile which performs an unattended installation using
+    different keyboard layout and language than default us -->
+    <suse_register>
+      <do_registration config:type="boolean">true</do_registration>
+      <email/>
+      <reg_code>{{SCC_REGCODE}}</reg_code>
+      <install_updates config:type="boolean">true</install_updates>
+      <reg_server>{{SCC_URL}}</reg_server>
+      <addons config:type="list">
+        <addon>
+          <name>sle-module-basesystem</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+      </addons>
+    </suse_register>
+    <bootloader>
+        <global>
+            <timeout config:type="integer">-1</timeout>
+        </global>
+    </bootloader>
+    <general>
+        <mode>
+            <confirm config:type="boolean">false</confirm>
+        </mode>
+    </general>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+        <products config:type="list">
+            <product>SLES</product>
+        </products>
+    </software>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+    <language>
+         <language>cs_CZ</language>
+    </language>
+    <keyboard>
+         <keymap>czech</keymap>
+    </keyboard>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">false</show>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">false</show>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">false</show>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">false</show>
+      </yesno_messages>
+    </report>
+</profile>
