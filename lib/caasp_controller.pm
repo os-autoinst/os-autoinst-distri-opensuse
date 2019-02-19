@@ -4,7 +4,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use caasp qw(unpause script_assert0);
-use lockapi 'barrier_destroy';
+use lockapi qw(barrier_try_wait barrier_destroy);
 use mmapi 'wait_for_children';
 use version_utils 'is_caasp';
 
@@ -97,7 +97,7 @@ sub post_fail_hook {
 
     # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy 'NODES_ONLINE';
-    barrier_destroy 'DELAYED_NODES_ONLINE';
+    barrier_try_wait 'DELAYED_NODES_ONLINE';
     unpause 'ALL';
 
     # Wait for log export from all nodes
