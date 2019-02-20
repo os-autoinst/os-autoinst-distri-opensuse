@@ -61,9 +61,11 @@ sub orchestrate_velum_reboot {
     my @tags = qw(velum-retry velum-bootstrap-done);
     assert_screen \@tags, $n * 900;
     if (match_has_tag 'velum-retry') {
-        record_soft_failure 'bsc#000000 - Should have passed first time';
+        record_soft_failure 'bsc#000000 - Update failed once, retrying';
         assert_and_click 'velum-retry';
-        assert_screen 'velum-bootstrap-done', $n * 900;
+
+        assert_screen \@tags, $n * 900;
+        die 'Update failed twice' unless match_has_tag('velum-bootstrap-done');
     }
     die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
 }
