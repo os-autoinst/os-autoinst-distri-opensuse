@@ -16,6 +16,7 @@ use base "consoletest";
 use strict;
 use testapi;
 use utils 'zypper_call';
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
