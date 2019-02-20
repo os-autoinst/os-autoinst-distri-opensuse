@@ -49,7 +49,7 @@ sub run {
         } else {
             wait_screen_change { send_key 'esc' };
         }
-        send_key 'alt-p';
+        wait_screen_change { send_key 'alt-p' };
     }
     # Testcase according to https://fate.suse.com/318099
     # UC1:
