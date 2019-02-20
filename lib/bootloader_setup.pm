@@ -796,9 +796,15 @@ sub zkvm_add_disk {
         }
     }
     else {
-        # For some tests we need more than the default 4GB
+        # Add new disks according to NUMDISKS
         my $size_i = get_var('HDDSIZEGB') || '4';
-        $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
+        my $numdisks = get_var('NUMDISKS') || '1';
+        my $dev_id = 'a';
+        foreach my $n (1 .. $numdisks) {
+            $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => $dev_id});
+            # apply next letter as dev_id
+            $dev_id = chr((ord $dev_id) + 1);
+        }
     }
 }
 
