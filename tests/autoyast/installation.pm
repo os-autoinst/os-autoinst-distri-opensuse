@@ -128,6 +128,8 @@ sub run {
         push(@needles, 'autoyast-license');
     }
 
+    # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
+    push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
@@ -142,7 +144,8 @@ sub run {
     until (match_has_tag('reboot-after-installation')
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
-          || match_has_tag('linux-login-casp'))
+          || match_has_tag('linux-login-casp')
+          || match_has_tag('inst-bootmenu'))
     {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
@@ -256,7 +259,7 @@ sub run {
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error inst-bootmenu);
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     until (match_has_tag 'reboot-after-installation') {
@@ -279,6 +282,9 @@ sub run {
         }
         elsif (match_has_tag('autoyast-error')) {
             die 'Error detected during second stage of the installation';
+        }
+        elsif (match_has_tag('inst-bootmenu')) {
+            $self->wait_grub_to_boot_on_local_disk;
         }
     }
 

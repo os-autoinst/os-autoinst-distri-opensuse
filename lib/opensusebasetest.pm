@@ -365,24 +365,7 @@ sub wait_grub {
         }
     }
     elsif (match_has_tag('inst-bootmenu')) {
-        # assuming the cursor is on 'installation' by default and 'boot from
-        # harddisk' is above
-        send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-        boot_local_disk;
-
-        my @tags = qw(grub2 tianocore-mainmenu);
-        push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
-
-        check_screen(\@tags, 15)
-          || die 'neither grub2 nor tianocore-mainmenu needles found';
-        if (match_has_tag('tianocore-mainmenu')) {
-            $self->handle_uefi_boot_disk_workaround();
-            check_screen('encrypted-disk-password-prompt', 10);
-        }
-        if (match_has_tag('encrypted-disk-password-prompt')) {
-            workaround_type_encrypted_passphrase;
-            assert_screen('grub2');
-        }
+        $self->wait_boot_on_local_disk;
     }
     elsif (match_has_tag('encrypted-disk-password-prompt')) {
         # unlock encrypted disk before grub
@@ -396,6 +379,31 @@ sub wait_grub {
         die "needle '$failneedle' not found";
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
+}
+
+=head2 wait_grub_to_boot_on_local_disk
+
+  wait_grub_to_boot_on_local_disk
+
+When bootloader appears, make sure to boot from local disk when it is on aarch64. 
+=cut
+sub wait_grub_to_boot_on_local_disk {
+   # assuming the cursor is on 'installation' by default and 'boot from
+   # harddisk' is above
+   send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+   boot_local_disk;
+   my @tags = qw(grub2 tianocore-mainmenu);
+   push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+
+   assert_screen(\@tags, 15);
+   if (match_has_tag('tianocore-mainmenu')) {
+       opensusebasetest::handle_uefi_boot_disk_workaround();
+       check_screen('encrypted-disk-password-prompt', 10);
+    }
+   if (match_has_tag('encrypted-disk-password-prompt')) {
+       workaround_type_encrypted_passphrase;
+       assert_screen('grub2');
+   }
 }
 
 =head2 wait_boot
