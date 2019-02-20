@@ -23,7 +23,7 @@ use testapi;
 sub run {
     ensure_installed('vlc');
     x11_start_program('vlc --no-autoscale', target_match => 'vlc-first-time-wizard', match_typed => 'target_match_vlc');
-    send_key "ret";
+    assert_and_click "vlc-first-time-wizard";
     assert_screen "vlc-main-window";
     send_key "ctrl-l";
     assert_and_click "vlc-playlist-empty";
