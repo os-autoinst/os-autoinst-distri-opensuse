@@ -15,6 +15,7 @@
 
 use strict;
 use base "y2logsstep";
+use bootbasetest;
 use testapi;
 use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
@@ -102,24 +103,7 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    my $self = shift;
-
-    # Reveal what is behind Plymouth splash screen
-    wait_screen_change {
-        send_key 'esc';
-    };
-    # save a screenshot before trying further measures which might fail
-    save_screenshot;
-    # if we found a shell, we do not need the memory dump
-    if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
-        die "save_memory_dump is temporarily unavailable, see https://progress.opensuse.org/issues/19390";
-        die "save_memory_dump not implemented, no way to save memory_dump" unless check_var('BACKEND', 'qemu');
-        diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
-        save_memory_dump;
-    }
-
-    # try to save logs as a last resort
-    $self->export_logs();
+    bootbasetest->post_fail_hook();
 }
 
 1;
