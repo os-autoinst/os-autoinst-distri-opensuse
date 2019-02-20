@@ -31,7 +31,7 @@ sub run {
     validate_script_output("w", sub { m/\d+:\d+:\d+\sup\s+(\d+|:)+(\s\w+|),\s+\d\s\w+,\s+load average:.*\nUSER\s+TTY\s+FROM\s+LOGIN@\s+IDLE\s+JCPU\s+PCPU\s+WHAT(\n.*)+/ });
     validate_script_output("sysctl kernel.random", sub { m/kernel\.random\.\w+\s=\s((\d+|\w+)|-)+/ });
     validate_script_output("ps -p 1",              sub { m/PID\sTTY\s+TIME\sCMD\n\s+1\s\?\s+\d+:\d+:\d+\s(systemd|init)/ });
-    validate_script_output("top -b -n 1", sub { m/top - \d+:\d+:\d+ up\s+((\d+:\d+)|(\d+ \w+)),\s+\d+ \w+,\s+load average: \d+.\d+, \d+.\d+, \d+.\d+\nTasks:\s+\d+ total,\s+\d+ running,\s+\d+ sleeping(.*|\n)+/ });
+    validate_script_output("top -b -n 1", sub { m/top - \d+:\d+:\d+ up\s+((\d+:\d+)|(\d+ \w+)|(\d+ \w+,\s+\d+:\d+)),\s+\d+ \w+,\s+load average: \d+.\d+, \d+.\d+, \d+.\d+\nTasks:\s+\d+ total,\s+\d+ running,\s+\d+ sleeping(.*|\n)+/ });
 }
 
 1;
