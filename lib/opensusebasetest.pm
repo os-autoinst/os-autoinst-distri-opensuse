@@ -365,7 +365,7 @@ sub wait_grub {
         }
     }
     elsif (match_has_tag('inst-bootmenu')) {
-        $self->wait_boot_on_local_disk;
+        $self->wait_grub_to_boot_on_local_disk;
     }
     elsif (match_has_tag('encrypted-disk-password-prompt')) {
         # unlock encrypted disk before grub
