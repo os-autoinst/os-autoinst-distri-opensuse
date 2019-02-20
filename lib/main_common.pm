@@ -2409,6 +2409,7 @@ sub load_installation_validation_tests {
     # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
     # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
     # - console/verify_separate_home.pm: validate if separate /home partition enabled
+    # - console/validate_lvm_encrypt: validate lvm encrypted partitioning
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }

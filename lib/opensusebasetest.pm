@@ -806,6 +806,17 @@ sub post_fail_hook {
         }
     }
 
+    if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
+        my $self = shift;
+        select_console 'root-console';
+        my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
+        my $out           = script_output 'lvmdump';
+        if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
+            upload_logs "$+{lvmdump_gzip}";
+        }
+        $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
+    }
+
     if ($self->{in_wait_boot}) {
         record_info('shutdown', 'At least we reached target Shutdown') if (wait_serial 'Reached target Shutdown');
     }
