@@ -66,6 +66,7 @@ use constant {
           is_virtualization_server
           is_server
           is_s390x
+          is_aarch64
           is_livecd
           is_x86_64
           has_product_selection
@@ -289,6 +290,10 @@ sub is_svirt_except_s390x {
 
 sub is_s390x {
     return check_var('ARCH', 's390x');
+}
+
+sub is_aarch64 {
+    return check_var('ARCH', 'aarch64');
 }
 
 sub is_x86_64 {
