@@ -68,6 +68,7 @@ use constant {
           is_s390x
           is_livecd
           is_x86_64
+          is_aarch64
           has_product_selection
           has_license_on_welcome_screen
           )
@@ -293,6 +294,10 @@ sub is_s390x {
 
 sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
+}
+
+sub is_aarch64 {
+    return check_var('ARCH', 'aarch64');
 }
 
 sub is_server {
