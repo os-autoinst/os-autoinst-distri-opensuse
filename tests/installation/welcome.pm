@@ -41,6 +41,33 @@ sub switch_keyboard_layout {
     wait_screen_change { send_key 'ret' } if (check_var('DESKTOP', 'textmode'));
 }
 
+=head2 get_product_shortcuts
+
+  get_product_shortcuts();
+
+Returns hash which contains shortcuts for the product selection.
+=cut
+sub get_product_shortcuts {
+    # We got new products in SLE 15 SP1
+    if (is_sle '15-SP1+') {
+        return (
+            sles     => 'i',
+            sled     => 'x',
+            sles4sap => get_var('OFW') ? 'u' : 'p',
+            hpc      => is_x86_64() ? 'g' : 'u',
+            rt       => is_x86_64() ? 't' : undef
+        );
+    }
+    # Else return old shortcuts
+    return (
+        sles     => 's',
+        sled     => 'u',
+        sles4sap => get_var('OFW') ? 'u' : 'x',
+        hpc      => is_x86_64() ? 'x' : 'u',
+        rt       => is_x86_64() ? 'u' : undef
+    );
+}
+
 sub run {
     my ($self) = @_;
     my $iterations;
@@ -110,13 +137,7 @@ sub run {
         assert_screen('select-product');
         my $product = get_required_var('SLE_PRODUCT');
         if (check_var('VIDEOMODE', 'text')) {
-            my %hotkey = (
-                sles     => 's',
-                sled     => 'u',
-                sles4sap => get_var('OFW') ? 'u' : 'x',
-                hpc      => is_x86_64() ? 'x' : 'u',
-                rt       => is_x86_64() ? 'u' : undef
-            );
+            my %hotkey = get_product_shortcuts();
             die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
             send_key 'alt-' . $hotkey{$product};
         }
