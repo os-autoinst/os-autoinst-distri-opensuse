@@ -32,9 +32,9 @@ sub run {
     # Set and check patch variables
     my $incident_id = get_var('INCIDENT_ID');
     my $patch       = get_var('INCIDENT_PATCH');
-    check_patch_variables($patch, $incident_id) if (!get_var('BETA'));
+    check_patch_variables($patch, $incident_id) if (is_sle && !get_var('BETA'));
 
-    is_sle(">12-sp1") ? $self->select_serial_terminal() : select_console('root-console');
+    (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
     zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
@@ -48,3 +48,18 @@ sub run {
 }
 
 1;
+
+=head1 Example configuration
+
+=head2 QA_HEAD_REPO
+
+RPM repository for used for hiworkload.
+QA_HEAD_REPO=http://dist.nue.suse.com/ibs/QA:/Head/SLE-%VERSION%
+QA_HEAD_REPO=http://dist.nue.suse.com/ibs/QA:/Head/openSUSE_%VERSION%
+
+=head2 QA_TEST_KLP_REPO
+
+Git repository for kernel live patching infrastructure tests.
+QA_TEST_KLP_REPO=https://github.com/lpechacek/qa_test_klp.git
+
+=cut
