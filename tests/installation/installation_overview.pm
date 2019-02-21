@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -64,7 +64,8 @@ sub run {
         assert_screen('installation-settings-overview-loaded-impossible-proposal');
     }
     else {
-        assert_screen "installation-settings-overview-loaded", 150;
+	# Refer to: https://progress.opensuse.org/issues/47369
+        assert_screen "installation-settings-overview-loaded", 250;
         $self->deal_with_dependency_issues;
         assert_screen "inst-xen-pattern" if get_var('XEN');
         ensure_ssh_unblocked;
