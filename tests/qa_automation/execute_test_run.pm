@@ -42,21 +42,15 @@ sub run {
         zypper_call('in bzip2');
         assert_script_run("tar cjf $tarball -C /var/log/qa/ctcs2 `ls /var/log/qa/ctcs2/`");
         upload_logs($tarball, timeout => 600);
-
-        #convert to junit log
-        my $script_output = script_output("cat $run_log");
-        my $tc_result     = analyzeResult($script_output);
-        die 'Could not parse execution logs' unless $tc_result;
-        my $xml_result = generateXML($tc_result);
-        script_output "echo \'$xml_result\' > /tmp/output.xml", 7200;
-        parse_junit_log("/tmp/output.xml");
     }
 
     #upload system log
     upload_system_logs();
 
     #assert test result
-    assert_script_run("grep 'Test run completed successfully' $run_log");
+    my $fail_logs = "\n\n" . script_output("grep -l '1 fail' /var/log/qa/ctcs2/qa_$test-*/* | while read line ; do echo -e \"===> \$line <===\" ; cat -es /var/log/qa/ctcs2/qa_$test*/* | head --lines=500 ; done", 600, proceed_on_failure => 1);
+    save_screenshot;
+    assert_script_run("grep 'Test run completed successfully' $run_log", fail_message => $fail_logs);
 }
 
 sub post_fail_hook {
