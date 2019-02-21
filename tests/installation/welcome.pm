@@ -51,7 +51,7 @@ sub get_product_shortcuts {
     # We got new products in SLE 15 SP1
     if (is_sle '15-SP1+') {
         return (
-            sles => (get_var('OFW') || is_s390x()) ? 'u'
+            sles => (is_ppc64le() || is_s390x()) ? 'u'
                 : is_aarch64() ? 's'
                 : 'i',
             sled     => 'x',
