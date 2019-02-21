@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -463,6 +463,7 @@ sub load_online_migration_tests {
         loadtest "migration/sle12_online_migration/register_without_ltss";
     }
     loadtest "migration/sle12_online_migration/pre_migration";
+    loadtest 'installation/install_service';
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
@@ -496,6 +497,8 @@ sub load_patching_tests {
             loadtest 'console/lock_package';
         }
         loadtest 'migration/record_disk_info';
+        # Install service for offline migration by zypper
+        loadtest 'installation/install_service' if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP'));
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
