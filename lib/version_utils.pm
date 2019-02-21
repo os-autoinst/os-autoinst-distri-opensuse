@@ -69,6 +69,7 @@ use constant {
           is_livecd
           is_x86_64
           is_aarch64
+          is_ppc64le
           has_product_selection
           has_license_on_welcome_screen
           )
@@ -298,6 +299,10 @@ sub is_x86_64 {
 
 sub is_aarch64 {
     return check_var('ARCH', 'aarch64');
+}
+
+sub is_ppc64le {
+    return check_var('ARCH', 'ppc64le');
 }
 
 sub is_server {
