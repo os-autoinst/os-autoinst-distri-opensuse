@@ -1712,6 +1712,10 @@ sub load_extra_tests_wicked {
     }
 }
 
+sub load_extra_tests_udev {
+    loadtest "kernel/udev_no_symlink";
+}
+
 sub load_networkd_tests {
     loadtest 'networkd/networkd_init';
     loadtest 'networkd/networkd_dhcp';
