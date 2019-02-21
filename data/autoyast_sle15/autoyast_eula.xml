@@ -17,18 +17,18 @@
              <listentry>
                 <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
                 <product>sle-module-basesystem</product>
-                <product_dir>/SP1-Module-Basesystem</product_dir>
+                <product_dir>/Module-Basesystem</product_dir>
              </listentry>
              <listentry>
                 <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
-                <product_dir>/SP1-Product-HA</product_dir>
+                <product_dir>/Product-HA</product_dir>
                 <product>sle-ha</product>
                 <alias>High availability module</alias>
                 <confirm_license config:type="boolean">true</confirm_license>
             </listentry>
             <listentry>
                 <media_url><![CDATA[dvd:///?devices=/dev/sr1]]></media_url>
-                <product_dir>/SP1-Product-WE</product_dir>
+                <product_dir>/Product-WE</product_dir>
                 <product>sle-we</product>
                 <alias>Workstation Extension</alias>
                 <confirm_license config:type="boolean">true</confirm_license>
