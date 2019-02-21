@@ -90,7 +90,7 @@ sub run {
     # Feature of switching keyboard during installation is not ready yet,
     # so if another language is used it needs to be verfied that the needle represents properly
     # characters on that language.
-    my $keystrokes = '`1234567890-=!@6~!@#$%^&*()_+';
+    my $keystrokes = '`1234567890-=~!@#$%^&*()_+';
 
     if (check_var('DESKTOP', 'textmode')) {
         assert_screen([qw(linux-login cleared-console)]);
