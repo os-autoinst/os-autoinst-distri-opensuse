@@ -26,7 +26,7 @@ sub run {
         if is_sle('15+')
         and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
 
-    systemctl 'stop packagekit.service' if (check_var('UPGRADE'));
+    systemctl('stop packagekit.service') if (check_var('UPGRADE'));
     zypper_call '--gpg-auto-import-keys ref';
 }
 
