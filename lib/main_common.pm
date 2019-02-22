@@ -1477,6 +1477,10 @@ sub load_extra_tests_zypper {
     loadtest 'console/validate_packages_and_patterns' if is_sle '12-sp2+';
 }
 
+sub load_extra_tests_dracut {
+    loadtest "console/dracut";
+}
+
 sub load_extra_tests_kdump {
     return unless kdump_is_applicable;
     loadtest "console/kdump_and_crash";
@@ -1557,7 +1561,6 @@ sub load_extra_tests_console {
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
-    loadtest "console/dracut";
     loadtest 'console/timezone';
     loadtest 'console/procps';
     loadtest "console/lshw" if ((is_sle('15+') && check_var('ARCH', 'ppc64le')) || is_opensuse);
