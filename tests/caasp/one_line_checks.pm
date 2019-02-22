@@ -24,14 +24,14 @@ sub run_common_checks {
     # bsc#1019652 - Check that snapper is configured
     assert_script_run "snapper list";
 
-    # bsc#1051762 - Docker is on btrfs partition (kubeadm role uses CRI-O)
-    assert_script_run('stat -fc %T /var/lib/docker | grep -q btrfs') unless check_var('SYSTEM_ROLE', 'kubeadm');
-
     # Subvolume check - https://build.opensuse.org/request/show/583954
     assert_script_run "btrfs subvolume show /var";
 }
 
 sub run_caasp_checks {
+    # bsc#1051762 - Docker is on btrfs partition
+    assert_script_run('stat -fc %T /var/lib/docker | grep -q btrfs');
+
     if (get_var('SYSTEM_ROLE', '') =~ /admin|worker/) {
         # poo#18668 - Check ntp client configuration
         assert_script_run 'grep "^pool ns.openqa.test" /etc/chrony.conf';
@@ -55,7 +55,7 @@ sub run_caasp_checks {
 }
 
 sub run_kubic_checks {
-    # Should not include any container runtime
+    # Should not include docker or kubernetes
     if (check_var('SYSTEM_ROLE', 'microos')) {
         assert_script_run 'which docker';
         assert_script_run '! zypper se -i kubernetes';

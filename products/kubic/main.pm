@@ -38,7 +38,9 @@ sub load_feature_tests {
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
     }
-    loadtest 'console/podman';
+    else {
+        loadtest 'console/podman';
+    }
 }
 
 sub load_rcshell_tests {
