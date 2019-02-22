@@ -23,7 +23,7 @@ sub run {
     assert_script_run("rpm -q dracut");
 
     validate_script_output("lsinitrd", sub { m/Image:(.*\n)+( ?)Version: dracut(-|\d+|\.|\w+)+(\n( ?))+( ?)Arguments(.*\n)+( ?)dracut modules:(\w+|-|\d+|\n|( ?))+\=+\n(l|d|r|w|x|-|( ?))+\s+\d+ root\s+root(.*\n)+( ?)\=+/ });
-    validate_script_output("dracut -f", sub { m/.*Executing: \/usr\/bin\/dracut -f\n( ?)(((dracut: |)dracut module.*\n( ?))|((dracut: |)\*+ Including module:.*\n( ?))|((dracut: |)Skipping.*\n( ?))|((dracut: |)Could not find.*\n)|((dracut: |)Possible missing firmware.*\n( ?))|((dracut: |)95nfs).*\n( ?))+(dracut: |)\*+ Including modules done \*+(.+|\n)+/ });
+    validate_script_output("dracut -f", sub { m/.*Executing: \/usr\/bin\/dracut -f\n|\b(?:Skipping|Including modules done|Including|Creating image|Creating initramfs)\b/ });
     validate_script_output("dracut --list-modules", sub { m/.*Executing: \/usr\/bin\/dracut --list-modules\n(\w+|\n|-|d+)+/ });
 
     power_action('reboot', textmode => 1);
