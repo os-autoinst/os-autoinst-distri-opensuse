@@ -15,11 +15,14 @@ use strict;
 use testapi;
 use utils;
 use iscsi;
+use registration 'add_suseconnect_product';
+use version_utils "is_sle";
 
 sub start_testrun {
     my $self = shift;
 
-    zypper_call("in open-iscsi qa_test_multipath");
+    add_suseconnect_product('sle-module-python2') if (is_sle(">15"));
+    zypper_call("in open-iscsi qa_test_multipath python-xml");
 
     systemctl 'start iscsid';
     systemctl 'start multipathd';
