@@ -30,6 +30,10 @@ sub create_list_of_serial_failures {
     # To add a known bug simply copy and adapt the following line:
     # push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }
 
+
+    # Detect rogue workqueue lockup
+    push @$serial_failures, {type => 'hard', message => 'rogue workqueue lockup', pattern => quotemeta 'BUG: workqueue lockup'};
+
     # Detect bsc#1093797 on aarch64
     if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
         push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
