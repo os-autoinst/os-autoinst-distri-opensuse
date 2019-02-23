@@ -11,21 +11,12 @@
 # Summary: [qa_automation] userspace nfs v4
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base "qa_run";
+use base 'user_regression';
 use strict;
 use warnings;
-use testapi;
 
 sub test_run_list {
     return qw(_reboot_off nfs_v4);
-}
-
-sub test_suite {
-    return 'regression';
-}
-
-sub junit_type {
-    return 'user_regression';
 }
 
 1;

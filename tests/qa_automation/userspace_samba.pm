@@ -10,21 +10,12 @@
 # Summary: Runs samba qa testsuite
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
-use base "qa_run";
+use base 'user_regression';
 use strict;
 use warnings;
-use testapi;
 
 sub test_run_list {
     return qw(_reboot_off samba);
-}
-
-sub test_suite {
-    return 'regression';
-}
-
-sub junit_type {
-    return 'user_regression';
 }
 
 1;

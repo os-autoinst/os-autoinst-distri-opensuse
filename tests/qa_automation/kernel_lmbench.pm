@@ -16,21 +16,13 @@
 # Summary: QA automation test lmbench
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base "qa_run";
+use base 'kernel_regression';
 use strict;
 use warnings;
 use testapi;
 
 sub test_run_list {
     return qw(_reboot_off lmbench);
-}
-
-sub test_suite {
-    return 'kernel';
-}
-
-sub junit_type {
-    return 'kernel_regression';
 }
 
 1;

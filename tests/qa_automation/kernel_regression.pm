@@ -8,16 +8,20 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: [qa_automation] bzip2
+# Summary: base class for kernel regression tests
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base 'user_regression';
+package kernel_regression;
+use base 'qa_run';
 use strict;
 use warnings;
 
-sub test_run_list {
-    return qw(_reboot_off bzip2);
+sub test_suite {
+    return 'kernel';
+}
+
+sub junit_type {
+    return 'kernel_regression';
 }
 
 1;
-

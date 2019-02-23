@@ -10,7 +10,7 @@
 # Summary: Use qa_test_multipath to test multipath over iscsi
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
-use base "qa_run";
+use base 'user_regression';
 use strict;
 use warnings;
 use testapi;

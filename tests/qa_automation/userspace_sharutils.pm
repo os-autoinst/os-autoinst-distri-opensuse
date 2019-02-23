@@ -11,10 +11,9 @@
 # Summary: QA automation test sharutils
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base "qa_run";
+use base 'user_regression';
 use strict;
 use warnings;
-use testapi;
 
 sub test_run_list {
     return qw(_reboot_off sharutils);
@@ -22,10 +21,6 @@ sub test_run_list {
 
 sub test_suite {
     return 'regression';
-}
-
-sub junit_type {
-    return 'user_regression';
 }
 
 1;

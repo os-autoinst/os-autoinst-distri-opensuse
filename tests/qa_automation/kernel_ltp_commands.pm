@@ -16,7 +16,7 @@
 # Summary: [qa_automation] ltp commands
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base "qa_run";
+use base 'kernel_regression';
 use strict;
 use warnings;
 use testapi;

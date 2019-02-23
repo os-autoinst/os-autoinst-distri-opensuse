@@ -11,21 +11,12 @@
 # Summary: QA automation process stress tests
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base "qa_run";
+use base 'stress_validation';
 use strict;
 use warnings;
-use testapi;
 
 sub test_run_list {
     return qw(_reboot_off process_stress);
-}
-
-sub junit_type {
-    return 'stress_validation';
-}
-
-sub test_suite {
-    return 'acceptance';
 }
 
 1;

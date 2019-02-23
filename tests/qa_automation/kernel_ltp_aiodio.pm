@@ -16,21 +16,13 @@
 # Summary: [qa_automation] ltp aiodio
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base "qa_run";
+use base 'kernel_regression';
 use strict;
 use warnings;
 use testapi;
 
 sub test_run_list {
     return qw(_reboot_off ltp_aiodio);
-}
-
-sub test_suite {
-    return 'kernel';
-}
-
-sub junit_type {
-    return 'kernel_regression';
 }
 
 1;
