@@ -11,6 +11,7 @@
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com>
 
 use strict;
+use warnings;
 use base 'consoletest';
 use testapi;
 use utils;

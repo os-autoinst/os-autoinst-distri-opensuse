@@ -174,6 +174,8 @@ sub run {
     }
 }
 
+{
+no warnings 'redefine';
 sub post_fail_hook {
     my $self = shift;
 
@@ -184,6 +186,7 @@ sub post_fail_hook {
     upload_logs "/sapinst/unattended/sapinst.log";
     upload_logs "/sapinst/unattended/sapinst_dev.log";
     upload_logs "/sapinst/unattended/start_dir.cd";
+}
 }
 
 1;

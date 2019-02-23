@@ -2,6 +2,7 @@ package caasp_clusternode;
 use base "opensusebasetest";
 
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_caasp';
 use autotest 'query_isotovideo';

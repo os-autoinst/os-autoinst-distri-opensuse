@@ -20,6 +20,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use bootloader_setup 'add_grub_cmdline_settings';

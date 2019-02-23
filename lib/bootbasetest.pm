@@ -2,6 +2,7 @@ package bootbasetest;
 use testapi;
 use base 'opensusebasetest';
 use strict;
+use warnings;
 
 sub post_fail_hook {
     # check for text login to check if X has failed

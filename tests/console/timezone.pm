@@ -15,6 +15,7 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use strict;
+use warnings;
 
 sub get_tz_data {
     my $save      = shift;

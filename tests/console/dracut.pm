@@ -14,6 +14,7 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use strict;
+use warnings;
 use power_action_utils 'power_action';
 
 sub run {

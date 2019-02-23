@@ -14,6 +14,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use strict;
+use warnings;
 use suse_container_urls qw(get_suse_container_urls);
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
