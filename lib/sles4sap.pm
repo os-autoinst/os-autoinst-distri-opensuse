@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use hacluster 'pre_run_hook';
 use isotovideo;
 use x11utils 'ensure_unlocked_desktop';
 
@@ -107,18 +108,6 @@ sub test_start_instance {
     $output = script_output $ps_cmd;
     my @olines = split(/\n/, $output);
     die "sapcontrol: failed to start the instance" unless (@olines > 1);
-}
-
-sub pre_run_hook {
-    my ($self) = @_;
-    if (isotovideo::get_version() == 12) {
-        $prev_console = $autotest::selected_console;
-    } else {
-        # perl -c will give a "only used once" message
-        # here and this makes the travis ci tests fail.
-        1 if defined $testapi::selected_console;
-        $prev_console = $testapi::selected_console;
-    }
 }
 
 sub post_run_hook {
