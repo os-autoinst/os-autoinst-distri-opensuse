@@ -1,4 +1,4 @@
-# Copyright (C) 2016 SUSE LLC
+# Copyright (C) 2016-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# G-Summary: [qa_automation] Add ltp tests
-# G-Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Summary: [qa_automation] ltp quickhit
+# Maintainer: Yong Sun <yosun@suse.com>
 
 use base "qa_run";
 use strict;
