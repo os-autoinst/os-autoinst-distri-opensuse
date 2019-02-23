@@ -16,7 +16,7 @@
 # Summary:  [qa_automation] zswap testsuite
 # Maintainer: Nathan Zhao <jtzhao@suse.com>
 
-use base 'kernel_regression';
+use base 'qa_run';
 use strict;
 use warnings;
 

@@ -10,7 +10,7 @@
 # Summary: Runs samba qa testsuite
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
-use base 'user_regression';
+use base 'qa_run';
 use strict;
 use warnings;
 

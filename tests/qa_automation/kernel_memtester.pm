@@ -16,7 +16,7 @@
 # Summary: [qa_automation] kernel memtester
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base 'kernel_regression';
+use base 'qa_run';
 use strict;
 use warnings;
 

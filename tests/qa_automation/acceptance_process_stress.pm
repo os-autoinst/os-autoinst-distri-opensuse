@@ -11,7 +11,7 @@
 # Summary: QA automation process stress tests
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base 'stress_validation';
+use base 'qa_run';
 use strict;
 use warnings;
 

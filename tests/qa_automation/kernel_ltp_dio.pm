@@ -16,21 +16,13 @@
 # Summary: [qa_automation] ltp dio
 # Maintainer: Yong Sun <yosun@suse.com>
 
-use base 'kernel_regression';
+use base 'qa_run';
 use strict;
 use warnings;
 use testapi;
 
 sub test_run_list {
     return qw(_reboot_off ltp_dio);
-}
-
-sub test_suite {
-    return 'kernel';
-}
-
-sub junit_type {
-    return 'kernel_regression';
 }
 
 1;
