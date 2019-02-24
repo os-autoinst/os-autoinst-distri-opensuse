@@ -39,6 +39,7 @@ sub run {
     if (get_var("QA_TESTSUITE") && !is_jeos) {
         assert_script_run('sync', 180);
         my $tarball = "/tmp/testlog.tar.bz2";
+        zypper_call('in bzip2');
         assert_script_run("tar cjf $tarball -C /var/log/qa/ctcs2 `ls /var/log/qa/ctcs2/`");
         upload_logs($tarball, timeout => 600);
 
