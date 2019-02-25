@@ -43,7 +43,7 @@ sub prepare_system_shutdown {
         }
         console('installation')->disable_vnc_stalls;
     }
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+    if (check_var('BACKEND', 'svirt')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
         console('svirt')->stop_serial_grab;
@@ -260,7 +260,7 @@ sub power_action {
         # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
         select_console('svirt') if is_vmware && $action eq 'reboot';
         reset_consoles;
-        if (check_var('VIRSH_VMM_FAMILY', 'xen') && $action ne 'poweroff') {
+        if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
         }
         # When 'sut' is ready, select it
