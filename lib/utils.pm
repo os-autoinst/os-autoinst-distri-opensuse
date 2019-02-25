@@ -534,9 +534,10 @@ Example:
 sub assert_screen_with_soft_timeout {
     my ($mustmatch, %args) = @_;
     # as in assert_screen
-    $args{timeout}             //= 30;
-    $args{soft_timeout}        //= 0;
-    $args{soft_failure_reason} //= $args{bugref} . ': needle(s) not found within ' . $args{soft_timeout};
+    $args{timeout}      //= 30;
+    $args{soft_timeout} //= 0;
+    my $needle_info = ref($mustmatch) eq "ARRAY" ? join(',', @$mustmatch) : $mustmatch;
+    $args{soft_failure_reason} //= "$args{bugref}: needle(s) $needle_info not found within $args{soft_timeout}";
     if ($args{soft_timeout}) {
         die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
         my $ret = check_screen $mustmatch, $args{soft_timeout};
