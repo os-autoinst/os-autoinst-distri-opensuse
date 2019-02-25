@@ -42,10 +42,11 @@ sub get_image_digest {
 
 =head2 verify_checksum
 Verify image data integrity by comparing SHA256 checksums
+Returns error message in case of failure, empty string in case of success
 =cut
 sub verify_checksum {
     my ($dir_path) = shift;
-
+    my $error = '';
     diag "Comparing data integrity calculated with SHA256 digest against checksum from IBS/OBS via rsync.pl";
     foreach my $image (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) {
         my $checksum = get_required_var $image;
@@ -53,10 +54,14 @@ sub verify_checksum {
         my $image_path = get_required_var $image;
         $image_path = $dir_path . basename($image_path) if $dir_path;
         my $digest = get_image_digest($image_path);
-        record_info("$image OK", "$image_path: OK") && next if $checksum eq $digest;
-        my $msg_fail = "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum";
-        record_info("$image Fail", $msg_fail, result => 'fail');
+        if ($checksum eq $digest) {
+            diag("$image OK", "$image_path: OK");
+        } else {
+            $error .= "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum\n";
+        }
     }
+    diag($error) if $error;
+    return $error;
 }
 
 1;

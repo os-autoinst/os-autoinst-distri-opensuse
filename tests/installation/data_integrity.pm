@@ -7,19 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Verify data integrity of the images provided by comparing checksums.
+# Summary: visualize data integrity of the images provided by comparing checksums.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use testapi;
 use data_integrity_utils 'verify_checksum';
+use version_utils 'is_svirt_except_s390x';
 
 sub run {
-    my $dir_path;
-    $dir_path = '/var/lib/libvirt/images/' if check_var('BACKEND', 'svirt');
-    $dir_path = get_var('HYPERV_DISK', 'D:') . '\\cache\\' if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-    verify_checksum($dir_path);
+    # If variable is set, we only inform about it
+    my $errors = get_var('CHECKSUM_FAILED');
+    record_info("Checksum", $errors, result => 'fail') if $errors;
 }
 
 1;
