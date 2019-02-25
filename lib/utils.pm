@@ -410,10 +410,10 @@ sub minimal_patch_system {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (is_sle('12-SP1+', get_var($args{version_variable}))) {
-        zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+        zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 3000, log => 'minimal_patch.log');
     }
     else {
-        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000, log => 'minimal_patch.log');
     }
 }
 
