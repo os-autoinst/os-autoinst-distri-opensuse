@@ -86,7 +86,17 @@ sub run {
     ensure_resource_running("$clustermd_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
 
     # Test if cluster-md device is present on all nodes
-    assert_script_run "ls -la $clustermd_device";
+    # Sometimes in high performance virtual scenarios, it takes some seconds for the cluster_md
+    # device to be present in /dev, so this will check for some number of tries before failing
+    my $ret;
+    my $tries = 5;
+
+    while ($tries and $ret = script_run "ls -la $clustermd_device") {
+        --$tries;
+        sleep 2;
+    }
+    die "Test timed out while checking $clustermd_device" unless (defined $ret);
+    die "Nonexistent $clustermd_device after 10 seconds" unless ($tries > 0 or $ret == 0);
 
     # Wait until R/W state is checked
     barrier_wait("CLUSTER_MD_CHECKED_$cluster_name");
