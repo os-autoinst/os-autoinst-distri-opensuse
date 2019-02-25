@@ -24,7 +24,6 @@ sub run {
     # Check few file whether expected content is there.
     assert_script_run "diff <(awk '/\\/proc\\/cmdline/{getline; print}' boot.txt) /proc/cmdline";
     assert_script_run "grep -q -f /etc/os-release basic-environment.txt";
-    assert_script_run "grep -q -f /etc/passwd pam.txt";
 
     assert_script_run "cd ..";
     assert_script_run "rm -rf nts_* ||:";
