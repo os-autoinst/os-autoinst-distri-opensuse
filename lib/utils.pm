@@ -536,7 +536,7 @@ sub assert_screen_with_soft_timeout {
     # as in assert_screen
     $args{timeout}             //= 30;
     $args{soft_timeout}        //= 0;
-    $args{soft_failure_reason} //= "$args{bugref}: needle(s) $mustmatch not found within $args{soft_timeout}";
+    $args{soft_failure_reason} //= $args{bugref} . ': needle(s) not found within ' . $args{soft_timeout};
     if ($args{soft_timeout}) {
         die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
         my $ret = check_screen $mustmatch, $args{soft_timeout};
