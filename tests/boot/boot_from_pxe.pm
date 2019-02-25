@@ -99,6 +99,7 @@ sub run {
         send_key "tab";
     }
     if (check_var('BACKEND', 'ipmi')) {
+        $image_path .= "ipv6.disable=1 " if get_var('LINUX_BOOT_IPV6_DISABLE');
         $image_path .= "ifcfg=$interface=dhcp4 " unless get_var('NETWORK_INIT_PARAM');
         $image_path .= 'plymouth.enable=0 ';
     }
