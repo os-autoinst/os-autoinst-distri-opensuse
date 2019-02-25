@@ -1,23 +1,28 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Bootloader to setup boot process on powerVM
-# Maintainer: Stephan Kulow <coolo@suse.com>
+package bootloader_spvm;
 
-use base "installbasetest";
+use base Exporter;
+use Exporter;
+
 use strict;
+use warnings;
 
-use utils;
 use testapi;
-use lockapi;
 use bootloader_setup;
-use registration;
+use registration 'registration_bootloader_params';
+use utils qw(get_netboot_mirror type_string_slow);
+
+our @EXPORT = qw(
+  boot_spvm
+);
 
 sub get_into_net_boot {
     assert_screen 'pvm-bootmenu';
@@ -50,7 +55,7 @@ sub get_into_net_boot {
     assert_screen ["pvm-grub", "novalink-failed-first-boot"];
 }
 
-sub run {
+sub boot_spvm {
     my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
     my $novalink = select_console 'novalink-ssh';
 

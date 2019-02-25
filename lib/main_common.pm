@@ -391,9 +391,6 @@ sub load_boot_tests {
         loadtest "boot/boot_from_pxe";
         set_var("DELAYED_START", get_var("PXEBOOT"));
     }
-    elsif (check_var('BACKEND', 'spvm')) {
-        loadtest "installation/bootloader_spvm";
-    }
     else {
         loadtest "installation/bootloader" unless load_bootloader_s390x();
     }
