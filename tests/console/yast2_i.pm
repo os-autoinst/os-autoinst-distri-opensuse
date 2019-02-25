@@ -15,7 +15,7 @@ use base "console_yasttest";
 use strict;
 use testapi;
 use utils;
-use version_utils "is_jeos";
+use version_utils qw(is_tumbleweed is_jeos);
 
 sub run {
     my $self        = shift;
@@ -30,7 +30,7 @@ sub run {
     zypper_call "-i inr" if is_jeos; # install recommended drivers bsc#953522
 
     script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
-    assert_screen 'empty-yast2-sw_single', 90;
+    assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 90;
 
     # Check disk usage widget for not showing subvolumes (bsc#949945)
     # on SLE12SP0 hidden subvolume isn't supported
@@ -54,6 +54,17 @@ sub run {
         }
         wait_screen_change { send_key 'alt-p' };
     }
+
+    # in new yast2 sw_install we need to change filter to Search
+    if (is_tumbleweed) {
+        assert_screen 'yast2-sw_install-locate-filter';
+        send_key 'alt-f';
+        wait_still_screen(stilltime => 2, timeout => 4, similarity_level => 50);
+        wait_screen_change { send_key 'home' };
+        send_key_until_needlematch 'yast2-sw_install-go-to-search', 'down';
+        wait_screen_change { send_key 'ret' };
+    }
+
     # Testcase according to https://fate.suse.com/318099
     # UC1:
     # Select a certain package, check that another gets selected/installed
