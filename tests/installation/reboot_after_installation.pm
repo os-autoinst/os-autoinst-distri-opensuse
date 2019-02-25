@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,7 +24,11 @@ sub run {
         my $svirt = console('svirt');
         $svirt->change_domain_element(os => boot => {dev => 'hd'});
     }
-    send_key 'alt-o';    # Reboot
+    # Reboot
+    my $count = 0;
+    while (!wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 20)) {
+        $count < 5 ? $count++ : die "Reboot process won't start";
+    }
     power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
 }
 
