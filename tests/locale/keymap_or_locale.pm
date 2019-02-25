@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use testapi;
 use utils;
+use Utils::Backends 'has_ttys';
 
 sub verify_default_keymap_textmode_non_us {
     my ($test_string, $tag) = @_;
@@ -37,12 +38,9 @@ sub verify_default_keymap_textmode {
     }
     else {
         send_key('alt-f3');
-        # Make sure the VT switch happened before matching VT content.
-        wait_still_screen;
-        # Some remote backends cannot provide a "not logged in console", so we
-        # also match cleared console. After snapshot rollback we may end up with
-        # cleared console as well.
-        assert_screen([qw(linux-login cleared-console)]);
+        # some remote backends can not provide a "not logged in console" so we
+        # use a cleared remote terminal instead
+        assert_screen(has_ttys() ? 'linux-login' : 'cleared-console');
     }
     type_string($test_string);
     assert_screen($tag);
