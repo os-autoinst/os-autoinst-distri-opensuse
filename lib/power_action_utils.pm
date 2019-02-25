@@ -156,7 +156,7 @@ sub poweroff_x11 {
         assert_screen 'logout-confirm-dialog', 10;
         send_key "alt-o";              # _o_k
 
-        if (!check_shutdown(timeout => 120)) {
+        if (!check_shutdown(120)) {
             record_soft_failure 'bsc#1076817 manually shutting down';
             select_console 'root-console';
             systemctl 'poweroff';
