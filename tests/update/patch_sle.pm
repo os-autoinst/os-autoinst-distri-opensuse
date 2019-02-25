@@ -60,6 +60,8 @@ sub patching_sle {
         if (!get_var('UPGRADE_ON_ZVM')) {
             # Perform sync ahead of reboot to flush filesystem buffers
             assert_script_run 'sync', 600;
+            # Open gdm debug info for poo#45236, this issue happen sometimes in openqa env
+            script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
             # Workaround for test failed of the reboot operation need to wait some jobs done
             # Add '-f' to force the reboot to avoid the test be blocked here
             type_string "reboot -f\n";
