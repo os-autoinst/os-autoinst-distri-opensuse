@@ -43,7 +43,7 @@ sub prepare_system_shutdown {
         }
         console('installation')->disable_vnc_stalls;
     }
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
         console('svirt')->stop_serial_grab;
