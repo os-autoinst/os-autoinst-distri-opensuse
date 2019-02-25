@@ -150,6 +150,9 @@ sub run {
 
         # Check for result
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
     else {
         diag 'Wait until drbd resource is created/activated...';
@@ -169,6 +172,9 @@ sub run {
 
         # Node01 should be the Master
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
     else {
         diag 'Wait until drbd resource is restarted...';
@@ -195,6 +201,9 @@ sub run {
 
         # Check for result
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_02\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
 
     # Wait for DRBD resrouce migration to be done
@@ -218,6 +227,9 @@ sub run {
 
         # Check for result
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
 
     # Wait for DRBD resrouce migration to be done
