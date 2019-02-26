@@ -354,6 +354,23 @@ sub get_lun {
     return block_device_real_path "$lun";
 }
 
+# This method checks for the presence of a device in the system for up to a defined timeout (defaults to 20seconds)
+sub check_device_available {
+    my ($dev, $tout) = @_;
+    my $ret;
+    my $tries = $tout ? int($tout / 2) : 10;
+
+    die "Must provide a device for check_device_available" unless (defined $dev);
+
+    while ($tries and $ret = script_run "ls -la $dev") {
+        --$tries;
+        sleep 2;
+    }
+    die "Test timed out while checking $dev" unless (defined $ret);
+    die "Nonexistent $dev after $tout seconds" unless ($tries > 0 or $ret == 0);
+    return $ret;
+}
+
 sub pre_run_hook {
     my ($self) = @_;
     if (isotovideo::get_version() == 12) {
