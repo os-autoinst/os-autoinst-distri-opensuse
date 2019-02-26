@@ -153,9 +153,9 @@ sub run {
     wait_still_screen 1;
     # QT menu requires user to place focus in the filter field
     send_key "ctrl-/" if $wireshark_gui_version eq "qt";
-    assert_screen "wireshark-filter-selected";
     # Sometimes checksum error window popup, then we need close this windows since this caused by offload feature
-    if (check_screen('wireshark-checksum-error', 5)) {
+    assert_screen([qw(wireshark-filter-selected wireshark-checksum-error)]);
+    if (match_has_tag('wireshark-checksum-error')) {
         send_key "alt-c";
         assert_screen "wireshark-filter-selected";
         send_key "ctrl-/" if $wireshark_gui_version eq "qt";
