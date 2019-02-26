@@ -55,9 +55,8 @@ sub run_caasp_checks {
 }
 
 sub run_kubic_checks {
-    # Should not include docker or kubernetes
+    # Should not include kubernetes
     if (check_var('SYSTEM_ROLE', 'microos')) {
-        assert_script_run 'which docker';
         assert_script_run '! zypper se -i kubernetes';
         assert_script_run '! rpm -q etcd';
     }

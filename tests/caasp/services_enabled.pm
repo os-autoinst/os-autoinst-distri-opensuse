@@ -18,7 +18,8 @@ use testapi;
 use version_utils 'is_caasp';
 
 my %services_for = (
-    default => [qw(sshd cloud-init-local cloud-init cloud-config cloud-final issue-generator issue-add-ssh-keys transactional-update.timer)],
+    default => [qw(sshd issue-generator issue-add-ssh-keys transactional-update.timer)],
+    cloud   => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
     cluster => [qw(chronyd)],
     admin   => [qw(docker kubelet etcd)],
     worker  => [qw(salt-minion systemd-timesyncd)],
@@ -36,6 +37,7 @@ sub run {
     my $role = get_var('SYSTEM_ROLE');
 
     check_services $services_for{default};
+    check_services $services_for{cloud}   if is_caasp('caasp');
     check_services $services_for{$role}   if $role;
     check_services $services_for{cluster} if $role =~ /admin|worker/;
 }
