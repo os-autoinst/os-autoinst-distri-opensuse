@@ -639,7 +639,8 @@ sub scc_deregistration {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (is_sle('12-SP1+', get_var($args{version_variable}))) {
-        my $deregister_ret = script_run('SUSEConnect -d --cleanup', 200);
+        assert_script_run('SUSEConnect --version');
+        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 200);
         if (defined $deregister_ret and $deregister_ret == 104) {
             # https://bugzilla.suse.com/show_bug.cgi?id=1119512
             # https://bugzilla.suse.com/show_bug.cgi?id=1122497
@@ -647,6 +648,8 @@ sub scc_deregistration {
             # Workaround the soft-failure
             assert_script_run('SUSEConnect --cleanup', 200);
         }
+        # If there was a failure de-registering, upload debug information for the SCC team
+        upload_logs "/tmp/SUSEConnect.debug" if (defined $deregister_ret and $deregister_ret);
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
