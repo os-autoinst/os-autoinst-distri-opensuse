@@ -12,6 +12,7 @@
 
 use base "basetest";
 use strict;
+use warnings;
 use testapi;
 use utils 'zypper_call';
 use registration;

@@ -17,6 +17,7 @@
 
 use base qw(consoletest distribution);
 use strict;
+use warnings;
 use testapi;
 use utils qw(zypper_call pkcon_quit);
 use version_utils 'is_sle';

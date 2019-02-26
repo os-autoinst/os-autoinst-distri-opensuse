@@ -14,6 +14,7 @@
 
 use base "hpcbase";
 use strict;
+use warnings;
 use testapi;
 use lockapi;
 use utils;

@@ -16,6 +16,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 use testapi;
 use utils;
 use registration;
@@ -100,12 +101,5 @@ sub command_register {
 sub assert_module {
     return 1 if (get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/);
 }
-
-# Return 1 if this is a module
-sub is_module {
-    my ($addon) = @_;
-    return 1 if (grep { $addon eq $_ } qw(asmm contm lgm pcm tcm wsm idu ids));
-}
-
 
 1;

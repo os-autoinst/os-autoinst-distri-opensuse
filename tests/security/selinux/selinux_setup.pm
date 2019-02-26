@@ -19,6 +19,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);

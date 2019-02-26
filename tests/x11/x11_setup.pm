@@ -12,6 +12,7 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 use utils 'ensure_serialdev_permissions';
 

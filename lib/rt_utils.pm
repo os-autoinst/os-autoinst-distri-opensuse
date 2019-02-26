@@ -2,6 +2,7 @@ package rt_utils;
 use base Exporter;
 use testapi;
 use strict;
+use warnings;
 use Exporter;
 
 our @EXPORT = qw(

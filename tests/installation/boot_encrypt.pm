@@ -13,6 +13,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
+use warnings;
 use base "installbasetest";
 use utils;
 use testapi qw(get_var record_info);

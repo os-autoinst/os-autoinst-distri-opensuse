@@ -15,6 +15,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 use testapi;
 
 our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists);

@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
 use strict;
+use warnings;
 
 sub run {
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';

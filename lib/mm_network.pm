@@ -1,6 +1,7 @@
 package mm_network;
 
 use strict;
+use warnings;
 
 use base 'Exporter';
 use Exporter;

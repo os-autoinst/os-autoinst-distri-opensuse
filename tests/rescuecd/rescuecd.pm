@@ -13,6 +13,7 @@
 
 use base "rescuecdstep";
 use strict;
+use warnings;
 use testapi;
 
 sub run {

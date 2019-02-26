@@ -16,6 +16,7 @@ use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use utils;
 use testapi;
 use version_utils 'is_caasp';

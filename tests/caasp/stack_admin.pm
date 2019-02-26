@@ -12,6 +12,7 @@
 
 use base "caasp_clusternode";
 use strict;
+use warnings;
 use testapi;
 use caasp;
 use utils 'script_retry';

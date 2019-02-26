@@ -14,6 +14,7 @@ use base 'consoletest';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_opensuse);
 use strict;
+use warnings;
 use testapi;
 
 sub run {

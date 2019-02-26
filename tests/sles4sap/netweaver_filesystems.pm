@@ -15,6 +15,7 @@ use testapi;
 use utils 'systemctl';
 use hacluster;
 use strict;
+use warnings;
 
 sub run {
     my ($self)      = @_;

@@ -14,6 +14,7 @@
 # Maintainer: Lukas Ocilka <lukas.ocilka@gmail.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use linuxrc;

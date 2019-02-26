@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use data_integrity_utils 'verify_checksum';
 

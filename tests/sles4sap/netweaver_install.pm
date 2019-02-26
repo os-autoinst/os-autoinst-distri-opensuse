@@ -17,6 +17,7 @@ use lockapi;
 use utils 'systemctl';
 use hacluster;
 use strict;
+use warnings;
 
 sub is_saptune_installed {
     my $ret = script_run "rpm -q saptune";
@@ -173,6 +174,8 @@ sub run {
     }
 }
 
+{
+no warnings 'redefine';
 sub post_fail_hook {
     my $self = shift;
 
@@ -183,6 +186,7 @@ sub post_fail_hook {
     upload_logs "/sapinst/unattended/sapinst.log";
     upload_logs "/sapinst/unattended/sapinst_dev.log";
     upload_logs "/sapinst/unattended/start_dir.cd";
+}
 }
 
 1;

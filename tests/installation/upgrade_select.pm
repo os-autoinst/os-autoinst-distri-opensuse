@@ -12,6 +12,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'assert_screen_with_soft_timeout';

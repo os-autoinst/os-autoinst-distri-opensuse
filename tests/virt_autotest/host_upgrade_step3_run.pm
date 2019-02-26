@@ -15,6 +15,7 @@ use base "host_upgrade_base";
 use testapi;
 use virt_utils;
 use strict;
+use warnings;
 
 sub get_script_run {
     my $self = shift;

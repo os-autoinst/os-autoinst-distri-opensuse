@@ -13,6 +13,7 @@
 
 use base 'bootbasetest';
 use strict;
+use warnings;
 use testapi;
 use version_utils qw(is_upgrade is_sles4sap);
 

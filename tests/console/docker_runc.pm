@@ -21,6 +21,7 @@ use utils;
 use version_utils qw(is_caasp is_sle);
 use registration;
 use strict;
+use warnings;
 
 sub run {
     select_console("root-console");

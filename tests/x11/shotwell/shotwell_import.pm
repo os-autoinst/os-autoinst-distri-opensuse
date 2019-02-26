@@ -12,6 +12,7 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 
 # Case 1503962 - Shotwell: Import image files

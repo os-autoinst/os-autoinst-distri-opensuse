@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_caasp';
 

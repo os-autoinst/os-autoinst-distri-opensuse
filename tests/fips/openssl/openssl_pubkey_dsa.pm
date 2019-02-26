@@ -28,6 +28,7 @@
 use base "consoletest";
 use testapi;
 use strict;
+use warnings;
 
 sub run {
     select_console 'root-console';

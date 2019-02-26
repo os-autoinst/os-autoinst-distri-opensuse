@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 
 # https://fate.suse.com/317131

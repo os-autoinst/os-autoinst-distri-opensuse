@@ -20,6 +20,7 @@
 
 use base 'basetest';
 use strict;
+use warnings;
 use testapi;
 
 sub run {

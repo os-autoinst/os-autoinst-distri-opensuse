@@ -14,6 +14,7 @@ use base "sles4sap";
 use testapi;
 use version_utils qw(is_staging is_sle);
 use strict;
+use warnings;
 
 my @tuned_profiles = is_sle('>=15') ?
   qw(balanced desktop latency-performance network-latency network-throughput

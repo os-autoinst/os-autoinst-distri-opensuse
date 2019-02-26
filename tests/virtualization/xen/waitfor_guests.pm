@@ -13,6 +13,7 @@
 use base 'xen';
 
 use strict;
+use warnings;
 use testapi;
 use utils;
 

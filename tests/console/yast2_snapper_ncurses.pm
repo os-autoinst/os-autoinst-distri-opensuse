@@ -12,6 +12,7 @@
 
 use base qw(y2snapper_common console_yasttest);
 use strict;
+use warnings;
 use testapi;
 use utils;
 

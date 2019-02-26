@@ -11,6 +11,7 @@
 # Maintainer: Yong Sun <yosun@suse.com>
 
 use strict;
+use warnings;
 use testapi;
 use utils;
 use base "opensusebasetest";

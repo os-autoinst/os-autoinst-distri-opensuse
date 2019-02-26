@@ -12,6 +12,7 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 

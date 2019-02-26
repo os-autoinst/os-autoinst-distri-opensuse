@@ -13,6 +13,7 @@
 
 use base "publiccloud::basetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use repo_tools 'generate_version';

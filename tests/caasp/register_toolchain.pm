@@ -11,6 +11,7 @@
 # Maintainer: Tomas Hehejik <thehejik@suse.com>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use caasp 'process_reboot';

@@ -22,6 +22,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 
 # check if sshd works with public key

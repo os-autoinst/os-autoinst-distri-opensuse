@@ -2,6 +2,7 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
+use warnings;
 use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
 use network_utils;

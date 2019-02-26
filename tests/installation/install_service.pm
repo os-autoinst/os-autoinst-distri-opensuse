@@ -18,6 +18,7 @@
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
 use strict;
+use warnings;
 use base 'installbasetest';
 use testapi;
 use utils 'systemctl', 'zypper_call';

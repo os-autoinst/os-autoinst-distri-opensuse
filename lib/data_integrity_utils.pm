@@ -15,6 +15,7 @@ package data_integrity_utils;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi;
 use File::Basename;
 use Digest::file 'digest_file_hex';

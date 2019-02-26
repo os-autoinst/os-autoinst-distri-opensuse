@@ -14,6 +14,7 @@ use base "consoletest";
 use testapi;
 use Utils::Backends 'use_ssh_serial_console';
 use strict;
+use warnings;
 
 sub run {
     # let's see how it looks at the beginning

@@ -14,6 +14,7 @@ use base 'consoletest';
 use testapi;
 use version_utils 'is_sle';
 use strict;
+use warnings;
 
 sub run {
     select_console 'root-console';

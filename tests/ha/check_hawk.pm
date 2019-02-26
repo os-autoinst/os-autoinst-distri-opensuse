@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2018 SUSE LLC
+# Copyright (c) 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,9 +12,10 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use lockapi;
-use hacluster;
+use hacluster 'get_cluster_name';
 use utils 'systemctl';
 use version_utils 'is_sle';
 

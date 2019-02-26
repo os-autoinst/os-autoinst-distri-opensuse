@@ -1,4 +1,5 @@
-# Copyright © 2017-2018 SUSE LLC
+## no critic (Strict)
+# Copyright © 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,6 +25,8 @@ use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
 use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag);
 use 5.018;
+# FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
+# use warnings;
 
 our @EXPORT = 'load_kernel_tests';
 
@@ -40,7 +43,7 @@ sub shutdown_ltp {
 sub parse_openposix_runfile {
     my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
-    open(my $rfile, $path) or die "Can not open runfile asset $path: $!";    ## no critic
+    open(my $rfile, $path) or die "Can not open runfile asset $path: $!";    ## no critic (InputOutput::ProhibitTwoArgOpen)
     while (my $line = <$rfile>) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
@@ -54,7 +57,7 @@ sub parse_openposix_runfile {
 sub parse_runtest_file {
     my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
-    open(my $rfile, $path) or die "Can not open runtest asset $path: $!";    ## no critic
+    open(my $rfile, $path) or die "Can not open runtest asset $path: $!";    ## no critic (InputOutput::ProhibitTwoArgOpen)
     while (my $line = <$rfile>) {
         next if ($line =~ /(^#)|(^$)/);
 

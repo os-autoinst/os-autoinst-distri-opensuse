@@ -20,6 +20,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
 use Carp;
 use strict;
+use warnings;
 
 =head2 wicked_command
 

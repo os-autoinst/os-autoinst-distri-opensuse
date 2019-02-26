@@ -19,6 +19,7 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 use x11utils 'handle_relogin';
 

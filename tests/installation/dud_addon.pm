@@ -13,6 +13,7 @@
 
 use base "y2logsstep";
 use strict;
+use warnings;
 use testapi;
 use utils 'addon_license';
 use version_utils 'is_sle';

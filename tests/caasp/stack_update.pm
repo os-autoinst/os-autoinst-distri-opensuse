@@ -17,6 +17,7 @@ use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use testapi;
 use caasp;
 use utils 'systemctl';

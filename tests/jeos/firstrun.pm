@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_sle';
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);

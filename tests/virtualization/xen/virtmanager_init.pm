@@ -19,6 +19,7 @@
 use base "x11test";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 

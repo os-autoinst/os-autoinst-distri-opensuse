@@ -15,6 +15,7 @@
 
 use base 'basetest';
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_sle';
 

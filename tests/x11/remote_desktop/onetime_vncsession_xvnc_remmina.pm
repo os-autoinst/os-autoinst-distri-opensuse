@@ -12,6 +12,7 @@
 # Tags: tc#1610354
 
 use strict;
+use warnings;
 use base 'basetest';
 use testapi;
 use lockapi;

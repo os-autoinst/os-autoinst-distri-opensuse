@@ -16,6 +16,7 @@ use lockapi;
 use hacluster;
 use utils qw(ensure_serialdev_permissions systemctl);
 use strict;
+use warnings;
 
 sub run {
     my ($self)       = @_;

@@ -20,6 +20,7 @@ use testapi;
 use utils;
 use registration "install_docker_when_needed";
 use strict;
+use warnings;
 
 sub run {
     select_console('root-console');

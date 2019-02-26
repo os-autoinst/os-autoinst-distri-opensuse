@@ -1,4 +1,4 @@
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@ package version_utils;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
 
@@ -160,7 +161,8 @@ sub check_version {
 # Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 sub is_caasp {
     my $filter = shift;
-    return 0 unless get_var('DISTRI') =~ /caasp|kubic/;
+    my $distri = get_var('DISTRI');
+    return 0 unless $distri && $distri =~ /caasp|kubic/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {

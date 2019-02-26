@@ -13,6 +13,7 @@
 
 use base "basetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use bootloader_setup;

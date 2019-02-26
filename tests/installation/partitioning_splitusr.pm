@@ -13,6 +13,7 @@
 
 use base "y2logsstep";
 use strict;
+use warnings;
 use testapi;
 use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'addpart';

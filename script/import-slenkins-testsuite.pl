@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 use Cwd 'abs_path';
 use Data::Dump qw(dd pp);
 use XML::Simple;

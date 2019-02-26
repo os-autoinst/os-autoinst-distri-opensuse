@@ -12,6 +12,7 @@
 
 use base "qa_run";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use iscsi;

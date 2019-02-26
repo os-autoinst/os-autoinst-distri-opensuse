@@ -12,6 +12,7 @@ package upload_system_log;
 # Maintainer: Yong Sun <yosun@suse.com>
 
 use strict;
+use warnings;
 use base "Exporter";
 use Exporter;
 use testapi;

@@ -12,6 +12,7 @@
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use utils 'noupdatestep_is_applicable';

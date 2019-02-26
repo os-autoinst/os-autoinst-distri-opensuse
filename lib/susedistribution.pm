@@ -2,6 +2,7 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
+use warnings;
 use utils qw(
   disable_serial_getty
   ensure_serialdev_permissions

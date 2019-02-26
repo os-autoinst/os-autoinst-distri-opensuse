@@ -18,6 +18,7 @@
 # Tags: poo#36880, tc#1621142
 
 use strict;
+use warnings;
 use base "consoletest";
 use testapi;
 use utils;

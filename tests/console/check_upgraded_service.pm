@@ -13,6 +13,7 @@
 use base 'consoletest';
 use testapi;
 use strict;
+use warnings;
 use utils 'systemctl';
 
 sub run {

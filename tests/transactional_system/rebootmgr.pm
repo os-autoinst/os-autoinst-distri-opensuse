@@ -12,6 +12,7 @@
 # Tags: poo#16266
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use transactional_system;

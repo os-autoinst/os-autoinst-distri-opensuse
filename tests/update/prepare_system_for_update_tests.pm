@@ -18,6 +18,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
