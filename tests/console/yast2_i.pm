@@ -24,10 +24,9 @@ sub run {
 
     select_console 'root-console';
 
+    zypper_call "-i inr"; # install recommended drivers bsc#953522
     zypper_call "-i rm $pkgname $recommended";
     zypper_call "in yast2-packager";    # make sure yast2 sw_single module installed
-
-    zypper_call "-i inr" if is_jeos; # install recommended drivers bsc#953522
 
     script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
     assert_screen 'empty-yast2-sw_single', 90;
