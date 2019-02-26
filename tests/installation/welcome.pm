@@ -52,8 +52,8 @@ sub get_product_shortcuts {
     if (is_sle '15-SP1+') {
         return (
             sles => (is_ppc64le() || is_s390x()) ? 'u'
-                : is_aarch64() ? 's'
-                : 'i',
+            : is_aarch64() ? 's'
+            : 'i',
             sled     => 'x',
             sles4sap => get_var('OFW') ? 'i' : 'p',
             hpc      => is_x86_64() ? 'g' : 'u',

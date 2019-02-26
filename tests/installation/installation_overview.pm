@@ -64,7 +64,7 @@ sub run {
         assert_screen('installation-settings-overview-loaded-impossible-proposal');
     }
     else {
-	# Refer to: https://progress.opensuse.org/issues/47369
+        # Refer to: https://progress.opensuse.org/issues/47369
         assert_screen "installation-settings-overview-loaded", 250;
         $self->deal_with_dependency_issues;
         assert_screen "inst-xen-pattern" if get_var('XEN');
