@@ -1498,6 +1498,13 @@ sub load_extra_tests_opensuse {
     loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
 }
 
+sub load_extra_tests_qemu {
+    loadtest "qemu/info";
+    loadtest "qemu/qemu";
+    loadtest "qemu/kvm";
+    loadtest "qemu/user" if is_opensuse;
+}
+
 sub load_extra_tests_console {
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
