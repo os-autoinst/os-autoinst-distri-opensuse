@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,15 +9,17 @@
 # without any warranty.
 #
 package qa_run;
-# Summary:  base class for qa_automation tests in openQA
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Summary: base class for qa_automation tests in openQA
+# Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
 use warnings;
 use File::Basename;
 use base "opensusebasetest";
-use utils;
+use registration 'add_suseconnect_product';
 use testapi qw(is_serial_terminal :DEFAULT);
+use utils;
+use version_utils 'is_sle';
 
 sub test_run_list {
     return ();
@@ -87,7 +89,8 @@ sub prepare_repos {
     }
     # sometimes updates.suse.com is busy, so we need to wait for possiblye retries
     zypper_call("--gpg-auto-import-keys ref");
-    zypper_call("in qa_testset_automation qa_tools");
+    add_suseconnect_product('sle-module-python2') if is_sle('>15');
+    zypper_call("in qa_testset_automation qa_tools python-base python-xml");
 }
 
 # Create qaset/config file, reset qaset, and start testrun
