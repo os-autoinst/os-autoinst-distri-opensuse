@@ -17,7 +17,7 @@ package Installation::Partitioner::Libstorage::SuggestedPartitioningPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::Partitioner::AbstractSuggestedPartitioningPage';
+use parent 'Installation::Partitioner::SuggestedPartitioningPage';
 
 sub press_edit_proposal_settings_button {
     my ($self) = @_;

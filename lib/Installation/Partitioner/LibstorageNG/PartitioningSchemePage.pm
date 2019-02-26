@@ -30,8 +30,7 @@ sub select_logical_volume_management_checkbox {
 
 sub press_next {
     my ($self) = @_;
-    assert_screen(PARTITIONING_SCHEME_PAGE);
-    $self->get_navigation_panel()->press_next();
+    $self->SUPER::press_next(PARTITIONING_SCHEME_PAGE);
 }
 
 sub select_enable_disk_encryption_checkbox {

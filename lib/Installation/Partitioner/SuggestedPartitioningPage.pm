@@ -13,7 +13,7 @@
 
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-package Installation::Partitioner::AbstractSuggestedPartitioningPage;
+package Installation::Partitioner::SuggestedPartitioningPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
@@ -28,8 +28,7 @@ use constant {
 
 sub press_next {
     my ($self) = @_;
-    assert_screen(SUGGESTED_PARTITIONING_PAGE);
-    $self->get_navigation_panel()->press_next();
+    $self->SUPER::press_next(SUGGESTED_PARTITIONING_PAGE);
 }
 
 sub assert_encrypted_partition_with_lvm_shown_in_the_list {

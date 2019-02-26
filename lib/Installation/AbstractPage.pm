@@ -15,18 +15,17 @@
 package Installation::AbstractPage;
 use strict;
 use warnings FATAL => 'all';
-use Installation::NavigationPanel;
+use testapi;
 
 sub new {
-    my ($class, $args) = @_;
-    my $self = bless {
-        NavigationPanel => Installation::NavigationPanel->new()
-    }, $class;
+    my ($class, %args) = @_;
+    my $self = bless {}, $class;
 }
 
-sub get_navigation_panel {
-    my ($self) = @_;
-    return $self->{NavigationPanel};
+sub press_next {
+    my ($self, $page_needle) = @_;
+    assert_screen($page_needle);
+    send_key('alt-n');
 }
 
 1;

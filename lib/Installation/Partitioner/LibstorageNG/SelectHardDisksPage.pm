@@ -24,8 +24,7 @@ use constant {
 
 sub press_next {
     my ($self) = @_;
-    assert_screen(SELECT_HARD_DISKS_PAGE);
-    $self->get_navigation_panel()->press_next();
+    $self->SUPER::press_next(SELECT_HARD_DISKS_PAGE);
 }
 
 1;
