@@ -189,7 +189,8 @@ sub deal_with_dependency_issues {
     }
 
     # Installer need time to adapt the proposal after conflicts fixed
-    assert_screen([qw(installation-settings-overview-loaded adapting_proposal)]);
+    # Refer ticket: https://progress.opensuse.org/issues/48371
+    assert_screen([qw(installation-settings-overview-loaded adapting_proposal)], 90);
     if (match_has_tag('adapting_proposal')) {
         my $timeout  = 600;
         my $interval = 10;
