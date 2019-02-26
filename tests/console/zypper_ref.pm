@@ -23,8 +23,8 @@ sub run {
 
     # see FATE#325541
     zypper_call 'mr -e -l'
-        if is_sle('15+')
-        and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
+      if is_sle('15+')
+      and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
 
     zypper_call '--gpg-auto-import-keys ref';
 }

@@ -394,22 +394,22 @@ sub wait_grub {
 When bootloader appears, make sure to boot from local disk when it is on aarch64. 
 =cut
 sub wait_grub_to_boot_on_local_disk {
-   # assuming the cursor is on 'installation' by default and 'boot from
-   # harddisk' is above
-   send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
-   boot_local_disk;
-   my @tags = qw(grub2 tianocore-mainmenu);
-   push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+    # assuming the cursor is on 'installation' by default and 'boot from
+    # harddisk' is above
+    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+    boot_local_disk;
+    my @tags = qw(grub2 tianocore-mainmenu);
+    push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
 
-   assert_screen(\@tags, 15);
-   if (match_has_tag('tianocore-mainmenu')) {
-       opensusebasetest::handle_uefi_boot_disk_workaround();
-       check_screen('encrypted-disk-password-prompt', 10);
+    assert_screen(\@tags, 15);
+    if (match_has_tag('tianocore-mainmenu')) {
+        opensusebasetest::handle_uefi_boot_disk_workaround();
+        check_screen('encrypted-disk-password-prompt', 10);
     }
-   if (match_has_tag('encrypted-disk-password-prompt')) {
-       workaround_type_encrypted_passphrase;
-       assert_screen('grub2');
-   }
+    if (match_has_tag('encrypted-disk-password-prompt')) {
+        workaround_type_encrypted_passphrase;
+        assert_screen('grub2');
+    }
 }
 
 =head2 wait_boot
