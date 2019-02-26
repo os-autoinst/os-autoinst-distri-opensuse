@@ -2106,7 +2106,10 @@ sub load_security_tests_mmtest {
 sub load_security_tests_apparmor {
     load_security_console_prepare;
 
-    loadtest "security/apparmor/aa_prepare" if (check_var('TEST', 'mau-apparmor'));
+    if (check_var('TEST', 'mau-apparmor')) {
+        loadtest "qa_automation/patch_and_reboot";
+        loadtest "security/apparmor/aa_prepare";
+    }
     loadtest "security/apparmor/aa_status";
     loadtest "security/apparmor/aa_enforce";
     loadtest "security/apparmor/aa_complain";
@@ -2120,7 +2123,10 @@ sub load_security_tests_apparmor {
 sub load_security_tests_apparmor_profile {
     load_security_console_prepare;
 
-    loadtest "security/apparmor/aa_prepare" if (check_var('TEST', 'mau-apparmor_profile'));
+    if (check_var('TEST', 'mau-apparmor_profile')) {
+        loadtest "qa_automation/patch_and_reboot";
+        loadtest "security/apparmor/aa_prepare";
+    }
     loadtest "security/apparmor_profile/usr_sbin_dovecot";
     loadtest "security/apparmor_profile/usr_sbin_traceroute";
     loadtest "security/apparmor_profile/usr_sbin_nscd";

@@ -16,12 +16,12 @@ use testapi;
 use utils 'zypper_call';
 
 sub run {
+    select_console 'root-console';
     zypper_call 'in -t pattern apparmor';
     assert_script_run "systemctl start apparmor";
 }
 
 sub test_flags {
-    # 'milestone'      - after this test succeeds, update 'lastgood'
     return { milestone => 1 };
 }
 
