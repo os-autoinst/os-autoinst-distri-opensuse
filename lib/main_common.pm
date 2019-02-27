@@ -193,7 +193,8 @@ sub any_desktop_is_applicable {
 }
 
 sub console_is_applicable {
-    return !any_desktop_is_applicable();
+    # wicked tests using VIRTIO console so no point to run consoletest_finish()
+    return !any_desktop_is_applicable() && !check_var('EXTRATEST', 'wicked');
 }
 
 sub logcurrentenv {
