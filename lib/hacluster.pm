@@ -47,6 +47,7 @@ our @EXPORT = qw(
   check_cluster_state
   wait_until_resources_started
   get_lun
+  check_device_available
   pre_run_hook
   post_run_hook
   post_fail_hook
