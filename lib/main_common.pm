@@ -67,6 +67,7 @@ our @EXPORT = qw(
   load_common_x11
   load_consoletests
   load_create_hdd_tests
+  load_create_hdd_terraform
   load_extra_tests
   load_inst_tests
   load_iso_in_external_tests
@@ -2245,6 +2246,11 @@ sub load_create_hdd_tests {
     }
 }
 
+sub load_create_hdd_terraform {
+    boot_hdd_image;
+    loadtest "terraform/create_image";
+}
+
 sub load_virtualization_tests {
     return unless get_var('VIRTUALIZATION');
     # standalone suite to fit needed installation
@@ -2381,6 +2387,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
+    load_create_hdd_terraform           if get_var('TERRAFORM');
 }
 
 sub load_ssh_key_import_tests {
