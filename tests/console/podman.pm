@@ -123,4 +123,12 @@ sub run {
     die('error: podman rmi -a did not remove hello-world:latest')           if ($output_containers =~ m/Untagged: hello-world:latest/);
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    script_run "podman version | tee /dev/$serialdev";
+    script_run "podman info --debug | tee /dev/$serialdev";
+    $self->SUPER::post_fail_hook;
+}
+
 1;
