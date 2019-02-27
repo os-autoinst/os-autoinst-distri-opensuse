@@ -17,12 +17,13 @@ use testapi;
 use utils "zypper_call";
 
 sub run {
+    # Remove repos from media, as they are invalid for testing
+    zypper_call("mr -da");
     # MIRROR_HTTP it's a mirror of the REPO including unreleased packages
     # and it also contains everything from the current ISO under test
     if (get_var('MIRROR_HTTP')) {
         # Kubic repos might have *older* version of packages compared MIRROR_HTTP
         # Any pkg installation from now on, should come from the MIRROR_HTTP
-        zypper_call("mr -da");
         my $mirror = get_required_var('MIRROR_HTTP');
         zypper_call("--no-gpg-check ar -f '$mirror' mirror_http");
     }
