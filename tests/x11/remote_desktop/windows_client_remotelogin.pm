@@ -16,6 +16,7 @@ use warnings;
 use base 'x11test';
 use testapi;
 use lockapi;
+use version_utils 'is_sles4sap';
 
 sub run {
     my $self = shift;
@@ -40,10 +41,16 @@ sub run {
     send_key "ret";
 
     assert_screen "xrdp-sharing-activate", 120;
-    assert_and_click "close-xrdp-sharing-window";
-    assert_and_click "confirm-close-remote-session";
+    if (is_sles4sap) {
+        x11_start_program('gnome-session-quit --logout --force', valid => 0);
+    }
+    else {
+        assert_and_click "close-xrdp-sharing-window";
+        assert_and_click "confirm-close-remote-session";
+    }
     assert_and_click "close-remote-desktop-connection";
 
     send_key "c";
 }
+
 1;
