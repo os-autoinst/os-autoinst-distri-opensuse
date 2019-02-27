@@ -280,6 +280,17 @@ sub load_slenkins_tests {
     return 0;
 }
 
+sub prepare_target {
+    if (get_var("BOOT_HDD_IMAGE")) {
+        boot_hdd_image;
+    }
+    else {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+    }
+}
+
 sub load_default_tests {
     load_boot_tests();
     load_inst_tests();
@@ -353,7 +364,7 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_reboot_tests();
 }
 elsif (get_var('SECURITY_TEST')) {
-    boot_hdd_image;
+    prepare_target();
     load_security_tests;
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {

@@ -2153,13 +2153,13 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/selinux_smoke";
 }
 
-sub load_security_tests_ima_setup {
-    load_security_console_prepare;
-
-    # Setup system environment for IMA testing
+sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
+}
+
+sub load_security_tests_ima {
     loadtest "security/ima/ima_setup";
-    loadtest "shutdown/shutdown";
+    loadtest "security/ima/ima_measurement";
 }
 
 sub load_security_tests_system_check {
@@ -2172,7 +2172,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      ima_setup
+      mok_enroll ima
       system_check
       /;
 
