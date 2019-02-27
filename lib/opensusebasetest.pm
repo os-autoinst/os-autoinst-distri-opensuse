@@ -359,7 +359,7 @@ sub wait_grub {
       if (is_aarch64_uefi_boot_hdd
         && !$in_grub
         && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
-    check_screen(\@tags, $bootloader_time);
+    assert_screen(\@tags, $bootloader_time);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
