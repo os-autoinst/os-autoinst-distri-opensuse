@@ -768,10 +768,12 @@ sub select_serial_terminal {
         } else {
             $console = $root ? 'root-virtio-terminal' : 'virtio-terminal';
         }
-    } elsif (get_var('S390_ZKVM')) {
-        $console = $root ? 'root-console' : 'user-console';
     } elsif ($backend eq 'svirt') {
-        $console = $root ? 'root-console' : 'user-console';
+        if (check_var('SERIAL_CONSOLE', 0)) {
+            $console = $root ? 'root-console' : 'user-console';
+        } else {
+            $console = $root ? 'root-sut-serial' : 'sut-serial';
+        }
     } elsif ($backend =~ /^(ikvm|ipmi|spvm)$/) {
         $console = 'root-ssh';
     }
