@@ -17,9 +17,8 @@ use testapi;
 use utils 'zypper_call';
 
 sub run {
-    my $version       = get_var('VERSION');
-    my $build         = get_var('BUILD');
-    my $rpi_image_url = "http://openqa.suse.de/assets/hdd/SLES$version-JeOS.aarch64-15.1-RaspberryPi-Build$build.raw.xz";
+    my $rawname       = get_required_var('HDD_1_NAME');
+    my $rpi_image_url = autoinst_url("/assets/hdd/$rawname");
 
     (my $rpi_image_rawxz = $rpi_image_url) =~ s/.*\///;
     (my $rpi_image_raw   = $rpi_image_rawxz) =~ s/\.[^.]+$//;
@@ -27,7 +26,6 @@ sub run {
 
     select_console('root-console');
 
-    # System should be registered already - we need qemu-img binary
     zypper_call('ref');
     zypper_call('in --no-recommends qemu-tools');
 
