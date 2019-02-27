@@ -38,7 +38,7 @@ sub hyperv_cmd_with_retry {
         'The operation cannot be performed while the object is in use',
         'The process cannot access the file because it is being used by another process');
     for my $retry (1 .. $attempts) {
-        my @out = (console('svirt')->get_cmd_output($cmd, {wantarray => 1}))[0];
+        my @out    = (console('svirt')->get_cmd_output($cmd))[0];
         my $stderr = $out[0][1] || '';
         chomp($stderr);
         # Command succeeded, we are done here
