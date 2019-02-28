@@ -182,8 +182,6 @@ sub boot_grub_item {
     }
     save_screenshot;
     send_key 'ret';
-
-    $self->wait_boot(in_grub => 1);
 }
 
 
