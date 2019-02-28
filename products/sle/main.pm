@@ -472,7 +472,6 @@ sub load_online_migration_tests {
     if (check_var("MIGRATION_METHOD", 'zypper')) {
         loadtest "migration/sle12_online_migration/zypper_migration";
     }
-    loadtest 'console/orphaned_packages_check';
     loadtest "migration/sle12_online_migration/post_migration";
 }
 
