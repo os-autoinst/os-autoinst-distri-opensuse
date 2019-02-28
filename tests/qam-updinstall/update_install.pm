@@ -35,7 +35,7 @@ sub install_packages {
 
     # loop over packages in patchinfo and try installation
     foreach my $line (split(/\n/, $patch_info)) {
-        if (my ($package) = $line =~ $pattern and $line !~ "xen-tools-domU" and $line !~ "-devel" and $line !~ "-base\$") {
+        if (my ($package) = $line =~ $pattern and $line !~ "xen-tools-domU" and $line !~ "-devel" and $line !~ "-base\$" and $line !~ "\.src\$") {
             zypper_call("in $package", exitcode => [0, 102, 103, 104]);
             save_screenshot;
         }
