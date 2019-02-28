@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils qw(is_caasp is_staging);
+use version_utils qw(is_caasp is_opensuse is_staging);
 use transactional_system;
 
 # Download files needed for transactional update test
@@ -69,12 +69,12 @@ sub run {
     my $f    = is_caasp('kubic') ? 1 : 2;
     my $snap = script_output "snapper list | tail -1 | cut -d'|' -f$f | tr -d ' *'";
 
-    record_info 'Update #1', 'Add repository and update - snapshot #2';
     # Don't use tests requiring repos in staging
-    if (is_staging) {
+    if (is_opensuse && is_staging) {
         record_info 'Test skipped - no repos for staging';
     }
     else {
+        record_info 'Update #1', 'Add repository and update - snapshot #2';
         # Only CaaSP needs an additional repo for testing
         assert_script_run 'zypper ar utt.repo' if is_caasp 'caasp';
         trup_call 'cleanup up';
