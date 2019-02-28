@@ -17,26 +17,9 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use y2lan_restart_common;
 use version_utils ':VERSION';
 use utils 'zypper_call';
-
-sub handle_Networkmanager_controlled {
-    send_key "ret";    # confirm networkmanager popup
-    assert_screen "Networkmanager_controlled-approved";
-    send_key "alt-c";
-    if (check_screen('yast2-lan-really', 3)) {
-        # SLED11...
-        send_key 'alt-y';
-    }
-    wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
-}
-
-sub handle_dhcp_popup {
-    if (match_has_tag('dhcp-popup')) {
-        wait_screen_change { send_key 'alt-o' };
-    }
-}
+use y2lan_utils;
 
 sub run {
     my $self = shift;
@@ -49,23 +32,10 @@ sub run {
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
-
-    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
-    handle_dhcp_popup;
-    if (match_has_tag('Networkmanager_controlled')) {
-        handle_Networkmanager_controlled;
-        return;    # don't change any settings
-    }
-    if (match_has_tag('install-susefirewall2') || match_has_tag('install-firewalld')) {
-        # install firewall
-        send_key "alt-i";
-        # check yast2_lan again after firewall is installed
-        assert_screen [qw(Networkmanager_controlled yast2_lan)], 90;
-        if (match_has_tag('Networkmanager_controlled')) {
-            handle_Networkmanager_controlled;
-            return;
-        }
+    my $opened = open_yast2_lan_first_time;
+    wait_still_screen;
+    if ($opened eq "Controlled by network manager") {
+        return;
     }
 
     my $hostname = get_var('HOSTNAME', 'susetest');
@@ -85,9 +55,7 @@ sub run {
     }
     assert_screen 'test-yast2_lan-1';
 
-    send_key "alt-o";    # OK=>Save&Exit
-    wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
-    wait_still_screen;
+    close_yast2_lan;
 
     # Run detailed check only if explicitly configured in the test suite
     check_etc_hosts_update() if get_var('VALIDATE_ETC_HOSTS');

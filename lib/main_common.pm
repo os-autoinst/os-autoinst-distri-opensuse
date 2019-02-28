@@ -1489,6 +1489,7 @@ sub load_extra_tests_desktop {
             loadtest 'x11/network/yast2_network_use_nm';
             loadtest 'x11/network/NM_wpa2_enterprise';
         }
+        loadtest 'console/yast2_lan_device_settings';
         loadtest "console/check_default_network_manager";
     }
 }
@@ -1554,6 +1555,7 @@ sub load_extra_tests_console {
     loadtest "console/syslog";
     loadtest "console/ntp_client" if (!is_sle || is_jeos);
     loadtest "console/mta" unless is_jeos;
+    loadtest "console/yast2_lan_device_settings";
     loadtest "console/check_default_network_manager";
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";

@@ -16,7 +16,7 @@ use base 'y2logsstep';
 use strict;
 use warnings;
 use testapi;
-use y2lan_restart_common;
+use y2lan_utils;
 use y2_common 'is_network_manager_default';
 
 sub check_network_settings_tabs {

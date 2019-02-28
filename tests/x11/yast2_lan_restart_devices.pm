@@ -16,7 +16,7 @@ use base 'y2logsstep';
 use strict;
 use warnings;
 use testapi;
-use y2lan_restart_common qw(initialize_y2lan open_network_settings close_network_settings check_network_status);
+use y2lan_utils qw(initialize_y2lan open_network_settings close_network_settings check_network_status);
 
 sub check_bsc1111483 {
     return 0 unless match_has_tag('yast2_lan_device_bsc1111483');
