@@ -74,12 +74,13 @@ sub run {
     # Wait until xrdp client finishes remote access
     wait_for_children;
 
+    send_key_until_needlematch 'displaymanager', 'esc';
+
     if (is_sles4sap) {
         # We don't have to test the reconnection and reboot part in SLES4SAP
         handle_login;
     }
     else {
-        send_key_until_needlematch 'displaymanager', 'esc';
         send_key 'ret';
         assert_screen "displaymanager-password-prompt";
         type_password;
