@@ -250,7 +250,7 @@ sub run {
     }
 
     # If we didn't see pxe, the reboot is going now
-    $self->wait_boot if check_var('BACKEND', 'ipmi') and not $pxe_boot_done;
+    $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
     # CaaSP does not have second stage
     return if is_caasp;
