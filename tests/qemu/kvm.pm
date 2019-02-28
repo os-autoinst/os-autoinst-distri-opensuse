@@ -26,10 +26,16 @@ sub run {
     }
     elsif (check_var('ARCH', 'ppc64le')) {
         type_string "qemu-system-ppc64 -nographic -enable-kvm\n";
-        assert_screen ['qemu-open-firmware-ready', 'qemu-does-not-support-1tib-segments'], 60;
+        assert_screen ['qemu-open-firmware-ready', 'qemu-does-not-support-1tib-segments', 'qemu-ppc64-no-trans-mem'], 60;
         if (match_has_tag 'qemu-does-not-support-1tib-segments') {
             record_soft_failure 'bsc#1124589 - qemu on ppx64le fails when called with kvm on POWER9';
             return;
+        }
+        elsif (match_has_tag 'qemu-ppc64-no-trans-mem') {
+            # this should only happen on SLE12SP5
+            record_info 'workaround', 'bsc#1118450 - qemu-system-ppc64: KVM implementation does not support Transactional Memory';
+            type_string "qemu-system-ppc64 -nographic -enable-kvm -M usb=off,cap-htm=off\n";
+            assert_screen 'qemu-open-firmware-ready', 60;
         }
     }
     elsif (check_var('ARCH', 's390x')) {

@@ -30,7 +30,13 @@ sub run {
     elsif (check_var('ARCH', 'ppc64le')) {
         zypper_call 'in qemu-ppc';
         type_string "qemu-system-ppc64 -nographic\n";
-        assert_screen 'qemu-open-firmware-ready', 60;
+        assert_screen ['qemu-open-firmware-ready', 'qemu-ppc64-no-trans-mem'], 60;
+        if (match_has_tag 'qemu-ppc64-no-trans-mem') {
+            # this should only happen on SLE12SP5
+            record_info 'workaround', 'bsc#1118450 - qemu-system-ppc64: KVM implementation does not support Transactional Memory';
+            type_string "qemu-system-ppc64 -nographic -M usb=off,cap-htm=off\n";
+            assert_screen 'qemu-open-firmware-ready', 60;
+        }
     }
     elsif (check_var('ARCH', 's390x')) {
         zypper_call 'in qemu-s390';
