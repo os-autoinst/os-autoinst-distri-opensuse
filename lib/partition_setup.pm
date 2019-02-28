@@ -473,7 +473,11 @@ sub take_first_disk {
         # depending on the scenario we get different screens
         # same can happen with ipmi installations
         assert_screen [qw(use-entire-disk preparing-disk-overview)];
-        wait_screen_change { send_key "alt-e" } if match_has_tag 'use-entire-disk';    # use entire disk
+        if (match_has_tag 'use-entire-disk') {
+            send_key_until_needlematch('use-entire-disk-selected', 'tab');
+            wait_screen_change { send_key 'ret' };
+            save_screenshot;
+        }
         send_key $cmd{next};
     }
 }
