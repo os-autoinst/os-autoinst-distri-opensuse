@@ -1515,6 +1515,7 @@ sub load_extra_tests_opensuse {
 }
 
 sub load_extra_tests_qemu {
+    loadtest "console/rabbitmq";
     loadtest "qemu/info";
     loadtest "qemu/qemu";
     loadtest "qemu/kvm" unless check_var('ARCH', 'aarch64');    # nested kvm is not yet supported on ARM
