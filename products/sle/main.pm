@@ -670,7 +670,7 @@ elsif (get_var("QA_TESTSET")) {
     if (get_var('MAINT_TEST_REPO')) {
         loadtest "qa_automation/patch_and_reboot";
     }
-    loadtest "qa_automation/" . get_var("QA_TESTSET");
+    loadtest 'qa_automation/qa_run', name => get_required_var('QA_TESTSET');
 }
 elsif (get_var("QA_TESTSUITE")) {
     boot_hdd_image;
