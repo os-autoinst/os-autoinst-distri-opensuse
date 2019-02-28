@@ -21,6 +21,7 @@ use autotest;
 use utils;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use Utils::Backends 'is_remote_backend';
+use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use strict;
 use warnings;
@@ -121,6 +122,12 @@ sub init_main {
     set_defaults_for_username_and_password();
     setup_env();
     check_env();
+    # We need to check image only for qemu backend, for svirt we validate image
+    # after it is copied to the hypervisor host.
+    if (check_var('BACKEND', 'qemu') && data_integrity_is_applicable()) {
+        my $errors = verify_checksum();
+        set_var('CHECKSUM_FAILED', $errors) if $errors;
+    }
 }
 
 sub loadtest {
@@ -183,9 +190,10 @@ sub setup_env {
 }
 
 sub data_integrity_is_applicable {
-    # Other backends than qemu, i.e.Xen, zKVM or Hyper-V will check it later after the image is downloaded
-    return check_var('BACKEND', 'qemu') &&
-      grep { /^CHECKSUM_/ } keys %bmwqemu::vars;
+    # Method is used to schedule disk interity check, always perform for xen and hyper-v
+    # no need for s390x, as use ftp url there. On qemu use variable to activate
+    # validation, set VALIDATE_CHECKSUM variable to true
+    return (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) && get_var('VALIDATE_CHECKSUM');
 }
 
 sub any_desktop_is_applicable {
@@ -383,6 +391,7 @@ sub load_boot_tests {
         loadtest "installation/isosize";
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
+        loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader_uefi";
     }
     elsif (is_svirt_except_s390x()) {
@@ -393,6 +402,7 @@ sub load_boot_tests {
         set_var("DELAYED_START", get_var("PXEBOOT"));
     }
     else {
+        loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader" unless load_bootloader_s390x();
     }
 }

@@ -16,6 +16,7 @@ use utils;
 use strict;
 use warnings;
 use File::Basename;
+use data_integrity_utils 'verify_checksum';
 
 sub hyperv_cmd {
     my ($cmd, $args) = @_;
@@ -132,6 +133,9 @@ sub run {
             hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdfixed\.xz/vhd/r . " ( exit 1 )");
         }
     }
+    # Verify checksums of the copied mediums
+    my $errors = verify_checksum("$root\\cache\\");
+    record_info("Checksum", $errors, result => 'fail') if $errors;
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
     my $iso      = get_var('ISO') ? "$root\\cache\\" . basename(get_var('ISO')) : undef;
