@@ -13,7 +13,7 @@
     </device_map>
     <global>
       <activate>true</activate>
-      <default>SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</default>
+      <default>SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</default>
       <generic_mbr>true</generic_mbr>
       <gfxmenu>(hd0,1)/boot/message</gfxmenu>
       <lines_cache_id>2</lines_cache_id>
@@ -37,21 +37,21 @@
     <sections config:type="list">
       <section>
         <append>resume=/dev/hda1 splash=silent console=ttyS0 showopts</append>
-        <image>(hd0,1)/boot/vmlinuz-3.0.101-108.84-default</image>
+        <image>(hd0,1)/boot/vmlinuz-3.0.101-63-default</image>
         <initial>1</initial>
-        <initrd>(hd0,1)/boot/initrd-3.0.101-108.84-default</initrd>
+        <initrd>(hd0,1)/boot/initrd-3.0.101-63-default</initrd>
         <lines_cache_id>0</lines_cache_id>
-        <name>SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</name>
+        <name>SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</name>
         <original_name>linux</original_name>
         <root>/dev/hda2</root>
         <type>image</type>
       </section>
       <section>
         <append>showopts ide=nodma apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe console=ttyS0</append>
-        <image>(hd0,1)/boot/vmlinuz-3.0.101-108.84-default</image>
-        <initrd>(hd0,1)/boot/initrd-3.0.101-108.84-default</initrd>
+        <image>(hd0,1)/boot/vmlinuz-3.0.101-63-default</image>
+        <initrd>(hd0,1)/boot/initrd-3.0.101-63-default</initrd>
         <lines_cache_id>1</lines_cache_id>
-        <name>Failsafe -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-108.84</name>
+        <name>Failsafe -- SUSE Linux Enterprise Server 11 SP4 - 3.0.101-63</name>
         <original_name>failsafe</original_name>
         <root>/dev/hda2</root>
         <type>image</type>
@@ -492,6 +492,12 @@
         </names>
       </hosts_entry>
       <hosts_entry>
+        <host_address>127.0.0.2</host_address>
+        <names config:type="list">
+          <name>sles11sp4HVMx64.suse.cz sles11sp4HVMx64</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
         <host_address>::1</host_address>
         <names config:type="list">
           <name>localhost ipv6-localhost ipv6-loopback</name>
@@ -546,6 +552,8 @@
       <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
       <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
       <KDUMP_KERNELVER></KDUMP_KERNELVER>
+      <KDUMP_KMOD_BLACKLIST></KDUMP_KMOD_BLACKLIST>
+      <KDUMP_KMOD_LOAD></KDUMP_KMOD_LOAD>
       <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
       <KDUMP_NOTIFICATION_CC></KDUMP_NOTIFICATION_CC>
       <KDUMP_NOTIFICATION_TO></KDUMP_NOTIFICATION_TO>
@@ -589,18 +597,18 @@
   <login_settings/>
   <networking>
     <dhcp_options>
-      <dhclient_client_id></dhclient_client_id>
+      <dhclient_client_id>sles11sp4HVMx64</dhclient_client_id>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns>
-      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <domain>suse.cz</domain>
-      <hostname>dhcp78</hostname>
+      <hostname>sles11sp4HVMx64</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <searchlist config:type="list">
         <search>suse.cz</search>
       </searchlist>
-      <write_hostname config:type="boolean">false</write_hostname>
+      <write_hostname config:type="boolean">true</write_hostname>
     </dns>
     <interfaces config:type="list">
       <interface>
@@ -707,7 +715,7 @@
         <type>__clock</type>
       </peer>
       <peer>
-        <address>mode7 </address>
+        <address>mode7  </address>
         <comment>
 # Allow ntpdc to stay backwards compatible with SLE-11 before SP4.
 </comment>
@@ -715,7 +723,7 @@
         <type>enable</type>
       </peer>
       <peer>
-        <address>/var/lib/ntp/drift/ntp.drift  </address>
+        <address>/var/lib/ntp/drift/ntp.drift   </address>
         <comment>
 # Clients from this (example!) subnet have unlimited access, but only if
 # cryptographically authenticated.
@@ -730,7 +738,7 @@
         <type>driftfile</type>
       </peer>
       <peer>
-        <address>/var/log/ntp		 </address>
+        <address>/var/log/ntp		  </address>
         <comment># path for drift file
 
 </comment>
@@ -738,7 +746,7 @@
         <type>logfile</type>
       </peer>
       <peer>
-        <address>/etc/ntp.keys		 </address>
+        <address>/etc/ntp.keys		  </address>
         <comment># alternate log file
 # logconfig =syncstatus + sysevents
 # logconfig =all
@@ -756,21 +764,21 @@
         <type>keys</type>
       </peer>
       <peer>
-        <address>1			 </address>
+        <address>1			  </address>
         <comment># path for keys file
 </comment>
         <options></options>
         <type>trustedkey</type>
       </peer>
       <peer>
-        <address>1			 </address>
+        <address>1			  </address>
         <comment># define trusted keys
 </comment>
         <options></options>
         <type>requestkey</type>
       </peer>
       <peer>
-        <address>1                    </address>
+        <address>1                     </address>
         <comment># key (7) for accessing server variables
 # controlkey 15			# key (6) for accessing server variables
 #
@@ -799,7 +807,7 @@
           <partition_id config:type="integer">130</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>1553104384</size>
+          <size>1545764352</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -813,7 +821,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>6711787520</size>
+          <size>6702661120</size>
         </partition>
       </partitions>
       <pesize></pesize>
@@ -1151,6 +1159,7 @@
       <package>libgstapp-0_10-0</package>
       <package>libgstinterfaces-0_10-0</package>
       <package>libgstreamer-0_10-0-32bit</package>
+      <package>libgthread-2_0-0-32bit</package>
       <package>libgweather1-32bit</package>
       <package>libical0-32bit</package>
       <package>libidl-32bit</package>

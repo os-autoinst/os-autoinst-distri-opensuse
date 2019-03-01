@@ -6,7 +6,7 @@ use warnings;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
   create_new_volume create_netinterface delete_netinterface
-  create_guest detect_login_screen);
+  create_guest detect_login_screen select_guest);
 
 
 sub launch_virtmanager {
@@ -605,8 +605,26 @@ sub detect_login_screen {
     return if check_screen 'virt-manager_login-screen', 5;
     assert_and_click 'virt-manager_send-key';
     assert_and_click 'virt-manager_ctrl-alt-f2';
+    send_key 'ret';
+    send_key 'ret';
+
+    return if check_screen 'virt-manager_login-screen', 5;
+    assert_and_click 'virt-manager_send-key';
+    assert_and_click 'virt-manager_ctrl-alt-f3';
+    send_key 'ret';
+    send_key 'ret';
 
     assert_screen "virt-manager_login-screen";
+}
+
+sub select_guest {
+    my $guest = shift;
+    assert_and_dclick "virt-manager_list-$guest";
+    if (check_screen('virt-manager_no-graphical-device', 3)) {
+        wait_screen_change { send_key 'alt-f4'; };
+        assert_and_click "virt-manager_connected";
+        assert_and_dclick "virt-manager_list-$guest";
+    }
 }
 
 1;

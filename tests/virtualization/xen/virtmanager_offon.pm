@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use virtmanager 'detect_login_screen';
+use virtmanager qw(detect_login_screen select_guest);
 
 sub run {
     my ($self) = @_;
@@ -34,11 +34,22 @@ sub run {
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "VM $guest will be turned off and then on again";
 
-        assert_and_dclick "virt-manager_list-$guest";
+        select_guest($guest);
+
+        assert_and_click 'virt-manager_view';
+        assert_and_click 'virt-manager_resizetovm';
+
         detect_login_screen();
 
         assert_and_click 'virt-manager_shutdown';
-        assert_screen 'virt-manager_notrunning';
+        if (!check_screen 'virt-manager_notrunning', 30) {
+            assert_and_click 'virt-manager_shutdown_menu';
+            assert_and_click 'virt-manager_shutdown_item';
+            # There migh me 'Are you sure' dialog window
+            if (check_screen "virt-manager_shutdown_sure", 2) {
+                assert_and_click "virt-manager_shutdown_sure";
+            }
+        }
         assert_and_click 'virt-manager_poweron', 'left', 90;
 
         detect_login_screen(120);
@@ -51,7 +62,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

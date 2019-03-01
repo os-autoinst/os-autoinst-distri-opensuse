@@ -98,8 +98,8 @@ our @EXPORT = qw(
   load_toolchain_tests
   load_virtualization_tests
   load_x11tests
-  load_xen_hypervisor_tests
-  load_xen_client_tests
+  load_hypervisor_tests
+  load_client_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -2281,8 +2281,8 @@ sub load_virtualization_tests {
     return 1;
 }
 
-sub load_xen_hypervisor_tests {
-    return unless check_var('HOST_HYPERVISOR', 'xen');
+sub load_hypervisor_tests {
+    return unless (check_var('HOST_HYPERVISOR', 'xen') || check_var('HOST_HYPERVISOR', 'qemu'));
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
     load_boot_tests;
@@ -2304,7 +2304,7 @@ sub load_xen_hypervisor_tests {
     loadtest 'virtualization/xen/list_guests';
 }
 
-sub load_xen_client_tests() {
+sub load_client_tests() {
     loadtest 'boot/boot_to_desktop';
     loadtest 'virtualization/xen/install_virtmanager';        # Install the virt-manager package
     loadtest 'virtualization/xen/ssh_hypervisor';             # Connect to hypervisor using SSH
@@ -2316,16 +2316,18 @@ sub load_xen_client_tests() {
     loadtest 'virtualization/xen/ssh_guests';                 # Connect to guests using SSH
     loadtest 'virtualization/xen/patch_guests';               # Add test repositories and patch our guests
     loadtest 'virtualization/xen/save_and_restore';           # Try to save and restore the state of the guest
-    loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
     loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
-    loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
-    loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
-    loadtest 'virtualization/xen/dom_install';                # Install vhostmd and vm-dump-metrics
-    loadtest 'virtualization/xen/dom_metrics';                # Collect some sample metrics
-    loadtest 'virtualization/xen/xl_stop';                    # Stop guests created by the xl Xen tool
-    loadtest 'virtualization/xen/virsh_start';                # Start virsh guests again
-    loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
-    loadtest 'virtualization/xen/ssh_guests';                 # Connect to guests using SSH
+    loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
+    if (check_var("REGRESSION", "xen-client")) {
+        loadtest 'virtualization/xen/virsh_stop';             # Stop libvirt guests
+        loadtest 'virtualization/xen/xl_create';              # Clone guests using the xl Xen tool
+        loadtest 'virtualization/xen/dom_install';            # Install vhostmd and vm-dump-metrics
+        loadtest 'virtualization/xen/dom_metrics';            # Collect some sample metrics
+        loadtest 'virtualization/xen/xl_stop';                # Stop guests created by the xl Xen tool
+        loadtest 'virtualization/xen/virsh_start';            # Start virsh guests again
+    }
+    loadtest 'virtualization/xen/virtmanager_final';          # Check all VMs login screen
+    loadtest 'virtualization/xen/ssh_final';                  # Connect to guests using SSH
 }
 
 sub load_extra_tests_syscontainer {

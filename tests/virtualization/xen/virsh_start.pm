@@ -24,23 +24,16 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)     = @_;
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
-    my $domain     = get_required_var('QAM_XEN_DOMAIN');
+    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
+    my $hypervisor = get_required_var('HYPERVISOR');
 
     assert_script_run("ssh root\@$hypervisor 'virsh start $_'", 120) foreach (keys %xen::guests);
-    foreach my $guest (keys %xen::guests) {
-        for (my $i = 0; $i <= 60; $i++) {
-            if (script_run("ssh root\@$guest.$domain hostname -f") == 0) {
-                last;
-            }
-            sleep 1;
-        }
-    }
+    script_retry "ssh root\@$_ hostname -f", delay => 15, retry => 12 foreach (keys %xen::guests);
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

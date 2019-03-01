@@ -22,7 +22,7 @@ sub run {
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Listing $guest guest";
-        assert_script_run "xl list $guest";
+        assert_script_run "virsh list --all | grep $guest";
     }
 }
 

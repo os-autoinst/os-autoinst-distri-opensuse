@@ -978,6 +978,7 @@ sub script_retry {
     my $ecode = $args{expect} // 0;
     my $retry = $args{retry}  // 10;
     my $delay = $args{delay}  // 30;
+    my $die   = $args{die}    // 1;
 
     my $ret;
     for (1 .. $retry) {
@@ -986,9 +987,11 @@ sub script_retry {
         $ret = script_run "timeout 25 $cmd";
         last if defined($ret) && $ret == $ecode;
 
-        die("Waiting for Godot: $cmd") if $retry == $_;
+        die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
         sleep $delay;
     }
+
+    return $ret;
 }
 
 =head2 script_run_interactive

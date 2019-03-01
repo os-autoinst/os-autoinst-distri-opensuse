@@ -24,36 +24,33 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)     = @_;
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
-    my $domain     = get_required_var('QAM_XEN_DOMAIN');
+    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
+    my $hypervisor = get_required_var('HYPERVISOR');
 
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Starting to clone $guest to xl-$guest";
+    record_info "XML", "Export the XML from virsh and convert it into Xen config file";
+    assert_script_run "ssh root\@$hypervisor 'virsh dumpxml $_ > $_.xml'"                         foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$hypervisor 'virsh domxml-to-native xen-xl $_.xml > $_.xml.cfg'" foreach (keys %xen::guests);
 
-        # Export the XML from virsh and convert it into Xen config file
-        assert_script_run "ssh root\@$hypervisor 'virsh dumpxml $guest > $guest.xml'";
-        assert_script_run "ssh root\@$hypervisor 'virsh domxml-to-native xen-xl $guest.xml > $guest.xml.cfg'";
+    record_info "Name", "Change the name by adding suffix _xl";
+    assert_script_run "ssh root\@$hypervisor \"sed -rie 's/(name = \\W)/\\1xl-/gi' $_.xml.cfg\"" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$hypervisor 'cat $_.xml.cfg | grep name'"                       foreach (keys %xen::guests);
 
-        # Change the name by adding suffix _xl
-        assert_script_run "ssh root\@$hypervisor \"sed -rie 's/(name = \\W)/\\1xl-/gi' $guest.xml.cfg\"";
-        assert_script_run "ssh root\@$hypervisor 'cat $guest.xml.cfg | grep name'";
+    record_info "UUID", "Change the UUID by using f00 as three first characters";
+    assert_script_run "ssh root\@$hypervisor \"sed -rie 's/(uuid = \\W)(...)/\\1f00/gi' $_.xml.cfg\"" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$hypervisor 'cat $_.xml.cfg | grep uuid'"                            foreach (keys %xen::guests);
 
-        # Change the UUID by using f00 as three first characters
-        assert_script_run "ssh root\@$hypervisor \"sed -rie 's/(uuid = \\W)(...)/\\1f00/gi' $guest.xml.cfg\"";
-        assert_script_run "ssh root\@$hypervisor 'cat $guest.xml.cfg | grep uuid'";
+    record_info "Start", "Start the new VM";
+    assert_script_run "ssh root\@$hypervisor xl create $_.xml.cfg" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$hypervisor xl list xl-$_"        foreach (keys %xen::guests);
 
-        # Start the new VM
-        assert_script_run "ssh root\@$hypervisor xl create $guest.xml.cfg";
-        assert_script_run "ssh root\@$hypervisor xl list xl-$guest";
+    record_info "SSH", "Test that the new VM listens on SSH";
+    script_retry "ssh root\@$hypervisor 'nmap $_ -PN -p ssh | grep open'", delay => 30, retry => 6 foreach (keys %xen::guests);
 
-        # Test that the new VM listens on SSH
-        script_retry "nmap $guest.$domain -PN -p ssh | grep open", delay => 3, retry => 20;
-    }
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

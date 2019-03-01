@@ -24,9 +24,9 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)     = @_;
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
-    my $domain     = get_required_var('QAM_XEN_DOMAIN');
+    select_console 'root-console';
+    opensusebasetest::select_serial_terminal();
+    my $hypervisor = get_required_var('HYPERVISOR');
 
     assert_script_run "ssh root\@$hypervisor 'vhostmd'";
 
@@ -34,7 +34,7 @@ sub run {
         record_info "$guest", "Obtaining dom0 metrics on xl-$guest";
 
         assert_script_run "ssh root\@$hypervisor 'xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro'";
-        assert_script_run "ssh root\@$guest.$domain 'vm-dump-metrics' | grep 'SUSE LLC'";
+        assert_script_run "ssh root\@$guest 'vm-dump-metrics' | grep 'SUSE LLC'";
         assert_script_run "ssh root\@$hypervisor 'xl block-detach xl-$guest xvdc'";
     }
 }

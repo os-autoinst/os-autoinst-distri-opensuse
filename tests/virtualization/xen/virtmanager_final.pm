@@ -13,31 +13,37 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Prepare the dom0 metrics environment
+# Summary: This test turns just check all VMs
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "x11test";
 use xen;
 use strict;
 use warnings;
 use testapi;
 use utils;
+use virtmanager 'detect_login_screen';
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
-    my $hypervisor = get_required_var('HYPERVISOR');
+    select_console 'x11';
 
-    assert_script_run "ssh root\@$hypervisor 'zypper -n in vhostmd'";
+    x11_start_program 'virt-manager';
+    assert_screen "virt-manager_connected";
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Install vm-dump-metrics on xl-$guest";
-        assert_script_run "ssh root\@$guest 'zypper -n in vm-dump-metrics'";
-    }
-}
+        record_info "$guest", "VM $guest will be turned off and then on again";
 
-sub test_flags {
-    return {fatal => 1, milestone => 0};
+        assert_and_dclick "virt-manager_list-$guest";
+        detect_login_screen();
+
+        detect_login_screen(120);
+
+        assert_and_click 'virt-manager_file';
+        assert_and_click 'virt-manager_close';
+
+    }
+
+    wait_screen_change { send_key 'alt-f4'; };
 }
 
 1;
