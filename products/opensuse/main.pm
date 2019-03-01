@@ -17,6 +17,7 @@ use version_utils ':VERSION';
 use File::Find;
 use File::Basename;
 use DistributionProvider;
+use scheduler 'load_yaml_schedule';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -149,6 +150,8 @@ logcurrentenv(
       ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE
       LIVECD NETBOOT NOIMAGES QEMUVGA SPLITUSR VIDEOMODE)
 );
+
+return 1 if load_yaml_schedule;
 
 sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
