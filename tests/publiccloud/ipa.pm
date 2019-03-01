@@ -36,9 +36,19 @@ sub run {
         my $system_max_boot_time = 120;
         my $out                  = script_output('grep "^Startup finished in" ' . $ipa->{logfile});
         record_info('Startup time', $out);
-        die 'Fail to find boot time in log' unless $out =~ /Startup finished in (\d{1,4}\.\d{3})s \(kernel\) \+ \d{1,4}\.\d{3}s \(initrd\) \+ \d{1,4}\.\d{3}s \(userspace\) = (\d{1,4}\.\d{3})s/;
-        record_info('Kernel boot is too slow',         result => 'fail') if $1 > $kernel_max_boot_time;
-        record_info('Overall system boot is too slow', result => 'fail') if $2 > $system_max_boot_time;
+        my $kernel_real_boot_time,$system_real_boot_time;
+        if($out =~ /\= \d{1,2}min/) {
+            die 'Fail to find boot time in log' unless $out =~ /Startup finished in (\d{1,4}\.\d{3})s \(kernel\) \+ \d{1,4}\.\d{3}s \(initrd\) \+ \d{1,4}\.\d{3}s \(userspace\) = (\d{1,2})min (\d{1,4}\.\d{3})s/;
+            $kernel_real_boot_time=$1;
+            $system_real_boot_time=$2*60+$3;
+        }
+        else {
+            die 'Fail to find boot time in log' unless $out =~ /Startup finished in (\d{1,4}\.\d{3})s \(kernel\) \+ \d{1,4}\.\d{3}s \(initrd\) \+ \d{1,4}\.\d{3}s \(userspace\) = (\d{1,4}\.\d{3})s/;
+            $kernel_real_boot_time=$1;
+            $system_real_boot_time=$2;
+        }
+        record_info('Kernel boot is too slow',         result => 'fail') if $kernel_real_boot_time > $kernel_max_boot_time;
+        record_info('Overall system boot is too slow', result => 'fail') if $system_real_boot_time > $system_max_boot_time;
     }
     upload_logs($ipa->{logfile});
     parse_extra_log(IPA => $ipa->{results});
