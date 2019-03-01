@@ -38,7 +38,7 @@ sub run {
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
     zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
-    add_suseconnect_product("sle-sdk") if (is_sle('<15'));
+    add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
 
     zypper_call('in -l git gcc kernel-devel make');
 
