@@ -11,6 +11,7 @@ use utils qw(
   pkcon_quit
   save_svirt_pty
   type_string_slow
+  type_string_very_slow
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
@@ -155,9 +156,19 @@ sub init_desktop_runner {
     }
     # krunner may use auto-completion which sometimes gets confused by
     # too fast typing or looses characters because of the load caused (also
-    # see below). See https://progress.opensuse.org/issues/18200
+    # see below), especially in wayland.
+    # See https://progress.opensuse.org/issues/18200 as well as
+    # https://progress.opensuse.org/issues/35589
     if (check_var('DESKTOP', 'kde')) {
-        type_string_slow $program;
+        if (get_var('WAYLAND')) {
+            wait_still_screen(3);
+            type_string_very_slow substr $program, 0, 2;
+            wait_still_screen(3);
+            type_string_very_slow substr $program, 2;
+        }
+        else {
+            type_string_slow $program;
+        }
     }
     else {
         type_string $program;
