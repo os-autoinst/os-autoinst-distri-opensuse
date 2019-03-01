@@ -15,7 +15,7 @@ use base qw(y2logsstep y2x11test);
 use strict;
 use warnings;
 use testapi;
-use registration 'fill_in_registration_data';
+use registration qw(fill_in_registration_data cleanup_registration);
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
 
@@ -25,14 +25,13 @@ Define proxy SCC. For SLE 15 we need to clean existing registration
 sub test_setup {
     select_console 'root-console';
     if (is_sle('>=15')) {
-        assert_script_run 'SUSEConnect --clean';                                          # Remove registration from the system
-        assert_script_run 'echo "url: ' . get_var('SCC_URL') . '" > /etc/SUSEConnect';    # Define proxy SCC
+        cleanup_registration();
     }
     elsif (get_var('SCC_ADDONS')) {
         # Add every used addon to regurl for proxy SCC
         my @addon_proxy = ("url: http://server-" . get_var('BUILD_SLE'));
         for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-            my $uc_addon = uc $addon;                                                     # change to uppercase to match variable
+            my $uc_addon = uc $addon;    # change to uppercase to match variable
             push(@addon_proxy, "\b.$addon-" . get_var("BUILD_$uc_addon"));
         }
         assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";    # Define proxy SCC

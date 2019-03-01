@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use registration qw(cleanup_registration register_product);
 
 sub run {
     my ($self)  = @_;
@@ -24,7 +25,11 @@ sub run {
 
     select_console 'root-console';
     zypper_call "in -y migrate-sles-to-sles4sap";
-    if (!is_sle("15+")) {
+    if (is_sle("15+")) {
+        # Clean up and re-register not to affect other job which are sharing same qcow2
+        cleanup_registration();
+        register_product();
+    } else {
         $cmd = "/usr/sbin/Migrate_SLES_to_SLES-for-SAP-12.sh";
     }
     type_string "$cmd && touch /tmp/OK\n";
