@@ -55,8 +55,8 @@ sub run {
     assert_script_run("sonobuoy run --config $json_name");
 
     # Checks every 2 minutes if the testsuite has finished
-    # Times out after 90m, testsuite takes around 60m
-    script_retry "sonobuoy status| grep complete", retry => 45, delay => 120;
+    # Times out after 120m, testsuite takes around 90m
+    script_retry "sonobuoy status| grep complete", retry => 60, delay => 120;
 
     assert_script_run("sonobuoy retrieve $logs_dir");
     assert_script_run("cd $logs_dir");
