@@ -50,8 +50,10 @@ sub run_caasp_checks {
         }
         # check if installation script was executed https://trello.com/c/PJqM8x0T
         assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
-        # bsc#1039863 - Check we are running only sles12 docker images
-        assert_script_run '! docker images | sed 1d | grep -v ^registry.suse.com/sles12';
+
+        # bsc#1039863 - Check we are running only caasp docker images
+        my $registry = 'registry.suse.com/caasp/v' . substr(get_var('VERSION'), 0, 1);
+        assert_script_run "test \$(docker images | tee /dev/$serialdev | sed 1d | grep -v $registry | wc -l) -eq 0";
     }
 }
 

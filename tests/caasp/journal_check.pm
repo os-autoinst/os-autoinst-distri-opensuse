@@ -15,8 +15,11 @@ use strict;
 use warnings;
 use testapi;
 use caasp;
+use version_utils 'is_opensuse';
 
 sub run {
+    my $self = shift;
+
     my $bug_pattern = {
         bsc_1062349         => '.*vbd.*xenbus_dev_probe on device.*',
         bsc_1022527_FEATURE => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
@@ -32,6 +35,8 @@ sub run {
         bsc_1071224         => '.*Failed to start Mask tmp.mount by default on SUSE systems.*',
         poo_31951_FEATURE   => '.*Spectre V2 \:.*LFENCE not serializing.*',
         bsc_1118321         => '.*update-checker-migration.timer.*(Failed to parse calendar specification|Timer unit lacks value setting).*',
+        bsc_1126272         => 'Failed unmounting \/\S+\.|-- Reboot --|pam_systemd.*Failed to release session',
+        bsc_1127339         => 'kernel: efi: EFI_MEMMAP is not enabled',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
@@ -50,9 +55,13 @@ sub run {
         }
     }
 
+    my $failed;
     # Find lines which doesn't match to the pattern_bug by using master_pattern
     foreach my $line (split(/\n/, $journal_output)) {
-        record_info('Unknown issue', $line, result => 'fail') if ($line !~ /$master_pattern/);
+        if ($line !~ /$master_pattern/) {
+            record_info('Unknown issue', $line, result => 'fail');
+            $failed = 1;
+        }
     }
 
     # Write full journal output for reference and upload it into Uploaded Logs section in test webUI
@@ -66,8 +75,10 @@ sub run {
         if ($line =~ /^([\w.-]+)\s.+$/) {
             my $failed_service_output = script_output("systemctl status $1 -l || true");
             record_info "$1 failed", $failed_service_output, result => 'fail';
+            $failed = 1;
         }
     }
+    $self->result(is_opensuse() ? 'softfail' : 'fail') if $failed;
 }
 
 1;

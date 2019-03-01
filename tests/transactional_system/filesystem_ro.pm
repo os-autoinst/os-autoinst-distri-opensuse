@@ -18,7 +18,7 @@ use testapi;
 use version_utils 'is_caasp';
 
 sub run {
-    assert_script_run "! touch /should_fail";
+    die 'Should have failed' unless script_run('touch /should_fail');
     assert_script_run "touch /etc/should_succeed";
     assert_script_run "touch /var/log/should_succeed";
 
