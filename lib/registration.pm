@@ -29,6 +29,8 @@ use constant ADDONS_COUNT => 50;
 our @EXPORT = qw(
   add_suseconnect_product
   remove_suseconnect_product
+  cleanup_registration
+  register_product
   assert_registration_screen_present
   fill_in_registration_data
   registration_bootloader_cmdline
@@ -157,6 +159,31 @@ sub remove_suseconnect_product {
     $arch    //= get_required_var('ARCH');
     $params  //= '';
     assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");
+}
+
+=head2 cleanup_registration
+
+    cleanup_registration();
+
+Wrapper for SUSEConnect --cleanup. Resets proxy SCC url if job has SCC_URL
+variable set.
+=cut
+sub cleanup_registration {
+    # Remove registration from the system
+    assert_script_run 'SUSEConnect --clean';
+    # Define proxy SCC if provided
+    my $proxyscc = get_var('SCC_URL');
+    assert_script_run "echo \"url: $proxyscc\" > /etc/SUSEConnect" if $proxyscc;
+}
+
+=head2 register_product
+
+    register_product();
+
+Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
+=cut
+sub register_product {
+    assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE');
 }
 
 sub register_addons {
