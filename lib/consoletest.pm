@@ -27,6 +27,13 @@ sub post_fail_hook {
     upload_logs "/tmp/full_journal.log";
     assert_script_run("dmesg > /tmp/dmesg.log");
     upload_logs "/tmp/dmesg.log";
+    # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
+    script_run("tar -jcv -f /tmp/xorg.tar.bz2  /home/bernhard/.local/share/xorg");
+    upload_logs('/tmp/xorg.tar.bz2', failok => 1);
+    script_run("tar -jcv -f /tmp/sysconfig.tar.bz2  /etc/sysconfig");
+    upload_logs('/tmp/sysconfig.tar.bz2', failok => 1);
+    script_run("tar -jcv -f /tmp/gdm.tar.bz2  /home/bernhard/.cache/gdm");
+    upload_logs('/tmp/gdm.tar.bz2', failok => 1);
 }
 
 1;
