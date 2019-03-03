@@ -161,9 +161,9 @@ sub init_desktop_runner {
     # https://progress.opensuse.org/issues/35589
     if (check_var('DESKTOP', 'kde')) {
         if (get_var('WAYLAND')) {
-            wait_still_screen(3);
-            type_string_very_slow substr $program, 0, 2;
-            wait_still_screen(3);
+            wait_still_screen(2);
+            type_string_very_slow substr $program, 0, 1;
+            type_string_very_slow substr $program, 1, 1;
             type_string_very_slow substr $program, 2;
         }
         else {
