@@ -143,48 +143,146 @@ sub investigate_yast2_failure {
     }
     # Hash with expected errors in YaST2 and bug reference if any
     my %y2log_errors = (
-        "Internal error. Please report a bug report"       => undef,            # Detecting internal errors
-        "<3>.*no[t]? mount"                                => 'bsc#1092088',    # Detect not mounted partition
-        "<3>.*Error output: dracut:"                       => undef,            # Error output dracut
-        "<3>.*Reading install.inf"                         => undef,
-        "<3>.*shellcommand"                                => undef,
-        "<3>.*libstorage.*device not found"                => undef,
-        "<3>.*lib/cheetah.rb.*Error output"                => undef,
-        "<3>.*Slides.rb.*Directory.*does not exist"        => undef,
-        "<3>.*agent-ini.*(Can not open|Unable to stat)"    => undef,
-        "<3>.*Interpreter.*File not found"                 => undef,
-        "<3>.*Interpreter.*Couldn't find an agent"         => undef,
-        "<3>.*Interpreter.*Read.*failed"                   => undef,
-        "<3>.*ag_uid.*argument is not a path"              => undef,
-        "<3>.*ag_uid.*wrong command"                       => undef,
-        "<3>.*Interpreter.*'Syslog' failed"                => undef,
-        "<3>.*libycp.*No matching component found"         => undef,
-        "<3>.*Perl.*Perl call of Log"                      => undef,
-        "<3>.*Y2Ruby.*SSHAuthorizedKeys.write_keys failed" => undef,
-        "No textdomain configured"                         => undef,            # Detecting missing translations
-        "nothing provides"                                 => undef,            # Detecting missing required packages
-        "but this requirement cannot be provided"          => undef,            # Detecting package conflicts
-        "Could not load icon|Couldn't load pixmap"         => undef             # Detecting missing icons
+        "<3>.*no[t]? mount"                          => 'bsc#1092088',    # Detect not mounted partition
+        "<3>.*Cannot parse the data from server"     => 'bsc#1126045',
+        "No textdomain configured"                   => 'bsc#1127756',    # Detecting missing translations
+                                                                          # Detecting specifi errors proposed by the YaST dev team
+        "nothing provides"                           => undef,            # Detecting missing required packages
+        "but this requirement cannot be provided"    => undef,            # Detecting package conflicts
+        "Could not load icon|Couldn't load pixmap"   => undef,            # Detecting missing icons
+        "Internal error. Please report a bug report" => undef,            # Detecting internal errors
+
+        # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
+        # Adding reference to trello
+        "<3>.*Error output: dracut:"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Reading install.inf"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*shellcommand"                                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*libstorage.*device not found"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*lib/cheetah.rb.*Error output"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Slides.rb.*Directory.*does not exist"             => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*agent-ini.*(Can not open|Unable to stat)"         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*File not found"                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*Couldn't find an agent"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*Read.*failed"                        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*ag_uid.*argument is not a path"                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*ag_uid.*wrong command"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*'Syslog' failed"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*libycp.*No matching component found"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Perl.*Perl call of Log"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Y2Ruby.*SSHAuthorizedKeys.write_keys failed"      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Directory.* does not exist"                       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Cannot find the installed base product"           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Can not open"                                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*File not found"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Created symlink"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Unable to stat"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*cannot access"                                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*hostname: Temporary failure in name resolution"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*hostname: Name or service not known"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Couldn't find an agent to handle"                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Read.*failed:"                                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*SCR::Read"                                        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Failed to get unit file state for"                => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Running in chroot, ignoring request"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*The first argument is not a path"                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*wrong command (SetRoot), only Read is accepted"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Loading module.*failed"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*No matching component found"                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*for a Perl call of Log"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*SSHAuthorizedKeys.write_keys failed"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*warning: Discarding improperly nested partition"  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*device not found, name"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Wrong source ID"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Argument.*nil.*to Write.*is nil"                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*UI::ChangeWidget failed"                          => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Error on key label of widget"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*inhibit udisks failed"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Command not found"                                => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*converting.*to enum failed"                       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*No release notes URL for"                         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*btrfs subvolume not found"                        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Widget id.*is not unique"                         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*has no item with ID"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Label has no shortcut or more than 1 shortcuts"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*diff failed"                                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Failed to stat"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Bad directive: options"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*OPEN_FAILED opening"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*rpmdbInit error"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Failed to initialize database"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "(<3>|<5>).*Rpm Exception"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Cleanup on error"                                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Can't import namespace 'YaPI::SubscriptionTools'" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Can't find YCP client component wrapper_storage"  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*ChangeVolumeProperties device"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*can't find 'keyboard_raw_sles.ycp'"               => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*error accessing /usr/sbin/xfs_repair"             => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*home_path in control.xml does not start with /"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*CopyFilesToTemp\\(\\) needs to be called first"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*X11 configuration not written"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Forcing /libQtGui.so.5 open failed"               => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*can't find 'consolefonts_sles.ycp'"               => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Could not import key.*Subprocess failed"          => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*baseproduct symlink is dangling or missing"       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*falling back to @\\{DEFAULT_HOME_PATH\\}"         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        # libzypp errors
+        "<3>.*The requested URL returned error" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Not adding cache"                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Repository not found"             => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*File.*not found on medium"        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Login failed."                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Path.*on medium"                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Aborting requested by user"       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Exception.cc"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
     );
+    my $delimiter       = '=========================================';
+    my @detected_errors = ();
     # Test if zgrep is available
     my $is_zgrep_available = (script_output('type zgrep') == 0);
-    my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep') . ' -B 3 -E';
+    my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
     my $cmd_postfix = '/var/log/YaST2/' . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
+    # String to accumulate unknown detected issues
+    my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
-        if (my $y2log_error_result = script_output("$cmd_prefix \"$y2log_error\" $cmd_postfix")) {
+        if (my $y2log_error_result = script_output("$cmd_prefix -C 5 -E \"$y2log_error\" $cmd_postfix")) {
+            # Save detected error to indetify if have new regressions
+            push @detected_errors, $y2log_error;
             if (my $bug = $y2log_errors{$y2log_error}) {
                 record_soft_failure("$bug\n\nDetails:\n\n$y2log_error_result");
+                next;
             }
-            else {
-                record_info 'YaST2 log error', "Please, file a bug with expected error. Details:\n\n$y2log_error_result", result => 'fail';
-                $error_detected = 1;
-            }
+            $detected_errors_detailed .= "$y2log_error_result\n$delimiter\n";
         }
     }
-    if (get_var('ASSERT_Y2LOGS') && $error_detected) {
-        die "YaST2 error(s) detected. Please, check details";
+    ## Check generic erros and exclude already detected issues
+    if (my $y2log_error_result = script_output("$cmd_prefix -E \"<3>|<5>\" $cmd_postfix")) {
+        # remove known errors from the log
+        for my $known_error (@detected_errors) {
+            $y2log_error_result =~ s/.*${known_error}.*//g;
+        }
+        # remove empty lines
+        $y2log_error_result =~ s/\n+//gs;
+        $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result;
+    }
+
+    ## Send last lines to serial to copy in case of new critical bugs
+    type_string "echo $delimiter > /dev/$serialdev\n";
+    type_string "echo 'YaST LOGS' > /dev/$serialdev\n";
+    type_string "tail -n 150 > /dev/$serialdev\n";
+    type_string "echo $delimiter > /dev/$serialdev\n";
+
+    if ($detected_errors_detailed) {
+        record_info(
+            'YaST2 log errors',
+            "Please, file a bug(s) with expected error. Details:\n\n$detected_errors_detailed",
+            result => 'fail'
+        );
+
+        if (get_var('ASSERT_Y2LOGS')) {
+            die "YaST2 error(s) detected. Please, check details";
+        }
     }
 }
 
@@ -392,7 +490,7 @@ sub wait_grub {
 
   wait_grub_to_boot_on_local_disk
 
-When bootloader appears, make sure to boot from local disk when it is on aarch64. 
+When bootloader appears, make sure to boot from local disk when it is on aarch64.
 =cut
 sub wait_grub_to_boot_on_local_disk {
     # assuming the cursor is on 'installation' by default and 'boot from
