@@ -16,7 +16,7 @@ use base 'y2logsstep';
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends 'has_ttys';
 
 sub run {
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
@@ -27,18 +27,18 @@ sub run {
         $svirt->change_domain_element(os => boot => {dev => 'hd'});
     }
     # Reboot
-    if (is_remote_backend) {
+    if (has_ttys) {
+        my $count = 0;
+        while (!wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 20)) {
+            $count < 5 ? $count++ : die "Reboot process won't start";
+        }
+    }
+    else {
         # for now, on remote backends we need to trigger the reboot action
         # without waiting for a screen change as the remote console might
         # vanish immediately after the initial key press loosing the remote
         # socket end
         send_key 'alt-o';
-    }
-    else {
-        my $count = 0;
-        while (!wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 20)) {
-            $count < 5 ? $count++ : die "Reboot process won't start";
-        }
     }
     power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
 }
