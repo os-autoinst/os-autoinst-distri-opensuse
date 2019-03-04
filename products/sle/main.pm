@@ -670,7 +670,15 @@ elsif (get_var("QA_TESTSET")) {
     if (get_var('MAINT_TEST_REPO')) {
         loadtest "qa_automation/patch_and_reboot";
     }
-    loadtest 'qa_automation/qa_run', name => get_required_var('QA_TESTSET');
+    if (check_var('QA_TESTSET', 'kernel_kexec')) {
+        loadtest 'kernel/kernel_kexec';
+    }
+    elsif (check_var('QA_TESTSET', 'kernel_multipath')) {
+        loadtest 'qa_automation/kernel_multipath';
+    }
+    else {
+        loadtest 'qa_automation/qa_run', name => get_required_var('QA_TESTSET');
+    }
 }
 elsif (get_var("QA_TESTSUITE")) {
     boot_hdd_image;
