@@ -483,7 +483,8 @@ sub wait_boot {
             type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
             type_line_svirt "root", expect => 'Password';
             type_line_svirt "$testapi::password";
-	    sleep 10; 
+            # we need wait a while before we got the password, poo#45515
+            sleep 10;
             type_line_svirt "systemctl is-active network", expect => 'active';
             type_line_svirt 'systemctl is-active sshd',    expect => 'active';
 
