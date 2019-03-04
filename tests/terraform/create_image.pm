@@ -16,6 +16,7 @@ use base 'opensusebasetest';
 use strict;
 use testapi;
 use warnings;
+use utils 'systemctl';
 use version_utils qw(is_sle is_tumbleweed is_leap);
 
 sub run {
@@ -38,7 +39,7 @@ sub run {
     }
 
     # Allow any connection to the VM (e.g. ICMP, SSH, ...)
-    systemctl("disable firewalld");
+    systemctl("disable " . opensusebasetest::firewall);
     systemctl("disable apparmor");
 }
 
