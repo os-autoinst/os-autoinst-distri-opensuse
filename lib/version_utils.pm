@@ -379,6 +379,7 @@ to install has to be chosen explicitly.
 Though, there are some exceptions (like s390x on Sle15 SP0) when there is only
 one Product, so that License agreement is shown directly, skipping the Product
 selection step. Also, Product Selection screen is not shown during upgrade.
+on SLE 15+, zVM preparation test shouldn't show Product Selection screen. 
 
 Returns true (1) if Product Selection step has to be shown for the certain
 configuration, otherwise returns false (0).
@@ -387,7 +388,7 @@ configuration, otherwise returns false (0).
 
 sub has_product_selection {
     if (is_sle('15+') && !get_var('UPGRADE')) {
-        return is_sle('>=15-SP1') || !is_s390x();
+        return (is_sle('>=15-SP1') || !is_s390x()) && !get_var('BASE_VERSION');
     }
 }
 
@@ -404,5 +405,5 @@ configuration, otherwise returns false (0).
 
 sub has_license_on_welcome_screen {
     return 1 if is_caasp('caasp');
-    return get_var('HASLICENSE') && ((is_sle('=15') && is_s390x()) || is_sle('<15'));
+    return get_var('HASLICENSE') && ((is_sle('=15') || (is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x()) || is_sle('<15'));
 }
