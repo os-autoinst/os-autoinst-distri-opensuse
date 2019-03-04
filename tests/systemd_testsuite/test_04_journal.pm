@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Run test executed by TEST-01-BASIC from upstream after openSUSE/SUSE patches.
+# Summary: Run test executed by TEST-04-JOURNAL from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
 use base "consoletest";
@@ -20,7 +20,7 @@ use power_action_utils 'power_action';
 sub run {
     #prepare test
     assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-01-BASIC --setup 2>&1 | tee /tmp/testsuite.log', 600;
+    assert_script_run './run-tests.sh TEST-04-JOURNAL --setup 2>&1 | tee /tmp/testsuite.log', 600;
     assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
     #reboot
     power_action('reboot', textmode => 1);
@@ -32,8 +32,8 @@ sub run {
     send_key 'ret';
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-01-BASIC --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_screen("systemd-testsuite-test-01-basic");
+    assert_script_run './run-tests.sh TEST-04-JOURNAL --run 2>&1 | tee /tmp/testsuite.log', 60;
+    assert_screen("systemd-testsuite-test-04-journal");
 }
 
 sub test_flags {
@@ -43,8 +43,8 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
-    assert_script_run('tar -cjf TEST-01-BASIC-logs.tar.bz2 /var/opt/systemd-tests/logs/');
-    upload_logs('TEST-01-BASIC-logs.tar.bz2');
+    assert_script_run('tar -cjf TEST-04-JOURNAL-logs.tar.bz2 /var/opt/systemd-tests/logs/');
+    upload_logs('TEST-04-JOURNAL-logs.tar.bz2');
 }
 
 
