@@ -35,10 +35,6 @@ sub login_to_console {
         assert_screen([qw(grub2 grub1)], 30);
     }
 
-    # Wait for bootload for the first time.
-    $self->wait_grub(bootloader_time => 210);
-    send_key 'ret';
-
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
@@ -104,13 +100,6 @@ sub login_to_console {
     save_screenshot;
     use_ssh_serial_console;
 
-    #workaround for bsc#1123942
-    if (check_var('XEN', '1')) {
-        script_run 'll /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
-        my $workaround_cmd = '(cat /etc/os-release | grep 15-SP1) && [ ! -e /usr/lib/grub2/x86_64-xen/grub.xen ] && mkdir -p /usr/lib/grub2/x86_64-xen && ln -s  /usr/share/grub2/x86_64-xen/grub.xen /usr/lib/grub2/x86_64-xen/grub.xen';
-        script_run($workaround_cmd);
-        script_run 'll /usr/lib/grub2/x86_64-xen/grub.xen';
-    }
 }
 
 sub run {
