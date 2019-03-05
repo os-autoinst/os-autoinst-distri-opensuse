@@ -376,24 +376,24 @@ sub select_bootmenu_more {
 }
 
 sub export_kde_logs {
-    select_console 'log-console';
+    return unless check_var('DESKTOP', 'kde');
     save_screenshot;
-
-    if (check_var("DESKTOP", "kde")) {
-        if (get_var('PLASMA5')) {
-            my $fn  = '/tmp/plasma5_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
-        }
-        else {
-            my $fn  = '/tmp/kde4_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
-        }
-        save_screenshot;
+    # Explicitly write a whitespace to prevent problems of missing the first
+    # character often, see https://progress.opensuse.org/issues/35589
+    type_string ' ';
+    if (get_var('PLASMA5')) {
+        my $fn  = '/tmp/plasma5_configs.tar.bz2';
+        my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
+        assert_script_run "$cmd";
+        upload_logs $fn;
     }
+    else {
+        my $fn  = '/tmp/kde4_configs.tar.bz2';
+        my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
+        assert_script_run "$cmd";
+        upload_logs $fn;
+    }
+    save_screenshot;
 }
 
 # Our aarch64 setup fails to boot properly from an installed hard disk so
