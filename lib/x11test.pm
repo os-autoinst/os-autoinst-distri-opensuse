@@ -932,6 +932,9 @@ sub configure_xdmcp_firewall {
     }
 }
 
+# Can be used to ensure the desktop runner is reactive again before going into
+# other test modules
+# https://progress.opensuse.org/issues/30805
 sub check_desktop_runner {
     x11_start_program('true', target_match => 'generic-desktop', no_wait => 1);
 }
