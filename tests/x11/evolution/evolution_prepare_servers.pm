@@ -64,6 +64,7 @@ sub run() {
     assert_script_run "postconf -e 'smtpd_sasl_auth_enable = yes'";
     assert_script_run "postconf -e 'smtpd_sasl_path = private/auth'";
     assert_script_run "postconf -e 'smtpd_sasl_type = dovecot'";
+    assert_script_run "postconf -e 'myhostname = localhost'";
 
     # start/restart services
     systemctl 'start dovecot';
