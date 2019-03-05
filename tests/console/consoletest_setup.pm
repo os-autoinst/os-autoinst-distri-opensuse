@@ -16,7 +16,7 @@
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends qw(has_ttys use_ssh_serial_console);
 use strict;
 use warnings;
 
@@ -45,7 +45,7 @@ sub run {
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     disable_serial_getty;
     # init
-    check_console_font;
+    check_console_font if has_ttys();
 
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
