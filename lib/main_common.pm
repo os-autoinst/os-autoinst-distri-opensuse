@@ -1554,7 +1554,7 @@ sub load_extra_tests_console {
     }
     loadtest "console/cron" unless is_jeos;
     loadtest "console/syslog";
-    loadtest "console/ntp_client" if (!is_sle && !is_jeos);
+    loadtest "console/ntp_client" if (!is_sle || is_jeos);
     loadtest "console/mta" unless is_jeos;
     loadtest "console/check_default_network_manager";
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
