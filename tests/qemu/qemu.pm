@@ -43,9 +43,13 @@ sub run {
         # use kernel from host system for booting
         assert_script_run 'zcat $(ls /boot/vmlinux-* | sort | tail -1) > /tmp/kernel';
         type_string "qemu-system-s390x -nographic -kernel /tmp/kernel -initrd /boot/initrd\n";
-        assert_screen ['qemu-reached-target-basic-system', 'qemu-s390x-exec-0x7f4-not-impl'], 60;
+        assert_screen ['qemu-reached-target-basic-system', 'qemu-s390x-exec-0x7f4-not-impl', 'qemu-linux-req-more-recent-proc-hw'], 60;
         if (match_has_tag 'qemu-s390x-exec-0x7f4-not-impl') {
             record_soft_failure 'bsc#1124595 - qemu on s390x fails when called WITHOUT kvm: EXECUTE on instruction prefix 0x7f4 not implemented';
+            return;
+        }
+        elsif (match_has_tag 'qemu-linux-req-more-recent-proc-hw') {
+            record_soft_failure 'bsc#1127722 - qemu on s390x fails when called WITHOUT kvm: Linux Kernel requires newer processor';
             return;
         }
     }
