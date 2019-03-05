@@ -1598,7 +1598,7 @@ sub load_extra_tests_console {
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST');
     loadtest 'console/timezone';
     loadtest 'console/procps';
-    loadtest "console/lshw" if ((is_sle('15+') && check_var('ARCH', 'ppc64le')) || is_opensuse);
+    loadtest "console/lshw" if ((is_sle('15+') && (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'x86_64'))) || is_opensuse);
     loadtest 'console/quota' unless is_jeos;
 }
 
