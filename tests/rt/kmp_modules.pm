@@ -10,6 +10,8 @@
 
 # Summary: RT tests
 #    test kmp modules & boot RT kernel script for further automated and regression RT tests
+#    list of KMP rpms: cluster-md-kmp-rt, gfs2-kmp-rt, dlm-kmp-rt, crash-kmp-rt, oracleasm-kmp-rt
+#    lttng-modules-kmp-rt, ocfs2-kmp-rt
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "opensusebasetest";
@@ -18,6 +20,32 @@ use warnings;
 use testapi;
 use utils;
 use rt_utils 'select_kernel';
+use File::Basename 'fileparse';
+
+sub lttng_test {
+    my $trace = {
+        label     => 'TEST_TRACE',
+        output    => '/tmp/sched_trace_example',
+        component => 'sched_switch',
+        channel   => 'test-channel'
+    };
+
+    assert_script_run 'lttng create ' . $trace->{label} . ' -o ' . $trace->{output};
+    assert_script_run 'lttng enable-channel --kernel ' . $trace->{channel};
+    assert_script_run 'lttng enable-event --kernel -a ' . $trace->{component} . ' -c ' . $trace->{label};
+    assert_script_run 'lttng start';
+    assert_script_run 'sleep 5';
+    assert_script_run 'lttng list ' . $trace->{label};
+    assert_script_run 'lttng stop';
+    assert_script_run 'lttng destroy -a';
+    if ((script_run "test -e $trace->{output}") == 0) {
+        assert_script_run "ls -la $trace->{output}" . '/kernel';
+        assert_script_run "file $trace->{output}" . '/kernel/' . uc $trace->{label} . '_0';
+        assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{channel} . '_0';
+    } else {
+        die "Trace file \"$trace->{output}\" does not exist!\n";
+    }
+}
 
 sub run {
     select_console 'root-console';
@@ -35,23 +63,19 @@ sub run {
     select_console 'root-console';
     # check if kernel is proper $kernel
     assert_script_run('uname -r|grep rt', 90, 'Expected rt kernel not found');
-    # get bash script
-    my $package = data_url('modprobe_kmp_modules.sh');
-    script_run "wget $package";
-=modprobe_kmp_modules.sh
-    #!/bin/bash
-    # load modules
-    for pkg in $(rpm -qa \*-kmp-rt); do
-      for mod in $(rpm -ql $pkg | grep '\.ko$'); do
-        modname=$(basename $mod .ko)
-        modprobe -v $modname &>> /var/log/modprobe.out || fail=1
-      done
-    done
-    if [ $fail ] ; then exit 1 ; fi
-=cut
-    script_run 'chmod +x modprobe_kmp_modules.sh';
-    # run script printed above, modprobe kmp-rt modules
-    assert_script_run('./modprobe_kmp_modules.sh', 90, 'Failed to load modules below');
+    # filter out list of kernel modules
+    my @kmp_rpms = grep { !/lttng-modules/ } split("\n", script_output "rpm -qa \*-kmp-rt");
+    my @kernel_modules;
+    push @kernel_modules, grep { /.*\.ko/ } split("\n", script_output "rpm -ql $_") foreach (@kmp_rpms);
+    # load kernel modules
+    foreach my $full_module (@kernel_modules) {
+        my ($basename, $dir, $suffix) = fileparse($full_module, '.ko');
+        assert_script_run 'modprobe -v ' . $basename . ' 2>&1 | tee -a /var/log/modprobe.out';
+        assert_script_run "modinfo $basename";
+        save_screenshot;
+        clear_console;
+    }
+    lttng_test;
     type_string "exit\n";
     reset_consoles;
 }
@@ -67,4 +91,3 @@ sub post_fail_hook {
 }
 
 1;
-

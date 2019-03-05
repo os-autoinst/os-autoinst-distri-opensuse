@@ -20,6 +20,7 @@ use bootloader_setup 'boot_grub_item';
 sub run() {
     my $self = shift;
     $self->boot_grub_item(2, 3);
+    $self->wait_boot(bootloader_time => 120);
 }
 
 1;
