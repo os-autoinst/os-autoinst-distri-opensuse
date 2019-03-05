@@ -31,20 +31,15 @@ sub run {
     x11_start_program('remmina', target_match => 'remmina-launched');
     type_string '10.0.2.18';
     send_key 'ret';
-    wait_still_screen 3;
-    send_key 'alt-o';
-
-    # input account name
-    wait_still_screen 3;
-
+    assert_and_click 'accept-certificate-yes';
+    assert_screen 'enter_auth_credentials';
     # We can not use the variable $realname here
     # Since the windows username limit is 20 characters
     # The username in windows is different from the $realname
     type_string "Bernhard M. Wiedeman";
     send_key "tab";
     type_password;
-    wait_still_screen 3;
-    send_key "ret";
+    assert_and_click 'auth_credentials-ok';
 
     wait_still_screen 3;
     assert_screen [qw(connection-failed windows-desktop-on-remmina)];
