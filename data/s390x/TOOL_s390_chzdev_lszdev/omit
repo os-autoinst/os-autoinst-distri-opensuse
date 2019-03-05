@@ -1,0 +1,6 @@
+# skip the following scripts because of not available test environment
+40_DASD_FBA.sh
+70_ZFCP_HOST.sh
+90_QETH.sh
+100_CTC.sh
+110_LCS.sh

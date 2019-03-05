@@ -1,0 +1,259 @@
+#!/bin/sh
+# Script-Name: 00_config-file_TOOL_s390_qetharp
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+# 1.) CLIENT System:
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+
+cHOST="r3530048"
+cLANa="0.0.f5f0"
+cLANb="0.0.f5f1"
+cLANc="0.0.f5f2"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# Define 1st interface: <Real OSA>
+# - - - - - - - - - - - - - - - - - - - - -
+cE1="ethx"
+cE1a="0.0.b01a"
+cE1b="0.0.b01b"
+cE1c="0.0.b01c"
+cE1ip="10.30.50.125"
+cE1mask="255.255.255.0"
+cE1netpref="16"
+cE1broad="10.30.50.255"
+cP1Lay="0"
+cP1No="0"
+cE1sub="10.30.50.*"
+
+# - - - - - - - - - - - - - - - - - - - -  - - -
+# Define 2nd interface: <Real HSI : ipv4 address>
+# - - - - - - - - - - - - - - - - - - - - - - - -
+cE2="hsix"
+cE2a="0.0.800a"
+cE2b="0.0.800b"
+cE2c="0.0.800c"
+cE2ip="10.30.50.125"
+cE2mask="255.255.255.0"
+cE2netpref="16"
+cE2broad="10.30.50.255"
+cP2Lay="0"
+cP2No="0"
+
+# - - - - - - - - - - - - - - - - - - - -  - - -
+# Define 3rd interface: <Real HSI : ipv6 address>
+# - - - - - - - - - - - - - - - - - - - - - - - -
+cE3="hsix"
+cE3a="0.0.810a"
+cE3b="0.0.810b"
+cE3c="0.0.810c"
+cE3ip6="fd00:10:30::52:27"
+cE3ip6Prefix="80"
+cP3Lay="0"
+cP3No="0"
+
+
+# - - - - - - - - - - - - - - - - - - - -  - - - - - -
+# Define 4th interface: <Guestlan HSI : ipv4 address>
+# - - - - - - - - - - - - - - - - - - - - - - - - - -
+cE4="hsix"
+cE4a="0.0.5040"
+cE4b="0.0.5041"
+cE4c="0.0.5042"
+cE4d="5040"
+cE4ip="10.53.36.48"
+cE4mask="255.255.0.0"
+cE4netpref="16"
+cE4broad="10.53.255.255"
+cP4Lay="0"
+cP4No="0"
+cE4NICType="hiper"
+cE4guestLanName="glan4"
+
+
+# - - - - - - - - - - - - - - -  - - - - - - -  - - -
+# Define 5th interface: <Guestlan HSI : ipv6 address>
+# - - - - - - - - - - - - - - - - - - - - - - - - - -
+cE5="hsix"
+cE5a="0.0.5020"
+cE5b="0.0.5021"
+cE5c="0.0.5022"
+cE5d="5020"
+cE5ip6="fd00:10:55::36:48"
+cE5ip6Prefix="80"
+cP5Lay="0"
+cP5No="0"
+cE5NICType="hiper"
+cE5guestLanName="glan6"
+
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+# 2.) SERVER System:
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+
+sHOST="s83lp65"
+sLANa="0.0.f5f0"
+sLANb="0.0.f5f1"
+sLANc="0.0.f5f2"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# Define 1st interface: <Real OSA>
+# - - - - - - - - - - - - - - - - - - - - -
+sE1="ethx"
+sE1a="0.0.f800"
+sE1b="0.0.f801"
+sE1c="0.0.f802"
+sE1ip="10.30.50.124"
+sE1mask="255.255.255.0"
+sE1broad="10.30.50.255"
+sP1Lay="0"
+sP1No="0"
+
+
+# - - - - - - - - - - - - - - - - - - - -  - - -
+# Define 2nd interface: <Real HSI : ipv4 address>
+# - - - - - - - - - - - - - - - - - - - - - - - -
+sE2="hsix"
+sE2a="0.0.f803"
+sE2b="0.0.f804"
+sE2c="0.0.f805"
+sE2ip="10.30.51.24"
+sE2mask="255.255.255.0"
+sE2broad="10.30.51.255"
+sP2Lay="0"
+sP2No="0"
+
+# - - - - - - - - - - - - - - - - - - - -  - - -
+# Define 3rd interface: <Real HSI : ipv6 address>
+# - - - - - - - - - - - - - - - - - - - - - - - -
+sE3="hsix"
+sE3a="0.0.f806"
+sE3b="0.0.f807"
+sE3c="0.0.f808"
+sE3ip6="fd00:10:30::52:24"
+sE3ip6Prefix="80"
+sP4Lay="0"
+sP4No="0"
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+# 3.) COMMON Definitions:
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+
+SSH="ssh -i /root/.ssh/id_dsa.autotest -o StrictHostKeyChecking=no -oProtocol=2 -q -n -oBatchMode=yes "
+dummy_ip="192.18.1.1"
+dummy_mac="00:14:5e:78:ce:a6"
+
+# LINUX:
+
+P0="/sys/bus/ccwgroup/drivers/qeth/"
+P1="/sys/bus/ccwgroup/drivers/qeth/group"
+
+
+##############
+### CLIENT >>>
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 10C_cleanup_s390_qetharp.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Deny Broadcast
+# (b) Delete all Interface except LAN eth0
+# (c) Detach all DEVNOs except 0.0.F5xx
+x10CTEST="a b c"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 20C_prepare_s390_qetharp.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Allow Broadcast
+# (b) Interface Defnition
+x20CTEST="a b"
+
+# - - - - - - - - - -
+# 30C_qetharp_test.sh
+# - - - - - - - - - -
+# (a) Test qetharp common options
+# (b) Real OSA <IPv4> : Qetharp Options
+# (c) Real Hipersockets <IPv4> : Qetharp Options
+# (d) Real Hipersockets <IPv6> : Qetharp Options
+# (e) Guestlan Hipersockets <IPv4> : Qetharp Options
+# (f) Guestlan Hipersockets <IPv6> : Qetharp Options
+x30CTEST="a b c d e f"
+
+### CLIENT <<<
+##############
+
+
+##############
+### SERVER >>>
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 10S_cleanup_s390_qetharp.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Deny Broadcast
+# (b) Delete all Interface except LAN eth0
+# (c) Detach all DEVNOs except 0.0.F5xx
+x10STEST="a b c"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 20S_prepare_s390_qetharp.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Allow Broadcast
+# (b) Interface Defnition
+x20STEST="a b"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 30S_qetharp_test.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Test qetharp common options
+# (b) Real OSA <IPv4> : Qetharp Options
+# (c) Real Hipersockets <IPv4> : Qetharp Options
+# (d) Real Hipersockets <IPv6> : Qetharp Options
+
+x30STEST="a b"
+
+# - - - - - - - - - -
+# 40S_Ping_Test.sh
+# - - - - - - - - - -
+# (a) PING from Server to client <Real OSA : ipv4>
+# (b) PING from Server to client <Real HSI : ipv4>
+# (b) PING from Server to client <Real HSI : ipv6>
+x40STEST="a b c"
+
+###### (a) PING from Server to client <Real OSA : ipv4>
+#
+### net_umbping   $1       $2      $3         $4      $5     $6         $7       $8
+### net_umbping   $IFNAME  $IP     $BAD       $START  $END   $LOGNAME   $OPTION  $REMOTE
+### net_umbping   $cEx     $sExip  $cExbroad  "3"     "3"    "40x_c2s"  "-f"     $cHOST
+x40SaSTART="1"; x40SaEND="5"; x40SaOPTION="--"
+#
+###### End of (a)
+
+###### (b) PING from Server to client <Real HSI : ipv4>
+#
+### net_umbping   $1       $2      $3         $4      $5     $6         $7       $8
+### net_umbping   $IFNAME  $IP     $BAD       $START  $END   $LOGNAME   $OPTION  $REMOTE
+### net_umbping   $cEx     $sExip  $cExbroad  "3"     "3"    "40x_c2s"  "-f"     $cHOST
+x40SbSTART="1"; x40SbEND="5"; x40SbOPTION="--"
+#
+###### End of (b)
+
+
+###### (c) PING from Server to client <Real HSI : ipv6>
+#
+### net_umbping   $1       $2      $3         $4      $5     $6         $7       $8
+### net_umbping   $IFNAME  $IP     $BAD       $START  $END   $LOGNAME   $OPTION  $REMOTE
+### net_umbping   $cEx     $sExip  $cExbroad  "3"     "3"    "40x_c2s"  "-f"     $cHOST
+x40ScSTART="1"; x40ScEND="5"; x40ScOPTION="--"
+#
+###### End of (c)
+
+
+
+#
+#
+#
+# - - - - - - - - - - - - - - - - - - - - -
+#      <<<<<<<<<< ENTE >>>>>>>>>>
+# - - - - - - - - - - - - - - - - - - - - -
+#
+# vim: ai et ts=2 shiftwidth=2 expandtab tabstop=3 bg=dark
