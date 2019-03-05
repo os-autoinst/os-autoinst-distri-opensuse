@@ -1324,6 +1324,9 @@ sub load_x11tests {
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
+        # only schedule krunner on unstable wayland scenario disabling
+        # potentially flaky krunner plugins
+        loadtest 'x11/krunner' if (kdestep_is_applicable() && get_var('WAYLAND'));
         loadtest "x11/kontact" unless is_kde_live;
     }
     if (kdestep_is_applicable()) {
