@@ -2150,9 +2150,14 @@ sub load_security_tests_apparmor_profile {
         loadtest "qa_automation/patch_and_reboot";
         loadtest "security/apparmor/aa_prepare";
     }
+
     loadtest "security/apparmor_profile/usr_sbin_dovecot";
     loadtest "security/apparmor_profile/usr_sbin_traceroute";
     loadtest "security/apparmor_profile/usr_sbin_nscd";
+    # ALWAYS run ".*usr_lib_dovecot_*" after "mailserver_setup" for the dependencies
+    loadtest "security/apparmor_profile/mailserver_setup";
+    loadtest "security/apparmor_profile/usr_lib_dovecot_pop3";
+    loadtest "security/apparmor_profile/usr_lib_dovecot_imap";
 }
 
 sub load_security_tests_openscap {
