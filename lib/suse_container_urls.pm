@@ -65,7 +65,11 @@ sub get_suse_container_urls {
         push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
         push @stable_names, "docker.io/opensuse/leap:${version}";
     }
-    elsif (is_leap(">15.0") && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'ppc64le'))) {
+    elsif (is_leap(">15.0") && check_var('ARCH', 'aarch64')) {
+        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
+        push @stable_names, "docker.io/opensuse/leap:${version}";
+    }
+    elsif (is_leap(">15.0") && check_var('ARCH', 'ppc64le')) {
         # No image set up yet :-(
     }
     elsif (is_sle("<=12-sp2")) {
