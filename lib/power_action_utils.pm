@@ -155,12 +155,6 @@ sub poweroff_x11 {
         send_key "alt-d";              # shut_d_own
         assert_screen 'logout-confirm-dialog', 10;
         send_key "alt-o";              # _o_k
-
-        if (!check_shutdown(120)) {
-            record_soft_failure 'bsc#1076817 manually shutting down';
-            select_console 'root-console';
-            systemctl 'poweroff';
-        }
     }
 
     if (check_var('BACKEND', 's390x')) {
@@ -252,6 +246,12 @@ sub power_action {
         assert_shutdown_and_restore_system($action, $shutdown_timeout *= 3);
     }
     else {
+        if (check_var('DESKTOP', 'minimalx') && check_screen('shutdown-auth', timeout => 30)) {
+            record_soft_failure 'bsc#1076817 manually shutting down';
+            select_console 'root-console';
+            systemctl 'poweroff';
+        }
+
         assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
