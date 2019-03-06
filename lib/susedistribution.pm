@@ -177,7 +177,7 @@ sub init_desktop_runner {
 
 =head2 x11_start_program
 
-  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ] [match_no_wait => 0|1 ]]);
+  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1 [, target_match => $target_match ] [, match_timeout => $match_timeout ] [, match_no_wait => 0|1 ] [, match_typed => 0|1 ]]);
 
 Start the program C<$program> in an X11 session using the I<desktop-runner>
 and looking for a target screen to match.
