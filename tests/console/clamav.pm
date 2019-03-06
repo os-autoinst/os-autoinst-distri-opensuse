@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,8 +8,9 @@
 # without any warranty.
 
 # Summary: Simple clamav test for SLE FIPS and openSUSE
-# Maintainer: Wei Jiang <wjiang@suse.com>
-# Tags: TC1595169
+# Author: Wei Jiang <wjiang@suse.com>
+# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Tags: TC1595169, poo#46880
 
 use base "consoletest";
 use strict;
@@ -33,14 +34,14 @@ sub run {
         die "Swapfile was not created succesfully" unless ($swaps =~ "swapfile");
     }
 
-    # Start the deamons
-    systemctl('start clamd');
-    systemctl('start freshclam');
-
     # Verify the database
     assert_script_run 'sigtool -i /var/lib/clamav/main.cvd';
     assert_script_run 'sigtool -i /var/lib/clamav/bytecode.cvd';
     assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd';
+
+    # Start the deamons
+    systemctl('start clamd');
+    systemctl('start freshclam');
 
     # Create md5, sha1 and sha256 Hash-based signatures
     # Assume /usr/bin/vim is an virus program and add its
