@@ -570,6 +570,7 @@ sub load_jeos_tests {
             loadtest "jeos/diskusage";
             loadtest "jeos/root_fs_size";
             loadtest "jeos/mount_by_label";
+            loadtest "jeos/build_key";
         }
         if (is_sle) {
             loadtest "console/suseconnect_scc";
