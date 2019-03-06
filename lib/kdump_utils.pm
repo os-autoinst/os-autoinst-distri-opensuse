@@ -17,7 +17,7 @@ use utils;
 use List::Util 'maxstr';
 use version_utils qw(is_sle is_jeos);
 
-our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump kdump_is_active do_kdump);
+our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
 
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
@@ -110,6 +110,16 @@ sub activate_kdump {
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
         wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
     } until (match_has_tag('yast2_console-finished'));
+}
+
+sub activate_kdump_without_yast {
+    # activate kdump by grub, need a reboot to start kdump
+    my $cmd = "if [ -e /etc/default/grub ]; then sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/ s/\"\$/ crashkernel=256M,high crashkernel=128M,low \"/' /etc/default/grub; fi";
+    script_run($cmd);
+    script_run('cat /etc/default/grub');
+    # sync changes from /etc/default/grub into /boot/grub2/grub.cfg
+    assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
+    systemctl('enable kdump.service');
 }
 
 sub kdump_is_active {
