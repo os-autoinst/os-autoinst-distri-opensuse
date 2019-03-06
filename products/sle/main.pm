@@ -534,6 +534,7 @@ sub load_infiniband_tests {
     # here to ensure they are a) only created once and b) early enough
     # to be available when needed.
     if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+        barrier_create('IBTEST_SETUP', 2);
         barrier_create('IBTEST_BEGIN', 2);
         barrier_create('IBTEST_DONE',  2);
     }
