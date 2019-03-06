@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use registration qw(add_suseconnect_product register_product);
 
 sub run {
     select_console 'root-console';
@@ -28,12 +29,12 @@ sub run {
             zypper_call('ref');
         }
         elsif (is_sle '>=15') {
-            assert_script_run 'SUSEConnect -p sle-module-development-tools/${VERSION_ID}/${CPU}';
+            add_suseconnect_product('sle-module-development-tools');
         }
         else {
             # for historical reasons we don't register SLE12 systems in openqa by default
-            assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE');
-            assert_script_run 'SUSEConnect -p sle-sdk/${VERSION_ID}/${CPU}';
+            register_product();
+            add_suseconnect_product('sle-sdk');
         }
     }
 

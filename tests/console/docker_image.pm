@@ -15,7 +15,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use registration qw(add_suseconnect_product install_docker_when_needed);
+use registration qw(add_suseconnect_product install_docker_when_needed cleanup_registration register_product);
 use suse_container_urls qw(get_suse_container_urls);
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
@@ -25,11 +25,9 @@ sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
 
     if (is_sle) {
-        my $SCC_REGCODE = get_required_var("SCC_REGCODE");
-
         if (script_run("SUSEConnect --status-text") != 0) {
-            assert_script_run("SUSEConnect --cleanup");
-            assert_script_run("SUSEConnect -r $SCC_REGCODE");
+            cleanup_registration();
+            register_product();
             add_suseconnect_product("sle-module-containers", substr(get_required_var('VERSION'), 0, 2));
         }
     }
@@ -95,4 +93,3 @@ sub run {
 }
 
 1;
-

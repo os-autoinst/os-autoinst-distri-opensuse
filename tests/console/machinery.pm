@@ -16,20 +16,21 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use registration qw(add_suseconnect_product register_product);
+
 
 sub run {
     select_console 'root-console';
 
     if (is_sle) {
-        assert_script_run 'source /etc/os-release';
         if (is_sle '>=15') {
             if (script_run('SUSEConnect -p PackageHub/${VERSION_ID}/${CPU}', 300) != 0) {
                 record_soft_failure 'bsc#1124318 - Fail to get PackageHub Pool Metadata - running the command again as a workaround';
-                assert_script_run 'SUSEConnect -p PackageHub/${VERSION_ID}/${CPU}', 300;
+                add_suseconnect_product('PackageHub', undef, undef, undef, 300);
             }
         }
         else {
-            assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE');
+            register_product();
             if (script_run('SUSEConnect -p sle-module-adv-systems-management/12/${CPU}') == 67) {
                 record_soft_failure 'bsc#1124343 - ASMM Module not yet available for SLE12SP5';
                 return;

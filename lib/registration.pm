@@ -141,8 +141,9 @@ Wrapper for SUSEConnect -p $name.
 =cut
 sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout) = @_;
-    $version //= scc_version();
-    $arch    //= get_required_var('ARCH');
+    assert_script_run 'source /etc/os-release';
+    $version //= '${VERSION_ID}';
+    $arch    //= '${CPU}';
     $params  //= '';
     assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
 }
