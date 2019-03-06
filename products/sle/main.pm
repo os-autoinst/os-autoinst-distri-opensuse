@@ -599,6 +599,15 @@ elsif (get_var("NFV")) {
     load_baremetal_tests();
     load_nfv_tests();
 }
+elsif (check_var('TERRAFORM', 'poc')) {
+	boot_hdd_image;
+    //my @test_array = split(',', get_required_var('QATRFM_TESTS'));
+    for my $test (@test_array) {
+	    loadtest ("sandbox/run_qatrfm", run_args => $test);
+    }//
+    loadtest("lib/run_qatrfm", run_args => '/examples/simple/simple_test.py' , name => 'SimpleTest');
+    loadtest("lib/run_qatrfm", run_args => '/examples/custom/custom.py', name => 'CustomTest');
+}
 elsif (get_var("REGRESSION")) {
     load_common_x11;
     load_hypervisor_tests if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"));
