@@ -27,10 +27,15 @@ sub run {
     send_key "2";
     # undo produces "12" instead of "1"
     wait_screen_change { send_key "ctrl-z" };
-    assert_screen 'test-oomath-1', 3;
-    wait_screen_change { send_key "alt-f4" };
-    assert_screen 'oomath-prompt', 5;
-    assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
+    assert_screen [qw(test-oomath-1 oomath-bsc1127895)], 3;
+    if (match_has_tag('oomath-bsc1127895')) {
+        record_soft_failure 'bsc#1127895';
+        send_key "alt-f4";
+    } else {
+        wait_screen_change { send_key "alt-f4" };
+        assert_screen 'oomath-prompt', 5;
+        assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
+    }
 }
 
 1;
