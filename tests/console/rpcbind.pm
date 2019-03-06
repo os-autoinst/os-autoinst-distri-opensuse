@@ -38,6 +38,7 @@ sub run {
     assert_script_run 'rpcinfo|grep nfs';
     assert_script_run 'mkdir -p /tmp/nfs';
     assert_script_run 'mount -t nfs localhost:/mnt /tmp/nfs';
+    sleep 3;
     assert_script_run 'grep working /tmp/nfs/test';
     assert_script_run 'umount -f /tmp/nfs';
 }
