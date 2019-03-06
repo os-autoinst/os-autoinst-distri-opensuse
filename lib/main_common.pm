@@ -2420,7 +2420,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
-    load_shutdown_tests                 if check_var('DESKTOP', 'minimalx') && !get_var('INSTALLONLY');
+    load_shutdown_tests                 if check_var('DESKTOP', 'minimalx') && !get_var('INSTALLONLY') && !get_var('DE_PATTERN');
 }
 
 sub load_ssh_key_import_tests {
