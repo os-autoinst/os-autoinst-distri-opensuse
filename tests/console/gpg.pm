@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 my $username = $testapi::username;
 my $passwd   = $testapi::password;
@@ -54,13 +55,7 @@ sub gpg_generate_key {
     wait_still_screen 1;
     save_screenshot;
     type_string "O\n";
-    assert_screen(["gpg-enter-passphrase", "gpg-generate-key-boo1097610"]);
-    if (match_has_tag('gpg-generate-key-boo1097610') && check_var('ARCH', 's390x')) {
-        record_soft_failure 'boo#1097610';
-        select_console 'root-console';
-        gpg_generate_key($key_size);
-        return;
-    }
+    assert_screen("gpg-enter-passphrase");
 
     # enter wrong passphrase
     type_string "REALSECRETPHRASE\n";
@@ -116,7 +111,12 @@ sub gpg_encrypt_file {
 }
 
 sub run {
-    select_console 'user-console';
+    select_console 'root-console';
+    # increase entropy for key generation for s390x on svirt backend
+    if (check_var('ARCH', 's390x') && (is_sle('>15') && (check_var('BACKEND', 'svirt')))) {
+        zypper_call('in haveged');
+        systemctl('start haveged');
+    }
 
     # gpg key generated and file encrypted with two size of key
     for my $key_size (2048, 3072) {
