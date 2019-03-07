@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,28 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle);
+use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle is_vmware);
 use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
+
+sub vmware_set_permanent_boot_device {
+    return unless is_vmware;
+    my ($boot_device) = @_;
+    assert_screen('vmware_bios_frontpage');
+    # No boot device requested to be set, go on with the default
+    send_key 'ret' && return unless $boot_device;
+    # Enter menu with available boot devices
+    send_key 'f2';
+    send_key_until_needlematch('vmware_bios_boot_tab', 'right', 10, 2);
+    send_key_until_needlematch("vmware_bios_boot_${boot_device}",     'down', 5);
+    send_key_until_needlematch("vmware_bios_boot_top_${boot_device}", '+',    5);
+    send_key 'f10';
+    assert_screen('vmware_bios_boot_confirm');
+    send_key 'ret';
+    assert_screen('vmware_bios_frontpage');
+    send_key 'ret';
+}
 
 sub search_image_on_svirt_host {
     my ($svirt, $file, $dir) = @_;
@@ -279,6 +297,7 @@ sub run {
 
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
+    vmware_set_permanent_boot_device('cdrom');
 }
 
 sub test_flags {
