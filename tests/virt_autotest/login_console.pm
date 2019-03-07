@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use ipmi_backend_utils;
 
 sub login_to_console {
@@ -25,6 +25,9 @@ sub login_to_console {
 
     reset_consoles;
     select_console 'sol', await_console => 0;
+
+    my $sut_machine = get_var('SUT_IP', 'nosutip');
+    boot_local_disk_arm_huawei if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /huawei/img));
 
     assert_screen([qw(grub2 grub1 prague-pxe-menu)], 210);
 
