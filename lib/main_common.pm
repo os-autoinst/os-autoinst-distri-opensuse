@@ -1121,7 +1121,7 @@ sub load_consoletests {
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc";
     }
     # If is_repo_replacement_required returns true, we already have added mirror repo and refreshed repos
     if (!is_repo_replacement_required()) {

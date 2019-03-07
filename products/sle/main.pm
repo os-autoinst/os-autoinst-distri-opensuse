@@ -848,7 +848,7 @@ elsif (have_scc_repos()) {
         loadtest "console/suseconnect_scc";
     }
     else {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc";
     }
 }
 elsif (get_var('HPC')) {
