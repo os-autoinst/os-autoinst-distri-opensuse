@@ -256,6 +256,11 @@ sub run {
 
     $svirt->define_and_start;
 
+    # Variable set only in console (here sshVirtsh console) does not propagate
+    # to test environment correctly and can be destroyed by bmwqemu::load_vars(),
+    # e.g. via set_var('...', ..., reload_needles => 1).
+    set_var('VMWARE_REMOTE_VMM', $svirt->get_remote_vmm) if is_vmware;
+
     # This sets kernel argument so needle-matching works on Xen PV. It's being
     # done via host's PTY device because we don't see anything unless kernel
     # sets framebuffer (this is a GRUB2's limitation bsc#961638).
