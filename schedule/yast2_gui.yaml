@@ -1,0 +1,31 @@
+---
+name:           yast2_gui
+description:    >
+    Test for yast2 UI, GUI only.
+    Running on created gnome images which provides both text console for ncurses UI tests as well
+    as the gnome environment for the GUI tests.
+vars:
+    BOOTFROM: c
+    BOOT_HDD_IMAGE: 1
+    # DESKTOP: gnome -> When added, an empty key appears first in the list
+    HDDSIZEGB: 20
+    # HDD_1: SLES-%VERSION%-%ARCH%-Build%BUILD%@%MACHINE%-gnome.qcow2 -> if added, openQA will not publish in UI
+    SOFTFAIL_BSC1063638: 1
+    START_AFTER_TEST: create_hdd_gnome
+    # UEFI_PFLASH_VARS: SLES-%VERSION%-%ARCH%-Build%BUILD%@%MACHINE%-gnome-uefi-vars.qcow2  -> if added, openQA will not publish in UI
+    VALIDATE_ETC_HOSTS: 1
+schedule:
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/hostname
+    - yast2_gui/yast2_control_center
+    - x11/yast2_lan_restart
+    - yast2_gui/yast2_bootloader
+    - yast2_gui/yast2_datetime
+    - yast2_gui/yast2_firewall
+    - yast2_gui/yast2_hostnames
+    - yast2_gui/yast2_lang
+    - yast2_gui/yast2_network_settings
+    - yast2_gui/yast2_software_management
+    - yast2_gui/yast2_users
