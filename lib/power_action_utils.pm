@@ -246,7 +246,7 @@ sub power_action {
         assert_shutdown_and_restore_system($action, $shutdown_timeout *= 3);
     }
     else {
-        if (check_var('DESKTOP', 'minimalx') && check_screen('shutdown-auth', timeout => 30)) {
+        if (check_var('DESKTOP', 'minimalx') && check_screen('shutdown-wall', timeout => 30)) {
             record_soft_failure 'bsc#1076817 manually shutting down';
             select_console 'root-console';
             systemctl 'poweroff';
