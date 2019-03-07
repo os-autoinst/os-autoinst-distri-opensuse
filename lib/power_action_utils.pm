@@ -265,7 +265,7 @@ sub power_action {
         }
         # When 'sut' is ready, select it
         if (is_vmware && $action eq 'reboot') {
-            wait_serial('GNU GRUB') || die 'GRUB not found on serial console';
+            wait_serial('GNU GRUB', 180) || die 'GRUB not found on serial console';
             select_console('sut');
         }
     }
