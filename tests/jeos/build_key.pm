@@ -14,18 +14,20 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use version_utils "is_opensuse";
 
 sub run {
-    # check that suse-build-key is installed
-    my $zypper_output = script_output('zypper search suse-build-key');
-    die 'suse-build-key is not installed' unless $zypper_output =~ /i\+(.*)suse-build-key/;
+    if (is_opensuse) {
+        assert_script_run("rpm -qi openSUSE-build-key");
+    }
+    else {
+        assert_script_run("rpm -qi suse-build-key");
 
-    assert_script_run('ls /usr/lib/rpm/gnupg/keys | grep suse_ptf_key.asc');
-
-    # check that the key is not empty or has invalid content
-    validate_script_output("cat /usr/lib/rpm/gnupg/keys/suse_ptf_key.asc", sub {
-            /(----BEGIN PGP PUBLIC KEY BLOCK-----)\s*|(.*)(-----END PGP PUBLIC KEY BLOCK-----)/;
-    });
+        # check that the key is not empty or has invalid content
+        validate_script_output("cat /usr/lib/rpm/gnupg/keys/suse_ptf_key.asc", sub {
+                /(----BEGIN PGP PUBLIC KEY BLOCK-----)\s*|(.*)(-----END PGP PUBLIC KEY BLOCK-----)/;
+        });
+    }
 }
 
 1;
