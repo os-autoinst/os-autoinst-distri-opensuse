@@ -76,16 +76,19 @@ sub run {
     }
 
     set_var('BOOTFROM', 'c') if get_var('BOOT_HDD_IMAGE');
+    my $boot_device = '';
     if (check_var('BOOTFROM', 'c')) {
-        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+        $boot_device = 'hd';
     }
     elsif (check_var('BOOTFROM', 'd')) {
-        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
+        $boot_device = 'cdrom';
     }
     else {
-        $svirt->change_domain_element(os => boot => {dev => 'hd'});
-        $svirt->change_domain_element(os => boot => {dev => 'cdrom'}) if get_var('ISO');
+        get_var('ISO') ? $boot_device = 'cdrom' : $boot_device = 'hd';
     }
+    # Does not make any difference on VMware. For ad hoc device selection
+    # see vmware_select_boot_device_from_menu().
+    $svirt->change_domain_element(os => boot => {dev => $boot_device}) unless is_vmware;
 
     # Unless os-autoinst PR#956 is deployed we have to remove 'on_reboot' first
     # This has no effect on VMware ('restart' is kept).
