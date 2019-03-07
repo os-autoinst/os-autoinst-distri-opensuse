@@ -9,9 +9,6 @@ For more details see http://os-autoinst.github.io/openQA/
 
 Please, find test variables description [here](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/variables.md)
 
-For using using new mechanism to schedule modules:
-[sample yaml format](schedule.md)
-
 ## How to contribute
 Please, refer to [Contributing Guide](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/CONTRIBUTING.md).
 
