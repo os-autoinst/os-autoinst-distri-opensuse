@@ -85,6 +85,8 @@ sub workaround_dependency_issues {
         while (check_screen('dependency-issue', 5)) {
             wait_screen_change { send_key 'alt-1' };
             select_conflict_resolution;
+            # Refer ticket https://progress.opensuse.org/issues/48266
+            wait_still_screen(2);
         }
     }
     return 1;
@@ -107,6 +109,8 @@ sub break_dependency {
             # 2 is the option to break dependency
             send_key 'alt-2';
             select_conflict_resolution;
+            # Refer ticket https://progress.opensuse.org/issues/48266
+            wait_still_screen(2);
         }
     }
 }
