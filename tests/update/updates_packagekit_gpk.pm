@@ -27,6 +27,7 @@ sub setup_system {
 
     if (check_var("DESKTOP", "gnome")) {
         turn_off_gnome_screensaver;
+        select_console 'x11';
     }
     else {
         script_run("xscreensaver-command -exit");
