@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,8 +21,11 @@ use utils;
 use registration "install_docker_when_needed";
 use strict;
 use warnings;
+use version_utils 'is_sle';
 
 sub run {
+    return record_soft_failure('bsc#1123502 - missing Container module on SLE12-SP5') if is_sle('=12-sp5');
+
     select_console('root-console');
 
     install_docker_when_needed();
