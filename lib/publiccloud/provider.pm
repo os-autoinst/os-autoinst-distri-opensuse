@@ -159,6 +159,9 @@ sub run_ipa {
     $args{distro}      //= 'sles';
     $args{tests} =~ s/,/ /g;
 
+    my $version = script_output('ipa --version');
+    record_info("IPA version", $version);
+
     my $cmd = 'ipa --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
     $cmd .= "--distro " . $args{distro} . " ";
@@ -264,7 +267,7 @@ sub terraform_apply {
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
     assert_script_run('cd ' . TERRAFORM_DIR);
-    record_info('INFO', "Creating instance $args{instance_type} from $args{image} ...");
+    record_info('INFO', "Creating instance $instance_type from $image ...");
     assert_script_run('terraform init', TERRAFORM_TIMEOUT);
 
     my $cmd = sprintf("terraform plan -var 'image_id=%s' -var 'count=%s' -var 'type=%s' -var 'region=%s' -out myplan",
