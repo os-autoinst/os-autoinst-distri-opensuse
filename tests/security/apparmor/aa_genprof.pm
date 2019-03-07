@@ -43,7 +43,7 @@ sub run {
     # Confirm it is in the screen
     validate_script_output "echo \$TERM", sub { m/screen/ };
 
-    script_run("script -c 'aa-genprof -d $aa_tmp_prof nscd' /dev/null |& tee /dev/$serialdev", 0);
+    script_run_interactive("aa-genprof -d $aa_tmp_prof nscd", undef);
     wait_serial("Please start the application", 20);
 
     # Detach screen
