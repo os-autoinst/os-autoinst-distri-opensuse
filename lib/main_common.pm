@@ -2120,7 +2120,7 @@ sub load_security_tests_crypt_tool {
     load_security_console_prepare;
 
     loadtest "console/gpg";
-    loadtest "console/yast2_dm_crypt";
+    loadtest "security/dm_crypt" if not get_var('FIPS_ENV_MODE');
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
 }
