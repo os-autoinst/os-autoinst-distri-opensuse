@@ -86,6 +86,13 @@ sub run {
 
     # Test non-interactive SSH and after that remove RSA keys
     assert_script_run "ssh -4v $ssh_testman\@localhost bash -c 'whoami | grep $ssh_testman'";
+
+    # SCP (poo#46937)
+    assert_script_run "scp -4v $ssh_testman\@localhost:/etc/resolv.conf /tmp";
+    assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/{group,passwd}' /tmp";
+    assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
+
+    # Remove the ~/.ssh folder
     assert_script_run "rm -r ~/.ssh/";
 }
 
