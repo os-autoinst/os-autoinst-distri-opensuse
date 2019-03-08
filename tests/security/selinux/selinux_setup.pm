@@ -28,11 +28,6 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    # for opensuse, e.g, Tumbleweed, add the repo in case rather than by default
-    if (!is_sle && !is_leap) {
-        zypper_call("ar http://download.opensuse.org/tumbleweed/repo/oss/ tumbleweed-Oss");
-    }
-
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
     if (!is_sle('>=15')) {
