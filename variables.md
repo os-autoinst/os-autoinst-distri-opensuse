@@ -117,5 +117,6 @@ VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the 
 UNENCRYPTED_BOOT | boolean | false | Indicates/defines existence of unencrypted boot partition in the SUT.
 WAYLAND | boolean | false | Enables wayland tests in the system.
 XDMUSED | boolean | false | Indicates availability of xdm.
+YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Defines repo to be added/used for zypper dup call.

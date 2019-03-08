@@ -21,6 +21,7 @@ use version_utils
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
+use scheduler 'load_yaml_schedule';
 
 use DistributionProvider;
 
@@ -588,6 +589,8 @@ testapi::set_distribution(DistributionProvider->provide());
 
 # set serial failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+
+return 1 if load_yaml_schedule;
 
 if (is_jeos) {
     load_jeos_tests();
