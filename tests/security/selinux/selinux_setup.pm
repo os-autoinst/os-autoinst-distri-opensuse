@@ -37,7 +37,7 @@ sub run {
         }
     }
 
-    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -w srcpackage | cut -d '|' -f 2`");
+    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -e srcpackage -e debuginfo -e debugsource | cut -d '|' -f 2`");
     zypper_call("in $pkgs", timeout => 3000);
 
     # for opensuse, e.g, Tumbleweed install selinux_policy pkgs as needed
