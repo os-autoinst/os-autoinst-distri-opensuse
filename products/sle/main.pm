@@ -889,6 +889,16 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
+    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+        boot_hdd_image;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'console/avocado_prepare';
+        my @test_groups = ('block_device_hotplug', 'cpu', 'disk_image', 'memory_hotplug', 'nic_hotplug', 'qmp', 'usb');
+        for my $test_group (@test_groups) {
+            loadtest 'console/avocado_run', name => "$test_group";
+        }
+        return 1;
+    }
     elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {
         loadtest 'boot/boot_from_pxe';
         loadtest 'console/microcode_update';
