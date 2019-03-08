@@ -16,6 +16,7 @@ AUTOYAST        | string    |               | Full url to the AY profile or rela
 AUTOYAST_PREPARE_PROFILE | boolean | false | Enable variable expansion in the autoyast profile.
 AUTOYAST_VERIFY | string | | Script to be executed to validate installation. Can be url, relative path if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data) or test module name to be scheduled after installation is conducted.
 AUTOYAST_VERIFY_TIMEOUT  | boolean | false | Enable validation of pop-up windows timeout.
+AY_EXPAND_VARS | string | | Commas separated list of variable names to be expanded in the provided autoyast profile. For example: REPO_SLE_MODULE_BASESYSTEM,DESKTOP,... Provided variables will replace `{{VAR}}` in the profile with the value of given variable. See also `AUTOYAST_PREPARE_PROFILE`.
 BASE_VERSION | string | | |
 BETA | boolean | false | Enables checks and processing of beta warnings. Defines current stage of the product under test.
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.

@@ -48,6 +48,9 @@ sub run {
 
     # Expand other variables
     my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH LOADER_TYPE);
+    # Push more variables to expand from the job setting
+    my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
+
     for my $var (@vars) {
         # Skip if value is not defined
         next unless my ($value) = get_var($var);
