@@ -207,7 +207,7 @@ sub get_installation_partition {
 
 sub set_pxe_efiboot {
     my ($root_prefix) = @_;
-    $root_prefix //= "/";
+    $root_prefix = "/" if (!defined $root_prefix) || ($root_prefix eq "");
     my $installation_disk = "";
 
     if ($root_prefix ne "/") {
