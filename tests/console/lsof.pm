@@ -19,6 +19,7 @@
 use base 'consoletest';
 use strict;
 use testapi;
+use warnings;
 use utils 'zypper_call';
 
 sub run {
@@ -36,12 +37,12 @@ sub run {
     validate_script_output('lsof -a -p $$ -d 3 | grep testoutput', sub { m/testoutput/ }, 200);
     assert_script_run('exec 3>&-');
     assert_script_run('lsof -a -p $$ -d 3 | grep testoutput || test $? -eq 1');
-    
+
     assert_script_run('exec 4<> testoutput && read line <&4 && echo $line');
     validate_script_output('lsof -a -p $$ -d 4 |grep testoutput', sub { m/testoutput/ }, 200);
     assert_script_run('exec 4>&-');
     assert_script_run('lsof -a -p $$ -d 4 | grep testoutput || test $? -eq 1');
-    
+
     type_string("netcat -l 5555 &");
     validate_script_output("lsof -i :5555 |grep netcat", sub { m/TCP/ });
     assert_script_run("killall netcat");
