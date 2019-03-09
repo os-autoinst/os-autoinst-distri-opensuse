@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <!-- minimal autoyast profile for staging (using urls for addons)-->
+    <bootloader>
+        <global>
+            <timeout config:type="integer">-1</timeout>
+        </global>
+    </bootloader>
+    <add-on>
+        <add_on_products config:type="list">
+             <listentry>
+                <media_url>{{ADDONURL_BASE}}</media_url>
+                <product>sle-module-basesystem</product>
+             </listentry>
+             <listentry>
+                <media_url>{{ADDONURL_SERVERAPP}}</media_url>
+                <product>sle-module-serverapplications</product>
+             </listentry>
+        </add_on_products>
+    </add-on>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+        <products config:type="list">
+            <product>SLES</product>
+        </products>
+    </software>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+</profile>
