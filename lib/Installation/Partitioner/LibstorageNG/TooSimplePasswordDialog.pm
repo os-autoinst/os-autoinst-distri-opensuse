@@ -17,7 +17,7 @@ package Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     TOO_SIMPLE_PASSWORD_DIALOG => 'inst-userpasswdtoosimple'

@@ -16,7 +16,7 @@ package Installation::Partitioner::LibstorageNG::PartitioningSchemePage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     PARTITIONING_SCHEME_PAGE => 'inst-partitioning-scheme',

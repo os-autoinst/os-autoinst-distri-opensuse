@@ -19,7 +19,7 @@ package Installation::Partitioner::LibstorageNG::FileSystemOptionsLvmPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 use Installation::Partitioner::ProposeSeparateHomeVolumeCheckbox;
 
 use constant {

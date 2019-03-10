@@ -12,7 +12,7 @@
 
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-package Installation::AbstractPage;
+package Installation::WizardPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;

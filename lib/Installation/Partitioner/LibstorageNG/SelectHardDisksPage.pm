@@ -16,7 +16,7 @@ package Installation::Partitioner::LibstorageNG::SelectHardDisksPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     SELECT_HARD_DISKS_PAGE => 'inst-select-disk-to-use-as-root'

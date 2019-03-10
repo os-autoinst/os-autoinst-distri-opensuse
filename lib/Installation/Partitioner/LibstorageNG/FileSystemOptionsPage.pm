@@ -16,7 +16,7 @@ package Installation::Partitioner::LibstorageNG::FileSystemOptionsPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 use Installation::Partitioner::ProposeSeparateHomePartitionCheckbox;
 
 use constant {

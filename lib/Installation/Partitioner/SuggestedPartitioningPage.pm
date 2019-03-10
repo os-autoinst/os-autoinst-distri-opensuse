@@ -17,7 +17,7 @@ package Installation::Partitioner::SuggestedPartitioningPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     SUGGESTED_PARTITIONING_PAGE                  => 'inst-suggested-partitioning-step',
