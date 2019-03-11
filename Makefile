@@ -103,3 +103,7 @@ test-unused-modules:
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
 	@! git --no-pager grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+
+.PHONY: check-staging-breaks
+check-staging-breaks:
+	tools/check_staging_breaks
