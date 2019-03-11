@@ -17,6 +17,7 @@ before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl
   - echo "requires 'Code::DRY';" >> cpanfile
   - echo "requires 'Perl::Tidy', '== 20181120';" >> cpanfile
+  - echo "$GITHUB_TOKEN"
   - make check-staging-breaks
 install:
   - make prepare
