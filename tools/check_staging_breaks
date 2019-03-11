@@ -1,4 +1,7 @@
 #!/bin/sh -e
+echo "$TRAVIS_PULL_REQUEST"
+echo "${TRAVIS_REPO_SLUG}"
+echo "${GITHUB_PAT}"
 if [ "$TRAVIS_PULL_REQUEST" != "false" ] ; then
 curl -H "Authorization: token ${GITHUB_PAT}" -X POST \
 -d "{\"body\": \"Warning: staging tests might be broken\"}" \
