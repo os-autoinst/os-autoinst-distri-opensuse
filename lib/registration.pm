@@ -50,6 +50,7 @@ our @EXPORT = qw(
 
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
+# Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
 our %SLE15_MODULES = (
     base      => 'Basesystem',
     sdk       => 'Development-Tools',
@@ -60,6 +61,7 @@ our %SLE15_MODULES = (
     contm     => 'Containers',
     pcm       => 'Public-Cloud',
     sapapp    => 'SAP-Applications',
+    python2   => 'Python2',
 );
 
 # The expected modules of a default installation per product. Use them if they
