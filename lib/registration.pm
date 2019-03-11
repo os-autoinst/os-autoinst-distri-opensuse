@@ -43,6 +43,8 @@ our @EXPORT = qw(
   rename_scc_addons
   is_module
   install_docker_when_needed
+  verify_scc
+  investigate_log_empty_license
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   @SLE15_ADDONS_WITHOUT_LICENSE
@@ -744,6 +746,43 @@ sub install_docker_when_needed {
     systemctl('start docker');
     systemctl('status docker');
     assert_script_run('docker info');
+}
+
+sub verify_scc {
+    select_console 'root-console';
+    record_info('proxySCC/SCC', 'Verifying that proxySCC and SCC can be accessed');
+    assert_script_run("curl ${\(get_var('SCC_URL'))}/login") if get_var('SCC_URL');
+    assert_script_run("curl https://scc.suse.com/login");
+}
+
+sub investigate_log_empty_license {
+    select_console 'root-console';
+    my $filter_products   = "grep -Po '<SUSE::Connect::Remote::Product.*?(extensions|isbase=(true|false)>)'";
+    my $y2log_file        = '/var/log/YaST2/y2log';
+    my $filter_empty_eula = qq[grep '.*eula_url="".*'];
+    my $orderuniquebyid   = 'sort -u -t, -k1,1';
+    my $command           = "$filter_products $y2log_file | $filter_empty_eula | $orderuniquebyid";
+    my @products          = split(/\n/, script_output($command));
+    my %fields            = (
+        id            => qr/(?<id>(?<=id=)\d+)/,
+        friendly_name => qr/(?<friendly_name>(?<=friendly_name=").*?(?="))/
+    );
+    my $message;
+    for my $product (@products) {
+        if ($product =~ /$fields{id}.*?$fields{friendly_name}.*?$fields{asset_url}/) {
+            $message .= "$+{friendly_name}: https://scc.suse.com/admin/products/$+{id}\n";
+        }
+    }
+    if ($message) {
+        record_info(
+            'Empty eula_url',
+            "Empty EULA was found in YaST logs (eula_url=\"\") for the following products:\n" .
+              "$message\n" .
+              "Please, file Bugzilla ticket agains SCC if license is not properly set.\n" .
+              "In case of licence available, check if the asset for the license has been properly synchronized\n" .
+              "by taking a look in http://openqa.suse.de/assets/repo/ for the corresponding product/build\n" .
+              "and searching for a path ending in \'.license/license.txt\' .Otherwise, please file a Progress ticket.");
+    }
 }
 
 1;

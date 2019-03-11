@@ -15,7 +15,7 @@ use base qw(y2logsstep y2x11test);
 use strict;
 use warnings;
 use testapi;
-use registration qw(fill_in_registration_data cleanup_registration);
+use registration;
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
 
@@ -51,6 +51,13 @@ sub run {
     }
     fill_in_registration_data;
     assert_screen 'generic-desktop';
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    verify_scc;
+    investigate_log_empty_license;
+    $self->SUPER::post_fail_hook;
 }
 
 1;
