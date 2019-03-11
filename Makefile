@@ -51,10 +51,6 @@ test-compile: check-links
 test-compile-changed: os-autoinst/
 	export PERL5LIB=${PERL5LIB_} ; for f in `git diff --name-only | grep '.pm'` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
 
-.PHONY: test-yaml-valid
-test-yaml-valid:
-	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid
-
 .PHONY: test-metadata
 test-metadata:
 	tools/check_metadata $$(git ls-files "tests/**.pm")
@@ -85,7 +81,7 @@ test-no-wait_idle:
 	@! git --no-pager grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
+test-static: tidy-check test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
 
 .PHONY: test
 ifeq ($(TESTS),compile)
