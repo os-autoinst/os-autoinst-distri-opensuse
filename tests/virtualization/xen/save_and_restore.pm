@@ -18,29 +18,27 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
-    assert_script_run "ssh root\@$hypervisor 'mkdir -p /var/lib/libvirt/images/saves/'";
+    assert_script_run "mkdir -p /var/lib/libvirt/images/saves/";
 
     record_info "Remove", "Remove previous saves (if there were any)";
-    script_run "ssh root\@$hypervisor 'rm /var/lib/libvirt/images/saves/$_.vmsave' || true" foreach (keys %xen::guests);
+    script_run "rm /var/lib/libvirt/images/saves/$_.vmsave || true" foreach (keys %xen::guests);
 
     record_info "Save", "Save the machine states";
-    assert_script_run("ssh root\@$hypervisor 'virsh save $_ /var/lib/libvirt/images/saves/$_.vmsave'", 300) foreach (keys %xen::guests);
+    assert_script_run("virsh save $_ /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %xen::guests);
 
     record_info "Check", "Check saved states";
-    assert_script_run "ssh root\@$hypervisor 'virsh list --all | grep $_ | grep shut'" foreach (keys %xen::guests);
+    assert_script_run "virsh list --all | grep $_ | grep shut" foreach (keys %xen::guests);
 
     record_info "Restore", "Restore guests";
-    assert_script_run("ssh root\@$hypervisor 'virsh restore /var/lib/libvirt/images/saves/$_.vmsave'", 300) foreach (keys %xen::guests);
+    assert_script_run("virsh restore /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %xen::guests);
 
     record_info "Check", "Check restored states";
-    assert_script_run "ssh root\@$hypervisor 'virsh list --all | grep $_ | grep running'" foreach (keys %xen::guests);
+    assert_script_run "virsh list --all | grep $_ | grep running" foreach (keys %xen::guests);
 
     record_info "SSH", "Check hosts are listening on SSH";
-    script_retry "ssh root\@$hypervisor 'nmap $_ -PN -p ssh | grep open'", delay => 3, retry => 60 foreach (keys %xen::guests);
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %xen::guests);
 }
 
 1;

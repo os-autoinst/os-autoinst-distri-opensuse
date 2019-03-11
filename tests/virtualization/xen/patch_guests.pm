@@ -20,7 +20,6 @@ use xen;
 
 sub run {
     my ($self) = @_;
-    opensusebasetest::select_serial_terminal();
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Patching $guest";

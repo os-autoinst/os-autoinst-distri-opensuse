@@ -5,8 +5,8 @@ use warnings;
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
-  create_new_volume create_netinterface delete_netinterface
-  create_guest detect_login_screen select_guest);
+  create_new_volume create_netinterface delete_netinterface create_guest
+  detect_login_screen select_guest close_guest establish_connection);
 
 
 sub launch_virtmanager {
@@ -592,7 +592,6 @@ sub detect_login_screen {
     return if check_screen 'virt-manager_login-screen', $timeout;
     wait_still_screen 3;         # Connecting to guest's console
     mouse_set(30, 200);          # Go inside of the guest's console
-    mouse_click();
     save_screenshot();
     hold_key "ctrl-alt";         # Escape from the guest's console
     release_key "ctrl-alt";      # Now the mouse pointer is free
@@ -619,11 +618,57 @@ sub detect_login_screen {
 
 sub select_guest {
     my $guest = shift;
+    assert_and_click "virt-manager_connected";
+    wait_still_screen 3;
     assert_and_dclick "virt-manager_list-$guest";
     if (check_screen('virt-manager_no-graphical-device', 3)) {
-        wait_screen_change { send_key 'alt-f4'; };
+        wait_screen_change { send_key 'ctrl-q'; };
         assert_and_click "virt-manager_connected";
         assert_and_dclick "virt-manager_list-$guest";
+    }
+}
+
+sub close_guest {
+    mouse_set(0, 0);
+    assert_and_click 'virt-manager_file';
+    mouse_set(0, 0);
+    assert_and_click 'virt-manager_close';
+}
+
+sub establish_connection {
+    my $hypervisor = get_required_var('HYPERVISOR');
+
+    assert_screen ['virt-manager_connected', 'virt-manager_not-connected', 'virt-manager_add-connection'], 30;
+    if (match_has_tag 'virt-manager_add-connection') {
+        if (check_var('REGRESSION', 'xen-client')) {
+            send_key 'spc';
+            send_key 'down';
+            send_key 'down';
+            send_key 'spc';
+            wait_still_screen 1;    # XEN selected
+        }
+        send_key 'tab';
+        send_key 'spc';
+        wait_still_screen 1;        # Connect to remote host ticked
+        send_key 'tab';
+        send_key 'tab';
+        type_string 'root';
+        wait_still_screen 1;        # root written
+        send_key 'tab';
+        type_string "$hypervisor";
+        wait_still_screen 1;        # $hypervisor written
+        send_key 'tab';
+        send_key 'spc';
+        wait_still_screen 1;        # autoconnect ticked
+        send_key 'ret';
+
+        assert_screen "virt-manager_connected";
+    }
+    elsif (match_has_tag 'virt-manager_not-connected') {
+        assert_and_click 'virt-manager_not-connected';
+        assert_and_dclick 'virt-manager_not-connected';
+
+        assert_screen "virt-manager_connected";
     }
 }
 

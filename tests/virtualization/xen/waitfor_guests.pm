@@ -18,7 +18,7 @@ use testapi;
 use utils;
 
 sub run {
-    zypper_call '-t in nmap iputils bind-utils';
+    zypper_call '-t in nmap iputils bind-utils virt-manager';
 
     script_retry("nslookup $_ 192.168.122.1", delay => 60, retry => 60) foreach (keys %xen::guests);
 

@@ -24,11 +24,9 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
-    assert_script_run("ssh root\@$hypervisor 'virsh start $_'", 120) foreach (keys %xen::guests);
+    assert_script_run("virsh start $_", 120) foreach (keys %xen::guests);
     script_retry "ssh root\@$_ hostname -f", delay => 15, retry => 12 foreach (keys %xen::guests);
 }
 
