@@ -1011,47 +1011,35 @@ be matched (regex) and the answer with string or key to be typed. for example:
         string => "testpasspw\n",
       },]
 
-A "EOS~~~" message followed by return value will be printed as a mark
+A "Script done." message comes from the typescript will be printed as a mark
 for the end of interaction after the command finished running.
-
-If the first argument is undef, only the sencond part will be processed - to
-match output and react. If the second argument is undef, the first part will
-be processed - to run the command without interaction with terminal output.
-This is useful for some situation when you want to do more between inputing
-command and the following interaction, eg. switch TTYs or detach the screen.
-
 =cut
 sub script_run_interactive {
     my ($cmd, $scan, $timeout) = @_;
     my $output;
-    my $err_ret;
     my @words;
-    my $endmark = 'EOS~~~';    # EOS == "End of Script"
     $timeout //= 180;
 
     if ($cmd) {
-        script_run("(script -qe -a /dev/null -c \'", 0);
-        script_run($cmd,                             0);
-        # Can not get return value from script_run, so we have to do it in
-        # the shell with $? following the endmark.
-        script_run("\'; echo $endmark\$?) |& tee /dev/$serialdev", 0);
-    }
+        script_run("script -c \'", 0);
+        script_run($cmd,           0);
 
-    return if (!$scan);
+        # Write to /dev/null since we want not to leave file there
+        script_run("\' /dev/null |& tee /dev/$serialdev", 0);
+    }
 
     for my $k (@$scan) {
         push(@words, $k->{prompt});
     }
 
+    my $endmark = "Script done.*\/dev\/null";
     push(@words, $endmark);
 
     {
         do {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
-            last if ($output =~ /($endmark)0$/m);    # return value is 0
-            die  if ($output =~ /$endmark/m);        # other return values
-
+            last if ($output =~ /$endmark/m);
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});
                 if ($i->{string}) {

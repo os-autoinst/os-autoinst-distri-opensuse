@@ -2211,9 +2211,11 @@ sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
 }
 
-sub load_security_tests_ima {
+sub load_security_tests_ima_measurement {
     loadtest "security/ima/ima_setup";
     loadtest "security/ima/ima_measurement";
+    loadtest "security/ima/ima_kernel_cmdline_template";
+    loadtest "security/ima/ima_kernel_cmdline_hash";
 }
 
 sub load_security_tests_system_check {
@@ -2226,7 +2228,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      mok_enroll ima
+      mok_enroll ima_measurement
       system_check
       /;
 
