@@ -74,13 +74,9 @@ sub run {
     # Wait until xrdp client finishes remote access
     wait_for_children;
 
-    # Gnome on ppc64le needs a bigger timeout
-    if (get_var('OFW')) {
-        send_key_until_needlematch 'displaymanager', 'esc', 20, 5;
-    }
-    else {
-        send_key_until_needlematch 'displaymanager', 'esc';
-    }
+    # We have to click on the mouse before on ppc64le (bug?)
+    mouse_click if get_var('OFW');
+    send_key_until_needlematch 'displaymanager', 'esc';
 
     if (is_sles4sap) {
         # We don't have to test the reconnection and reboot part in SLES4SAP
