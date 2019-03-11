@@ -22,4 +22,4 @@ install:
 script:
   - make test
 after_success:
-  - ./tools/check_staging_breaks.sh
+  - ./tools/check_staging_breaks
