@@ -16,7 +16,7 @@ package Installation::Partitioner::Libstorage::PasswordDialog;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     ENTER_PASSWORD_DIALOG => 'inst-encrypt-password-prompt'

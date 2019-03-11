@@ -7,25 +7,24 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces all accessing methods for Navigation Panel of
-# installation wizard (which is shown in the bottom).
-# The panel is extracted to the separate package as all the pages of
-# installation wizard contain it, so this allows to reuse its accessing
-# functions instead of duplicating them.
+# Summary: The class is a parent for all Installation Pages. Introduces
+# accessing methods to the elements that are common for all the pages.
 
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-package Installation::NavigationPanel;
+package Installation::WizardPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
 
 sub new {
     my ($class, %args) = @_;
-    return bless \%args, $class;
+    my $self = bless {}, $class;
 }
 
 sub press_next {
+    my ($self, $page_needle) = @_;
+    assert_screen($page_needle);
     send_key('alt-n');
 }
 

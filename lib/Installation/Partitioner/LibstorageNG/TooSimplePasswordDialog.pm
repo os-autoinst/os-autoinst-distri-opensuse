@@ -17,13 +17,13 @@ package Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     TOO_SIMPLE_PASSWORD_DIALOG => 'inst-userpasswdtoosimple'
 };
 
-sub press_ok {
+sub press_yes {
     assert_screen(TOO_SIMPLE_PASSWORD_DIALOG);
     send_key('alt-y');
 }

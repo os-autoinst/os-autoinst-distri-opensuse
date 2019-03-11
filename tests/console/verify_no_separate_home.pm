@@ -7,24 +7,23 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces all accessing methods for Select Hard Disk(s)
-# Page in Guided Setup.
-
+# Summary: Verification module. Asserts if /home is not located on the separate
+# partition/volume.
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-package Installation::Partitioner::LibstorageNG::SelectHardDisksPage;
+use base "consoletest";
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::WizardPage';
 
-use constant {
-    SELECT_HARD_DISKS_PAGE => 'inst-select-disk-to-use-as-root'
-};
+sub run {
+    select_console 'root-console';
 
-sub press_next {
-    my ($self) = @_;
-    $self->SUPER::press_next(SELECT_HARD_DISKS_PAGE);
+    assert_script_run("! lsblk -n | grep '/home'",
+        fail_message => "Fail!\n
+        Expected: /home is NOT on separate partition/volume.\n
+        Actual: /home is on separate partition/volume."
+    );
 }
 
 1;

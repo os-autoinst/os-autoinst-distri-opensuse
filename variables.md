@@ -38,6 +38,7 @@ DUD_ADDONS | string | | Comma separated list of addons added using DUD.
 DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combine with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
 EVERGREEN |||
+EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be finished after `installation/start_install` test module. So that all the test modules after this one will not be scheduled and executed.
 EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the installation bootloader.
 EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot process of a local installation.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
@@ -92,6 +93,7 @@ RESCUESYSTEM | boolean | false | Indicates rescue system under test.
 ROOTONLY | boolean | false | Request installation to create only the root account, no user account.
 SCC_ADDONS | string | | Coma separated list of modules to be enabled using SCC/RMT.
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
+SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.
 SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certificate validation of the remote source, e.g. when using self-signed https url.
 SLE_PRODUCT | string | | Defines SLE product. Possible values: `sles`, `sled`, `sles4sap`. Is mainly used for SLE 15 installation flow.
 SOFTFAIL_BSC1063638 | boolean | false | Enable bsc#1063638 detection.

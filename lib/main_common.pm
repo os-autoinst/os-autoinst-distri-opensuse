@@ -895,23 +895,20 @@ sub load_inst_tests {
             elsif (get_var('LVM_THIN_LV')) {
                 loadtest "installation/partitioning_lvm_thin_provisioning";
             }
+            # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
+            elsif (!(is_sle('<15') && is_s390x())) {
+                if (check_var("SEPARATE_HOME", 1)) {
+                    loadtest "installation/partitioning/separate_home";
+                }
+                elsif (check_var("SEPARATE_HOME", 0)) {
+                    loadtest "installation/partitioning/no_separate_home";
+                }
+            }
             if (get_var("FILESYSTEM")) {
                 if (get_var('PARTITIONING_WARNINGS')) {
                     loadtest 'installation/partitioning_warnings';
                 }
                 loadtest "installation/partitioning_filesystem";
-            }
-            # boo#1093372 Leap 15.0 proposes a separate home even on small disks
-            # making the root partition likely to small so we should switch the
-            # defaults here unless we reconfigure using the guided proposal or
-            # expert partitioner anyway
-            if (get_var("TOGGLEHOME")
-                || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !defined get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
-            {
-                loadtest "installation/partitioning_togglehome";
-                if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
-                    loadtest "installation/partitioning_resize_root";
-                }
             }
             if (get_var("EXPERTPARTITIONER")) {
                 loadtest "installation/partitioning_expert";
@@ -2409,6 +2406,8 @@ sub load_installation_validation_tests {
     # - autoyast/verify_btrfs_clone: validates enerated profile when cloning system
     #                                      installed using autoyast_btrfs.xml profile
     # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
+    # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
+    # - console/verify_separate_home.pm: validate if separate /home partition enabled
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }
@@ -2652,10 +2651,15 @@ sub load_lvm_tests {
         if (get_var('ENCRYPT_CANCEL_EXISTING')) {
             loadtest 'installation/partitioning/lvm_ignore_existing';
         }
+        elsif (check_var('SEPARATE_HOME', 0)) {
+            loadtest 'installation/partitioning/lvm_no_separate_home';
+            if (get_var('RESIZE_ROOT_VOLUME')) {
+                loadtest "installation/partitioning_resize_root";
+            }
+        }
         else {
             loadtest 'installation/partitioning/lvm';
         }
-
     }
 }
 
