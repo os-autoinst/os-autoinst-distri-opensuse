@@ -25,14 +25,12 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
-        assert_script_run "ssh root\@$hypervisor 'ping -c3 -W1 $guest'";
-        assert_script_run "ssh root\@$guest hostname -f";
+        assert_script_run "ping -c3 -W1 $guest";
+        assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
     }
 }
 

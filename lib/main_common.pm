@@ -98,7 +98,6 @@ our @EXPORT = qw(
   load_virtualization_tests
   load_x11tests
   load_hypervisor_tests
-  load_client_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -2316,11 +2315,7 @@ sub load_hypervisor_tests {
     loadtest "virt_autotest/login_console";
     # List running machines
     loadtest 'virtualization/xen/list_guests';
-}
 
-sub load_client_tests() {
-    loadtest 'boot/boot_to_desktop';
-    loadtest 'virtualization/xen/install_virtmanager';        # Install the virt-manager package
     loadtest 'virtualization/xen/ssh_hypervisor';             # Connect to hypervisor using SSH
     loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
     loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again

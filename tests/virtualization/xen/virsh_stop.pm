@@ -24,13 +24,11 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
     # TODO:
-    script_run "ssh root\@$_ 'poweroff'" foreach (keys %xen::guests);
-    script_retry "ssh root\@$hypervisor 'virsh list --all | grep -v Domain-0 | grep running'", delay => 3, retry => 60, expect => 1;
+    script_run "ssh root\@$_ poweroff" foreach (keys %xen::guests);
+    script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 60, expect => 1;
 }
 
 sub test_flags {

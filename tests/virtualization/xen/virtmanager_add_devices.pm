@@ -16,20 +16,21 @@
 # Summary: This test adds some devices to our VMs
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use warnings;
 use testapi;
 use utils;
-use virtmanager qw(detect_login_screen select_guest);
+use virtmanager;
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
 
-    x11_start_program 'virt-manager';
-    assert_screen "virt-manager_connected";
+    #x11_start_program 'virt-manager';
+    type_string "virt-manager\n";
+
+    establish_connection();
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "VM $guest will get some new devices";
@@ -37,8 +38,10 @@ sub run {
         select_guest($guest);
         detect_login_screen();
 
+        mouse_set(0, 0);
         assert_and_click 'virt-manager_details';
         assert_and_click 'virt-manager_add-hardware';
+        mouse_set(0, 0);
         assert_and_click 'virt-manager_add-storage';
         if (check_screen 'virt-manager_add-storage-ide') {
             assert_and_click 'virt-manager_add-storage-ide';
@@ -48,6 +51,7 @@ sub run {
         assert_and_click 'virt-manager_add-hardware-finish';
 
         assert_and_click 'virt-manager_add-hardware';
+        mouse_set(0, 0);
         assert_and_click 'virt-manager_add-network';
         send_key 'tab';
         send_key 'tab';
@@ -62,11 +66,10 @@ sub run {
         assert_and_click 'virt-manager_graphical-console';
 
         detect_login_screen();
-        assert_and_click 'virt-manager_file';
-        assert_and_click 'virt-manager_close';
+        close_guest();
     }
 
-    wait_screen_change { send_key 'alt-f4'; };
+    wait_screen_change { send_key 'ctrl-q'; };
 }
 
 1;

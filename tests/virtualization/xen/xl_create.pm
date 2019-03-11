@@ -24,28 +24,26 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
     record_info "XML", "Export the XML from virsh and convert it into Xen config file";
-    assert_script_run "ssh root\@$hypervisor 'virsh dumpxml $_ > $_.xml'"                         foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor 'virsh domxml-to-native xen-xl $_.xml > $_.xml.cfg'" foreach (keys %xen::guests);
+    assert_script_run "virsh dumpxml $_ > $_.xml"                         foreach (keys %xen::guests);
+    assert_script_run "virsh domxml-to-native xen-xl $_.xml > $_.xml.cfg" foreach (keys %xen::guests);
 
     record_info "Name", "Change the name by adding suffix _xl";
-    assert_script_run "ssh root\@$hypervisor \"sed -rie 's/(name = \\W)/\\1xl-/gi' $_.xml.cfg\"" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor 'cat $_.xml.cfg | grep name'"                       foreach (keys %xen::guests);
+    assert_script_run "sed -rie 's/(name = \\W)/\\1xl-/gi' $_.xml.cfg" foreach (keys %xen::guests);
+    assert_script_run "cat $_.xml.cfg | grep name"                     foreach (keys %xen::guests);
 
     record_info "UUID", "Change the UUID by using f00 as three first characters";
-    assert_script_run "ssh root\@$hypervisor \"sed -rie 's/(uuid = \\W)(...)/\\1f00/gi' $_.xml.cfg\"" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor 'cat $_.xml.cfg | grep uuid'"                            foreach (keys %xen::guests);
+    assert_script_run "sed -rie 's/(uuid = \\W)(...)/\\1f00/gi' $_.xml.cfg" foreach (keys %xen::guests);
+    assert_script_run "cat $_.xml.cfg | grep uuid"                          foreach (keys %xen::guests);
 
     record_info "Start", "Start the new VM";
-    assert_script_run "ssh root\@$hypervisor xl create $_.xml.cfg" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor xl list xl-$_"        foreach (keys %xen::guests);
+    assert_script_run "xl create $_.xml.cfg" foreach (keys %xen::guests);
+    assert_script_run "xl list xl-$_"        foreach (keys %xen::guests);
 
     record_info "SSH", "Test that the new VM listens on SSH";
-    script_retry "ssh root\@$hypervisor 'nmap $_ -PN -p ssh | grep open'", delay => 30, retry => 6 foreach (keys %xen::guests);
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 30, retry => 6 foreach (keys %xen::guests);
 
 }
 

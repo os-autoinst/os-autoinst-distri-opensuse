@@ -25,9 +25,10 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
+
+    # Remove old files
+    assert_script_run 'rm ~/.ssh/* || true';
 
     # Generate the key pair
     assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
@@ -50,7 +51,7 @@ sub run {
     exec_and_insert_password "ssh-copy-id -f root\@$hypervisor";
 
     # Test the connection
-    assert_script_run "ssh root\@$hypervisor 'hostname -f'";
+    assert_script_run "ssh root\@$hypervisor hostname -f";
 
     # Copy that also for normal user
     assert_script_run "install -o $testapi::username -g users -m 0700 -d /home/$testapi::username/.ssh";

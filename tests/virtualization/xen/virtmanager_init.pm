@@ -16,45 +16,24 @@
 # Summary: This test connects to hypervisor and check our VMs
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use warnings;
 use testapi;
 use utils;
+use virtmanager;
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
     my $hypervisor = get_required_var('HYPERVISOR');
 
-    x11_start_program 'virt-manager';
+    #x11_start_program 'virt-manager';
+    type_string "virt-manager\n";
 
-    assert_screen 'virt-manager_add-connection';
-    if (check_var('REGRESSION', 'xen-client')) {
-        send_key 'spc';
-        send_key 'down';
-        send_key 'down';
-        send_key 'spc';
-        wait_still_screen 1;    # XEN selected
-    }
-    send_key 'tab';
-    send_key 'spc';
-    wait_still_screen 1;        # Connect to remote host ticked
-    send_key 'tab';
-    send_key 'tab';
-    type_string 'root';
-    wait_still_screen 1;        # root written
-    send_key 'tab';
-    type_string "$hypervisor";
-    wait_still_screen 1;        # $hypervisor written
-    send_key 'tab';
-    send_key 'spc';
-    wait_still_screen 1;        # autoconnect ticked
-    send_key 'ret';
-    assert_screen "virt-manager_connected";
+    establish_connection();
 
-    wait_screen_change { send_key 'alt-f4'; };
+    wait_screen_change { send_key 'ctrl-q'; };
 }
 
 sub test_flags {
