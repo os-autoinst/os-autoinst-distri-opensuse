@@ -118,8 +118,7 @@ EOF
 
         # dhclient requires no wicked service not only running but also disabled
         script_run(
-            'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service &&
-{ export ENABLE_WICKED=1; systemctl disable wicked; }'
+            'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service && { export ENABLE_WICKED=1; systemctl disable wicked; }'
         );
 
         # emulate $LTPROOT/testscripts/network.sh
