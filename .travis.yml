@@ -21,3 +21,5 @@ install:
   - make prepare
 script:
   - make test
+after_success:
+  - ./tools/check_staging_breaks.sh
