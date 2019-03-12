@@ -20,7 +20,7 @@ use utils;
 sub run {
     zypper_call '-t in nmap iputils bind-utils virt-manager';
 
-    script_retry("nslookup $_ 192.168.122.1", delay => 60, retry => 60) foreach (keys %xen::guests);
+    script_retry("nslookup $_ 192.168.122.1", delay => 180, retry => 30) foreach (keys %xen::guests);
 
     # Fill the current pairs of hostname & address into /etc/hosts file
     assert_script_run "sed -i '/$_/d' /etc/hosts"                             foreach (keys %xen::guests);
