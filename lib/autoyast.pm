@@ -67,8 +67,8 @@ sub expand_patterns {
               get_var('SCC_ADDONS') =~ m/sdk/;
             push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
               technical_writing books) if get_var('SCC_ADDONS') =~ m/we/;
-            push @all, qw(gnome_basic multimedia laptop imaging) if
-              get_var('SCC_ADDONS') =~ m/desktop/;
+            push @all, qw(gnome_basic) if get_var('SCC_ADDONS') =~ m/desktop/;
+            push @all, qw(multimedia laptop imaging) if get_var('SCC_ADDONS') =~ m/desktop/ && check_var('SLE_PRODUCT', 'sled');
         }
         elsif (is_sle('12+')) {
             push @all, qw(Minimal documentation 32bit apparmor x11 WBEM
