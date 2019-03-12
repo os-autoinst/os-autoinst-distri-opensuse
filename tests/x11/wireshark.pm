@@ -153,15 +153,16 @@ sub run {
     wait_still_screen 1;
     # QT menu requires user to place focus in the filter field
     send_key "ctrl-/" if $wireshark_gui_version eq "qt";
-    # Sometimes checksum error window popup, then we need close this windows since this caused by offload feature
-    assert_screen([qw(wireshark-filter-selected wireshark-checksum-error)]);
-    if (match_has_tag('wireshark-checksum-error')) {
-        send_key "alt-c";
-        assert_screen "wireshark-filter-selected";
-        send_key "ctrl-/" if $wireshark_gui_version eq "qt";
-    }
+    assert_screen "wireshark-filter-selected";
     type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
-    assert_screen "wireshark-filter-applied";
+    # Sometimes checksum error window popup, then we need close this windows since this caused by offload feature
+    assert_screen([qw(wireshark-filter-applied wireshark-checksum-error)]);
+    if (match_has_tag('wireshark-checksum-error')) {
+        # Close checksum-error window
+        wait_screen_change { send_key 'alt-c' };
+        assert_screen "wireshark-filter-selected";
+        assert_screen "wireshark-filter-applied";
+    }
     assert_screen "wireshark-dns-response-list";
 
     # close capture
