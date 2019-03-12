@@ -510,6 +510,9 @@ sub prepare_target {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
     }
+    elsif (check_var('IPXE', '1')) {
+        return;
+    }
     else {
         load_boot_tests();
         load_inst_tests();
@@ -524,9 +527,14 @@ sub mellanox_config {
 
 sub load_baremetal_tests {
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_boot_tests();
-    get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
-    load_reboot_tests();
+    if (get_var('IPXE')) {
+        loadtest 'installation/ipxe_install';
+        loadtest "console/suseconnect_scc";
+    } else {
+        load_boot_tests();
+        get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
+        load_reboot_tests();
+    }
 }
 
 sub load_infiniband_tests {
@@ -534,6 +542,7 @@ sub load_infiniband_tests {
     # here to ensure they are a) only created once and b) early enough
     # to be available when needed.
     if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+        barrier_create('IBTEST_SETUP', 2);
         barrier_create('IBTEST_BEGIN', 2);
         barrier_create('IBTEST_DONE',  2);
     }
