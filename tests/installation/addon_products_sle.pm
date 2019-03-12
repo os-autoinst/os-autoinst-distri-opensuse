@@ -83,7 +83,7 @@ sub handle_all_packages_medium {
     for my $a (@addons) {
         push @addons_license_tags, "addon-license-$a" if grep(/^$a$/, @addons_with_license);
         send_key 'home';
-        send_key_until_needlematch "addon-products-all_packages-$a-highlighted", 'down';
+        send_key_until_needlematch "addon-products-all_packages-$a-highlighted", 'down', 30;
         send_key 'spc';
     }
     send_key $cmd{next};
@@ -130,7 +130,7 @@ sub handle_addon {
     }
     send_key 'pgup';
     wait_still_screen 2;
-    send_key_until_needlematch "addon-products-$addon", 'down';
+    send_key_until_needlematch "addon-products-$addon", 'down', 30;
     # modules like SES or RT that are not part of Packages ISO don't have this step
     if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
         send_key 'spc';
