@@ -25,6 +25,7 @@ sub run {
 
     # The SAP Admin was set in sles4sap/netweaver_install
     $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
+    $self->test_pids_max;
     $self->become_sapadm;
 
     $self->test_version_info;
