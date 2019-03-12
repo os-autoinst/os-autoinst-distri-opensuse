@@ -42,6 +42,7 @@ sub run {
         x11_start_program('killall -9 vlc', valid => 0);
     }
     else {
+        wait_still_screen(1);
         assert_and_click 'close_vlc';
     }
 }
