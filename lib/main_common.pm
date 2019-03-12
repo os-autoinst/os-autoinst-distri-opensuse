@@ -2215,6 +2215,7 @@ sub load_security_tests_ima_measurement {
     loadtest "security/ima/ima_measurement";
     loadtest "security/ima/ima_kernel_cmdline_template";
     loadtest "security/ima/ima_kernel_cmdline_hash";
+    loadtest "security/ima/ima_measurement_audit";
 }
 
 sub load_security_tests_system_check {
