@@ -17,6 +17,9 @@ before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl
   - echo "requires 'Code::DRY';" >> cpanfile
   - echo "requires 'Perl::Tidy', '== 20181120';" >> cpanfile
+  - CHANGED_FILES=($(git diff --name-only $TRAVIS_COMMIT_RANGE))
+  - echo "$CHANGED_FILES"
+  - echo "$ENV"
 install:
   - make prepare
 script:
