@@ -73,9 +73,12 @@ sub become_sapadm {
 
 sub test_pids_max {
     # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
-    my $uid      = script_output "id -u $sapadmin";
-    my $pids_max = script_output "systemd-run --slice user.slice -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max'";
-    record_soft_failure "bsc#1031355" unless ($pids_max eq "max");
+    my $uid = script_output "id -u $sapadmin";
+    my $rc1 = script_run "systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | grep -qx max";
+    # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
+    # Check that nproc * 2 == threads-max
+    my $rc2 = script_run "[[ \$(( \$(systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r') * 2)) = \$(sysctl -n kernel.threads-max) ]]";
+    record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
 }
 
 sub test_version_info {
