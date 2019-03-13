@@ -16,6 +16,7 @@ sub verify_default_keymap_textmode_non_us {
     if (match_has_tag "${tag}_not_ready") {
         # i.e: in cz keyboard the first half in the keystroke list is not displayed in 1st login'
         send_key 'ret' for (1 .. 2);
+        assert_screen 'login-incorrect';
         record_soft_failure 'bsc#1125886 - Special characters when switching keyboard layout only available after 2nd login';
         assert_screen([qw(linux-login cleared-console)]);
         type_string $test_string;
