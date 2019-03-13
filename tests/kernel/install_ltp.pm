@@ -68,6 +68,7 @@ sub install_runtime_dependencies {
       apparmor-parser
       apparmor-utils
       audit
+      bc
       binutils
       dosfstools
       evmctl
