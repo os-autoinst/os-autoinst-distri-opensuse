@@ -71,14 +71,14 @@ sub run {
 
     if (get_var("UPGRADE")) {
         # random magic numbers
-        send_key_until_needlematch('inst-onupgrade', 'down', 10, 5);
+        send_key_until_needlematch('inst-onupgrade', 'down', 10, 3);
     }
     else {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
-            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 5);
+            send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
         }
         elsif (!is_jeos && !is_caasp('VMX')) {
-            send_key_until_needlematch('inst-oninstallation', 'down', 10, 5);
+            send_key_until_needlematch('inst-oninstallation', 'down', 10, 3);
         }
     }
 
