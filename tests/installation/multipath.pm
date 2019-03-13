@@ -8,22 +8,18 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Enable multipath test
-#    Signed-off-by: Dinar Valeev <dvaleev@suse.com>
-# Maintainer: Dinar Valeev <dvaleev@suse.com>
+# Summary: Test module to activate multipath
+# Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base "opensusebasetest";
+use base "y2logsstep";
 use strict;
 use warnings;
 use testapi;
 
 sub run {
-    assert_screen "enable-multipath";
+    # Sometimes multipath detection takes longer
+    assert_screen "enable-multipath", 60;
     send_key "alt-y";
-}
-
-sub test_flags {
-    return {fatal => 1};
 }
 
 1;
