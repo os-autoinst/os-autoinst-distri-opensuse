@@ -22,8 +22,8 @@ sub run {
     my $expected = get_var('INSTALL_KEYBOARD_LAYOUT', 'us');
     # Feature of switching keyboard during installation is not ready yet,
     # so if another language is used it needs to be verfied that the needle represents properly
-    # characters on that language.
-    my $keystrokes = $self->get_keystroke_list($expected);
+    # characters on that language. Therefore we use 'us' instead of $expected
+    my $keystrokes = $self->get_keystroke_list('us');
 
     assert_screen([qw(linux-login cleared-console)]);
     return $self->verify_default_keymap_textmode_non_us($keystrokes, "${expected}_keymap") if ($expected ne 'us');
