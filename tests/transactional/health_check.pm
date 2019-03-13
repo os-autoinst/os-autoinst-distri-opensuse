@@ -14,7 +14,8 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use caasp;
+use transactional qw(process_reboot trup_install trup_shell);
+use version_utils 'is_caasp';
 use utils;
 
 
@@ -39,6 +40,12 @@ sub compare_id {
 }
 
 sub run {
+    if (script_run 'rpm -q health-checker') {
+        record_soft_failure 'bsc#1134176';
+        trup_install 'health-checker';
+        systemctl 'enable health-checker';
+    }
+
     # run health-checker to make sure the current snapshot doesn't have issues
     validate_script_output("health-checker", sub { m/passed/ });
 
@@ -46,18 +53,20 @@ sub run {
     my $initial_id = get_btrfsid;
     compare_id;
 
-    # update etcd.sh to force health-checker to fail
-    type_string("transactional-update shell\n");
-    type_string("cp /usr/lib/health-checker/etcd.sh /tmp/etcd_bk.sh\n");
-    type_string("sed -i 's/exit 0/exit 1/g' /usr/lib/health-checker/etcd.sh\n");
-    type_string("exit\n");
+    # update rebootmgr.sh to force health-checker to fail
+    assert_script_run "cp /usr/lib/health-checker/rebootmgr.sh /tmp/rebootmgr_bk.sh";
+    trup_shell "sed -i 's/exit 0/exit 1/g' /usr/lib/health-checker/rebootmgr.sh", reboot => 0;
 
     # check that the changes applied and we have a new snapshot
     my $current_id = get_btrfsid;
     my $logged_id  = get_loggedid;
     die "The current snapshot is not ahead of the logged one" unless $current_id > $logged_id;
 
-    process_reboot 1;
+    # Automated rollback shows grub menu twice (timeout disabled)
+    type_string "reboot\n";
+    assert_screen 'grub2', 100;
+    wait_screen_change { send_key 'ret' };
+    process_reboot;
 
     my $final_id = get_btrfsid;
     die "health-checker does not rollback to the correct snapshot" unless $initial_id == $final_id;
@@ -69,13 +78,12 @@ sub run {
 }
 
 sub post_fail_hook {
-    # revert changes to etcd.sh and reboot
-    if (script_output("ls /tmp | grep etcd_bk") =~ /etcd_bk/) {
-        type_string("transactional-update shell");
-        type_string("mv /tmp/etcd_bk.sh /usr/lib/health-checker/etcd.sh\n");
-        type_string("exit\n");
+    script_run "journalctl -u health-checker > health-checker.log", 60;
+    upload_logs "health-checker.log";
 
-        process_reboot 1;
+    # revert changes to rebootmgr.sh and reboot
+    if (script_run "test -e /tmp/rebootmgr_bk") {
+        trup_shell "mv /tmp/rebootmgr_bk.sh /usr/lib/health-checker/rebootmgr.sh";
     }
 }
 

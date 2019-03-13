@@ -26,7 +26,7 @@ sub incident_repo_dup {
     assert_script_run "zypper ar --refresh --no-gpgcheck $repo UPDATE";
     assert_script_run 'zypper lr -U';
     assert_script_run 'transactional-update cleanup dup', 300;
-    process_reboot 1;
+    microos_reboot 1;
 }
 
 sub run {
