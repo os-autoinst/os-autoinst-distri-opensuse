@@ -152,7 +152,12 @@ sub run_test {
         $timeout = 300;
     }
 
-    my $test_cmd      = $self->get_script_run();
+    my $test_cmd = $self->get_script_run();
+    #FOR S390X LPAR
+    if (check_var('ARCH', 's390x')) {
+        virt_utils::lpar_cmd("$test_cmd");
+        return;
+    }
     my $script_output = $self->execute_script_run($test_cmd, $timeout);
 
     if ($add_junit_log_flag eq "yes") {
