@@ -27,15 +27,15 @@ sub run {
 
     if (is_sle) {
         my $modver = get_required_var('VERSION') =~ s/-SP\d+//gr;
-        add_suseconnect_product('sle-module-public-cloud', $modver);
+        add_suseconnect_product('sle-module-public-cloud', $modver, get_required_var('ARCH'));
     }
 
-
-    my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO', '');
-    if ($tools_repo eq '') {
-        $tools_repo = 'http://download.opensuse.org/repositories/Cloud:/Tools/' . generate_version() . '/Cloud:Tools.repo';
+    my $default_tools_repos = 'http://download.suse.de/ibs/Devel:/PubCloud:/CI/' . generate_version() . '/Devel:PubCloud:CI.repo';
+    $default_tools_repos .= ' https://download.opensuse.org/repositories/devel:/languages:/python:/backports/' . generate_version() . '/devel:languages:python:backports.repo';
+    my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO', $default_tools_repos);
+    for my $repo (split(/\s+/, $tools_repo)) {
+        zypper_call('ar ' . $repo);
     }
-    zypper_call('ar ' . $tools_repo);
     zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core');
 
     # Install AWS cli
@@ -82,10 +82,12 @@ sub run {
     assert_script_run("ipa --version");
 
     # Download and Install Terraform
-    my $terraform_url = get_var('TERRAFORM_URL', 'https://releases.hashicorp.com/terraform/0.11.10/terraform_0.11.10_linux_amd64.zip');
+    my $terraform_url = get_var('TERRAFORM_URL', 'https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip');
     assert_script_run("wget -q $terraform_url");
     assert_script_run('unzip terraform_* terraform -d /usr/bin/');
     assert_script_run('terraform -v');
+
+    select_console 'root-console';
 }
 
 sub test_flags {
