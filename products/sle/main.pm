@@ -959,6 +959,17 @@ else {
             loadtest "network/salt_minion";
         }
     }
+    elsif (get_var("NFSSERVER") or get_var("NFSCLIENT")) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        #loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        if (get_var("NFSSERVER")) {
+            loadtest "console/yast2_nfs_server";
+        }
+        else {
+            loadtest "console/yast2_nfs_client";
+        }
+    }
     elsif (get_var('QAM_VSFTPD')) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {
