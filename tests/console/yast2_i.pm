@@ -31,7 +31,7 @@ sub run {
         record_soft_failure 'bsc#1127212 - `zypper inr` produces conflicting packages for migrations from SLES12';
     }
     else {
-        zypper_call "-i inr";
+        zypper_call "-i inr --no-recommends";
     }
     zypper_call "-i rm $pkgname $recommended";
     zypper_call "in yast2-packager";    # make sure yast2 sw_single module installed
