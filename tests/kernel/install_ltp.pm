@@ -92,6 +92,17 @@ sub install_runtime_dependencies {
     }
 }
 
+sub install_debugging_tools {
+    my @maybe_deps = qw(
+      gdb
+      ltrace
+      strace
+    );
+    for my $dep (@maybe_deps) {
+        script_run('zypper -n -t in ' . $dep . ' | tee');
+    }
+}
+
 sub install_runtime_dependencies_network {
     my @deps;
     # utils
@@ -305,6 +316,7 @@ sub run {
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     install_runtime_dependencies;
     install_runtime_dependencies_network;
+    install_debugging_tools;
 
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
