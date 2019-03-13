@@ -2168,6 +2168,7 @@ sub load_security_tests_apparmor_profile {
         loadtest "security/apparmor/aa_prepare";
     }
 
+    loadtest "security/apparmor_profile/apache2_changehat";
     loadtest "security/apparmor_profile/usr_sbin_dovecot";
     loadtest "security/apparmor_profile/usr_sbin_traceroute";
     loadtest "security/apparmor_profile/usr_sbin_nscd";
