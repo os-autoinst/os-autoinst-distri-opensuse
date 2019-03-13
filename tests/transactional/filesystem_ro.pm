@@ -15,21 +15,16 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_caasp';
 
 sub run {
+    select_console 'root-console';
+
     die 'Should have failed' unless script_run('touch /should_fail');
     assert_script_run "touch /etc/should_succeed";
     assert_script_run "touch /var/log/should_succeed";
 
     assert_script_run 'btrfs property get / ro | grep "ro=true"';
-
-    if (is_caasp '4.0+') {
-        assert_script_run 'btrfs property get /var ro | grep "ro=false"';
-    }
-    else {
-        assert_script_run 'btrfs property get /var/log ro | grep "ro=false"';
-    }
+    assert_script_run 'btrfs property get /var ro | grep "ro=false"';
 
     # Look for ro mount point in fstab
     assert_script_run "findmnt -s / -n -O ro";
