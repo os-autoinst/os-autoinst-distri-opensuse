@@ -14,7 +14,7 @@
 
 use strict;
 use warnings FATAL => 'all';
-use parent "installbasetest";
+use parent "y2logsstep";
 
 sub run {
     my $partitioner = $testapi::distri->get_partitioner();
