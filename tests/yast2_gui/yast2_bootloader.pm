@@ -19,6 +19,7 @@ use base "y2x11test";
 use strict;
 use warnings;
 use testapi;
+use utils qw(type_string_slow_extended);
 
 sub run {
     my $self = shift;
@@ -55,10 +56,10 @@ sub run {
     #	proctect boot loader with password
     assert_and_click 'yast2-bootloader_protect-bootloader-with-password';
     send_key 'alt-p';
-    type_string 'dummy-password';
+    type_string_slow_extended('dummy-password');
+    assert_screen 'yast2-bootloader_pwd_filled_up';
     send_key 'alt-y';
-    type_string 'dummy-password';
-    wait_still_screen 3;
+    type_string_slow_extended('dummy-password');
 
     # OK => Exit
     send_key "alt-o";
