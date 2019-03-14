@@ -588,6 +588,13 @@ sub load_suseconnect_tests {
     loadtest "console/suseconnect";
 }
 
+sub load_yast2_registration_tests {
+    prepare_target;
+    loadtest "console/system_prepare";
+    loadtest "console/consoletest_setup";
+    loadtest "console/yast2_registration";
+}
+
 testapi::set_distribution(DistributionProvider->provide());
 
 # set serial failures
@@ -617,7 +624,8 @@ elsif (get_var("NFV")) {
 elsif (get_var("REGRESSION")) {
     load_common_x11;
     load_hypervisor_tests if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"));
-    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
+    load_suseconnect_tests        if check_var("REGRESSION", "suseconnect");
+    load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
