@@ -246,10 +246,20 @@ sub power_action {
         assert_shutdown_and_restore_system($action, $shutdown_timeout *= 3);
     }
     else {
-        if (check_var('DESKTOP', 'minimalx') && check_screen('shutdown-wall', timeout => 30)) {
-            record_soft_failure 'bsc#1076817 manually shutting down';
-            select_console 'root-console';
-            systemctl 'poweroff';
+        if (check_var('DESKTOP', 'minimalx')) {
+            # since we only seem to have problems on SLES we only want to go to the error branch there
+            if (get_var('SHUTDOWN_NEEDS_AUTH')) {
+                # only go further if we get unwanted popup
+                if (check_screen ('shutdown-wall', timeout => 30)) {
+                    # ensure that popup is really blocking shutdown
+                    if (!check_shutdown (120)) {
+                        record_soft_failure 'bsc#1076817 manually shutting down';
+                        select_console 'root_console';
+                        systemctl 'poweroff';
+                    }
+    
+                }
+            } 
         }
 
         assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
