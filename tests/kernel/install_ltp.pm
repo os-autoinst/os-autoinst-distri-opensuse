@@ -14,6 +14,8 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use File::Basename 'basename';
+use LWP::Simple 'head';
+
 use testapi;
 use registration;
 use utils;
@@ -34,13 +36,15 @@ sub add_we_repo_if_available {
     # opensuse doesn't have extensions
     return if check_var('DISTRI', 'opensuse');
 
-    my $ar_url;
-    my $we_repo = get_var('REPO_SLE_WE_POOL');
-    if ($we_repo && is_sle('15+')) {
-        $ar_url = "http://openqa.suse.de/assets/repo/$we_repo";
+    my ($ar_url, $we_repo);
+    $we_repo = get_var('REPO_SLE_PRODUCT_WE');
+    $we_repo = get_var('REPO_SLE_WE') if (!$we_repo);
+    if ($we_repo) {
+        $ar_url = "$utils::OPENQA_FTP_URL/$we_repo";
     }
-    # productQA test with enabled we as iso_2
-    elsif (get_var('BUILD_WE') && get_var('ISO_2')) {
+
+    # productQA test with enabled WE as iso_2
+    if (!head($ar_url) && get_var('BUILD_WE') && get_var('ISO_2')) {
         $ar_url = 'dvd:///?devices=/dev/sr2';
     }
     if ($ar_url) {
