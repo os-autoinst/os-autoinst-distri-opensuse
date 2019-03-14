@@ -749,14 +749,12 @@ sub install_docker_when_needed {
 }
 
 sub verify_scc {
-    select_console 'root-console';
     record_info('proxySCC/SCC', 'Verifying that proxySCC and SCC can be accessed');
     assert_script_run("curl ${\(get_var('SCC_URL'))}/login") if get_var('SCC_URL');
     assert_script_run("curl https://scc.suse.com/login");
 }
 
 sub investigate_log_empty_license {
-    select_console 'root-console';
     my $filter_products   = "grep -Po '<SUSE::Connect::Remote::Product.*?(extensions|isbase=(true|false)>)'";
     my $y2log_file        = '/var/log/YaST2/y2log';
     my $filter_empty_eula = qq[grep '.*eula_url="".*'];
