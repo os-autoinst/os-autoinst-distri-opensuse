@@ -28,6 +28,7 @@ sub run {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sapadm      = $self->set_sap_info($sid, $instance_id);
     $self->test_pids_max;
+    $self->test_forkbomb;
     $self->become_sapadm;
 
     # Check HDB with a database query
