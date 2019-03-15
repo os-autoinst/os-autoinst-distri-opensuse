@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,7 +22,11 @@ sub run {
 
     # live may take ages to boot
     my $timeout = 600;
-    assert_screen "generic-desktop", $timeout;
+    assert_screen ["generic-desktop", "displaymanager"], $timeout;
+    if (match_has_tag "displaymanager") {
+        assert_and_click "displaymanager";
+        assert_screen "generic-desktop";
+    }
 
     ## duplicated from second stage, combine!
     if (check_var('DESKTOP', 'kde')) {
