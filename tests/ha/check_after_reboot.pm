@@ -44,13 +44,15 @@ sub run {
         my $csync_fails = script_run 'grep -q "corosync.service: Failed" bsc1129385-check-journal.log';
         my $pcmk_fails  = script_run 'egrep -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
 
-        record_soft_failure "bsc#1129385"
-          if (defined $iscsi_fails and $iscsi_fails == 0
-            and defined $csync_fails and $csync_fails == 0
-            and defined $pcmk_fails  and $pcmk_fails == 0);
-        upload_logs 'bsc1129385-check-journal.log';
-        systemctl 'restart iscsi';
-        systemctl 'restart pacemaker';
+        if (defined $iscsi_fails and $iscsi_fails == 0 and defined $csync_fails
+            and $csync_fails == 0 and defined $pcmk_fails and $pcmk_fails == 0)
+        {
+            record_soft_failure "bsc#1129385";
+            upload_logs 'bsc1129385-check-journal.log';
+            $iscsi_fails = script_run 'grep -q LIO-ORG /proc/scsi/scsi';
+            systemctl 'restart iscsi' if ($iscsi_fails);
+            systemctl 'restart pacemaker';
+        }
     }
 
     # Wait for resources to be started
