@@ -39,7 +39,7 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
-    my $tests    = get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME') ? '' : get_required_var('PUBLIC_CLOUD_IPA_TESTS');
+    my $tests    = get_var('PUBLIC_CLOUD_IPA_TESTS', '');
 
     my $ipa = $provider->ipa(
         instance    => $instance,
