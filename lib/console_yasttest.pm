@@ -20,7 +20,7 @@ sub post_fail_hook {
 
     $self->remount_tmp_if_ro;
     $self->save_upload_y2logs;
-    upload_logs('/var/log/zypper.log');
+    upload_logs('/var/log/zypper.log', failok => 1);
     $self->save_system_logs;
     $self->save_strace_gdb_output('yast');
 }

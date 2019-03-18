@@ -356,21 +356,23 @@ sub save_strace_gdb_output {
             $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
         }
         # We enable gdb differently in the installer and in the installed SUT
+        my $system_management_locked;
         if ($is_yast_module) {
-            zypper_call 'in gdb';
+            $system_management_locked = zypper_call('in gdb', exitcode => [0, 7]) == 7;
         }
         else {
-            assert_script_run 'extend gdb';
+            script_run 'extend gdb';
         }
-        my $gdb_output = '/tmp/yast_gdb.log';
-        my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
-        upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
+        unless ($system_management_locked) {
+            my $gdb_output = '/tmp/yast_gdb.log';
+            my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
+            upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
+        }
     }
 }
 
 sub post_fail_hook {
     my $self = shift;
-
     $self->SUPER::post_fail_hook;
     get_to_console;
     $self->detect_bsc_1063638;

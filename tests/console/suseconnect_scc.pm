@@ -18,10 +18,9 @@
 # Summary: Register system against SCC after installation
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+use base 'consoletest';
 use strict;
 use warnings;
-use base 'y2logsstep';
-
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';
@@ -46,6 +45,13 @@ sub run {
     }
     # Check that repos actually work
     zypper_call('refresh');
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    verify_scc;
+    investigate_log_empty_license;
 }
 
 sub test_flags {
