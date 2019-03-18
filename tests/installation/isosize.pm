@@ -25,12 +25,17 @@ sub run {
     if (!$size || !$max || $size > $max) {
         $result = 'fail';
     }
+    my $result_text;
     if (!defined $size) {
-        diag("iso path invalid: $iso");
+        $result_text = "iso path invalid: $iso";
     }
     else {
-        diag("check if actual iso size $size fits $max: $result");
+        $result_text = "check if actual iso size $size fits $max: $result";
     }
+
+    diag($result_text);
+    record_info('isosize', $result_text, result => $result);
+
     $self->result($result);
 }
 
