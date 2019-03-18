@@ -18,25 +18,19 @@ use base "y2x11test";
 use strict;
 use warnings;
 use testapi;
-use utils 'clear_console';
-use x11utils qw(turn_off_kde_screensaver turn_off_gnome_screensaver);
+use utils qw(type_string_slow_extended clear_console);
 
 sub run {
     my $self         = shift;
     my $module       = "host";
-    my $dm           = lc get_var('DESKTOP');
     my $hosts_params = {
         ip    => '195.135.221.134',
         fqdn  => 'download.opensuse.org',
         alias => 'download-srv'
     };
-    my %execute = (
-        gnome => \&turn_off_gnome_screensaver,
-        kde   => \&turn_off_kde_screensaver
-    );
-    $execute{$dm}->();
+
     select_console 'root-console';
-    #	add 1 entry to /etc/hosts and edit it later
+    #   add 1 entry to /etc/hosts and edit it later
     script_run "echo '80.92.65.53    n-tv.de ntv' >> /etc/hosts";
     clear_console;
     select_console 'x11';
@@ -45,15 +39,15 @@ sub run {
     send_key 'alt-i';
     assert_screen 'yast2_hostnames_edit_popup';
     send_key 'alt-i';
-    type_string($hosts_params->{ip}, max_interval => 13, wait_still_screen => 0.05, timeout => 5, similarity_level => 38);
+    type_string_slow_extended($hosts_params->{ip});
     send_key 'tab';
-    type_string($hosts_params->{fqdn}, max_interval => 13, wait_still_screen => 0.05, timeout => 5, similarity_level => 38);
+    type_string_slow_extended($hosts_params->{fqdn});
     send_key 'tab';
-    type_string($hosts_params->{alias}, max_interval => 13, wait_still_screen => 0.05, timeout => 5, similarity_level => 38);
+    type_string_slow_extended($hosts_params->{alias});
     assert_screen 'yast2_hostnames_changed_ok';
     send_key 'alt-o';
     assert_screen "yast2-$module-ui", 30;
-    #	OK => Exit
+    #   OK => Exit
     send_key "alt-o";
     wait_serial("yast2-$module-status-0") || die 'Fail! YaST2 - Hostnames dialog is not closed or non-zero code returned.';
     # Check that entry was correctly edited in /etc/hosts

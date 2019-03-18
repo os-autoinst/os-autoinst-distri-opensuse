@@ -48,10 +48,16 @@ sub run {
 
     # Expand other variables
     my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH LOADER_TYPE);
+    # Push more variables to expand from the job setting
+    my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
+
     for my $var (@vars) {
         # Skip if value is not defined
         next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;
+    }
+    if (check_var('IPXE', '1')) {
+        $path = get_required_var('SUT_IP') + $path;
     }
     # Upload modified profile
     save_tmp_file($path, $profile);

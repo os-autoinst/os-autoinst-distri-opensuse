@@ -18,6 +18,22 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 
+sub wait_for_guestregister
+{
+    my ($instance) = @_;
+    my $retries = 20;
+
+    for (my $loop = 0; $loop < $retries; $loop++) {
+        my $out = $instance->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1);
+        if ($out eq 'inactive') {
+            return;
+        }
+        record_info('WAIT', 'Wait for guest register: ' . $out);
+        sleep 30;
+    }
+    die('guestregister didn\'t end in expected time');
+}
+
 sub run {
     my ($self) = @_;
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/' . generate_version() . '/home:metan.repo');
@@ -25,6 +41,7 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
+    wait_for_guestregister($instance);
 
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
     assert_script_run('chmod +x ~/restart_instance.sh');

@@ -21,6 +21,7 @@ use version_utils
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
+use scheduler 'load_yaml_schedule';
 
 use DistributionProvider;
 
@@ -510,6 +511,9 @@ sub prepare_target {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
     }
+    elsif (check_var('IPXE', '1')) {
+        return;
+    }
     else {
         load_boot_tests();
         load_inst_tests();
@@ -524,9 +528,14 @@ sub mellanox_config {
 
 sub load_baremetal_tests {
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_boot_tests();
-    get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
-    load_reboot_tests();
+    if (get_var('IPXE')) {
+        loadtest 'installation/ipxe_install';
+        loadtest "console/suseconnect_scc";
+    } else {
+        load_boot_tests();
+        get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
+        load_reboot_tests();
+    }
 }
 
 sub load_infiniband_tests {
@@ -534,6 +543,7 @@ sub load_infiniband_tests {
     # here to ensure they are a) only created once and b) early enough
     # to be available when needed.
     if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+        barrier_create('IBTEST_SETUP', 2);
         barrier_create('IBTEST_BEGIN', 2);
         barrier_create('IBTEST_DONE',  2);
     }
@@ -580,6 +590,8 @@ testapi::set_distribution(DistributionProvider->provide());
 # set serial failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 
+return 1 if load_yaml_schedule;
+
 if (is_jeos) {
     load_jeos_tests();
 }
@@ -602,7 +614,6 @@ elsif (get_var("NFV")) {
 elsif (get_var("REGRESSION")) {
     load_common_x11;
     load_hypervisor_tests if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"));
-    load_client_tests     if (check_var("REGRESSION", "xen-client")     || check_var("REGRESSION", "qemu-client"));
     load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
 }
 elsif (get_var("FEATURE")) {
@@ -720,13 +731,18 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
     else {
-        load_boot_tests();
-        if (get_var("AUTOYAST")) {
-            loadtest "autoyast/installation";
-            loadtest "virt_autotest/reboot_and_wait_up_normal";
+        if (!check_var('ARCH', 's390x')) {
+            load_boot_tests();
+            if (get_var("AUTOYAST")) {
+                loadtest "autoyast/installation";
+                loadtest "virt_autotest/reboot_and_wait_up_normal";
+            }
+            else {
+                load_inst_tests();
+                loadtest "virt_autotest/login_console";
+            }
         }
-        else {
-            load_inst_tests();
+        elsif (check_var('ARCH', 's390x')) {
             loadtest "virt_autotest/login_console";
         }
         loadtest "virt_autotest/install_package";
@@ -848,7 +864,7 @@ elsif (have_scc_repos()) {
         loadtest "console/suseconnect_scc";
     }
     else {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc";
     }
 }
 elsif (get_var('HPC')) {
@@ -887,6 +903,16 @@ else {
         boot_hdd_image;
         loadtest 'console/teuthology';
         loadtest 'console/pulpito';
+        return 1;
+    }
+    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+        boot_hdd_image;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'console/avocado_prepare';
+        my @test_groups = ('block_device_hotplug', 'cpu', 'disk_image', 'memory_hotplug', 'nic_hotplug', 'qmp', 'usb');
+        for my $test_group (@test_groups) {
+            loadtest 'console/avocado_run', name => "$test_group";
+        }
         return 1;
     }
     elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {

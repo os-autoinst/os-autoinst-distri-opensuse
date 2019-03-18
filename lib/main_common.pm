@@ -98,7 +98,6 @@ our @EXPORT = qw(
   load_virtualization_tests
   load_x11tests
   load_hypervisor_tests
-  load_client_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -348,7 +347,7 @@ sub default_desktop {
 }
 
 sub uses_qa_net_hardware {
-    return check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
+    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
 sub load_shutdown_tests {
@@ -408,6 +407,8 @@ sub load_boot_tests {
 }
 
 sub load_reboot_tests {
+    return if check_var("IPXE", "1");
+
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
     if ((check_var("ARCH", "s390x") && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
         loadtest "boot/reconnect_mgmt_console";
@@ -548,12 +549,6 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
-    if (get_var('PREPARE_RPI')) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "jeos/prepare_rpi_image";
-        loadtest "shutdown/shutdown";
-        return;
-    }
     unless (get_var('LTP_COMMAND_FILE')) {
         if (check_var('ARCH', 'aarch64') && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
@@ -895,23 +890,20 @@ sub load_inst_tests {
             elsif (get_var('LVM_THIN_LV')) {
                 loadtest "installation/partitioning_lvm_thin_provisioning";
             }
+            # For s390x there was no offering of separated home partition until SLE 15 See bsc#1072869
+            elsif (!(is_sle('<15') && is_s390x())) {
+                if (check_var("SEPARATE_HOME", 1)) {
+                    loadtest "installation/partitioning/separate_home";
+                }
+                elsif (check_var("SEPARATE_HOME", 0)) {
+                    loadtest "installation/partitioning/no_separate_home";
+                }
+            }
             if (get_var("FILESYSTEM")) {
                 if (get_var('PARTITIONING_WARNINGS')) {
                     loadtest 'installation/partitioning_warnings';
                 }
                 loadtest "installation/partitioning_filesystem";
-            }
-            # boo#1093372 Leap 15.0 proposes a separate home even on small disks
-            # making the root partition likely to small so we should switch the
-            # defaults here unless we reconfigure using the guided proposal or
-            # expert partitioner anyway
-            if (get_var("TOGGLEHOME")
-                || (is_leap('15.0+') && get_var('HDDSIZEGB', 0) <= 20 && !defined get_var('RAIDLEVEL') && !get_var('LVM') && !get_var('FILESYSTEM')))
-            {
-                loadtest "installation/partitioning_togglehome";
-                if (get_var('LVM') && get_var('RESIZE_ROOT_VOLUME')) {
-                    loadtest "installation/partitioning_resize_root";
-                }
             }
             if (get_var("EXPERTPARTITIONER")) {
                 loadtest "installation/partitioning_expert";
@@ -1137,7 +1129,7 @@ sub load_consoletests {
     }
     #have SCC repo for SLE product
     if (have_scc_repos()) {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc";
     }
     # If is_repo_replacement_required returns true, we already have added mirror repo and refreshed repos
     if (!is_repo_replacement_required()) {
@@ -1244,6 +1236,7 @@ sub load_x11tests {
         loadtest "x11/xfce4_terminal";
     }
     loadtest "x11/xterm";
+    loadtest "locale/keymap_or_locale_x11";
     loadtest "x11/sshxterm" unless get_var("LIVETEST");
     if (gnomestep_is_applicable()) {
         load_system_update_tests();
@@ -1685,6 +1678,7 @@ sub load_rollback_tests {
 
 sub load_extra_tests_filesystem {
     loadtest "console/system_prepare";
+    loadtest "console/lsof";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
         loadtest "console/btrfs_autocompletion";
@@ -2120,7 +2114,7 @@ sub load_security_tests_crypt_tool {
     load_security_console_prepare;
 
     loadtest "console/gpg";
-    loadtest "console/yast2_dm_crypt";
+    loadtest "security/dm_crypt" if not get_var('FIPS_ENV_MODE');
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
 }
@@ -2210,9 +2204,12 @@ sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
 }
 
-sub load_security_tests_ima {
+sub load_security_tests_ima_measurement {
     loadtest "security/ima/ima_setup";
     loadtest "security/ima/ima_measurement";
+    loadtest "security/ima/ima_kernel_cmdline_template";
+    loadtest "security/ima/ima_kernel_cmdline_hash";
+    loadtest "security/ima/ima_measurement_audit";
 }
 
 sub load_security_tests_system_check {
@@ -2225,7 +2222,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      mok_enroll ima
+      mok_enroll ima_measurement
       system_check
       /;
 
@@ -2317,11 +2314,7 @@ sub load_hypervisor_tests {
     loadtest "virt_autotest/login_console";
     # List running machines
     loadtest 'virtualization/xen/list_guests';
-}
 
-sub load_client_tests() {
-    loadtest 'boot/boot_to_desktop';
-    loadtest 'virtualization/xen/install_virtmanager';        # Install the virt-manager package
     loadtest 'virtualization/xen/ssh_hypervisor';             # Connect to hypervisor using SSH
     loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
     loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
@@ -2408,6 +2401,8 @@ sub load_installation_validation_tests {
     # - autoyast/verify_btrfs_clone: validates enerated profile when cloning system
     #                                      installed using autoyast_btrfs.xml profile
     # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
+    # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
+    # - console/verify_separate_home.pm: validate if separate /home partition enabled
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }
@@ -2421,7 +2416,6 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
-    load_shutdown_tests                 if check_var('DESKTOP', 'minimalx') && !get_var('INSTALLONLY') && !get_var('DE_PATTERN');
 }
 
 sub load_ssh_key_import_tests {
@@ -2652,10 +2646,15 @@ sub load_lvm_tests {
         if (get_var('ENCRYPT_CANCEL_EXISTING')) {
             loadtest 'installation/partitioning/lvm_ignore_existing';
         }
+        elsif (check_var('SEPARATE_HOME', 0)) {
+            loadtest 'installation/partitioning/lvm_no_separate_home';
+            if (get_var('RESIZE_ROOT_VOLUME')) {
+                loadtest "installation/partitioning_resize_root";
+            }
+        }
         else {
             loadtest 'installation/partitioning/lvm';
         }
-
     }
 }
 

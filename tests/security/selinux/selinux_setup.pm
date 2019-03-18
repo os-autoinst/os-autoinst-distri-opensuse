@@ -28,11 +28,6 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    # for opensuse, e.g, Tumbleweed, add the repo in case rather than by default
-    if (!is_sle && !is_leap) {
-        zypper_call("ar http://download.opensuse.org/tumbleweed/repo/oss/ tumbleweed-Oss");
-    }
-
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
     if (!is_sle('>=15')) {
@@ -42,7 +37,7 @@ sub run {
         }
     }
 
-    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -w srcpackage | cut -d '|' -f 2`");
+    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -e srcpackage -e debuginfo -e debugsource | cut -d '|' -f 2`");
     zypper_call("in $pkgs", timeout => 3000);
 
     # for opensuse, e.g, Tumbleweed install selinux_policy pkgs as needed

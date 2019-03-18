@@ -70,7 +70,7 @@ sub login {
     die 'Login expects two arguments' unless @_ == 2;
     my $user        = shift;
     my $escseq      = qr/(\e [\(\[] [\d\w]{1,2})/x;
-    my $pass_prompt = get_var('JEOSINSTLANG') =~ 'DE' ? 'Passwort:' : 'Password:';
+    my $pass_prompt = get_var('JEOSINSTLANG', '') =~ 'DE' ? 'Passwort:' : 'Password:';
 
     $serial_term_prompt = shift;
 

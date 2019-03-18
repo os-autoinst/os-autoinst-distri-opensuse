@@ -16,7 +16,7 @@ package Installation::Partitioner::LibstorageNG::PartitioningSchemePage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::AbstractPage';
+use parent 'Installation::WizardPage';
 
 use constant {
     PARTITIONING_SCHEME_PAGE => 'inst-partitioning-scheme',
@@ -30,8 +30,7 @@ sub select_logical_volume_management_checkbox {
 
 sub press_next {
     my ($self) = @_;
-    assert_screen(PARTITIONING_SCHEME_PAGE);
-    $self->get_navigation_panel()->press_next();
+    $self->SUPER::press_next(PARTITIONING_SCHEME_PAGE);
 }
 
 sub select_enable_disk_encryption_checkbox {

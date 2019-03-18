@@ -28,7 +28,7 @@ sub run {
     opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
-    assert_script_run "ssh root\@$hypervisor 'zypper -n in vhostmd'";
+    zypper_call '-t in vhostmd';
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Install vm-dump-metrics on xl-$guest";

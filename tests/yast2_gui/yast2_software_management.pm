@@ -19,8 +19,14 @@ use testapi;
 sub run {
     my $self = shift;
     select_console 'x11';
-    $self->launch_yast2_module_x11('sw_single', match_timeout => 120);
-    send_key "alt-a";    # Accept => Exit
+    $self->launch_yast2_module_x11('sw_single', match_timeout => 25);
+    # Accept => Exit, or get to the installation report
+    send_key 'alt-a';
+    assert_screen [qw(sw_single_ui_installation_report generic-desktop)];
+    if (match_has_tag('sw_single_ui_installation_report')) {
+        # Press finish
+        send_key 'alt-f';
+    }
 }
 
 1;

@@ -316,7 +316,11 @@ sub retrieve_mail_imap {
             },
             {
                 prompt => qr/.*$mail_subject.*/m,
-                string => "A08 logout\n",
+                key    => "ctrl-]",
+            },
+            {
+                prompt => qr/telnet>/m,
+                string => "quit\n",
             },
         ],
         300

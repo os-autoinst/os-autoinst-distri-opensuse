@@ -38,6 +38,8 @@ sub run {
         assert_script_run('cp /etc/sysconfig/network/ifcfg-ens4 /etc/sysconfig/network/ifcfg-ens3');
     }
 
+    assert_script_run('systemctl enable qemu-ga@virtio\\\\x2dports-org.qemu.guest_agent.0.service');
+
     # Allow any connection to the VM (e.g. ICMP, SSH, ...)
     systemctl("disable " . opensusebasetest::firewall);
     systemctl("disable apparmor");

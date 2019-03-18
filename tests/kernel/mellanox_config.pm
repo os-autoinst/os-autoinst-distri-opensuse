@@ -72,6 +72,10 @@ sub run {
 
         # Reboot system
         power_action('reboot', textmode => 1, keepconsole => 1);
+
+        # make sure we wait until the reboot is done
+        select_console 'sol', await_console => 0;
+        assert_screen('linux-login', 1800);
     }
 }
 

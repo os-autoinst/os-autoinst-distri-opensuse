@@ -19,8 +19,6 @@
 use strict;
 use warnings;
 use base "console_yasttest";
-use base "consoletest";
-
 use testapi;
 use registration;
 
@@ -31,6 +29,13 @@ sub run {
         type_string "echo 'url: $u' > /etc/SUSEConnect\n";
     }
     yast_scc_registration;
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    verify_scc;
+    investigate_log_empty_license;
+    $self->SUPER::post_fail_hook;
 }
 
 1;

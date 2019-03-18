@@ -17,10 +17,23 @@ use testapi;
 use login_console;
 use ipmi_backend_utils;
 use base "proxymode";
+use power_action_utils 'power_action';
 
 sub reboot_and_wait_up {
     my $self           = shift;
     my $reboot_timeout = shift;
+
+    if (check_var('ARCH', 's390x')) {
+        record_info('INFO', 'Reboot LPAR');
+        #Reboot s390x lpar
+        power_action('reboot', observe => 1, keepconsole => 1);
+        #Wait for s390x lpar bootup
+        sleep 120;
+        #Switch to s390x lpar console
+        reset_consoles;
+        my $svirt = select_console('svirt', await_console => 0);
+        return;
+    }
 
     if (get_var("PROXY_MODE")) {
         select_console('root-console');

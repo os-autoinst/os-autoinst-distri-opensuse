@@ -18,49 +18,47 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
     record_info "REBOOT", "Reboot all guests";
     foreach my $guest (keys %xen::guests) {
-        assert_script_run "ssh root\@$hypervisor 'virsh reboot $guest'";
-        if (script_retry("ssh root\@$hypervisor 'nmap $guest -PN -p ssh | grep open'", delay => 30, retry => 3, die => 0)) {
+        assert_script_run "virsh reboot $guest";
+        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 3, die => 0)) {
             record_soft_failure "Reboot on $guest failed";
-            assert_script_run "ssh root\@$hypervisor 'virsh destroy $guest'";
-            assert_script_run "ssh root\@$hypervisor 'virsh start $guest'";
+            assert_script_run "virsh destroy $guest";
+            assert_script_run "virsh start $guest";
         }
     }
 
     record_info "SHUTDOWN", "Shut all guests down";
     foreach my $guest (keys %xen::guests) {
-        assert_script_run "ssh root\@$hypervisor 'virsh shutdown $guest'";
-        if (script_retry("ssh root\@$hypervisor 'virsh list --all | grep $guest | grep \"shut off\"'", delay => 15, retry => 6, die => 0)) {
+        assert_script_run "virsh shutdown $guest";
+        if (script_retry("virsh list --all | grep $guest | grep \"shut off\"", delay => 15, retry => 6, die => 0)) {
             record_soft_failure "Shutdown on $guest failed";
-            assert_script_run "ssh root\@$hypervisor 'virsh destroy $guest'";
+            assert_script_run "virsh destroy $guest";
         }
     }
 
     record_info "START", "Start all guests";
-    assert_script_run "ssh root\@$hypervisor 'virsh start $_'" foreach (keys %xen::guests);
-    script_retry "ssh root\@$hypervisor 'nmap $_ -PN -p ssh | grep open'", delay => 15, retry => 12 foreach (keys %xen::guests);
-
-    # TODO:
-    record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
-    assert_script_run "ssh root\@$hypervisor 'virsh autostart $_'" foreach (keys %xen::guests);
+    assert_script_run "virsh start $_" foreach (keys %xen::guests);
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 15, retry => 12 foreach (keys %xen::guests);
 
     # TODO:
     record_info "AUTOSTART DISABLE", "Disable autostart for all guests";
-    assert_script_run "ssh root\@$hypervisor 'virsh autostart --disable $_'" foreach (keys %xen::guests);
+    assert_script_run "virsh autostart --disable $_" foreach (keys %xen::guests);
+
+    # TODO:
+    record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
+    assert_script_run "virsh autostart $_" foreach (keys %xen::guests);
 
     record_info "SUSPEND", "Suspend all guests";
-    assert_script_run "ssh root\@$hypervisor 'virsh suspend $_'" foreach (keys %xen::guests);
-    script_retry "ssh root\@$hypervisor 'virsh list --all | grep $_ | grep paused'", delay => 15, retry => 12 foreach (keys %xen::guests);
+    assert_script_run "virsh suspend $_" foreach (keys %xen::guests);
+    script_retry "virsh list --all | grep $_ | grep paused", delay => 15, retry => 12 foreach (keys %xen::guests);
 
     record_info "RESUME", "Resume all guests";
-    assert_script_run "ssh root\@$hypervisor 'virsh resume $_'" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
-    script_retry "ssh root\@$hypervisor 'nmap $_ -PN -p ssh | grep open'", delay => 3, retry => 60 foreach (keys %xen::guests);
+    assert_script_run "virsh resume $_" foreach (keys %xen::guests);
+    assert_script_run "virsh list --all";
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %xen::guests);
 }
 
 1;

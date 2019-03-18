@@ -23,6 +23,13 @@ sub login_to_console {
     my ($self, $timeout) = @_;
     $timeout //= 240;
 
+    if (check_var('ARCH', 's390x')) {
+        #Switch to s390x lpar console
+        reset_consoles;
+        my $svirt = select_console('svirt', await_console => 0);
+        return;
+    }
+
     reset_consoles;
     select_console 'sol', await_console => 0;
 
@@ -35,7 +42,7 @@ sub login_to_console {
     if (match_has_tag('prague-pxe-menu')) {
         send_key 'ret';
 
-        assert_screen([qw(grub2 grub1)], 30);
+        assert_screen([qw(grub2 grub1)], 60);
     }
 
     if (!get_var("reboot_for_upgrade_step")) {

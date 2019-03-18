@@ -324,7 +324,7 @@ Example:
 
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout}      //= 60;
+    $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : 60;
     $args->{soft_timeout} //= 0;
     $args->{bugref}       //= "No bugref specified";
     if ($args->{soft_timeout}) {

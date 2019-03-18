@@ -16,20 +16,21 @@
 # Summary: This test turns all VMs off and then on again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
 use warnings;
 use testapi;
 use utils;
-use virtmanager qw(detect_login_screen select_guest);
+use virtmanager;
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
 
-    x11_start_program 'virt-manager';
-    assert_screen "virt-manager_connected";
+    #x11_start_program 'virt-manager';
+    type_string "virt-manager\n";
+
+    establish_connection();
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "VM $guest will be turned off and then on again";
@@ -41,6 +42,7 @@ sub run {
 
         detect_login_screen();
 
+        mouse_set(0, 0);
         assert_and_click 'virt-manager_shutdown';
         if (!check_screen 'virt-manager_notrunning', 30) {
             assert_and_click 'virt-manager_shutdown_menu';
@@ -53,12 +55,10 @@ sub run {
         assert_and_click 'virt-manager_poweron', 'left', 90;
 
         detect_login_screen(120);
-        assert_and_click 'virt-manager_file';
-        assert_and_click 'virt-manager_close';
-
+        close_guest();
     }
 
-    wait_screen_change { send_key 'alt-f4'; };
+    wait_screen_change { send_key 'ctrl-q'; };
 }
 
 sub test_flags {

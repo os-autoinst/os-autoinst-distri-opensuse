@@ -24,18 +24,15 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-    opensusebasetest::select_serial_terminal();
     my $hypervisor = get_required_var('HYPERVISOR');
 
-    assert_script_run "ssh root\@$hypervisor 'vhostmd'";
+    assert_script_run 'vhostmd';
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Obtaining dom0 metrics on xl-$guest";
-
-        assert_script_run "ssh root\@$hypervisor 'xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro'";
+        assert_script_run "xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro";
         assert_script_run "ssh root\@$guest 'vm-dump-metrics' | grep 'SUSE LLC'";
-        assert_script_run "ssh root\@$hypervisor 'xl block-detach xl-$guest xvdc'";
+        assert_script_run "xl block-detach xl-$guest xvdc";
     }
 }
 

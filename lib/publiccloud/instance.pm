@@ -42,10 +42,10 @@ sub run_ssh_command {
 
     $args{timeout} //= SSH_TIMEOUT;
 
-    my $ssh_cmd = sprintf('ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i "%s" "%s@%s" -- %s',
+    my $ssh_cmd = sprintf('ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -oLogLevel=ERROR -i "%s" "%s@%s" -- %s',
         $self->ssh_key, $self->username, $self->public_ip, $args{cmd});
     record_info('CMD', $ssh_cmd);
-    return script_output($ssh_cmd, $args{timeout});
+    return script_output($ssh_cmd, $args{timeout}, %args);
 }
 
 1;

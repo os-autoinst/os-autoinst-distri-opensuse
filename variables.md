@@ -16,6 +16,7 @@ AUTOYAST        | string    |               | Full url to the AY profile or rela
 AUTOYAST_PREPARE_PROFILE | boolean | false | Enable variable expansion in the autoyast profile.
 AUTOYAST_VERIFY | string | | Script to be executed to validate installation. Can be url, relative path if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data) or test module name to be scheduled after installation is conducted.
 AUTOYAST_VERIFY_TIMEOUT  | boolean | false | Enable validation of pop-up windows timeout.
+AY_EXPAND_VARS | string | | Commas separated list of variable names to be expanded in the provided autoyast profile. For example: REPO_SLE_MODULE_BASESYSTEM,DESKTOP,... Provided variables will replace `{{VAR}}` in the profile with the value of given variable. See also `AUTOYAST_PREPARE_PROFILE`.
 BASE_VERSION | string | | |
 BETA | boolean | false | Enables checks and processing of beta warnings. Defines current stage of the product under test.
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
@@ -37,6 +38,7 @@ DUD_ADDONS | string | | Comma separated list of addons added using DUD.
 DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combine with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
 EVERGREEN |||
+EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be finished after `installation/start_install` test module. So that all the test modules after this one will not be scheduled and executed.
 EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the installation bootloader.
 EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot process of a local installation.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
@@ -91,6 +93,7 @@ RESCUESYSTEM | boolean | false | Indicates rescue system under test.
 ROOTONLY | boolean | false | Request installation to create only the root account, no user account.
 SCC_ADDONS | string | | Coma separated list of modules to be enabled using SCC/RMT.
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
+SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.
 SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certificate validation of the remote source, e.g. when using self-signed https url.
 SLE_PRODUCT | string | | Defines SLE product. Possible values: `sles`, `sled`, `sles4sap`. Is mainly used for SLE 15 installation flow.
 SOFTFAIL_BSC1063638 | boolean | false | Enable bsc#1063638 detection.
@@ -114,5 +117,6 @@ VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the 
 UNENCRYPTED_BOOT | boolean | false | Indicates/defines existence of unencrypted boot partition in the SUT.
 WAYLAND | boolean | false | Enables wayland tests in the system.
 XDMUSED | boolean | false | Indicates availability of xdm.
+YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Defines repo to be added/used for zypper dup call.

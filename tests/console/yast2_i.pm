@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_tumbleweed is_jeos);
+use version_utils qw(is_tumbleweed is_jeos is_sle);
 
 sub run {
     my $self        = shift;
@@ -25,10 +25,16 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call "-i inr";    # install recommended drivers bsc#953522
+    # Install recommended drivers bsc#953522 unless when migrating from
+    # versions before 15 (bsc#1127212)
+    if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION', '15'))) {
+        record_soft_failure 'bsc#1127212 - `zypper inr` produces conflicting packages for migrations from SLES12';
+    }
+    else {
+        zypper_call "-i inr";
+    }
     zypper_call "-i rm $pkgname $recommended";
     zypper_call "in yast2-packager";    # make sure yast2 sw_single module installed
-    zypper_call "-i inr" if is_jeos;    # install recommended drivers bsc#953522
     script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
     assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 90;
 

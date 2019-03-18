@@ -16,7 +16,7 @@ package Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
-use parent 'Installation::Partitioner::AbstractSuggestedPartitioningPage';
+use parent 'Installation::Partitioner::SuggestedPartitioningPage';
 
 use constant {
     NO_LVM_ENCRYPTED_PARTITION_IN_LIST => 'inst-encrypt-no-lvm',
