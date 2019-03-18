@@ -57,7 +57,7 @@ sub run {
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
     }
-    if (get_var("UPGRADE")) {
+    if (get_var('UPGRADE') || get_var('LIVE_UPGRADE')) {
         push(@tags, 'ERROR-removing-package');
         push(@tags, 'DIALOG-packages-notifications');
         # There is a dialog with packages that updates are available from
