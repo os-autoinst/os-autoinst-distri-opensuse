@@ -1202,7 +1202,7 @@ sub load_consoletests {
         loadtest "console/xfce_gnome_deps";
     }
     if (!is_staging() && is_sle('12-SP2+')) {
-        loadtest "console/zypper_lifecycle";
+        loadtest "console/zypper_lifecycle" unless is_hyperv('2012r2');
         if (check_var_array('SCC_ADDONS', 'tcm') && is_sle('<15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
