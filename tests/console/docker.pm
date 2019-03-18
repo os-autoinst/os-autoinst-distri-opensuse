@@ -27,6 +27,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 use registration;
 use version_utils qw(is_sle is_leap);
 
@@ -53,7 +54,7 @@ sub run {
     test_seccomp();
 
     # images can be searched on the Docker Hub
-    validate_script_output("docker search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
+    validate_script_output("docker search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
 
     # images can be pulled from the Docker Hub
     #   - pull minimalistic alpine image of declared version using tag
@@ -64,7 +65,7 @@ sub run {
     #   - https://store.docker.com/images/hello-world
     assert_script_run("docker image pull hello-world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    assert_script_run("docker image pull opensuse/leap", timeout => 600);
+    assert_script_run("docker image pull opensuse/leap", timeout => 600) unless (check_var('ARCH', 's390x'));
     #   - pull image of openSUSE Tumbleweed
     assert_script_run('docker image pull opensuse/tumbleweed', timeout => 600);
 
@@ -77,7 +78,7 @@ sub run {
     #   - all local images
     my $local_images_list = script_output('docker image ls');
     die('docker image opensuse/tumbleweed not found') unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
-    die("docker image opensuse/leap not found")       unless ($local_images_list =~ /opensuse\/leap\s*latest/);
+    die("docker image opensuse/leap not found") if (!check_var('ARCH', 's390x') && !$local_images_list =~ /opensuse\/leap\s*latest/);
 
     # containers can be spawned
     #   - using 'run'
@@ -147,9 +148,11 @@ sub run {
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
 
     # images can be deleted
-    my $cmd_docker_rmi = "docker image rm alpine:$alpine_image_version hello-world opensuse/leap opensuse/tumbleweed tw:saved";
+    my $images_to_delete = "alpine:$alpine_image_version hello-world opensuse/tumbleweed tw:saved";
+    $images_to_delete .= ' opensuse/leap' if (!check_var('ARCH', 's390x'));
+    my $cmd_docker_rmi = "docker image rm $images_to_delete";
     my $output_deleted = script_output($cmd_docker_rmi);
-    die("error: docker image rm opensuse/leap")                unless ($output_deleted =~ m/Untagged: opensuse\/leap/);
+    die("error: docker image rm opensuse/leap") if (!check_var('ARCH', 's390x') && $output_deleted !~ m/Untagged: opensuse\/leap/);
     die('error: docker image rm opensuse/tumbleweed')          unless ($output_deleted =~ m/Untagged: opensuse\/tumbleweed/);
     die('error: docker image rm tw:saved')                     unless ($output_deleted =~ m/Untagged: tw:saved/);
     die("error: docker image rm alpine:$alpine_image_version") unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);

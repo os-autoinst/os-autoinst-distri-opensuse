@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,8 +12,10 @@
 
 use base 'x11test';
 use strict;
+use warnings;
 use testapi;
 use utils;
+use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     select_console 'x11';

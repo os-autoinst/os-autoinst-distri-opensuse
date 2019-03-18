@@ -32,8 +32,12 @@ tools/lib/: os-autoinst/
 check-links: tools/tidy tools/lib/ os-autoinst/
 
 .PHONY: check-links
-tidy: check-links
+tidy-check: check-links
 	tools/tidy --check
+
+.PHONY: tidy
+tidy:
+	tools/tidy
 
 .PHONY: unit-test
 unit-test:
@@ -46,6 +50,10 @@ test-compile: check-links
 .PHONY: test-compile-changed
 test-compile-changed: os-autoinst/
 	export PERL5LIB=${PERL5LIB_} ; for f in `git diff --name-only | grep '.pm'` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
+
+.PHONY: test-yaml-valid
+test-yaml-valid:
+	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid
 
 .PHONY: test-metadata
 test-metadata:
@@ -74,10 +82,10 @@ test-dry:
 
 .PHONY: test-no-wait_idle
 test-no-wait_idle:
-	@! git grep -q wait_idle lib/ tests/
+	@! git --no-pager grep wait_idle lib/ tests/
 
 .PHONY: test-static
-test-static: tidy test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
+test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
 
 .PHONY: test
 ifeq ($(TESTS),compile)
@@ -86,7 +94,7 @@ else
 test: unit-test test-static test-compile perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include "strict"
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
@@ -98,4 +106,4 @@ test-unused-modules:
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
-	@! git grep -q -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+	@! git --no-pager grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/

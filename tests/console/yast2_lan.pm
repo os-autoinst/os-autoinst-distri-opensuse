@@ -14,8 +14,12 @@
 
 use base "console_yasttest";
 use strict;
+use warnings;
 use testapi;
 use utils;
+use y2lan_restart_common;
+use version_utils ':VERSION';
+use utils 'zypper_call';
 
 sub handle_Networkmanager_controlled {
     send_key "ret";    # confirm networkmanager popup
@@ -37,15 +41,15 @@ sub handle_dhcp_popup {
 sub run {
     my $self = shift;
 
-    select_console 'user-console';
-    assert_script_sudo "zypper -n in yast2-network";    # make sure yast2 lan module installed
+    select_console 'root-console';
+    zypper_call "in yast2-network";    # make sure yast2 lan module installed
 
     # those two are for debugging purposes only
     script_run('ip a');
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    script_sudo("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
+    script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
     assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
     handle_dhcp_popup;
@@ -73,15 +77,21 @@ sub run {
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
     type_string $hostname;
-    send_key "tab";
-    for (1 .. 15) { send_key "backspace" }
-    type_string $domain;
+    # Starting from SLE 15 SP1, we don't have domain field
+    if (is_sle('<=15') || is_leap('<=15.0')) {
+        send_key "tab";
+        for (1 .. 15) { send_key "backspace" }
+        type_string $domain;
+    }
     assert_screen 'test-yast2_lan-1';
 
     send_key "alt-o";    # OK=>Save&Exit
     wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
-
     wait_still_screen;
+
+    # Run detailed check only if explicitly configured in the test suite
+    check_etc_hosts_update() if get_var('VALIDATE_ETC_HOSTS');
+
     $self->clear_and_verify_console;
     assert_script_run "hostname|grep $hostname";
 
@@ -92,4 +102,3 @@ sub run {
 }
 
 1;
-

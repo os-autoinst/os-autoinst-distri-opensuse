@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,9 +21,11 @@ use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use testapi;
 use caasp 'pause_until';
-use utils qw(ensure_serialdev_permissions turn_off_gnome_screensaver zypper_call);
+use utils qw(ensure_serialdev_permissions zypper_call);
+use x11utils 'turn_off_gnome_screensaver';
 
 sub firefox_import_ca {
     # Setup ssh

@@ -15,6 +15,7 @@ use caasp_controller;
 use version_utils 'is_caasp';
 
 use strict;
+use warnings;
 use testapi;
 use caasp 'unpause';
 
@@ -57,8 +58,6 @@ sub run {
     x11_start_program("firefox $admin_fqdn", target_match => 'firefox-url-loaded');
     send_key 'f11';
     wait_still_screen 3;
-
-    confirm_insecure_https if is_caasp('VMX');
 
     # Check that footer has proper tag
     my $v = get_var('VERSION');

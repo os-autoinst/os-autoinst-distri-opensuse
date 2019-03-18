@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
@@ -30,6 +31,7 @@ our @EXPORT = qw(
   clear_console
   type_string_slow
   type_string_very_slow
+  type_string_slow_extended
   save_svirt_pty
   type_line_svirt
   integration_services_check
@@ -38,13 +40,11 @@ our @EXPORT = qw(
   get_netboot_mirror
   zypper_call
   fully_patch_system
+  ssh_fully_patch_system
   minimal_patch_system
   workaround_type_encrypted_passphrase
-  select_user_gnome
-  ensure_unlocked_desktop
   is_bridged_networking
   set_bridged_networking
-  ensure_fullscreen
   assert_screen_with_soft_timeout
   pkcon_quit
   systemctl
@@ -52,12 +52,7 @@ our @EXPORT = qw(
   addon_license
   addon_products_is_applicable
   noupdatestep_is_applicable
-  turn_off_kde_screensaver
-  turn_off_gnome_screensaver
   random_string
-  handle_login
-  handle_logout
-  handle_relogin
   handle_emergency
   handle_grub_zvm
   handle_untrusted_gpg_key
@@ -79,6 +74,8 @@ our @EXPORT = qw(
   svirt_host_basedir
   prepare_ssh_localhost_key_login
   disable_serial_getty
+  script_retry
+  script_run_interactive
 );
 
 
@@ -159,6 +156,9 @@ sub handle_untrusted_gpg_key {
 Check that guest IP address that host and guest see is the same.
 =cut
 sub integration_services_check_ip {
+    # Workaround for poo#44771 "Can't call method "exec" on an undefined value"
+    select_console('svirt');
+    select_console('sut');
     # Host-side of Integration Services
     my $vmname = console('svirt')->name;
     my $ips_host_pov;
@@ -269,28 +269,6 @@ sub systemctl {
     }
 }
 
-sub turn_off_kde_screensaver {
-    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
-    if (match_has_tag('kde-screenlock-enabled')) {
-        assert_and_click('kde-disable-screenlock');
-    }
-    assert_screen 'screenlock-disabled';
-    send_key('alt-o');
-    assert_screen 'generic-desktop';
-}
-
-=head2 turn_off_gnome_screensaver
-
-  turn_off_gnome_screensaver()
-
-Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.
-
-=cut
-sub turn_off_gnome_screensaver {
-    script_run 'gsettings set org.gnome.desktop.session idle-delay 0';
-}
-
-
 # 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
 # screen would not be cleared
 sub clear_console {
@@ -322,7 +300,7 @@ sub assert_gui_app {
 # that
 sub check_console_font {
     # Does not make sense on ssh-based consoles
-    return if (check_var('BACKEND', 'spvm')) || (check_var('BACKEND', 'ipmi'));
+    return if get_var('BACKEND', '') =~ /ipmi|spvm/;
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match
     select_console('root-console', await_console => 0);
@@ -336,6 +314,12 @@ sub check_console_font {
         assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
         assert_screen 'correct-console-font';
     }
+}
+
+# Enable additional arguments for nested calls of wait_still_screen
+sub type_string_slow_extended {
+    my ($string) = @_;
+    type_string($string, max_interval => SLOW_TYPING_SPEED, wait_still_screen => 0.05, timeout => 5, similarity_level => 38);
 }
 
 sub type_string_slow {
@@ -416,9 +400,17 @@ sub zypper_call {
 
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
-    zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500);
+    zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     # second run, full system update
     zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+}
+
+sub ssh_fully_patch_system {
+    my $host = shift;
+    # first run, possible update of packager -- exit code 103
+    assert_script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", exitcode => [0, 102, 103], timeout => 1500);
+    # second run, full system update
+    assert_script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", exitcode => [0, 102], timeout => 6000);
 }
 
 # zypper doesn't offer --updatestack-only option before 12-SP1, use patch for sp0 to update packager
@@ -426,10 +418,10 @@ sub minimal_patch_system {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (is_sle('12-SP1+', get_var($args{version_variable}))) {
-        zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+        zypper_call('patch --with-interactive -l --updatestack-only', exitcode => [0, 102, 103], timeout => 3000, log => 'minimal_patch.log');
     }
     else {
-        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 1500, log => 'minimal_patch.log');
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000, log => 'minimal_patch.log');
     }
 }
 
@@ -450,88 +442,15 @@ sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
     return if get_var('UNENCRYPTED_BOOT');
     return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
+    # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
+    # Only aarch64 needs separate handling
     # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW');
+    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
     return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
     record_soft_failure 'workaround https://fate.suse.com/320901' if is_sle('12-SP4+');
     unlock_if_encrypted;
-}
-
-# Handle the case when user is not selected, on gnome
-sub select_user_gnome {
-    my ($myuser) = @_;
-    $myuser //= $username;
-    assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected dm-nousers)];
-    if (match_has_tag('displaymanager-user-notselected')) {
-        assert_and_click "displaymanager-$myuser";
-        record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
-    }
-    elsif (match_has_tag('displaymanager-user-selected')) {
-        send_key 'ret';
-    }
-    elsif (match_has_tag('dm-nousers')) {
-        type_string $myuser;
-        send_key 'ret';
-    }
-}
-
-# if stay under tty console for long time, then check
-# screen lock is necessary when switch back to x11
-# all possible options should be handled within loop to get unlocked desktop
-sub ensure_unlocked_desktop {
-    my $counter = 10;
-    while ($counter--) {
-        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
-        if (match_has_tag 'displaymanager') {
-            if (check_var('DESKTOP', 'minimalx')) {
-                type_string "$username";
-                save_screenshot;
-            }
-            if (!check_var('DESKTOP', 'gnome') || (is_sle('<15') || is_leap('<15.0'))) {
-                send_key 'ret';
-            }
-            # On gnome, user may not be selected and using 'ret' is not enough in this case
-            else {
-                select_user_gnome($username);
-            }
-        }
-        if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
-            if ($password ne '') {
-                type_password;
-                assert_screen [qw(locked_screen-typed_password login_screen-typed_password)];
-            }
-            send_key 'ret';
-        }
-        if (match_has_tag 'generic-desktop') {
-            send_key 'esc';
-            unless (get_var('DESKTOP', '') =~ m/minimalx|awesome|enlightenment|lxqt|mate/) {
-                # gnome might show the old 'generic desktop' screen although that is
-                # just a left over in the framebuffer but actually the screen is
-                # already locked so we have to try something else to check
-                # responsiveness.
-                # open run command prompt (if screen isn't locked)
-                mouse_hide(1);
-                send_key 'alt-f2';
-                if (check_screen 'desktop-runner', 30) {
-                    send_key 'esc';
-                    assert_screen 'generic-desktop';
-                }
-                else {
-                    next;    # most probably screen is locked
-                }
-            }
-            last;            # desktop is unlocked, mission accomplished
-        }
-        if (match_has_tag 'screenlock') {
-            wait_screen_change {
-                send_key 'esc';    # end screenlock
-            };
-        }
-        wait_still_screen 2;       # slow down loop
-        die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
-    }
 }
 
 sub is_bridged_networking {
@@ -571,17 +490,6 @@ sub set_hostname {
     systemctl 'status network.service';
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
-}
-
-sub ensure_fullscreen {
-    my (%args) = @_;
-    $args{tag} //= 'yast2-windowborder';
-    # for ssh-X using our window manager we need to handle windows explicitly
-    if (check_var('VIDEOMODE', 'ssh-x')) {
-        assert_screen($args{tag});
-        my $console = select_console("installation");
-        $console->fullscreen({window_name => 'YaST2*'});
-    }
 }
 
 sub assert_and_click_until_screen_change {
@@ -634,9 +542,10 @@ Example:
 sub assert_screen_with_soft_timeout {
     my ($mustmatch, %args) = @_;
     # as in assert_screen
-    $args{timeout}             //= 30;
-    $args{soft_timeout}        //= 0;
-    $args{soft_failure_reason} //= "$args{bugref}: needle(s) $mustmatch not found within $args{soft_timeout}";
+    $args{timeout}      //= 30;
+    $args{soft_timeout} //= 0;
+    my $needle_info = ref($mustmatch) eq "ARRAY" ? join(',', @$mustmatch) : $mustmatch;
+    $args{soft_failure_reason} //= "$args{bugref}: needle(s) $needle_info not found within $args{soft_timeout}";
     if ($args{soft_timeout}) {
         die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
         my $ret = check_screen $mustmatch, $args{soft_timeout};
@@ -708,77 +617,6 @@ sub random_string {
     $length //= 4;
     my @chars = ('A' .. 'Z', 'a' .. 'z', 0 .. 9);
     return join '', map { @chars[rand @chars] } 1 .. $length;
-}
-
-=head2 handle_login
-
-  handle_login($myuser, $user_selected);
-
-Log the user in using the displaymanager.
-When C<$myuser> is set, this user will be used for login.
-Otherwise the function will default to C<$username>.
-For displaymanagers (like gnome) where the user needs to be selected
-from a menu C<$user_selected> tells the function that the desired
-user has already been selected before this function was called.
-
-Example:
-
-  handle_login('user1', 1);
-
-=cut
-sub handle_login {
-    my ($myuser, $user_selected) = @_;
-    $myuser        //= $username;
-    $user_selected //= 0;
-
-    save_screenshot();
-    # wait for DM, avoid screensaver and try to login
-    send_key_until_needlematch('displaymanager', 'esc', 30, 3);
-    wait_still_screen;
-    if (get_var('ROOTONLY')) {
-        if (check_screen 'displaymanager-username-notlisted', 10) {
-            record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
-            assert_and_click 'displaymanager-username-notlisted';
-            wait_still_screen 3;
-        }
-        type_string "root\n";
-    }
-    elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
-        type_string "$myuser\n";
-    }
-    elsif (check_var('DESKTOP', 'gnome')) {
-        if ($user_selected || (is_sle('<15') || is_leap('<15.0'))) {
-            send_key 'ret';
-        }
-        # DMs in condition above have to select user
-        else {
-            select_user_gnome($myuser);
-        }
-    }
-    assert_screen 'displaymanager-password-prompt', no_wait => 1;
-    type_password;
-    send_key "ret";
-}
-
-sub handle_logout {
-    # hide mouse for clean logout needles
-    mouse_hide();
-    # logout
-    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
-        my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-        my $target_match = check_var('DESKTOP', 'gnome') ? undef : 'logoutdialog';
-        x11_start_program($command, target_match => $target_match);    # opens logout dialog
-    }
-    else {
-        my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
-        send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
-    }
-    assert_and_click 'logout-button';                                  # press logout
-}
-
-sub handle_relogin {
-    handle_logout;
-    handle_login;
 }
 
 # Handle emergency mode
@@ -914,6 +752,7 @@ test user as well as root.
 =cut
 sub ensure_serialdev_permissions {
     my ($self) = @_;
+    return if get_var('ROOTONLY');
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
@@ -1087,7 +926,7 @@ sub reconnect_mgmt_console {
     elsif (check_var('ARCH', 'x86_64')) {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
-            assert_screen "qa-net-selection", 300;
+            assert_screen [qw(qa-net-selection prague-pxe-menu)], 300;
             # boot to hard disk is default
             send_key 'ret';
         }
@@ -1136,6 +975,105 @@ sub prepare_ssh_localhost_key_login {
     else {
         assert_script_sudo('mkdir -p /root/.ssh');
         assert_script_sudo("cat /home/$source_user/.ssh/id_rsa.pub | tee -a /root/.ssh/authorized_keys");
+    }
+}
+
+# Repeat command until expected result or timeout
+# script_retry 'ping -c1 -W1 machine', retry => 5
+sub script_retry {
+    my ($cmd, %args) = @_;
+    my $ecode = $args{expect} // 0;
+    my $retry = $args{retry}  // 10;
+    my $delay = $args{delay}  // 30;
+    my $die   = $args{die}    // 1;
+
+    my $ret;
+    for (1 .. $retry) {
+        type_string "# Trying $_ of $retry:\n";
+
+        $ret = script_run "timeout 25 $cmd";
+        last if defined($ret) && $ret == $ecode;
+
+        die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
+        sleep $delay;
+    }
+
+    return $ret;
+}
+
+=head2 script_run_interactive
+
+    script_run_interactive($cmd, $prompt, $timeout);
+
+For interactive command, input strings or keys according to the prompt message
+in the run time. Pass arrayref $prompt which contains the prompt message to
+be matched (regex) and the answer with string or key to be typed. for example:
+
+    [{
+        prompt => qr/\(A\)llow/m,
+        key    => 'a',
+      },
+      {
+        prompt => qr/Enter Password or Pin/m,
+        string => "testpasspw\n",
+      },]
+
+A "EOS~~~" message followed by return value will be printed as a mark
+for the end of interaction after the command finished running.
+
+If the first argument is undef, only the sencond part will be processed - to
+match output and react. If the second argument is undef, the first part will
+be processed - to run the command without interaction with terminal output.
+This is useful for some situation when you want to do more between inputing
+command and the following interaction, eg. switch TTYs or detach the screen.
+
+=cut
+sub script_run_interactive {
+    my ($cmd, $scan, $timeout) = @_;
+    my $output;
+    my $err_ret;
+    my @words;
+    my $endmark = 'EOS~~~';    # EOS == "End of Script"
+    $timeout //= 180;
+
+    if ($cmd) {
+        script_run("(script -qe -a /dev/null -c \'", 0);
+        script_run($cmd,                             0);
+        # Can not get return value from script_run, so we have to do it in
+        # the shell with $? following the endmark.
+        script_run("\'; echo $endmark\$?) |& tee /dev/$serialdev", 0);
+    }
+
+    return if (!$scan);
+
+    for my $k (@$scan) {
+        push(@words, $k->{prompt});
+    }
+
+    push(@words, $endmark);
+
+    {
+        do {
+            $output = wait_serial(\@words, $timeout) || die "No message matched!";
+
+            last if ($output =~ /($endmark)0$/m);    # return value is 0
+            die  if ($output =~ /$endmark/m);        # other return values
+
+            for my $i (@$scan) {
+                next if ($output !~ $i->{prompt});
+                if ($i->{string}) {
+                    type_string $i->{string};
+                    last;
+                }
+                elsif ($i->{key}) {
+                    send_key $i->{key};
+                    last;
+                }
+                else {
+                    die "$i->{prompt} - No flags specified";
+                }
+            }
+        } while ($output);
     }
 }
 

@@ -2,18 +2,20 @@ package susedistribution;
 use base 'distribution';
 use serial_terminal ();
 use strict;
+use warnings;
 use utils qw(
   disable_serial_getty
   ensure_serialdev_permissions
-  ensure_unlocked_desktop
   get_root_console_tty
   get_x11_console_tty
   pkcon_quit
   save_svirt_pty
   type_string_slow
+  type_string_very_slow
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
+use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
 
 # Base class implementation of distribution class necessary for testapi
@@ -139,24 +141,34 @@ sub init_cmd {
     ## keyboard cmd vars end
 }
 
-
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
     $timeout //= 30;
+    my $hotkey = desktop_runner_hotkey;
 
-    send_key(check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2');
+    send_key($hotkey);
 
     mouse_hide(1);
     if (!check_screen('desktop-runner', $timeout)) {
-        record_info('workaround', 'desktop-runner does not show up on alt-f2, retrying up to three times (see bsc#978027)');
+        record_info('workaround', "desktop-runner does not show up on $hotkey, retrying up to three times (see bsc#978027)");
         send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
-        send_key_until_needlematch 'desktop-runner', 'alt-f2', 3, 10;
+        send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
     }
     # krunner may use auto-completion which sometimes gets confused by
     # too fast typing or looses characters because of the load caused (also
-    # see below). See https://progress.opensuse.org/issues/18200
+    # see below), especially in wayland.
+    # See https://progress.opensuse.org/issues/18200 as well as
+    # https://progress.opensuse.org/issues/35589
     if (check_var('DESKTOP', 'kde')) {
-        type_string_slow $program;
+        if (get_var('WAYLAND')) {
+            wait_still_screen(3);
+            type_string_very_slow substr $program, 0, 2;
+            wait_still_screen(3);
+            type_string_very_slow substr $program, 2;
+        }
+        else {
+            type_string_slow $program;
+        }
     }
     else {
         type_string $program;
@@ -165,7 +177,7 @@ sub init_desktop_runner {
 
 =head2 x11_start_program
 
-  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1, [target_match => $target_match, ] [match_timeout => $match_timeout, ] [match_no_wait => 0|1 ]]);
+  x11_start_program($program [, timeout => $timeout ] [, no_wait => 0|1 ] [, valid => 0|1 [, target_match => $target_match ] [, match_timeout => $match_timeout ] [, match_no_wait => 0|1 ] [, match_typed => 0|1 ]]);
 
 Start the program C<$program> in an X11 session using the I<desktop-runner>
 and looking for a target screen to match.
@@ -403,7 +415,7 @@ sub init_consoles {
                 password => get_var('VIRSH_GUEST_PASSWORD')});
     }
 
-    if (check_var('BACKEND', 'ikvm') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
+    if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -411,15 +423,16 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 user     => 'root',
-                serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial'
+                serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial',
+                gui      => 1
             });
     }
 
-    if (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'spvm')) {
+    if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm/ || get_var('S390_ZKVM')) {
         my $hostname;
 
         $hostname = get_var('VIRSH_GUEST')     if get_var('S390_ZKVM');
-        $hostname = get_required_var('SUT_IP') if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+        $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm/;
 
         if (check_var('BACKEND', 's390x')) {
 
@@ -596,7 +609,7 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }
-        elsif (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
+        elsif (get_var('BACKEND', '') =~ /ipmi|spvm/) {
             # Select configure serial and redirect to root-ssh instead
             use_ssh_serial_console;
             return;
@@ -627,8 +640,8 @@ sub activate_console {
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
-        if (check_var('BACKEND', 's390x') || get_var('S390_ZKVM') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm')) {
-            diag 'backend s390x || zkvm || ipmi || spvm';
+        if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm/ || get_var('S390_ZKVM')) {
+            diag 'backend ipmi || spvm || s390x || zkvm';
             $user ||= 'root';
             handle_password_prompt;
             ensure_user($user);
@@ -683,8 +696,8 @@ sub activate_console {
     }
     elsif (
         $console eq 'installation'
-        && (((check_var('BACKEND', 's390x') || check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm') || get_var('S390_ZKVM')))
-            && (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x'))))
+        && ((get_var('BACKEND', '') =~ /ipmi|s390x|spvm/) || get_var('S390_ZKVM'))
+        && (get_var('VIDEOMODE', '') =~ /text|ssh-x/))
     {
         diag 'activate_console called with installation for ssh based consoles';
         $user ||= 'root';
@@ -729,9 +742,6 @@ sub console_selected {
     $args{await_console} //= 1;
     $args{tags}          //= $console;
     $args{ignore}        //= qr{sut|root-virtio-terminal|iucvconn|svirt|root-ssh|hyperv-intermediary};
-    # If we connect to 'sut' VNC display "too early" the VNC server won't be
-    # ready and we will be left with a blank screen.
-    sleep 5 if check_var('VIRSH_VMM_FAMILY', 'vmware') && $console eq 'sut';
 
     if ($args{tags} =~ $args{ignore} || !$args{await_console}) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);

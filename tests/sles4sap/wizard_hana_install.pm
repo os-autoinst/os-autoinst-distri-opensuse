@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,10 +13,12 @@
 
 use base 'sles4sap';
 use strict;
+use warnings;
 use testapi;
-use utils qw(type_string_slow zypper_call turn_off_gnome_screensaver);
+use utils qw(type_string_slow zypper_call);
 use Utils::Backends 'use_ssh_serial_console';
 use version_utils 'is_sle';
+use x11utils 'turn_off_gnome_screensaver';
 
 sub get_total_mem {
     return get_required_var('QEMURAM') if (check_var('BACKEND', 'qemu'));
@@ -77,11 +79,9 @@ sub run {
     my ($proto, $path) = split m|://|, get_required_var('MEDIA');
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
 
-    # Don't change this. The needle has this SID.
-    my $sid      = 'NDB';
+    my $sid      = get_required_var('INSTANCE_SID');
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
-    set_var('SAPADM',   lc($sid) . 'adm');
 
     check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
     my $RAM = get_total_mem();

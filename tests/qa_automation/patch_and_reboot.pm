@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,11 +19,17 @@ use warnings;
 use utils;
 use testapi;
 use qam;
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;
 
-    select_console 'root-console';
+    if (check_var('BACKEND', 'ipmi')) {
+        use_ssh_serial_console;
+    }
+    else {
+        select_console 'root-console';
+    }
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
 
@@ -31,6 +37,7 @@ sub run {
 
     fully_patch_system;
 
+    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
     type_string "reboot\n";
 
     $self->wait_boot;

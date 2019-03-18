@@ -16,36 +16,22 @@
 # Summary: This tries to ping and SSH to every guest we created.
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
-    my $domain     = get_required_var('QAM_XEN_DOMAIN');
-
-    x11_start_program('xterm');
-    send_key 'super-up';
+    my $hypervisor = get_required_var('HYPERVISOR');
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
-        assert_script_run "ssh root\@$hypervisor 'ping -c5 -W1 $guest.$domain'";
-        assert_script_run "ssh-keyscan $guest.$domain >> ~/.ssh/known_hosts";
-        exec_and_insert_password "ssh-copy-id root\@$guest.$domain";
-        assert_script_run "ssh root\@$guest.$domain hostname";
-        clear_console;
+        assert_script_run "ping -c3 -W1 $guest";
+        assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
     }
-
-    wait_screen_change { send_key 'alt-f4'; };
-
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 0};
 }
 
 1;

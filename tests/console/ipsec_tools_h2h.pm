@@ -11,6 +11,7 @@
 # Maintainer: Jiawei Sun <jiawei.sun@suse.com>
 
 use strict;
+use warnings;
 use base "consoletest";
 use lockapi;
 use testapi;

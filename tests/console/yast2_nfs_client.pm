@@ -15,6 +15,7 @@
 
 use base "console_yasttest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 

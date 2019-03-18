@@ -17,9 +17,11 @@
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
 use power_action_utils 'power_action';
+use utils;
 
 sub run {
     power_action('poweroff');
@@ -27,6 +29,15 @@ sub run {
 
 sub test_flags {
     return {fatal => 1};
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    select_console('log-console');
+    # check systemd jobs still running in background, these jobs
+    # might slow down or block shutdown progress
+    systemctl 'list-jobs';
 }
 
 1;

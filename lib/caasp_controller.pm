@@ -2,15 +2,16 @@ package caasp_controller;
 use base "opensusebasetest";
 
 use strict;
+use warnings;
 use testapi;
-use caasp 'unpause';
-use lockapi 'barrier_destroy';
+use caasp qw(unpause script_assert0);
+use lockapi qw(barrier_try_wait barrier_destroy);
 use mmapi 'wait_for_children';
 use version_utils 'is_caasp';
 
 use Exporter 'import';
-our @EXPORT = qw($admin_fqdn $master_fqdn
-  confirm_insecure_https velum_login switch_to download_kubeconfig click_click xy);
+our @EXPORT = qw($admin_fqdn $master_fqdn salt
+  velum_login switch_to download_kubeconfig click_click xy);
 
 our $admin_fqdn = 'admin.openqa.test';
 # Extra space to check for bsc#1087447
@@ -70,12 +71,18 @@ sub velum_login {
     send_key 'ret';
 }
 
-# Users have to confirm certificate 3 times during deployment
-sub confirm_insecure_https {
-    wait_still_screen 3;
-    assert_and_click 'velum-https-advanced';
-    assert_and_click 'velum-https-add_exception';
-    assert_and_click 'velum-https-confirm';
+# Executes salt command on admin node.
+# Escaping: ' is OK; " and spacial chars need to be escaped
+# Params: target [admin|kube-master|kube-minion]; timeout
+# Example: salt "cmd.run SUSEConnect -d", target => 'kube-(master|minion)', timeout => 20;
+sub salt {
+    my ($cmd, %args) = @_;
+
+    my $update_args = qq#-e "$cmd"#;
+    $update_args .= qq# -t "roles:$args{target}"# if $args{target};
+
+    record_info './update.sh exec', "ssh $admin_fqdn './update.sh $update_args'";
+    script_assert0("ssh $admin_fqdn './update.sh $update_args' | tee /dev/$serialdev", $args{timeout});
 }
 
 # Base class for CaaSP tests
@@ -91,7 +98,7 @@ sub post_fail_hook {
 
     # Destroy barriers and create mutexes to avoid deadlock
     barrier_destroy 'NODES_ONLINE';
-    barrier_destroy 'DELAYED_NODES_ONLINE';
+    barrier_try_wait 'DELAYED_NODES_ONLINE';
     unpause 'ALL';
 
     # Wait for log export from all nodes

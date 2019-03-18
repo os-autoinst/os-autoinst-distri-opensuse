@@ -13,6 +13,7 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use partition_setup 'take_first_disk';

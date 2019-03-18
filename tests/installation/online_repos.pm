@@ -19,6 +19,7 @@
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils qw(:VERSION :SCENARIO);

@@ -14,8 +14,9 @@ use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use testapi;
-use caasp 'script_retry';
+use utils 'script_retry';
 use utils qw(zypper_call systemctl);
 
 sub run {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,14 +14,12 @@
 use base "opensusebasetest";
 use testapi;
 use strict;
+use warnings;
 use utils;
 use lockapi;
 use mmapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
     my ($self)       = @_;
     my $trex_version = get_required_var('TG_VERSION');
     my $tarball      = "$trex_version.tar.gz";
@@ -30,6 +28,8 @@ sub run {
     my $trex_conf    = "/etc/trex_cfg.yaml";
     my $PORT_1       = get_required_var('PORT_1');
     my $PORT_2       = get_required_var('PORT_2');
+
+    $self->select_serial_terminal;
 
     # Download and extract T-Rex package
     record_info("INFO", "Download TREX package");

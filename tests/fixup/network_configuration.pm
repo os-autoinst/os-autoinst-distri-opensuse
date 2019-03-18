@@ -21,10 +21,12 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 
 sub run {
 
+    select_console 'x11';
     # openSUSE 13.2's (and earlier) systemd has broken rules for virtio-net, not applying predictable names (despite being configured)
     # A maintenance update breaking networking names sounds worse than just accepting that 13.2 -> TW breaks with virtio-net
     # At this point, the system has been updated, but our network interface changed name (thus we lost network connection)

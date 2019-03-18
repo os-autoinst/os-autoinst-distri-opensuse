@@ -1,0 +1,13 @@
+PASS 0 qethqoat -h
+PASS 0 qethqoat --help
+PASS 0 qethqoat -v
+PASS 0 qethqoat --version
+FAIL 1 qethqoat -z
+FAIL 1 qethqoat
+FAIL 1 qethqoat -r
+FAIL 1 qethqoat --raw
+FAIL 1 qethqoat
+FAIL 1 qethqoat eth18
+FAIL 1 qethqoat -r eth18
+FAIL 1 qethqoat -s 1 eth18
+FAIL 1 qethqoat -f invalidfileoption

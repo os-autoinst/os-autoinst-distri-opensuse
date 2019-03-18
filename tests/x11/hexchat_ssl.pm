@@ -1,23 +1,28 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-
+#
 # Summary: FIPS : hexchat_ssl
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: testopia#1459498
+# Tags: poo#49139 , poo#49136
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
+    select_console "root-console";
+
     my $name = ('hexchat');
-    ensure_installed($name);
+    zypper_call("in $name");
+
     # we need to move the mouse in the top left corner as hexchat
     # opens it's window where the mouse is. mouse_hide() would move
     # it to the lower right where the pk-update-icon's passive popup

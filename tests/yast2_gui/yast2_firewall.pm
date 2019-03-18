@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,11 +14,13 @@
 
 use base "y2x11test";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use yast2_shortcuts '%fw';
 use network_utils 'iface';
+use yast2_widget_utils 'change_service_configuration';
 
 sub susefirewall2 {
     # 	enter page interfaces and change zone for network interface
@@ -70,18 +72,6 @@ sub susefirewall2 {
     send_key "alt-f";
 }
 
-sub detect_bsc_1114677 {
-    my $needle = shift;
-
-    assert_screen [$needle, 'generic-desktop'], no_wait => 1;
-    if (match_has_tag('generic-desktop')) {
-        record_soft_failure "bsc#1114677 - Dialog dissapear after switching service status";
-    }
-    else {
-        wait_still_screen 3;    # it failed to detect the flickering even with no_wait flag
-    }
-}
-
 sub verify_service_stopped {
     my $self = shift;
 
@@ -89,19 +79,12 @@ sub verify_service_stopped {
     select_console 'x11', await_console => 0;
     $self->launch_yast2_module_x11('firewall', target_match => 'firewall-start-page');
     assert_screen 'yast2_firewall_start-up';
-    assert_screen 'yast2_firewall_service_status_running';
-    send_key $fw{service_stop};
-    detect_bsc_1114677 'yast2_firewall_service_status_stopped';
-    assert_screen 'yast2_firewall_service_status_stopped';
+    change_service_configuration(after_writing => {stop => 'alt-t'});
     wait_screen_change { send_key $cmd{accept} };
     assert_screen 'generic-desktop';
 
     select_console 'root-console';
-    if (script_run("firewall-cmd --state 2>&1 | grep 'not running'") != 0) {
-        record_soft_failure "bsc#1114807 - service does not stop ";
-        return 0;
-    }
-    return 1;
+    assert_script_run("! (firewall-cmd --state) | grep 'not running'");
 }
 
 sub verify_service_started {
@@ -111,10 +94,7 @@ sub verify_service_started {
     select_console 'x11', await_console => 0;
     $self->launch_yast2_module_x11('firewall', target_match => 'firewall-start-page');
     assert_screen 'yast2_firewall_start-up';
-    assert_screen 'yast2_firewall_service_status_stopped';
-    send_key $fw{service_start};
-    detect_bsc_1114677 'yast2_firewall_service_status_running';
-    assert_screen 'yast2_firewall_service_status_running';
+    change_service_configuration(after_writing => {start => 'alt-t'});
     wait_screen_change { send_key $cmd{accept} };
     assert_screen 'generic-desktop';
 
@@ -203,23 +183,21 @@ sub configure_firewalld {
 }
 
 sub verify_firewalld_configuration {
+    record_info('Verify firewall', 'Verify firewall configuration');
     select_console 'root-console';
     assert_script_run 'firewall-cmd --state | grep running';
-    if (script_run('firewall-cmd --list-interfaces --zone=public | grep ' . $fw{interface_device})) {
-        record_soft_failure "bsc#1114673 - Interface not assigned to the right zone in first run";
-    }
+    assert_script_run 'firewall-cmd --list-interfaces --zone=public | grep ' . iface;
     assert_script_run 'firewall-cmd --list-all --zone=trusted | grep -E \'services: bitcoin\'';
     assert_script_run 'firewall-cmd --list-all --zone=trusted | grep -E \'ports: 7777/tcp\'';
 }
 
 sub run {
     my $self = shift;
+    select_console 'x11';
 
     if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
-        # Check if service is stopped: bsc#1114677
-        if ($self->verify_service_stopped) {
-            $self->verify_service_started;
-        }
+        $self->verify_service_stopped;
+        $self->verify_service_started;
         $self->configure_firewalld;
         verify_firewalld_configuration;
         select_console 'x11', await_console => 0;

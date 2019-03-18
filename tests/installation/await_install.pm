@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,6 +12,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
+use warnings;
 use base 'y2logsstep';
 use testapi;
 use lockapi;
@@ -145,7 +146,7 @@ sub run {
     }
 
     # Stop reboot countdown for e.g. uploading logs
-    unless (get_var("REMOTE_CONTROLLER") || is_caasp || is_hyperv_in_gui) {
+    unless (get_var("REMOTE_CONTROLLER") || is_caasp) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.

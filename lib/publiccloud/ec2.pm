@@ -19,26 +19,15 @@ has ssh_key      => undef;
 has ssh_key_file => undef;
 has credentials  => undef;
 
-sub create_credentials {
+sub vault_create_credentials {
     my ($self) = @_;
 
-    if (!defined($self->credentials)) {
-        my $credentials = $self->do_rest_api('/ec2/key', method => 'post');
-        $self->credentials($credentials);
-        $self->key_id($credentials->{key_id});
-        $self->key_secret($credentials->{secret});
-    }
+    record_info('INFO', 'Get credentials from VAULT server.');
+    my $res = $self->vault_api('/v1/aws/creds/openqa-role', method => 'get');
+    $self->vault_lease_id($res->{lease_id});
+    $self->key_id($res->{data}->{access_key});
+    $self->key_secret($res->{data}->{secret_key});
     die('Failed to retrieve key') unless (defined($self->key_id) && defined($self->key_secret));
-}
-
-sub delete_credentials {
-    my ($self) = @_;
-
-    return unless (defined($self->credentials));
-
-    my $key_id = $self->credentials->{key_id};
-    $self->do_rest_api('/ec2/key/' . $key_id, method => 'delete');
-    $self->credentials(undef);
 }
 
 sub _check_credentials {
@@ -56,7 +45,7 @@ sub init {
     $self->SUPER::init();
 
     if (!defined($self->key_id) || !defined($self->key_secret)) {
-        $self->create_credentials();
+        $self->vault_create_credentials();
     }
 
     assert_script_run("export AWS_ACCESS_KEY_ID=" . $self->key_id);
@@ -155,9 +144,9 @@ sub ipa {
 
 sub cleanup {
     my ($self) = @_;
-    $self->SUPER::cleanup();
+    $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
-    $self->delete_credentials();
+    $self->vault_revoke();
 }
 
 1;

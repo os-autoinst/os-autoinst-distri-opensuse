@@ -34,6 +34,12 @@ sub run {
         select_console 'sol', await_console => 0;
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+    # boot bare-metal/IPMI machine
+    if (check_var('BACKEND', 'ipmi') && get_var('BOOT_IPMI_SYSTEM')) {
+        send_key 'ret';
+        assert_screen 'linux-login', 100;
+        return 1;
+    }
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
@@ -62,6 +68,7 @@ sub run {
         }
         elsif (match_has_tag("orthos-grub-boot")) {
             #Orthos
+            wait_still_screen 5;
             my $path_prefix = "auto/openqa/repo";
             my $path        = "${path_prefix}/${image_name}/boot/${arch}";
             $image_path = "linux $path/linux install=$repo";
@@ -81,6 +88,7 @@ sub run {
             my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
             my $release = get_var('BETA') ? 'LATEST' : 'GM';
             $image_name = get_var('ISO') =~ s/.*\/(.*)-DVD-${arch}-.*\.iso/$1-$release/r;
+            $image_name = get_var('PXE_PRODUCT_NAME') if get_var('PXE_PRODUCT_NAME');
             $image_path = "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
             $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
             $image_path .= "install=http://mirror.suse.cz/install/SLP/${image_name}/${arch}/DVD1$device ";
@@ -92,6 +100,7 @@ sub run {
         send_key "tab";
     }
     if (check_var('BACKEND', 'ipmi')) {
+        $image_path .= "ipv6.disable=1 " if get_var('LINUX_BOOT_IPV6_DISABLE');
         $image_path .= "ifcfg=$interface=dhcp4 " unless get_var('NETWORK_INIT_PARAM');
         $image_path .= 'plymouth.enable=0 ';
     }
@@ -132,6 +141,7 @@ sub run {
         if (match_has_tag("orthos-grub-boot-linux")) {
             my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
             my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+            wait_still_screen 5;
             type_string $args;
             send_key 'ret';
             assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;

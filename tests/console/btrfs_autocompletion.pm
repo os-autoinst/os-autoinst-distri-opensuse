@@ -12,6 +12,7 @@
 
 use base 'btrfs_test';
 use strict;
+use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_jeos';

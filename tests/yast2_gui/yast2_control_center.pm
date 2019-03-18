@@ -16,6 +16,7 @@
 
 use base 'y2x11test';
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_opensuse is_sle is_leap is_tumbleweed is_storage_ng);
@@ -314,6 +315,7 @@ sub start_fonts {
 
 sub run {
     my $self = shift;
+    select_console 'x11';
     if (is_sle '15+') {
         # kdump is disabled by default, so ensure that it's installed
         ensure_installed 'yast2-kdump';

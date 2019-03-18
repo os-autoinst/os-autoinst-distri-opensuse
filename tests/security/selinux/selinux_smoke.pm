@@ -23,9 +23,10 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use utils;
-use registration "add_suseconnect_product";
+use registration qw(add_suseconnect_product register_product);
 use version_utils "is_sle";
 
 sub run {
@@ -45,8 +46,7 @@ sub run {
 
     # for sle, register available extensions and modules, e.g., free addons
     if (is_sle) {
-        my $SCC_REGCODE = get_required_var("SCC_REGCODE");
-        assert_script_run("SUSEConnect -r $SCC_REGCODE");
+        register_product();
         add_suseconnect_product("sle-module-web-scripting");
     }
 

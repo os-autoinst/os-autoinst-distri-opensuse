@@ -15,9 +15,10 @@
 #
 # Summary: Test the profile generation utility of Apparmor
 # Maintainer: Wes <whdu@suse.com>
-# Tags: poo#36886, tc#1621140
+# Tags: poo#36886, poo#45803
 
 use strict;
+use warnings;
 use base "apparmortest";
 use testapi;
 use utils;
@@ -25,50 +26,61 @@ use utils;
 sub run {
     my ($self) = @_;
 
-    my $aa_tmp_prof           = "/tmp/apparmor.d";
-    my $aa_genprof_filter_pre = [
-        {
-            word => qr/\(S\)can system.*\(F\)inish/m,
-            key  => 's',
-            end  => 1,
-        },
-    ];
-    my $aa_genprof_filter = [
-        {
-            word => qr/\(A\)llow.*\(D\)eny/m,
-            key  => 'a',
-        },
-        {
-            word => qr/\(S\)ave Changes/m,
-            key  => 's',
-        },
-        {
-            word => qr/\(S\)can system.*\(F\)inish/m,
-            key  => 'f',
-            end  => 1,
-        },
-    ];
+    my $aa_tmp_prof = "/tmp/apparmor.d";
+    my $sc_dtch_msg = "Screen detached";
+    my $sc_term_msg = "Screen terminated";
 
     systemctl('start auditd');
 
-    $self->aa_disable_stdout_buf("/usr/sbin/aa-genprof");
     $self->aa_tmp_prof_prepare("$aa_tmp_prof");
 
     assert_script_run("rm -f  $aa_tmp_prof/usr.sbin.nscd");
 
-    # Run the command in background so that we could run other commands
-    script_run("(aa-genprof -d $aa_tmp_prof nscd|tee /dev/$serialdev) &", 0);
-    sleep 5;
-    send_key 'ret';    # Back to the shell prompt
+    # Run aa-genprof command in screen so that we could restart nscd at the
+    # same time while it is waiting for scan
+    script_run("screen -m ; echo '$sc_dtch_msg' > /dev/$serialdev", 0);
+
+    # Confirm it is in the screen
+    validate_script_output "echo \$TERM", sub { m/screen/ };
+
+    script_run_interactive("aa-genprof -d $aa_tmp_prof nscd", undef);
+    wait_serial("Please start the application", 20);
+
+    # Detach screen
+    send_key 'ctrl-a';
+    sleep 1;
+    send_key 'd';
+    wait_serial("$sc_dtch_msg", 10);    # confirm detached
 
     systemctl('restart nscd');
+    sleep 3;
 
-    # Call the job to the front ground
-    script_run("fg", 0);
-    send_key 'ret';    # Work around for Tumblweed
+    # reattach screen
+    script_run("screen -r ; echo '$sc_term_msg' > /dev/$serialdev", 0);
+    send_key 's';
 
-    $self->aa_interactive_run(undef, $aa_genprof_filter_pre);
-    $self->aa_interactive_run(undef, $aa_genprof_filter);
+    script_run_interactive(
+        undef,
+        [
+            {
+                prompt => qr/\(A\)llow.*\(D\)eny/m,
+                key    => 'a',
+            },
+            {
+                prompt => qr/\(S\)ave Changes/m,
+                key    => 's',
+            },
+            {
+                prompt => qr/\(S\)can system.*\(F\)inish/m,
+                key    => 'f',
+            },
+        ],
+        30
+    );
+
+    # Exit screen
+    send_key 'ctrl-d';
+    wait_serial("$sc_term_msg", 10);    # confirm terminated
 
     # Not all rules will be checked here, only the critical ones.
     validate_script_output "cat $aa_tmp_prof/usr.sbin.nscd", sub {

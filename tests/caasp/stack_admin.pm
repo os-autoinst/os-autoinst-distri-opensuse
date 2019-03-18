@@ -10,17 +10,19 @@
 # Summary: Start admin node (velum)
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use base "caasp_clusternode";
 use strict;
+use warnings;
 use testapi;
 use caasp;
+use utils 'script_retry';
 use version_utils 'is_caasp';
 
 # Set password on autoyast nodes - bsc#1030876
 sub set_autoyast_password {
-    assert_script_run q#id=$(docker ps | grep salt-master | awk '{print $1}')#;
-    assert_script_run q#pw=$(grep root /etc/shadow | cut -d':' -f2)#;
-    assert_script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"', 60;
+    script_run q#id=$(docker ps -qf name=salt-master)#;
+    script_run q#pw=$(grep root /etc/shadow | cut -d':' -f2)#;
+    script_run 'docker exec $id salt -E ".{32}" shadow.set_password root "$pw"', 60;
 
     # Unlock and wait for propagation
     unpause 'AUTOYAST_PW_SET';
@@ -29,10 +31,10 @@ sub set_autoyast_password {
 
 sub run() {
     # Admin node needs long time to start web interface - bsc#1031682
-    script_retry 'curl -kLI localhost | grep _velum_session', retry => 15, delay => 15;
+    script_retry 'curl -kLI localhost | grep _velum_session', retry => 30, delay => 30;
     # Enable salt debug
     if (get_var 'DEBUG_SLEEP') {
-        script_run 'id=$(docker ps | grep salt-master | awk \'{print $1}\')';
+        script_run 'id=$(docker ps -qf name=salt-master)';
         script_run 'echo "log_level: trace" > /etc/caasp/salt-master-custom.conf';
         script_run 'docker restart $id';
     }
@@ -52,13 +54,6 @@ sub run() {
     }
 
     set_autoyast_password if is_caasp 'DVD';
-    export_cluster_logs;
-}
-
-sub post_fail_hook {
-    # Variable to enable failed cluster debug
-    sleep if check_var('DEBUG_SLEEP', 'admin');
-    export_cluster_logs;
 }
 
 1;

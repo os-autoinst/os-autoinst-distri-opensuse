@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,10 +18,11 @@
 # Tags: tc#1586206
 
 use strict;
+use warnings;
 use base 'basetest';
 use testapi;
 use lockapi;
-use utils;
+use x11utils 'handle_login';
 
 sub run {
     #wait for supportserver if not yet ready

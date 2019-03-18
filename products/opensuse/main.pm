@@ -16,6 +16,8 @@ use needle;
 use version_utils ':VERSION';
 use File::Find;
 use File::Basename;
+use DistributionProvider;
+use scheduler 'load_yaml_schedule';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -69,9 +71,7 @@ sub cleanup_needles {
 my @time = localtime();
 set_var('WINTER_IS_THERE', 1) if ($time[4] == 11 || $time[4] == 0);
 
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
-require $distri;
-testapi::set_distribution(susedistribution->new());
+testapi::set_distribution(DistributionProvider->provide());
 
 # Set serial failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
@@ -150,6 +150,8 @@ logcurrentenv(
       ENCRYPT INSTLANG QEMUVGA DOCRUN UEFI DVD GNOME KDE ISO ISO_MAXSIZE
       LIVECD NETBOOT NOIMAGES QEMUVGA SPLITUSR VIDEOMODE)
 );
+
+return 1 if load_yaml_schedule;
 
 sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
@@ -281,6 +283,17 @@ sub load_slenkins_tests {
     return 0;
 }
 
+sub prepare_target {
+    if (get_var("BOOT_HDD_IMAGE")) {
+        boot_hdd_image;
+    }
+    else {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+    }
+}
+
 sub load_default_tests {
     load_boot_tests();
     load_inst_tests();
@@ -354,15 +367,11 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_reboot_tests();
 }
 elsif (get_var('SECURITY_TEST')) {
-    boot_hdd_image;
+    prepare_target();
     load_security_tests;
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
-}
-elsif (get_var('DOCKER_IMAGE_TEST')) {
-    boot_hdd_image;
-    load_extra_tests_docker;
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {

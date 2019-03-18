@@ -2,6 +2,7 @@ package y2logsstep;
 use base "installbasetest";
 use testapi;
 use strict;
+use warnings;
 use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
 use network_utils;
@@ -84,6 +85,8 @@ sub workaround_dependency_issues {
         while (check_screen('dependency-issue', 5)) {
             wait_screen_change { send_key 'alt-1' };
             select_conflict_resolution;
+            # Refer ticket https://progress.opensuse.org/issues/48266
+            wait_still_screen(2);
         }
     }
     return 1;
@@ -106,6 +109,8 @@ sub break_dependency {
             # 2 is the option to break dependency
             send_key 'alt-2';
             select_conflict_resolution;
+            # Refer ticket https://progress.opensuse.org/issues/48266
+            wait_still_screen(2);
         }
     }
 }
@@ -189,7 +194,8 @@ sub deal_with_dependency_issues {
     }
 
     # Installer need time to adapt the proposal after conflicts fixed
-    assert_screen([qw(installation-settings-overview-loaded adapting_proposal)]);
+    # Refer ticket: https://progress.opensuse.org/issues/48371
+    assert_screen([qw(installation-settings-overview-loaded adapting_proposal)], 90);
     if (match_has_tag('adapting_proposal')) {
         my $timeout  = 600;
         my $interval = 10;
@@ -277,7 +283,9 @@ sub save_upload_y2logs {
         script_run("cat /var/log/YaST/y2log > /dev/$serialdev");
     }
     save_screenshot();
-    $self->investigate_yast2_failure();
+    # We skip parsing yast2 logs in each installation scenario, but only if
+    # test has failed or we want to explicitly identify failures
+    $self->investigate_yast2_failure() unless $args{skip_logs_investigation};
 }
 
 sub get_available_compression {
@@ -348,21 +356,23 @@ sub save_strace_gdb_output {
             $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
         }
         # We enable gdb differently in the installer and in the installed SUT
+        my $system_management_locked;
         if ($is_yast_module) {
-            zypper_call 'in gdb';
+            $system_management_locked = zypper_call('in gdb', exitcode => [0, 7]) == 7;
         }
         else {
-            assert_script_run 'extend gdb';
+            script_run 'extend gdb';
         }
-        my $gdb_output = '/tmp/yast_gdb.log';
-        my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
-        upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
+        unless ($system_management_locked) {
+            my $gdb_output = '/tmp/yast_gdb.log';
+            my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
+            upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
+        }
     }
 }
 
 sub post_fail_hook {
     my $self = shift;
-
     $self->SUPER::post_fail_hook;
     get_to_console;
     $self->detect_bsc_1063638;

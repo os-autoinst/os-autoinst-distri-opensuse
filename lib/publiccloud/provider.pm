@@ -27,6 +27,8 @@ has region            => undef;
 has username          => undef;
 has prefix            => 'openqa';
 has terraform_applied => 0;
+has vault_token       => undef;
+has vault_lease_id    => undef;
 
 =head1 METHODS
 
@@ -157,6 +159,9 @@ sub run_ipa {
     $args{distro}      //= 'sles';
     $args{tests} =~ s/,/ /g;
 
+    my $version = script_output('ipa --version');
+    record_info("IPA version", $version);
+
     my $cmd = 'ipa --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
     $cmd .= "--distro " . $args{distro} . " ";
@@ -232,6 +237,19 @@ sub create_instance {
     die('Cannot reach port 22 on IP ' . $instance->{public_ip});
 }
 
+=head2 on_terraform_timeout
+
+This method can be overwritten but child classes to do some special
+cleanup task.
+Terraform was already terminated using the QUIT signal and openqa has a
+valid shell.
+The working directory is always the terraform directory, where the statefile
+and the *.tf is placed.
+
+=cut
+sub on_terraform_timeout {
+}
+
 =head2 terraform_apply
 
 Calls terraform tool and applies the corresponding configuration .tf file
@@ -249,14 +267,23 @@ sub terraform_apply {
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
     assert_script_run('cd ' . TERRAFORM_DIR);
-    record_info('INFO', "Creating instance $args{instance_type} from $args{image} ...");
+    record_info('INFO', "Creating instance $instance_type from $image ...");
     assert_script_run('terraform init', TERRAFORM_TIMEOUT);
 
     my $cmd = sprintf("terraform plan -var 'image_id=%s' -var 'count=%s' -var 'type=%s' -var 'region=%s' -out myplan",
         $image, $args{count}, $instance_type, $self->region);
 
     assert_script_run($cmd);
-    assert_script_run('terraform apply myplan', TERRAFORM_TIMEOUT);
+    my $ret = script_run('terraform apply myplan', TERRAFORM_TIMEOUT);
+    unless (defined $ret) {
+        type_string(qq(\c\\));        # Send QUIT signal
+        assert_script_run('true');    # make sure we have a prompt
+        record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
+        assert_script_run('cd ' . TERRAFORM_DIR);
+        $self->on_terraform_timeout();
+        die('Terraform apply failed with timeout');
+    }
+    die('Terraform exit with ' . $ret) if ($ret != 0);
 
     $self->terraform_applied(1);
 
@@ -292,24 +319,91 @@ sub terraform_destroy {
     script_run('terraform destroy -auto-approve', TERRAFORM_TIMEOUT);
 }
 
-sub do_rest_api {
-    my ($self, $path, %args) = @_;
-    my $method    = $args{method} // 'get';
-    my $ua        = Mojo::UserAgent->new;
-    my $url       = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
-    my $max_tries = 3;
-    my $res;
+=head2 vault_login
+
+Login to vault using C<_SECRET_PUBLIC_CLOUD_REST_USER> and
+C<_SECRET_PUBLIC_CLOUD_REST_PW>. The retrieved VAULT_TOKEN is stored in this
+instance and used for further C<publiccloud::provider::vault_api()> calls.
+=cut
+sub vault_login
+{
+    my ($self)   = @_;
+    my $url      = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $user     = get_required_var('_SECRET_PUBLIC_CLOUD_REST_USER');
+    my $password = get_required_var('_SECRET_PUBLIC_CLOUD_REST_PW');
+    my $ua       = Mojo::UserAgent->new;
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
-    for my $cnt (1 .. $max_tries) {
-        $res = $ua->$method($url . $path)->result;
-        if ($res->is_success) {
-            return decode_json($res->body);
+    $url = $url . '/v1/auth/userpass/login/' . $user;
+    my $res = $ua->post($url => json => {password => $password})->result;
+    if (!$res->is_success) {
+        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
+        if ($res->code == 400) {
+            for my $e (@{$res->json->{errors}}) {
+                bmwqemu::diag($e);
+            }
         }
-        bmwqemu::diag('Retry[' . $cnt . '] REST(' . $method . ') request: ' . $path);
+        die("Vault login failed - $url");
     }
-    die($res->message);
+
+    return $self->vault_token($res->json('/auth/client_token'));
 }
+
+=head2 vault_api
+
+Invoke a vault API call. It use _SECRET_PUBLIC_CLOUD_REST_URL as base
+url.
+Depending on the method (get|post) you can pass additional data as json.
+=cut
+sub vault_api {
+    my ($self, $path, %args) = @_;
+    my $method = $args{method} // 'get';
+    my $data   = $args{data}   // {};
+    my $ua     = Mojo::UserAgent->new;
+    my $url    = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $res;
+
+    $self->vault_login() unless ($self->vault_token);
+
+    $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
+    $url = $url . $path;
+    if ($method eq 'get') {
+        $res = $ua->get($url =>
+              {'X-Vault-Token' => $self->vault_token()})->result;
+    } elsif ($method eq 'post') {
+        $res = $ua->post($url =>
+              {'X-Vault-Token' => $self->vault_token()} =>
+              json => $data)->result;
+    } else {
+        die("Unknown method $method");
+    }
+
+    if (!$res->is_success) {
+        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
+        if ($res->code == 400) {
+            for my $e (@{$res->json->{errors}}) {
+                bmwqemu::diag($e);
+            }
+        }
+        die("Vault REST api call failed - $url");
+    }
+
+    return $res->json;
+}
+
+=head2 vault_revoke
+
+Revoke a previous retrieved credential
+=cut
+sub vault_revoke {
+    my ($self) = @_;
+
+    return unless (defined($self->vault_lease_id));
+
+    $self->vault_api('/v1/sys/leases/revoke', method => 'post', data => {lease_id => $self->vault_lease_id});
+    $self->vault_lease_id(undef);
+}
+
 
 =head2 cleanup
 
@@ -319,6 +413,7 @@ This method is called called after each test on failure or success.
 sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy() if ($self->terraform_applied);
+    $self->vault_revoke();
 }
 
 1;

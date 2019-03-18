@@ -243,9 +243,17 @@ sub update_kgraft {
     }
 }
 
+sub install_kotd {
+    my $repo = shift;
+    fully_patch_system;
+    remove_kernel_packages;
+    zypper_call("ar -G -f -p 90 $repo KOTD");
+    zypper_call("in -l kernel-default");
+}
+
 sub boot_to_console {
     my ($self) = @_;
-    $self->wait_boot;
+    $self->wait_boot unless check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL');
     if (check_var('BACKEND', 'ipmi')) {
         use_ssh_serial_console;
     }
@@ -258,10 +266,12 @@ sub run {
     my $self = shift;
     boot_to_console($self);
 
-    my $repo = get_required_var('INCIDENT_REPO');
-
-    # Set and check patch variables
-    my $incident_id = get_required_var('INCIDENT_ID');
+    my $repo        = get_var('KOTD_REPO');
+    my $incident_id = undef;
+    unless ($repo) {
+        $repo        = get_required_var('INCIDENT_REPO');
+        $incident_id = get_required_var('INCIDENT_ID');
+    }
 
     if (get_var('KGRAFT')) {
         my $qa_head = get_required_var('QA_HEAD_REPO');
@@ -291,11 +301,15 @@ sub run {
         prepare_azure;
         update_kernel($repo, $incident_id);
     }
+    elsif (get_var('KOTD_REPO')) {
+        install_kotd($repo);
+    }
     else {
         update_kernel($repo, $incident_id);
     }
 
     power_action('reboot', textmode => 1);
+    $self->wait_boot if get_var('LTP_BAREMETAL');
 }
 
 sub test_flags {

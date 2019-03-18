@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,10 +13,11 @@
 
 use base qw(y2logsstep y2x11test);
 use strict;
+use warnings;
 use testapi;
-use registration 'fill_in_registration_data';
+use registration;
 use version_utils 'is_sle';
-use utils 'turn_off_gnome_screensaver';
+use x11utils 'turn_off_gnome_screensaver';
 
 =head2 test_setup
 Define proxy SCC. For SLE 15 we need to clean existing registration
@@ -24,14 +25,13 @@ Define proxy SCC. For SLE 15 we need to clean existing registration
 sub test_setup {
     select_console 'root-console';
     if (is_sle('>=15')) {
-        assert_script_run 'SUSEConnect --clean';                                          # Remove registration from the system
-        assert_script_run 'echo "url: ' . get_var('SCC_URL') . '" > /etc/SUSEConnect';    # Define proxy SCC
+        cleanup_registration();
     }
     elsif (get_var('SCC_ADDONS')) {
         # Add every used addon to regurl for proxy SCC
         my @addon_proxy = ("url: http://server-" . get_var('BUILD_SLE'));
         for my $addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-            my $uc_addon = uc $addon;                                                     # change to uppercase to match variable
+            my $uc_addon = uc $addon;    # change to uppercase to match variable
             push(@addon_proxy, "\b.$addon-" . get_var("BUILD_$uc_addon"));
         }
         assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";    # Define proxy SCC
@@ -51,6 +51,13 @@ sub run {
     }
     fill_in_registration_data;
     assert_screen 'generic-desktop';
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    verify_scc;
+    investigate_log_empty_license;
 }
 
 1;

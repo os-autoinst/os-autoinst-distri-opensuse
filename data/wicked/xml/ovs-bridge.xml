@@ -1,0 +1,59 @@
+<interface>
+  <name>br0</name>
+
+  <ovs-bridge>
+    <ports>
+      <port>
+        <device>iface</device>
+      </port>
+      <port>
+        <device>dummy0</device>
+      </port>
+    </ports>
+  </ovs-bridge>
+
+  <ipv4:static>
+    <address>
+      <local>ip_address/16</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:c0de:ba5e:200::200/48</local>
+    </address>
+  </ipv6:static>
+</interface>
+
+<interface>
+  <name>ovs-system</name>
+  <control>
+    <mode>hotplug</mode>
+  </control>
+</interface>
+
+<interface>
+  <name>iface</name>
+
+  <link>
+    <master>ovs-system</master>
+    <port type="ovs-bridge">
+      <bridge>br0</bridge>
+    </port>
+  </link>
+</interface>
+
+<interface>
+  <name>dummy0</name>
+
+  <link>
+    <master>ovs-system</master>
+    <port type="ovs-bridge">
+      <bridge>br0</bridge>
+    </port>
+  </link>
+
+  <dummy>
+    <address>42:41:40:3F:3E:3D</address>
+  </dummy>
+</interface>

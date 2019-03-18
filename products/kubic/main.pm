@@ -39,10 +39,8 @@ sub load_feature_tests {
         loadtest 'console/kubeadm';
     }
     else {
-        # Docker only present on MicroOS, not kubeadm roles
-        loadtest 'console/docker';
+        loadtest 'console/podman';
     }
-    loadtest 'console/podman';
 }
 
 sub load_rcshell_tests {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,8 +13,9 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
-use utils 'ensure_unlocked_desktop';
+use x11utils 'ensure_unlocked_desktop';
 
 # Any free display
 my $display = ':37';

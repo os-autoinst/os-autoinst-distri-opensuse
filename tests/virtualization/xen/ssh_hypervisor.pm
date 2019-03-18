@@ -16,28 +16,50 @@
 # Summary: This test connects to hypervisor using SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 
 sub run {
     my ($self) = @_;
-    select_console 'x11';
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $hypervisor = get_required_var('HYPERVISOR');
 
-    x11_start_program('xterm');
+    # Remove old files
+    assert_script_run 'rm ~/.ssh/* || true';
 
+    # Generate the key pair
     assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
-    assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";
-    exec_and_insert_password "ssh-copy-id root\@$hypervisor";
 
-    wait_screen_change { send_key 'alt-f4'; };
+    # Configure the Master socket
+    assert_script_run "echo 'ControlMaster auto
+    ControlPath ~/.ssh/ssh_%r_%h_%p
+    ControlPersist 86400
+    
+    Host $hypervisor
+      Hostname $hypervisor
+      User root
+
+    Host sles*
+      ProxyJump $hypervisor
+    ' > ~/.ssh/config";
+
+    # Exchange SSH keys
+    assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";
+    exec_and_insert_password "ssh-copy-id -f root\@$hypervisor";
+
+    # Test the connection
+    assert_script_run "ssh root\@$hypervisor hostname -f";
+
+    # Copy that also for normal user
+    assert_script_run "install -o $testapi::username -g users -m 0700 -d /home/$testapi::username/.ssh";
+    assert_script_run "install -o $testapi::username -g users -m 0600 ~/.ssh/config ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts /home/$testapi::username/.ssh/";
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

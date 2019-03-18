@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use lockapi;
 use mmapi;
@@ -79,6 +80,17 @@ sub run {
             barrier_create("FS_DATA_COPIED_${fs_tag}_$cluster_name",      $num_nodes);
             barrier_create("FS_CHECKED_${fs_tag}_$cluster_name",          $num_nodes);
         }
+
+        # Create barriers for SAP cluster
+        # Note: we always create these barries even if they are not used, mainly
+        # because it's not easy to know at this stage that we are testing a SAP cluster...
+        barrier_create("ASCS_INSTALLED_$cluster_name",     $num_nodes);
+        barrier_create("ERS_INSTALLED_$cluster_name",      $num_nodes);
+        barrier_create("NW_CLUSTER_HOSTS_$cluster_name",   $num_nodes);
+        barrier_create("NW_CLUSTER_INSTALL_$cluster_name", $num_nodes);
+        barrier_create("NW_INIT_CONF_$cluster_name",       $num_nodes);
+        barrier_create("NW_CREATED_CONF_$cluster_name",    $num_nodes);
+        barrier_create("NW_LOADED_CONF_$cluster_name",     $num_nodes);
     }
 
     # Wait for all children to start

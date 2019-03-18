@@ -26,6 +26,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 use registration;
 use version_utils qw(is_sle is_leap);
 
@@ -33,7 +34,7 @@ sub run {
     select_console("root-console");
 
     # images can be searched on the default registry
-    validate_script_output("podman search --no-trunc opensuse", sub { m/This project contains the stable releases of the openSUSE distribution/ });
+    validate_script_output("podman search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
 
     # images can be pulled from the default registry
     #   - pull minimalistic alpine image of declared version using tag
@@ -91,6 +92,9 @@ sub run {
     my $output = script_output('podman container run tw:saved curl -I google.de');
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
+    # Using an init process as PID 1
+    assert_script_run 'podman run --rm --init opensuse/tumbleweed ps --no-headers -xo "pid args" | grep "1 /dev/init"';
+
     if (script_run('command -v man') == 0) {
         assert_script_run('man -P cat podman build | grep "podman-build - Build a container image using a Dockerfile"');
     }
@@ -117,6 +121,14 @@ sub run {
     die('error: podman rmi -a did not remove tw:saved')                     if ($output_containers =~ m/Untagged: tw:saved/);
     die("error: podman rmi -a did not remove alpine:$alpine_image_version") if ($output_containers =~ m/Untagged: alpine:$alpine_image_version/);
     die('error: podman rmi -a did not remove hello-world:latest')           if ($output_containers =~ m/Untagged: hello-world:latest/);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    script_run "podman version | tee /dev/$serialdev";
+    script_run "podman info --debug | tee /dev/$serialdev";
+    $self->SUPER::post_fail_hook;
 }
 
 1;

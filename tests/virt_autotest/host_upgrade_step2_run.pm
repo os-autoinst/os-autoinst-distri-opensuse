@@ -14,6 +14,7 @@ use base "host_upgrade_base";
 #use virt_utils qw(set_serialdev);
 use testapi;
 use strict;
+use warnings;
 use virt_utils;
 
 sub get_script_run {

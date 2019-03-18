@@ -16,6 +16,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use bootloader_setup qw(change_grub_config grep_grub_settings grub_mkconfig set_framebuffer_resolution set_extrabootparams_grub_conf);
 

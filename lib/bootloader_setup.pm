@@ -13,13 +13,13 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 
 use File::Basename 'basename';
 use Time::HiRes 'sleep';
 
 use testapi;
 use utils;
-use Utils::Backends 'is_remote_backend';
 use version_utils qw(is_caasp is_jeos is_leap is_sle);
 use caasp 'pause_until';
 use mm_network;
@@ -182,8 +182,6 @@ sub boot_grub_item {
     }
     save_screenshot;
     send_key 'ret';
-
-    $self->wait_boot(in_grub => 1);
 }
 
 
@@ -314,7 +312,7 @@ sub bootmenu_type_console_params {
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
     # and doesn't work if set to serial device. Don't want this on some backends.
-    type_string_very_slow "console=tty " unless (check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm'));
+    type_string_very_slow "console=tty " unless (get_var('BACKEND', '') =~ /ipmi|spvm/);
 }
 
 sub uefi_bootmenu_params {
@@ -797,9 +795,15 @@ sub zkvm_add_disk {
         }
     }
     else {
-        # For some tests we need more than the default 4GB
-        my $size_i = get_var('HDDSIZEGB') || '4';
-        $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => 'a'});
+        # Add new disks according to NUMDISKS
+        my $size_i   = get_var('HDDSIZEGB') || '4';
+        my $numdisks = get_var('NUMDISKS')  || '1';
+        my $dev_id   = 'a';
+        foreach my $n (1 .. $numdisks) {
+            $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => $dev_id});
+            # apply next letter as dev_id
+            $dev_id = chr((ord $dev_id) + 1);
+        }
     }
 }
 

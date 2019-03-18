@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,6 +12,7 @@
 
 use base "installbasetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
@@ -32,7 +33,7 @@ sub run {
     my $zypper_migration_failed       = qr/^Migration failed/m;
     my $zypper_migration_license      = qr/Do you agree with the terms of the license\? \[y/m;
     my $zypper_migration_urlerror     = qr/URI::InvalidURIError/m;
-    my $zypper_migration_reterror     = qr/^No migration available|^Can't get available migrations/m;
+    my $zypper_migration_reterror     = qr/^No migration available|Can't get available migrations/m;
 
     # start migration
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);

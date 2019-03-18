@@ -12,6 +12,7 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
@@ -55,10 +56,7 @@ sub run {
     send_key "alt-l";
     $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
-    $self->handle_uefi_boot_disk_workaround() if get_var('MACHINE') =~ qr'aarch64';
-    assert_screen "grub2";
-    send_key 'up';
-
+    $self->wait_grub(bootloader_time => 90);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
     $self->{in_wait_boot} = 0;

@@ -21,6 +21,9 @@ use version_utils
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
+use scheduler 'load_yaml_schedule';
+
+use DistributionProvider;
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -438,97 +441,6 @@ sub load_slenkins_tests {
     return 0;
 }
 
-sub load_ha_cluster_tests {
-    return unless get_var('HA_CLUSTER');
-
-    # Standard boot
-    boot_hdd_image;
-
-    # Only SLE-15+ has support for lvmlockd
-    set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
-
-    # Wait for barriers to be initialized
-    loadtest 'ha/wait_barriers';
-
-    # Test HA after an upgrade, so no need to configure the HA stack
-    if (get_var('HDDVERSION')) {
-        loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
-        loadtest 'ha/check_after_reboot';
-        loadtest 'ha/check_hawk';
-        return 1;
-    }
-
-    # Patch (if needed) and basic configuration
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    loadtest "console/system_prepare";
-    loadtest 'console/consoletest_setup';
-    loadtest 'console/hostname';
-
-    # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
-    # 'default' System Role is 'HA node' if HA Product i selected
-    loadtest 'console/yast2_ntpclient' unless (get_var('SYSTEM_ROLE', '') =~ /default|ha/);
-
-    # Update the image if needed
-    if (get_var('FULL_UPDATE')) {
-        loadtest 'update/zypper_up';
-        loadtest 'console/console_reboot';
-    }
-
-    # SLE15 workarounds
-    loadtest 'ha/sle15_workarounds' if is_sle('15+');
-
-    # Basic configuration
-    loadtest 'ha/firewall_disable';
-    loadtest 'ha/iscsi_client';
-    loadtest 'ha/watchdog';
-
-    # Cluster initilisation
-    if (get_var('HA_CLUSTER_INIT')) {
-        # Node1 creates a cluster
-        loadtest 'ha/ha_cluster_init';
-    }
-    else {
-        # Node2 joins the cluster
-        loadtest 'ha/ha_cluster_join';
-    }
-
-    # Test Hawk Web interface
-    loadtest 'ha/check_hawk';
-
-    # Lock manager configuration
-    loadtest 'ha/dlm';
-    loadtest 'ha/clvmd_lvmlockd';
-
-    # Test cluster-md feature
-    loadtest 'ha/cluster_md';
-    loadtest 'ha/vg';
-    loadtest 'ha/filesystem';
-
-    # Test DRBD feature
-    if (get_var('HA_CLUSTER_DRBD')) {
-        loadtest 'ha/drbd_passive';
-        loadtest 'ha/filesystem';
-    }
-
-    # Show HA cluster status *before* fencing test and execute fencing test
-    loadtest 'ha/fencing';
-
-    # Node1 will be fenced, so we have to wait for it to boot
-    boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
-
-    # Show HA cluster status *after* fencing test
-    loadtest 'ha/check_after_reboot';
-
-    # Check logs to find error and upload all needed logs if we are not
-    # in installation/publishing mode
-    loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
-
-    # If needed, do some actions prior to the shutdown
-    loadtest 'ha/prepare_shutdown' if get_var('INSTALLONLY');
-
-    return 1;
-}
-
 sub load_feature_tests {
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
@@ -599,6 +511,9 @@ sub prepare_target {
     if (get_var("BOOT_HDD_IMAGE")) {
         boot_hdd_image;
     }
+    elsif (check_var('IPXE', '1')) {
+        return;
+    }
     else {
         load_boot_tests();
         load_inst_tests();
@@ -612,9 +527,15 @@ sub mellanox_config {
 }
 
 sub load_baremetal_tests {
-    load_boot_tests();
-    load_inst_tests();
-    load_reboot_tests();
+    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
+    if (get_var('IPXE')) {
+        loadtest 'installation/ipxe_install';
+        loadtest "console/suseconnect_scc";
+    } else {
+        load_boot_tests();
+        get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
+        load_reboot_tests();
+    }
 }
 
 sub load_infiniband_tests {
@@ -622,6 +543,7 @@ sub load_infiniband_tests {
     # here to ensure they are a) only created once and b) early enough
     # to be available when needed.
     if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
+        barrier_create('IBTEST_SETUP', 2);
         barrier_create('IBTEST_BEGIN', 2);
         barrier_create('IBTEST_DONE',  2);
     }
@@ -663,13 +585,12 @@ sub load_suseconnect_tests {
     loadtest "console/suseconnect";
 }
 
-
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
-require $distri;
-testapi::set_distribution(susedistribution->new());
+testapi::set_distribution(DistributionProvider->provide());
 
 # set serial failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+
+return 1 if load_yaml_schedule;
 
 if (is_jeos) {
     load_jeos_tests();
@@ -677,8 +598,7 @@ if (is_jeos) {
 
 # load the tests in the right order
 if (is_kernel_test()) {
-    if (get_var('LTP_BAREMETAL')) {
-        set_var('ADDONURL', 'sdk') if is_sle('=12-SP4');
+    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
         load_baremetal_tests();
     }
     load_kernel_tests();
@@ -693,9 +613,8 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_xen_hypervisor_tests if check_var("REGRESSION", "xen-hypervisor");
-    load_xen_client_tests     if check_var("REGRESSION", "xen-client");
-    load_suseconnect_tests    if check_var("REGRESSION", "suseconnect");
+    load_hypervisor_tests if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"));
+    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -762,7 +681,15 @@ elsif (get_var("QA_TESTSET")) {
     if (get_var('MAINT_TEST_REPO')) {
         loadtest "qa_automation/patch_and_reboot";
     }
-    loadtest "qa_automation/" . get_var("QA_TESTSET");
+    if (check_var('QA_TESTSET', 'kernel_kexec')) {
+        loadtest 'kernel/kernel_kexec';
+    }
+    elsif (check_var('QA_TESTSET', 'kernel_multipath')) {
+        loadtest 'qa_automation/kernel_multipath';
+    }
+    else {
+        loadtest 'qa_automation/qa_run', name => get_required_var('QA_TESTSET');
+    }
 }
 elsif (get_var("QA_TESTSUITE")) {
     boot_hdd_image;
@@ -775,7 +702,7 @@ elsif (get_var("XFSTESTS")) {
     if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP4')) {
         set_var('NO_KDUMP', 1);
     }
-    boot_hdd_image;
+    prepare_target;
     unless (get_var('NO_KDUMP')) {
         loadtest "xfstests/enable_kdump";
     }
@@ -804,13 +731,18 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
     else {
-        load_boot_tests();
-        if (get_var("AUTOYAST")) {
-            loadtest "autoyast/installation";
-            loadtest "virt_autotest/reboot_and_wait_up_normal";
+        if (!check_var('ARCH', 's390x')) {
+            load_boot_tests();
+            if (get_var("AUTOYAST")) {
+                loadtest "autoyast/installation";
+                loadtest "virt_autotest/reboot_and_wait_up_normal";
+            }
+            else {
+                load_inst_tests();
+                loadtest "virt_autotest/login_console";
+            }
         }
-        else {
-            load_inst_tests();
+        elsif (check_var('ARCH', 's390x')) {
             loadtest "virt_autotest/login_console";
         }
         loadtest "virt_autotest/install_package";
@@ -897,9 +829,9 @@ elsif (get_var("QAM_MINIMAL")) {
         set_var('DESKTOP',      'textmode');
     }
 }
-elsif (get_var("TERADATA")) {
+elsif (get_var("INSTALLTEST")) {
     boot_hdd_image;
-    loadtest "qam-teradata/teradata";
+    loadtest "qam-updinstall/update_install";
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
@@ -932,7 +864,7 @@ elsif (have_scc_repos()) {
         loadtest "console/suseconnect_scc";
     }
     else {
-        loadtest "console/yast_scc";
+        loadtest "console/yast2_scc";
     }
 }
 elsif (get_var('HPC')) {
@@ -971,6 +903,21 @@ else {
         boot_hdd_image;
         loadtest 'console/teuthology';
         loadtest 'console/pulpito';
+        return 1;
+    }
+    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+        boot_hdd_image;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'console/avocado_prepare';
+        my @test_groups = ('block_device_hotplug', 'cpu', 'disk_image', 'memory_hotplug', 'nic_hotplug', 'qmp', 'usb');
+        for my $test_group (@test_groups) {
+            loadtest 'console/avocado_run', name => "$test_group";
+        }
+        return 1;
+    }
+    elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {
+        loadtest 'boot/boot_from_pxe';
+        loadtest 'console/microcode_update';
         return 1;
     }
     elsif (get_var("QAM_OPENVPN")) {
@@ -1067,8 +1014,19 @@ else {
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
         if (get_var("RT_TESTS")) {
-            set_var('INSTALLONLY', 1);
             loadtest "rt/boot_rt_kernel";
+            loadtest "console/prepare_test_data";
+            loadtest "console/consoletest_setup";
+            loadtest "console/hostname";
+            loadtest "console/zypper_ref";
+            loadtest "console/zypper_lr";
+            loadtest "console/system_prepare";
+            loadtest "rt/rt_is_realtime";
+            loadtest "rt/rt_devel_packages";
+            loadtest "rt/rt_peak_pci";
+            loadtest "rt/rt_tests";
+            loadtest "rt/kmp_modules";
+            set_var('INSTALLONLY', 1);
         }
         else {
             load_bootloader_s390x();
@@ -1101,15 +1059,25 @@ else {
         load_boot_tests();
         loadtest "remote/remote_target";
     }
+    elsif (get_var("KIWI_IMAGE_TESTS")) {
+        loadtest "kiwi_images_test/kiwi_boot";
+        loadtest "kiwi_images_test/login_reboot";
+        loadtest "kiwi_images_test/validate_build";
+    }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
             loadtest 'installation/boot_s390';
-            loadtest 'installation/reconnect_mgmt_console';
+            loadtest 'boot/reconnect_mgmt_console';
             loadtest 'installation/first_boot';
         }
         elsif (!is_jeos) {
             return 1 if load_default_tests;
         }
+    }
+    # For virtualization testing we wan't to test some functionality, but not all of it
+    if (check_var('VIRTUALIZATION_TESTING', 'short')) {
+        load_consoletests;
+        return 1;
     }
     unless (load_applicationstests() || load_slenkins_tests()) {
         load_rescuecd_tests();

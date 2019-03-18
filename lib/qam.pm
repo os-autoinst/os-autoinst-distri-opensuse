@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,6 +10,7 @@
 package qam;
 
 use strict;
+use warnings;
 
 use base "Exporter";
 use Exporter;
@@ -18,7 +19,7 @@ use testapi;
 use utils;
 
 our @EXPORT
-  = qw(capture_state check_automounter is_patch_needed add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -88,6 +89,27 @@ sub add_test_repositories {
     zypper_call('ref', exitcode => [0, 106]);
 }
 
+# Function that will add all test repos to SSH guest
+sub ssh_add_test_repositories {
+    my $host    = shift;
+    my $counter = 0;
+
+    my $oldrepo = get_var('PATCH_TEST_REPO');
+    my @repos   = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
+    # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
+    # please be sure that the PATCH_TEST_REPO is empty.
+    @repos = split(',', $oldrepo) if ($oldrepo);
+
+    for my $var (@repos) {
+        assert_script_run("ssh root\@$host 'zypper -n --no-gpg-check ar -f -n TEST_$counter $var TEST_$counter'");
+        $counter++;
+    }
+    # refresh repositories, inf 106 is accepted because repositories with test
+    # can be removed before test start
+    assert_script_run("ssh root\@$host 'zypper -n ref'", exitcode => [0, 106], timeout => 120);
+}
+
 # Function that will remove all test repos
 sub remove_test_repositories {
 
@@ -123,7 +145,7 @@ sub check_patch_variables {
     if ($patch && $incident_id) {
         die('It is not possible to have defined INCIDENT_PATCH and INCIDENT_ID at the same time');
     }
-    elsif (!($patch) && !($incident_id)) {
+    elsif (!$patch && !$incident_id) {
         die("Missing INCIDENT_PATCH or INCIDENT_ID");
     }
 }

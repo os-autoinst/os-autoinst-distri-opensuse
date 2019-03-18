@@ -25,6 +25,7 @@ use constant {
     BACKEND => [
         qw(
           is_remote_backend
+          has_ttys
           )
     ],
     CONSOLES => [
@@ -51,12 +52,15 @@ sub use_ssh_serial_console {
 }
 
 sub is_remote_backend {
-
     # s390x uses only remote repos
-    return check_var('ARCH', 's390x') ||
-      check_var('BACKEND', 'svirt') ||
-      check_var('BACKEND', 'ipmi')  ||
-      check_var('BACKEND', 'spvm');
+    return check_var('ARCH', 's390x') || get_var('BACKEND', '') =~ /ipmi|spvm|svirt/;
+}
+
+# In some cases we are using a VNC connection provided by the hypervisor that
+# allows access to the ttys same as for accessing any remote libvirt instance
+# but not what we use for s390x-kvm.
+sub has_ttys {
+    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm/) && !get_var('S390_ZKVM'));
 }
 
 1;

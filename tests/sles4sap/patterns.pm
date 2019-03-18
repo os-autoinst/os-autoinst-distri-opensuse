@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_upgrade);
 use strict;
+use warnings;
 
 sub run {
     my ($self)      = @_;
@@ -26,7 +27,15 @@ sub run {
     # Disable packagekit
     pkcon_quit;
 
+    # Is HA pattern needed?
+    push @sappatterns, 'ha_sles' if get_var('HA_CLUSTER');
+
     my $base_pattern = is_sle('>=15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
+
+    # If DVD Packages is used we need to (re-)enable the local repos
+    zypper_call 'mr -e -l'
+      if is_sle('15+')
+      and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
 
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
@@ -38,24 +47,29 @@ sub run {
         die "Pattern sap_server not installed by default"
           unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade());
         record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
-        assert_script_run("zypper in -y -t pattern sap_server");
-        assert_script_run("systemctl start tuned");
+        zypper_call('in -y -t pattern sap_server');
+        systemctl 'start tuned';
     }
 
     # Dry run of each pattern's installation before actual installation
     foreach my $pattern (@sappatterns) {
-        assert_script_run("zypper in -D -y -t pattern $pattern");
+        zypper_call("in -D -y -t pattern $pattern");
         $output = script_output("zypper info --requires $pattern");
         record_info("requirements pattern: $pattern", $output);
     }
 
     # Actual installation and verification
     foreach my $pattern (@sappatterns) {
-        assert_script_run("zypper in -y -t pattern $pattern", 100);
+        zypper_call("in -y -t pattern $pattern");
         $output = script_output "zypper info -t pattern $pattern";
+        # Name of HA pattern is weird...
+        $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
         die "SAP zypper pattern [$pattern] info check failed"
           unless ($output =~ /i\+\s\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
     }
+
+    # Some specific package may be needed in HA mode
+    zypper_call 'in sap-suse-cluster-connector' if get_var('HA_CLUSTER');
 }
 
 sub test_flags {

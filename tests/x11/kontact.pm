@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,19 +13,22 @@
 
 use base 'x11test';
 use strict;
+use warnings;
 use testapi;
+use version_utils 'is_pre_15';
 
 sub run {
+    select_console 'user-console';
     # start akonadi server to avoid the self-test running when we launch kontact
-    x11_start_program('akonadictl start', valid => 0);
+    assert_script_run 'DISPLAY=:0 akonadictl start >& /dev/null';
 
     # Workaround: sometimes the account assistant behind of mainwindow or tips window
     # To disable it run at first time start
-    x11_start_program("echo \"[General]\" >> ~/.kde4/share/config/kmail2rc",         valid => 0);
-    x11_start_program("echo \"first-start=false\" >> ~/.kde4/share/config/kmail2rc", valid => 0);
-    x11_start_program("echo \"[General]\" >> ~/.config/kmail2rc",                    valid => 0);
-    x11_start_program("echo \"first-start=false\" >> ~/.config/kmail2rc",            valid => 0);
-
+    if (is_pre_15) {
+        assert_script_run 'echo -e "[General]\nfirst-start=false" >> ~/.kde4/share/config/kmail2rc';
+    }
+    assert_script_run 'echo -e "[General]\nfirst-start=false" >> ~/.config/kmail2rc';
+    select_console 'x11';
     my @tags = qw(test-kontact-1 kontact-import-data-dialog kontact-window);
     x11_start_program('kontact', target_match => \@tags);
     do {
@@ -35,7 +38,13 @@ sub run {
         # KF5-based account assistant ignores alt-f4
         wait_screen_change { send_key 'alt-c' } if match_has_tag('test-kontact-1');
     } until (match_has_tag('kontact-window'));
-    assert_and_click 'close_kontact';
+    assert_screen [qw(kontact-error close_kontact)];
+    if (match_has_tag('kontact-error')) {
+        return record_soft_failure('Encountered fatal error, boo#1105207');
+    }
+    else {
+        assert_and_click 'close_kontact';
+    }
     # Since gcc7 used for packages within openSUSE Factory kontact seems to
     # persist consistently as a process in the background causing kontact to
     # be "restored" after a re-login/reboot causing later tests to fail. To

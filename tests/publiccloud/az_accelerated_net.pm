@@ -13,6 +13,7 @@
 
 use base "publiccloud::basetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use Data::Dumper;
@@ -29,8 +30,8 @@ sub prepare_vm {
     my $instance = $provider->create_instance();
     record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
     record_info('Iperf',    'Install IPerf binaries in VM');
-    $instance->run_ssh_command("wget https://iperf.fr/download/opensuse/$iperf");
-    $instance->run_ssh_command("sudo rpm -i  $iperf");
+    $instance->run_ssh_command(cmd => "wget https://iperf.fr/download/opensuse/$iperf");
+    $instance->run_ssh_command(cmd => "sudo rpm -i  $iperf");
     return $instance;
 }
 
@@ -77,8 +78,8 @@ ethtool |grep vf_ must show numbers different than 0 if SR-IOV is enabled.
 sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
-    my $lspci_output   = $instance->run_ssh_command("sudo lspci");
-    my $ethtool_output = $instance->run_ssh_command("sudo ethtool -S eth0 | grep vf_");
+    my $lspci_output   = $instance->run_ssh_command(cmd => "sudo lspci");
+    my $ethtool_output = $instance->run_ssh_command(cmd => "sudo ethtool -S eth0 | grep vf_");
     record_info('lspci',   $lspci_output);
     record_info('ethtool', $ethtool_output);
     if ($lspci_output =~ m/Mellanox/ && $ethtool_output !~ m/vf_rx_bytes: 0/) {
@@ -98,10 +99,10 @@ test on the client side. The test runs TEST_TIME seconds.
 sub run_test {
     my ($self, $client, $server) = @_;
     record_info('server', 'Start IPERF in server' . $server->public_ip);
-    $server->run_ssh_command('nohup iperf -s -D &');
+    $server->run_ssh_command(cmd => 'nohup iperf -s -D &');
     sleep 60;    # Wait 60 seconds so that the server starts up safely and the clinet can connect to it
     record_info('client', 'Start IPERF in client');
-    my $output = $client->run_ssh_command('iperf -t ' . get_required_var('TEST_TIME') . ' -c ' . $server->public_ip);
+    my $output = $client->run_ssh_command(cmd => 'iperf -t ' . get_required_var('TEST_TIME') . ' -c ' . $server->public_ip);
     record_info('RESULTS', $output);
 }
 

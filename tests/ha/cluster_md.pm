@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use version_utils 'is_sle';
 use testapi;
 use lockapi;
@@ -19,7 +20,6 @@ use hacluster;
 
 sub run {
     my $mdadm_conf         = '/etc/mdadm.conf';
-    my $csync_conf         = '/etc/csync2/csync2.cfg';
     my $clustermd_lun_01   = get_lun(use_once => 0);
     my $clustermd_lun_02   = get_lun(use_once => 0);
     my $clustermd_rsc      = 'cluster_md';
@@ -52,11 +52,7 @@ sub run {
         assert_script_run "mdadm --detail --scan >> $mdadm_conf";
 
         # We need to add the configuration in csync2.conf
-        assert_script_run "grep -q $mdadm_conf $csync_conf || sed -i 's|^}\$|include $mdadm_conf;\\n}|' $csync_conf";
-
-        # Execute csync2 to synchronise the configuration files
-        # Sometimes we need to run csync2 twice to have all the files updated!
-        assert_script_run 'csync2 -v -x -F ; sleep 2 ; csync2 -v -x -F';
+        add_file_in_csync(value => "$mdadm_conf");
     }
     else {
         diag 'Wait until cluster-md device is created...';
@@ -91,7 +87,9 @@ sub run {
     ensure_resource_running("$clustermd_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
 
     # Test if cluster-md device is present on all nodes
-    assert_script_run "ls -la $clustermd_device";
+    # Sometimes in high performance virtual scenarios, it takes some seconds for the cluster_md
+    # device to be present in /dev, so this will check for some number of tries before failing
+    check_device_available($clustermd_device);
 
     # Wait until R/W state is checked
     barrier_wait("CLUSTER_MD_CHECKED_$cluster_name");

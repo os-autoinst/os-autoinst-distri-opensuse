@@ -19,6 +19,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
@@ -27,24 +28,16 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    # for opensuse, e.g, Tumbleweed, add the repo in case rather than by default
-    if (!is_sle && !is_leap) {
-        zypper_call("ar http://download.opensuse.org/tumbleweed/repo/oss/ tumbleweed-Oss");
-    }
-
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
-    my $ret = script_run('zypper -n in policycoreutils-python');
-    if ($ret) {
-        if (defined $ret && $ret == 104) {
-            record_soft_failure 'bsc#1116288 - package policycoreutils-python not found in module SLE-Module-Development-Tools';
-        }
-        else {
-            die "Package policycoreutils-python installation failed";
+    if (!is_sle('>=15')) {
+        my $ret = script_run('zypper -n in policycoreutils-python');
+        if ($ret) {
+            record_soft_failure 'bsc#1119534 openQA test fails in selinux_setup: policycoreutils-python missing';
         }
     }
 
-    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -w srcpackage | cut -d '|' -f 2`");
+    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -e srcpackage -e debuginfo -e debugsource | cut -d '|' -f 2`");
     zypper_call("in $pkgs", timeout => 3000);
 
     # for opensuse, e.g, Tumbleweed install selinux_policy pkgs as needed

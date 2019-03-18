@@ -136,7 +136,7 @@ sub test_name {
 sub log_add {
     my ($file, $test, $status, $time) = @_;
     my $name = test_name($test);
-    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync";
+    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
     type_string("\n");
     assert_script_run($cmd);
 }
@@ -245,6 +245,14 @@ sub copy_log {
     script_run($cmd);
 }
 
+sub dump_btrfs_img {
+    my ($category, $num) = @_;
+    my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
+    my $ret = script_output("egrep -m 1 \"filesystem on .+ is inconsistent\" $LOG_DIR/$category/$num");
+    if ($ret =~ /filesystem on (.+) is inconsistent/) { $cmd = "umount $1;btrfs-image $1 $LOG_DIR/$category/$num.img"; }
+    script_run($cmd);
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -263,6 +271,7 @@ sub run {
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
+        type_string("echo $test > /dev/$serialdev\n");
         test_run($test);
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {
@@ -272,6 +281,7 @@ sub run {
                 copy_log($category, $num, 'out.bad');
                 copy_log($category, $num, 'full');
                 copy_log($category, $num, 'dmesg');
+                if (check_var 'XFSTESTS', 'btrfs') { dump_btrfs_img($category, $num); }
             }
             next;
         }

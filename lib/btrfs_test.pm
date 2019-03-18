@@ -2,6 +2,7 @@ package btrfs_test;
 use base 'consoletest';
 
 use strict;
+use warnings;
 use testapi;
 use utils 'get_root_console_tty';
 
@@ -61,7 +62,7 @@ sub snapper_nodbus_restore {
         script_run('systemctl default', 0);
         my $tty = get_root_console_tty;
         assert_screen "tty$tty-selected";
-        console('root-console')->reset;
+        reset_consoles;
         select_console 'root-console';
     }
     else {

@@ -13,6 +13,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';
@@ -26,16 +27,16 @@ sub run {
 
     if (is_sle) {
         my $modver = get_required_var('VERSION') =~ s/-SP\d+//gr;
-        add_suseconnect_product('sle-module-public-cloud', $modver);
+        add_suseconnect_product('sle-module-public-cloud', $modver, get_required_var('ARCH'));
     }
 
-
-    my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO', '');
-    if ($tools_repo eq '') {
-        $tools_repo = 'http://download.opensuse.org/repositories/Cloud:/Tools/' . generate_version() . '/Cloud:Tools.repo';
+    my $default_tools_repos = 'http://download.suse.de/ibs/Devel:/PubCloud:/CI/' . generate_version() . '/Devel:PubCloud:CI.repo';
+    $default_tools_repos .= ' https://download.opensuse.org/repositories/devel:/languages:/python:/backports/' . generate_version() . '/devel:languages:python:backports.repo';
+    my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO', $default_tools_repos);
+    for my $repo (split(/\s+/, $tools_repo)) {
+        zypper_call('ar ' . $repo);
     }
-    zypper_call('ar ' . $tools_repo);
-    zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core');
+    zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core ntp');
 
     # Install AWS cli
     zypper_call('-q in gcc python3-pip');
@@ -46,9 +47,17 @@ sub run {
         assert_script_run("pip3 install -q keyring");
     }
     elsif (is_sle) {
-        zypper_call('rr Cloud_Tools');
-        zypper_call('ref');
         zypper_call('-q in aws-cli');
+
+        if (script_output('aws --version', 60, proceed_on_failure => 1) =~ /No module named vendored.requests.packages.urllib3.exceptions/m) {
+            record_soft_failure('workaround for boo#1122199');
+            my $repo      = 'http://download.opensuse.org/repositories/devel:/languages:/python:/aws/' . generate_version();
+            my $repo_name = 'devel_languages_python_aws';
+            zypper_ar($repo, $repo_name);
+            zypper_call('-q in -f --repo ' . $repo_name . ' python-s3transfer');
+            zypper_call('rr ' . $repo_name);
+        }
+        assert_script_run('aws --version');
     }
     zypper_call('-q in python-ec2uploadimg');
     assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
@@ -73,10 +82,12 @@ sub run {
     assert_script_run("ipa --version");
 
     # Download and Install Terraform
-    my $terraform_url = get_var('TERRAFORM_URL', 'https://releases.hashicorp.com/terraform/0.11.10/terraform_0.11.10_linux_amd64.zip');
+    my $terraform_url = get_var('TERRAFORM_URL', 'https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip');
     assert_script_run("wget -q $terraform_url");
     assert_script_run('unzip terraform_* terraform -d /usr/bin/');
     assert_script_run('terraform -v');
+
+    select_console 'root-console';
 }
 
 sub test_flags {

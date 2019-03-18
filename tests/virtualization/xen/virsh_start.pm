@@ -16,34 +16,22 @@
 # Summary: This starts libvirt guests again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $hypervisor = get_required_var('HYPERVISOR');
 
-    x11_start_program('xterm');
-    send_key 'super-up';
-
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Starting $guest again";
-
-        assert_script_run "ssh root\@$hypervisor 'virsh start $guest'";
-
-        clear_console;
-    }
-
-    wait_screen_change { send_key 'alt-f4'; };
-
+    assert_script_run("virsh start $_", 120) foreach (keys %xen::guests);
+    script_retry "ssh root\@$_ hostname -f", delay => 15, retry => 12 foreach (keys %xen::guests);
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

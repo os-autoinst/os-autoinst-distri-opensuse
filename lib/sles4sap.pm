@@ -3,14 +3,19 @@ package sles4sap;
 use base "opensusebasetest";
 
 use strict;
+use warnings;
 use testapi;
 use utils;
+use hacluster 'pre_run_hook';
 use isotovideo;
+use x11utils 'ensure_unlocked_desktop';
 
 our @EXPORT = qw (
+  fix_path
   set_ps_cmd
   set_sap_info
   become_sapadm
+  test_pids_max
   test_version_info
   test_instance_properties
   test_stop
@@ -21,7 +26,23 @@ our @EXPORT = qw (
 our $prev_console;
 our $sapadmin;
 our $sid;
+our $instance;
 our $ps_cmd;
+
+sub fix_path {
+    my ($self, $var) = @_;
+    my ($proto, $path) = split m|://|, $var;
+    my @aux = split '/', $path;
+
+    $proto = 'cifs' if ($proto eq 'smb' or $proto eq 'smbfs');
+    die 'Currently only supported protocols are nfs and smb/smbfs/cifs'
+      unless ($proto eq 'nfs' or $proto eq 'cifs');
+
+    $aux[0] .= ':' if ($proto eq 'nfs');
+    $aux[0] = '//' . $aux[0] if ($proto eq 'cifs');
+    $path = join '/', @aux;
+    return ($proto, $path);
+}
 
 sub set_ps_cmd {
     my ($self, $procname) = @_;
@@ -30,11 +51,11 @@ sub set_ps_cmd {
 }
 
 sub set_sap_info {
-    my ($self, $sapadmin_env) = @_;
-    $sapadmin = $sapadmin_env;
-    die "Username of SAP Administrator must end with 'adm'" unless ($sapadmin =~ /adm$/);
-    $sid = uc(substr($sapadmin, 0, 3));
-    return ($sapadmin, $sid);
+    my ($self, $sid_env, $instance_env) = @_;
+    $sid      = uc($sid_env);
+    $instance = $instance_env;
+    $sapadmin = lc($sid_env) . 'adm';
+    return ($sapadmin);
 }
 
 sub become_sapadm {
@@ -50,13 +71,23 @@ sub become_sapadm {
     type_string "exec bash\n";
 }
 
+sub test_pids_max {
+    # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
+    my $uid = script_output "id -u $sapadmin";
+    my $rc1 = script_run "systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | grep -qx max";
+    # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
+    # Check that nproc * 2 == threads-max
+    my $rc2 = script_run "[[ \$(( \$(systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r') * 2)) = \$(sysctl -n kernel.threads-max) ]]";
+    record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
+}
+
 sub test_version_info {
-    my $output = script_output "sapcontrol -nr 00 -function GetVersionInfo";
+    my $output = script_output "sapcontrol -nr $instance -function GetVersionInfo";
     die "sapcontrol: GetVersionInfo API failed\n\n$output" unless ($output =~ /GetVersionInfo[\r\n]+OK/);
 }
 
 sub test_instance_properties {
-    my $output = script_output "sapcontrol -nr 00 -function GetInstanceProperties | grep ^SAP";
+    my $output = script_output "sapcontrol -nr $instance -function GetInstanceProperties | grep ^SAP";
     die "sapcontrol: GetInstanceProperties API failed\n\n$output" unless ($output =~ /SAPSYSTEM.+SAPSYSTEMNAME.+SAPLOCALHOST/s);
 
     $output =~ /SAPSYSTEMNAME, Attribute, ([A-Z][A-Z0-9]{2})/m;
@@ -64,15 +95,15 @@ sub test_instance_properties {
 }
 
 sub test_stop {
-    my $output = script_output "sapcontrol -nr 00 -function Stop";
+    my $output = script_output "sapcontrol -nr $instance -function Stop";
     die "sapcontrol: Stop API failed\n\n$output" unless ($output =~ /Stop[\r\n]+OK/);
 
-    $output = script_output "sapcontrol -nr 00 -function StopService";
+    $output = script_output "sapcontrol -nr $instance -function StopService";
     die "sapcontrol: StopService API failed\n\n$output" unless ($output =~ /StopService[\r\n]+OK/);
 }
 
 sub test_start_service {
-    my $output = script_output "sapcontrol -nr 00 -function StartService $sid";
+    my $output = script_output "sapcontrol -nr $instance -function StartService $sid";
     die "sapcontrol: StartService API failed\n\n$output" unless ($output =~ /StartService[\r\n]+OK/);
 
     $output = script_output $ps_cmd;
@@ -82,21 +113,12 @@ sub test_start_service {
 }
 
 sub test_start_instance {
-    my $output = script_output "sapcontrol -nr 00 -function Start";
+    my $output = script_output "sapcontrol -nr $instance -function Start";
     die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
 
     $output = script_output $ps_cmd;
     my @olines = split(/\n/, $output);
     die "sapcontrol: failed to start the instance" unless (@olines > 1);
-}
-
-sub pre_run_hook {
-    my ($self) = @_;
-    if (isotovideo::get_version() == 12) {
-        $prev_console = $autotest::selected_console;
-    } else {
-        $prev_console = $testapi::selected_console;
-    }
 }
 
 sub post_run_hook {

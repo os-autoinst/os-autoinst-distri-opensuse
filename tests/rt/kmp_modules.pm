@@ -10,42 +10,44 @@
 
 # Summary: RT tests
 #    test kmp modules & boot RT kernel script for further automated and regression RT tests
+#    list of KMP rpms: cluster-md-kmp-rt, gfs2-kmp-rt, dlm-kmp-rt, crash-kmp-rt, oracleasm-kmp-rt
+#    lttng-modules-kmp-rt, ocfs2-kmp-rt
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
+use rt_utils 'select_kernel';
+use File::Basename 'fileparse';
 
-sub select_kernel {
-    my $kernel = shift;
+sub lttng_test {
+    my $trace = {
+        label     => 'TEST_TRACE',
+        output    => '/tmp/sched_trace_example',
+        component => 'sched_switch',
+        channel   => 'test-channel'
+    };
 
-    assert_screen ['grub2', "grub2-$kernel-selected"], 100;
-    if (match_has_tag "grub2-$kernel-selected") {    # if requested kernel is selected continue
-        send_key 'ret';
-    }
-    else {                                           # else go to that kernel thru grub2 advanced options
-        send_key_until_needlematch 'grub2-advanced-options', 'down';
-        send_key 'ret';
-        send_key_until_needlematch "grub2-$kernel-selected", 'down';
-        send_key 'ret';
-    }
-    if (get_var('NOAUTOLOGIN')) {
-        my $ret = assert_screen 'displaymanager', 200;
-        mouse_hide();
-        if (get_var('DM_NEEDS_USERNAME')) {
-            type_string $username;
-        }
-        else {
-            wait_screen_change { send_key 'ret' };
-        }
-        type_password;
-        send_key 'ret';
+    assert_script_run 'lttng create ' . $trace->{label} . ' -o ' . $trace->{output};
+    assert_script_run 'lttng enable-channel --kernel ' . $trace->{channel};
+    assert_script_run 'lttng enable-event --kernel -a ' . $trace->{component} . ' -c ' . $trace->{label};
+    assert_script_run 'lttng start';
+    assert_script_run 'sleep 5';
+    assert_script_run 'lttng list ' . $trace->{label};
+    assert_script_run 'lttng stop';
+    assert_script_run 'lttng destroy -a';
+    if ((script_run "test -e $trace->{output}") == 0) {
+        assert_script_run "ls -la $trace->{output}" . '/kernel';
+        assert_script_run "file $trace->{output}" . '/kernel/' . uc $trace->{label} . '_0';
+        assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{channel} . '_0';
+    } else {
+        die "Trace file \"$trace->{output}\" does not exist!\n";
     }
 }
 
 sub run {
-    assert_screen 'generic-desktop';
     select_console 'root-console';
     # Stop packagekit
     systemctl 'mask packagekit.service';
@@ -61,26 +63,31 @@ sub run {
     select_console 'root-console';
     # check if kernel is proper $kernel
     assert_script_run('uname -r|grep rt', 90, 'Expected rt kernel not found');
-    # get bash script
-    my $package = data_url('modprobe_kmp_modules.sh');
-    script_run "wget $package";
-=modprobe_kmp_modules.sh
-    #!/bin/bash
-    # load modules
-    for pkg in $(rpm -qa \*-kmp-rt); do
-      for mod in $(rpm -ql $pkg | grep '\.ko$'); do
-        modname=$(basename $mod .ko)
-        modprobe -v $modname || fail=1
-      done
-    done
-    if [ $fail ] ; then exit 1 ; fi
-=cut
-    script_run 'chmod +x modprobe_kmp_modules.sh';
-    # run script printed above, modprobe kmp-rt modules
-    assert_script_run('./modprobe_kmp_modules.sh', 90, 'Failed to load modules below');
+    # filter out list of kernel modules
+    my @kmp_rpms = grep { !/lttng-modules/ } split("\n", script_output "rpm -qa \*-kmp-rt");
+    my @kernel_modules;
+    push @kernel_modules, grep { /.*\.ko/ } split("\n", script_output "rpm -ql $_") foreach (@kmp_rpms);
+    # load kernel modules
+    foreach my $full_module (@kernel_modules) {
+        my ($basename, $dir, $suffix) = fileparse($full_module, '.ko');
+        assert_script_run 'modprobe -v ' . $basename . ' 2>&1 | tee -a /var/log/modprobe.out';
+        assert_script_run "modinfo $basename";
+        save_screenshot;
+        clear_console;
+    }
+    lttng_test;
     type_string "exit\n";
     reset_consoles;
 }
 
-1;
+sub post_fail_hook {
+    my $self = shift;
+    $self->save_and_upload_log("dmesg",                 "dmesg.log",        {screenshot => 1});
+    $self->save_and_upload_log("journalctl --no-pager", "journalctl.log",   {screenshot => 1});
+    $self->save_and_upload_log('rpm -qa *-kmp-rt',      "list_of_kmp_rpms", {screenshot => 1});
+    if ((script_run 'test -e /var/log/modprobe.out') == 0) {
+        upload_logs '/var/log/modprobe.out';
+    }
+}
 
+1;

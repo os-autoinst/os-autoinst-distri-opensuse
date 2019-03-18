@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,6 +12,7 @@
 
 use base 'y2x11test';
 use strict;
+use warnings;
 use testapi;
 use utils;
 
@@ -29,8 +30,8 @@ sub run {
     # select everything
     if (check_var('ARCH', 'x86_64')) {
         send_key 'alt-x';    # XEN Server, only available on x86_64: bsc#1088175
+        send_key 'alt-e';    # Xen tools
     }
-    send_key 'alt-e';        # Xen tools
     send_key 'alt-k';        # KVM Server
     send_key 'alt-v';        # KVM tools
     send_key 'alt-l';        # libvirt-lxc
@@ -54,6 +55,12 @@ sub run {
     systemctl 'start libvirtd', timeout => 60;
     wait_screen_change { send_key 'ret' };
     systemctl 'status libvirtd', timeout => 60;
+    # manually start the 'default' network if it is not active
+    if (script_run("virsh net-info default |& grep '^Active.*no'") == 0) {
+        record_soft_failure 'bsc#1123699';
+        record_info("start default network", "libvirtd did not start the network by default");
+        assert_script_run("virsh net-start default");
+    }
     send_key 'ret';
     # close the xterm
     send_key 'alt-f4';

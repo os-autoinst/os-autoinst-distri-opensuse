@@ -858,11 +858,7 @@ sub pidgin_remove_account {
 
 sub tomboy_logout_and_login {
     wait_screen_change { send_key 'alt-f4' };
-
-    # logout
-    wait_screen_change { send_key "alt-f2" };
-    type_string "gnome-session-quit --logout --force\n";
-    wait_still_screen;
+    x11_start_program('gnome-session-quit --logout --force', valid => 0);
 
     # login
     send_key "ret";

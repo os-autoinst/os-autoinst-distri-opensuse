@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,6 +13,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos);
@@ -34,7 +35,7 @@ sub run {
     #
     # 3. verify that "zypper lifecycle" shows correct package eol based on the
     # data from step 2
-    my ($base_repos, $package, $prod);
+    my ($base_repos, $package);
     my $prod = script_output 'basename `readlink /etc/products.d/baseproduct ` .prod';
     # select a package suitable for the following test
     # the package must be installed from base product repo

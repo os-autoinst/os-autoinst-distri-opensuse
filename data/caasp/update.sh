@@ -2,24 +2,27 @@
 set -exuo pipefail
 
 # Fake update repositories for QA tests
-# 2.0 -> 2.0 http://download.suse.de/ibs/Devel:/CASP:/2.0:/ControllerNode:/TestUpdate/standard/Devel:CASP:2.0:ControllerNode:TestUpdate.repo
-# 3.0 -> 3.0 TODO
+# 3.0 -> 3.0 http://download.suse.de/ibs/Devel:/CASP:/3.0:/ControllerNode:/TestUpdate/standard/Devel:CASP:3.0:ControllerNode:TestUpdate.repo
 
 # On success returns 0 or 100 if reboot is required
 usage() {
     echo "Usage: $0
+        [-e] Execute salt command
+        [-t] Target for executed salt commend
         [-s $REPO] Setup all nodes with update REPO
         [-u] Update all nodes
         [-c] Check that update was applied
         [-n] Install new package
         [-i] Install package
-        [-t] Test if update is needed
+        [-q] Query if update is needed
         [-r] Just reboot cluster test" 1>&2
     exit 1
 }
 
-while getopts "s:curnti" opt; do
+while getopts "e:t:s:curnqi" opt; do
 case $opt in
+    e)  EXECUTE=$OPTARG;;
+    t)  TARGET=$OPTARG;;
     s)
         SETUP=$OPTARG
         ;;
@@ -38,7 +41,7 @@ case $opt in
     i)
         INSTALL=true
         ;;
-    t)
+    q)
         TEST=true
         ;;
     \?)
@@ -59,23 +62,32 @@ do
 done
 
 # Set up some shortcuts
-saltid=$(docker ps | grep salt-master | awk '{print $1}')
-where="-P roles:(admin|kube-(master|minion))"
-srun="docker exec -i $saltid salt --batch 7"
-runner="$srun $where cmd.run"
+DEFAULT_TARGET='roles:(admin|kube-(master|minion))'
+SALT_MASTER=$(docker ps -qf name=salt-master)
+
+# Run salt command (needs target): $srun '*' test.ping
+srun="docker exec -i $SALT_MASTER salt --batch 11"
+# Run bash command (on all nodes): $runner 'zypper lr'
+runner="$srun -P $DEFAULT_TARGET cmd.run"
+
+# Manually Refresh the Grains (or wait up to 10 minutes)
+function refresh_grains {
+    $srun '*' saltutil.refresh_grains
+}
 
 if [ ! -z "${SETUP:-}" ]; then
-    # Remove non-existent ISO repository
-    $runner "zypper rr 1"
-    if [ "$SETUP" == "dup" ]; then
-        # Deregister system before update
-        $runner "SUSEConnect -d"
-    else
-        # Add repository to system vendors
-        $runner 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf'
-        $runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
-    fi
+    $runner 'zypper mr -d -l'
+    $runner 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf'
+    $runner "zypper ar --refresh --no-gpgcheck $SETUP UPDATE"
     $runner "zypper lr -U"
+
+elif [ ! -z "${EXECUTE:-}" ]; then
+    : ${TARGET:=$DEFAULT_TARGET}
+    if [[ $EXECUTE == cmd.run* ]]; then
+        $srun -P "$TARGET" cmd.run "${EXECUTE#* }"
+    else
+        $srun -P "$TARGET" $EXECUTE
+    fi
 
 elif [ ! -z "${TEST:-}" ]; then
     # Skip updating if the whole maintenance incident was just a single new package
@@ -97,10 +109,9 @@ elif [ ! -z "${UPDATE:-}" ]; then
 
     # Manually Trigger Transactional Update (or wait up to 24 hours for it run by itself)
     $runner 'systemctl disable --now transactional-update.timer'
-    $runner '/usr/sbin/transactional-update cleanup dup salt'
+    $runner '/usr/sbin/transactional-update cleanup dup reboot'
 
-    # Manually Refresh the Grains (or wait up to 10 minutes)
-    $srun '*' saltutil.refresh_grains
+    refresh_grains
     exit 100
 
 elif [ ! -z "${CHECK:-}" ]; then
@@ -135,9 +146,7 @@ elif [ ! -z "${CHECK:-}" ]; then
     docker exec -i $container_id ls /IMAGE_UPDATED
 
 elif [ ! -z "${REBOOT:-}" ]; then
-    where="-P roles:kube-(master|minion)"
-    srun="docker exec -d $saltid salt"
-    $srun $where system.reboot
+    docker exec -d $SALT_MASTER salt -P "roles:kube-(master|minion)" system.reboot
 
 elif [ ! -z "${NEWPKG:-}" ]; then
     # Fetch all the packages included for this QAM incident
@@ -170,9 +179,7 @@ elif [ ! -z "${NEWPKG:-}" ]; then
 
             # Install the packages
             $runner "/usr/sbin/transactional-update salt pkg install -y $(cat new_package.txt)"
-
-            # Refresh the Grains
-            $srun '*' saltutil.refresh_grains
+            refresh_grains
 
             # Orchestrate the reboot via Velum to complete the installation
             rm not_installed.txt
@@ -203,9 +210,7 @@ elif [ ! -z "${INSTALL:-}" ]; then
 
         # Install the packages
         $runner "/usr/sbin/transactional-update salt pkg install -y $(cat not_installed.txt)"
-
-        # Refresh the Grains
-        $srun '*' saltutil.refresh_grains
+        refresh_grains
 
         # Enable the update repo
         $runner "zypper mr -e UPDATE"

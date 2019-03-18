@@ -15,9 +15,10 @@
 # Tags: poo#14444
 
 use strict;
+use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_staging);
 use transactional_system;
 
 # Download files needed for transactional update test
@@ -69,15 +70,21 @@ sub run {
     my $snap = script_output "snapper list | tail -1 | cut -d'|' -f$f | tr -d ' *'";
 
     record_info 'Update #1', 'Add repository and update - snapshot #2';
-    # Only CaaSP needs an additional repo for testing
-    assert_script_run 'zypper ar utt.repo' if is_caasp 'caasp';
-    trup_call 'cleanup up';
-    check_reboot_changes;
-    check_package 'up';
+    # Don't use tests requiring repos in staging
+    if (is_staging) {
+        record_info 'Test skipped - no repos for staging';
+    }
+    else {
+        # Only CaaSP needs an additional repo for testing
+        assert_script_run 'zypper ar utt.repo' if is_caasp 'caasp';
+        trup_call 'cleanup up';
+        check_reboot_changes;
+        check_package 'up';
 
-    record_info 'Update #2', 'System should be up to date - no changes expected';
-    trup_call 'cleanup up';
-    check_reboot_changes 0;
+        record_info 'Update #2', 'System should be up to date - no changes expected';
+        trup_call 'cleanup up';
+        check_reboot_changes 0;
+    }
 
     # Check that zypper does not return 0 if update was aborted
     record_info 'Broken pkg', 'Install broken package poo#18644 - snapshot #3';

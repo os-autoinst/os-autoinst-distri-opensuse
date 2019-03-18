@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2016 SUSE LLC
+# Copyright (C) 2014-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,11 +17,13 @@
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 
 use testapi;
 use registration 'skip_registration';
-use utils qw(ensure_fullscreen assert_screen_with_soft_timeout);
+use utils 'assert_screen_with_soft_timeout';
+use x11utils 'ensure_fullscreen';
 
 sub run {
     assert_screen_with_soft_timeout(

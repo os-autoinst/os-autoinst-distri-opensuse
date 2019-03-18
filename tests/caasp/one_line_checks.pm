@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_caasp';
 
@@ -24,14 +25,14 @@ sub run_common_checks {
     # bsc#1019652 - Check that snapper is configured
     assert_script_run "snapper list";
 
-    # bsc#1051762 - Docker is on btrfs partition (kubeadm role uses CRI-O)
-    assert_script_run('stat -fc %T /var/lib/docker | grep -q btrfs') unless check_var('SYSTEM_ROLE', 'kubeadm');
-
     # Subvolume check - https://build.opensuse.org/request/show/583954
     assert_script_run "btrfs subvolume show /var";
 }
 
 sub run_caasp_checks {
+    # bsc#1051762 - Docker is on btrfs partition
+    assert_script_run('stat -fc %T /var/lib/docker | grep -q btrfs');
+
     if (get_var('SYSTEM_ROLE', '') =~ /admin|worker/) {
         # poo#18668 - Check ntp client configuration
         assert_script_run 'grep "^pool ns.openqa.test" /etc/chrony.conf';
@@ -49,15 +50,16 @@ sub run_caasp_checks {
         }
         # check if installation script was executed https://trello.com/c/PJqM8x0T
         assert_script_run 'zgrep manifests/activate.sh /var/log/YaST2/y2log-1.gz';
-        # bsc#1039863 - Check we are running only sles12 docker images
-        assert_script_run '! docker images | sed 1d | grep -v ^registry.suse.com/sles12';
+
+        # bsc#1039863 - Check we are running only caasp docker images
+        my $registry = 'registry.suse.com/caasp/v' . substr(get_var('VERSION'), 0, 1);
+        assert_script_run "test \$(docker images | tee /dev/$serialdev | sed 1d | grep -v $registry | wc -l) -eq 0";
     }
 }
 
 sub run_kubic_checks {
-    # Should not include any container runtime
+    # Should not include kubernetes
     if (check_var('SYSTEM_ROLE', 'microos')) {
-        assert_script_run 'which docker';
         assert_script_run '! zypper se -i kubernetes';
         assert_script_run '! rpm -q etcd';
     }

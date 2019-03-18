@@ -13,9 +13,26 @@
 
 use base "publiccloud::basetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use repo_tools 'generate_version';
+
+sub wait_for_guestregister
+{
+    my ($instance) = @_;
+    my $retries = 20;
+
+    for (my $loop = 0; $loop < $retries; $loop++) {
+        my $out = $instance->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1);
+        if ($out eq 'inactive') {
+            return;
+        }
+        record_info('WAIT', 'Wait for guest register: ' . $out);
+        sleep 30;
+    }
+    die('guestregister didn\'t end in expected time');
+}
 
 sub run {
     my ($self) = @_;
@@ -24,6 +41,7 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
+    wait_for_guestregister($instance);
 
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
     assert_script_run('chmod +x ~/restart_instance.sh');
@@ -31,8 +49,9 @@ sub run {
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
     # Install ltp from package on remote
-    $instance->run_ssh_command('sudo zypper ar ' . $ltp_repo);
-    $instance->run_ssh_command('sudo zypper -q --gpg-auto-import-keys in -y ltp');
+    $instance->run_ssh_command(cmd => 'sudo zypper ar ' . $ltp_repo);
+    $instance->run_ssh_command(cmd => 'sudo zypper -q --gpg-auto-import-keys in -y ltp', timeout => 300);
+    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh');
 
     my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
     $reset_cmd .= $instance->instance_id . ' ' . $instance->public_ip;

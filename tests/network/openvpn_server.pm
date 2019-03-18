@@ -18,6 +18,7 @@ use mm_network;
 use mmapi 'wait_for_children';
 use utils qw(systemctl zypper_call exec_and_insert_password);
 use strict;
+use warnings;
 
 sub run {
     select_console "root-console";

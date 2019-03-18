@@ -12,6 +12,7 @@
 
 use base multi_machine_job_base;
 use strict;
+use warnings;
 use testapi;
 use utils 'systemctl';
 use guest_migration_base;

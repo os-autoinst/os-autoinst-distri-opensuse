@@ -12,6 +12,7 @@
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use utils 'addon_products_is_applicable';
 use testapi;

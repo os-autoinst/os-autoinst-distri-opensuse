@@ -14,6 +14,7 @@ package proxymode;
 use base 'y2logsstep';
 use testapi;
 use strict;
+use warnings;
 
 our $SLAVE_SERIALDEV = 'proxyserial';
 

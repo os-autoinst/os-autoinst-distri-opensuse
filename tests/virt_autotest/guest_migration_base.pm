@@ -13,6 +13,7 @@
 package guest_migration_base;
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use mmapi;
 use Exporter 'import';

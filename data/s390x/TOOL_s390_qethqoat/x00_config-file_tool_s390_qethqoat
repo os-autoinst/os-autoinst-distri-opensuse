@@ -1,0 +1,133 @@
+#!/bin/sh
+# Description: Config-file for testing s390 qethqoat.
+#
+
+# 1.) SERVER System : r35lp04
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+
+sHOST="s8370004"
+sLANa="0.0.f5f0"
+sLANb="0.0.f5f1"
+sLANc="0.0.f5f2"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# Define 1st interface:
+# - - - - - - - - - - - - - - - - - - - - -
+sE1="ethx"
+sE1a="0.0.f800"
+sE1b="0.0.f801"
+sE1c="0.0.f802"
+sE1ip="10.30.30.4"
+sE1mask="255.255.0.0"
+sE1broad="10.30.255.255"
+sE1mac="02:00:00:1b:7e:e7"
+sP1Lay="0"
+sP1No="0"
+sE1Lay="0"
+sE1No="0"
+sE1Chp="b0"
+sE1Vid="200"
+sE1Vip="10.200.60.10"
+sE1Vmask="255.255.0.0"
+sE1Vbroad="10.200.255.255"
+sE1Vmac="02:60:10:00:90:f1"
+
+
+# - - - - - - - - - - - - - - - - - - - - -
+# Define 2nd interface:
+# - - - - - - - - - - - - - - - - - - - - -
+
+sE2="hsix"
+sE2a="0.0.f806"
+sE2b="0.0.f807"
+sE2c="0.0.f808"
+sE2ip="10.40.30.4"
+sE2mask="255.255.0.0"
+sE2broad="10.40.255.255"
+sP2Lay="0"
+sP2No="0"
+sE2Chp="b0"
+sE2Lay="0"
+sE2No="0"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# Define 3nd interface:
+# - - - - - - - - - - - - - - - - - - - - -
+
+
+sE3="ethx"
+sE3a="0.0.f803"
+sE3b="0.0.f804"
+sE3c="0.0.f805"
+sE3ip6="fd00:10:100::30:4/80"
+sE3ip="10.20.30.4"
+sE3mask="255.255.0.0"
+sE3broad="10.20.255.255"
+sE3mac="02:00:00:92:fe:c8"
+sP3Lay="0"
+sP3No="0"
+sE3Chp="b0"
+sE3Lay="0"
+sE3No="0"
+
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+# 2.) COMMON Definitions:
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+
+SSH="ssh -i /root/.ssh/id_dsa.autotest -o StrictHostKeyChecking=no -oProtocol=2 -q -n -oBatchMode=yes "
+
+
+# LINUX:
+
+P0="/sys/bus/ccwgroup/drivers/qeth/"
+P1="/sys/bus/ccwgroup/drivers/qeth/group"
+OPTFILE="/tmp/qethqoatoptions"
+OPTFILE2="/tmp/qethqoatoptions2"
+
+echo "PASS qethqoat -h" > $OPTFILE
+echo "PASS qethqoat --help" >> $OPTFILE
+echo "PASS qethqoat -v" >> $OPTFILE
+echo "PASS qethqoat --version" >> $OPTFILE
+echo "FAIL qethqoat -z" >> $OPTFILE
+echo "FAIL qethqoat " >> $OPTFILE
+
+echo "PASS qethqoat -r" > $OPTFILE2
+echo "PASS qethqoat --raw" >> $OPTFILE2
+echo "PASS qethqoat" >> $OPTFILE2
+echo "PASS qethqoat -f fileoption" >> $OPTFILE2
+echo "PASS qethqoat -r -s 0" >> $OPTFILE2
+echo "PASS qethqoat -s 0" >> $OPTFILE2
+echo "PASS qethqoat --scope 0" >> $OPTFILE2
+echo "PASS qethqoat -s 1" >> $OPTFILE2
+echo "PASS qethqoat --scope 1" >> $OPTFILE2
+echo "FAIL qethqoat -f invalidfileoption" >> $OPTFILE2
+echo "FAIL qethqoat eth18" >> $OPTFILE2
+echo "FAIL qethqoat -r eth18" >> $OPTFILE2
+echo "FAIL qethqoat -s 1 eth18" >> $OPTFILE2
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+# 3.) Workload:
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = >>>
+
+##############
+### SERVER >>>
+
+# - - - - - - - - - - - - - - - - - - - - -
+#10S_cleanup_s390_qethqoat.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Delete all Interface except LAN eth0
+# (b) Detach all DEVNOs except 0.0.F5xx
+x10STEST="b"
+
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 20S_prepare_s390_qethqoat.sh
+# - - - - - - - - - - - - - - - - - - - - -
+# (a) Define Interface
+x20STEST="a b c"
+
+# - - - - - - - - - - - - - - - - - - - - -
+# 30S_test_qethqoat.sh
+# - - - - - - - - - - - - - - - - - - - - -
+x30STEST="a b"

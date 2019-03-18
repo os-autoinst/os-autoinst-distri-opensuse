@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console set_pxe_efiboot);
+our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console set_pxe_efiboot boot_local_disk_arm_huawei);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -207,7 +207,15 @@ sub get_installation_partition {
 
 sub set_pxe_efiboot {
     my ($root_prefix) = @_;
-    $root_prefix //= "/";
+    $root_prefix = "/" if (!defined $root_prefix) || ($root_prefix eq "");
+    my $installation_disk = "";
+
+    if ($root_prefix ne "/") {
+        $installation_disk = &get_installation_partition;
+        assert_script_run("cd /");
+        &mount_installation_disk("$installation_disk", "$root_prefix");
+    }
+
     my $wait_script    = "30";
     my $get_active_eif = "ip link show | grep \"state UP\" | grep -v \"lo\" | cut -d: -f2 | cut -d\' \' -f2 | head -1";
     my $active_eif     = script_output($get_active_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
@@ -263,6 +271,12 @@ sub set_pxe_efiboot {
     }
     assert_script_run("$root_prefix/usr/sbin/efibootmgr -o $new_boot_order");
     assert_script_run("$root_prefix/usr/sbin/efibootmgr -n $pxeboot_entry_num");
+
+    #cleanup mount
+    if ($root_prefix ne "/") {
+        assert_script_run("cd /");
+        &umount_installation_disk("$root_prefix");
+    }
 }
 
 #Usage:
@@ -301,6 +315,26 @@ sub set_serial_console_on_vh {
         &umount_installation_disk("$mount_point");
     }
 
+}
+
+#Huawei arm machines require password login after "boot from local disk" is selected.
+#Before the desired grub menu is shown, you need to navigate into the boot menu and
+#select the "sles" boot item.
+sub boot_local_disk_arm_huawei {
+    assert_screen('input-password-huawei', 180);
+    type_string_slow "Huawei12#\$";
+    send_key 'ret';
+    assert_screen('default-password-huawei', 180);
+    send_key 'ret';
+
+    assert_screen('setup-menu-huawei', 180);
+    save_screenshot;
+    send_key_until_needlematch('exit-menu-huawei', 'right', 10, 5);
+    save_screenshot;
+    send_key_until_needlematch('boot-sles-huawei', 'down', 10, 5);
+    save_screenshot;
+    send_key 'ret';
+    save_screenshot;
 }
 
 1;

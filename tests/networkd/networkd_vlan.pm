@@ -12,6 +12,7 @@
 
 use base 'networkdbase';
 use strict;
+use warnings;
 use testapi;
 use utils;
 

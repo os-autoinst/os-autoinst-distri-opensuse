@@ -11,19 +11,20 @@
 #   SSH keys are already generated
 #   SSH config was modified to not check identity
 #   Script is not run on admin to avoid mutex hell
-# Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
+# Maintainer: Martin Kravec <mkravec@suse.com>, Georgios Gkioulis <ggkioulis@suse.com>
 
 use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use testapi;
 use caasp;
+use utils 'systemctl';
 use version_utils 'is_caasp';
 
 # Orchestrate the reboot via Velum
 sub orchestrate_velum_reboot {
-    record_info 'Reboot', 'Orchestrate the reboot via Velum';
     switch_to 'velum';
 
     my $n = get_required_var('STACK_NODES');
@@ -39,7 +40,7 @@ sub orchestrate_velum_reboot {
 
     # Update all nodes - this part takes long time (~2 minutes per node)
     my @needles_array = ('velum-sorry', "velum-$n-nodes-outdated");
-    assert_screen [@needles_array], 900;
+    assert_screen [@needles_array], 600;
     if (match_has_tag 'velum-sorry') {
         record_soft_failure('bnc#1074836 - delay caused due to Meltdown');
         # workaround for meltdown
@@ -61,9 +62,11 @@ sub orchestrate_velum_reboot {
     my @tags = qw(velum-retry velum-bootstrap-done);
     assert_screen \@tags, $n * 900;
     if (match_has_tag 'velum-retry') {
-        record_soft_failure 'bsc#000000 - Should have passed first time';
+        record_soft_failure 'bsc#000000 - Update failed once, retrying';
         assert_and_click 'velum-retry';
-        assert_screen 'velum-bootstrap-done', $n * 900;
+
+        assert_screen \@tags, $n * 900;
+        die 'Update failed twice' unless match_has_tag('velum-bootstrap-done');
     }
     die "Nodes should be updated already" if check_screen "velum-0-nodes-outdated", 0;
 }
@@ -83,7 +86,7 @@ sub update_check_changes {
     my $nodes_count = get_required_var("STACK_NODES");
     assert_script_run "kubectl get nodes --no-headers | wc -l | grep $nodes_count";
 
-    # QA: fake repo with pre-defined values (hardcoded)
+    # QA: TestUpdate repo with pre-defined values (hardcoded)
     unless (is_caasp 'qam') {
         script_assert0 "ssh $admin_fqdn './update.sh -c' | tee /dev/$serialdev", 60;
     }
@@ -91,13 +94,8 @@ sub update_check_changes {
 
 # ./update.sh -s will set up repositories
 sub update_setup_repos {
-    record_info 'Repo', 'Add the testing repository into each node of the cluster';
+    record_info 'Setup', 'Add the testing repository into each node of the cluster';
     switch_to 'xterm';
-
-    # Deregister before distribution update
-    if (update_scheduled 'dup') {
-        script_assert0 "ssh $admin_fqdn './update.sh -s dup' | tee /dev/$serialdev", 120;
-    }
 
     # Add UPDATE repository
     my $repo = update_scheduled;
@@ -106,53 +104,38 @@ sub update_setup_repos {
 
 # ./update.sh -n will install new package (QAM) if any
 sub install_new_packages {
-    record_info "NEW Package", "Check if this maintenance incident includes NEW package and if so then install it.";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -n' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
-        # Reboot the cluster
-        record_info "Installed NEW Package", "This maintenance incident includes NEW package we just installed.";
+        record_info 'Installed new', 'Incident package not installed & available only from UPDATE repo';
         orchestrate_velum_reboot;
         update_check_changes;
-    }
-    elsif ($returnCode == 0) {
-        record_info 'No NEW Package', 'No NEW packages included in this maintenance incident.';
-    }
-    else {
-        die "NEW Package installation failed";
+    } elsif ($returnCode != 0) {
+        die 'NEW package installation failed';
     }
 }
 
-# ./update.sh -t will decide if it makes sense to run update_perform_update
-sub is_needed {
-    # Always needed for QA scenarios
-    return 1 unless is_caasp('qam');
-
-    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -t' | tee /dev/$serialdev", 120);
+# ./update.sh -q will decide if it makes sense to run update_perform_update
+sub update_available {
+    my $returnCode = script_run0("ssh $admin_fqdn './update.sh -q' | tee /dev/$serialdev", 120);
     if ($returnCode == 110) {
-        record_info 'Skip Update', 'This maintenance incident was just one single new package';
+        record_info 'Update skipped', 'All incident packages existed only in UPDATE repo';
         return 0;
-    }
-    else {
-        record_info 'Ready to update', 'We are ready to perform the update.';
+    } elsif ($returnCode == 0) {
         return 1;
     }
+    die './update.sh -q returned unexpected exit code';
 }
 
 # ./update.sh -i will install missing packages (QAM)
 sub install_missing_packages {
-    record_info "MISSING Package", "Check if this maintenance incident includes MISSING package and if so then install it.";
     my $returnCode = script_run0("ssh $admin_fqdn './update.sh -i' | tee /dev/$serialdev", 600);
     if ($returnCode == 100) {
-        # Reboot the cluster
-        record_info 'Installed MISSING Package', 'This maintenance incident includes MISSING package we just installed.';
+        record_info 'Installed missing', 'Incident package not installed & available from OS repo';
         orchestrate_velum_reboot;
         update_check_changes;
     }
-    elsif ($returnCode == 0) {
-        record_info 'No MISSING Package', 'All packages included in this maintenance incident are pre-installed (DVD).';
-    }
-    else {
-        die "MISSING Package installation failed";
+    elsif ($returnCode != 0) {
+        die 'MISSING package installation failed';
     }
 }
 
@@ -164,20 +147,53 @@ sub update_perform_update {
     $ret == 100 ? orchestrate_velum_reboot : die('Update process failed');
 }
 
+# bug#1121797 - Nodes change IP address after v3->v4 migration (feature)
+sub setup_static_dhcp {
+    switch_to 'xterm';
+    become_root;
+    assert_script_run q#arp -n | awk '/52:54:00/ {printf "host h%s {\n  hardware ethernet %s;\n  fixed-address %s;\n}\n", ++h, $3, $1}' >> /etc/dhcpd.conf#;
+    systemctl 'restart dhcpd';
+    type_string "exit\n";
+}
+
+# Migration from last GM to current build
+sub perform_migration {
+    switch_to 'xterm';
+    my $build = get_required_var 'BUILD';
+    salt 'cmd.run zypper mr -d -l';
+    salt "cmd.run echo 'url: http://all-$build.proxy.scc.suse.de' > /etc/SUSEConnect";
+    salt 'cmd.run systemctl disable --now transactional-update.timer';
+    salt 'cmd.run transactional-update salt migration -n', timeout => 1500;
+    salt 'saltutil.refresh_grains';
+    orchestrate_velum_reboot;
+}
+
+# Fake update - set grains and reboot
+sub perform_fake_update {
+    switch_to 'xterm';
+    salt 'grains.setval tx_update_reboot_needed True';
+    salt 'saltutil.refresh_grains';
+    orchestrate_velum_reboot;
+}
+
 sub run {
-    # update.sh -s $repo
-    update_setup_repos;
-
-    if (is_caasp 'qam') {
-        install_new_packages;        # update.sh -n
-        install_missing_packages;    # update.sh -i
+    if (is_caasp 'qam') {    # Use QAM Incident repository
+        update_setup_repos;
+        install_new_packages;
+        install_missing_packages;
+        update_perform_update if update_available();
+    } elsif (update_scheduled 'migration') {    # Use scc proxy repositories
+        setup_static_dhcp;
+        perform_migration;
+    } elsif (update_scheduled 'test') {         # Use TestUpdate repository
+        update_setup_repos;
+        update_perform_update;
+        update_check_changes;
+    } elsif (update_scheduled 'fake') {         # No repository - hacking grains
+        perform_fake_update;
+    } else {
+        die 'Update module scheduled without actual update';
     }
-
-    # update.sh -u
-    update_perform_update if is_needed();
-
-    # update.sh -c
-    update_check_changes if update_scheduled('fake');
 }
 
 1;

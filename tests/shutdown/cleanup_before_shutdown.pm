@@ -13,6 +13,7 @@
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 use strict;
+use warnings;
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'add_serial_console';
@@ -25,7 +26,14 @@ sub run {
     # Please see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
     # Boot options that are required to make logs more detalized are located in 'bootloader_setup.pm'
     if (get_var('DEBUG_SHUTDOWN')) {
-        assert_script_run "echo -e '#!/bin/sh\\ndmesg > /dev/$serialdev' > /usr/lib/systemd/system-shutdown/debug.sh";
+        my $script = << "END_SCRIPT";
+             echo -e '#!/bin/sh
+             echo --- dmesg log ---  > /dev/$serialdev
+             dmesg  >> /dev/$serialdev
+             echo --- journactl log ---  >> /dev/$serialdev 
+             journalctl >> /dev/$serialdev'  > /usr/lib/systemd/system-shutdown/debug.sh \\
+END_SCRIPT
+        assert_script_run $script;
         assert_script_run "chmod +x /usr/lib/systemd/system-shutdown/debug.sh";
     }
     if (get_var('DROP_PERSISTENT_NET_RULES')) {
@@ -35,7 +43,7 @@ sub run {
     # poo#18860 Enable console on hvc0 on SLES < 12-SP2
     # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
     if (!check_var('VIRTIO_CONSOLE', 0)) {
-        if (is_sle('<12-SP2')) {
+        if (is_sle('<12-SP2') && !check_var('ARCH', 's390x')) {
             add_serial_console('hvc0');
         }
         elsif (get_var('OFW')) {

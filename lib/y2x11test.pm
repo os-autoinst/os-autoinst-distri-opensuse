@@ -2,6 +2,7 @@ package y2x11test;
 use base "opensusebasetest";
 use mm_network qw(configure_default_gateway configure_static_ip configure_static_dns get_host_resolv_conf);
 use strict;
+use warnings;
 use utils;
 use testapi;
 
@@ -41,7 +42,8 @@ sub launch_yast2_module_x11 {
         script_run('pkill -TERM -e yast2');
         select_console('x11');
     }
-    x11_start_program("xdg-su -c '/sbin/yast2 $module'", target_match => @tags, match_timeout => $args{match_timeout});
+    # the command started with 'sh -c' to be able to execute 'echo' in Desktop Runner on Gnome
+    x11_start_program("sh -c 'xdg-su -c \"/sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }

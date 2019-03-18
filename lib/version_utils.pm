@@ -1,4 +1,4 @@
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@ package version_utils;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
 
@@ -68,6 +69,8 @@ use constant {
           is_s390x
           is_livecd
           is_x86_64
+          is_aarch64
+          is_ppc64le
           has_product_selection
           has_license_on_welcome_screen
           )
@@ -158,7 +161,8 @@ sub check_version {
 # Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 sub is_caasp {
     my $filter = shift;
-    return 0 unless get_var('DISTRI') =~ /caasp|kubic/;
+    my $distri = get_var('DISTRI');
+    return 0 unless $distri && $distri =~ /caasp|kubic/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {
@@ -295,6 +299,14 @@ sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
 }
 
+sub is_aarch64 {
+    return check_var('ARCH', 'aarch64');
+}
+
+sub is_ppc64le {
+    return check_var('ARCH', 'ppc64le');
+}
+
 sub is_server {
     return 1 if is_sles4sap();
     return 1 if get_var('FLAVOR', '') =~ /^Server/;
@@ -364,9 +376,10 @@ Identify cases when Installer has to show Product Selection screen.
 Starting with SLE 15, all products are distributed using one medium, and Product
 to install has to be chosen explicitly.
 
-Though, there are some exceptions (like s390x) when there is only one Product,
-so that License agreement is shown directly, skipping the Product selection step.
-Also, Product Selection screen is not shown during upgrade.
+Though, there are some exceptions (like s390x on Sle15 SP0) when there is only
+one Product, so that License agreement is shown directly, skipping the Product
+selection step. Also, Product Selection screen is not shown during upgrade.
+on SLE 15+, zVM preparation test shouldn't show Product Selection screen. 
 
 Returns true (1) if Product Selection step has to be shown for the certain
 configuration, otherwise returns false (0).
@@ -374,7 +387,9 @@ configuration, otherwise returns false (0).
 =cut
 
 sub has_product_selection {
-    return is_sle('15+') && !(is_s390x() || get_var('UPGRADE'));
+    if (is_sle('15+') && !get_var('UPGRADE')) {
+        return (is_sle('>=15-SP1') || !is_s390x()) && !get_var('BASE_VERSION');
+    }
 }
 
 =head2 has_license_on_welcome_screen
@@ -390,5 +405,5 @@ configuration, otherwise returns false (0).
 
 sub has_license_on_welcome_screen {
     return 1 if is_caasp('caasp');
-    return get_var('HASLICENSE') && ((is_sle('15+') && is_s390x()) || is_sle('<15'));
+    return get_var('HASLICENSE') && ((is_sle('=15') || (is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x()) || is_sle('<15'));
 }

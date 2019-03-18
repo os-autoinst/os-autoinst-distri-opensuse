@@ -14,12 +14,13 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 
 sub run {
     select_console 'root-console';
-    my $repo_num = script_output 'zypper lr --uri | grep "hd:///?device=/dev/disk/by-id/usb-" | awk \'{print $1}\'';
+    my $repo_num = script_output 'zypper lr --uri | awk \'$0 ~ /hd:\/(\/\/)?\?device=\/dev\/disk\/by-id\/usb-/ {print $1}\'';
     if ($repo_num !~ /^\d+$/) {
         record_info("Serial polluted", "Serial output was polluted: Assuming first repo is USB", result => 'fail');
         $repo_num = 1;

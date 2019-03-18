@@ -16,18 +16,34 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use ipmi_backend_utils;
 
 sub login_to_console {
     my ($self, $timeout) = @_;
     $timeout //= 240;
 
+    if (check_var('ARCH', 's390x')) {
+        #Switch to s390x lpar console
+        reset_consoles;
+        my $svirt = select_console('svirt', await_console => 0);
+        return;
+    }
+
     reset_consoles;
     select_console 'sol', await_console => 0;
 
-    # Wait for bootload for the first time.
-    assert_screen([qw(grub2 grub1)], 150);
+    my $sut_machine = get_var('SUT_IP', 'nosutip');
+    boot_local_disk_arm_huawei if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /huawei/img));
+
+    assert_screen([qw(grub2 grub1 prague-pxe-menu)], 210);
+
+    # If a PXE menu will appear just select the default option (and save us the time)
+    if (match_has_tag('prague-pxe-menu')) {
+        send_key 'ret';
+
+        assert_screen([qw(grub2 grub1)], 60);
+    }
 
     if (!get_var("reboot_for_upgrade_step")) {
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
@@ -93,6 +109,7 @@ sub login_to_console {
     #use console based on ssh to avoid unstable ipmi
     save_screenshot;
     use_ssh_serial_console;
+
 }
 
 sub run {

@@ -14,6 +14,7 @@ use base 'consoletest';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_opensuse);
 use strict;
+use warnings;
 use testapi;
 
 sub run {
@@ -35,7 +36,7 @@ sub run {
     assert_script_run '/usr/lib64/sa/sa1 5 5';
 
     #Set 24h clock(removes AM/PM extra column), extract a pid number, confirm its an integer
-    validate_script_output "LC_TIME='C' pidstat  |awk '{print \$3}' |head |tail -n 1", sub { m/[1-999]/ };
+    validate_script_output "LC_TIME='C' pidstat  |awk '{print \$3}' |head |tail -n 1", sub { /^\d+$/ };
 
     #run 5 pidstat iterations, we confirm success counting the UID column spawns
     validate_script_output "pidstat 2 5 |grep  UID |wc -l", sub { /6/ };

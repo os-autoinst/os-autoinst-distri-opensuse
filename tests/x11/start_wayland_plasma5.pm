@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,8 +12,10 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 use utils;
+use x11utils 'handle_login';
 
 sub run {
     my ($self) = @_;
@@ -40,11 +42,7 @@ sub run {
     assert_and_click 'sddm_desktopsession';            # Open session selection box
     assert_and_click 'sddm_session_plasma_wayland';    # Select Plasma 5 (Wayland) session
 
-    # Log in as usual
-    type_password;
-    send_key 'ret';
-
-    # Wait until logged in
+    handle_login;
     assert_screen 'generic-desktop', 60;
 
     # We're now in a wayland session, which is in a different VT

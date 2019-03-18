@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle);
 use registration 'registration_bootloader_cmdline';
+use data_integrity_utils 'verify_checksum';
 use File::Basename;
 
 sub search_image_on_svirt_host {
@@ -127,6 +128,10 @@ sub run {
         }
         $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
     }
+
+    ## Verify checksum of the copied images
+    my $errors = verify_checksum('/var/lib/libvirt/images/');
+    record_info("Checksum", $errors, result => 'fail') if $errors;
 
     # We need to use 'tablet' as a pointer device, i.e. a device
     # with absolute axis. That needs to be explicitely configured

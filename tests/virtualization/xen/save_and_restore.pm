@@ -10,48 +10,36 @@
 # Summary: Test if the guests can be saved and restored
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $hypervisor = get_required_var('HYPERVISOR');
 
-    x11_start_program('xterm');
-    send_key 'super-up';
+    assert_script_run "mkdir -p /var/lib/libvirt/images/saves/";
 
-    # Ensure virsh is installed
-    assert_script_run "ssh root\@$hypervisor 'zypper -n in libvirt-client'";
-    assert_script_run "ssh root\@$hypervisor 'mkdir -p /var/lib/libvirt/images/saves/'";
+    record_info "Remove", "Remove previous saves (if there were any)";
+    script_run "rm /var/lib/libvirt/images/saves/$_.vmsave || true" foreach (keys %xen::guests);
 
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Processing $guest now";
+    record_info "Save", "Save the machine states";
+    assert_script_run("virsh save $_ /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %xen::guests);
 
-        # Remove previous attempt (if there was any)
-        script_run "ssh root\@$hypervisor 'rm /var/lib/libvirt/images/saves/$guest.vmsave' || true";
+    record_info "Check", "Check saved states";
+    assert_script_run "virsh list --all | grep $_ | grep shut" foreach (keys %xen::guests);
 
-        # Save the machine states
-        assert_script_run "ssh root\@$hypervisor 'virsh save $guest /var/lib/libvirt/images/saves/$guest.vmsave'", 300;
-        sleep 15;
+    record_info "Restore", "Restore guests";
+    assert_script_run("virsh restore /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %xen::guests);
 
-        # Check saved states
-        assert_script_run "ssh root\@$hypervisor 'virsh list --all'";
+    record_info "Check", "Check restored states";
+    assert_script_run "virsh list --all | grep $_ | grep running" foreach (keys %xen::guests);
 
-        # Restore guests
-        assert_script_run "ssh root\@$hypervisor 'virsh restore /var/lib/libvirt/images/saves/$guest.vmsave'", 300;
-
-        clear_console;
-    }
-
-    wait_screen_change { send_key 'alt-f4'; };
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 0};
+    record_info "SSH", "Check hosts are listening on SSH";
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %xen::guests);
 }
 
 1;
+

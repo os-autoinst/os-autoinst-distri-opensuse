@@ -12,6 +12,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use utils 'systemctl';
 use testapi;
 use lockapi;
@@ -72,7 +73,7 @@ sub run {
 
     # Synchronize all cluster files/configuration
     sleep 10 unless is_node(1);
-    assert_script_run 'csync2 -v -x -F ; sleep 2 ; csync2 -v -x -F';
+    exec_csync;
 
     # Modify the RAs, as some of them are different in SLE11
     if (is_node(1)) {

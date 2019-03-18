@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use utils 'ensure_fullscreen';
+use x11utils 'ensure_fullscreen';
 use version_utils qw(:VERSION :SCENARIO);
 use Utils::Backends 'is_remote_backend';
 
@@ -39,6 +39,35 @@ sub switch_keyboard_layout {
     send_key 'alt-k';
     send_key_until_needlematch("keyboard-layout", 'up', 60);
     wait_screen_change { send_key 'ret' } if (check_var('DESKTOP', 'textmode'));
+}
+
+=head2 get_product_shortcuts
+
+  get_product_shortcuts();
+
+Returns hash which contains shortcuts for the product selection.
+=cut
+sub get_product_shortcuts {
+    # We got new products in SLE 15 SP1
+    if (is_sle '15-SP1+') {
+        return (
+            sles => (is_ppc64le() || is_s390x()) ? 'u'
+            : is_aarch64() ? 's'
+            : 'i',
+            sled     => 'x',
+            sles4sap => get_var('OFW') ? 'i' : 'p',
+            hpc      => is_x86_64() ? 'g' : 'u',
+            rt       => is_x86_64() ? 't' : undef
+        );
+    }
+    # Else return old shortcuts
+    return (
+        sles     => 's',
+        sled     => 'u',
+        sles4sap => get_var('OFW') ? 'u' : 'x',
+        hpc      => is_x86_64() ? 'x' : 'u',
+        rt       => is_x86_64() ? 'u' : undef
+    );
 }
 
 sub run {
@@ -110,13 +139,7 @@ sub run {
         assert_screen('select-product');
         my $product = get_required_var('SLE_PRODUCT');
         if (check_var('VIDEOMODE', 'text')) {
-            my %hotkey = (
-                sles     => 's',
-                sled     => 'u',
-                sles4sap => get_var('OFW') ? 'u' : 'x',
-                hpc      => is_x86_64() ? 'x' : 'u',
-                rt       => is_x86_64() ? 'u' : undef
-            );
+            my %hotkey = get_product_shortcuts();
             die "No shortcut for the \"$product\" product specified." unless $hotkey{$product};
             send_key 'alt-' . $hotkey{$product};
         }

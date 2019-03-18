@@ -16,6 +16,7 @@
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi;
 use main_common;
 use version_utils;
@@ -29,6 +30,10 @@ sub create_list_of_serial_failures {
 
     # To add a known bug simply copy and adapt the following line:
     # push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }
+
+
+    # Detect rogue workqueue lockup
+    push @$serial_failures, {type => 'soft', message => 'rogue workqueue lockup bsc#1126782', pattern => quotemeta 'BUG: workqueue lockup'};
 
     # Detect bsc#1093797 on aarch64
     if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
@@ -48,7 +53,8 @@ sub create_list_of_serial_failures {
     }
 
 
-    push @$serial_failures, {type => 'soft', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'};
+    # Disable CPU soft lockup detection on aarch64 until https://progress.opensuse.org/issues/46502 get resolved
+    push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
 
     return $serial_failures;
 }

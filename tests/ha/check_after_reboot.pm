@@ -12,9 +12,12 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils 'is_sles4sap';
+use utils 'systemctl';
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -34,8 +37,31 @@ sub run {
     # in that case
     select_console 'root-console' if (get_var('HDDVERSION'));
 
+    # Workaround network timeout issue during upgrade
+    if (get_var('HDDVERSION')) {
+        assert_script_run 'journalctl -b --no-pager > bsc1129385-check-journal.log';
+        my $iscsi_fails = script_run 'grep -q "iscsid: cannot make a connection to" bsc1129385-check-journal.log';
+        my $csync_fails = script_run 'grep -q "corosync.service: Failed" bsc1129385-check-journal.log';
+        my $pcmk_fails  = script_run 'egrep -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
+
+        if (defined $iscsi_fails and $iscsi_fails == 0 and defined $csync_fails
+            and $csync_fails == 0 and defined $pcmk_fails and $pcmk_fails == 0)
+        {
+            record_soft_failure "bsc#1129385";
+            upload_logs 'bsc1129385-check-journal.log';
+            $iscsi_fails = script_run 'grep -q LIO-ORG /proc/scsi/scsi';
+            systemctl 'restart iscsi' if ($iscsi_fails);
+            systemctl 'restart pacemaker';
+        }
+    }
+
     # Wait for resources to be started
-    wait_until_resources_started;
+    if (is_sles4sap) {
+        wait_until_resources_started(timeout => 300);
+    }
+    else {
+        wait_until_resources_started;
+    }
 
     # And check for the state of the whole cluster
     check_cluster_state;

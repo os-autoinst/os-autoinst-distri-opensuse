@@ -17,6 +17,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use strict;
+use warnings;
 
 # Setup the required testing environment
 sub setup {
@@ -36,6 +37,7 @@ sub run {
 
     record_info 'Test #1', 'Test: Installation';
     zypper_call("in docker-compose");
+    assert_script_run 'docker-compose --version';
 }
 
 1;

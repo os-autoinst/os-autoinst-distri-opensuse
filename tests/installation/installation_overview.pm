@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,14 +16,11 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils 'is_caasp';
+use Utils::Backends 'is_remote_backend';
 
 
 sub ensure_ssh_unblocked {
-    my $need_ssh = check_var('ARCH', 's390x');    # s390x always needs SSH
-    $need_ssh = 1 if check_var('BACKEND', 'ipmi');    # we better be able to login
-    $need_ssh = 1 if check_var('BACKEND', 'spvm');    # we better be able to login
-
-    if (!get_var('UPGRADE') && $need_ssh) {
+    if (!get_var('UPGRADE') && is_remote_backend) {
 
         send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab';
         if (match_has_tag 'ssh-blocked') {
@@ -67,7 +64,8 @@ sub run {
         assert_screen('installation-settings-overview-loaded-impossible-proposal');
     }
     else {
-        assert_screen "installation-settings-overview-loaded", 150;
+        # Refer to: https://progress.opensuse.org/issues/47369
+        assert_screen "installation-settings-overview-loaded", 250;
         $self->deal_with_dependency_issues;
         assert_screen "inst-xen-pattern" if get_var('XEN');
         ensure_ssh_unblocked;

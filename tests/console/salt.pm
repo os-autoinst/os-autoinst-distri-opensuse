@@ -14,6 +14,7 @@
 
 use base "consoletest";
 use strict;
+use warnings;
 use testapi;
 use utils qw(zypper_call pkcon_quit systemctl);
 use version_utils qw(is_jeos is_opensuse);
@@ -37,7 +38,7 @@ sub run {
     zypper_call('in salt-master salt-minion');
     my $cmd = <<'EOF';
 systemctl start salt-master
-systemctl status salt-master
+systemctl status --no-pager salt-master
 sed -i -e "s/#master: salt/master: localhost/" /etc/salt/minion
 systemctl start salt-minion
 systemctl status --no-pager salt-minion
@@ -51,7 +52,7 @@ EOF
     unless (script_run 'salt \'*\' test.ping') {
         assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done';
     }
-    systemctl 'stop salt-master salt-minion';
+    systemctl 'stop salt-master salt-minion', timeout => 120;
 }
 
 1;

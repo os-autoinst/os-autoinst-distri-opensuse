@@ -1,6 +1,7 @@
 package hpcbase;
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use utils 'systemctl';
 
@@ -30,6 +31,18 @@ sub switch_user {
     my ($self, $username) = @_;
     type_string("su - $username\n");
     assert_screen 'user-nobody';
+}
+
+
+=head2
+    prepare_user_and_group()
+  creating slurm user and group with some pre-defined ID
+ needed due to https://bugzilla.suse.com/show_bug.cgi?id=1124587
+=cut
+sub prepare_user_and_group {
+    my ($self) = @_;
+    assert_script_run('groupadd slurm -g 7777');
+    assert_script_run('useradd -u 7777 -g 7777 slurm');
 }
 
 1;

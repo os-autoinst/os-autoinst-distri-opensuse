@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,8 +13,10 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
 use utils;
+use x11utils 'handle_relogin';
 
 sub install_ibus {
     x11_start_program("xterm");
@@ -33,11 +35,6 @@ sub override_i18n {
     type_string "cat .i18n \n";
     assert_screen 'ibus_i18n_overrided';
     send_key 'ctrl-d';
-}
-
-sub logout_and_login {
-    handle_logout;
-    handle_login;
 }
 
 sub ibus_daemon_started {
@@ -62,7 +59,7 @@ sub run {
     install_ibus;
     override_i18n;
     # Re-login to start ibus demon
-    logout_and_login;
+    handle_relogin;
 
     # check if ibus has successfully started
     ibus_daemon_started;

@@ -14,6 +14,7 @@
 
 use base "hpcbase";
 use strict;
+use warnings;
 use testapi;
 use lockapi;
 use utils;
@@ -22,6 +23,7 @@ sub run {
     my $self = shift;
     # Get number of nodes
     my $nodes = get_required_var("CLUSTER_NODES");
+    $self->prepare_user_and_group();
 
     # install slurm
     zypper_call('in slurm slurm-munge');

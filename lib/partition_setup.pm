@@ -12,6 +12,7 @@ package partition_setup;
 use base Exporter;
 use Exporter;
 use strict;
+use warnings;
 use testapi;
 use version_utils ':VERSION';
 use installation_user_settings 'await_password_check';
@@ -69,7 +70,7 @@ sub create_new_partition_table {
         GPT   => 'alt-g',
     );
 
-    assert_screen('release-notes-button');
+    assert_screen 'partitioning-edit-proposal-button';
     send_key $cmd{expertpartitioner};
     if (is_storage_ng) {
         # start with existing configuration
@@ -266,13 +267,15 @@ sub addlv {
 
     assert_screen 'expert-partitioner';
     send_key $cmd{system_view};
-    send_key 'home';
+    assert_screen_change(sub {
+            send_key 'home';
+    }, 5);
     send_key_until_needlematch('volume_management_feature', 'down');
-    wait_still_screen 2;
+    wait_still_screen(stilltime => 2, timeout => 4);
     # Expand collapsed list with VGs
-    send_key 'right' if is_sle('<15');
+    send_key_until_needlematch('lvm_uncollapse_vgs', 'right') if is_sle('<15');
     send_key_until_needlematch 'partition-select-vg-' . "$args{vg}", 'down';
-    wait_still_screen 2;
+    wait_still_screen(stilltime => 2, timeout => 4);
     # Expand collapsed list with LVs
     send_key 'right' if is_sle('<15');
     send_key 'alt-i' if (is_storage_ng_newui);
@@ -373,7 +376,8 @@ sub select_first_hard_disk {
             }
         }
     }
-    assert_screen 'select-hard-disks-one-selected';
+    assert_screen [qw(select-hard-disks-one-selected hard-disk-dev-sda-not-selected)];
+    assert_and_click 'hard-disk-dev-sda-not-selected' if match_has_tag('hard-disk-dev-sda-not-selected');
     send_key $cmd{next};
 }
 
@@ -404,28 +408,49 @@ sub take_first_disk_storage_ng {
     select_first_hard_disk;
 
     assert_screen [qw(existing-partitions partition-scheme)];
-    # If drive is not formatted, we have select hard disks page
-    # On ipmi we always have unformatted drive
-    # Sometimes can have existing installation on iscsi
+    # If drive(s) is/are not formatted, we have select hard disks page
     if (match_has_tag 'existing-partitions') {
-        send_key $cmd{next};
-        assert_screen 'partition-scheme';
+        if (check_var('BACKEND', 'ipmi') && !check_var('VIDEOMODE', 'text')) {
+            send_key_until_needlematch("remove-menu", "tab");
+            while (check_screen('remove-menu', 3)) {
+                send_key 'spc';
+                send_key 'down';
+                send_key 'ret';
+                send_key 'tab';
+            }
+            save_screenshot;
+            send_key $cmd{next};
+            if (check_screen([qw(filesystems-options partition-scheme)], 3)) {
+                send_key $cmd{next};
+            }
+            if (check_screen([qw(filesystems-options partition-scheme)], 3)) {
+                send_key $cmd{next};
+            }
+            assert_screen "after-partitioning";
+        }
+        else {
+            send_key $cmd{next};
+            assert_screen 'partition-scheme';
+        }
     }
-    send_key $cmd{next};
 
-    # select btrfs file system
-    if (check_var('VIDEOMODE', 'text')) {
-        assert_screen 'select-root-filesystem';
-        send_key 'alt-f';
-        send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
-        send_key 'ret';
+    if (!check_var('BACKEND', 'ipmi') || check_var('VIDEOMODE', 'text')) {
+        send_key $cmd{next};
+        save_screenshot;
+        # select btrfs file system
+        if (check_var('VIDEOMODE', 'text')) {
+            assert_screen 'select-root-filesystem';
+            send_key 'alt-f';
+            send_key_until_needlematch 'filesystem-btrfs', 'down', 10, 3;
+            send_key 'ret';
+        }
+        else {
+            assert_and_click 'default-root-filesystem';
+            assert_and_click "filesystem-btrfs";
+        }
+        assert_screen "btrfs-selected";
+        send_key $cmd{next};
     }
-    else {
-        assert_and_click 'default-root-filesystem';
-        assert_and_click "filesystem-btrfs";
-    }
-    assert_screen "btrfs-selected";
-    send_key $cmd{next};
 }
 
 sub take_first_disk {
@@ -448,7 +473,11 @@ sub take_first_disk {
         # depending on the scenario we get different screens
         # same can happen with ipmi installations
         assert_screen [qw(use-entire-disk preparing-disk-overview)];
-        wait_screen_change { send_key "alt-e" } if match_has_tag 'use-entire-disk';    # use entire disk
+        if (match_has_tag 'use-entire-disk') {
+            send_key_until_needlematch('use-entire-disk-selected', 'tab');
+            wait_screen_change { send_key 'ret' };
+            save_screenshot;
+        }
         send_key $cmd{next};
     }
 }

@@ -18,9 +18,9 @@
 # Summary: Register system against SCC after installation
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+use base 'consoletest';
 use strict;
-use base 'y2logsstep';
-
+use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';
@@ -28,11 +28,12 @@ use registration;
 
 sub run {
     return if get_var('HDD_SCC_REGISTERED');
+    my $self       = shift;
     my $reg_code   = get_required_var('SCC_REGCODE');
     my $scc_url    = get_required_var('SCC_URL');
     my $scc_addons = get_var('SCC_ADDONS', '');
 
-    select_console 'root-console';
+    get_var('JEOSINSTLANG', '') =~ 'DE' ? select_console('root-console') : $self->select_serial_terminal;
     assert_script_run "SUSEConnect --url $scc_url -r $reg_code";
     assert_script_run 'SUSEConnect --list-extensions';
 
@@ -44,6 +45,13 @@ sub run {
     }
     # Check that repos actually work
     zypper_call('refresh');
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    verify_scc;
+    investigate_log_empty_license;
 }
 
 sub test_flags {

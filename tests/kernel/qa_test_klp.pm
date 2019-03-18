@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,6 +20,8 @@ use version_utils 'is_sle';
 use qam;
 
 sub run {
+    my $self = shift;
+
     if (get_var('AZURE')) {
         record_info("Azure don't have kGraft/LP infrastructure");
         return;
@@ -30,15 +32,13 @@ sub run {
     # Set and check patch variables
     my $incident_id = get_var('INCIDENT_ID');
     my $patch       = get_var('INCIDENT_PATCH');
-    check_patch_variables($patch, $incident_id);
+    check_patch_variables($patch, $incident_id) if (is_sle && !get_var('BETA'));
 
-    select_console('root-console');
+    (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');
     zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
     zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
-    if (is_sle('<15') and ($patch or $incident_id)) {
-        add_suseconnect_product("sle-sdk");
-    }
+    add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
 
     zypper_call('in -l git gcc kernel-devel make');
 
@@ -48,3 +48,18 @@ sub run {
 }
 
 1;
+
+=head1 Example configuration
+
+=head2 QA_HEAD_REPO
+
+RPM repository for used for hiworkload.
+QA_HEAD_REPO=http://dist.nue.suse.com/ibs/QA:/Head/SLE-%VERSION%
+QA_HEAD_REPO=http://dist.nue.suse.com/ibs/QA:/Head/openSUSE_%VERSION%
+
+=head2 QA_TEST_KLP_REPO
+
+Git repository for kernel live patching infrastructure tests.
+QA_TEST_KLP_REPO=https://github.com/lpechacek/qa_test_klp.git
+
+=cut

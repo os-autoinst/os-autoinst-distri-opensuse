@@ -10,12 +10,24 @@
 # Summary: Start worker nodes
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use base "caasp_clusternode";
 use strict;
+use warnings;
 use testapi;
 use lockapi 'barrier_wait';
 use autotest 'query_isotovideo';
+use version_utils 'is_caasp';
 use caasp;
+
+# Updated from incident repo before adding to cluster
+sub incident_repo_dup {
+    my $repo = get_required_var('INCIDENT_REPO');
+    assert_script_run 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf';
+    assert_script_run "zypper ar --refresh --no-gpgcheck $repo UPDATE";
+    assert_script_run 'zypper lr -U';
+    assert_script_run 'transactional-update cleanup dup', 300;
+    process_reboot 1;
+}
 
 sub run {
     # Enable salt debug
@@ -25,15 +37,14 @@ sub run {
     }
     # Notify others that installation finished
     if (get_var 'DELAYED') {
+        incident_repo_dup if is_caasp('qam');
         barrier_wait 'DELAYED_NODES_ONLINE';
     }
     else {
         barrier_wait "NODES_ONLINE";
     }
     pause_until 'CNTRL_FINISHED';
-}
 
-sub post_run_hook {
     # Some nodes were removed & powered off during test run
     return if query_isotovideo('backend_is_shutdown');
 
@@ -48,7 +59,6 @@ sub post_run_hook {
         reset_consoles;
         select_console 'root-console';
     }
-    export_cluster_logs;
 }
 
 1;

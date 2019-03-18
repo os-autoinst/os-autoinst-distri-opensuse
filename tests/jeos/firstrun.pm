@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use strict;
+use warnings;
 use testapi;
 use version_utils 'is_sle';
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
@@ -65,10 +66,14 @@ sub run {
 
     # Accept license
     if (is_sle) {
-        assert_screen 'jeos-license', 60;
-        send_key 'ret';
-        assert_screen 'jeos-doyouaccept';
-        send_key 'ret';
+        if (check_screen 'jeos-license', 60) {
+            send_key 'ret';
+            assert_screen 'jeos-doyouaccept';
+            send_key 'ret';
+        }
+        else {
+            record_soft_failure 'bsc#1127166 - License moved to another location';
+        }
     }
 
     # Select timezone

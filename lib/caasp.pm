@@ -21,7 +21,7 @@ use power_action_utils qw(power_action assert_shutdown_and_restore_system);
 
 our @EXPORT = qw(
   process_reboot microos_login send_alt
-  handle_simple_pw export_cluster_logs script_retry script_run0 script_assert0
+  handle_simple_pw script_run0 script_assert0
   get_delayed update_scheduled
   pause_until unpause);
 
@@ -54,23 +54,6 @@ sub send_alt {
         $keys{password}  = ['a', 'a'];
     }
     send_key "alt-$keys{$key}[$txt]";
-}
-
-# Export logs from cluster admin/workers
-sub export_cluster_logs {
-    if (is_caasp 'local') {
-        record_info 'Logs skipped', 'Log export skipped because of LOCAL DEVENV';
-    }
-    else {
-        script_run "journalctl > journal.log", 60;
-        upload_logs "journal.log";
-
-        script_run 'supportconfig -b -B supportconfig', 500;
-        upload_logs '/var/log/nts_supportconfig.tbz';
-
-        upload_logs('/var/log/transactional-update.log', failok => 1);
-        upload_logs('/var/log/YaST2/y2log-1.gz') if get_var 'AUTOYAST';
-    }
 }
 
 # Weak password warning should be displayed only once - bsc#1025835
@@ -161,10 +144,10 @@ sub get_admin_job {
 sub get_delayed {
     my $role = shift;
 
-    my ($drole, $count);
-    my @jobs = get_cluster_jobs;
+    my $count = 0;
+    my @jobs  = get_cluster_jobs;
     for my $job_id (@jobs) {
-        if ($drole = get_job_info($job_id)->{settings}->{DELAYED}) {
+        if (my $drole = get_job_info($job_id)->{settings}->{DELAYED}) {
             if ($role) {
                 return $job_id if $role eq $drole;
             } else {
@@ -177,7 +160,7 @@ sub get_delayed {
 
 
 # Return update repository without parameters
-# Optional filter for update type [qam|fake|dup]
+# Optional filter for update type [qam|fake|test|migration]
 sub update_scheduled {
     my $type = shift;
 
@@ -191,34 +174,11 @@ sub update_scheduled {
 
     # Filter for update types
     return $repo unless $type;
-    return $repo =~ 'Maintenance' if $type eq 'qam';
-    return $repo =~ 'TestUpdate'  if $type eq 'fake';
-    if ($type eq 'dup') {
-        my $extracted_iso = get_var('REPO_0');
-        return 0 unless $extracted_iso;
-        return $repo =~ $extracted_iso;
-    }
+    return $repo =~ /Maintenance/ if $type eq 'qam';
+    return $repo =~ /FakeUpdate/i if $type eq 'fake';
+    return $repo =~ /TestUpdate/i if $type eq 'test';
+    return $repo =~ /Migration/i  if $type eq 'migration';
     die "Unrecognized type: '$type'";
-}
-
-# Repeat command until expected result or timeout
-# script_retry 'ping -c1 -W1 machine', retry => 5
-sub script_retry {
-    my ($cmd, %args) = @_;
-    my $ecode = $args{expect} // 0;
-    my $retry = $args{retry}  // 10;
-    my $delay = $args{delay}  // 30;
-
-    my $ret;
-    for (1 .. $retry) {
-        type_string "# Trying $_ of $retry:\n";
-
-        $ret = script_run "timeout 25 $cmd";
-        last if defined($ret) && $ret == $ecode;
-
-        die("Waiting for Godot: $cmd") if $retry == $_;
-        sleep $delay;
-    }
 }
 
 # Wrapper returning PIPESTATUS[0]

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,6 +9,7 @@
 
 # Summary: The module provides base and helper functions for powering off or rebooting a machine under test.
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
+
 package power_action_utils;
 
 use base Exporter;
@@ -18,7 +19,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_vmware);
 
 our @EXPORT = qw(
   prepare_system_shutdown
@@ -32,7 +33,7 @@ our @EXPORT = qw(
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi') || check_var('BACKEND', 'spvm');
+    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm/;
 
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
@@ -245,14 +246,27 @@ sub power_action {
         assert_shutdown_and_restore_system($action, $shutdown_timeout *= 3);
     }
     else {
+        if (check_var('DESKTOP', 'minimalx') && check_screen('shutdown-wall', timeout => 30)) {
+            record_soft_failure 'bsc#1076817 manually shutting down';
+            select_console 'root-console';
+            systemctl 'poweroff';
+        }
+
         assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.
         handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
+        # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
+        select_console('svirt') if is_vmware && $action eq 'reboot';
         reset_consoles;
         if (check_var('BACKEND', 'svirt') && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
+        }
+        # When 'sut' is ready, select it
+        if (is_vmware && $action eq 'reboot') {
+            wait_serial('GNU GRUB') || die 'GRUB not found on serial console';
+            select_console('sut');
         }
     }
 }
@@ -310,7 +324,7 @@ Example:
 
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout}      //= 60;
+    $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : 60;
     $args->{soft_timeout} //= 0;
     $args->{bugref}       //= "No bugref specified";
     if ($args->{soft_timeout}) {

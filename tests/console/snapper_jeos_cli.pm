@@ -14,6 +14,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use strict;
+use warnings;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
 

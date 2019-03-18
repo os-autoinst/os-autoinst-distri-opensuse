@@ -8,12 +8,13 @@
 # without any warranty.
 
 # Summary: Checks HANA installation as performed by sles4sap/wizard_hana_install
-# Requires: sles4sap/wizard_hana_install, ENV variable SAPADM
+# Requires: sles4sap/wizard_hana_install, ENV variables INSTANCE_SID
 # Maintainer: Ricardo Branco <rbranco@suse.de>
 
 use base "sles4sap";
 use testapi;
 use strict;
+use warnings;
 use utils 'ensure_serialdev_permissions';
 
 sub run {
@@ -23,7 +24,10 @@ sub run {
     select_console 'root-console';
 
     # The SAP Admin was set in sles4sap/wizard_hana_install
-    my ($sapadm, $sid) = $self->set_sap_info(get_required_var('SAPADM'));
+    my $sid         = get_required_var('INSTANCE_SID');
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $sapadm      = $self->set_sap_info($sid, $instance_id);
+    $self->test_pids_max;
     $self->become_sapadm;
 
     # Check HDB with a database query

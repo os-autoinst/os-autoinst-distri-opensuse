@@ -1,5 +1,5 @@
 # SUSE's openQA tests
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2019 SUSE LLC
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
@@ -18,10 +18,13 @@ use utils;
 use testapi;
 use lockapi;
 use isotovideo;
+use x11utils 'ensure_unlocked_desktop';
 
 our @EXPORT = qw(
   $crm_mon_cmd
   $softdog_timeout
+  exec_csync
+  add_file_in_csync
   get_cluster_name
   get_hostname
   get_node_to_join
@@ -44,6 +47,7 @@ our @EXPORT = qw(
   check_cluster_state
   wait_until_resources_started
   get_lun
+  check_device_available
   pre_run_hook
   post_run_hook
   post_fail_hook
@@ -54,6 +58,27 @@ our @EXPORT = qw(
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = 60;
 our $prev_console;
+
+sub exec_csync {
+    # Sometimes we need to run csync2 twice to have all the files updated!
+    assert_script_run 'csync2 -vxF ; sleep 2 ; csync2 -vxF';
+}
+
+sub add_file_in_csync {
+    my %args      = @_;
+    my $conf_file = $args{conf_file} // '/etc/csync2/csync2.cfg';
+
+    if (defined($conf_file) && defined($args{value})) {
+        # Check if conf_file is a valid value
+        assert_script_run "[[ -w $conf_file ]]";
+
+        # Add the value in conf_file and sync on all nodes
+        assert_script_run "grep -Fq $args{value} $conf_file || sed -i 's|^}\$|include $args{value};\\n}|' $conf_file";
+        exec_csync;
+    }
+
+    return 1;
+}
 
 sub get_cluster_name {
     return get_required_var('CLUSTER_NAME');
@@ -214,6 +239,8 @@ sub ha_export_logs {
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $hb_log        = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
+    my $iscsi_devs    = '/tmp/iscsi_devices.list';
+    my $mdadm_conf    = '/etc/mdadm.conf';
     my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
     my @y2logs;
 
@@ -230,6 +257,14 @@ sub ha_export_logs {
     # Generate the packages list
     script_run "rpm -qa > $packages_list";
     upload_logs("$packages_list", failok => 1);
+
+    # iSCSI devices and their real paths
+    script_run "ls -l /dev/disk/by-path/ > $iscsi_devs";
+    upload_logs($iscsi_devs, failok => 1);
+
+    # mdadm conf
+    script_run "touch $mdadm_conf";
+    upload_logs($mdadm_conf, failok => 1);
 }
 
 sub check_cluster_state {
@@ -248,10 +283,14 @@ sub check_cluster_state {
 
 # Wait for resources to be started
 sub wait_until_resources_started {
-    my @cmds = ('crm cluster wait_for_startup');
-    push @cmds, "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
-    my $timeout = 120 * get_var('TIMEOUT_SCALE', 1);
+    my %args    = @_;
+    my @cmds    = ('crm cluster wait_for_startup');
+    my $timeout = ($args{timeout} // 120) * get_var('TIMEOUT_SCALE', 1);
     my $ret     = undef;
+
+    # Some CRM options can only been added on recent versions
+    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'" if is_sle '12-sp3+';
+    push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')" if is_sle '12-sp3+';
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
@@ -314,6 +353,23 @@ sub get_lun {
 
     # Return the real path of the block device
     return block_device_real_path "$lun";
+}
+
+# This method checks for the presence of a device in the system for up to a defined timeout (defaults to 20seconds)
+sub check_device_available {
+    my ($dev, $tout) = @_;
+    my $ret;
+    my $tries = $tout ? int($tout / 2) : 10;
+
+    die "Must provide a device for check_device_available" unless (defined $dev);
+
+    while ($tries and $ret = script_run "ls -la $dev") {
+        --$tries;
+        sleep 2;
+    }
+    die "Test timed out while checking $dev" unless (defined $ret);
+    die "Nonexistent $dev after $tout seconds" unless ($tries > 0 or $ret == 0);
+    return $ret;
 }
 
 sub pre_run_hook {

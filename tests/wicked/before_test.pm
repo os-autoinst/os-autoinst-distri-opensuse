@@ -12,6 +12,7 @@
 
 use base 'wickedbase';
 use strict;
+use warnings;
 use testapi;
 use utils qw(zypper_call systemctl);
 use network_utils qw(iface setup_static_network);
@@ -59,6 +60,11 @@ sub run {
         assert_script_run("rcwickedd restart");
         record_info('INFO', 'Setup OpenVPN');
         zypper_call('--quiet in openvpn', timeout => 200);
+        if (check_var('WICKED', 'advanced')) {
+            record_info('INFO', 'Setup OVS');
+            zypper_call('--quiet in openvswitch', timeout => 200);
+            assert_script_run("systemctl start openvswitch");
+        }
     }
 }
 

@@ -14,6 +14,7 @@
 
 use base 'btrfs_test';
 use strict;
+use warnings;
 use testapi;
 
 my $dest = "/mnt/qg";

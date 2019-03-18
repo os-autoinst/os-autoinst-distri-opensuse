@@ -16,6 +16,7 @@
 use base "consoletest";
 use testapi;
 use strict;
+use warnings;
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run {
@@ -25,7 +26,7 @@ sub run {
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
-            validate_script_output('curl -f -v https://eu.httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?eu.httpbin.org["]? matched, });
+            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matched, });
         };
         last unless ($@);
         diag "curl -f -v https://eu.httpbin.org/get failed: $@";

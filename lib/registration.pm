@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2016 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ use base Exporter;
 use Exporter;
 
 use strict;
+use warnings;
 
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
@@ -28,6 +29,8 @@ use constant ADDONS_COUNT => 50;
 our @EXPORT = qw(
   add_suseconnect_product
   remove_suseconnect_product
+  cleanup_registration
+  register_product
   assert_registration_screen_present
   fill_in_registration_data
   registration_bootloader_cmdline
@@ -40,6 +43,8 @@ our @EXPORT = qw(
   rename_scc_addons
   is_module
   install_docker_when_needed
+  verify_scc
+  investigate_log_empty_license
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   @SLE15_ADDONS_WITHOUT_LICENSE
@@ -47,6 +52,7 @@ our @EXPORT = qw(
 
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
+# Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
 our %SLE15_MODULES = (
     base      => 'Basesystem',
     sdk       => 'Development-Tools',
@@ -57,6 +63,7 @@ our %SLE15_MODULES = (
     contm     => 'Containers',
     pcm       => 'Public-Cloud',
     sapapp    => 'SAP-Applications',
+    python2   => 'Python2',
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -86,7 +93,10 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo rt idu ids lgm);
+    my @addons_with_license = qw(geo rt idu ids);
+    # For the legacy module we do not need any additional subscription,
+    # like all modules, it is included in the SLES subscription.
+    push @addons_with_license, 'lgm' unless is_sle('15+');
     if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
         record_soft_failure 'bsc#1118497';
     }
@@ -135,8 +145,9 @@ Wrapper for SUSEConnect -p $name.
 =cut
 sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout) = @_;
-    $version //= scc_version();
-    $arch    //= get_required_var('ARCH');
+    assert_script_run 'source /etc/os-release';
+    $version //= '${VERSION_ID}';
+    $arch    //= '${CPU}';
     $params  //= '';
     assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
 }
@@ -153,6 +164,31 @@ sub remove_suseconnect_product {
     $arch    //= get_required_var('ARCH');
     $params  //= '';
     assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");
+}
+
+=head2 cleanup_registration
+
+    cleanup_registration();
+
+Wrapper for SUSEConnect --cleanup. Resets proxy SCC url if job has SCC_URL
+variable set.
+=cut
+sub cleanup_registration {
+    # Remove registration from the system
+    assert_script_run 'SUSEConnect --clean';
+    # Define proxy SCC if provided
+    my $proxyscc = get_var('SCC_URL');
+    assert_script_run "echo \"url: $proxyscc\" > /etc/SUSEConnect" if $proxyscc;
+}
+
+=head2 register_product
+
+    register_product();
+
+Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
+=cut
+sub register_product {
+    assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE');
 }
 
 sub register_addons {
@@ -176,7 +212,7 @@ sub register_addons {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
             else {
-                assert_and_click "scc-code-field-$addon", 'left', 120;
+                assert_and_click "scc-code-field-$addon", 'left', 240;
             }
             type_string $regcode;
             save_screenshot;
@@ -388,6 +424,12 @@ sub process_scc_register {
     }
 }
 
+sub show_development_versions {
+    assert_screen('scc-beta-filter-checkbox');
+    send_key('alt-i');
+    assert_screen('scc-beta-filter-unchecked');
+}
+
 sub fill_in_registration_data {
     my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
@@ -458,13 +500,11 @@ sub fill_in_registration_data {
         assert_screen [qw(scc-beta-filter-checkbox scc-without-beta-filter-checkbox)];
         if (match_has_tag('scc-beta-filter-checkbox')) {
             if (check_var('BETA', '1')) {
-                assert_screen('scc-beta-filter-checkbox');
-                send_key('alt-i');
+                show_development_versions;
             }
             elsif (!check_screen($modules_needle, 0)) {
                 record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
-                assert_screen('scc-beta-filter-checkbox');
-                send_key('alt-i');
+                show_development_versions;
             }
         }
 
@@ -578,6 +618,7 @@ sub get_addon_fullname {
         lgm       => 'sle-module-legacy',
         ltss      => 'SLES-LTSS',
         pcm       => 'sle-module-public-cloud',
+        rt        => 'SUSE-Linux-Enterprise-RT',
         script    => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
         tcm       => 'sle-module-toolchain',
@@ -610,7 +651,9 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        if (is_sle('12-sp3+')) {
+        # Fresh install sles12sp3/4 shortcut is different with upgrade version
+        # Refer https://progress.opensuse.org/issues/47327
+        if ((is_sle('12-sp3+') && is_sle('<15') && get_var('UPGRADE')) || is_sle('>=15')) {
             send_key "alt-l";
         }
         else {
@@ -629,7 +672,17 @@ sub scc_deregistration {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (is_sle('12-SP1+', get_var($args{version_variable}))) {
-        assert_script_run('SUSEConnect -d --cleanup', 200);
+        assert_script_run('SUSEConnect --version');
+        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 200);
+        if (defined $deregister_ret and $deregister_ret == 104) {
+            # https://bugzilla.suse.com/show_bug.cgi?id=1119512
+            # https://bugzilla.suse.com/show_bug.cgi?id=1122497
+            record_soft_failure 'bsc#1119512 and bsc#1122497';
+            # Workaround the soft-failure
+            assert_script_run('SUSEConnect --cleanup', 200);
+        }
+        # If there was a failure de-registering, upload debug information for the SCC team
+        upload_logs "/tmp/SUSEConnect.debug" if (defined $deregister_ret and $deregister_ret);
         my $output = script_output 'SUSEConnect -s';
         die "System is still registered" unless $output =~ /Not Registered/;
         save_screenshot;
@@ -693,6 +746,41 @@ sub install_docker_when_needed {
     systemctl('start docker');
     systemctl('status docker');
     assert_script_run('docker info');
+}
+
+sub verify_scc {
+    record_info('proxySCC/SCC', 'Verifying that proxySCC and SCC can be accessed');
+    assert_script_run("curl ${\(get_var('SCC_URL'))}/login") if get_var('SCC_URL');
+    assert_script_run("curl https://scc.suse.com/login");
+}
+
+sub investigate_log_empty_license {
+    my $filter_products   = "grep -Po '<SUSE::Connect::Remote::Product.*?(extensions|isbase=(true|false)>)'";
+    my $y2log_file        = '/var/log/YaST2/y2log';
+    my $filter_empty_eula = qq[grep '.*eula_url="".*'];
+    my $orderuniquebyid   = 'sort -u -t, -k1,1';
+    my $command           = "$filter_products $y2log_file | $filter_empty_eula | $orderuniquebyid";
+    my @products          = split(/\n/, script_output($command));
+    my %fields            = (
+        id            => qr/(?<id>(?<=id=)\d+)/,
+        friendly_name => qr/(?<friendly_name>(?<=friendly_name=").*?(?="))/
+    );
+    my $message;
+    for my $product (@products) {
+        if ($product =~ /$fields{id}.*?$fields{friendly_name}.*?$fields{asset_url}/) {
+            $message .= "$+{friendly_name}: https://scc.suse.com/admin/products/$+{id}\n";
+        }
+    }
+    if ($message) {
+        record_info(
+            'Empty eula_url',
+            "Empty EULA was found in YaST logs (eula_url=\"\") for the following products:\n" .
+              "$message\n" .
+              "Please, file Bugzilla ticket agains SCC if license is not properly set.\n" .
+              "In case of licence available, check if the asset for the license has been properly synchronized\n" .
+              "by taking a look in http://openqa.suse.de/assets/repo/ for the corresponding product/build\n" .
+              "and searching for a path ending in \'.license/license.txt\' .Otherwise, please file a Progress ticket.");
+    }
 }
 
 1;

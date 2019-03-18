@@ -16,33 +16,23 @@
 # Summary: Stop all libvirt guests
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "x11test";
+use base "consoletest";
 use xen;
 use strict;
+use warnings;
 use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
-    select_console 'x11';
-    my $hypervisor = get_required_var('QAM_XEN_HYPERVISOR');
+    my $hypervisor = get_required_var('HYPERVISOR');
 
-    x11_start_program('xterm');
-    send_key 'super-up';
-
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Stopping the $guest";
-
-        # Stop the original VM we created using virsh
-        assert_script_run "ssh root\@$hypervisor 'virsh shutdown $guest'";
-    }
-
-    wait_screen_change { send_key 'alt-f4'; };
-
+    # TODO:
+    script_run "ssh root\@$_ poweroff" foreach (keys %xen::guests);
+    script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 60, expect => 1;
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

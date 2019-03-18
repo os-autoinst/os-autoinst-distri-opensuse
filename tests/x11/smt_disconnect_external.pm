@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,7 @@ use lockapi;
 use mmapi;
 use mm_network;
 use repo_tools;
-use utils 'turn_off_gnome_screensaver';
+use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     my ($self) = @_;

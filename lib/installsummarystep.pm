@@ -2,6 +2,7 @@ package installsummarystep;
 use base "y2logsstep";
 use testapi;
 use strict;
+use warnings;
 
 
 sub accept3rdparty {

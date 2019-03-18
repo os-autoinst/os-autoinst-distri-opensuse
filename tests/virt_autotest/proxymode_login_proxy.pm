@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,10 +17,11 @@ use base "opensusebasetest";
 use testapi;
 
 sub run {
+    my ($self) = @_;
     assert_screen "bootloader";
     send_key "ret";
-    assert_screen "grub2", 10;
-    send_key "ret";
+    $self->wait_for_boot_menu(bootloader_time => 10);
+    send_key 'ret';
     assert_screen "displaymanager", 300;
     select_console('root-console');
 }

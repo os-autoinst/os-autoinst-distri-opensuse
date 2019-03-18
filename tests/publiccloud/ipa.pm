@@ -13,7 +13,24 @@
 
 use base "publiccloud::basetest";
 use strict;
+use warnings;
 use testapi;
+
+sub extract_startup_timings {
+    my $string = shift;
+    my $res    = {};
+    $string =~ s/Startup finished in\s*//;
+    $string =~ s/=(.+)$/+$1 (overall)/;
+    for my $time (split(/\s*\+\s*/, $string)) {
+        if ($time =~ /((\d{1,2})min\s*)?(\d{1,2}\.\d{1,3})s\s*\((\w+)\)/) {
+            my $sec = $3;
+            $sec += $2 * 60 if (defined($1));
+            $res->{$4} = $sec;
+        }
+    }
+    map { die("Fail to detect $_ timing") unless exists($res->{$_}) } qw(kernel initrd userspace overall);
+    return $res;
+}
 
 sub run {
     my ($self) = @_;
@@ -22,10 +39,11 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
+    my $tests    = get_var('PUBLIC_CLOUD_IPA_TESTS', '');
 
     my $ipa = $provider->ipa(
         instance    => $instance,
-        tests       => get_required_var('PUBLIC_CLOUD_IPA_TESTS'),
+        tests       => $tests,
         results_dir => 'ipa_results'
     );
 
@@ -34,9 +52,9 @@ sub run {
         my $system_max_boot_time = 120;
         my $out                  = script_output('grep "^Startup finished in" ' . $ipa->{logfile});
         record_info('Startup time', $out);
-        die 'Fail to find boot time in log' unless $out =~ /Startup finished in (\d{1,4}\.\d{3})s \(kernel\) \+ \d{1,4}\.\d{3}s \(initrd\) \+ \d{1,4}\.\d{3}s \(userspace\) = (\d{1,4}\.\d{3})s/;
-        record_info('Kernel boot is too slow',         result => 'fail') if $1 > $kernel_max_boot_time;
-        record_info('Overall system boot is too slow', result => 'fail') if $2 > $system_max_boot_time;
+        my $startup_timings = extract_startup_timings($out);
+        record_info('Kernel boot is too slow',         result => 'fail') if $startup_timings->{'kernel'} > $kernel_max_boot_time;
+        record_info('Overall system boot is too slow', result => 'fail') if $startup_timings->{'overall'} > $system_max_boot_time;
     }
     upload_logs($ipa->{logfile});
     parse_extra_log(IPA => $ipa->{results});
@@ -46,7 +64,7 @@ sub run {
     die if ($ipa->{fail} > 0);
 }
 
-sub post_fail_hook {
+sub cleanup {
     my ($self) = @_;
 
     # upload logs on unexpected failure
@@ -55,7 +73,6 @@ sub post_fail_hook {
         assert_script_run('tar -zcvf ipa_results.tar.gz ipa_results');
         upload_logs('ipa_results.tar.gz', failok => 1);
     }
-    $self->SUPER->post_fail_hook();
 }
 
 1;

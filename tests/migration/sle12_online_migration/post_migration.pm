@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,10 +12,12 @@
 
 use base "installbasetest";
 use strict;
+use warnings;
 use testapi;
 use utils;
 use version_utils 'is_desktop_installed';
 use qam qw(add_test_repositories remove_test_repositories);
+use x11utils 'ensure_unlocked_desktop';
 
 sub run {
     select_console 'root-console';

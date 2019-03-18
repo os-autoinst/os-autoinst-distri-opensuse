@@ -13,6 +13,7 @@ use parent 'caasp_controller';
 use caasp_controller;
 
 use strict;
+use warnings;
 use testapi;
 use lockapi 'barrier_wait';
 use caasp 'unpause';
@@ -73,8 +74,12 @@ sub bootstrap {
     type_string $admin_fqdn;
     assert_and_click "velum-bootstrap";
 
-    # Wait until bootstrap finishes
-    assert_screen 'velum-bootstrap-done', 900;
+    # Bootstrap & retry in case of failure
+    assert_screen ['velum-status-error', 'velum-bootstrap-done'], 900;
+    if (match_has_tag 'velum-status-error') {
+        assert_and_click 'velum-retry';
+        assert_screen 'velum-bootstrap-done', 900;
+    }
 }
 
 sub run {

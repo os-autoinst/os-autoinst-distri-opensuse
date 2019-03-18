@@ -43,9 +43,9 @@ and additionally the following rules:
   `$self` object. Do not parse any parameter if you do not need any.
 * [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)
 * Every pull request is tested by the travis CI by calling the equivalent of
-  `make test` on the tests. It is recommended to call `tools/tidy` locally to
-  fix the style of your changes before providing a pull request. Call `make
-  test` to conduct all tests.
+  `make test` on the tests. It is recommended to call `tools/tidy` or
+  `make tidy` locally to fix the style of your changes before providing a
+  pull request. Call `make test` to conduct all tests.
 
 
 Also see the

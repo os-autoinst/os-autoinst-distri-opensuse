@@ -14,6 +14,7 @@
 use base 'y2logsstep';
 
 use strict;
+use warnings;
 use testapi;
 use y2lan_restart_common qw(initialize_y2lan open_network_settings close_network_settings check_network_status);
 
@@ -149,8 +150,10 @@ sub run {
 }
 
 sub post_fail_hook {
+    my ($self) = @_;
     assert_script_run 'journalctl -b > /tmp/journal', 90;
     upload_logs '/tmp/journal';
+    $self->SUPER::post_fail_hook;
 }
 
 1;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
+# Copyright (c) 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,6 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
+use warnings;
 use base "console_yasttest";
 use testapi;
 use utils 'systemctl';
@@ -50,11 +51,32 @@ sub run {
     #Show all configs
     send_key(is_pre_15() ? 'alt-o' : 'alt-s');
     assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
-    wait_screen_change { send_key 'tab' };
-    wait_screen_change { send_key 'down' };
-    send_key(is_pre_15() ? 'alt-t' : 'alt-c');
-    assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';
-
+    wait_screen_change { send_key 'tab' };                              # focus on first element in the list
+    wait_screen_change { send_key(is_pre_15() ? 'alt-t' : 'alt-c') };
+    assert_screen [qw(
+          yast2_apparmor_profile_mode_configuration_toggle
+          yast2_apparmor_profile_mode_configuration_show_all
+          yast2_apparmor_profile_mode_not_visible
+          )];
+    if (match_has_tag 'yast2_apparmor_profile_mode_not_visible') {
+        record_soft_failure 'bsc#1127714 - yast2_apparmor does not display mode column when profile name is too long';
+        send_key_until_needlematch 'yast2_apparmor_profile_mode_configuration_show_all', 'tab';
+        wait_screen_change { send_key 'tab' };
+        send_key_until_needlematch('yast2_apparmor_profile_mode_configuration_toggle', 'right');
+    }
+    elsif (match_has_tag 'yast2_apparmor_profile_mode_configuration_show_all') {
+        record_soft_failure 'bsc#1126289 - yast2_apparmor - cannot toggle first profile in the list';
+        # try out with second element in the list
+        wait_screen_change { send_key 'tab' };
+        wait_screen_change { send_key 'down' };
+        save_screenshot;
+        send_key(is_pre_15() ? 'alt-t' : 'alt-c');
+        if (is_pre_15()) {
+            wait_screen_change { send_key 'tab' };
+            wait_screen_change { send_key 'end' };    # we need to search for recent toggled element at the of the list
+        }
+        assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';
+    }
     wait_screen_change { send_key 'alt-b' } if is_pre_15();
 
     # close apparmor configuration
@@ -62,7 +84,6 @@ sub run {
     # increase value for timeout to 200 seconds
     wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
     systemctl 'show -p ActiveState apparmor.service | grep ActiveState=active';
-
     # currently not existing on sle15
     if (is_pre_15()) {
         # part 2: start apparmor configuration again
@@ -161,4 +182,3 @@ sub post_fail_hook {
 }
 
 1;
-

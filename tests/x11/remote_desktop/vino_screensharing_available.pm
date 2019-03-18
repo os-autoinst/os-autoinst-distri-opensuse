@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,10 +19,13 @@
 
 use base "x11test";
 use strict;
+use warnings;
 use testapi;
-use utils;
+use x11utils 'handle_relogin';
 
 sub run {
+    select_console 'x11';
+
     # Run the gnome-control-center - the sharing section
     x11_start_program "gnome-control-center sharing", target_match => 'vino_screensharing_available-gnome-control-center-sharing';
 

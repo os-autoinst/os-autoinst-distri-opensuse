@@ -26,7 +26,7 @@ use version_utils 'is_storage_ng';
 
 my $after_cancel_tags = [
     qw(
-      encrypted_volume_activation_prompt enable-multipath scc-registration
+      enable-multipath scc-registration
       inst-instmode
       )];
 
@@ -35,10 +35,6 @@ sub run {
     if (get_var('ENCRYPT_CANCEL_EXISTING')) {
         wait_screen_change { send_key 'alt-c'; };
         assert_screen($after_cancel_tags);
-        if (match_has_tag('encrypted_volume_activation_prompt')) {
-            record_soft_failure 'bsc#989770';
-            send_key 'alt-c';
-        }
     }
     elsif (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         # pre storage NG has an additional question dialog

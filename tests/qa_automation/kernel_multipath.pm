@@ -10,8 +10,9 @@
 # Summary: Use qa_test_multipath to test multipath over iscsi
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
-use base "qa_run";
+use base 'qa_run';
 use strict;
+use warnings;
 use testapi;
 use utils;
 use iscsi;
@@ -58,8 +59,5 @@ sub test_run_list {
     return qw(_reboot_off sw_multipath);
 }
 
-sub junit_type {
-    return 'user_regression';
-}
 1;
 

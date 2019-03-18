@@ -12,6 +12,7 @@
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;
+use warnings;
 use base "x11test";
 use testapi;
 use utils;
@@ -22,7 +23,7 @@ sub run {
 
     # sites_url
     my %sites_url = (
-        http  => "http://eu.httpbin.org/html",
+        http  => "http://httpbin.org/html",
         https => "https://www.google.com/",
         ftp   => "ftp://mirror.bej.suse.com/",
         local => "file:///usr/share/w3m/w3mhelp.html"

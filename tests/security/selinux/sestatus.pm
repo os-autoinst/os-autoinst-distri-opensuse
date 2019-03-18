@@ -21,6 +21,7 @@ use base 'opensusebasetest';
 use power_action_utils "power_action";
 use bootloader_setup 'add_grub_cmdline_settings';
 use strict;
+use warnings;
 use testapi;
 use utils;
 

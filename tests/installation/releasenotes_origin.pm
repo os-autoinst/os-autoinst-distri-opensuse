@@ -12,6 +12,7 @@
 # Tags: fate#323273, poo#26786
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils ':VERSION';

@@ -14,6 +14,7 @@ package xen;
 
 use base 'consoletest';
 use strict;
+use warnings;
 use testapi;
 use utils;
 
@@ -21,20 +22,95 @@ use utils;
 #   * location of the installation tree
 #   * autoyast profile
 #   * extra parameters for virsh create / xl create
-our %guests = (
-    'xen-sles12PV' => {
-        autoyast     => 'autoyast_xen/xen-SLES12-SP3-PV.xml',
-        extra_params => '--paravirt',
-        macaddress   => '52:54:00:78:73:a1',
-        location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-    },
-    'xen-sles12HVM' => {
-        autoyast     => 'autoyast_xen/xen-SLES12-SP3-FV.xml',
-        extra_params => '--hvm',
-        macaddress   => '52:54:00:78:73:a2',
-        location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
-    },
-);
+
+our %guests = ();
+if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-client")) {
+    %guests = (
+        'sles12sp3PV' => {
+            autoyast     => 'autoyast_xen/sles12sp3PV.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            macaddress   => '52:54:00:78:73:a1',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+        },
+        'sles12sp3HVM' => {
+            autoyast     => 'autoyast_xen/sles12sp3HVM.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            macaddress   => '52:54:00:78:73:a2',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+        },
+        'sles15PV' => {
+            autoyast     => 'autoyast_xen/sles15PV.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            macaddress   => '52:54:00:78:73:a3',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+        },
+        'sles15HVM' => {
+            autoyast     => 'autoyast_xen/sles15HVM.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            macaddress   => '52:54:00:78:73:a4',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+        },
+        'sles11sp4PVx32' => {
+            autoyast     => 'autoyast_xen/sles11sp4PVx32.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --arch i686',
+            macaddress   => '52:54:00:78:73:a5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
+        },
+        'sles11sp4HVMx32' => {
+            autoyast     => 'autoyast_xen/sles11sp4HVMx32.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --arch i686',
+            macaddress   => '52:54:00:78:73:a6',
+            location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
+        },
+        'sles11sp4PVx64' => {
+            autoyast     => 'autoyast_xen/sles11sp4PVx64.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            macaddress   => '52:54:00:78:73:a7',
+            location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
+        },
+        'sles11sp4HVMx64' => {
+            autoyast     => 'autoyast_xen/sles11sp4HVMx64.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            macaddress   => '52:54:00:78:73:a8',
+            location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
+        },
+        'sles12sp4PV' => {
+            autoyast     => 'autoyast_xen/sles12sp4PV.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            macaddress   => '52:54:00:78:73:a9',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
+        },
+        'sles12sp4HVM' => {
+            autoyast     => 'autoyast_xen/sles12sp4HVM.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            macaddress   => '52:54:00:78:73:aa',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
+        },
+    );
+} elsif (check_var("REGRESSION", "qemu-hypervisor") || check_var("REGRESSION", "qemu-client")) {
+    %guests = (
+        'sles12sp3' => {
+            autoyast     => 'autoyast_kvm/sles12sp3.xml',
+            extra_params => '',
+            macaddress   => '52:54:00:78:73:a2',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+        },
+        'sles12sp4' => {
+            autoyast     => 'autoyast_kvm/sles12sp4.xml',
+            extra_params => '',
+            macaddress   => '52:54:00:78:73:aa',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
+        },
+        'sles15' => {
+            autoyast     => 'autoyast_kvm/sles15.xml',
+            extra_params => '',
+            macaddress   => '52:54:00:78:73:a4',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+        },
+    );
+} else {
+    %guests = ();
+}
 
 sub create_guest {
     my $self = shift;
@@ -46,15 +122,12 @@ sub create_guest {
     my $extra_params = $guests{$guest}->{extra_params} // "";
 
     if ($method eq 'virt-install') {
-        # First undefine and destroy machine (we can't be sure if it exists)
-        script_run "virsh undefine $guest && virsh destroy $guest || true";
+        record_info "$guest", "Going to create $guest guest";
         # Run unattended installation for selected guest
-        assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
-        assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 10G";
-        assert_script_run "virt-install --connect xen:/// --virt-type xen $extra_params --name $guest --memory 2048 --disk /var/lib/libvirt/images/xen/$guest.raw --network bridge=br0,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "'", timeout => 1800;
-        # Wait for post-installation reboot as the previous command returns upon first reboot
-        sleep 90;
+        assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 20G";
+        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory 4096 --disk /var/lib/libvirt/images/xen/$guest.raw --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
     }
 }
 
 1;
+

@@ -13,6 +13,7 @@
 use base 'xen';
 
 use strict;
+use warnings;
 use testapi;
 use utils;
 
@@ -24,24 +25,23 @@ sub run {
     log_outputs="1:file:/var/log/libvirt/libvirtd.log"' >> /etc/libvirt/libvirtd.conf);
     systemctl 'restart libvirtd';
 
-    # Ensure additional package is installed
-    zypper_call '-t in libvirt-client';
+    assert_script_run "virsh net-start default";
+    assert_script_run "virsh net-autostart default";
 
-    # Show all guests
-    assert_script_run 'xl list';
-    save_screenshot;
-
-    # Install every defined guest
-    # TODO: It will be nice to run this in parallel
-    foreach my $guest (keys %xen::guests) {
-        $self->create_guest($guest, 'virt-install');
-        # Show guest details
-        assert_script_run "xl list $guest";
+    if (check_var('XEN', '1')) {
+        # Ensure additional package is installed
+        zypper_call '-t in libvirt-client';
     }
 
-    # All guests should be now installed, show them
-    assert_script_run 'xl list';
-    save_screenshot;
+    # Show all guests
+    assert_script_run 'virsh list --all';
+    assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
+    wait_still_screen 1;
+
+    # Install every defined guest
+    foreach my $guest (keys %xen::guests) {
+        $self->create_guest($guest, 'virt-install');
+    }
 }
 
 1;

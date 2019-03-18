@@ -13,6 +13,7 @@
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use strict;
+use warnings;
 use base "x11test";
 use testapi;
 use utils;

@@ -11,6 +11,7 @@
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
+use warnings;
 use base 'basetest';
 use testapi;
 use xml_utils;

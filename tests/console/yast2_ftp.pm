@@ -11,6 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
+use warnings;
 use base "console_yasttest";
 use testapi;
 use utils;
@@ -202,10 +203,6 @@ sub post_fail_hook {
     upload_logs('/etc/vsftpd.conf');
     upload_logs('/tmp/failed_vsftpd_directives.log');
     $self->save_upload_y2logs;
-}
-
-sub test_flags {
-    return {milestone => 1};
 }
 
 1;

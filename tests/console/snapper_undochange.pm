@@ -12,6 +12,7 @@
 
 use base 'btrfs_test';
 use strict;
+use warnings;
 use testapi;
 
 sub run {

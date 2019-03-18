@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,42 +16,54 @@
 
 use base "y2x11test";
 use strict;
+use warnings;
 use testapi;
-use utils 'type_string_slow';
-
+use utils qw(type_string_slow_extended clear_console);
 
 sub run {
-    my $self   = shift;
-    my $module = "host";
+    my $self         = shift;
+    my $module       = "host";
+    my $hosts_params = {
+        ip    => '195.135.221.134',
+        fqdn  => 'download.opensuse.org',
+        alias => 'download-srv'
+    };
 
     select_console 'root-console';
-    #	add 1 entry to /etc/hosts and edit it later
+    #   add 1 entry to /etc/hosts and edit it later
     script_run "echo '80.92.65.53    n-tv.de ntv' >> /etc/hosts";
-    select_console 'x11', await_console => 0;
-    $self->launch_yast2_module_x11('host', match_timeout => 90);
+    clear_console;
+    select_console 'x11';
+    $self->launch_yast2_module_x11($module, match_timeout => 90);
     assert_and_click "yast2_hostnames_added";
-    wait_still_screen 1;
-    wait_screen_change { send_key 'alt-i'; };
-    send_key 'alt-t';
-    type_string 'download-srv';
-    wait_still_screen 1;
-    send_key 'alt-h';
-    type_string 'download.opensuse.org';
-    wait_still_screen 1;
     send_key 'alt-i';
-    type_string_slow '195.135.221.134';
-    assert_and_click 'yast2_hostnames_changed_ok';
+    assert_screen 'yast2_hostnames_edit_popup';
+    send_key 'alt-i';
+    type_string_slow_extended($hosts_params->{ip});
+    send_key 'tab';
+    type_string_slow_extended($hosts_params->{fqdn});
+    send_key 'tab';
+    type_string_slow_extended($hosts_params->{alias});
+    assert_screen 'yast2_hostnames_changed_ok';
+    send_key 'alt-o';
     assert_screen "yast2-$module-ui", 30;
-    #	OK => Exit
-    wait_screen_change { send_key "alt-o"; };
+    #   OK => Exit
+    send_key "alt-o";
+    wait_serial("yast2-$module-status-0") || die 'Fail! YaST2 - Hostnames dialog is not closed or non-zero code returned.';
     # Check that entry was correctly edited in /etc/hosts
     select_console "root-console";
-    assert_script_run q#grep '195\.135\.221\.134\sdownload\.opensuse\.org\sdownload-srv' /etc/hosts#;
+    assert_script_run qq{grep -E '$hosts_params->{ip}\\s+$hosts_params->{fqdn}\\s+$hosts_params->{alias}' /etc/hosts};
 }
 
 # Test ends in root-console, default post_run_hook does not work here
 sub post_run_hook {
     set_var('YAST2_GUI_TERMINATE_PREVIOUS_INSTANCES', 1);
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/hosts');
 }
 
 1;

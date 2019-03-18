@@ -16,6 +16,7 @@
 
 use base 'opensusebasetest';
 use strict;
+use warnings;
 use version_utils 'is_sle';
 use testapi;
 use lockapi;
@@ -29,7 +30,6 @@ sub assert_standalone {
 
 sub run {
     my $cluster_name  = get_cluster_name;
-    my $csync_conf    = '/etc/csync2/csync2.cfg';
     my $drbd_rsc      = 'drbd_passive';
     my $drbd_rsc_file = "/etc/drbd.d/$drbd_rsc.res";
 
@@ -77,11 +77,7 @@ sub run {
         type_string "cat $drbd_rsc_file\n";
 
         # We need to add the configuration in csync2.conf
-        assert_script_run "grep -q drbd $csync_conf || sed -i 's|^}\$|include /etc/drbd*;\\n}|' $csync_conf";
-
-        # Execute csync2 to synchronise the configuration files
-        # Sometimes we need to run csync2 twice to have all the files updated!
-        assert_script_run 'csync2 -v -x -F ; sleep 2 ; csync2 -v -x -F';
+        add_file_in_csync(value => '/etc/drbd*');
     }
     else {
         diag 'Wait until DRBD configuration is created...';
@@ -155,6 +151,9 @@ sub run {
 
         # Check for result
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
     else {
         diag 'Wait until drbd resource is created/activated...';
@@ -174,6 +173,9 @@ sub run {
 
         # Node01 should be the Master
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
     else {
         diag 'Wait until drbd resource is restarted...';
@@ -200,6 +202,9 @@ sub run {
 
         # Check for result
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_02\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
 
     # Wait for DRBD resrouce migration to be done
@@ -223,6 +228,9 @@ sub run {
 
         # Check for result
         ensure_resource_running("ms_$drbd_rsc", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+
+        # Check device
+        check_device_available("/dev/$drbd_rsc");
     }
 
     # Wait for DRBD resrouce migration to be done

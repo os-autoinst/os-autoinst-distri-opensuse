@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,10 +11,12 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
+use warnings;
 use base 'y2logsstep';
 use testapi;
 use utils;
 use power_action_utils 'power_action';
+use Utils::Backends 'has_ttys';
 
 sub run {
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
@@ -24,7 +26,20 @@ sub run {
         my $svirt = console('svirt');
         $svirt->change_domain_element(os => boot => {dev => 'hd'});
     }
-    send_key 'alt-o';    # Reboot
+    # Reboot
+    if (has_ttys) {
+        my $count = 0;
+        while (!wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 20)) {
+            $count < 5 ? $count++ : die "Reboot process won't start";
+        }
+    }
+    else {
+        # for now, on remote backends we need to trigger the reboot action
+        # without waiting for a screen change as the remote console might
+        # vanish immediately after the initial key press loosing the remote
+        # socket end
+        send_key 'alt-o';
+    }
     power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
 }
 

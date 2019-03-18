@@ -12,6 +12,7 @@
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;
+use warnings;
 use base "x11test";
 use testapi;
 
@@ -26,6 +27,7 @@ sub run {
     # wav
     $self->firefox_open_url('/usr/share/sounds/alsa/test.wav');
     assert_screen('firefox-local_files-wav');
+    send_key 'esc';
 
     # so
     $self->firefox_open_url('/usr/lib64/libnss3.so');

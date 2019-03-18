@@ -12,6 +12,7 @@
 # Tags: poo#16650, poo#25850
 
 use strict;
+use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils qw(is_sle is_opensuse is_caasp);

@@ -16,8 +16,9 @@
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends qw(has_ttys use_ssh_serial_console);
 use strict;
+use warnings;
 
 sub disable_bash_mail_notification {
     assert_script_run "unset MAILCHECK >> ~/.bashrc";
@@ -29,12 +30,22 @@ sub run {
     # let's see how it looks at the beginning
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+
+    # on s390x we cannot stop the getty, otherwise the iucvconn will break
+    if (!check_var('BACKEND', 's390x')) {
+        systemctl "stop serial-getty\@$testapi::serialdev", ignore_failure => 1;
+        systemctl "disable serial-getty\@$testapi::serialdev";
+        # Mask if is qemu backend as use serial in remote installations e.g. during reboot
+        systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
+    }
+
+    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
     # Prevent mail notification messages to show up in shell and interfere with running console tests
     disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     disable_serial_getty;
     # init
-    check_console_font;
+    check_console_font if has_ttys();
 
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
