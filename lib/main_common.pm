@@ -610,7 +610,7 @@ sub kdestep_is_applicable {
 
 # kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
 sub kdump_is_applicable {
-    return !check_var('ARCH', 'aarch64') && !check_var('VIRSH_VMM_TYPE', 'linux');
+    return !(check_var('ARCH', 'aarch64') && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 sub consolestep_is_applicable {
