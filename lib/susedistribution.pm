@@ -404,9 +404,7 @@ sub become_root {
     my ($self) = @_;
 
     $self->script_sudo('bash', 0);
-    disable_serial_getty;
-    type_string "whoami > /dev/$testapi::serialdev\n";
-    wait_serial('root') || die "Root prompt not there";
+    disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
     type_string "cd /tmp\n";
     $self->set_standard_prompt('root');
     type_string "clear\n";
