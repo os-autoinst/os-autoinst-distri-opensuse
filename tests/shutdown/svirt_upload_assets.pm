@@ -14,6 +14,7 @@ use base 'installbasetest';
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_vmware';
 
 sub extract_assets {
     my ($args) = @_;
@@ -41,6 +42,8 @@ sub extract_assets {
 }
 
 sub run {
+    # Not implemented on VMware
+    return 1 if is_vmware;
     # connect to VIRSH_HOSTNAME screen and upload asset from there
     my $svirt = select_console('svirt');
 
