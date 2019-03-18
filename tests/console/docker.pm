@@ -152,7 +152,7 @@ sub run {
     $images_to_delete .= ' opensuse/leap' if (!check_var('ARCH', 's390x'));
     my $cmd_docker_rmi = "docker image rm $images_to_delete";
     my $output_deleted = script_output($cmd_docker_rmi);
-    die("error: docker image rm opensuse/leap") if (!check_var('ARCH', 's390x') && $output_deleted =~ m/Untagged: opensuse\/leap/);
+    die("error: docker image rm opensuse/leap") if (!check_var('ARCH', 's390x') && $output_deleted !~ m/Untagged: opensuse\/leap/);
     die('error: docker image rm opensuse/tumbleweed')          unless ($output_deleted =~ m/Untagged: opensuse\/tumbleweed/);
     die('error: docker image rm tw:saved')                     unless ($output_deleted =~ m/Untagged: tw:saved/);
     die("error: docker image rm alpine:$alpine_image_version") unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
