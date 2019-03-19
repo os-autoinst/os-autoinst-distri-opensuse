@@ -2212,6 +2212,12 @@ sub load_security_tests_ima_measurement {
     loadtest "security/ima/ima_measurement_audit";
 }
 
+sub load_security_tests_ima_appraisal {
+    loadtest "security/ima/ima_setup";
+    loadtest "security/ima/ima_appraisal_hashes";
+    loadtest "security/ima/ima_appraisal_digital_signatures";
+}
+
 sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
 }
@@ -2222,7 +2228,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      mok_enroll ima_measurement
+      mok_enroll ima_measurement ima_appraisal
       system_check
       /;
 
