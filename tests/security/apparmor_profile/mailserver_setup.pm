@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = shift;
@@ -33,11 +34,14 @@ sub run {
     # Install telnet
     zypper_call("--no-refresh in telnet");
 
-    # Create a testing mail with telnet smtp
-    $self->send_mail_smtp();
+    unless (is_sle('<=12-sp2')) {
 
-    # Upload mail logs for reference
-    $self->upload_logs_mail();
+        # Create a testing mail with telnet smtp
+        $self->send_mail_smtp();
+
+        # Upload mail logs for reference
+        $self->upload_logs_mail();
+    }
 }
 
 sub test_flags {
