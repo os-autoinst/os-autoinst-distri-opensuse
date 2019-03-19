@@ -73,11 +73,9 @@ sub run {
         assert_script_run 'modprobe -v ' . $basename . ' 2>&1 | tee -a /var/log/modprobe.out';
         assert_script_run "modinfo $basename";
         save_screenshot;
-        clear_console;
     }
     lttng_test;
-    type_string "exit\n";
-    reset_consoles;
+    clear_console;
 }
 
 sub post_fail_hook {
