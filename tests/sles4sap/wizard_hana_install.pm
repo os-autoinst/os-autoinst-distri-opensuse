@@ -100,6 +100,8 @@ sub run {
         zypper_call('in libopenssl1_0_0');
     }
     select_console 'x11';
+    # Hide the mouse so no needle will fail because of the mouse pointer appearing
+    mouse_hide;
 
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
