@@ -36,8 +36,8 @@ sub run {
     # Validating output of 'ras-mc-ctl --summary'
     die 'Not expected summary - ' . $summary_output
       unless $summary_output =~ /No Memory errors/ && $summary_output =~ /No PCIe AER errors/ && $summary_output =~ /No MCE errors/;
-    my $error_output = script_output('ras-mc-ctl --error');
-    # Validating output of 'ras-mc-ctl --error'
+    my $error_output = script_output('ras-mc-ctl --errors');
+    # Validating output of 'ras-mc-ctl --errors'
     die 'Not expected error - ' . $error_output
       unless $error_output =~ /No Memory errors/ && $error_output =~ /No PCIe AER errors/ && $error_output =~ /No MCE errors/;
 }

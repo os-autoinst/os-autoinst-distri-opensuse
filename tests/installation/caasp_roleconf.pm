@@ -35,8 +35,6 @@ sub run {
 
     # Both admin / worker have ntp now
     if (check_screen 'ntp-servers-empty') {
-        record_soft_failure 'bsc#1114818';
-
         # Try without ntp servers
         send_alt 'next';
         assert_screen 'ntp-servers-missing';

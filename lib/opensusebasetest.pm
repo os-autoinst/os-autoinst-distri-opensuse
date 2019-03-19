@@ -141,9 +141,8 @@ sub investigate_yast2_failure {
         record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
         $error_detected = 1;
     }
-    # Hash with expected errors in YaST2 and bug reference if any
+    # Hash with critical errors in YaST2 and bug reference if any
     my %y2log_errors = (
-        "<3>.*no[t]? mount"                          => 'bsc#1092088',    # Detect not mounted partition
         "<3>.*Cannot parse the data from server"     => 'bsc#1126045',
         "No textdomain configured"                   => 'bsc#1127756',    # Detecting missing translations
                                                                           # Detecting specifi errors proposed by the YaST dev team
@@ -151,9 +150,13 @@ sub investigate_yast2_failure {
         "but this requirement cannot be provided"    => undef,            # Detecting package conflicts
         "Could not load icon|Couldn't load pixmap"   => undef,            # Detecting missing icons
         "Internal error. Please report a bug report" => undef,            # Detecting internal errors
+    );
+    # Hash with known errors which we don't want to track in each postfail hook
+    my %y2log_known_errors = (
+        "<3>.*no[t]? mount" => 'bsc#1092088',                             # Detect not mounted partition
 
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
-        # Adding reference to trello
+        # Adding reference to trello, detect those in single scenario
         "<3>.*Error output: dracut:"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Reading install.inf"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*shellcommand"                                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
@@ -235,14 +238,22 @@ sub investigate_yast2_failure {
         "<5>.*Aborting requested by user"       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<5>.*Exception.cc"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
     );
-    my $delimiter       = '=========================================';
+
+    my $delimiter = '=========================================';
+    # Do not report issues we accepted to detect regressions in all scenarios
     my @detected_errors = ();
+    if (get_var('ASSERT_Y2LOGS')) {
+        %y2log_errors = (%y2log_errors, %y2log_known_errors);
+    } else {
+        @detected_errors = (keys %y2log_known_errors);
+    }
     # Test if zgrep is available
     my $is_zgrep_available = (script_output('type zgrep') == 0);
     my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
-    my $cmd_postfix = '/var/log/YaST2/' . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
+    my $logs_path   = '/var/log/YaST2/';
+    my $cmd_postfix = $logs_path . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
     # String to accumulate unknown detected issues
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
@@ -267,12 +278,14 @@ sub investigate_yast2_failure {
         $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result;
     }
 
-    ## Send last lines to serial to copy in case of new critical bugs
-    type_string "echo $delimiter > /dev/$serialdev\n";
-    type_string "echo 'YaST LOGS' > /dev/$serialdev\n";
-    type_string "tail -n 150 > /dev/$serialdev\n";
-    type_string "echo $delimiter > /dev/$serialdev\n";
-
+    # Send last lines to serial to copy in case of new critical bugs
+    # If yast log file exists
+    if (script_run("test -e $logs_path/y2log") == 0) {
+        type_string "echo $delimiter > /dev/$serialdev\n";
+        type_string "echo 'YaST LOGS' > /dev/$serialdev\n";
+        type_string "tail -n 150 $logs_path/y2log > /dev/$serialdev\n";
+        type_string "echo $delimiter > /dev/$serialdev\n";
+    }
     if ($detected_errors_detailed) {
         record_info(
             'YaST2 log errors',
@@ -453,10 +466,12 @@ sub wait_grub {
         || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
         || get_var('OFW')
         || (check_var('BOOTFROM', 'd')));
+    # Enable all migration path on aarch64
+    # Refer to ticket: https://progress.opensuse.org/issues/49340
     $self->handle_uefi_boot_disk_workaround
       if (is_aarch64_uefi_boot_hdd
         && !$in_grub
-        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
+        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP')));
     assert_screen(\@tags, $bootloader_time);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";

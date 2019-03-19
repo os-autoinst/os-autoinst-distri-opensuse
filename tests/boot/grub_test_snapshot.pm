@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,6 +26,9 @@ sub run {
     power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
     $self->wait_grub(bootloader_time => 200);
+    # To keep the screen at grub page
+    # Refer https://progress.opensuse.org/issues/49040
+    stop_grub_timeout;
     boot_into_snapshot;
 }
 sub test_flags {

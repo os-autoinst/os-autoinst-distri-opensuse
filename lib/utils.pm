@@ -31,6 +31,7 @@ our @EXPORT = qw(
   clear_console
   type_string_slow
   type_string_very_slow
+  type_string_slow_extended
   save_svirt_pty
   type_line_svirt
   integration_services_check
@@ -313,6 +314,12 @@ sub check_console_font {
         assert_script_run("/usr/lib/systemd/systemd-vconsole-setup");
         assert_screen 'correct-console-font';
     }
+}
+
+# Enable additional arguments for nested calls of wait_still_screen
+sub type_string_slow_extended {
+    my ($string) = @_;
+    type_string($string, max_interval => SLOW_TYPING_SPEED, wait_still_screen => 0.05, timeout => 5, similarity_level => 38);
 }
 
 sub type_string_slow {

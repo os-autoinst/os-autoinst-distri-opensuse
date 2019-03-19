@@ -99,10 +99,12 @@ sub activate_kdump {
         assert_screen \@tags, 300;
         # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
         if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64')) {
-            wait_screen_change { send_key 'alt-y' };
-            type_string '640';
-            send_key 'ret';
-            record_soft_failure 'increase kdump memory size or kdumptool gets killed by OOM, bsc#1120566';
+            if (check_screen 'current-kdmup-mem-size') {
+                send_key 'alt-y';
+                type_string '640';
+                send_key 'ret';
+                record_soft_failure 'default kdump memory size is too small, kdumptool gets killed by OOM, bsc#1120566';
+            }
         }
         # enable kdump if it is not already
         wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');

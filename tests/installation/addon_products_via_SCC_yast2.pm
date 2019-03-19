@@ -55,9 +55,9 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    $self->SUPER::post_fail_hook;
     verify_scc;
     investigate_log_empty_license;
-    $self->SUPER::post_fail_hook;
 }
 
 1;

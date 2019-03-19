@@ -459,8 +459,8 @@ sub load_zdup_tests {
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
-    loadtest 'installation/zdup';
     loadtest 'installation/install_service';
+    loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
@@ -549,12 +549,6 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
-    if (get_var('PREPARE_RPI')) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "jeos/prepare_rpi_image";
-        loadtest "shutdown/shutdown";
-        return;
-    }
     unless (get_var('LTP_COMMAND_FILE')) {
         if (check_var('ARCH', 'aarch64') && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
@@ -616,7 +610,7 @@ sub kdestep_is_applicable {
 
 # kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
 sub kdump_is_applicable {
-    return !check_var('ARCH', 'aarch64') && !check_var('VIRSH_VMM_TYPE', 'linux');
+    return !(check_var('ARCH', 'aarch64') && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 sub consolestep_is_applicable {
@@ -1095,6 +1089,7 @@ sub load_consoletests {
 
     loadtest "locale/keymap_or_locale";
     loadtest "console/orphaned_packages_check" if is_jeos;
+    loadtest "console/check_upgraded_service" if (!get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade);
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
@@ -1570,7 +1565,7 @@ sub load_extra_tests_console {
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
     loadtest "console/salt" if (is_jeos || is_opensuse);
-    loadtest "console/machinery";
+    loadtest "console/machinery" unless (is_updates_tests);
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/clamav";
@@ -2218,6 +2213,12 @@ sub load_security_tests_ima_measurement {
     loadtest "security/ima/ima_measurement_audit";
 }
 
+sub load_security_tests_ima_appraisal {
+    loadtest "security/ima/ima_setup";
+    loadtest "security/ima/ima_appraisal_hashes";
+    loadtest "security/ima/ima_appraisal_digital_signatures";
+}
+
 sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
 }
@@ -2228,7 +2229,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      mok_enroll ima_measurement
+      mok_enroll ima_measurement ima_appraisal
       system_check
       /;
 

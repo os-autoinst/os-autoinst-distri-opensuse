@@ -1,0 +1,5 @@
+#!/usr/bin/env perl
+use Test::More tests => 1;
+use Test::YAML::Valid qw(-Tiny);
+
+yaml_files_ok('./schedule/*.yaml', 'all YAML files are valid');

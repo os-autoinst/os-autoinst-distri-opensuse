@@ -43,7 +43,7 @@ sub add_node {
     send_key 'end';
 
     # Wait until node is added or error
-    assert_screen ['velum-adding-nodes-done', 'velum-status-error'], 900;
+    assert_screen ['velum-adding-nodes-done', 'velum-status-error'], 1500;
     die 'Adding node failed' if match_has_tag('velum-status-error');
 }
 
@@ -62,7 +62,7 @@ sub remove_node {
     }
 
     # Wait until node is removed or error
-    my $timer = time + 900;
+    my $timer = time + 1500;
     assert_screen "$node-pending";
     while (check_screen "$node-pending", 5) {
         sleep 25;
