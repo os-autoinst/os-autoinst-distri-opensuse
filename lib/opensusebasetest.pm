@@ -466,10 +466,12 @@ sub wait_grub {
         || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
         || get_var('OFW')
         || (check_var('BOOTFROM', 'd')));
+    # Enable all migration path on aarch64
+    # Refer to ticket: https://progress.opensuse.org/issues/49340
     $self->handle_uefi_boot_disk_workaround
       if (is_aarch64_uefi_boot_hdd
         && !$in_grub
-        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
+        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP')));
     assert_screen(\@tags, $bootloader_time);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
