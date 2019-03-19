@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use network_utils qw(iface ifc_exists);
-
+use utils 'file_content_replace';
 
 sub run {
     my ($self) = @_;
@@ -27,8 +27,7 @@ sub run {
     $local_ip =~ s'/'\\/';
     my $previous_ip = $self->get_ip(type => 'vlan', netmask => 1);
     $previous_ip =~ s'/'\\/';
-    assert_script_run("sed 's/$previous_ip/$local_ip/' -i $config");
-    script_run("cat $config");
+    file_content_replace($config, $previous_ip => $local_ip);
     $self->wicked_command('ifreload', 'all');
     assert_script_run('ip a');
     die('VLAN interface does not exists') unless ifc_exists($iface . '.42');

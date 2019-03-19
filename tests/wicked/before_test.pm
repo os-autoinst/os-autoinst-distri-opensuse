@@ -14,7 +14,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl file_content_replace);
 use network_utils qw(iface setup_static_network);
 
 sub run {
@@ -29,9 +29,7 @@ sub run {
     systemctl("disable " . opensusebasetest::firewall);
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
     record_info('INFO', 'Setting debug level for wicked logs');
-    assert_script_run('sed -e "s/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g" -i /etc/sysconfig/network/config');
-    assert_script_run('sed -e "s/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\"debug\"/g" -i /etc/sysconfig/network/config');
-    assert_script_run('cat /etc/sysconfig/network/config');
+    file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug"');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
     setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1));
@@ -43,7 +41,7 @@ sub run {
         record_info('INFO', 'Setup DHCP server');
         zypper_call('--quiet in dhcp-server', timeout => 200);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
-        assert_script_run("sed \'s/^DHCPD_INTERFACE=.*/DHCPD_INTERFACE=\"$iface\"/g\' -i /etc/sysconfig/dhcpd");
+        file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => "DHCPD_INTERFACE=\"$iface\"");
         systemctl 'enable dhcpd.service';
         systemctl 'start dhcpd.service';
     }

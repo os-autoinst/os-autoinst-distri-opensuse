@@ -17,6 +17,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
+use utils 'file_content_replace';
 
 sub run {
     my ($self)         = @_;
@@ -25,7 +26,7 @@ sub run {
     record_info('Info', 'Create a TAP interface from Wicked XML files');
     $self->get_from_data('wicked/ifcfg/tap1_ref',      $config);
     $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
-    assert_script_run("sed 's/device/tap1/' -i $openvpn_server");
+    file_content_replace($openvpn_server, device => "tap1");
     $self->setup_tuntap($config, 'tap1');
 }
 

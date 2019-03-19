@@ -77,6 +77,7 @@ our @EXPORT = qw(
   script_retry
   script_run_interactive
   create_btrfs_subvolume
+  file_content_replace
 );
 
 
@@ -1086,6 +1087,32 @@ sub create_btrfs_subvolume {
     assert_script_run("btrfs subvolume create /boot/grub2/arm64-efi");
     assert_script_run("cp -r /boot/grub2/arm64-efi.bk/* /boot/grub2/arm64-efi/");
     assert_script_run("rm -fr /boot/grub2/arm64-efi.bk");
+}
+
+
+=head2 file_content_replace
+  file_content_replace("filename",
+        regex_to_find => text_to_replace,
+        '--sed-modifier' => 'g',
+        'another^&&*(textToFind' => "replacement")
+
+  generify sed usage as config file modification tool.
+  allow to modify several items in one function call 
+  by providing  regex_to_find / text_to_replace as hash key/value pairs
+
+  special key '--sed-modifier' allowing to add modifiers to expression
+=cut
+sub file_content_replace {
+    my ($filename, %to_replace) = @_;
+    $to_replace{'--sed-modifier'} //= '';
+    my $sed_modifier = delete $to_replace{'--sed-modifier'};
+    foreach my $key (keys %to_replace) {
+        my $value = $to_replace{$key};
+        $value =~ s/'/'"'"'/g;
+        $key   =~ s/'/'"'"'/g;
+        assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
+    }
+    script_run("cat $filename");
 }
 
 1;
