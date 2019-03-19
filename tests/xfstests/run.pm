@@ -281,7 +281,8 @@ sub run {
                 copy_log($category, $num, 'out.bad');
                 copy_log($category, $num, 'full');
                 copy_log($category, $num, 'dmesg');
-                if (check_var 'XFSTESTS', 'btrfs') { dump_btrfs_img($category, $num); }
+                # Disable dump_btrfs_img to avoid disk exhaust
+		#if (check_var 'XFSTESTS', 'btrfs') { dump_btrfs_img($category, $num); }
             }
             next;
         }
