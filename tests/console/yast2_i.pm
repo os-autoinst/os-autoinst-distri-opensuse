@@ -25,14 +25,6 @@ sub run {
 
     select_console 'root-console';
 
-    # Install recommended drivers bsc#953522 unless when migrating from
-    # versions before 15 (bsc#1127212)
-    if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION', '15'))) {
-        record_soft_failure 'bsc#1127212 - `zypper inr` produces conflicting packages for migrations from SLES12';
-    }
-    else {
-        zypper_call "-i inr";
-    }
     zypper_call "-i rm $pkgname $recommended";
     zypper_call "in yast2-packager";    # make sure yast2 sw_single module installed
     script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
