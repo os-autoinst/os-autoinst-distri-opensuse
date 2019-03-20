@@ -15,6 +15,7 @@ requires 'Selenium::Waiter';
 requires 'Selenium::Remote::WDKeys';
 requires 'Digest::file';
 requires 'YAML::Tiny';
+requires 'Test::Assert';
 
 
 on 'test' => sub {
