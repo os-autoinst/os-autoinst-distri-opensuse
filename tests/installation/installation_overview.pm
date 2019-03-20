@@ -69,17 +69,6 @@ sub run {
         $self->deal_with_dependency_issues;
         assert_screen "inst-xen-pattern" if get_var('XEN');
         ensure_ssh_unblocked;
-        # Check the systemd target, see poo#45020
-        # QAM do some installs with DESKTOP=textmode, but install gnome...
-        # and switching between ttys does not work for hyperv. So we exclude these cases.
-        return if (get_var('QAM_MINIMAL') || check_var('MACHINE', 'svirt-hyperv'));
-        if (get_var('DESKTOP')) {
-            my $target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
-            select_console 'install-shell';
-            # The default.target is not yet linked, so we have to parse the logs.
-            assert_script_run("grep 'target has been set' /var/log/YaST2/y2log |tail -1 |grep \"$target\"", fail_message => "Wrong systemd target detected, aborting");
-            select_console 'installation';
-        }
     }
 }
 
