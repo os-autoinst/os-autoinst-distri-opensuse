@@ -14,13 +14,12 @@ requires 'Selenium::Chrome';
 requires 'Selenium::Waiter';
 requires 'Selenium::Remote::WDKeys';
 requires 'Digest::file';
+requires 'YAML::Tiny';
 
 
 on 'test' => sub {
   requires 'Code::DRY';
   requires 'Test::Exception';
   requires 'Test::Warnings';
-  requires 'YAML::Tiny';
   requires 'Test::YAML::Valid';
-  requires 'Test::Assert';
 };
