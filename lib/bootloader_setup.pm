@@ -518,11 +518,6 @@ sub bootmenu_network_source {
             }
         }
     }
-
-    if (check_var("LINUXRC_KEXEC", "1")) {
-        type_string_slow " kexec=1";
-        record_soft_failure "boo#990374 - pass kexec to installer to use initrd from FTP";
-    }
 }
 
 sub autoyast_boot_params {
@@ -594,9 +589,9 @@ sub specific_bootmenu_params {
         $args .= " fips=1";
     }
 
-    if (check_var("LINUXRC_KEXEC", "1")) {
-        $args .= " kexec=1";
-        record_soft_failure "boo#990374 - pass kexec to installer to use initrd from FTP";
+    if (my $kexec_value = get_var("LINUXRC_KEXEC")) {
+        $args .= " kexec=$kexec_value";
+        record_info('Info', 'boo#990374 - pass kexec to installer to use initrd from FTP');
     }
 
     if (get_var("DUD")) {
