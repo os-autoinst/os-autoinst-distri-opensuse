@@ -138,6 +138,8 @@ sub load_feature_tests {
     # Journal errors
     loadtest 'caasp/journal_check';
 
+    loadtest 'caasp/health_check';
+
     # Container Tests
     loadtest 'console/docker';
     loadtest 'console/docker_runc';
