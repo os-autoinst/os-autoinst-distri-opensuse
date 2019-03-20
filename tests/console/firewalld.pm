@@ -14,14 +14,14 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use transactional_system 'trup_install';
 
 sub run {
     select_console("root-console");
 
     # Check Service State, enable it if necessary
     record_info 'Check Service State';
-    assert_script_run("if [ `firewall-cmd --state > /dev/null 2>&1 ; echo $?` -eq 252 ]; then systemctl start firewalld; fi");
+    #assert_script_run("if [ `firewall-cmd --state > /dev/null 2>&1 ; echo $?` -eq 252 ]; then systemctl start firewalld; fi");
+    assert_script_run("if [ `systemctl is-active firewalld > /dev/null 2>&1 ; echo $?` -eq 0 ]; then systemctl start firewalld; fi");
 
     # Test #1 - Stop firewalld then start it
     record_info 'Test #1', 'Test: Stop firewalld, then start it';
@@ -51,7 +51,7 @@ sub run {
     record_info 'Flush Rules';
     assert_script_run("firewall-cmd --reload");
     assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
-    
+
 
     # Test #3 - Permanent rules
     record_info 'Test #3', 'Test Permanent Rules';
@@ -75,7 +75,7 @@ sub run {
     assert_script_run("firewall-cmd --zone=public --permanent --remove-port=2000-3000/udp");
     assert_script_run("firewall-cmd --reload");
     assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
- 
+
 
     # Test #4 - Masquerading
     record_info 'Test #4', 'Test Rules using Masquerading';
@@ -89,7 +89,7 @@ sub run {
     assert_script_run("firewall-cmd --reload");
     assert_script_run("if [ `iptables -t mangle -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
     assert_script_run("if [ `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
- 
+
 
     # Test #5 - ipv4 adress family with rich rules
     record_info 'Test #5", "Test ipv4 family addresses with rich rules';
@@ -98,7 +98,7 @@ sub run {
     assert_script_run("firewall-cmd --reload");
     assert_script_run("iptables -C IN_public_allow -s 192.168.200.0/24 -j ACCEPT");
     assert_script_run("iptables -C IN_public_deny -s 192.168.201.0/24 -j DROP");
- 
+
 
     # Reload default state and flush rules
     record_info 'Flushing rules';
@@ -107,7 +107,7 @@ sub run {
     assert_script_run("firewall-cmd --reload");
     assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
     assert_script_run("if [ `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
- 
+
 
     # Test #6 - Change the default zone
     record_info 'Test #6', 'Change the default zone';
