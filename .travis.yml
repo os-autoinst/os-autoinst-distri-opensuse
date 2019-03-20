@@ -20,4 +20,5 @@ before_install:
 install:
   - make prepare
 script:
+  - git checkout cpanfile
   - make test

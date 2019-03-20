@@ -84,8 +84,12 @@ test-dry:
 test-no-wait_idle:
 	@! git --no-pager grep wait_idle lib/ tests/
 
+.PHONY: test-spec
+test-spec:
+	tools/update_spec --check
+
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference
+test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-spec
 
 .PHONY: test
 ifeq ($(TESTS),compile)
