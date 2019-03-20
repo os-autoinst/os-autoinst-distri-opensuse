@@ -50,6 +50,7 @@ sub install_package {
         $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/';
         $dependency_rpms = 'bridge-utils';
     }
+
     if ($dependency_repo) {
         if (check_var('ARCH', 's390x')) {
             lpar_cmd("zypper --non-interactive --no-gpg-check ar -f ${dependency_repo} dependency_repo");
@@ -63,6 +64,12 @@ sub install_package {
             assert_script_run("zypper --non-interactive in $dependency_rpms");
             assert_script_run("zypper --non-interactive rr dependency_repo");
         }
+    }
+
+    ###SLE-12-SP4 arm64 installation has no KVM role selection
+    if (($repo_0_to_install =~ /SLE-12-SP4/m) && check_var('ARCH', 'aarch64')) {
+        assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref",         180);
+        assert_script_run("zypper --non-interactive in -t pattern kvm_server kvm_tools", 300);
     }
 
     #install qa_lib_virtauto
