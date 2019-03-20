@@ -46,6 +46,11 @@ sub move_down {
     check12qtbug if check_var('VERSION', '12');
 }
 
+sub move_end_and_top {
+    wait_screen_change { send_key 'end' };
+    wait_screen_change { send_key 'home' };
+}
+
 sub gotopatterns {
     my ($self) = @_;
     $self->deal_with_dependency_issues;
@@ -68,9 +73,8 @@ sub gotopatterns {
     else {
         send_key 'tab';
     }
-    # pressing up and down to have selection more visible
-    wait_screen_change { send_key 'down' };
-    wait_screen_change { send_key 'up' };
+    # pressing end and home to have selection more visible, and the scrollbar length is re-caculated
+    move_end_and_top;
     assert_screen 'patterns-list-selected';
 }
 
