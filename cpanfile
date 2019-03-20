@@ -22,4 +22,5 @@ on 'test' => sub {
   requires 'Test::Warnings';
   requires 'YAML::Tiny';
   requires 'Test::YAML::Valid';
+  requires 'Test::Assert';
 };

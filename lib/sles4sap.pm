@@ -16,6 +16,7 @@ our @EXPORT = qw (
   set_sap_info
   become_sapadm
   test_pids_max
+  test_forkbomb
   test_version_info
   test_instance_properties
   test_stop
@@ -74,11 +75,26 @@ sub become_sapadm {
 sub test_pids_max {
     # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
     my $uid = script_output "id -u $sapadmin";
-    my $rc1 = script_run "systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | grep -qx max";
+    # The systemd-run command generates syslog output that may end up in the console, so save the output to a file
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'cat /sys/fs/cgroup/pids/user.slice/user-${uid}.slice/pids.max' | tr -d '\\r' | tee /tmp/pids-max";
+    my $rc1 = script_run "grep -qx max /tmp/pids-max";
     # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
-    # Check that nproc * 2 == threads-max
-    my $rc2 = script_run "[[ \$(( \$(systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r') * 2)) = \$(sysctl -n kernel.threads-max) ]]";
+    # Check that nproc * 2 + 1 >= threads-max
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' | tee /tmp/nproc";
+    my $rc2 = script_run "[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]";
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
+}
+
+sub test_forkbomb {
+    # NOTE: Do not call this function on the qemu backend.
+    #   The first forkbomb can create 3 times as many processes as the second due to unknown bug
+    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/forkbomb.pl > /tmp/forkbomb.pl; chmod +x /tmp/forkbomb.pl";
+    # The systemd-run command generates syslog output that may end up in the console, so save the output to a file
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c /tmp/forkbomb.pl | tr -d '\\r' > /tmp/user-procs", 600;
+    my $user_procs = script_output "cat /tmp/user-procs";
+    my $root_procs = script_output "/tmp/forkbomb.pl", 600;
+    # Check that the SIDadm user can create at least 99% of the processes root could create
+    record_soft_failure "bsc#1031355" if ($user_procs < $root_procs * 0.99);
 }
 
 sub test_version_info {

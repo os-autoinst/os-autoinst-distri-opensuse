@@ -466,10 +466,12 @@ sub wait_grub {
         || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
         || get_var('OFW')
         || (check_var('BOOTFROM', 'd')));
+    # Enable all migration path on aarch64
+    # Refer to ticket: https://progress.opensuse.org/issues/49340
     $self->handle_uefi_boot_disk_workaround
       if (is_aarch64_uefi_boot_hdd
         && !$in_grub
-        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION')));
+        && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP')));
     assert_screen(\@tags, $bootloader_time);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
@@ -817,6 +819,17 @@ sub post_fail_hook {
         if ($r != 0) {
             record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
         }
+    }
+
+    if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
+        my $self = shift;
+        select_console 'root-console';
+        my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
+        my $out           = script_output 'lvmdump';
+        if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
+            upload_logs "$+{lvmdump_gzip}";
+        }
+        $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
     }
 
     if ($self->{in_wait_boot}) {
