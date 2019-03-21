@@ -20,26 +20,34 @@ use strict;
 use warnings;
 use base "console_yasttest";
 use utils;
+use version_utils;
 use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
 
     if (get_var('NFSSERVER')) {
         # Configure static IP for client/server test
         configure_default_gateway;
-        configure_static_ip('10.0.2.1/24');
+        configure_static_ip('10.0.2.101/24');
         configure_static_dns(get_host_resolv_conf());
+
+        if (is_sle('15+')) {
+            record_soft_failure 'boo#1130093 No firewalld service for nfs-kernel-server';
+            systemctl 'stop ' . $self->firewall;
+            systemctl 'disable ' . $self->firewall;
+        }
     }
 
     # Make sure packages are installed
-    assert_script_run 'zypper -n in yast2-nfs-server';
+    zypper_call 'in yast2-nfs-server', timeout => 480, exitcode => [0, 106, 107];
 
     # Create a directory and place a test file in it
-    assert_script_run 'mkdir /srv/nfs && echo mounted > /srv/nfs/file';
+    assert_script_run 'mkdir /srv/nfs && echo success > /srv/nfs/file.txt';
 
     type_string "yast2 nfs-server; echo YAST-DONE-\$?- > /dev/$serialdev\n";
 
@@ -53,6 +61,17 @@ sub run {
 
     # Start server
     send_key 'alt-s';
+
+    if (is_sle('<15')) {
+        send_key 'alt-f';    # Open port in firewall
+        assert_screen 'nfs-firewall-open';
+    }
+    else {
+        sleep 1;
+        save_screenshot;
+    }
+
+    # Next step
     send_key 'alt-n';
 
     assert_screen 'nfs-overview';
@@ -84,14 +103,14 @@ sub run {
 
     validate_script_output "exportfs", sub { m,/srv/nfs, };
     if (get_var('NFSSERVER')) {
-        assert_script_run 'mount 10.0.2.1:/ /mnt';
+        assert_script_run 'mount 10.0.2.101:/ /mnt';
     }
     else {
         assert_script_run 'mount 10.0.2.15:/ /mnt';
     }
 
     # Timeout of 95 seconds to account for the NFS server grace period
-    validate_script_output "cat /mnt/file", sub { m,mounted, }, 95;
+    validate_script_output "cat /mnt/file.txt", sub { m,success, }, 95;
     assert_script_run 'umount /mnt';
 
     if (get_var('NFSSERVER')) {
