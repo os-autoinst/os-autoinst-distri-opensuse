@@ -459,8 +459,8 @@ sub load_zdup_tests {
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
-    loadtest 'installation/zdup';
     loadtest 'installation/install_service';
+    loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
@@ -1089,6 +1089,7 @@ sub load_consoletests {
 
     loadtest "locale/keymap_or_locale";
     loadtest "console/orphaned_packages_check" if is_jeos;
+    loadtest "console/check_upgraded_service" if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade);
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
