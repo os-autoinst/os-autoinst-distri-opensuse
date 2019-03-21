@@ -25,7 +25,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # Remove old files
     assert_script_run 'rm ~/.ssh/* || true';

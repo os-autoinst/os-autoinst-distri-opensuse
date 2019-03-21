@@ -638,7 +638,7 @@ sub close_guest {
 }
 
 sub establish_connection {
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     assert_screen ['virt-manager_connected', 'virt-manager_not-connected', 'virt-manager_add-connection'], 30;
     if (match_has_tag 'virt-manager_add-connection') {

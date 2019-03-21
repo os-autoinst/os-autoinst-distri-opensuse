@@ -105,7 +105,7 @@ sub login_to_console {
     save_screenshot;
     send_key 'ret';
 
-    send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout / 5, 5);
+    send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout, 5);
     #use console based on ssh to avoid unstable ipmi
     save_screenshot;
     use_ssh_serial_console;

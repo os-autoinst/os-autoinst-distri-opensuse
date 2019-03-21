@@ -19,7 +19,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # TODO:
     record_info "Disk", "Adding another raw disk";
