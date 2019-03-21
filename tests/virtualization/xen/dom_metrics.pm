@@ -24,7 +24,7 @@ use testapi;
 use utils;
 
 sub run {
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     assert_script_run 'vhostmd';
 
