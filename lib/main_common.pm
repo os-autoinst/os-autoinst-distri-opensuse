@@ -1163,8 +1163,8 @@ sub load_consoletests {
     load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
     loadtest "console/zypper_in";
-    loadtest "console/yast2_i";
     if (!get_var("LIVETEST")) {
+        loadtest "console/yast2_i";
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
