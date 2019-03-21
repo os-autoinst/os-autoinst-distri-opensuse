@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,11 +12,13 @@
 # Summary: FIPS mozilla-nss test for firefox
 # Maintainer: mitiao <mitiao@gmail.com>,
 #             wnereiz <wnereiz@fsf.member.org>
+# Tag: poo#47018
 
 use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use x11utils 'turn_off_gnome_screensaver';
 
 sub quit_firefox {
     send_key "alt-f4";
@@ -34,7 +36,9 @@ sub run {
     # - at least one non-alphabet-non-number character (like: @-.=%)
     my $fips_password = 'openqa@SUSE';
 
-    $self->start_firefox;
+    # Turn off screensaver before launch firefox in order to avoid the screensaver block
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
     # Firfox Preferences
     send_key "alt-e";
