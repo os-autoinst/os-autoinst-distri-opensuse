@@ -49,6 +49,9 @@ resource "google_compute_instance" "openqa" {
 
     metadata {
         sshKeys = "susetest:${file("/root/.ssh/id_rsa.pub")}"
+        openqa_created_by = "${var.name}"
+        openqa_created_date = "${timestamp()}"
+        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
     }
 
     network_interface {
@@ -56,6 +59,7 @@ resource "google_compute_instance" "openqa" {
             access_config {
         }
     }
+
 }
 
 output "public_ip" {
