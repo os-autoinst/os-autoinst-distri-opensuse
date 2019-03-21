@@ -18,13 +18,15 @@ use strict;
 use warnings;
 use testapi;
 use network_utils 'iface';
+use utils 'file_content_replace';
 
 sub run {
     my ($self) = @_;
-    my $iface = iface();
+    my $iface  = iface();
+    my $config = '/data/static_address/static-addresses-and-routes.xml';
     record_info('Info', 'Set up static routes from wicked XML files');
-    $self->get_from_data('wicked/static_address/static-addresses-and-routes.xml', "/data/static_address/static-addresses-and-routes.xml");
-    assert_script_run("sed -i 's/xxx/$iface/g' /data/static_address/static-addresses-and-routes.xml");
+    $self->get_from_data('wicked/static_address/static-addresses-and-routes.xml', $config);
+    file_content_replace($config, '--sed-modifier' => 'g', xxx => $iface);
     $self->wicked_command('ifup --ifconfig /data/static_address/static-addresses-and-routes.xml', $iface);
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
 }

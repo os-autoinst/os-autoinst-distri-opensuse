@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 use network_utils 'iface';
-use utils 'zypper_call';
+use utils qw(zypper_call file_content_replace);
 
 our $macvtap_log = '/tmp/macvtap_results.txt';
 
@@ -36,8 +36,7 @@ sub run {
     zypper_call('in gcc');
     assert_script_run('gcc ./check_macvtap.c -o check_macvtap');
     script_run('chmod +x ./check_macvtap');
-    assert_script_run("sed 's/iface/$iface/' -i $config");
-    assert_script_run("sed 's/ip_address/$ip_address/' -i $config");
+    file_content_replace($config, iface => $iface, ip_address => $ip_address);
     $self->wicked_command('ifreload', $iface);
     $self->wicked_command('ifup',     'macvtap1');
     $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);

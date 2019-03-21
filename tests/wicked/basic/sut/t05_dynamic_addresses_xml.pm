@@ -18,13 +18,15 @@ use strict;
 use warnings;
 use testapi;
 use network_utils 'iface';
+use utils 'file_content_replace';
 
 sub run {
     my ($self) = @_;
-    my $iface = iface();
+    my $iface  = iface();
+    my $config = '/data/dynamic_address/dynamic-addresses.xml';
     record_info('Info', 'Set up dynamic addresses from wicked XML files');
-    $self->get_from_data('wicked/dynamic_address/dynamic-addresses.xml', "/data/dynamic_address/dynamic-addresses.xml");
-    assert_script_run("sed -i 's/xxx/$iface/g' /data/dynamic_address/dynamic-addresses.xml");
+    $self->get_from_data('wicked/dynamic_address/dynamic-addresses.xml', $config);
+    file_content_replace($config, '--sed-modifier' => 'g', xxx => $iface);
     $self->wicked_command('ifup --ifconfig /data/dynamic_address/dynamic-addresses.xml', $iface);
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
 }

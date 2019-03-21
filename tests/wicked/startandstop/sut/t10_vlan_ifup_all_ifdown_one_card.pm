@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use network_utils qw(iface ifc_exists);
+use utils 'file_content_replace';
 
 sub run {
     my ($self) = @_;
@@ -25,9 +26,7 @@ sub run {
     $self->get_from_data('wicked/ifcfg/eth0.42', $config);
     my $local_ip = $self->get_ip(type => 'vlan', netmask => 1);
     $local_ip =~ s'/'\\/';
-    assert_script_run("sed 's/ip_address/$local_ip/' -i $config");
-    assert_script_run("sed 's/interface/$iface/' -i $config");
-    script_run("cat $config");
+    file_content_replace($config, interface => $iface, ip_address => $local_ip);
     $self->wicked_command('ifup', 'all');
     assert_script_run('ip a');
     die if (!ifc_exists($iface . '.42'));
