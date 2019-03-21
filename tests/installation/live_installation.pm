@@ -49,11 +49,19 @@ sub run {
     assert_screen ["inst-welcome", "inst-betawarning"], 180;
     # To fully reuse installer screenshots we set to fullscreen. Unfortunately
     # it seems no default shortcut is configured in plasma but we can use the
-    # window context menu. Right click at the top to not set the beta warning
-    # to fullscreen.
-    mouse_set 100, 0;
-    mouse_click 'right';
-    mouse_hide;
+    # window context menu.
+
+    if (match_has_tag 'inst-betawarning') {
+        # Right click at the top to not set the beta warning to fullscreen.
+        # This seems to hit a bug in KWin in 15.0 though,
+        # so only use if necessary.
+        mouse_set 100, 0;
+        mouse_click 'right';
+        mouse_hide;
+    }
+    else {
+        send_key 'alt-f3';
+    }
     assert_screen 'context-menu-more_actions';
     # more
     send_key_and_wait 'alt-m';
