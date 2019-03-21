@@ -227,19 +227,9 @@ sub install_from_repo {
 sub setup_network {
     my $content;
 
-    $content = <<EOF;
-# ltp specific setup
-pts/1
-pts/2
-pts/3
-pts/4
-pts/5
-pts/6
-pts/7
-pts/8
-pts/9
-EOF
-    assert_script_run("echo \"$content\" >> '/etc/securetty'");
+    # pts in /etc/securetty
+    $content = '# ltp specific setup\npts/1\npts/2\npts/3\npts/4\npts/5\npts/6\npts/7\npts/8\npts/9\n';
+    assert_script_run("printf \"$content\" >> /etc/securetty");
 
     # ftp
     assert_script_run('sed -i \'s/^\s*\(root\)\s*$/# \1/\' /etc/ftpusers');
@@ -318,6 +308,7 @@ sub run {
     }
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
+
     install_runtime_dependencies;
     install_runtime_dependencies_network;
     install_debugging_tools;
@@ -333,7 +324,7 @@ sub run {
         install_from_repo($tag);
     }
 
-    setup_network();
+    setup_network;
 
     upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
 
