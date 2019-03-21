@@ -76,6 +76,7 @@ our @EXPORT = qw(
   disable_serial_getty
   script_retry
   script_run_interactive
+  create_btrfs_subvolume
 );
 
 
@@ -1075,6 +1076,16 @@ sub script_run_interactive {
             }
         } while ($output);
     }
+}
+
+# create btrfs subvolume for /boot/grub2/arm64-efi before migration.
+# ref:bsc#1122591
+sub create_btrfs_subvolume {
+    record_soft_failure 'bsc#1122591 - Create subvolume for aarch64 to make snapper rollback works';
+    assert_script_run("mv /boot/grub2/arm64-efi /boot/grub2/arm64-efi.bk");
+    assert_script_run("btrfs subvolume create /boot/grub2/arm64-efi");
+    assert_script_run("cp -r /boot/grub2/arm64-efi.bk/* /boot/grub2/arm64-efi/");
+    assert_script_run("rm -fr /boot/grub2/arm64-efi.bk");
 }
 
 1;
