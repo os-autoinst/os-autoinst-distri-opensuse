@@ -43,6 +43,7 @@ our @EXPORT = qw(
   ssh_fully_patch_system
   minimal_patch_system
   workaround_type_encrypted_passphrase
+  is_boot_encrypted
   is_bridged_networking
   set_bridged_networking
   assert_screen_with_soft_timeout
@@ -440,18 +441,25 @@ anymore for storage-ng.
 =cut
 sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
-    return if get_var('UNENCRYPTED_BOOT');
-    return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
-    # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
-    # Only aarch64 needs separate handling
-    # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
-    # If the encrypted disk is "just activated" it does not mean that the
-    # installer would propose an encrypted installation again
-    return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
+    return unless is_boot_encrypted();
     record_soft_failure 'workaround https://fate.suse.com/320901' if is_sle('12-SP4+');
     unlock_if_encrypted;
 }
+
+sub is_boot_encrypted {
+    return 0 if get_var('UNENCRYPTED_BOOT');
+    return 0 if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
+    # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
+    # Only aarch64 needs separate handling
+    # ppc64le on pre-storage-ng boot was part of encrypted LVM
+    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
+    # If the encrypted disk is "just activated" it does not mean that the
+    # installer would propose an encrypted installation again
+    return 0 if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
+
+    return 1;
+}
+
 
 sub is_bridged_networking {
     return get_var('BRIDGED_NETWORKING');
