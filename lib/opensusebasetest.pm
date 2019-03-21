@@ -261,10 +261,10 @@ sub investigate_yast2_failure {
             # Save detected error to indetify if have new regressions
             push @detected_errors, $y2log_error;
             if (my $bug = $y2log_errors{$y2log_error}) {
-                record_soft_failure("$bug\n\nDetails:\n\n$y2log_error_result");
+                record_soft_failure("$bug\n\nDetails:\n$y2log_error_result");
                 next;
             }
-            $detected_errors_detailed .= "$y2log_error_result\n$delimiter\n";
+            $detected_errors_detailed .= "$y2log_error_result\n\n$delimiter\n\n";
         }
     }
     ## Check generic erros and exclude already detected issues
@@ -274,7 +274,7 @@ sub investigate_yast2_failure {
             $y2log_error_result =~ s/.*${known_error}.*//g;
         }
         # remove empty lines
-        $y2log_error_result =~ s/\n+//gs;
+        $y2log_error_result =~ s/\n+/\n/gs;
         $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result;
     }
 
