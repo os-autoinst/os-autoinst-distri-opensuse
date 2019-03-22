@@ -25,7 +25,7 @@ use utils 'zypper_call';
 sub run {
     my ($self) = @_;
     select_console('root-console');
-    zypper_call('in netcat');
+    zypper_call('in netcat lsof psmisc');
     assert_script_run("lsof");
     assert_script_run("lsof -u root");
     assert_script_run("lsof -i");
@@ -56,4 +56,3 @@ sub run {
 }
 
 1;
-
