@@ -96,7 +96,7 @@ sub activate_kdump {
         assert_screen \@tags, 300;
         # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
         if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64')) {
-            if (check_screen 'current-kdmup-mem-size') {
+            if (check_screen 'current-kdump-mem-size') {
                 send_key 'alt-y';
                 type_string '640';
                 send_key 'ret';
