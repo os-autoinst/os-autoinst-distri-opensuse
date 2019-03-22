@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_hyperv_in_gui);
 use Utils::Backends 'is_remote_backend';
 
 
@@ -71,7 +71,7 @@ sub run {
         ensure_ssh_unblocked;
         # Check the systemd target, see poo#45020
         return if (is_caasp || check_var('MACHINE', 'svirt-hyperv'));
-        if (get_var('DESKTOP')) {
+        if (get_var('DESKTOP') && !is_hyperv_in_gui) {
             my $target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
             select_console 'install-shell';
             # The default.target is not yet linked, so we have to parse the logs.
