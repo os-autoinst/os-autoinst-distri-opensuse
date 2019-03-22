@@ -22,11 +22,10 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use proxymode;
-use virt_autotest_base;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -50,7 +49,7 @@ sub repl_repo_in_sourcefile {
     if (get_var("REPO_0")) {
         my $location = '';
         if (!check_var('ARCH', 's390x')) {
-            $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+            $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
             $location =~ s/[\r\n]+$//;
         }
         else {
@@ -232,6 +231,65 @@ sub lpar_cmd {
     unless ($args->{ignore_return_code} || !$ret) {
         record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
         die 'Find new failure, please check manually';
+    }
+}
+
+sub upload_virt_logs {
+    my ($log_dir, $compressed_log_name) = @_;
+
+    my $full_compressed_log_name = "/tmp/$compressed_log_name.tar.gz";
+    script_run("tar -czf $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
+    save_screenshot;
+    upload_logs "$full_compressed_log_name";
+    save_screenshot;
+
+}
+
+# Guest xml will be uploaded with name format [generated_name_by_this_func].xml
+# Guest disk will be uploaded with name format [generated_name_by_this_func].disk
+# When reusing these assets, needs to recover the names to original by reverting this process
+sub generate_guest_asset_name {
+    my $guest = shift;
+
+    my $composed_name
+      = 'guest_'
+      . $guest
+      . '_on-host_'
+      . get_required_var('DISTRI') . '-'
+      . get_required_var('VERSION')
+      . '_build'
+      . get_required_var('BUILD') . '_'
+      . lc(get_required_var('SYSTEM_ROLE')) . '_'
+      . get_required_var('ARCH');
+
+    record_info('Guest asset info', "Guest asset name is : $composed_name");
+
+    return $composed_name;
+}
+
+sub get_guest_disk_name_from_guest_xml {
+    my $guest = shift;
+
+    # Our automation only supports single guest disk
+    my $disk_from_xml = script_output("virsh dumpxml $guest | sed -n \'/disk/,/\\\/disk/p\' | grep 'source file=' | grep -v iso");
+    record_info('Guest disk config from xml', "Guest $guest disk_from_xml is: $disk_from_xml.");
+    $disk_from_xml =~ /file='(.*)'/;
+    $disk_from_xml = $1;
+    die 'There is no guest disk file parsed out from guest xml configuration!' unless $disk_from_xml;
+    record_info('Guest disk name', "Guest $guest disk_from_xml is: $disk_from_xml.");
+
+    return $disk_from_xml;
+}
+
+# Should only do compress from qcow2 disk to qcow2 in our automation(upload guest asset scheme).
+sub compress_single_qcow2_disk {
+    my ($orig_disk, $compressed_disk) = @_;
+
+    if ($orig_disk =~ /qcow2/) {
+        my $cmd = "nice ionice qemu-img convert -c -p -O qcow2 $orig_disk $compressed_disk";
+        assert_script_run($cmd, 360);
+        save_screenshot;
+        record_info('Disk compression', "Disk compression done from $orig_disk to $compressed_disk.");
     }
 }
 
