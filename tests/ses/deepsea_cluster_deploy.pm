@@ -42,16 +42,31 @@ sub run {
  then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
         assert_script_run "salt \'*\' cmd.run \'lsblk\' |& tee /dev/$serialdev";
         my $policy = get_var('SES_POLICY');
-        assert_script_run "deepsea stage run ceph.stage.0 |& tee /dev/$serialdev", 700;
-        assert_script_run "deepsea stage run ceph.stage.1 |& tee /dev/$serialdev", 700;
+        # Disable tuned for SES6
+        my $tuned_off = <<'EOF';
+alternative_defaults:
+    tuned_mgr_init: default-off
+    tuned_mon_init: default-off
+    tuned_osd_init: default-off
+EOF
+        script_run("echo -e '$tuned_off' >> /srv/pillar/ceph/stack/global.yml") if is_sle('15+');
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.0 |& tee /dev/$serialdev", 700;
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev", 700;
         assert_script_run 'wget ' . data_url("ses/$policy");
         assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
+        # openATTIC role is disabled for SES6 - it is replaced by the ceph dashboard
+        assert_script_run "sed -i '/role-openattic/s/^/#/' /srv/pillar/ceph/proposals/policy.cfg" if is_sle('15+');
         assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
-        assert_script_run "deepsea stage run ceph.stage.2 |& tee /dev/$serialdev", 1200;
-        assert_script_run "deepsea stage run ceph.stage.3 |& tee /dev/$serialdev", 1200;
-        assert_script_run "deepsea stage run ceph.stage.4 |& tee /dev/$serialdev", 1200;
-        assert_script_run 'ceph osd df tree';
-        assert_script_run 'ceph -s';
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.2 -l debug |& tee /dev/$serialdev", 1200;
+        # Enable AppArmor http://docserv.suse.de/documents/SES_6/ses-admin/single-html/#admin.apparmor
+        assert_script_run "salt -I 'deepsea_minions:*' state.apply ceph.apparmor.default-enforce -l debug |& tee /dev/$serialdev" if is_sle('15+');
+        script_run "cat /srv/pillar/ceph/proposals/policy.cfg";
+        assert_script_run "salt '*' pillar.items |& tee /dev/$serialdev";
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.3 -l debug |& tee /dev/$serialdev", 1200;
+        # Expected failure on stage.3 with https://bugzilla.suse.com/show_bug.cgi?id=1129999
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.4 -l debug |& tee /dev/$serialdev", 1200;
+        assert_script_run "set -o pipefail; ceph osd df tree|& tee /dev/$serialdev";
+        assert_script_run "set -o pipefail; ceph status |& tee /dev/$serialdev";
         barrier_wait {name => 'deployment_done', check_dead_job => 1};
     }
     else {
