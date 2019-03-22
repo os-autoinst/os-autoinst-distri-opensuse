@@ -263,18 +263,19 @@ sub terraform_apply {
     my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image                = $self->get_image_id();
     my $ssh_private_key_file = '/root/.ssh/id_rsa';
+    my $name                 = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
     assert_script_run('cd ' . TERRAFORM_DIR);
     record_info('INFO', "Creating instance $instance_type from $image ...");
-    assert_script_run('terraform init', TERRAFORM_TIMEOUT);
+    assert_script_run('terraform init -no-color', TERRAFORM_TIMEOUT);
 
-    my $cmd = sprintf("terraform plan -var 'image_id=%s' -var 'count=%s' -var 'type=%s' -var 'region=%s' -out myplan",
-        $image, $args{count}, $instance_type, $self->region);
+    my $cmd = sprintf("terraform plan -no-color -var 'image_id=%s' -var 'count=%s' -var 'type=%s' -var 'region=%s' -var 'name=%s' -out myplan",
+        $image, $args{count}, $instance_type, $self->region, $name);
 
     assert_script_run($cmd);
-    my $ret = script_run('terraform apply myplan', TERRAFORM_TIMEOUT);
+    my $ret = script_run('terraform apply -no-color myplan', TERRAFORM_TIMEOUT);
     unless (defined $ret) {
         type_string(qq(\c\\));        # Send QUIT signal
         assert_script_run('true');    # make sure we have a prompt
@@ -316,7 +317,7 @@ sub terraform_destroy {
     my ($self) = @_;
     record_info('INFO', 'Removing terraform plan...');
     assert_script_run('cd ' . TERRAFORM_DIR);
-    script_run('terraform destroy -auto-approve', TERRAFORM_TIMEOUT);
+    script_run('terraform destroy -no-color -auto-approve', TERRAFORM_TIMEOUT);
 }
 
 =head2 vault_login
