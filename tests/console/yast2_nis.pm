@@ -62,31 +62,34 @@ sub run() {
     send_key 'alt-y';
     wait_screen_change { type_string "-c" };                             # only checks if the config file has syntax errors and exits
     wait_screen_change { send_key 'alt-o' };
-    send_key_until_needlematch('nfs-client-configuration', 'alt-s', 2, 5);    # enter NFS configuration, sometimes fails, retry
-    send_key 'alt-a';                                                         # add nfs settings
-    assert_screen 'nfs-server-hostname';                                      # check that type string is sucessful
-    send_key 'alt-n';                                                         # from here enter some configurations...
+    wait_screen_change { send_key 'alt-s' };                             # enter NFS configuration,sometimes fails, retry
+    sleep(4);
+    send_key 'alt-s' if check_screen('nis-client');                      # Cannot use send_key_until_needlematch, see poo#48647
+    assert_screen 'nfs-client-configuration';
+    send_key 'alt-a';                                                    # add nfs share
+    assert_screen 'nfs-server-hostname';                                 # check that type string is sucessful
+    send_key 'alt-n';                                                    # from here enter some configurations...
     type_string "nis.suse.de";
     send_key 'alt-r';
     type_string "/mounts";
     send_key 'alt-m';
     type_string "/mounts_local";
     send_key 'alt-o';
-    assert_screen 'nfs_server_added';                                         # check Mount point
-    wait_screen_change { send_key 'alt-t' };                                  # go back to nfs configuration and delete configuration created before
-    assert_screen 'nis_server_delete';                                        # confirm to delete configuration
+    assert_screen 'nfs_server_added';                                    # check Mount point
+    wait_screen_change { send_key 'alt-t' };                             # go back to nfs configuration and delete configuration created before
+    assert_screen 'nis_server_delete';                                   # confirm to delete configuration
     send_key 'alt-y';
     wait_still_screen 2;
     send_key 'alt-o';
     wait_still_screen 2;
-    send_key 'alt-f';                                                         # close the dialog...
+    send_key 'alt-f';                                                    # close the dialog...
     assert_screen([qw(nis_server_not_found ypbind_error)]);
     if (match_has_tag 'ypbind_error') {
         record_soft_failure 'bsc#1073281';
         send_key 'alt-o';
     }
     else {
-        send_key 'alt-o';                                                     # close it now even when config is not valid
+        send_key 'alt-o';                                                # close it now even when config is not valid
     }    # check error message for 'nis server not found'
 }
 1;
