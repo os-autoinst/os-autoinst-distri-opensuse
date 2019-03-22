@@ -76,7 +76,9 @@ sub run {
     assert_script_run 'df -h  | tee original_usage';
     assert_script_run "dd if=/dev/zero of=$test_file count=1024 bs=1M";
     assert_script_run "ls -lah $test_file";
-    script_retry "diff <(cat original_usage) <(df -h)", delay => 3, retry => 5, expect => 1;
+    if ((script_run "sync && diff <(cat original_usage) <(df -h)") != 1) {
+        die "LVM usage stats do not differ!";
+    }
 
     record_info('INFO', 'Check partitions');
     if (get_var('NAME') =~ m/separate/) {
