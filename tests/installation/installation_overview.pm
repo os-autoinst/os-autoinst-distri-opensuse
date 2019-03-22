@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_caasp is_hyperv_in_gui);
+use version_utils qw(is_caasp is_hyperv is_upgrade);
 use Utils::Backends 'is_remote_backend';
 
 
@@ -70,12 +70,13 @@ sub run {
         assert_screen "inst-xen-pattern" if get_var('XEN');
         ensure_ssh_unblocked;
         # Check the systemd target, see poo#45020
-        return if (is_caasp || check_var('MACHINE', 'svirt-hyperv'));
-        if (get_var('DESKTOP') && !is_hyperv_in_gui) {
+        # We need to exclude some scenarios where it doesn't work well
+        return if (is_caasp || is_upgrade || is_hyperv);
+        if (get_var('DESKTOP')) {
             my $target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
             select_console 'install-shell';
             # The default.target is not yet linked, so we have to parse the logs.
-            assert_script_run("grep 'target has been set' /var/log/YaST2/y2log |tail -1 |grep \"$target\"", fail_message => "Wrong systemd target detected, aborting");
+            script_run("grep 'target has been set' /var/log/YaST2/y2log |tail -1 |grep --color=auto \"$target\"") && record_info "Could no detect the systemd target. Expected was: $target";
             select_console 'installation';
         }
     }
