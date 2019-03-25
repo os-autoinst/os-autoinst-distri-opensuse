@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,19 +16,17 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils 'iface';
 
 sub run {
-    my ($self) = @_;
-    my $iface  = iface();
-    my $config = '/etc/sysconfig/network/ifcfg-' . $iface;
+    my ($self, $ctx) = @_;
+    my $config = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
     my $res;
     record_info('Info', 'Standalone card - ifdown, ifreload');
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
-    $self->wicked_command('ifdown',   $iface);
-    $self->wicked_command('ifreload', $iface);
+    $self->wicked_command('ifdown',   $ctx->iface());
+    $self->wicked_command('ifreload', $ctx->iface());
     my $static_ip = $self->get_ip(type => 'host');
-    my $dhcp_ip   = $self->get_current_ip($iface);
+    my $dhcp_ip   = $self->get_current_ip($ctx->iface());
     if (defined($dhcp_ip) && $static_ip ne $dhcp_ip) {
         $res = $self->get_test_result('host');
     } else {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,15 +17,13 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils 'iface';
 
 sub run {
-    my ($self) = @_;
-    my $iface = iface();
+    my ($self, $ctx) = @_;
     record_info('Info', 'Set up static addresses from legacy ifcfg files');
-    $self->get_from_data('wicked/static_address/ifcfg-eth0', "/etc/sysconfig/network/ifcfg-$iface");
-    $self->wicked_command('ifup', $iface);
-    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->wicked_command('ifup', $ctx->iface());
+    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $ctx->iface());
 }
 
 sub test_flags {

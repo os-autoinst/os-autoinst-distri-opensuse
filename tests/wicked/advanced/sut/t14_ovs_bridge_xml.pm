@@ -17,16 +17,14 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils 'iface';
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/wicked/ifconfig/ovs-bridge.xml';
-    my $iface  = iface();
     record_info('Info', 'Create a Bridge interface from Wicked XML files');
     $self->get_from_data('wicked/xml/ovs-bridge.xml', $config);
-    assert_script_run("ifdown $iface");
-    assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface");
+    assert_script_run('ifdown ' . $ctx->iface());
+    assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->setup_bridge($config, '', 'ifup');
     record_info('INFO', script_output('ovs-vsctl show'));
     my $res = $self->get_test_result('br0');
