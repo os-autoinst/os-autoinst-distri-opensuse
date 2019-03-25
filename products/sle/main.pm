@@ -1027,46 +1027,29 @@ else {
         }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
-        if (get_var("RT_TESTS")) {
-            loadtest "rt/boot_rt_kernel";
-            loadtest "console/prepare_test_data";
-            loadtest "console/consoletest_setup";
-            loadtest "console/hostname";
-            loadtest "console/zypper_ref";
-            loadtest "console/zypper_lr";
-            loadtest "console/system_prepare";
-            loadtest "rt/rt_is_realtime";
-            loadtest "rt/rt_devel_packages";
-            loadtest "rt/rt_peak_pci";
-            loadtest "rt/rt_tests";
-            loadtest "rt/kmp_modules";
-            set_var('INSTALLONLY', 1);
+        load_bootloader_s390x();
+        loadtest "boot/boot_to_desktop";
+        if (get_var("ADDONS")) {
+            loadtest "installation/addon_products_yast2";
         }
-        else {
-            load_bootloader_s390x();
-            loadtest "boot/boot_to_desktop";
-            if (get_var("ADDONS")) {
-                loadtest "installation/addon_products_yast2";
-            }
-            if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE')) {
-                loadtest "installation/addon_products_via_SCC_yast2";
-            }
-            if (get_var("ISCSI_SERVER")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "iscsi/iscsi_server";
-            }
-            if (get_var("ISCSI_CLIENT")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "iscsi/iscsi_client";
-            }
-            if (get_var("NIS_SERVER")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "x11/nis_server";
-            }
-            if (get_var("NIS_CLIENT")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "x11/nis_client";
-            }
+        if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE')) {
+            loadtest "installation/addon_products_via_SCC_yast2";
+        }
+        if (get_var("ISCSI_SERVER")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "iscsi/iscsi_server";
+        }
+        if (get_var("ISCSI_CLIENT")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "iscsi/iscsi_client";
+        }
+        if (get_var("NIS_SERVER")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "x11/nis_server";
+        }
+        if (get_var("NIS_CLIENT")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "x11/nis_client";
         }
     }
     elsif (get_var("REMOTE_TARGET")) {

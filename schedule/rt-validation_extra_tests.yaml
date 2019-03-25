@@ -1,0 +1,37 @@
+name:           rt-validation_extra_tests
+description:    >
+    Validation tests for RT product	
+schedule:
+    - rt/boot_rt_kernel
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/system_prepare
+    - console/hostname
+    - console/zypper_lr
+    - console/zypper_ref
+    - rt/rt_is_realtime
+    - rt/rt_devel_packages
+    - rt/rt_peak_pci
+    - rt/rt_tests 
+    - rt/kmp_modules
+    - console/aplay
+    - console/glibc_sanity
+    - console/firewall_enabled
+    - console/gpt_ptable
+    - console/gpg
+    - console/journalctl
+    - console/rsync 
+    - console/http_srv
+    - console/sysctl
+    - console/sysstat
+    - console/cron
+    - console/yast2_lan
+    - console/yast2_i
+    - toolchain/gcc_compilation
+    - console/consoletest_finish
+    - x11/firefox 
+    - x11/yast2_snapper
+    - yast2_gui/yast2_hostnames 
+    - yast2_gui/yast2_firewall
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
