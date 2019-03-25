@@ -1089,7 +1089,7 @@ sub load_consoletests {
 
     loadtest "locale/keymap_or_locale";
     loadtest "console/orphaned_packages_check" if is_jeos;
-    loadtest "console/check_upgraded_service" if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade);
+    loadtest "console/check_upgraded_service" if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";

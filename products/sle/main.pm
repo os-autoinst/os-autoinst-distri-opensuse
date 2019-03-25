@@ -464,7 +464,7 @@ sub load_online_migration_tests {
         loadtest "migration/sle12_online_migration/register_without_ltss";
     }
     loadtest "migration/sle12_online_migration/pre_migration";
-    loadtest 'installation/install_service';
+    loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
@@ -499,7 +499,7 @@ sub load_patching_tests {
         }
         loadtest 'migration/record_disk_info';
         # Install service for offline migration by zypper
-        loadtest 'installation/install_service' if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP'));
+        loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && !get_var('INSTALLONLY'));
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
