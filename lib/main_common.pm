@@ -1570,6 +1570,7 @@ sub load_extra_tests_console {
     loadtest "console/rsync";
     loadtest "console/clamav";
     loadtest "console/shells";
+    loadtest 'console/sudo';
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
