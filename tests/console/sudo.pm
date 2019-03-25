@@ -49,7 +49,7 @@ sub test_sudoers {
 sub run {
     my $test_password = 'Sud0_t3st';
     select_console 'root-console';
-    zypper_call 'in sudo';
+    zypper_call 'in sudo expect';
     # set drop_caches to 1 for later IO redirection test
     assert_script_run 'echo 1 >/proc/sys/vm/drop_caches';
     # prepare sudoers and test user
