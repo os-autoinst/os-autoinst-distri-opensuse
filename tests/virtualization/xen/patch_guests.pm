@@ -20,6 +20,7 @@ use xen;
 
 sub run {
     my ($self) = @_;
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Patching $guest";
