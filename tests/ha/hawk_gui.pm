@@ -102,7 +102,7 @@ sub run {
     type_string "$python /tmp/$test_scr -b $browser -t $version -H $hostname -s $testapi::password -r $results > $logs 2>&1; echo $pyscr-\$? > $retcode; exit\n";
     assert_screen "hawk-$browser", 120;
 
-    my $loop_count = 180;    # 15 minutes (180*5)
+    my $loop_count = 120;    # 10 minutes (120*5)
     while (!check_screen('generic-desktop', 0, no_wait => 1)) {
         sleep 5;
         $loop_count--;

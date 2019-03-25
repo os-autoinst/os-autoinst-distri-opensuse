@@ -157,7 +157,6 @@ def test_click_on(browser, text, timeout_scale, *testname):
     global RETURN_VALUE
     timeout_scale = checkint(timeout_scale)
     print("TEST: Main page. Click on %s" % text)
-    time.sleep(5*timeout_scale)
     if is_driver(browser):
         elem = find_element(browser, By.PARTIAL_LINK_TEXT, str(text))
         if not elem:
@@ -233,7 +232,6 @@ def check_and_click_by_xpath(browser, timeout_scale, retcode, errmsg, xpath_exps
 def click_if_major_version(browser, test_version, version_to_check, clicker, timeout_scale):
     if Version(str(test_version)) >= Version(str(version_to_check)):
         test_click_on(browser, clicker, timeout_scale)
-        time.sleep(timeout_scale)
 
 ### Selenium tests
 
@@ -254,14 +252,13 @@ def hawk_log_in(browser):
             quit(5)
         elem.send_keys("linux")
         elem.send_keys(Keys.RETURN)
-    set_test_status('hawk_log_in', 'passed')
+        set_test_status('hawk_log_in', 'passed')
 
 def add_new_cluster(browser, cluster_name, timeout_scale):
     global RETURN_VALUE
     timeout_scale = checkint(timeout_scale)
     # First click on Dashboard
     test_click_on(browser, 'Dashboard', timeout_scale)
-    time.sleep(2*timeout_scale)
     print("TEST: Add new cluster")
     if is_driver(browser):
         elem = find_element(browser, By.CLASS_NAME, "btn-default")
@@ -276,14 +273,12 @@ def add_new_cluster(browser, cluster_name, timeout_scale):
             RETURN_VALUE = 7
             return
         elem.send_keys(str(cluster_name))
-        time.sleep(timeout_scale)
         elem = find_element(browser, By.NAME, "cluster[host]")
         if not elem:
             print("ERROR: Couldn't find element [cluster[host]]. Cannot add cluster")
             RETURN_VALUE = 7
             return
         elem.send_keys(args.host.lower())
-        time.sleep(timeout_scale)
         elem = find_element(browser, By.NAME, "submit")
         if not elem:
             print("ERROR: Couldn't find submit button")
@@ -304,7 +299,6 @@ def remove_cluster(browser, cluster_name, timeout_scale):
     timeout_scale = checkint(timeout_scale)
     # First click on Dashboard
     test_click_on(browser, 'Dashboard', timeout_scale)
-    time.sleep(2*timeout_scale)
     print("TEST: Remove cluster")
     if is_driver(browser):
         elem = find_element(browser, By.PARTIAL_LINK_TEXT, str(cluster_name))
@@ -353,9 +347,7 @@ def add_primitive(browser, priminame, timeout_scale, version):
         click_if_major_version(browser, version, "15", link_by_browser(browser, 'configuration'),
                                timeout_scale)
         test_click_on(browser, 'Resource', timeout_scale)
-        time.sleep(2*timeout_scale)
         test_click_on(browser, 'rimitive', timeout_scale)
-        time.sleep(2*timeout_scale)
         # Fill the primitive
         elem = find_element(browser, By.NAME, 'primitive[id]')
         if not elem:
@@ -364,7 +356,6 @@ def add_primitive(browser, priminame, timeout_scale, version):
             RETURN_VALUE = 10
             return
         elem.send_keys(str(priminame))
-        time.sleep(timeout_scale)
         elem = find_element(browser, By.NAME, 'primitive[clazz]')
         if not elem:
             print("ERROR: Couldn't find element [primitive[clazz]]. Cannot add primitive [%s]." %
@@ -372,7 +363,6 @@ def add_primitive(browser, priminame, timeout_scale, version):
             RETURN_VALUE = 10
             return
         elem.click()
-        time.sleep(timeout_scale)
         check_and_click_by_xpath(browser, timeout_scale, 10,
                                  ". Couldn't find value [ocf] for primitive class",
                                  [OCF_OPT_LIST])
@@ -400,7 +390,6 @@ def add_primitive(browser, priminame, timeout_scale, version):
         fill_value(browser, 'op[timeout]', 35)
         submit_operation_params(browser, timeout_scale, 10,
                                 ". Couldn't Apply changes for start operation")
-        time.sleep(timeout_scale)
         # Set stop timeout value in 15s and on-fail
         check_and_click_by_xpath(browser, timeout_scale, 10,
                                  ". Couldn't find edit button for stop operation",
@@ -477,7 +466,6 @@ def add_clone(browser, clone, timeout_scale):
             RETURN_VALUE = 12
             return
         elem.send_keys(str(clone))
-        time.sleep(timeout_scale)
         check_and_click_by_xpath(browser, timeout_scale, 12, "while adding clone [%s]" % clone,
                                  [CLONE_CHILD, OPT_STONITH, TARGET_ROLE_FORMAT % 'clone',
                                   TARGET_ROLE_STARTED, RSC_OK_SUBMIT])
@@ -502,7 +490,6 @@ def add_group(browser, groupname, timeout_scale):
             RETURN_VALUE = 15
             return
         elem.send_keys(str(groupname))
-        time.sleep(timeout_scale)
         check_and_click_by_xpath(browser, timeout_scale, 15, "while adding group [%s]" % groupname,
                                  [STONITH_CHKBOX, TARGET_ROLE_FORMAT % 'group', TARGET_ROLE_STARTED,
                                   RSC_OK_SUBMIT])
@@ -528,16 +515,16 @@ def set_stonith_maintenance(browser, timeout_scale):
     global RETURN_VALUE
     timeout_scale = checkint(timeout_scale)
     # wait for page to fully load
-    time.sleep(timeout_scale)
-    if is_driver(browser):
-        totalrows = len(browser.find_elements_by_xpath(RSC_ROWS))
-        if totalrows <= 0:
-            totalrows = 1
-    print("TEST: Placing stonith-sbd in maintenance")
-    check_and_click_by_xpath(browser, timeout_scale, 16,
-                             ". Couldn't find stonith-sbd menu to place it in maintenance mode",
-                             [DROP_DOWN_FORMAT % totalrows, STONITH_MAINT_ON,
-                              COMMIT_BTN_DANGER])
+    if find_element(browser, By.XPATH, RSC_ROWS):
+        if is_driver(browser):
+            totalrows = len(browser.find_elements_by_xpath(RSC_ROWS))
+            if totalrows <= 0:
+                totalrows = 1
+        print("TEST: Placing stonith-sbd in maintenance")
+        check_and_click_by_xpath(browser, timeout_scale, 16,
+                                 ". Couldn't find stonith-sbd menu to place it in maintenance mode",
+                                 [DROP_DOWN_FORMAT % totalrows, STONITH_MAINT_ON,
+                                  COMMIT_BTN_DANGER])
     if verify_success(browser):
         print("INFO: stonith-sbd successfully placed in maintenance mode")
         set_test_status('set_stonith_maintenance', 'passed')
@@ -564,7 +551,6 @@ def view_details_first_node(browser, timeout_scale):
     print("TEST: Checking details of first cluster node")
     check_and_click_by_xpath(browser, timeout_scale, 18,
                              ". Could not find first node pull down menu", [NODE_DETAILS])
-    time.sleep(5*timeout_scale)
     check_and_click_by_xpath(browser, timeout_scale, 18,
                              ". Could not find button to dismiss node details popup",
                              [DISMISS_MODAL])
@@ -580,7 +566,6 @@ def clear_state_first_node(browser, timeout_scale):
                              ". Could not find pull down menu for first cluster node",
                              [CLEAR_STATE])
     test_click_on(browser, 'Clear state', timeout_scale)
-    time.sleep(2*timeout_scale)
     check_and_click_by_xpath(browser, timeout_scale, 19,
                              ". Could not clear the state of the first node", [COMMIT_BTN_DANGER])
     if verify_success(browser):
@@ -621,13 +606,13 @@ def generate_report(browser, timeout_scale):
     global RETURN_VALUE
     timeout_scale = checkint(timeout_scale)
     print("TEST: click on Generate report")
-    time.sleep(2*timeout_scale) # Wait for History page to load
-    check_and_click_by_xpath(browser, timeout_scale, 22,
-                             ". Could not find button for Generate report", [GENERATE_REPORT])
-    # Need to wait here because there are 2 success notices being shown in the GUI: on clicking
-    # the Generate # report button and on completing the generation. This next sleep() waits for
-    # the first notice to disappear before waiting for the second one
-    time.sleep(5*timeout_scale)
+    if find_element(browser, By.XPATH, GENERATE_REPORT):
+        check_and_click_by_xpath(browser, timeout_scale, 22,
+                                 ". Could not find button for Generate report", [GENERATE_REPORT])
+        # Need to wait here because there are 2 success notices being shown in the GUI: on clicking
+        # the Generate # report button and on completing the generation. This next sleep() waits for
+        # the first notice to disappear before waiting for the second one
+        time.sleep(5*timeout_scale)
     if verify_success(browser):
         print("INFO: successfully generated report")
         set_test_status('generate_report', 'passed')
@@ -719,7 +704,7 @@ def ssh_verify_primitive_removed(ssh):
 
 # Command line argument parsing
 parser = argparse.ArgumentParser(description='HAWK GUI interface Selenium test')
-parser.add_argument('-b', '--browser', type=str,
+parser.add_argument('-b', '--browser', type=str, required=True,
                     help='Browser to use in the test. Can be: firefox, chrome, chromium')
 parser.add_argument('-H', '--host', type=str, default='localhost',
                     help='Host or IP address where HAWK is running')
@@ -734,10 +719,6 @@ parser.add_argument('-s', '--secret', type=str, default='',
 parser.add_argument('-r', '--results', type=str, default='',
                     help='Generate hawk_test.results file')
 args = parser.parse_args()
-if not args.browser:
-    print('ERROR: must specify a browser with --browser')
-    parser.print_help()
-    quit(3)
 
 # Set URL to use
 mainlink = 'https://' + args.host.lower() + ':' + args.port
@@ -783,7 +764,6 @@ monitoring = link_by_browser(browser, 'monitoring')
 # Tests to perform
 browser.get(mainlink)
 hawk_log_in(browser)
-time.sleep(timeout_scale)
 set_stonith_maintenance(browser, timeout_scale)
 if args.secret:
     ssh_verify_stonith(ssh)
@@ -801,7 +781,6 @@ click_if_major_version(browser, args.test_version.lower(), "15", troubleshoot, t
 # Only click on History and on Generate Report in Firefox if testing 15+
 if args.browser in ['chrome', 'chromium'] or Version(args.test_version.lower()) >= Version('15'):
     test_click_on(browser, 'History', timeout_scale, 'test_click_on_history')
-    time.sleep(2*timeout_scale)
     generate_report(browser, timeout_scale)
 test_click_on(browser, 'Command Log', timeout_scale, 'test_click_on_command_log')
 click_if_major_version(browser, args.test_version.lower(), "15", monitoring, timeout_scale)
