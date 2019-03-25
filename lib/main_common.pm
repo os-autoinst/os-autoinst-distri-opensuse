@@ -2461,8 +2461,8 @@ sub load_ha_cluster_tests {
     # Only SLE-15+ has support for lvmlockd
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
-    # Wait for barriers to be initialized
-    loadtest 'ha/wait_barriers';
+    # Wait for barriers to be initialized except when testing HAWK as a client
+    loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client'));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
@@ -2477,6 +2477,12 @@ sub load_ha_cluster_tests {
     loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
     loadtest 'console/hostname';
+
+    # If HAWKGUI_TEST_ROLE is set to client, only load client side test
+    if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
+        loadtest 'ha/hawk_gui';
+        return 1;
+    }
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product is selected
@@ -2523,6 +2529,13 @@ sub load_ha_cluster_tests {
     else {
         # Test Hawk Web interface
         loadtest 'ha/check_hawk';
+
+        # If testing HAWK's GUI, skip the rest of the cluster
+        # setup tests and only check logs
+        if (get_var('HAWKGUI_TEST_ROLE')) {
+            loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
+            return 1;
+        }
 
         # Lock manager configuration
         loadtest 'ha/dlm';

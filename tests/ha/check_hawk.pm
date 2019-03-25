@@ -50,6 +50,12 @@ sub run {
     save_screenshot;
 
     barrier_wait("HAWK_CHECKED_$cluster_name");
+
+    # If testing HAWK GUI, also wait for those barriers
+    if (get_var('HAWKGUI_TEST_ROLE')) {
+        barrier_wait("HAWK_GUI_INIT_$cluster_name");
+        barrier_wait("HAWK_GUI_CHECKED_$cluster_name");
+    }
 }
 
 # Specific test_flags for this test module
