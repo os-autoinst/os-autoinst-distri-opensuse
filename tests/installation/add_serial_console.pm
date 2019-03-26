@@ -31,8 +31,13 @@ sub run {
     type_string("chroot /mnt\n");
     wait_still_screen;
 
+    # Mount Btrfs sub-volumes
+    assert_script_run('mount -a');
     # Configure GRUB with serial terminal (in addition to gfxterm)
     assert_script_run('sed -ie \'s/GRUB_TERMINAL.*//\' /etc/default/grub');
+    # VMware needs to always stop in Grub and wait for interaction.
+    # Migration seems to reset it.
+    assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub');
     assert_script_run('echo GRUB_TERMINAL_OUTPUT=\"serial gfxterm\" >> /etc/default/grub');
     assert_script_run('echo GRUB_SERIAL_COMMAND=\"serial\" >> /etc/default/grub');
     # Set expected resolution for GRUB and kernel
@@ -49,7 +54,9 @@ sub run {
     # Clean-up
     assert_script_run('umount /mnt/dev');
     assert_script_run('umount /mnt/proc');
-    assert_script_run('umount /mnt');
+    # There might be remnants from `mount -a` in /mnt,
+    # so lets unmount it "lazily".
+    assert_script_run('umount -l /mnt');
 
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
 }

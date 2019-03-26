@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,10 +15,28 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle);
+use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle is_vmware);
 use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
+
+sub vmware_set_permanent_boot_device {
+    return unless is_vmware;
+    my ($boot_device) = @_;
+    assert_screen('vmware_bios_frontpage');
+    # No boot device requested to be set, go on with the default
+    send_key 'ret' && return unless $boot_device;
+    # Enter menu with available boot devices
+    send_key 'f2';
+    send_key_until_needlematch('vmware_bios_boot_tab', 'right', 10, 2);
+    send_key_until_needlematch("vmware_bios_boot_${boot_device}",     'down', 5);
+    send_key_until_needlematch("vmware_bios_boot_top_${boot_device}", '+',    5);
+    send_key 'f10';
+    assert_screen('vmware_bios_boot_confirm');
+    send_key 'ret';
+    assert_screen('vmware_bios_frontpage');
+    send_key 'ret';
+}
 
 sub search_image_on_svirt_host {
     my ($svirt, $file, $dir) = @_;
@@ -58,16 +76,19 @@ sub run {
     }
 
     set_var('BOOTFROM', 'c') if get_var('BOOT_HDD_IMAGE');
+    my $boot_device = '';
     if (check_var('BOOTFROM', 'c')) {
-        $svirt->change_domain_element(os => boot => {dev => 'hd'});
+        $boot_device = 'hd';
     }
     elsif (check_var('BOOTFROM', 'd')) {
-        $svirt->change_domain_element(os => boot => {dev => 'cdrom'});
+        $boot_device = 'cdrom';
     }
     else {
-        $svirt->change_domain_element(os => boot => {dev => 'hd'});
-        $svirt->change_domain_element(os => boot => {dev => 'cdrom'}) if get_var('ISO');
+        get_var('ISO') ? $boot_device = 'cdrom' : $boot_device = 'hd';
     }
+    # Does not make any difference on VMware. For ad hoc device selection
+    # see vmware_select_boot_device_from_menu().
+    $svirt->change_domain_element(os => boot => {dev => $boot_device}) unless is_vmware;
 
     # Unless os-autoinst PR#956 is deployed we have to remove 'on_reboot' first
     # This has no effect on VMware ('restart' is kept).
@@ -235,6 +256,11 @@ sub run {
 
     $svirt->define_and_start;
 
+    # Variable set only in console (here sshVirtsh console) does not propagate
+    # to test environment correctly and can be destroyed by bmwqemu::load_vars(),
+    # e.g. via set_var('...', ..., reload_needles => 1).
+    set_var('VMWARE_REMOTE_VMM', $svirt->get_remote_vmm) if is_vmware;
+
     # This sets kernel argument so needle-matching works on Xen PV. It's being
     # done via host's PTY device because we don't see anything unless kernel
     # sets framebuffer (this is a GRUB2's limitation bsc#961638).
@@ -279,6 +305,7 @@ sub run {
 
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
+    vmware_set_permanent_boot_device('cdrom');
 }
 
 sub test_flags {

@@ -379,7 +379,7 @@ sub load_svirt_vm_setup_tests {
         loadtest "installation/bootloader_hyperv" unless get_var('UPGRADE');
     }
     else {
-        loadtest "installation/bootloader_svirt";
+        loadtest "installation/bootloader_svirt" unless get_var('UPGRADE');
     }
     unless (is_installcheck || is_memtest || is_rescuesystem || is_mediacheck) {
         load_svirt_boot_tests;
