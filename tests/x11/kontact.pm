@@ -20,7 +20,7 @@ use version_utils 'is_pre_15';
 sub run {
     select_console 'user-console';
     # start akonadi server to avoid the self-test running when we launch kontact
-    assert_script_run 'DISPLAY=:0 akonadictl start >& /dev/null';
+    assert_script_run 'DISPLAY=:0 akonadictl start';
 
     # Workaround: sometimes the account assistant behind of mainwindow or tips window
     # To disable it run at first time start
