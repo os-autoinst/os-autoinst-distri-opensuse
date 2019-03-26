@@ -233,10 +233,6 @@ EOF
     assert_script_run 'unzip dvdrental.zip';
     assert_script_run 'p -c "CREATE DATABASE dvdrental"';
     assert_script_run 'psql -a -E -c "\l"|grep dvdrental';
-    # Since we want everything to work on a single transaction
-    # drop schema public as it's an schema that comes with postgresql by
-    # default and then restore the database
-    assert_script_run 'p -d dvdrental -c "DROP SCHEMA PUBLIC CASCADE"';
     assert_script_run 'pg_restore -d dvdrental -1 dvdrental.tar';
     assert_script_run 'p -d dvdrental -c "\dt"';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer"|grep Davidson';
