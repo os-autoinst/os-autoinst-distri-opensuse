@@ -1413,6 +1413,10 @@ sub load_extra_tests_y2uitest_gui {
     loadtest "yast2_gui/yast2_users";
 }
 
+sub load_extra_tests_y2uitest_cmd {
+    loadtest 'yast2_cmd/yast_lan';
+}
+
 sub load_extra_tests_openqa_bootstrap {
     if (get_var 'BOOTSTRAP_CONTAINER') {
         loadtest 'openqa/install/openqa_bootstrap_container';
