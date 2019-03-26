@@ -19,6 +19,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use suse_container_urls qw(get_suse_container_urls);
 use autotest;
 use utils;
+use wicked::TestContext;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use Utils::Backends 'is_remote_backend';
 use data_integrity_utils 'verify_checksum';
@@ -1745,8 +1746,9 @@ sub wicked_init_locks {
 
 sub load_extra_tests_wicked {
     wicked_init_locks();
+    my $ctx = wicked::TestContext->new();
     for my $test (get_wicked_tests()) {
-        loadtest $test;
+        loadtest($test, run_args => $ctx);
     }
 }
 
