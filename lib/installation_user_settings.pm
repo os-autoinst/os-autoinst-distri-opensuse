@@ -11,10 +11,14 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 package installation_user_settings;
+use parent Exporter;
 use strict;
 use warnings;
 use testapi;
 use version_utils 'is_sle';
+use utils 'type_string_slow';
+
+our @EXPORT = qw(type_password_and_verification await_password_check enter_userinfo enter_rootinfo);
 
 sub type_password_and_verification {
     for (1 .. 2) {
@@ -29,6 +33,24 @@ sub await_password_check {
     assert_screen 'inst-userpasswdtoosimple';
     send_key 'ret';
 
+}
+
+sub enter_userinfo {
+    my (%args) = @_;
+    $args{username} //= $realname;
+    send_key 'alt-f';    # Select full name text field
+    wait_screen_change { $args{retry} ? type_string_slow $args{username} : type_string $args{username} };
+    send_key 'tab';      # Select password field
+    send_key 'tab';
+    type_password_and_verification;
+}
+
+sub enter_rootinfo {
+    assert_screen "inst-rootpassword";
+    type_password_and_verification;
+    assert_screen "rootpassword-typed";
+    send_key $cmd{next};
+    await_password_check;
 }
 
 1;
