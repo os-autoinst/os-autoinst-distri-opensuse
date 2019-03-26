@@ -898,7 +898,8 @@ else {
             loadtest "console/hostname";
             loadtest "ses/nodes_preparation";
             loadtest "ses/deepsea_cluster_deploy";
-            loadtest "ses/openattic";
+            # OpenATTIC is only for <SES6
+            loadtest "ses/openattic" if is_sle('<15');
         }
         return 1;
     }
