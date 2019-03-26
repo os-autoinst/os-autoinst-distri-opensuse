@@ -96,7 +96,9 @@ sub is_vmware {
 }
 
 sub is_hyperv {
-    return check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    my $hyperv_version = shift;
+    return 0 unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    return defined($hyperv_version) ? check_var('HYPERV_VERSION', $hyperv_version) : 1;
 }
 
 sub is_hyperv_in_gui {

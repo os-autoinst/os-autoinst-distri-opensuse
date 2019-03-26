@@ -16,26 +16,24 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils qw(iface ifc_exists);
-
+use network_utils 'ifc_exists';
+use utils 'file_content_replace';
 
 sub run {
-    my ($self) = @_;
-    my $iface  = iface();
-    my $config = "/etc/sysconfig/network/ifcfg-$iface.42";
+    my ($self, $ctx) = @_;
+    my $config   = '/etc/sysconfig/network/ifcfg-' . $ctx->iface() . '.42';
     my $local_ip = $self->get_ip(type => 'vlan_changed', netmask => 1);
     $local_ip =~ s'/'\\/';
     my $previous_ip = $self->get_ip(type => 'vlan', netmask => 1);
     $previous_ip =~ s'/'\\/';
-    assert_script_run("sed 's/$previous_ip/$local_ip/' -i $config");
-    script_run("cat $config");
+    file_content_replace($config, $previous_ip => $local_ip);
     $self->wicked_command('ifreload', 'all');
     assert_script_run('ip a');
-    die('VLAN interface does not exists') unless ifc_exists($iface . '.42');
+    die('VLAN interface does not exists') unless ifc_exists($ctx->iface() . '.42');
     die('IP is unreachable')
       unless $self->ping_with_timeout(type => 'vlan_changed', timeout => '50');
     $self->wicked_command('ifdown', "all");
-    die('VLAN interface exists') if (ifc_exists($iface . '.42'));
+    die('VLAN interface exists') if (ifc_exists($ctx->iface() . '.42'));
 }
 
 sub test_flags {

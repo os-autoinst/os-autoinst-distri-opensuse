@@ -11,7 +11,7 @@
 # Summary: Ensure that all combinations of running/stopped and active/inactive can be set for yast2 dns-server
 # Maintainer: jeriveramoya <jeriveramoya@suse.com>
 
-use base qw(console_yasttest y2logsstep);
+use base 'console_yasttest';
 use strict;
 use warnings;
 use testapi;
@@ -141,6 +141,7 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
+    $self->SUPER::post_fail_hook();
     my @tar_input_files;
     my %cmds = (
         rpm_bind_info              => 'rpm -qi bind',
@@ -161,7 +162,6 @@ sub post_fail_hook {
     }
     assert_script_run "tar cvf /tmp/dns_troubleshoot.tar @tar_input_files";
     upload_logs('/tmp/dns_troubleshoot.tar');
-    $self->SUPER::post_fail_hook();
 }
 
 1;

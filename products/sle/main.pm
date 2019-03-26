@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -464,6 +464,7 @@ sub load_online_migration_tests {
         loadtest "migration/sle12_online_migration/register_without_ltss";
     }
     loadtest "migration/sle12_online_migration/pre_migration";
+    loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
@@ -497,6 +498,8 @@ sub load_patching_tests {
             loadtest 'console/lock_package';
         }
         loadtest 'migration/record_disk_info';
+        # Install service for offline migration by zypper
+        loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && !get_var('INSTALLONLY'));
         # Reboot from DVD and perform upgrade
         loadtest "migration/reboot_to_upgrade";
         # After original system patched, switch to UPGRADE_TARGET_VERSION
@@ -895,7 +898,8 @@ else {
             loadtest "console/hostname";
             loadtest "ses/nodes_preparation";
             loadtest "ses/deepsea_cluster_deploy";
-            loadtest "ses/openattic";
+            # OpenATTIC is only for <SES6
+            loadtest "ses/openattic" if is_sle('<15');
         }
         return 1;
     }
@@ -956,6 +960,17 @@ else {
             loadtest "network/salt_minion";
         }
     }
+    elsif (get_var("NFSSERVER") or get_var("NFSCLIENT")) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        #loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        if (get_var("NFSSERVER")) {
+            loadtest "console/yast2_nfs_server";
+        }
+        else {
+            loadtest "console/yast2_nfs_client";
+        }
+    }
     elsif (get_var('QAM_VSFTPD')) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {
@@ -1013,46 +1028,29 @@ else {
         }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
-        if (get_var("RT_TESTS")) {
-            loadtest "rt/boot_rt_kernel";
-            loadtest "console/prepare_test_data";
-            loadtest "console/consoletest_setup";
-            loadtest "console/hostname";
-            loadtest "console/zypper_ref";
-            loadtest "console/zypper_lr";
-            loadtest "console/system_prepare";
-            loadtest "rt/rt_is_realtime";
-            loadtest "rt/rt_devel_packages";
-            loadtest "rt/rt_peak_pci";
-            loadtest "rt/rt_tests";
-            loadtest "rt/kmp_modules";
-            set_var('INSTALLONLY', 1);
+        load_bootloader_s390x();
+        loadtest "boot/boot_to_desktop";
+        if (get_var("ADDONS")) {
+            loadtest "installation/addon_products_yast2";
         }
-        else {
-            load_bootloader_s390x();
-            loadtest "boot/boot_to_desktop";
-            if (get_var("ADDONS")) {
-                loadtest "installation/addon_products_yast2";
-            }
-            if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE')) {
-                loadtest "installation/addon_products_via_SCC_yast2";
-            }
-            if (get_var("ISCSI_SERVER")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "iscsi/iscsi_server";
-            }
-            if (get_var("ISCSI_CLIENT")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "iscsi/iscsi_client";
-            }
-            if (get_var("NIS_SERVER")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "x11/nis_server";
-            }
-            if (get_var("NIS_CLIENT")) {
-                set_var('INSTALLONLY', 1);
-                loadtest "x11/nis_client";
-            }
+        if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE')) {
+            loadtest "installation/addon_products_via_SCC_yast2";
+        }
+        if (get_var("ISCSI_SERVER")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "iscsi/iscsi_server";
+        }
+        if (get_var("ISCSI_CLIENT")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "iscsi/iscsi_client";
+        }
+        if (get_var("NIS_SERVER")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "x11/nis_server";
+        }
+        if (get_var("NIS_CLIENT")) {
+            set_var('INSTALLONLY', 1);
+            loadtest "x11/nis_client";
         }
     }
     elsif (get_var("REMOTE_TARGET")) {

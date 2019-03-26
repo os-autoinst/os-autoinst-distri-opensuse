@@ -81,6 +81,9 @@ sub patching_sle {
     # Install salt packages as required
     install_salt_packages() if (check_var_array('SCC_ADDONS', 'asmm'));
 
+    # create btrfs subvolume for aarch64
+    create_btrfs_subvolume() if (check_var('ARCH', 'aarch64'));
+
     # Remove test repos after system being patched
     remove_test_repositories;
 

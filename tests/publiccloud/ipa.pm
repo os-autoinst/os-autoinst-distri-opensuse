@@ -11,10 +11,10 @@
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base "publiccloud::basetest";
-use strict;
-use warnings;
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use Mojo::File 'path';
+use Mojo::JSON;
 
 sub extract_startup_timings {
     my $string = shift;
@@ -61,7 +61,20 @@ sub run {
     assert_script_run('rm -rf ipa_results');
 
     # fail, if at least one test failed
-    die if ($ipa->{fail} > 0);
+    if ($ipa->{fail} > 0) {
+
+        # Upload cloudregister log if corresponding test fails
+        for my $t (@{$self->{extra_test_results}}) {
+            next if ($t->{name} !~ m/registration|repo|smt|guestregister|update/);
+            my $filename = 'result-' . $t->{name} . '.json';
+            my $file     = path(bmwqemu::result_dir(), $filename);
+            my $json     = Mojo::JSON::decode_json($file->slurp);
+            next if ($json->{result} ne 'fail');
+            $instance->upload_log('/var/log/cloudregister');
+            last;
+        }
+        die;
+    }
 }
 
 sub cleanup {

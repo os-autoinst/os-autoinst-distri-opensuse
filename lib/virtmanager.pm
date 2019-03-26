@@ -620,11 +620,13 @@ sub select_guest {
     my $guest = shift;
     assert_and_click "virt-manager_connected";
     wait_still_screen 3;
-    assert_and_dclick "virt-manager_list-$guest";
+    assert_and_click "virt-manager_list-$guest";
+    send_key 'ret';
     if (check_screen('virt-manager_no-graphical-device', 3)) {
         wait_screen_change { send_key 'ctrl-q'; };
         assert_and_click "virt-manager_connected";
-        assert_and_dclick "virt-manager_list-$guest";
+        assert_and_click "virt-manager_list-$guest";
+        send_key 'ret';
     }
 }
 
@@ -636,7 +638,7 @@ sub close_guest {
 }
 
 sub establish_connection {
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     assert_screen ['virt-manager_connected', 'virt-manager_not-connected', 'virt-manager_add-connection'], 30;
     if (match_has_tag 'virt-manager_add-connection') {

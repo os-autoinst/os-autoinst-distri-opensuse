@@ -14,10 +14,12 @@ use base "consoletest";
 use testapi;
 use strict;
 use warnings;
+use utils 'ensure_serialdev_permissions';
 
 sub run {
     my $self = shift;
     select_console 'root-console';
+    ensure_serialdev_permissions;
 
     my $script = <<EOS;
 

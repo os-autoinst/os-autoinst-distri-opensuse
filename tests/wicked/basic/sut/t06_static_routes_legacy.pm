@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,18 +17,16 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils 'iface';
 
 sub run {
-    my ($self) = @_;
-    my $iface = iface();
+    my ($self, $ctx) = @_;
     record_info('Info', 'Set up static routes from legacy ifcfg files');
-    $self->get_from_data('wicked/static_address/ifcfg-eth0',   "/etc/sysconfig/network/ifcfg-$iface");
-    $self->get_from_data('wicked/static_address/ifroute-eth0', "/etc/sysconfig/network/ifroute-$iface");
-    $self->wicked_command('ifup', $iface);
-    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
+    $self->get_from_data('wicked/static_address/ifcfg-eth0',   '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/static_address/ifroute-eth0', '/etc/sysconfig/network/ifroute-' . $ctx->iface());
+    $self->wicked_command('ifup', $ctx->iface());
+    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $ctx->iface());
     validate_script_output("ip -4 route show", sub { m/default via 10\.0\.2\.2/ });
-    assert_script_run('ip -4 route show | grep "default" | grep -v "via' . $iface . '"');
+    assert_script_run('ip -4 route show | grep "default" | grep -v "via' . $ctx->iface() . '"');
     validate_script_output("ip -6 route show", sub { m/default via fd00:cafe:babe::1/ });
 }
 

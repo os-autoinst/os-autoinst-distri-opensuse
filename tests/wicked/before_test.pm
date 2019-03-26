@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,13 +14,13 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl file_content_replace);
 use network_utils qw(iface setup_static_network);
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     $self->select_serial_terminal;
-    my $iface                  = iface();
+    $ctx->iface(iface());
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
     my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");
@@ -29,9 +29,7 @@ sub run {
     systemctl("disable " . opensusebasetest::firewall);
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
     record_info('INFO', 'Setting debug level for wicked logs');
-    assert_script_run('sed -e "s/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g" -i /etc/sysconfig/network/config');
-    assert_script_run('sed -e "s/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\"debug\"/g" -i /etc/sysconfig/network/config');
-    assert_script_run('cat /etc/sysconfig/network/config');
+    file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug"');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
     setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1));
@@ -43,7 +41,7 @@ sub run {
         record_info('INFO', 'Setup DHCP server');
         zypper_call('--quiet in dhcp-server', timeout => 200);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
-        assert_script_run("sed \'s/^DHCPD_INTERFACE=.*/DHCPD_INTERFACE=\"$iface\"/g\' -i /etc/sysconfig/dhcpd");
+        file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
         systemctl 'enable dhcpd.service';
         systemctl 'start dhcpd.service';
     }
@@ -52,8 +50,8 @@ sub run {
         assert_script_run("rcwickedd restart");
         unless (get_var('IS_WICKED_REF')) {
             # Remove previous static config and leave dynamic one, only for SUT
-            assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface");
-            $self->get_from_data("wicked/dynamic_address/ifcfg-eth0", "/etc/sysconfig/network/ifcfg-$iface");
+            assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
+            $self->get_from_data("wicked/dynamic_address/ifcfg-eth0", '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
         }
     }
     elsif (check_var('WICKED', 'advanced') || check_var('WICKED', 'startandstop')) {

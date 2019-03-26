@@ -26,7 +26,7 @@ use utils;
 sub run {
     select_console 'root-console';
     opensusebasetest::select_serial_terminal();
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     zypper_call '-t in vhostmd';
 

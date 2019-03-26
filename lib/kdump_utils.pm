@@ -14,7 +14,6 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use List::Util 'maxstr';
 use version_utils qw(is_sle is_jeos);
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
@@ -22,9 +21,7 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activ
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
     my $kernel    = is_jeos() ? 'kernel-default-base' : 'kernel-default';
-    my @kernels   = split(/\n/, script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel));
-    my ($uname)   = script_output('uname -r') =~ /(\d+\.\d+\.\d+)-*/;
-    my $debuginfo = maxstr grep { $_ =~ /\Q$uname\E/ } @kernels;
+    my $debuginfo = script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel . '| sort --version-sort | tail -n 1');
     $debuginfo =~ s/$kernel/kernel-default-debuginfo/g;
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
@@ -99,10 +96,12 @@ sub activate_kdump {
         assert_screen \@tags, 300;
         # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
         if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64')) {
-            wait_screen_change { send_key 'alt-y' };
-            type_string '640';
-            send_key 'ret';
-            record_soft_failure 'increase kdump memory size or kdumptool gets killed by OOM, bsc#1120566';
+            if (check_screen 'current-kdmup-mem-size') {
+                send_key 'alt-y';
+                type_string '640';
+                send_key 'ret';
+                record_soft_failure 'default kdump memory size is too small, kdumptool gets killed by OOM, bsc#1120566';
+            }
         }
         # enable kdump if it is not already
         wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');

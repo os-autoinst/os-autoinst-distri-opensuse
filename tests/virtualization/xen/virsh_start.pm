@@ -24,7 +24,7 @@ use testapi;
 use utils;
 
 sub run {
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     assert_script_run("virsh start $_", 120) foreach (keys %xen::guests);
     script_retry "ssh root\@$_ hostname -f", delay => 15, retry => 12 foreach (keys %xen::guests);

@@ -26,7 +26,7 @@ use virtmanager;
 
 sub run {
     my ($self) = @_;
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     #x11_start_program 'virt-manager';
     type_string "virt-manager\n";

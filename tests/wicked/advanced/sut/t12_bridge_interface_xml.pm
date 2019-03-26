@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,16 +17,14 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils 'iface';
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/wicked/ifconfig/bridge.xml';
-    my $iface  = iface();
     record_info('Info', 'Create a Bridge interface from Wicked XML files');
     $self->get_from_data('wicked/xml/bridge.xml', $config);
-    assert_script_run("ifdown $iface");
-    assert_script_run("rm /etc/sysconfig/network/ifcfg-$iface");
+    assert_script_run('ifdown ' . $ctx->iface());
+    assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->setup_bridge($config, '', 'ifup');
     my $res = $self->get_test_result('br0');
     die if ($res eq 'FAILED');
