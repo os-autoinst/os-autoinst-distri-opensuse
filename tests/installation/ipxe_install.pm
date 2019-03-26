@@ -86,7 +86,6 @@ END_BOOTSCRIPT
     diag "setting iPXE bootscript to: $bootscript";
     my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";
-    diag $response->{content};
 }
 
 
