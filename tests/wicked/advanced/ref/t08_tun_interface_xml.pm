@@ -17,6 +17,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
+use utils 'file_content_replace';
 
 sub run {
     my ($self)         = @_;
@@ -25,7 +26,7 @@ sub run {
     record_info('Info', 'Create a TUN interface from Wicked XML files');
     $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
     $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
-    assert_script_run("sed 's/device/tun1/' -i $openvpn_server");
+    file_content_replace($openvpn_server, device => "tun1");
     $self->setup_tuntap($config, 'tun1');
 }
 

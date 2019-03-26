@@ -32,6 +32,12 @@ resource "random_id" "service" {
 resource "azurerm_resource_group" "openqa-group" {
     name     = "openqa-${random_id.service.hex}"
     location = "${var.region}"
+
+    tags = {
+        openqa_created_by = "${var.name}"
+        openqa_created_date = "${timestamp()}"
+        openqa_created_id = "${random_id.service.hex}"
+    }
 }
 
 resource "azurerm_virtual_network" "openqa-network" {
@@ -129,6 +135,12 @@ resource "azurerm_virtual_machine" "openqa-vm" {
             path     = "/home/azureuser/.ssh/authorized_keys"
             key_data = "${file("/root/.ssh/id_rsa.pub")}"
         }
+    }
+
+    tags = {
+        openqa_created_by = "${var.name}"
+        openqa_created_date = "${timestamp()}"
+        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
     }
 }
 

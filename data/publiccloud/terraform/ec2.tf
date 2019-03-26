@@ -46,6 +46,12 @@ resource "aws_security_group" "basic_sg" {
         protocol        = "-1"
         cidr_blocks     = ["0.0.0.0/0"]
     }
+
+    tags = {
+        openqa_created_by = "${var.name}"
+        openqa_created_date = "${timestamp()}"
+        openqa_created_id = "${random_id.service.hex}"
+    }
 }
 
 resource "aws_instance" "openqa" {
@@ -54,6 +60,12 @@ resource "aws_instance" "openqa" {
     instance_type   = "${var.type}"
     key_name        = "${aws_key_pair.openqa-keypair.key_name}"
     security_groups = ["${aws_security_group.basic_sg.name}"]
+
+    tags = {
+        openqa_created_by = "${var.name}"
+        openqa_created_date = "${timestamp()}"
+        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+    }
 }
 
 output "public_ip" {

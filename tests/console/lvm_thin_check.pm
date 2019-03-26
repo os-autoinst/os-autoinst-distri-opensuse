@@ -57,17 +57,5 @@ sub run {
     }
 }
 
-sub post_fail_hook {
-    my $self = shift;
-    select_console 'root-console';
-    my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
-    my $out           = script_output 'lvmdump';
-    if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
-        upload_logs "$+{lvmdump_gzip}";
-    }
-    $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
-    $self->SUPER::post_fail_hook;
-}
-
 1;
 

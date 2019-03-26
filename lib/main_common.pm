@@ -19,6 +19,7 @@ use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
 use suse_container_urls qw(get_suse_container_urls);
 use autotest;
 use utils;
+use wicked::TestContext;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use Utils::Backends 'is_remote_backend';
 use data_integrity_utils 'verify_checksum';
@@ -459,8 +460,8 @@ sub load_zdup_tests {
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
-    loadtest 'installation/zdup';
     loadtest 'installation/install_service';
+    loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
@@ -610,7 +611,7 @@ sub kdestep_is_applicable {
 
 # kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
 sub kdump_is_applicable {
-    return !check_var('ARCH', 'aarch64') && !check_var('VIRSH_VMM_TYPE', 'linux');
+    return !(check_var('ARCH', 'aarch64') && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 sub consolestep_is_applicable {
@@ -1077,11 +1078,9 @@ sub load_consoletests {
         # prepare tarballs for the testcase
         # the path below should be reworked to be universal for any distribution, now it's for openQA deployed on opensuse
         my $tcs_path = "/var/lib/openqa/share/tests/sle/data/s390x/";
-        system("cd ${tcs_path}lib && rm -f common.tgz && tar -czf common.tgz ./*.sh");
 
         my $testset = get_var('IBM_TESTSET');    # e.g. "KERNEL or TOOL or MEMORY"
         foreach my $tc (split(',', get_var('IBM_TESTS'))) {
-            system("cd ${tcs_path}${testset}${tc} && rm -f ${testset}${tc}.tgz && tar -czf ${testset}${tc}.tgz ./*");
             loadtest "s390x_tests/consoletest_${testset}${tc}";
         }
         return 1;
@@ -1089,6 +1088,7 @@ sub load_consoletests {
 
     loadtest "locale/keymap_or_locale";
     loadtest "console/orphaned_packages_check" if is_jeos;
+    loadtest "console/check_upgraded_service" if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
@@ -1162,8 +1162,8 @@ sub load_consoletests {
     load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
     loadtest "console/zypper_in";
-    loadtest "console/yast2_i";
     if (!get_var("LIVETEST")) {
+        loadtest "console/yast2_i";
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
@@ -1202,7 +1202,7 @@ sub load_consoletests {
         loadtest "console/xfce_gnome_deps";
     }
     if (!is_staging() && is_sle('12-SP2+')) {
-        loadtest "console/zypper_lifecycle";
+        loadtest "console/zypper_lifecycle" unless is_hyperv('2012r2');
         if (check_var_array('SCC_ADDONS', 'tcm') && is_sle('<15')) {
             loadtest "console/zypper_lifecycle_toolchain";
         }
@@ -1414,6 +1414,10 @@ sub load_extra_tests_y2uitest_gui {
     loadtest "yast2_gui/yast2_users";
 }
 
+sub load_extra_tests_y2uitest_cmd {
+    loadtest 'yast2_cmd/yast_lan';
+}
+
 sub load_extra_tests_openqa_bootstrap {
     if (get_var 'BOOTSTRAP_CONTAINER') {
         loadtest 'openqa/install/openqa_bootstrap_container';
@@ -1564,11 +1568,12 @@ sub load_extra_tests_console {
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
     loadtest "console/salt" if (is_jeos || is_opensuse);
-    loadtest "console/machinery";
+    loadtest "console/machinery" unless (is_updates_tests);
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/clamav";
     loadtest "console/shells";
+    loadtest 'console/sudo';
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
@@ -1741,8 +1746,9 @@ sub wicked_init_locks {
 
 sub load_extra_tests_wicked {
     wicked_init_locks();
+    my $ctx = wicked::TestContext->new();
     for my $test (get_wicked_tests()) {
-        loadtest $test;
+        loadtest($test, run_args => $ctx);
     }
 }
 
@@ -2212,6 +2218,14 @@ sub load_security_tests_ima_measurement {
     loadtest "security/ima/ima_measurement_audit";
 }
 
+sub load_security_tests_ima_appraisal {
+    loadtest "security/ima/ima_setup";
+    loadtest "security/ima/ima_appraisal_hashes";
+    loadtest "security/ima/ima_appraisal_digital_signatures";
+    loadtest "security/ima/ima_verify";
+    loadtest "security/ima/ima_appraisal_audit";
+}
+
 sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
 }
@@ -2222,7 +2236,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      mok_enroll ima_measurement
+      mok_enroll ima_measurement ima_appraisal
       system_check
       /;
 
@@ -2403,6 +2417,10 @@ sub load_installation_validation_tests {
     # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
     # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
     # - console/verify_separate_home.pm: validate if separate /home partition enabled
+    # - console/validate_lvm_encrypt: validate lvm encrypted partitioning
+    # - console/autoyast_smoke: validate autoyast installation
+    # - installation/validation/ibft: validate autoyast installation
+
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }
@@ -2451,8 +2469,8 @@ sub load_ha_cluster_tests {
     # Only SLE-15+ has support for lvmlockd
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
-    # Wait for barriers to be initialized
-    loadtest 'ha/wait_barriers';
+    # Wait for barriers to be initialized except when testing HAWK as a client
+    loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client'));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
@@ -2467,6 +2485,12 @@ sub load_ha_cluster_tests {
     loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
     loadtest 'console/hostname';
+
+    # If HAWKGUI_TEST_ROLE is set to client, only load client side test
+    if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
+        loadtest 'ha/hawk_gui';
+        return 1;
+    }
 
     # NTP is already configured with 'HA node' and 'HA GEO node' System Roles
     # 'default' System Role is 'HA node' if HA Product is selected
@@ -2513,6 +2537,13 @@ sub load_ha_cluster_tests {
     else {
         # Test Hawk Web interface
         loadtest 'ha/check_hawk';
+
+        # If testing HAWK's GUI, skip the rest of the cluster
+        # setup tests and only check logs
+        if (get_var('HAWKGUI_TEST_ROLE')) {
+            loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
+            return 1;
+        }
 
         # Lock manager configuration
         loadtest 'ha/dlm';

@@ -15,12 +15,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_jeos';
+use version_utils qw(is_jeos is_opensuse);
 
 sub run {
     assert_script_run 'rpm -qi vim';
-    # vim-data package must not be present on JeOS
-    assert_script_run('! rpm -qi vim-data') if is_jeos();
+    # vim-data package must not be present on JeOS (except on aarch64 openSUSE)
+    assert_script_run('! rpm -qi vim-data') if (is_jeos() && !(check_var('ARCH', 'aarch64') && is_opensuse()));
     type_string "vim /etc/passwd\n";
     my $jeos = is_jeos() ? '-jeos' : '';
     assert_screen "vim-showing-passwd$jeos";

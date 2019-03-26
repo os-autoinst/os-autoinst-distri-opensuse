@@ -22,12 +22,6 @@ sub run {
     my $git_deepsea        = get_var('GIT_DEEPSEA', 'SUSE/DeepSea.git');
     my $git_deepsea_branch = get_var('GIT_DEEPSEA_BRANCH');
     $git_deepsea_branch ||= is_sle('<15') ? 'SES5' : 'master';
-    # install missing git-core, curl and not importatnt virt-what
-    if (is_sle('>=15')) {
-        zypper_call 'ar http://download.suse.de/ibs/SUSE:/SLE-15:/GA/standard/SUSE:SLE-15:GA.repo';
-        zypper_call 'in virt-what curl git-core';
-        zypper_call 'rr SUSE_SLE-15_GA';
-    }
     # SES6 latest packages
     my $arch = get_var('ARCH');
     zypper_call "ar http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/SES6/images/repo/SUSE-Enterprise-Storage-6-POOL-$arch-Media1/ SES6"

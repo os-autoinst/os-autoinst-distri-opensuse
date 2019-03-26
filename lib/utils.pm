@@ -43,6 +43,7 @@ our @EXPORT = qw(
   ssh_fully_patch_system
   minimal_patch_system
   workaround_type_encrypted_passphrase
+  is_boot_encrypted
   is_bridged_networking
   set_bridged_networking
   assert_screen_with_soft_timeout
@@ -76,6 +77,8 @@ our @EXPORT = qw(
   disable_serial_getty
   script_retry
   script_run_interactive
+  create_btrfs_subvolume
+  file_content_replace
 );
 
 
@@ -440,18 +443,25 @@ anymore for storage-ng.
 =cut
 sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
-    return if get_var('UNENCRYPTED_BOOT');
-    return if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
-    # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
-    # Only aarch64 needs separate handling
-    # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
-    # If the encrypted disk is "just activated" it does not mean that the
-    # installer would propose an encrypted installation again
-    return if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
+    return unless is_boot_encrypted();
     record_soft_failure 'workaround https://fate.suse.com/320901' if is_sle('12-SP4+');
     unlock_if_encrypted;
 }
+
+sub is_boot_encrypted {
+    return 0 if get_var('UNENCRYPTED_BOOT');
+    return 0 if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
+    # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
+    # Only aarch64 needs separate handling
+    # ppc64le on pre-storage-ng boot was part of encrypted LVM
+    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
+    # If the encrypted disk is "just activated" it does not mean that the
+    # installer would propose an encrypted installation again
+    return 0 if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
+
+    return 1;
+}
+
 
 sub is_bridged_networking {
     return get_var('BRIDGED_NETWORKING');
@@ -1075,6 +1085,42 @@ sub script_run_interactive {
             }
         } while ($output);
     }
+}
+
+# create btrfs subvolume for /boot/grub2/arm64-efi before migration.
+# ref:bsc#1122591
+sub create_btrfs_subvolume {
+    record_soft_failure 'bsc#1122591 - Create subvolume for aarch64 to make snapper rollback works';
+    assert_script_run("mv /boot/grub2/arm64-efi /boot/grub2/arm64-efi.bk");
+    assert_script_run("btrfs subvolume create /boot/grub2/arm64-efi");
+    assert_script_run("cp -r /boot/grub2/arm64-efi.bk/* /boot/grub2/arm64-efi/");
+    assert_script_run("rm -fr /boot/grub2/arm64-efi.bk");
+}
+
+
+=head2 file_content_replace
+  file_content_replace("filename",
+        regex_to_find => text_to_replace,
+        '--sed-modifier' => 'g',
+        'another^&&*(textToFind' => "replacement")
+
+  generify sed usage as config file modification tool.
+  allow to modify several items in one function call 
+  by providing  regex_to_find / text_to_replace as hash key/value pairs
+
+  special key '--sed-modifier' allowing to add modifiers to expression
+=cut
+sub file_content_replace {
+    my ($filename, %to_replace) = @_;
+    $to_replace{'--sed-modifier'} //= '';
+    my $sed_modifier = delete $to_replace{'--sed-modifier'};
+    foreach my $key (keys %to_replace) {
+        my $value = $to_replace{$key};
+        $value =~ s/'/'"'"'/g;
+        $key   =~ s/'/'"'"'/g;
+        assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
+    }
+    script_run("cat $filename");
 }
 
 1;

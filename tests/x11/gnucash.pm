@@ -23,7 +23,7 @@ sub run {
     ensure_installed('gnucash gnucash-docs yelp');
     x11_start_program('gnucash', target_match => [qw(gnucash gnucash-tip-close gnucash-assistant-close)]);
     if (match_has_tag('gnucash-tip-close')) {
-        assert_and_click 'gnucash-tip-close';
+        send_key 'esc';
         assert_screen([qw(gnucash gnucash-assistant-close)]);
     }
     if (match_has_tag('gnucash-assistant-close')) {

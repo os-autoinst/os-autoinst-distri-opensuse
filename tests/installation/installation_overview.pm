@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils 'is_caasp';
+use version_utils qw(is_caasp is_hyperv is_upgrade);
 use Utils::Backends 'is_remote_backend';
 
 
@@ -69,6 +69,17 @@ sub run {
         $self->deal_with_dependency_issues;
         assert_screen "inst-xen-pattern" if get_var('XEN');
         ensure_ssh_unblocked;
+        # Check the systemd target, see poo#45020
+        # We need to exclude some scenarios where it doesn't work well
+        return if (is_caasp || is_upgrade || is_hyperv || get_var('REMOTE_CONTROLLER'));
+        if (get_var('DESKTOP')) {
+            my $target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
+            select_console 'install-shell';
+            # The default.target is not yet linked, so we have to parse the logs.
+            script_run("grep 'target has been set' /var/log/YaST2/y2log |tail -1 |grep --color=auto \"$target\"")
+              && record_info("Warning: no target", "Could not detect the systemd target. Expected was: $target (see poo#49622).");
+            select_console 'installation';
+        }
     }
 }
 

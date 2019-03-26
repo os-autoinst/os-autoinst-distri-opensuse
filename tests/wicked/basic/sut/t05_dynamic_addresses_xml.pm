@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,16 +17,16 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use network_utils 'iface';
+use utils 'file_content_replace';
 
 sub run {
-    my ($self) = @_;
-    my $iface = iface();
+    my ($self, $ctx) = @_;
+    my $config = '/data/dynamic_address/dynamic-addresses.xml';
     record_info('Info', 'Set up dynamic addresses from wicked XML files');
-    $self->get_from_data('wicked/dynamic_address/dynamic-addresses.xml', "/data/dynamic_address/dynamic-addresses.xml");
-    assert_script_run("sed -i 's/xxx/$iface/g' /data/dynamic_address/dynamic-addresses.xml");
-    $self->wicked_command('ifup --ifconfig /data/dynamic_address/dynamic-addresses.xml', $iface);
-    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $iface);
+    $self->get_from_data('wicked/dynamic_address/dynamic-addresses.xml', $config);
+    file_content_replace($config, '--sed-modifier' => 'g', xxx => $ctx->iface());
+    $self->wicked_command('ifup --ifconfig /data/dynamic_address/dynamic-addresses.xml', $ctx->iface());
+    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $ctx->iface());
 }
 
 sub test_flags {

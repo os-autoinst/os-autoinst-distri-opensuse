@@ -24,15 +24,10 @@ use testapi;
 use utils;
 
 sub run {
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
-
-        # Fill the current pairs of hostname & address into /etc/hosts file
-        assert_script_run "sed -i \"/$guest/d\" /etc/hosts";
-        assert_script_run qq(echo `virsh net-dhcp-leases default | awk "/$guest/ {print substr(\\\\\$5, 1, length(\\\\\$5)-3)}"` $guest >> /etc/hosts);
-        assert_script_run "cat /etc/hosts | grep $guest";
 
         # Establish the SSH connection and transfer client key
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;

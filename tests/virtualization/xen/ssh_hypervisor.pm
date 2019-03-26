@@ -25,7 +25,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    my $hypervisor = get_required_var('HYPERVISOR');
+    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # Remove old files
     assert_script_run 'rm ~/.ssh/* || true';
@@ -36,15 +36,7 @@ sub run {
     # Configure the Master socket
     assert_script_run "echo 'ControlMaster auto
     ControlPath ~/.ssh/ssh_%r_%h_%p
-    ControlPersist 86400
-    
-    Host $hypervisor
-      Hostname $hypervisor
-      User root
-
-    Host sles*
-      ProxyJump $hypervisor
-    ' > ~/.ssh/config";
+    ControlPersist 86400' > ~/.ssh/config";
 
     # Exchange SSH keys
     assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";

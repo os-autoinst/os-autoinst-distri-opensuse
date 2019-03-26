@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils "is_jeos";
+use version_utils qw(is_jeos is_opensuse);
 
 sub run {
     select_console 'root-console';
@@ -26,7 +26,8 @@ sub run {
     assert_script_run('freshclam', 700);
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
-    if (is_jeos) {
+    # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
+    if (is_jeos && !(is_opensuse && check_var('ARCH', 'aarch64'))) {
         assert_script_run("mkdir -p /var/lib/swap");
         assert_script_run("dd if=/dev/zero of=/var/lib/swap/swapfile bs=1M count=512");
         assert_script_run("mkswap /var/lib/swap/swapfile");
@@ -65,7 +66,7 @@ sub run {
 }
 
 sub post_run_hook {
-    assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos;
+    assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && check_var('ARCH', 'aarch64'));
 }
 
 1;

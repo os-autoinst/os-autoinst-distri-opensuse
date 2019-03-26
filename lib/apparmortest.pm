@@ -123,10 +123,10 @@ sub setup_mail_server_postfix_dovecot {
 
     # Setting hostname and domain
     if (is_tumbleweed) {
-        $ip = script_output("ip address | grep inet | grep /24 | awk '{ print \$2 }' | cut -d '/' -f1");
+        $ip = script_output(q(ip address | awk '/inet/ && /\/24/ { split($2, ip, "/"); print ip[1] }'));
     }
     else {
-        $ip = script_output("ip -4 address show eth0 | grep inet | awk '{ print \$2 }' | cut -d '/' -f1");
+        $ip = script_output(q(ip -4 address show eth0 | awk '/inet/ { split($2, ip, "/"); print ip[1] }'));
     }
     assert_script_run("echo $ip $hostname.$testdomain $hostname >> /etc/hosts");
     set_hostname($hostname);

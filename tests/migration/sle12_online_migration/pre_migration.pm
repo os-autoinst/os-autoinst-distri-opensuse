@@ -66,6 +66,8 @@ sub run {
     # according to comment 19 of bsc#985647, uninstall all kgraft-patch* packages prior to migration as a workaround to
     # solve conflict during online migration with live patching addon
     remove_kgraft_patch if is_sle('<15');
+    # create btrfs subvolume for aarch64 before migration
+    create_btrfs_subvolume() if (check_var('ARCH', 'aarch64'));
 }
 
 sub test_flags {
