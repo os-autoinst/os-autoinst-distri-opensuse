@@ -77,7 +77,7 @@ sub run {
     if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
-        $self->bug_workaround_bsc1005313;
+        $self->bug_workaround_bsc1005313 unless get_var("BOOT_TO_SNAPSHOT");
     }
     else {
         # avoid timeout for booting to HDD
