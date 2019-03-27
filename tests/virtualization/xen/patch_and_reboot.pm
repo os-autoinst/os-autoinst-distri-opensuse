@@ -22,6 +22,8 @@ use qam;
 sub run {
     my $self = shift;
 
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
+
     add_test_repositories;
     fully_patch_system;
 
