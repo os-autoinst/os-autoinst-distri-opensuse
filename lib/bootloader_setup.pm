@@ -296,23 +296,22 @@ sub select_bootmenu_option {
     return 0;
 }
 
-sub bootmenu_type_extra_boot_params {
-    my $e = get_var("EXTRABOOTPARAMS");
-    if ($e) {
-        type_string_very_slow "$e ";
-        save_screenshot;
-    }
+sub get_extra_boot_params {
+    my @params = split ' ', get_var('EXTRABOOTPARAMS');
+    return @params;
 }
 
-sub bootmenu_type_console_params {
+sub get_bootmenu_console_params {
     my ($baud_rate) = shift // '';
+    my @params;
     $baud_rate = $baud_rate ? ",$baud_rate" : '';
     # To get crash dumps as text
-    type_string_very_slow "console=${serialdev}${baud_rate} ";
+    push @params, "console=${serialdev}${baud_rate}";
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
     # and doesn't work if set to serial device. Don't want this on some backends.
-    type_string_very_slow "console=tty " unless (get_var('BACKEND', '') =~ /ipmi|spvm/);
+    push @params, "console=tty" unless (get_var('BACKEND', '') =~ /ipmi|spvm/);
+    return @params;
 }
 
 sub uefi_bootmenu_params {
@@ -356,11 +355,12 @@ sub uefi_bootmenu_params {
 # Returns kernel framebuffer configuration we have to
 # explicitly set on Hyper-V to get 1024x768 resolution.
 sub type_hyperv_fb_video_resolution {
-    type_string_slow ' video=hyperv_fb:1024x768 ';
+    return 'video=hyperv_fb:1024x768';
 }
 
 sub bootmenu_default_params {
     my (%args) = @_;
+    my @params;
     if (get_var('OFW')) {
         # edit menu, wait until we get to grub edit
         wait_screen_change { send_key "e" };
@@ -372,29 +372,21 @@ sub bootmenu_default_params {
         wait_still_screen(1);
         # load kernel manually with append
         if (check_var('VIDEOMODE', 'text')) {
-            type_string_very_slow " textmode=1";
+            push @params, "textmode=1";
         }
-        type_string_very_slow " Y2DEBUG=1 ";
+        push @params, "Y2DEBUG=1";
     }
     else {
         # On JeOS and CaaSP we don't have YaST installer.
-        type_string_slow "Y2DEBUG=1 " unless is_jeos || is_caasp;
+        push @params, "Y2DEBUG=1" unless is_jeos || is_caasp;
 
         # gfxpayload variable replaced vga option in grub2
         if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-            type_string_slow "vga=791 ";
+            push @params, "vga=791";
             if (check_var("INSTALL_TO_OTHERS", 1) || !$args{pxe}) {
-                type_string_slow "video=1024x768-16 ";
+                push @params, "video=1024x768-16";
             } else {
-                type_string_slow "xvideo=1024x768 ";
-            }
-            # Do not assert on pxe boot as it's unreliable due to multiline input
-            if ($args{pxe})
-            {
-                save_screenshot;
-            }
-            else {
-                assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+                push @params, "xvideo=1024x768";
             }
         }
 
@@ -402,30 +394,30 @@ sub bootmenu_default_params {
 
     if (!get_var("NICEVIDEO")) {
         if (is_caasp) {
-            bootmenu_type_console_params $args{baud_rate};
+            push @params, get_bootmenu_console_params $args{baud_rate};
         }
         elsif (!is_jeos) {
             # make plymouth go graphical
-            type_string_very_slow "plymouth.ignore-serial-consoles " unless $args{pxe};
-            type_string_very_slow "linuxrc.log=/dev/$serialdev ";
-            bootmenu_type_console_params $args{baud_rate};
-            # Do not assert on pxe boot as it's unreliable due to multiline input
-            assert_screen "inst-consolesettingstyped", 30 unless $args{pxe};
+            push @params, "plymouth.ignore-serial-consoles" unless $args{pxe};
+            push @params, "linuxrc.log=/dev/$serialdev";
+            push @params, get_bootmenu_console_params $args{baud_rate};
 
             # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-            type_string_very_slow "linuxrc.core=/dev/$serialdev ";
-            type_string_very_slow "linuxrc.debug=4,trace ";
+            push @params, "linuxrc.core=/dev/$serialdev";
+            push @params, "linuxrc.debug=4,trace";
         }
-        bootmenu_type_extra_boot_params;
+        push @params, get_extra_boot_params();
     }
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
     # we have to use something else.
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        type_hyperv_fb_video_resolution;
-        type_string_slow 'namescheme=by-label ' unless is_jeos or is_caasp;
+        push @params, type_hyperv_fb_video_resolution;
+        push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
     }
+    type_string_very_slow("@params ");
+    return @params;
 }
 
 sub bootmenu_network_source {
