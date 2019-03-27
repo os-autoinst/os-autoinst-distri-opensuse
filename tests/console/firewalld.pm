@@ -21,7 +21,7 @@ sub run {
 
     # Check Service State, enable it if necessary, set default zone to public
     record_info 'Check Service State';
-    assert_script_run("if [ `systemctl is-active firewalld | grep -q -i 'inactive' ; echo $?` -eq 0 ]; then systemctl start firewalld; fi");
+    assert_script_run("if systemctl is-active firewalld | grep -q -i 'inactive'; then systemctl start firewalld; fi");
     assert_script_run("firewall-cmd --set-default-zone=public");
 
 
@@ -32,7 +32,7 @@ sub run {
 
     # Check Service State, enable it if necessary
     record_info 'Check Service State';
-    assert_script_run("if [ `systemctl is-active firewalld | grep -q -i 'inactive' ; echo $?` -eq 0 ]; then systemctl start firewalld; fi");
+    assert_script_run("if systemctl is-active firewalld | grep -q -i 'inactive'; then systemctl start firewalld; fi");
 
 
     # Test #2 - Temporary rules
@@ -49,8 +49,8 @@ sub run {
     assert_script_run("firewall-cmd --zone=public --add-port=2000-3000/udp");
     assert_script_run("iptables -C IN_public_allow -p udp --dport 2000:3000 -m conntrack --ctstate NEW -j ACCEPT");
 
-    # Flush rules
-    record_info 'Flush Rules';
+    # Reload default configuration
+    record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
     assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
 
@@ -69,8 +69,8 @@ sub run {
     assert_script_run("iptables -C IN_public_allow -p icmp -m conntrack --ctstate NEW -j ACCEPT");
     assert_script_run("iptables -C IN_public_allow -p udp --dport 2000:3000 -m conntrack --ctstate NEW -j ACCEPT");
 
-    # Flush rules
-    record_info 'Flushing rules';
+    # Remove rules used in the test and reload default configuration
+    record_info 'Remove rules and reload default configuration';
     assert_script_run("firewall-cmd --zone=public --permanent --remove-port=25/tcp");
     assert_script_run("firewall-cmd --zone=public --permanent --remove-service=ssh");
     assert_script_run("firewall-cmd --zone=public --permanent --remove-protocol=icmp");
@@ -86,8 +86,8 @@ sub run {
     assert_script_run("iptables -t mangle -C PRE_public_allow -p tcp --dport 2222 -j MARK --set-mark `iptables -t mangle -L PRE_public_allow | grep -i MARK | sed 's/set /\$ /' | cut -f 2 -d \"\$\"`");
     assert_script_run("iptables -t nat -C PRE_public_allow -p tcp -m mark --mark `iptables -t mangle -L PRE_public_allow | grep -i MARK | sed 's/set /\$ /' | cut -f 2 -d \"\$\"` -j DNAT --to :22");
 
-    # Reload default state and flush rules
-    record_info 'Flushing Rules';
+    # Reload default configuration
+    record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
     assert_script_run("if [ `iptables -t mangle -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
     assert_script_run("if [ `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq 0 ]; then /usr/bin/true; else /usr/bin/false; fi");
@@ -102,8 +102,8 @@ sub run {
     assert_script_run("iptables -C IN_public_deny -s 192.168.201.0/24 -j DROP");
 
 
-    # Reload default state and flush rules
-    record_info 'Flushing rules';
+    # Reload default configuration and flush rules
+    record_info 'Remove rules used during the test and reload default configuration';
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.200.0/24 accept'");
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.201.0/24 drop'");
     assert_script_run("firewall-cmd --reload");
