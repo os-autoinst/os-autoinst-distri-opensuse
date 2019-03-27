@@ -16,7 +16,6 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
-use selenium;
 use x11test;
 use x11utils;
 use version_utils 'is_desktop_installed';
@@ -81,7 +80,9 @@ sub run {
 
     my $python = install_required_python_pkgs;
     install_geckodriver;
-    enable_selenium_port;
+    # The line below can be changed for a call to lib/selenium.pm::enable_selenium_port()
+    # once Selenium::Remote::Driver it's available in the openqa.suse.de workers
+    assert_script_run('systemctl stop ' . opensusebasetest::firewall());
 
     select_console 'x11';
     x11_start_program('xterm');
