@@ -67,7 +67,7 @@ sub run {
     # upgrades are slower
     # our Hyper-V server is just too slow
     # SCC might mean we install everything from the slow internet
-    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && (!get_var('SCC_URL') || is_caasp))) {
+    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_caasp('qam') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
         $timeout = 5500;
     }
     # aarch64 can be particularily slow depending on the hardware
