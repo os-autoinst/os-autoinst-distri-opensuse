@@ -26,7 +26,7 @@ use virt_autotest_base;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd is_installed_equal_upgrade_major_release);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -233,6 +233,16 @@ sub lpar_cmd {
         record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
         die 'Find new failure, please check manually';
     }
+}
+
+sub is_installed_equal_upgrade_major_release {
+    #get the version that the host is installed to
+    my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));    #format 15 or 15-SP1
+    ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
+    #get the version that the host should upgrade to
+    my $host_upgrade_version = get_var('UPGRADE_PRODUCT', 'sles-1-sp0');                   #format sles-15-sp0
+    ($host_upgrade_version) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
+    return $host_installed_version eq $host_upgrade_version;
 }
 
 1;
