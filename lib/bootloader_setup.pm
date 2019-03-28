@@ -562,8 +562,9 @@ sub select_bootmenu_more {
 }
 
 sub autoyast_boot_params {
+    my @params;
     my $ay_var = get_var("AUTOYAST");
-    return '' unless $ay_var;
+    return @params unless $ay_var;
 
     my $autoyast_args = 'autoyast=';
     # In case of SUPPORT_SERVER, profiles are available on another VM
@@ -577,14 +578,15 @@ sub autoyast_boot_params {
     } else {
         $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
     }
-    return $autoyast_args . " ";
+    push @params, split ' ', $autoyast_args;
+    return @params;
 }
 
 sub specific_bootmenu_params {
-    my $args = "";
+    my @params;
 
     if (!check_var('ARCH', 's390x')) {
-        my $netsetup = "";
+        my @netsetup;
         my $autoyast = get_var("AUTOYAST", "");
         if ($autoyast || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
             # We need to use 'ifcfg=*=dhcp' instead of 'netsetup=dhcp' as a default
@@ -593,55 +595,55 @@ sub specific_bootmenu_params {
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic. Don't set on IPMI with net interface defined in SUT_NETDEVICE.
             my $ifcfg = check_var('BACKEND', 'ipmi') ? '' : 'ifcfg=*=dhcp SetHostname=0';
-            $netsetup = get_var("NETWORK_INIT_PARAM", "$ifcfg");
-            $args .= " $netsetup ";
-            $args .= autoyast_boot_params;
+            @netsetup = split ' ', get_var("NETWORK_INIT_PARAM", "$ifcfg");
+            push @params, @netsetup;
+            push @params, autoyast_boot_params;
         }
         else {
-            $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
-            $args .= $netsetup;
+            @netsetup = split ' ', get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
+            push @params, @netsetup;
         }
     }
     if (get_var("AUTOUPGRADE") || get_var("AUTOYAST") && (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE"))) {
-        $args .= " autoupgrade=1";
+        push @params, "autoupgrade=1";
     }
 
     # Boot the system with the debug options if shutdown takes suspiciously long time.
     # Please, see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
     # Further actions for saving debug logs are done in 'shutdown/cleanup_before_shutdown' module.
     if (get_var('DEBUG_SHUTDOWN')) {
-        $args .= " systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on enforcing=0 plymouth.enable=0";
+        push @params, ('systemd.log_level=debug', 'systemd.log_target=kmsg', 'log_buf_len=1M', 'printk.devkmsg=on', 'enforcing=0', 'plymouth.enable=0');
     }
 
     if (get_var("IBFT")) {
-        $args .= " withiscsi=1";
+        push @params, "withiscsi=1";
     }
 
     if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
         diag "Disabling installer self update";
-        $args .= " self_update=0";
+        push @params, "self_update=0";
     }
     elsif (my $self_update_repo = get_var("INSTALLER_SELF_UPDATE")) {
-        $args .= " self_update=$self_update_repo";
+        push @params, "self_update=$self_update_repo";
         diag "Explicitly enabling installer self update with $self_update_repo";
     }
 
     if (get_var("FIPS")) {
-        $args .= " fips=1";
+        push @params, "fips=1";
     }
 
     if (my $kexec_value = get_var("LINUXRC_KEXEC")) {
-        $args .= " kexec=$kexec_value";
+        push @params, "kexec=$kexec_value";
         record_info('Info', 'boo#990374 - pass kexec to installer to use initrd from FTP');
     }
 
     if (get_var("DUD")) {
         my $dud = get_var("DUD");
         if ($dud =~ /http:\/\/|https:\/\/|ftp:\/\//) {
-            $args .= " dud=$dud insecure=1";
+            push @params, ("dud=$dud", 'insecure=1');
         }
         else {
-            $args .= " dud=" . data_url($dud) . " insecure=1";
+            push @params, ("dud=" . data_url($dud), 'insecure=1');
         }
     }
 
@@ -649,19 +651,22 @@ sub specific_bootmenu_params {
     if (addon_products_is_applicable() && is_leap('42.3+')) {
         my $addon_url = get_var("ADDONURL");
         $addon_url =~ s/\+/,/g;
-        $args .= " addon=" . $addon_url;
+        push @params, "addon=$addon_url";
     }
 
     if (get_var('ISO_IN_EXTERNAL_DRIVE')) {
-        $args .= " install=hd:/install.iso";
+        push @params, "install=hd:/install.iso";
     }
 
+    # Return parameters as string of space-separated values, because s390x test
+    # modules are using strings but not arrays to combine bootloader parameters.
     if (check_var('ARCH', 's390x')) {
-        return $args;
+        return " @params ";
     }
 
-    type_string_very_slow $args;
+    type_string_very_slow " @params ";
     save_screenshot;
+    return @params;
 }
 
 sub remote_install_bootmenu_params {
