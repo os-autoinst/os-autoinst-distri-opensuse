@@ -655,6 +655,8 @@ sub wait_boot {
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
+        # 2nd stage of autoyast can be considered as linux-login
+        push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
         # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
         # if not able to boot from snapshot
         if (get_var('TEST') !~ /extra_tests_on_gnome/) {
