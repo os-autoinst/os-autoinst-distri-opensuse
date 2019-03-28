@@ -275,7 +275,7 @@ sub investigate_yast2_failure {
         }
         # remove empty lines
         $y2log_error_result =~ s/\n+/\n/gs;
-        $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result;
+        $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result !~ m/^(\n|\s)*$/;
     }
 
     # Send last lines to serial to copy in case of new critical bugs
