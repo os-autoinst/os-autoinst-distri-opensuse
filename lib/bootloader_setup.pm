@@ -421,14 +421,15 @@ sub bootmenu_default_params {
 }
 
 sub bootmenu_network_source {
+    my @params;
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
         if (get_var('OFW')) {
             if (get_var("SUSEMIRROR")) {
-                type_string_very_slow ' install=http://' . get_var("SUSEMIRROR");
+                push @params, 'install=http://' . get_var("SUSEMIRROR");
             }
             else {
-                type_string_very_slow ' kernel=1 insecure=1';
+                push @params, ('kernel=1', 'insecure=1');
             }
         }
         else {
@@ -437,78 +438,89 @@ sub bootmenu_network_source {
             die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
             # In case of https we have to use boot options and not UI
             if ($m_protocol eq "https") {
-                type_string_very_slow " install=$m_mirror";
+                push @params, "install=$m_mirror";
                 # Ignore certificate validation
-                type_string_very_slow ' ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
+                push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                return;
+                type_string_very_slow("@params ");
+                return @params;
             }
 
             # fate#322276
             # Point linuxrc to a repomd repository and load the installation system from local medium
             if (($m_protocol eq "http") && (get_var('REMOTE_REPOINST'))) {
-                type_string_very_slow " install=$m_mirror";
+                push @params, "install=$m_mirror";
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
-                type_string_very_slow " instsys=disk:/boot/$arch/root";
-                return;
+                push @params, "instsys=disk:/boot/$arch/root";
+                type_string_very_slow("@params ");
+                return @params;
             }
 
-            my ($m_server, $m_share, $m_directory);
-
-            # Parse SUSEMIRROR into variables
-            if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
-                ($m_server, $m_directory) = ($1, $2);
-                if ($m_protocol eq "smb") {
-                    ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
-                }
-            }
-
-            # select installation source (http, ftp, nfs, smb)
-            send_key "f4";
-            assert_screen "inst-instsourcemenu";
-            send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
-            send_key "ret";
-            assert_screen "inst-instsourcedialog-$m_protocol";
-
-            # Clean server name and path
-            if ($m_protocol eq "http") {
-                for (1 .. 2) {
-                    # just type enough backspaces
-                    for (1 .. 32) { send_key "backspace" }
-                    send_key "tab";
-                }
-            }
-
-            # Type variables into fields
-            type_string_slow "$m_server\t";
-            type_string_slow "$m_share\t" if $m_protocol eq "smb";
-            type_string_slow "$m_directory\n";
-            save_screenshot;
-
-            # HTTP-proxy
-            if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
-                my ($proxyhost, $proxyport) = ($1, $2);
-                send_key "f4";
-                for (1 .. 4) {
-                    send_key "down";
-                }
-                send_key "ret";
-                type_string_slow "$proxyhost\t$proxyport\n";
-                assert_screen "inst-proxy_is_setup";
-
-                # add boot parameters
-                # ZYPP... enables proxy caching
-            }
+            select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
 
             my $remote = get_var("REMOTE_TARGET");
             if ($remote) {
                 my $dns = get_host_resolv_conf()->{nameserver};
-                type_string_slow " " . get_var("NETSETUP") if get_var("NETSETUP");
-                type_string_slow " nameserver=" . join(",", @$dns);
-                type_string_slow " $remote=1 ${remote}password=$password";
+                push @params, get_var("NETSETUP") if get_var("NETSETUP");
+                push @params, "nameserver=" . join(",", @$dns);
+                push @params, ("$remote=1", "${remote}password=$password");
             }
         }
+    }
+    type_string_very_slow("@params ");
+    return @params;
+}
+
+sub select_installation_source {
+    my ($args_ref) = @_;
+    my $m_protocol = $args_ref->{m_protocol};
+    my $m_mirror   = $args_ref->{m_mirror};
+    my ($m_server, $m_share, $m_directory);
+
+    # Parse SUSEMIRROR into variables
+    if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
+        ($m_server, $m_directory) = ($1, $2);
+        if ($m_protocol eq "smb") {
+            ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+        }
+    }
+
+    # select installation source (http, ftp, nfs, smb)
+    send_key "f4";
+    assert_screen "inst-instsourcemenu";
+    send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
+    send_key "ret";
+    assert_screen "inst-instsourcedialog-$m_protocol";
+
+    # Clean server name and path
+    if ($m_protocol eq "http") {
+        for (1 .. 2) {
+            # just type enough backspaces
+            for (1 .. 32) { send_key "backspace" }
+            send_key "tab";
+        }
+    }
+
+    # Type variables into fields
+    type_string_slow "$m_server\t";
+    type_string_slow "$m_share\t" if $m_protocol eq "smb";
+    type_string_slow "$m_directory\n";
+    save_screenshot;
+
+    # HTTP-proxy
+    if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
+        my ($proxyhost, $proxyport) = ($1, $2);
+        send_key "f4";
+        for (1 .. 4) {
+            send_key "down";
+        }
+        send_key "ret";
+        type_string_slow "$proxyhost\t$proxyport\n";
+        assert_screen "inst-proxy_is_setup";
+
+        # add boot parameters
+        # ZYPP... enables proxy caching
     }
 }
 
