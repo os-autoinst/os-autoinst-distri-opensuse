@@ -1,0 +1,25 @@
+<interface>
+  <name>macvtap1</name>
+
+  <macvtap>
+    <device>iface</device>
+    <address>0e:0e:0e:0e:0e:0e</address>
+    <mode>vepa</mode>
+  </macvtap>
+
+  <ipv4:static>
+    <address>
+      <local>ip_address</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:c0de:ba5e:17::18/48</local>
+    </address>
+  </ipv6:static>
+</interface>
+
+<interface>
+  <name>iface</name>
+</interface>

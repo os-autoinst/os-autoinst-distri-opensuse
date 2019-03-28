@@ -13,7 +13,7 @@
 package wickedbase;
 
 use base 'opensusebasetest';
-use utils 'systemctl';
+use utils qw(systemctl file_content_replace);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
@@ -393,6 +393,30 @@ sub setup_vlan() {
     assert_script_run("ip -d link show $iface.42");
     assert_script_run("ip addr add $local_ip dev $iface.42");
     assert_script_run("ip link set dev $iface.42 up");
+}
+
+sub prepare_check_macvtap {
+    my ($self, $config, $iface, $ip_address) = @_;
+    $self->get_from_data('wicked/check_macvtap.c', 'check_macvtap.c', executable => 1);
+    zypper_call('in gcc');
+    assert_script_run('gcc ./check_macvtap.c -o check_macvtap');
+    script_run('chmod +x ./check_macvtap');
+    file_content_replace($config, iface => $iface, ip_address => $ip_address);
+}
+
+sub validate_macvtap {
+    my ($self, $macvtap_log) = @_;
+    my $ref_ip     = $self->get_ip(type => 'host',    netmask => 0, is_wicked_ref => 1);
+    my $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);
+    my $cmd_text   = "./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 &";
+    type_string($cmd_text);
+    wait_serial($cmd_text, undef, 0, no_regex => 1);
+    type_string("\n");
+
+    # arping not getting packet back it is expected because check_macvtap
+    # executable is consume it from tap device before it actually reaches arping
+    script_run("arping -c 1 -I macvtap1 $ref_ip");
+    validate_script_output("cat $macvtap_log", sub { m/Success listening to tap device/ });
 }
 
 sub post_run {
