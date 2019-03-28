@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
+use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
 use testapi;
 use strict;
 use warnings;
@@ -355,37 +355,6 @@ sub upload_packagekit_logs {
 sub set_standard_prompt {
     my ($self, $user) = @_;
     $testapi::distri->set_standard_prompt($user);
-}
-
-sub select_bootmenu_more {
-    my ($self, $tag, $more) = @_;
-
-    # do not waste time waiting when we already matched
-    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
-    stop_grub_timeout;
-
-    # after installation-images 14.210 added a submenu
-    if ($more && check_screen 'inst-submenu-more', 0) {
-        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
-        send_key "ret";
-    }
-    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
-    if (get_var('UEFI')) {
-        send_key 'e';
-        send_key 'down' for (1 .. 4);
-        send_key 'end';
-        # newer versions of qemu on arch automatically add 'console=ttyS0' so
-        # we would end up nowhere. Setting console parameter explicitly
-        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        type_string_slow ' console=tty1' if get_var('MACHINE') =~ /aarch64/;
-        # Hyper-V defaults to 1280x1024, we need to fix it here
-        type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        send_key 'f10';
-    }
-    else {
-        type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        send_key 'ret';
-    }
 }
 
 sub export_kde_logs {

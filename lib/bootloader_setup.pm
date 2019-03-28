@@ -31,10 +31,11 @@ our @EXPORT = qw(
   boot_local_disk
   boot_into_snapshot
   pre_bootmenu_setup
+  select_bootmenu_more
   select_bootmenu_option
   uefi_bootmenu_params
   bootmenu_default_params
-  type_hyperv_fb_video_resolution
+  get_hyperv_fb_video_resolution
   bootmenu_network_source
   specific_bootmenu_params
   remote_install_bootmenu_params
@@ -354,7 +355,7 @@ sub uefi_bootmenu_params {
 
 # Returns kernel framebuffer configuration we have to
 # explicitly set on Hyper-V to get 1024x768 resolution.
-sub type_hyperv_fb_video_resolution {
+sub get_hyperv_fb_video_resolution {
     return 'video=hyperv_fb:1024x768';
 }
 
@@ -413,7 +414,7 @@ sub bootmenu_default_params {
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
     # we have to use something else.
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        push @params, type_hyperv_fb_video_resolution;
+        push @params, get_hyperv_fb_video_resolution;
         push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
     }
     type_string_very_slow("@params ");
@@ -522,6 +523,42 @@ sub select_installation_source {
         # add boot parameters
         # ZYPP... enables proxy caching
     }
+}
+
+sub select_bootmenu_more {
+    my ($self, $tag, $more) = @_;
+
+    my @params;
+
+    # do not waste time waiting when we already matched
+    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
+    stop_grub_timeout;
+
+    # after installation-images 14.210 added a submenu
+    if ($more && check_screen 'inst-submenu-more', 0) {
+        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
+        send_key "ret";
+    }
+    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
+    if (get_var('UEFI')) {
+        send_key 'e';
+        send_key 'down' for (1 .. 4);
+        send_key 'end';
+        # newer versions of qemu on arch automatically add 'console=ttyS0' so
+        # we would end up nowhere. Setting console parameter explicitly
+        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
+        push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64/;
+        # Hyper-V defaults to 1280x1024, we need to fix it here
+        push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+        type_string_very_slow(" @params ");
+        send_key 'f10';
+    }
+    else {
+        push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+        type_string_very_slow(" @params ");
+        send_key 'ret';
+    }
+    return @params;
 }
 
 sub autoyast_boot_params {
