@@ -108,6 +108,14 @@
       <pattern><%= $pattern %></pattern>
       % }
     </patterns>
+    <services-manager>
+      <services>
+        <disable config:type="list"/>
+        <enable config:type="list">
+          <service>sshd</service>
+        </enable>
+      </services>
+    </services-manager>
   </software>
   <partitioning config:type="list">
   <drive>
