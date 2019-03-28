@@ -10,6 +10,8 @@
 # Summary: Mellanox Link protocol config
 # This configures the interfaces according to the
 # variable MLX_PROTOCOL. By default ETH if not set.
+# Set MLX_SRIOV=1 and MLX_NUM_VFS=<num> to enable
+# SR-IOV and create <num> virtual functions.
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
 use base "opensusebasetest";
@@ -19,64 +21,49 @@ use testapi;
 use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
-use version_utils 'is_sle';
-
-our $device1 = '/dev/mst/mt4119_pciconf0';
-our $device2 = '/dev/mst/mt4119_pciconf0.1';
-
-sub show_links {
-    assert_script_run("mlxconfig -d $device1 q|grep LINK_TYPE");
-    assert_script_run("mlxconfig -d $device2 q|grep LINK_TYPE");
-}
 
 sub run {
-    my $self = shift;
+    my $self     = shift;
+    my $protocol = get_var('MLX_PROTOCOL', 2);
+
+    # allow to configure SR-IOV and enable virtual functions
+    my $sriov_en = get_var('MLX_SRIOV',   0);
+    my $num_vfs  = get_var('MLX_NUM_VFS', 0);
+
+    if ($sriov_en == 0 && $num_vfs > 0) {
+        diag "MLX_SRIOV=0: set MLX_NUM_VFS to 0 as well";
+        $num_vfs = 0;
+    }
+
+    # right now, this code will only do something reasonable if we
+    # run on a baremetal machine (and thus on IPMI backend)
+    return unless check_var('BACKEND', 'ipmi');
+
     $self->select_serial_terminal;
 
-    my $mft_version = get_required_var('MFT_VERSION');
-    my $protocol    = get_var('MLX_PROTOCOL') || 2;
+    # install dependencies
+    zypper_call('--quiet in pciutils mstflint', timeout => 200);
 
-    if (is_sle('>=15')) {
-        zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media1/  dev_1");
-        zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA:/TEST/images/repo/SLE-15-SP1-Module-Development-Tools-POOL-x86_64-Media2/  dev_2");
-        zypper_call("ar -f -G http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/GA/standard/SUSE:SLE-15-SP1:GA.repo");
+    my @devices = split(' ', script_output("lspci | grep -i mellanox |cut  -d ' ' -f 1"));
+
+    die "There is no Mellanox card here" if !@devices;
+
+    # Change Link protocol for all devices
+    foreach (@devices) {
+        record_info("INFO", "Wanted Link protocol for $_ is $protocol");
+
+        assert_script_run("mstconfig -y -d $_ set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol SRIOV_EN=$sriov_en NUM_OF_VFS=$num_vfs");
     }
-    zypper_call('--quiet in kernel-source rpm-build wget pciutils', timeout => 200);
+    # verify our new settings
+    my $ports_configured = script_output("mstconfig -d $devices[0] q | grep LINK_TYPE | grep -c $protocol");
+    die "unable to configure all ports!" unless $ports_configured == scalar @devices;
 
-    # Install Mellanox Firmware Tool (MFT)
-    assert_script_run("wget http://www.mellanox.com/downloads/MFT/" . $mft_version . ".tgz");
-    assert_script_run("tar -xzvf " . $mft_version . ".tgz");
-    assert_script_run("rm " . $mft_version . ".tgz");
-    assert_script_run("./" . $mft_version . "/install.sh");
-    assert_script_run("mst start");
+    # Reboot system
+    power_action('reboot', textmode => 1, keepconsole => 1);
 
-    # List network devices
-    assert_script_run("lspci|egrep -i 'network|ethernet'");
-
-    if (check_var('BACKEND', 'ipmi')) {
-        if (script_run("lspci|grep -i mellanox") != 0) {
-            die "There is no Mellanox card here";
-        }
-        if (script_run("ls " . $device1) != 0) {
-            die "The directory $device1 doesn't exist";
-        }
-        if (script_run("ls " . $device2) != 0) {
-            die "The directory $device2 doesn't exist";
-        }
-        # Change Link protocol
-        record_info("INFO", "Wanted Link protocol is $protocol");
-        show_links();
-        assert_script_run("mlxconfig -y -d $device1 set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol");
-        assert_script_run("mlxconfig -y -d $device2 set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol");
-        show_links();
-
-        # Reboot system
-        power_action('reboot', textmode => 1, keepconsole => 1);
-
-        # make sure we wait until the reboot is done
-        select_console 'sol', await_console => 0;
-        assert_screen('linux-login', 1800);
-    }
+    # make sure we wait until the reboot is done
+    select_console 'sol', await_console => 0;
+    assert_screen('linux-login', 1800);
 }
 
 sub test_flags {
