@@ -306,7 +306,9 @@ sub ensure_installed {
     elsif ($ret !~ /pkcon-status-0/) {
         die "pkcon install did not succeed, return code: $ret";
     }
+    wait_still_screen 1;
     send_key("alt-f4");    # close xterm
+    assert_screen 'generic-desktop';
 }
 
 sub script_sudo {
