@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -67,7 +67,7 @@ sub run {
     save_screenshot;
     send_key $cmd{ok};
     # Adapting system setting needs longer time in case of installing/upgrading with multi-addons
-    assert_screen 'installation-settings-overview-loaded', 120;
+    assert_screen 'installation-settings-overview-loaded', 220;
 }
 
 1;
