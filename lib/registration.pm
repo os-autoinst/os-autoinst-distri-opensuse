@@ -564,8 +564,11 @@ sub registration_bootloader_cmdline {
 sub registration_bootloader_params {
     my ($max_interval) = @_;    # see 'type_string'
     $max_interval //= 13;
-    type_string registration_bootloader_cmdline, $max_interval;
+    my @params;
+    push @params, split ' ', registration_bootloader_cmdline;
+    type_string "@params ", $max_interval;
     save_screenshot;
+    return @params;
 }
 
 sub yast_scc_registration {
