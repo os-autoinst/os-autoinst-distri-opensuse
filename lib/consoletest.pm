@@ -23,7 +23,9 @@ sub post_fail_hook {
     select_console('log-console');
     $self->SUPER::post_fail_hook;
     $self->remount_tmp_if_ro;
-    $self->export_basic_logs;
+    $self->export_logs_basic;
+    # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
+    $self->export_logs_desktop;
 }
 
 1;

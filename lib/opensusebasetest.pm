@@ -300,7 +300,7 @@ sub investigate_yast2_failure {
 }
 
 # Logs that make sense for any failure
-sub export_basic_logs {
+sub export_logs_basic {
     my ($self) = @_;
     $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
     $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
@@ -317,24 +317,15 @@ sub export_logs {
     $self->remount_tmp_if_ro;
     $self->problem_detection;
 
-    $self->export_basic_logs;
+    $self->export_logs_basic;
 
     # Just after the setup: let's see the network configuration
     $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
 
     save_screenshot;
 
-    # check whether xorg logs is exists in user's home, if yes, upload xorg logs from user's
-    # home instead of /var/log
-    script_run "test -d /home/*/.local/share/xorg ; echo user-xlog-path-\$? > /dev/$serialdev", 0;
-    if (wait_serial("user-xlog-path-0", 10)) {
-        $self->save_and_upload_log('cat /home/*/.local/share/xorg/X*', '/tmp/Xlogs.log', {screenshot => 1});
-    }
-    else {
-        $self->save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
-    }
+    $self->export_logs_desktop;
 
-    $self->upload_xsession_errors_log;
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
@@ -350,17 +341,6 @@ sub export_logs_locale {
     $self->save_and_upload_log('localectl status', '/tmp/localectl.log');
 }
 
-sub upload_xsession_errors_log {
-    my ($self) = @_;
-    # do not upload empty .xsession-errors
-    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
-      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
-      0;
-    if (wait_serial("xsefile-valid", 10)) {
-        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
-    }
-}
-
 sub upload_packagekit_logs {
     my ($self) = @_;
     upload_logs '/var/log/pk_backend_zypp';
@@ -372,7 +352,8 @@ sub set_standard_prompt {
     $testapi::distri->set_standard_prompt($user);
 }
 
-sub export_kde_logs {
+sub export_logs_desktop {
+    my ($self) = @_;
     select_console 'log-console';
     save_screenshot;
 
@@ -390,6 +371,35 @@ sub export_kde_logs {
             upload_logs $fn;
         }
         save_screenshot;
+    } elsif (check_var("DESKTOP", "gnome")) {
+        script_run("tar -jcv -f /tmp/gdm.tar.bz2  /home/bernhard/.cache/gdm");
+        upload_logs('/tmp/gdm.tar.bz2', failok => 1);
+    }
+
+    # check whether xorg logs exist in user's home, if yes, upload xorg logs
+    # from user's home instead of /var/log
+    my $log_path = '/home/*/.local/share/xorg/X*';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/Xlogs.users.log', {screenshot => 1});
+    }
+    $log_path = '/var/log/X*';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/Xlogs.system.log', {screenshot => 1});
+    }
+    $log_path = '/home/bernhard/.local/share/xorg';
+    if (!script_run("test -d $log_path")) {
+        script_run("tar -jcv -f /tmp/Xlogs.bernhard.tar.bz2 $log_path");
+        upload_logs('/tmp/Xlogs.bernhard.tar.bz2', failok => 1);
+    }
+
+    # do not upload empty .xsession-errors
+    $log_path = '/home/*/.xsession-errors*';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/xsession-errors.log', {screenshot => 1});
+    }
+    $log_path = '/home/*/.local/share/sddm/*session.log';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/sddm_session.log', {screenshot => 1});
     }
 }
 

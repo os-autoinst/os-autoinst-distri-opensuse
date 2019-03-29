@@ -140,7 +140,6 @@ sub y2snapper_failure_analysis {
     my $additional_sleep_time = 10;
     sleep $additional_sleep_time;
 
-    $self->export_kde_logs;
     $self->export_logs;
 
     # Upload y2log for analysis if yast2 snapper fails
