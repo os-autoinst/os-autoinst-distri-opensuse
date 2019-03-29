@@ -30,6 +30,8 @@ our @EXPORT = qw(
   stop_grub_timeout
   boot_local_disk
   boot_into_snapshot
+  compare_bootparams
+  parse_bootparams_in_serial
   pre_bootmenu_setup
   select_bootmenu_more
   select_bootmenu_option
@@ -1004,6 +1006,44 @@ GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.
 sub get_cmdline_var {
     my $label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
     return "^${label}=";
+}
+
+=head2 parse_bootparams_in_serial
+
+    parse_bootparams_in_serial();
+
+Parses serail output, searching for 'Command line' parameters. Then converts
+the found parameters to an array of the values.
+
+Returns the array of the boot parameters.
+
+=cut
+
+sub parse_bootparams_in_serial {
+    my $parsed_string = wait_serial(qr/Command line:.*/ms);
+    $parsed_string =~ m/\[\s*\d*[.]\d*\]\s*Command line:(?<boot>.*)/;
+    return split ' ', $+{boot};
+}
+
+=head2 compare_bootparams
+
+    compare_bootparams(\@array1, \@array2);
+
+Compares two arrays of bootparameters passed by array reference and logs the
+result to openQA using record_info.
+
+Does not fail the test module but just highlights the result of the comparison.
+
+=cut
+
+sub compare_bootparams {
+    my ($array1_ref, $array2_ref) = @_;
+    my @difference = arrays_subset($array1_ref, $array2_ref);
+    if (scalar @difference > 0) {
+        record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
+    } else {
+        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$array1_ref}");
+    }
 }
 
 1;
