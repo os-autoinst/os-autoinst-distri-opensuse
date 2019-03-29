@@ -299,6 +299,17 @@ sub investigate_yast2_failure {
     }
 }
 
+# Logs that make sense for any failure
+sub export_basic_logs {
+    my ($self) = @_;
+    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
+    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('dmesg',             '/tmp/dmesg.log',   {screenshot => 1});
+    script_run("tar -jcv -f /tmp/sysconfig.tar.bz2  /etc/sysconfig");
+    upload_logs('/tmp/sysconfig.tar.bz2', failok => 1);
+}
+
 sub export_logs {
     my ($self) = shift;
     select_console 'log-console';
@@ -306,9 +317,7 @@ sub export_logs {
     $self->remount_tmp_if_ro;
     $self->problem_detection;
 
-    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
-    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+    $self->export_basic_logs;
 
     # Just after the setup: let's see the network configuration
     $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
