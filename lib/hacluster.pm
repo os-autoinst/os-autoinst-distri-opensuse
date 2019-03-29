@@ -241,6 +241,7 @@ sub ha_export_logs {
     my $packages_list = '/tmp/packages.list';
     my $iscsi_devs    = '/tmp/iscsi_devices.list';
     my $mdadm_conf    = '/etc/mdadm.conf';
+    my $clustername   = get_cluster_name;
     my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
     my @y2logs;
 
@@ -265,6 +266,10 @@ sub ha_export_logs {
     # mdadm conf
     script_run "touch $mdadm_conf";
     upload_logs($mdadm_conf, failok => 1);
+
+    # supportconfig
+    script_run "time supportconfig -B $clustername", 180;
+    upload_logs("/var/log/nts_$clustername.tbz", failok => 1);
 }
 
 sub check_cluster_state {
