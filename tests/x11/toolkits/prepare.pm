@@ -40,10 +40,13 @@ sub run {
 
     my $qt5_devel = 'libQt5Core-devel libQt5Gui-devel libQt5Widgets-devel';
 
-    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel java-devel $qt5_devel";
+    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel java java-devel $qt5_devel";
 
     if (is_opensuse) {
         zypper_call 'in libqt4-devel';
+
+        # make sure to use latest java (that matches the java compiler that was just installed)
+        assert_script_run 'update-alternatives --set java $(ls /usr/lib64/jvm/jre-*-openjdk/bin/java|sort|tail -1)';
     }
 
     select_console 'user-console';
