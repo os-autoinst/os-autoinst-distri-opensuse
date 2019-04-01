@@ -551,7 +551,11 @@ sub load_infiniband_tests {
         barrier_create('IBTEST_DONE',  2);
     }
     mellanox_config();
-    loadtest "kernel/ib_tests";
+    if (check_var('IBTESTS', 'IB_perf')) {
+        loadtest "kernel/ib_perf_tests";
+    } else {
+        loadtest "kernel/ib_tests";
+    }
 }
 
 sub load_nfv_tests {
