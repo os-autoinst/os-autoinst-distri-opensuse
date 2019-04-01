@@ -2420,7 +2420,7 @@ sub load_installation_validation_tests {
     # - console/validate_lvm_encrypt: validate lvm encrypted partitioning
     # - console/autoyast_smoke: validate autoyast installation
     # - installation/validation/ibft: validate autoyast installation
-
+    # - console/validate_raid: validate raid layout partitioning
     for my $module (split(',', get_var('INSTALLATION_VALIDATION'))) {
         loadtest $module;
     }
