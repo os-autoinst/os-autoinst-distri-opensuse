@@ -33,7 +33,7 @@ sub run() {
     }
     else {
         zypper_call("in dovecot", exitcode => [0, 102, 103]);
-        zypper_call("in postfix", exitcode => [0, 102, 103]) if is_jeos;
+        zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
     # configure dovecot

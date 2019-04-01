@@ -58,7 +58,7 @@ sub run {
         else {
             diag "There are no java bootstrap packages";
             print "There are no java bootstrap packages\n";
-            zypper_call "in java-*";
+            zypper_call("in java-*", exitcode => [0, 107]);
         }
     }
 
