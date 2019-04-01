@@ -31,10 +31,7 @@ sub run {
 
     # click the menu button on the tool bar
     assert_and_click 'gnote-new-note-menu';
-    wait_screen_change { send_key 'down' };
-    if (get_var('SP2ORLATER') || is_tumbleweed) {
-        wait_screen_change { send_key 'ret' };
-    }
+    assert_and_click 'gnote-new-note-menu-what-link-here';
     assert_screen 'gnote-what-link-here';
     wait_screen_change { send_key 'esc' };
     #close the note "Start Here"
