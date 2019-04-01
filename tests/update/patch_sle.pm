@@ -1,4 +1,4 @@
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -100,7 +100,10 @@ sub patching_sle {
         sle_register("unregister");
     }
 
-    assert_script_run("zypper mr --enable --all");
+    # RMT didn't mirror all repos, cannot use enable all
+    if (!get_var("SMT_URL")) {
+        assert_script_run("zypper mr --enable --all");
+    }
 
     # Disable old repositories during AutoYaST driven upgrade
     if (get_var('AUTOUPGRADE')) {
