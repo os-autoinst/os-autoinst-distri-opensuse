@@ -61,11 +61,13 @@ EOF
         # Disable AppArmor http://docserv.suse.de/documents/SES_6/ses-admin/single-html/#admin.apparmor
         # assert_script_run "salt -I 'deepsea_minions:*' state.apply ceph.apparmor.default-disable -l debug |& tee /dev/$serialdev" if is_sle('15+');
         # See again after https://bugzilla.suse.com/show_bug.cgi?id=1130930
-        assert_script_run "salt '*' cmd.run 'systemctl stop apparmor.service; aa-teardown' |& tee /dev/$serialdev" if is_sle('15+');
+        if (is_sle('15+')) {
+            record_soft_failure 'Workaround apparmor - bsc#1130930';
+            assert_script_run "salt '*' cmd.run 'systemctl stop apparmor.service; aa-teardown' |& tee /dev/$serialdev";
+        }
         script_run "cat /srv/pillar/ceph/proposals/policy.cfg";
         assert_script_run "salt '*' pillar.items |& tee /dev/$serialdev";
         assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.3 |& tee /dev/$serialdev", 1200;
-        # Expected failure on stage.3 with https://bugzilla.suse.com/show_bug.cgi?id=1129999
         assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.4 |& tee /dev/$serialdev", 1200;
         assert_script_run "set -o pipefail; ceph osd df tree|& tee /dev/$serialdev";
         assert_script_run "set -o pipefail; ceph status |& tee /dev/$serialdev";
