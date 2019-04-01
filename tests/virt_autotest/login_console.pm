@@ -19,6 +19,22 @@ use testapi;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use ipmi_backend_utils;
 
+use IPC::Run;
+sub ipmitool {
+    my ($cmd) = @_;
+
+    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
+    push(@cmd, split(/ /, $cmd));
+
+    my ($stdin, $stdout, $stderr, $ret);
+    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
+    chomp $stdout;
+    chomp $stderr;
+
+    bmwqemu::diag("IPMI: $stdout");
+    return $stdout;
+}
+
 sub login_to_console {
     my ($self, $timeout) = @_;
     $timeout //= 240;
@@ -36,7 +52,10 @@ sub login_to_console {
     my $sut_machine = get_var('SUT_IP', 'nosutip');
     boot_local_disk_arm_huawei if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /huawei/img));
 
-    assert_screen([qw(grub2 grub1 prague-pxe-menu)], 210);
+    if (!check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
+        ipmitool("chassis power reset");
+        assert_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
+    }
 
     # If a PXE menu will appear just select the default option (and save us the time)
     if (match_has_tag('prague-pxe-menu')) {
@@ -104,6 +123,12 @@ sub login_to_console {
     }
     save_screenshot;
     send_key 'ret';
+
+    sleep 30;    # Wait for the GRUB to disappier (there's no chance for the system to boot faster
+    save_screenshot;
+    reset_consoles;
+    select_console 'sol', await_console => 0;
+    save_screenshot;
 
     send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout, 5);
     #use console based on ssh to avoid unstable ipmi

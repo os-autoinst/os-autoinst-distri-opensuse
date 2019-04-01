@@ -39,13 +39,12 @@ sub run {
 
     # TODO:
     record_info "CPU", "Changing the number of CPUs available";
-    assert_script_run "virsh vcpucount $_ | grep current | grep live | grep 2" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$_ nproc"                                     foreach (keys %xen::guests);
+    # The guest should have 2 CPUs after the installation
+    assert_script_run "virsh vcpucount $_ | grep current | grep live" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$_ nproc"                            foreach (keys %xen::guests);
+    # Add 1 CPU for everu guest
     assert_script_run "virsh setvcpus --domain $_ --count 3 --live"            foreach (keys %xen::guests);
     assert_script_run "virsh vcpucount $_ | grep current | grep live | grep 3" foreach (keys %xen::guests);
-    script_retry "ssh root\@$_ nproc", delay => 15, retry => 6 foreach (keys %xen::guests);
-    assert_script_run "virsh setvcpus --domain $_ --count 2 --live"            foreach (keys %xen::guests);
-    assert_script_run "virsh vcpucount $_ | grep current | grep live | grep 2" foreach (keys %xen::guests);
     script_retry "ssh root\@$_ nproc", delay => 15, retry => 6 foreach (keys %xen::guests);
 
     # TODO:
