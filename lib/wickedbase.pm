@@ -13,7 +13,7 @@
 package wickedbase;
 
 use base 'opensusebasetest';
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl file_content_replace zypper_call);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
