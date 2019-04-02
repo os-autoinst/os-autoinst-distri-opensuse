@@ -192,7 +192,7 @@ sub boot_local_disk {
         # Currently the bootloader would bounce back to inst-bootmenu screen after pressing 'ret'
         # on 'local' menu-item, we have to check it and send 'ret' again to make booting properly
         my $counter = 3;
-        while (check_screen(['bootloader', 'inst-bootmenu'], 30) && $counter) {
+        while (check_screen(['bootloader', 'inst-bootmenu'], 3) && $counter) {
             record_info 'bounce back to inst-bootmenu, send ret again';
             send_key 'ret';
             wait_still_screen(1);
