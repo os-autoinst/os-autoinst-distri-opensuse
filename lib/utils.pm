@@ -454,7 +454,9 @@ sub is_boot_encrypted {
     # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
     # Only aarch64 needs separate handling
     # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW') && !check_var('ARCH', 'aarch64');
+    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW');
+    # SLES 15: we don't have scenarios for cryptlvm which boot partion is unencrypted.
+    return 0 if is_sle('15+') && !get_var('ENCRYPT');
     # If the encrypted disk is "just activated" it does not mean that the
     # installer would propose an encrypted installation again
     return 0 if get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE');
