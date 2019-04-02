@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test fetch SSH keys of all guests and authorize the client one
+# Summary: Register all guests against local SMT server
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -24,22 +24,17 @@ use testapi;
 use utils;
 
 sub run {
-    my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
+    my ($self) = @_;
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Establishing SSH connection to $guest";
-
-        # Establish the SSH connection and transfer client key
-        script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
-        assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
-        if (script_run("ssh -o PreferredAuthentications=publickey root\@$guest hostname -f") != 0) {
-            exec_and_insert_password "ssh-copy-id -f root\@$guest";
-        }
+        record_info "$guest", "Registrating $guest against SMT";
+        assert_script_run "ssh root\@$guest 'zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/" . $xen::guests{$guest}->{distro} . "/SUSE:CA.repo'";
+        assert_script_run "ssh root\@$guest 'zypper -n in ca-certificates-suse'";
+        assert_script_run "ssh root\@$guest 'wget -O /tmp/clientSetup.sh http://smt.suse.de/repo/tools/clientSetup4SMT.sh'";
+        assert_script_run "ssh root\@$guest 'chmod +x /tmp/clientSetup.sh'";
+        #TODO: Fetch the fingerprint
+        assert_script_run "ssh root\@$guest '/tmp/clientSetup.sh --host smt.suse.de --fingerprint D1:31:1A:7E:8C:2A:04:DD:81:C9:23:F3:41:0F:2D:75:2F:0B:76:81 --yes'";
     }
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 1};
 }
 
 1;

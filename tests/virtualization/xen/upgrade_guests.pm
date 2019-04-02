@@ -7,7 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: Apply patches to the all of our guests
+# Summary: Upgrade all guests to their latest state
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -20,18 +20,11 @@ use xen;
 
 sub run {
     my ($self) = @_;
-    my $version = get_var('VERSION');
-    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
-    foreach my $guest (keys %xen::guests) {
-        my $distro = $xen::guests{$guest}->{distro};
-        $distro =~ tr/_/-/;
-        if ($distro =~ m/$version/) {
-            record_info "$guest", "Adding test repositories and patching the $guest system";
-            ssh_add_test_repositories "$guest";
-            ssh_fully_patch_system "$guest";
-        }
-    }
+    record_info "DUP", "Upgrading the system to it's latest version";
+    script_run "( ssh root\@$_ '( zypper -n dup > /tmp/dup.log; echo \$? > /tmp/dup )' & )" foreach (keys %xen::guests);
+    record_info "WAIT", "Waiting for all systems to be upgraded";
+    script_retry("ssh root\@$_ cat /tmp/dup", delay => 60, retry => 180) foreach (keys %xen::guests);
 }
 
 sub test_flags {

@@ -2311,47 +2311,82 @@ sub load_virtualization_tests {
 
 sub load_hypervisor_tests {
     return unless (check_var('HOST_HYPERVISOR', 'xen') || check_var('HOST_HYPERVISOR', 'qemu'));
+    my $virt_part = get_var('VIRT_PART') // 'install,prepare_hypervisor,register_guests,upgrade_guests,
+    patch_guests,patch_hypervisor,virtmanager,save_and_restore,guest_management,hotplugging,dom_metrics,final';
+
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
     load_boot_tests;
+
     if (get_var("AUTOYAST")) {
         loadtest "autoyast/installation";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
     else {
-        load_inst_tests;
+        load_inst_tests if ($virt_part =~ m/install/);
         loadtest "virt_autotest/login_console";
     }
-    # Load guest installation tests
-    loadtest 'virtualization/xen/prepare_guests';
-    loadtest 'virtualization/xen/waitfor_guests';
-    # Apply updates and reboot
-    loadtest 'virtualization/xen/patch_and_reboot';
-    loadtest "virt_autotest/login_console";
-    # List running machines
-    loadtest 'virtualization/xen/list_guests';
 
-    loadtest 'virtualization/xen/ssh_hypervisor';             # Connect to hypervisor using SSH
-    loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
-    loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
-    loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
-    loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
-    loadtest 'virtualization/xen/ssh_guests_init';            # Exchange SSH keys with guests
-    loadtest 'virtualization/xen/ssh_guests';                 # Connect to guests using SSH
-    loadtest 'virtualization/xen/patch_guests';               # Add test repositories and patch our guests
-    loadtest 'virtualization/xen/save_and_restore';           # Try to save and restore the state of the guest
-    loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
-    loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
-    if (check_var("REGRESSION", "xen-client")) {
-        loadtest 'virtualization/xen/virsh_stop';             # Stop libvirt guests
-        loadtest 'virtualization/xen/xl_create';              # Clone guests using the xl Xen tool
-        loadtest 'virtualization/xen/dom_install';            # Install vhostmd and vm-dump-metrics
-        loadtest 'virtualization/xen/dom_metrics';            # Collect some sample metrics
-        loadtest 'virtualization/xen/xl_stop';                # Stop guests created by the xl Xen tool
-        loadtest 'virtualization/xen/virsh_start';            # Start virsh guests again
+    # Prepare guests and wait for their autoyast
+    if ($virt_part =~ m/prepare_hypervisor/) {
+        loadtest 'virtualization/xen/prepare_guests';         # Prepare libvirt and install guests
+        loadtest 'virtualization/xen/ssh_hypervisor_init';    # Configure SSH for hypervisor
+        loadtest 'virtualization/xen/waitfor_guests';         # Wait for guests to be installed
     }
-    loadtest 'virtualization/xen/virtmanager_final';          # Check all VMs login screen
-    loadtest 'virtualization/xen/ssh_final';                  # Connect to guests using SSH
+
+    # Register guests
+    if ($virt_part =~ m/register_guests/) {
+        loadtest 'virtualization/xen/ssh_guests_init';        # Fetch SSH key from guests and connect
+        loadtest 'virtualization/xen/register_guests';        # Register guests against the SMT server
+    }
+
+    # Upgrade all guests
+    if ($virt_part =~ m/upgrade_guests/) {
+        loadtest 'virtualization/xen/upgrade_guests';
+    }
+
+    # Apply patches to all compatible guests
+    if ($virt_part =~ m/patch_guests/) {
+        loadtest 'virtualization/xen/patch_guests';
+    }
+
+    # Apply updates and reboot
+    if ($virt_part =~ m/patch_hypervisor/) {
+        loadtest 'virtualization/xen/patch_and_reboot';
+        loadtest "virt_autotest/login_console";
+    }
+
+    if ($virt_part =~ m/virtmanager/) {
+        loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
+        loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
+        loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
+        loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
+    }
+
+    loadtest 'virtualization/xen/ssh_guests';                     # Connect to guests using SSH
+
+    if ($virt_part =~ m/save_and_restore/) {
+        loadtest 'virtualization/xen/save_and_restore';           # Try to save and restore the state of the guest
+    }
+
+    if ($virt_part =~ m/guest_management/) {
+        loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
+    }
+    if ($virt_part =~ m/hotplugging/) {
+        loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
+    }
+    if (check_var("REGRESSION", "xen-client") && $virt_part =~ m/dom_metrics/) {
+        loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
+        loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
+        loadtest 'virtualization/xen/dom_install';                # Install vhostmd and vm-dump-metrics
+        loadtest 'virtualization/xen/dom_metrics';                # Collect some sample metrics
+        loadtest 'virtualization/xen/xl_stop';                    # Stop guests created by the xl Xen tool
+        loadtest 'virtualization/xen/virsh_start';                # Start virsh guests again
+    }
+    if ($virt_part =~ m/final/) {
+        loadtest 'virtualization/xen/virtmanager_final';          # Check all VMs login screen
+        loadtest 'virtualization/xen/ssh_final';                  # Connect to guests using SSH
+    }
 }
 
 sub load_extra_tests_syscontainer {
