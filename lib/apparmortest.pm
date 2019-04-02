@@ -31,8 +31,12 @@ our @EXPORT = qw (
   $mail_err_log
   $mail_warn_log
   $mail_info_log
+  $prof_dir
+  $adminer_file
+  $adminer_dir
 );
 
+our $prof_dir      = "/etc/apparmor.d";
 our $audit_log     = "/var/log/audit/audit.log";
 our $mail_err_log  = "/var/log/mail.err";
 our $mail_warn_log = "/var/log/mail.warn";
@@ -44,6 +48,9 @@ our $pw             = "te5tpw";
 our $mail_subject   = "Subject: Postfix test";
 our $mail_content   = "hello world";
 our $testdomain     = "testdomain.com";
+
+our $adminer_file = "adminer.php5";
+our $adminer_dir  = "/srv/www/htdocs/adminer/";
 
 # $prof_dir_tmp: The target temporary directory
 # $type:
@@ -92,7 +99,7 @@ sub get_named_profile {
     my ($self, $profile_name) = @_;
 
     # Recalculate profile name in case
-    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//'");
+    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//' | head -1");
     if ($profile_name =~ m/profile /) {
         $profile_name = script_output("echo $profile_name | cut -d ' ' -f2");
     }
@@ -325,6 +332,104 @@ sub retrieve_mail_imap {
         ],
         300
     );
+}
+
+# Set up Mariadb and test account
+sub mariadb_setup {
+    # Install Mariadb
+    zypper_call("in mariadb");
+    # Start MySQL server
+    assert_script_run("rcmysql start");
+    # Set up test account
+    script_run_interactive(
+        "/usr/bin/mysql_secure_installation",
+        [
+            {
+                prompt => qr/Enter current password for root/m,
+                string => "\n",
+            },
+            {
+                prompt => qr/Set root password\? \[Y\/n\]/m,
+                string => "Y\n",
+            },
+            {
+                prompt => qr/New password:/m,
+                string => "$pw\n",
+            },
+            {
+                prompt => qr/Re-enter new password:/m,
+                string => "$pw\n",
+            },
+            {
+                prompt => qr/Remove anonymous users\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Disallow root login remotely\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Remove test database and access to it\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Reload privilege tables now\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+        ],
+        300
+    );
+}
+
+# Set up Web environment for running Adminer
+sub adminer_setup {
+    assert_script_run("a2enmod php5");
+    assert_script_run("a2enmod php7");
+    assert_script_run("systemctl restart apache2");
+    assert_script_run("systemctl restart mysql");
+
+    # Download Adminer and copy it to /srv/www/htdocs/adminer/
+    assert_script_run("wget --quiet " . data_url("apparmor/$adminer_file"));
+    # NOTE: Use *.php5 instead of *.php[7] to avoid file decoding error
+    assert_script_run("mkdir -p $adminer_dir");
+    assert_script_run("mv $adminer_file $adminer_dir");
+
+    # Test Adminer can work
+    x11_start_program("firefox http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
+
+    # Exit x11 and turn to console
+    send_key("alt-f4");
+    assert_screen("generic-desktop");
+    select_console("root-console");
+    send_key "ctrl-c";
+    clear_console;
+}
+
+# Log in Adminer, seletct "test" database and delete it
+sub adminer_database_delete {
+    x11_start_program("firefox --setDefaultBrowser http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
+
+    # Do some operations on web, e.g., log in, select/delete a database
+    type_string("root");
+    send_key "tab";
+    type_string("$pw");
+    send_key "tab";
+    send_key "tab";
+    send_key "ret";
+    assert_screen("adminer-save-passwd");
+    send_key "alt-s";
+    assert_screen("adminer-select-database");
+    send_key_until_needlematch("adminer-select-database-test", 'tab', 30, 5);
+    assert_screen("adminer-select-database-test");
+    send_key "spc";
+    send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 5);
+
+    # Exit x11 and turn to console
+    send_key "alt-f4";
+    assert_screen("generic-desktop");
+    select_console("root-console");
+    send_key "ctrl-c";
+    clear_console;
 }
 
 sub upload_logs_mail {
