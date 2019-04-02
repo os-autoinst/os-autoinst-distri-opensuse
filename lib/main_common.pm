@@ -1447,6 +1447,7 @@ sub load_extra_tests_desktop {
         if (gnomestep_is_applicable()) {
             # Setup env for x11 regression tests
             loadtest "x11/x11_setup";
+            loadtest "x11/exiv2";
             if (check_var('VERSION', '42.2')) {
                 # 42.2 feature - not even on Tumbleweed
                 loadtest "x11/gdm_session_switch";
