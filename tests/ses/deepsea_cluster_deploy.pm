@@ -50,21 +50,25 @@ alternative_defaults:
     tuned_osd_init: default-off
 EOF
         script_run("echo -e '$tuned_off' >> /srv/pillar/ceph/stack/global.yml") if is_sle('15+');
-        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.0 |& tee /dev/$serialdev", 700;
-        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev", 700;
         assert_script_run 'wget ' . data_url("ses/$policy");
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.0  |& tee /dev/$serialdev", 700;
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.1  |& tee /dev/$serialdev", 700;
         assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
         # openATTIC role is disabled for SES6 - it is replaced by the ceph dashboard
         assert_script_run "sed -i '/role-openattic/s/^/#/' /srv/pillar/ceph/proposals/policy.cfg" if is_sle('15+');
-        assert_script_run 'cat /srv/pillar/ceph/proposals/policy.cfg';
-        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.2 -l debug |& tee /dev/$serialdev", 1200;
-        # Enable AppArmor http://docserv.suse.de/documents/SES_6/ses-admin/single-html/#admin.apparmor
-        assert_script_run "salt -I 'deepsea_minions:*' state.apply ceph.apparmor.default-enforce -l debug |& tee /dev/$serialdev" if is_sle('15+');
+        # assert_script_run "salt '*' cmd.run 'cat /sys/kernel/security/apparmor/profiles' |& tee /dev/$serialdev" if is_sle('15+');
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.2 |& tee /dev/$serialdev", 1200;
+        # Disable AppArmor http://docserv.suse.de/documents/SES_6/ses-admin/single-html/#admin.apparmor
+        # assert_script_run "salt -I 'deepsea_minions:*' state.apply ceph.apparmor.default-disable -l debug |& tee /dev/$serialdev" if is_sle('15+');
+        # See again after https://bugzilla.suse.com/show_bug.cgi?id=1130930
+        if (is_sle('15+')) {
+            record_soft_failure 'Workaround apparmor - bsc#1130930';
+            assert_script_run "salt '*' cmd.run 'systemctl stop apparmor.service; aa-teardown' |& tee /dev/$serialdev";
+        }
         script_run "cat /srv/pillar/ceph/proposals/policy.cfg";
         assert_script_run "salt '*' pillar.items |& tee /dev/$serialdev";
-        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.3 -l debug |& tee /dev/$serialdev", 1200;
-        # Expected failure on stage.3 with https://bugzilla.suse.com/show_bug.cgi?id=1129999
-        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.4 -l debug |& tee /dev/$serialdev", 1200;
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.3 |& tee /dev/$serialdev", 1200;
+        assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.4 |& tee /dev/$serialdev", 1200;
         assert_script_run "set -o pipefail; ceph osd df tree|& tee /dev/$serialdev";
         assert_script_run "set -o pipefail; ceph status |& tee /dev/$serialdev";
         barrier_wait {name => 'deployment_done', check_dead_job => 1};
