@@ -583,11 +583,19 @@
       <hostname>sles12sp3</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">false</write_hostname>
+      <nameservers config:type="list">
+        <nameserver>192.168.122.1</nameserver>
+      </nameservers>
     </dns>
     <interfaces config:type="list">
       <interface>
-        <bootproto>dhcp</bootproto>
+        <bootproto>static</bootproto>
         <device>eth0</device>
+        <ipaddr>192.168.122.102</ipaddr>
+        <netmask>255.255.255.0</netmask>
+        <network>192.168.122.0</network>
+        <gateway>192.168.122.1</gateway>
+        <prefixlen>24</prefixlen>
         <startmode>auto</startmode>
       </interface>
       <interface>
@@ -615,6 +623,14 @@
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
       <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>-</device>
+          <gateway>192.168.122.1</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
     </routing>
   </networking>
   <nis>
@@ -728,7 +744,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>9166814720</size>
+          <size>13166814720</size>
           <subvolumes config:type="list">
             <listentry>
               <copy_on_write config:type="boolean">true</copy_on_write>

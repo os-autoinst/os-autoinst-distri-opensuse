@@ -137,6 +137,8 @@ sub run {
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags              = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
         assert_screen \@tags, $ssh_vnc_wait_time;
+        save_screenshot;
+        sleep 2;
 
         if (match_has_tag("orthos-grub-boot-linux")) {
             my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };

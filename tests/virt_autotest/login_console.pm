@@ -126,13 +126,14 @@ sub login_to_console {
 
     sleep 30;    # Wait for the GRUB to disappier (there's no chance for the system to boot faster
     save_screenshot;
-    reset_consoles;
-    select_console 'sol', await_console => 0;
-    save_screenshot;
 
-    send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout, 5);
-    #use console based on ssh to avoid unstable ipmi
-    save_screenshot;
+    for (my $i = 0; $i <= 4; $i++) {
+        last if check_screen(['linux-login', 'virttest-displaymanager'], $timeout / 5);
+        save_screenshot;
+        send_key 'ret';
+    }
+
+    # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 
 }

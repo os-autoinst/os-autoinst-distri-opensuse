@@ -27,6 +27,15 @@ sub run {
     add_test_repositories;
     fully_patch_system;
 
+    # Check that all guests are still running
+    script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %xen::guests);
+
+    if (check_var('XEN', '1')) {
+        # Shut all guests down so the reboot will be easier
+        assert_script_run "virsh shutdown $_" foreach (keys %xen::guests);
+        script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 30, expect => 1;
+    }
+
     #leave ssh console and switch to sol console
     switch_from_ssh_to_sol_console(reset_console_flag => 'off');
     #login

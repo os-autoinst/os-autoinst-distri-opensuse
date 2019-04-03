@@ -107,7 +107,8 @@ sub ssh_add_test_repositories {
     }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
-    assert_script_run("ssh root\@$host 'zypper -n ref'", exitcode => [0, 106], timeout => 120);
+    my $ret = script_run("ssh root\@$host 'zypper -n ref'", 240);
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 106);
 }
 
 # Function that will remove all test repos
