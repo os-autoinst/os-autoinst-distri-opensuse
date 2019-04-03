@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,6 +32,28 @@ sub extract_startup_timings {
     return $res;
 }
 
+sub build_influx_kv {
+    my $hash = shift;
+    my $req  = '';
+    for my $k (keys(%{$hash})) {
+        my $v = $hash->{$k};
+        $v =~ s/,/\\,/g;
+        $v =~ s/ /\\ /g;
+        $v =~ s/=/\\=/g;
+        $req .= $k . '=' . $v . ',';
+    }
+    return substr($req, 0, -1);
+}
+
+sub build_influx_query {
+    my $data = shift;
+    my $req  = $data->{table} . ',';
+    $req .= build_influx_kv($data->{tags});
+    $req .= ' ';
+    $req .= build_influx_kv($data->{values});
+    return $req;
+}
+
 sub run {
     my ($self) = @_;
 
@@ -55,6 +77,24 @@ sub run {
         my $startup_timings = extract_startup_timings($out);
         record_info('Kernel boot is too slow',         result => 'fail') if $startup_timings->{'kernel'} > $kernel_max_boot_time;
         record_info('Overall system boot is too slow', result => 'fail') if $startup_timings->{'overall'} > $system_max_boot_time;
+        my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+        if ($url) {
+            my $data = {
+                table => 'bootup',
+                tags  => {
+                    os_flavor         => get_required_var('FLAVOR'),
+                    os_version        => get_required_var('VERSION'),
+                    os_build          => get_required_var('BUILD'),
+                    os_pc_build       => get_required_var('PUBLIC_CLOUD_BUILD'),
+                    os_pc_kiwi_build  => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
+                    os_kernel_release => $instance->run_ssh_command(cmd => 'uname -r'),
+                    os_kernel_version => $instance->run_ssh_command(cmd => 'uname -v')
+                },
+                values => $startup_timings
+            };
+            $data = build_influx_query($data);
+            assert_script_run(sprintf("curl -i -X POST '%s' --data-binary '%s'", $url . '/write?db=publiccloud', $data));
+        }
     }
     upload_logs($ipa->{logfile});
     parse_extra_log(IPA => $ipa->{results});
@@ -142,5 +182,11 @@ This is B<only for azure> and used to create the service account file.
 =head2 PUBLIC_CLOUD_SUBSCRIPTION_ID
 
 This is B<only for azure> and used to create the service account file.
+
+=head2 PUBLIC_CLOUD_PERF_DB_URI
+
+If this variable is set, the bootup timings get stored inside the influx
+database. The database name is 'publiccloud'.
+(e.g. PUBLIC_CLOUD_PERF_DB_URI=http://openqa-perf.qa.suse.de:8086)
 
 =cut
