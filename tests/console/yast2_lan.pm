@@ -19,10 +19,9 @@ use testapi;
 use utils;
 use y2lan_restart_common;
 use version_utils ':VERSION';
-use y2_common 'is_network_manager_default';
+use utils 'zypper_call';
 
 sub handle_Networkmanager_controlled {
-    assert_screen "Networkmanager_controlled";
     send_key "ret";    # confirm networkmanager popup
     assert_screen "Networkmanager_controlled-approved";
     send_key "alt-c";
@@ -52,19 +51,21 @@ sub run {
 
     script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
-    if (is_network_manager_default) {
-        handle_Networkmanager_controlled;
-        return;                        # don't change any settings
-    }
-
-    assert_screen [qw(yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
+    assert_screen [qw(Networkmanager_controlled yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
     handle_dhcp_popup;
-
+    if (match_has_tag('Networkmanager_controlled')) {
+        handle_Networkmanager_controlled;
+        return;    # don't change any settings
+    }
     if (match_has_tag('install-susefirewall2') || match_has_tag('install-firewalld')) {
         # install firewall
         send_key "alt-i";
         # check yast2_lan again after firewall is installed
-        assert_screen('yast2_lan', 90);
+        assert_screen [qw(Networkmanager_controlled yast2_lan)], 90;
+        if (match_has_tag('Networkmanager_controlled')) {
+            handle_Networkmanager_controlled;
+            return;
+        }
     }
 
     my $hostname = get_var('HOSTNAME', 'susetest');
@@ -76,15 +77,14 @@ sub run {
     send_key "tab";
     for (1 .. 15) { send_key "backspace" }
     type_string $hostname;
-
     # Starting from SLE 15 SP1, we don't have domain field
     if (is_sle('<=15') || is_leap('<=15.0')) {
         send_key "tab";
         for (1 .. 15) { send_key "backspace" }
         type_string $domain;
     }
-
     assert_screen 'test-yast2_lan-1';
+
     send_key "alt-o";    # OK=>Save&Exit
     wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish";
     wait_still_screen;
