@@ -1087,7 +1087,6 @@ sub load_consoletests {
     }
 
     loadtest "locale/keymap_or_locale";
-    loadtest "console/orphaned_packages_check" if is_jeos;
     loadtest "console/check_upgraded_service" if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
@@ -1210,7 +1209,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest 'console/orphaned_packages_check' if get_var('UPGRADE');
+    loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || is_sle('>=12-SP4');
     loadtest "console/consoletest_finish";
 }
 
