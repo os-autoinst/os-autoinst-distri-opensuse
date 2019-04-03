@@ -15,17 +15,6 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2logsstep);
 use testapi;
-use utils qw(type_string_slow);
-
-
-sub enter_userinfo {
-    my ($self, %args) = @_;
-    send_key 'alt-f';    # Select full name text field
-    wait_screen_change { $args{retry} ? type_string_slow $realname : type_string $realname };
-    send_key 'tab';      # Select password field
-    send_key 'tab';
-    $self->type_password_and_verification;
-}
 
 sub run {
     my ($self) = @_;

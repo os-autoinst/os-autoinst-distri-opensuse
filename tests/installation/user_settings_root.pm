@@ -18,11 +18,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen "inst-rootpassword";
-    $self->type_password_and_verification;
-    assert_screen "rootpassword-typed";
-    send_key $cmd{next};
-    $self->await_password_check;
+    $self->enter_rootinfo;
 }
 
 1;

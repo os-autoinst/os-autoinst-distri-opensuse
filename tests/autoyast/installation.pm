@@ -146,7 +146,8 @@ sub run {
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('linux-login-casp')
-          || match_has_tag('inst-bootmenu'))
+          || match_has_tag('inst-bootmenu')
+          || match_has_tag('lang_and_keyboard'))
     {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
@@ -260,7 +261,7 @@ sub run {
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error inst-bootmenu);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error inst-bootmenu lang_and_keyboard);
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     until (match_has_tag 'reboot-after-installation') {
@@ -286,6 +287,9 @@ sub run {
         }
         elsif (match_has_tag('inst-bootmenu')) {
             $self->wait_grub_to_boot_on_local_disk;
+        }
+        elsif (match_has_tag('lang_and_keyboard')) {
+            return;
         }
     }
 
