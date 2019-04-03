@@ -20,7 +20,14 @@ use network_utils qw(iface setup_static_network);
 sub run {
     my ($self, $ctx) = @_;
     $self->select_serial_terminal;
-    $ctx->iface(iface());
+    if (check_var('WICKED', '2nics')) {
+        my @ifaces = split(' ', iface(2));
+        $ctx->iface($ifaces[0]);
+        $ctx->iface2($ifaces[1]);
+    }
+    else {
+        $ctx->iface(iface());
+    }
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
     my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");

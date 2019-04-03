@@ -16,5 +16,6 @@ package wicked::TestContext;
 use Mojo::Base 'OpenQA::Test::RunArgs';
 
 has 'iface';
+has 'iface2';
 
 1;

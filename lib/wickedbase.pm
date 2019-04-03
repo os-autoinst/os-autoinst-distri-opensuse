@@ -98,6 +98,7 @@ set the job variable C<IS_WICKED_REF> will be used. See also C<get_remote_ip()>.
 
 sub get_ip {
     my ($self, %args) = @_;
+    die '$args{type} is required' unless $args{type};
     my $ip;
 
     $args{is_wicked_ref} //= check_var('IS_WICKED_REF', '1');
@@ -129,6 +130,9 @@ sub get_ip {
     }
     elsif ($args{type} eq 'macvtap') {
         $ip = $args{is_wicked_ref} ? '10.0.2.17/15' : '10.0.2.18/15';
+    }
+    elsif ($args{type} eq 'bond') {
+        $ip = $args{is_wicked_ref} ? '10.0.2.17' : '10.0.2.18';
     }
     else {
         croak('Unknown ip type ' . ($args{type} || 'undef'));
