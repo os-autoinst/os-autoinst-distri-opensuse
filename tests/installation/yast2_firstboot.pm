@@ -24,7 +24,7 @@ sub language_and_keyboard {
         l => 'lang',
         k => 'keyboard'
     };
-    assert_screen 'lang_and_keyboard';
+    assert_screen('lang_and_keyboard', 45);
     mouse_hide(1);
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
@@ -97,7 +97,14 @@ sub run {
     root_setup;
     assert_screen 'installation_completed';
     send_key $cmd{finish};
-    assert_screen 'displaymanager';
+    assert_screen([qw(displaymanager generic-desktop)], 120);
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    # upload YaST2 Firstboot configuration file
+    upload_logs('/etc/YaST2/firstboot.xml', log_name => "firstboot.xml.conf");
 }
 
 1;
