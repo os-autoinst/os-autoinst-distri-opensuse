@@ -14,7 +14,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
 
@@ -308,7 +308,7 @@ sub ensure_installed {
     }
     wait_still_screen 1;
     send_key("alt-f4");    # close xterm
-    assert_screen 'generic-desktop';
+    assert_screen 'generic-desktop' if is_tumbleweed || is_leap('=>15.1');
 }
 
 sub script_sudo {
