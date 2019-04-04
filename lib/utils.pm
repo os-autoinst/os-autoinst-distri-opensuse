@@ -64,6 +64,7 @@ our @EXPORT = qw(
   get_x11_console_tty
   OPENQA_FTP_URL
   arrays_differ
+  arrays_subset
   ensure_serialdev_permissions
   assert_and_click_until_screen_change
   exec_and_insert_password
@@ -757,6 +758,28 @@ sub arrays_differ {
         return 1 if !grep($item eq $_, @array2);
     }
     return 0;
+}
+
+=head2 arrays_subset
+
+    arrays_subset(\@array1, \@array2);
+
+Compares two arrays passed by reference to identify if array1 is a subset of
+array2.
+
+Returns resulting array containing items of array1 that do not exist in array2.
+If all the items of array1 exist in array2, returns an empty array (which means
+array1 is a subset of array2).
+
+=cut
+
+sub arrays_subset {
+    my ($array1_ref, $array2_ref) = @_;
+    my @result;
+    foreach my $item (@{$array1_ref}) {
+        push(@result, $item) if !grep($item eq $_, @{$array2_ref});
+    }
+    return @result;
 }
 
 =head2 ensure_serialdev_permissions

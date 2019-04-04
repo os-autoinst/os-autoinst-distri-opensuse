@@ -15,12 +15,12 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use bootloader_setup 'ensure_shim_import';
+use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 
 sub run {
     my $self = shift;
     ensure_shim_import;
-    $self->select_bootmenu_more('inst-onmemtest', 1);
+    select_bootmenu_more('inst-onmemtest', 1);
     assert_screen('pass-complete', 1000);
 }
 
