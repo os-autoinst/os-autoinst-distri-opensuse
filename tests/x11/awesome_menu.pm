@@ -9,8 +9,7 @@ use warnings;
 use testapi;
 
 sub run {
-    send_key "super-w";
-    assert_screen 'test-awesome-menu-1', 3;
+    send_key_until_needlematch "test-awesome-menu-1", "super-w";
     send_key "esc";
 }
 
