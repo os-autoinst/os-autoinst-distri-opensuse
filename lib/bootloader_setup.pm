@@ -419,7 +419,7 @@ sub bootmenu_default_params {
         push @params, get_hyperv_fb_video_resolution;
         push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
     }
-    type_string_very_slow("@params ");
+    type_string_very_slow(" @params ");
     return @params;
 }
 
@@ -445,7 +445,7 @@ sub bootmenu_network_source {
                 # Ignore certificate validation
                 push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                type_string_very_slow("@params ");
+                type_string_very_slow(" @params ");
                 return @params;
             }
 
@@ -456,7 +456,7 @@ sub bootmenu_network_source {
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
                 push @params, "instsys=disk:/boot/$arch/root";
-                type_string_very_slow("@params ");
+                type_string_very_slow(" @params ");
                 return @params;
             }
 
@@ -471,7 +471,7 @@ sub bootmenu_network_source {
             }
         }
     }
-    type_string_very_slow("@params ");
+    type_string_very_slow(" @params ");
     return @params;
 }
 
@@ -666,7 +666,7 @@ sub specific_bootmenu_params {
         return " @params ";
     }
 
-    type_string_very_slow " @params ";
+    type_string_very_slow " @params " if @params;
     save_screenshot;
     return @params;
 }
@@ -1020,8 +1020,8 @@ Returns the array of the boot parameters.
 =cut
 
 sub parse_bootparams_in_serial {
-    my $parsed_string = wait_serial(qr/Command line:.*/ms);
-    $parsed_string =~ m/\[\s*\d*[.]\d*\]\s*Command line:(?<boot>.*)/;
+    my $parsed_string = wait_serial(qr/command line:.*/msi);
+    $parsed_string =~ m/.*command line:(?<boot>.*)/i;
     return split ' ', $+{boot};
 }
 
