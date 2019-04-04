@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,7 +32,7 @@ sub run {
     send_key "alt-f";
     wait_still_screen 3;
     send_key "e";
-    assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt'], 90);
+    assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt', 'firefox-email_link-send'], 90);
     if (match_has_tag('firefox-email-mutt')) {
         if (is_sle('<=12-sp2')) {
             record_soft_failure 'bsc#1131297';
@@ -65,8 +65,7 @@ sub run {
             send_key 'y';
         }
     }
-
-    if (match_has_tag('firefox-email_link-welcome')) {
+    elsif (match_has_tag('firefox-email_link-welcome')) {
         send_key $next_key;
 
         wait_still_screen 3;
@@ -115,9 +114,11 @@ sub run {
         send_key "alt-a";
         assert_screen('firefox-email_link-send');
     }
-    wait_screen_change {
-        send_key "esc";
-    };
+    elsif (match_has_tag('firefox-email_link-send')) {
+        wait_screen_change {
+            send_key 'esc';
+        };
+    }
 
     $self->exit_firefox;
 }
