@@ -852,6 +852,9 @@ sub post_fail_hook {
     # see any interesting console logs.
     send_key 'esc';
     save_screenshot;
+    # the space prevents the esc from eating up the next alphanumerical
+    # character typed into the console
+    send_key 'spc';
 }
 
 1;
