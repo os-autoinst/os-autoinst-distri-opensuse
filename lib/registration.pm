@@ -566,7 +566,7 @@ sub registration_bootloader_params {
     $max_interval //= 13;
     my @params;
     push @params, split ' ', registration_bootloader_cmdline;
-    type_string "@params ", $max_interval;
+    type_string "@params", $max_interval;
     save_screenshot;
     return @params;
 }
