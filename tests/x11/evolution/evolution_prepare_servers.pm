@@ -77,8 +77,10 @@ sub run() {
     assert_script_run "useradd -m admin";
     script_run "passwd admin", 0;    # set user's password
     type_password "password123";
+    wait_still_screen(1);
     send_key 'ret';
     type_password "password123";
+    wait_still_screen(1);
     send_key 'ret';
 
     assert_script_run "useradd -m nimda";
