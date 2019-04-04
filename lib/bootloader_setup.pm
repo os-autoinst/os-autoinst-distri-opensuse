@@ -528,7 +528,7 @@ sub select_installation_source {
 }
 
 sub select_bootmenu_more {
-    my ($self, $tag, $more) = @_;
+    my ($tag, $more) = @_;
 
     my @params;
 
