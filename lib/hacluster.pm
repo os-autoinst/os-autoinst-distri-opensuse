@@ -268,8 +268,8 @@ sub ha_export_logs {
     upload_logs($mdadm_conf, failok => 1);
 
     # supportconfig
-    script_run "time supportconfig -B $clustername", 180;
-    upload_logs("/var/log/nts_$clustername.tbz", failok => 1);
+    script_run "supportconfig -g -B $clustername", 180;
+    upload_logs("/var/log/nts_$clustername.tgz", failok => 1);
 }
 
 sub check_cluster_state {
