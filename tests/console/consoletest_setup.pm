@@ -31,15 +31,6 @@ sub run {
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
-    # on s390x we cannot stop the getty, otherwise the iucvconn will break
-    if (!check_var('BACKEND', 's390x')) {
-        systemctl "stop serial-getty\@$testapi::serialdev", ignore_failure => 1;
-        systemctl "disable serial-getty\@$testapi::serialdev";
-        # Mask if is qemu backend as use serial in remote installations e.g. during reboot
-        systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
-    }
-
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
     # Prevent mail notification messages to show up in shell and interfere with running console tests
     disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
