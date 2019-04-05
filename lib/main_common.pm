@@ -2315,7 +2315,7 @@ sub load_hypervisor_tests {
 
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_boot_tests;
+    load_boot_tests if ($virt_part =~ m/install/);
 
     if (get_var("AUTOYAST")) {
         loadtest "autoyast/installation";
@@ -2323,6 +2323,9 @@ sub load_hypervisor_tests {
     }
     else {
         load_inst_tests if ($virt_part =~ m/install/);
+    }
+
+    if ($virt_part =~ m/prepare_hypervisor|register_guests|upgrade_guests|patch_guests|patch_hypervisor/) {
         loadtest "virt_autotest/login_console";
     }
 
@@ -2352,8 +2355,10 @@ sub load_hypervisor_tests {
     # Apply updates and reboot
     if ($virt_part =~ m/patch_hypervisor/) {
         loadtest 'virtualization/xen/patch_and_reboot';
-        loadtest "virt_autotest/login_console";
     }
+
+    loadtest "virt_autotest/login_console";
+    loadtest "virtualization/xen/list_guests";
 
     if ($virt_part =~ m/virtmanager/) {
         loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
@@ -2374,7 +2379,7 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/hotplugging/) {
         loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
     }
-    if (check_var("REGRESSION", "xen-client") && $virt_part =~ m/dom_metrics/) {
+    if (check_var("XEN", "1") && $virt_part =~ m/dom_metrics/) {
         loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
         loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
         loadtest 'virtualization/xen/dom_install';                # Install vhostmd and vm-dump-metrics

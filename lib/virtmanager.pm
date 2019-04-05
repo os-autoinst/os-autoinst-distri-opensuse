@@ -622,6 +622,11 @@ sub select_guest {
     wait_still_screen 3;
     assert_and_click "virt-manager_list-$guest";
     send_key 'ret';
+    if (check_screen 'virt-manager_notrunning', 3) {
+        record_info("The Guest was powered off and that should not happen");
+        assert_and_click 'virt-manager_poweron', 'left', 90;
+        sleep 30;    # The boot would not be faster
+    }
     if (check_screen('virt-manager_no-graphical-device', 3)) {
         wait_screen_change { send_key 'ctrl-q'; };
         assert_and_click "virt-manager_connected";

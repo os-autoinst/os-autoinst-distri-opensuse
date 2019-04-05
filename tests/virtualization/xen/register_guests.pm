@@ -28,12 +28,12 @@ sub run {
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Registrating $guest against SMT";
-        assert_script_run "ssh root\@$guest 'zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/" . $xen::guests{$guest}->{distro} . "/SUSE:CA.repo'";
-        assert_script_run "ssh root\@$guest 'zypper -n in ca-certificates-suse'";
-        assert_script_run "ssh root\@$guest 'wget -O /tmp/clientSetup.sh http://smt.suse.de/repo/tools/clientSetup4SMT.sh'";
-        assert_script_run "ssh root\@$guest 'chmod +x /tmp/clientSetup.sh'";
+        assert_script_run("ssh root\@$guest 'zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/" . $xen::guests{$guest}->{distro} . "/SUSE:CA.repo'", 90);
+        assert_script_run("ssh root\@$guest 'zypper -n in ca-certificates-suse'",                                            90);
+        assert_script_run("ssh root\@$guest 'wget -O /tmp/clientSetup.sh http://smt.suse.de/repo/tools/clientSetup4SMT.sh'", 90);
+        assert_script_run("ssh root\@$guest 'chmod +x /tmp/clientSetup.sh'");
         #TODO: Fetch the fingerprint
-        assert_script_run "ssh root\@$guest '/tmp/clientSetup.sh --host smt.suse.de --fingerprint D1:31:1A:7E:8C:2A:04:DD:81:C9:23:F3:41:0F:2D:75:2F:0B:76:81 --yes'";
+        assert_script_run("ssh root\@$guest '/tmp/clientSetup.sh --host smt.suse.de --fingerprint D1:31:1A:7E:8C:2A:04:DD:81:C9:23:F3:41:0F:2D:75:2F:0B:76:81 --yes'", 180);
     }
 }
 
