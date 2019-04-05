@@ -43,7 +43,7 @@ sub create_list_of_serial_failures {
         push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
     }
 
-    push @$serial_failures, {type => 'soft', message => 'bsc#1112109', pattern => qr/serial-getty.*service: Service hold-off time over, scheduling restart/};
+    push @$serial_failures, {type => 'soft', message => 'bsc#1103199', pattern => qr/serial-getty.*service: Service hold-off time over, scheduling restart/};
 
     if (is_kernel_test()) {
         my $type = is_ltp_test() ? 'soft' : 'hard';
