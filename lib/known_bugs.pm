@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+package known_bugs;
+
 use base Exporter;
 use Exporter;
 use strict;
@@ -23,6 +25,7 @@ use version_utils;
 
 our @EXPORT = qw(
   create_list_of_serial_failures
+  upload_journal
 );
 
 sub create_list_of_serial_failures {
@@ -57,6 +60,56 @@ sub create_list_of_serial_failures {
     push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
 
     return $serial_failures;
+}
+
+sub create_list_of_journal_failures {
+    my $journal_failures = [];
+
+    # type=soft will force the testmodule result to softfail
+    # type=hard will just emit a soft fail message but the module will do a normal fail
+
+    # To add a known bug simply copy and adapt the following line:
+    # push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }
+
+    return $journal_failures;
+}
+
+sub upload_journal {
+    my ($file) = @_;
+
+    my $failures = create_list_of_journal_failures();
+
+    $file = upload_logs($file);
+
+    my $die = 0;
+    my %regexp_matched;
+    # loop line by line
+    open(my $journal, '<', "ulogs/$file") or die("Could not open uploaded journal: $file");
+    while (my $line = <$journal>) {
+        chomp $line;
+        for my $regexp_table (@{$failures}) {
+            my $regexp  = $regexp_table->{pattern};
+            my $message = $regexp_table->{message};
+            my $type    = $regexp_table->{type};
+
+            # Input parameters validation
+            die "Wrong type defined for journal failure. Only 'soft' or 'hard' allowed. Got: $type" if $type !~ /^soft|hard|fatal$/;
+            die "Message not defined for journal failure for the pattern: '$regexp', type: $type" if !defined $message;
+
+            # If you want to match a simple string please be sure that you create it with quotemeta
+            if (!exists $regexp_matched{$regexp} and $line =~ /$regexp/) {
+                $regexp_matched{$regexp} = 1;
+                my $fail_type = 'softfail';
+                if ($type eq 'hard') {
+                    record_soft_failure $message. "\n\n" . "$line";
+                }
+                elsif ($type eq 'soft') {
+                    force_soft_failure $message. "\n\n" . "$line";
+                }
+            }
+        }
+    }
+    close($journal);
 }
 
 1;
