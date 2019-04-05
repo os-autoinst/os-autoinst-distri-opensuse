@@ -85,7 +85,7 @@ sub run {
     assert_script_run 'sync';
     assert_script_run 'rm e/file', fail_message => 'bsc#993841';
     # test exceeding real quota
-    my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=40 of=e/file_$c; done';
+    my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=190 of=e/file_$c; done';
     assert_script_run $files_creation;
     if (script_run('rm e/file_*')) {
         record_soft_failure 'bsc#1113042  -- btrfs is not informed to commit transaction';
