@@ -53,7 +53,7 @@ sub run {
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
-    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry);
+    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error);
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
     }
@@ -102,6 +102,10 @@ sub run {
         }
         else {
             assert_screen \@tags, $timeout;
+        }
+
+        if (match_has_tag('yast_error')) {
+            die 'YaST error detected. Test is terminated.';
         }
 
         if (match_has_tag('yast2_wrong_digest')) {
