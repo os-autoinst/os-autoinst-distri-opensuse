@@ -64,6 +64,21 @@ sub install_required_python_pkgs {
     return $python;
 }
 
+sub download_selenium_script {
+    my ($pyscr, $path) = @_;
+
+    foreach my $ext (qw(_driver.py _ssh.py _results.py .py)) {
+        assert_script_run "curl -f -v " . autoinst_url . "/data/ha/$pyscr$ext > $path/$pyscr$ext";
+    }
+}
+
+sub add_to_known_hosts {
+    my $hostname = shift;
+    assert_script_run "mkdir -p ~/.ssh";
+    assert_script_run "chmod 700 ~/.ssh";
+    assert_script_run "ssh-keyscan -H $hostname >> ~/.ssh/known_hosts";
+}
+
 sub run {
     my ($self) = @_;
     my $cluster_name = get_cluster_name;
@@ -89,35 +104,47 @@ sub run {
     turn_off_gnome_screensaver;
 
     # Download and prepare python selenium script
-    my $pyscr    = 'hawk_test';
-    my $test_scr = "$pyscr.py";
-    assert_script_run "curl -f -v " . autoinst_url . "/data/ha/$test_scr > /tmp/$test_scr";
+    my $pyscr = 'hawk_test';
+    my $path  = '/tmp';
+    download_selenium_script($pyscr, $path);
 
     # Run test
     my $browser  = 'firefox';
     my $version  = get_required_var('VERSION');
     my $hostname = choose_node(1);
-    my $results  = "/tmp/$pyscr.results";
-    my $retcode  = "/tmp/$pyscr.ret";
-    my $logs     = "/tmp/$pyscr.log";
-    type_string "$python /tmp/$test_scr -b $browser -t $version -H $hostname -s $testapi::password -r $results > $logs 2>&1; echo $pyscr-\$? > $retcode; exit\n";
-    assert_screen "hawk-$browser", 120;
+    my $results  = "$path/$pyscr.results";
+    my $retcode  = "$path/$pyscr.ret";
+    my $logs     = "$path/$pyscr.log";
 
-    my $loop_count = 120;    # 10 minutes (120*5)
-    while (!check_screen('generic-desktop', 0, no_wait => 1)) {
-        sleep 5;
+    add_to_known_hosts($hostname);
+    # Run the test
+    type_string "$python $path/$pyscr.py -b $browser -t $version -H $hostname -s $testapi::password -r $results > $logs 2>&1; echo $pyscr-\$? > $retcode; exit\n";
+    assert_screen "hawk-$browser", 60;
+
+    my $loop_count = 180;    # 15 minutes (180*5)
+    while (1) {
         $loop_count--;
         last if ($loop_count < 0);
+        if (check_screen('generic-desktop', 0, no_wait => 1)) {
+            # We may reach generic-desktop in two scenarios: (1) the python script
+            # finishes, or (2) it has finished an individual test and closed the
+            # browser but it's in the process of opening a new browser instance.
+            # The following check_screen tries to catch scenario 2, if it doesn't
+            # then we assume we're in scenario 1
+            next if (check_screen("hawk-$browser", 30));    # python script still running
+            last;
+        }
+        sleep 5;
     }
     if ($loop_count < 0) {
         record_info("$browser failed", "Test with browser [$browser] could not be completed in 10 minutes", result => 'softfail');
-        send_key 'alt-f4';    # Force close of browser
+        send_key 'alt-f4';                                  # Force close of browser
     }
     save_screenshot;
 
     # Error, log and results handling
     select_console 'user-console';
-    type_string "touch geckodriver.log\n";    # Create geckodriver.log if it doesn't exist
+    type_string "touch geckodriver.log\n";                  # Create geckodriver.log if it doesn't exist
     upload_logs 'geckodriver.log';
 
     # Upload output of python/selenium scripts
