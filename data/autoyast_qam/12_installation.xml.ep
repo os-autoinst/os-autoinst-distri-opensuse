@@ -110,6 +110,9 @@
     </patterns>
   </software>
   <services-manager>
+    % if ($check_var->('DESKTOP', 'gnome')) {
+    <default_target>graphical</default_target>
+    % }
     <services>
       <disable config:type="list"/>
       <enable config:type="list">
