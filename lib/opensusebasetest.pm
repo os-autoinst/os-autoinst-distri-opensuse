@@ -335,6 +335,12 @@ sub export_logs {
     $self->investigate_yast2_failure();
 }
 
+sub export_logs_locale {
+    my ($self) = shift;
+    $self->save_and_upload_log('locale',           '/tmp/locale.log');
+    $self->save_and_upload_log('localectl status', '/tmp/localectl.log');
+}
+
 sub upload_xsession_errors_log {
     my ($self) = @_;
     # do not upload empty .xsession-errors

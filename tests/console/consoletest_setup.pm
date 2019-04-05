@@ -55,6 +55,7 @@ sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();
+    $self->export_logs_locale();
 }
 
 sub test_flags {
