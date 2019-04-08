@@ -107,7 +107,7 @@ sub run {
     # clean-up
     assert_script_run "rm 20190201_154421.jpg";
     assert_script_run "rm 20190201_154421-preview1.jpg";
-    type_string "exit\n";
+    send_key "alt-f4";
 }
 
 1;
