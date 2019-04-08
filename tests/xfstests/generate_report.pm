@@ -35,7 +35,8 @@ sub log_end {
 # Compress all sub directories under $dir and upload them.
 sub upload_subdirs {
     my ($dir, $timeout) = @_;
-    my $output = script_output("find $dir -maxdepth 1 -mindepth 1 -type f -or -type d");
+    my $output = script_output("if [ -d $dir ]; then find $dir -maxdepth 1 -mindepth 1 -type f -or -type d; else echo $dir folder not exist; fi");
+    if ($output =~ /folder not exist/) { return; }
     for my $subdir (split(/\n/, $output)) {
         my $tarball = "$subdir.tar.xz";
         assert_script_run("tar cJf $tarball -C $dir " . basename($subdir), $timeout);
