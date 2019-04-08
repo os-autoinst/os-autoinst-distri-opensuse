@@ -304,16 +304,6 @@ sub process_scc_register_addons {
                 # go to the top of the list before looking for the addon
                 send_key "home";
                 # move the list of addons down until the current addon is found
-                if ($addon eq 'phub') {
-                    # Record soft-failure when we do not have phub yet
-                    my $bugref =
-                      is_sle('=15-SP1') ? 'bsc#1106085'
-                      :                   undef;
-                    if ($bugref) {
-                        record_soft_failure $bugref;
-                        next;
-                    }
-                }
                 send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", ADDONS_COUNT;
                 if (match_has_tag("scc-module-$addon")) {
                     # checkmark the requested addon
