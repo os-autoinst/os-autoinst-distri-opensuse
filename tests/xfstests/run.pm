@@ -302,7 +302,7 @@ sub run {
         select_console('root-console');
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
         unless (get_var('NO_KDUMP')) {
-            unless (save_kdump($test, $KDUMP_DIR)) {
+            unless (save_kdump($test, $KDUMP_DIR, "vmcore", "kernel")) {
                 # If no kdump data found, write warning to log
                 my $msg = "Warning: $test crashed SUT but has no kdump data";
                 script_run("echo '$msg' >> $LOG_DIR/$category/$num");
