@@ -44,7 +44,9 @@ sub setup_static_network {
     return first NIC which is not loopback
 =cut
 sub iface {
-    return script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    my ($quantity) = @_;
+    $quantity ||= 1;
+    return script_output('ls /sys/class/net/ | grep -v lo | head -' . $quantity);
 }
 
 =head2 can_upload_logs
