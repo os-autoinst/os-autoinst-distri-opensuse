@@ -84,7 +84,7 @@ class hawkTestDriver:
 
     def set_port(self, port):
         port = str(port)
-        if port.isdigit() and 1 <= int(port) <= 65536:
+        if port.isdigit() and 1 <= int(port) <= 65535:
             self.port = port
         else:
             raise hawkTestDriverError('Port must be an integer')
