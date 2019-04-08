@@ -23,7 +23,7 @@ sub run {
     record_info "REBOOT", "Reboot all guests";
     foreach my $guest (keys %xen::guests) {
         assert_script_run "virsh reboot $guest";
-        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 3, die => 0)) {
+        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
             record_soft_failure "Reboot on $guest failed";
             assert_script_run "virsh destroy $guest";
             assert_script_run "virsh start $guest";

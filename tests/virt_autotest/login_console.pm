@@ -128,7 +128,7 @@ sub login_to_console {
     save_screenshot;
 
     for (my $i = 0; $i <= 4; $i++) {
-        last if check_screen(['linux-login', 'virttest-displaymanager'], $timeout / 5);
+        last if (check_screen([qw(linux-login virttest-displaymanager)], 60));
         save_screenshot;
         send_key 'ret';
     }
