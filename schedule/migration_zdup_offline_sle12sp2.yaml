@@ -1,0 +1,14 @@
+---
+name:           migration_zdup_offline_sle12sp2_staging
+description:    >
+  Test for zdup on sle12sp2 at staging.
+vars:
+  HDDVERSION: 12-SP2
+  ZDUP: 1
+schedule:
+  - installation/setup_zdup
+  - installation/install_service
+  - installation/zdup
+  - installation/post_zdup
+  - boot/boot_to_desktop
+  - console/check_upgraded_service

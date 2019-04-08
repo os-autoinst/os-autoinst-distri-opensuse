@@ -1,24 +1,15 @@
 ---
-name:           RAID1
+name:           default_install
 description:    >
-  Test for RAID1
-  Installation of RAID1 using expert partitioner.
-vars:
-  RAIDLEVEL: 1
-conditional_schedule:
-    system_role:
-        SYSTEM_ROLE:
-            default:
-                - installation/system_role
+  Test for default installation, with default options.
 schedule:
-  - installation/bootloader_start
+  - installation/bootloader
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - {{system_role}}
+  - installation/system_role
   - installation/partitioning
-  - installation/partitioning_raid
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/hostname_inst
@@ -33,8 +24,3 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - console/hostname
-  - console/system_prepare
-  - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
-  - console/validate_raid

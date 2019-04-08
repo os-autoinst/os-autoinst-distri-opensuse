@@ -75,7 +75,7 @@ schedule:
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
-  - installation/installation_overview_before
+  - installation/resolve_dependency_issues
   - installation/select_patterns_and_packages
   - installation/installation_overview
   - installation/disable_grub_timeout

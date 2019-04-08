@@ -1,0 +1,10 @@
+---
+name:           rescue_system_sle11sp4
+description:    >
+  Boot installation medium into rescue mode and test mounting
+  a SLES 11 SP4 installation.
+vars:
+  RESCUESYSTEM: 1
+schedule:
+  - installation/rescuesystem
+  - installation/rescuesystem_validate_sle
