@@ -11,7 +11,7 @@ parser.add_argument('-b', '--browser', type=str, required=True,
                     help='Browser to use in the test. Can be: firefox, chrome, chromium')
 parser.add_argument('-H', '--host', type=str, default='localhost',
                     help='Host or IP address where HAWK is running')
-parser.add_argument('-P', '--port', type=int, default=7630,
+parser.add_argument('-P', '--port', type=str, default='7630',
                     help='TCP port where HAWK is running')
 parser.add_argument('-p', '--prefix', type=str, default='',
                     help='Prefix to add to Resources created during the test')
@@ -29,7 +29,7 @@ browser = hawk_test_driver.hawkTestDriver(addr=args.host.lower(), port=args.port
                                           version=args.test_version.lower())
 
 # Initialize results set
-results = hawk_test_results.resultSet(args.test_version.lower())
+results = hawk_test_results.resultSet()
 
 # Establish SSH connection to verify status only if SSH password was supplied
 if args.secret:
@@ -50,7 +50,7 @@ browser.test('test_set_stonith_maintenance', results)
 if args.secret:
     ret = ssh.verify_stonith_in_maintenance(results)
     if ret != 0:
-        browser.return_value(ret)
+        browser.set_retval(ret)
 browser.test('test_disable_stonith_maintenance', results)
 browser.test('test_view_details_first_node', results)
 browser.test('test_clear_state_first_node', results)
@@ -58,7 +58,7 @@ browser.test('test_set_first_node_maintenance', results)
 if args.secret:
     ret = ssh.verify_node_maintenance(results)
     if ret != 0:
-        browser.return_value(ret)
+        browser.set_retval(ret)
 browser.test('test_disable_maintenance_first_node', results)
 browser.test('test_add_new_cluster', results, mycluster)
 browser.test('test_remove_cluster', results, mycluster)
@@ -70,12 +70,12 @@ browser.test('test_add_primitive', results, myprimitive)
 if args.secret:
     ret = ssh.verify_primitive(myprimitive, args.test_version.lower(), results)
     if ret != 0:
-        browser.return_value(ret)
+        browser.set_reval(ret)
 browser.test('test_remove_primitive', results, myprimitive)
 if args.secret:
     ret = ssh.verify_primitive_removed(results)
     if ret != 0:
-        browser.return_value(ret)
+        browser.set_retval(ret)
 browser.test('test_add_clone', results, myclone)
 browser.test('test_remove_clone', results, myclone)
 browser.test('test_add_group', results, mygroup)
@@ -86,4 +86,4 @@ browser.test('test_click_around_edit_conf', results)
 if args.results:
     results.logresults(args.results)
 
-quit(browser.return_value())
+quit(browser.get_retval())

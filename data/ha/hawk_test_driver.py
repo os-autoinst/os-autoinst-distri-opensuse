@@ -67,7 +67,7 @@ class hawkTestDriverError(Exception):
         return repr(self.value)
 
 class hawkTestDriver:
-    def __init__(self, addr='localhost', port=7630, browser='firefox', version='12-SP2'):
+    def __init__(self, addr='localhost', port='7630', browser='firefox', version='12-SP2'):
         self.set_addr(addr)
         self.set_port(port)
         self.timeout_scale = 1
@@ -79,28 +79,31 @@ class hawkTestDriver:
     def set_addr(self, addr):
         if isinstance(addr, str):
             self.addr = addr
-            return self.addr
-        raise hawkTestDriverError('Unexpected type for host address')
+        else:
+            raise hawkTestDriverError('Unexpected type for host address')
 
     def set_port(self, port):
-        if isinstance(port, int):
+        port = str(port)
+        if port.isdigit() and 1 <= int(port) <= 65536:
             self.port = port
-            return self.port
-        raise hawkTestDriverError('Port must be an integer')
+        else:
+            raise hawkTestDriverError('Port must be an integer')
 
     def set_browser(self, browser):
+        browser = browser.lower()
         if browser in ['chrome', 'chromium', 'firefox']:
-            self.browser = str(browser).lower()
+            self.browser = browser
             if browser == 'firefox':
                 self.timeout_scale = 2.5
             else:
                 self.timeout_scale = 1
-            return self.browser
-        raise hawkTestDriverError('Browser must be chrome, chromium or firefox')
+        else:
+            raise hawkTestDriverError('Browser must be chrome, chromium or firefox')
 
-    def return_value(self, *value):
-        if value:
-            self.retval = int(value[0])
+    def set_retval(self, value):
+        self.retval = int(value)
+
+    def get_retval(self):
         return self.retval
 
     def _connect(self):
@@ -135,7 +138,7 @@ class hawkTestDriver:
 
     def _do_login(self):
         if self.driver:
-            mainlink = 'https://' + self.addr.lower() + ':' + str(self.port)
+            mainlink = 'https://' + self.addr.lower() + ':' + self.port
             self.driver.get(mainlink)
             elem = self.find_element(By.NAME, "session[username]")
             if not elem:
@@ -254,7 +257,7 @@ class hawkTestDriver:
                 totalrows = len(self.driver.find_elements_by_xpath(RSC_ROWS))
                 if totalrows <= 0:
                     totalrows = 1
-            print("TEST: Placing stonith-sbd in maintenance")
+            print("TEST: test_set_stonith_maintenance: Placing stonith-sbd in maintenance")
             self.check_and_click_by_xpath(myerr, STONITH_ERR, [DROP_DOWN_FORMAT % totalrows,
                                                                STONITH_MAINT_ON, COMMIT_BTN_DANGER])
         if self.verify_success():
@@ -266,7 +269,7 @@ class hawkTestDriver:
 
     def test_disable_stonith_maintenance(self):
         myerr = 17
-        print("TEST: Re-activating stonith-sbd")
+        print("TEST: test_disable_stonith_maintenance: Re-activating stonith-sbd")
         self.check_and_click_by_xpath(myerr, STONITH_ERR_OFF,
                                       [STONITH_MAINT_OFF, COMMIT_BTN_DANGER])
         if self.verify_success():
@@ -278,7 +281,7 @@ class hawkTestDriver:
 
     def test_view_details_first_node(self):
         myerr = 18
-        print("TEST: Checking details of first cluster node")
+        print("TEST: test_view_details_first_node: Checking details of first cluster node")
         self.click_on('Nodes')
         self.check_and_click_by_xpath(myerr, ". Could not find first node pull down menu",
                                       [NODE_DETAILS])
@@ -292,7 +295,7 @@ class hawkTestDriver:
 
     def test_clear_state_first_node(self):
         myerr = 19
-        print("TEST: Clear state of first cluster node")
+        print("TEST: test_clear_state_first_node")
         self.click_on('Nodes')
         self.check_and_click_by_xpath(myerr,
                                       ". Could not find pull down menu for first cluster node",
@@ -310,7 +313,7 @@ class hawkTestDriver:
 
     def test_set_first_node_maintenance(self):
         myerr = 20
-        print("TEST: switching node to maintenance")
+        print("TEST: test_set_first_node_maintenance: switching node to maintenance")
         self.click_on('Nodes')
         self.check_and_click_by_xpath(myerr, MAINT_TOGGLE_ERR, [NODE_MAINT, COMMIT_BTN_DANGER])
         if self.verify_success():
@@ -322,7 +325,7 @@ class hawkTestDriver:
 
     def test_disable_maintenance_first_node(self):
         myerr = 21
-        print("TEST: switching node to ready")
+        print("TEST: test_disable_maintenance_first_node: switching node to ready")
         self.click_on('Nodes')
         self.check_and_click_by_xpath(myerr, MAINT_TOGGLE_ERR, [NODE_READY, COMMIT_BTN_DANGER])
         if self.verify_success():
@@ -334,7 +337,7 @@ class hawkTestDriver:
 
     def test_add_new_cluster(self, cluster_name):
         myerr = 7
-        print("TEST: Add new cluster")
+        print("TEST: test_add_new_cluster")
         self.click_on('Dashboard')
         elem = self.find_element(By.CLASS_NAME, "btn-default")
         if not elem:
@@ -371,7 +374,7 @@ class hawkTestDriver:
 
     def test_remove_cluster(self, cluster_name):
         myerr = 8
-        print("TEST: Remove cluster")
+        print("TEST: test_remove_cluster")
         self.click_on('Dashboard')
         elem = self.find_element(By.PARTIAL_LINK_TEXT, str(cluster_name))
         if not elem:
@@ -411,7 +414,7 @@ class hawkTestDriver:
         return False
 
     def test_click_on_history(self):
-        print("TEST: Main page, click on History")
+        print("TEST: test_click_on_history")
         self.click_if_major_version("15", self.link_by_browser('troubleshooting'))
         if self.retval == 15:
             return False
@@ -419,7 +422,7 @@ class hawkTestDriver:
 
     def test_generate_report(self):
         myerr = 22
-        print("TEST: click on Generate report")
+        print("TEST: test_generate_report: click on Generate report")
         self.click_if_major_version("15", self.link_by_browser('troubleshooting'))
         self.click_on('History')
         if self.find_element(By.XPATH, GENERATE_REPORT):
@@ -437,20 +440,20 @@ class hawkTestDriver:
         return False
 
     def test_click_on_command_log(self):
-        print("TEST: Main page, click on Command Log")
+        print("TEST: test_click_on_command_log")
         self.click_if_major_version("15", self.link_by_browser('troubleshooting'))
         if self.retval == 15:
             return False
         return self.click_on('Command Log')
 
     def test_click_on_status(self):
-        print("TEST: Main page, click on Status")
+        print("TEST: test_click_on_status")
         return self.click_on('Status')
 
     def test_add_primitive(self, priminame):
         myerr = 10
         priminame = str(priminame)
-        print("TEST: Add Resources: Primitive %s" % priminame)
+        print("TEST: test_add_primitive: Add Resources: Primitive %s" % priminame)
         self.click_if_major_version("15", self.link_by_browser('configuration'))
         self.click_on('Resource')
         self.click_on('rimitive')
@@ -546,20 +549,20 @@ class hawkTestDriver:
         return False
 
     def test_remove_primitive(self, name):
-        print("TEST: Remove Primitive: %s" % name)
+        print("TEST: test_remove_primitive: Remove Primitive: %s" % name)
         return self.remove_rsc(name)
 
     def test_remove_clone(self, clone):
-        print("TEST: Remove Clone: %s" % clone)
+        print("TEST: test_remove_clone: Remove Clone: %s" % clone)
         return self.remove_rsc(clone)
 
     def test_remove_group(self, group):
-        print("TEST: Remove Group: %s" % group)
+        print("TEST: test_remove_group: Remove Group: %s" % group)
         return self.remove_rsc(group)
 
     def test_add_clone(self, clone):
         myerr = 12
-        print("TEST: Adding clone [%s]" % clone)
+        print("TEST: test_add_clone: Adding clone [%s]" % clone)
         self.click_if_major_version("15", self.link_by_browser('configuration'))
         self.click_on('Resource')
         self.check_and_click_by_xpath(myerr, "on Create Clone [%s]" % clone,
@@ -582,7 +585,7 @@ class hawkTestDriver:
 
     def test_add_group(self, group):
         myerr = 15
-        print("TEST: Adding group [%s]" % group)
+        print("TEST: test_add_group: Adding group [%s]" % group)
         self.click_if_major_version("15", self.link_by_browser('configuration'))
         self.click_on('Resource')
         self.check_and_click_by_xpath(myerr, "while adding group [%s]" % group, [GROUP_DATA_FILTER])
@@ -604,7 +607,7 @@ class hawkTestDriver:
 
     def test_click_around_edit_conf(self):
         myerr = 14
-        print("TEST: Checking around Edit Configuration")
+        print("TEST: test_click_around_edit_conf")
         print("TEST: Will click on Constraints, Nodes, Tags, Alerts and Fencing")
         self.check_edit_conf()
         self.check_and_click_by_xpath(myerr, "while checking around edit configuration",

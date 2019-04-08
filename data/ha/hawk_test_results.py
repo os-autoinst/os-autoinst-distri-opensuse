@@ -12,12 +12,11 @@ class resultSetError(Exception):
         return repr(self.value)
 
 class resultSet:
-    def __init__(self, test_version='12-SP2'):
-        self.test_version = str(test_version)
+    def __init__(self):
         self.my_tests = []
-        for func in dir(hawk_test_driver.hawkTestDriver):
-            if func.find('test_') == 0 and callable(getattr(hawk_test_driver.hawkTestDriver, func)):
-                self.my_tests.append(func)
+        for f in dir(hawk_test_driver.hawkTestDriver):
+            if f.startswith('test_') and callable(getattr(hawk_test_driver.hawkTestDriver, f)):
+                self.my_tests.append(f)
         self.results_set = {'tests': [], 'info': {}, 'summary': {}}
         for test in self.my_tests:
             auxd = {'name': test, 'test_index': 0, 'outcome': 'failed'}
@@ -33,10 +32,10 @@ class resultSet:
         self.results_set['summary']['num_tests'] = len(self.my_tests)
 
     def add_ssh_tests(self):
-        for func in dir(hawk_test_ssh.hawkTestSSH):
-            if func.find('verify_') == 0 and callable(getattr(hawk_test_ssh.hawkTestSSH, func)):
-                self.my_tests.append(func)
-                auxd = {'name': str(func), 'test_index': 0, 'outcome': 'failed'}
+        for f in dir(hawk_test_ssh.hawkTestSSH):
+            if f.startswith('verify_') and callable(getattr(hawk_test_ssh.hawkTestSSH, f)):
+                self.my_tests.append(f)
+                auxd = {'name': str(f), 'test_index': 0, 'outcome': 'failed'}
                 self.results_set['tests'].append(auxd)
         self.results_set['summary']['num_tests'] = len(self.my_tests)
 
@@ -49,13 +48,13 @@ class resultSet:
         testname = str(testname)
         if status not in ['passed', 'failed']:
             raise resultSetError('test status must be either [passed] or [failed]')
-        if (status.lower() == 'passed' and
+        if (status == 'passed' and
                 self.results_set['tests'][self.my_tests.index(testname)]['outcome'] != 'passed'):
             self.results_set['summary']['passed'] += 1
-        elif (status.lower() == 'failed' and
+        elif (status == 'failed' and
               self.results_set['tests'][self.my_tests.index(testname)]['outcome'] != 'failed'):
             self.results_set['summary']['passed'] -= 1
-        self.results_set['tests'][self.my_tests.index(testname)]['outcome'] = status.lower()
+        self.results_set['tests'][self.my_tests.index(testname)]['outcome'] = status
         self.results_set['summary']['duration'] = time.process_time()
         self.results_set['info']['timestamp'] = time.time()
 

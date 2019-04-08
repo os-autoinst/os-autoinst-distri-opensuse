@@ -44,13 +44,13 @@ class hawkTestSSH:
                 return False
             if isinstance(mustmatch, str):
                 if mustmatch:
-                    if out.find(mustmatch) >= 0:
+                    if mustmatch in out:
                         return True
                     return False
                 return out == mustmatch
             elif isinstance(mustmatch, list):
                 for exp in mustmatch:
-                    if out.find(str(exp)) < 0:
+                    if str(exp) not in out:
                         return False
                 return True
             else:
@@ -68,7 +68,7 @@ class hawkTestSSH:
             return 0
         print("ERROR: stonith-sbd is not unmanaged but should be")
         self.set_test_status(results, 'verify_stonith_in_maintenance', 'failed')
-        return 30    # return non zero value on error
+        return 1    # return non zero value on error
 
     def verify_node_maintenance(self, results):
         if self.check_cluster_conf_ssh("crm status | grep -i ^node", "maintenance"):
@@ -77,7 +77,7 @@ class hawkTestSSH:
             return 0
         print("ERROR: cluster node failed to switch to maintenance mode")
         self.set_test_status(results, 'verify_node_maintenance', 'failed')
-        return 31    # return non zero value on error
+        return 1    # return non zero value on error
 
     def verify_primitive(self, myprimitive, version, results):
         matches = ["%s anything" % str(myprimitive), "binfile=file", "op start timeout=35s",
@@ -93,7 +93,7 @@ class hawkTestSSH:
             return 0
         print("ERROR: primitive [%s] missing from cluster configuration" % myprimitive)
         self.set_test_status(results, 'verify_primitive', 'failed')
-        return 32    # return non zero value on error
+        return 1    # return non zero value on error
 
     def verify_primitive_removed(self, results):
         if self.check_cluster_conf_ssh("crm resource list | grep ocf::heartbeat:anything", ''):
@@ -103,4 +103,4 @@ class hawkTestSSH:
         print("ERROR: primitive [%s] still present in the cluster while checking with SSH" %
               myprimitive)
         self.set_test_status(results, 'verify_primitive_removed', 'failed')
-        return 33    # return non zero value on error
+        return 1    # return non zero value on error
