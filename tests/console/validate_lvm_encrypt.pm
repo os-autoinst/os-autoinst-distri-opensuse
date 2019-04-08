@@ -16,6 +16,7 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use y2logsstep;
+use y2_common 'workaround_suppress_lvm_warnings';
 use Test::Assert ':all';
 
 sub run {
@@ -30,6 +31,7 @@ sub run {
     };
 
     $self->select_serial_terminal;
+    workaround_suppress_lvm_warnings;
 
     record_info('INFO', 'Validate LVM config');
     assert_script_run "lvmconfig --mergedconfig --validate | grep \"LVM configuration valid.\"";
