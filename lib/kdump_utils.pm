@@ -113,7 +113,13 @@ sub activate_kdump {
 
 sub activate_kdump_without_yast {
     # activate kdump by grub, need a reboot to start kdump
-    my $cmd = "if [ -e /etc/default/grub ]; then sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/ s/\"\$/ crashkernel=256M,high crashkernel=128M,low \"/' /etc/default/grub; fi";
+    my $cmd = "";
+    if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64')) {
+        $cmd = "if [ -e /etc/default/grub ]; then sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/ s/\"\$/ crashkernel=256M \"/' /etc/default/grub; fi";
+    }
+    else {
+        $cmd = "if [ -e /etc/default/grub ]; then sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/ s/\"\$/ crashkernel=256M,high crashkernel=128M,low \"/' /etc/default/grub; fi";
+    }
     script_run($cmd);
     script_run('cat /etc/default/grub');
     # sync changes from /etc/default/grub into /boot/grub2/grub.cfg
