@@ -31,7 +31,7 @@ sub run {
     validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /SLAVE/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /SLAVE/ });
     my $remote_ip = $self->get_remote_ip(type => 'host');
-    assert_script_run("ping -q -c1 -W1 $remote_ip -I $sut_iface");
+    assert_script_run("ping -c30 -W2 $remote_ip -I $sut_iface");
 }
 
 1;
