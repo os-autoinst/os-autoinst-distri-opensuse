@@ -198,8 +198,10 @@ sub ping_with_timeout {
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
     my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
+    $ping_command .= " -c 1 $args{ip}";
+    $ping_command .= " -I $args{interface}" if $args{interface};
     while ($timeout > 0) {
-        return 1 if script_run("$ping_command -c 1 $args{ip}") == 0;
+        return 1 if script_run($ping_command) == 0;
         $timeout -= 1;
         sleep 5;
     }
