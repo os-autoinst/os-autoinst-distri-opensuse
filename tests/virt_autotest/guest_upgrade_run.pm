@@ -39,8 +39,8 @@ sub analyzeResult {
     my $result;
     # In the case the log does not tell the exact failure
     if ($text !~ /Overall guest upgrade result is:(.*)Test done/s) {
-        $result->{'subtest'}->{status} = 'FAILED';
-        $result->{'subtest'}->{error}  = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
+        $result->{subtest}->{status} = 'FAILED';
+        $result->{subtest}->{error}  = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
         return $result;
     }
     my $rough_result = $1;
@@ -92,4 +92,3 @@ sub run {
 }
 
 1;
-
