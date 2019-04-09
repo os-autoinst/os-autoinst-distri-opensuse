@@ -17,7 +17,7 @@ use base 'consoletest';
 use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
-use utils qw(systemctl);
+use utils 'systemctl';
 use strict;
 use warnings;
 

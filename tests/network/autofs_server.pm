@@ -17,7 +17,7 @@ use base 'consoletest';
 use testapi;
 use lockapi;
 use utils qw(systemctl zypper_call);
-use version_utils qw(is_opensuse);
+use version_utils 'is_opensuse';
 use strict;
 use warnings;
 

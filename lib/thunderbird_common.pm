@@ -17,7 +17,7 @@ use warnings;
 use base "x11test";
 use testapi;
 use utils;
-use version_utils qw(is_sle);
+use version_utils 'is_sle';
 
 use base "Exporter";
 use Exporter;

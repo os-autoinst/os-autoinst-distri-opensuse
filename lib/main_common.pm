@@ -16,11 +16,11 @@ use File::Basename;
 use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
-use suse_container_urls qw(get_suse_container_urls);
+use suse_container_urls 'get_suse_container_urls';
 use autotest;
 use utils;
 use wicked::TestContext;
-use Utils::Architectures qw(:ARCH);
+use Utils::Architectures ':ARCH';
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 use data_integrity_utils 'verify_checksum';
@@ -2249,14 +2249,14 @@ sub load_security_tests_system_check {
 }
 
 sub load_security_tests {
-    my @security_tests = qw /
+    my @security_tests = qw(
       fips_setup crypt_core crypt_web crypt_misc crypt_tool
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
       mok_enroll ima_measurement ima_appraisal
       system_check
-      /;
+      );
 
     # Check SECURITY_TEST and call the load functions iteratively.
     # The value of "SECURITY_TEST" should be same with the last part of the

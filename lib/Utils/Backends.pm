@@ -17,9 +17,9 @@ package Utils::Backends;
 use strict;
 use warnings;
 
-use base qw(Exporter);
+use base 'Exporter';
 use Exporter;
-use testapi qw(:DEFAULT);
+use testapi ':DEFAULT';
 
 use constant {
     BACKEND => [
