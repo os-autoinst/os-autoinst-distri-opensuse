@@ -45,7 +45,7 @@ sub run {
             if ($bootstrap_conflicts_rt == 0) {
                 diag "There is no conflict installing the java bootstrap packages";
                 print "There is no conflict installing the java bootstrap packages\n";
-                zypper_call "in java-*";
+                zypper_call("in java-*");
             }
             else {
                 diag "There are conflicts with the installation of java bootstrap packages";
@@ -58,7 +58,7 @@ sub run {
         else {
             diag "There are no java bootstrap packages";
             print "There are no java bootstrap packages\n";
-            zypper_call("in java-*", exitcode => [0, 107]);
+            zypper_call("in java-*");
         }
     }
 
