@@ -102,11 +102,11 @@ else
 test: unit-test test-static test-compile perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --gentle --include "strict"
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --stern --include "strict" --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
-	${PERLCRITIC} $$(git ls-files "*.p[ml]")
+	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/')
 
 .PHONY: test-unused-modules
 test-unused-modules:
