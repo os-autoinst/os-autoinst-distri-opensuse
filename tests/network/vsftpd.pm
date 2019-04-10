@@ -22,6 +22,7 @@ sub run {
     my $password = $testapi::password;
     select_console 'root-console';
     if (check_var('HOSTNAME', 'server')) {
+        barrier_create('SSHD_READY', 2);
         zypper_call 'in vsftpd';
     }
     else {
@@ -35,6 +36,7 @@ sub run {
     assert_script_run 'echo "10.0.2.102 client" >>/etc/hosts';
     # copy ssh keys on server and client
     assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
+    barrier_wait('SSHD_READY');
     my $ssh_copy = 'ssh-copy-id -o StrictHostKeyChecking=no';
     assert_script_run "expect -c 'spawn $ssh_copy server;expect \"Password\";send \"$password\\r\";interact'";
     assert_script_run "expect -c 'spawn $ssh_copy client;expect \"Password\";send \"$password\\r\";interact'";
