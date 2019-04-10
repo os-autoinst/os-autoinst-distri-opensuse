@@ -39,6 +39,7 @@ our @EXPORT = qw(
   unlock_if_encrypted
   get_netboot_mirror
   zypper_call
+  zypper_enable_install_dvd
   zypper_ar
   fully_patch_system
   ssh_fully_patch_system
@@ -400,6 +401,13 @@ sub zypper_call {
         die "'zypper -n $command' failed with code $ret";
     }
     return $ret;
+}
+
+sub zypper_enable_install_dvd {
+    # If DVD Packages is used we need to (re-)enable the local repos
+    # see FATE#325541
+    zypper_call 'mr -e -l' if is_sle('15+') and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
+    zypper_call 'ref';
 }
 
 sub zypper_ar {
