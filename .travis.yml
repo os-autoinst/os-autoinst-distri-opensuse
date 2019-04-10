@@ -7,6 +7,9 @@ matrix:
   - name: "testing perl version, all tests"
     perl: "5.26"
     env: TESTS=all
+env:
+  global:
+    - COMMIT_AUTHOR_EMAIL=skynet@open.qa
 addons:
   apt:
     packages:
@@ -22,3 +25,4 @@ install:
 script:
   - git checkout cpanfile
   - make test
+  - script/generateUtilsDoc.sh
