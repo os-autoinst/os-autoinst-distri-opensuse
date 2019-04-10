@@ -565,7 +565,8 @@ sub load_jeos_tests {
             loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
             loadtest "jeos/diskusage";
             loadtest "jeos/root_fs_size";
-            loadtest "jeos/mount_by_label";
+            # mount_by_label is not wanted on aarch64 JeOS for openSUSE - boo#1127959
+            loadtest "jeos/mount_by_label" unless (check_var('ARCH', 'aarch64') && is_opensuse());
             loadtest "jeos/build_key";
         }
         if (is_sle) {
