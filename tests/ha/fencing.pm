@@ -30,9 +30,9 @@ sub run {
 
     # Wait for fencing to start only if running in get_node_to_join
     if (get_hostname eq get_node_to_join) {
-        my $loop_count = 30;    # Wait at most for 30*5 seconds
+        my $loop_count = 120;    # Wait at most for 120 seconds
         while (check_screen('root-console', 0, no_wait => 1)) {
-            sleep 5;
+            sleep 1;
             $loop_count--;
             last if !$loop_count;
         }
