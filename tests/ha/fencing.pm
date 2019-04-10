@@ -28,7 +28,7 @@ sub run {
     # Fence the master node
     assert_script_run 'crm -F node fence ' . get_node_to_join if is_node(2);
 
-    # Wait for fencing to start only if running in get_node_to_join
+    # Wait for fencing to start only if running in the master node
     if (get_var('HA_CLUSTER_INIT')) {
         my $loop_count = 120;    # Wait at most for 120 seconds
         while (check_screen('root-console', 0, no_wait => 1)) {
