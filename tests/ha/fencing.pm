@@ -27,6 +27,16 @@ sub run {
 
     # Fence the master node
     assert_script_run 'crm -F node fence ' . get_node_to_join if is_node(2);
+
+    # Wait for fencing to start only if running in get_node_to_join
+    if (get_hostname eq get_node_to_join) {
+        my $loop_count = 30;    # Wait at most for 30*5 seconds
+        while (check_screen('root-console', 0, no_wait => 1)) {
+            sleep 5;
+            $loop_count--;
+            last if !$loop_count;
+        }
+    }
 }
 
 1;
