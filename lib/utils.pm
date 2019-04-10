@@ -39,6 +39,8 @@ our @EXPORT = qw(
   unlock_if_encrypted
   get_netboot_mirror
   zypper_call
+  zypper_enable_install_dvd
+  zypper_ar
   fully_patch_system
   ssh_fully_patch_system
   minimal_patch_system
@@ -71,7 +73,6 @@ our @EXPORT = qw(
   shorten_url
   reconnect_mgmt_console
   set_hostname
-  zypper_ar
   show_tasks_in_blocked_state
   svirt_host_basedir
   prepare_ssh_localhost_key_login
@@ -400,6 +401,20 @@ sub zypper_call {
         die "'zypper -n $command' failed with code $ret";
     }
     return $ret;
+}
+
+sub zypper_enable_install_dvd {
+    # If DVD Packages is used we need to (re-)enable the local repos
+    # see FATE#325541
+    zypper_call 'mr -e -l' if is_sle('15+') and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
+    zypper_call 'ref';
+}
+
+sub zypper_ar {
+    my ($url, $name) = @_;
+
+    zypper_call("ar $url $name",                           dumb_term => 1);
+    zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
 }
 
 sub fully_patch_system {
@@ -971,13 +986,6 @@ sub reconnect_mgmt_console {
     else {
         diag 'nothing special needed to reconnect management console';
     }
-}
-
-sub zypper_ar {
-    my ($url, $name) = @_;
-
-    zypper_call("ar $url $name",                           dumb_term => 1);
-    zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
 }
 
 sub show_tasks_in_blocked_state {
