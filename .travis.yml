@@ -7,6 +7,9 @@ matrix:
   - name: "testing perl version, all tests"
     perl: "5.26"
     env: TESTS=all
+env:
+  global:
+    - COMMIT_AUTHOR_EMAIL=skynet@open.qa
 addons:
   apt:
     packages:
@@ -22,3 +25,16 @@ install:
 script:
   - git checkout cpanfile
   - make test
+  - script/generateUtilsDoc.sh
+before_deploy:
+  - script/generateUtilsDoc.sh
+deploy:
+    provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    local-dir: $TRAVIS_BUILD_DIR/docs/
+    on:
+        branch: master
+        condition: [ "$(git -C os-autoinst-distri-opensuse diff 'lib/utils.pm')"  ]
+    target_branch: gh-pages
+
