@@ -419,7 +419,6 @@ else {
         loadtest "console/force_scheduled_tasks";
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
-        loadtest "jeos/mount_by_label";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
             loadtest "jeos/sccreg";
         }
