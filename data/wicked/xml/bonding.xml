@@ -1,0 +1,38 @@
+<interface>
+  <name>bond0</name>
+
+  <bond>
+    <mode>balance-rr</mode>
+    <miimon>
+      <frequency>100</frequency>
+    </miimon>
+    <slaves>
+      <slave>
+        <device>iface0</device>
+      </slave>
+      <slave>
+        <device>iface1</device>
+      </slave>
+    </slaves>
+  </bond>
+
+  <ipv4:static>
+    <address>
+      <local>ip_address/24</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:deca:fbad:50::123/64</local>
+    </address>
+  </ipv6:static>
+</interface>
+
+<interface>
+  <name>iface0</name>
+</interface>
+
+<interface>
+  <name>iface1</name>
+</interface>
