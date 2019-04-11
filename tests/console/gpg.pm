@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,18 +27,13 @@ sub gpg_generate_key {
 
     # Get gpg version and base on the result choose different test
     my $gpg_version_output = script_output("gpg --version");
+
     my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\d\.\d)/;
+    my $genkey_opt = ($gpg_version ge 2.1) ? '--full-generate-key' : '--gen-key';
 
     # generate gpg key
-    if ($gpg_version eq "2.0") {
+    script_run "gpg2 -vv $genkey_opt |& tee /dev/$serialdev";
 
-        # gpg version 2.0.x
-        type_string "gpg2 -vv --gen-key\n";
-    }
-    else {
-        # gpg version >= 2.1.x
-        type_string "gpg2 -vv --full-generate-key\n";
-    }
     wait_still_screen 1;
     type_string "1\n";
     wait_still_screen 1;
@@ -68,7 +63,7 @@ sub gpg_generate_key {
     type_string "$passwd\n";
     wait_still_screen 1;
     if (get_var("FIPS") || get_var("FIPS_ENABLED") && $key_size == 1024) {
-        assert_screen("key-generation-failed");
+        wait_serial("gpg: agent_genkey failed: Invalid value", 120) || die "It should failed with invalid value!";
     }
     else {
         # list gpg keys
@@ -131,4 +126,3 @@ sub run {
 }
 
 1;
-
