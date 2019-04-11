@@ -249,7 +249,7 @@ sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->save_and_upload_log('journalctl -b', '/tmp/journal.log', {screenshot => 1});
-    $self->upload_xsession_errors_log;
+    $self->export_logs_desktop;
     $self->SUPER::post_fail_hook;
 }
 

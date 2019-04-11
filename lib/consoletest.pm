@@ -23,18 +23,9 @@ sub post_fail_hook {
     select_console('log-console');
     $self->SUPER::post_fail_hook;
     $self->remount_tmp_if_ro;
-    # Export logs after failure
-    assert_script_run("journalctl --no-pager -b 0 > /tmp/full_journal.log");
-    upload_journal "/tmp/full_journal.log";
-    assert_script_run("dmesg > /tmp/dmesg.log");
-    upload_logs "/tmp/dmesg.log";
+    $self->export_logs_basic;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
-    script_run("tar -jcv -f /tmp/xorg.tar.bz2  /home/bernhard/.local/share/xorg");
-    upload_logs('/tmp/xorg.tar.bz2', failok => 1);
-    script_run("tar -jcv -f /tmp/sysconfig.tar.bz2  /etc/sysconfig");
-    upload_logs('/tmp/sysconfig.tar.bz2', failok => 1);
-    script_run("tar -jcv -f /tmp/gdm.tar.bz2  /home/bernhard/.cache/gdm");
-    upload_logs('/tmp/gdm.tar.bz2', failok => 1);
+    $self->export_logs_desktop;
 }
 
 1;
