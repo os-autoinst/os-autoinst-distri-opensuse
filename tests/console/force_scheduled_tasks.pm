@@ -61,12 +61,4 @@ sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 
-
-sub post_fail_hook {
-    my $self = shift;
-    $self->SUPER::post_fail_hook();
-    $self->export_logs();
-    $self->export_logs_locale();
-}
-
 1;
