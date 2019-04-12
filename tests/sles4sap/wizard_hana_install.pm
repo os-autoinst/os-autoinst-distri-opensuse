@@ -114,8 +114,8 @@ sub run {
     type_string_slow "$path", wait_still_screen => 1;
     send_key 'tab';
     send_key $cmd{next};
-    assert_screen 'sap-wizard-copying-media';
-    assert_screen 'sap-wizard-supplement-medium', 3000;
+    assert_screen 'sap-wizard-copying-media',     120;
+    assert_screen 'sap-wizard-supplement-medium', 4000;
     send_key $cmd{next};
     assert_screen 'sap-wizard-additional-repos';
     send_key $cmd{next};
