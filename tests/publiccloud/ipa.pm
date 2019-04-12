@@ -82,6 +82,7 @@ sub run {
             my $data = {
                 table => 'bootup',
                 tags  => {
+                    instance_type     => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
                     os_flavor         => get_required_var('FLAVOR'),
                     os_version        => get_required_var('VERSION'),
                     os_build          => get_required_var('BUILD'),
