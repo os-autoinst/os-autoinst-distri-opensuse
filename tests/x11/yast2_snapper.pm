@@ -24,12 +24,16 @@ use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     my $self = shift;
+    # Turn off screensaver
+    x11_start_program('xterm');
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    send_key("alt-f4");    # close xterm
+
     # Make sure yast2-snapper is installed (if not: install it)
     ensure_installed "yast2-snapper";
 
     # Start an xterm as root
     x11_start_program('xterm');
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
     script_run "cd";
     type_string "yast2 snapper\n";
