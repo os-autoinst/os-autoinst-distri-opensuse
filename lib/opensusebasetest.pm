@@ -377,17 +377,13 @@ sub export_logs_desktop {
 
     # check whether xorg logs exist in user's home, if yes, upload xorg logs
     # from user's home instead of /var/log
-    my $log_path = '/home/*/.local/share/xorg/X*';
-    if (!script_run("ls -l $log_path")) {
-        $self->save_and_upload_log("cat $log_path", '/tmp/Xlogs.users.log', {screenshot => 1});
+    my $log_path = '/home/*/.local/share/xorg/';
+    if (!script_run("test -d $log_path")) {
+        $self->tar_and_upload_log("$log_path", '/tmp/Xlogs.users.tar.bz2', {screenshot => 1});
     }
     $log_path = '/var/log/X*';
     if (!script_run("ls -l $log_path")) {
         $self->save_and_upload_log("cat $log_path", '/tmp/Xlogs.system.log', {screenshot => 1});
-    }
-    $log_path = '/home/bernhard/.local/share/xorg';
-    if (!script_run("test -d $log_path")) {
-        $self->tar_and_upload_log($log_path, '/tmp/Xlogs.bernhard.tar.bz2');
     }
 
     # do not upload empty .xsession-errors
