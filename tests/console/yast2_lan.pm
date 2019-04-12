@@ -50,13 +50,13 @@ sub run {
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
 
-    my $is_nm = !script_run("! systemctl is-active NetworkManager");    # Revert boolean because of bash vs perl's return code.
+    my $is_nm = !script_run('systemctl is-active NetworkManager');    # Revert boolean because of bash vs perl's return code.
 
     script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
 
     if ($is_nm) {
         handle_Networkmanager_controlled;
-        return;                                                         # don't change any settings
+        return;                                                       # don't change any settings
     }
 
     assert_screen [qw(yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
