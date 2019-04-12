@@ -46,6 +46,7 @@ our @EXPORT = qw(
   select_bootmenu_language
   tianocore_enter_menu
   tianocore_select_bootloader
+  tianocore_http_boot
   zkvm_add_disk
   zkvm_add_interface
   zkvm_add_pty
@@ -814,6 +815,58 @@ sub tianocore_enter_menu {
 sub tianocore_select_bootloader {
     tianocore_enter_menu;
     send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
+    send_key 'ret';
+}
+
+sub tianocore_http_boot {
+    tianocore_enter_menu;
+    # Go to Device manager
+    send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
+    send_key 'ret';
+    # In device manager, go to 'Network Device List'
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist', 'up', 5, 5);
+    send_key 'ret';
+    # In 'Network Device List', go to first MAC addr
+    send_key 'ret';
+    # Go to 'HTTP Boot Configuration'
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig', 'up', 5, 5);
+    send_key 'ret';
+    # Select 'Boot URI'
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig-booturi', 'up', 5, 5);
+    send_key 'ret';
+    # Enter URI (full URI to EFI file)
+    my $arch = get_var("ARCH");
+    my $efi_file;
+    my $http_prefix = "http://";
+    if (get_var('UEFI_HTTPS_BOOT')) {
+        $http_prefix = "https://";
+    }
+    if ($arch =~ /aarch64/) {
+        $efi_file = "bootaa64.efi";
+    }
+    elsif ($arch =~ /x86_64/) {
+        $efi_file = "bootx64.efi";
+    }
+    else {
+        die "Unsupported architecture: $arch";
+    }
+    type_string($http_prefix . get_var('SUSEMIRROR') . "/EFI/BOOT/" . $efi_file);
+    send_key 'ret';
+    # Save config
+    send_key 'f10';
+    # Confirm save
+    assert_screen('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig-booturi-save');
+    send_key 'y';
+    # Go back to main menu
+    send_key 'esc';
+    send_key 'esc';
+    send_key 'esc';
+    send_key 'esc';
+    # Select 'Boot manager' entry
+    send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
+    send_key 'ret';
+    # Select 'UEFI Http' entry
+    send_key_until_needlematch('tianocore-bootmanager-uefihttp', 'up', 5, 5);
     send_key 'ret';
 }
 
