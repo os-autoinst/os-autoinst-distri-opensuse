@@ -35,4 +35,9 @@ sub run {
     validate_script_output("ping -c30 $remote_ip -I $sut_iface", sub { /0% packet loss/ });
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
+
 1;

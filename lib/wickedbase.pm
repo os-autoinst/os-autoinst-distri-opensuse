@@ -134,6 +134,12 @@ sub get_ip {
     elsif ($args{type} eq 'bond') {
         $ip = $args{is_wicked_ref} ? '10.0.2.17' : '10.0.2.18';
     }
+    elsif ($args{type} eq 'dhcp') {
+        $ip = $args{is_wicked_ref} ? '10.0.2.17' : '10.0.2.16';
+    }
+    elsif ($args{type} eq 'second_card') {
+        $ip = $args{is_wicked_ref} ? '10.0.3.12' : '10.0.3.11';
+    }
     else {
         croak('Unknown ip type ' . ($args{type} || 'undef'));
     }
