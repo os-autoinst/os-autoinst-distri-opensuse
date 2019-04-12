@@ -103,6 +103,8 @@ sub upload_img {
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
     my ($img_name) = $file =~ /([^\/]+)$/;
+    my $sec_group  = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
+    my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
 
     assert_script_run("ec2uploadimg --access-id '"
           . $self->key_id
@@ -113,12 +115,14 @@ sub upload_img {
           . "--machine 'x86_64' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . (($img_name =~ /hvm/i) ? "--virt-type hvm --sriov-support " : "--virt-type para ")
-          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '')
+          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '--ena-support ')
           . "--verbose "
           . "--regions '" . $self->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
           . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA tests' "
+          . ($sec_group  ? "--security-group-ids '" . $sec_group . "' " : '')
+          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
           . "'$file'",
         timeout => 60 * 60
     );
