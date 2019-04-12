@@ -44,6 +44,13 @@ sub save_and_upload_log {
     save_screenshot if $args->{screenshot};
 }
 
+sub tar_and_upload_log {
+    my ($self, $sources, $dest, $args) = @_;
+    script_run("tar -jcv -f $dest $sources", $args->{timeout});
+    upload_logs($dest) unless $args->{noupload};
+    save_screenshot() if $args->{screenshot};
+}
+
 sub save_and_upload_systemd_unit_log {
     my ($self, $unit) = @_;
     $self->save_and_upload_log("journalctl --no-pager -u $unit", "journal_$unit.log");
@@ -306,8 +313,7 @@ sub export_logs_basic {
     $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
     $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
     $self->save_and_upload_log('dmesg',             '/tmp/dmesg.log',   {screenshot => 1});
-    script_run("tar -jcv -f /tmp/sysconfig.tar.bz2  /etc/sysconfig");
-    upload_logs('/tmp/sysconfig.tar.bz2', failok => 1);
+    $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
 }
 
 sub export_logs {
@@ -359,21 +365,14 @@ sub export_logs_desktop {
 
     if (check_var("DESKTOP", "kde")) {
         if (get_var('PLASMA5')) {
-            my $fn  = '/tmp/plasma5_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
+            $self->tar_and_upload_log("/home/$username/.config/*rc", '/tmp/plasma5_configs.tar.bz2');
         }
         else {
-            my $fn  = '/tmp/kde4_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
+            $self->tar_and_upload_log("/home/$username/.kde4/share/config/*rc", '/tmp/kde4_configs.tar.bz2');
         }
         save_screenshot;
     } elsif (check_var("DESKTOP", "gnome")) {
-        script_run("tar -jcv -f /tmp/gdm.tar.bz2  /home/bernhard/.cache/gdm");
-        upload_logs('/tmp/gdm.tar.bz2', failok => 1);
+        $self->tar_and_upload_log('/home/bernhard/.cache/gdm', '/tmp/gdm.tar.bz2');
     }
 
     # check whether xorg logs exist in user's home, if yes, upload xorg logs
@@ -388,8 +387,7 @@ sub export_logs_desktop {
     }
     $log_path = '/home/bernhard/.local/share/xorg';
     if (!script_run("test -d $log_path")) {
-        script_run("tar -jcv -f /tmp/Xlogs.bernhard.tar.bz2 $log_path");
-        upload_logs('/tmp/Xlogs.bernhard.tar.bz2', failok => 1);
+        $self->tar_and_upload_log($log_path, '/tmp/Xlogs.bernhard.tar.bz2');
     }
 
     # do not upload empty .xsession-errors
