@@ -157,7 +157,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
-    assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs; xz -9v /tmp/logs.tar';
+    assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs /var/tmp/hdb*; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
     assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
     upload_logs "/tmp/y2logs.tar.xz";
