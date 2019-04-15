@@ -3,6 +3,23 @@
 set -e
 
 . ../testincl.sh
+
+isSles15(){
+   if [ ! -f /etc/os-release ]; then
+      return 1
+   fi
+   if (grep -i -q "SUSE Linux Enterprise Server 15" /etc/os-release); then
+      return 0
+   fi
+   return 1
+}
+
+if ( isSles15 ); then
+	PYTHON=python3
+else
+	PYTHON=python2
+fi
+
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
@@ -51,15 +68,15 @@ test_ok
 
 echo 'testuser1@LOCAL:goodpass' | chpasswd
 test_case 'Authentication via PAM'
-../pamtest.py passwd testuser1 goodpass || test_fatal 'Failed to authentication testuser1'
-! ../pamtest.py passwd testuser1 badpass &> /dev/null || test_fatal 'Failed to deny false password for testuser1'
-! ../pamtest.py passwd testuser2 badpass &> /dev/null || test_fatal 'Failed to deny false username'
+$PYTHON ../pamtest.py passwd testuser1 goodpass || test_fatal 'Failed to authentication testuser1'
+! $PYTHON ../pamtest.py passwd testuser1 badpass &> /dev/null || test_fatal 'Failed to deny false password for testuser1'
+! $PYTHON ../pamtest.py passwd testuser2 badpass &> /dev/null || test_fatal 'Failed to deny false username'
 test_ok
 
 test_case 'Login via PAM'
-../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
-! ../pamtest.py login testuser1 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
-! ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
+$PYTHON ../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
+! $PYTHON ../pamtest.py login testuser1 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
+! $PYTHON ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
 test_ok
 
 test_suite_end
