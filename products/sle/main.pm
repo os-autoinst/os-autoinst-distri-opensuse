@@ -982,6 +982,9 @@ else {
         loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         loadtest 'network/vsftpd';
     }
+    elsif (get_var('AUTOFS')) {
+        load_mm_autofs_tests;
+    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
         # Set origin and target version
