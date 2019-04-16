@@ -48,17 +48,13 @@ mygroup = args.prefix.lower() + 'cool_group'
 # Tests to perform
 browser.test('test_set_stonith_maintenance', results)
 if args.secret:
-    ret = ssh.verify_stonith_in_maintenance(results)
-    if ret != 0:
-        browser.set_retval(ret)
+    ssh.verify_stonith_in_maintenance(results)
 browser.test('test_disable_stonith_maintenance', results)
 browser.test('test_view_details_first_node', results)
 browser.test('test_clear_state_first_node', results)
 browser.test('test_set_first_node_maintenance', results)
 if args.secret:
-    ret = ssh.verify_node_maintenance(results)
-    if ret != 0:
-        browser.set_retval(ret)
+    ssh.verify_node_maintenance(results)
 browser.test('test_disable_maintenance_first_node', results)
 browser.test('test_add_new_cluster', results, mycluster)
 browser.test('test_remove_cluster', results, mycluster)
@@ -68,14 +64,10 @@ browser.test('test_click_on_command_log', results)
 browser.test('test_click_on_status', results)
 browser.test('test_add_primitive', results, myprimitive)
 if args.secret:
-    ret = ssh.verify_primitive(myprimitive, args.test_version.lower(), results)
-    if ret != 0:
-        browser.set_reval(ret)
+    ssh.verify_primitive(myprimitive, args.test_version.lower(), results)
 browser.test('test_remove_primitive', results, myprimitive)
 if args.secret:
-    ret = ssh.verify_primitive_removed(results)
-    if ret != 0:
-        browser.set_retval(ret)
+    ssh.verify_primitive_removed(results)
 browser.test('test_add_clone', results, myclone)
 browser.test('test_remove_clone', results, myclone)
 browser.test('test_add_group', results, mygroup)
@@ -86,4 +78,4 @@ browser.test('test_click_around_edit_conf', results)
 if args.results:
     results.logresults(args.results)
 
-quit(browser.get_retval())
+quit(results.get_failed_tests_total())
