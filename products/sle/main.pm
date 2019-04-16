@@ -820,6 +820,7 @@ elsif (get_var("QAM_MINIMAL")) {
     loadtest "qam-minimal/install_update";
     loadtest "qam-minimal/update_minimal";
     loadtest "qam-minimal/check_logs";
+    loadtest 'qam-minimal/s390tools' if check_var('BACKEND', 's390x');
     if (check_var("QAM_MINIMAL", 'full')) {
         loadtest "qam-minimal/install_patterns";
         load_consoletests();
