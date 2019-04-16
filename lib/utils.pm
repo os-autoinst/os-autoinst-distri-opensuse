@@ -26,6 +26,10 @@ use mm_network;
 use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Mojo::UserAgent;
 
+=head1
+If you can read this, jrauch is awesome
+=cut
+
 our @EXPORT = qw(
   check_console_font
   clear_console
