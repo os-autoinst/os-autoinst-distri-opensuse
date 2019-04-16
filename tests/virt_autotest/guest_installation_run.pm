@@ -56,11 +56,25 @@ sub analyzeResult {
 sub run {
     my $self = shift;
 
+    # Add option to keep guest after successful installation
+    assert_script_run("sed -i 's/vm-install.sh/vm-install\.sh -g /' /usr/share/qa/qa_test_virtualization/installos");
+    assert_script_run("sed -i 's/virt-install.sh/virt-install\.sh -u /' /usr/share/qa/qa_test_virtualization/virt_installos");
+    assert_script_run('cat /usr/share/qa/qa_test_virtualization/installos | grep vm-install');
+    save_screenshot;
+    assert_script_run('cat /usr/share/qa/qa_test_virtualization/virt_installos | grep virt-install');
+    save_screenshot;
+
     $self->{"product_tested_on"} = "SLES-12-SP2";
     $self->{"product_name"}      = "GuestIn_stallation";
     $self->{"package_name"}      = "Guest Installation Test";
+    $self->{success_guest_list}  = [];
 
-    $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs");
+    my $upload_guest_assets_flag = 'no';
+    if (check_var('UPLOAD_GUEST_ASSETS', '1')) {
+        $upload_guest_assets_flag = 'yes';
+    }
+
+    $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs", $upload_guest_assets_flag);
 }
 
 1;
