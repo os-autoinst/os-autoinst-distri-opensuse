@@ -105,32 +105,18 @@ sub run {
         if (my $hdd = get_var("HDD$n")) {
             my $basenamehdd = basename($hdd);
             for my $hddpath ("hdd", "hdd\\fixed") {
-                my $basenamehdd_vhd      = $basenamehdd =~ s/vhdfixed\.xz/vhd/r;
-                my $basenamehdd_vhdfixed = $basenamehdd =~ s/\.xz//r;
+                my $basenamehdd_vhd = $basenamehdd =~ s/vhdx\.xz/vhdx/r;
                 # If the image exists, do nothing
                 last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
                 # Copy HDD from NFS share to local cache on Hyper-V
                 next if hyperv_cmd("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\", {ignore_return_code => 1});
-                # Decompress the XZ compressed image & rename it to .vhd
-                last if $hdd !~ m/vhdfixed\.xz/;
+                # Decompress the XZ compressed image
+                last if $hdd !~ m/vhdx\.xz/;
                 hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
-                # Rename .vhdfixed to .vhd
-                hyperv_cmd("move /Y $root\\cache\\$basenamehdd_vhdfixed $root\\cache\\$basenamehdd_vhd");
-                # Because we likely wrote dozens of GB of zeros to disk, we have to wait some time for
-                # the disk to write all the data, otherwise the test would be unstable due to the load.
-                # Check average disk load for some time to make sure all the data are in cold on disk.
-                select_console('svirt');
-                type_string("typeperf \"\\LogicalDisk($hyperv_disk)\\Avg\. Disk Bytes/Write\"\n");
-                assert_screen('no-hyperv-disk-load', 600);
-                send_key 'ctrl-c';
-                assert_screen 'hyperv-typeperf-command-finished';
-                select_console('hyperv-intermediary');
-                # No need to attempt anything further, if we just moved
-                # the file to the correct location
                 last;
             }
             # Make sure the disk file is present
-            hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdfixed\.xz/vhd/r . " ( exit 1 )");
+            hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
         }
     }
     # Verify checksums of the copied mediums
@@ -175,7 +161,7 @@ sub run {
         for my $n (1 .. get_var('NUMDISKS')) {
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhdx");
-            my $hdd = get_var("HDD_$n") ? "$root\\cache\\" . basename(get_var("HDD_$n")) =~ s/vhdfixed\.xz/vhd/r : undef;
+            my $hdd = get_var("HDD_$n") ? "$root\\cache\\" . basename(get_var("HDD_$n")) =~ s/vhdx\.xz/vhdx/r : undef;
             if ($hdd) {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
                 my $disk_path = "$root\\cache\\${name}_${n}${hddsuffix}";
