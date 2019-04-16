@@ -1679,6 +1679,7 @@ sub load_rollback_tests {
 sub load_extra_tests_filesystem {
     loadtest "console/system_prepare";
     loadtest "console/lsof";
+    loadtest "console/udisks2";
     loadtest "console/autofs";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
         loadtest "console/snapper_jeos_cli" if is_jeos;
