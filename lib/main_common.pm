@@ -1599,8 +1599,8 @@ sub load_extra_tests_console {
     loadtest 'console/timezone';
     loadtest 'console/procps';
     loadtest "console/lshw" if ((is_sle('15+') && (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'x86_64'))) || is_opensuse);
-    loadtest 'console/quota'   unless is_jeos;
-    loadtest 'console/zziplib' unless is_jeos;
+    loadtest 'console/quota' unless is_jeos;
+    loadtest 'console/zziplib' if (is_sle('12-SP3+') && !is_jeos);
 }
 
 sub load_extra_tests_docker {
