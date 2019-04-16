@@ -16,10 +16,10 @@ use testapi;
 use utils;
 
 sub run {
-    assert_script_run "virsh list --all";
+    assert_script_run "virsh list --all", 180;
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Listing $guest";
-        if (script_run("virsh list --all | grep $guest | grep \"shut off\"") == 0) {
+        if (script_run("virsh list --all | grep $guest | grep \"shut off\"", 90) == 0) {
             record_soft_failure "Guest $guest should be on but is not";
             assert_script_run "virsh start $guest";
         }

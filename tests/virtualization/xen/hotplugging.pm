@@ -39,24 +39,38 @@ sub run {
 
     # TODO:
     record_info "CPU", "Changing the number of CPUs available";
-    # The guest should have 2 CPUs after the installation
-    assert_script_run "virsh vcpucount $_ | grep current | grep live" foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$_ nproc"                            foreach (keys %xen::guests);
-    # Add 1 CPU for everu guest
-    assert_script_run "virsh setvcpus --domain $_ --count 3 --live"            foreach (keys %xen::guests);
-    assert_script_run "virsh vcpucount $_ | grep current | grep live | grep 3" foreach (keys %xen::guests);
-    script_retry "ssh root\@$_ nproc", delay => 15, retry => 6 foreach (keys %xen::guests);
+    foreach my $guest (keys %xen::guests) {
+        if ($guest =~ m/pv/i) {
+            # The guest should have 2 CPUs after the installation
+            assert_script_run "virsh vcpucount $guest | grep current | grep live";
+            assert_script_run "ssh root\@$guest nproc";
+            # Add 1 CPU for everu guest
+            assert_script_run "virsh setvcpus --domain $guest --count 3 --live";
+            sleep 5;
+            assert_script_run "virsh vcpucount $guest | grep current | grep live | grep 3";
+            script_retry "ssh root\@$guest nproc", delay => 15, retry => 6;
+        }
+    }
 
     # TODO:
     record_info "Memory", "Changing the amount of memory available";
-    assert_script_run "virsh dommemstat $_"                          foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$_ free"                            foreach (keys %xen::guests);
-    assert_script_run "virsh setmem --domain $_ --size 2048M --live" foreach (keys %xen::guests);
-    assert_script_run "virsh dommemstat $_"                          foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$_ free"                            foreach (keys %xen::guests);
-    assert_script_run "virsh setmem --domain $_ --size 4096M --live" foreach (keys %xen::guests);
-    assert_script_run "virsh dommemstat $_"                          foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$_ free"                            foreach (keys %xen::guests);
+    foreach my $guest (keys %xen::guests) {
+        if ($guest =~ m/pv/i) {
+            assert_script_run "virsh dommemstat $guest";
+            assert_script_run "ssh root\@$guest free";
+            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size";
+            assert_script_run "virsh setmem --domain $guest --size 2048M --live";
+            sleep 5;
+            assert_script_run "virsh dommemstat $guest";
+            assert_script_run "ssh root\@$guest free";
+            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size";
+            assert_script_run "virsh setmem --domain $guest --size 4096M --live";
+            sleep 5;
+            assert_script_run "virsh dommemstat $guest";
+            assert_script_run "ssh root\@$guest free";
+            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size";
+        }
+    }
 
     my %mac = ();
     foreach my $guest (keys %xen::guests) {
