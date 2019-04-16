@@ -26,8 +26,12 @@ use utils;
 sub run {
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
-    assert_script_run("virsh start $_", 120) foreach (keys %xen::guests);
-    script_retry "ssh root\@$_ hostname -f", delay => 15, retry => 12 foreach (keys %xen::guests);
+    record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
+    assert_script_run "virsh autostart $_" foreach (keys %xen::guests);
+
+    record_info "LIBVIRTD", "Restart libvirtd and expect all guests to boot up";
+    systemctl 'restart libvirtd';
+    script_retry "ssh root\@$_ hostname -f", delay => 30, retry => 6 foreach (keys %xen::guests);
 }
 
 sub test_flags {

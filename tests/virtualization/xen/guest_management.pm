@@ -43,14 +43,6 @@ sub run {
     assert_script_run "virsh start $_" foreach (keys %xen::guests);
     script_retry "nmap $_ -PN -p ssh | grep open", delay => 15, retry => 12 foreach (keys %xen::guests);
 
-    # TODO:
-    record_info "AUTOSTART DISABLE", "Disable autostart for all guests";
-    assert_script_run "virsh autostart --disable $_" foreach (keys %xen::guests);
-
-    # TODO:
-    record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
-    assert_script_run "virsh autostart $_" foreach (keys %xen::guests);
-
     record_info "SUSPEND", "Suspend all guests";
     assert_script_run "virsh suspend $_" foreach (keys %xen::guests);
     script_retry "virsh list --all | grep $_ | grep paused", delay => 15, retry => 12 foreach (keys %xen::guests);
