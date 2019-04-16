@@ -157,14 +157,14 @@ sub check_version {
     die "Unsupported version parameter: $query";
 }
 
-# Check if distribution is CaaSP or Kubic with optional filter:
+# Check if distribution is CaaSP or MicroOS with optional filter:
 # Media type: DVD (iso) or VMX (all disk images)
 # Version: 1.0 | 2.0 | 2.0+
 # Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 sub is_caasp {
     my $filter = shift;
     my $distri = get_var('DISTRI');
-    return 0 unless $distri && $distri =~ /caasp|kubic/;
+    return 0 unless $distri && $distri =~ /caasp|microos/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {
@@ -178,7 +178,7 @@ sub is_caasp {
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
         return check_version($filter, get_var('VERSION'), qr/\d\.\d/);
     }
-    elsif ($filter =~ /kubic|caasp/) {
+    elsif ($filter =~ /caasp|microos/) {
         return check_var('DISTRI', $filter);
     }
     elsif ($filter eq 'qam') {
@@ -223,7 +223,7 @@ sub is_leap {
 
 sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
-    return 1 if check_var('DISTRI', 'kubic');
+    return 1 if check_var('DISTRI', 'microos');
     return 0;
 }
 
@@ -348,7 +348,7 @@ sub is_using_system_role {
     # SLE 15 SP1:
     #   * Has system roles only if more than one is available, meaning either registered or with all packages DVD;
     #   * RT Product has only one (minimal) role.
-    # On kubic, leap 15.1+, TW we have it instead of desktop selection screen
+    # On microos, leap 15.1+, TW we have it instead of desktop selection screen
     return is_sle('>=12-SP2') && is_sle('<15')
       && check_var('ARCH', 'x86_64')
       && is_server()
@@ -356,7 +356,7 @@ sub is_using_system_role {
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || is_sle('=15')
       || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
-      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, Kubic
+      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, MicroOS
 }
 
 # On leap 15.0 we have desktop selection first, and everywhere, where we have system roles

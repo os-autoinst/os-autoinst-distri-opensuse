@@ -30,7 +30,7 @@ DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xf
 DEV_IMAGE | boolean | false | This setting is used to set veriables properly when SDK or Development-Tools are required.
 DISABLE_ONLINE_REPOS | boolean | false | Enables `installation/disable_online_repos` test module, relevant for openSUSE only. Test module explicitly disables online repos not to be used during installation.
 DISABLE_SLE_UPDATES | boolean | false | Disables online updates for the installation. Is true if `QAM_MINIMAL` is true for SLE.
-DISTRI | string | | Defines distribution. Possible values: `sle`, `opensuse`, `casp`, `caasp`, `kubic`.
+DISTRI | string | | Defines distribution. Possible values: `sle`, `opensuse`, `casp`, `caasp`, `microos`.
 DOCRUN | boolean | false |
 DUALBOOT | boolean | false | Enables dual boot configuration during the installation.
 DUD | string | | Defines url or relative path to the DUD file if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data)

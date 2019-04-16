@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: General library for every system that uses transactional-updates
-# Like CaasP, Kubic and transactional-server
+# Like CaasP, MicroOS and transactional-server
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 package transactional_system;
@@ -56,7 +56,7 @@ sub rpmver {
 
     # package name | initial version
     my %rpm = (
-        kubic => {
+        microos => {
             fn => '5-2.1',
             in => '2.1',
         },
@@ -67,7 +67,7 @@ sub rpmver {
 
     if ("$arch" eq "aarch64") {
         %rpm = (
-            kubic => {
+            microos => {
                 fn => '5-4.3',
                 in => '4.3',
             });
@@ -110,7 +110,7 @@ sub trup_call {
     wait_serial 'trup-1-' if $check == 2;
 }
 
-# Install a pkg in Kubic
+# Install a pkg in MicroOS
 sub trup_install {
     my $input = shift;
     my ($unnecessary, $necessary);

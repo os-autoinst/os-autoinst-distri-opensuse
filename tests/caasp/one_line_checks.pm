@@ -57,7 +57,7 @@ sub run_caasp_checks {
     }
 }
 
-sub run_kubic_checks {
+sub run_microos_checks {
     # Should not include kubernetes
     if (check_var('SYSTEM_ROLE', 'microos')) {
         assert_script_run '! zypper se -i kubernetes';
@@ -75,8 +75,8 @@ sub run {
     return if get_var('EXTRA', '') =~ /RCSHELL/;
 
     run_common_checks;
-    run_caasp_checks if is_caasp('caasp');
-    run_kubic_checks if is_caasp('kubic');
+    run_caasp_checks   if is_caasp('caasp');
+    run_microos_checks if is_caasp('microos');
 }
 
 1;
