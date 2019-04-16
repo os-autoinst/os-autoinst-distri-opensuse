@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 
 use constant {
     VERSION => [
@@ -93,16 +94,6 @@ sub is_jeos {
 
 sub is_vmware {
     return check_var('VIRSH_VMM_FAMILY', 'vmware');
-}
-
-sub is_hyperv {
-    my $hyperv_version = shift;
-    return 0 unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
-    return defined($hyperv_version) ? check_var('HYPERV_VERSION', $hyperv_version) : 1;
-}
-
-sub is_hyperv_in_gui {
-    return is_hyperv && !check_var('VIDEOMODE', 'text');
 }
 
 sub is_krypton_argon {
@@ -287,10 +278,6 @@ sub is_pre_15 {
 
 sub is_aarch64_uefi_boot_hdd {
     return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
-}
-
-sub is_svirt_except_s390x {
-    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
 }
 
 sub is_s390x {
