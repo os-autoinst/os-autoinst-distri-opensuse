@@ -22,9 +22,9 @@ sub load_boot_from_dvd_tests {
 
 sub load_boot_from_disk_tests {
     # Preparation for start testing
-    loadtest 'kubic/disk_boot';
-    loadtest 'kubic/networking';
-    loadtest 'kubic/repositories';
+    loadtest 'microos/disk_boot';
+    loadtest 'microos/networking';
+    loadtest 'microos/repositories';
 }
 
 sub load_feature_tests {
@@ -38,7 +38,7 @@ sub load_feature_tests {
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
     }
-    else {
+    elsif (check_var 'SYSTEM_ROLE', 'container-host') {
         loadtest 'console/podman';
     }
 }

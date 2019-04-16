@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Boot from disk and login into Kubic
+# Summary: Boot from disk and login into MicroOS
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
 use base "opensusebasetest";
@@ -27,4 +27,3 @@ sub test_flags {
 }
 
 1;
-

@@ -975,7 +975,7 @@ sub load_inst_tests {
         elsif (get_var('IMPORT_USER_DATA')) {
             loadtest 'installation/user_import';
         }
-        elsif (is_caasp 'kubic') {
+        elsif (is_caasp 'microos') {
             loadtest "installation/kubeadm_settings" if check_var('SYSTEM_ROLE', 'kubeadm');
         } else {
             loadtest "installation/user_settings" unless check_var('SYSTEM_ROLE', 'hpc-node');

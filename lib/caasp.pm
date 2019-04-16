@@ -92,8 +92,8 @@ sub process_reboot {
 
     # No grub bootloader on xen-pv
     # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
-    # kubic - will risk occasional failure because it disabled grub2 timeout
-    if (is_caasp 'kubic') {
+    # microos - will risk occasional failure because it disabled grub2 timeout
+    if (is_caasp 'microos') {
         assert_screen [qw(grub2 linux-login-casp)], 150;
         if (match_has_tag 'linux-login-casp') {
             record_info('poo#28648', 'Skip looking for grub2 needle - the system has already been booted');
