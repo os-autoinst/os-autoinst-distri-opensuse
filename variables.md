@@ -84,6 +84,7 @@ PERF_KERNEL | boolean | false | Enables kernel performance testing.
 PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
 PERF_SETUP | boolean | false | Enables kernel performance testing deployment part.
 PERF_RUNCASE | boolean | false | Enables kernel performance testing run case part.
+PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package manager when package installation has finished. Possible actions are: close, restart, summary. If PKGMGR_ACTION_AT_EXIT is not set in openQA, test module will read the default value from /etc/sysconfig/yast2.
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
