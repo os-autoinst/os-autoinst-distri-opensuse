@@ -19,7 +19,7 @@ use virt_utils;
 sub install_package {
 
     # Get around the bug on sles15sp1 host: Bug 1131811 - [XEN] internal error: libxenlight failed to create new domain
-    if (check_var('SYSTEM_ROLE', 'xen') && (get_var('VERSION_TO_INSTALL', get_var('VERSION', '') eq '15-SP1'))) {
+    if (check_var('SYSTEM_ROLE', 'xen') && (get_var('VERSION_TO_INSTALL', get_var('VERSION', '')) eq '15-SP1')) {
         assert_script_run("sed -i 's/^After=local-fs.target/After=timers.target/' /usr/lib/systemd/system/btrfsmaintenance-refresh.service");
     }
 
