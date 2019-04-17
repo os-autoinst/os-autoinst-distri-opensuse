@@ -634,10 +634,6 @@ sub we_is_applicable {
       && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
 }
 
-sub installwithaddonrepos_is_applicable {
-    return get_var("HAVE_ADDON_REPOS") && !get_var("UPGRADE") && !get_var("NET");
-}
-
 sub need_clear_repos {
     return !get_var('ZDUP')
       && (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1'))

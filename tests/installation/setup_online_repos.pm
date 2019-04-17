@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,8 +20,13 @@ use version_utils;
 
 sub run {
     # ordered according to real repos lists
-    my @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
-
+    my @default_repos;
+    if (is_leap('<15.1')) {
+        @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
+    }
+    else {
+        @default_repos = qw(update-non-oss main-non-oss update-oss main-oss debug-update untested-update source debug-main);
+    }
     # maybe slow due to network connectivity
     assert_screen [qw(setup_online_repos-configure setup_online_repos-configure-text online-repos)], 200;
 

@@ -55,6 +55,7 @@ our @EXPORT = qw(
   addon_license
   addon_products_is_applicable
   noupdatestep_is_applicable
+  installwithaddonrepos_is_applicable
   random_string
   handle_emergency
   handle_grub_zvm
@@ -640,6 +641,10 @@ sub addon_products_is_applicable {
 
 sub noupdatestep_is_applicable {
     return !get_var("UPGRADE") && !get_var("LIVE_UPGRADE");
+}
+
+sub installwithaddonrepos_is_applicable {
+    return get_var("HAVE_ADDON_REPOS") && !get_var("UPGRADE") && !get_var("NET");
 }
 
 sub random_string {

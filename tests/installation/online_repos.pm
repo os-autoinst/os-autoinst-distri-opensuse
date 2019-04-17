@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ use warnings;
 use base "y2logsstep";
 use testapi;
 use version_utils qw(:VERSION :SCENARIO);
+use utils 'installwithaddonrepos_is_applicable';
 
 sub open_online_repos_dialog {
     wait_screen_change { send_key 'alt-y' };
@@ -62,6 +63,9 @@ sub run {
     # Test online repos dialog explicitly
     if (get_var('DISABLE_ONLINE_REPOS')) {
         disable_online_repos_explicitly;
+    } elsif (installwithaddonrepos_is_applicable() && !get_var("LIVECD")) {
+        # Acivate online repositories
+        wait_screen_change { send_key 'alt-y' };
     } else {
         # If click No, step is skipped, which is default behavior
         wait_screen_change { send_key 'alt-n' };
