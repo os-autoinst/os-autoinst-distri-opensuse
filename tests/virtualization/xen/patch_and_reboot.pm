@@ -24,6 +24,11 @@ sub run {
 
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
+    # Check the virt-related packages before
+    script_run 'rpm -qa | grep -i xen | nl';
+    script_run 'rpm -qa | grep -i irt | nl';
+    script_run 'rpm -qa | grep -i emu | nl';
+
     add_test_repositories;
     fully_patch_system;
 
