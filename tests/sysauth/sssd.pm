@@ -17,19 +17,34 @@ use warnings;
 use testapi;
 use utils;
 use version;
-
+use version_utils qw(is_sle is_opensuse);
+use registration "add_suseconnect_product";
 
 sub run {
     # Assume consoletest_setup is completed
     select_console 'root-console';
+    if (is_sle) {
+        assert_script_run 'source /etc/os-release';
+        if (is_sle '>=15') {
+            if (script_run('SUSEConnect -p PackageHub/${VERSION_ID}/${CPU}', 300) != 0) {
+                record_soft_failure 'bsc#1124318 - Fail to get PackageHub Pool Metadata - running the command again as a workaround';
+                assert_script_run 'SUSEConnect -p PackageHub/${VERSION_ID}/${CPU}', 300;
+            }
+            add_suseconnect_product('sle-module-legacy');
+        }
+    }
 
     # Install test subjects and test scripts
     my @test_subjects = qw(
-      python3-python-pam
       sssd sssd-krb5 sssd-krb5-common sssd-ldap sssd-tools
       openldap2 openldap2-client
       krb5 krb5-client krb5-server krb5-plugin-kdb-ldap
     );
+
+    # for sle 12 we still use and support python2
+    push @test_subjects, 'python-pam' if is_sle('<15');
+    push @test_subjects, 'python3-python-pam' if is_sle('15+') || is_opensuse;
+
     systemctl 'stop packagekit.service';
     systemctl 'mask packagekit.service';
     if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
