@@ -58,3 +58,5 @@ class resultSet:
         self.results_set['summary']['duration'] = time.process_time()
         self.results_set['info']['timestamp'] = time.time()
 
+    def get_failed_tests_total(self):
+        return self.results_set['summary']['num_tests'] - self.results_set['summary']['passed']
