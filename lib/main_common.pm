@@ -1591,7 +1591,7 @@ sub load_extra_tests_console {
     loadtest 'console/vhostmd';
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
-    loadtest "sysauth/sssd" if get_var('SYSAUTHTEST') || is_sle('12-SP5+');
+    loadtest "sysauth/sssd" if get_var('SYSAUTHTEST') || (is_sle('12-SP5+') && !check_var('BACKEND', 'svirt'));
     loadtest 'console/timezone';
     loadtest 'console/procps';
     loadtest "console/lshw" if ((is_sle('15+') && (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'x86_64'))) || is_opensuse);
