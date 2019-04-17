@@ -3,6 +3,13 @@
 set -e
 
 . ../testincl.sh
+
+if ( isSles15 ); then
+	PYTHON=python3
+else
+	PYTHON=python2
+fi
+
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
@@ -71,7 +78,7 @@ test_ok
 
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -sgoodpass 'uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net'
 test_case 'Login via PAM'
-! ../pamtest.py login testuser1 goodpass || test_fatal 'Disabled authentication provider did not reject login'
+! $PYTHON ../pamtest.py login testuser1 goodpass || test_fatal 'Disabled authentication provider did not reject login'
 test_ok
 
 test_suite_end

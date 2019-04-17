@@ -3,6 +3,13 @@
 set -e
 
 . ../testincl.sh
+
+if ( isSles15 ); then
+	PYTHON=python3
+else
+	PYTHON=python2
+fi
+
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
@@ -73,9 +80,9 @@ test_ok
 
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -sgoodpass 'uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net'
 test_case 'Login via PAM'
-../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
-! ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
-! ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
+$PYTHON ../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
+! $PYTHON ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
+! $PYTHON ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
 test_ok
 
 test_suite_end
