@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use upload_system_log;
 use repo_tools 'generate_version';
+use version_utils 'is_sle';
 
 our $trinity_log;
 
@@ -25,9 +26,13 @@ sub run {
     $self->select_serial_terminal;
     $trinity_log = script_output("echo ~$testapi::username/trinity.log");
     my $syscall_cnt = 1000000;
-    my $repo_url    = 'http://download.suse.de/ibs/home:/asmorodskyi/' . generate_version() . '/';
-    zypper_ar($repo_url, 'trinity');
+
+    if (is_sle) {
+        my $repo_url = 'http://download.suse.de/ibs/home:/asmorodskyi/' . generate_version() . '/';
+        zypper_ar($repo_url, 'trinity');
+    }
     zypper_call('in trinity');
+
     assert_script_run("cd  ~$testapi::username");
     assert_script_run("sudo -u $testapi::username trinity -N$syscall_cnt", 2000);
     upload_system_logs();
