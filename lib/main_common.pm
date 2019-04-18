@@ -349,10 +349,6 @@ sub default_desktop {
     return 'gnome';
 }
 
-sub uses_qa_net_hardware {
-    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
-}
-
 sub load_shutdown_tests {
     loadtest("shutdown/cleanup_before_shutdown");
     loadtest "shutdown/shutdown";

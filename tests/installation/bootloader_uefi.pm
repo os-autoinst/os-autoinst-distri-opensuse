@@ -11,6 +11,8 @@
 # Summary: Boot on UEFI systems with configuration of boot parameters
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+package bootloader_uefi;
+
 use base "installbasetest";
 use strict;
 use warnings;

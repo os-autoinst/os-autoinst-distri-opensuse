@@ -10,6 +10,8 @@
 # Summary: Boot systems from PXE
 # Maintainer: alice <xlai@suse.com>
 
+package boot_from_pxe;
+
 use base 'opensusebasetest';
 
 use strict;
