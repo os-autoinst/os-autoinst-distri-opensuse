@@ -12,6 +12,9 @@
 #   terminal and an ssh connection
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.de>
 
+
+package bootloader_s390;
+
 use base "installbasetest";
 
 use testapi;

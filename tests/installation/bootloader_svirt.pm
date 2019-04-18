@@ -10,6 +10,8 @@
 # Summary: svirt bootloader
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+package bootloader_svirt;
+
 use base "installbasetest";
 use strict;
 use warnings;
