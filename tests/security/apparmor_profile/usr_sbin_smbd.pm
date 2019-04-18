@@ -32,6 +32,7 @@ sub samba_server_setup {
     zypper_call("in samba samba-client yast2-samba-client yast2-samba-server");
     systemctl("restart smb");
 
+    select_console 'x11';
     y2x11test::launch_yast2_module_x11(module => "samba-server", target_match => "samba-server-installation", match_timeout => 200);
     send_key "alt-w";
     type_string("WORKGROUP");
@@ -70,6 +71,7 @@ sub samba_client_access {
     my $pw       = $apparmortest::pw;
 
     # Start "nautilus" to access the shares by "Windows Shares"
+    select_console 'x11';
     x11_start_program("nautilus", target_match => "nautilus-other-locations", match_timeout => 200);
 
     # Connect to samba server
@@ -126,6 +128,7 @@ sub run {
     $self->samba_server_setup();
 
     # Add a samba/linux common test user
+    zypper_call("in expect");
     script_run("userdel -rf $testuser");
     assert_script_run("useradd -m -d \/home\/$testuser $testuser");
     assert_script_run(

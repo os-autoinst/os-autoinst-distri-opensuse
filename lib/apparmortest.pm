@@ -404,10 +404,13 @@ sub adminer_setup {
     assert_script_run("mv $adminer_file $adminer_dir");
 
     # Test Adminer can work
+    select_console 'x11';
     x11_start_program("firefox http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
 
     # Exit x11 and turn to console
-    send_key_until_needlematch("generic-desktop", 'alt-f4', 2, 5);
+    send_key "alt-f4";
+    # Send "ret" key in case of any pop up message
+    send_key_until_needlematch("generic-desktop", 'ret', 5, 5);
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
@@ -415,6 +418,7 @@ sub adminer_setup {
 
 # Log in Adminer, seletct "test" database and delete it
 sub adminer_database_delete {
+    select_console 'x11';
     x11_start_program("firefox --setDefaultBrowser http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
 
     # Do some operations on web, e.g., log in, select/delete a database
