@@ -51,7 +51,7 @@ sub run {
     }
 
     # check required automatic updates, it is not scanned on sle12 codestream
-    if (is_sle('>=15') || is_tumbleweed || is_leap('>=15.0') || is_jeos) {
+    if (is_sle('>=15-sp1') || is_tumbleweed || is_leap('>=15.1') || is_jeos) {
         $output = script_output('zypper -n inr -D --no-recommends');
         my $zypper_regex = qr/The\s{1}following.*going\s{1}to\s{1}be\s{1}\w+:\s+([a-zA-Z0-9-_].*)/;
         if ($output =~ $zypper_regex) {
