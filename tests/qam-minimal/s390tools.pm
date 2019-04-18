@@ -29,7 +29,7 @@ sub run {
     validate_script_output 'cputype',                     sub { m/IBM zEnterprise/ };
     validate_script_output 'lsqeth',                      sub { m/Device namei|card_type|cdev0|online|state|buffer_count|layer2/ };
     validate_script_output 'lsdasd',                      sub { m/Bus-ID|Status|Name|Device|Type|BlkSz|Size|Blocks/ };
-    validate_script_output 'lsmem',                       sub { m/RANGE|SIZE|STATE|REMOVABLE|BLOCK/ };
+    validate_script_output 'lsmem',                       sub { m/RANGE|SIZE|STATE|REMOVABLE|BLOCK/i };
     # dasd_reload does exit with 4
     assert_script_run 'dasd_reload|grep -E "offline|Activating"';
     validate_script_output 'dasdview -i /dev/dasda',               sub { m/general DASD information|DASD geometry/ };
