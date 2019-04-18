@@ -35,7 +35,8 @@ sub run {
         barrier_wait {name => 'salt_master_ready', check_dead_job => 1};
         # wait until all minions are started and accept minion keys
         barrier_wait {name => 'salt_minions_connected', check_dead_job => 1};
-        sleep 5;
+        # before accepting the key, wait until the minions are fully started (systemd might be not reliable)
+        assert_script_run "salt-run state.event pretty=False tagmatch='salt/auth' quiet=False count=$num_nodes |& tee /dev/$serialdev", 300;
         assert_script_run 'salt-key --accept-all --yes';
         # salt does not return 1 if any node will fail ping test
         assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
@@ -68,7 +69,7 @@ EOF
             record_soft_failure 'Workaround apparmor - bsc#1130930';
             assert_script_run "salt '*' cmd.run 'systemctl stop apparmor.service; aa-teardown' |& tee /dev/$serialdev";
         }
-        script_run "cat /srv/pillar/ceph/proposals/policy.cfg";
+        script_run "cat /srv/pillar/ceph/proposals/policy.cfg |& tee /dev/$serialdev";
         assert_script_run "salt '*' pillar.items |& tee /dev/$serialdev";
         assert_script_run "salt-run state.orch ceph.stage.3 |& tee /dev/$serialdev", 1200;
         assert_script_run "salt-run state.orch ceph.stage.4 |& tee /dev/$serialdev", 1200;
