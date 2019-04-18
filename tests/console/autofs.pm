@@ -14,12 +14,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use version_utils;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
 use utils qw(systemctl zypper_call);
 
 sub run {
     select_console 'root-console';
-    zypper_call("in autofs mkisofs");
+    zypper_call("in autofs mkisofs") if is_sle('15+');
     my $autofs_conf_file       = '/etc/auto.master';
     my $autofs_map_file        = '/etc/auto.master.d/autofs_regression_test.autofs';
     my $test_conf_file         = '/etc/auto.iso';
