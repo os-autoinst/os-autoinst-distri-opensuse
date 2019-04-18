@@ -945,7 +945,9 @@ sub set_extrabootparams_grub_conf {
 sub ensure_shim_import {
     my (%args) = @_;
     $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
-    assert_screen($args{tags}, 30);
+    # aarch64 firmware 'tianocore' can take longer to load
+    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 60 : 30;
+    assert_screen($args{tags}, $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
