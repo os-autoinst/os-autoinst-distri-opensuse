@@ -2511,7 +2511,9 @@ sub load_ha_cluster_tests {
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
     # Wait for barriers to be initialized except when testing HAWK as a client
-    loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client'));
+    # or Pacemaker CTS regression tests
+    loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client') or
+        (get_var('PACEMAKER_CTS_REG')));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
@@ -2530,6 +2532,12 @@ sub load_ha_cluster_tests {
     # If HAWKGUI_TEST_ROLE is set to client, only load client side test
     if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
         loadtest 'ha/hawk_gui';
+        return 1;
+    }
+
+    # Only do pacemaker-cts regression tests if PACEMAKER_CTS_REG is set
+    if (get_var('PACEMAKER_CTS_REG')) {
+        loadtest 'ha/pacemaker_cts_regression';
         return 1;
     }
 
