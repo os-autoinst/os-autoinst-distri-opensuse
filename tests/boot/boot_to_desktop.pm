@@ -18,6 +18,7 @@ use testapi;
 use version_utils qw(is_upgrade is_sles4sap);
 
 sub run {
+    print "@@@@@@@@@@@";
     my ($self) = @_;
     $self->{in_boot_desktop} = 1;
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
