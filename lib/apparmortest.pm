@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
+use y2x11test qw(launch_yast2_module_x11);
 
 use base 'consoletest';
 
@@ -51,6 +52,9 @@ our $testdomain     = "testdomain.com";
 
 our $adminer_file = "adminer.php5";
 our $adminer_dir  = "/srv/www/htdocs/adminer/";
+
+our $testuser = "testuser";
+our $testdir  = "testdir";
 
 # $prof_dir_tmp: The target temporary directory
 # $type:
@@ -115,6 +119,11 @@ sub aa_status_stdout_check {
     my $lines      = $start_line + $total_line;
 
     assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
+}
+
+sub ip_fetch {
+    my $ip = script_output("hostname -I | cut -d ' ' -f1");
+    return $ip;
 }
 
 # Set up mail server with Postfix and Dovecot:
@@ -398,8 +407,7 @@ sub adminer_setup {
     x11_start_program("firefox http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
 
     # Exit x11 and turn to console
-    send_key("alt-f4");
-    assert_screen("generic-desktop");
+    send_key_until_needlematch("generic-desktop", 'alt-f4', 2, 5);
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
@@ -449,6 +457,11 @@ sub pre_run_hook {
 
 sub post_fail_hook {
     my ($self) = shift;
+
+    # Exit x11 and turn to console in case
+    send_key("alt-f4");
+    select_console("root-console");
+
     upload_logs("$audit_log");
     $self->SUPER::post_fail_hook;
 }
