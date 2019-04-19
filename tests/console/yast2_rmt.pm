@@ -15,14 +15,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-
-
-sub password_twice {
-    type_password;
-    send_key "tab";
-    type_password;
-    send_key "alt-o";
-}
+use repo_tools;
 
 sub test_ui {
     script_run("yast2 rmt; echo yast2-rmt-server-status-\$? > /dev/$serialdev", 0);
@@ -36,7 +29,7 @@ sub test_ui {
     type_password;
     send_key "alt-n";
     assert_screen "yast2_rmt_db_root_password";
-    password_twice;
+    type_password_twice;
     assert_screen "yast2_rmt_config_written_successfully";
     send_key "alt-o";
     assert_screen "yast2_rmt_ssl";
@@ -51,7 +44,7 @@ sub test_ui {
     send_key "alt-o";
     send_key "alt-n";
     assert_screen "yast2_rmt_ssl_CA_password";
-    password_twice;
+    type_password_twice;
     assert_screen "yast2_rmt_firewall";
     send_key "spc";
     send_key "alt-n";

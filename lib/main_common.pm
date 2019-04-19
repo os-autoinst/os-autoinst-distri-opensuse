@@ -667,7 +667,7 @@ sub is_smt {
 }
 
 sub is_rmt {
-    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /rmt/) && is_sle('>=15');
+    return (check_var('RMT_TEST', '1') && is_sle('>=15'));
 }
 
 sub remove_common_needles {
