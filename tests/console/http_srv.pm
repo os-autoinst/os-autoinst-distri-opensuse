@@ -16,11 +16,16 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
     # Log space available before installation, see poo#19834
     script_run("df -h > /dev/$serialdev", 0);
+    # In upgrade scenario we have service_check module and apache2 already installed
+    if (((get_var('UPGRADE') == 1) || get_var('MIGRATION_METHOD')) && is_sle) {
+        zypper_call("rm apache2");
+    }
     # Install apache2
     zypper_call("in apache2");
     # After installation, apache2 is disabled
