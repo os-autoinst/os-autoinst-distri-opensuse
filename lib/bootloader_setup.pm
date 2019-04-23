@@ -229,7 +229,6 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
-    record_soft_failure 'bsc#1017558:Cannot view timestamp of read-only snapshots in GRUB as names truncated' if is_leap;
     # assert needle to avoid send down key early in grub_test_snapshot.
     assert_screen 'snap-default' if get_var('OFW');
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
