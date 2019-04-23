@@ -86,6 +86,7 @@ PERF_SETUP | boolean | false | Enables kernel performance testing deployment par
 PERF_RUNCASE | boolean | false | Enables kernel performance testing run case part.
 PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package manager when package installation has finished. Possible actions are: close, restart, summary. If PKGMGR_ACTION_AT_EXIT is not set in openQA, test module will read the default value from /etc/sysconfig/yast2.
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
+QA_TESTSUITE | string | | Comma or semicolon separated a list of the automation cases' name, and these cases will be installed and triggered if you call "start_testrun" function from qa_run.pm
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
@@ -93,7 +94,7 @@ REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installat
 RESCUECD | boolean | false | Indicates rescue image to be used.
 RESCUESYSTEM | boolean | false | Indicates rescue system under test.
 ROOTONLY | boolean | false | Request installation to create only the root account, no user account.
-SCC_ADDONS | string | | Coma separated list of modules to be enabled using SCC/RMT.
+SCC_ADDONS | string | | Comma separated list of modules to be enabled using SCC/RMT.
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
 SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.
 SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certificate validation of the remote source, e.g. when using self-signed https url.

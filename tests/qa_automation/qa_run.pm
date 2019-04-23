@@ -22,7 +22,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub test_run_list {
-    return ('_reboot_off', get_var('QA_TESTSUITE', get_var('QA_TESTSET', '') =~ s/[^_]*_//r));
+    return ('_reboot_off', @{get_var_array('QA_TESTSUITE', get_var('QA_TESTSET', '') =~ s/[^_]*_//r)});
 }
 
 sub system_status {
