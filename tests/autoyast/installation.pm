@@ -121,6 +121,8 @@ sub run {
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
     push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
+    # resolve conflicts and this is a workaround during the update
+    push(@needles, 'manual-intervention') if get_var("BREAK_DEPS");
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
@@ -218,6 +220,13 @@ sub run {
             send_key 'alt-i';    # ignore
             assert_screen 'WARNING-ignoring-package-failure';
             send_key 'alt-o';
+            next;
+        }
+        elsif (match_has_tag('manual-intervention')) {
+            $self->deal_with_dependency_issues;
+            assert_screen 'installation-settings-overview-loaded';
+            send_key 'alt-u';
+            wait_screen_change { send_key 'alt-u' };
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
