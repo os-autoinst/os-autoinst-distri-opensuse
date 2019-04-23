@@ -462,13 +462,13 @@ sub load_zdup_tests {
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
-    loadtest 'installation/install_service';
+    loadtest 'installation/install_service' if !is_desktop;
     loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
     loadtest 'boot/boot_to_desktop';
-    loadtest 'console/check_upgraded_service';
+    loadtest 'console/check_upgraded_service' if !is_desktop;
 }
 
 sub load_autoyast_tests {
