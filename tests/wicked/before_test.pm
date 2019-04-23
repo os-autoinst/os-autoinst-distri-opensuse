@@ -20,7 +20,7 @@ use network_utils qw(iface setup_static_network);
 sub run {
     my ($self, $ctx) = @_;
     $self->select_serial_terminal;
-    if (check_var('WICKED', '2nics')) {
+    if (check_var('WICKED', '2nics') && check_var('IS_WICKED_REF', '0')) {
         my @ifaces = split(' ', iface(2));
         $ctx->iface($ifaces[0]);
         $ctx->iface2($ifaces[1]);
