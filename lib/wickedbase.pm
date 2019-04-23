@@ -194,7 +194,7 @@ sub get_from_data {
 
 Pings a given IP with a given C<timeout>.
 C<ip_version> defines the ping command to be used, 'ping' by default and 'ping6' for 'v6'.
-IP could be specified directly via C<ip> or using C<type> variable. In case of C<type> variable 
+IP could be specified directly via C<ip> or using C<type> variable. In case of C<type> variable
 it will be bypassed to C<get_remote_ip> function to get IP by label
 =cut
 sub ping_with_timeout {
@@ -228,9 +228,7 @@ sub setup_tuntap {
     my ($self, $config, $type) = @_;
     my $local_ip = $self->get_ip(type => $type);
     my $remote_ip = $self->get_remote_ip(type => $type);
-    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
-    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
-    assert_script_run("cat $config");
+    file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip);
     $self->wicked_command('ifup', $type);
     assert_script_run('ip a');
 }
@@ -249,10 +247,7 @@ sub setup_tunnel {
     my $local_ip = $self->get_ip(type => 'host');
     my $remote_ip = $self->get_remote_ip(type => 'host');
     my $tunnel_ip = $self->get_ip(type => $type);
-    assert_script_run("sed \'s/local_ip/$local_ip/\' -i $config");
-    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $config");
-    assert_script_run("sed \'s/tunnel_ip/$tunnel_ip/\' -i $config");
-    assert_script_run("cat $config");
+    file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, tunnel_ip => $tunnel_ip);
     $self->wicked_command('ifup', $type);
     assert_script_run('ip a');
 }
@@ -291,9 +286,7 @@ sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(type => 'host');
     my $iface    = iface();
-    assert_script_run("sed \'s/ip_address/$local_ip/\' -i $config");
-    assert_script_run("sed \'s/iface/$iface/\' -i $config");
-    assert_script_run("cat $config");
+    file_content_replace($config, ip_address => $local_ip, iface => $iface);
     $self->wicked_command($command, 'br0');
     if ($dummy ne '') {
         assert_script_run("cat $dummy");
@@ -314,8 +307,7 @@ sub setup_openvpn_client {
     my $openvpn_client = '/etc/openvpn/client.conf';
     my $remote_ip      = $self->get_remote_ip(type => 'host');
     $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
-    assert_script_run("sed \'s/remote_ip/$remote_ip/\' -i $openvpn_client");
-    assert_script_run("sed \'s/device/$device/\' -i $openvpn_client");
+    file_content_replace($openvpn_client, remote_ip => $remote_ip, device => $device);
 }
 
 =head2 get_test_result
