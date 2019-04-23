@@ -4,16 +4,6 @@ set -e
 
 . ../testincl.sh
 
-isSles15(){
-   if [ ! -f /etc/os-release ]; then
-      return 1
-   fi
-   if (grep -i -q "SUSE Linux Enterprise Server 15" /etc/os-release); then
-      return 0
-   fi
-   return 1
-}
-
 if ( isSles15 ); then
 	PYTHON=python3
 else
