@@ -911,8 +911,9 @@ else {
         return 1;
     }
     elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
-        boot_hdd_image;
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        load_boot_tests;
+        load_inst_tests;
+        loadtest 'virt_autotest/login_console';
         loadtest 'console/avocado_prepare';
         my @test_groups = ('block_device_hotplug', 'cpu', 'disk_image', 'memory_hotplug', 'nic_hotplug', 'qmp', 'usb');
         for my $test_group (@test_groups) {
