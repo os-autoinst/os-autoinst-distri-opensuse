@@ -11,9 +11,9 @@
 # Summary: Select existing partition(s) for upgrade
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_sle';

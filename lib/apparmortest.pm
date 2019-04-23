@@ -23,7 +23,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use y2x11test 'launch_yast2_module_x11';
+use y2_module_guitest 'launch_yast2_module_x11';
 
 use base 'consoletest';
 

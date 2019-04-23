@@ -12,14 +12,15 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 use yast2_shortcuts qw($is_older_product %remote_admin %firewall_settings %firewall_details $confirm);
 
 sub configure_remote_admin {
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'remote');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'remote');
     # Remote Administration Settings
     assert_screen 'yast2_vnc_remote_administration';
     return if check_var('ARCH', 's390x');

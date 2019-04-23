@@ -11,9 +11,9 @@
 #   configure new ones
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 
 sub run {

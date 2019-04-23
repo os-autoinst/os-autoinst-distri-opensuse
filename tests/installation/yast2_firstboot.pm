@@ -11,7 +11,8 @@
 # Doc: https://en.opensuse.org/YaST_Firstboot
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "y2logsstep";
+use base 'y2_installbase';
+use y2_logs_helper qw(accept_license verify_license_has_to_be_accepted);
 use strict;
 use warnings;
 use testapi;

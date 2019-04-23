@@ -11,13 +11,10 @@ package bootloader_setup;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use File::Basename 'basename';
 use Time::HiRes 'sleep';
-
 use testapi;
 use utils;
 use version_utils qw(is_caasp is_jeos is_leap is_sle);

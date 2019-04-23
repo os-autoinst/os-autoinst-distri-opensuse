@@ -10,9 +10,9 @@
 # Summary: Start CaaSP installation
 # Maintainer: Martin Kravec <mkravec@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use caasp;
 use version_utils 'is_caasp';

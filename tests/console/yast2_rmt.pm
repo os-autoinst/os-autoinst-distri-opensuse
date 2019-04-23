@@ -10,7 +10,8 @@
 # Summary: Test for the yast2-rmt module
 # Maintainer: Jonathan Rivrain <JRivrain@suse.com>
 
-use base "console_yasttest";
+use parent "y2_module_consoletest";
+
 use strict;
 use warnings;
 use utils;
@@ -25,7 +26,7 @@ sub password_twice {
 }
 
 sub test_ui {
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'rmt');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'rmt');
     assert_screen "yast2_rmt_registration";
     send_key "alt-n";
     assert_screen "yast2_rmt_ignore_registration_dialog";

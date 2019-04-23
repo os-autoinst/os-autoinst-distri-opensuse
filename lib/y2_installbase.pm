@@ -1,20 +1,19 @@
-package y2logsstep;
+package y2_installbase;
+
 use base "installbasetest";
-use testapi;
 use strict;
 use warnings;
-use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
-use Utils::Backends 'is_hyperv';
+use testapi;
 use network_utils;
-use utils 'zypper_call';
+use version_utils qw(is_caasp is_sle);
+use y2_logs_helper 'get_available_compression';
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
     script_run("for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 300);
     save_screenshot;
 }
-
 sub use_ifconfig {
     script_run "dhcpcd eth0";
 }
@@ -58,61 +57,6 @@ sub get_to_console {
         # (e.g. livecdrerboot did not see a grub screen and booted through to an installed system)
         # so we try to perform a login on TTY2 and export yast logs
         select_console('root-console');
-    }
-}
-
-# select the conflict resolution for dependency issues
-sub select_conflict_resolution {
-    # higher similarity level as this should only select a single
-    # entry, not close the dialog or something
-    wait_screen_change(sub { send_key 'spc' }, undef, similarity_level => 55);
-    # lower similarity level to not confuse the button press for
-    # screen change
-    wait_screen_change(sub { send_key 'alt-o' }, undef, similarity_level => 48);
-}
-
-# to workaround dependency issues
-sub workaround_dependency_issues {
-    return unless check_screen 'dependency-issue', 10;
-
-    if (check_var('VIDEOMODE', 'text')) {
-        while (check_screen('dependency-issue', 5)) {
-            wait_screen_change { send_key 'alt-s' };
-            wait_screen_change { send_key 'ret' };
-            wait_screen_change { send_key 'alt-o' };
-        }
-    }
-    else {
-        while (check_screen('dependency-issue', 5)) {
-            wait_screen_change { send_key 'alt-1' };
-            select_conflict_resolution;
-            # Refer ticket https://progress.opensuse.org/issues/48266
-            wait_still_screen(2);
-        }
-    }
-    return 1;
-}
-
-# to break dependency issues
-sub break_dependency {
-    return unless check_screen 'dependency-issue', 10;
-
-    if (check_var('VIDEOMODE', 'text')) {
-        while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
-            wait_screen_change { send_key 'alt-s' };          # Solution
-            send_key 'down';                                  # down to option break dependency
-            send_key 'ret';                                   # select option break dependency
-            wait_screen_change { send_key 'alt-o' };          # OK - Try Again
-        }
-    }
-    else {
-        while (check_screen('dependency-issue', 5)) {
-            # 2 is the option to break dependency
-            send_key 'alt-2';
-            select_conflict_resolution;
-            # Refer ticket https://progress.opensuse.org/issues/48266
-            wait_still_screen(2);
-        }
     }
 }
 
@@ -216,52 +160,6 @@ sub deal_with_dependency_issues {
     }
 }
 
-=head2 verify_license_has_to_be_accepted
-
-    verify_license_has_to_be_accepted;
-
-Explicitly check that the license has to be accepted.
-
-Press 'Next' button to trigger a popup saying that the License has to be accepted then close the popup.
-
-=cut
-
-sub verify_license_has_to_be_accepted {
-    send_key $cmd{next};
-    assert_screen 'license-not-accepted';
-    send_key $cmd{ok};
-    wait_still_screen 1;
-}
-
-=head2 accept_license
-
-    accept_license;
-
-Select checkbox accepting the License agreement and check if it is actually selected.
-
-Mark the test as failed if the checkbox is not selected after sending an appropriate command, otherwise proceed further.
-
-=cut
-
-sub accept_license {
-    send_key $cmd{accept};
-    assert_screen('license-agreement-accepted');
-}
-
-sub verify_license_translations {
-    return if (is_sle && get_var("BETA") || check_var('VIDEOMODE', 'text'));
-    my $current_lang = 'english-us';
-    for my $lang (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
-        wait_screen_change { send_key 'alt-l' };
-        assert_and_click "license-language-selected-$current_lang";
-        wait_screen_change { type_string(substr($lang, 0, 1)) };
-        send_key_until_needlematch("license-language-selected-dropbox-$lang", 'down', 60);
-        send_key 'ret';
-        assert_screen "license-content-$lang";
-        $current_lang = $lang;
-    }
-}
-
 sub save_upload_y2logs {
     my ($self, %args) = @_;
 
@@ -287,14 +185,6 @@ sub save_upload_y2logs {
     # We skip parsing yast2 logs in each installation scenario, but only if
     # test has failed or we want to explicitly identify failures
     $self->investigate_yast2_failure() unless $args{skip_logs_investigation};
-}
-
-sub get_available_compression {
-    my %extensions = (bzip2 => '.bz2', gzip => '.gz', xz => '.xz');
-    foreach my $binary (sort keys %extensions) {
-        return $extensions{$binary} unless script_run("type $binary");
-    }
-    return "";
 }
 
 sub save_system_logs {
@@ -369,28 +259,6 @@ sub save_strace_gdb_output {
             my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
             upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
         }
-    }
-}
-
-sub yast2_console_exec {
-    my %args = @_;
-    die "Yast2 module has not been found among function arguments!\n" unless (defined($args{yast2_module}));
-    my $y2_start    = 'Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 yast2 ';
-    my $module_name = 'yast2-' . $args{yast2_module} . '-status';
-    $y2_start .= (defined($args{yast2_opts})) ?
-      $args{yast2_opts} . ' ' . $args{yast2_module} . ';' :
-      $args{yast2_module} . ';';
-
-    # poo#40715: Hyper-V 2012 R2 serial console is unstable (a Hyper-V product bug)
-    # and is in many cases loosing the 15th character, so e.g. instead of the expected
-    # 'yast2-scc-status-0' we get 'yast2-scc-statu-0' (sic, see the missing 's').
-    # Kepp only the first 10 characters of a magic string plus a dash ('-')
-    # and up to a three digit exit code.
-    $module_name = substr($module_name, 0, 10) if is_hyperv('2012r2');
-    if (!script_run($y2_start . " echo $module_name-\$? > /dev/$serialdev", 0)) {
-        return $module_name;
-    } else {
-        die "Yast2 module failed to execute!\n";
     }
 }
 

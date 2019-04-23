@@ -18,9 +18,9 @@
 #    start installation.
 # Maintainer: mkravec <mkravec@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 
 # poo#11438

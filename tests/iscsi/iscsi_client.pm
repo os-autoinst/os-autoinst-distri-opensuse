@@ -18,7 +18,7 @@ use testapi;
 use mm_network;
 use lockapi;
 use x11utils 'turn_off_gnome_screensaver';
-use y2logsstep 'yast2_console_exec';
+use y2_module_consoletest;
 
 sub run {
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
@@ -27,7 +27,7 @@ sub run {
     configure_default_gateway;
     configure_static_ip('10.0.2.3/24');
     configure_static_dns(get_host_resolv_conf());
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'iscsi-client');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'iscsi-client');
     assert_screen 'iscsi-client', 180;
     mutex_lock('iscsi_ready');    # wait for server setup
     send_key "alt-i";             # go to initiator name field

@@ -19,7 +19,8 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
+use y2_logs_helper qw(verify_license_has_to_be_accepted verify_license_translations accept_license);
 use testapi;
 use version_utils 'is_sle';
 

@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use testapi;
 use utils 'systemctl';
 use version_utils 'is_pre_15';
@@ -24,7 +24,7 @@ sub run {
     assert_script_run("/usr/bin/zypper -n -q in yast2-apparmor");
 
     # start apparmor configuration
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'apparmor');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     # check Apparmor Configuration is opened
     assert_screen 'yast2_apparmor';
     send_key 'ret';
@@ -142,7 +142,7 @@ sub run {
     assert_script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
 
     # start apparmor configuration again
-    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'apparmor');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     assert_screen 'yast2_apparmor';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'down' };

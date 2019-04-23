@@ -11,7 +11,7 @@
 # Summary: Full patch system using zypper
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;

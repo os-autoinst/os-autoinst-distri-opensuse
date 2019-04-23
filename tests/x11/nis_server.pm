@@ -18,10 +18,11 @@ use testapi;
 use lockapi 'mutex_create';
 use mmapi 'wait_for_children';
 use utils 'systemctl';
-use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
+use mm_network 'setup_static_mm_network';
+use y2_module_guitest '%setup_nis_nfs_x11';
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
-use y2logsstep 'yast2_console_exec';
+use y2_module_consoletest;
 
 sub setup_verification {
     script_run 'rpcinfo -u localhost ypserv';    # ypserv is running
@@ -134,13 +135,13 @@ sub run {
         systemctl 'stop ' . $self->firewall;
         record_soft_failure('bsc#999873');
     }
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nis_server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nis_server');
     nis_server_configuration();
     wait_serial("$module_name-0", 360) || die "'yast2 nis server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible';
     # NIS Server is configured and running, configuration continues on client side
     mutex_create('nis_ready');
-    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nfs_server');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs_server');
     nfs_server_configuration();
     wait_serial("$module_name-0", 360) || die "'yast2 nfs server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible', 200;

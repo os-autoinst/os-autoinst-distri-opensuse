@@ -10,7 +10,7 @@
 # Summary: sle12 online migration testsuite
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;

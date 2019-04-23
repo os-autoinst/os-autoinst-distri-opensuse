@@ -11,7 +11,7 @@
 #    https://trello.com/c/h7DzsthA/647-3-sle-12-sp2-p1-992608-add-ons-added-via-add-on-products-xml-are-lost-after-self-update
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

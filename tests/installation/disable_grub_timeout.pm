@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_upgrade);

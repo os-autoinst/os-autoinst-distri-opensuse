@@ -179,8 +179,4 @@ sub run {
     assert_screen "zypper-dup-finish";
 }
 
-sub test_flags {
-    return {fatal => 1};
-}
-
 1;

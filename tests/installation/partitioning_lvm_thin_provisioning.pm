@@ -11,9 +11,9 @@
 # Summary: LVM thin provisioning setup
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2logsstep';
 use testapi;
 use partition_setup qw(create_new_partition_table addpart addlv addvg addboot);
 use version_utils 'is_storage_ng';

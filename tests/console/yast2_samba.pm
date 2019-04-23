@@ -12,11 +12,11 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed is_opensuse);
-use y2logsstep;
 use yast2_widget_utils 'change_service_configuration';
 
 my %ldap_directives = (
@@ -82,7 +82,7 @@ sub setup_yast2_ldap_server {
     assert_script_run("echo \"$ldap_directives{fqdn}\" > /etc/hostname");
 
     record_info 'Setup LDAP', 'Create New Directory Instance';
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'ldap-server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ldap-server');
 
     wait_still_screen(2);
     foreach (sort keys %ldap_options_to_dirs) {
@@ -111,7 +111,7 @@ sub setup_yast2_auth_server {
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
 
     # SLE12SP4 still uses old yast2-auth-server-3.1.18, which does not contain ldap-server.rb
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'auth-server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'auth-server');
 
     #confirm offered rpms to install
     assert_screen('yast2_install_packages');
@@ -368,7 +368,7 @@ sub setup_samba_ldap_expert {
 }
 
 sub setup_samba {
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'samba-server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'samba-server');
     set_workgroup;
     handle_domain_controller if (is_sle('<15') || is_leap('<15.0'));
     setup_samba_startup;

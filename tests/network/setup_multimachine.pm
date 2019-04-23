@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use y2x11test 'setup_static_mm_network';
+use mm_network 'setup_static_mm_network';
 use utils 'zypper_call';
 use Utils::Systemd 'disable_and_stop_service';
 

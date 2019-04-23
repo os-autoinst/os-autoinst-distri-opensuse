@@ -11,7 +11,7 @@
 # Summary: Test module to activate multipath
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

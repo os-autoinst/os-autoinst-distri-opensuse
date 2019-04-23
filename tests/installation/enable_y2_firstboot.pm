@@ -11,7 +11,7 @@
 # Doc: https://en.opensuse.org/YaST_Firstboot
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

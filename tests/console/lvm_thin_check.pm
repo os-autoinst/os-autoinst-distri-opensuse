@@ -16,8 +16,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use y2logsstep;
-use y2_common 'workaround_suppress_lvm_warnings';
+use y2_module_basetest 'workaround_suppress_lvm_warnings';
 
 sub run {
     my $self     = shift;

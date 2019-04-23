@@ -10,7 +10,7 @@
 # Summary: Run 'crash' utility on a kernel memory dump
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
