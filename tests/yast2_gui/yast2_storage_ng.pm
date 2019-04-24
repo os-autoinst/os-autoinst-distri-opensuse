@@ -20,13 +20,13 @@ use version_utils qw(is_sle is_tumbleweed is_opensuse);
 
 sub add_logical_volume {
     my ($lvname, $role) = shift;
-    sleep 1;
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-a" };
     wait_screen_change { type_string "$lvname" };
     wait_screen_change { send_key "alt-n" };
     # custom size
     send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-t");
-    sleep 1;
+    wait_still_screen 1;
     send_key "alt-s";
     wait_screen_change { type_string "400MiB" };
     wait_screen_change { send_key "alt-n" };
@@ -35,7 +35,7 @@ sub add_logical_volume {
 }
 
 sub encrypt_partition {
-    sleep 1;
+    wait_still_screen 1;
     send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-y");
     wait_screen_change { send_key "alt-n" };
     send_key "alt-t";
@@ -82,7 +82,7 @@ sub run {
         # custom size
         send_key "alt-o";
     }
-    sleep 1;
+    wait_still_screen 1;
     # select entry and type partition size
     send_key "alt-s";
     wait_screen_change { type_string "200MiB" };
@@ -97,7 +97,7 @@ sub run {
     send_key_until_needlematch("yast2_storage_ng-ext4", "up");
     send_key "ret";
     # encrypt the partition
-    sleep 1;
+    wait_still_screen 1;
     # on SLE 12.x it's not possible to resize an ext4 encrypted filesystem,
     if (is_sle("<=12-sp4")) {
         wait_screen_change { send_key "alt-f" };
@@ -109,7 +109,7 @@ sub run {
     wait_screen_change { send_key "alt-f" };
 
     ### RESIZE PARTITION ###
-    sleep 3;
+    wait_still_screen 3;
     start_y2sn $self;
     select_vdb;
     # resize partition
@@ -119,10 +119,10 @@ sub run {
     } else {
         wait_screen_change { send_key "alt-i" };
     }
-    sleep 1;
+    wait_still_screen 1;
     # custom size
     send_key "alt-u";
-    sleep 1;
+    wait_still_screen 1;
     # select entry and type partition size
     send_key "alt-s";
     wait_screen_change { type_string "170MiB" };
@@ -130,22 +130,22 @@ sub run {
 
     assert_screen "yast2_storage_ng-partition-resized";
     wait_screen_change { send_key "alt-n" };
-    sleep 1;
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 
     ### DELETE PARTITION ###
-    sleep 3;
+    wait_still_screen 3;
     start_y2sn $self;
     select_vdb;
     wait_screen_change { send_key "alt-l" };
     wait_screen_change { send_key "alt-y" };
     assert_screen "yast2_storage_ng-unpartitioned";
     wait_screen_change { send_key "alt-n" };
-    sleep 1;
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 
     ### CREATE VOLUME GROUP ###
-    sleep 3;
+    wait_still_screen 3;
     start_y2sn $self;
     assert_and_click "yast2_storage_ng-select-vol-management";
     wait_screen_change { send_key "alt-a" };
@@ -191,16 +191,16 @@ sub run {
     add_logical_volume "lv4", $raw_shortcut;
     # on SLE 12.x the alt-a shortcut doesn't seem to work reliably, so here we 'force' the raw format
     send_key "alt-d" if is_sle("<=12-sp4");
-    sleep 1;
+    wait_still_screen 1;
     wait_screen_change { send_key $fs_page_shortcut };
 
     # summary and finish
     wait_screen_change { send_key "alt-n" };
-    sleep 1;
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 
     # check that all logical volumes have been created
-    sleep 5;
+    wait_still_screen 5;
     select_console "root-console";
     assert_script_run 'for i in {1..4}; do lvdisplay "/dev/vgtest/lv${i}"; done';
 
@@ -211,7 +211,7 @@ sub run {
     wait_screen_change { send_key(is_sle ? "alt-l" : "alt-d") };
     wait_screen_change { send_key "alt-t" };
     wait_screen_change { send_key "alt-n" };
-    sleep 1;
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 }
 
