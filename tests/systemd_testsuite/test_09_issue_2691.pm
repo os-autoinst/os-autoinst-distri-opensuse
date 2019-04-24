@@ -10,29 +10,20 @@
 # Summary: Run test executed by TEST-09-ISSUE-2691 from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
-use base "consoletest";
+use base 'systemd_testsuite_test';
 use warnings;
 use strict;
 use testapi;
-use utils 'zypper_call';
 use power_action_utils 'power_action';
 
-sub run {
+sub pre_run_hook {
+    my ($self) = @_;
     #prepare test
-    assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-09-ISSUE-2691 --setup 2>&1 | tee /tmp/testsuite.log', 600;
-    assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
-    assert_script_run 'ls -l /usr/lib/systemd/system-shutdown/debug.sh';
-    #reboot
-    power_action('reboot', keepconsole => 1, textmode => 1);
-    #login
-    send_key_until_needlematch('text-login', 'ret', 360, 5);
-    type_string "root\n";
-    assert_screen "password-prompt";
-    type_password;
-    send_key('ret');
-    assert_screen "text-logged-in-root";
-    # run test
+    $self->testsuiteprepare('TEST-09-ISSUE-2691');
+}
+
+sub run {
+    #run test
     type_string 'systemctl start testsuite.service';
     send_key 'ret';
     type_string 'systemctl status testsuite.service';
@@ -54,14 +45,7 @@ sub run {
 }
 
 sub test_flags {
-    return { always_rollback => 1 };
-}
-
-sub post_fail_hook {
-    my ($self) = shift;
-    $self->SUPER::post_fail_hook;
-    assert_script_run('tar -cjf TEST-09-ISSUE-2691-logs.tar.bz2 /var/opt/systemd-tests/logs/ /shutdown-log.txt');
-    upload_logs('TEST-09-ISSUE-2691-logs.tar.bz2');
+    return {always_rollback => 1};
 }
 
 
