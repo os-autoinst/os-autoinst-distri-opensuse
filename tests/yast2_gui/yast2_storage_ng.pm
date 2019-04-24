@@ -202,7 +202,9 @@ sub run {
     # check that all logical volumes have been created
     wait_still_screen 5;
     select_console "root-console";
-    assert_script_run 'for i in {1..4}; do lvdisplay "/dev/vgtest/lv${i}"; done';
+    for (my $i = 1; $i <= 4; $i++) {
+        assert_script_run "lvdisplay /dev/vgtest/lv$i";
+    }
 
     # Remove the volume group and all its logical volumes
     select_console "x11";
