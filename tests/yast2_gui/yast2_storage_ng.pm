@@ -108,6 +108,10 @@ sub run {
     wait_screen_change { send_key "alt-n" };
     wait_screen_change { send_key "alt-f" };
 
+    select_console "root-console";
+    validate_script_output("fdisk -l | grep /dev/vdb1", sub { m/\/dev\/vdb1\s+\d+\s+\d+\s+\d+.*/ });
+    select_console "x11";
+
     ### RESIZE PARTITION ###
     wait_still_screen 3;
     start_y2sn $self;
@@ -133,6 +137,11 @@ sub run {
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 
+    # check that the partion is ~170MiB (output is: /dev/vdb1     2048 355477  353430 172.6M 83 Linux)
+    select_console "root-console";
+    validate_script_output("fdisk -l | grep /dev/vdb1", sub { m/\/dev\/vdb1\s+\d+\s+\d+\s+\d+\s+17.*/ });
+    select_console "x11";
+
     ### DELETE PARTITION ###
     wait_still_screen 3;
     start_y2sn $self;
@@ -143,6 +152,11 @@ sub run {
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
+
+    # check that /dev/vdb1 has been deleted
+    select_console "root-console";
+    validate_script_output("fdisk -l |grep -c /dev/vdb1", sub { m/0/ });
+    select_console "x11";
 
     ### CREATE VOLUME GROUP ###
     wait_still_screen 3;
