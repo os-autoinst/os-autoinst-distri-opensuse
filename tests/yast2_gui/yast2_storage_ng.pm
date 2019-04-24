@@ -7,7 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: YaST2 ...
+# Summary: This test will check that creating, resizing, encrypting and
+#          deleting a partition, a volume group and some logical volumes work as
+#          intended.
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "y2x11test";
@@ -23,11 +25,7 @@ sub add_logical_volume {
     wait_screen_change { type_string "$lvname" };
     wait_screen_change { send_key "alt-n" };
     # custom size
-    if (is_sle('<=12-sp4')) {
-        send_key "alt-c";
-    } else {
-        send_key "alt-t";
-    }
+    send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-t");
     sleep 1;
     send_key "alt-s";
     wait_screen_change { type_string "400MiB" };
@@ -38,23 +36,13 @@ sub add_logical_volume {
 
 sub encrypt_partition {
     sleep 1;
-    if (is_sle('<=12-sp4')) {
-        send_key "alt-c";
-    } else {
-        send_key "alt-y";
-    }
+    send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-y");
     wait_screen_change { send_key "alt-n" };
     send_key "alt-t";
     wait_screen_change { type_string "susetesting" };
     send_key "alt-v";
     wait_screen_change { type_string "susetesting" };
-    wait_screen_change {
-        if (is_sle('<=12-sp4')) {
-            send_key "alt-f";
-        } else {
-            send_key "alt-n";
-        }
-    };
+    wait_screen_change { send_key(is_sle('<=12-sp4') ? "alt-f" : "alt-n") };
 }
 
 sub select_vdb {
@@ -138,11 +126,8 @@ sub run {
     # select entry and type partition size
     send_key "alt-s";
     wait_screen_change { type_string "170MiB" };
-    if (is_sle("<=12-sp4")) {
-        wait_screen_change { send_key "alt-o" };
-    } else {
-        wait_screen_change { send_key "alt-n" };
-    }
+    wait_screen_change { send_key(is_sle('<=12-sp4') ? "alt-o" : "alt-n") };
+
     assert_screen "yast2_storage_ng-partition-resized";
     wait_screen_change { send_key "alt-n" };
     sleep 1;
@@ -169,11 +154,8 @@ sub run {
     wait_screen_change { type_string "vgtest" };
     assert_and_click "yast2_storage_ng-vg-select-device";
     send_key "alt-a";
-    if (is_sle("<=12-sp4")) {
-        wait_screen_change { send_key "alt-f" };
-    } else {
-        wait_screen_change { send_key "alt-n" };
-    }
+    wait_screen_change { send_key(is_sle('<=12-sp4') ? "alt-f" : "alt-n") };
+
     #  go to system view
     send_key "alt-s";
     assert_and_dclick "yast2_storage_ng-select-vgtest";
@@ -226,13 +208,7 @@ sub run {
     select_console "x11";
     start_y2sn $self;
     assert_and_click "yast2_storage_ng-select-vol-management";
-    wait_screen_change {
-        if (is_sle) {
-            send_key "alt-l";
-        } else {
-            send_key "alt-d";
-        }
-    };
+    wait_screen_change { send_key(is_sle ? "alt-l" : "alt-d") };
     wait_screen_change { send_key "alt-t" };
     wait_screen_change { send_key "alt-n" };
     sleep 1;
