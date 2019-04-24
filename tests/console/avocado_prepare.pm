@@ -18,20 +18,6 @@ use testapi;
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_sle is_opensuse);
 
-sub teardown {
-    my $teardown = <<'EOF';
-#!/bin/bash
-if [[ $(grep 1 /sys/class/net/br0/carrier) ]]; then
-    ACTIVE_NET=$(grep -l 1 /sys/class/net/eth*/carrier|head -n1|awk -F/ '{print$5}')
-    mv /etc/sysconfig/network/old_ifcfg-$ACTIVE_NET /etc/sysconfig/network/ifcfg-$ACTIVE_NET
-    rm /etc/sysconfig/network/ifcfg-br0
-    systemctl restart network;
-fi
-EOF
-    script_output($teardown);
-    assert_script_run 'ip a';
-}
-
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
@@ -39,8 +25,12 @@ sub run {
     # needed for script_output
     zypper_call 'in curl';
 
-    my $avocado_repo = get_var('AVOCADO_REPO');
-    zypper_call "ar -f $avocado_repo avocado_repo", exitcode => [0, 4, 104];
+    my $counter = 1;
+    my @repos   = split(/,/, get_var('AVOCADO_REPO'));
+    for my $var (@repos) {
+        zypper_call("--no-gpg-check ar -f $var 'AVOCADO_$counter'");
+        $counter++;
+    }
     zypper_call '--gpg-auto-import-keys ref';
 
     # setup bridge, add needed SCC modules and install avocado-vt, tune tests, timeouts, test fixes
@@ -49,25 +39,30 @@ sub run {
 EXT_STATUS=$(SUSEConnect --status)
 ARCH=$(uname -m)
 . /etc/os-release
-if [[ ! $(grep 1 /sys/class/net/br0/carrier) ]]; then
-    ACTIVE_NET=$(grep -l 1 /sys/class/net/eth*/carrier|head -n1|awk -F/ '{print$5}')
-    cp /etc/sysconfig/network/ifcfg-$ACTIVE_NET /etc/sysconfig/network/old_ifcfg-$ACTIVE_NET
-    interface="BOOTPROTO='none'\nSTARTMODE='auto'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'"
-    bridge="BOOTPROTO='dhcp'\nBRIDGE='yes'\nBRIDGE_FORWARDDELAY='0'\nBRIDGE_PORTS='$ACTIVE_NET'\nBRIDGE_STP='off'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'\nSTARTMODE='auto'"
-    echo -e $bridge >/etc/sysconfig/network/ifcfg-br0
-    echo -e $interface >/etc/sysconfig/network/ifcfg-$ACTIVE_NET
-    cat /etc/sysconfig/network/ifcfg-br0
-    cat /etc/sysconfig/network/ifcfg-$ACTIVE_NET
-    systemctl restart network;
-    ip a
-fi
+ACTIVE_NET=$(ip a|awk -F': ' '/state UP/ {print $2}'|head -n1)
+interface="BOOTPROTO='none'\nSTARTMODE='auto'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'"
+bridge="BOOTPROTO='dhcp'\nBRIDGE='yes'\nBRIDGE_FORWARDDELAY='0'\nBRIDGE_PORTS='$ACTIVE_NET'\nBRIDGE_STP='off'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'\nSTARTMODE='auto'"
+echo -e $bridge >/etc/sysconfig/network/ifcfg-br0
+echo -e $interface >/etc/sysconfig/network/ifcfg-$ACTIVE_NET
+cat /etc/sysconfig/network/ifcfg-br0
+cat /etc/sysconfig/network/ifcfg-$ACTIVE_NET
+systemctl restart network;
+ip a
 
 # modules for avocado dependencies e.g. sle-module-legacy for bridge-utils
-if ! echo $EXT_STATUS|grep sle-module-desktop-applications; then
-    SUSEConnect -p sle-module-desktop-applications/$VERSION_ID/$ARCH
-fi
-if ! echo $EXT_STATUS|grep sle-module-development-tools; then
-    SUSEConnect -p sle-module-development-tools/$VERSION_ID/$ARCH
+if [[ $VERSION_ID =~ '12' ]]; then
+    if ! echo $EXT_STATUS|grep sle-sdk; then
+        SUSEConnect -p sle-sdk/$VERSION_ID/$ARCH
+    fi
+    # legacy and public-cloud use only main version number
+    VERSION_ID='12'
+else
+    if ! echo $EXT_STATUS|grep sle-module-desktop-applications; then
+        SUSEConnect -p sle-module-desktop-applications/$VERSION_ID/$ARCH
+    fi
+    if ! echo $EXT_STATUS|grep sle-module-development-tools; then
+        SUSEConnect -p sle-module-development-tools/$VERSION_ID/$ARCH
+    fi
 fi
 if ! echo $EXT_STATUS|grep sle-module-legacy; then
     SUSEConnect -p sle-module-legacy/$VERSION_ID/$ARCH
@@ -100,12 +95,6 @@ systemctl start openvswitch;
 systemctl status openvswitch;
 EOF
     script_output($avocado_setup, 700);
-}
-
-sub post_fail_hook {
-    select_console('log-console');
-    teardown();
-    systemctl 'stop openvswitch';
 }
 
 sub test_flags {
