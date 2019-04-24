@@ -65,7 +65,7 @@ sub run {
 
     # we need to change filter to Search, in case yast2 reports available automatic update
     if ($is_inr_package) {
-        send_key 'alt-f';
+        send_key_until_needlematch 'yast2-sw-filter-opts', 'alt-f';
         wait_still_screen(stilltime => 2, timeout => 4, similarity_level => 50);
         wait_screen_change { send_key 'home' };
         send_key_until_needlematch 'yast2-sw_install-go-to-search', 'down';
