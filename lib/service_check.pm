@@ -132,8 +132,8 @@ sub install_services {
                 record_soft_failure('workaround for bug#1132292 zypper in apparmor failed msg popup');
             }
 
-            script_run 'systemctl enable ' . $srv_proc_name;
-            script_run 'systemctl start ' . $srv_proc_name;
+            assert_script_run 'systemctl enable ' . $srv_proc_name;
+            assert_script_run 'systemctl start ' . $srv_proc_name;
         }
     }
 }
@@ -144,7 +144,7 @@ sub check_services {
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
         if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
-            script_run 'systemctl status '
+            assert_script_run 'systemctl status '
               . $srv_proc_name
               . ' --no-pager | grep active';
         }
