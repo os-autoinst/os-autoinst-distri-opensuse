@@ -224,7 +224,7 @@ sub run {
     select_console "x11";
     start_y2sn $self;
     assert_and_click "yast2_storage_ng-select-vol-management";
-    wait_screen_change { send_key(is_sle ? "alt-l" : "alt-d") };
+    wait_screen_change { send_key(is_sle() ? "alt-l" : "alt-d") };
     wait_screen_change { send_key "alt-t" };
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
