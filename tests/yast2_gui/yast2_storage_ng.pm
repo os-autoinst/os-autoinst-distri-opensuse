@@ -108,9 +108,12 @@ sub run {
     wait_screen_change { send_key "alt-n" };
     wait_screen_change { send_key "alt-f" };
 
-    select_console "root-console";
+    x11_start_program('xterm');
+    become_root;
+    wait_still_screen 3;
     validate_script_output("fdisk -l | grep /dev/vdb1", sub { m/\/dev\/vdb1\s+\d+\s+\d+\s+\d+.*/ });
-    select_console "x11";
+    send_key "ctrl-d";
+    wait_screen_change { send_key "ctrl-d" };
 
     ### RESIZE PARTITION ###
     wait_still_screen 3;
@@ -138,9 +141,12 @@ sub run {
     wait_screen_change { send_key "alt-f" };
 
     # check that the partion is ~170MiB (output is: /dev/vdb1     2048 355477  353430 172.6M 83 Linux)
-    select_console "root-console";
+    x11_start_program('xterm');
+    become_root;
+    wait_still_screen 3;
     validate_script_output("fdisk -l | grep /dev/vdb1", sub { m/\/dev\/vdb1\s+\d+\s+\d+\s+\d+\s+17.*/ });
-    select_console "x11";
+    send_key "ctrl-d";
+    wait_screen_change { send_key "ctrl-d" };
 
     ### DELETE PARTITION ###
     wait_still_screen 3;
@@ -152,11 +158,6 @@ sub run {
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
-
-    # check that /dev/vdb1 has been deleted
-    select_console "root-console";
-    validate_script_output("fdisk -l |grep -c /dev/vdb1", sub { m/0/ });
-    select_console "x11";
 
     ### CREATE VOLUME GROUP ###
     wait_still_screen 3;
@@ -215,13 +216,17 @@ sub run {
 
     # check that all logical volumes have been created
     wait_still_screen 5;
-    select_console "root-console";
+    x11_start_program('xterm');
+    become_root;
+    wait_still_screen 3;
     for (my $i = 1; $i <= 4; $i++) {
         assert_script_run "lvdisplay /dev/vgtest/lv$i";
     }
+    send_key "ctrl-d";
+    wait_screen_change { send_key "ctrl-d" };
 
     # Remove the volume group and all its logical volumes
-    select_console "x11";
+    wait_still_screen 1;
     start_y2sn $self;
     assert_and_click "yast2_storage_ng-select-vol-management";
     wait_screen_change { send_key(is_sle() ? "alt-l" : "alt-d") };
