@@ -18,6 +18,10 @@ use testapi;
 use version_utils 'is_pre_15';
 
 sub run {
+    # Workaround: Try to fix a race condition between akonadi and kmail
+    # to create the Local mail resources (boo#1105207)
+    x11_start_program('echo -e "[SpecialCollections]\nDefaultResourceId=akonadi_maildir_resource_0" >> ~/.config/specialmailcollectionsrc', valid => 0);
+
     # start akonadi server to avoid the self-test running when we launch kontact
     x11_start_program('akonadictl start', valid => 0);
 
