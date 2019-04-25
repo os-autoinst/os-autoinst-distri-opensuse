@@ -99,50 +99,29 @@ set the job variable C<IS_WICKED_REF> will be used. See also C<get_remote_ip()>.
 sub get_ip {
     my ($self, %args) = @_;
     die '$args{type} is required' unless $args{type};
-    my $ip;
 
     $args{is_wicked_ref} //= check_var('IS_WICKED_REF', '1');
     $args{netmask}       //= 0;
 
-    if ($args{type} eq 'host') {
-        $ip = $args{is_wicked_ref} ? '10.0.2.10/15' : '10.0.2.11/15';
-    }
-    elsif ($args{type} eq 'gre1') {
-        $ip = $args{is_wicked_ref} ? '192.168.1.1' : '192.168.1.2';
-    }
-    elsif ($args{type} eq 'sit1') {
-        $ip = $args{is_wicked_ref} ? '2001:0db8:1234::000e' : '2001:0db8:1234::000f';
-    }
-    elsif ($args{type} eq 'tunl1') {
-        $ip = $args{is_wicked_ref} ? '3.3.3.10' : '3.3.3.11';
-    }
-    elsif ($args{type} eq 'tun1' || $args{type} eq 'tap1') {
-        $ip = $args{is_wicked_ref} ? '192.168.2.10' : '192.168.2.11';
-    }
-    elsif ($args{type} eq 'br0') {
-        $ip = $args{is_wicked_ref} ? '10.0.2.10' : '10.0.2.11';
-    }
-    elsif ($args{type} eq 'vlan') {
-        $ip = $args{is_wicked_ref} ? '192.0.2.10/24' : '192.0.2.11/24';
-    }
-    elsif ($args{type} eq 'vlan_changed') {
-        $ip = $args{is_wicked_ref} ? '192.0.2.110/24' : '192.0.2.111/24';
-    }
-    elsif ($args{type} eq 'macvtap') {
-        $ip = $args{is_wicked_ref} ? '10.0.2.17/15' : '10.0.2.18/15';
-    }
-    elsif ($args{type} eq 'bond') {
-        $ip = $args{is_wicked_ref} ? '10.0.2.17' : '10.0.2.18';
-    }
-    elsif ($args{type} eq 'dhcp') {
-        $ip = $args{is_wicked_ref} ? '10.0.2.17' : '10.0.2.16';
-    }
-    elsif ($args{type} eq 'second_card') {
-        $ip = $args{is_wicked_ref} ? '10.0.3.12' : '10.0.3.11';
-    }
-    else {
-        croak('Unknown ip type ' . ($args{type} || 'undef'));
-    }
+    my $ips_hash =
+      {
+        #                       SUT                       REF
+        'host'         => ['10.0.2.10/15',         '10.0.2.11/15'],
+        'gre1'         => ['192.168.1.1',          '192.168.1.2'],
+        'sit1'         => ['2001:0db8:1234::000e', '2001:0db8:1234::000f'],
+        'tunl1'        => ['3.3.3.10',             '3.3.3.11'],
+        'tun1'         => ['192.168.2.10',         '192.168.2.11'],
+        'tap1'         => ['192.168.2.10',         '192.168.2.11'],
+        'br0'          => ['10.0.2.10',            '10.0.2.11'],
+        'vlan'         => ['192.0.2.10/24',        '192.0.2.11/24'],
+        'vlan_changed' => ['192.0.2.110/24',       '192.0.2.111/24'],
+        'macvtap'      => ['10.0.2.17/15',         '10.0.2.18/15'],
+        'bond'         => ['10.0.2.17',            '10.0.2.18'],
+        'dhcp'         => ['10.0.2.17',            '10.0.2.16'],
+        'second_card'  => ['10.0.3.12',            '10.0.3.11']
+      };
+    my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
+    die "$args{type} not exists" unless $ip;
 
     if (!$args{netmask}) {
         $ip =~ s'/\d+$'';
