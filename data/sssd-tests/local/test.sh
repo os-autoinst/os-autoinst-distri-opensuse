@@ -4,7 +4,7 @@ set -e
 
 . ../testincl.sh
 
-if ( isSles15 ); then
+if ( usePython3 ); then
 	PYTHON=python3
 else
 	PYTHON=python2
