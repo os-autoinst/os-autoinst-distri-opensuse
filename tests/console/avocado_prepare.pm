@@ -71,7 +71,11 @@ if ! echo $EXT_STATUS|grep sle-module-public-cloud; then
     SUSEConnect -p sle-module-public-cloud/$VERSION_ID/$ARCH
 fi
 
-zypper -n in python3-avocado-plugins-vt || zypper -n in python2-avocado-plugins-vt
+if [[ $VERSION_ID =~ '12' ]]; then
+    zypper -n in --replacefiles python-avocado-plugins-vt
+else
+    zypper -n in --replacefiles python3-avocado-plugins-vt
+fi
 mkdir -p /var/lib/avocado/data/avocado-vt/images/
 curl -O ftp://10.100.12.155/jeos-27-x86_64.qcow2.xz
 mv jeos-27-x86_64.qcow2.xz /var/lib/avocado/data/avocado-vt/images/
