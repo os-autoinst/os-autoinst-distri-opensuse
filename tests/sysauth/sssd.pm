@@ -51,6 +51,7 @@ sub run {
         assert_script_run "zypper -n in psmisc";
     }
     script_run "zypper -n refresh && zypper -n in @test_subjects";
+    script_run "cd; curl -L -v " . autoinst_url . "/data/lib/version_utils.sh > /usr/local/bin/version_utils.sh";
     script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 
     # Get sssd version, as 2.0+ behaves differently
