@@ -90,8 +90,8 @@ sub activate_kdump {
     # activate kdump
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
-    script_run 'yast2 kdump', 0;
-    my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'kdump');
+    my @tags        = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
         # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
@@ -109,6 +109,7 @@ sub activate_kdump {
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
         wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
     } until (match_has_tag('yast2_console-finished'));
+    wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 
 sub activate_kdump_without_yast {

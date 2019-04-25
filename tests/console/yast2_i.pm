@@ -59,8 +59,7 @@ sub run {
             record_info("Required", "$1");
         }
     }
-
-    script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'sw_single');
     assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 90;
 
     # we need to change filter to Search, in case yast2 reports available automatic update
@@ -147,7 +146,7 @@ sub run {
         die "PKGMGR_ACTION_AT_EXIT possible actions (summary|restart|close)!\n";
     }
 
-    wait_serial("y2-i-status-0", 120) || die "'yast2 sw_single' didn't finish";
+    wait_serial("$module_name-0", 120) || die "'yast2 sw_single' didn't finish";
 
     $self->clear_and_verify_console;         # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname

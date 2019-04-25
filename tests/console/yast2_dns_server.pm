@@ -32,8 +32,9 @@ sub run {
     # Pretend this is the 1st execution (could not be the case if yast2_cmdline was executed before)
     assert_script_run 'rm -f /var/lib/YaST2/dns_server';
 
-    record_info '1st run',         '[wizard-like interface] -> service active & enabled';
-    script_run 'yast2 dns-server', 0;
+    record_info '1st run', '[wizard-like interface] -> service active & enabled';
+    y2logsstep::yast2_console_exec(yast2_module => 'dns-server');
+
     continue_info_network_manager_default;
     assert_screen 'yast2-dns-server-step1';
     send_key 'alt-n';
