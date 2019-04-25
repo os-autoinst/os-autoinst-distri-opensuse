@@ -44,10 +44,8 @@ sub get_suse_container_urls {
     }
     elsif (is_sle(">=15")) {
         my $lowerversion = lc $version;
-        if (!check_var('ARCH', 'aarch64')) {
-            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/images/suse/sle15:${dotversion}";
-            push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
-        }
+        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/images/suse/sle15:${dotversion}";
+        push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_tumbleweed && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
         push @image_names,  "registry.opensuse.org/opensuse/factory/totest/containers/opensuse/tumbleweed";
