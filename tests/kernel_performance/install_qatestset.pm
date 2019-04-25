@@ -23,7 +23,7 @@ sub install_pkg {
     my $qa_server_repo = get_required_var('QA_REPO');
     zypper_call("rr qa-ibs");
     zypper_call(
-        "--no-gpg-check -n ar -f '$qa_server_repo' qa-ibs");
+        "--no-gpg-check ar -f '$qa_server_repo' qa-ibs");
     zypper_call("--no-gpg-check ref");
     zypper_call("install qa_testset_automation");
 }

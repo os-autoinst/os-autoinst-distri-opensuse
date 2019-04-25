@@ -39,6 +39,16 @@ sub login_to_console {
     my ($self, $timeout) = @_;
     $timeout //= 240;
 
+    if (check_var('PERF_KERNEL', '1')) {
+        reset_consoles;
+        select_console 'sol', await_console => 0;
+        send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout, 5);
+        #use console based on ssh to avoid unstable ipmi
+        save_screenshot;
+        use_ssh_serial_console;
+        return;
+    }
+
     if (check_var('ARCH', 's390x')) {
         #Switch to s390x lpar console
         reset_consoles;
