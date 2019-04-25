@@ -316,8 +316,8 @@ sub add_prep_boot_partition {
     assert_screen 'partitioning_raid-format_noformat';
     send_key 'alt-i';
     assert_screen 'partitioning_raid-file_system_id-selected';
-    my $direction_key = (is_storage_ng) ? 'up' : 'down';
-    send_key_until_needlematch 'filesystem-prep', $direction_key;
+    send_key 'home';
+    send_key_until_needlematch 'filesystem-prep', 'down';
     send_key $cmd{exp_part_finish};
     if (is_storage_ng) {
         send_key 'down';
