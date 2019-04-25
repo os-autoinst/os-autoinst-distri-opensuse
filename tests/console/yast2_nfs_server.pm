@@ -49,7 +49,7 @@ sub run {
     # Create a directory and place a test file in it
     assert_script_run 'mkdir /srv/nfs && echo success > /srv/nfs/file.txt';
 
-    type_string "yast2 nfs-server; echo YAST-DONE-\$?- > /dev/$serialdev\n";
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nfs-server');
 
     do {
         assert_screen([qw(nfs-server-not-installed nfs-firewall nfs-config)]);
@@ -96,7 +96,7 @@ sub run {
     # Done
     assert_screen 'nfs-share-saved';
     send_key 'alt-f';
-    wait_serial('YAST-DONE-0-') or die "'yast2 nfs-server' didn't finish";
+    wait_serial("$module_name-0") or die "'yast2 nfs-server' didn't finish";
 
     # Back on the console, test mount locally
     clear_console;

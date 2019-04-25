@@ -82,7 +82,8 @@ sub setup_yast2_ldap_server {
     assert_script_run("echo \"$ldap_directives{fqdn}\" > /etc/hostname");
 
     record_info 'Setup LDAP', 'Create New Directory Instance';
-    script_run("yast2 ldap-server; echo yast2-ldap-server-status-\$? > /dev/$serialdev ", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'ldap-server');
+
     wait_still_screen(2);
     foreach (sort keys %ldap_options_to_dirs) {
         wait_screen_change { send_key "alt-$_" };
@@ -95,7 +96,7 @@ sub setup_yast2_ldap_server {
     assert_screen 'yast2_samba-389ds-setup-error-workaround', 90;
     send_key 'ret';
     wait_screen_change { send_key "alt-c" };
-    die "'yast2 ldap-server' didn't finish with zero exit code" unless wait_serial("yast2-ldap-server-status-0");
+    die "'yast2 ldap-server' didn't finish with zero exit code" unless wait_serial("$module_name-0");
     assert_script_run('certutil -d /etc/dirsrv/slapd-openqatest --rename -n "openqa.ldaptest.org - Suse" --new-n Server-Cert');
     systemctl 'start dirsrv@' . $ldap_directives{dir_instance};
     systemctl 'status dirsrv@' . $ldap_directives{dir_instance};
@@ -110,7 +111,7 @@ sub setup_yast2_auth_server {
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
 
     # SLE12SP4 still uses old yast2-auth-server-3.1.18, which does not contain ldap-server.rb
-    script_run("yast2 auth-server; echo yast2-auth-server-status-\$? > /dev/$serialdev ", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'auth-server');
 
     #confirm offered rpms to install
     assert_screen('yast2_install_packages');
@@ -148,7 +149,7 @@ sub setup_yast2_auth_server {
 
     # finish ldap server configuration
     send_key 'alt-f';
-    wait_serial("yast2-auth-server-status-0") || die "'yast2 auth server' failed to finish";
+    wait_serial("$module_name-0") || die "'yast2 auth server' failed to finish";
     assert_screen 'yast2_console-finished';
     # check ldap server status at first, a local ldap server is needed in the test case
     systemctl "show -p ActiveState slapd.service | grep ActiveState=active";
@@ -367,8 +368,7 @@ sub setup_samba_ldap_expert {
 }
 
 sub setup_samba {
-    script_run("yast2 samba-server; echo yast2-samba-server-status-\$? > /dev/$serialdev", 0);
-
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'samba-server');
     set_workgroup;
     handle_domain_controller if (is_sle('<15') || is_leap('<15.0'));
     setup_samba_startup;
@@ -379,7 +379,7 @@ sub setup_samba {
     setup_samba_ldap_expert;
 
     send_key $cmd{ok};
-    wait_serial('yast2-samba-server-status-0', 60) || die "'yast2 samba-server' didn't finish";
+    wait_serial("$module_name-0", 60) || die "'yast2 samba-server' didn't finish";
 }
 
 sub run {

@@ -21,15 +21,16 @@ sub run {
     select_console 'root-console';
     zypper_call('in yast2-snapper');
 
-    script_run("yast2 snapper; echo yast2-snapper-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'snapper');
+
     $self->y2snapper_new_snapshot(1);
-    wait_serial("yast2-snapper-status-0") || die "yast2 snapper failed";
+    wait_serial("$module_name-0") || die "yast2 snapper failed";
 
     $self->y2snapper_untar_testfile;
 
-    script_run("yast2 snapper; echo yast2-snapper-status-\$? > /dev/$serialdev", 0);
+    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_show_changes_and_delete(1);
-    $self->y2snapper_clean_and_quit(1);
+    $self->y2snapper_clean_and_quit($module_name);
 }
 
 sub post_fail_hook {

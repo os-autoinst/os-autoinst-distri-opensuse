@@ -70,7 +70,7 @@ sub run {
     script_run 'echo "visible_hostname $HOSTNAME" >> /etc/squid/squid.conf';
 
     # start yast2 squid configuration
-    script_run("yast2 squid; echo yast2-squid-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'squid');
 
     # check that squid configuration page shows up
     assert_screen([qw(yast2_proxy_squid yast2_still_susefirewall2)], 60);
@@ -283,7 +283,7 @@ sub run {
     wait_screen_change { send_key 'alt-o'; };
 
     # yast might take a while on sle12 due to suseconfig
-    wait_serial("yast2-squid-status-0", 360) || die "'yast2 squid' didn't finish";
+    wait_serial("$module_name-0", 360) || die "'yast2 squid' didn't finish";
 
     # check squid proxy server status
     script_run 'systemctl show -p ActiveState squid.service|grep ActiveState=active';

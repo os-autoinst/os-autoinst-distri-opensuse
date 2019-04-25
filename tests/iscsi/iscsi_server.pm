@@ -34,7 +34,7 @@ sub run {
     configure_static_dns(get_host_resolv_conf());
     zypper_call 'in yast2-iscsi-lio-server';
     assert_script_run 'dd if=/dev/zero of=/root/iscsi-disk seek=1M bs=8192 count=1';    # create iscsi LUN
-    type_string "yast2 iscsi-lio-server; echo yast2-iscsi-server-\$? > /dev/$serialdev\n";
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'iscsi-server');
     assert_screen 'iscsi-lio-server';
     unless (is_sle('<15') || is_leap('<15.1')) {
         change_service_configuration(
@@ -91,7 +91,7 @@ sub run {
     }
     assert_screen 'iscsi-target-overview-target-tab';
     send_key 'alt-f';                                                                   # finish
-    wait_serial("yast2-iscsi-server-0", 180) || die "'yast2 iscsi-lio ' didn't finish or exited with non-zero code";
+    wait_serial("$module_name-0", 180) || die "'yast2 iscsi-server ' didn't finish or exited with non-zero code";
     mutex_create('iscsi_ready');                                                        # setup is done client can connect
     type_string "killall xterm\n";
     wait_for_children;                                                                  # run till client is done

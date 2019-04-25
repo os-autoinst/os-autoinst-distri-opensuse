@@ -43,7 +43,7 @@ sub launch_yast2_module_x11 {
         select_console('x11');
     }
     # the command started with 'sh -c' to be able to execute 'echo' in Desktop Runner on Gnome
-    x11_start_program("sh -c 'xdg-su -c \"/sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
+    x11_start_program("sh -c 'xdg-su -c \"env Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 /sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }

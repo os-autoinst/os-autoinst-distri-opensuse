@@ -20,6 +20,7 @@ use utils;
 use y2lan_restart_common;
 use version_utils ':VERSION';
 
+my $module_name;
 
 sub handle_Networkmanager_controlled {
     assert_screen "Networkmanager_controlled";
@@ -30,7 +31,7 @@ sub handle_Networkmanager_controlled {
         # SLED11...
         send_key 'alt-y';
     }
-    wait_serial("yast2-lan-status-0", 60) || die "'yast2 lan' didn't finish";
+    wait_serial("$module_name-0", 60) || die "'yast2 lan' didn't finish";
 }
 
 sub handle_dhcp_popup {
@@ -52,7 +53,7 @@ sub run {
 
     my $is_nm = !script_run('systemctl is-active NetworkManager');    # Revert boolean because of bash vs perl's return code.
 
-    script_run("yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev", 0);
+    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'lan');
 
     if ($is_nm) {
         handle_Networkmanager_controlled;
