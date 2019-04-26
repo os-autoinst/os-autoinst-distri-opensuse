@@ -168,20 +168,20 @@ Boot the default kernel recovery mode (goes through "Advanced options"):
 
 =cut
 sub boot_grub_item {
-    my ($self, $menu1, $menu2) = @_;
+    my ($menu1, $menu2) = @_;
     $menu1 = 3 unless defined($menu1);
     $menu2 = 1 unless defined($menu2);
-    die((caller(0))[3] . " expects integer arguments ($menu1, $menu2") unless ($menu1 =~ /^\d+\z/ && $menu2 =~ /^\d+\z/);
+    die((caller(0))[3] . " expects integer arguments ($menu1, $menu2)") unless ($menu1 =~ /^\d+\z/ && $menu2 =~ /^\d+\z/);
 
     assert_screen "grub2";
 
-    for my $i (1 .. ($menu1 - 1)) {
+    for (1 .. ($menu1 - 1)) {
         wait_screen_change { send_key 'down' };
     }
     save_screenshot;
     send_key 'ret';
 
-    for my $i (1 .. ($menu2 - 1)) {
+    for (1 .. ($menu2 - 1)) {
         wait_screen_change { send_key 'down' };
     }
     save_screenshot;

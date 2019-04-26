@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ sub run {
 
     if ($is_ima) {
         # boot kernel with IMA parameters
-        $self->boot_grub_item();
+        boot_grub_item();
     }
     else {
         # during install_ltp, the second boot may take longer than usual
