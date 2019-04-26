@@ -37,13 +37,16 @@ sub language_and_keyboard {
 
 sub license {
     my $self = shift;
-    return unless is_sle('>=12-sp4');
-    assert_screen('license-agreement');
-    $self->verify_license_has_to_be_accepted;
-    $self->accept_license;
+    # default TO value was not sufficient
+    assert_screen('license-agreement', 60);
+    # Nothing to be accepted in opensuse
+    unless (is_opensuse) {
+        $self->verify_license_has_to_be_accepted;
+        $self->accept_license;
+    }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
-    # Workaround license checkbox
-    assert_screen(qw(license-agreement inst-timezone));
+    # Workaround license checkbox, applicable for sle12sp5 only currently
+    assert_screen([qw(license-agreement inst-timezone)]);
     if (match_has_tag('license-agreement')) {
         record_soft_failure 'bsc#1131327 License checkbox was cleared! Re-check again!';
         send_key 'alt-a';
