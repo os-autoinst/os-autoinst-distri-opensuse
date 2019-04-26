@@ -25,7 +25,6 @@ install:
 script:
   - git checkout cpanfile
   - make test
-  - script/generateUtilsDoc.sh
 before_deploy:
   - script/generateUtilsDoc.sh
 deploy:
@@ -35,6 +34,6 @@ deploy:
     local-dir: $TRAVIS_BUILD_DIR/docs/
     on:
         branch: master
-        condition: [ "$(git -C os-autoinst-distri-opensuse diff 'lib/utils.pm')"  ]
+        condition: [ "$(git -C $TRAVIS_BUILD_DIR diff 'lib/utils.pm')"  ]
     target_branch: gh-pages
 
