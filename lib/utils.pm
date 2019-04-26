@@ -246,7 +246,7 @@ sub integration_services_check {
 
 =head2 unlock_if_encrypted
 
-TODO someone should document this
+Check whether the system under test has an encrypted partition and attempts to unlock it
 =cut
 sub unlock_if_encrypted {
     my (%args) = @_;
