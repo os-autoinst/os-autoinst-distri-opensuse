@@ -2588,9 +2588,12 @@ sub load_ha_cluster_tests {
         # Test Hawk Web interface
         loadtest 'ha/check_hawk';
 
-        # If testing HAWK's GUI, skip the rest of the cluster
+        # Test Haproxy
+        loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
+
+        # If testing HAWK's GUI or HAPROXY, skip the rest of the cluster
         # setup tests and only check logs
-        if (get_var('HAWKGUI_TEST_ROLE')) {
+        if (get_var('HAWKGUI_TEST_ROLE') or get_var('HA_CLUSTER_HAPROXY')) {
             loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
             return 1;
         }
