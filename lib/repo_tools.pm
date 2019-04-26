@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: common parts on SMT and RMT
-# Maintainer: Dehai Kong <dhkong@suse.com> Jaiwei Sun <jwsun@suse.com>
+# Maintainer: Dehai Kong <dhkong@suse.com> Jaiwei Sun <jwsun@suse.com> Lemon Li <leli@suse.com>
 
 package repo_tools;
 
@@ -29,6 +29,7 @@ our @EXPORT = qw(
   prepare_source_repo
   disable_source_repo
   get_repo_var_name
+  type_password_twice
   prepare_oss_repo
   disable_oss_repo
   generate_version);
@@ -92,35 +93,50 @@ sub smt_mirror_repo {
     save_screenshot;
 }
 
-sub rmt_wizard {
-    my $SCC_Password = get_var('SCC_PWD');
-    my $SCC_User     = get_var('SCC_USER');
+sub type_password_twice {
+    type_password;
+    send_key "tab";
+    type_password;
+    send_key "alt-o";
+}
 
+sub rmt_wizard {
     # install RMT and mariadb
     zypper_call 'in rmt-server';
     zypper_call 'in mariadb';
 
-    # check mysql status and config mysql for RMT
-    systemctl 'start mysql.service';
-    systemctl 'status mysql.service';
-    my $cmd = 'mysql -u root -p <<EOFF
-GRANT ALL PRIVILEGES ON \`rmt\`.* TO rmt@localhost IDENTIFIED BY \'rmt\';
-FLUSH PRIVILEGES;
-EOFF';
-    type_string "$cmd\n";
-    assert_screen('rmt-sqladmin-password', 40);
-    send_key 'ret';
-
-    # Modify rmt config file
-    assert_script_run "sed -i '/^[][ ]*username:[][ ]*\$/d' /etc/rmt.conf";
-    assert_script_run "sed -i '/^[][ ]*password/d' /etc/rmt.conf";
-    assert_script_run "sed -i '/adapter/i\ \\ \\ password: rmt' /etc/rmt.conf";
-    assert_script_run "sed -i '/scc/a\ \\ \\ password: $SCC_Password' /etc/rmt.conf";
-    assert_script_run "sed -i '/scc/a\ \\ \\ username: $SCC_User' /etc/rmt.conf";
-
-    # Start rmt server
-    systemctl 'start rmt';
-    systemctl 'status rmt';
+    type_string "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev\n";
+    assert_screen 'yast2_rmt_registration';
+    send_key 'alt-u';
+    wait_still_screen;
+    type_string(get_required_var('SMT_ORG_NAME'));
+    send_key 'alt-p';
+    wait_still_screen;
+    type_string(get_required_var('SMT_ORG_PASSWORD'));
+    send_key 'alt-n';
+    assert_screen 'yast2_rmt_config_written_successfully';
+    send_key 'alt-o';
+    assert_screen 'yast2_rmt_db_password';
+    send_key 'alt-p';
+    type_string "rmt";
+    send_key 'alt-n';
+    assert_screen 'yast2_rmt_db_root_password';
+    type_password_twice;
+    assert_screen 'yast2_rmt_config_written_successfully';
+    send_key 'alt-o';
+    assert_screen 'yast2_rmt_ssl';
+    send_key 'alt-n';
+    assert_screen 'yast2_rmt_ssl_CA_password';
+    type_password_twice;
+    assert_screen 'yast2_rmt_firewall';
+    send_key 'alt-o';
+    wait_still_screen;
+    send_key 'alt-n';
+    assert_screen 'yast2_rmt_service_status';
+    send_key 'alt-n';
+    assert_screen 'yast2_rmt_config_summary';
+    send_key 'alt-f';
+    wait_serial("yast2-rmt-wizard-0", 800) || die 'rmt wizard failed, it can be connection issue or credential issue';
 }
 
 sub rmt_mirror_repo {
@@ -131,6 +147,29 @@ sub rmt_mirror_repo {
     }
     assert_script_run 'rmt-cli mirror', 1800;
     assert_script_run 'rmt-cli repo list';
+}
+
+=head2 rmt_import_data
+    rmt_import_data($datafile);
+RMT server import data about available repositories and the mirrored packages 
+from disconnected RMT server, then verify imported repos on new RMT server.
+=cut
+sub rmt_import_data {
+    my ($datafile) = @_;
+    my $datapath = "/mnt/external/";
+    # Decompress the RMT data file to test path
+    assert_script_run("mkdir -p $datapath");
+    assert_script_run("wget -q " . data_url("rmt/$datafile"));
+    assert_script_run("tar -xzvf $datafile -C $datapath");
+    assert_script_run("rm -rf $datafile");
+    # Import RMT data from test path to new RMT server
+    assert_script_run("rmt-cli import data $datapath",  600);
+    assert_script_run("rmt-cli import repos $datapath", 600);
+    # Show repo list on new RMT server for later debugging
+    assert_script_run("rmt-cli repos list");
+    # Enable repositories as required on new RMT server
+    assert_script_run("rmt-cli repos list | grep Web-Scripting");
+    assert_script_run("rm -rf $datapath");
 }
 
 sub prepare_source_repo {
