@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen('installation-settings-overview-loaded', 90);
+    assert_screen('installation-settings-overview-loaded', 250);
     if (check_screen('dependency-issue', 0) && get_var("WORKAROUND_DEPS")) {
         $self->workaround_dependency_issues;
     }
