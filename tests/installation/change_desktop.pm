@@ -31,6 +31,13 @@ sub change_desktop {
         wait_screen_change { send_key 'ret'; };
     }
 
+    if (check_screen('dependency-issue', 5) && get_var("WORKAROUND_DEPS")) {
+        $self->workaround_dependency_issues;
+    }
+    if (check_screen('dependency-issue', 0) && get_var("BREAK_DEPS")) {
+        $self->break_dependency;
+    }
+
     assert_screen 'pattern_selector';
     if (check_var('VIDEOMODE', 'text')) {
         wait_screen_change { send_key 'alt-f'; };
@@ -64,6 +71,7 @@ sub change_desktop {
 
 sub run {
     my $self = shift;
+
     $self->change_desktop();
 }
 

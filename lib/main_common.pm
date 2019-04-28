@@ -980,7 +980,7 @@ sub load_inst_tests {
             loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-server');
         }
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
-            loadtest "installation/resolve_dependency_issues";
+            loadtest "installation/installation_overview_before";
             loadtest "installation/select_patterns_and_packages";
         }
         elsif (
@@ -990,7 +990,7 @@ sub load_inst_tests {
         {
             # With SLE15 we change desktop using role and not by unselecting packages (Use SYSTEM_ROLE variable),
             # If we have minimalx, as there is no such a role, there we use old approach
-            loadtest "installation/resolve_dependency_issues";
+            loadtest "installation/installation_overview_before";
             loadtest "installation/change_desktop";
         }
     }
@@ -998,10 +998,6 @@ sub load_inst_tests {
         loadtest "installation/secure_boot";
     }
     if (installyaststep_is_applicable()) {
-        # Do not repeat step when change_desktop has been executed
-        if (!check_var("DESKTOP", "textmode")) {
-            loadtest "installation/resolve_dependency_issues";
-        }
         loadtest "installation/installation_overview";
         # On Xen PV we don't have GRUB on VNC
         set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux');
