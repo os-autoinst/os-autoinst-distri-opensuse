@@ -105,7 +105,7 @@ test_abort() {
 ### echo $?
 
 usePython3(){
-   if ( isSles15 ) || ( isTumbleweed ); then
+   if ( isSles15 ) || ( isLeap15 ) || ( isTumbleweed ); then
       return 0
    fi
    return 1
