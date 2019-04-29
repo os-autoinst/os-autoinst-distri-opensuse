@@ -40,5 +40,6 @@ deploy:
     local-dir: $TRAVIS_BUILD_DIR/docs/
     on:
         branch: master
+        condition: $NEW_DEPLOY_NEEDED
     target_branch: gh-pages
 
