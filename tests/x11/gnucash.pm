@@ -29,7 +29,10 @@ sub run {
     if (match_has_tag('gnucash-assistant-close')) {
         assert_and_click 'gnucash-assistant-close';
         assert_and_click 'gnucash-assistant-show-again-no';
-        assert_screen('gnucash');
+        assert_screen([qw(gnucash gnucash-tip-close)]);
+        if (match_has_tag('gnucash-tip-close')) {
+            send_key 'esc';
+        }
     }
     # < gnucash 3.3
     else {
