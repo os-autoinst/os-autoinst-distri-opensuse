@@ -16,8 +16,11 @@ addons:
       - libdbus-1-dev
       - libssh2-1-dev
       - parallel
+cache:
+  directories:
+    - $HOME/perl5
 before_install:
-  - eval $(curl https://travis-perl.github.io/init) --perl
+  - eval $(curl https://travis-perl.github.io/init) --perl --always-upgrade-modules
   - echo "requires 'Code::DRY';" >> cpanfile
   - echo "requires 'Perl::Tidy', '== 20181120';" >> cpanfile
 install:
