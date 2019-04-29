@@ -34,6 +34,5 @@ deploy:
     local-dir: $TRAVIS_BUILD_DIR/docs/
     on:
         branch: master
-        condition: [ "$(git -C $TRAVIS_BUILD_DIR diff 'lib/utils.pm')"  ]
     target_branch: gh-pages
 
