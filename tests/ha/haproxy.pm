@@ -27,8 +27,8 @@ sub run {
     my $vip_rsc      = 'vip';
     my $node_01      = choose_node(1);
     my $node_02      = choose_node(2);
-    my $node_01_ip   = script_output "host -t A $node_01 | awk '{ print \$NF }'";
-    my $node_02_ip   = script_output "host -t A $node_02 | awk '{ print \$NF }'";
+    my $node_01_ip   = get_ip($node_01);
+    my $node_02_ip   = get_ip($node_02);
 
     # Waiting for the other nodes to be ready
     barrier_wait("HAPROXY_INIT_$cluster_name");
@@ -101,7 +101,7 @@ sub run {
     elsif (is_node(1)) {
         assert_script_run "curl -s $node_01_ip | grep $node_01";
         # Check if haproxy round-robin mode is working
-        # The output of the both curl commands must be different
+        # The output of both curl commands must be different
         assert_script_run "[[ \$(curl -s $vip_ip:8080) != \$(curl -s $vip_ip:8080) ]]";
     }
 
