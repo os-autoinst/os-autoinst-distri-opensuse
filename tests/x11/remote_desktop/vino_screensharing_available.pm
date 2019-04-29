@@ -59,7 +59,7 @@ sub run {
     # except for ppc64le that do not support it yet.
     my @needles = qw(with_screensharing);
     push @needles, qw(without_screensharing) if check_var('ARCH', 'ppc64le');
-    assert_screen @needles;
+    assert_screen \@needles;
     if (match_has_tag 'without_screensharing') {
         record_soft_failure 'boo#1122137 - screen sharing not yet supported';
     } else {
