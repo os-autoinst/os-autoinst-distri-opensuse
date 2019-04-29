@@ -173,15 +173,19 @@ sub setup_mail_server_postfix_dovecot {
 
     # Install Postfix
     zypper_call("--no-refresh in dovecot");
+    zypper_call("--no-refresh in --force-resolution postfix");
+
+    # Start Postfix service
+    systemctl("restart postfix");
 
     # Set "/etc/postfix/main.cf" file
     my $testfile = "/etc/postfix/main.cf";
     assert_script_run("sed -i '1i home_mailbox = Maildir/' $testfile");
-    assert_script_run("sed -i '1i net_interfaces = localhost, $ip' $testfile");
-    assert_script_run("sed -i '1i net_protocols = all' $testfile");
-    assert_script_run("echo 'myhostname = mail.testdomain.com' >> $testfile");
+    assert_script_run("sed -i '1i inet_interfaces = localhost, $ip' $testfile");
+    assert_script_run("sed -i '1i inet_protocols = all' $testfile");
+    assert_script_run("sed -i '/^mydestination =/d' $testfile");
     assert_script_run("echo 'mydestination = \$myhostname, localhost.\$mydomain, \$mydomain' >> $testfile");
-
+    assert_script_run("echo 'myhostname = mail.testdomain.com' >> $testfile");
     # Output the setting for reference
     assert_script_run("tail -n 3 $testfile");
     assert_script_run("head -n 5 $testfile");
