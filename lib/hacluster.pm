@@ -95,8 +95,8 @@ sub get_node_to_join {
 
 sub get_ip {
     my $node_hostname = shift;
-    $_ = script_output "host -t A $node_hostname";
-    if ($_ =~ /(\d+\.\d+\.\d+\.\d+)/) {
+    my $node_ip       = script_output "host -t A $node_hostname";
+    if ($node_ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
         return $1;
     }
     return 0;
