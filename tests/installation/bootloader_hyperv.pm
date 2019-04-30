@@ -10,6 +10,8 @@
 # Summary: Hyper-V bootloader with asset downloading
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+package bootloader_hyperv;
+
 use base 'installbasetest';
 use testapi;
 use utils;

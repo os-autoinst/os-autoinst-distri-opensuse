@@ -73,6 +73,7 @@ use constant {
           is_ppc64le
           has_product_selection
           has_license_on_welcome_screen
+          uses_qa_net_hardware
           )
     ]
 };
@@ -408,4 +409,8 @@ configuration, otherwise returns false (0).
 sub has_license_on_welcome_screen {
     return 1 if is_caasp('caasp');
     return get_var('HASLICENSE') && ((is_sle('=15') || (is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x()) || is_sle('<15'));
+}
+
+sub uses_qa_net_hardware {
+    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
