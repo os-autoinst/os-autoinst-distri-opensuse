@@ -21,7 +21,7 @@ use autotest;
 use utils;
 use wicked::TestContext;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';

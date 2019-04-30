@@ -22,7 +22,7 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
-
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
 use DistributionProvider;
 
 BEGIN {
