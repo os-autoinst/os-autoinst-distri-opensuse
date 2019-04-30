@@ -37,8 +37,8 @@ sub run {
     # arbitrary choose the first two
     my $node_01    = choose_node(1);
     my $node_02    = choose_node(2);
-    my $node_01_ip = script_output "host -t A $node_01 | awk '{ print \$NF }'";
-    my $node_02_ip = script_output "host -t A $node_02 | awk '{ print \$NF }'";
+    my $node_01_ip = get_ip($node_01);
+    my $node_02_ip = get_ip($node_02);
 
     # At this time, we only test DRBD on a 2 nodes cluster
     # And if the cluster has more than 2 nodes, we only use the first 2 nodes
