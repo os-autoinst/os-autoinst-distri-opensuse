@@ -1,0 +1,35 @@
+global
+  maxconn 256
+  daemon
+
+defaults
+  log     global
+  mode    http
+  option  httplog
+  option  dontlognull
+  retries 3
+  option redispatch
+  maxconn 2000
+  timeout connect   5000
+  timeout client    50s
+  timeout server    50000
+
+frontend LB
+  bind %VIP_IP%:8080
+  reqadd X-Forwarded-Proto:\ http
+  default_backend LB
+
+backend LB
+  mode http
+  stats enable
+  stats hide-version
+  stats uri /stats
+  stats realm Haproxy\ Statistics
+  stats auth haproxy:password
+  balance roundrobin
+  option  httpclose
+  option forwardfor
+  cookie LB insert
+  option httpchk GET /robots.txt HTTP/1.0
+  server %NODE_01% %NODE_01_IP%:80 cookie %NODE_01%
+  server %NODE_02% %NODE_02_IP%:80 cookie %NODE_02%
