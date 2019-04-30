@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
+use Carp 'croak';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 
 use constant {
@@ -146,7 +147,7 @@ sub check_version {
         return $pv eq $qv if $+{op} eq '=';
     }
     # Version should be matched and processed by now
-    die "Unsupported version parameter: $query";
+    croak "Unsupported version parameter for check_version: '$query'";
 }
 
 # Check if distribution is CaaSP or MicroOS with optional filter:
