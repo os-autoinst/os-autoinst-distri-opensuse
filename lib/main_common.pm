@@ -630,6 +630,16 @@ sub we_is_applicable {
       && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
 }
 
+sub libreoffice_is_applicable {
+    # for opensuse libreoffice package has ExclusiveArch:  aarch64 %{ix86} x86_64
+    # do not know for SLE (so assume built for all)
+    return 1 if (!is_opensuse);
+    return (check_var('ARCH', 'x86_64')
+          || check_var('ARCH', 'i686')
+          || check_var('ARCH', 'i586')
+          || check_var('ARCH', 'aarch64'));
+}
+
 sub need_clear_repos {
     return !get_var('ZDUP')
       && (!get_var('INSTALLONLY') || get_var('PUBLISH_HDD_1'))
@@ -1262,12 +1272,18 @@ sub load_x11tests {
             loadtest "x11/ghostscript";
         }
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && (!is_server || we_is_applicable) && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
-        loadtest "x11/ooffice";
-    }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && (!is_server || we_is_applicable)) {
-        loadtest "x11/oomath";
-        loadtest "x11/oocalc";
+    if (libreoffice_is_applicable()) {
+        if (get_var("DESKTOP") =~ /kde|gnome/
+            && (!is_server || we_is_applicable)
+            && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
+            loadtest "x11/ooffice";
+        }
+        if (get_var("DESKTOP") =~ /kde|gnome/
+            && !get_var("LIVECD")
+            && (!is_server || we_is_applicable)) {
+            loadtest "x11/oomath";
+            loadtest "x11/oocalc";
+        }
     }
     if (kdestep_is_applicable()) {
         loadtest "x11/khelpcenter";
