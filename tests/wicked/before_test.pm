@@ -77,6 +77,10 @@ sub run {
             assert_script_run("systemctl start openvswitch");
         }
     }
+    elsif (check_var('WICKED', '2nics')) {
+        assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
+        assert_script_run("rcwickedd restart");
+    }
 }
 
 sub test_flags {
