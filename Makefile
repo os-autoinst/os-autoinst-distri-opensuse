@@ -94,6 +94,10 @@ test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle te
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
+else ifeq ($(TESTS),static)
+test: test-static
+else ifeq ($(TESTS),unit)
+test: unit-test perlcritic
 else
 test: unit-test test-static test-compile perlcritic
 endif
