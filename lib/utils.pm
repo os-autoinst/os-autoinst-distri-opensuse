@@ -1077,6 +1077,7 @@ sub reconnect_mgmt_console {
 
             # reconnect the ssh for serial grab
             select_console('iucvconn');
+            script_run("echo miam");
         }
         else {
             # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
