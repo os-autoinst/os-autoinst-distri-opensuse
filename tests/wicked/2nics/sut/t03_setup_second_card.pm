@@ -16,9 +16,6 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use lockapi;
-use utils qw(file_content_replace systemctl);
-use network_utils 'iface';
 
 
 sub run {
