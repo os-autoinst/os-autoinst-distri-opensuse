@@ -1,0 +1,20 @@
+name:           autoyast_mini_staging@64bit-staging
+description:    >
+    Test verifies installation with minimal autoyast profile. Same as autoyast_mini but with product defined using url and not as registered modules. 
+    Maintainer: riafarov@suse.com
+schedule:
+    - autoyast/prepare_profile
+    - installation/bootloader
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - console/yast2_clone_system
+    - autoyast/wicked
+    - autoyast/repos
+    - autoyast/clone
+    - autoyast/logs
+    - autoyast/autoyast_reboot
+    - installation/grub_test
+    - installation/first_boot
+ 
+   
