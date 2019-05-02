@@ -107,6 +107,7 @@ sub get_ip {
       {
         #                       SUT                       REF
         'host'         => ['10.0.2.11/15',         '10.0.2.10/15'],
+        'host6'        => ['fd00:dead::2::11/64',  'fd00:dead::2::10/64'],
         'gre1'         => ['192.168.1.2',          '192.168.1.1'],
         'sit1'         => ['2001:0db8:1234::000f', '2001:0db8:1234::000e'],
         'tunl1'        => ['3.3.3.11',             '3.3.3.10'],
@@ -182,13 +183,21 @@ sub ping_with_timeout {
     $args{ip_version}         //= 'v4';
     $args{timeout}            //= '60';
     $args{proceed_on_failure} //= 0;
+    $args{count_success}      //= 1;
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
     my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     $ping_command .= " -c 1 $args{ip}";
     $ping_command .= " -I $args{interface}" if $args{interface};
     while ($timeout > 0) {
-        return 1 if script_run($ping_command) == 0;
+        if (script_run($ping_command) == 0) {
+            if ($args{count_success} > 1) {
+                my $cnt = $args{count_success} - 1;
+                $ping_command =~ s/\s-c\s1\s+/ -c $cnt /;
+                validate_script_output($ping_command, sub { /\s+0% packet loss/ });
+            }
+            return 1;
+        }
         $timeout -= 1;
         sleep 5;
     }

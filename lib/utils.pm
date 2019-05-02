@@ -1285,7 +1285,7 @@ sub create_btrfs_subvolume {
         'another^&&*(textToFind' => "replacement")
 
   generify sed usage as config file modification tool.
-  allow to modify several items in one function call 
+  allow to modify several items in one function call
   by providing  regex_to_find / text_to_replace as hash key/value pairs
 
   special key '--sed-modifier' allowing to add modifiers to expression
@@ -1297,6 +1297,7 @@ sub file_content_replace {
     foreach my $key (keys %to_replace) {
         my $value = $to_replace{$key};
         $value =~ s/'/'"'"'/g;
+        $value =~ s'/'\/'g;
         $key   =~ s/'/'"'"'/g;
         assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
     }
