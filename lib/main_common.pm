@@ -2623,6 +2623,9 @@ sub load_ha_cluster_tests {
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';
 
+    # Remove a node both by its hostname and ip address
+    loadtest 'ha/remove_node';
+
     # Check logs to find error and upload all needed logs if we are not
     # in installation/publishing mode
     loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
