@@ -18,7 +18,8 @@ use utils;
 use y2logsstep;
 use y2_common 'workaround_suppress_lvm_warnings';
 use Test::Assert ':all';
-use version_utils qw(is_aarch64 is_storage_ng);
+use version_utils 'is_storage_ng';
+use Utils::Architectures 'is_aarch64';
 
 
 sub run {

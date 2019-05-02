@@ -20,6 +20,7 @@ use suse_container_urls qw(get_suse_container_urls);
 use autotest;
 use utils;
 use wicked::TestContext;
+use Utils::Architectures qw(:ARCH);
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
 use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 use data_integrity_utils 'verify_checksum';
@@ -173,7 +174,7 @@ sub setup_env {
         set_var('INSTLANG', 'en_US');
     }
 
-    if (get_var('UEFI') && !check_var('ARCH', 'aarch64')) {
+    if (get_var('UEFI') && !is_aarch64) {
         # avoid having to update all job templates, but newer qemu
         # BIOS wants to have the bios passed differently
         # https://github.com/os-autoinst/os-autoinst/pull/377
@@ -409,12 +410,12 @@ sub load_reboot_tests {
     return if check_var("IPXE", "1");
 
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if ((check_var("ARCH", "s390x") && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
+    if ((is_s390x && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
         loadtest "boot/reconnect_mgmt_console";
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
+        if (!(is_s390x or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
             # exclude this scenario for autoyast test with switched keyboard layaout
             loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT');
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
@@ -430,7 +431,7 @@ sub load_reboot_tests {
         }
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
-        if (check_var('ARCH', 'aarch64') && !get_var('INSTALLONLY')) {
+        if (is_aarch64 && !get_var('INSTALLONLY')) {
             loadtest "installation/system_workarounds";
         }
     }
@@ -549,7 +550,7 @@ sub load_system_role_tests {
 }
 sub load_jeos_tests {
     unless (get_var('LTP_COMMAND_FILE')) {
-        if (check_var('ARCH', 'aarch64') && is_opensuse()) {
+        if (is_aarch64 && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
             load_boot_tests();
             loadtest "jeos/prepare_firstboot";
@@ -587,11 +588,11 @@ sub snapper_is_applicable {
 }
 
 sub chromestep_is_applicable {
-    return is_opensuse && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
+    return is_opensuse && (check_var('ARCH', 'i586') || is_x86_64);
 }
 
 sub chromiumstep_is_applicable {
-    return chromestep_is_applicable() || (is_opensuse && check_var('ARCH', 'aarch64'));
+    return chromestep_is_applicable() || (is_opensuse && is_aarch64);
 }
 
 sub gnomestep_is_applicable {
@@ -608,7 +609,7 @@ sub kdestep_is_applicable {
 
 # kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
 sub kdump_is_applicable {
-    return !(check_var('ARCH', 'aarch64') && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
+    return !(is_aarch64 && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 sub consolestep_is_applicable {
@@ -745,7 +746,7 @@ sub unregister_needle_tags {
 }
 
 sub load_bootloader_s390x {
-    return 0 unless check_var("ARCH", "s390x");
+    return 0 unless is_s390x;
 
     if (check_var("BACKEND", "s390x")) {
         loadtest "installation/bootloader_s390";
@@ -1103,7 +1104,7 @@ sub load_consoletests {
             loadtest "console/installation_snapshots";
         }
     }
-    if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
+    if (get_var("DESKTOP") !~ /textmode/ && !is_s390x) {
         loadtest "console/xorg_vt";
     }
     loadtest "console/zypper_lr";
@@ -1145,7 +1146,7 @@ sub load_consoletests {
     if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
-    if (check_var('ARCH', 'x86_64')
+    if (is_x86_64
         || check_var('ARCH', 'i686')
         || check_var('ARCH', 'i586'))
     {
@@ -1444,7 +1445,7 @@ sub load_extra_tests_desktop {
             loadtest "x11/seahorse";
             # only scheduled on gnome and was developed only for gnome but no
             # special reason should prevent it to be scheduled in another DE.
-            loadtest 'x11/steam' if check_var('ARCH', 'x86_64');
+            loadtest 'x11/steam' if is_x86_64;
         }
 
         if (chromestep_is_applicable()) {
@@ -1514,13 +1515,13 @@ sub load_extra_tests_opensuse {
     loadtest "console/znc";
     loadtest "console/weechat";
     loadtest "console/nano";
-    loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
+    loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || is_x86_64);
 }
 
 sub load_extra_tests_qemu {
     loadtest "qemu/info";
     loadtest "qemu/qemu";
-    loadtest "qemu/kvm" unless check_var('ARCH', 'aarch64');    # nested kvm is not yet supported on ARM
+    loadtest "qemu/kvm" unless is_aarch64;    # nested kvm is not yet supported on ARM
     loadtest "qemu/user" if is_opensuse;
 }
 
@@ -1587,7 +1588,7 @@ sub load_extra_tests_console {
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST') || is_sle('12-SP5+');
     loadtest 'console/timezone';
     loadtest 'console/procps';
-    loadtest "console/lshw" if ((is_sle('15+') && (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'x86_64'))) || is_opensuse);
+    loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/quota' unless is_jeos;
     loadtest 'console/zziplib' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
@@ -2111,7 +2112,7 @@ sub load_security_tests_crypt_misc {
     # In SLE, the hexchat package is provided only in WE addon which is
     # only for x86_64 platform. Then hexchat is x86_64 specific and not
     # appropriate for other arches.
-    loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
+    loadtest "x11/hexchat_ssl" if (is_x86_64);
     loadtest "x11/x3270_ssl";
     loadtest "x11/seahorse_sshkey";
 }

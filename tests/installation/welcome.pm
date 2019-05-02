@@ -18,6 +18,7 @@ use testapi;
 use x11utils 'ensure_fullscreen';
 use version_utils qw(:VERSION :SCENARIO);
 use Utils::Backends 'is_remote_backend';
+use Utils::Architectures;
 
 sub switch_keyboard_layout {
     record_info 'keyboard layout', 'Check keyboard layout switching to another language';
