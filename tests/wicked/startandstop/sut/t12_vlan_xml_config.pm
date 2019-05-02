@@ -31,8 +31,7 @@ sub run {
     $self->wicked_command('ifreload', 'all');
     assert_script_run('ip a');
     die('VLAN interface does not exists') unless ifc_exists($ctx->iface() . '.42');
-    die('IP is unreachable')
-      unless $self->ping_with_timeout(type => 'vlan', timeout => '50');
+    $self->ping_with_timeout(type => 'vlan', timeout => '50');
 }
 
 1;
