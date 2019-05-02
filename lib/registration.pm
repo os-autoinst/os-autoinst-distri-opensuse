@@ -710,8 +710,8 @@ sub rename_scc_addons {
     );
     my @addons_new = ();
 
-    for my $a (split(/,/, get_var('SCC_ADDONS'))) {
-        push @addons_new, defined $addons_map{$a} ? $addons_map{$a} : $a;
+    for my $i (split(/,/, get_var('SCC_ADDONS'))) {
+        push @addons_new, defined $addons_map{$i} ? $addons_map{$i} : $i;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
 }

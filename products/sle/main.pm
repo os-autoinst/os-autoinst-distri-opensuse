@@ -327,8 +327,8 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
-    for my $a (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
-        push(@addons, $a);
+    for my $i (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
+        push(@addons, $i);
     }
 
     # set SCC_ADDONS before push to slenkins
@@ -347,10 +347,10 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     set_var('ADDONURL',     '');
     set_var('ADDONURL_SDK', '');
 
-    for my $a (@addons) {
-        if ($a) {
-            $incidents{uc($a)} = get_var(uc($a) . '_TEST_ISSUES');
-            $u_url{uc($a)}     = get_var(uc($a) . '_TEST_TEMPLATE');
+    for my $i (@addons) {
+        if ($i) {
+            $incidents{uc($i)} = get_var(uc($i) . '_TEST_ISSUES');
+            $u_url{uc($i)}     = get_var(uc($i) . '_TEST_TEMPLATE');
         }
     }
 

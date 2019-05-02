@@ -714,10 +714,10 @@ sub remove_desktop_needles {
 sub map_incidents_to_repo {
     my ($incidents, $templates) = @_;
     my @maint_repos;
-    for my $a (keys %$incidents) {
-        for my $b (split(/,/, $incidents->{$a})) {
-            if ($b) {
-                push @maint_repos, join($b, split('%INCIDENTNR%', $templates->{$a}));
+    for my $i (keys %$incidents) {
+        for my $j (split(/,/, $incidents->{$i})) {
+            if ($j) {
+                push @maint_repos, join($j, split('%INCIDENTNR%', $templates->{$i}));
             }
         }
     }
