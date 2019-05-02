@@ -85,7 +85,7 @@ sub run {
 
     check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
     my $RAM = get_total_mem();
-    die "RAM=$RAM. The SUT needs at least 32G of RAM" if $RAM < 32000;
+    die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
     # If on IPMI, let's try to reclaim some of the space from the system PV which may be needed for Hana
     try_reclaiming_space if (check_var('BACKEND', 'ipmi'));
