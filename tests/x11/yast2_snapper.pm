@@ -36,13 +36,13 @@ sub run {
     x11_start_program('xterm');
     become_root;
     script_run "cd";
-    type_string "yast2 snapper\n";
+    y2logsstep::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_new_snapshot;
 
     wait_still_screen;
     $self->y2snapper_untar_testfile;
 
-    type_string "yast2 snapper; echo yast2-snapper-status-\$? > /dev/$serialdev\n";
+    y2logsstep::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_show_changes_and_delete;
     $self->y2snapper_clean_and_quit;
 }

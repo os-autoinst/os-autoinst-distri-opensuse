@@ -46,7 +46,7 @@ sub get_repo_var_name {
 }
 
 sub smt_wizard {
-    type_string "yast2 smt-wizard;echo yast2-smt-wizard-\$? > /dev/$serialdev\n";
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'smt-wizard');
     assert_screen 'smt-wizard-1';
     send_key 'alt-u';
     wait_still_screen;
@@ -82,7 +82,7 @@ sub smt_wizard {
         assert_screen 'smt-sync-failed', 100;    # expect fail because there is no network
         send_key 'alt-o';
     }
-    wait_serial("yast2-smt-wizard-0", 800) || die 'smt wizard failed, it can be connection issue or credential issue';
+    wait_serial("$module_name-0", 800) || die 'smt wizard failed, it can be connection issue or credential issue';
 }
 
 sub smt_mirror_repo {

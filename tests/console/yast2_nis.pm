@@ -29,7 +29,7 @@ sub run() {
         assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=714/udp';
         assert_script_run 'firewall-cmd --reload';
     }
-    type_string "yast2 nis\n";
+    y2logsstep::yast2_console_exec(yast2_module => 'nis');
     assert_screen([qw(nis-client yast2_package_install)], 60);
     if (match_has_tag 'yast2_package_install') {
         send_key 'alt-i';

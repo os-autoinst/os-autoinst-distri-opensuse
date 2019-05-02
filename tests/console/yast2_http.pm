@@ -23,7 +23,7 @@ sub run {
     select_console 'root-console';
     # install http server
     zypper_call("-q in yast2-http-server");
-    script_run("yast2 http-server; echo yast2-http-server-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'http-server');
     continue_info_network_manager_default;
     assert_screen 'http-server', 180;    # check page "Initializing HTTP Server Configuration"
     wait_still_screen 1;
@@ -116,7 +116,7 @@ sub run {
     if (check_screen('http_enable_apache2', 10)) {
         wait_screen_change { send_key 'alt-o'; };
     }
-    wait_serial("yast2-http-server-status-0", 240) || die "'yast2 http-server' didn't finish";
+    wait_serial("$module_name-0", 240) || die "'yast2 http-server' didn't finish";
 }
 
 1;

@@ -104,16 +104,15 @@ sub y2snapper_show_changes_and_delete {
 
 # Quit yast2-snapper and cleanup
 sub y2snapper_clean_and_quit {
-    my ($self, $ncurses) = @_;
-    $ncurses //= 0;
+    my ($self, $module_name) = @_;
 
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen;
     # C'l'ose the snapper module
     wait_screen_change { send_key "alt-l"; };
 
-    if ($ncurses) {
-        wait_serial("yast2-snapper-status-0", 240) || die "yast2 snapper failed";
+    if (defined($module_name)) {
+        wait_serial("$module_name-0", 240) || die "yast2 snapper failed";
     }
     else {
         # Wait until root gnome terminal is focussed, delete the directory and close window
@@ -122,7 +121,7 @@ sub y2snapper_clean_and_quit {
 
     script_run 'rm -rf testdata';
     script_run "ls";
-    if (!$ncurses) {
+    unless (defined($module_name)) {
         type_string "exit\n";
         save_screenshot;
         type_string "exit\n";

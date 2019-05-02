@@ -86,7 +86,7 @@ sub run {
     die "certificate does not exist" if assert_script_run("[[ -e $vsftpd_directives->{rsa_cert_file} ]]");
 
     # start yast2 ftp configuration
-    type_string "yast2 ftp-server; echo yast2-ftp-server-status-\$? > /dev/$serialdev\n";
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'ftp-server');
     assert_screen 'ftp-server';    # check ftp server configuration page
     if (is_sle('<15') || is_leap('<15.1')) {
         send_key 'alt-w';                           # make sure ftp start-up when booting
@@ -182,7 +182,7 @@ sub run {
     send_key 'alt-f';                                       # done and close the configuration page now
 
     # yast might take a while on sle12 due to suseconfig
-    die "'yast2 ftp-server' didn't exit with zero exit code in defined timeout" unless wait_serial("yast2-ftp-server-status-0", 180);
+    die "'yast2 ftp-server' didn't exit with zero exit code in defined timeout" unless wait_serial("$module_name-0", 180);
 
     # check /etc/vsftpd.conf whether it has been updated accordingly
     vsftd_setup_checker($vsftpd_directives);

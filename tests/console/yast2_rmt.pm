@@ -17,8 +17,15 @@ use utils;
 use testapi;
 use repo_tools;
 
+sub password_twice {
+    type_password;
+    send_key "tab";
+    type_password;
+    send_key "alt-o";
+}
+
 sub test_ui {
-    script_run("yast2 rmt; echo yast2-rmt-server-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'rmt');
     assert_screen "yast2_rmt_registration";
     send_key "alt-n";
     assert_screen "yast2_rmt_ignore_registration_dialog";
@@ -52,7 +59,7 @@ sub test_ui {
     send_key "alt-n";
     assert_screen "yast2_rmt_config_summary";
     send_key "alt-f";
-    wait_serial('yast2-rmt-server-status-0', 60) || die "'yast2 rmt' didn't finish";
+    wait_serial("$module_name-0", 60) || die "'yast2 rmt' didn't finish";
 }
 
 sub test_config {
