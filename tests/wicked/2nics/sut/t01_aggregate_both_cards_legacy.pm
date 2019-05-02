@@ -31,7 +31,7 @@ sub run {
     validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /SLAVE/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /SLAVE/ });
     my $remote_ip = $self->get_remote_ip(type => 'host');
-    die "unable to ping $sut_iface" unless $self->ping_with_timeout(ip => $remote_ip, interface => $sut_iface);
+    $self->ping_with_timeout(ip => $remote_ip, interface => $sut_iface);
     validate_script_output("ping -c30 $remote_ip -I $sut_iface", sub { /0% packet loss/ });
 }
 

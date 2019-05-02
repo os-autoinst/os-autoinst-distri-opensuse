@@ -169,17 +169,19 @@ sub get_from_data {
 
 =head2 ping_with_timeout
 
-  ping_with_timeout(timeout => $timeout, ip => $ip [, ip_version => 'v4'], type => $type)
+  ping_with_timeout(type => $type[, ip => $ip, timeout => 60, ip_version => 'v4', proceed_on_failure => 0])
 
 Pings a given IP with a given C<timeout>.
 C<ip_version> defines the ping command to be used, 'ping' by default and 'ping6' for 'v6'.
 IP could be specified directly via C<ip> or using C<type> variable. In case of C<type> variable
-it will be bypassed to C<get_remote_ip> function to get IP by label
+it will be bypassed to C<get_remote_ip> function to get IP by label.
+If ping fails, command die unless you specify C<proceed_on_failure>.
 =cut
 sub ping_with_timeout {
     my ($self, %args) = @_;
-    $args{ip_version} //= 'v4';
-    $args{timeout}    //= '60';
+    $args{ip_version}         //= 'v4';
+    $args{timeout}            //= '60';
+    $args{proceed_on_failure} //= 0;
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
     my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
@@ -189,6 +191,9 @@ sub ping_with_timeout {
         return 1 if script_run($ping_command) == 0;
         $timeout -= 1;
         sleep 5;
+    }
+    if (!$args{proceed_on_failure}) {
+        die('PING failed: ' . $ping_command);
     }
     return 0;
 }
