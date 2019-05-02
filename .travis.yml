@@ -4,9 +4,12 @@ matrix:
   - name: "openSUSE/SUSE production perl version, only compile check"
     perl: "5.18"
     env: TESTS=compile
-  - name: "testing perl version, all tests"
+  - name: "testing perl version, static checks"
     perl: "5.26"
-    env: TESTS=all
+    env: TESTS=static
+  - name: "testing perl version, unit tests"
+    perl: "5.26"
+    env: TESTS=unit
 env:
   global:
     - COMMIT_AUTHOR_EMAIL=skynet@open.qa
@@ -16,8 +19,11 @@ addons:
       - libdbus-1-dev
       - libssh2-1-dev
       - parallel
+cache:
+  directories:
+    - $HOME/perl5
 before_install:
-  - eval $(curl https://travis-perl.github.io/init) --perl
+  - eval $(curl https://travis-perl.github.io/init) --perl --always-upgrade-modules
   - echo "requires 'Code::DRY';" >> cpanfile
   - echo "requires 'Perl::Tidy', '== 20181120';" >> cpanfile
 install:
