@@ -35,8 +35,8 @@ sub run {
     my $iface_ip2 = $self->get_ip(type => 'host');
     validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /$iface_ip/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /$iface_ip2/ });
-    die "unable to ping " . $ctx->iface()  unless $self->ping_with_timeout(type => 'second_card', interface => $ctx->iface());
-    die "unable to ping " . $ctx->iface2() unless $self->ping_with_timeout(type => 'host',        interface => $ctx->iface2());
+    $self->ping_with_timeout(type => 'second_card', interface => $ctx->iface());
+    $self->ping_with_timeout(type => 'host',        interface => $ctx->iface2());
     my $static_gw = '10.0.2.2';
     if (script_output('ip r s | grep default | awk \'{print $3}\'') ne $static_gw) {
         record_soft_failure("Default gw not $static_gw");
