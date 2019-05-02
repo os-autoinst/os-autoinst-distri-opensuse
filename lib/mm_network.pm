@@ -27,12 +27,12 @@ sub configure_hostname {
 sub get_host_resolv_conf {
     my %conf;
     open(my $fh, '<', "/etc/resolv.conf");
-    while (<$fh>) {
-        if (/^nameserver\s+([0-9.]+)\s*$/) {
+    while (my $line = <$fh>) {
+        if ($line =~ /^nameserver\s+([0-9.]+)\s*$/) {
             $conf{nameserver} //= [];
             push @{$conf{nameserver}}, $1;
         }
-        if (/search\s+(.+)\s*$/) {
+        if ($line =~ /search\s+(.+)\s*$/) {
             $conf{search} = $1;
         }
     }
