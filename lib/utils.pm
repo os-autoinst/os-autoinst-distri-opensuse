@@ -1289,11 +1289,15 @@ sub create_btrfs_subvolume {
   by providing  regex_to_find / text_to_replace as hash key/value pairs
 
   special key '--sed-modifier' allowing to add modifiers to expression
+  special key '--debug' allow to output full file content into serial. Disabled
+  by default
 =cut
 sub file_content_replace {
     my ($filename, %to_replace) = @_;
     $to_replace{'--sed-modifier'} //= '';
+    $to_replace{'--debug'}        //= 0;
     my $sed_modifier = delete $to_replace{'--sed-modifier'};
+    my $debug        = delete $to_replace{'--debug'};
     foreach my $key (keys %to_replace) {
         my $value = $to_replace{$key};
         $value =~ s/'/'"'"'/g;
@@ -1302,7 +1306,7 @@ sub file_content_replace {
         $key   =~ s'/'\/'g;
         assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
     }
-    script_run("cat $filename");
+    script_run("cat $filename") if $debug;
 }
 
 1;

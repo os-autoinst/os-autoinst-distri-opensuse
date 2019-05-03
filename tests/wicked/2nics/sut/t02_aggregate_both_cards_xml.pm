@@ -17,7 +17,6 @@ use strict;
 use warnings;
 use testapi;
 use utils 'file_content_replace';
-use network_utils 'iface';
 
 
 sub run {
