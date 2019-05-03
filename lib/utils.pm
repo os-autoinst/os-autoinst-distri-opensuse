@@ -1299,6 +1299,7 @@ sub file_content_replace {
         $value =~ s/'/'"'"'/g;
         $value =~ s'/'\/'g;
         $key   =~ s/'/'"'"'/g;
+        $key   =~ s'/'\/'g;
         assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
     }
     script_run("cat $filename");

@@ -23,7 +23,6 @@ sub run {
     my ($self, $ctx) = @_;
     my $config      = '/etc/sysconfig/network/ifcfg-' . $ctx->iface() . '.42';
     my $previous_ip = $self->get_ip(type => 'vlan', netmask => 1);
-    $previous_ip =~ s'/'\\/';
     file_content_replace($config, $previous_ip => $self->get_ip(type => 'vlan_changed', netmask => 1));
     $self->wicked_command('ifreload', 'all');
     assert_script_run('ip a');
