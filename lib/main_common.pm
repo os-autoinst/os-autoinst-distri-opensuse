@@ -2258,8 +2258,24 @@ sub load_security_tests {
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
-    if (check_var('SYSTEMD_TESTSUITE', 'basic')) {
+    if (check_var('SYSTEMD_TESTSUITE', 'noqemu')) {
+        loadtest 'systemd_testsuite/binary_tests';
         loadtest 'systemd_testsuite/test_01_basic';
+        loadtest 'systemd_testsuite/test_02_cryptsetup';
+        loadtest 'systemd_testsuite/test_03_jobs';
+        loadtest 'systemd_testsuite/test_04_journal';
+        loadtest 'systemd_testsuite/test_05_rlimits';
+        #loadtest 'systemd_testsuite/test_06_selinux';
+        loadtest 'systemd_testsuite/test_07_issue_1981';
+        loadtest 'systemd_testsuite/test_08_issue_2730';
+        loadtest 'systemd_testsuite/test_09_issue_2691';
+        loadtest 'systemd_testsuite/test_10_issue_2467';
+        loadtest 'systemd_testsuite/test_11_issue_3166';
+        loadtest 'systemd_testsuite/test_12_issue_3171';
+        loadtest 'systemd_testsuite/test_13_nspawn_smoke';
+        loadtest 'systemd_testsuite/test_14_machine_id';
+        loadtest 'systemd_testsuite/test_15_dropin';
+        loadtest 'systemd_testsuite/test_22_tmpfiles';
     }
     else {
         loadtest 'console/systemd_testsuite';

@@ -15,21 +15,18 @@ use warnings;
 use strict;
 use testapi;
 
-sub pre_run_hook {
-    my ($self) = @_;
-    #prepare test
-    $self->testsuiteprepare('TEST-01-BASIC');
-}
-
 sub run {
-    #run test
+    my ($self) = @_;
+    $self->testsuiteinstall;
+
+    #run binary tests
     assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-01-BASIC --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_screen("systemd-testsuite-test-01-basic");
+    assert_script_run './run-tests.sh | tee /tmp/testsuite.log', 600;
+    assert_screen("systemd-testsuite-binary-tests-summary");
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {milestone => 1};
 }
 
 
