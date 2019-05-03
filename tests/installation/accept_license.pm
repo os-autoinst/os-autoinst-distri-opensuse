@@ -29,7 +29,7 @@ sub run {
     # optional checks for the extended installation
     if (get_var('INSTALLER_EXTENDED_TEST')) {
         $self->verify_license_has_to_be_accepted;
-        $self->verify_license_translations;
+        $self->verify_license_translations unless is_sle('15+');
     }
     $self->accept_license;
     send_key $cmd{next};
