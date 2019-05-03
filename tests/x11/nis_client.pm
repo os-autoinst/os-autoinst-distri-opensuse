@@ -20,6 +20,7 @@ use utils 'systemctl';
 use version_utils 'is_sle';
 use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
 use x11utils 'turn_off_gnome_screensaver';
+use y2logsstep 'yast2_console_exec';
 
 sub setup_nis_client {
     if (is_sle('>=15')) {
