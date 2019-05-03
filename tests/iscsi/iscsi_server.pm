@@ -35,7 +35,7 @@ sub run {
     configure_static_dns(get_host_resolv_conf());
     zypper_call 'in yast2-iscsi-lio-server';
     assert_script_run 'dd if=/dev/zero of=/root/iscsi-disk seek=1M bs=8192 count=1';    # create iscsi LUN
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'iscsi-server');
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'iscsi-lio-server');
     assert_screen 'iscsi-lio-server';
     unless (is_sle('<15') || is_leap('<15.1')) {
         change_service_configuration(
