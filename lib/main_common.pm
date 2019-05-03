@@ -2256,7 +2256,7 @@ sub load_security_tests {
       openscap
       mok_enroll ima_measurement ima_appraisal
       system_check
-      );
+    );
 
     # Check SECURITY_TEST and call the load functions iteratively.
     # The value of "SECURITY_TEST" should be same with the last part of the
