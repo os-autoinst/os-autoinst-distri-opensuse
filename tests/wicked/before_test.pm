@@ -56,7 +56,6 @@ sub run {
         systemctl 'start dhcpd.service';
     }
     if (check_var('WICKED', 'basic')) {
-        $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1);
         assert_script_run("rcwickedd restart");
         unless (get_var('IS_WICKED_REF')) {
             # Remove previous static config and leave dynamic one, only for SUT
