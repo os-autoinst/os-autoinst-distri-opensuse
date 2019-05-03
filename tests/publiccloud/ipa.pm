@@ -114,7 +114,6 @@ sub run {
             $instance->upload_log('/var/log/cloudregister');
             last;
         }
-        die;
     }
 }
 
