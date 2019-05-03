@@ -22,6 +22,7 @@ use mmapi;
 use utils 'zypper_call';
 use yast2_widget_utils 'change_service_configuration';
 use x11utils 'turn_off_gnome_screensaver';
+use y2logsstep 'yast2_console_exec';
 
 sub run {
     my $self = shift;

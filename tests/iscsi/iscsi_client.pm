@@ -18,6 +18,7 @@ use testapi;
 use mm_network;
 use lockapi;
 use x11utils 'turn_off_gnome_screensaver';
+use y2logsstep 'yast2_console_exec';
 
 sub run {
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
