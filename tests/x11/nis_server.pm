@@ -141,7 +141,6 @@ sub run {
     # NIS Server is configured and running, configuration continues on client side
     mutex_create('nis_ready');
     $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nfs_server');
-    script_run("yast2 nfs_server; echo yast2-nfs-server-status-\$? > /dev/$serialdev", 0);
     nfs_server_configuration();
     wait_serial("$module_name-0", 360) || die "'yast2 nfs server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible', 200;
