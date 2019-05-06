@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_desktop_installed';
+use version_utils qw(is_desktop_installed is_sles4sap is_sle);
 use qam qw(add_test_repositories remove_test_repositories);
 use x11utils 'ensure_unlocked_desktop';
 
@@ -27,7 +27,7 @@ sub run {
 
     add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
 
-    if (is_desktop_installed) {
+    if (is_desktop_installed && (!is_sles4sap || is_sle('15+'))) {
         select_console 'x11', await_console => 0;
         ensure_unlocked_desktop;
         mouse_hide(1);
