@@ -1074,10 +1074,13 @@ sub reconnect_mgmt_console {
                 _handle_login_not_found($ret);
             }
             reset_consoles;
+            
+            select_console('root-console')
+            type_string "grep org.gnome.SettingsDaemon.Wacom /usr/share/gnome-session/sessions/gnome*";
+            script_run("grep org.gnome.SettingsDaemon.Wacom /usr/share/gnome-session/sessions/gnome*");
 
             # reconnect the ssh for serial grab
             select_console('iucvconn');
-            script_run("echo miam");
         }
         else {
             # In case of encrypted partition, the GRUB screen check is implemented in 'unlock_if_encrypted' module
