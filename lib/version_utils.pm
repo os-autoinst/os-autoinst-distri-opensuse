@@ -68,6 +68,7 @@ use constant {
           is_system_upgrading
           is_virtualization_server
           is_server
+          is_transactional
           is_s390x
           is_livecd
           is_x86_64
@@ -231,6 +232,11 @@ sub is_sle {
 
     # Version check
     return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
+}
+
+sub is_transactional {
+    return 1 if is_caasp;
+    return check_var('SYSTEM_ROLE', 'serverro');
 }
 
 sub is_sles4sap {

@@ -2484,6 +2484,13 @@ sub load_installation_validation_tests {
     }
 }
 
+sub load_transactional_role_tests {
+    loadtest 'transactional/filesystem_ro';
+    loadtest 'transactional/transactional_update';
+    loadtest 'transactional/rebootmgr';
+    loadtest 'transactional/health_check';
+}
+
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
@@ -2492,6 +2499,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
+    load_transactional_role_tests       if is_transactional;
 }
 
 sub load_ssh_key_import_tests {
@@ -2719,12 +2727,6 @@ sub load_public_cloud_patterns_validation_tests {
     loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
     loadtest 'console/validate_pcm_aws'   if check_var('VALIDATE_PCM_PATTERN', 'aws');
     loadtest "console/consoletest_finish";
-}
-
-sub load_transactional_role_tests {
-    loadtest 'transactional_system/filesystem_ro';
-    loadtest 'transactional_system/transactional_update';
-    loadtest 'transactional_system/rebootmgr';
 }
 
 # Tests to validate partitioning with LVM, both encrypted and not encrypted.

@@ -89,6 +89,7 @@ sub load_caasp_inst_tests {
             loadtest 'installation/user_settings_root';
             loadtest 'installation/releasenotes';
             loadtest 'installation/installation_overview';
+            loadtest 'installation/disable_grub_timeout' unless get_var('STACK_ROLE');
             loadtest 'installation/start_install';
 
             # Can not start installation with partitioning error
@@ -137,8 +138,6 @@ sub load_feature_tests {
 
     # Journal errors
     loadtest 'caasp/journal_check';
-
-    loadtest 'caasp/health_check';
 
     # Container Tests
     loadtest 'console/docker';
