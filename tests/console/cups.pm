@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,8 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use utils;
+use utils qw(systemctl zypper_call);
+use Utils::Systemd 'disable_and_stop_service';
 use version_utils 'is_jeos';
 
 sub run {
@@ -71,8 +72,7 @@ sub run {
     record_info "lpadmin -x", "Removing printers";
     assert_script_run "lpadmin -x $_" foreach (qw/printer_tmp printer_null/);
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ };
-    systemctl 'disable cups.service';
-    systemctl 'stop cups.service';
+    disable_and_stop_service('cups.service');
     validate_script_output '{ systemctl --no-pager status cups.service | cat; } || test $? -eq 3', sub { m/Active:\s*inactive/ };
 }
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2018 SUSE LLC
+# Copyright © 2015-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,8 @@
 use strict;
 use warnings;
 use base "console_yasttest";
-use utils;
+use utils qw(clear_console zypper_call);
+use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
 use testapi;
 use lockapi;
@@ -38,8 +39,7 @@ sub run {
 
         if (is_sle('15+')) {
             record_soft_failure 'boo#1130093 No firewalld service for nfs-kernel-server';
-            systemctl 'stop ' . $self->firewall;
-            systemctl 'disable ' . $self->firewall;
+            disable_and_stop_service($self->firewall);
         }
     }
 

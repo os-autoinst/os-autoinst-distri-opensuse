@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,14 +23,13 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use utils;
+use utils 'zypper_call';
+use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
     select_console 'root-console';
 
-    # Disable Packagekit
-    systemctl 'mask packagekit.service';
-    systemctl 'stop packagekit.service';
+    disable_and_stop_service('packagekit.service', mask_service => 1);
 
     zypper_call('in -t pattern fips');
 

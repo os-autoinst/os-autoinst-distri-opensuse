@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,9 @@
 
 use base "consoletest";
 use testapi;
-use utils;
+use utils qw(check_console_font disable_serial_getty);
 use Utils::Backends qw(has_ttys use_ssh_serial_console);
+use Utils::Systemd 'disable_and_stop_service';
 use strict;
 use warnings;
 
@@ -40,10 +41,7 @@ sub run {
 
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
-
-    # Stop packagekit
-    systemctl 'mask packagekit.service';
-    systemctl 'stop packagekit.service';
+    disable_and_stop_service('packagekit.service', mask_service => 1);
 
     $self->clear_and_verify_console;
     select_console 'user-console';
