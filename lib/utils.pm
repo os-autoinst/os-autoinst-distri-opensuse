@@ -1075,7 +1075,7 @@ sub reconnect_mgmt_console {
             }
             reset_consoles;
             
-            select_console('root-console')
+            select_console('root-console');
             type_string "grep org.gnome.SettingsDaemon.Wacom /usr/share/gnome-session/sessions/gnome* \n";
             script_run("grep org.gnome.SettingsDaemon.Wacom /usr/share/gnome-session/sessions/gnome*");
 
