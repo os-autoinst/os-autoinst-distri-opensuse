@@ -51,7 +51,7 @@ sub run {
     zypper_call "in yast2-registration";
 
     cleanup_registration;
-    script_run("yast registration", 0);
+    y2logsstep::yast2_console_exec(yast2_module => 'registration');
     assert_screen([qw(yast2_registration-overview yast2_registration-registration-page)]);
 
     send_key "alt-e" if (match_has_tag "yast2_registration-overview");

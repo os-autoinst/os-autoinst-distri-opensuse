@@ -10,15 +10,27 @@
 # Summary: Run test executed by TEST-01-BASIC from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
-use base "consoletest";
+use base 'systemd_testsuite_test';
 use warnings;
 use strict;
 use testapi;
-use utils 'zypper_call';
-use power_action_utils 'power_action';
+
+sub pre_run_hook {
+    my ($self) = @_;
+    #prepare test
+    $self->testsuiteprepare('TEST-01-BASIC');
+}
 
 sub run {
-    select_console 'root-console';
+    #run test
+    assert_script_run 'cd /var/opt/systemd-tests';
+    assert_script_run './run-tests.sh TEST-01-BASIC --run 2>&1 | tee /tmp/testsuite.log', 60;
+    assert_screen("systemd-testsuite-test-01-basic");
 }
+
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 
 1;

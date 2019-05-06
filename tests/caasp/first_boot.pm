@@ -18,7 +18,7 @@ use testapi;
 use utils qw(zypper_call systemctl script_retry);
 use version_utils 'is_caasp';
 use bootloader_setup 'set_framebuffer_resolution';
-use caasp qw(process_reboot microos_login);
+use caasp qw(microos_reboot microos_login);
 
 sub run {
     # On DVD images stall prevents reliable matching of BIOS needle - poo#28648
@@ -47,7 +47,7 @@ sub run {
         if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_TYPE', 'linux')) {
             set_framebuffer_resolution;
             assert_script_run 'transactional-update grub.cfg';
-            process_reboot 1;
+            microos_reboot 1;
         }
     }
 }

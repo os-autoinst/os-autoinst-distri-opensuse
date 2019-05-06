@@ -62,11 +62,8 @@ sub assert_wicked_state {
     my ($self, %args) = @_;
     systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
     systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
-    my $status = $args{interfaces_down} ? 'down' : 'up';
-    assert_script_run("/data/check_interfaces.sh $status");
+    assert_script_run(sprintf("grep -q \"%s\" /sys/class/net/%s/operstate", $args{interfaces_down} ? 'down' : 'up', $args{iface}));
     assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
-    # this just FYI so we don't want to fail
-    script_run('ip addr show ' . $args{iface}) if $args{iface};
 }
 
 =head2 get_remote_ip
@@ -107,6 +104,7 @@ sub get_ip {
       {
         #                       SUT                       REF
         'host'         => ['10.0.2.11/15',         '10.0.2.10/15'],
+        'host6'        => ['fd00:dead::2::11/64',  'fd00:dead::2::10/64'],
         'gre1'         => ['192.168.1.2',          '192.168.1.1'],
         'sit1'         => ['2001:0db8:1234::000f', '2001:0db8:1234::000e'],
         'tunl1'        => ['3.3.3.11',             '3.3.3.10'],
@@ -117,7 +115,7 @@ sub get_ip {
         'vlan_changed' => ['192.0.2.111/24',       '192.0.2.110/24'],
         'macvtap'      => ['10.0.2.18/15',         '10.0.2.17/15'],
         'bond'         => ['10.0.2.18',            '10.0.2.17'],
-        'dhcp'         => ['10.0.2.16',            '10.0.2.17'],
+        'dhcp_2nic'    => ['10.0.3.15',            '10.0.3.16'],
         'second_card'  => ['10.0.3.11',            '10.0.3.12'],
       };
     my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
@@ -169,26 +167,39 @@ sub get_from_data {
 
 =head2 ping_with_timeout
 
-  ping_with_timeout(timeout => $timeout, ip => $ip [, ip_version => 'v4'], type => $type)
+  ping_with_timeout(type => $type[, ip => $ip, timeout => 60, ip_version => 'v4', proceed_on_failure => 0])
 
 Pings a given IP with a given C<timeout>.
 C<ip_version> defines the ping command to be used, 'ping' by default and 'ping6' for 'v6'.
 IP could be specified directly via C<ip> or using C<type> variable. In case of C<type> variable
-it will be bypassed to C<get_remote_ip> function to get IP by label
+it will be bypassed to C<get_remote_ip> function to get IP by label.
+If ping fails, command die unless you specify C<proceed_on_failure>.
 =cut
 sub ping_with_timeout {
     my ($self, %args) = @_;
-    $args{ip_version} //= 'v4';
-    $args{timeout}    //= '60';
+    $args{ip_version}         //= 'v4';
+    $args{timeout}            //= '60';
+    $args{proceed_on_failure} //= 0;
+    $args{count_success}      //= 1;
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
     my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     $ping_command .= " -c 1 $args{ip}";
     $ping_command .= " -I $args{interface}" if $args{interface};
     while ($timeout > 0) {
-        return 1 if script_run($ping_command) == 0;
+        if (script_run($ping_command) == 0) {
+            if ($args{count_success} > 1) {
+                my $cnt = $args{count_success} - 1;
+                $ping_command =~ s/\s-c\s1\s+/ -c $cnt /;
+                validate_script_output($ping_command, sub { /\s+0% packet loss/ });
+            }
+            return 1;
+        }
         $timeout -= 1;
         sleep 5;
+    }
+    if (!$args{proceed_on_failure}) {
+        die('PING failed: ' . $ping_command);
     }
     return 0;
 }

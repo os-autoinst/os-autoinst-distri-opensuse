@@ -27,6 +27,7 @@ our @EXPORT = qw(
   add_file_in_csync
   get_cluster_name
   get_hostname
+  get_ip
   get_node_to_join
   get_node_number
   is_node
@@ -90,6 +91,15 @@ sub get_hostname {
 
 sub get_node_to_join {
     return get_required_var('HA_CLUSTER_JOIN');
+}
+
+sub get_ip {
+    my $node_hostname = shift;
+    my $node_ip       = script_output "host -t A $node_hostname";
+    if ($node_ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
+        return $1;
+    }
+    return 0;
 }
 
 sub get_node_number {

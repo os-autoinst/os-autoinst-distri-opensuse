@@ -65,6 +65,15 @@ sub run {
         barrier_create("SLE11_UPGRADE_INIT_$cluster_name",          $num_nodes);
         barrier_create("SLE11_UPGRADE_START_$cluster_name",         $num_nodes);
         barrier_create("SLE11_UPGRADE_DONE_$cluster_name",          $num_nodes);
+        barrier_create("HAPROXY_INIT_$cluster_name",                $num_nodes);
+        barrier_create("HAPROXY_DONE_$cluster_name",                $num_nodes);
+        barrier_create("REMOVE_NODE_BY_IP_INIT_$cluster_name",      $num_nodes);
+        barrier_create("REMOVE_NODE_BY_IP_DONE_$cluster_name",      $num_nodes);
+        barrier_create("REMOVE_NODE_BY_HOST_INIT_$cluster_name",    $num_nodes);
+        barrier_create("REMOVE_NODE_BY_HOST_DONE_$cluster_name",    $num_nodes);
+        barrier_create("JOIN_NODE_BY_HOST_DONE_$cluster_name",      $num_nodes);
+        barrier_create("JOIN_NODE_BY_IP_DONE_$cluster_name",        $num_nodes);
+        barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name",      $num_nodes);
 
         # HAWK_GUI_ barriers also have to wait in the client
         barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);

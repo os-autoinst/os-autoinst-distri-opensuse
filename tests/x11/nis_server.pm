@@ -21,6 +21,7 @@ use utils 'systemctl';
 use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
+use y2logsstep 'yast2_console_exec';
 
 sub setup_verification {
     script_run 'rpcinfo -u localhost ypserv';    # ypserv is running
@@ -133,15 +134,15 @@ sub run {
         systemctl 'stop ' . $self->firewall;
         record_soft_failure('bsc#999873');
     }
-    script_run("yast2 nis_server; echo yast2-nis-server-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nis_server');
     nis_server_configuration();
-    wait_serial("yast2-nis-server-status-0", 360) || die "'yast2 nis server' didn't finish";
+    wait_serial("$module_name-0", 360) || die "'yast2 nis server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible';
     # NIS Server is configured and running, configuration continues on client side
     mutex_create('nis_ready');
-    script_run("yast2 nfs_server; echo yast2-nfs-server-status-\$? > /dev/$serialdev", 0);
+    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nfs_server');
     nfs_server_configuration();
-    wait_serial("yast2-nfs-server-status-0", 360) || die "'yast2 nfs server' didn't finish";
+    wait_serial("$module_name-0", 360) || die "'yast2 nfs server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible', 200;
     # NFS Server is configured and running, configuration continues on client side
     mutex_create('nfs_ready');

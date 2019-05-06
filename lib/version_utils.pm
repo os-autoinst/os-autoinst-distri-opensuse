@@ -21,6 +21,8 @@ use strict;
 use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
+use Carp 'croak';
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 
 use constant {
     VERSION => [
@@ -66,6 +68,7 @@ use constant {
           is_system_upgrading
           is_virtualization_server
           is_server
+          is_transactional
           is_s390x
           is_livecd
           is_x86_64
@@ -73,6 +76,7 @@ use constant {
           is_ppc64le
           has_product_selection
           has_license_on_welcome_screen
+          uses_qa_net_hardware
           )
     ]
 };
@@ -93,16 +97,6 @@ sub is_jeos {
 
 sub is_vmware {
     return check_var('VIRSH_VMM_FAMILY', 'vmware');
-}
-
-sub is_hyperv {
-    my $hyperv_version = shift;
-    return 0 unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
-    return defined($hyperv_version) ? check_var('HYPERV_VERSION', $hyperv_version) : 1;
-}
-
-sub is_hyperv_in_gui {
-    return is_hyperv && !check_var('VIDEOMODE', 'text');
 }
 
 sub is_krypton_argon {
@@ -154,7 +148,7 @@ sub check_version {
         return $pv eq $qv if $+{op} eq '=';
     }
     # Version should be matched and processed by now
-    die "Unsupported version parameter: $query";
+    croak "Unsupported version parameter for check_version: '$query'";
 }
 
 # Check if distribution is CaaSP or MicroOS with optional filter:
@@ -240,6 +234,11 @@ sub is_sle {
     return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
 }
 
+sub is_transactional {
+    return 1 if is_caasp;
+    return check_var('SYSTEM_ROLE', 'serverro');
+}
+
 sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
 }
@@ -287,10 +286,6 @@ sub is_pre_15 {
 
 sub is_aarch64_uefi_boot_hdd {
     return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
-}
-
-sub is_svirt_except_s390x {
-    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
 }
 
 sub is_s390x {
@@ -408,4 +403,8 @@ configuration, otherwise returns false (0).
 sub has_license_on_welcome_screen {
     return 1 if is_caasp('caasp');
     return get_var('HASLICENSE') && ((is_sle('=15') || (is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x()) || is_sle('<15'));
+}
+
+sub uses_qa_net_hardware {
+    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }

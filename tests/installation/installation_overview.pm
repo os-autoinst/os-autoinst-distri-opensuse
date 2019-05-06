@@ -15,8 +15,8 @@ use strict;
 use warnings;
 use base "y2logsstep";
 use testapi;
-use version_utils qw(is_caasp is_hyperv is_upgrade);
-use Utils::Backends 'is_remote_backend';
+use version_utils qw(is_caasp is_upgrade);
+use Utils::Backends qw(is_remote_backend is_hyperv);
 
 
 sub ensure_ssh_unblocked {

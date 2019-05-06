@@ -72,7 +72,7 @@ sub clock_and_timezone {
 sub user_setup {
     my $is_not_shared_passwd = shift;
     assert_screen 'local_user';
-    enter_userinfo(username => 'y2_firstboot_tester');
+    enter_userinfo(username => get_var('YAST2_FIRSTBOOT_USERNAME'));
     if (defined($is_not_shared_passwd)) {
         send_key 'alt-t' if (is_opensuse);
     }

@@ -562,7 +562,7 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-    type_string "yast2 scc; echo sccreg-done-\$?- > /dev/$serialdev\n";
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'scc');
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,
@@ -571,10 +571,7 @@ sub yast_scc_registration {
     );
 
     fill_in_registration_data;
-
-    my $ret = wait_serial "sccreg-done-\\d+-";
-    die "yast scc failed" unless (defined $ret && $ret =~ /sccreg-done-0-/);
-
+    wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
 }
 

@@ -21,7 +21,7 @@ use autotest;
 use utils;
 use wicked::TestContext;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';
@@ -347,10 +347,6 @@ sub default_desktop {
     return 'textmode' if is_server || !get_var('SCC_REGISTER') || !check_var('SCC_REGISTER', 'installation');
     # remaining cases are is_desktop and check_var('SCC_REGISTER', 'installation'), hence gnome
     return 'gnome';
-}
-
-sub uses_qa_net_hardware {
-    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
 sub load_shutdown_tests {
@@ -1597,7 +1593,7 @@ sub load_extra_tests_console {
     loadtest "console/lshw" if ((is_sle('15+') && (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'x86_64'))) || is_opensuse);
     loadtest 'console/quota' unless is_jeos;
     loadtest 'console/zziplib' if (is_sle('12-SP3+') && !is_jeos);
-    loadtest 'console/firewalld' unless is_sle('<15') || is_leap('<15');
+    loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
 }
 
 sub load_extra_tests_docker {
@@ -2265,8 +2261,24 @@ sub load_security_tests {
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
-    if (check_var('SYSTEMD_TESTSUITE', 'basic')) {
+    if (check_var('SYSTEMD_TESTSUITE', 'noqemu')) {
+        loadtest 'systemd_testsuite/binary_tests';
         loadtest 'systemd_testsuite/test_01_basic';
+        loadtest 'systemd_testsuite/test_02_cryptsetup';
+        loadtest 'systemd_testsuite/test_03_jobs';
+        loadtest 'systemd_testsuite/test_04_journal';
+        loadtest 'systemd_testsuite/test_05_rlimits';
+        #loadtest 'systemd_testsuite/test_06_selinux';
+        loadtest 'systemd_testsuite/test_07_issue_1981';
+        loadtest 'systemd_testsuite/test_08_issue_2730';
+        loadtest 'systemd_testsuite/test_09_issue_2691';
+        loadtest 'systemd_testsuite/test_10_issue_2467';
+        loadtest 'systemd_testsuite/test_11_issue_3166';
+        loadtest 'systemd_testsuite/test_12_issue_3171';
+        loadtest 'systemd_testsuite/test_13_nspawn_smoke';
+        loadtest 'systemd_testsuite/test_14_machine_id';
+        loadtest 'systemd_testsuite/test_15_dropin';
+        loadtest 'systemd_testsuite/test_22_tmpfiles';
     }
     else {
         loadtest 'console/systemd_testsuite';
@@ -2475,6 +2487,13 @@ sub load_installation_validation_tests {
     }
 }
 
+sub load_transactional_role_tests {
+    loadtest 'transactional/filesystem_ro';
+    loadtest 'transactional/transactional_update';
+    loadtest 'transactional/rebootmgr';
+    loadtest 'transactional/health_check';
+}
+
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
@@ -2483,6 +2502,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
+    load_transactional_role_tests       if is_transactional;
 }
 
 sub load_ssh_key_import_tests {
@@ -2595,9 +2615,12 @@ sub load_ha_cluster_tests {
         # Test Hawk Web interface
         loadtest 'ha/check_hawk';
 
-        # If testing HAWK's GUI, skip the rest of the cluster
+        # Test Haproxy
+        loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
+
+        # If testing HAWK's GUI or HAPROXY, skip the rest of the cluster
         # setup tests and only check logs
-        if (get_var('HAWKGUI_TEST_ROLE')) {
+        if (get_var('HAWKGUI_TEST_ROLE') or get_var('HA_CLUSTER_HAPROXY')) {
             loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
             return 1;
         }
@@ -2626,6 +2649,9 @@ sub load_ha_cluster_tests {
 
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';
+
+    # Remove a node both by its hostname and ip address
+    loadtest 'ha/remove_node';
 
     # Check logs to find error and upload all needed logs if we are not
     # in installation/publishing mode
@@ -2704,12 +2730,6 @@ sub load_public_cloud_patterns_validation_tests {
     loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
     loadtest 'console/validate_pcm_aws'   if check_var('VALIDATE_PCM_PATTERN', 'aws');
     loadtest "console/consoletest_finish";
-}
-
-sub load_transactional_role_tests {
-    loadtest 'transactional_system/filesystem_ro';
-    loadtest 'transactional_system/transactional_update';
-    loadtest 'transactional_system/rebootmgr';
 }
 
 # Tests to validate partitioning with LVM, both encrypted and not encrypted.

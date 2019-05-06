@@ -15,7 +15,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
-use utils qw(type_string_slow zypper_call);
+use utils;
 use Utils::Backends 'use_ssh_serial_console';
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
@@ -85,7 +85,7 @@ sub run {
 
     check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
     my $RAM = get_total_mem();
-    die "RAM=$RAM. The SUT needs at least 32G of RAM" if $RAM < 32000;
+    die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
     # If on IPMI, let's try to reclaim some of the space from the system PV which may be needed for Hana
     try_reclaiming_space if (check_var('BACKEND', 'ipmi'));
@@ -96,6 +96,10 @@ sub run {
     if (is_sle('>=15')) {
         my $arch       = get_required_var('ARCH');
         my $os_version = script_output('sed -rn "s/^VERSION_ID=\"(.*)\"/\1/p" /etc/os-release');
+
+        # Disable packagekit, needed to not lock RPM database for zypper call
+        pkcon_quit;
+
         assert_script_run "SUSEConnect -p sle-module-legacy/$os_version/$arch";
         zypper_call('in libopenssl1_0_0');
     }

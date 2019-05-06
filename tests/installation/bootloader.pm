@@ -11,6 +11,8 @@
 # Summary: Bootloader to setup boot process with arguments/options
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
+package bootloader;
+
 use base "installbasetest";
 use strict;
 use warnings;

@@ -371,6 +371,22 @@ sub save_strace_gdb_output {
     }
 }
 
+sub yast2_console_exec {
+    my %args = @_;
+    die "Yast2 module has not been found among function arguments!\n" unless (defined($args{yast2_module}));
+    my $y2_start    = 'Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 yast2 ';
+    my $module_name = 'yast2-' . $args{yast2_module} . '-status';
+    $y2_start .= (defined($args{yast2_opts})) ?
+      $args{yast2_opts} . ' ' . $args{yast2_module} . ';' :
+      $args{yast2_module} . ';';
+
+    if (!script_run($y2_start . " echo $module_name-\$? > /dev/$serialdev", 0)) {
+        return $module_name;
+    } else {
+        die "Yast2 module failed to execute!\n";
+    }
+}
+
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;

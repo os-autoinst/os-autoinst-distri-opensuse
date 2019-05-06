@@ -26,7 +26,7 @@ sub hostname_via_dhcp {
     $cmd{home}             = 'home';
     $cmd{spc}              = 'spc';
 
-    type_string "yast2 lan\n";
+    y2logsstep::yast2_console_exec(yast2_module => 'lan');
     accept_warning_network_manager_default;
     assert_screen 'yast2_lan';
 

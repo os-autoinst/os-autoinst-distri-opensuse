@@ -11,7 +11,7 @@
 # Like CaasP, MicroOS and transactional-server
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
-package transactional_system;
+package transactional;
 
 use base Exporter;
 use Exporter;
@@ -19,14 +19,37 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use caasp 'process_reboot';
+use caasp 'microos_reboot';
+use power_action_utils 'power_action';
+use version_utils qw(is_opensuse is_caasp);
 
 our @EXPORT = qw(
+  process_reboot
   check_reboot_changes
   rpmver
   trup_call
   trup_install
+  trup_shell
 );
+
+sub process_reboot {
+    my $trigger = shift // 0;
+
+    if (is_caasp) {
+        microos_reboot $trigger;
+    } else {
+        power_action('reboot', observe => !$trigger, keepconsole => 1);
+
+        # Replace by wait_boot if possible
+        assert_screen 'grub2', 100;
+        send_key 'ret';
+        assert_screen 'linux-login', 200;
+
+        # Login & clear login needle
+        select_console 'root-console';
+        assert_script_run 'clear';
+    }
+}
 
 # Reboot if there's a diff between the current FS and the new snapshot
 sub check_reboot_changes {
@@ -51,36 +74,24 @@ sub check_reboot_changes {
 # Return names and version of packages for transactional-update tests
 sub rpmver {
     my $q    = shift;
-    my $d    = get_var 'DISTRI';
     my $arch = get_var('ARCH');
+    my $iobs = is_opensuse() ? 'obs' : 'ibs';
 
-    # package name | initial version
+    # rpm version & release numbers
     my %rpm = (
-        microos => {
-            fn => '5-2.1',
-            in => '2.1',
-        },
-        caasp => {
-            fn => '5-5.3.61',
-            in => '5.3.61',
-        });
+        obs => {v => '5', r => '2.1'},
+        ibs => {v => '5', r => '2.29'},
+    );
 
-    if ("$arch" eq "aarch64") {
-        %rpm = (
-            microos => {
-                fn => '5-4.3',
-                in => '4.3',
-            });
+    if ($arch eq 'aarch64') {
+        $rpm{obs} = {v => '5', r => '4.3'};
     }
 
-    # Returns expected package version after installation / update
-    if ($q eq 'in') {
-        return $rpm{$d}{$q};
-    }
+    my $vr = "$rpm{$iobs}{v}-$rpm{$iobs}{r}";
+    # Returns expected package version after installation
+    return $vr if $q eq 'vr';
     # Returns rpm path for initial installation
-    else {
-        return " update-test-trival/update-test-$q-$rpm{$d}{fn}.$arch.rpm";
-    }
+    return " update-test-trivial/update-test-$q-$vr.$arch.rpm";
 }
 
 # Optionally skip exit status check in case immediate reboot is expected
@@ -113,23 +124,16 @@ sub trup_call {
 # Install a pkg in MicroOS
 sub trup_install {
     my $input = shift;
-    my ($unnecessary, $necessary);
 
     # rebootmgr has to be turned off as prerequisity for this to work
     script_run "rebootmgrctl set-strategy off";
 
     my @pkg = split(' ', $input);
+    my $necessary;
     foreach (@pkg) {
-        if (!script_run("rpm -q $_")) {
-            $unnecessary .= "$_ ";
-        }
-        else {
-            $necessary .= "$_ ";
-        }
+        $necessary .= "$_ " if script_run("rpm -q $_");
     }
-    record_info "Skip", "Pre-installed (no action): $unnecessary" if $unnecessary;
     if ($necessary) {
-        record_info "Install", "Installing: $necessary";
         trup_call("pkg install $necessary");
         process_reboot(1);
     }
@@ -137,3 +141,19 @@ sub trup_install {
     # By the end, all pkgs should be installed
     assert_script_run("rpm -q $input");
 }
+
+# Run command in transactional shell and reboot to apply changes
+# Optional parameter reboot can disable rebooting into new snapshot
+sub trup_shell {
+    my ($cmd, %args) = @_;
+    $args{reboot} //= 1;
+
+    type_string("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev\n");
+    wait_still_screen;
+    type_string("$cmd\n");
+    type_string("exit\n");
+    wait_serial('trup_shell-status-0') || die "'transactional-update shell' didn't finish";
+
+    process_reboot 1 if $args{reboot};
+}
+

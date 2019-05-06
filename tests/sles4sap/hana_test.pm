@@ -23,6 +23,14 @@ sub run {
 
     select_console 'root-console';
 
+    # Check the memory/disk configuration
+    assert_script_run 'free -m';
+    save_screenshot;
+    assert_script_run 'lvs -ao +devices vg_hana';
+    save_screenshot;
+    assert_script_run 'df -k | grep vg_hana';
+    save_screenshot;
+
     # The SAP Admin was set in sles4sap/wizard_hana_install
     my $sid         = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');

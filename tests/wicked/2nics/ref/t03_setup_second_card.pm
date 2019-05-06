@@ -21,8 +21,6 @@ use testapi;
 sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Set up a second card');
-    my $ip_address = $self->get_ip(type => 'second_card');
-    assert_script_run("ip a a $ip_address dev " . $ctx->iface());
 }
 
 1;

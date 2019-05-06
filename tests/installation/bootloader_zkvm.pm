@@ -11,6 +11,8 @@
 # Summary: Interface with the zKVM bootloader based on test settings
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
+package bootloader_zkvm;
+
 use base "installbasetest";
 
 use strict;

@@ -20,6 +20,7 @@ use utils 'systemctl';
 use version_utils 'is_sle';
 use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
 use x11utils 'turn_off_gnome_screensaver';
+use y2logsstep 'yast2_console_exec';
 
 sub setup_nis_client {
     if (is_sle('>=15')) {
@@ -112,12 +113,12 @@ sub run {
     }
 
     mutex_lock('nis_ready');    # wait for NIS server setup
-    script_run("yast2 nis; echo yast2-nis-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nis');
     setup_nis_client();
     mutex_lock('nfs_ready');    # wait for NFS server setup
     nfs_settings_tab();
     nfs_shares_tab();
-    wait_serial("yast2-nis-status-0", 360) || die "'yast2 nis client' didn't finish";
+    wait_serial("$module_name-0", 360) || die "'yast2 nis client' didn't finish";
     setup_verification();
     type_string "killall xterm\n";    # game over -> xterm
 }
