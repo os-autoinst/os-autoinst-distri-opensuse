@@ -15,7 +15,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
-use utils qw(type_string_slow zypper_call);
+use utils;
 use Utils::Backends 'use_ssh_serial_console';
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
@@ -96,6 +96,10 @@ sub run {
     if (is_sle('>=15')) {
         my $arch       = get_required_var('ARCH');
         my $os_version = script_output('sed -rn "s/^VERSION_ID=\"(.*)\"/\1/p" /etc/os-release');
+
+        # Disable packagekit, needed to not lock RPM database for zypper call
+        pkcon_quit;
+
         assert_script_run "SUSEConnect -p sle-module-legacy/$os_version/$arch";
         zypper_call('in libopenssl1_0_0');
     }
