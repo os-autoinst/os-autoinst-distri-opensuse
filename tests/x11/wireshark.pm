@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -158,12 +158,18 @@ sub run {
     # Sometimes checksum error window popup, then we need close this windows since this caused by offload feature
     assert_screen([qw(wireshark-filter-applied wireshark-checksum-error)]);
     if (match_has_tag('wireshark-checksum-error')) {
-        # Close checksum-error window
+        # Close checksum-error window, when we hit this error, the show submenu was extended
+        # we need escape the submenu then send alt-c to close the checksum error page.
+        send_key "esc";
+        wait_still_screen 3;
+        send_key "esc";
         wait_screen_change { send_key 'alt-c' };
+    }
+    else {
         assert_screen "wireshark-filter-selected";
         assert_screen "wireshark-filter-applied";
+        assert_screen "wireshark-dns-response-list";
     }
-    assert_screen "wireshark-dns-response-list";
 
     # close capture
     assert_and_click "wireshark-close-capture";
