@@ -116,6 +116,7 @@ sub run {
     send_key_until_needlematch 'sap-wizard-proto-' . $proto . '-selected', 'down';
     send_key 'alt-p';
     type_string_slow "$path", wait_still_screen => 1;
+    save_screenshot;
     send_key 'tab';
     send_key $cmd{next};
     assert_screen 'sap-wizard-copying-media',     120;
