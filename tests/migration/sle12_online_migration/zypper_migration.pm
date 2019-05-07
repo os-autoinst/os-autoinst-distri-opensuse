@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
+use version_utils qw(is_desktop_installed is_sles4sap);
 
 sub run {
     my $self = shift;
@@ -104,8 +105,12 @@ sub run {
     }
     power_action('reboot', keepconsole => 1, textmode => 1);
 
+    # Do not attempt to log into the desktop of a system installed with SLES4SAP
+    # being prepared for upgrade, as it does not have an unprivileged user to test
+    # with other than the SAP Administrator
+    #
     # sometimes reboot takes longer time after online migration, give more time
-    $self->wait_boot(bootloader_time => 300);
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => is_sles4sap);
 }
 
 1;
