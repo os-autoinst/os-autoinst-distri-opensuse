@@ -122,10 +122,11 @@ sub test_start_service {
     my $output = script_output "sapcontrol -nr $instance -function StartService $sid";
     die "sapcontrol: StartService API failed\n\n$output" unless ($output =~ /StartService[\r\n]+OK/);
 
-    $output = script_output $ps_cmd;
+    # We can't use the $ps_cmd alias, as number of process can be >1 on some HANA version
+    $output = script_output "pgrep -a sapstartsrv | grep -w $sid";
     my @olines = split(/\n/, $output);
-    die "sapcontrol: wrong number of processes running after an StartService\n\n" . @olines unless (@olines == 1);
-    die "sapcontrol failed to start the service" unless ($output =~ /^$sapadmin.+sapstartsrv/);
+    die "sapcontrol: wrong number of processes running after a StartService\n\n" . @olines unless (@olines == 1);
+    die "sapcontrol failed to start the service" unless ($output =~ /sapstartsrv/);
 }
 
 sub test_start_instance {
