@@ -93,16 +93,6 @@ sub run {
     # Add host's IP to /etc/hosts
     my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
     assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
-    if (is_sle('>=15')) {
-        my $arch       = get_required_var('ARCH');
-        my $os_version = script_output('sed -rn "s/^VERSION_ID=\"(.*)\"/\1/p" /etc/os-release');
-
-        # Disable packagekit, needed to not lock RPM database for zypper call
-        pkcon_quit;
-
-        assert_script_run "SUSEConnect -p sle-module-legacy/$os_version/$arch";
-        zypper_call('in libopenssl1_0_0');
-    }
     select_console 'x11';
     # Hide the mouse so no needle will fail because of the mouse pointer appearing
     mouse_hide;
