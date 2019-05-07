@@ -19,11 +19,22 @@ use lockapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
+use version_utils qw(is_sle is_s390x);
+
+sub vnc_on_s390_workaround { # Really not a great place for this, but I did not find another.
+    if ( is_s390x && (is_sle('15') || is_sle('15-SP1')) ) {
+    unless (script_run("grep org.gnome.SettingsDaemon.Wacom /mnt/usr/share/gnome-session/sessions/gnome*")) {
+        record_soft_failure 'bsc#1129412, Not possible to connect to VNC on installed system';
+        assert_script_run("sed -i 's/org.gnome.SettingsDaemon.Wacom;//' /mnt/usr/share/gnome-session/sessions/gnome*");
+        }
+    }
+}
 
 sub run {
     my ($self) = @_;
     select_console 'install-shell';
 
+    vnc_on_s390_workaround;
     # check for right boot-device on s390x (zVM, DASD ONLY)
     if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {
         if (script_run('lsreipl | grep 0.0.0150')) {
