@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use version_utils qw(is_sle is_caasp);
 use ipmi_backend_utils;
+use Utils::Backends 'is_hyperv';
 use network_utils;
 use utils 'zypper_call';
 
@@ -380,6 +381,12 @@ sub yast2_console_exec {
       $args{yast2_opts} . ' ' . $args{yast2_module} . ';' :
       $args{yast2_module} . ';';
 
+    # poo#40715: Hyper-V 2012 R2 serial console is unstable (a Hyper-V product bug)
+    # and is in many cases loosing the 15th character, so e.g. instead of the expected
+    # 'yast2-scc-status-0' we get 'yast2-scc-statu-0' (sic, see the missing 's').
+    # Kepp only the first 10 characters of a magic string plus a dash ('-')
+    # and up to a three digit exit code.
+    $module_name = substr($module_name, 0, 10) if is_hyperv('2012r2');
     if (!script_run($y2_start . " echo $module_name-\$? > /dev/$serialdev", 0)) {
         return $module_name;
     } else {
