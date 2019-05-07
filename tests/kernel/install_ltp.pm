@@ -101,6 +101,7 @@ sub install_debugging_tools {
       gdb
       ltrace
       strace
+      tcpdump
     );
     for my $dep (@maybe_deps) {
         script_run('zypper -n -t in ' . $dep . ' | tee');
