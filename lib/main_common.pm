@@ -1401,6 +1401,7 @@ sub load_extra_tests_y2uitest_gui {
     loadtest "yast2_gui/yast2_network_settings";
     loadtest "yast2_gui/yast2_software_management";
     loadtest "yast2_gui/yast2_users";
+    loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
 }
 
 sub load_extra_tests_y2uitest_cmd {
