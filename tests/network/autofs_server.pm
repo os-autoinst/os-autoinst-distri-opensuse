@@ -41,7 +41,7 @@ sub run {
     assert_script_run "echo N > /sys/module/nfsd/parameters/nfs4_disable_idmapping";
     zypper_call('in nfsidmap');
     systemctl 'restart nfs-idmapd';
-    assert_script_run "nfsidmap -c";
+    assert_script_run "nfsidmap -c || true";
     assert_script_run "useradd -m tux";
     assert_script_run "echo Hi tux > $nfsidmap_share_dir/tux.txt";
     assert_script_run "chown tux:users $nfsidmap_share_dir/tux.txt";
