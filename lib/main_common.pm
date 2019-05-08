@@ -1675,6 +1675,7 @@ sub load_rollback_tests {
 
 sub load_extra_tests_filesystem {
     loadtest "console/system_prepare";
+    loadtest "console/lvm";
     loadtest "console/lsof";
     loadtest "console/autofs";
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
