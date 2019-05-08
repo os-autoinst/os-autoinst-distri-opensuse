@@ -25,7 +25,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -300,6 +300,75 @@ sub upload_supportconfig_log {
     upload_logs("nts_supportconfig.$datetab.tar.gz");
     script_run("rm -rf nts_supportconfig.*");
     save_screenshot;
+}
+
+# Download guest image and xml from a NFS location to local
+# the image and xml is coming from a guest installation testsuite
+# need set SKIP_GUEST_INSTALL=1 in the test suite settings
+# only available on x86_64
+sub download_guest_assets {
+
+    # guest_pattern is a string, like sles-11-sp4-64, may or may not with pv or fv given.
+    my ($guest_pattern, $vm_xml_dir) = @_;
+
+    # list the guests matched the pattern
+    my $qa_guest_config_file = "/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update";
+    my $hypervisor_type      = get_var('SYSTEM_ROLE', '');
+    my $install_guest_list = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vms_from_config_file $qa_guest_config_file $guest_pattern $hypervisor_type";
+    save_screenshot;
+    if ($install_guest_list eq '') {
+        record_soft_failure("Not found guest pattern $guest_pattern in $qa_guest_config_file");
+        return 1;
+    }
+
+    # mount the remote NFS location of guest assets
+    # OPENQA_URL="localhost" in local openQA instead of the IP, so the line below need to be turned on and set to the webUI IP when you are using local openQA
+    # Tips: Using local openQA, you need "rcnfsserver start & vi /etc/exports; exportfs -r")
+    # set_var('OPENQA_URL', "your_ip");
+    my $openqa_server = get_required_var('OPENQA_URL');
+    $openqa_server =~ s/^http:\/\///;
+    my $remote_export_dir = "/var/lib/openqa/factory/other/";
+    my $mount_point       = "/tmp/remote_guest";
+
+    assert_script_run "if [ ! -d $mount_point ];then mkdir -p $mount_point;fi";
+    save_screenshot;
+    # tip: nfs4 is not supported on sles12sp4
+    assert_script_run("mount -t nfs $openqa_server:$remote_export_dir $mount_point", 120);
+    save_screenshot;
+
+    # copy guest images and xml files to local
+    # test aborts if failing in copying all the guests
+    my $remote_guest_count = 0;
+    foreach my $guest (split "\n", $install_guest_list) {
+        my $guest_asset           = generate_guest_asset_name("$guest");
+        my $remote_guest_xml_file = $guest_asset . '.xml';
+        my $remote_guest_disk     = $guest_asset . '.disk';
+        # change the long guest image name and xml file name to normal ones in local
+        my $rc = script_run("if [ ! -d $vm_xml_dir ];then mkdir -p $vm_xml_dir;fi; cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
+        save_screenshot;
+        if ($rc) {
+            record_soft_failure("Failed copying: $mount_point/$remote_guest_xml_file");
+            next;
+        }
+        script_run("ls -l $vm_xml_dir", 10);
+        save_screenshot;
+        my $local_guest_image = script_output "grep '<source file=' $vm_xml_dir/$guest.xml | sed \"s/^\\s*<source file='\\([^']*\\)'.*\$/\\1/\"";
+        $rc = script_run("cp $mount_point/$remote_guest_disk $local_guest_image", 300);    #it took 75 seconds copy from vh016 to vh001
+        script_run "ls -l $local_guest_image";
+        save_screenshot;
+        if ($rc) {
+            record_soft_failure("Failed to download: $remote_guest_disk");
+            next;
+        }
+        $remote_guest_count++;
+    }
+
+    # umount
+    script_run("umount $mount_point");
+    save_screenshot;
+
+    return 1 if ($remote_guest_count == 0);
+
 }
 
 1;
