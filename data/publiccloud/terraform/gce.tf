@@ -1,6 +1,15 @@
+variable "cred_file" {
+    default = "/root/google_credentials.json"
+}
+
 provider "google" {
-    credentials = "/root/google_credentials.json"
+    credentials = "${var.cred_file}"
     project     = "${var.project}"
+}
+
+data "external" "gce_cred" {
+    program = [ "cat", "${var.cred_file}" ]
+    query =  { }
 }
 
 variable "count" {
@@ -58,6 +67,11 @@ resource "google_compute_instance" "openqa" {
         network = "default"
             access_config {
         }
+    }
+
+    service_account {
+        email = "${data.external.gce_cred.result["client_email"]}"
+        scopes = ["cloud-platform"]
     }
 
 }
