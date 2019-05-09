@@ -136,12 +136,6 @@ if (is_sle('15+')) {
 }
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
-if (is_sle('15+')) {
-    if (check_var('ARCH', 's390x') and get_var('DESKTOP', '') =~ /gnome|minimalx/) {
-        diag 'BUG: bsc#1058071 - No VNC server available in SUT, disabling X11 tests. Re-enable after bug is fixed';
-        set_var('DESKTOP', 'textmode');
-    }
-}
 
 # don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
 # For released products we want install updates during installation, only in minimal workflow disable
