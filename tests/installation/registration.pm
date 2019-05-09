@@ -28,8 +28,8 @@ sub run {
     return record_info('Skip reg.', 'SCC registration is not required in media based upgrade since SLE15') if (is_sle('15+') && get_var('MEDIA_UPGRADE'));
     if (check_var('SCC_REGISTER', 'installation') || (check_var('REGISTER', 'installation'))) {
         record_info('SCC reg.', 'SCC registration');
-        assert_registration_screen_present;
-        fill_in_registration_data;
+        assert_registration_screen_present();
+        fill_in_registration_data();
     }
     else {
         return if check_var('SLE_PRODUCT', 'leanos');
@@ -58,15 +58,15 @@ sub run {
                 bugref       => 'bsc#1028774'
             );
         }
-        skip_registration;
+        skip_registration();
     }
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
-    verify_scc;
-    investigate_log_empty_license;
+    verify_scc();
+    investigate_log_empty_license();
 }
 
 1;
