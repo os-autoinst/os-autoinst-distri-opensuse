@@ -22,6 +22,7 @@ use base "y2logsstep";
 
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
+use version_utils 'is_sle';
 use registration qw(skip_registration assert_registration_screen_present fill_in_registration_data verify_scc investigate_log_empty_license);
 
 sub run {
