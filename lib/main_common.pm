@@ -1292,6 +1292,7 @@ sub load_x11tests {
         loadtest "x11/evolution"      if (!is_server() || we_is_applicable());
         load_testdir('x11/gnomeapps') if is_gnome_next;
     }
+    loadtest "x11/rrdtool_x11.pm";
     loadtest "x11/desktop_mainmenu";
     load_sles4sap_tests() if (is_sles4sap() and !is_sles4sap_standard());
     if (xfcestep_is_applicable()) {
