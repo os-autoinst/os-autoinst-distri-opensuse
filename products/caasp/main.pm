@@ -79,7 +79,7 @@ sub load_caasp_inst_tests {
             loadtest 'caasp/oci_overview';
             loadtest 'caasp/oci_keyboard';
             loadtest 'installation/accept_license';
-            loadtest 'installation/registration';
+            loadtest 'installation/scc_registration';
             loadtest 'installation/system_role';
             loadtest 'installation/caasp_roleconf' unless check_var('SYSTEM_ROLE', 'plain');
             loadtest 'installation/user_settings_root';
