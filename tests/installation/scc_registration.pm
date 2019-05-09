@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Do the registration against SCC
+# Summary: Do the registration against SCC or skip it
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
