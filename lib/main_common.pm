@@ -2495,7 +2495,6 @@ sub load_installation_validation_tests {
 }
 
 sub load_transactional_role_tests {
-    return if is_sle && !check_var('ARCH', 'x86_64');
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/transactional_update';
     loadtest 'transactional/rebootmgr';
@@ -2510,7 +2509,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
-    load_transactional_role_tests       if is_transactional;
+    load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
 }
 
 sub load_ssh_key_import_tests {
