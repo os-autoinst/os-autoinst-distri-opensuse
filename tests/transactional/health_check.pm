@@ -41,7 +41,6 @@ sub compare_id {
 
 sub run {
     if (script_run 'rpm -q health-checker') {
-        record_soft_failure 'bsc#1134176';
         trup_install 'health-checker';
         systemctl 'enable health-checker';
     }
