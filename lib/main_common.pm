@@ -2499,7 +2499,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
-    load_transactional_role_tests       if is_transactional;
+    load_transactional_role_tests       if is_transactional && !check_var('INSTALLONLY', '1');
 }
 
 sub load_ssh_key_import_tests {
