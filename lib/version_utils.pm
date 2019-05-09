@@ -69,11 +69,7 @@ use constant {
           is_virtualization_server
           is_server
           is_transactional
-          is_s390x
           is_livecd
-          is_x86_64
-          is_aarch64
-          is_ppc64le
           has_product_selection
           has_license_on_welcome_screen
           uses_qa_net_hardware
@@ -286,22 +282,6 @@ sub is_pre_15 {
 
 sub is_aarch64_uefi_boot_hdd {
     return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
-}
-
-sub is_s390x {
-    return check_var('ARCH', 's390x');
-}
-
-sub is_x86_64 {
-    return check_var('ARCH', 'x86_64');
-}
-
-sub is_aarch64 {
-    return check_var('ARCH', 'aarch64');
-}
-
-sub is_ppc64le {
-    return check_var('ARCH', 'ppc64le');
 }
 
 sub is_server {
