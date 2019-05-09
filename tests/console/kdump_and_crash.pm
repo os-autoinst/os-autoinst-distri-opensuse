@@ -37,6 +37,13 @@ sub run {
     $self->wait_boot;
     select_console 'root-console';
 
+    if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'ppc64')) {
+        if (script_run('kver=$(uname -r); kconfig="/boot/config-$kver"; [ -f $kconfig ] && grep ^CONFIG_RELOCATABLE $kconfig')) {
+            record_soft_failure 'poo#49466 -- No kdump if no CONFIG_RELOCATABLE in kernel config';
+            return 1;
+        }
+    }
+
     # often kdump could not be enabled: bsc#1022064
     return 1 unless kdump_is_active;
     do_kdump;
