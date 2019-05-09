@@ -50,7 +50,7 @@ sub verify_installation_and_repo {
     my $available = !!(!defined($software{$name}->{available}) || $software{$name}->{available}->());
     # Negate condition if package should not be available
     my $cmd = $available ? '' : '! ';
-    $cmd .= "zypper se -n $args --match-exact --details $name";
+    $cmd .= "zypper --non-interactive se -n $args --match-exact --details $name";
     # Verify repo only if package expected to be available
     $cmd .= ' | grep ' . $software{$name}->{repo} if $available;
     # Record error in case non-zero return code
