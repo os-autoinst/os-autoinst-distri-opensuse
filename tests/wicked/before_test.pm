@@ -44,12 +44,9 @@ sub run {
     if (check_var('IS_WICKED_REF', '1')) {
         record_info('INFO', 'Setup DHCP server');
         zypper_call('--quiet in dhcp-server', timeout => 200);
-        if (check_var('WICKED', '2nics')) {
-            record_info('Info', 'Set up 2nics DHCP and second ip');
+        $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
+        if (check_var('WICKED', 'basic') || check_var('WICKED', '2nics')) {
             assert_script_run(sprintf("ip a a %s dev %s", $self->get_ip(type => 'second_card'), $ctx->iface()));
-            $self->get_from_data('wicked/dhcp/dhcpd_2nics.conf', '/etc/dhcpd.conf');
-        } else {
-            $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         }
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
         systemctl 'enable dhcpd.service';

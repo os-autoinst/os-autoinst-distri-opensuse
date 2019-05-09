@@ -16,11 +16,15 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-
+use utils 'systemctl';
+use lockapi;
 
 sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Set up a second card');
+    $self->get_from_data('wicked/dhcp/dhcpd_2nics.conf', '/etc/dhcpd.conf');
+    systemctl 'restart dhcpd.service';
+    die("Create mutex failed") unless mutex_create('t08_dhcpd_setup_complete');
 }
 
 1;

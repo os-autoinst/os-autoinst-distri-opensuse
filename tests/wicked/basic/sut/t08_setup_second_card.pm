@@ -16,7 +16,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-
+use lockapi;
 
 sub run {
     my ($self, $ctx) = @_;
@@ -26,8 +26,9 @@ sub run {
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $cfg_ifc1);
     $self->get_from_data('wicked/static_address/ifcfg-eth0',  $cfg_ifc2);
     $self->wicked_command('ifdown', 'all');
-    $self->wicked_command('ifup',   $ctx->iface());
-    $self->wicked_command('ifup',   $ctx->iface2());
+    mutex_wait('t08_dhcpd_setup_complete');
+    $self->wicked_command('ifup', $ctx->iface());
+    $self->wicked_command('ifup', $ctx->iface2());
     my $iface_ip  = $self->get_ip(type => 'dhcp_2nic');
     my $iface_ip2 = $self->get_ip(type => 'host');
     validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /$iface_ip/ });
