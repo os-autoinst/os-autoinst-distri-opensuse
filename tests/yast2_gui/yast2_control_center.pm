@@ -358,7 +358,7 @@ sub run {
     }
     # only available on openSUSE or at least not SLES
     # drop fonts test for leap 15.0, see poo#29292
-    if (is_tumbleweed || is_leap('<15.0')) {
+    if (is_leap('<15.0')) {
         start_fonts;
     }
 
