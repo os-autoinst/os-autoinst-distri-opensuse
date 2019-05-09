@@ -809,7 +809,7 @@ sub load_inst_tests {
     if (get_var('DUD_ADDONS') && is_sle('<15')) {
         loadtest "installation/dud_addon";
     }
-    loadtest 'installation/accept_license' if has_product_selection;
+    loadtest 'installation/accept_license' if has_license_to_accept;
     loadtest 'installation/network_configuration' if get_var('OFFLINE_SUT');
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration";
@@ -845,15 +845,7 @@ sub load_inst_tests {
     }
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
-        # SCC registration is not required in media based upgrade since SLE15
-        unless (is_sle('15+') && get_var('MEDIA_UPGRADE')) {
-            if (check_var('SCC_REGISTER', 'installation')) {
-                loadtest "installation/scc_registration";
-            }
-            else {
-                loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
-            }
-        }
+        loadtest "installation/registration";
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
