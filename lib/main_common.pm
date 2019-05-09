@@ -467,6 +467,11 @@ sub load_zdup_tests {
         loadtest "console/lock_package";
     }
     loadtest 'installation/install_service' if !is_desktop;
+    if (get_var("USE_SUSECONNECT")) {
+        loadtest "console/zdup_prepare_leap_sle";
+    } else {
+        loadtest 'installation/zdup_prepare_repos';
+    }
     loadtest 'installation/zdup';
     loadtest 'installation/post_zdup';
     # Restrict version switch to sle until opensuse adopts it

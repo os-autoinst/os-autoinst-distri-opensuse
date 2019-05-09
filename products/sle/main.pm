@@ -1064,7 +1064,9 @@ else {
     }
     elsif (installzdupstep_is_applicable()) {
         # Staging cannot be registered, so Staging cannot be patched before testing upgrades in staging
-        if (!is_staging) {
+        # For the migration from LEAP to SLE, normally we only support the versions in developing to do fully update.
+        # Ex: LEAP15.1 to SLE15SP1
+        if (!is_staging && (get_var('HDDVERSION', '') !~ /opensuse-/)) {
             load_patching_tests();
         }
         load_zdup_tests();
