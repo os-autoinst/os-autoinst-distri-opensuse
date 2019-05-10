@@ -25,6 +25,7 @@ use version_utils;
 
 our @EXPORT = qw(
   create_list_of_serial_failures
+  create_list_of_autoinst_failures
   upload_journal
 );
 
@@ -81,6 +82,20 @@ sub create_list_of_serial_failures {
     push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
 
     return $serial_failures;
+}
+
+=head2 create_list_of_autoinst_failures
+
+To add a known bug simply copy and adapt the following line:
+C<push @$autoinst_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' };>
+type=soft will force the testmodule result to softfail
+type=hard will just emit a soft fail message but the module will do a normal fail
+
+=cut
+sub create_list_of_autoinst_failures {
+    my $autoinst_failures = [];
+
+    return $autoinst_failures;
 }
 
 =head2 create_list_of_journal_failures

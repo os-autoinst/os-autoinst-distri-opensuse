@@ -73,8 +73,9 @@ set_var('WINTER_IS_THERE', 1) if ($time[4] == 11 || $time[4] == 0);
 
 testapi::set_distribution(DistributionProvider->provide());
 
-# Set serial failures
+# Set failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 unless (get_var("DESKTOP")) {
     if (check_var("VIDEOMODE", "text")) {
