@@ -1059,8 +1059,13 @@ sub load_console_server_tests {
 
 sub load_consoletests {
     return unless consolestep_is_applicable();
-    if (get_var("ADDONS", "") =~ /rt/) {
+    if (rt_is_applicable()) {
         loadtest "rt/kmp_modules";
+        loadtest "rt/rt_is_realtime";
+        loadtest "rt/rt_devel_packages";
+        loadtest "rt/rt_peak_pci";
+        loadtest "rt/rt_preempt_test";
+        loadtest "rt/rt_tests";
     }
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/system_prepare";
@@ -1170,12 +1175,6 @@ sub load_consoletests {
         loadtest "console/gpt_ptable";
         loadtest "console/kdump_disabled";
         loadtest "console/sshd_running";
-    }
-    if (rt_is_applicable()) {
-        loadtest "console/rt_is_realtime";
-        loadtest "console/rt_devel_packages";
-        loadtest "console/rt_peak_pci";
-        loadtest "console/rt_preempt_test";
     }
     loadtest "console/sshd";
     loadtest "console/ssh_cleanup";
