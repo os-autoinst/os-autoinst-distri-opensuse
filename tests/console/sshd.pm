@@ -81,7 +81,7 @@ sub run {
 
     # Generate RSA key for SSH and copy it to our new user's profile
     assert_script_run "ssh-keygen -t rsa -P '' -C 'root\@localhost' -f ~/.ssh/id_rsa";
-    assert_script_run "sudo -u $ssh_testman ssh-keygen -t rsa -P '' -C '$ssh_testman\@localhost' -f /home/$ssh_testman/.ssh/id_rsa";
+    assert_script_run "su -c \"ssh-keygen -t rsa -P '' -C '$ssh_testman\@localhost' -f /home/$ssh_testman/.ssh/id_rsa\" $ssh_testman";
     assert_script_run "install -m 0644 -o $ssh_testman ~/.ssh/id_rsa.pub /home/$ssh_testman/.ssh/authorized_keys";
     assert_script_run "cat /home/$ssh_testman/.ssh/id_rsa.pub >> /home/$ssh_testman/.ssh/authorized_keys";
 
