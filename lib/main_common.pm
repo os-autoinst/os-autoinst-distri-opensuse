@@ -2554,7 +2554,7 @@ sub load_ha_cluster_tests {
     # Wait for barriers to be initialized except when testing HAWK as a client
     # or Pacemaker CTS regression tests
     loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client') or
-        (get_var('PACEMAKER_CTS_REG')));
+        (get_var('PACEMAKER_CTS_REG')) or (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
@@ -2573,6 +2573,12 @@ sub load_ha_cluster_tests {
     # If HAWKGUI_TEST_ROLE is set to client, only load client side test
     if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
         loadtest 'ha/hawk_gui';
+        return 1;
+    }
+
+    # If PACEMAKER_CTS_TEST_ROLE is set to client, only load client side test
+    if (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) {
+        loadtest 'ha/pacemaker_cts_cluster_exerciser';
         return 1;
     }
 
@@ -2627,6 +2633,11 @@ sub load_ha_cluster_tests {
     else {
         # Test Hawk Web interface
         loadtest 'ha/check_hawk';
+
+        if (get_var('PACEMAKER_CTS_TEST_ROLE')) {
+            loadtest 'ha/pacemaker_cts_cluster_exerciser';
+            return 1;
+        }
 
         # Test Haproxy
         loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));

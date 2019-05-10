@@ -75,6 +75,10 @@ sub run {
         barrier_create("JOIN_NODE_BY_IP_DONE_$cluster_name",        $num_nodes);
         barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name",      $num_nodes);
 
+        # PACEMAKER_TEST_ barriers also have to wait in the client
+        barrier_create("PACEMAKER_CTS_INIT_$cluster_name",    $num_nodes + 1);
+        barrier_create("PACEMAKER_CTS_CHECKED_$cluster_name", $num_nodes + 1);
+
         # HAWK_GUI_ barriers also have to wait in the client
         barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);
         barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
