@@ -23,6 +23,7 @@ use testapi qw(check_var get_var set_var);
 use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
+use Utils::Architectures 'is_s390x';
 
 use constant {
     VERSION => [
