@@ -149,10 +149,12 @@ sub run {
         }
         assert_screen('select-product-' . $product);
     }
-
     # Verify install arguments passed by bootloader
     # Linuxrc writes its settings in /etc/install.inf
     if (!is_remote_backend && get_var('VALIDATE_INST_SRC')) {
+        # Ensure to have the focus in some non-selectable control, i.e.: Keyboard Test
+        # before switching to console during installation
+        wait_screen_change { send_key 'alt-y' };
         wait_screen_change { send_key 'ctrl-alt-shift-x' };
         my $method     = uc get_required_var('INSTALL_SOURCE');
         my $mirror_src = get_required_var("MIRROR_$method");
