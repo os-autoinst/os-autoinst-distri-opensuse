@@ -2403,9 +2403,6 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/guest_management/) {
         loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
     }
-    if ($virt_part =~ m/hotplugging/) {
-        loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
-    }
     if (check_var("XEN", "1") && $virt_part =~ m/dom_metrics/) {
         loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
         loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
@@ -2417,6 +2414,9 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/final/) {
         loadtest 'virtualization/xen/virtmanager_final';          # Check all VMs login screen
         loadtest 'virtualization/xen/ssh_final';                  # Connect to guests using SSH
+    }
+    if ($virt_part =~ m/hotplugging/) {
+        loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
     }
 }
 
