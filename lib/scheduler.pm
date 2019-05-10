@@ -47,8 +47,8 @@ sub parse_schedule {
         my $condition = $schedule->{conditional_schedule}->{$module};
         # Iterate over variables in the condition
         foreach my $var (keys %{$condition}) {
-            next unless (my $val = get_var($var, exists($condition->{$var}->{default}) ? 'default' : undef));
-            # If value of the variable matched the conditions or there is a default value represented by ~
+            next unless my $val = get_var($var);
+            # If value of the variable matched the conditions
             # Iterate over the list of the modules to be loaded
             push(@scheduled, $_) for (@{$condition->{$var}->{$val}});
         }

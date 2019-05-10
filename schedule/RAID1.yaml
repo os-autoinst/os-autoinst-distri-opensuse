@@ -5,13 +5,18 @@ description:    >
   Installation of RAID1 using expert partitioner.
 vars:
   RAIDLEVEL: 1
+conditional_schedule:
+    system_role:
+        SYSTEM_ROLE:
+            default:
+                - installation/system_role
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - {{system_role}}
   - installation/partitioning
   - installation/partitioning_raid
   - installation/partitioning_finish
