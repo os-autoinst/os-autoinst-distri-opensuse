@@ -918,6 +918,12 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
+    elsif (get_var('GRUB2')) {
+        boot_hdd_image;
+        loadtest 'qa_automation/patch_and_reboot';
+        loadtest 'boot/grub2_test';
+        return 1;
+    }
     elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
         load_boot_tests;
         load_inst_tests;
