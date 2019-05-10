@@ -806,10 +806,10 @@ sub load_inst_tests {
         loadtest "installation/dud_addon";
     }
     loadtest "installation/welcome";
+    loadtest 'installation/accept_license' if has_license_to_accept;
     if (get_var('DUD_ADDONS') && is_sle('<15')) {
         loadtest "installation/dud_addon";
     }
-    loadtest 'installation/accept_license' if has_license_to_accept;
     loadtest 'installation/network_configuration' if get_var('OFFLINE_SUT');
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration";
