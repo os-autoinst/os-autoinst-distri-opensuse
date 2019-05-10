@@ -26,6 +26,7 @@ use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_exc
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';
+use Carp 'croak';
 use strict;
 use warnings;
 
@@ -135,6 +136,7 @@ sub init_main {
 
 sub loadtest {
     my ($test, %args) = @_;
+    croak "extensions are not allowed here '$test'" if $test =~ /\.pm$/;
     autotest::loadtest("tests/$test.pm", %args);
 }
 
