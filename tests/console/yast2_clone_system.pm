@@ -27,15 +27,7 @@ sub run {
     zypper_call "in autoyast2";
 
     my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'clone_system');
-
-    # workaround for bsc#1013605
-    my $timeout = 600;
-    assert_screen([qw(dhcp-popup yast2_console-finished)], $timeout);
-    if (match_has_tag('dhcp-popup')) {
-        wait_screen_change { send_key 'alt-o' };
-        assert_screen 'yast2_console-finished', $timeout;
-    }
-    wait_serial("$module_name-0") || die "'yast2 clone_system' didn't finish";
+    wait_serial("$module_name-0", 150) || die "'yast2 clone_system' didn't finish";
 
     $self->select_serial_terminal;
     # Replace unitialized email variable - bsc#1015158
