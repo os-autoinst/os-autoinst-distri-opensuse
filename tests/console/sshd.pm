@@ -17,7 +17,7 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
-use utils qw(systemctl exec_and_insert_password);
+use utils qw(systemctl exec_and_insert_password zypper_call);
 use version_utils qw(is_virtualization_server is_upgrade is_sle is_opensuse);
 
 sub run {
@@ -27,6 +27,11 @@ sub run {
     my $ssh_testman_passwd = "let3me2in1";
 
     select_console 'root-console';
+
+    # 'nc' is not installed by default on JeOS
+    if (script_run("which nc")) {
+        zypper_call("in netcat-openbsd");
+    }
 
     # Stop the firewall if it's available
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
