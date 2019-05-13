@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use utils qw(systemctl);
+use utils 'systemctl';
 use version_utils 'is_tumbleweed';
 
 # Check Service State, enable it if necessary, set default zone to public

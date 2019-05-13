@@ -130,7 +130,7 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
     my $version = get_version_for_daily_build_guest;
     $version =~ s/-/\//;
     my $autoyast_root_dir = "/usr/share/qa/virtautolib/data/autoinstallation/sles/" . $version . "/";
-    my $file_list         = &script_output("find $autoyast_root_dir -type f");
+    my $file_list         = script_output("find $autoyast_root_dir -type f");
     repl_addon_with_daily_build_module_in_files("$file_list");
 }
 

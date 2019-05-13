@@ -17,7 +17,7 @@ package Utils::Architectures;
 use strict;
 use warnings;
 
-use base qw(Exporter);
+use base 'Exporter';
 use Exporter;
 use testapi 'check_var';
 

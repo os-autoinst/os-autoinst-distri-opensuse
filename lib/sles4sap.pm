@@ -10,7 +10,7 @@ use hacluster 'pre_run_hook';
 use isotovideo;
 use x11utils 'ensure_unlocked_desktop';
 
-our @EXPORT = qw (
+our @EXPORT = qw(
   fix_path
   set_ps_cmd
   set_sap_info

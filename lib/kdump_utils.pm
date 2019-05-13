@@ -45,11 +45,11 @@ sub prepare_for_kdump_sle {
     my $counter = 0;
     if (get_var('MAINT_TEST_REPO')) {
         # append _debug to the incident repo
-        for my $b (split(/,/, get_var('MAINT_TEST_REPO'))) {
-            next unless $b;
-            $b =~ s,/$,_debug/,;
+        for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
+            next unless $i;
+            $i =~ s,/$,_debug/,;
             $counter++;
-            zypper_call("--no-gpg-check ar -f $b 'DEBUG_$counter'");
+            zypper_call("--no-gpg-check ar -f $i 'DEBUG_$counter'");
         }
     }
     script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);

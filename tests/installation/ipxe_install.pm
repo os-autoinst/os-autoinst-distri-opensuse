@@ -20,7 +20,7 @@ use base "y2logsstep";
 use HTTP::Tiny;
 use IPC::Run;
 use Socket;
-use Time::HiRes qw(sleep);
+use Time::HiRes 'sleep';
 
 sub ipmitool {
     my ($cmd) = @_;

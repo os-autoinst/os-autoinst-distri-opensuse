@@ -16,7 +16,7 @@ use utils;
 use strict;
 use warnings;
 use registration qw(add_suseconnect_product install_docker_when_needed cleanup_registration register_product);
-use suse_container_urls qw(get_suse_container_urls);
+use suse_container_urls 'get_suse_container_urls';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
 sub run {

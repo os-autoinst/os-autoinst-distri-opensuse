@@ -75,8 +75,8 @@ sub run {
         my $out                  = script_output('grep "^Startup finished in" ' . $ipa->{logfile});
         record_info('Startup time', $out);
         my $startup_timings = extract_startup_timings($out);
-        record_info('Kernel boot is too slow',         result => 'fail') if $startup_timings->{'kernel'} > $kernel_max_boot_time;
-        record_info('Overall system boot is too slow', result => 'fail') if $startup_timings->{'overall'} > $system_max_boot_time;
+        record_info('Kernel boot is too slow',         result => 'fail') if $startup_timings->{kernel} > $kernel_max_boot_time;
+        record_info('Overall system boot is too slow', result => 'fail') if $startup_timings->{overall} > $system_max_boot_time;
         my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
         if ($url) {
             my $data = {
