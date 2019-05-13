@@ -24,6 +24,7 @@ use bootloader_uefi;
 use bootloader_hyperv;
 use bootloader_svirt;
 use version_utils qw(:SCENARIO :BACKEND);
+use Utils::Architectures;
 use File::Basename;
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../boot';
