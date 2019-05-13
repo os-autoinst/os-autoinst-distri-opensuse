@@ -22,7 +22,7 @@ sub run {
     # Edit file hello.odt using oowriter
     x11_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
-    assert_and_click 'ooffice-writing-area', 'left', 10;
+    assert_and_click('ooffice-writing-area', timeout => 10);
     wait_still_screen;
     type_string "Hello World!";
     assert_screen 'test-ooffice-2';
@@ -39,7 +39,7 @@ sub run {
     # Because of bsc#1074057 alt-f is not working in libreoffice under wayland
     # use another way to replace alt-f in SLED15
     if (is_sle '15+') {
-        assert_and_click 'ooffice-writing-file', 'left', 10;
+        assert_and_click('ooffice-writing-file', timeout => 10);
     }
     else {
         send_key "alt-f";    # is_sle('<15') and openSUSE all need to send key
@@ -59,7 +59,7 @@ sub run {
     assert_screen 'test-ooffice-1';
 
     # Quit oowriter
-    assert_and_click 'ooffice-writing-area', 'left', 10;
+    assert_and_click('ooffice-writing-area', timeout => 10);
     send_key "ctrl-q";
 
     assert_screen 'generic-desktop';

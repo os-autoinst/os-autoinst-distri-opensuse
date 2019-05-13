@@ -20,7 +20,7 @@ use utils 'type_string_slow';
 sub run {
     x11_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
-    wait_screen_change { assert_and_click 'ooffice-writing-area', 'left', 10 };
+    wait_screen_change { assert_and_click('ooffice-writing-area', timeout => 10) };
     # auto-correction does not handle super-fast typing well
     type_string_slow 'Hello World!';
     assert_screen 'test-ooffice-2';
