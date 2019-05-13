@@ -343,8 +343,9 @@ sub export_logs {
 
 sub export_logs_locale {
     my ($self) = shift;
-    $self->save_and_upload_log('locale',           '/tmp/locale.log');
-    $self->save_and_upload_log('localectl status', '/tmp/localectl.log');
+    $self->save_and_upload_log('locale',                 '/tmp/locale.log');
+    $self->save_and_upload_log('localectl status',       '/tmp/localectl.log');
+    $self->save_and_upload_log('cat /etc/vconsole.conf', '/tmp/vconsole.conf');
 }
 
 sub upload_packagekit_logs {
