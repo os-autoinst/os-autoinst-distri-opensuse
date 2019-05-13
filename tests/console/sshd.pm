@@ -33,6 +33,11 @@ sub run {
         zypper_call("in netcat-openbsd");
     }
 
+    # 'sudo' is not installed in every system_role
+    if (script_run("which sudo")) {
+        zypper_call("in sudo");
+    }
+
     # Stop the firewall if it's available
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
         record_info("SuSEfirewall2 not available", "bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15");
