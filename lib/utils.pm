@@ -294,6 +294,7 @@ Please note that return code of this function is handle by 'script_run' or
 =cut
 sub systemctl {
     my ($command, %args) = @_;
+    die "systemctl(): no command specified" if ($command =~ /^ *$/);
     my $expect_false = $args{expect_false} ? '!' : '';
     my @script_params = ("$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
     if ($args{ignore_failure}) {
