@@ -2663,7 +2663,7 @@ sub load_ha_cluster_tests {
     loadtest 'ha/check_after_reboot';
 
     # Remove a node both by its hostname and ip address
-    loadtest 'ha/remove_node';
+    loadtest 'ha/remove_node' if is_sle('>12-SP2');
 
     # Check logs to find error and upload all needed logs if we are not
     # in installation/publishing mode
