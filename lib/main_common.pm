@@ -354,7 +354,7 @@ sub default_desktop {
 
 sub load_shutdown_tests {
     loadtest("shutdown/cleanup_before_shutdown");
-    loadtest "shutdown/shutdown";
+    loadtest "shutdown/shutdown.pm";
 }
 
 sub load_svirt_boot_tests {
