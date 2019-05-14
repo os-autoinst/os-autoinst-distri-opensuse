@@ -47,7 +47,14 @@ sub run {
     # for sle, register available extensions and modules, e.g., free addons
     if (is_sle) {
         register_product();
-        add_suseconnect_product("sle-module-web-scripting");
+        my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
+        if ($version == '15') {
+            $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
+        }
+        my $arch    = get_required_var('ARCH');
+        my $params  = " ";
+        my $timeout = 180;
+        add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
     }
 
     # install & remove patterns, e.g., mail_server
