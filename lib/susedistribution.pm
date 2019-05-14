@@ -425,7 +425,7 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 user     => 'root',
-                serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial',
+                serial   => 'mkfifo /dev/sshserial; tail -fn +1 /dev/sshserial',
                 gui      => 1
             });
     }
