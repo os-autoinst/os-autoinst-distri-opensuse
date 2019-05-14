@@ -89,8 +89,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-spec
-
+test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
@@ -115,3 +114,7 @@ test-unused-modules:
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
 	@! git --no-pager grep -E -e 'soft_failure\>.*\;' --and --not -e '([$$0-9a-z]+#[$$0-9]+|fate.suse.com/[0-9]|\$$[a-z]+)' lib/ tests/
+
+.PHONY: test-invalid-syntax
+test-invalid-syntax:
+	tools/check_invalid_syntax
