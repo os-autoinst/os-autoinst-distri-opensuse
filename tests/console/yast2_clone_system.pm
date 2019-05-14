@@ -27,7 +27,7 @@ sub run {
     zypper_call "in autoyast2";
 
     my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'clone_system');
-    wait_serial("$module_name-0", 150) || die "'yast2 clone_system' didn't finish";
+    wait_serial("$module_name-0", 180) || die "'yast2 clone_system' didn't finish";
 
     $self->select_serial_terminal;
     # Replace unitialized email variable - bsc#1015158
