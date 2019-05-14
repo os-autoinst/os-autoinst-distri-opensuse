@@ -253,6 +253,7 @@ sub ha_export_logs {
     my $mdadm_conf    = '/etc/mdadm.conf';
     my $clustername   = get_cluster_name;
     my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
+    my $cts_log       = '/tmp/cts_cluster_exerciser.log';
     my @y2logs;
 
     # Extract HA logs and upload them
@@ -280,6 +281,9 @@ sub ha_export_logs {
     # supportconfig
     script_run "supportconfig -g -B $clustername", 180;
     upload_logs("/var/log/nts_$clustername.tgz", failok => 1);
+
+    # pacemaker cts log
+    upload_logs($cts_log, failok => 1) if (get_var('PACEMAKER_CTS_TEST_ROLE'));
 }
 
 sub check_cluster_state {
