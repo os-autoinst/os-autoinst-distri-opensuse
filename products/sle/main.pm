@@ -1086,6 +1086,10 @@ else {
         loadtest "kiwi_images_test/login_reboot";
         loadtest "kiwi_images_test/validate_build";
     }
+    elsif (get_var("FADUMP")) {
+        prepare_target();
+        loadtest "console/kdump_and_crash";
+    }
     else {
         if (get_var('BOOT_EXISTING_S390')) {
             loadtest 'installation/boot_s390';
