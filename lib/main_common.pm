@@ -1481,6 +1481,7 @@ sub load_extra_tests_desktop {
     # test, checking the wifi applet, would make sense in other DEs as
     # well
     if (check_var('DESKTOP', 'gnome')) {
+        loadtest "x11/rrdtool_x11";
         loadtest 'x11/yast2_lan_restart';
         loadtest 'x11/yast2_lan_restart_devices' if (!is_opensuse || is_leap('<=15.0'));
         # we only have the test dependencies, e.g. hostapd available in
