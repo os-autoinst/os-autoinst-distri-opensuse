@@ -25,8 +25,8 @@ sub run() {
     wait_screen_change { script_run 'su postgres', 0 };
     script_run 'sed -i -e \'s/\(\(local\|host\).*all.*all.*\)\(md5\|ident\)/\1trust/g\' /var/lib/pgsql/data/pg_hba.conf', 0;
     script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',                                                             0;
-    script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton', 0;
-    script_run 'exit', 0;
+    script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton',                                                   0;
+    script_run 'exit',                                                                                                    0;
     systemctl 'restart postgresql';
     assert_script_run 'echo susetesting > /tmp/pw';
     assert_script_run 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password', 600;
