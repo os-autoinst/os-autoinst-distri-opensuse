@@ -2674,6 +2674,9 @@ sub load_ha_cluster_tests {
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';
 
+    # Remove all the resources except stonith/sbd
+    loadtest 'ha/remove_rsc' if get_var('HA_REMOVE_RSC');
+
     # Remove a node both by its hostname and ip address
     loadtest 'ha/remove_node' if is_sle('>12-SP2');
 

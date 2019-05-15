@@ -74,6 +74,8 @@ sub run {
         barrier_create("JOIN_NODE_BY_HOST_DONE_$cluster_name",      $num_nodes);
         barrier_create("JOIN_NODE_BY_IP_DONE_$cluster_name",        $num_nodes);
         barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name",      $num_nodes);
+        barrier_create("RSC_REMOVE_INIT_$cluster_name",             $num_nodes);
+        barrier_create("RSC_REMOVE_DONE_$cluster_name",             $num_nodes);
 
         # PACEMAKER_TEST_ barriers also have to wait in the client
         barrier_create("PACEMAKER_CTS_INIT_$cluster_name",    $num_nodes + 1);
