@@ -36,7 +36,7 @@ use boot_from_pxe;
 sub run {
     my $self = shift;
     if (uses_qa_net_hardware() || get_var("PXEBOOT")) {
-        $self->boot_from_pxe::run;
+        $self->boot_from_pxe::run();
         return;
     }
     if (is_s390x()) {
@@ -69,9 +69,6 @@ sub run {
             $self->bootloader::run();
             return;
         }
-    }
-    else {
-        die 'No bootloader found for the current job settings.';
     }
 }
 
