@@ -2082,7 +2082,7 @@ sub load_applicationstests {
 sub load_security_console_prepare {
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest "console/hostname";
+    loadtest "console/hostname" if get_var("SECURITY_TEST") !~ /crypt_krb5/;
 }
 
 # The function name load_security_tests_crypt_* is to avoid confusing
@@ -2153,6 +2153,28 @@ sub load_security_tests_crypt_tool {
     loadtest "security/dm_crypt" if not get_var('FIPS_ENV_MODE');
     loadtest "console/cryptsetup";
     loadtest "console/consoletest_finish";
+}
+
+sub load_security_tests_crypt_krb5kdc {
+    load_security_console_prepare;
+    loadtest "security/krb5/krb5_crypt_prepare";
+    loadtest "security/krb5/krb5_crypt_setup_kdc";
+}
+
+sub load_security_tests_crypt_krb5server {
+    load_security_console_prepare;
+    loadtest "security/krb5/krb5_crypt_prepare";
+    loadtest "security/krb5/krb5_crypt_setup_server";
+    loadtest "security/krb5/krb5_crypt_ssh_server";
+    loadtest "security/krb5/krb5_crypt_nfs_server";
+}
+
+sub load_security_tests_crypt_krb5client {
+    load_security_console_prepare;
+    loadtest "security/krb5/krb5_crypt_prepare";
+    loadtest "security/krb5/krb5_crypt_setup_client";
+    loadtest "security/krb5/krb5_crypt_ssh_client";
+    loadtest "security/krb5/krb5_crypt_nfs_client";
 }
 
 sub load_security_tests_fips_setup {
@@ -2267,6 +2289,7 @@ sub load_security_tests_system_check {
 sub load_security_tests {
     my @security_tests = qw(
       fips_setup crypt_core crypt_web crypt_misc crypt_tool
+      crypt_krb5kdc crypt_krb5server crypt_krb5client
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
