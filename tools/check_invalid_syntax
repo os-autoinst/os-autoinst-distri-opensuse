@@ -1,0 +1,11 @@
+#!/bin/sh
+check_loadtest() {
+    CHECK_LOADTEST_RESULT=$(git --no-pager grep --break -P "\sloadtest\s?\(?(?:\"|')?[\w\/]+\.pm(?:\"|'),?.*\)?")
+    if [ ! -z "$CHECK_LOADTEST_RESULT" ]; then
+        echo $CHECK_LOADTEST_RESULT
+        echo "Invalid syntax found for loadtest call. '.pm' extensions are not allowed at test distribution level"
+        return $?
+    fi
+}
+
+check_loadtest
