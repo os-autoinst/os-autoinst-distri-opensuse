@@ -413,6 +413,21 @@ sub validate_macvtap {
     validate_script_output("cat $macvtap_log", sub { m/Success listening to tap device/ });
 }
 
+sub wait_for_dhcpd {
+    my ($self) = @_;
+    my $timeout = 60;
+    while ($timeout > 0) {
+        if (!systemctl('is-active dhcpd.service', ignore_failure => 1)) {
+            record_info('DHCP', 'dhcp active');
+            return 1;
+        }
+        $timeout -= 1;
+        sleep 1;
+    }
+    systemctl('status dhcpd.service');
+    die('DHCP not comming up');
+}
+
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
