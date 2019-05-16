@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -91,7 +91,7 @@ sub activate_kdump {
     # activate kdump
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
     my @tags        = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
@@ -103,6 +103,11 @@ sub activate_kdump {
                 send_key 'ret';
                 record_soft_failure 'default kdump memory size is too small, kdumptool gets killed by OOM, bsc#1120566';
             }
+        }
+        # enable and verify fadump settings
+        if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
+            send_key 'alt-f';
+            assert_screen 'yast2-fadump-enabled';
         }
         # enable kdump if it is not already
         wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');

@@ -33,7 +33,8 @@ sub run {
     activate_kdump;
 
     # restart to activate kdump
-    power_action('reboot');
+    power_action('reboot', keepconsole => check_var('BACKEND', 'spvm'));
+    reconnect_mgmt_console if check_var('BACKEND', 'spvm');
     $self->wait_boot;
     select_console 'root-console';
 
@@ -47,13 +48,23 @@ sub run {
     # often kdump could not be enabled: bsc#1022064
     return 1 unless kdump_is_active;
     do_kdump;
-    power_action('reboot', observe => 1, keepconsole => 1);
+    if (get_var('FADUMP')) {
+        reconnect_mgmt_console;
+        assert_screen 'grub2', 180;
+        wait_screen_change { send_key 'ret' };
+    }
+    elsif (check_var('BACKEND', 'spvm')) {
+        reconnect_mgmt_console;
+    }
+    else {
+        power_action('reboot', observe => 1, keepconsole => 1);
+    }
     # Wait for system's reboot; more time for Hyper-V as it's slow.
     $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
     select_console 'root-console';
 
     # all but PPC64LE arch's vmlinux images are gzipped
-    my $suffix = get_var('OFW') ? '' : '.gz';
+    my $suffix = check_var('ARCH', 'ppc64le') ? '' : '.gz';
     assert_script_run 'find /var/crash/';
 
     my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`$suffix";
