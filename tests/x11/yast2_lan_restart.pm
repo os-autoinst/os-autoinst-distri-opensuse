@@ -11,13 +11,12 @@
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 # Tags: fate#318787 poo#11450
 
-use base 'y2logsstep';
-
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
 use y2lan_restart_common;
-use y2_common 'is_network_manager_default';
+use y2_module_basetest 'is_network_manager_default';
 
 sub check_network_settings_tabs {
     send_key 'alt-g';    # Global options tab

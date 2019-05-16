@@ -22,8 +22,10 @@ use lockapi;
 sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Set up a second card');
+    systemctl 'stop dhcpd.service';
     $self->get_from_data('wicked/dhcp/dhcpd_2nics.conf', '/etc/dhcpd.conf');
-    systemctl 'restart dhcpd.service';
+    systemctl 'start dhcpd.service';
+    $self->wait_for_dhcpd();
     die("Create mutex failed") unless mutex_create('t08_dhcpd_setup_complete');
 }
 

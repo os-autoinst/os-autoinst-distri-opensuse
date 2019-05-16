@@ -11,7 +11,7 @@
 # and modify some of these options.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.de>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

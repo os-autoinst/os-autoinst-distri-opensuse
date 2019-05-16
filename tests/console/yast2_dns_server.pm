@@ -11,13 +11,13 @@
 # Summary: Ensure that all combinations of running/stopped and active/inactive can be set for yast2 dns-server
 # Maintainer: jeriveramoya <jeriveramoya@suse.com>
 
-use base 'console_yasttest';
+use base 'y2_module_consoletest';
 use strict;
 use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle);
-use y2_common 'continue_info_network_manager_default';
+use y2_module_basetest 'continue_info_network_manager_default';
 use constant RETRIES => 5;
 use yast2_widget_utils qw(change_service_configuration verify_service_configuration);
 
@@ -33,7 +33,7 @@ sub run {
     assert_script_run 'rm -f /var/lib/YaST2/dns_server';
 
     record_info '1st run', '[wizard-like interface] -> service active & enabled';
-    y2logsstep::yast2_console_exec(yast2_module => 'dns-server');
+    y2_module_consoletest::yast2_console_exec(yast2_module => 'dns-server');
 
     continue_info_network_manager_default;
     assert_screen 'yast2-dns-server-step1';

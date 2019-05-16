@@ -17,14 +17,13 @@ package registration;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
 use version_utils qw(is_sle is_caasp is_upgrade);
 use constant ADDONS_COUNT => 50;
+use y2_module_consoletest;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -562,7 +561,7 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'scc');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'scc');
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,

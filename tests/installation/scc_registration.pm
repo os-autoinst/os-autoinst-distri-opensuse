@@ -18,7 +18,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use parent "y2_installbase";
 
 use testapi;
 use utils 'assert_screen_with_soft_timeout';

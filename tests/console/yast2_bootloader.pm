@@ -11,7 +11,8 @@
 # Summary: Basic test for yast2 bootloader
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use strict;
 use warnings;
 use testapi;
@@ -23,7 +24,7 @@ sub run {
     # make sure yast2 bootloader module is installed
     zypper_call 'in yast2-bootloader';
 
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'bootloader');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'bootloader');
     assert_screen "test-yast2_bootloader-1", 300;
     # OK => Close
     send_key "alt-o";

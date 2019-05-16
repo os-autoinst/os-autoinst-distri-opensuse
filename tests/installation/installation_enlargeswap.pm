@@ -10,9 +10,9 @@
 # Summary: Add test to check enlarge swap for suspend
 # Maintainer: Zaoliang Luo <zluo@e13.suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 
 sub run {

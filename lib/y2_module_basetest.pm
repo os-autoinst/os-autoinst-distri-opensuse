@@ -10,10 +10,10 @@
 # Summary: This module provides common subroutines for YaST2 modules in graphical and text mode
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
-package y2_common;
+package y2_module_basetest;
 
-use base Exporter;
-use Exporter;
+use parent 'opensusebasetest';
+use Exporter 'import';
 
 use strict;
 use warnings;

@@ -18,9 +18,10 @@ use testapi;
 use lockapi 'mutex_lock';
 use utils 'systemctl';
 use version_utils 'is_sle';
-use y2x11test qw(setup_static_mm_network %setup_nis_nfs_x11);
+use mm_network 'setup_static_mm_network';
+use y2_module_guitest '%setup_nis_nfs_x11';
 use x11utils 'turn_off_gnome_screensaver';
-use y2logsstep 'yast2_console_exec';
+use y2_module_consoletest;
 
 sub setup_nis_client {
     if (is_sle('>=15')) {
@@ -113,7 +114,7 @@ sub run {
     }
 
     mutex_lock('nis_ready');    # wait for NIS server setup
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nis');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nis');
     setup_nis_client();
     mutex_lock('nfs_ready');    # wait for NFS server setup
     nfs_settings_tab();

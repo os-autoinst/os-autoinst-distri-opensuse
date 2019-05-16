@@ -18,7 +18,8 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+
+use base "y2_module_consoletest";
 use utils qw(clear_console zypper_call);
 use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
@@ -49,7 +50,7 @@ sub run {
     # Create a directory and place a test file in it
     assert_script_run 'mkdir /srv/nfs && echo success > /srv/nfs/file.txt';
 
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nfs-server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server');
 
     do {
         assert_screen([qw(nfs-server-not-installed nfs-firewall nfs-config)]);

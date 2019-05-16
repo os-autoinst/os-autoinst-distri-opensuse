@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use parent qw(installation_user_settings y2logsstep);
+use parent qw(installation_user_settings y2_installbase);
 use testapi;
 
 sub run {

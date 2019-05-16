@@ -11,14 +11,17 @@
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
 use base "consoletest";
-use testapi;
 use strict;
 use warnings;
+use testapi;
 use utils;
+use version_utils 'is_sle';
+use registration 'add_suseconnect_product';
 
 sub run {
     # setup
     select_console 'root-console';
+    add_suseconnect_product('sle-module-desktop-applications') if is_sle("15-sp1+");
     zypper_call 'in alsa alsa-utils wavpack';
     assert_script_run("cp /usr/share/sounds/alsa/Noise.wav .");
     assert_script_run("cp /usr/share/sounds/alsa/test.wav .");

@@ -11,7 +11,7 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 # Tags: pr#11456, fate#319639
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

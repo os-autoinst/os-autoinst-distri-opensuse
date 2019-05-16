@@ -10,7 +10,7 @@
 # Summary: Run 'crash' utility on a kernel memory dump
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -37,6 +37,13 @@ sub run {
     reconnect_mgmt_console if check_var('BACKEND', 'spvm');
     $self->wait_boot;
     select_console 'root-console';
+
+    if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'ppc64')) {
+        if (script_run('kver=$(uname -r); kconfig="/boot/config-$kver"; [ -f $kconfig ] && grep ^CONFIG_RELOCATABLE $kconfig')) {
+            record_soft_failure 'poo#49466 -- No kdump if no CONFIG_RELOCATABLE in kernel config';
+            return 1;
+        }
+    }
 
     # often kdump could not be enabled: bsc#1022064
     return 1 unless kdump_is_active;

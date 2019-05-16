@@ -87,6 +87,7 @@ sub run {
         }
     }
 }
+
 sub post_fail_hook {
     reset_consoles;
     select_console 'svirt';

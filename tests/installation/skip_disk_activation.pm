@@ -11,7 +11,7 @@
 # Summary: Skip disk activation during installation
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

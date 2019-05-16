@@ -19,9 +19,9 @@
 #                       6) no swap (sle12)
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2logsstep';
 use testapi;
 use partition_setup qw(create_new_partition_table addpart addboot);
 use version_utils qw(is_opensuse is_storage_ng);

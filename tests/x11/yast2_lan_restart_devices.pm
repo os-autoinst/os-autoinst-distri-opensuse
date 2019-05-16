@@ -11,8 +11,7 @@
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 # Tags: fate#318787 poo#11450
 
-use base 'y2logsstep';
-
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

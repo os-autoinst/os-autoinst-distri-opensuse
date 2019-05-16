@@ -20,6 +20,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
+use y2_module_consoletest;
 
 our @EXPORT = qw(
   smt_wizard
@@ -46,7 +47,7 @@ sub get_repo_var_name {
 }
 
 sub smt_wizard {
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'smt-wizard');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'smt-wizard');
     assert_screen 'smt-wizard-1';
     send_key 'alt-u';
     wait_still_screen;

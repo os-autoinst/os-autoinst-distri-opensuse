@@ -12,12 +12,12 @@
 # Maintainer: Joyce Na <jna@suse.de>
 
 package run_perf_case;
+use base 'y2_installbase';
 use ipmi_backend_utils;
 use strict;
 use power_action_utils 'power_action';
 use warnings;
 use testapi;
-use base "y2logsstep";
 use File::Basename;
 use Utils::Backends 'use_ssh_serial_console';
 

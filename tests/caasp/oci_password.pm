@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use parent qw(installation_user_settings y2logsstep);
+use base qw(installation_user_settings y2_installbase);
 use caasp 'send_alt';
 use testapi;
 

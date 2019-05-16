@@ -12,9 +12,9 @@
 #    rebooting a game of chance on real hardware
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils 'is_storage_ng';
 use partition_setup 'take_first_disk';

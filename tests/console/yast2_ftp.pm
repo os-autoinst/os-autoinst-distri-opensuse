@@ -12,11 +12,12 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use testapi;
 use utils;
 use version_utils;
-use y2logsstep;
+use y2_installbase;
+
 use yast2_widget_utils 'change_service_configuration';
 
 sub vsftd_setup_checker {
@@ -86,7 +87,7 @@ sub run {
     die "certificate does not exist" if assert_script_run("[[ -e $vsftpd_directives->{rsa_cert_file} ]]");
 
     # start yast2 ftp configuration
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'ftp-server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ftp-server');
     assert_screen 'ftp-server';    # check ftp server configuration page
     if (is_sle('<15') || is_leap('<15.1')) {
         send_key 'alt-w';                           # make sure ftp start-up when booting
@@ -202,7 +203,7 @@ sub post_fail_hook {
 
     upload_logs('/etc/vsftpd.conf');
     upload_logs('/tmp/failed_vsftpd_directives.log');
-    $self->save_upload_y2logs;
+    y2_installbase::save_upload_y2logs;
 }
 
 1;

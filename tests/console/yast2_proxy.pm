@@ -11,7 +11,8 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use strict;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use warnings;
 use testapi;
 use utils;
@@ -70,7 +71,7 @@ sub run {
     script_run 'echo "visible_hostname $HOSTNAME" >> /etc/squid/squid.conf';
 
     # start yast2 squid configuration
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'squid');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'squid');
 
     # check that squid configuration page shows up
     assert_screen([qw(yast2_proxy_squid yast2_still_susefirewall2)], 60);

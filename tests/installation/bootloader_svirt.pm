@@ -310,8 +310,5 @@ sub run {
     vmware_set_permanent_boot_device('cdrom');
 }
 
-sub test_flags {
-    return {fatal => 1};
-}
 
 1;

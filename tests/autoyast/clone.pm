@@ -18,13 +18,13 @@
 
 use strict;
 use warnings;
-use base 'console_yasttest';
+use parent 'y2_module_consoletest';
 use testapi;
 
 sub run {
     my $self = shift;
     assert_script_run 'rm -f /root/autoinst.xml';
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'clone_system', yast2_opts => '--ncurses');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system', yast2_opts => '--ncurses');
     if (check_screen 'autoyast2-install-accept', 10) {
         send_key 'alt-i';    # confirm package installation
     }

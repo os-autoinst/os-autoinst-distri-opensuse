@@ -15,6 +15,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos);
+use y2_module_consoletest;
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
 

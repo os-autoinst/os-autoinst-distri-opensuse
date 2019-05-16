@@ -24,6 +24,7 @@ use testapi;
 use version_utils 'is_sle';
 use xml_utils;
 use XML::LibXML;
+use y2_module_consoletest;
 
 #Xpath parser
 my $xpc;
@@ -33,7 +34,7 @@ sub test_setup {
     my $profile_path = '/root/autoinst.xml';
     # Generate profile if doesn't exist
     if (script_run("[ -e $profile_path ]")) {
-        my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'clone_system');
+        my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
         wait_serial("$module_name-0", 60) || die "'yast2 clone_system' exited with non-zero code";
     }
     my $autoinst = script_output("cat $profile_path");

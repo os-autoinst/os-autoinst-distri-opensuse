@@ -1481,6 +1481,7 @@ sub load_extra_tests_desktop {
     # test, checking the wifi applet, would make sense in other DEs as
     # well
     if (check_var('DESKTOP', 'gnome')) {
+        loadtest "x11/rrdtool_x11";
         loadtest 'x11/yast2_lan_restart';
         loadtest 'x11/yast2_lan_restart_devices' if (!is_opensuse || is_leap('<=15.0'));
         # we only have the test dependencies, e.g. hostapd available in
@@ -1550,6 +1551,7 @@ sub load_extra_tests_console {
             loadtest "console/wavpack";
         }
     }
+    loadtest "console/libvorbis";
     loadtest "console/command_not_found";
     if (is_sle '12-sp2+') {
         loadtest 'console/openssl_alpn';
@@ -2672,6 +2674,9 @@ sub load_ha_cluster_tests {
 
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';
+
+    # Remove all the resources except stonith/sbd
+    loadtest 'ha/remove_rsc' if get_var('HA_REMOVE_RSC');
 
     # Remove a node both by its hostname and ip address
     loadtest 'ha/remove_node' if is_sle('>12-SP2');

@@ -11,9 +11,9 @@
 # Summary: Verify timezone settings page and proceed to next page
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use utils 'noupdatestep_is_applicable';
 

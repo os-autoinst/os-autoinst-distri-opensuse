@@ -12,7 +12,8 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils qw(type_string_slow zypper_call systemctl);
 use version_utils qw(is_sle is_leap);
@@ -44,7 +45,7 @@ sub run {
     zypper_call("in yast2-ntp-client", timeout => 180);
 
     # start NTP configuration
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'ntp-client');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ntp-client');
 
     # check Advanced NTP Configuration is opened
     assert_screen([qw(yast2_ntp-client_configuration yast2_ntp-needs_install)], 90);
