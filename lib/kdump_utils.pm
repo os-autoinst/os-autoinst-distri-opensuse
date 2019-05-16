@@ -15,6 +15,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos);
+use y2_module_consoletest;
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
 
@@ -90,7 +91,7 @@ sub activate_kdump {
     # activate kdump
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'kdump');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump');
     my @tags        = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;

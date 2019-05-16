@@ -11,7 +11,7 @@
 # Summary: Test initial startup of users configuration YaST2 module
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "y2x11test";
+use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;

@@ -11,7 +11,7 @@
 # Maintainer: alice <xlai@suse.com>
 
 package login_console;
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use File::Basename;

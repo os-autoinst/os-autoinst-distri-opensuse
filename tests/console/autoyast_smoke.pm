@@ -15,7 +15,6 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use y2logsstep;
 use version_utils 'is_opensuse';
 
 sub run {

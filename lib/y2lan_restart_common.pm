@@ -19,7 +19,7 @@ use Exporter 'import';
 use testapi;
 use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
-use y2_common 'accept_warning_network_manager_default';
+use y2_module_basetest 'accept_warning_network_manager_default';
 
 our @EXPORT = qw(
   check_etc_hosts_update
@@ -50,7 +50,7 @@ sub initialize_y2lan
 }
 
 sub open_network_settings {
-    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'lan');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
     accept_warning_network_manager_default;
     assert_screen 'yast2_lan', 180;       # yast2 lan overview tab
     send_key 'home';                      # select first device

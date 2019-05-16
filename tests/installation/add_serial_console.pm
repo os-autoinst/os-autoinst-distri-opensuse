@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use base 'y2logsstep';
+use base 'y2_installbase';
 use testapi;
 
 sub run {
@@ -59,10 +59,6 @@ sub run {
     assert_script_run('umount -l /mnt');
 
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
-}
-
-sub test_flags {
-    return {fatal => 1};
 }
 
 1;

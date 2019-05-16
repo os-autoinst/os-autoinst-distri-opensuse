@@ -31,10 +31,6 @@ sub run {
     }
 }
 
-sub test_flags {
-    return {fatal => 1};
-}
-
 sub post_fail_hook {
     my $self = shift;
 

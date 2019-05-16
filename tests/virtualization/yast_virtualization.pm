@@ -10,7 +10,7 @@
 # Summary: Add virtualization hypervisor components to an installed system
 # Maintainer: aginies <aginies@suse.com>
 
-use base 'y2x11test';
+use base 'y2_module_guitest';
 use strict;
 use warnings;
 use testapi;

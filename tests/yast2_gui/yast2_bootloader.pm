@@ -15,7 +15,7 @@
 #    while launching atm.
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 
-use base "y2x11test";
+use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;

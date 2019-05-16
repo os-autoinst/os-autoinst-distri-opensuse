@@ -13,7 +13,8 @@
 #   with the conversion from init.d to systemd services)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use strict;
 use warnings;
 use testapi;
@@ -54,7 +55,7 @@ sub run {
     #
     # YaST nfs-client execution
     #
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'nfs-client');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-client');
     assert_screen 'yast2-nfs-client-shares';
     # Open the dialog to add a connection to the share
     send_key 'alt-a';

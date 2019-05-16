@@ -11,7 +11,7 @@
 # Summary: Clone system and use the autoyast file in chained tests
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -26,7 +26,7 @@ sub run {
     # Install for TW and generate profile
     zypper_call "in autoyast2";
 
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'clone_system');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
     wait_serial("$module_name-0", 180) || die "'yast2 clone_system' didn't finish";
 
     $self->select_serial_terminal;

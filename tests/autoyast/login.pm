@@ -18,7 +18,7 @@
 
 use strict;
 use warnings;
-use base 'y2logsstep';
+use base 'y2_installbase';
 use testapi;
 use Utils::Backends 'use_ssh_serial_console';
 

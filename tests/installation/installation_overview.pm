@@ -11,9 +11,9 @@
 # Summary: Check installation overview before and after any pattern change
 # Maintainer: Richard Brown <RBrownCCB@opensuse.org>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils qw(is_caasp is_upgrade);
 use Utils::Backends qw(is_remote_backend is_hyperv);

@@ -10,7 +10,7 @@
 # Summary: sle12 online migration testsuite
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base 'y2logsstep';
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;

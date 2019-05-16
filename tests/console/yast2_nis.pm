@@ -12,7 +12,8 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils 'zypper_call';
 
@@ -29,7 +30,7 @@ sub run() {
         assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=714/udp';
         assert_script_run 'firewall-cmd --reload';
     }
-    y2logsstep::yast2_console_exec(yast2_module => 'nis');
+    y2_module_consoletest::yast2_console_exec(yast2_module => 'nis');
     assert_screen([qw(nis-client yast2_package_install)], 60);
     if (match_has_tag 'yast2_package_install') {
         send_key 'alt-i';

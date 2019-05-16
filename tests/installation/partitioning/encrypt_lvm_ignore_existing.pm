@@ -12,9 +12,9 @@
 # partition is shown in the partitioning list.
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
+use parent 'y2_installbase';
 use strict;
 use warnings FATAL => 'all';
-use parent "y2logsstep";
 
 sub run {
     my $partitioner = $testapi::distri->get_partitioner();

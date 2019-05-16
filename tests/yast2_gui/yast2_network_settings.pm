@@ -14,11 +14,11 @@
 #    while launching atm.
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 
-use base "y2x11test";
+use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;
-use y2_common 'is_network_manager_default';
+use y2_module_basetest 'is_network_manager_default';
 
 sub run {
     my $self = shift;

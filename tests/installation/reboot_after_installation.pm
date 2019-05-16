@@ -10,9 +10,9 @@
 # Summary: Prepare and trigger the reboot into the installed system
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2logsstep';
 use testapi;
 use utils;
 use power_action_utils 'power_action';

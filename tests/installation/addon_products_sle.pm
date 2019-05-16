@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 use utils qw(addon_license handle_untrusted_gpg_key assert_screen_with_soft_timeout);
 use version_utils 'is_sle';

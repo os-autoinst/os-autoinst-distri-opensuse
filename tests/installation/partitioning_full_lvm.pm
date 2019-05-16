@@ -13,9 +13,9 @@
 #          With UNENCRYPTED_BOOT set to true, test will have separate /boot partition for all architectures
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2logsstep';
 use testapi;
 use partition_setup qw(create_new_partition_table addboot addpart addvg addlv);
 use version_utils 'is_storage_ng';

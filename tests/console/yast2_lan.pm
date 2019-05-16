@@ -12,7 +12,8 @@
 # Summary: yast2 lan functionality test https://bugzilla.novell.com/show_bug.cgi?id=600576
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use strict;
 use warnings;
 use testapi;
@@ -53,7 +54,7 @@ sub run {
 
     my $is_nm = !script_run('systemctl is-active NetworkManager');    # Revert boolean because of bash vs perl's return code.
 
-    $module_name = y2logsstep::yast2_console_exec(yast2_module => 'lan');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
 
     if ($is_nm) {
         handle_Networkmanager_controlled;

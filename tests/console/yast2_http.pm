@@ -12,18 +12,18 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
-use y2_common 'continue_info_network_manager_default';
+use y2_module_basetest 'continue_info_network_manager_default';
 use yast2_widget_utils 'change_service_configuration';
 
 sub run {
     select_console 'root-console';
     # install http server
     zypper_call("-q in yast2-http-server");
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'http-server');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'http-server');
     continue_info_network_manager_default;
     assert_screen 'http-server', 180;    # check page "Initializing HTTP Server Configuration"
     wait_still_screen 1;

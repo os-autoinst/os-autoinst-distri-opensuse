@@ -11,7 +11,7 @@
 # Summary: Install packages using yast2.
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -59,7 +59,7 @@ sub run {
             record_info("Required", "$1");
         }
     }
-    my $module_name = y2logsstep::yast2_console_exec(yast2_module => 'sw_single');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'sw_single');
     assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 90;
 
     # we need to change filter to Search, in case yast2 reports available automatic update
