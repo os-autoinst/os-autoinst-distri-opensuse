@@ -767,6 +767,9 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
+        #loadtest "virt_autotest/set_config_as_glue";
+        #loadtest "virt_autotest/virsh_internal_snapshot";
+        #loadtest "virt_autotest/virsh_external_snapshot";
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
