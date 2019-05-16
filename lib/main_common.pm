@@ -1608,6 +1608,7 @@ sub load_extra_tests_console {
     loadtest 'console/quota' unless is_jeos;
     loadtest 'console/zziplib' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
+    loadtest 'console/aaa_base' unless is_jeos;
 }
 
 sub load_extra_tests_docker {
