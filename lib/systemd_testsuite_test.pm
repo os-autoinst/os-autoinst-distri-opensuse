@@ -20,6 +20,7 @@ use known_bugs;
 use testapi;
 use power_action_utils 'power_action';
 use utils 'zypper_call';
+use version_utils;
 
 
 sub testsuiteinstall {
@@ -36,9 +37,12 @@ sub testsuiteinstall {
 
     select_console 'root-console';
 
-    # add devel tools repo and install strace
-    my $devel_repo = get_required_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS');
-    zypper_call "ar -c $utils::OPENQA_FTP_URL/" . $devel_repo . " devel-repo";
+    if (is_sle('15+')) {
+        # add devel tools repo for SLE15 to install strace
+        my $devel_repo = get_required_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS');
+        zypper_call "ar -c $utils::OPENQA_FTP_URL/" . $devel_repo . " devel-repo";
+    }
+
     zypper_call 'in strace';
 
     # install systemd testsuite
@@ -56,7 +60,8 @@ sub testsuiteprepare {
     assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
     #reboot
     power_action('reboot', textmode => 1);
-    assert_screen('linux-login', 600);
+    wait_still_screen 90;
+    assert_screen('linux-login', 300);
     type_string "root\n";
     wait_still_screen 3;
     type_password;
