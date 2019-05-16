@@ -155,8 +155,10 @@ sub tb_check_email {
     assert_screen "thunderbird_sent-message-received";
 
     # delete the message
-    assert_and_click("thunderbird_single-message-context-menu", "right");
-    assert_and_click "thunderbird_single-message-context-menu-delete";
+    assert_and_click "thunderbird_select-message";
+    wait_still_screen 1;
+    wait_screen_change { send_key "delete" };
+    wait_still_screen 1;
     send_key "ctrl-shift-k";
     wait_screen_change { send_key "delete" };
 }
