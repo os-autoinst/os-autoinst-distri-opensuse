@@ -14,7 +14,8 @@ check_loadtest() {
 }
 
 check_versions(){
-    CHECK_IS_LEAP_RESULT=$(${GIT_CMD} "is_leap.*(\"|')\d{2,}(?!>\.\d)\1")
+    # Check for patterns that will be likely rejected by is_leap or is_sle calls
+    CHECK_IS_LEAP_RESULT=$(${GIT_CMD} "is_leap[\(\s](\"|')\d{2}(?!\.\d)\1")
     if [ ! -z "$CHECK_IS_LEAP_RESULT" ]; then
         echo "${CHECK_IS_LEAP_RESULT}"
         echo "Invalid  call for is_leap"
