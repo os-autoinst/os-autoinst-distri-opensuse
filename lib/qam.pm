@@ -122,7 +122,7 @@ sub advance_installer_window {
     my ($screenName) = @_;
 
     send_key $cmd{next};
-    assert_screen $screenName;
+    assert_screen $screenName, 90;
 }
 
 # Get list of patches
