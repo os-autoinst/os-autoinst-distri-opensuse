@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Check yast ftp-server options and ability to start vsftpd with ssl support
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
 use warnings;
@@ -17,7 +17,6 @@ use testapi;
 use utils;
 use version_utils;
 use y2_installbase;
-
 use yast2_widget_utils 'change_service_configuration';
 
 sub vsftd_setup_checker {
@@ -73,6 +72,11 @@ sub run {
     # install vsftps
     zypper_call("in vsftpd yast2-ftp-server", timeout => 180);
 
+    if (is_sle('=15')) {
+        zypper_call("in yast2-users", timeout => 180);
+        record_soft_failure 'bsc#1132116';
+    }
+
     # bsc#694167
     # create RSA certificate for ftp server at first which can be used for SSL configuration
     # type_string("openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
@@ -88,25 +92,28 @@ sub run {
 
     # start yast2 ftp configuration
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ftp-server');
+
     assert_screen 'ftp-server';    # check ftp server configuration page
-    if (is_sle('<15') || is_leap('<15.1')) {
-        send_key 'alt-w';                           # make sure ftp start-up when booting
-        assert_screen 'ftp_server_when_booting';    # check service start when booting
-    }
-    else {
+
+    if (is_sle('>15') || is_leap('>15.0') || is_tumbleweed) {
         change_service_configuration(
             after_writing => {start         => 'alt-t'},
             after_reboot  => {start_on_boot => 'alt-a'}
         );
+    } else {
+        send_key 'alt-w';          # make sure ftp start-up when booting
+        send_key 'alt-d' if is_sle('=15');    # only sle 15 has this specific combination
     }
+
+    assert_screen 'ftp_server_when_booting';    # check service start when booting
 
     # General
     send_key_until_needlematch 'yast2_ftp_start-up_selected', 'tab';
     wait_screen_change { send_key 'down' };
-    wait_screen_change { send_key 'ret' };          # enter page General
+    wait_screen_change { send_key 'ret' };      # enter page General
     assert_screen 'yast2_tftp_general_selected';
-    assert_screen 'ftp_welcome_mesage';             # check welcome message for add strings
-    send_key 'alt-w';                               # select welcome message to edit
+    assert_screen 'ftp_welcome_mesage';         # check welcome message for add strings
+    send_key 'alt-w';                           # select welcome message to edit
     send_key_until_needlematch 'yast2_tftp_empty_welcome_message', 'backspace';    # delete existing welcome strings
     type_string($vsftpd_directives->{ftpd_banner});                                # type new welcome text
     assert_screen 'ftp_welcome_message_added';                                     # check new welcome text
