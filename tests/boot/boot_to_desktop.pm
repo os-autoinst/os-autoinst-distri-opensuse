@@ -36,6 +36,7 @@ sub run {
     else {
         $self->wait_boot(bootloader_time => $timeout, nologin => $nologin);
     }
+    sleep(6544465496461654655494);
 }
 
 sub test_flags {
