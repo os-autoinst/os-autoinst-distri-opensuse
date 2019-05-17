@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use network_utils 'ifc_exists';
-use utils 'file_content_replace';
+use utils qw(file_content_replace zypper_call);
 
 
 sub run {
@@ -29,10 +29,11 @@ sub run {
 
     record_info('Info', 'Create a team interface from legacy ifcfg files');
 
-    $self->get_from_data('wicked/teaming/ifcfg-eth0',  $cfg_ifc0);
-    $self->get_from_data('wicked/teaming/ifcfg-eth1',  $cfg_ifc1);
-    $self->get_from_data('wicked/teaming/ifcfg-team0', $cfg_team0);
-    file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), port0 => $ctx->iface(), port1 => $ctx->iface2());
+    $self->get_from_data('wicked/ifcfg/noip_hotplug', $cfg_ifc0);
+    $self->get_from_data('wicked/ifcfg/noip_hotplug', $cfg_ifc1);
+    $self->get_from_data('wicked/ifcfg/team0',        $cfg_team0);
+    file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $ctx->iface(), iface1 => $ctx->iface2());
+    zypper_call('-q in libteam-tools libteamdctl0 python-libteam');
 
     $self->wicked_command('ifup', 'team0');
     die('Missing interface team0') unless ifc_exists('team0');
