@@ -51,7 +51,7 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-
+    select_console('log-console');
     $self->export_logs();
     $self->export_logs_locale();
 }
