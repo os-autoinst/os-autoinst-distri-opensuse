@@ -10,7 +10,7 @@ use testapi;
 
 our @EXPORT = qw(configure_hostname get_host_resolv_conf
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
-  parse_network_configuration ip_in_subnet check_ip_in_subnet);
+  parse_network_configuration ip_in_subnet check_ip_in_subnet setup_static_mm_network);
 
 sub configure_hostname {
     my ($hostname) = @_;
@@ -27,12 +27,12 @@ sub configure_hostname {
 sub get_host_resolv_conf {
     my %conf;
     open(my $fh, '<', "/etc/resolv.conf");
-    while (<$fh>) {
-        if (/^nameserver\s+([0-9.]+)\s*$/) {
+    while (my $line = <$fh>) {
+        if ($line =~ /^nameserver\s+([0-9.]+)\s*$/) {
             $conf{nameserver} //= [];
             push @{$conf{nameserver}}, $1;
         }
-        if (/search\s+(.+)\s*$/) {
+        if ($line =~ /search\s+(.+)\s*$/) {
             $conf{search} = $1;
         }
     }
@@ -167,6 +167,13 @@ sub check_ip_in_subnet {
     my $check_ip = ((($i1 * 256) + $i2) * 256 + $i3) * 256 + $i4;
 
     return ($check_ip & $mask_ip) == ($subnet_ip & $mask_ip);
+}
+
+sub setup_static_mm_network {
+    my $ip = shift;
+    configure_default_gateway;
+    configure_static_ip($ip);
+    configure_static_dns(get_host_resolv_conf());
 }
 
 1;

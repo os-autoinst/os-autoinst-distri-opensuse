@@ -10,12 +10,13 @@
 # Summary: Test for the yast2-rmt module
 # Maintainer: Jonathan Rivrain <JRivrain@suse.com>
 
-use base "console_yasttest";
+use parent "y2_module_consoletest";
+
 use strict;
 use warnings;
 use utils;
 use testapi;
-
+use repo_tools;
 
 sub password_twice {
     type_password;
@@ -25,7 +26,7 @@ sub password_twice {
 }
 
 sub test_ui {
-    script_run("yast2 rmt; echo yast2-rmt-server-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'rmt');
     assert_screen "yast2_rmt_registration";
     send_key "alt-n";
     assert_screen "yast2_rmt_ignore_registration_dialog";
@@ -36,7 +37,7 @@ sub test_ui {
     type_password;
     send_key "alt-n";
     assert_screen "yast2_rmt_db_root_password";
-    password_twice;
+    type_password_twice;
     assert_screen "yast2_rmt_config_written_successfully";
     send_key "alt-o";
     assert_screen "yast2_rmt_ssl";
@@ -51,7 +52,7 @@ sub test_ui {
     send_key "alt-o";
     send_key "alt-n";
     assert_screen "yast2_rmt_ssl_CA_password";
-    password_twice;
+    type_password_twice;
     assert_screen "yast2_rmt_firewall";
     send_key "spc";
     send_key "alt-n";
@@ -59,7 +60,7 @@ sub test_ui {
     send_key "alt-n";
     assert_screen "yast2_rmt_config_summary";
     send_key "alt-f";
-    wait_serial('yast2-rmt-server-status-0', 60) || die "'yast2 rmt' didn't finish";
+    wait_serial("$module_name-0", 60) || die "'yast2 rmt' didn't finish";
 }
 
 sub test_config {

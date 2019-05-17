@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use utils 'systemctl';
 use service_check;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_sles4sap);
 use main_common 'is_desktop';
 
 sub run {
@@ -25,7 +25,7 @@ sub run {
     systemctl 'status vsftpd';
     save_screenshot;
     assert_script_run 'systemctl status vsftpd --no-pager | grep active';
-    check_services($default_services) if (is_sle && !is_desktop && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && !get_var('INSTALLONLY'));
+    check_services($default_services) if (is_sle && !is_desktop && !is_sles4sap && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && !get_var('INSTALLONLY'));
 }
 
 sub test_flags {

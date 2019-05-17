@@ -1,6 +1,8 @@
 # Common features for SSSD testing scenarios
 # Please only use these functions in test case sub-directory
 
+source /usr/local/bin/version_utils.sh
+
 SLAPD="/usr/sbin/slapd"
 [ ! -e "$SLAPD" ] && SLAPD=/usr/lib/openldap/slapd
 
@@ -51,7 +53,7 @@ sssd_test_common_cleanup() {
 
 	# Clean up for the files created during test case
 	rm -rf /home/testuser* /var/spool/mail/testuser* /tmp/ldap-sssdtest* /tmp/ldap-krb-keyfile || true
-	
+
 	# Clear SSS databases
 	rm -rf /var/lib/sss/db/* || true
 	rm -rf /usr/local/var/lib/sss/db/* || true
@@ -94,11 +96,16 @@ test_abort() {
 }
 
 
-isSles15(){
-   if [ ! -f /etc/os-release ]; then
-      return 1
-   fi
-   if (grep -i -q "SUSE Linux Enterprise Server 15" /etc/os-release); then
+#########################################################################
+###
+### Returns 0 if python3 should be used
+###
+### Example:
+### usePython3
+### echo $?
+
+usePython3(){
+   if ( isSles15 ) || ( isLeap15 ) || ( isTumbleweed ); then
       return 0
    fi
    return 1

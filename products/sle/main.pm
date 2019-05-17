@@ -22,7 +22,7 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
-
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
 use DistributionProvider;
 
 BEGIN {
@@ -133,6 +133,11 @@ if (is_sle('15+')) {
     }
     # in the 'minimal' system role we can not execute many test modules
     set_var('INSTALLONLY', get_var('INSTALLONLY', check_var('SYSTEM_ROLE', 'minimal')));
+}
+elsif (is_sle('=12-SP5') && check_var('ARCH', 'x86_64')) {
+    # System Role dialog is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available,
+    # for the moment we are not handling available roles, so this make the trick for using new scheduling.
+    set_var('SYSTEM_ROLE', 'default');
 }
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
@@ -327,8 +332,8 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
-    for my $a (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
-        push(@addons, $a);
+    for my $i (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
+        push(@addons, $i);
     }
 
     # set SCC_ADDONS before push to slenkins
@@ -347,10 +352,10 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     set_var('ADDONURL',     '');
     set_var('ADDONURL_SDK', '');
 
-    for my $a (@addons) {
-        if ($a) {
-            $incidents{uc($a)} = get_var(uc($a) . '_TEST_ISSUES');
-            $u_url{uc($a)}     = get_var(uc($a) . '_TEST_TEMPLATE');
+    for my $i (@addons) {
+        if ($i) {
+            $incidents{uc($i)} = get_var(uc($i) . '_TEST_ISSUES');
+            $u_url{uc($i)}     = get_var(uc($i) . '_TEST_TEMPLATE');
         }
     }
 
@@ -922,9 +927,16 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
-    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+    elsif (get_var('GRUB2')) {
         boot_hdd_image;
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'qa_automation/patch_and_reboot';
+        loadtest 'boot/grub2_test';
+        return 1;
+    }
+    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+        load_boot_tests;
+        load_inst_tests;
+        loadtest 'virt_autotest/login_console';
         loadtest 'console/avocado_prepare';
         my @test_groups = ('block_device_hotplug', 'cpu', 'disk_image', 'memory_hotplug', 'nic_hotplug', 'qmp', 'usb');
         for my $test_group (@test_groups) {
@@ -1077,6 +1089,10 @@ else {
         loadtest "kiwi_images_test/kiwi_boot";
         loadtest "kiwi_images_test/login_reboot";
         loadtest "kiwi_images_test/validate_build";
+    }
+    elsif (get_var("FADUMP")) {
+        prepare_target();
+        loadtest "console/kdump_and_crash";
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {

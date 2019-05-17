@@ -12,13 +12,15 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils;
 use registration 'add_suseconnect_product';
 use yast2_shortcuts qw($is_older_product %remote_admin %firewall_settings %firewall_details $confirm);
 
 sub configure_remote_admin {
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'remote');
     # Remote Administration Settings
     assert_screen 'yast2_vnc_remote_administration';
     return if check_var('ARCH', 's390x');
@@ -39,7 +41,7 @@ sub configure_remote_admin {
     send_key $confirm;
     assert_screen 'yast2_vnc_warning_text';
     send_key $cmd{ok};
-    wait_serial('yast2-remote-status-0', 60) || die "'yast2 remote' didn't finish";
+    wait_serial("$module_name-0", 60) || die "'yast2 remote' didn't finish";
 }
 
 sub check_service_listening {
@@ -60,7 +62,6 @@ sub test_setup {
         add_suseconnect_product('sle-module-desktop-applications', undef, undef, undef, 180);
     }
     zypper_call('in vncmanager xorg-x11' . ($is_older_product ? ' net-tools' : ''));
-    script_run("yast2 remote; echo yast2-remote-status-\$? > /dev/$serialdev", 0);
 }
 
 sub run {

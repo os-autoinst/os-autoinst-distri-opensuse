@@ -9,6 +9,7 @@
 
 # Summary: gpg key generation, passphrase test, encrypt file and support fips test
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Dehai Kong <dhkong@suse.com>
+#             wnereiz <wnereiz@member.fsf.org>
 
 use base "consoletest";
 use strict;
@@ -17,111 +18,132 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 
-my $username = $testapi::username;
-my $passwd   = $testapi::password;
-my $email    = "user\@example.com";
+sub gpg_test {
+    my ($key_size, $gpg_ver) = @_;
 
-sub gpg_generate_key {
-    my ($key_size) = @_;
-    my $user_name = $username . " " . $key_size;
+    my $name     = "SUSE Tester";
+    my $username = $name . " " . $key_size;
+    my $passwd   = "This_is_a_test_case";
+    my $email    = "user\@suse.de";
+    my $egg_file = 'egg';
 
-    # Get gpg version and base on the result choose different test
-    my $gpg_version_output = script_output("gpg --version");
+    # GPG Key Generation
 
-    my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\d\.\d)/;
-    my $genkey_opt = ($gpg_version ge 2.1) ? '--full-generate-key' : '--gen-key';
+    # Generating key pair
+    if ($gpg_ver ge 2.1) {
+        # Preparing a config file for gpg --batch option
+        assert_script_run(
+            "echo \"\$(cat <<EOF
+Key-Type: default
+Key-Length: $key_size
+Subkey-Type: default
+Subkey-Length: $key_size
+Name-Real: $username
+Name-Email: $email
+Expire-Date: 0
+EOF
+            )\" > $egg_file"
+        );
+        assert_script_run("cat $egg_file");
 
-    # generate gpg key
-    script_run "gpg2 -vv $genkey_opt |& tee /dev/$serialdev";
-
-    wait_still_screen 1;
-    type_string "1\n";
-    wait_still_screen 1;
-    type_string "$key_size\n";
-    wait_still_screen 1;
-    type_string "0\n";
-    wait_still_screen 1;
-    type_string "y\n";
-    wait_still_screen 1;
-    type_string "$user_name\n";
-    wait_still_screen 1;
-    type_string "$email\n", 1;
-    type_string "\n";
-    wait_still_screen 1;
-    save_screenshot;
-    type_string "O\n";
-    assert_screen("gpg-enter-passphrase");
-
-    # enter wrong passphrase
-    type_string "REALSECRETPHRASE\n";
-    assert_screen("gpg-incorrect-passphrase");
-    type_string "\t\n", 1;
-
-    # enter correct passphrase
-    type_string "$passwd\n";
-    wait_still_screen 1;
-    type_string "$passwd\n";
-    wait_still_screen 1;
-    if (get_var("FIPS") || get_var("FIPS_ENABLED") && $key_size == 1024) {
-        wait_serial("gpg: agent_genkey failed: Invalid value", 120) || die "It should failed with invalid value!";
+        script_run("gpg2 -vv --batch --full-generate-key $egg_file |& tee /dev/$serialdev", 0);
     }
     else {
-        # list gpg keys
-        assert_script_run("gpg --list-keys | grep '\\[ultimate\\] $user_name <$email>'");
+        # Batch mode does not work in gpg version < 2.1. Workaround like using
+        # expect does not work, so we use needles here.
+
+        # Simple way to scroll screen to make sure command output always
+        # appeared at the bottom for needles matching
+        assert_script_run "gpg -h";
+
+        script_run("gpg2 -vv --gen-key |& tee /dev/$serialdev", 0);
+        assert_screen 'gpg-set-keytype';       # Your Selection?
+        type_string "1\n";
+        assert_screen 'gpg-set-keysize';       # What keysize do you want?
+        type_string "$key_size\n";
+        assert_screen 'gpg-set-expiration';    # Key is valid for? (0)
+        send_key 'ret';
+        assert_screen 'gpg-set-correct';       # Is this correct? (y/N)
+        type_string "y\n";
+        assert_screen 'gpg-set-realname';      # Real name:
+        type_string "$username\n";
+        assert_screen 'gpg-set-email';         # Email address:
+        type_string "$email\n";
+        assert_screen 'gpg-set-comment';       # Comment:
+        send_key 'ret';
+        assert_screen 'gpg-set-okay';          # Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
+        type_string "O\n";
     }
-}
 
-sub gpg_encrypt_file {
-    my ($key_size) = @_;
-    my $user_name  = $username . " " . $key_size;
-    my $user_id    = $user_name . " " . "\<$email\>";
-
-    # prepare a text file
-    assert_script_run("touch gtest.txt");
-
-    # Should generate encrypted file gtest.txt.gpg
-    assert_script_run("gpg2 -r \"$user_id\" -e gtest.txt");
-
-    # check encrypted file gtest.txt.gpg
-    assert_script_run("ls | grep gtest.txt.gpg");
-
-    # Decrypt function can be work
-    script_run("gpg2 -u \"$user_id\" -d gtest.txt.gpg", 0);
-    wait_still_screen 1;
+    assert_screen("gpg-passphrase-enter");
+    type_string "REALSECRETPHRASE\n";          # Input insecure passphrase
+    assert_screen("gpg-passphrase-insecure");
+    send_key 'tab';
+    send_key 'ret';
+    assert_screen("gpg-passphrase-enter");
     type_string "$passwd\n";
-    wait_still_screen 1;
-
-    # Should generate signature file gtest.txt.asc
-    script_run("gpg2 -u \"$user_id\" --clearsign gtest.txt", 0);
-    wait_still_screen 1;
+    assert_screen("gpg-passphrase-reenter");
     type_string "$passwd\n";
-    wait_still_screen 1;
-    assert_script_run("ls | grep gtest.txt.asc");
 
-    # Verify the signature
-    assert_script_run("gpg2 -u \"$user_id\" --verify gtest.txt.asc");
+    # According to FIPS PUB 186-4 Digital Signature Standard (DSS), only the
+    # 2048 and 4096 key length should be supported. See bsc#1125740 comment#15
+    # for details
+    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024' || $key_size == '4096')) {
+        wait_serial("gpg: agent_genkey failed: Invalid value", 90) || die "It should failed with invalid value!";
+        return;
+    }
 
-    # clean up
-    assert_script_run("ls | grep gtest | xargs -i rm -f {}");
+    wait_serial("gpg: key.*accepted as trusted key", 90) || die "Key generating failed!";
+
+    assert_script_run("gpg --list-keys | grep '\\[ultimate\\] $username <$email>'");
+
+    # Basic Functions
+
+    my $tfile     = 'foo.txt';
+    my $tfile_gpg = $tfile . '.gpg';
+    my $tfile_asc = $tfile . '.asc';
+
+    # Encryption and Decryption
+    assert_script_run("echo 'foo test content' > $tfile");
+    assert_script_run("gpg2 -r $email -e $tfile");
+    assert_script_run("test -e $tfile_gpg");
+    script_run("gpg2 -u $email -d $tfile_gpg |& tee /dev/$serialdev", 0);
+    assert_screen("gpg-passphrase-unlock", 10);
+    type_string "$passwd\n";
+    wait_serial("foo test content", 90) || die "File decryption failed!";
+
+    # Reload gpg-agent (if it is running) to disable the passphrase caching
+    assert_script_run("pgrep gpg-agent && echo RELOADAGENT | gpg-connect-agent ; true");
+
+    # Signing function
+    script_run("gpg2 -u $email --clearsign $tfile |& tee /dev/$serialdev", 0);
+    assert_screen("gpg-passphrase-unlock", 10);
+    type_string "$passwd\n";
+    assert_script_run("test -e $tfile_asc");
+    assert_script_run("gpg2 -u $email --verify --verbose $tfile_asc");
+
+    # Restore
+    assert_script_run("rm -rf $tfile.* $egg_file");
+    assert_script_run("rm -rf .gnupg && gpg -K");    # Regenerate default ~/.gnupg
 }
 
 sub run {
     select_console 'root-console';
+
     # increase entropy for key generation for s390x on svirt backend
     if (check_var('ARCH', 's390x') && (is_sle('>15') && (check_var('BACKEND', 'svirt')))) {
         zypper_call('in haveged');
         systemctl('start haveged');
     }
 
-    # gpg key generated and file encrypted with two size of key
-    for my $key_size (2048, 3072) {
-        gpg_generate_key($key_size);
-        gpg_encrypt_file($key_size);
-    }
+    # Obtain GnuPG version
+    my $gpg_version_output = script_output("gpg --version");
+    my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\d\.\d)/;
 
-    # fips environment, 1024 bit RSA size key should NOT work
-    if (get_var("FIPS") || get_var("FIPS_ENABLED")) {
-        gpg_generate_key(1024);
+    # GPG key generation and basic function testing with differnet key lengths
+    # RSA keys may be between 1024 and 4096 only currently
+    foreach my $len ('1024', '2048', '3072', '4096') {
+        gpg_test($len, $gpg_version);
     }
 }
 

@@ -25,7 +25,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -130,7 +130,7 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
     my $version = get_version_for_daily_build_guest;
     $version =~ s/-/\//;
     my $autoyast_root_dir = "/usr/share/qa/virtautolib/data/autoinstallation/sles/" . $version . "/";
-    my $file_list         = &script_output("find $autoyast_root_dir -type f");
+    my $file_list         = script_output("find $autoyast_root_dir -type f");
     repl_addon_with_daily_build_module_in_files("$file_list");
 }
 
@@ -291,6 +291,15 @@ sub compress_single_qcow2_disk {
         save_screenshot;
         record_info('Disk compression', "Disk compression done from $orig_disk to $compressed_disk.");
     }
+}
+
+sub upload_supportconfig_log {
+    my $datetab = script_output("date '+%Y%m%d%H%M%S'");
+    script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
+    script_run("tar zcvfP nts_supportconfig.$datetab.tar.gz nts_supportconfig.$datetab");
+    upload_logs("nts_supportconfig.$datetab.tar.gz");
+    script_run("rm -rf nts_supportconfig.*");
+    save_screenshot;
 }
 
 1;

@@ -29,5 +29,8 @@ sub run {
     $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $ctx->iface());
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
 
 1;

@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 
 sub run {
@@ -47,25 +47,25 @@ sub run {
 
     if (get_var("ADDONS")) {
 
-        for my $a (split(/,/, get_var('ADDONS'))) {
+        for my $i (split(/,/, get_var('ADDONS'))) {
             send_key 'alt-d';                            # DVD
             send_key $cmd{xnext};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
-            send_key_until_needlematch "addon-dvd-$a",   'down';
+            send_key_until_needlematch "addon-dvd-$i",   'down';
             send_key 'alt-o';
             if (get_var("BETA")) {
-                assert_screen "addon-betawarning-$a";
+                assert_screen "addon-betawarning-$i";
                 send_key "ret";
                 assert_screen "addon-license-beta";
             }
             else {
-                assert_screen "addon-license-$a";
+                assert_screen "addon-license-$i";
             }
             wait_screen_change { send_key 'alt-y' };    # yes, agree
             send_key $cmd{next};
             assert_screen 'addon-list';
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $a) {
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $i) {
                 send_key 'alt-a';
                 assert_screen 'addon-selection';
             }

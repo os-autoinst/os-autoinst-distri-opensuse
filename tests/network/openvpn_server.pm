@@ -13,7 +13,7 @@
 use base 'consoletest';
 use testapi;
 use lockapi;
-use y2x11test;
+use y2_module_guitest;
 use mm_network;
 use mmapi 'wait_for_children';
 use utils qw(systemctl zypper_call exec_and_insert_password);
@@ -52,7 +52,7 @@ secret /etc/openvpn/static.key" > static.conf));
 
     # Generate certificates
     assert_script_run("easyrsa init-pki");
-    assert_script_run("easyrsa gen-dh",                              240);
+    assert_script_run("easyrsa gen-dh",                              300);
     assert_script_run("yes '' | easyrsa build-ca nopass",            120);
     assert_script_run("yes '' | easyrsa gen-req server nopass",      120);
     assert_script_run("echo 'yes' | easyrsa sign-req server server", 120);

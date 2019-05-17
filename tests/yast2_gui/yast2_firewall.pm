@@ -12,7 +12,7 @@
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
-use base "y2x11test";
+use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;

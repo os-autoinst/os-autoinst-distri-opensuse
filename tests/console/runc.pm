@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use transactional_system 'trup_install';
+use transactional 'trup_install';
 
 sub run {
     select_console("root-console");

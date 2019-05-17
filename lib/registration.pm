@@ -17,14 +17,13 @@ package registration;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
 use version_utils qw(is_sle is_caasp is_upgrade);
 use constant ADDONS_COUNT => 50;
+use y2_module_consoletest;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -212,7 +211,7 @@ sub register_addons {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
             else {
-                assert_and_click "scc-code-field-$addon", 'left', 240;
+                assert_and_click("scc-code-field-$addon", timeout => 240);
             }
             type_string $regcode;
             save_screenshot;
@@ -562,7 +561,7 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-    type_string "yast2 scc; echo sccreg-done-\$?- > /dev/$serialdev\n";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'scc');
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,
@@ -571,10 +570,7 @@ sub yast_scc_registration {
     );
 
     fill_in_registration_data;
-
-    my $ret = wait_serial "sccreg-done-\\d+-";
-    die "yast scc failed" unless (defined $ret && $ret =~ /sccreg-done-0-/);
-
+    wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
 }
 
@@ -713,8 +709,8 @@ sub rename_scc_addons {
     );
     my @addons_new = ();
 
-    for my $a (split(/,/, get_var('SCC_ADDONS'))) {
-        push @addons_new, defined $addons_map{$a} ? $addons_map{$a} : $a;
+    for my $i (split(/,/, get_var('SCC_ADDONS'))) {
+        push @addons_new, defined $addons_map{$i} ? $addons_map{$i} : $i;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
 }

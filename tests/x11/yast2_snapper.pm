@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use x11utils 'turn_off_gnome_screensaver';
+use y2_module_consoletest;
 
 # Test for basic yast2-snapper functionality. It assumes the data of the
 # opensuse distri to be available at /home/$username/data (as granted by
@@ -36,13 +37,13 @@ sub run {
     x11_start_program('xterm');
     become_root;
     script_run "cd";
-    type_string "yast2 snapper\n";
+    y2_module_consoletest::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_new_snapshot;
 
     wait_still_screen;
     $self->y2snapper_untar_testfile;
 
-    type_string "yast2 snapper; echo yast2-snapper-status-\$? > /dev/$serialdev\n";
+    y2_module_consoletest::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_show_changes_and_delete;
     $self->y2snapper_clean_and_quit;
 }

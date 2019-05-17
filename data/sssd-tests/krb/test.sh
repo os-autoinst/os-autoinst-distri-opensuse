@@ -4,7 +4,7 @@ set -e
 
 . ../testincl.sh
 
-if ( isSles15 ); then
+if ( usePython3 ); then
 	PYTHON=python3
 else
 	PYTHON=python2
@@ -56,7 +56,7 @@ test_ok
 
 credentials_test() {
 	mode=$1
-	
+
 	test_case "($mode) Look up users in LDAP and Kerberos via SSSD"
 	getent passwd root &> /dev/null &&
 	getent passwd testuser1@ldapdom &> /dev/null  &&

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2018 SUSE LLC
+# Copyright © 2015-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,8 +18,10 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
-use utils;
+
+use base "y2_module_consoletest";
+use utils qw(clear_console zypper_call);
+use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
 use testapi;
 use lockapi;
@@ -38,8 +40,7 @@ sub run {
 
         if (is_sle('15+')) {
             record_soft_failure 'boo#1130093 No firewalld service for nfs-kernel-server';
-            systemctl 'stop ' . $self->firewall;
-            systemctl 'disable ' . $self->firewall;
+            disable_and_stop_service($self->firewall);
         }
     }
 
@@ -49,7 +50,7 @@ sub run {
     # Create a directory and place a test file in it
     assert_script_run 'mkdir /srv/nfs && echo success > /srv/nfs/file.txt';
 
-    type_string "yast2 nfs-server; echo YAST-DONE-\$?- > /dev/$serialdev\n";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server');
 
     do {
         assert_screen([qw(nfs-server-not-installed nfs-firewall nfs-config)]);
@@ -96,7 +97,7 @@ sub run {
     # Done
     assert_screen 'nfs-share-saved';
     send_key 'alt-f';
-    wait_serial('YAST-DONE-0-') or die "'yast2 nfs-server' didn't finish";
+    wait_serial("$module_name-0") or die "'yast2 nfs-server' didn't finish";
 
     # Back on the console, test mount locally
     clear_console;

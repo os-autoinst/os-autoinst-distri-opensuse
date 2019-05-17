@@ -11,9 +11,9 @@
 # Maintainer: Jozef Pupava <jpupava@suse.com>, Joaquín Rivera <jeriveramoya@suse.com>
 # Tags: poo#16650, poo#25850
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils qw(is_sle is_opensuse is_caasp);
 

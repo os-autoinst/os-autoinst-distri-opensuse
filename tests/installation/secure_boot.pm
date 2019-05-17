@@ -11,9 +11,9 @@
 # Summary: Make sure that we are in the installation overview with SB enabled
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 
 sub run {

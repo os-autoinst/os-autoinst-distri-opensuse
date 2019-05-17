@@ -210,8 +210,12 @@ sub save_kdump {
     my ($test, $dir, %args) = @_;
     $args{vmcore} ||= 0;
     $args{kernel} ||= 0;
+    $args{debug}  ||= 0;
     my $name = test_name($test);
     my $ret  = script_run("mv /var/crash/* $dir/$name");
+    if ($args{debug}) {
+        $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz /usr/lib/debug/boot; fi");
+    }
     return 0 if $ret != 0;
 
     my $removed = "";
@@ -302,7 +306,7 @@ sub run {
         select_console('root-console');
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
         unless (get_var('NO_KDUMP')) {
-            unless (save_kdump($test, $KDUMP_DIR, "vmcore", "kernel")) {
+            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
                 # If no kdump data found, write warning to log
                 my $msg = "Warning: $test crashed SUT but has no kdump data";
                 script_run("echo '$msg' >> $LOG_DIR/$category/$num");

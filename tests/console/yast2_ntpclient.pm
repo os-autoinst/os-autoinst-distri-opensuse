@@ -12,7 +12,8 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils qw(type_string_slow zypper_call systemctl);
 use version_utils qw(is_sle is_leap);
@@ -44,7 +45,7 @@ sub run {
     zypper_call("in yast2-ntp-client", timeout => 180);
 
     # start NTP configuration
-    script_run("yast2 ntp-client; echo yast2-ntp-client-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ntp-client');
 
     # check Advanced NTP Configuration is opened
     assert_screen([qw(yast2_ntp-client_configuration yast2_ntp-needs_install)], 90);
@@ -171,7 +172,7 @@ sub run {
 
     # press ok to finish configuration
     wait_screen_change { send_key 'alt-o'; };
-    wait_serial('yast2-ntp-client-status-0', 180);
+    wait_serial("$module_name-0", 180);
 
     # modify /etc/sysconfig/ntp (and not /etc/ntp.conf!!) to add NTPD_FORCE_SYNC_ON_STARTUP=yes
     script_run('sed -i \'s/^\\(NTPD_FORCE_SYNC_ON_STARTUP=\\).*$/\\1yes/\' /etc/sysconfig/ntp') if (!$is_chronyd);

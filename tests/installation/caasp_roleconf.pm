@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 use caasp;
 use caasp_controller '$admin_fqdn';

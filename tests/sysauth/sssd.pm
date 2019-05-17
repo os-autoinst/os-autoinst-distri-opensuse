@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,10 +12,13 @@
 # Maintainer: HouzuoGuo <guohouzuo@gmail.com>
 
 use base "opensusebasetest";
+
 use strict;
 use warnings;
+
 use testapi;
 use utils;
+use Utils::Systemd 'disable_and_stop_service';
 use version;
 use version_utils qw(is_sle is_opensuse);
 use registration "add_suseconnect_product";
@@ -45,12 +48,12 @@ sub run {
     push @test_subjects, 'python-pam' if is_sle('<15');
     push @test_subjects, 'python3-python-pam' if is_sle('15+') || is_opensuse;
 
-    systemctl 'stop packagekit.service';
-    systemctl 'mask packagekit.service';
+    disable_and_stop_service('packagekit.service', mask_service => 1, ignore_failure => 1);
     if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
         assert_script_run "zypper -n in psmisc";
     }
     script_run "zypper -n refresh && zypper -n in @test_subjects";
+    script_run "cd; curl -L -v " . autoinst_url . "/data/lib/version_utils.sh > /usr/local/bin/version_utils.sh";
     script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 
     # Get sssd version, as 2.0+ behaves differently

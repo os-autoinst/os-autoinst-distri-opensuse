@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 use utils qw(addon_license handle_untrusted_gpg_key assert_screen_with_soft_timeout);
 use version_utils 'is_sle';
@@ -51,8 +51,8 @@ sub handle_all_packages_medium {
         my @demand_addon = qw(desktop serverapp script);
         push @demand_addon, 'sdk'    if !check_var('SLE_PRODUCT', 'sles4sap');
         push @demand_addon, 'legacy' if !check_var('SLE_PRODUCT', 'rt');
-        for my $a (@demand_addon) {
-            push @addons, $a if !grep(/^$a$/, @addons);
+        for my $i (@demand_addon) {
+            push @addons, $i if !grep(/^$i$/, @addons);
         }
     }
     # In upgrade testing, the sle addons, including extensions and modules,
@@ -65,8 +65,8 @@ sub handle_all_packages_medium {
     # Read addons from SCC_ADDONS and add them to list
     # Make sure every addon only appears once in the list,
     # there will be problem to enable the same addon twice
-    for my $a (split(/,/, get_var('SCC_ADDONS', ''))) {
-        push @addons, $a if !grep(/^$a$/, @addons);
+    for my $i (split(/,/, get_var('SCC_ADDONS', ''))) {
+        push @addons, $i if !grep(/^$i$/, @addons);
     }
 
     # Record the addons to be enabled for debugging
@@ -75,10 +75,10 @@ sub handle_all_packages_medium {
     # Also record the addons which require license agreement
     my @addons_with_license = qw(ha we);
     my @addons_license_tags = ();
-    for my $a (@addons) {
-        push @addons_license_tags, "addon-license-$a" if grep(/^$a$/, @addons_with_license);
+    for my $i (@addons) {
+        push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
         send_key 'home';
-        send_key_until_needlematch "addon-products-all_packages-$a-highlighted", 'down', 30;
+        send_key_until_needlematch "addon-products-all_packages-$i-highlighted", 'down', 30;
         send_key 'spc';
     }
     send_key $cmd{next};

@@ -11,7 +11,8 @@
 # Doc: https://en.opensuse.org/YaST_Firstboot
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "y2logsstep";
+use base 'y2_installbase';
+use y2_logs_helper qw(accept_license verify_license_has_to_be_accepted);
 use strict;
 use warnings;
 use testapi;
@@ -37,13 +38,16 @@ sub language_and_keyboard {
 
 sub license {
     my $self = shift;
-    return unless is_sle('>=12-sp4');
-    assert_screen('license-agreement');
-    $self->verify_license_has_to_be_accepted;
-    $self->accept_license;
+    # default TO value was not sufficient
+    assert_screen('license-agreement', 60);
+    # Nothing to be accepted in opensuse
+    unless (is_opensuse) {
+        $self->verify_license_has_to_be_accepted;
+        $self->accept_license;
+    }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
-    # Workaround license checkbox
-    assert_screen(qw(license-agreement inst-timezone));
+    # Workaround license checkbox, applicable for sle12sp5 only currently
+    assert_screen([qw(license-agreement inst-timezone)]);
     if (match_has_tag('license-agreement')) {
         record_soft_failure 'bsc#1131327 License checkbox was cleared! Re-check again!';
         send_key 'alt-a';
@@ -69,7 +73,7 @@ sub clock_and_timezone {
 sub user_setup {
     my $is_not_shared_passwd = shift;
     assert_screen 'local_user';
-    enter_userinfo(username => 'y2_firstboot_tester');
+    enter_userinfo(username => get_var('YAST2_FIRSTBOOT_USERNAME'));
     if (defined($is_not_shared_passwd)) {
         send_key 'alt-t' if (is_opensuse);
     }

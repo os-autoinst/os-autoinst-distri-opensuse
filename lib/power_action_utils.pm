@@ -66,7 +66,7 @@ sub reboot_x11 {
             if (get_var('REBOOT_DEBUG')) {
                 wait_screen_change {
                     # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
-                    assert_and_click 'reboot-auth-typed', 'right';
+                    assert_and_click('reboot-auth-typed', button => 'right');
                 };
                 wait_screen_change {
                     # Click the 'Show Text' Option to enable the display of the typed text

@@ -12,7 +12,8 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
@@ -21,7 +22,7 @@ use yast2_widget_utils 'change_service_configuration';
 sub run {
     select_console 'root-console';
     zypper_call("in tftp yast2-tftp-server", timeout => 240);
-    script_run("yast2 tftp-server; echo yast2-tftp-server-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'tftp-server');
     # make sure the module is loaded and any potential popups are there to be
     # asserted later
     wait_still_screen(3);
@@ -92,7 +93,7 @@ sub run {
     send_key 'alt-y';                               # approve creation of new directory
 
     # wait for yast2 tftp configuration completion
-    wait_serial("yast2-tftp-server-status-0", 180) || die "'yast2 tftp-server' failed";
+    wait_serial("$module_name-0", 180) || die "'yast2 tftp-server' failed";
 
     # create a test file for tftp server
     my $server_string = 'This is a QA tftp server';

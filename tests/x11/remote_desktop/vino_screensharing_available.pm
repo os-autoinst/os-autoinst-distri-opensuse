@@ -55,9 +55,16 @@ sub run {
         }
     }
 
-    # Finally ensure that the screen sharing is available
-    assert_screen "with_screensharing";
-    record_info 'vino present', 'Vino and the screen sharing are present';
+    # Ensure that screen sharing is available
+    # except for ppc64le that do not support it yet.
+    my @needles = qw(with_screensharing);
+    push @needles, qw(without_screensharing) if check_var('ARCH', 'ppc64le');
+    assert_screen \@needles;
+    if (match_has_tag 'without_screensharing') {
+        record_soft_failure 'boo#1122137 - screen sharing not yet supported';
+    } else {
+        record_info 'vino present', 'Vino and the screen sharing are present';
+    }
     send_key 'ctrl-q';
 }
 

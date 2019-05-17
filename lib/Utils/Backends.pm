@@ -17,15 +17,18 @@ package Utils::Backends;
 use strict;
 use warnings;
 
-use base qw(Exporter);
+use base 'Exporter';
 use Exporter;
-use testapi qw(:DEFAULT);
+use testapi ':DEFAULT';
 
 use constant {
     BACKEND => [
         qw(
           is_remote_backend
           has_ttys
+          is_hyperv
+          is_hyperv_in_gui
+          is_svirt_except_s390x
           )
     ],
     CONSOLES => [
@@ -61,6 +64,23 @@ sub is_remote_backend {
 # but not what we use for s390x-kvm.
 sub has_ttys {
     return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm/) && !get_var('S390_ZKVM'));
+}
+
+#  splitting backend code for is_hyperv, is_hyperv_in_gui, is_svirt_except_s390x
+
+sub is_hyperv {
+    my $hyperv_version = shift;
+    return 0 unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    return defined($hyperv_version) ? check_var('HYPERV_VERSION', $hyperv_version) : 1;
+}
+
+sub is_hyperv_in_gui {
+    return is_hyperv && !check_var('VIDEOMODE', 'text');
+}
+
+sub is_svirt_except_s390x {
+    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
+
 }
 
 1;

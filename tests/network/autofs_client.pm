@@ -17,7 +17,7 @@ use base 'consoletest';
 use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service);
-use utils qw(systemctl);
+use utils 'systemctl';
 use strict;
 use warnings;
 
@@ -41,7 +41,8 @@ sub run {
 
     # nfsidmap
     assert_script_run("rpm -q nfsidmap");
-    assert_script_run("nfsidmap -c");
+    # Allow failing, it's to clear the keyring if one exists
+    assert_script_run("nfsidmap -c || true");
     assert_script_run("mkdir -p $test_mount_dir_nfsidmap");
 
     barrier_wait 'AUTOFS_SUITE_READY';
@@ -59,7 +60,7 @@ sub run {
     validate_script_output("cat $test_mount_dir_nfsidmap/tux.txt",   sub { m/Hi tux/ });
     assert_script_run("umount $test_mount_dir_nfsidmap");
     assert_script_run("useradd -m tux");
-    assert_script_run("nfsidmap -c");
+    assert_script_run("nfsidmap -c || true");
     assert_script_run("mount -t nfs4 $nfs_server:$remote_mount_nfsidmap $test_mount_dir_nfsidmap");
     # Now 'tux' should be shown instead
     validate_script_output("ls -l $test_mount_dir_nfsidmap/tux.txt", sub { m/tux.*users.*tux.txt/ });

@@ -11,9 +11,9 @@
 # Summary: Use guided partitioning setup to delete an existing windows partition.
 # Maintainer: Christopher Hofmann <cwh@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use parent 'y2logsstep';
 use testapi;
 
 sub save_logs_and_resume {

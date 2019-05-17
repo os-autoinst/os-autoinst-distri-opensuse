@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,6 +15,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos);
+use y2_module_consoletest;
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
 
@@ -45,11 +46,11 @@ sub prepare_for_kdump_sle {
     my $counter = 0;
     if (get_var('MAINT_TEST_REPO')) {
         # append _debug to the incident repo
-        for my $b (split(/,/, get_var('MAINT_TEST_REPO'))) {
-            next unless $b;
-            $b =~ s,/$,_debug/,;
+        for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
+            next unless $i;
+            $i =~ s,/$,_debug/,;
             $counter++;
-            zypper_call("--no-gpg-check ar -f $b 'DEBUG_$counter'");
+            zypper_call("--no-gpg-check ar -f $i 'DEBUG_$counter'");
         }
     }
     script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);
@@ -90,8 +91,8 @@ sub activate_kdump {
     # activate kdump
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
-    script_run 'yast2 kdump', 0;
-    my @tags = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
+    my @tags        = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
         # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
@@ -103,12 +104,18 @@ sub activate_kdump {
                 record_soft_failure 'default kdump memory size is too small, kdumptool gets killed by OOM, bsc#1120566';
             }
         }
+        # enable and verify fadump settings
+        if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
+            send_key 'alt-f';
+            assert_screen 'yast2-fadump-enabled';
+        }
         # enable kdump if it is not already
         wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
         wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
     } until (match_has_tag('yast2_console-finished'));
+    wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 
 sub activate_kdump_without_yast {

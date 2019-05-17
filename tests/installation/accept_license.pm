@@ -19,7 +19,8 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
+use y2_logs_helper qw(verify_license_has_to_be_accepted verify_license_translations accept_license);
 use testapi;
 use version_utils 'is_sle';
 
@@ -29,7 +30,7 @@ sub run {
     # optional checks for the extended installation
     if (get_var('INSTALLER_EXTENDED_TEST')) {
         $self->verify_license_has_to_be_accepted;
-        $self->verify_license_translations;
+        $self->verify_license_translations unless is_sle('15+');
     }
     $self->accept_license;
     send_key $cmd{next};

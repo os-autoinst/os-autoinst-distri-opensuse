@@ -11,12 +11,12 @@
 # Summary: Install packages using yast2.
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_tumbleweed is_jeos is_sle is_leap);
+use version_utils qw(is_tumbleweed is_sle is_leap);
 
 sub set_action {
     my $action = shift;
@@ -51,7 +51,7 @@ sub run {
     }
 
     # check required automatic updates, it is not scanned on sle12 codestream
-    if (is_sle('>=15-sp1') || is_tumbleweed || is_leap('>=15.1') || is_jeos) {
+    if (is_sle('>=15-sp1') || is_tumbleweed || is_leap('>=15.1')) {
         $output = script_output('zypper -n inr -D --no-recommends');
         my $zypper_regex = qr/The\s{1}following.*going\s{1}to\s{1}be\s{1}\w+:\s+([a-zA-Z0-9-_].*)/;
         if ($output =~ $zypper_regex) {
@@ -59,13 +59,12 @@ sub run {
             record_info("Required", "$1");
         }
     }
-
-    script_run("yast2 sw_single; echo y2-i-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'sw_single');
     assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 90;
 
     # we need to change filter to Search, in case yast2 reports available automatic update
     if ($is_inr_package) {
-        send_key 'alt-f';
+        send_key_until_needlematch 'yast2-sw-filter-opts', 'alt-f';
         wait_still_screen(stilltime => 2, timeout => 4, similarity_level => 50);
         wait_screen_change { send_key 'home' };
         send_key_until_needlematch 'yast2-sw_install-go-to-search', 'down';
@@ -147,7 +146,7 @@ sub run {
         die "PKGMGR_ACTION_AT_EXIT possible actions (summary|restart|close)!\n";
     }
 
-    wait_serial("y2-i-status-0", 120) || die "'yast2 sw_single' didn't finish";
+    wait_serial("$module_name-0", 120) || die "'yast2 sw_single' didn't finish";
 
     $self->clear_and_verify_console;         # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname

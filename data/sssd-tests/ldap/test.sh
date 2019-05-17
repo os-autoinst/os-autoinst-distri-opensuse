@@ -4,7 +4,7 @@ set -e
 
 . ../testincl.sh
 
-if ( isSles15 ); then
+if ( usePython3 ); then
 	PYTHON=python3
 else
 	PYTHON=python2
@@ -59,7 +59,7 @@ group3=`getent group group3`
 test_ok
 
 test_case 'Switch user'
-su testuser1 -c true && 
+su testuser1 -c true &&
 su testuser2 -c true || test_fatal 'Failed to switch to users'
 test_ok
 

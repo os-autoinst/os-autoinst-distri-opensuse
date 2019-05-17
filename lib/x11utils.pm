@@ -44,7 +44,7 @@ sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'al
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password)], no_wait => 1;
+        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -57,6 +57,10 @@ sub ensure_unlocked_desktop {
             else {
                 select_user_gnome($username);
             }
+        }
+        if (match_has_tag 'authentication-required-user-settings') {
+            type_password;
+            assert_and_click "authenticate";
         }
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {

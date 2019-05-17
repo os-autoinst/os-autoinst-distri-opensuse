@@ -12,8 +12,8 @@
 # Tags: poo#20306
 
 use base 'x11test';
-use y2x11test 'launch_yast2_module_x11';
-use y2logsstep;
+use y2_module_guitest 'launch_yast2_module_x11';
+use y2_installbase;
 use strict;
 use warnings;
 use testapi;
@@ -34,7 +34,7 @@ sub run {
 
 sub configure_system {
     # we have to change the networkmanager form wicked to NetworkManager
-    y2x11test::launch_yast2_module_x11 module => 'lan';
+    y2_module_guitest::launch_yast2_module_x11 module => 'lan';
     assert_screen 'yast2_control-center_network-opened';
 
     # switch to 'Global options'
@@ -58,7 +58,7 @@ sub configure_system {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    y2logsstep::save_upload_y2logs($self);
+    y2_installbase::save_upload_y2logs($self);
     $self->SUPER::post_fail_hook;
 }
 

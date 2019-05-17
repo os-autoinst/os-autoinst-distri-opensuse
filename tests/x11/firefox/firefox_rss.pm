@@ -28,7 +28,7 @@ sub run {
     wait_still_screen 3;
     send_key "c";
 
-    assert_and_click("firefox-rss-button", "right");
+    assert_and_click('firefox-rss-button', button => 'right');
 
     send_key "a";
     send_key "ctrl-w";
@@ -40,7 +40,7 @@ sub run {
         $self->firefox_open_url('https://linux.slashdot.org/');
         assert_and_click("slashdot-cookies-agree") if check_screen("slashdot-cookies", 0);
         wait_still_screen;
-        assert_and_click "firefox-rss-button_enabled", "left";
+        assert_and_click 'firefox-rss-button_enabled';
         last if check_screen("firefox-rss-page", 30);
     }
 

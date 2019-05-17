@@ -13,7 +13,8 @@
 #   with the conversion from init.d to systemd services)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use strict;
 use warnings;
 use testapi;
@@ -54,7 +55,7 @@ sub run {
     #
     # YaST nfs-client execution
     #
-    type_string "yast2 nfs-client; echo YAST-DONE-\$?- > /dev/$serialdev\n";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-client');
     assert_screen 'yast2-nfs-client-shares';
     # Open the dialog to add a connection to the share
     send_key 'alt-a';
@@ -73,7 +74,7 @@ sub run {
     wait_screen_change { send_key 'alt-o' };
     wait_screen_change { send_key 'alt-o' };
 
-    wait_serial('YAST-DONE-0-') or die "'yast2 nfs-server' didn't finish";
+    wait_serial("$module_name-0") or die "'yast2 nfs-server' didn't finish";
 
     clear_console;
 

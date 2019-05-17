@@ -23,11 +23,11 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use y2x11test qw(launch_yast2_module_x11);
+use y2_module_guitest 'launch_yast2_module_x11';
 
 use base 'consoletest';
 
-our @EXPORT = qw (
+our @EXPORT = qw(
   $audit_log
   $mail_err_log
   $mail_warn_log
@@ -173,15 +173,19 @@ sub setup_mail_server_postfix_dovecot {
 
     # Install Postfix
     zypper_call("--no-refresh in dovecot");
+    zypper_call("--no-refresh in --force-resolution postfix");
+
+    # Start Postfix service
+    systemctl("restart postfix");
 
     # Set "/etc/postfix/main.cf" file
     my $testfile = "/etc/postfix/main.cf";
     assert_script_run("sed -i '1i home_mailbox = Maildir/' $testfile");
-    assert_script_run("sed -i '1i net_interfaces = localhost, $ip' $testfile");
-    assert_script_run("sed -i '1i net_protocols = all' $testfile");
-    assert_script_run("echo 'myhostname = mail.testdomain.com' >> $testfile");
+    assert_script_run("sed -i '1i inet_interfaces = localhost, $ip' $testfile");
+    assert_script_run("sed -i '1i inet_protocols = all' $testfile");
+    assert_script_run("sed -i '/^mydestination =/d' $testfile");
     assert_script_run("echo 'mydestination = \$myhostname, localhost.\$mydomain, \$mydomain' >> $testfile");
-
+    assert_script_run("echo 'myhostname = mail.testdomain.com' >> $testfile");
     # Output the setting for reference
     assert_script_run("tail -n 3 $testfile");
     assert_script_run("head -n 5 $testfile");
@@ -404,10 +408,13 @@ sub adminer_setup {
     assert_script_run("mv $adminer_file $adminer_dir");
 
     # Test Adminer can work
+    select_console 'x11';
     x11_start_program("firefox http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
 
     # Exit x11 and turn to console
-    send_key_until_needlematch("generic-desktop", 'alt-f4', 2, 5);
+    send_key "alt-f4";
+    # Send "ret" key in case of any pop up message
+    send_key_until_needlematch("generic-desktop", 'ret', 5, 5);
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
@@ -415,6 +422,7 @@ sub adminer_setup {
 
 # Log in Adminer, seletct "test" database and delete it
 sub adminer_database_delete {
+    select_console 'x11';
     x11_start_program("firefox --setDefaultBrowser http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
 
     # Do some operations on web, e.g., log in, select/delete a database

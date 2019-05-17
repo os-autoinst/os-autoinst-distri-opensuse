@@ -23,7 +23,7 @@ use utils;
 use strict;
 use warnings;
 use registration;
-use version_utils qw(is_sle);
+use version_utils 'is_sle';
 
 sub run {
     select_console("root-console");

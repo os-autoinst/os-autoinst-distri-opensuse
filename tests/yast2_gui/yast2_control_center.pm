@@ -14,7 +14,7 @@
 #    while launching atm.
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use base 'y2x11test';
+use base 'y2_module_guitest';
 use strict;
 use warnings;
 use testapi;
@@ -75,7 +75,17 @@ sub start_online_update {
         select_console 'root-console';
         my $version     = lc get_required_var('VERSION');
         my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
-        zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
+        my $repo_arch   = get_required_var('ARCH');
+        $repo_arch = 'ppc' if ($repo_arch =~ /ppc64|ppc64le/);
+        if ($repo_arch =~ /i586|i686|x86_64/) {
+            zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
+        } else {
+            if (is_tumbleweed()) {
+                zypper_call("ar -f http://download.opensuse.org/ports/$repo_arch/update/tumbleweed repo-update");
+            } else {
+                zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
+            }
+        }
         select_console 'x11', await_console => 0;
     }
     assert_and_click 'yast2_control-center_online-update';
@@ -358,7 +368,7 @@ sub run {
     }
     # only available on openSUSE or at least not SLES
     # drop fonts test for leap 15.0, see poo#29292
-    if (is_tumbleweed || is_leap('<15.0')) {
+    if (is_leap('<15.0')) {
         start_fonts;
     }
 

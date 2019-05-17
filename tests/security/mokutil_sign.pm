@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle);
+use version_utils 'is_sle';
 use registration 'add_suseconnect_product';
 use power_action_utils "power_action";
 

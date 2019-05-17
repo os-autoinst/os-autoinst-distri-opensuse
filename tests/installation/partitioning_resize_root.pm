@@ -12,9 +12,9 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: bsc#989976 bsc#1000165
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils 'is_storage_ng';
 use partition_setup 'resize_partition';

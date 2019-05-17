@@ -11,13 +11,10 @@ package bootloader_setup;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use File::Basename 'basename';
 use Time::HiRes 'sleep';
-
 use testapi;
 use utils;
 use version_utils qw(is_caasp is_jeos is_leap is_sle);
@@ -168,20 +165,20 @@ Boot the default kernel recovery mode (goes through "Advanced options"):
 
 =cut
 sub boot_grub_item {
-    my ($self, $menu1, $menu2) = @_;
+    my ($menu1, $menu2) = @_;
     $menu1 = 3 unless defined($menu1);
     $menu2 = 1 unless defined($menu2);
-    die((caller(0))[3] . " expects integer arguments ($menu1, $menu2") unless ($menu1 =~ /^\d+\z/ && $menu2 =~ /^\d+\z/);
+    die((caller(0))[3] . " expects integer arguments ($menu1, $menu2)") unless ($menu1 =~ /^\d+\z/ && $menu2 =~ /^\d+\z/);
 
     assert_screen "grub2";
 
-    for my $i (1 .. ($menu1 - 1)) {
+    for (1 .. ($menu1 - 1)) {
         wait_screen_change { send_key 'down' };
     }
     save_screenshot;
     send_key 'ret';
 
-    for my $i (1 .. ($menu2 - 1)) {
+    for (1 .. ($menu2 - 1)) {
         wait_screen_change { send_key 'down' };
     }
     save_screenshot;
@@ -229,7 +226,6 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
-    record_soft_failure 'bsc#1017558:Cannot view timestamp of read-only snapshots in GRUB as names truncated' if is_leap;
     # assert needle to avoid send down key early in grub_test_snapshot.
     assert_screen 'snap-default' if get_var('OFW');
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.

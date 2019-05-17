@@ -12,7 +12,7 @@
 # Maintainer: Joyce Na <jna@suse.de>
 
 package install_qatestset;
-use base "y2_installbase";
+use base 'y2_installbase';
 use power_action_utils 'power_action';
 use strict;
 use warnings;
@@ -42,7 +42,6 @@ sub run {
     setup_environment;
     power_action('poweroff', keepconsole => 1, textmode => 1);
 }
-
 sub test_flags {
     return {fatal => 1};
 }

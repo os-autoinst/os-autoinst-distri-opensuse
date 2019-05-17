@@ -24,6 +24,8 @@ sub run {
     my $keystrokes = $self->get_keystroke_list($expected);
 
     $self->verify_default_keymap_x11($keystrokes, "${expected}_keymap_logged_x11", 'xterm');
+
+    assert_screen("generic-desktop");
 }
 
 sub test_flags {

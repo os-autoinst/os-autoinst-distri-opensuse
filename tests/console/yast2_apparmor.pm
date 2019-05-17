@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use testapi;
 use utils 'systemctl';
 use version_utils 'is_pre_15';
@@ -24,7 +24,7 @@ sub run {
     assert_script_run("/usr/bin/zypper -n -q in yast2-apparmor");
 
     # start apparmor configuration
-    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     # check Apparmor Configuration is opened
     assert_screen 'yast2_apparmor';
     send_key 'ret';
@@ -82,7 +82,7 @@ sub run {
     # close apparmor configuration
     send_key(is_pre_15() ? 'alt-d' : 'alt-f');
     # increase value for timeout to 200 seconds
-    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
+    wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
     systemctl 'show -p ActiveState apparmor.service | grep ActiveState=active';
     # currently not existing on sle15
     if (is_pre_15()) {
@@ -133,7 +133,7 @@ sub run {
 
         # close now AppArmor configuration
         send_key 'alt-n';
-        wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
+        wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
 
     }
 
@@ -142,7 +142,7 @@ sub run {
     assert_script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
 
     # start apparmor configuration again
-    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     assert_screen 'yast2_apparmor';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'down' };
@@ -171,7 +171,7 @@ sub run {
     # confirm to save changes to profile and finish test
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed_again';
     send_key 'alt-y';
-    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
+    wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
 }
 
 sub post_fail_hook {

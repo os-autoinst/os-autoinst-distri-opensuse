@@ -10,6 +10,8 @@
 # Summary: svirt bootloader
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+package bootloader_svirt;
+
 use base "installbasetest";
 use strict;
 use warnings;
@@ -308,8 +310,5 @@ sub run {
     vmware_set_permanent_boot_device('cdrom');
 }
 
-sub test_flags {
-    return {fatal => 1};
-}
 
 1;

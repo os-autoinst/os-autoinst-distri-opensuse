@@ -230,7 +230,7 @@ sub x11_start_program {
         send_key 'esc';
         init_desktop_runner($program, $timeout);
     }
-    wait_still_screen(1);
+    wait_still_screen(3);
     save_screenshot;
     send_key 'ret';
     # As above especially krunner seems to take some time before disappearing
@@ -425,7 +425,7 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 user     => 'root',
-                serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial',
+                serial   => 'mkfifo /dev/sshserial; tail -fn +1 /dev/sshserial',
                 gui      => 1
             });
     }

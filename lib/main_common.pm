@@ -16,15 +16,17 @@ use File::Basename;
 use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
-use suse_container_urls qw(get_suse_container_urls);
+use suse_container_urls 'get_suse_container_urls';
 use autotest;
 use utils;
 use wicked::TestContext;
+use Utils::Architectures ':ARCH';
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
-use Utils::Backends 'is_remote_backend';
+use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';
+use Carp 'croak';
 use strict;
 use warnings;
 
@@ -134,6 +136,7 @@ sub init_main {
 
 sub loadtest {
     my ($test, %args) = @_;
+    croak "extensions are not allowed here '$test'" if $test =~ /\.pm$/;
     autotest::loadtest("tests/$test.pm", %args);
 }
 
@@ -173,7 +176,7 @@ sub setup_env {
         set_var('INSTLANG', 'en_US');
     }
 
-    if (get_var('UEFI') && !check_var('ARCH', 'aarch64')) {
+    if (get_var('UEFI') && !is_aarch64) {
         # avoid having to update all job templates, but newer qemu
         # BIOS wants to have the bios passed differently
         # https://github.com/os-autoinst/os-autoinst/pull/377
@@ -349,10 +352,6 @@ sub default_desktop {
     return 'gnome';
 }
 
-sub uses_qa_net_hardware {
-    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
-}
-
 sub load_shutdown_tests {
     loadtest("shutdown/cleanup_before_shutdown");
     loadtest "shutdown/shutdown";
@@ -413,12 +412,12 @@ sub load_reboot_tests {
     return if check_var("IPXE", "1");
 
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if ((check_var("ARCH", "s390x") && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
+    if ((is_s390x && !get_var('ENCRYPT')) || uses_qa_net_hardware() || check_var('BACKEND', 'spvm')) {
         loadtest "boot/reconnect_mgmt_console";
     }
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
-        if (!(check_var("ARCH", "s390x") or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
+        if (!(is_s390x or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
             # exclude this scenario for autoyast test with switched keyboard layaout
             loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT');
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
@@ -434,7 +433,7 @@ sub load_reboot_tests {
         }
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
-        if (check_var('ARCH', 'aarch64') && !get_var('INSTALLONLY')) {
+        if (is_aarch64 && !get_var('INSTALLONLY')) {
             loadtest "installation/system_workarounds";
         }
     }
@@ -553,7 +552,7 @@ sub load_system_role_tests {
 }
 sub load_jeos_tests {
     unless (get_var('LTP_COMMAND_FILE')) {
-        if (check_var('ARCH', 'aarch64') && is_opensuse()) {
+        if (is_aarch64 && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
             load_boot_tests();
             loadtest "jeos/prepare_firstboot";
@@ -591,11 +590,11 @@ sub snapper_is_applicable {
 }
 
 sub chromestep_is_applicable {
-    return is_opensuse && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
+    return is_opensuse && (check_var('ARCH', 'i586') || is_x86_64);
 }
 
 sub chromiumstep_is_applicable {
-    return chromestep_is_applicable() || (is_opensuse && check_var('ARCH', 'aarch64'));
+    return chromestep_is_applicable() || (is_opensuse && is_aarch64);
 }
 
 sub gnomestep_is_applicable {
@@ -612,7 +611,7 @@ sub kdestep_is_applicable {
 
 # kdump is not supported on aarch64 (bsc#990418), and Xen PV (feature not implemented)
 sub kdump_is_applicable {
-    return !(check_var('ARCH', 'aarch64') && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
+    return !(is_aarch64 && is_sle('<15')) && !check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 sub consolestep_is_applicable {
@@ -632,6 +631,16 @@ sub we_is_applicable {
       is_server()
       && (get_var("ADDONS", "") =~ /we/ or get_var("SCC_ADDONS", "") =~ /we/ or get_var("ADDONURL", "") =~ /we/)
       && get_var('MIGRATION_REMOVE_ADDONS', '') !~ /we/;
+}
+
+sub libreoffice_is_applicable {
+    # for opensuse libreoffice package has ExclusiveArch:  aarch64 %{ix86} x86_64
+    # do not know for SLE (so assume built for all)
+    return 1 if (!is_opensuse);
+    return (check_var('ARCH', 'x86_64')
+          || check_var('ARCH', 'i686')
+          || check_var('ARCH', 'i586')
+          || check_var('ARCH', 'aarch64'));
 }
 
 sub need_clear_repos {
@@ -667,7 +676,7 @@ sub is_smt {
 }
 
 sub is_rmt {
-    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /rmt/) && is_sle('>=15');
+    return (check_var('RMT_TEST', '1') && is_sle('>=15'));
 }
 
 sub remove_common_needles {
@@ -705,10 +714,10 @@ sub remove_desktop_needles {
 sub map_incidents_to_repo {
     my ($incidents, $templates) = @_;
     my @maint_repos;
-    for my $a (keys %$incidents) {
-        for my $b (split(/,/, $incidents->{$a})) {
-            if ($b) {
-                push @maint_repos, join($b, split('%INCIDENTNR%', $templates->{$a}));
+    for my $i (keys %$incidents) {
+        for my $j (split(/,/, $incidents->{$i})) {
+            if ($j) {
+                push @maint_repos, join($j, split('%INCIDENTNR%', $templates->{$i}));
             }
         }
     }
@@ -749,7 +758,7 @@ sub unregister_needle_tags {
 }
 
 sub load_bootloader_s390x {
-    return 0 unless check_var("ARCH", "s390x");
+    return 0 unless is_s390x;
 
     if (check_var("BACKEND", "s390x")) {
         loadtest "installation/bootloader_s390";
@@ -799,10 +808,10 @@ sub load_inst_tests {
         loadtest "installation/dud_addon";
     }
     loadtest "installation/welcome";
+    loadtest 'installation/accept_license' if has_license_to_accept;
     if (get_var('DUD_ADDONS') && is_sle('<15')) {
         loadtest "installation/dud_addon";
     }
-    loadtest 'installation/accept_license' if has_product_selection;
     loadtest 'installation/network_configuration' if get_var('OFFLINE_SUT');
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration";
@@ -838,15 +847,7 @@ sub load_inst_tests {
     }
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
-        # SCC registration is not required in media based upgrade since SLE15
-        unless (is_sle('15+') && get_var('MEDIA_UPGRADE')) {
-            if (check_var('SCC_REGISTER', 'installation')) {
-                loadtest "installation/scc_registration";
-            }
-            else {
-                loadtest "installation/skip_registration" unless check_var('SLE_PRODUCT', 'leanos');
-            }
-        }
+        loadtest "installation/scc_registration";
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
@@ -1060,8 +1061,13 @@ sub load_console_server_tests {
 
 sub load_consoletests {
     return unless consolestep_is_applicable();
-    if (get_var("ADDONS", "") =~ /rt/) {
+    if (rt_is_applicable()) {
         loadtest "rt/kmp_modules";
+        loadtest "rt/rt_is_realtime";
+        loadtest "rt/rt_devel_packages";
+        loadtest "rt/rt_peak_pci";
+        loadtest "rt/rt_preempt_test";
+        loadtest "rt/rt_tests";
     }
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/system_prepare";
@@ -1107,7 +1113,7 @@ sub load_consoletests {
             loadtest "console/installation_snapshots";
         }
     }
-    if (get_var("DESKTOP") !~ /textmode/ && !check_var("ARCH", "s390x")) {
+    if (get_var("DESKTOP") !~ /textmode/ && !is_s390x) {
         loadtest "console/xorg_vt";
     }
     loadtest "console/zypper_lr";
@@ -1149,7 +1155,7 @@ sub load_consoletests {
     if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
-    if (check_var('ARCH', 'x86_64')
+    if (is_x86_64
         || check_var('ARCH', 'i686')
         || check_var('ARCH', 'i586'))
     {
@@ -1171,12 +1177,6 @@ sub load_consoletests {
         loadtest "console/gpt_ptable";
         loadtest "console/kdump_disabled";
         loadtest "console/sshd_running";
-    }
-    if (rt_is_applicable()) {
-        loadtest "console/rt_is_realtime";
-        loadtest "console/rt_devel_packages";
-        loadtest "console/rt_peak_pci";
-        loadtest "console/rt_preempt_test";
     }
     loadtest "console/sshd";
     loadtest "console/ssh_cleanup";
@@ -1266,12 +1266,18 @@ sub load_x11tests {
             loadtest "x11/ghostscript";
         }
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && (!is_server || we_is_applicable) && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
-        loadtest "x11/ooffice";
-    }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !get_var("LIVECD") && (!is_server || we_is_applicable)) {
-        loadtest "x11/oomath";
-        loadtest "x11/oocalc";
+    if (libreoffice_is_applicable()) {
+        if (get_var("DESKTOP") =~ /kde|gnome/
+            && (!is_server || we_is_applicable)
+            && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
+            loadtest "x11/ooffice";
+        }
+        if (get_var("DESKTOP") =~ /kde|gnome/
+            && !get_var("LIVECD")
+            && (!is_server || we_is_applicable)) {
+            loadtest "x11/oomath";
+            loadtest "x11/oocalc";
+        }
     }
     if (kdestep_is_applicable()) {
         loadtest "x11/khelpcenter";
@@ -1405,6 +1411,7 @@ sub load_extra_tests_y2uitest_gui {
     loadtest "yast2_gui/yast2_network_settings";
     loadtest "yast2_gui/yast2_software_management";
     loadtest "yast2_gui/yast2_users";
+    loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
 }
 
 sub load_extra_tests_y2uitest_cmd {
@@ -1448,7 +1455,7 @@ sub load_extra_tests_desktop {
             loadtest "x11/seahorse";
             # only scheduled on gnome and was developed only for gnome but no
             # special reason should prevent it to be scheduled in another DE.
-            loadtest 'x11/steam' if check_var('ARCH', 'x86_64');
+            loadtest 'x11/steam' if is_x86_64;
         }
 
         if (chromestep_is_applicable()) {
@@ -1474,6 +1481,7 @@ sub load_extra_tests_desktop {
     # test, checking the wifi applet, would make sense in other DEs as
     # well
     if (check_var('DESKTOP', 'gnome')) {
+        loadtest "x11/rrdtool_x11";
         loadtest 'x11/yast2_lan_restart';
         loadtest 'x11/yast2_lan_restart_devices' if (!is_opensuse || is_leap('<=15.0'));
         # we only have the test dependencies, e.g. hostapd available in
@@ -1518,13 +1526,13 @@ sub load_extra_tests_opensuse {
     loadtest "console/znc";
     loadtest "console/weechat";
     loadtest "console/nano";
-    loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'));
+    loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || is_x86_64);
 }
 
 sub load_extra_tests_qemu {
     loadtest "qemu/info";
     loadtest "qemu/qemu";
-    loadtest "qemu/kvm" unless check_var('ARCH', 'aarch64');    # nested kvm is not yet supported on ARM
+    loadtest "qemu/kvm" unless is_aarch64;    # nested kvm is not yet supported on ARM
     loadtest "qemu/user" if is_opensuse;
 }
 
@@ -1538,7 +1546,12 @@ sub load_extra_tests_console {
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
+        # wavpack is available only sle12sp3 onwards
+        if (is_opensuse || is_sle '12-sp3+') {
+            loadtest "console/wavpack";
+        }
     }
+    loadtest "console/libvorbis";
     loadtest "console/command_not_found";
     if (is_sle '12-sp2+') {
         loadtest 'console/openssl_alpn';
@@ -1591,9 +1604,10 @@ sub load_extra_tests_console {
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST') || is_sle('12-SP5+');
     loadtest 'console/timezone';
     loadtest 'console/procps';
-    loadtest "console/lshw" if ((is_sle('15+') && (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'x86_64'))) || is_opensuse);
+    loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/quota' unless is_jeos;
     loadtest 'console/zziplib' if (is_sle('12-SP3+') && !is_jeos);
+    loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
 }
 
 sub load_extra_tests_docker {
@@ -2114,7 +2128,7 @@ sub load_security_tests_crypt_misc {
     # In SLE, the hexchat package is provided only in WE addon which is
     # only for x86_64 platform. Then hexchat is x86_64 specific and not
     # appropriate for other arches.
-    loadtest "x11/hexchat_ssl" if (check_var('ARCH', 'x86_64'));
+    loadtest "x11/hexchat_ssl" if (is_x86_64);
     loadtest "x11/x3270_ssl";
     loadtest "x11/seahorse_sshkey";
 }
@@ -2236,14 +2250,14 @@ sub load_security_tests_system_check {
 }
 
 sub load_security_tests {
-    my @security_tests = qw /
+    my @security_tests = qw(
       fips_setup crypt_core crypt_web crypt_misc crypt_tool
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
       mok_enroll ima_measurement ima_appraisal
       system_check
-      /;
+    );
 
     # Check SECURITY_TEST and call the load functions iteratively.
     # The value of "SECURITY_TEST" should be same with the last part of the
@@ -2261,8 +2275,24 @@ sub load_security_tests {
 
 sub load_systemd_patches_tests {
     boot_hdd_image;
-    if (check_var('SYSTEMD_TESTSUITE', 'basic')) {
+    if (check_var('SYSTEMD_TESTSUITE', 'noqemu')) {
+        loadtest 'systemd_testsuite/binary_tests';
         loadtest 'systemd_testsuite/test_01_basic';
+        loadtest 'systemd_testsuite/test_02_cryptsetup';
+        loadtest 'systemd_testsuite/test_03_jobs';
+        loadtest 'systemd_testsuite/test_04_journal';
+        loadtest 'systemd_testsuite/test_05_rlimits';
+        #loadtest 'systemd_testsuite/test_06_selinux';
+        loadtest 'systemd_testsuite/test_07_issue_1981';
+        loadtest 'systemd_testsuite/test_08_issue_2730';
+        loadtest 'systemd_testsuite/test_09_issue_2691';
+        loadtest 'systemd_testsuite/test_10_issue_2467';
+        loadtest 'systemd_testsuite/test_11_issue_3166';
+        loadtest 'systemd_testsuite/test_12_issue_3171';
+        loadtest 'systemd_testsuite/test_13_nspawn_smoke';
+        loadtest 'systemd_testsuite/test_14_machine_id';
+        loadtest 'systemd_testsuite/test_15_dropin';
+        loadtest 'systemd_testsuite/test_22_tmpfiles';
     }
     else {
         loadtest 'console/systemd_testsuite';
@@ -2380,9 +2410,6 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/guest_management/) {
         loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
     }
-    if ($virt_part =~ m/hotplugging/) {
-        loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
-    }
     if (check_var("XEN", "1") && $virt_part =~ m/dom_metrics/) {
         loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
         loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
@@ -2394,6 +2421,9 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/final/) {
         loadtest 'virtualization/xen/virtmanager_final';          # Check all VMs login screen
         loadtest 'virtualization/xen/ssh_final';                  # Connect to guests using SSH
+    }
+    if ($virt_part =~ m/hotplugging/) {
+        loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
     }
 }
 
@@ -2471,6 +2501,13 @@ sub load_installation_validation_tests {
     }
 }
 
+sub load_transactional_role_tests {
+    loadtest 'transactional/filesystem_ro';
+    loadtest 'transactional/transactional_update';
+    loadtest 'transactional/rebootmgr';
+    loadtest 'transactional/health_check';
+}
+
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
@@ -2479,6 +2516,7 @@ sub load_common_opensuse_sle_tests {
     load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
+    load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
 }
 
 sub load_ssh_key_import_tests {
@@ -2515,7 +2553,9 @@ sub load_ha_cluster_tests {
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
     # Wait for barriers to be initialized except when testing HAWK as a client
-    loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client'));
+    # or Pacemaker CTS regression tests
+    loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client') or
+        (get_var('PACEMAKER_CTS_REG')) or (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
@@ -2534,6 +2574,18 @@ sub load_ha_cluster_tests {
     # If HAWKGUI_TEST_ROLE is set to client, only load client side test
     if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
         loadtest 'ha/hawk_gui';
+        return 1;
+    }
+
+    # If PACEMAKER_CTS_TEST_ROLE is set to client, only load client side test
+    if (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) {
+        loadtest 'ha/pacemaker_cts_cluster_exerciser';
+        return 1;
+    }
+
+    # Only do pacemaker-cts regression tests if PACEMAKER_CTS_REG is set
+    if (get_var('PACEMAKER_CTS_REG')) {
+        loadtest 'ha/pacemaker_cts_regression';
         return 1;
     }
 
@@ -2583,9 +2635,17 @@ sub load_ha_cluster_tests {
         # Test Hawk Web interface
         loadtest 'ha/check_hawk';
 
-        # If testing HAWK's GUI, skip the rest of the cluster
+        if (get_var('PACEMAKER_CTS_TEST_ROLE')) {
+            loadtest 'ha/pacemaker_cts_cluster_exerciser';
+            return 1;
+        }
+
+        # Test Haproxy
+        loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
+
+        # If testing HAWK's GUI or HAPROXY, skip the rest of the cluster
         # setup tests and only check logs
-        if (get_var('HAWKGUI_TEST_ROLE')) {
+        if (get_var('HAWKGUI_TEST_ROLE') or get_var('HA_CLUSTER_HAPROXY')) {
             loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
             return 1;
         }
@@ -2614,6 +2674,12 @@ sub load_ha_cluster_tests {
 
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';
+
+    # Remove all the resources except stonith/sbd
+    loadtest 'ha/remove_rsc' if get_var('HA_REMOVE_RSC');
+
+    # Remove a node both by its hostname and ip address
+    loadtest 'ha/remove_node' if is_sle('>12-SP2');
 
     # Check logs to find error and upload all needed logs if we are not
     # in installation/publishing mode
@@ -2692,12 +2758,6 @@ sub load_public_cloud_patterns_validation_tests {
     loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
     loadtest 'console/validate_pcm_aws'   if check_var('VALIDATE_PCM_PATTERN', 'aws');
     loadtest "console/consoletest_finish";
-}
-
-sub load_transactional_role_tests {
-    loadtest 'transactional_system/filesystem_ro';
-    loadtest 'transactional_system/transactional_update';
-    loadtest 'transactional_system/rebootmgr';
 }
 
 # Tests to validate partitioning with LVM, both encrypted and not encrypted.

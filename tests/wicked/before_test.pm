@@ -20,14 +20,11 @@ use network_utils qw(iface setup_static_network);
 sub run {
     my ($self, $ctx) = @_;
     $self->select_serial_terminal;
-    if (check_var('WICKED', '2nics')) {
-        my @ifaces = split(' ', iface(2));
-        $ctx->iface($ifaces[0]);
-        $ctx->iface2($ifaces[1]);
-    }
-    else {
-        $ctx->iface(iface());
-    }
+    my @ifaces = split(' ', iface(2));
+    die("Missing at least one interface") unless (@ifaces);
+    $ctx->iface($ifaces[0]);
+    $ctx->iface2($ifaces[1]) if (@ifaces > 1);
+
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
     my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");
@@ -48,12 +45,14 @@ sub run {
         record_info('INFO', 'Setup DHCP server');
         zypper_call('--quiet in dhcp-server', timeout => 200);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
+        if (check_var('WICKED', 'basic') || check_var('WICKED', '2nics')) {
+            assert_script_run(sprintf("ip a a %s dev %s", $self->get_ip(type => 'second_card'), $ctx->iface()));
+        }
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
         systemctl 'enable dhcpd.service';
         systemctl 'start dhcpd.service';
     }
     if (check_var('WICKED', 'basic')) {
-        $self->get_from_data('wicked/check_interfaces.sh', '/data/check_interfaces.sh', executable => 1);
         assert_script_run("rcwickedd restart");
         unless (get_var('IS_WICKED_REF')) {
             # Remove previous static config and leave dynamic one, only for SUT
@@ -70,6 +69,10 @@ sub run {
             zypper_call('--quiet in openvswitch', timeout => 200);
             assert_script_run("systemctl start openvswitch");
         }
+    }
+    elsif (check_var('WICKED', '2nics')) {
+        assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
+        assert_script_run("rcwickedd restart");
     }
 }
 

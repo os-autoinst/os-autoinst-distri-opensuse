@@ -13,11 +13,13 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
+use y2_logs_helper qw(accept_license verify_license_translations verify_license_has_to_be_accepted);
 use testapi;
 use x11utils 'ensure_fullscreen';
 use version_utils qw(:VERSION :SCENARIO);
 use Utils::Backends 'is_remote_backend';
+use Utils::Architectures;
 
 sub switch_keyboard_layout {
     record_info 'keyboard layout', 'Check keyboard layout switching to another language';
@@ -148,18 +150,12 @@ sub run {
         }
         assert_screen('select-product-' . $product);
     }
-    # Accept the License on installations where License Agreement is shown on Welcome screen.
-    elsif (has_license_on_welcome_screen) {
-        if (get_var('INSTALLER_EXTENDED_TEST')) {
-            $self->verify_license_has_to_be_accepted;
-            $self->verify_license_translations unless is_sle('15+');
-        }
-        $self->accept_license;
-    }
-
     # Verify install arguments passed by bootloader
     # Linuxrc writes its settings in /etc/install.inf
     if (!is_remote_backend && get_var('VALIDATE_INST_SRC')) {
+        # Ensure to have the focus in some non-selectable control, i.e.: Keyboard Test
+        # before switching to console during installation
+        wait_screen_change { send_key 'alt-y' };
         wait_screen_change { send_key 'ctrl-alt-shift-x' };
         my $method     = uc get_required_var('INSTALL_SOURCE');
         my $mirror_src = get_required_var("MIRROR_$method");
@@ -172,7 +168,7 @@ sub run {
     }
 
     switch_keyboard_layout if get_var('INSTALL_KEYBOARD_LAYOUT');
-    send_key $cmd{next};
+    send_key $cmd{next} unless has_license_on_welcome_screen;
 }
 
 1;

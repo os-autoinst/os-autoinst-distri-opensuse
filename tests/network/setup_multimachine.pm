@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,9 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use y2x11test 'setup_static_mm_network';
-use utils qw(zypper_call systemctl);
+use mm_network 'setup_static_mm_network';
+use utils 'zypper_call';
+use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
     my ($self) = @_;
@@ -24,8 +25,7 @@ sub run {
     select_console 'root-console';
 
     # Configure static network, disable firewall
-    systemctl 'stop ' . $self->firewall;
-    systemctl 'disable ' . $self->firewall;
+    disable_and_stop_service($self->firewall);
     if ($hostname =~ /server|master/) {
         setup_static_mm_network('10.0.2.101/24');
     }

@@ -18,9 +18,9 @@
 # Summary: Process online repos during installation, relevant for openSUSE only
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils qw(:VERSION :SCENARIO);
 use utils 'installwithaddonrepos_is_applicable';

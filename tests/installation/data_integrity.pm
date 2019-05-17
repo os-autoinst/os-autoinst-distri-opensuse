@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use data_integrity_utils 'verify_checksum';
-use version_utils 'is_svirt_except_s390x';
+use Utils::Backends 'is_svirt_except_s390x';
 
 sub run {
     # If variable is set, we only inform about it
