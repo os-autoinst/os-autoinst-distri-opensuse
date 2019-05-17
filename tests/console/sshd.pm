@@ -107,7 +107,7 @@ sub run {
 
     assert_script_run "ssh -p 4242 -tt $ssh_testman\@localhost ssh -tt $ssh_testman\@localhost whoami";
     assert_script_run "ssh -t -o ProxyCommand='ssh $ssh_testman\@localhost nc localhost 4242' $ssh_testman\@localhost whoami";
-    if (is_leap('15+') || is_tumbleweed || is_sle('15+')) {
+    if (is_leap('15.0+') || is_tumbleweed || is_sle('15+')) {
         assert_script_run("ssh -J $ssh_testman\@localhost:4242 $ssh_testman\@localhost whoami");
     }
 
