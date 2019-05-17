@@ -1,0 +1,37 @@
+<interface>
+  <name>team0</name>
+  <team>
+    <runner name="activebackup" />
+    <link_watch />
+    <ports>
+      <port>
+        <device>iface0</device>
+        <queue_id>0</queue_id>
+      </port>
+      <port>
+        <device>iface1</device>
+        <queue_id>1</queue_id>
+      </port>
+    </ports>
+  </team>
+
+  <ipv4:static>
+    <address>
+      <local>ipaddr4</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>ipaddr6</local>
+    </address>
+  </ipv6:static>
+</interface>
+
+<interface>
+  <name>iface0</name>
+</interface>
+
+<interface>
+  <name>iface1</name>
+</interface>
