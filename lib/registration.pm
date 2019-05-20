@@ -212,7 +212,7 @@ sub register_addons {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
             else {
-                assert_and_click("scc-code-field-$addon", timeout => 240);
+                assert_and_click("scc-code-field-$addon", undef, 10, 1);
             }
             type_string $regcode;
             save_screenshot;
@@ -436,7 +436,7 @@ sub fill_in_registration_data {
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            assert_screen(\@tags);
+            assert_screen(\@tags, 60);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
                 next;
