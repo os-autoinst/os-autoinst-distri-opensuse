@@ -9,7 +9,7 @@
 
 # Summary: HPC_Module: slurm master
 #    This test is setting up slurm master and starts the control node
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 # Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
 use base "hpcbase";
