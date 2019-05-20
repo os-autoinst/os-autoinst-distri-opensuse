@@ -131,6 +131,12 @@ sub run {
 
     specific_bootmenu_params;
 
+    # try to avoid blue screen issue on osd ipmi tests
+    # local test passes, if validated on osd, will switch on to all ipmi tests
+    if (check_var('BACKEND', 'ipmi') && check_var('VIDEOMODE', 'text') && check_var('VIRT_AUTOTEST', 1)) {
+        type_string_slow(" vt.color=0x07 ");
+    }
+
     send_key 'ret';
     save_screenshot;
 
