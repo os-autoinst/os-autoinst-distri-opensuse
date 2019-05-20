@@ -400,6 +400,7 @@ sub load_boot_tests {
     }
     elsif (uses_qa_net_hardware() || get_var("PXEBOOT")) {
         loadtest "boot/boot_from_pxe";
+        loadtest "installation/exec_yast2_installer";
         set_var("DELAYED_START", get_var("PXEBOOT"));
     }
     else {

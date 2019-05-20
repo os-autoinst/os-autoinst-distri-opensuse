@@ -13,7 +13,6 @@
 package boot_from_pxe;
 
 use base 'opensusebasetest';
-
 use strict;
 use warnings;
 use lockapi;
@@ -22,26 +21,71 @@ use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params);
 use registration 'registration_bootloader_cmdline';
 use utils 'type_string_slow';
 
+# Variables are present in vars.json
+# IPMI_HOSTNAME, IPMI_USER, IPMI_PASSWORD
+sub init_ipmi_vars {
+    return {
+        hostname => get_required_var('IPMI_HOSTNAME'),
+        username => get_required_var('IPMI_USER'),
+        userpass => get_required_var('IPMI_PASSWORD')
+    };
+}
+
+sub create_prefix {
+    my $ipmi_host = shift;
+    if (defined($ipmi_host)) {
+        return ("ipmitool -I lanplus -H $ipmi_host->{hostname} -U $ipmi_host->{username} -P $ipmi_host->{userpass} -v ");
+    }
+    die "Failed to create prefix!\n";
+}
+
+sub reactivate_sol {
+    my ($cmd_prefix, $hostname) = @_;
+    diag("IPMI Activating SOL on $hostname");
+    diag($cmd_prefix . "sol activate\n");
+    my $rc = system($cmd_prefix . "sol activate");
+    # EXIT_FAILURE of ipmitool
+    if ($rc != 0) {
+        diag("IPMI deactivate SOL");
+        diag($cmd_prefix . "sol deactivate\n");
+        system($cmd_prefix . "sol deactivate");
+        sleep 1;
+        diag("IPMI re-activate SOL");
+        diag($cmd_prefix . "sol activate\n");
+        system($cmd_prefix . "sol activate");
+    }
+    diag("IPMI sol info");
+    diag($cmd_prefix . "sol info\n");
+    system($cmd_prefix . "sol info");
+    select_console 'sol', await_console => 0;
+}
+
 sub run {
+    my $self = shift;
     my ($image_path, $image_name, $cmdline);
-    my $arch      = get_var('ARCH');
-    my $interface = get_var('SUT_NETDEVICE', 'eth0');
+    my $arch       = get_var('ARCH');
+    my $interface  = get_var('SUT_NETDEVICE', 'eth0');
+    my $is_initrd  = 0;
+    my $ipmi_host  = init_ipmi_vars;
+    my $cmd_prefix = create_prefix($ipmi_host);
     # In autoyast tests we need to wait until pxe is available
     if (get_var('AUTOYAST') && get_var('DELAYED_START') && !check_var('BACKEND', 'ipmi')) {
         mutex_lock('pxe');
         mutex_unlock('pxe');
         resume_vm();
     }
-    if (check_var('BACKEND', 'ipmi')) {
-        select_console 'sol', await_console => 0;
-    }
+    reactivate_sol($cmd_prefix, $ipmi_host->{hostname}) if (check_var('BACKEND', 'ipmi'));
+
+    # Assert one of QA PXE menus
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+
     # boot bare-metal/IPMI machine
     if (check_var('BACKEND', 'ipmi') && get_var('BOOT_IPMI_SYSTEM')) {
         send_key 'ret';
         assert_screen 'linux-login', 100;
         return 1;
     }
+
     #detect pxe location
     if (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
@@ -74,6 +118,8 @@ sub run {
             my $path_prefix = "auto/openqa/repo";
             my $path        = "${path_prefix}/${image_name}/boot/${arch}";
             $image_path = "linux $path/linux install=$repo";
+            # initrd is not specified yet, let's do it later
+            $is_initrd = 1;
         }
 
         #IPMI Backend
@@ -137,38 +183,46 @@ sub run {
         type_string_slow(" vt.color=0x07 ");
     }
 
+    wait_still_screen(stilltime => 5, timeout => 120, similarity_level => 50);
     send_key 'ret';
+    wait_still_screen(stilltime => 5, timeout => 120, similarity_level => 50);
     save_screenshot;
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
-        my $ssh_vnc_wait_time = 300;
-        my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
-        my @tags              = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
-        assert_screen \@tags, $ssh_vnc_wait_time;
-        save_screenshot;
-        sleep 2;
-
-        if (match_has_tag("orthos-grub-boot-linux")) {
+        if ($is_initrd) {
+            assert_screen 'orthos-grub-boot-linux';
             my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
             my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
             wait_still_screen 5;
             type_string $args;
             send_key 'ret';
-            assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
+            assert_screen 'orthos-grub-boot-initrd', 100;
             $args = "boot";
             type_string $args;
             send_key "ret";
-            assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
         }
+    }
+}
 
-        select_console 'installation';
-        save_screenshot;
-        # We have textmode installation via ssh and the default vnc installation so far
-        if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-            type_string_slow('DISPLAY= ') if check_var('VIDEOMODE', 'text');
-            type_string_slow("yast.ssh\n");
-        }
-        wait_still_screen;
+sub post_fail_hook {
+    my $ipmi_host     = init_ipmi_vars;
+    my $cmd_prefix    = create_prefix($ipmi_host);
+    my @ipmi_commands = (
+        'sel list',
+        'sol activate',
+        'sol info',
+        'chassis power status',
+        'chassis selftest',
+        'mc getenables',
+        'mc selftest',
+        'channel info',
+        'lan print',
+        'session info all'
+    );
+    diag("IPMI post fail hook data\n");
+    foreach (@ipmi_commands) {
+        diag("IPMI $_");
+        system($cmd_prefix . $_);
     }
 }
 
