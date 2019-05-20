@@ -96,8 +96,9 @@ sub accept_addons_license {
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
-    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
-        record_soft_failure 'bsc#1118497';
+    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/ && get_var('BETA')) {
+        # during development is license not shown as it was already been shown once
+        record_info 'bsc#1118497';
     }
     else {
         push @addons_with_license, 'ses';
