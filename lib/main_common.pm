@@ -1401,17 +1401,13 @@ sub load_extra_tests_y2uitest_gui {
         && is_desktop_installed()
         && !get_var("DUALBOOT")
         && !get_var("RESCUECD"));
-    loadtest 'yast2_gui/yast2_control_center';
-    loadtest "x11/yast2_lan_restart";
-    loadtest "yast2_gui/yast2_bootloader";
-    loadtest "yast2_gui/yast2_datetime";
-    loadtest "yast2_gui/yast2_firewall";
-    loadtest "yast2_gui/yast2_hostnames";
-    loadtest "yast2_gui/yast2_lang";
-    loadtest "yast2_gui/yast2_network_settings";
-    loadtest "yast2_gui/yast2_software_management";
-    loadtest "yast2_gui/yast2_users";
-    loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
+    # YaST2 ui tests currently run only for openSUSE >= 15.1.
+    # We (QAM) need to validate whether those tests work also
+    # on older SLE versions and, if so, add them here.
+    # On openSUSE, the scheduling happens in schedule/yast2_gui.yaml
+    if (get_var("QAM_YAST2UI")) {
+        loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
+    }
 }
 
 sub load_extra_tests_y2uitest_cmd {
