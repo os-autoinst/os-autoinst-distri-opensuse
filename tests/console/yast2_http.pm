@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016 SUSE LLC
+# Copyright (c) 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Add test for yast2_http
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
 use warnings;
@@ -16,18 +16,23 @@ use base "y2_module_consoletest";
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
-use y2_module_basetest 'continue_info_network_manager_default';
 use yast2_widget_utils 'change_service_configuration';
 
 sub run {
     select_console 'root-console';
-    # install http server
     zypper_call("-q in yast2-http-server");
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'http-server');
-    continue_info_network_manager_default;
-    assert_screen 'http-server', 180;    # check page "Initializing HTTP Server Configuration"
-    wait_still_screen 1;
-    send_key 'alt-i';                    # make sure that apache2, apache2-prefork packages needs to be installed
+
+    #checking if NetworkManager or wicked is in use, this will cover all SLE and OS:
+    assert_screen([qw(yast2-lan-warning-network-manager http-server)], 180);
+
+    #if NetworkManager manager is in use a confirm command will be send to close the warning popup:
+    if (match_has_tag 'yast2-lan-warning-network-manager') {
+        send_key $cmd{continue};
+    }
+
+    send_key 'alt-i';    # Confirm apache2 and apache2-prefork installation
+    wait_still_screen 5;
 
     # check http server wizard (1/5) -- Network Device Selection
     assert_screen 'http_server_wizard';
@@ -96,11 +101,11 @@ sub run {
     send_key 'alt-n';                               # go to page http server wizard (4/5) and confirm with next
     assert_screen 'http_vitual_host_page';          # check wizard page (4/5)
     send_key 'alt-n';                               # go to http server wizard (5/5) --summary
-                                                    # make sure that apache2 server got started when booting
-    if (is_sle('<15') || is_leap('<15.1')) {
-        assert_screen 'http_summary';
+    assert_screen 'http_summary';                   #confirm we are in step 5/5
+
+    # make sure that apache2 server got started when booting
+    if (is_sle('<=15') || is_leap('<=15.0')) {
         send_key 'alt-t';
-        assert_screen 'http_start_apache2';
     }
     else {
         change_service_configuration(
@@ -108,9 +113,12 @@ sub run {
             after_reboot  => {start_on_boot => 'alt-a'}
         );
     }
-    send_key 'alt-f';                               # now finish the tests :)
+
+    assert_screen 'http_start_apache2';    #confirm apache now starts on boot
+    send_key 'alt-f';                      # now finish the tests :)
+
     check_screen 'http_install_apache2_mods', 60;
-    send_key 'alt-i';                               # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
+    send_key 'alt-i';                      # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
 
     # if popup, confirm to enable apache2 configuratuion
     if (check_screen('http_enable_apache2', 10)) {
