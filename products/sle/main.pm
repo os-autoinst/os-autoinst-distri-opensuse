@@ -137,7 +137,7 @@ if (is_sle('15+')) {
 elsif (is_sle('=12-SP5') && check_var('ARCH', 'x86_64')) {
     # System Role dialog is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available,
     # for the moment we are not handling available roles, so this make the trick for using new scheduling.
-    set_var('SYSTEM_ROLE', 'default');
+    set_var('SYSTEM_ROLE', 'default') unless get_var('SYSTEM_ROLE');
 }
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
