@@ -613,6 +613,7 @@ sub get_addon_fullname {
         serverapp => 'sle-module-server-applications',
         tcm       => 'sle-module-toolchain',
         wsm       => 'sle-module-web-scripting',
+        python2   => 'sle-module-python2',
     );
     return $product_list{"$addon"};
 }
