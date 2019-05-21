@@ -587,7 +587,12 @@ sub load_default_autoyast_tests {
 }
 
 sub load_suseconnect_tests {
-    prepare_target;
+    if (get_var("AUTOYAST")) {
+        load_default_autoyast_tests;
+    }
+    else {
+        prepare_target;
+    }
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "qa_automation/patch_and_reboot";
@@ -595,7 +600,12 @@ sub load_suseconnect_tests {
 }
 
 sub load_yast2_registration_tests {
-    prepare_target;
+    if (get_var("AUTOYAST")) {
+        load_default_autoyast_tests;
+    }
+    else {
+        prepare_target;
+    }
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
     loadtest "qa_automation/patch_and_reboot";
