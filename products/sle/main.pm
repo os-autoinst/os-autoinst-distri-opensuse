@@ -590,6 +590,7 @@ sub load_suseconnect_tests {
     prepare_target;
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
+    loadtest "qa_automation/patch_and_reboot";
     loadtest "console/suseconnect";
 }
 
@@ -597,6 +598,7 @@ sub load_yast2_registration_tests {
     prepare_target;
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
+    loadtest "qa_automation/patch_and_reboot";
     loadtest "console/yast2_registration";
 }
 
