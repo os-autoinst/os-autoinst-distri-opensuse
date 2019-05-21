@@ -14,14 +14,15 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_jeos);
+use version_utils qw(is_sle is_jeos is_opensuse);
 use y2_module_consoletest;
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
 
 sub install_kernel_debuginfo {
     assert_script_run 'zypper ref', 300;
-    my $kernel    = is_jeos() ? 'kernel-default-base' : 'kernel-default';
+    # JeOS uses kernel-default-base, except on aarch64 openSUSE
+    my $kernel    = is_jeos() && (!is_opensuse() && !check_var('ARCH', 'aarch64')) ? 'kernel-default-base' : 'kernel-default';
     my $debuginfo = script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel . '| sort --version-sort | tail -n 1');
     $debuginfo =~ s/$kernel/kernel-default-debuginfo/g;
     zypper_call("-v in $debuginfo", timeout => 4000);
