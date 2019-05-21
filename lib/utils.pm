@@ -1125,7 +1125,7 @@ sub show_tasks_in_blocked_state {
     if (!check_var('BACKEND', 'svirt')) {
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
-        wait_serial('SysRq : Show Blocked State', 1);
+        wait_serial(('SysRq : Show Blocked State', 'sysrq : Show Blocked State'), 1);
     }
 }
 
