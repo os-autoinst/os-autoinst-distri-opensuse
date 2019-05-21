@@ -22,8 +22,13 @@ sub upload_autoinst_log {
         last if (script_run('openqa-client jobs/1 | grep state | grep done', 40) == 0);
         sleep 5;
     }
-    assert_script_run 'wget http://localhost/tests/1/file/autoinst-log.txt';
-    upload_logs('autoinst-log.txt', log_name => "nested");
+    if (script_run('wget http://localhost/tests/1/file/autoinst-log.txt') != 0) {
+        record_info('Log download', 'Error downloading autoinst-log.txt from nested openQA webui. Consult journal for further information.', result => 'fail');
+        script_run 'find /var/lib/openqa/testresults/';
+    }
+    else {
+        upload_logs('autoinst-log.txt', log_name => "nested");
+    }
 }
 
 sub run {
