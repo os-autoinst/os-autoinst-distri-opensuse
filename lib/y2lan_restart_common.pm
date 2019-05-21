@@ -20,6 +20,7 @@ use testapi;
 use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
 use y2_module_basetest 'accept_warning_network_manager_default';
+use y2_module_consoletest;
 
 our @EXPORT = qw(
   check_etc_hosts_update
