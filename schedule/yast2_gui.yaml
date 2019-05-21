@@ -30,3 +30,4 @@ schedule:
     - yast2_gui/yast2_software_management
     - yast2_gui/yast2_users
     - yast2_gui/yast2_storage_ng
+    - yast2_gui/yast2_security
