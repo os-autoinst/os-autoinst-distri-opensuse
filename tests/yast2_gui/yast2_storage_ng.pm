@@ -38,6 +38,7 @@ sub encrypt_partition {
     wait_still_screen 1;
     send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-y");
     wait_screen_change { send_key "alt-n" };
+    wait_still_screen 3;
     send_key "alt-t";
     wait_screen_change { type_string "susetesting" };
     send_key "alt-v";
@@ -50,7 +51,7 @@ sub select_vdb {
         assert_and_dclick "yast2_storage_ng-select-vdb";
     } else {
         assert_and_click "yast2_storage_ng-select-vdb";
-        wait_screen_change { send_key "alt-p" } if is_opensuse;
+        wait_screen_change { send_key "alt-p" } if is_opensuse || is_sle("15-sp1+");
     }
 }
 
@@ -123,6 +124,12 @@ sub run {
     if (is_opensuse) {
         wait_screen_change { send_key "alt-m" };
         wait_screen_change { send_key "alt-r" };
+    } elsif (is_sle("15-sp1+")) {
+        hold_key "alt";
+        send_key "m";
+        wait_still_screen 1;
+        send_key "r";
+        release_key "alt";
     } else {
         wait_screen_change { send_key "alt-i" };
     }
@@ -165,7 +172,7 @@ sub run {
     assert_and_click "yast2_storage_ng-select-vol-management";
     wait_screen_change { send_key "alt-a" };
     # alt-v doesn't work reliably, so we have to use assert_and_click
-    assert_and_click "yast2_storage_ng-add-volume-group" if is_sle;
+    assert_and_click "yast2_storage_ng-add-volume-group" if is_sle("<=15");
     wait_screen_change { type_string "vgtest" };
     assert_and_click "yast2_storage_ng-vg-select-device";
     send_key "alt-a";
@@ -176,7 +183,7 @@ sub run {
     assert_and_dclick "yast2_storage_ng-select-vgtest";
 
     my $fs_page_shortcut = is_sle("<=12-sp4") ? "alt-f" : "alt-n";
-    wait_screen_change { send_key "alt-i" } if is_opensuse;
+    wait_screen_change { send_key "alt-i" } if is_opensuse || is_sle("15-sp1+");
 
     # XFS, non encrypted
     add_logical_volume "lv1", "alt-d";
