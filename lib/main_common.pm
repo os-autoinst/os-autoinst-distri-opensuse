@@ -1492,6 +1492,8 @@ sub load_extra_tests_desktop {
 }
 
 sub load_extra_tests_zypper {
+    # Add non-oss and debug repos for o3 and remove other by default (skipped, if already done)
+    replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest "console/zypper_lr_validate";
     loadtest "console/zypper_ref";
     unless (is_jeos) {
