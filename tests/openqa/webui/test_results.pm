@@ -48,12 +48,13 @@ sub run {
         send_key 'pgdn';
         last if check_screen 'openqa-job-minimalx', 2;
     }
-
     assert_and_click 'openqa-job-minimalx';
 
     # wait for result
-    if (!check_screen('openqa-testresult', 300)) {
+    for (1 .. 5) {
         send_key 'f5';
+        wait_still_screen;
+        last if check_screen('openqa-testresult', 300);
     }
     assert_screen 'openqa-testresult';
 }
