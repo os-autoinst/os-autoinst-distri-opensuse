@@ -1,0 +1,8 @@
+---
+name:           installcheck
+description:    >
+  Development support test. Execute the so called "installcheck" to
+  check for package dependencies.
+schedule:
+  - installation/rescuesystem
+  - installation/installcheck
