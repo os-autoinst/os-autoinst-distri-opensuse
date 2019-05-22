@@ -66,7 +66,7 @@ sub run {
         zypper_call('--quiet in openvpn', timeout => 200);
         if (check_var('WICKED', 'advanced')) {
             record_info('INFO', 'Setup OVS');
-            zypper_call('--quiet in openvswitch', timeout => 200);
+            zypper_call('--quiet in openvswitch libteam-tools libteamdctl0 python-libteam', timeout => 200);
             assert_script_run("systemctl start openvswitch");
         }
     }
