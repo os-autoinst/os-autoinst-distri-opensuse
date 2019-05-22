@@ -2679,7 +2679,8 @@ sub load_ha_cluster_tests {
     loadtest 'ha/remove_rsc' if get_var('HA_REMOVE_RSC');
 
     # Remove a node both by its hostname and ip address
-    loadtest 'ha/remove_node' if is_sle('>12-SP2');
+    # This test doesn't work before SLES12SP3 version
+    loadtest 'ha/remove_node' if get_var('HA_REMOVE_NODE');
 
     # Check logs to find error and upload all needed logs if we are not
     # in installation/publishing mode
