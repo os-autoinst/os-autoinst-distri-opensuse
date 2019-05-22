@@ -19,6 +19,7 @@ use power_action_utils 'power_action';
 use kdump_utils;
 use version_utils 'is_sle';
 use registration;
+use Utils::Backends 'is_spvm';
 
 sub run {
     my ($self) = @_;
@@ -33,8 +34,8 @@ sub run {
     activate_kdump;
 
     # restart to activate kdump
-    power_action('reboot', keepconsole => check_var('BACKEND', 'spvm'));
-    reconnect_mgmt_console if check_var('BACKEND', 'spvm');
+    power_action('reboot', keepconsole => is_spvm);
+    reconnect_mgmt_console if is_spvm;
     $self->wait_boot;
     select_console 'root-console';
 
@@ -53,7 +54,7 @@ sub run {
         assert_screen 'grub2', 180;
         wait_screen_change { send_key 'ret' };
     }
-    elsif (check_var('BACKEND', 'spvm')) {
+    elsif (is_spvm) {
         reconnect_mgmt_console;
     }
     else {

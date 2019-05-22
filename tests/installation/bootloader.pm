@@ -23,10 +23,11 @@ use bootloader_setup;
 use bootloader_spvm;
 use registration;
 use utils;
+use Utils::Backends 'is_spvm';
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
-    return boot_spvm if check_var('BACKEND', 'spvm');
+    return boot_spvm if is_spvm;
     return           if pre_bootmenu_setup == 3;
     return           if select_bootmenu_option == 3;
     my @params;
