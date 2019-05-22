@@ -23,6 +23,7 @@ use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
+use Utils::Architectures;
 use DistributionProvider;
 
 BEGIN {
@@ -776,6 +777,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
+        loadtest "virt_autotest/download_guest_assets" if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";

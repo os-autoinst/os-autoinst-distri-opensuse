@@ -18,19 +18,25 @@ use warnings;
 use base "virt_autotest_base";
 use virt_utils;
 use testapi;
+use Utils::Architectures;
 
 sub get_script_run {
     my $pre_test_cmd         = "/usr/share/qa/tools/test_virtualization-guest-upgrade-run";
     my $product_upgrade_repo = get_var("PRODUCT_UPGRADE_REPO", "");
     my $max_test_time        = get_var("MAX_TEST_TIME", "36000");
+    my $vm_xml_dir           = "/tmp/download_vm_xml";
 
     handle_sp_in_settings_with_sp0("PRODUCT_UPGRADE");
-    my $product_upgrade = get_var("PRODUCT_UPGRADE", "sles-12-sp2-64");
+    my $product_upgrade = get_required_var("PRODUCT_UPGRADE");
 
     handle_sp_in_settings_with_fcs("GUEST_LIST");
-    my $guest_list = get_var("GUEST_LIST", "sles-12-sp1-64");
+    my $guest_list = get_required_var("GUEST_LIST");
+    $guest_list =~ s/sp0/fcs/ig;
 
     $pre_test_cmd = "$pre_test_cmd -p $product_upgrade -r $product_upgrade_repo -t $max_test_time -g \"$guest_list\"";
+    if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {
+        $pre_test_cmd .= " -k $vm_xml_dir";
+    }
     return $pre_test_cmd;
 }
 
@@ -39,8 +45,9 @@ sub analyzeResult {
     my $result;
     # In the case the log does not tell the exact failure
     if ($text !~ /Overall guest upgrade result is:(.*)Test done/s) {
-        $result->{subtest}->{status} = 'FAILED';
-        $result->{subtest}->{error}  = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
+        my $subtest = get_var('GUEST_LIST');
+        $result->{$subtest}->{status} = 'FAILED';
+        $result->{$subtest}->{error}  = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
         return $result;
     }
     my $rough_result = $1;
@@ -53,14 +60,15 @@ sub analyzeResult {
         }
     }
 
-    # if there are failing guest installation
-    unless ($text =~ /Congratulations! No guest failed in installation/) {
-        $text =~ /The guests failed in guest installation phase before core test are:(.*)Installation failed guest list done./s;
+    # if there are failing guest installation or in restoration
+    unless ($text =~ /Congratulations! No guest failed in (\w+)/) {
+        $text =~ /The guests failed in guest \w+ phase before core test are:(.*)\n(\w+) failed guest list done./s;
         my $installation_failed_guests = $1;
+        my $failing_phase              = $2;
         foreach my $guest (split('\n', $installation_failed_guests)) {
             next unless $guest !~ /^\s*$/;
             $result->{$guest}->{status} = 'FAILED';
-            $result->{$guest}->{error}  = "Guest $guest installation failed.";
+            $result->{$guest}->{error}  = "Guest $failing_phase failed.";
         }
     }
     return $result;
@@ -82,8 +90,7 @@ sub run {
 
     # display test result
     # print the test output to the openQA output
-    my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Overall guest upgrade result/,/[0-9]* fail [0-9]* succeed/p'";
-    my $guest_upgrade_log_content = script_output($cmd);
+    my $guest_upgrade_log_content = script_output "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Overall guest upgrade result/,/[0-9]* fail [0-9]* succeed/p'";
     save_screenshot;
 
     # print the sub test junit log
