@@ -19,7 +19,9 @@ sub run {
     my $arch       = get_required_var('ARCH');
     my $ttest      = 'minimalx';
     my $openqa_url = get_var('OPENQA_HOST_URL', 'https://openqa.opensuse.org');
-    my $cmd        = <<"EOF";
+    # aarch64 does not support nested virt, huge pages are not configured and 'gic_version=host' and host cpu options are only usable with KVM
+    my $clone_options = ($arch =~ /aarch64/) ? "QEMU_NO_KVM=1 QEMU_HUGE_PAGES_PATH='' QEMUMACHINE=virt QEMUCPU='cortex-a72'" : "";
+    my $cmd           = <<"EOF";
 last_tw_build=\$(openqa-client --host $openqa_url assets get | sed -n 's/^.*name.*Tumbleweed-NET-$arch-Snapshot\\([0-9]\\+\\)-Media.*\$/\\1/p' | sort -n | tail -n 1)
 echo "Last Tumbleweed build on openqa.opensuse.org: \$last_tw_build"
 [ ! -z \$last_tw_build ]
@@ -32,7 +34,7 @@ sudo -u _openqa-worker touch /var/lib/openqa/factory/iso/.test || (echo "TODO: w
 ls -la /var/lib/openqa/factory/iso
 echo "Prevent bsc#1027347"
 cd /tmp
-sudo -u _openqa-worker /usr/share/openqa/script/clone_job.pl --from $openqa_url \$job_id
+sudo -u _openqa-worker /usr/share/openqa/script/clone_job.pl --from $openqa_url \$job_id $clone_options
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
 }
