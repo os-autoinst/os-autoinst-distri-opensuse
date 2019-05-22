@@ -32,7 +32,7 @@ sub run {
     $self->get_from_data('wicked/teaming/ifcfg-eth0',  $cfg_ifc0);
     $self->get_from_data('wicked/teaming/ifcfg-eth1',  $cfg_ifc1);
     $self->get_from_data('wicked/teaming/ifcfg-team0', $cfg_team0);
-    file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), port0 => $ctx->iface(), port1 => $ctx->iface2());
+    file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $ctx->iface(), iface1 => $ctx->iface2());
 
     $self->wicked_command('ifup', 'team0');
     die('Missing interface team0') unless ifc_exists('team0');

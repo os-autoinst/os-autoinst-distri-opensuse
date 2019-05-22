@@ -43,7 +43,7 @@ sub run {
 
     if (check_var('IS_WICKED_REF', '1')) {
         record_info('INFO', 'Setup DHCP server');
-        zypper_call('--quiet in dhcp-server', timeout => 200);
+        zypper_call('-q in dhcp-server', timeout => 200);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         if (check_var('WICKED', 'basic') || check_var('WICKED', '2nics')) {
             assert_script_run(sprintf("ip a a %s dev %s", $self->get_ip(type => 'second_card'), $ctx->iface()));
@@ -54,25 +54,17 @@ sub run {
     }
     if (check_var('WICKED', 'basic')) {
         assert_script_run("rcwickedd restart");
-        unless (get_var('IS_WICKED_REF')) {
-            # Remove previous static config and leave dynamic one, only for SUT
-            assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
-            $self->get_from_data("wicked/dynamic_address/ifcfg-eth0", '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
-        }
+        $self->get_from_data("wicked/dynamic_address/ifcfg-eth0", '/etc/sysconfig/network/ifcfg-' . $ctx->iface()) unless get_var('IS_WICKED_REF');
     }
     elsif (check_var('WICKED', 'advanced') || check_var('WICKED', 'startandstop')) {
         assert_script_run("rcwickedd restart");
         record_info('INFO', 'Setup OpenVPN');
-        zypper_call('--quiet in openvpn', timeout => 200);
+        zypper_call('-q in openvpn', timeout => 200);
         if (check_var('WICKED', 'advanced')) {
             record_info('INFO', 'Setup OVS');
-            zypper_call('--quiet in openvswitch', timeout => 200);
+            zypper_call('-q in openvswitch libteam-tools libteamdctl0 python-libteam', timeout => 200);
             assert_script_run("systemctl start openvswitch");
         }
-    }
-    elsif (check_var('WICKED', '2nics')) {
-        assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
-        assert_script_run("rcwickedd restart");
     }
 }
 

@@ -24,7 +24,6 @@ sub run {
     record_info('Info', 'Create a Bridge interface from Wicked XML files');
     $self->get_from_data('wicked/xml/bridge.xml', $config);
     assert_script_run('ifdown ' . $ctx->iface());
-    assert_script_run('rm /etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->setup_bridge($config, '', 'ifup');
     my $res = $self->get_test_result('br0');
     die if ($res eq 'FAILED');
