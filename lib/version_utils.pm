@@ -42,6 +42,7 @@ use constant {
           is_sles4sap_standard
           is_released
           is_rt
+          is_hpc
           is_staging
           is_storage_ng
           is_using_system_role
@@ -247,6 +248,10 @@ sub is_sles4sap_standard {
 
 sub is_rt {
     return check_var('SLE_PRODUCT', 'rt');
+}
+
+sub is_hpc {
+    return check_var('SLE_PRODUCT', 'hpc');
 }
 
 sub is_released {

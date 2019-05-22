@@ -1537,6 +1537,7 @@ sub load_extra_tests_qemu {
 }
 
 sub load_extra_tests_console {
+    loadtest "console/check_os_release";
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
     # dependency of git test
@@ -2533,6 +2534,7 @@ sub load_ssh_key_import_tests {
 
 sub load_sles4sap_tests {
     return if get_var('INSTALLONLY');
+    loadtest "console/check_os_release";
     loadtest "sles4sap/desktop_icons" if (is_desktop_installed());
     loadtest "sles4sap/patterns";
     loadtest "sles4sap/sapconf";
@@ -2569,6 +2571,7 @@ sub load_ha_cluster_tests {
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
+    loadtest 'console/check_os_release';
     loadtest 'console/hostname';
 
     # If HAWKGUI_TEST_ROLE is set to client, only load client side test
