@@ -28,11 +28,32 @@ our @EXPORT = qw(
   upload_journal
 );
 
+
+=head1 KNOWN_BUGS
+
+=head1 SYNOPSIS
+
+C<use lib::known_bugs>
+
+Allows detection of known errors on the serial console
+
+As we have reocurring problems that can be easily detected on serial level we have decided to detect and show them in opneQA to ease up review and where possible only softfail to not lose the whole test suite
+
+=cut
+
+=head2 create_list_of_serial_failures
+
+Returns the list of known bug patterns on the serial logs
+C<my $list = create_list_of_serial_failures();>
+This will be used in main.pm to initialize the backend with that list:
+C<$testapi::distri->set_expected_serial_failures($list);>
+
+To add a known bug simply copy and adapt the following line:
+C<push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }>
+
+=cut
 sub create_list_of_serial_failures {
     my $serial_failures = [];
-
-    # To add a known bug simply copy and adapt the following line:
-    # push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }
 
 
     # Detect rogue workqueue lockup
@@ -62,18 +83,26 @@ sub create_list_of_serial_failures {
     return $serial_failures;
 }
 
+=head2 create_list_of_journal_failures
+
+To add a known bug simply copy and adapt the following line:
+C<push @$journal_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' };>
+type=soft will force the testmodule result to softfail
+type=hard will just emit a soft fail message but the module will do a normal fail
+
+=cut
 sub create_list_of_journal_failures {
     my $journal_failures = [];
-
-    # type=soft will force the testmodule result to softfail
-    # type=hard will just emit a soft fail message but the module will do a normal fail
-
-    # To add a known bug simply copy and adapt the following line:
-    # push @$serial_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' }
 
     return $journal_failures;
 }
 
+=head2 upload_journal
+
+Checks the journal for known patterns defined in $journal_failures
+Do not touch unless you know what you're doing
+
+=cut
 sub upload_journal {
     my ($file) = @_;
 
