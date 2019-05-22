@@ -27,6 +27,7 @@ sub ensure_ssh_unblocked {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';
                 assert_screen 'inst-overview-options';
+                send_key 'alt-e';
                 send_key 'alt-f';
                 assert_screen 'firewall-config';
                 send_key 'alt-p';
@@ -44,6 +45,7 @@ sub ensure_ssh_unblocked {
             if (match_has_tag 'firewall-enable') {
                 send_key 'alt-c';
                 assert_screen 'inst-overview-options';
+                send_key 'alt-e';
                 send_key 'alt-f';
                 assert_screen 'firewall-config';
                 send_key 'alt-e';
