@@ -95,10 +95,10 @@ sub deal_with_dependency_issues {
         send_key 'ret';
     }
     if (get_var("WORKAROUND_DEPS")) {
-        $self->workaround_dependency_issues;
+        y2_logs_helper::workaround_dependency_issues;
     }
     elsif (get_var("BREAK_DEPS")) {
-        $self->break_dependency;
+        y2_logs_helper::break_dependency;
     }
     else {
         die 'Dependency problems';
