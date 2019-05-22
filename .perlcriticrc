@@ -14,3 +14,8 @@ severity = 5
 
 [Perl::Critic::Policy::ConsistentQuoteLikeWords]
 severity = 5
+
+[ControlStructures::ProhibitDeepNests]
+severity = 4
+add_themes = freenode
+max_nests = 4
