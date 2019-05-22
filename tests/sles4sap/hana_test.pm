@@ -24,10 +24,8 @@ sub run {
     select_console 'root-console';
 
     # Check the memory/disk configuration
-    assert_script_run 'free -m';
-    save_screenshot;
+    assert_script_run 'clear ; free -m';
     assert_script_run 'lvs -ao +devices vg_hana';
-    save_screenshot;
     assert_script_run 'df -k | grep vg_hana';
     save_screenshot;
 
