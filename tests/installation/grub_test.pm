@@ -69,19 +69,30 @@ sub run {
     # 60 due to rare slowness e.g. multipath poo#11908
     # 90 as a workaround due to the qemu backend fallout
     # If grub timeout was not disabled, we wait for linux-login instead
-    my $tag = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
-    assert_screen_with_soft_timeout($tag, timeout => 2 * $timeout, soft_timeout => $timeout, bugref => 'boo#1120256');
-    stop_grub_timeout;
-    boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
-    send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
-    if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
-        || get_var('GRUB_KERNEL_OPTION_APPEND'))
-    {
-        $self->bug_workaround_bsc1005313 unless get_var("BOOT_TO_SNAPSHOT");
+
+    check_screen ['grub2', 'displaymanager', 'linux-login'], 120;
+
+    if (match_has_tag('displaymanager') or match_has_tag('linux-login')) {
+        record_soft_failure("poo#49751 - Grub2 not found, because system has already booted");
     }
-    else {
-        # avoid timeout for booting to HDD
-        send_key 'ret';
+    elsif (match_has_tag 'grub2')
+    {
+        stop_grub_timeout;
+        boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
+        send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
+        if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
+            || get_var('GRUB_KERNEL_OPTION_APPEND'))
+        {
+            $self->bug_workaround_bsc1005313 unless get_var("BOOT_TO_SNAPSHOT");
+        }
+        else {
+            # avoid timeout for booting to HDD
+            send_key 'ret';
+        }
+    }
+    else
+    {
+        die 'Neither grub, nor system found';
     }
 }
 
