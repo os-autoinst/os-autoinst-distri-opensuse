@@ -17,7 +17,6 @@ use utils qw(
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
-use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 
 # Base class implementation of distribution class necessary for testapi
 
@@ -401,11 +400,6 @@ sub init_consoles {
                 password => $testapi::password
             });
         set_var('SVIRT_VNC_CONSOLE', 'sut');
-    } else {
-        # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
-        $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
-                pty_dev     => SERIAL_TERMINAL_DEFAULT_DEVICE,
-                target_port => SERIAL_TERMINAL_DEFAULT_PORT});
     }
 
     if (get_var('BACKEND', '') =~ /qemu|ikvm|generalhw/
@@ -594,7 +588,7 @@ Return console VT number with regards to it's name.
 =cut
 sub console_nr {
     my ($console) = @_;
-    $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell)/;
+    $console =~ m/^(\w+)-(console|virtio-terminal|ssh|shell)/;
     my ($name) = ($1) || return;
     my $nr = 4;
     $nr = get_root_console_tty if ($name eq 'root');
@@ -642,7 +636,7 @@ sub activate_console {
         return;
     }
 
-    $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell)/;
+    $console =~ m/^(\w+)-(console|virtio-terminal|ssh|shell)/;
     my ($name, $user, $type) = ($1, $1, $2);
     $name = $user //= '';
     $type //= '';
@@ -686,7 +680,7 @@ sub activate_console {
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         assert_screen $console;
     }
-    elsif ($type =~ /virtio-terminal|sut-serial/) {
+    elsif ($type eq 'virtio-terminal') {
         serial_terminal::login($user, $self->{serial_term_prompt});
     }
     elsif ($console eq 'novalink-ssh') {
