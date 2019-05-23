@@ -344,7 +344,7 @@ sub upload_wicked_logs {
     script_run("wicked show-xml > $logs_dir/wicked_xml.log 2>&1");
     script_run("ip addr show > $logs_dir/ip_addr.log 2>&1");
     script_run("ip route show table all > $logs_dir/ip_route.log 2>&1");
-    script_run("cp /tmp/wicked_serial.log $logs_dir/");
+    script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
     eval {
         upload_logs("$dir_name.tar.gz", failok => 0, log_name => " ");
@@ -352,7 +352,7 @@ sub upload_wicked_logs {
     } or do {
         my $e = $@;
         record_info('Info', 'Need to re-configure the network to upload logs as the test removed all the setup');
-        recover_network();
+        recover_network(reset_wicked => 1);
         upload_logs("$dir_name.tar.gz", failok => 1, log_name => " ");
     };
 }
