@@ -27,6 +27,10 @@ sub run {
         # Number of node is a mandatory variable!
         die 'A valid number of nodes is mandatory' if ($num_nodes lt '2');
 
+        # Create mutex for HA clusters
+        mutex_create 'csync2';
+        mutex_create 'cluster_restart';
+
         # BARRIER_HA_ needs to also wait the support-server
         barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
 
@@ -76,6 +80,10 @@ sub run {
         barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name",      $num_nodes);
         barrier_create("RSC_REMOVE_INIT_$cluster_name",             $num_nodes);
         barrier_create("RSC_REMOVE_DONE_$cluster_name",             $num_nodes);
+        barrier_create("CSYNC2_CONFIGURED_$cluster_name",           $num_nodes);
+        barrier_create("CSYNC2_SYNC_$cluster_name",                 $num_nodes);
+        barrier_create("SBD_DONE_$cluster_name",                    $num_nodes);
+        barrier_create("SSH_KEY_CONFIGURED_$cluster_name",          $num_nodes);
 
         # PACEMAKER_TEST_ barriers also have to wait in the client
         barrier_create("PACEMAKER_CTS_INIT_$cluster_name",    $num_nodes + 1);
