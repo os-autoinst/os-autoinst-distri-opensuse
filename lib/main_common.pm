@@ -1566,7 +1566,8 @@ sub load_extra_tests_console {
     loadtest "console/git";
     loadtest "console/cups";
     loadtest "console/java";
-    loadtest "console/ant"  if is_sle('<15-sp1');
+    loadtest "console/ant" if is_sle('<15-sp1');
+    loadtest "console/gdb";
     loadtest "console/perf" if is_sle('<15-sp1');
     loadtest "console/sysctl";
     loadtest "console/sysstat";
