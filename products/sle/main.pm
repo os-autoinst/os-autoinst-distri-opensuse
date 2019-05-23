@@ -850,6 +850,10 @@ elsif (get_var("PERF_KERNEL")) {
         loadtest "virt_autotest/login_console";
         loadtest "kernel_performance/run_perf_case";
     }
+    elsif (get_var("PERF_FULLRUN")) {
+        loadtest "virt_autotest/login_console";
+        loadtest "kernel_performance/full_run";
+    }
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
