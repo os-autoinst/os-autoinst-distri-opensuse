@@ -90,7 +90,8 @@ sub expand_patterns {
         }
         return [@all];
     }
-    [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/minimal_base/r)];
+    return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/minimal_base/r)] if is_sle('15+');
+    return [split(/,/, get_var('PATTERNS') =~ s/\bminimal\b/Minimal/r)];
 }
 
 my @unversioned_products = qw(asmm contm lgm tcm wsm);
