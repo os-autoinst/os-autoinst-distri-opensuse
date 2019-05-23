@@ -22,6 +22,8 @@ use Carp;
 use strict;
 use warnings;
 
+use constant WICKED_DATA_DIR => '/tmp/wicked/data';
+
 =head2 wicked_command
 
   wicked_command($action => [ifup|ifdown|ifreaload], $iface)
@@ -148,6 +150,23 @@ sub get_current_ip {
     return;
 }
 
+=head2 download_data_dir
+
+Download all files from data/wicked into WICKED_DATA_DIR.
+This method is used by before_test.pm.
+=cut
+sub download_data_dir {
+    my $dst  = WICKED_DATA_DIR . '/data_wicked.tar.gz';
+    my $path = hashed_string($dst);
+    my $cmd  = "tar -czf $path -C '" . $bmwqemu::vars{CASEDIR} . "/data' wicked";
+
+    system($cmd) == 0 or die("Failed to create archive for wicked data ($cmd)");
+    assert_script_run("mkdir -p '" . WICKED_DATA_DIR . "'");
+    assert_script_run("curl -o '$dst' '" . autoinst_url . "/files/" . $dst . "'");
+    assert_script_run('(cd ' . WICKED_DATA_DIR . ' && tar -zxvf ' . $dst . ')');
+    assert_script_run("rm '$dst'");
+}
+
 =head2 get_from_data
 
   get_from_data($source, $target [, executable => 0, add_suffix => 0])
@@ -160,9 +179,11 @@ If the parameter C<executable> is set to 1, it will grant execution permissions 
 =cut
 sub get_from_data {
     my ($self, $source, $target, %args) = @_;
+
     $source .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut' if $args{add_suffix};
-    assert_script_run("wget --quiet " . data_url($source) . " -O $target");
-    assert_script_run("chmod +x $target") if $args{executable};
+    # we know we fail on other folders then data/wicked
+    assert_script_run("cp '" . WICKED_DATA_DIR . '/' . $source . "' '$target'");
+    assert_script_run("chmod +x '$target'") if $args{executable};
 }
 
 =head2 ping_with_timeout
