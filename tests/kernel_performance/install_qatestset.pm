@@ -40,7 +40,7 @@ sub setup_environment {
 sub run {
     install_pkg;
     setup_environment;
-    power_action('poweroff');
+    power_action('poweroff', keepconsole => 1, textmode => 1);
 }
 sub test_flags {
     return {fatal => 1};
