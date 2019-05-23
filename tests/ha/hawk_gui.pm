@@ -72,13 +72,6 @@ sub download_selenium_script {
     }
 }
 
-sub add_to_known_hosts {
-    my $hostname = shift;
-    assert_script_run "mkdir -p ~/.ssh";
-    assert_script_run "chmod 700 ~/.ssh";
-    assert_script_run "ssh-keyscan -H $hostname >> ~/.ssh/known_hosts";
-}
-
 sub run {
     my ($self) = @_;
     my $cluster_name = get_cluster_name;

@@ -20,13 +20,6 @@ use testapi;
 use utils qw(systemctl zypper_call exec_and_insert_password);
 use hacluster;
 
-sub add_to_known_hosts {
-    my $hostname = shift;
-    assert_script_run "mkdir -p ~/.ssh";
-    assert_script_run "chmod 700 ~/.ssh";
-    assert_script_run "ssh-keyscan -H $hostname >> ~/.ssh/known_hosts";
-}
-
 sub run {
     my $cts_bin      = '/usr/share/pacemaker/tests/cts/CTSlab.py';
     my $log          = '/tmp/cts_cluster_exerciser.log';
