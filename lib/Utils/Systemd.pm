@@ -49,8 +49,8 @@ sub disable_and_stop_service {
     $args{ignore_failure} //= 0;
 
     systemctl("mask $service_name", ignore_failure => $args{ignore_failure}) if ($args{mask_service});
-    systemctl("disable $service_name", ignore_failure => $args{ignore_failure});
-    systemctl("stop $service_name",    ignore_failure => $args{ignore_failure});
+    systemctl("disable $service_name", ignore_failure => $args{ignore_failure}) unless ($args{mask_service});
+    systemctl("stop $service_name", ignore_failure => $args{ignore_failure});
 }
 
 
