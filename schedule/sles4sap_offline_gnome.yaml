@@ -23,7 +23,7 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - sles4sap_product_installation_mode
+  - installation/sles4sap_product_installation_mode
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
