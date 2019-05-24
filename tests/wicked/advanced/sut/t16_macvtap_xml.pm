@@ -17,7 +17,6 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
 
 our $macvtap_log = '/tmp/macvtap_results.txt';
 

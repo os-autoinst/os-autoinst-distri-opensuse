@@ -29,6 +29,8 @@ use utils qw(systemctl arrays_differ);
 
 sub run {
     my ($self, $ctx) = @_;
+    $self->get_from_data("wicked/dynamic_address/ifcfg-eth0", '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+
     record_info('Test 1', 'Bring down the wicked client service');
     systemctl('stop wicked.service');
     $self->assert_wicked_state(wicked_client_down => 1, interfaces_down => 1, iface => $ctx->iface());
@@ -59,7 +61,7 @@ sub run {
     die if ($self->get_current_ip($ctx->iface()));
     record_info('Test 7', 'Bring an interface up with wicked');
     $self->wicked_command('ifup', $ctx->iface());
-    $self->ping_with_timeout(ip => '10.0.2.2');
+    $self->ping_with_timeout(type => 'host', interface => $ctx->iface());
     validate_script_output('ip address show dev ' . $ctx->iface(), sub { m/inet/g; });
     validate_script_output('wicked show dev ' . $ctx->iface(),     sub { m/\[dhcp\]/g; });
 }

@@ -68,6 +68,25 @@ sub assert_wicked_state {
     assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
 }
 
+
+sub reset_wicked {
+    my $self = @_;
+    # Remove any config file and leave the system clean to start tests
+    script_run('find /etc/sysconfig/network/ -name "ifcfg-*" | grep -v "ifcfg-lo" | xargs rm');
+    script_run('rm -f route');
+
+    # Remove any previous manual ip configuration
+    my $iface = iface();
+    script_run("ip a flush dev $iface");
+    script_run('ip r flush all');
+    script_run("ip link set dev $iface down");
+
+    # Restart services
+    script_run('rcwickedd restart');
+    script_run('rcwicked restart');
+}
+
+
 =head2 get_remote_ip
 
   get_remote_ip(type => $type [, netmask => 0])
@@ -181,7 +200,7 @@ sub get_from_data {
     my ($self, $source, $target, %args) = @_;
 
     $source .= check_var('IS_WICKED_REF', '1') ? 'ref' : 'sut' if $args{add_suffix};
-    # we know we fail on other folders then data/wicked
+    # we know we fail on other directories than data/wicked
     assert_script_run("cp '" . WICKED_DATA_DIR . '/' . $source . "' '$target'");
     assert_script_run("chmod +x '$target'") if $args{executable};
 }
@@ -225,6 +244,7 @@ sub ping_with_timeout {
     return 0;
 }
 
+
 =head2 setup_tuntap
 
   setup_tuntap($config, $type => [tun1|tap1])
@@ -236,12 +256,12 @@ The interface will be brought up using a wicked command.
 
 =cut
 sub setup_tuntap {
-    my ($self, $config, $type) = @_;
+    my ($self, $config, $type, $iface) = @_;
     my $local_ip = $self->get_ip(type => $type);
     my $remote_ip = $self->get_remote_ip(type => $type);
-    file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip);
-    $self->wicked_command('ifup', $type);
-    assert_script_run('ip a');
+    my $host_ip = $self->get_ip(type => 'host');
+    file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, host_ip => $host_ip, iface => $iface);
+    $self->wicked_command('ifup', 'all');
 }
 
 =head2 setup_tunnel
@@ -254,13 +274,12 @@ The interface will be brought up using a wicked command.
 
 =cut
 sub setup_tunnel {
-    my ($self, $config, $type) = @_;
+    my ($self, $config, $type, $iface) = @_;
     my $local_ip = $self->get_ip(type => 'host');
     my $remote_ip = $self->get_remote_ip(type => 'host');
     my $tunnel_ip = $self->get_ip(type => $type);
-    file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, tunnel_ip => $tunnel_ip);
-    $self->wicked_command('ifup', $type);
-    assert_script_run('ip a');
+    file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, tunnel_ip => $tunnel_ip, iface => $iface);
+    $self->wicked_command('ifup', 'all');
 }
 
 =head2 create_tunnel_with_commands
@@ -298,12 +317,11 @@ sub setup_bridge {
     my $local_ip = $self->get_ip(type => 'host');
     my $iface    = iface();
     file_content_replace($config, ip_address => $local_ip, iface => $iface);
-    $self->wicked_command($command, 'br0');
+    $self->wicked_command($command, 'all');
     if ($dummy ne '') {
         assert_script_run("cat $dummy");
         $self->wicked_command($command, 'dummy0');
     }
-    assert_script_run('ip a');
 }
 
 =head2 setup_openvpn_client
@@ -373,8 +391,10 @@ sub upload_wicked_logs {
     } or do {
         my $e = $@;
         record_info('Info', 'Need to re-configure the network to upload logs as the test removed all the setup');
-        recover_network(reset_wicked => 1);
+        reset_wicked();
+        recover_network();
         upload_logs("$dir_name.tar.gz", failok => 1, log_name => " ");
+        reset_wicked();
     };
 }
 
@@ -413,7 +433,6 @@ sub setup_vlan() {
 sub prepare_check_macvtap {
     my ($self, $config, $iface, $ip_address) = @_;
     $self->get_from_data('wicked/check_macvtap.c', 'check_macvtap.c', executable => 1);
-    zypper_call('in gcc');
     assert_script_run('gcc ./check_macvtap.c -o check_macvtap');
     script_run('chmod +x ./check_macvtap');
     file_content_replace($config, iface => $iface, ip_address => $ip_address);

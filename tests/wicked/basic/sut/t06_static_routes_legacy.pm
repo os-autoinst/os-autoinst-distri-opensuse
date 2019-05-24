@@ -24,7 +24,7 @@ sub run {
     $self->get_from_data('wicked/static_address/ifcfg-eth0',   '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->get_from_data('wicked/static_address/ifroute-eth0', '/etc/sysconfig/network/ifroute-' . $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface());
-    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $ctx->iface());
+    $self->assert_wicked_state(ping_ip => $self->get_remote_ip(type => 'host'), iface => $ctx->iface());
     validate_script_output("ip -4 route show", sub { m/default via 10\.0\.2\.2/ });
     assert_script_run('ip -4 route show | grep "default" | grep -v "via' . $ctx->iface() . '"');
     validate_script_output("ip -6 route show", sub { m/default via fd00:cafe:babe::1/ });

@@ -25,7 +25,6 @@ sub run {
     record_info('Info', 'Set up a second card');
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $cfg_ifc1);
     $self->get_from_data('wicked/static_address/ifcfg-eth0',  $cfg_ifc2);
-    $self->wicked_command('ifdown', 'all');
     mutex_wait('t08_dhcpd_setup_complete');
     $self->wicked_command('ifup', $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface2());
