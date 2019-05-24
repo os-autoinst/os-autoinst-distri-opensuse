@@ -41,6 +41,8 @@ sub run {
     systemctl('is-active network');
     systemctl('is-active wicked');
 
+    $self->download_data_dir();
+
     if (check_var('IS_WICKED_REF', '1')) {
         record_info('INFO', 'Setup DHCP server');
         zypper_call('--quiet in dhcp-server', timeout => 200);
