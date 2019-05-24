@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen('installation-settings-overview-loaded', 90);
+    assert_screen('installation-settings-overview-loaded', 250);
 
     if (check_screen('manual-intervention', 0)) {
         $self->deal_with_dependency_issues;
