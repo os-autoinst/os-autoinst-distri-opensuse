@@ -64,6 +64,8 @@ sub login_to_console {
 
     if (!check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
         ipmitool("chassis power reset");
+        reset_consoles;
+        select_console 'sol', await_console => 0;
         assert_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
     }
 
