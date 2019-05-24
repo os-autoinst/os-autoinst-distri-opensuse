@@ -173,13 +173,18 @@ sub init_desktop_runner {
         } else {
             type_string $program;
         }
+        # Do multiple attempts only on plasma
+        last unless (check_var('DESKTOP', 'kde'));
         # Make sure we have plasma suggestions as it may take time, especially on boot or under load. Otherwise, try again
-        last unless (check_var('DESKTOP', 'kde') && !check_screen('desktop-runner-plasma-suggestions'));
-        if ($retries > 1) {
+        if ($retries == 1) {
+            assert_screen('desktop-runner-plasma-suggestions');
+        } elsif (!check_screen('desktop-runner-plasma-suggestions')) {
             # Prepare for next attempt
             send_key 'esc';    # Escape from desktop-runner
             sleep(30);         # Leave some time for the system to recover
             send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
+        } else {
+            last;
         }
     }
 }
