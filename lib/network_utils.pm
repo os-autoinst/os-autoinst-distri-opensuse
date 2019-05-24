@@ -61,10 +61,21 @@ sub can_upload_logs {
 =head2 check_and_recover_network
 Recover network with static config if is feasible, returns if can ping GW
 Main use case is post_fail_hook, to be able to upload logs
+accepts following parameters :
+C<ip> => allowing to specify certain IP which would be used for recovery
+in case skiped '10.0.2.15/24' will be used as fallback
+C<gw> => allowing to specify default gateway . Fallback to worker IP in case nothing specified
+C<reset_wicked> => wipe out all extra configuration in network folder . Currently only environments
+managed by wicked is supported
 =cut
 sub recover_network {
     my (%args) = @_;
 
+    if ($args{reset_wicked}) {
+        script_run('find /etc/sysconfig/network/ -name "ifcfg-*" | grep -v "ifcfg-lo" | xargs rm');
+        script_run('rcwickedd restart');
+        script_run('rcwicked restart');
+    }
     # We set static setup just to upload logs, so no permament setup
     # Set default values
     $args{ip} //= '10.0.2.15/24';
