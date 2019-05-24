@@ -25,6 +25,10 @@ sub run {
     # needed for script_output
     zypper_call 'in curl';
 
+    my $firewall = $self->firewall;
+    systemctl "disable $firewall";
+    systemctl "stop $firewall";
+
     my $counter = 1;
     my @repos   = split(/,/, get_var('AVOCADO_REPO'));
     for my $var (@repos) {
@@ -95,8 +99,8 @@ sed -i 's/ip, 10,/ip, 3,/' /var/lib/avocado/data/avocado-vt/test-providers.d/dow
 sed -i 's/boot_menu_key = "f12"/boot_menu_key = "esc"/' /var/lib/avocado/data/avocado-vt/backends/qemu/cfg/subtests.cfg
 egrep "^arch|^nettype|^netdst|^backup_image_before_test|^restore_image_after_test" /etc/avocado/conf.d/vt.conf
 egrep ^login_timeout /var/lib/avocado/data/avocado-vt/backends/qemu/cfg/base.cfg
-systemctl start openvswitch;
-systemctl status openvswitch;
+systemctl start openvswitch.service
+systemctl status openvswitch.service
 EOF
     script_output($avocado_setup, 700);
 }
