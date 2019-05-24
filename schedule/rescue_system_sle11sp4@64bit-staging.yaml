@@ -1,5 +1,5 @@
 ---
-name:           rescue_system_sle11sp4
+name:           rescue_system_sle11sp4@64bit-staging
 description:    >
   Boot installation medium into rescue mode and test mounting
   a SLES 11 SP4 installation.

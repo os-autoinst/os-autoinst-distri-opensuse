@@ -1,5 +1,5 @@
 ---
-name:           migration_zdup_offline_sle12sp2_staging
+name:           migration_zdup_offline_sle12sp2@64bit-staging
 description:    >
   Test for zdup on sle12sp2 at staging.
 vars:
