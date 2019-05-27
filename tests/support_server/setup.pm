@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2018 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,13 +29,11 @@ use registration 'scc_version';
 use iscsi;
 
 my $pxe_server_set       = 0;
-my $quemu_proxy_set      = 0;
 my $http_server_set      = 0;
 my $ftp_server_set       = 0;
 my $tftp_server_set      = 0;
 my $dns_server_set       = 0;
 my $dhcp_server_set      = 0;
-my $nfs_mount_set        = 0;
 my $ntp_server_set       = 0;
 my $xvnc_server_set      = 0;
 my $ssh_server_set       = 0;
@@ -225,13 +223,6 @@ sub setup_dhcp_server {
     $setup_script .= "systemctl start dhcpd\n";
 
     $dhcp_server_set = 1;
-}
-
-sub setup_nfs_mount {
-    return if $nfs_mount_set;
-
-
-    $nfs_mount_set = 1;
 }
 
 sub setup_ssh_server {
