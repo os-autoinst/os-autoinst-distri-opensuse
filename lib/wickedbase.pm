@@ -19,6 +19,7 @@ use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
 use Carp;
+use Mojo::File 'path';
 use strict;
 use warnings;
 
@@ -156,15 +157,18 @@ Download all files from data/wicked into WICKED_DATA_DIR.
 This method is used by before_test.pm.
 =cut
 sub download_data_dir {
-    my $dst  = WICKED_DATA_DIR . '/data_wicked.tar.gz';
-    my $path = hashed_string($dst);
-    my $cmd  = "tar -czf $path -C '" . $bmwqemu::vars{CASEDIR} . "/data' wicked";
-
-    system($cmd) == 0 or die("Failed to create archive for wicked data ($cmd)");
     assert_script_run("mkdir -p '" . WICKED_DATA_DIR . "'");
-    assert_script_run("curl -o '$dst' '" . autoinst_url . "/files/" . $dst . "'");
-    assert_script_run('(cd ' . WICKED_DATA_DIR . ' && tar -zxvf ' . $dst . ')');
-    assert_script_run("rm '$dst'");
+    assert_script_run("(cd '" . WICKED_DATA_DIR . "'; curl -L -v " . autoinst_url . "/data/wicked > wicked.data && cpio -id < wicked.data && mv data wicked && rm wicked.data)");
+    if (script_run('test -d ' . WICKED_DATA_DIR . '/static_address') != 0) {
+        record_info('WORKAROUND', "poo#52022 - os-autoinst doesn't support recursive download");
+        my $base = $bmwqemu::vars{CASEDIR} . "/data/wicked";
+        for my $file (path($base)->list_tree({dir => 1})->each) {
+            next unless (-d $file);
+            next if ($file eq $base);
+            my $fn = substr($file, length($base) + 1);
+            assert_script_run("(cd '" . WICKED_DATA_DIR . "'; curl -L -v " . autoinst_url . "/data/wicked/$fn > wicked.data && cpio -id < wicked.data && mkdir -p wicked/$fn && mv data/* wicked/$fn/ && rmdir data && rm wicked.data)");
+        }
+    }
 }
 
 =head2 get_from_data
