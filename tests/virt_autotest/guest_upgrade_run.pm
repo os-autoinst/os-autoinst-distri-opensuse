@@ -31,7 +31,6 @@ sub get_script_run {
 
     handle_sp_in_settings_with_fcs("GUEST_LIST");
     my $guest_list = get_required_var("GUEST_LIST");
-    $guest_list =~ s/sp0/fcs/ig;
 
     $pre_test_cmd = "$pre_test_cmd -p $product_upgrade -r $product_upgrade_repo -t $max_test_time -g \"$guest_list\"";
     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {
