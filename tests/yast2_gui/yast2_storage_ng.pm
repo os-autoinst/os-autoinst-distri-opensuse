@@ -217,6 +217,7 @@ sub run {
     wait_screen_change { send_key $fs_page_shortcut };
 
     # summary and finish
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
@@ -237,7 +238,9 @@ sub run {
     start_y2sn $self;
     assert_and_click "yast2_storage_ng-select-vol-management";
     wait_screen_change { send_key(is_sle() ? "alt-l" : "alt-d") };
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-t" };
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
