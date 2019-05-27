@@ -58,7 +58,15 @@ sub run {
     send_key "alt-e" if (match_has_tag "yast2_registration-overview");
     register_system_and_add_extension;
 
-    assert_script_run "SUSEConnect --status-text |grep -A3 -E 'SUSE Linux Enterprise Server|Web and Scripting Module' | grep -qE '^\\s+Registered'";
+    my $ret_val = script_run("SUSEConnect --status-text |grep -A3 -E 'SUSE Linux Enterprise Server|Web and Scripting Module' | grep -qE '^\\s+Registered'", 180);
+    if (defined $ret_val && $ret_val != 0) {
+        # SUSEConnect failed but did not timed out
+        die "SUSEConnect --status-text failed with code $ret_val";
+    }
+    if (!defined $ret_val) {
+        # SUSEConnect timed out and this may happen
+        record_soft_failure "bsc#1136566";
+    }
 }
 
 1;
