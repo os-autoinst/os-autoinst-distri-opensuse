@@ -98,6 +98,7 @@ sub install_runtime_dependencies {
 
 sub install_debugging_tools {
     my @maybe_deps = qw(
+      attr
       gdb
       ltrace
       strace
