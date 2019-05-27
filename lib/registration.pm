@@ -251,6 +251,22 @@ sub verify_preselected_modules {
     die 'Scroll reached to bottom not finding individual needles for each module.' if @needles;
 }
 
+sub _yast_scc_addons_handler {
+    if (match_has_tag('yast_scc-license-dialog')) {
+        send_key 'alt-a';
+        next;
+    }
+    # yast may pop up dependencies or reboot prompt window
+    if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
+        wait_screen_change { send_key "alt-o" };
+        next;
+    }
+    if (match_has_tag('yast_scc-installation-summary')) {
+        send_key 'alt-f';
+        last;
+    }
+}
+
 sub process_scc_register_addons {
     # The value of SCC_ADDONS is a list of abbreviation of addons/modules
     # Following are abbreviations defined for modules and some addons
@@ -353,19 +369,7 @@ sub process_scc_register_addons {
                         ['yast_scc-license-dialog', 'yast_scc-automatic-changes', 'yast_scc-prompt-reboot', 'yast_scc-installation-summary'], 1800
                     ))
                 {
-                    if (match_has_tag('yast_scc-license-dialog')) {
-                        send_key 'alt-a';
-                        next;
-                    }
-                    # yast may pop up dependencies or reboot prompt window
-                    if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
-                        wait_screen_change { send_key "alt-o" };
-                        next;
-                    }
-                    if (match_has_tag('yast_scc-installation-summary')) {
-                        send_key 'alt-f';
-                        last;
-                    }
+                    _yast_scc_addons_handler();
                 }
                 last;
             }

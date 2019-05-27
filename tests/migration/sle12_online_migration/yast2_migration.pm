@@ -156,7 +156,7 @@ sub run {
                 last if match_has_tag 'addon-yast2-patterns';
                 if (match_has_tag 'package-conflict-resolution') {
                     wait_screen_change { send_key 'alt-1' };
-                    if (!check_screen 'radio-button-selected', 0) {
+                    if (!check_screen 'radio-button-selected', 0) {    ## no critic (ProhibitDeepNests)
                         wait_screen_change { send_key 'spc' };
                     }
                     wait_screen_change { send_key 'alt-o' };
