@@ -205,7 +205,7 @@
       </interface>
     </interfaces>
     <ipv6 config:type="boolean">true</ipv6>
-    <keep_install_network config:type="boolean">false</keep_install_network>
+    <keep_install_network config:type="boolean">true</keep_install_network>
     <managed config:type="boolean">false</managed>
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
