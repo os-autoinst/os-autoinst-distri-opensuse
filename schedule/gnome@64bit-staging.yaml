@@ -1,13 +1,10 @@
 ---
-name:           cryptlvm_minimal_x
+name:           gnome@64bit-staging
 description:    >
-  Combination of "cryptlvm" and "minimal_x" for sle12.
-  (crypt-)LVM installations can take longer,
-  especially on non-x86_64 architectures.
+  The standard scenario where we mainly just follow installation
+  suggestions without any adjustments as long as the default desktop is gnome.
 vars:
-  ENCRYPT: 1  
-  LVM: 1
-  MAX_JOB_TIME: 14400
+  MAX_JOB_TIME: 10800
 schedule:
   - installation/bootloader
   - installation/welcome
@@ -16,13 +13,11 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning/encrypt_lvm
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
-  - installation/change_desktop
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -30,7 +25,6 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
-  - installation/boot_encrypt
   - installation/first_boot
   - console/system_prepare
   - console/check_network
@@ -58,3 +52,18 @@ schedule:
   - console/mtab
   - console/orphaned_packages_check
   - console/consoletest_finish
+  - x11/desktop_runner
+  - x11/xterm
+  - locale/keymap_or_locale_x11
+  - x11/sshxterm
+  - x11/gnome_control_center
+  - x11/gnome_terminal
+  - x11/gedit
+  - x11/firefox
+  - x11/yast2_snapper
+  - x11/glxgears
+  - x11/nautilus
+  - x11/desktop_mainmenu
+  - x11/reboot_gnome
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
