@@ -44,8 +44,6 @@ my $iscsi_tgt_server_set = 0;
 my $setup_script;
 my $disable_firewall = 0;
 
-my @mutexes;
-
 sub setup_pxe_server {
     return if $pxe_server_set;
 
@@ -511,16 +509,13 @@ sub run {
         setup_dhcp_server((exists $server_roles{dns}), 1);
         setup_pxe_server();
         setup_tftp_server();
-        push @mutexes, 'pxe';
     }
     if (exists $server_roles{tftp}) {
         setup_tftp_server();
-        push @mutexes, 'tftp';
     }
 
     if (exists $server_roles{dhcp}) {
         setup_dhcp_server((exists $server_roles{dns}), 0);
-        push @mutexes, 'dhcp';
     }
     if (exists $server_roles{qemuproxy}) {
         setup_http_server();
@@ -531,53 +526,42 @@ sub run {
           . autoinst_url
           . "|g' >/etc/apache2/vhosts.d/proxy.conf\n";
         $setup_script .= "systemctl restart apache2\n";
-        push @mutexes, 'qemuproxy';
     }
     if (exists $server_roles{dns}) {
         setup_dns_server();
-        push @mutexes, 'dns';
     }
 
     if (exists $server_roles{aytests}) {
         setup_aytests();
-        push @mutexes, 'aytests';
     }
 
     if (exists $server_roles{ntp}) {
         setup_ntp_server();
-        push @mutexes, 'ntp';
     }
 
     if (exists $server_roles{xvnc}) {
         setup_xvnc_server();
-        push @mutexes, 'xvnc';
     }
 
     if (exists $server_roles{ssh}) {
         setup_ssh_server();
-        push @mutexes, 'ssh';
     }
 
     if (exists $server_roles{xdmcp}) {
         setup_xdmcp_server();
-        push @mutexes, 'xdmcp';
     }
 
     if (exists $server_roles{iscsi}) {
         setup_iscsi_server();
-        push @mutexes, 'iscsi';
     }
     if (exists $server_roles{iscsi_tgt}) {
         setup_iscsi_tgt_server();
-        push @mutexes, 'iscsi_tgt';
     }
     if (exists $server_roles{stunnel}) {
         setup_stunnel_server;
-        push @mutexes, 'stunnel';
     }
     if (exists $server_roles{mariadb}) {
         setup_mariadb_server;
-        push @mutexes, 'mariadb';
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
@@ -588,9 +572,7 @@ sub run {
     assert_script_run opensusebasetest::firewall . ' stop' if $disable_firewall;
 
     # Create mutexes for running services
-    foreach my $mutex (@mutexes) {
-        mutex_create($mutex);
-    }
+    mutex_create($_) foreach (keys %server_roles);
 
     # Create a *last* mutex to signal that support_server initialization is done
     mutex_create('support_server_ready');
