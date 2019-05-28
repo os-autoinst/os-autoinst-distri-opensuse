@@ -32,6 +32,7 @@ sub run {
     elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
         cleanup_registration;
         register_product;
+        add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
     # create a tmp dir/files to work
