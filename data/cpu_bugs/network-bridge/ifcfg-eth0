@@ -1,0 +1,5 @@
+BOOTPROTO='none'
+STARTMODE='auto'
+IPADDR=''
+NETMASK=''
+PREFIXLEN=''
