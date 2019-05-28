@@ -28,7 +28,7 @@ sub run {
         use_ssh_serial_console;
     }
     else {
-        select_console 'root-console';
+        $self->select_serial_terminal;
     }
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
@@ -39,6 +39,7 @@ sub run {
 
     console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
     type_string "reboot\n";
+    reset_consoles;
 
     $self->wait_boot;
 }
