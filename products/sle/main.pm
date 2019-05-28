@@ -1008,15 +1008,26 @@ else {
             loadtest "network/salt_minion";
         }
     }
-    elsif (get_var("NFSSERVER") or get_var("NFSCLIENT")) {
+    elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
-        #loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (get_var("NFSSERVER")) {
             loadtest "console/yast2_nfs_server";
         }
         else {
             loadtest "console/yast2_nfs_client";
+        }
+    }
+    elsif (get_var("NFS4SERVER") || get_var("NFS4CLIENT")) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        if (get_var("NFS4SERVER")) {
+            loadtest "console/yast2_nfs4_server";
+        }
+        else {
+            loadtest "console/yast2_nfs4_client";
         }
     }
     elsif (get_var('QAM_VSFTPD')) {
