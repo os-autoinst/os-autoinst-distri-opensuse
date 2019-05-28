@@ -693,6 +693,9 @@ elsif (get_var("SLEPOS")) {
 elsif (get_var('CPU_BUGS')) {
     load_mitigation_tests;
 }
+elsif (get_var('VT_PERF')) {
+    load_vt_perf_tests;
+}
 elsif (get_var("SECURITY_TEST")) {
     prepare_target();
     load_security_tests;
