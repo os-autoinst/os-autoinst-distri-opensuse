@@ -23,6 +23,7 @@ sub run {
     select_console 'root-console';
 
     if (is_sle) {
+        assert_script_run 'source /etc/os-release';
         if (is_sle '>=15') {
             if (script_run('SUSEConnect -p PackageHub/${VERSION_ID}/${CPU}', 300) != 0) {
                 record_soft_failure 'bsc#1124318 - Fail to get PackageHub Pool Metadata - running the command again as a workaround';
