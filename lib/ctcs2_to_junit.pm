@@ -25,9 +25,7 @@ our @EXPORT = qw(analyzeResult generateXML);
 sub analyzeResult {
     my ($text) = @_;
     my $result = ();
-    $text =~ /Test in progress(.*)Test run complete/s;
-    my $rough_result = $1;
-    foreach (split("\n", $rough_result)) {
+    foreach (split("\n", $text)) {
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED)\s+\((\S+)\)/g) {
             $result->{$1}{status} = $2;
             $result->{$1}{time}   = $3;
@@ -102,7 +100,7 @@ sub generateXML {
         if (!get_var('QA_TESTSUITE') && ($case_status eq 'failure' || $case_status eq 'skipped')) {
             (my $test_path = $test) =~ s/-/\//;
             $test_path = '/opt/log/' . $test_path;
-            my $test_out_content = script_output("cat $test_path| sed \"s/'//g\" | sed \"s/[\\x00\\x01-\\x08\\x0B-\\x0C\\x0E-\\x1F]//g\"|tail -n 200", 600);
+            my $test_out_content = script_output("if [ -f $test_path ]; then cat $test_path| sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176' | tail -n 200; else echo 'Test Crashed, find log in serial0.txt'; fi", 600);
             $writer->startTag('system-out');
             $writer->characters($test_out_content);
             $writer->endTag('system-out');
@@ -110,12 +108,12 @@ sub generateXML {
                 my $test_err_content = script_output("
                     echo '====out.bad log====';
                     if [ -f $test_path.out.bad ];
-                        then cat $test_path.out.bad|sed \"s/'//g\"|sed \"s/[\\x00\\x01-\\x08\\x0B-\\x0C\\x0E-\\x1F]//g\"|tail -n 200;
+                        then cat $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176' | tail -n 200;
                     else echo '$test_path.out.bad not exist';
                     fi;
                     echo '====full log====';
                     if [ -f $test_path.full ];
-                        then cat $test_path.full|sed \"s/'//g\"|sed \"s/[\\x00\\x01-\\x08\\x0B-\\x0C\\x0E-\\x1F]//g\"|tail -n 200;
+                        then cat $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176' | tail -n 200;
                     else echo '$test_path.full not exist';
                     fi;
                 ", 600);
