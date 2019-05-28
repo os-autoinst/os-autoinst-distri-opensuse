@@ -50,6 +50,9 @@ sub run {
     }
     assert_and_click 'openqa-job-minimalx';
 
+    # Do not hit 'f5' too early
+    wait_still_screen;
+
     # wait for result
     for (1 .. 5) {
         send_key 'f5';
