@@ -16,10 +16,12 @@ use warnings;
 use testapi;
 use utils qw(zypper_call systemctl file_content_replace);
 use network_utils qw(iface setup_static_network);
+use serial_terminal 'add_serial_console';
 
 sub run {
     my ($self, $ctx) = @_;
     $self->select_serial_terminal;
+    add_serial_console('hvc1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
     my @ifaces = split(' ', iface(2));
     die("Missing at least one interface") unless (@ifaces);
     $ctx->iface($ifaces[0]);
