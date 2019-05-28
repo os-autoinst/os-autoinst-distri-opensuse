@@ -16,6 +16,9 @@ use base 'Exporter';
 use Exporter;
 use bmwqemu ();
 use version_utils qw(is_sle is_leap);
+use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
+use File::Basename;
+use File::Temp 'tempfile';
 
 BEGIN {
     our @EXPORT = qw(
@@ -23,6 +26,8 @@ BEGIN {
       get_login_message
       login
       serial_term_prompt
+      upload_file
+      download_file
     );
 }
 
@@ -95,5 +100,107 @@ sub login {
 sub serial_term_prompt {
     return $serial_term_prompt;
 }
+
+
+=head2 download_file
+
+  download_file($src, $dst [, force => $force][, chunk_size => $cz][, chunk_retry => $cr])
+
+Download a file from worker to SUT using the current serial terminal.
+The file is split into chunks C<chunk_size> and each chunk is verified with
+checksum. If a chunk fails, the upload will be retried up to C<chunk_retry>
+times, before giving up.
+To overwrite destination use C<force>.
+This function die on any failure.
+=cut
+sub download_file {
+    my ($src, $dst, %opts) = @_;
+    $opts{chunk_size}  //= 1024 * 2;
+    $opts{chunk_retry} //= 16;
+    $opts{force}       //= 0;
+    record_info('Download file', "From worker ($src) to SUT ($dst)");
+    die("Relative path is forbidden - '$src'") if $src =~ m'/\.\.|\.\./';
+    $src =~ s'^/+'';
+    if ($src =~ m'data/') {
+        $src = $bmwqemu::vars{CASEDIR} . '/' . $src;
+    } else {
+        $src = $bmwqemu::vars{ASSETDIR} . '/' . $src;
+    }
+    die("File $dst already exists on SUT") if (!$opts{force} && script_run("test -f $dst", undef, quiet => 1) == 0);
+    die("File $src not found on worker") unless (-f $src);
+    my $tmpdir = script_output('mktemp -d', undef, quiet => 1);
+    assert_script_run("test -d $tmpdir", quiet => 1);
+
+    open(my $fh, '<:raw', $src) or die "Could not open file '$src' $!";
+    my $result_file = $tmpdir . '/result';
+    my $tmpfile     = $tmpdir . '/chunk';
+    my $cnt         = 0;
+    while (my $read = read($fh, my $chunk, $opts{chunk_size})) {
+        my $b64   = b64_encode($chunk);
+        my $tries = $opts{chunk_retry};
+        my $sha1  = sha1_sum($b64);
+        $cnt += 1;
+        do {
+            die("Failed to transfer chunk[$cnt] of file $src") if ($tries-- < 0);
+            script_output("cat > $tmpfile << 'EOT'\n" . $b64 . "EOT", undef, quiet => 1);
+        } while ($sha1 ne script_output("sha1sum $tmpfile | cut -d ' ' -f 1", undef, quiet => 1));
+        assert_script_run("base64 -d $tmpfile >> $result_file", quiet => 1);
+        assert_script_run("rm $tmpfile",                        quiet => 1);
+    }
+    close($fh);
+    my $sha1_remote = script_output("sha1sum $result_file | cut -d ' ' -f 1", undef, quiet => 1);
+    my $sha1        = trim(`sha1sum $src | cut -d ' ' -f 1`);
+    die("Failed to transfer file $src - final checksum mismatch") if ($sha1_remote ne $sha1);
+    assert_script_run("mv $result_file '$dst'", quiet => 1);
+    assert_script_run("rmdir $tmpdir",          quiet => 1);
+}
+
+=head2 upload_file
+  upload_file($src, $dst, [, chunk_size => $cz][, chunk_retry => $cr]);
+
+Upload a file from SUT to the worker using the current serial terminal.
+The file is parted into chunks C<chunk_size> and each chunk gets is verified with
+checksum. If a chunk fail we retry it C<chunk_retry> times, before give up.
+The file is placed in the C<ulogs/> directory of the worker.
+
+This function die on any failure.
+=cut
+sub upload_file {
+    my ($src, $dst, %opts) = @_;
+    my $chunk_size = $opts{chunk_size} //= 1024 * 2;
+    $opts{chunk_retry} //= 16;
+    record_info('Upload file', "From SUT($src) to worker ($dst)");
+
+    $dst = basename($dst);
+    $dst = "ulogs/" . $dst;
+    my ($fh, $tmpfilename) = tempfile();
+
+    die("File $src doesn't exists on SUT") if (script_run("test -f $src", undef, quiet => 1) != 0);
+    die("File $dst already exists on worker") if (system("test -f $dst", undef, quiet => 1) == 0);
+
+    my $filesize = script_output("stat --printf='%s' $src", undef, quiet => 1);
+
+    my $num_chunks = int(($filesize + $chunk_size - 1) / $chunk_size);
+    for (my $i = 0; $i < $num_chunks; $i += 1) {
+        my $tries = $opts{chunk_retry};
+        my ($sha1_remote, $sha1, $b64);
+        do {
+            die("Failed to transfer chunk[$i] of file $src") if ($tries-- < 0);
+            $b64 = script_output("dd if='$src' bs=$chunk_size skip=$i count=1 status=none | base64", undef, quiet => 1);
+            $sha1_remote = script_output("dd if='$src' bs=$chunk_size skip=$i count=1 status=none | base64 | sha1sum | cut -d ' ' -f 1", undef, quiet => 1);
+            # W/A: script_output skips the last newline
+            $sha1 = sha1_sum($b64 . "\n");
+        } while ($sha1 ne $sha1_remote);
+        print $fh b64_decode($b64);
+    }
+    my $sha1        = trim(`sha1sum $tmpfilename | cut -d ' ' -f 1`);
+    my $sha1_remote = script_output("sha1sum $src | cut -d ' ' -f 1", undef, quiet => 1);
+    die("Failed to upload file $src - final checksum mismatch") if ($sha1_remote ne $sha1);
+    system('mkdir -p ulogs/') == 0 or die('Failed to create ulogs/ directory');
+    system(sprintf("cp '%s' '%s'", $tmpfilename, $dst)) == 0
+      or die("Failed to finally copy file from '$tmpfilename' to '$dst'");
+    close($fh);
+}
+
 
 1;
