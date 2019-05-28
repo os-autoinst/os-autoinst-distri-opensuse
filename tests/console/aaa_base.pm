@@ -18,6 +18,7 @@ use warnings;
 use testapi;
 
 sub run {
+    select_console 'root-console';
     #create work dir
     assert_script_run "mkdir /tmp/aaa_base_test ; cd /tmp/aaa_base_test; touch test-file.txt ; mkdir test_dir";
 
@@ -25,7 +26,7 @@ sub run {
     assert_script_run "old test-file.txt ; ls -lah test-file*";
     assert_script_run "safe-rm /tmp/aaa_base_test/test-file.txt; ls -lah";
     assert_script_run "safe-rmdir /tmp/aaa_base_test/test_dir; ls -lah";
-    assert_script_run "get_kernel_version /boot/vmlinuz";
+    assert_script_run "get_kernel_version \$(ls /boot/vmlinu*-* | sort | tail -1)";
     assert_script_run "rpmlocate aaa_base";
     assert_script_run "/usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1 ; grep CONSOLE_ENCODING /etc/sysconfig/console";
     assert_script_run "/usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1; grep CONSOLE_ENCODING /etc/sysconfig/console";
