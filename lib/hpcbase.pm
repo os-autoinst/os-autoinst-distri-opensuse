@@ -33,6 +33,22 @@ sub switch_user {
     assert_screen 'user-nobody';
 }
 
+sub prepare_slurm_conf {
+    # Create proper /etc/hosts and /etc/slurm.conf for each node
+    my $nodes = get_required_var("CLUSTER_NODES");
+
+    my $slurm_slave_nodes = "";
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $node_name = sprintf("slurm-slave%02d", $node);
+        $slurm_slave_nodes = "${slurm_slave_nodes},${node_name}";
+    }
+    my $config = << "EOF";
+sed -i "/^ControlMachine.*/c\\ControlMachine=slurm-master" /etc/slurm/slurm.conf
+sed -i "/^NodeName.*/c\\NodeName=slurm-master${slurm_slave_nodes} Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
+sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master${slurm_slave_nodes} Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+EOF
+    assert_script_run($_) foreach (split /\n/, $config);
+}
 
 =head2
     prepare_user_and_group()

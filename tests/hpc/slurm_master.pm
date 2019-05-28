@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,19 +28,7 @@ sub run {
     # install slurm
     zypper_call('in slurm slurm-munge');
 
-    # Create proper /etc/hosts and /etc/slurm.conf for each node
-    my $slurm_slave_nodes = "";
-    for (my $node = 1; $node < $nodes; $node++) {
-        my $node_name = sprintf("slurm-slave%02d", $node);
-        $slurm_slave_nodes = "${slurm_slave_nodes},${node_name}";
-    }
-    my $config = << "EOF";
-sed -i "/^ControlMachine.*/c\\ControlMachine=slurm-master" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=slurm-master${slurm_slave_nodes} Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master${slurm_slave_nodes} Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-EOF
-    assert_script_run($_) foreach (split /\n/, $config);
-
+    $self->prepare_slurm_conf();
     barrier_wait("SLURM_SETUP_DONE");
 
     # Copy munge key and slurm conf to all slave nodes
