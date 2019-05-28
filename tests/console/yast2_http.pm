@@ -127,4 +127,11 @@ sub run {
     wait_serial("$module_name-0", 240) || die "'yast2 http-server' didn't finish";
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    $self->save_and_upload_systemd_unit_log('apache2');
+    $self->SUPER::post_fail_hook;
+}
+
 1;
