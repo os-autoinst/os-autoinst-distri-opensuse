@@ -80,7 +80,8 @@ sub test_pids_max {
     my $rc1 = script_run "grep -qx max /tmp/pids-max";
     # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
     # Check that nproc * 2 + 1 >= threads-max
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' | tee /tmp/nproc";
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' > /tmp/nproc";
+    assert_script_run "cat /tmp/nproc ; sysctl -n kernel.threads-max";
     my $rc2 = script_run "[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]";
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
 }
