@@ -211,7 +211,9 @@ sub addpart {
     if ($args{fsid}) {                                        # $args{fsid} will describe needle tag below
         send_key 'alt-i';                                     # select File system ID
         send_key 'home';                                      # start from the top of the list
-        if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text')) {
+
+        # Bug is applicable for pre storage-ng only
+        if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text') && !is_storage_ng()) {
             record_soft_failure('bsc#1079399 - Combobox is writable');
             for (1 .. 10) { send_key 'up'; }
         }
