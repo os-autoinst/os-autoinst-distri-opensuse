@@ -19,9 +19,11 @@ use testapi;
 use network_utils 'ifc_exists';
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
+    my $iface  = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
     my $config = '/etc/sysconfig/network/ifcfg-sit1';
-    $self->get_from_data('wicked/ifcfg/sit1', $config);
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', $iface);
+    $self->get_from_data('wicked/ifcfg/sit1',                $config);
     $self->setup_tunnel($config, 'sit1');
     if ($self->get_test_result('sit1', 'v6') ne 'FAILED') {
         $self->wicked_command('ifdown', 'sit1');

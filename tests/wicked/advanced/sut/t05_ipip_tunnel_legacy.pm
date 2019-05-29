@@ -19,11 +19,12 @@ use warnings;
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-tunl1';
     record_info('Info', 'Create a IPIP  interface from legacy ifcfg files');
-    $self->get_from_data('wicked/ifcfg/tunl1', $config);
-    $self->setup_tunnel($config, 'tunl1');
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/ifcfg/tunl1',               $config);
+    $self->setup_tunnel($config, 'tunl1', $ctx->iface());
     my $res = $self->get_test_result('tunl1');
     die if ($res eq 'FAILED');
 }

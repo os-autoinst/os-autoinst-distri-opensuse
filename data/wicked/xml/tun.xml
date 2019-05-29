@@ -28,3 +28,17 @@
     </address>
   </ipv6:static>
 </interface>
+
+<interface>
+  <name>iface</name>
+  <ipv4:static>
+    <address>
+      <local>host_ip/15</local>
+    </address>
+  </ipv4:static>
+  <ipv6:static>
+    <address>
+      <local>fd00:c0de:ba5e::123/48</local>
+    </address>
+  </ipv6:static>
+</interface>

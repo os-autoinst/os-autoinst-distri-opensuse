@@ -19,12 +19,12 @@ use warnings;
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/wicked/ifconfig/tun.xml';
     record_info('Info', 'Create a tun interface from Wicked XML files');
     $self->get_from_data('wicked/xml/tun.xml', $config);
     $self->setup_openvpn_client('tun1');
-    $self->setup_tuntap($config, 'tun1');
+    $self->setup_tuntap($config, 'tun1', $ctx->iface());
     my $res = $self->get_test_result('tun1');
     die if ($res eq 'FAILED');
 }

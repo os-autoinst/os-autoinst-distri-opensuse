@@ -19,11 +19,12 @@ use warnings;
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-sit1';
     record_info('Info', 'Create a SIT interface from legacy ifcfg files');
-    $self->get_from_data('wicked/ifcfg/sit1', $config);
-    $self->setup_tunnel($config, 'sit1');
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/ifcfg/sit1',                $config);
+    $self->setup_tunnel($config, 'sit1', $ctx->iface());
     my $res = $self->get_test_result('sit1', 'v6');
     die if ($res eq 'FAILED');
 }

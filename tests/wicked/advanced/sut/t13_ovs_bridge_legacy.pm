@@ -17,14 +17,17 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
+use utils 'systemctl';
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-br0';
     my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
     record_info('Info', 'Create OVS Bridge interface from legacy ifcfg files');
-    $self->get_from_data('wicked/ifcfg/ovsbr0', $config);
-    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    systemctl('start openvswitch');
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/ifcfg/ovsbr0',              $config);
+    $self->get_from_data('wicked/ifcfg/dummy0',              $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     record_info('INFO', script_output('ovs-vsctl show'));
     my $res = $self->get_test_result('br0');

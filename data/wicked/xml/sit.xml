@@ -13,3 +13,12 @@
     </address>
   </ipv6:static>
 </interface>
+
+<interface>
+  <name>iface</name>
+  <ipv4:static>
+    <address>
+      <local>local_ip/15</local>
+    </address>
+  </ipv4:static>
+</interface>

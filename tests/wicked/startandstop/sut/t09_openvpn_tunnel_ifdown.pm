@@ -19,9 +19,11 @@ use testapi;
 use network_utils 'ifc_exists';
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
+    my $iface  = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
-    $self->get_from_data('wicked/ifcfg/tun1_sut', $config);
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', $iface);
+    $self->get_from_data('wicked/ifcfg/tun1_sut',            $config);
     $self->setup_openvpn_client('tun1');
     $self->setup_tuntap($config, 'tun1');
     die if ($self->get_test_result('tun1') eq 'FAILED');

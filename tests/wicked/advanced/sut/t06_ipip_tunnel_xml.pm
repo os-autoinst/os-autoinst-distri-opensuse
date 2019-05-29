@@ -19,11 +19,11 @@ use warnings;
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/wicked/ifconfig/ipip.xml';
     record_info('Info', 'Create a IPIP interface from Wicked XML files');
     $self->get_from_data('wicked/xml/ipip.xml', $config);
-    $self->setup_tunnel($config, 'tunl1');
+    $self->setup_tunnel($config, 'tunl1', $ctx->iface());
     my $res = $self->get_test_result('tunl1');
     die if ($res eq 'FAILED');
 }

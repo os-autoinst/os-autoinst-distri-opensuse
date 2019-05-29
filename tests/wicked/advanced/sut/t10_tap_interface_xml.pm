@@ -19,12 +19,12 @@ use warnings;
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/wicked/ifconfig/tap.xml';
     record_info('Info', 'Create a tap interface from Wicked XML files');
     $self->get_from_data('wicked/xml/tap.xml', $config);
     $self->setup_openvpn_client('tap1');
-    $self->setup_tuntap($config, 'tap1');
+    $self->setup_tuntap($config, 'tap1', $ctx->iface());
     my $res = $self->get_test_result('tap1');
     die if ($res eq 'FAILED');
 }

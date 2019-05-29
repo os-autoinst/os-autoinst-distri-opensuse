@@ -28,7 +28,6 @@ sub run {
     record_info('Info', 'Create a team interface from wicked XML files');
 
     $self->get_from_data('wicked/xml/teaming.xml', $cfg_team0);
-    assert_script_run('rm /etc/sysconfig/network/ifcfg-*');
     file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $ctx->iface(), iface1 => $ctx->iface2());
 
     $self->wicked_command('ifup', 'team0');
