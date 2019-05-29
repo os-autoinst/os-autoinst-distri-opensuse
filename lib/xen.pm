@@ -106,6 +106,22 @@ if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-cl
             distro       => 'SLE_12_SP4',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
         },
+        sles15sp1HVM => {
+            autoyast     => 'autoyast_xen/sles15sp1HVM.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            macaddress   => '52:54:00:78:73:ab',
+            ip           => '192.168.122.111',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
+        },
+        sles15sp1PV => {
+            autoyast     => 'autoyast_xen/sles15sp1PV.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            macaddress   => '52:54:00:78:73:ac',
+            ip           => '192.168.122.112',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
+        },
     );
 } elsif (check_var("REGRESSION", "qemu-hypervisor") || check_var("REGRESSION", "qemu-client")) {
     %guests = (
@@ -132,6 +148,14 @@ if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-cl
             ip           => '192.168.122.101',
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+        },
+        sles15sp1 => {
+            autoyast     => 'autoyast_kvm/sles15sp1.xml',
+            extra_params => '',
+            macaddress   => '52:54:00:78:73:ab',
+            ip           => '192.168.122.111',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
         },
     );
 } else {

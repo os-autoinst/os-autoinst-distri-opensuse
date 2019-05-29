@@ -28,47 +28,47 @@ sub run {
     if (check_var('XEN', '1')) {
         assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target xvdb" foreach (keys %xen::guests);
         assert_script_run "virsh domblklist $_ | grep xvdb"                                                         foreach (keys %xen::guests);
-        assert_script_run "ssh root\@$_ lsblk | grep xvdb"                                                          foreach (keys %xen::guests);
-        assert_script_run "virsh detach-disk $_ xvdb"                                                               foreach (keys %xen::guests);
+        assert_script_run "ssh root\@$_ lsblk | grep xvdb", 60 foreach (keys %xen::guests);
+        assert_script_run "virsh detach-disk $_ xvdb" foreach (keys %xen::guests);
     } else {
         assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target vdb" foreach (keys %xen::guests);
         assert_script_run "virsh domblklist $_ | grep vdb"                                                         foreach (keys %xen::guests);
-        assert_script_run "ssh root\@$_ lsblk | grep vdb"                                                          foreach (keys %xen::guests);
-        assert_script_run "virsh detach-disk $_ vdb"                                                               foreach (keys %xen::guests);
+        assert_script_run "ssh root\@$_ lsblk | grep vdb", 60 foreach (keys %xen::guests);
+        assert_script_run "virsh detach-disk $_ vdb" foreach (keys %xen::guests);
     }
 
     # TODO:
     record_info "CPU", "Changing the number of CPUs available";
     foreach my $guest (keys %xen::guests) {
-        if ($guest =~ m/pv/i) {
+        unless ($guest =~ m/hvm/i) {
             # The guest should have 2 CPUs after the installation
             assert_script_run "virsh vcpucount $guest | grep current | grep live";
-            assert_script_run "ssh root\@$guest nproc";
+            assert_script_run "ssh root\@$guest nproc", 60;
             # Add 1 CPU for everu guest
             assert_script_run "virsh setvcpus --domain $guest --count 3 --live";
             sleep 5;
             assert_script_run "virsh vcpucount $guest | grep current | grep live | grep 3";
-            script_retry "ssh root\@$guest nproc", delay => 15, retry => 6;
+            script_retry "ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60;
         }
     }
 
     # TODO:
     record_info "Memory", "Changing the amount of memory available";
     foreach my $guest (keys %xen::guests) {
-        if ($guest =~ m/pv/i) {
+        unless ($guest =~ m/hvm/i) {
             assert_script_run "virsh dommemstat $guest";
-            assert_script_run "ssh root\@$guest free";
-            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size";
+            assert_script_run "ssh root\@$guest free", 60;
+            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size", 60;
             assert_script_run "virsh setmem --domain $guest --size 2048M --live";
             sleep 5;
             assert_script_run "virsh dommemstat $guest";
-            assert_script_run "ssh root\@$guest free";
-            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size";
+            assert_script_run "ssh root\@$guest free", 60;
+            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size", 60;
             assert_script_run "virsh setmem --domain $guest --size 4096M --live";
             sleep 5;
             assert_script_run "virsh dommemstat $guest";
-            assert_script_run "ssh root\@$guest free";
-            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size";
+            assert_script_run "ssh root\@$guest free", 60;
+            #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size", 60;
         }
     }
 
@@ -78,11 +78,11 @@ sub run {
     }
 
     record_info "Virtual network", "Adding virtual network interface";
-    script_retry "ssh root\@$_ ip l | grep " . $xen::guests{$_}->{macaddress}, delay => 15, retry => 3 foreach (keys %xen::guests);
+    script_retry "ssh root\@$_ ip l | grep " . $xen::guests{$_}->{macaddress}, delay => 60, retry => 3, timeout => 60 foreach (keys %xen::guests);
     assert_script_run "virsh attach-interface --domain $_ --type bridge --source br0 --mac " . $mac{$_} . " --live" foreach (keys %xen::guests);
-    assert_script_run "virsh domiflist $_ | grep br0"                                                               foreach (keys %xen::guests);
-    assert_script_run "ssh root\@$_ cat /proc/uptime | cut -d. -f1"                                                 foreach (keys %xen::guests);
-    script_retry "ssh root\@$_ ip l | grep " . $mac{$_}, delay => 15, retry => 3 foreach (keys %xen::guests);
+    assert_script_run "virsh domiflist $_ | grep br0" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$_ cat /proc/uptime | cut -d. -f1", 60 foreach (keys %xen::guests);
+    script_retry "ssh root\@$_ ip l | grep " . $mac{$_}, delay => 60, retry => 3, timeout => 60 foreach (keys %xen::guests);
     assert_script_run "virsh detach-interface $_ bridge --mac " . $mac{$_} foreach (keys %xen::guests);
 }
 

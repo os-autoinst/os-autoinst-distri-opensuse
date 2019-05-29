@@ -1170,16 +1170,17 @@ script_retry 'ping -c1 -W1 machine', retry => 5
 =cut
 sub script_retry {
     my ($cmd, %args) = @_;
-    my $ecode = $args{expect} // 0;
-    my $retry = $args{retry}  // 10;
-    my $delay = $args{delay}  // 30;
-    my $die   = $args{die}    // 1;
+    my $ecode   = $args{expect}  // 0;
+    my $retry   = $args{retry}   // 10;
+    my $delay   = $args{delay}   // 30;
+    my $timeout = $args{timeout} // 25;
+    my $die     = $args{die}     // 1;
 
     my $ret;
     for (1 .. $retry) {
         type_string "# Trying $_ of $retry:\n";
 
-        $ret = script_run "timeout 25 $cmd";
+        $ret = script_run "timeout $timeout $cmd";
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
