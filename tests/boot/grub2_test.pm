@@ -37,7 +37,7 @@ sub run {
     zypper_call 'in kernel-vanilla';
     assert_script_run 'uname -r >kernel.txt';
     reboot;
-    my $boot_entry = is_sle('=12-sp3') ? '5' : '3';
+    my $boot_entry = is_sle('=12-sp2') || is_sle('=12-sp3') ? '5' : '3';
     boot_grub_item(2, $boot_entry);
     assert_screen 'linux-login', 200;
     select_console 'root-console';
