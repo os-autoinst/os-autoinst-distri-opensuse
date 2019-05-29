@@ -615,8 +615,9 @@ sub load_yast2_registration_tests {
 
 testapi::set_distribution(DistributionProvider->provide());
 
-# set serial failures
+# set failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 return 1 if load_yaml_schedule;
 
