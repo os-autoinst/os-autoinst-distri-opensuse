@@ -31,6 +31,7 @@ our @EXPORT = qw(
   get_node_to_join
   get_node_number
   is_node
+  add_to_known_hosts
   choose_node
   save_state
   is_package_installed
@@ -115,6 +116,13 @@ sub is_node {
 
     # Return true if HOSTNAME contains $node_number at his end
     return ($hostname =~ /$node_number$/);
+}
+
+sub add_to_known_hosts {
+    my $host_to_add = shift;
+    assert_script_run "mkdir -p ~/.ssh";
+    assert_script_run "chmod 700 ~/.ssh";
+    assert_script_run "ssh-keyscan -H $host_to_add >> ~/.ssh/known_hosts";
 }
 
 sub choose_node {

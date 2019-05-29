@@ -2626,13 +2626,12 @@ sub load_ha_cluster_tests {
     loadtest 'sles4sap/patterns' if is_sles4sap;
 
     # Cluster initialisation
-    if (get_var('HA_CLUSTER_INIT')) {
-        # Node1 creates a cluster
-        loadtest 'ha/ha_cluster_init';
+    if (get_var('USE_YAST_CLUSTER')) {
+        get_var('HA_CLUSTER_INIT') ? loadtest 'ha/yast_cluster_init' : loadtest 'ha/yast_cluster_join';
+        loadtest 'ha/sbd';
     }
     else {
-        # Node2 joins the cluster
-        loadtest 'ha/ha_cluster_join';
+        get_var('HA_CLUSTER_INIT') ? loadtest 'ha/ha_cluster_init' : loadtest 'ha/ha_cluster_join';
     }
 
     # Cluster tests are different if we use SLES4SAP
