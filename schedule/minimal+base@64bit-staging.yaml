@@ -1,9 +1,8 @@
 ---
-name:           minimal+base_svirt-hyperv
+name:           minimal+base@64bit-staging
 description:    >
   Select a minimal textmode installation by starting with the default and unselecting all patterns
   except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
-  It cannot access installation shell therefore it does not schedule module 'logs_from_installation_system'.
 vars:
   PATTERNS: base,minimal
 schedule:
@@ -24,6 +23,7 @@ schedule:
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
+  - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
@@ -32,27 +32,26 @@ schedule:
   - console/system_state
   - console/prepare_test_data
   - console/consoletest_setup
-  - console/integration_services
   - locale/keymap_or_locale
   - console/force_scheduled_tasks
   - console/textinfo
+  - console/hostname
   - console/installation_snapshots
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses
+  - console/yast2_lan
   - console/curl_https
-  - console/salt
   - console/glibc_sanity
-  - update/zypper_up
   - console/zypper_in
   - console/yast2_i
   - console/yast2_bootloader
   - console/vim
-  - console/firewall_enabled
   - console/sshd
   - console/ssh_cleanup
   - console/mtab
   - console/mysql_srv
+  - console/yast2_nfs_server
   - console/rsync
   - console/http_srv
   - console/dns_srv
@@ -60,6 +59,5 @@ schedule:
   - console/shibboleth
   - console/apache_ssl
   - console/apache_nss
-  - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish

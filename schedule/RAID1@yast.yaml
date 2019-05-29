@@ -1,22 +1,17 @@
 ---
-name:           RAID1
+name:           RAID1@64bit-staging
 description:    >
   Test for RAID1
   Installation of RAID1 using expert partitioner.
 vars:
   RAIDLEVEL: 1
-conditional_schedule:
-    system_role:
-        SYSTEM_ROLE:
-            default:
-                - installation/system_role
 schedule:
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - {{system_role}}
+  - installation/system_role
   - installation/partitioning
   - installation/partitioning_raid
   - installation/partitioning_finish
