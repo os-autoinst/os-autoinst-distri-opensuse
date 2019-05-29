@@ -15,6 +15,7 @@ use warnings;
 use base "virt_autotest_base";
 use testapi;
 use virt_utils;
+use Utils::Backends "is_remote_backend";
 
 sub install_package {
 
@@ -68,9 +69,9 @@ sub install_package {
     }
 
     ###SLE-12-SP4 arm64 installation has no KVM role selection
-    if (($repo_0_to_install =~ /SLE-12-SP4/m) && check_var('ARCH', 'aarch64')) {
-        assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref",         180);
-        assert_script_run("zypper --non-interactive in -t pattern kvm_server kvm_tools", 300);
+    if (is_remote_backend && check_var('ARCH', 'aarch64')) {
+        script_output("zypper --non-interactive --gpg-auto-import-keys ref",         180, type_command => 1, proceed_on_failure => 1);
+        script_output("zypper --non-interactive in -t pattern kvm_server kvm_tools", 300, type_command => 1, proceed_on_failure => 1);
     }
 
     #install qa_lib_virtauto
@@ -81,6 +82,12 @@ sub install_package {
     else {
         assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
         assert_script_run("zypper --non-interactive in qa_lib_virtauto",         1800);
+        if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm")) {
+            script_output("zypper --non-interactive in -t pattern kvm_server kvm_tools", 300, type_command => 1, proceed_on_failure => 1);
+        }
+        else {
+            script_output("zypper --non-interactive in -t pattern xen_server xen_tools", 300, type_command => 1, proceed_on_failure => 1);
+        }
     }
 
     if (get_var("PROXY_MODE")) {
