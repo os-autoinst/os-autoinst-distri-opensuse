@@ -11,6 +11,7 @@ use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed);
 use isotovideo;
 use IO::Socket::INET;
+use utils 'zypper_call';
 
 # Base class for all openSUSE tests
 
@@ -798,6 +799,28 @@ sub select_user_serial_terminal {
 sub post_fail_hook {
     my ($self) = @_;
     return if testapi::is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
+
+    select_console 'root-console';
+    my $VERSION = get_var('VERSION');
+    zypper_call "ar -f http://download.suse.de/ibs/home:/dzedro:/branches:/mtr/SLE-$VERSION/ mtr_repo";
+    zypper_call '--gpg-auto-import-keys ref';
+    zypper_call 'in mtr iputils traceroute';
+    my $network_diagnose = <<'EOF';
+#!/bin/bash
+DEST='download.suse.de updates.suse.com download.nvidia.com'
+DIR='/tmp/net'
+mkdir -p $DIR
+for DESTINATION in $DEST
+do
+    tracepath $DESTINATION|tee $DIR/tracepath_$DESTINATION.log
+    traceroute -m 60 $DESTINATION|tee $DIR/traceroute_$DESTINATION.log
+    mtr --tcp --report $DESTINATION|tee $DIR/mtr_tcp_$DESTINATION.log
+    mtr --udp --report $DESTINATION|tee $DIR/mtr_udp_$DESTINATION.log
+done
+tar -zcvf /root/network_diagnose.tar.gz $DIR
+EOF
+    script_output("$network_diagnose", 600);
+    upload_logs '/root/network_diagnose.tar.gz';
 
     show_tasks_in_blocked_state;
 
