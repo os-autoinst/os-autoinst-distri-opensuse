@@ -457,6 +457,42 @@ sub validate_macvtap {
     validate_script_output("cat $macvtap_log", sub { m/Success listening to tap device/ });
 }
 
+sub setup_bond() {
+    my ($self, $mode, $iface0, $iface1) = @_;
+
+    my $cfg_bond0 = '/etc/sysconfig/network/ifcfg-bond0';
+    my $cfg_ifc0  = '/etc/sysconfig/network/ifcfg-' . $iface0;
+    my $cfg_ifc1  = '/etc/sysconfig/network/ifcfg-' . $iface1;
+    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc0);
+    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc1);
+    $self->get_from_data('wicked/bonding/ifcfg-bond0-' . $mode, $cfg_bond0);
+    file_content_replace($cfg_bond0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $iface0, iface1 => $iface1);
+
+    $self->wicked_command('ifup', 'all');
+}
+
+sub setup_team() {
+    my ($self, $mode, $iface0, $iface1) = @_;
+
+    my $cfg_team0 = '/etc/sysconfig/network/ifcfg-team0';
+    my $cfg_ifc0  = '/etc/sysconfig/network/ifcfg-' . $iface0;
+    my $cfg_ifc1  = '/etc/sysconfig/network/ifcfg-' . $iface1;
+    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc0);
+    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc1);
+    $self->get_from_data('wicked/teaming/ifcfg-team0-' . $mode, $cfg_team0);
+    file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $iface0, iface1 => $iface1);
+
+    $self->wicked_command('ifup', 'all');
+}
+
+sub validate_interfaces() {
+    my ($self, $interface, $iface0, $iface1) = @_;
+    die("Missing interface $interface") unless ifc_exists($interface);
+    validate_script_output('ip a s dev ' . $iface0, sub { /master $interface/ });
+    validate_script_output('ip a s dev ' . $iface1, sub { /master $interface/ });
+    $self->ping_with_timeout(type => 'host', interface => $interface, count_success => 30, timeout => 4);
+}
+
 sub wait_for_dhcpd {
     my ($self) = @_;
     my $timeout = 60;
