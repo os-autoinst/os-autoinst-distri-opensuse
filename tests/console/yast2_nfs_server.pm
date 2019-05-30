@@ -39,7 +39,7 @@ sub run {
     }
 
     # Make sure packages are installed
-    zypper_call 'in yast2-nfs-server', timeout => 480, exitcode => [0, 106, 107];
+    zypper_call 'in yast2-nfs-server nfs-kernel-server', timeout => 480, exitcode => [0, 106, 107];
 
     try_nfsv2();
 
