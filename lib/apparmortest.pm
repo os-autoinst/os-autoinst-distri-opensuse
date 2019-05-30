@@ -24,6 +24,7 @@ use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2_module_guitest 'launch_yast2_module_x11';
+use x11utils 'turn_off_gnome_screensaver';
 
 use base 'consoletest';
 
@@ -409,10 +410,46 @@ sub adminer_setup {
 
     # Test Adminer can work
     select_console 'x11';
-    x11_start_program("firefox http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
+
+    # Clean and Start Firefox
+    x11_start_program('xterm');
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    type_string("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* \n");
+    type_string("firefox http://localhost/adminer/$adminer_file &\n");
+
+    my $ret;
+    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    if (!defined($ret)) {
+        # Wait more time
+        record_info("Firefox loading adminer failed", "Retrying workaround");
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    }
+    if (match_has_tag("unresponsive-script")) {
+        send_key_until_needlematch("adminer-login", 'ret', 5, 5);
+    }
+    elsif (match_has_tag("adminer-login")) {
+        record_info("Firefox is loading adminer", "adminer login page shows up");
+    }
+    elsif (match_has_tag("firefox-blank-page")) {
+        record_info("Firefox loading adminer failed", "but blank page shows up");
+    }
+    else {
+        record_info("Firefox loading adminer failed", "but the testing can be continued");
+    }
 
     # Exit x11 and turn to console
     send_key "alt-f4";
+    $ret = check_screen("quit-and-close-tabs", timeout => 30);
+    if (defined($ret)) {
+        # Click the "quit and close tabs" button
+        send_key_until_needlematch("close-button-selected", 'tab', 5, 5);
+        send_key "ret";
+    }
+    wait_still_screen(stilltime => 3, timeout => 30);
+    # Exit xterm
+    if (is_tumbleweed()) {
+        send_key_until_needlematch("generic-desktop", 'alt-f4', 5, 5);
+    }
     # Send "ret" key in case of any pop up message
     send_key_until_needlematch("generic-desktop", 'ret', 5, 5);
     select_console("root-console");

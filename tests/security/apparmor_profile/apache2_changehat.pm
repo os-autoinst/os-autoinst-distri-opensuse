@@ -48,9 +48,19 @@ sub run {
     # Install needed modules and Apache packages
     if (is_sle) {
         register_product();
-        add_suseconnect_product("sle-module-web-scripting");
+        my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
+        if ($version == '15') {
+            $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
+        }
+        my $arch    = get_required_var('ARCH');
+        my $params  = " ";
+        my $timeout = 180;
+        add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
     }
     zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
+
+    # Restart apparmor
+    systemctl("restart apparmor");
 
     # Install Mariadb and setup database test account
     $self->mariadb_setup();
@@ -72,8 +82,20 @@ sub run {
     # NOTE: Apache's main binary is /usr/sbin/httpd-prefork on this testing OS
 
     # Download Apache's main binary's profile and copy it to "/etc/apparmor.d/"
-    assert_script_run("wget --quiet " . data_url("apparmor/$profile_name"));
-    assert_script_run("mv $profile_name $prof_dir");
+    my $profile_name_new;
+    if (is_sle('12+')) {
+        $profile_name_new = $profile_name . "-sle12";
+    }
+    else {
+        $profile_name_new = $profile_name . "";
+    }
+    assert_script_run("wget --quiet " . data_url("apparmor/$profile_name_new") . " -O $prof_dir/$profile_name");
+
+    # Restart apparmor
+    systemctl("restart apparmor");
+    validate_script_output("systemctl is-active apparmor", sub { m/active/ });
+    # Output status for debug
+    systemctl("status apparmor");
 
     # Set the AppArmor security profile to enforce mode
     validate_script_output("aa-enforce $profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
@@ -82,17 +104,12 @@ sub run {
     # Check if $profile_name is in "enforce" mode
     $self->aa_status_stdout_check($named_profile, "enforce");
 
-    # Restart apparmor
-    systemctl("restart apparmor");
-    validate_script_output("systemctl is-active apparmor", sub { m/active/ });
+    # Cleanup audit log
+    assert_script_run("echo > $audit_log");
+    assert_script_run("echo '=== separation line for reference ===' >> /var/log/apache2/error_log");
 
     # Then, restart Apache
     systemctl("restart apache2");
-
-    # Cleanup audit log
-    assert_script_run("echo > $audit_log");
-
-    assert_script_run("echo '=== separation line for reference ===' >> /var/log/apache2/error_log");
 
     # Do some operations on Adminer web, e.g., log in, select/delete a database
     $self->adminer_database_delete();

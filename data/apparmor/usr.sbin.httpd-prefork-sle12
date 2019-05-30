@@ -1,4 +1,4 @@
-# Last Modified: Thu Mar 21 15:39:34 2019
+# Last Modified: Wed Jul 25 15:59:14 2018
 #include <tunables/global>
 
 /usr/sbin/httpd-prefork {
@@ -7,13 +7,10 @@
   #include <abstractions/php5>
 
   capability kill,
-  capability net_admin,
-  capability net_admin,
   capability setgid,
   capability setuid,
-
-  signal send set=term peer=/usr/sbin/httpd-prefork//HANDLING_UNTRUSTED_INPUT,
-  signal send set=usr1 peer=/usr/sbin/httpd-prefork//HANDLING_UNTRUSTED_INPUT,
+  capability net_admin,
+  capability net_admin,
 
   /etc/apache2/** r,
   /etc/mime.types r,
@@ -36,29 +33,16 @@
   /usr/lib{,32,64}/apache2*/** mr,
   /var/log/apache2/** rw,
 
-
   ^DEFAULT_URI {
     #include <abstractions/apache2-common>
-    #include <abstractions/base>
-    #include <abstractions/php5>
-    #include <abstractions/ubuntu-browsers.d/user-files>
-    #include <abstractions/user-tmp>
-
-    network unix stream,
 
     /var/log/apache2/** rw,
-
   }
 
   ^HANDLING_UNTRUSTED_INPUT {
     #include <abstractions/apache2-common>
-    #include <abstractions/base>
-
-    signal receive set=term peer=/usr/sbin/httpd-prefork,
-    signal receive set=usr1 peer=/usr/sbin/httpd-prefork,
 
     /var/log/apache2/** w,
-
   }
 
   ^adminer {
@@ -68,9 +52,8 @@
     /proc/meminfo r,
     /srv/www/htdocs/adminer/** r,
     /tmp/adminer.invalid rwk,
-    /var/lib/php7/** rwk,
+    /var/lib/php7/** krw,
     /var/log/apache2/access_log w,
     /var/log/apache2/error_log w,
-
   }
 }
