@@ -29,14 +29,7 @@ sub log_create {
 
 sub install_dependencies {
     my @deps = qw(
-      autoconf
-      automake
-      python3-devel
-      lzo-devel
       git-core
-      gcc
-      libblkid-devel
-      zlib-devel
     );
     zypper_call('in ' . join(' ', @deps));
 }
@@ -48,11 +41,8 @@ sub run {
     # Install btrfs-progs
     install_dependencies;
     assert_script_run("git clone -q --depth 1 $git_url", timeout => 360);
-    assert_script_run 'cd btrfs-progs';
-    assert_script_run './autogen.sh';
-    assert_script_run './configure --disable-documentation --disable-convert --disable-zstd';
-    assert_script_run 'make', timeout => 1200;
-    assert_script_run 'cd tests';
+    assert_script_run 'cd btrfs-progs/tests';
+    assert_script_run 'cp $(which btrfs)* ..';
 
     # Create log file
     log_create($STATUS_LOG);
