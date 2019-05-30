@@ -2000,7 +2000,6 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "gnome")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         load_x11_gnome();
     }
     elsif (check_var("REGRESSION", "documentation")) {
