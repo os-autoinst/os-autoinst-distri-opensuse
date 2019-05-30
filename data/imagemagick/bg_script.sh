@@ -616,7 +616,11 @@ convert plasma_fractal2.jpg  -blur 0x1 -paint 8  plasma_paint.jpg
 cme plasma_paint.jpg 152.jpg
 
 echo "plasma_emboss.jpg"
-convert plasma_fractal2.jpg  -blur 0x5 -emboss 2 plasma_emboss.jpg
+if grep -q 'VERSION=\"15' /etc/os-release ; then
+    convert plasma_fractal2.jpg -channel RGB -blur 0x5 -emboss 2 plasma_emboss.jpg
+else
+    convert plasma_fractal2.jpg -blur 0x5 -emboss 2 plasma_emboss.jpg
+fi
 cme plasma_emboss.jpg 153.jpg
 
 echo "plasma_sharp.jpg"
