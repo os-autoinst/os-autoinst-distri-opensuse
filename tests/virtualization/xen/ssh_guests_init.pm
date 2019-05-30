@@ -33,9 +33,11 @@ sub run {
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
         assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
         if (script_run("ssh -o PreferredAuthentications=publickey root\@$guest hostname -f") != 0) {
-            exec_and_insert_password "ssh-copy-id -f root\@$guest";
+            exec_and_insert_password "ssh-copy-id root\@$guest";
         }
+        assert_script_run "ssh root\@$guest rm /etc/cron.d/qam_cron; hostname";
     }
+    assert_script_run "echo 'PreferredAuthentications publickey' >> ~/.ssh/config";
 }
 
 sub test_flags {

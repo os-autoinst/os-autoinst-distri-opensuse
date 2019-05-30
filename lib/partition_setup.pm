@@ -468,6 +468,9 @@ sub take_first_disk {
 
         wait_screen_change {
             send_key 'alt-1';
+            wait_screen_change {
+                save_screenshot;
+            };
         };
         send_key $cmd{next};
 

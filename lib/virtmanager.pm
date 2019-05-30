@@ -2,6 +2,7 @@ package virtmanager;
 use testapi;
 use strict;
 use warnings;
+use version_utils 'is_sle';
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
@@ -622,7 +623,11 @@ sub select_guest {
     assert_and_click "virt-manager_connected";
     wait_still_screen 3;                               # Guests may be still loading
     if (!check_screen "virt-manager_list-$guest") {    # If the guest is hidden down in the list
-        send_key 'end';                                # Go down so we will see every guest unselected on the way up
+        if (is_sle('12-SP2+') || check_var("REGRESSION", "qemu-hypervisor")) {
+            send_key 'end';                            # Go down so we will see every guest unselected on the way up
+        } else {
+            assert_and_click "virt-manager_list-arrowdown", clicktime => 10    # Go down so we will see every guest unselected on the way up
+        }
         send_key_until_needlematch("virt-manager_list-$guest", 'up', 20, 3);
     }
     assert_and_click "virt-manager_list-$guest";
@@ -631,7 +636,7 @@ sub select_guest {
     if (check_screen 'virt-manager_notrunning') {
         record_info("The Guest was powered off and that should not happen");
         assert_and_click 'virt-manager_poweron', 'left', 90;
-        sleep 30;                                      # The boot would not be faster
+        sleep 30;                                                              # The boot would not be faster
     }
     if (check_screen('virt-manager_no-graphical-device')) {
         wait_screen_change { send_key 'ctrl-q'; };

@@ -2443,35 +2443,37 @@ sub load_hypervisor_tests {
     loadtest "virtualization/xen/list_guests";
 
     if ($virt_part =~ m/virtmanager/) {
-        loadtest 'virtualization/xen/virtmanager_init';           # Connect to the Xen hypervisor using virt-manager
-        loadtest 'virtualization/xen/virtmanager_offon';          # Turn all VMs off and then on again
-        loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
-        loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
+        loadtest 'virtualization/xen/virtmanager_init';     # Connect to the Xen hypervisor using virt-manager
+        loadtest 'virtualization/xen/virtmanager_offon';    # Turn all VMs off and then on again
+        if (is_sle('12-SP2+')) {
+            loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
+            loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
+        }
     }
 
-    loadtest 'virtualization/xen/ssh_guests';                     # Connect to guests using SSH
+    loadtest 'virtualization/xen/ssh_guests';                         # Connect to guests using SSH
 
     if ($virt_part =~ m/save_and_restore/) {
-        loadtest 'virtualization/xen/save_and_restore';           # Try to save and restore the state of the guest
+        loadtest 'virtualization/xen/save_and_restore';               # Try to save and restore the state of the guest
     }
 
     if ($virt_part =~ m/guest_management/) {
-        loadtest 'virtualization/xen/guest_management';           # Try to shutdown, start, suspend and resume the guest
+        loadtest 'virtualization/xen/guest_management';               # Try to shutdown, start, suspend and resume the guest
     }
-    if (check_var("XEN", "1") && $virt_part =~ m/dom_metrics/) {
-        loadtest 'virtualization/xen/virsh_stop';                 # Stop libvirt guests
-        loadtest 'virtualization/xen/xl_create';                  # Clone guests using the xl Xen tool
-        loadtest 'virtualization/xen/dom_install';                # Install vhostmd and vm-dump-metrics
-        loadtest 'virtualization/xen/dom_metrics';                # Collect some sample metrics
-        loadtest 'virtualization/xen/xl_stop';                    # Stop guests created by the xl Xen tool
-        loadtest 'virtualization/xen/virsh_start';                # Start virsh guests again
+    if (check_var("XEN", "1") && is_sle('12-SP2+') && $virt_part =~ m/dom_metrics/) {
+        loadtest 'virtualization/xen/virsh_stop';                     # Stop libvirt guests
+        loadtest 'virtualization/xen/xl_create';                      # Clone guests using the xl Xen tool
+        loadtest 'virtualization/xen/dom_install';                    # Install vhostmd and vm-dump-metrics
+        loadtest 'virtualization/xen/dom_metrics';                    # Collect some sample metrics
+        loadtest 'virtualization/xen/xl_stop';                        # Stop guests created by the xl Xen tool
+        loadtest 'virtualization/xen/virsh_start';                    # Start virsh guests again
     }
     if ($virt_part =~ m/final/) {
-        loadtest 'virtualization/xen/virtmanager_final';          # Check all VMs login screen
-        loadtest 'virtualization/xen/ssh_final';                  # Connect to guests using SSH
+        loadtest 'virtualization/xen/virtmanager_final';              # Check all VMs login screen
+        loadtest 'virtualization/xen/ssh_final';                      # Connect to guests using SSH
     }
-    if ($virt_part =~ m/hotplugging/) {
-        loadtest 'virtualization/xen/hotplugging';                # Try to change properties of guests
+    if ($virt_part =~ m/hotplugging/ && is_sle('12-SP2+')) {
+        loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
     }
 }
 

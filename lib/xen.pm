@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 # Supported guest configuration
 #   * location of the installation tree
@@ -123,6 +124,8 @@ if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-cl
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
         },
     );
+
+    delete($guests{sles11sp4PVx32}) if (is_sle('<=12-SP1'));
 } elsif (check_var("REGRESSION", "qemu-hypervisor") || check_var("REGRESSION", "qemu-client")) {
     %guests = (
         sles12sp3 => {
@@ -173,9 +176,11 @@ sub create_guest {
 
     if ($method eq 'virt-install') {
         record_info "$guest", "Going to create $guest guest";
+        send_key 'ret';    # Make some visual separator
+
         # Run unattended installation for selected guest
-        assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 20G";
-        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory 4096 --disk /var/lib/libvirt/images/xen/$guest.raw --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
+        assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 20G", 180;
+        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$guest.raw --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
     }
 }
 

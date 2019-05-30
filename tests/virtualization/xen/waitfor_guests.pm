@@ -25,7 +25,7 @@ sub run {
     assert_script_run "cat /etc/hosts";
 
     # Check if SSH is open because of that means that the guest is installed
-    script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %xen::guests);
+    script_retry("sh -c 'if virsh list --all | grep $_ | grep \"shut off\"; then virsh start $_; exit 1; else nmap $_ -PN -p ssh | grep open; fi'", delay => 60, retry => 60) foreach (keys %xen::guests);
 
     # All guests should be now installed, show them
     assert_script_run 'virsh list --all';

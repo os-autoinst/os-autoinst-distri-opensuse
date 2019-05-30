@@ -22,19 +22,30 @@ sub run {
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # TODO:
+    my $lsblk = 0;
     record_info "Disk", "Adding another raw disk";
     assert_script_run "mkdir -p /var/lib/libvirt/images/add/";
     assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/add/$_.raw 10G" foreach (keys %xen::guests);
     if (check_var('XEN', '1')) {
-        assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target xvdb" foreach (keys %xen::guests);
-        assert_script_run "virsh domblklist $_ | grep xvdb"                                                         foreach (keys %xen::guests);
-        assert_script_run "ssh root\@$_ lsblk | grep xvdb", 60 foreach (keys %xen::guests);
-        assert_script_run "virsh detach-disk $_ xvdb" foreach (keys %xen::guests);
+        script_run "virsh detach-disk $_ xvdz", 120 foreach (keys %xen::guests);
+        assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target xvdz" foreach (keys %xen::guests);
+        assert_script_run "virsh domblklist $_ | grep xvdz"                                                         foreach (keys %xen::guests);
+        foreach my $guest (keys %xen::guests) {
+            $lsblk = script_run "ssh root\@$guest lsblk | grep xvdz", 60;
+            record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+        }
+        assert_script_run "ssh root\@$_ lsblk" foreach (keys %xen::guests);
+        assert_script_run "virsh detach-disk $_ xvdz", 120 foreach (keys %xen::guests);
     } else {
-        assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target vdb" foreach (keys %xen::guests);
-        assert_script_run "virsh domblklist $_ | grep vdb"                                                         foreach (keys %xen::guests);
-        assert_script_run "ssh root\@$_ lsblk | grep vdb", 60 foreach (keys %xen::guests);
-        assert_script_run "virsh detach-disk $_ vdb" foreach (keys %xen::guests);
+        script_run "virsh detach-disk $_ vdz", 120 foreach (keys %xen::guests);
+        assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target vdz" foreach (keys %xen::guests);
+        assert_script_run "virsh domblklist $_ | grep vdz"                                                         foreach (keys %xen::guests);
+        foreach my $guest (keys %xen::guests) {
+            $lsblk = script_run "ssh root\@$guest lsblk | grep vdz", 60;
+            record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+        }
+        assert_script_run "ssh root\@$_ lsblk" foreach (keys %xen::guests);
+        assert_script_run "virsh detach-disk $_ vdz", 120 foreach (keys %xen::guests);
     }
 
     # TODO:
@@ -59,12 +70,12 @@ sub run {
             assert_script_run "virsh dommemstat $guest";
             assert_script_run "ssh root\@$guest free", 60;
             #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size", 60;
-            assert_script_run "virsh setmem --domain $guest --size 2048M --live";
+            assert_script_run "virsh setmem --domain $guest --size 3072M --live";
             sleep 5;
             assert_script_run "virsh dommemstat $guest";
             assert_script_run "ssh root\@$guest free", 60;
             #assert_script_run "ssh root\@$guest dmidecode --type 17 | grep Size", 60;
-            assert_script_run "virsh setmem --domain $guest --size 4096M --live";
+            assert_script_run "virsh setmem --domain $guest --size 2048M --live";
             sleep 5;
             assert_script_run "virsh dommemstat $guest";
             assert_script_run "ssh root\@$guest free", 60;
