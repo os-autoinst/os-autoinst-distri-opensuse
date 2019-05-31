@@ -1,5 +1,5 @@
 ---
-name:           installcheck
+name:           installcheck@64bit-staging
 description:    >
   Development support test. Execute the so called "installcheck" to
   check for package dependencies.

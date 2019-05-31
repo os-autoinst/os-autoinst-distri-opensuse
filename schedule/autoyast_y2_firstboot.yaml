@@ -6,7 +6,7 @@ vars:
 schedule:
     - autoyast/prepare_profile
     - installation/isosize
-    - installation/bootloader
+    - installation/bootloader_start
     - autoyast/installation
     - installation/yast2_firstboot
     - console/validate_yast2_firstboot_configuration

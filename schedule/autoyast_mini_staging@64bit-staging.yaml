@@ -1,10 +1,10 @@
-name:           autoyast_mini_staging
+name:           autoyast_mini_staging@64bit-staging
 description:    >
     Test verifies installation with minimal autoyast profile.
     Same as autoyast_mini but with product defined using url and not as registered modules
 schedule:
     - autoyast/prepare_profile
-    - installation/bootloader
+    - installation/bootloader_start
     - autoyast/installation
     - autoyast/console
     - autoyast/login

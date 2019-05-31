@@ -1,5 +1,5 @@
 ---
-name:           sles4sap_offline_gnome
+name:           sles4sap_offline_gnome@64bit-staging
 description:    >
   Graphical installation tests for SLES for SAP Applications without
   SCC registration. Boot into Gnome.
@@ -17,7 +17,7 @@ vars:
   SYSTEM_ROLE: default
   WORKAROUND_MODULES: base,desktop,sapapp,serverapp,ha
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration

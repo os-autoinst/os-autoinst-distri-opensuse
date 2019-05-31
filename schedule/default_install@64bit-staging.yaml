@@ -1,9 +1,9 @@
 ---
-name:           default_install
+name:           default_install@64bit-staging
 description:    >
   Test for default installation, with default options.
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration

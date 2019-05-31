@@ -6,7 +6,7 @@ description:    >
 vars:
   MAX_JOB_TIME: 10800
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
