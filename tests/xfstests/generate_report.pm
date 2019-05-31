@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -52,7 +52,7 @@ sub run {
     script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG");
 
     # Reload test logs if check missing
-    script_run("if [ ! -d $LOG_DIR ]; then curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi');
+    script_run("if [ ! -d $LOG_DIR ]; then mkdir -p $LOG_DIR; curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi');
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);
