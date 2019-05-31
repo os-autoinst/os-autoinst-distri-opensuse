@@ -27,10 +27,6 @@ sub run {
         }
     }
     push @cmds, 'sed -i "s#GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*\"#GRUB_CMDLINE_LINUX_DEFAULT=\"$new_cmdline\"#" /etc/default/grub';
-    if (script_run('! grep -q resume=.*by-path /proc/cmdline')) {
-        record_soft_failure "boo#1079537 - kernel argument noresume ignored - resume from suspend failing when the image started on different VM";
-        push @cmds, 'sed -i "s/# GRUB_DISABLE_LINUX_UUID=true/GRUB_DISABLE_LINUX_UUID=true/" /etc/default/grub';
-    }
     push @cmds, 'grub2-mkconfig -o /boot/grub2/grub.cfg';
 
     # Slow type for 12-SP2 aarch64 image creation test to try to avoid filling up the key event queue
