@@ -7,18 +7,20 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Bonding, Balance-rr
+# Summary: Bonding, active-backup
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-
-use Mojo::Base 'wickedbase';
+use base 'wickedbase';
+use strict;
+use warnings;
 use testapi;
 
 
 sub run {
-    record_info('INFO', 'Bonding, Balance-rr');
+    my ($self) = @_;
+    record_info('Info', 'Bonding, active-backup');
 }
 
 1;

@@ -466,7 +466,7 @@ sub setup_bond() {
     $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc0);
     $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc1);
     $self->get_from_data('wicked/bonding/ifcfg-bond0-' . $mode, $cfg_bond0);
-    file_content_replace($cfg_bond0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $iface0, iface1 => $iface1);
+    file_content_replace($cfg_bond0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $iface0, iface1 => $iface1, '--sed-modifier' => 'g');
 
     $self->wicked_command('ifup', 'all');
 }
