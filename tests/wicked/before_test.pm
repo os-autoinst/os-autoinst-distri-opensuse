@@ -54,7 +54,8 @@ sub run {
     } else {
         # Common SUT Configuration
         my $package_list = 'openvswitch openvpn';
-        $package_list .= ' libteam-tools libteamdctl0 python-libteam gcc' if check_var('WICKED', 'advanced');
+        $package_list .= ' libteam-tools libteamdctl0 python-libteam' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
+        $package_list .= ' gcc' if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
     }
