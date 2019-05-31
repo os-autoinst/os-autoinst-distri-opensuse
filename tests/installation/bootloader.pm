@@ -22,6 +22,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use bootloader_spvm;
 use registration;
+use version_utils ':SCENARIO';
 use utils;
 use Utils::Backends 'is_spvm';
 
@@ -49,7 +50,9 @@ sub run {
         # boot
         send_key 'ctrl-x';
     }
-    compare_bootparams(\@params, [parse_bootparams_in_serial]);
+    # On the live images boot parameters are not printed on the serial,
+    # skip the check there
+    compare_bootparams(\@params, [parse_bootparams_in_serial]) if !is_livecd;
 }
 
 1;
