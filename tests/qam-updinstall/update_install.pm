@@ -68,6 +68,8 @@ sub run {
 
     select_console 'root-console';
 
+    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $3}')}, exitcode => [0, 3]);
+
     fully_patch_system;
 
     set_var('MAINT_TEST_REPO', $repos);
