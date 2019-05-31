@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -218,7 +218,7 @@ sub save_kdump {
     my $name = test_name($test);
     my $ret  = script_run("mv /var/crash/* $dir/$name");
     if ($args{debug}) {
-        $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz /usr/lib/debug/boot; fi");
+        $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz --absolute-names /usr/lib/debug/boot; fi");
     }
     return 0 if $ret != 0;
 
@@ -331,7 +331,9 @@ sub run {
     save_tmp_file('status.log', $status_log_content);
     my $local_file = "/tmp/opt_logs.tar.gz";
     script_run("tar zcvf $local_file --absolute-names /opt/log/");
-    save_tmp_file('opt_logs.tar.gz', Mojo::File->new($local_file)->slurp());
+    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 10; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 5 ]; then break; fi; done");
+    my $tar_content = script_output("cat $local_file");
+    save_tmp_file('opt_logs.tar.gz', $tar_content);
 }
 
 sub post_fail_hook {
