@@ -22,7 +22,7 @@ sub run {
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
     my $output      = '';
 
-    select_console 'root-console';
+    $self->select_serial_terminal();
 
     # Disable packagekit
     pkcon_quit;
