@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -71,8 +71,8 @@ sub generateXML {
         failures  => "$fail_num",
         hostname  => `hostname`,
         id        => "0",
-        name      => get_var("QA_TESTSUITE"),
-        package   => get_var("QA_TESTSUITE"),
+        name      => get_var('QA_TESTSET', 'xfstests'),
+        package   => get_var('QA_TESTSET', 'test_result'),
         skipped   => "0",
         tests     => "$case_num",
         time      => "",
@@ -93,11 +93,11 @@ sub generateXML {
 
         $writer->startTag(
             'testcase',
-            classname => get_var("QA_TESTSUITE"),
+            classname => get_var('QA_TESTSET') || get_var('XFSTESTS'),
             name      => $test,
             status    => $case_status,
             time      => $test_results{$test}->{time});
-        if (!get_var('QA_TESTSUITE') && ($case_status eq 'failure' || $case_status eq 'skipped')) {
+        if ((get_var('XFSTESTS') || get_var('QA_TESTSET')) && ($case_status eq 'failure' || $case_status eq 'skipped')) {
             (my $test_path = $test) =~ s/-/\//;
             $test_path = '/opt/log/' . $test_path;
             my $test_out_content = script_output("if [ -f $test_path ]; then cat $test_path| sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176' | tail -n 200; else echo 'Test Crashed, find log in serial0.txt'; fi", 600);
