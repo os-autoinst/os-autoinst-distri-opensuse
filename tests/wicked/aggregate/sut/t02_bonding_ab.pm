@@ -12,11 +12,8 @@
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base 'wickedbase';
-use strict;
-use warnings;
+use Mojo::Base 'wickedbase';
 use testapi;
-use utils 'file_content_replace';
 
 
 sub run {

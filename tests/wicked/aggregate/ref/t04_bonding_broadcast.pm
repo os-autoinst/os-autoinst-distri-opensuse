@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Bonding, Balance-xor
+# Summary: Bonding, Broadcast
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -18,7 +18,7 @@ use testapi;
 
 
 sub run {
-    record_info('INFO', 'Bonding, Balance-xor');
+    record_info('INFO', 'Bonding, Broadcast');
 }
 
 1;
