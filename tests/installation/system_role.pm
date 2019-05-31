@@ -66,6 +66,10 @@ sub assert_system_role {
 }
 
 sub run {
+    return record_info(
+        "Skip screen",
+        "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available"
+    ) if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64'));
     assert_system_role;
 }
 

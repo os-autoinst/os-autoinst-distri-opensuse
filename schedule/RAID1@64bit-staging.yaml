@@ -1,12 +1,10 @@
 ---
-name:           ext4_xen-pv
+name:           RAID1@64bit-staging
 description:    >
-  Test for ext4 filesystem in svirt-xen-pv.
-  Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
-  due to grub2 doesnt support xfb console.
+  Test for RAID1
+  Installation of RAID1 using expert partitioner.
 vars:
-  FILESYSTEM: ext4
-  FORMAT_DASD: install
+  RAIDLEVEL: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -15,15 +13,23 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_filesystem
+  - installation/partitioning_raid
   - installation/partitioning_finish
   - installation/installer_timezone
+  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/grub_test
   - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/validate_raid

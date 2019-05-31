@@ -1,5 +1,5 @@
 ---
-name:           minimal+base_xen-pv
+name:           minimal+base@yast-xen-pv
 description:    >
   Select a minimal textmode installation by starting with the default and unselecting all patterns
   except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.

@@ -1,19 +1,15 @@
 ---
-name:           ext4
+name:           minimal+base@yast
 description:    >
-  Test for ext4 filesystem.
+  Select a minimal textmode installation by starting with the default and unselecting all patterns
+  except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
 vars:
-  FILESYSTEM: ext4
-  FORMAT_DASD: install
+  PATTERNS: base,minimal
 conditional_schedule:
     disk_activation:
         BACKEND:
             s390x:
                 - installation/disk_activation
-    system_role:
-        SYSTEM_ROLE:
-            default:
-                - installation/system_role
     after_reboot:
         ARCH:
             s390x:
@@ -31,14 +27,14 @@ schedule:
   - {{disk_activation}}
   - installation/scc_registration
   - installation/addon_products_sle
-  - {{system_role}}
+  - installation/system_role
   - installation/partitioning
-  - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
