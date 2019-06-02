@@ -157,7 +157,7 @@ sub copy_media {
     assert_script_run "mount -t $proto $path /mnt";
     type_string "cd /mnt\n";
     type_string "cd " . get_var('ARCH') . "\n";    # Change to ARCH specific subdir if exists
-    assert_script_run "tar -cf - . | (cd $target/; tar -pxf - )", $nettout;
+    assert_script_run "cp -ax . $target/", $nettout;
 
     # Then verify everything was copied correctly
     my $cmd = q|find . -type f -exec md5sum {} \; > /tmp/check-nw-media|;
