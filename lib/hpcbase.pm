@@ -34,20 +34,45 @@ sub switch_user {
 }
 
 sub prepare_slurm_conf {
-    # Create proper /etc/hosts and /etc/slurm.conf for each node
+    my $ctl_nodes = get_required_var("CLUSTER_CTL_FAILOVER");
     my $nodes = get_required_var("CLUSTER_NODES");
 
-    my $slurm_slave_nodes = "";
-    for (my $node = 1; $node < $nodes; $node++) {
-        my $node_name = sprintf("slurm-slave%02d", $node);
-        $slurm_slave_nodes = "${slurm_slave_nodes},${node_name}";
+    my @ctl_node_names;
+    my @compute_node_names;
+
+    for (my $node = 0; $node <= $ctl_nodes; $node++) {
+        my $name = sprintf("slurm-master%02d", $node);
+        push @ctl_node_names, $name;
     }
-    my $config = << "EOF";
-sed -i "/^ControlMachine.*/c\\ControlMachine=slurm-master" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=slurm-master${slurm_slave_nodes} Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=slurm-master${slurm_slave_nodes} Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+
+    #adjust node value, so slurm.conf could account for correct count of slaves
+    $nodes = $nodes - $ctl_nodes;
+    for (my $node = 1; $node < $nodes; $node++) {
+        my $name = sprintf("slurm-slave%02d", $node);
+        push @compute_node_names, $name;
+    }
+
+    my $cluster_ctl_nodes = join(',', @ctl_node_names);
+    my $cluster_compute_nodes = join(',', @compute_node_names);
+
+    if ($ctl_nodes) {
+        my $config = << "EOF";
+sed -i "/^ControlMachine.*/c\\ControlMachine=@ctl_node_names[0]" /etc/slurm/slurm.conf
+sed -i "/^#BackupController.*/c\\BackupController=@ctl_node_names[1]" /etc/slurm/slurm.conf
+sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
+sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
+sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);
+    } else {
+        my $config = << "EOF";
+sed -i "/^ControlMachine.*/c\\ControlMachine=@ctl_node_names[0]" /etc/slurm/slurm.conf
+sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
+sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+EOF
+    assert_script_run($_) foreach (split /\n/, $config);
+    }
 }
 
 =head2
