@@ -17,14 +17,14 @@ package Utils::Systemd;
 
 use base 'Exporter';
 use Exporter;
-
+use Carp 'croak';
 use strict;
 use warnings;
-
-use utils 'systemctl';
+use testapi qw(script_run assert_script_run);
 
 our @EXPORT = qw(
   disable_and_stop_service
+  systemctl
 );
 
 =head1 Utils::Systemd
@@ -53,5 +53,23 @@ sub disable_and_stop_service {
     systemctl("stop $service_name", ignore_failure => $args{ignore_failure});
 }
 
+=head2 systemctl
+
+Wrapper around systemctl call to be able to add some useful options.
+
+Please note that return code of this function is handle by 'script_run' or
+'assert_script_run' function, and as such, can be different.
+=cut
+sub systemctl {
+    my ($command, %args) = @_;
+    croak "systemctl(): no command specified" if ($command =~ /^ *$/);
+    my $expect_false = $args{expect_false} ? '!' : '';
+    my @script_params = ("$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
+    if ($args{ignore_failure}) {
+        script_run($script_params[0], $args{timeout});
+    } else {
+        assert_script_run(@script_params);
+    }
+}
 
 1;

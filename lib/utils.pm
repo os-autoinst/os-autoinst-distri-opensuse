@@ -24,6 +24,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use Utils::Systemd 'systemctl';
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -282,25 +283,6 @@ sub unlock_if_encrypted {
         save_screenshot;
         assert_screen 'encrypted_disk-typed_password' if $args{check_typed_password};
         send_key "ret";
-    }
-}
-
-=head2 systemctl
-
-Wrapper around systemctl call to be able to add some useful options.
-
-Please note that return code of this function is handle by 'script_run' or
-'assert_script_run' function, and as such, can be different.
-=cut
-sub systemctl {
-    my ($command, %args) = @_;
-    die "systemctl(): no command specified" if ($command =~ /^ *$/);
-    my $expect_false = $args{expect_false} ? '!' : '';
-    my @script_params = ("$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
-    if ($args{ignore_failure}) {
-        script_run($script_params[0], $args{timeout});
-    } else {
-        assert_script_run(@script_params);
     }
 }
 
@@ -956,7 +938,7 @@ sub disable_serial_getty {
     return if script_run "systemctl is-enabled $service_name";
     systemctl "stop $service_name",    ignore_failure => 1;
     systemctl "disable $service_name", ignore_failure => 1;
-    record_info 'serial-getty', "Serial getty disabled for $testapi::serialdev";
+    record_info 'serial-getty',        "Serial getty disabled for $testapi::serialdev";
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
     systemctl "mask $service_name", ignore_failure => 1 if check_var('BACKEND', 'qemu');
     record_info 'serial-getty', "Serial getty mask for $testapi::serialdev";
