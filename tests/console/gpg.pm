@@ -89,7 +89,7 @@ EOF
     # 2048 and 4096 key length should be supported. See bsc#1125740 comment#15
     # for details
     if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024' || $key_size == '4096')) {
-        wait_serial("gpg: agent_genkey failed: Invalid value", 90) || die "It should failed with invalid value!";
+        wait_serial("failed: Invalid value", 90) || die "It should failed with invalid value!";
         return;
     }
 
