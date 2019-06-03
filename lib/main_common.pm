@@ -2191,11 +2191,13 @@ sub load_security_tests_apparmor {
 }
 
 sub load_security_tests_apparmor_profile {
-    load_security_console_prepare;
-
     if (check_var('TEST', 'mau-apparmor_profile')) {
         loadtest "qa_automation/patch_and_reboot";
+        load_security_console_prepare;
         loadtest "security/apparmor/aa_prepare";
+    }
+    else {
+        load_security_console_prepare;
     }
     loadtest "security/apparmor_profile/usr_sbin_smbd";
     loadtest "security/apparmor_profile/apache2_changehat";
