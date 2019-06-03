@@ -120,8 +120,8 @@ sub is_desktop_module_available {
 }
 
 # SLE specific variables
-set_var('NOAUTOLOGIN', 1);
-set_var('HASLICENSE',  1);
+set_var('NOAUTOLOGIN', 1) unless check_var('NOAUTOLOGIN', '0');
+set_var('HASLICENSE', 1);
 set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
 # Always register against SCC if SLE 15
 if (is_sle('15+')) {

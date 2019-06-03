@@ -38,6 +38,10 @@ sub run {
         send_key $cmd{noautologin};
         assert_screen 'autologindisabled';
     }
+    elsif (check_var('NOAUTOLOGIN', '0')) {
+        send_key $cmd{noautologin};
+        assert_screen 'autologinenabled';
+    }
     if (get_var('DOCRUN')) {
         send_key $cmd{otherrootpw};
         assert_screen 'rootpwdisabled';
