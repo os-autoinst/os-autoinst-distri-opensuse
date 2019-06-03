@@ -23,4 +23,8 @@ sub run {
     $self->validate_interfaces('team0', $ctx->iface(), $ctx->iface2());
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;

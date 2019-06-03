@@ -7,18 +7,24 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Bonding, active-backup
+# Summary: Teaming, Random
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
-
 
 use Mojo::Base 'wickedbase';
 use testapi;
 
 
 sub run {
-    record_info('INFO', 'Bonding, active-backup');
+    my ($self, $ctx) = @_;
+    record_info('INFO', 'Teaming, Random');
+    $self->setup_team('random', $ctx->iface(), $ctx->iface2());
+    $self->validate_interfaces('team0', $ctx->iface(), $ctx->iface2());
+}
+
+sub test_flags {
+    return {always_rollback => 1};
 }
 
 1;
