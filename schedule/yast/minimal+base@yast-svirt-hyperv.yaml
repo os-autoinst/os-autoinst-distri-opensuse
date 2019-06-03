@@ -1,10 +1,9 @@
 ---
-name:           minimal+base@yast-xen-pv
+name:           minimal+base@yast-svirt-hyperv
 description:    >
   Select a minimal textmode installation by starting with the default and unselecting all patterns
   except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
-  Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
-  due to grub2 doesn't support xfb console.
+  It cannot access installation shell therefore it does not schedule module 'logs_from_installation_system'.
 vars:
   PATTERNS: base,minimal
 schedule:
@@ -22,16 +21,18 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/select_patterns_and_packages
   - installation/installation_overview
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
-  - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/grub_test
   - installation/first_boot
   - console/system_prepare
   - console/check_network
   - console/system_state
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/integration_services
   - locale/keymap_or_locale
   - console/force_scheduled_tasks
   - console/textinfo
@@ -40,12 +41,12 @@ schedule:
   - console/zypper_ref
   - console/ncurses
   - console/curl_https
-  - console/salt
   - console/glibc_sanity
   - update/zypper_up
   - console/zypper_in
   - console/yast2_i
   - console/yast2_bootloader
+  - console/vim
   - console/firewall_enabled
   - console/sshd
   - console/ssh_cleanup

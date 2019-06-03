@@ -1,0 +1,31 @@
+---
+name:           minimal+base@yast-s390x-disk-activation
+description:    >
+  Select a minimal textmode installation by starting with the default and unselecting all patterns
+  except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
+  Requires disk activation and grub is not displayed due to console reconnection.
+vars:
+  PATTERNS: base,minimal
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/disk_activation
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
