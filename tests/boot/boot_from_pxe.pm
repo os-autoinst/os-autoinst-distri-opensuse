@@ -172,4 +172,19 @@ sub run {
     }
 }
 
+sub post_fail_hook {
+    my $self = shift;
+
+    if (check_var('BACKEND', 'ipmi') && check_var('VIDEOMODE', 'text')) {
+        select_console 'log-console';
+        save_screenshot;
+        script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";
+        upload_logs "/tmp/y2logs_clone.tar.bz2";
+        save_screenshot;
+    }
+
+    $self->SUPER::post_fail_hook();
+}
+
+
 1;
