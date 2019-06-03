@@ -1088,12 +1088,12 @@ Does not fail the test module but just highlights the result of the comparison.
 =cut
 
 sub compare_bootparams {
-    my ($array1_ref, $array2_ref) = @_;
-    my @difference = arrays_subset($array1_ref, $array2_ref);
+    my ($expected_boot_params, $received_boot_params) = @_;
+    my @difference = arrays_subset($expected_boot_params, $received_boot_params);
     if (scalar @difference > 0) {
         record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
     } else {
-        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$array1_ref}");
+        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$expected_boot_params}");
     }
 }
 
