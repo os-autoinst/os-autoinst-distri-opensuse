@@ -1,0 +1,27 @@
+name:           krypton-live-installation
+description:    >
+   Boots the openSUSE Krypton/Argon Live DVD and uses the installer to
+   install with default settings, then reboots into the installed system.
+vars:
+  DESKTOP: kde
+  LIVE_INSTALLATION: 1
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/finish_desktop
+  - installation/live_installation
+  - installation/welcome
+  - installation/online_repos
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
