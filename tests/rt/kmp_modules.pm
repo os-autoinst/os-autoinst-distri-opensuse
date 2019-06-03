@@ -33,7 +33,7 @@ sub lttng_test {
     # Trace demo
     assert_script_run 'lttng create ' . $trace->{label} . ' -o ' . $trace->{output};
     assert_script_run 'lttng enable-channel --kernel ' . $trace->{channel};
-    assert_script_run 'lttng enable-event --kernel -a ' . $trace->{component} . ' -c ' . $trace->{label};
+    assert_script_run 'lttng enable-event --kernel -a ' . $trace->{component} . ' -c ' . $trace->{channel};
     assert_script_run 'lttng start';
     assert_script_run 'sleep 5';
     assert_script_run 'lttng list ' . $trace->{label};
@@ -41,8 +41,12 @@ sub lttng_test {
     assert_script_run 'lttng destroy -a';
     if ((script_run "test -e $trace->{output}") == 0) {
         assert_script_run "ls -la $trace->{output}" . '/kernel';
-        assert_script_run "file $trace->{output}" . '/kernel/' . uc $trace->{label} . '_0';
-        assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{channel} . '_0';
+        if ((script_run('test -f ' . $trace->{output} . '/kernel/' . $trace->{label} . '_0')) == 0) {
+            assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{label} . '_0';
+        }
+        if ((script_run('test -f ' . $trace->{output} . '/kernel/' . $trace->{channel} . '_0')) == 0) {
+            assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{channel} . '_0';
+        }
     } else {
         die "Trace file \"$trace->{output}\" does not exist!\n";
     }
