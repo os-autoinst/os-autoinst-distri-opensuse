@@ -21,16 +21,32 @@ use utils qw(zypper_call systemctl);
 
 sub run {
     select_console 'root-console';
+    my $hostname = get_var('HOSTNAME');
 
-    # Install both salt master and minion and run the master daemon
-    zypper_call("in salt-master salt-minion");
-    systemctl("start salt-master");
-    systemctl("status salt-master");
+    # Install the salt master
+    zypper_call("in salt-master");
 
-    # Set the right address of the salt master and run the minion
-    assert_script_run('sed -i -e "s/#master: salt/master: 10.0.2.101/" /etc/salt/minion');
-    systemctl("start salt-minion");
-    systemctl("status salt-minion");
+    # Enable and start the salt-master
+    systemctl 'enable salt-master';
+    systemctl 'start salt-master';
+    systemctl 'status salt-master';
+
+    # Let the remote minion start
+    mutex_create 'SALT_MASTER_READY';
+
+    # Install the salt minion
+    zypper_call("in salt-minion");
+
+    # Set the right address of the salt master
+    assert_script_run "echo '$hostname' > /etc/salt/minion_id";
+    assert_script_run('sed -i -e "s/#master: .*/master: 127.0.0.1/" /etc/salt/minion');
+    assert_script_run('sed -i -e "s/#ipv6: .*/ipv6: False/" /etc/salt/minion');
+    assert_script_run("grep 'master:\\\|ipv6:' /etc/salt/minion");
+
+    # Enable and start the salt-minion
+    systemctl 'enable salt-minion';
+    systemctl 'start salt-minion';
+    systemctl 'status salt-minion';
 
     # before accepting the key, wait until the minion is fully started (systemd might be not reliable)
     assert_script_run('salt-run state.event tagmatch="salt/auth" quiet=True count=1', timeout => 300);
@@ -38,12 +54,17 @@ sub run {
 
     # List and accept both minions when they are ready
     assert_script_run("salt-key -L");
-    assert_script_run("salt-key --accept-all -y");
-    assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
-    then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
+    assert_script_run("(sleep 5 && salt-key -A -y ) & salt-run state.event tagmatch='salt/minion/*/start' count=2 && salt '*' test.ping", timeout => 360);
+
+    # Inform minion that keys were accepted
+    mutex_create 'SALT_KEYS_ACCEPTED';
+    assert_script_run('salt-call -l debug test.ping', timeout => 360);
+
+    # Try to ping both minions
+    assert_script_run("salt --verbose -t 300 '*' test.ping", timeout => 360);
 
     # Run a command and wait for minion
-    assert_script_run("salt '*' cmd.run 'touch /tmp/salt_touch'", 300);
+    assert_script_run("salt --verbose '*' cmd.run 'touch /tmp/salt_touch'", 300);
     mutex_create 'SALT_TOUCH';
 
     # Install a package and wait for the minion
@@ -55,6 +76,8 @@ base:
   '*':
     - pkg" > /srv/salt/top.sls));
     assert_script_run("salt '*' state.highstate", 300);
+    assert_script_run "pidstat";
+
     mutex_create 'SALT_STATES_PKG';
 
     # Create user and group and wait for the minion
@@ -70,7 +93,7 @@ salttestuser:
     - groups:
       - salttestgroup" > /srv/salt/user.sls));
     assert_script_run("echo '    - user' >> /srv/salt/top.sls");
-    assert_script_run("salt '*' state.highstate", 300);
+    assert_script_run("salt --verbose '*' state.highstate", 300);
     mutex_create 'SALT_STATES_USER';
 
     # Set sysctl key and wait for the minion
@@ -79,7 +102,7 @@ net.ipv4.ip_forward:
   sysctl.present:
     - value: 1" > /srv/salt/sysctl.sls));
     assert_script_run("echo '    - sysctl' >> /srv/salt/top.sls");
-    assert_script_run("salt '*' state.highstate", 300);
+    assert_script_run("salt --verbose '*' state.highstate", 300);
     mutex_create 'SALT_STATES_SYSCTL';
 
     # Stop both master and minion at the end

@@ -21,15 +21,31 @@ use utils qw(zypper_call systemctl);
 
 sub run {
     select_console 'root-console';
+    my $hostname = get_var('HOSTNAME');
 
-    # Install the salt minion, set the address of the master and start it
+    # Wait until the master is ready
+    mutex_wait 'SALT_MASTER_READY';
+
+    # Install the salt minion
     zypper_call('in salt-minion');
-    assert_script_run('sed -i -e "s/#master: salt/master: 10.0.2.101/" /etc/salt/minion');
-    systemctl("start salt-minion");
-    systemctl("status salt-minion");
+
+    # Set the right address of the salt master
+    assert_script_run('sed -i -e "s/#master: .*/master: 10.0.2.101/" /etc/salt/minion');
+    assert_script_run('sed -i -e "s/#ipv6: .*/ipv6: False/" /etc/salt/minion');
+    assert_script_run("grep 'master:\\\|ipv6:' /etc/salt/minion");
+    assert_script_run "echo '$hostname' > /etc/salt/minion_id";
+
+    # Enable and start the salt-minion
+    systemctl 'enable salt-minion';
+    systemctl 'start salt-minion';
+    systemctl 'status salt-minion';
 
     # before accepting the key, wait until the minion is fully started (systemd might be not reliable)
     barrier_wait 'SALT_MINIONS_READY';
+
+    # Wait for the keys to be accepted
+    mutex_wait 'SALT_KEYS_ACCEPTED';
+    assert_script_run('salt-call -l debug test.ping', timeout => 360);
 
     # Check that the command executed from the master was successfully done
     mutex_wait 'SALT_TOUCH';
