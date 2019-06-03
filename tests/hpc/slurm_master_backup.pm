@@ -1,16 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: HPC_Module: slurm master
-#    This test is setting up slurm master and starts the control node
+# Summary: slurm cluster initialization
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
-# Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
 use base "hpcbase";
 use strict;
@@ -22,16 +20,23 @@ use utils;
 sub run {
     my $self  = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
-    $self->prepare_user_and_group();
 
-    # install slurm
+    $self->prepare_user_and_group();
+    zypper_call('in nfs-client rpcbind');
+
+    systemctl 'start nfs';
+    systemctl 'start rpcbind';
+
+    assert_script_run("showmount -e 10.0.2.1");
+
+    assert_script_run("mkdir -p /shared/slurm");
+    assert_script_run("chown -Rcv slurm:slurm /shared/slurm");
+    assert_script_run("mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm");
+
     zypper_call('in slurm slurm-munge');
 
-    $self->prepare_slurm_conf();
     barrier_wait("SLURM_SETUP_DONE");
-
-    $self->distribute_munge_key();
-    $self->distribute_slurm_conf();
+    barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
     # enable and start munge
     $self->enable_and_start('munge');
@@ -44,14 +49,12 @@ sub run {
     $self->enable_and_start('slurmd');
     systemctl 'status slurmd';
 
-    # wait for slave to be ready
-    barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
-    barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
-
-    # run the actual test against both nodes
     assert_script_run("srun -N ${nodes} /bin/ls");
+    assert_script_run("sinfo -N -l");
+    assert_script_run("scontrol ping");
 
-    barrier_wait('SLURM_MASTER_RUN_TESTS');
+    barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
+    barrier_wait("SLURM_MASTER_RUN_TESTS");
 }
 
 sub test_flags {
