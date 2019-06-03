@@ -423,7 +423,7 @@ Creating VLAN using only ip commands. Getting ip alias name for wickedbase::get_
 function
 
 =cut
-sub setup_vlan() {
+sub setup_vlan {
     my ($self, $ip_type) = @_;
     my $iface    = iface();
     my $local_ip = $self->get_ip(type => $ip_type, netmask => 1);
@@ -457,7 +457,7 @@ sub validate_macvtap {
     validate_script_output("cat $macvtap_log", sub { m/Success listening to tap device/ });
 }
 
-sub setup_bond() {
+sub setup_bond {
     my ($self, $mode, $iface0, $iface1) = @_;
 
     my $cfg_bond0 = '/etc/sysconfig/network/ifcfg-bond0';
@@ -471,7 +471,7 @@ sub setup_bond() {
     $self->wicked_command('ifup', 'all');
 }
 
-sub setup_team() {
+sub setup_team {
     my ($self, $mode, $iface0, $iface1) = @_;
 
     my $cfg_team0 = '/etc/sysconfig/network/ifcfg-team0';
@@ -485,7 +485,7 @@ sub setup_team() {
     $self->wicked_command('ifup', 'all');
 }
 
-sub validate_interfaces() {
+sub validate_interfaces {
     my ($self, $interface, $iface0, $iface1) = @_;
     die("Missing interface $interface") unless ifc_exists($interface);
     validate_script_output('ip a s dev ' . $iface0, sub { /master $interface/ });
