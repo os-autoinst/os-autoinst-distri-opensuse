@@ -18,7 +18,6 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 
@@ -157,7 +156,7 @@ we assume it is "64bit-mlx_con5".
 =head2 openQA test suites
 As the test is executed on two hosts, two test suites should be created:
 
-=head3 ibtest-master	
+=head3 ibtest-master
 ADDONURL_SDK=<addon url>
 DEVEL_TOOLS_REPO=<REPO CONTAINING RPM OF TWOPENCE>
 IBTESTS=1
@@ -169,7 +168,7 @@ IBTEST_ROLE=IBTEST_MASTER
 TEST=ibtest-master
 WORKER_CLASS=64bit-mlx_con5
 
-=head3 ibtest-slave	
+=head3 ibtest-slave
 DEVEL_TOOLS_REPO=<REPO CONTAINING RPM OF TWOPENCE>
 IBTESTS=1
 IBTEST_IP1=<master IP>
