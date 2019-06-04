@@ -226,6 +226,7 @@ sub ping_with_timeout {
     $args{proceed_on_failure} //= 0;
     $args{count_success}      //= 1;
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
+    $args{threshold} //= 50;
     my $timeout      = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     $ping_command .= " -c 1 $args{ip}";
@@ -235,7 +236,15 @@ sub ping_with_timeout {
             if ($args{count_success} > 1) {
                 my $cnt = $args{count_success} - 1;
                 $ping_command =~ s/\s-c\s1\s+/ -c $cnt /;
-                validate_script_output($ping_command, sub { /\s+0% packet loss/ });
+                my $ping_out = script_output($ping_command, proceed_on_failure => 1);
+                $ping_out =~ /, (\d{1,3})% packet loss/;
+                #we treat interface in workable state if it manage to echo more than half packets
+                if ($1 > $args{threshold}) {
+                    die('PING EXCEED THRESHOLD ' . $args{threshold} . '%\n' . $ping_out);
+                }
+                elsif ($1) {
+                    record_info('WARNING', sprintf('PING with %d%% packet loss. Threshold is %d%% \n %s', $1, $args{threshold}, $ping_out));
+                }
             }
             return 1;
         }
