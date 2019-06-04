@@ -15,6 +15,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_sle';
 
 sub upload_install_log {
     script_run "tar -zcvf /tmp/hana_install.log.tgz /var/tmp/hdb*";
@@ -55,8 +56,8 @@ sub run {
 
     # Partition disks for Hana
     if (check_var('HANA_PARTITIONING_BY', 'yast')) {
-        my $hana_part_cfg = '/usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml';
-        assert_script_run "yast sap_create_storage_ng $hana_part_cfg";
+        my $yast_partitioner = is_sle('15+') ? 'sap_create_storage_ng' : 'sap_create_storage';
+        assert_script_run "yast $yast_partitioner /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml";
     }
     else {
         # If running on QEMU and with a second disk configured, then configure
