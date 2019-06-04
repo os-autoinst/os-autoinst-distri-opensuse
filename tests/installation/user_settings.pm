@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use parent qw(installation_user_settings y2_installbase);
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -38,7 +39,7 @@ sub run {
         send_key $cmd{noautologin};
         assert_screen 'autologindisabled';
     }
-    elsif (check_var('NOAUTOLOGIN', '0')) {
+    elsif (is_sle() && check_var('NOAUTOLOGIN', '0')) {
         send_key $cmd{noautologin};
         assert_screen 'autologinenabled';
     }
