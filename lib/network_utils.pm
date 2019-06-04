@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 
-our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists);
+our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up);
 
 =head2 setup_static_network
 Configure static IP on SUT with setting up default GW.
@@ -92,6 +92,11 @@ sub recover_network {
 sub ifc_exists {
     my ($ifc) = @_;
     return !script_run('ip link show dev ' . $ifc);
+}
+
+sub ifc_is_up {
+    my ($ifc) = @_;
+    return !script_run("ip link show dev $ifc | grep 'state UP'");
 }
 
 1;
