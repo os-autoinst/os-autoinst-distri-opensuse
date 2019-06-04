@@ -42,32 +42,39 @@ sub run {
     $self->prepare_profile('HANA');
 
     # Copy media
-    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 1800);    # Timeout for HANA installation commands. Defaults to NW's timeout times 2
+    my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 2700);    # Timeout for HANA installation commands. Defaults to NW's timeout times 2
     $self->copy_media($proto, $path, $tout, '/sapinst');
 
-    # Prepare mount points. Use the same sizes and names as the ones used by the wizard installation
+    # Mount points information: use the same paths and minimum sizes as the wizard
     my %mountpts = (
-        hanadata   => {mountpt => '/HANA/data',         size => '24g'},
-        hanalog    => {mountpt => '/HANA/log',          size => '12g'},
-        hanashared => {mountpt => '/HANA/shared',       size => '24g'},
+        hanadata   => {mountpt => '/hana/data',         size => '24g'},
+        hanalog    => {mountpt => '/hana/log',          size => '12g'},
+        hanashared => {mountpt => '/hana/shared',       size => '24g'},
         usr_sap    => {mountpt => "/usr/sap/$sid/home", size => '50g'}
     );
 
-    # If running on QEMU and with a second disk configured, then configure
-    # mountpoints and LVM. Otherwise leave those choices to hdblcm, but
-    # always create mountpoints.
-    foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
-    if (check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) {
-        my $device = check_var('HDDMODEL', 'scsi-hd') ? '/dev/sdb' : '/dev/vdb';
-        script_run "wipefs -f $device; wipefs -f ${device}1";
-        assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
-        $device .= '1';
-        assert_script_run "pvcreate -y $device";
-        assert_script_run "vgcreate -f vg_hana $device";
-        foreach my $mounts (keys %mountpts) {
-            assert_script_run "lvcreate -y -W y -n lv_$mounts --size $mountpts{$mounts}->{size} vg_hana";
-            assert_script_run "mkfs.xfs /dev/vg_hana/lv_$mounts";
-            assert_script_run "mount /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt}";
+    # Partition disks for Hana
+    if (check_var('HANA_PARTITIONING_BY', 'yast')) {
+        my $hana_part_cfg = '/usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml';
+        assert_script_run "yast sap_create_storage_ng $hana_part_cfg";
+    }
+    else {
+        # If running on QEMU and with a second disk configured, then configure
+        # mountpoints and LVM. Otherwise leave those choices to hdblcm, but
+        # always create mountpoints.
+        foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
+        if (check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) {
+            my $device = check_var('HDDMODEL', 'scsi-hd') ? '/dev/sdb' : '/dev/vdb';
+            script_run "wipefs -f $device; wipefs -f ${device}1";
+            assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
+            $device .= '1';
+            assert_script_run "pvcreate -y $device";
+            assert_script_run "vgcreate -f vg_hana $device";
+            foreach my $mounts (keys %mountpts) {
+                assert_script_run "lvcreate -y -W y -n lv_$mounts --size $mountpts{$mounts}->{size} vg_hana";
+                assert_script_run "mkfs.xfs /dev/vg_hana/lv_$mounts";
+                assert_script_run "mount /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt}";
+            }
         }
     }
     assert_script_run "df -h";
