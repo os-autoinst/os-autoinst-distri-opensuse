@@ -11,7 +11,7 @@
 # Summary: Clone system and use the autoyast file in chained tests
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -25,16 +25,9 @@ sub run {
 
     # Install for TW and generate profile
     zypper_call "in autoyast2";
-    script_run("yast2 clone_system; echo yast2-clone-system-status-\$? > /dev/$serialdev", 0);
 
-    # workaround for bsc#1013605
-    my $timeout = 600;
-    assert_screen([qw(dhcp-popup yast2_console-finished)], $timeout);
-    if (match_has_tag('dhcp-popup')) {
-        wait_screen_change { send_key 'alt-o' };
-        assert_screen 'yast2_console-finished', $timeout;
-    }
-    wait_serial('yast2-clone-system-status-0') || die "'yast2 clone_system' didn't finish";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
+    wait_serial("$module_name-0", 180) || die "'yast2 clone_system' didn't finish";
 
     $self->select_serial_terminal;
     # Replace unitialized email variable - bsc#1015158

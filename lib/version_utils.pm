@@ -21,6 +21,9 @@ use strict;
 use warnings;
 use testapi qw(check_var get_var set_var);
 use version 'is_lax';
+use Carp 'croak';
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
+use Utils::Architectures 'is_s390x';
 
 use constant {
     VERSION => [
@@ -39,6 +42,7 @@ use constant {
           is_sles4sap_standard
           is_released
           is_rt
+          is_hpc
           is_staging
           is_storage_ng
           is_using_system_role
@@ -66,13 +70,12 @@ use constant {
           is_system_upgrading
           is_virtualization_server
           is_server
-          is_s390x
+          is_transactional
           is_livecd
-          is_x86_64
-          is_aarch64
-          is_ppc64le
           has_product_selection
           has_license_on_welcome_screen
+          has_license_to_accept
+          uses_qa_net_hardware
           )
     ]
 };
@@ -93,16 +96,6 @@ sub is_jeos {
 
 sub is_vmware {
     return check_var('VIRSH_VMM_FAMILY', 'vmware');
-}
-
-sub is_hyperv {
-    my $hyperv_version = shift;
-    return 0 unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
-    return defined($hyperv_version) ? check_var('HYPERV_VERSION', $hyperv_version) : 1;
-}
-
-sub is_hyperv_in_gui {
-    return is_hyperv && !check_var('VIDEOMODE', 'text');
 }
 
 sub is_krypton_argon {
@@ -154,17 +147,17 @@ sub check_version {
         return $pv eq $qv if $+{op} eq '=';
     }
     # Version should be matched and processed by now
-    die "Unsupported version parameter: $query";
+    croak "Unsupported version parameter for check_version: '$query'";
 }
 
-# Check if distribution is CaaSP or Kubic with optional filter:
+# Check if distribution is CaaSP or MicroOS with optional filter:
 # Media type: DVD (iso) or VMX (all disk images)
 # Version: 1.0 | 2.0 | 2.0+
 # Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 sub is_caasp {
     my $filter = shift;
     my $distri = get_var('DISTRI');
-    return 0 unless $distri && $distri =~ /caasp|kubic/;
+    return 0 unless $distri && $distri =~ /caasp|microos/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {
@@ -178,7 +171,7 @@ sub is_caasp {
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
         return check_version($filter, get_var('VERSION'), qr/\d\.\d/);
     }
-    elsif ($filter =~ /kubic|caasp/) {
+    elsif ($filter =~ /caasp|microos/) {
         return check_var('DISTRI', $filter);
     }
     elsif ($filter eq 'qam') {
@@ -223,7 +216,7 @@ sub is_leap {
 
 sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
-    return 1 if check_var('DISTRI', 'kubic');
+    return 1 if check_var('DISTRI', 'microos');
     return 0;
 }
 
@@ -240,6 +233,11 @@ sub is_sle {
     return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
 }
 
+sub is_transactional {
+    return 1 if is_caasp;
+    return check_var('SYSTEM_ROLE', 'serverro');
+}
+
 sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
 }
@@ -250,6 +248,10 @@ sub is_sles4sap_standard {
 
 sub is_rt {
     return check_var('SLE_PRODUCT', 'rt');
+}
+
+sub is_hpc {
+    return check_var('SLE_PRODUCT', 'hpc');
 }
 
 sub is_released {
@@ -287,26 +289,6 @@ sub is_pre_15 {
 
 sub is_aarch64_uefi_boot_hdd {
     return get_var('MACHINE') =~ /aarch64/ && get_var('UEFI') && get_var('BOOT_HDD_IMAGE');
-}
-
-sub is_svirt_except_s390x {
-    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
-}
-
-sub is_s390x {
-    return check_var('ARCH', 's390x');
-}
-
-sub is_x86_64 {
-    return check_var('ARCH', 'x86_64');
-}
-
-sub is_aarch64 {
-    return check_var('ARCH', 'aarch64');
-}
-
-sub is_ppc64le {
-    return check_var('ARCH', 'ppc64le');
 }
 
 sub is_server {
@@ -348,7 +330,7 @@ sub is_using_system_role {
     # SLE 15 SP1:
     #   * Has system roles only if more than one is available, meaning either registered or with all packages DVD;
     #   * RT Product has only one (minimal) role.
-    # On kubic, leap 15.1+, TW we have it instead of desktop selection screen
+    # On microos, leap 15.1+, TW we have it instead of desktop selection screen
     return is_sle('>=12-SP2') && is_sle('<15')
       && check_var('ARCH', 'x86_64')
       && is_server()
@@ -356,7 +338,7 @@ sub is_using_system_role {
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || is_sle('=15')
       || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
-      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, Kubic
+      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, MicroOS
 }
 
 # On leap 15.0 we have desktop selection first, and everywhere, where we have system roles
@@ -381,7 +363,7 @@ to install has to be chosen explicitly.
 Though, there are some exceptions (like s390x on Sle15 SP0) when there is only
 one Product, so that License agreement is shown directly, skipping the Product
 selection step. Also, Product Selection screen is not shown during upgrade.
-on SLE 15+, zVM preparation test shouldn't show Product Selection screen. 
+on SLE 15+, zVM preparation test shouldn't show Product Selection screen.
 
 Returns true (1) if Product Selection step has to be shown for the certain
 configuration, otherwise returns false (0).
@@ -407,5 +389,16 @@ configuration, otherwise returns false (0).
 
 sub has_license_on_welcome_screen {
     return 1 if is_caasp('caasp');
-    return get_var('HASLICENSE') && ((is_sle('=15') || (is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x()) || is_sle('<15'));
+    return get_var('HASLICENSE') &&
+      (((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
+        || is_sle('<15')
+        || (is_sle('=15') && is_s390x()));
+}
+
+sub has_license_to_accept {
+    return has_license_on_welcome_screen || has_product_selection;
+}
+
+sub uses_qa_net_hardware {
+    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }

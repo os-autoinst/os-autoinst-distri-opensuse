@@ -42,9 +42,9 @@ sub run {
     send_key "ret";                                   # Next field (confirm PW)
     type_password;                                    # Re-type user password
     send_key "ret";                                   # Confirm password
-    assert_and_click "seahorse-default_keyring", 'right';      # right click the new keyring
-    assert_and_click "seahorse-set_as_default", 'left', 60;    # Set the new keyring as default
-    send_key "alt-f4";                                         # Close seahorse
+    assert_and_click('seahorse-default_keyring', button  => 'right');    # right click the new keyring
+    assert_and_click('seahorse-set_as_default',  timeout => 60);         # Set the new keyring as default
+    send_key "alt-f4";                                                   # Close seahorse
 }
 
 sub test_flags {

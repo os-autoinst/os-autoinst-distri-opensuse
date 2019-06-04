@@ -22,6 +22,9 @@ use warnings;
 use base 'installbasetest';
 use testapi;
 use utils 'systemctl', 'zypper_call';
+use service_check;
+use version_utils qw(is_hyperv is_sle is_sles4sap);
+use main_common 'is_desktop';
 
 sub run {
 
@@ -31,6 +34,27 @@ sub run {
     systemctl 'status vsftpd';
     save_screenshot;
     assert_script_run 'systemctl status vsftpd --no-pager | grep active';
+
+    install_services($default_services)
+      if is_sle
+      && !is_desktop
+      && !is_sles4sap
+      && !is_hyperv
+      && !get_var('MEDIA_UPGRADE')
+      && !get_var('ZDUP')
+      && !get_var('INSTALLONLY');
+    check_services($default_services)
+      if is_sle
+      && !is_desktop
+      && !is_sles4sap
+      && !is_hyperv
+      && !get_var('MEDIA_UPGRADE')
+      && !get_var('ZDUP')
+      && !get_var('INSTALLONLY');
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

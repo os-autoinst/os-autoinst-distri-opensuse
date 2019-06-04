@@ -10,9 +10,9 @@
 # Summary: Initial setup for one-click-installer
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use utils;
 use testapi;
 use version_utils 'is_caasp';
@@ -22,7 +22,7 @@ sub run {
 
     # Check DUD - poo#17072
     if (get_var('DUD')) {
-        assert_and_click 'oci-caption-dud', 'left', $timeout;
+        assert_and_click('oci-caption-dud', timeout => $timeout);
         $timeout = 30;
     }
 

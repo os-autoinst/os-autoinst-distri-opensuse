@@ -1,6 +1,6 @@
 # LibreOffice tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,6 +37,12 @@ sub open_overview {
 
 sub select_base_and_cleanup {
     assert_screen 'oobase-select-database', 45;
+    if (check_screen 'oobase-database-empty') {
+        # this is for libreoffice 6.2.x
+        send_key "tab";
+        send_key "tab";
+        send_key "up";
+    }
     send_key "ret";
     assert_screen 'oobase-save-database';
     send_key "ret";
@@ -151,7 +157,7 @@ sub run {
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
-    assert_and_click 'ooffice-writing-area', 'left', 10;
+    assert_and_click('ooffice-writing-area', timeout => 10);
     send_key "ctrl-q";                                                               #close writer
 }
 

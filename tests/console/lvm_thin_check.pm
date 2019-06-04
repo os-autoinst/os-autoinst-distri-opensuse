@@ -16,7 +16,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use y2logsstep;
+use y2_module_basetest 'workaround_suppress_lvm_warnings';
 
 sub run {
     my $self     = shift;
@@ -30,6 +30,7 @@ sub run {
 
     $self->select_serial_terminal;
     record_info('INFO', 'Print lvm setup');
+    workaround_suppress_lvm_warnings;
     assert_script_run 'lsblk';
     assert_script_run 'lvmdiskscan';
     assert_script_run 'lvscan';

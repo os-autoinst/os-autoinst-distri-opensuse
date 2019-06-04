@@ -8,32 +8,58 @@
 # without any warranty.
 
 # Summary: check configuration of apparmor, add and delete apparmor profiles
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
 use testapi;
-use utils 'systemctl';
-use version_utils 'is_pre_15';
+use utils qw(zypper_call systemctl);
+use version_utils qw(is_pre_15 is_sle);
+
+sub install_extra_packages_requested {
+    if (check_screen 'yast2_apparmor_extra_packages_requested') {
+        send_key 'alt-i';
+        save_screenshot;
+        wait_still_screen 5;
+    }
+}
 
 sub run {
     select_console 'root-console';
 
     # install yast2_apparmor package at first
-    assert_script_run("/usr/bin/zypper -n -q in yast2-apparmor");
+    zypper_call 'in yast2-apparmor';
 
     # start apparmor configuration
-    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
-    # check Apparmor Configuration is opened
-    assert_screen 'yast2_apparmor';
-    send_key 'ret';
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
+    #SLES <15 extra packages are needed after main window:
+    if (is_pre_15()) {
+        assert_screen 'yast2_apparmor';    #this window does not appear on >=15
+        send_key 'ret';
+        install_extra_packages_requested;
+    } else {
+        #SLES >=15 imediatelly asks for extra packages, not after main menu:
+        install_extra_packages_requested;
+        send_key 'ret';
+    }
 
     assert_screen [qw(yast2_apparmor_disabled yast2_apparmor_enabled)];
     if (match_has_tag 'yast2_apparmor_disabled') {
         send_key 'alt-e';
+        assert_screen 'yast2_apparmor_enabled';
+    } else {
+        #workaround needed for 12.4 and sle 15.0 to keep the test moving.
+        #conditional wrapping  this 2 products and cath if appears in another versions as well:
+        #this entire else block can be removed once bsc#1129280 is fixed via maintenance channels.
+        if (is_sle('=12-SP4') || is_sle('=15')) {
+            send_key 'alt-e';
+            sleep 2;
+            send_key 'alt-e';
+            record_soft_failure 'bsc#1129280 - Toggled "enable apparmor" to ensure systemd unit is started';
+            assert_screen 'yast2_apparmor_enabled';
+        }
     }
-    assert_screen 'yast2_apparmor_enabled';
 
     # part 1: open profile mode configuration and check toggle/show all profiles
     send_key(is_pre_15() ? 'alt-n' : 'alt-c');
@@ -82,12 +108,12 @@ sub run {
     # close apparmor configuration
     send_key(is_pre_15() ? 'alt-d' : 'alt-f');
     # increase value for timeout to 200 seconds
-    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
+    wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
     systemctl 'show -p ActiveState apparmor.service | grep ActiveState=active';
     # currently not existing on sle15
     if (is_pre_15()) {
         # part 2: start apparmor configuration again
-        script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+        $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
         assert_screen 'yast2_apparmor';
         send_key 'down';
         assert_screen 'yast2_apparmor_configuration_manage_existing_profiles';
@@ -133,7 +159,7 @@ sub run {
 
         # close now AppArmor configuration
         send_key 'alt-n';
-        wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
+        wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
 
     }
 
@@ -142,7 +168,7 @@ sub run {
     assert_script_run("cp /etc/apparmor.d/sbin.syslogd /new_profile");
 
     # start apparmor configuration again
-    script_run("yast2 apparmor; echo yast2-apparmor-status-\$? > /dev/$serialdev", 0);
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     assert_screen 'yast2_apparmor';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'down' };
@@ -171,7 +197,7 @@ sub run {
     # confirm to save changes to profile and finish test
     assert_screen 'yast2_apparmor_configuration_manage_existing_profiles_edit_file_changed_again';
     send_key 'alt-y';
-    wait_serial("yast2-apparmor-status-0", 200) || die "'yast2 apparmor' didn't finish";
+    wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
 }
 
 sub post_fail_hook {

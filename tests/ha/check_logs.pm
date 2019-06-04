@@ -29,7 +29,7 @@ sub run {
     ha_export_logs;
 
     # Looking for segfault during the test
-    assert_script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))';
+    record_soft_failure "bsc#1132123" if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))');
 }
 
 # Specific test_flags for this test module

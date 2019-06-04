@@ -35,7 +35,7 @@ sub run {
     send_key 'ret';
 
     # Context menu: "Create new" -> "Text file"
-    assert_and_click 'dolphin_stuff_empty', 'right';
+    assert_and_click('dolphin_stuff_empty', button => 'right');
     my $create_new = assert_screen 'dolphin_create_new';
 
     my $lastarea = $create_new->{area}->[-1];
@@ -57,7 +57,7 @@ sub run {
     # Go back up to ~/Documents
     assert_and_click 'dolphin_navbar_documents';
     # Add "stuff" to Places
-    assert_and_click 'dolphin_icon_stuff', 'right';
+    assert_and_click('dolphin_icon_stuff', button => 'right');
     assert_and_click 'dolphin_add_places';
 
     # Verify that it's visible in the file picker
@@ -72,7 +72,7 @@ sub run {
     send_key 'ret';
 
     # Remove the places entry again
-    assert_and_click 'dolphin_places_stuff', 'right';
+    assert_and_click('dolphin_places_stuff', button => 'right');
     assert_and_click 'dolphin_places_remove';
 
     send_key 'alt-f4';

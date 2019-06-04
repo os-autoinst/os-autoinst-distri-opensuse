@@ -15,7 +15,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use bootloader_setup 'ensure_shim_import';
+use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 
 sub run {
     my $self = shift;
@@ -24,7 +24,7 @@ sub run {
     # does the job to get us into rescue mode.
     unless (check_var('VIRSH_VMM_TYPE', 'linux')) {
         ensure_shim_import;
-        $self->select_bootmenu_more('inst-rescuesystem', 1);
+        select_bootmenu_more('inst-rescuesystem', 1);
     }
 
     assert_screen 'keyboardmap-list', 120;

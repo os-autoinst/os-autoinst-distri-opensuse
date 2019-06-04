@@ -13,16 +13,12 @@
 
 use strict;
 use warnings;
-use parent qw(installation_user_settings y2logsstep);
+use parent qw(installation_user_settings y2_installbase);
 use testapi;
 
 sub run {
     my ($self) = @_;
-    assert_screen "inst-rootpassword";
-    $self->type_password_and_verification;
-    assert_screen "rootpassword-typed";
-    send_key $cmd{next};
-    $self->await_password_check;
+    $self->enter_rootinfo;
 }
 
 1;

@@ -13,9 +13,8 @@ use POSIX 'strftime';
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->SUPER::post_fail_hook;
-    $self->export_kde_logs;
     $self->export_logs;
+    $self->SUPER::post_fail_hook;
 
     save_screenshot;
 }

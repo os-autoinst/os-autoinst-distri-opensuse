@@ -18,6 +18,7 @@ use testapi;
 use mm_network;
 use lockapi;
 use x11utils 'turn_off_gnome_screensaver';
+use y2_module_consoletest;
 
 sub run {
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
@@ -26,7 +27,7 @@ sub run {
     configure_default_gateway;
     configure_static_ip('10.0.2.3/24');
     configure_static_dns(get_host_resolv_conf());
-    type_string "yast2 iscsi-client\n";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'iscsi-client');
     assert_screen 'iscsi-client', 180;
     mutex_lock('iscsi_ready');    # wait for server setup
     send_key "alt-i";             # go to initiator name field
@@ -51,6 +52,7 @@ sub run {
     assert_screen 'iscsi-initiator-connected-targets';
     send_key "alt-o";                                     # OK
     wait_still_screen(2, 10);
+    wait_serial("$module_name-0", 180) || die "'yast2 iscsi-client ' didn't finish or exited with non-zero code";
     assert_script_run 'lsscsi';
     assert_script_run "echo -e \"n\\np\\n1\\n\\n\\nw\\n\" \| fdisk /dev/sda";    # create one partition
     assert_script_run 'mkfs.ext4 /dev/sda1';                                     # format partition to ext4

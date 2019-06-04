@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,8 +15,9 @@
 
 use base "consoletest";
 use testapi;
-use utils;
+use utils qw(check_console_font disable_serial_getty);
 use Utils::Backends qw(has_ttys use_ssh_serial_console);
+use Utils::Systemd 'disable_and_stop_service';
 use strict;
 use warnings;
 
@@ -31,15 +32,6 @@ sub run {
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
-    # on s390x we cannot stop the getty, otherwise the iucvconn will break
-    if (!check_var('BACKEND', 's390x')) {
-        systemctl "stop serial-getty\@$testapi::serialdev", ignore_failure => 1;
-        systemctl "disable serial-getty\@$testapi::serialdev";
-        # Mask if is qemu backend as use serial in remote installations e.g. during reboot
-        systemctl "mask serial-getty\@$testapi::serialdev" if check_var('BACKEND', 'qemu');
-    }
-
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
     # Prevent mail notification messages to show up in shell and interfere with running console tests
     disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
@@ -49,10 +41,7 @@ sub run {
 
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
-
-    # Stop packagekit
-    systemctl 'mask packagekit.service';
-    systemctl 'stop packagekit.service';
+    disable_and_stop_service('packagekit.service', mask_service => 1);
 
     $self->clear_and_verify_console;
     select_console 'user-console';
@@ -62,8 +51,9 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-
+    select_console('log-console');
     $self->export_logs();
+    $self->export_logs_locale();
 }
 
 sub test_flags {

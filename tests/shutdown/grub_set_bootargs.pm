@@ -10,9 +10,9 @@
 # Summary: Remove quiet kernel option
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 
 sub run {

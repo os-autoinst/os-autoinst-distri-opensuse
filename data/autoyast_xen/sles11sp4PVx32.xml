@@ -569,14 +569,20 @@
         <search>suse.cz</search>
       </searchlist>
       <write_hostname config:type="boolean">true</write_hostname>
+      <nameservers config:type="list">
+        <nameserver>192.168.122.1</nameserver>
+      </nameservers>
     </dns>
     <interfaces config:type="list">
       <interface>
-        <bootproto>dhcp4</bootproto>
+        <bootproto>static</bootproto>
         <device>eth0</device>
-        <name>Virtual Ethernet Card 0</name>
+        <ipaddr>192.168.122.110</ipaddr>
+        <netmask>255.255.255.0</netmask>
+        <network>192.168.122.0</network>
+        <gateway>192.168.122.1</gateway>
+        <prefixlen>24</prefixlen>
         <startmode>auto</startmode>
-        <usercontrol>no</usercontrol>
       </interface>
       <interface>
         <aliases>
@@ -613,6 +619,14 @@
     </net-udev>
     <routing>
       <ip_forward config:type="boolean">false</ip_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>-</device>
+          <gateway>192.168.122.1</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
     </routing>
   </networking>
   <nis>
@@ -782,7 +796,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>6703709696</size>
+          <size>13703709696</size>
         </partition>
       </partitions>
       <pesize></pesize>

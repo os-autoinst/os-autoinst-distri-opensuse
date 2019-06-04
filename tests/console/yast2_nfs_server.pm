@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2018 SUSE LLC
+# Copyright © 2015-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,112 +13,86 @@
 #    after mounting.
 #    It can also be used as a server in an "/ on NFS" test scenario.
 #    In this case, NFSSERVER has to be 1, the server is accessible as
-#    10.0.2.1 and it provides a mutex "nfs_ready".
+#    10.0.2.101 and it provides a mutex "nfs_ready".
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
 use strict;
 use warnings;
-use base "console_yasttest";
-use utils;
+
+use base "y2_module_consoletest";
+use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;
 use lockapi;
 use mmapi;
 use mm_network;
+use nfs_common;
 
 sub run {
     my ($self) = @_;
+    my $rw     = '/srv/nfs';
+    my $ro     = '/srv/ro';
     select_console 'root-console';
 
     if (get_var('NFSSERVER')) {
-        # Configure static IP for client/server test
-        configure_default_gateway;
-        configure_static_ip('10.0.2.101/24');
-        configure_static_dns(get_host_resolv_conf());
-
-        if (is_sle('15+')) {
-            record_soft_failure 'boo#1130093 No firewalld service for nfs-kernel-server';
-            systemctl 'stop ' . $self->firewall;
-            systemctl 'disable ' . $self->firewall;
-        }
+        server_configure_network($self);
     }
 
     # Make sure packages are installed
-    zypper_call 'in yast2-nfs-server', timeout => 480, exitcode => [0, 106, 107];
+    zypper_call 'in yast2-nfs-server nfs-kernel-server', timeout => 480, exitcode => [0, 106, 107];
 
-    # Create a directory and place a test file in it
-    assert_script_run 'mkdir /srv/nfs && echo success > /srv/nfs/file.txt';
+    try_nfsv2();
 
-    type_string "yast2 nfs-server; echo YAST-DONE-\$?- > /dev/$serialdev\n";
+    prepare_exports($rw, $ro);
 
-    do {
-        assert_screen([qw(nfs-server-not-installed nfs-firewall nfs-config)]);
-        # install missing packages as proposed
-        if (match_has_tag('nfs-server-not-installed') or match_has_tag('nfs-firewall')) {
-            send_key 'alt-i';
-        }
-    } while (not match_has_tag('nfs-config'));
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server');
+
+    yast2_server_initial();
 
     # Start server
     send_key 'alt-s';
 
-    if (is_sle('<15')) {
-        send_key 'alt-f';    # Open port in firewall
-        assert_screen 'nfs-firewall-open';
-    }
-    else {
-        sleep 1;
-        save_screenshot;
-    }
+    # Disable NFSv4
+    send_key 'alt-v';
+    wait_still_screen 1;
+
+    yast_handle_firewall();
 
     # Next step
     send_key 'alt-n';
 
     assert_screen 'nfs-overview';
 
-    # Add share
-    send_key 'alt-d';
-    assert_screen 'nfs-new-share';
-    type_string '/srv/nfs';
-    send_key 'alt-o';
+    add_shares($rw, $ro);
 
-    # Permissions dialog
-    assert_screen 'nfs-share-host';
-    send_key 'tab';
-    # Change 'ro,root_squash' to 'rw,fsid=0,no_root_squash,...'
-    send_key 'home';
-    send_key 'delete';
-    send_key 'delete';
-    send_key 'delete';
-    type_string "rw,fsid=0,no_";
-    send_key 'alt-o';
-
-    # Done
-    assert_screen 'nfs-share-saved';
     send_key 'alt-f';
-    wait_serial('YAST-DONE-0-') or die "'yast2 nfs-server' didn't finish";
+    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
 
     # Back on the console, test mount locally
     clear_console;
 
-    validate_script_output "exportfs", sub { m,/srv/nfs, };
+    # Server is up and running, client can use it now!
+    script_run "( journalctl -fu nfsserver > /dev/$serialdev & )";
+    mutex_create('nfs_ready');
+    check_nfs_ready($rw, $ro);
+
     if (get_var('NFSSERVER')) {
-        assert_script_run 'mount 10.0.2.101:/ /mnt';
+        assert_script_run "mount 10.0.2.101:${rw} /mnt";
     }
     else {
-        assert_script_run 'mount 10.0.2.15:/ /mnt';
+        assert_script_run "mount 10.0.2.15:${rw} /mnt";
     }
 
     # Timeout of 95 seconds to account for the NFS server grace period
-    validate_script_output "cat /mnt/file.txt", sub { m,success, }, 95;
+    validate_script_output("cat /mnt/file.txt", sub { m,success, }, 95);
+
+    # Check NFS version
+    validate_script_output "nfsstat -m", sub { m/vers=3/ };
+
     assert_script_run 'umount /mnt';
 
-    if (get_var('NFSSERVER')) {
-        # Server is up and running, client can use it now!
-        mutex_create('nfs_ready');
-        # Wait for the children (nfs clients) to finish
-        wait_for_children;
-    }
+    wait_for_children;
 }
 
 1;
+

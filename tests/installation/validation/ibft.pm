@@ -28,7 +28,7 @@ my $ibft_expected = {
         subnet_mask => '255.255.255.0',
         gateway     => '10.0.2.2',
         ip_addr     => '10.0.2.15',
-        mac         => get_required_var('NICMAC'),
+        mac         => '',
     },
     initiator => {
         initiator_name => 'iqn.2010-04.org.ipxe:00000000-0000-0000-0000-000000000000',
@@ -107,6 +107,8 @@ sub run {
     my $self   = shift;
     my $reg_tx = qr/txdata_octets:\s+\d+/;
     my $reg_rx = qr/rxdata_octets:\s+\d+/;
+    # Requires NICTYPE=user and backend/qemu.pm code to run
+    $ibft_expected->{ethernet}->{mac} = get_required_var('NICMAC');
 
     select_console 'root-console';
     # find iscsi drive

@@ -17,14 +17,13 @@ package registration;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
 use version_utils qw(is_sle is_caasp is_upgrade);
 use constant ADDONS_COUNT => 50;
+use y2_module_consoletest;
 
 our @EXPORT = qw(
   add_suseconnect_product
@@ -97,8 +96,9 @@ sub accept_addons_license {
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
-    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/) {
-        record_soft_failure 'bsc#1118497';
+    if (is_sle('15+') && get_var('SCC_ADDONS') =~ /ses/ && get_var('BETA')) {
+        # during development is license not shown as it was already been shown once
+        record_info 'bsc#1118497';
     }
     else {
         push @addons_with_license, 'ses';
@@ -212,7 +212,7 @@ sub register_addons {
                 send_key_until_needlematch "scc-code-field-$addon", 'tab';
             }
             else {
-                assert_and_click "scc-code-field-$addon", 'left', 240;
+                assert_and_click("scc-code-field-$addon", timeout => 240);
             }
             type_string $regcode;
             save_screenshot;
@@ -249,6 +249,22 @@ sub verify_preselected_modules {
         send_key('down');
     }
     die 'Scroll reached to bottom not finding individual needles for each module.' if @needles;
+}
+
+sub _yast_scc_addons_handler {
+    if (match_has_tag('yast_scc-license-dialog')) {
+        send_key 'alt-a';
+        next;
+    }
+    # yast may pop up dependencies or reboot prompt window
+    if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
+        wait_screen_change { send_key "alt-o" };
+        next;
+    }
+    if (match_has_tag('yast_scc-installation-summary')) {
+        send_key 'alt-f';
+        last;
+    }
 }
 
 sub process_scc_register_addons {
@@ -304,16 +320,6 @@ sub process_scc_register_addons {
                 # go to the top of the list before looking for the addon
                 send_key "home";
                 # move the list of addons down until the current addon is found
-                if ($addon eq 'phub') {
-                    # Record soft-failure when we do not have phub yet
-                    my $bugref =
-                      is_sle('=15-SP1') ? 'bsc#1106085'
-                      :                   undef;
-                    if ($bugref) {
-                        record_soft_failure $bugref;
-                        next;
-                    }
-                }
                 send_key_until_needlematch ["scc-module-$addon", "scc-module-$addon-selected"], "down", ADDONS_COUNT;
                 if (match_has_tag("scc-module-$addon")) {
                     # checkmark the requested addon
@@ -363,19 +369,7 @@ sub process_scc_register_addons {
                         ['yast_scc-license-dialog', 'yast_scc-automatic-changes', 'yast_scc-prompt-reboot', 'yast_scc-installation-summary'], 1800
                     ))
                 {
-                    if (match_has_tag('yast_scc-license-dialog')) {
-                        send_key 'alt-a';
-                        next;
-                    }
-                    # yast may pop up dependencies or reboot prompt window
-                    if (match_has_tag('yast_scc-automatic-changes') or match_has_tag('unsupported-packages') or match_has_tag('yast_scc-prompt-reboot')) {
-                        wait_screen_change { send_key "alt-o" };
-                        next;
-                    }
-                    if (match_has_tag('yast_scc-installation-summary')) {
-                        send_key 'alt-f';
-                        last;
-                    }
+                    _yast_scc_addons_handler();
                 }
                 last;
             }
@@ -446,7 +440,7 @@ sub fill_in_registration_data {
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            assert_screen(\@tags);
+            assert_screen(\@tags, 60);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
                 next;
@@ -564,12 +558,15 @@ sub registration_bootloader_cmdline {
 sub registration_bootloader_params {
     my ($max_interval) = @_;    # see 'type_string'
     $max_interval //= 13;
-    type_string registration_bootloader_cmdline, $max_interval;
+    my @params;
+    push @params, split ' ', registration_bootloader_cmdline;
+    type_string "@params", $max_interval;
     save_screenshot;
+    return @params;
 }
 
 sub yast_scc_registration {
-    type_string "yast2 scc; echo sccreg-done-\$?- > /dev/$serialdev\n";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'scc');
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,
@@ -578,10 +575,7 @@ sub yast_scc_registration {
     );
 
     fill_in_registration_data;
-
-    my $ret = wait_serial "sccreg-done-\\d+-";
-    die "yast scc failed" unless (defined $ret && $ret =~ /sccreg-done-0-/);
-
+    wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
 }
 
@@ -623,6 +617,7 @@ sub get_addon_fullname {
         serverapp => 'sle-module-server-applications',
         tcm       => 'sle-module-toolchain',
         wsm       => 'sle-module-web-scripting',
+        python2   => 'sle-module-python2',
     );
     return $product_list{"$addon"};
 }
@@ -720,8 +715,8 @@ sub rename_scc_addons {
     );
     my @addons_new = ();
 
-    for my $a (split(/,/, get_var('SCC_ADDONS'))) {
-        push @addons_new, defined $addons_map{$a} ? $addons_map{$a} : $a;
+    for my $i (split(/,/, get_var('SCC_ADDONS'))) {
+        push @addons_new, defined $addons_map{$i} ? $addons_map{$i} : $i;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
 }

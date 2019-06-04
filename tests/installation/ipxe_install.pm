@@ -10,17 +10,17 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
 
 use testapi;
 use bmwqemu;
-use base "y2logsstep";
 
 use HTTP::Tiny;
 use IPC::Run;
 use Socket;
-use Time::HiRes qw(sleep);
+use Time::HiRes 'sleep';
 
 sub ipmitool {
     my ($cmd) = @_;
@@ -86,7 +86,6 @@ END_BOOTSCRIPT
     diag "setting iPXE bootscript to: $bootscript";
     my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";
-    diag $response->{content};
 }
 
 

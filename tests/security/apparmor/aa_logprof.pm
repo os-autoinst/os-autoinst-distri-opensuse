@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_tumbleweed);
+use version_utils 'is_tumbleweed';
 
 sub run {
     my ($self) = @_;

@@ -1,0 +1,41 @@
+---
+name:           sles4sap_offline_gnome@64bit-staging
+description:    >
+  Graphical installation tests for SLES for SAP Applications without
+  SCC registration. Boot into Gnome.
+  Test SLES for SAP specific applications.
+vars:
+  APPTESTS: sles4sap/patterns,sles4sap/sapconf,sles4sap/saptune
+  DM_NEEDS_USERNAME: 1
+  HDDSIZEGB: 60
+  ROOTONLY: 1
+  SCC_REGISTER: never
+  SCC_URL:
+  SHUTDOWN_NEEDS_AUTH: 0
+  SLES4SAP_MODE: sles4sap
+  SLE_PRODUCT: sles4sap
+  SYSTEM_ROLE: default
+  WORKAROUND_MODULES: base,desktop,sapapp,serverapp,ha
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/sles4sap_product_installation_mode
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - sles4sap/patterns
+  - sles4sap/sapconf
+  - sles4sap/saptune

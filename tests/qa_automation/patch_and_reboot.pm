@@ -33,6 +33,8 @@ sub run {
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
 
+    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $3}')}, exitcode => [0, 3]);
+
     add_test_repositories;
 
     fully_patch_system;

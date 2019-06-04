@@ -11,9 +11,9 @@
 # Summary: Check initial partitioning screen and prepare optional substeps
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils qw(is_leap is_storage_ng is_sle is_tumbleweed);
 use partition_setup qw(%partition_roles is_storage_ng_newui);

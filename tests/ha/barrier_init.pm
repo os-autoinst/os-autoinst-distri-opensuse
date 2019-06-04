@@ -27,6 +27,10 @@ sub run {
         # Number of node is a mandatory variable!
         die 'A valid number of nodes is mandatory' if ($num_nodes lt '2');
 
+        # Create mutex for HA clusters
+        mutex_create 'csync2';
+        mutex_create 'cluster_restart';
+
         # BARRIER_HA_ needs to also wait the support-server
         barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
 
@@ -65,6 +69,25 @@ sub run {
         barrier_create("SLE11_UPGRADE_INIT_$cluster_name",          $num_nodes);
         barrier_create("SLE11_UPGRADE_START_$cluster_name",         $num_nodes);
         barrier_create("SLE11_UPGRADE_DONE_$cluster_name",          $num_nodes);
+        barrier_create("HAPROXY_INIT_$cluster_name",                $num_nodes);
+        barrier_create("HAPROXY_DONE_$cluster_name",                $num_nodes);
+        barrier_create("REMOVE_NODE_BY_IP_INIT_$cluster_name",      $num_nodes);
+        barrier_create("REMOVE_NODE_BY_IP_DONE_$cluster_name",      $num_nodes);
+        barrier_create("REMOVE_NODE_BY_HOST_INIT_$cluster_name",    $num_nodes);
+        barrier_create("REMOVE_NODE_BY_HOST_DONE_$cluster_name",    $num_nodes);
+        barrier_create("JOIN_NODE_BY_HOST_DONE_$cluster_name",      $num_nodes);
+        barrier_create("JOIN_NODE_BY_IP_DONE_$cluster_name",        $num_nodes);
+        barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name",      $num_nodes);
+        barrier_create("RSC_REMOVE_INIT_$cluster_name",             $num_nodes);
+        barrier_create("RSC_REMOVE_DONE_$cluster_name",             $num_nodes);
+        barrier_create("CSYNC2_CONFIGURED_$cluster_name",           $num_nodes);
+        barrier_create("CSYNC2_SYNC_$cluster_name",                 $num_nodes);
+        barrier_create("SBD_DONE_$cluster_name",                    $num_nodes);
+        barrier_create("SSH_KEY_CONFIGURED_$cluster_name",          $num_nodes);
+
+        # PACEMAKER_TEST_ barriers also have to wait in the client
+        barrier_create("PACEMAKER_CTS_INIT_$cluster_name",    $num_nodes + 1);
+        barrier_create("PACEMAKER_CTS_CHECKED_$cluster_name", $num_nodes + 1);
 
         # HAWK_GUI_ barriers also have to wait in the client
         barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);

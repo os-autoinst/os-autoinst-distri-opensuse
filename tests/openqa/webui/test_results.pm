@@ -17,13 +17,18 @@ use testapi;
 
 sub upload_autoinst_log {
     assert_script_run 'openqa-client jobs/1/cancel post';
-    for my $i (1 .. 20) {
+    for my $i (1 .. 10) {
         # wait for test to finish and upload
-        last if (script_run('openqa-client jobs/1 | grep state | grep done', 25) == 0);
+        last if (script_run('openqa-client jobs/1 | grep state | grep done', 40) == 0);
         sleep 5;
     }
-    assert_script_run 'wget http://localhost/tests/1/file/autoinst-log.txt';
-    upload_logs('autoinst-log.txt', log_name => "nested");
+    if (script_run('wget http://localhost/tests/1/file/autoinst-log.txt') != 0) {
+        record_info('Log download', 'Error downloading autoinst-log.txt from nested openQA webui. Consult journal for further information.', result => 'fail');
+        script_run 'find /var/lib/openqa/testresults/';
+    }
+    else {
+        upload_logs('autoinst-log.txt', log_name => "nested");
+    }
 }
 
 sub run {
@@ -43,12 +48,16 @@ sub run {
         send_key 'pgdn';
         last if check_screen 'openqa-job-minimalx', 2;
     }
-
     assert_and_click 'openqa-job-minimalx';
 
+    # Do not hit 'f5' too early
+    wait_still_screen;
+
     # wait for result
-    if (!check_screen('openqa-testresult', 300)) {
+    for (1 .. 5) {
         send_key 'f5';
+        wait_still_screen;
+        last if check_screen('openqa-testresult', 300);
     }
     assert_screen 'openqa-testresult';
 }

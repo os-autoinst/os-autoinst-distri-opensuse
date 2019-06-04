@@ -11,9 +11,9 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 use version_utils 'is_upgrade';
 
@@ -130,4 +130,3 @@ sub run {
 }
 
 1;
-

@@ -15,8 +15,11 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use y2logsstep;
+use y2_module_basetest 'workaround_suppress_lvm_warnings';
 use Test::Assert ':all';
+use version_utils 'is_storage_ng';
+use Utils::Architectures 'is_aarch64';
+
 
 sub run {
     my $self              = shift;
@@ -30,6 +33,7 @@ sub run {
     };
 
     $self->select_serial_terminal;
+    workaround_suppress_lvm_warnings;
 
     record_info('INFO', 'Validate LVM config');
     assert_script_run "lvmconfig --mergedconfig --validate | grep \"LVM configuration valid.\"";
@@ -81,10 +85,10 @@ sub run {
     }
 
     record_info('INFO', 'Check partitions');
-    if (get_var('NAME') =~ m/separate/) {
+    if ((get_var('NAME') =~ m/separate/) || is_aarch64 && !is_storage_ng) {    # Separate boot partition, not encrypted. aarch64+!storage_ng: see poo#49718
         assert_script_run q[df | grep -P "^\/dev\/.{3}\d{1}"| grep boot];
     }
-    else {
+    else {                                                                     # Encrypted boot partition with lvm
         assert_script_run q[df | grep -P "^\/dev/\mapper\/\w+"| grep boot];
     }
 }

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,6 +10,8 @@
 
 # Summary: Interface with the zKVM bootloader based on test settings
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
+
+package bootloader_zkvm;
 
 use base "installbasetest";
 
@@ -66,6 +68,9 @@ sub set_svirt_domain_elements {
 sub run {
     my $svirt = select_console('svirt', await_console => 0);
 
+    record_info('free -h',              $svirt->get_cmd_output('free -h'));
+    record_info('virsh freecell --all', $svirt->get_cmd_output('virsh freecell --all'));
+    record_info('virsh domstats',       $svirt->get_cmd_output('virsh domstats'));
     set_svirt_domain_elements $svirt;
     zkvm_add_disk $svirt;
     zkvm_add_pty $svirt;
@@ -85,6 +90,7 @@ sub run {
         }
     }
 }
+
 sub post_fail_hook {
     reset_consoles;
     select_console 'svirt';

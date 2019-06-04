@@ -34,7 +34,7 @@ sub run {
     wait_for_children;
 
     script_run("xl dmesg > /tmp/xl-dmesg.log");
-    &virt_autotest_base::upload_virt_logs("/var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "virt-v2v-xen-src-logs");
+    virt_autotest_base::upload_virt_logs("/var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "virt-v2v-xen-src-logs");
 }
 
 1;

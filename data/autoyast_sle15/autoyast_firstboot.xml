@@ -19,6 +19,11 @@
           <version>{{VERSION}}</version>
           <arch>{{ARCH}}</arch>
         </addon>
+        <addon>
+          <name>sle-module-desktop-applications</name>
+          <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
       </addons>
     </suse_register>
     <bootloader>
@@ -33,6 +38,23 @@
         <products config:type="list">
             <product>SLES</product>
         </products>
+        <packages config:type="list">
+          <package>grub2</package>
+          <package>sles-release</package>
+          <package>yast2-firstboot</package>
+        </packages>
+        <patterns config:type="list">
+          <pattern>apparmor</pattern>
+          <pattern>base</pattern>
+          <pattern>basesystem</pattern>
+          <pattern>documentation</pattern>
+          <pattern>enhanced_base</pattern>
+          <pattern>gnome_basic</pattern>
+          <pattern>gnome_basis</pattern>
+          <pattern>minimal_base</pattern>
+          <pattern>x11</pattern>
+          <pattern>x11_enhanced</pattern>
+        </patterns>
     </software>
     <users config:type="list">
         <user>

@@ -21,7 +21,7 @@ sub run {
     # is the correct test procedure on rails >= 5, for earlier versions we
     # need to handle this on our own
     my $cmd = <<'EOF';
-zypper -n in -C "rubygem(rails)"
+zypper -n in --recommends -C "rubygem(rails)"
 rails new mycoolapp --skip-bundle --skip-test
 cd mycoolapp
 (rails server -b 0.0.0.0 &)

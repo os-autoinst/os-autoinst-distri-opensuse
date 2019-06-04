@@ -1,0 +1,38 @@
+#!/bin/sh
+
+exit_code=0
+GIT_CMD="git --no-pager grep --break  --color -n -P"
+
+check_loadtest() {
+    CHECK_LOADTEST_RESULT=$(${GIT_CMD} "\sloadtest\s?\(?(?:\"|')?[\w\/]+\.pm(?:\"|'),?.*\)?")
+    if [ ! -z "$CHECK_LOADTEST_RESULT" ]; then
+        echo "${CHECK_LOADTEST_RESULT}"
+        echo "Invalid syntax found for loadtest call. '.pm' extensions are not allowed at test distribution level"
+        exit_code=$(($exit_code+1))
+    fi
+    echo "Finished checking loadtests"
+}
+
+check_versions(){
+    # Check for patterns that will be likely rejected by is_leap or is_sle calls
+    CHECK_IS_LEAP_RESULT=$(${GIT_CMD} "is_leap[\(\s](\"|')\d{2}(?!\.\d)\1")
+    if [ ! -z "$CHECK_IS_LEAP_RESULT" ]; then
+        echo "${CHECK_IS_LEAP_RESULT}"
+        echo "Invalid  call for is_leap"
+        exit_code=$(($exit_code+1))
+    fi
+
+    CHECK_IS_SLE_RESULT=$(${GIT_CMD} "is_sle[\(\s](\"|')\d{2,}(?:\.\d\+)\1")
+    if [ ! -z "$CHECK_IS_SLE_RESULT" ]; then
+        echo "${CHECK_IS_SLE_RESULT}"
+        echo "Invalid  call for is_sle"
+        exit_code=$(($exit_code+1))
+    fi
+    echo "Finished checking for invalid version syntax"
+}
+
+check_versions
+check_loadtest
+
+echo "All checks finished: $exit_code."
+exit $exit_code;

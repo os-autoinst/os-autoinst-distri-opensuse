@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,17 +26,21 @@ sub run {
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
     assert_and_click "firefox-extensions";
-    assert_and_click "firefox-searchall-addon";
-    type_string "flagfox\n";
-    assert_and_click('firefox-extensions-flagfox');
-    assert_and_click('firefox-extensions-add-to-firefox');
-    wait_still_screen 6;
-    send_key 'alt-a';
-    # close the flagfox relase notes tab and flagfox search tab
-    send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
-    # refresh the page to see addon buttons
-    send_key 'f5';
-    assert_screen('firefox-extensions-flagfox_installed', 90);
+    for (1 .. 5) {
+        assert_and_click 'firefox-searchall-addon';
+        type_string "flagfox\n";
+        assert_and_click 'firefox-extensions-flagfox';
+        wait_still_screen 3;
+        assert_and_click 'firefox-extensions-add-to-firefox';
+        assert_screen 'firefox-extensions-confirm-add';
+        send_key 'alt-a';
+        wait_still_screen 3;
+        # close the flagfox relase notes tab and flagfox search tab
+        send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
+        # refresh the page to see addon buttons
+        send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 5, 5;
+        last if check_screen 'firefox-extensions-flagfox_installed';
+    }
 
     send_key "alt-1";
     $self->firefox_open_url('opensuse.org');

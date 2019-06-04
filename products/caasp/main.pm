@@ -79,16 +79,13 @@ sub load_caasp_inst_tests {
             loadtest 'caasp/oci_overview';
             loadtest 'caasp/oci_keyboard';
             loadtest 'installation/accept_license';
-            if (check_var('REGISTER', 'installation')) {
-                loadtest 'installation/scc_registration';
-            } else {
-                loadtest 'installation/skip_registration';
-            }
+            loadtest 'installation/scc_registration';
             loadtest 'installation/system_role';
             loadtest 'installation/caasp_roleconf' unless check_var('SYSTEM_ROLE', 'plain');
             loadtest 'installation/user_settings_root';
             loadtest 'installation/releasenotes';
             loadtest 'installation/installation_overview';
+            loadtest 'installation/disable_grub_timeout' unless get_var('STACK_ROLE');
             loadtest 'installation/start_install';
 
             # Can not start installation with partitioning error
@@ -137,8 +134,6 @@ sub load_feature_tests {
 
     # Journal errors
     loadtest 'caasp/journal_check';
-
-    loadtest 'caasp/health_check';
 
     # Container Tests
     loadtest 'console/docker';

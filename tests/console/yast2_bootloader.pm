@@ -11,7 +11,8 @@
 # Summary: Basic test for yast2 bootloader
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use strict;
 use warnings;
 use testapi;
@@ -23,7 +24,7 @@ sub run {
     # make sure yast2 bootloader module is installed
     zypper_call 'in yast2-bootloader';
 
-    script_run("yast2 bootloader; echo btld-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'bootloader');
     assert_screen "test-yast2_bootloader-1", 300;
     # OK => Close
     send_key "alt-o";
@@ -34,7 +35,7 @@ sub run {
         wait_screen_change { send_key 'alt-i'; };
     }
     assert_screen 'yast2_console-finished', $timeout;
-    wait_serial("btld-status-0") || die "'yast2 bootloader' didn't finish";
+    wait_serial("$module_name-0") || die "'yast2 bootloader' didn't finish";
 }
 
 1;

@@ -109,6 +109,17 @@
       % }
     </patterns>
   </software>
+  <services-manager>
+    % if ($check_var->('DESKTOP', 'gnome')) {
+    <default_target>graphical</default_target>
+    % }
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
   <partitioning config:type="list">
   <drive>
     <initialize config:type="boolean">true</initialize>

@@ -18,17 +18,17 @@
 
 use strict;
 use warnings;
-use base 'console_yasttest';
+use parent 'y2_module_consoletest';
 use testapi;
 
 sub run {
     my $self = shift;
     assert_script_run 'rm -f /root/autoinst.xml';
-    script_run("(yast2 --ncurses clone_system; echo yast2-clone_system-status-\$?) | tee /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system', yast2_opts => '--ncurses');
     if (check_screen 'autoyast2-install-accept', 10) {
         send_key 'alt-i';    # confirm package installation
     }
-    wait_serial("yast2-clone_system-status-0", 400) || die "'yast2 clone_system' exited with non-zero code";
+    wait_serial("$module_name-0", 400) || die "'yast2 clone_system' exited with non-zero code";
     upload_logs '/root/autoinst.xml';
 
     # original autoyast on kernel cmdline

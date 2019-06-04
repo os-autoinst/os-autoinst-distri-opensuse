@@ -1,0 +1,65 @@
+---
+name:           minimal+base@yast-svirt-hyperv
+description:    >
+  Select a minimal textmode installation by starting with the default and unselecting all patterns
+  except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
+  It cannot access installation shell therefore it does not schedule module 'logs_from_installation_system'.
+vars:
+  PATTERNS: base,minimal
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/integration_services
+  - locale/keymap_or_locale
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - console/curl_https
+  - console/salt
+  - console/glibc_sanity
+  - update/zypper_up
+  - console/zypper_in
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/firewall_enabled
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/mysql_srv
+  - console/rsync
+  - console/http_srv
+  - console/dns_srv
+  - console/postgresql_server
+  - console/shibboleth
+  - console/apache_ssl
+  - console/apache_nss
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish

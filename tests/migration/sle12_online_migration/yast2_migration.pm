@@ -10,7 +10,7 @@
 # Summary: sle12 online migration testsuite
 # Maintainer: mitiao <mitiao@gmail.com>
 
-use base 'y2logsstep';
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
@@ -156,7 +156,7 @@ sub run {
                 last if match_has_tag 'addon-yast2-patterns';
                 if (match_has_tag 'package-conflict-resolution') {
                     wait_screen_change { send_key 'alt-1' };
-                    if (!check_screen 'radio-button-selected', 0) {
+                    if (!check_screen 'radio-button-selected', 0) {    ## no critic (ProhibitDeepNests)
                         wait_screen_change { send_key 'spc' };
                     }
                     wait_screen_change { send_key 'alt-o' };
@@ -249,7 +249,7 @@ sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->save_and_upload_log('journalctl -b', '/tmp/journal.log', {screenshot => 1});
-    $self->upload_xsession_errors_log;
+    $self->export_logs_desktop;
     $self->SUPER::post_fail_hook;
 }
 

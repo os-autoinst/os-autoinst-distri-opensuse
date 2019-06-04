@@ -26,9 +26,15 @@ use utils;
 sub run {
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
-    # TODO:
+    record_info "POWEROFF", "Shut every guest down";
     script_run "ssh root\@$_ poweroff" foreach (keys %xen::guests);
     script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 60, expect => 1;
+
+    record_info "AUTOSTART DISABLE", "Disable autostart for all guests";
+    assert_script_run "virsh autostart --disable $_" foreach (keys %xen::guests);
+
+    record_info "LIBVIRTD", "Restart libvirtd and expect all guests to stay down";
+    systemctl 'restart libvirtd';
 }
 
 sub test_flags {

@@ -29,11 +29,6 @@ sub run {
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
 
-        # Fill the current pairs of hostname & address into /etc/hosts file
-        assert_script_run "ssh root\@$hypervisor 'sed -i \"/$guest/d\" /etc/hosts'";
-        assert_script_run qq(ssh root\@$hypervisor 'echo `virsh net-dhcp-leases default | awk "/$guest/ {print substr(\\\\\$5, 1, length(\\\\\$5)-3)}"` $guest >> /etc/hosts');
-        assert_script_run "ssh root\@$hypervisor 'cat /etc/hosts | grep $guest'";
-
         # Establish the SSH connection and transfer client key
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
         assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";

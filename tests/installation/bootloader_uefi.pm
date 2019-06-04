@@ -11,6 +11,8 @@
 # Summary: Boot on UEFI systems with configuration of boot parameters
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+package bootloader_uefi;
+
 use base "installbasetest";
 use strict;
 use warnings;
@@ -46,7 +48,10 @@ sub run {
     }
 
     # aarch64 firmware 'tianocore' can take longer to load
-    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 45 : 15;
+    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 60 : 15;
+    if (get_var('UEFI_HTTP_BOOT') || get_var('UEFI_HTTPS_BOOT')) {
+        tianocore_http_boot;
+    }
     assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";

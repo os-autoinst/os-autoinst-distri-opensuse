@@ -23,6 +23,7 @@ sub run {
     select_console 'root-console';
 
     if (is_sle) {
+        assert_script_run 'source /etc/os-release';
         if (is_sle '>=15') {
             if (script_run('SUSEConnect -p PackageHub/${VERSION_ID}/${CPU}', 300) != 0) {
                 record_soft_failure 'bsc#1124318 - Fail to get PackageHub Pool Metadata - running the command again as a workaround';
@@ -44,8 +45,13 @@ sub run {
     }
     validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
     prepare_ssh_localhost_key_login 'root';
-    assert_script_run 'machinery inspect localhost',               300;
-    assert_script_run 'machinery show localhost | grep machinery', 100;
+    if (get_var('ARCH') =~ /aarch64|ppc64le/ && \
+        script_run "machinery inspect localhost | grep 'no machinery-helper for the remote system architecture'", 300) {
+        record_soft_failure 'boo#1125785 - no machinery-helper for this architecture.';
+    } else {
+        assert_script_run 'machinery inspect localhost',               300;
+        assert_script_run 'machinery show localhost | grep machinery', 100;
+    }
 }
 
 1;

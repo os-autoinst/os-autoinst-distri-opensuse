@@ -16,17 +16,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use utils qw(zypper_call zypper_enable_install_dvd);
 use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
-
-    # see FATE#325541
-    zypper_call 'mr -e -l'
-      if is_sle('15+')
-      and get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/;
-
+    zypper_enable_install_dvd;
     zypper_call '--gpg-auto-import-keys ref';
 }
 

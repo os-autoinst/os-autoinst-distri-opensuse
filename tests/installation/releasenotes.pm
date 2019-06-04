@@ -11,7 +11,7 @@
 # Summary: SLE12 release notes
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
@@ -86,9 +86,9 @@ sub run {
             # It takes longer time to show multilple release notes for addons
             assert_screen([qw(release-notes-sle-ok-button release-notes-sle-close-button)], 300);
         }
-        for my $a (@addons) {
-            next if grep { $a eq $_ } @no_relnotes;
-            send_key_until_needlematch("release-notes-$a", 'right', 4, 60);
+        for my $i (@addons) {
+            next if grep { $i eq $_ } @no_relnotes;
+            send_key_until_needlematch("release-notes-$i", 'right', 4, 60);
             send_key 'left';    # move back to first tab
             send_key 'left';
             send_key 'left';

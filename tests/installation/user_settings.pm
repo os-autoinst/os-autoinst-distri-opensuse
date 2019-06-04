@@ -13,19 +13,8 @@
 
 use strict;
 use warnings;
-use parent qw(installation_user_settings y2logsstep);
+use parent qw(installation_user_settings y2_installbase);
 use testapi;
-use utils qw(type_string_slow);
-
-
-sub enter_userinfo {
-    my ($self, %args) = @_;
-    send_key 'alt-f';    # Select full name text field
-    wait_screen_change { $args{retry} ? type_string_slow $realname : type_string $realname };
-    send_key 'tab';      # Select password field
-    send_key 'tab';
-    $self->type_password_and_verification;
-}
 
 sub run {
     my ($self) = @_;
@@ -48,6 +37,10 @@ sub run {
     if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
         send_key $cmd{noautologin};
         assert_screen 'autologindisabled';
+    }
+    elsif (check_var('NOAUTOLOGIN', '0')) {
+        send_key $cmd{noautologin};
+        assert_screen 'autologinenabled';
     }
     if (get_var('DOCRUN')) {
         send_key $cmd{otherrootpw};

@@ -1,0 +1,10 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+
+BONDING_MASTER='yes'
+BONDING_SLAVE_0='iface0'
+BONDING_SLAVE_1='iface1'
+BONDING_MODULE_OPTS='mode=balance-rr miimon=100'
+
+IPADDR='ip_address/24'
+IPADDR6='fd00:deca:fbad:50::1/64'

@@ -10,13 +10,13 @@
 # Summary: yast2 lan hostname via DHCP test https://bugzilla.suse.com/show_bug.cgi?id=984890
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "console_yasttest";
+use parent "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
 use utils;
 use version_utils ':VERSION';
-use y2_common 'accept_warning_network_manager_default';
+
 
 sub hostname_via_dhcp {
     my $dhcp = shift;
@@ -25,9 +25,8 @@ sub hostname_via_dhcp {
     $cmd{hostname_dns_tab} = 'alt-s';
     $cmd{home}             = 'home';
     $cmd{spc}              = 'spc';
-
-    type_string "yast2 lan\n";
-    accept_warning_network_manager_default;
+    y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
+    y2_module_basetest::accept_warning_network_manager_default;
     assert_screen 'yast2_lan';
 
     # Hostname/DNS tab

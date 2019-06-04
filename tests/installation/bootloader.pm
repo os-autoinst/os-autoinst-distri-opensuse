@@ -11,6 +11,8 @@
 # Summary: Bootloader to setup boot process with arguments/options
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
+package bootloader;
+
 use base "installbasetest";
 use strict;
 use warnings;
@@ -20,18 +22,21 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use bootloader_spvm;
 use registration;
+use version_utils ':SCENARIO';
 use utils;
+use Utils::Backends 'is_spvm';
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
-    return boot_spvm if check_var('BACKEND', 'spvm');
+    return boot_spvm if is_spvm;
     return           if pre_bootmenu_setup == 3;
     return           if select_bootmenu_option == 3;
-    bootmenu_default_params;
-    bootmenu_network_source;
-    specific_bootmenu_params;
+    my @params;
+    push @params, bootmenu_default_params;
+    push @params, bootmenu_network_source;
+    push @params, specific_bootmenu_params;
     specific_caasp_params;
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
+    push @params, registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
     # on ppc64le boot have to be confirmed with ctrl-x or F10
     # and it doesn't have nice graphical menu with video and language options
@@ -45,6 +50,9 @@ sub run {
         # boot
         send_key 'ctrl-x';
     }
+    # On the live images boot parameters are not printed on the serial,
+    # skip the check there
+    compare_bootparams(\@params, [parse_bootparams_in_serial]) if !is_livecd;
 }
 
 1;

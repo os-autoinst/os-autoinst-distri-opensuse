@@ -24,11 +24,6 @@ pre init scripts feature. See poo#20818.
       <import_gpg_key config:type="boolean">true</import_gpg_key>
     </signature-handling>
   </general>
-  <bootloader>
-    <global>
-      <timeout config:type="integer">-1</timeout>
-    </global>
-  </bootloader>
   <report>
     <errors>
       <log config:type="boolean">true</log>
@@ -75,6 +70,7 @@ pre init scripts feature. See poo#20818.
       <suse_btrfs config:type="boolean">false</suse_btrfs>
       <os_prober>false</os_prober>
       <terminal>console</terminal>
+      <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>

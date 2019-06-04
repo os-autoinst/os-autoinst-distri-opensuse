@@ -14,9 +14,9 @@
 #    or if the new version with a proposed fix is already included.
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
 
 sub run {

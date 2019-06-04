@@ -14,7 +14,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
 
@@ -154,24 +154,32 @@ sub init_desktop_runner {
         send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
         send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
     }
-    # krunner may use auto-completion which sometimes gets confused by
-    # too fast typing or looses characters because of the load caused (also
-    # see below), especially in wayland.
-    # See https://progress.opensuse.org/issues/18200 as well as
-    # https://progress.opensuse.org/issues/35589
-    if (check_var('DESKTOP', 'kde')) {
-        if (get_var('WAYLAND')) {
-            wait_still_screen(3);
-            type_string_very_slow substr $program, 0, 2;
-            wait_still_screen(3);
-            type_string_very_slow substr $program, 2;
+    for (my $retries = 10; $retries > 0; $retries--) {
+        # krunner may use auto-completion which sometimes gets confused by
+        # too fast typing or looses characters because of the load caused (also
+        # see below), especially in wayland.
+        # See https://progress.opensuse.org/issues/18200 as well as
+        # https://progress.opensuse.org/issues/35589
+        if (check_var('DESKTOP', 'kde')) {
+            if (get_var('WAYLAND')) {
+                wait_still_screen(3);
+                type_string_very_slow substr $program, 0, 2;
+                wait_still_screen(3);
+                type_string_very_slow substr $program, 2;
+            } else {
+                type_string_slow $program;
+            }
+        } else {
+            type_string $program;
         }
-        else {
-            type_string_slow $program;
+        # Make sure we have plasma suggestions as it may take time, especially on boot or under load. Otherwise, try again
+        last unless (check_var('DESKTOP', 'kde') && !check_screen('desktop-runner-plasma-suggestions'));
+        if ($retries > 1) {
+            # Prepare for next attempt
+            send_key 'esc';    # Escape from desktop-runner
+            sleep(30);         # Leave some time for the system to recover
+            send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
         }
-    }
-    else {
-        type_string $program;
     }
 }
 
@@ -230,7 +238,7 @@ sub x11_start_program {
         send_key 'esc';
         init_desktop_runner($program, $timeout);
     }
-    wait_still_screen(1);
+    wait_still_screen(3);
     save_screenshot;
     send_key 'ret';
     # As above especially krunner seems to take some time before disappearing
@@ -306,7 +314,9 @@ sub ensure_installed {
     elsif ($ret !~ /pkcon-status-0/) {
         die "pkcon install did not succeed, return code: $ret";
     }
+    wait_still_screen 1;
     send_key("alt-f4");    # close xterm
+    assert_screen 'generic-desktop' if is_opensuse;
 }
 
 sub script_sudo {
@@ -423,7 +433,7 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 user     => 'root',
-                serial   => 'mkfifo /dev/sshserial; tail -f /dev/sshserial',
+                serial   => 'mkfifo /dev/sshserial; tail -fn +1 /dev/sshserial',
                 gui      => 1
             });
     }

@@ -26,8 +26,11 @@ sub run {
     $self->get_from_data('wicked/static_address/static-addresses-and-routes.xml', $config);
     file_content_replace($config, '--sed-modifier' => 'g', xxx => $ctx->iface());
     $self->wicked_command('ifup --ifconfig /data/static_address/static-addresses-and-routes.xml', $ctx->iface());
-    $self->assert_wicked_state(ping_ip => '10.0.2.2', iface => $ctx->iface());
+    $self->assert_wicked_state(ping_ip => $self->get_remote_ip(type => 'host'), iface => $ctx->iface());
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
 
 1;

@@ -20,7 +20,7 @@
 #    additional to the on-pattern tag
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "y2logsstep";
+use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
@@ -36,7 +36,7 @@ sub accept3rdparty {
 
 sub check12qtbug {
     if (check_screen('pattern-too-low', 5)) {
-        assert_and_click('pattern-too-low', 'left', 1);
+        assert_and_click('pattern-too-low', timeout => 1);
     }
 }
 

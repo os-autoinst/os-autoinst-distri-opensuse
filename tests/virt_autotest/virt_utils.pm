@@ -22,11 +22,10 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use proxymode;
-use virt_autotest_base;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd is_installed_equal_upgrade_major_release);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -50,7 +49,7 @@ sub repl_repo_in_sourcefile {
     if (get_var("REPO_0")) {
         my $location = '';
         if (!check_var('ARCH', 's390x')) {
-            $location = &virt_autotest_base::execute_script_run("", "perl /usr/share/qa/tools/location_detect_impl.pl", 60);
+            $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
             $location =~ s/[\r\n]+$//;
         }
         else {
@@ -131,7 +130,7 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
     my $version = get_version_for_daily_build_guest;
     $version =~ s/-/\//;
     my $autoyast_root_dir = "/usr/share/qa/virtautolib/data/autoinstallation/sles/" . $version . "/";
-    my $file_list         = &script_output("find $autoyast_root_dir -type f");
+    my $file_list         = script_output("find $autoyast_root_dir -type f");
     repl_addon_with_daily_build_module_in_files("$file_list");
 }
 
@@ -233,6 +232,141 @@ sub lpar_cmd {
         record_info('INFO', "Command $cmd run on S390X LPAR: FAIL");
         die 'Find new failure, please check manually';
     }
+}
+
+sub upload_virt_logs {
+    my ($log_dir, $compressed_log_name) = @_;
+
+    my $full_compressed_log_name = "/tmp/$compressed_log_name.tar.gz";
+    script_run("tar -czf $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
+    save_screenshot;
+    upload_logs "$full_compressed_log_name";
+    save_screenshot;
+}
+
+# Guest xml will be uploaded with name format [generated_name_by_this_func].xml
+# Guest disk will be uploaded with name format [generated_name_by_this_func].disk
+# When reusing these assets, needs to recover the names to original by reverting this process
+sub generate_guest_asset_name {
+    my $guest = shift;
+
+    my $composed_name
+      = 'guest_'
+      . $guest
+      . '_on-host_'
+      . get_required_var('DISTRI') . '-'
+      . get_required_var('VERSION')
+      . '_build'
+      . get_required_var('BUILD') . '_'
+      . lc(get_required_var('SYSTEM_ROLE')) . '_'
+      . get_required_var('ARCH');
+
+    record_info('Guest asset info', "Guest asset name is : $composed_name");
+
+    return $composed_name;
+}
+
+sub get_guest_disk_name_from_guest_xml {
+    my $guest = shift;
+
+    # Our automation only supports single guest disk
+    my $disk_from_xml = script_output("virsh dumpxml $guest | sed -n \'/disk/,/\\\/disk/p\' | grep 'source file=' | grep -v iso");
+    record_info('Guest disk config from xml', "Guest $guest disk_from_xml is: $disk_from_xml.");
+    $disk_from_xml =~ /file='(.*)'/;
+    $disk_from_xml = $1;
+    die 'There is no guest disk file parsed out from guest xml configuration!' unless $disk_from_xml;
+    record_info('Guest disk name', "Guest $guest disk_from_xml is: $disk_from_xml.");
+
+    return $disk_from_xml;
+}
+
+# Should only do compress from qcow2 disk to qcow2 in our automation(upload guest asset scheme).
+sub compress_single_qcow2_disk {
+    my ($orig_disk, $compressed_disk) = @_;
+
+    if ($orig_disk =~ /qcow2/) {
+        my $cmd = "nice ionice qemu-img convert -c -p -O qcow2 $orig_disk $compressed_disk";
+        assert_script_run($cmd, 360);
+        save_screenshot;
+        record_info('Disk compression', "Disk compression done from $orig_disk to $compressed_disk.");
+    }
+}
+
+sub upload_supportconfig_log {
+    my $datetab = script_output("date '+%Y%m%d%H%M%S'");
+    script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
+    script_run("tar zcvfP nts_supportconfig.$datetab.tar.gz nts_supportconfig.$datetab");
+    upload_logs("nts_supportconfig.$datetab.tar.gz");
+    script_run("rm -rf nts_supportconfig.*");
+    save_screenshot;
+}
+
+# Download guest image and xml from a NFS location to local
+# the image and xml is coming from a guest installation testsuite
+# need set SKIP_GUEST_INSTALL=1 in the test suite settings
+# only available on x86_64
+sub download_guest_assets {
+
+    # guest_pattern is a string, like sles-11-sp4-64, may or may not with pv or fv given.
+    my ($guest_pattern, $vm_xml_dir) = @_;
+
+    # list the guests matched the pattern
+    my $qa_guest_config_file = "/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update";
+    my $hypervisor_type      = get_var('SYSTEM_ROLE', '');
+    my $install_guest_list = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vms_from_config_file $qa_guest_config_file $guest_pattern $hypervisor_type";
+    save_screenshot;
+    if ($install_guest_list eq '') {
+        record_soft_failure("Not found guest pattern $guest_pattern in $qa_guest_config_file");
+        return 1;
+    }
+
+    # mount the remote NFS location of guest assets
+    # OPENQA_URL="localhost" in local openQA instead of the IP, so the line below need to be turned on and set to the webUI IP when you are using local openQA
+    # Tips: Using local openQA, you need "rcnfsserver start & vi /etc/exports; exportfs -r")
+    # set_var('OPENQA_URL', "your_ip");
+    my $openqa_server = get_required_var('OPENQA_URL');
+    $openqa_server =~ s/^http:\/\///;
+    my $remote_export_dir = "/var/lib/openqa/factory/other/";
+    my $mount_point       = "/tmp/remote_guest";
+
+    assert_script_run "if [ ! -d $mount_point ];then mkdir -p $mount_point;fi";
+    save_screenshot;
+    # tip: nfs4 is not supported on sles12sp4
+    assert_script_run("mount -t nfs $openqa_server:$remote_export_dir $mount_point", 120);
+    save_screenshot;
+
+    # copy guest images and xml files to local
+    # test aborts if failing in copying all the guests
+    my $remote_guest_count = 0;
+    foreach my $guest (split "\n", $install_guest_list) {
+        my $guest_asset           = generate_guest_asset_name("$guest");
+        my $remote_guest_xml_file = $guest_asset . '.xml';
+        my $remote_guest_disk     = $guest_asset . '.disk';
+        # change the long guest image name and xml file name to normal ones in local
+        my $rc = script_run("if [ ! -d $vm_xml_dir ];then mkdir -p $vm_xml_dir;fi; cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
+        save_screenshot;
+        if ($rc) {
+            record_soft_failure("Failed copying: $mount_point/$remote_guest_xml_file");
+            next;
+        }
+        script_run("ls -l $vm_xml_dir", 10);
+        save_screenshot;
+        my $local_guest_image = script_output "grep '<source file=' $vm_xml_dir/$guest.xml | sed \"s/^\\s*<source file='\\([^']*\\)'.*\$/\\1/\"";
+        $rc = script_run("cp $mount_point/$remote_guest_disk $local_guest_image", 300);    #it took 75 seconds copy from vh016 to vh001
+        script_run "ls -l $local_guest_image";
+        save_screenshot;
+        if ($rc) {
+            record_soft_failure("Failed to download: $remote_guest_disk");
+            next;
+        }
+        $remote_guest_count++;
+    }
+
+    # umount
+    script_run("umount $mount_point");
+    save_screenshot;
+
+    return 1 if ($remote_guest_count == 0);
 }
 
 sub is_installed_equal_upgrade_major_release {

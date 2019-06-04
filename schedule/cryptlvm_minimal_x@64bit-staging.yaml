@@ -1,0 +1,60 @@
+---
+name:           cryptlvm_minimal_x@64bit-staging
+description:    >
+  Combination of "cryptlvm" and "minimal_x" for 64bit and staging.
+  (crypt-)LVM installations can take longer,
+  especially on non-x86_64 architectures.
+vars:
+  ENCRYPT: 1
+  LVM: 1
+  MAX_JOB_TIME: 14400
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/encrypt_lvm
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/change_desktop
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/hostname
+  - console/installation_snapshots
+  - console/xorg_vt
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - console/yast2_lan
+  - console/curl_https
+  - console/glibc_sanity
+  - console/zypper_in
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/orphaned_packages_check
+  - console/consoletest_finish

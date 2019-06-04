@@ -17,10 +17,10 @@ use warnings;
 use testapi;
 use mmapi;
 use version_utils 'is_caasp';
-use power_action_utils qw(power_action assert_shutdown_and_restore_system);
+use power_action_utils 'power_action';
 
 our @EXPORT = qw(
-  process_reboot microos_login send_alt
+  microos_reboot microos_login send_alt
   handle_simple_pw script_run0 script_assert0
   get_delayed update_scheduled
   pause_until unpause);
@@ -86,22 +86,15 @@ sub microos_login {
 }
 
 # Process reboot with an option to trigger it
-sub process_reboot {
+sub microos_reboot {
     my $trigger = shift // 0;
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # No grub bootloader on xen-pv
-    # caasp - grub2 needle is unreliable (stalls during timeout) - poo#28648
-    # kubic - will risk occasional failure because it disabled grub2 timeout
-    if (is_caasp 'kubic') {
-        assert_screen [qw(grub2 linux-login-casp)], 150;
-        if (match_has_tag 'linux-login-casp') {
-            record_info('poo#28648', 'Skip looking for grub2 needle - the system has already been booted');
-        }
-        elsif (match_has_tag 'grub2') {
-            send_key 'ret';
-        }
-    }
+    # grub2 needle is unreliable (stalls during timeout) - poo#28648
+    assert_screen [qw(grub2 linux-login-casp)], 150;
+    send_key('ret') if match_has_tag('grub2');
+
     microos_login;
 }
 

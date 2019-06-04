@@ -1,7 +1,7 @@
-[SUSE_Maintenance_4959]
-name=SUSE:Maintenance:4959 (SUSE_Updates_SLE-SERVER_12-SP3_x86_64)
+[SUSE_Maintenance_10954]
+name=SUSE:Maintenance:10954 (SUSE_SLE-15_Update)
 type=rpm-md
-baseurl=http://download.suse.de/ibs/SUSE:/Maintenance:/4959/SUSE_Updates_SLE-SERVER_12-SP3_x86_64/
+baseurl=http://download.suse.de/ibs/SUSE:/Maintenance:/10954/SUSE_SLE-15_Update/
 gpgcheck=1
-gpgkey=http://download.suse.de/ibs/SUSE:/Maintenance:/4959/SUSE_Updates_SLE-SERVER_12-SP3_x86_64/repodata/repomd.xml.key
+gpgkey=http://download.suse.de/ibs/SUSE:/Maintenance:/10954/SUSE_SLE-15_Update/repodata/repomd.xml.key
 enabled=1

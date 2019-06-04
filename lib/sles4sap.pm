@@ -10,7 +10,7 @@ use hacluster 'pre_run_hook';
 use isotovideo;
 use x11utils 'ensure_unlocked_desktop';
 
-our @EXPORT = qw (
+our @EXPORT = qw(
   fix_path
   set_ps_cmd
   set_sap_info
@@ -80,7 +80,8 @@ sub test_pids_max {
     my $rc1 = script_run "grep -qx max /tmp/pids-max";
     # nproc should be set to "unlimited" in /etc/security/limits.d/99-sapsys.conf
     # Check that nproc * 2 + 1 >= threads-max
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' | tee /tmp/nproc";
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c 'ulimit -u' -s /bin/bash | tr -d '\\r' > /tmp/nproc";
+    assert_script_run "cat /tmp/nproc ; sysctl -n kernel.threads-max";
     my $rc2 = script_run "[[ \$(( \$(< /tmp/nproc) * 2 + 1)) -ge \$(sysctl -n kernel.threads-max) ]]";
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
 }
@@ -122,10 +123,11 @@ sub test_start_service {
     my $output = script_output "sapcontrol -nr $instance -function StartService $sid";
     die "sapcontrol: StartService API failed\n\n$output" unless ($output =~ /StartService[\r\n]+OK/);
 
-    $output = script_output $ps_cmd;
+    # We can't use the $ps_cmd alias, as number of process can be >1 on some HANA version
+    $output = script_output "pgrep -a sapstartsrv | grep -w $sid";
     my @olines = split(/\n/, $output);
-    die "sapcontrol: wrong number of processes running after an StartService\n\n" . @olines unless (@olines == 1);
-    die "sapcontrol failed to start the service" unless ($output =~ /^$sapadmin.+sapstartsrv/);
+    die "sapcontrol: wrong number of processes running after a StartService\n\n" . @olines unless (@olines == 1);
+    die "sapcontrol failed to start the service" unless ($output =~ /sapstartsrv/);
 }
 
 sub test_start_instance {

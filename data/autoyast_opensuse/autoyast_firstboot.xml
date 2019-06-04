@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <!-- no confirmation asked but firstboot wizard requested -->
+    <general>
+        <mode>
+            <confirm config:type="boolean">false</confirm>
+        </mode>
+    </general>
+    <login_settings>
+      <autologin_user>bernhard</autologin_user>
+    </login_settings>
+    <bootloader>
+        <global>
+            <timeout config:type="integer">-1</timeout>
+        </global>
+    </bootloader>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+      <install_recommended config:type="boolean">true</install_recommended>
+      <packages config:type="list">
+        <package>yast2-firstboot</package>
+      </packages>
+      <patterns config:type="list">
+        <pattern>apparmor</pattern>
+        <pattern>base</pattern>
+        <pattern>gnome</pattern>
+      </patterns>
+    </software>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+    <firstboot>
+        <firstboot_enabled config:type="boolean">true</firstboot_enabled>
+    </firstboot>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+</profile>

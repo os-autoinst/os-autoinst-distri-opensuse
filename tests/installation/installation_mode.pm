@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,14 +13,14 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 
 sub run {
     # autoconf phase
     # includes downloads
-    assert_screen [qw(partitioning-edit-proposal-button before-role-selection inst-instmode)], 120;
-    if (match_has_tag("partitioning-edit-proposal-button") || match_has_tag("before-role-selection")) {
+    assert_screen [qw(partitioning-edit-proposal-button before-role-selection inst-instmode online-repos)], 120;
+    if (match_has_tag("partitioning-edit-proposal-button") || match_has_tag("before-role-selection") || match_has_tag("online-repos")) {
         # new desktop selection workflow
         set_var('NEW_DESKTOP_SELECTION', 1);
         return;

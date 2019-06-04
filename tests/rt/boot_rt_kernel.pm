@@ -18,8 +18,7 @@ use bootloader_setup 'boot_grub_item';
 use x11utils 'handle_login';
 
 sub run() {
-    my $self = shift;
-    $self->boot_grub_item(2, 3);
+    boot_grub_item(2, 3);
     assert_screen 'displaymanager', 60;
     handle_login;
     assert_screen 'generic-desktop';

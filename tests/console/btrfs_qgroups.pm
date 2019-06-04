@@ -74,9 +74,12 @@ sub run {
 
     # Check for quota exceeding
     assert_script_run 'btrfs subvolume create e';
-    assert_script_run 'btrfs qgroup limit 50m e .';
-    my $write_chunk = 'dd if=/dev/zero bs=1M count=40 of=e/file';
-    assert_script_run "for c in {1..2}; do $write_chunk; done", fail_message => 'bsc#1019614 overwriting same file should not exceed quota';
+    assert_script_run 'btrfs qgroup limit 200m e .';
+    my $write_chunk = 'dd if=/dev/zero bs=1M count=190 of=e/file';
+    # Overwriting same file should not exceed quota
+    if (script_run("for c in {1..2}; do $write_chunk; done")) {
+        record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
+    }
     # write some more times to the same file to be sure
     if (script_run("for c in {1..38}; do $write_chunk; done")) {
         record_soft_failure 'bsc#1019614';
@@ -84,10 +87,10 @@ sub run {
     assert_script_run 'sync';
     assert_script_run 'rm e/file', fail_message => 'bsc#993841';
     # test exceeding real quota
-    my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=40 of=e/file_$c; done';
+    my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=190 of=e/file_$c; done';
     assert_script_run $files_creation;
     if (script_run('rm e/file_*')) {
-        record_soft_failure 'bsc#1113042  -- btrfs is not informed to commit transaction';
+        record_soft_failure 'File removal test: bsc#1113042 - btrfs is not informed to commit transaction';
         assert_script_run 'sync';
         assert_script_run $files_creation;
         assert_script_run 'rm e/file_*';

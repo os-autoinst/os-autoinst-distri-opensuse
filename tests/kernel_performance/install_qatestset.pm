@@ -12,7 +12,7 @@
 # Maintainer: Joyce Na <jna@suse.de>
 
 package install_qatestset;
-use base "y2logsstep";
+use base 'y2_installbase';
 use power_action_utils 'power_action';
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ sub install_pkg {
     my $qa_server_repo = get_required_var('QA_REPO');
     zypper_call("rr qa-ibs");
     zypper_call(
-        "--no-gpg-check -n ar -f '$qa_server_repo' qa-ibs");
+        "--no-gpg-check ar -f '$qa_server_repo' qa-ibs");
     zypper_call("--no-gpg-check ref");
     zypper_call("install qa_testset_automation");
 }
@@ -40,9 +40,8 @@ sub setup_environment {
 sub run {
     install_pkg;
     setup_environment;
-    power_action('poweroff');
+    power_action('poweroff', keepconsole => 1, textmode => 1);
 }
-
 sub test_flags {
     return {fatal => 1};
 }

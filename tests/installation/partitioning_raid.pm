@@ -11,11 +11,11 @@
 # Summary: split the partitioning monster into smaller pieces
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2logsstep';
 use testapi;
-use version_utils qw(is_storage_ng);
+use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'is_storage_ng_newui';
 
 sub switch_partitions_tab {
@@ -201,12 +201,14 @@ sub modify_uefi_boot_partition {
     assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
     # fold the drive tree
     send_key 'left';
-    send_key 'left' if is_storage_ng;    # With storage-ng first press folds vdd
+    send_key 'left' if (is_storage_ng && !is_tumbleweed);    # With storage-ng first press folds vdd, except on Tumbleweed where vdd is now already folded
     assert_screen 'partitioning_raid-hard_disks-unfolded';
     # select first partition of the first disk (usually vda1), bit of a short-cut
     send_key 'right';
     # In storage ng other partition of the first disk can be selected, so select vda1 in the tree
     send_key 'right' if is_storage_ng;
+    # On Tumbleweed, an additional 'right' is needed as vda is folded
+    send_key 'right' if (is_storage_ng && is_tumbleweed);
     assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
     # edit first partition
     send_key 'alt-e';
@@ -316,8 +318,8 @@ sub add_prep_boot_partition {
     assert_screen 'partitioning_raid-format_noformat';
     send_key 'alt-i';
     assert_screen 'partitioning_raid-file_system_id-selected';
-    my $direction_key = (is_storage_ng) ? 'up' : 'down';
-    send_key_until_needlematch 'filesystem-prep', $direction_key;
+    send_key 'home';
+    send_key_until_needlematch 'filesystem-prep', 'down';
     send_key $cmd{exp_part_finish};
     if (is_storage_ng) {
         send_key 'down';

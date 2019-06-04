@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ my $JUNIT_FILE = '/opt/output.xml';
 
 sub log_end {
     my $file = shift;
-    my $cmd  = "echo 'Test run complete' >> $file";
+    my $cmd  = "echo '\nTest run complete' >> $file";
     type_string("\n");
     assert_script_run($cmd);
 }
@@ -35,10 +35,11 @@ sub log_end {
 # Compress all sub directories under $dir and upload them.
 sub upload_subdirs {
     my ($dir, $timeout) = @_;
-    my $output = script_output("find $dir -maxdepth 1 -mindepth 1 -type f -or -type d");
+    my $output = script_output("if [ -d $dir ]; then find $dir -maxdepth 1 -mindepth 1 -type f -or -type d; else echo $dir folder not exist; fi");
+    if ($output =~ /folder not exist/) { return; }
     for my $subdir (split(/\n/, $output)) {
         my $tarball = "$subdir.tar.xz";
-        assert_script_run("tar cJf $tarball -C $dir " . basename($subdir), $timeout);
+        assert_script_run("ll; tar cJf $tarball -C $dir " . basename($subdir), $timeout);
         upload_logs($tarball, timeout => $timeout, log_name => basename($dir));
     }
 }
@@ -46,6 +47,12 @@ sub upload_subdirs {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+
+    # Reload uploaded status log back to file
+    script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG");
+
+    # Reload test logs if check missing
+    script_run("if [ ! -d $LOG_DIR ]; then mkdir -p $LOG_DIR; curl -O " . autoinst_url . '/files/opt_logs.tar.gz; tar zxvfP opt_logs.tar.gz; fi');
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);

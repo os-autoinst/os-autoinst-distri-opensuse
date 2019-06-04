@@ -211,9 +211,9 @@ sub set_pxe_efiboot {
     my $installation_disk = "";
 
     if ($root_prefix ne "/") {
-        $installation_disk = &get_installation_partition;
+        $installation_disk = get_installation_partition;
         assert_script_run("cd /");
-        &mount_installation_disk("$installation_disk", "$root_prefix");
+        mount_installation_disk("$installation_disk", "$root_prefix");
     }
 
     my $wait_script    = "30";
@@ -275,7 +275,7 @@ sub set_pxe_efiboot {
     #cleanup mount
     if ($root_prefix ne "/") {
         assert_script_run("cd /");
-        &umount_installation_disk("$root_prefix");
+        umount_installation_disk("$root_prefix");
     }
 }
 
@@ -293,11 +293,11 @@ sub set_serial_console_on_vh {
         #when mount point is not empty, needs to mount installation disk
         if ($installation_disk eq "") {
             #search for the real installation partition on the first disk, which is selected by yast in ipmi installation
-            $installation_disk = &get_installation_partition;
+            $installation_disk = get_installation_partition;
         }
         #mount partition
         assert_script_run("cd /");
-        &mount_installation_disk("$installation_disk", "$mount_point");
+        mount_installation_disk("$installation_disk", "$mount_point");
         $root_dir = $mount_point;
     }
     else {
@@ -305,14 +305,14 @@ sub set_serial_console_on_vh {
     }
 
     #set up xen serial console
-    my $ipmi_console = &get_dom0_serialdev("$root_dir");
-    if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { &setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
+    my $ipmi_console = get_dom0_serialdev("$root_dir");
+    if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
     else                                                { die "Host Hypervisor is not xen or kvm"; }
 
     #cleanup mount
     if ($mount_point ne "") {
         assert_script_run("cd /");
-        &umount_installation_disk("$mount_point");
+        umount_installation_disk("$mount_point");
     }
 
 }

@@ -44,7 +44,20 @@ sub run {
     # Install qa_test_xfstests
     zypper_call('--gpg-auto-import-keys ref', timeout => 600);
     zypper_call('in qa_test_xfstests',        timeout => 1200);
-    assert_script_run('/usr/share/qa/qa_test_xfstests/install.sh', 600);
+
+    if (get_var('XFSTESTS_REPO')) {
+        # Add filesystems repository and install xfstests package
+        zypper_call '--no-gpg-check ar -f ' . get_var('XFSTESTS_REPO') . ' filesystems';
+        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call 'in xfstests';
+        zypper_call 'rr filesystems';
+        # Link the tests as the wrapper expects this somewhere else
+        script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
+    }
+    else {
+        # Build test suite from git snapshot provided by the qa_test_xfstests package
+        assert_script_run('/usr/share/qa/qa_test_xfstests/install.sh', 600);
+    }
 
     # Create log file
     log_create($STATUS_LOG);

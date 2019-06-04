@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "y2logsstep";
+use base 'y2_installbase';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_upgrade);
@@ -44,7 +44,11 @@ sub run {
             send_key 'ret';
             return;
         }
-        record_info('Bootloader conf', 'Config bootloader should not be supported during upgrade', result => 'softfail');
+        if (!get_var('SOFTFAIL_1129504') && is_upgrade && is_sle) {
+            record_info('Bootloader conf', 'Workaround for bsc#1129504 grub2 timeout is too fast', result => 'softfail');
+            send_key 'alt-c';
+            return;
+        }
     }
     assert_screen([qw(inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
     # Depending on an optional button "release notes" we need to press "tab"
@@ -67,7 +71,7 @@ sub run {
     save_screenshot;
     send_key $cmd{ok};
     # Adapting system setting needs longer time in case of installing/upgrading with multi-addons
-    assert_screen 'installation-settings-overview-loaded', 120;
+    assert_screen 'installation-settings-overview-loaded', 220;
 }
 
 1;

@@ -23,16 +23,22 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
+use y2_module_guitest 'launch_yast2_module_x11';
+use x11utils 'turn_off_gnome_screensaver';
 
 use base 'consoletest';
 
-our @EXPORT = qw (
+our @EXPORT = qw(
   $audit_log
   $mail_err_log
   $mail_warn_log
   $mail_info_log
+  $prof_dir
+  $adminer_file
+  $adminer_dir
 );
 
+our $prof_dir      = "/etc/apparmor.d";
 our $audit_log     = "/var/log/audit/audit.log";
 our $mail_err_log  = "/var/log/mail.err";
 our $mail_warn_log = "/var/log/mail.warn";
@@ -44,6 +50,12 @@ our $pw             = "te5tpw";
 our $mail_subject   = "Subject: Postfix test";
 our $mail_content   = "hello world";
 our $testdomain     = "testdomain.com";
+
+our $adminer_file = "adminer.php5";
+our $adminer_dir  = "/srv/www/htdocs/adminer/";
+
+our $testuser = "testuser";
+our $testdir  = "testdir";
 
 # $prof_dir_tmp: The target temporary directory
 # $type:
@@ -92,7 +104,7 @@ sub get_named_profile {
     my ($self, $profile_name) = @_;
 
     # Recalculate profile name in case
-    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//'");
+    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//' | head -1");
     if ($profile_name =~ m/profile /) {
         $profile_name = script_output("echo $profile_name | cut -d ' ' -f2");
     }
@@ -108,6 +120,11 @@ sub aa_status_stdout_check {
     my $lines      = $start_line + $total_line;
 
     assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
+}
+
+sub ip_fetch {
+    my $ip = script_output("hostname -I | cut -d ' ' -f1");
+    return $ip;
 }
 
 # Set up mail server with Postfix and Dovecot:
@@ -157,15 +174,19 @@ sub setup_mail_server_postfix_dovecot {
 
     # Install Postfix
     zypper_call("--no-refresh in dovecot");
+    zypper_call("--no-refresh in --force-resolution postfix");
+
+    # Start Postfix service
+    systemctl("restart postfix");
 
     # Set "/etc/postfix/main.cf" file
     my $testfile = "/etc/postfix/main.cf";
     assert_script_run("sed -i '1i home_mailbox = Maildir/' $testfile");
-    assert_script_run("sed -i '1i net_interfaces = localhost, $ip' $testfile");
-    assert_script_run("sed -i '1i net_protocols = all' $testfile");
-    assert_script_run("echo 'myhostname = mail.testdomain.com' >> $testfile");
+    assert_script_run("sed -i '1i inet_interfaces = localhost, $ip' $testfile");
+    assert_script_run("sed -i '1i inet_protocols = all' $testfile");
+    assert_script_run("sed -i '/^mydestination =/d' $testfile");
     assert_script_run("echo 'mydestination = \$myhostname, localhost.\$mydomain, \$mydomain' >> $testfile");
-
+    assert_script_run("echo 'myhostname = mail.testdomain.com' >> $testfile");
     # Output the setting for reference
     assert_script_run("tail -n 3 $testfile");
     assert_script_run("head -n 5 $testfile");
@@ -327,6 +348,143 @@ sub retrieve_mail_imap {
     );
 }
 
+# Set up Mariadb and test account
+sub mariadb_setup {
+    # Install Mariadb
+    zypper_call("in mariadb");
+    # Start MySQL server
+    assert_script_run("rcmysql start");
+    # Set up test account
+    script_run_interactive(
+        "/usr/bin/mysql_secure_installation",
+        [
+            {
+                prompt => qr/Enter current password for root/m,
+                string => "\n",
+            },
+            {
+                prompt => qr/Set root password\? \[Y\/n\]/m,
+                string => "Y\n",
+            },
+            {
+                prompt => qr/New password:/m,
+                string => "$pw\n",
+            },
+            {
+                prompt => qr/Re-enter new password:/m,
+                string => "$pw\n",
+            },
+            {
+                prompt => qr/Remove anonymous users\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Disallow root login remotely\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Remove test database and access to it\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Reload privilege tables now\? \[Y\/n\]/m,
+                string => "n\n",
+            },
+        ],
+        300
+    );
+}
+
+# Set up Web environment for running Adminer
+sub adminer_setup {
+    assert_script_run("a2enmod php5");
+    assert_script_run("a2enmod php7");
+    assert_script_run("systemctl restart apache2");
+    assert_script_run("systemctl restart mysql");
+
+    # Download Adminer and copy it to /srv/www/htdocs/adminer/
+    assert_script_run("wget --quiet " . data_url("apparmor/$adminer_file"));
+    # NOTE: Use *.php5 instead of *.php[7] to avoid file decoding error
+    assert_script_run("mkdir -p $adminer_dir");
+    assert_script_run("mv $adminer_file $adminer_dir");
+
+    # Test Adminer can work
+    select_console 'x11';
+
+    # Clean and Start Firefox
+    x11_start_program('xterm');
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    type_string("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* \n");
+    type_string("firefox http://localhost/adminer/$adminer_file &\n");
+
+    my $ret;
+    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    if (!defined($ret)) {
+        # Wait more time
+        record_info("Firefox loading adminer failed", "Retrying workaround");
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    }
+    if (match_has_tag("unresponsive-script")) {
+        send_key_until_needlematch("adminer-login", 'ret', 5, 5);
+    }
+    elsif (match_has_tag("adminer-login")) {
+        record_info("Firefox is loading adminer", "adminer login page shows up");
+    }
+    elsif (match_has_tag("firefox-blank-page")) {
+        record_info("Firefox loading adminer failed", "but blank page shows up");
+    }
+    else {
+        record_info("Firefox loading adminer failed", "but the testing can be continued");
+    }
+
+    # Exit x11 and turn to console
+    send_key "alt-f4";
+    $ret = check_screen("quit-and-close-tabs", timeout => 30);
+    if (defined($ret)) {
+        # Click the "quit and close tabs" button
+        send_key_until_needlematch("close-button-selected", 'tab', 5, 5);
+        send_key "ret";
+    }
+    wait_still_screen(stilltime => 3, timeout => 30);
+    # Exit xterm
+    if (is_tumbleweed()) {
+        send_key_until_needlematch("generic-desktop", 'alt-f4', 5, 5);
+    }
+    # Send "ret" key in case of any pop up message
+    send_key_until_needlematch("generic-desktop", 'ret', 5, 5);
+    select_console("root-console");
+    send_key "ctrl-c";
+    clear_console;
+}
+
+# Log in Adminer, seletct "test" database and delete it
+sub adminer_database_delete {
+    select_console 'x11';
+    x11_start_program("firefox --setDefaultBrowser http://localhost/adminer/$adminer_file", target_match => "adminer-login", match_timeout => 300);
+
+    # Do some operations on web, e.g., log in, select/delete a database
+    type_string("root");
+    send_key "tab";
+    type_string("$pw");
+    send_key "tab";
+    send_key "tab";
+    send_key "ret";
+    assert_screen("adminer-save-passwd");
+    send_key "alt-s";
+    assert_screen("adminer-select-database");
+    send_key_until_needlematch("adminer-select-database-test", 'tab', 30, 5);
+    assert_screen("adminer-select-database-test");
+    send_key "spc";
+    send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 5);
+
+    # Exit x11 and turn to console
+    send_key "alt-f4";
+    assert_screen("generic-desktop");
+    select_console("root-console");
+    send_key "ctrl-c";
+    clear_console;
+}
+
 sub upload_logs_mail {
     # Upload mail warn, err and info logs for reference
     upload_logs("$mail_err_log");
@@ -344,6 +502,11 @@ sub pre_run_hook {
 
 sub post_fail_hook {
     my ($self) = shift;
+
+    # Exit x11 and turn to console in case
+    send_key("alt-f4");
+    select_console("root-console");
+
     upload_logs("$audit_log");
     $self->SUPER::post_fail_hook;
 }

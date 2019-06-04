@@ -12,6 +12,9 @@
 #   terminal and an ssh connection
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.de>
 
+
+package bootloader_s390;
+
 use base "installbasetest";
 
 use testapi;
@@ -286,7 +289,7 @@ sub run {
         for (1 .. $max_retries) {
             eval {
                 # connect to zVM, login to the guest
-                $self->get_to_yast();
+                get_to_yast();
             };
             last unless ($@);
             diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries";
@@ -295,7 +298,7 @@ sub run {
     else {
         eval {
             # connect to zVM, login to the guest
-            $self->get_to_yast();
+            get_to_yast();
         };
     }
 

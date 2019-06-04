@@ -18,7 +18,7 @@
 
 use strict;
 use warnings;
-use base 'y2logsstep';
+use base 'y2_installbase';
 use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
@@ -106,7 +106,7 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
-    my @needles           = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot autoyast-error);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
@@ -121,6 +121,8 @@ sub run {
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
     push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
+    # resolve conflicts and this is a workaround during the update
+    push(@needles, 'manual-intervention') if get_var("BREAK_DEPS");
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
@@ -146,7 +148,8 @@ sub run {
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('linux-login-casp')
-          || match_has_tag('inst-bootmenu'))
+          || match_has_tag('inst-bootmenu')
+          || match_has_tag('lang_and_keyboard'))
     {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
@@ -219,6 +222,13 @@ sub run {
             send_key 'alt-o';
             next;
         }
+        elsif (match_has_tag('manual-intervention')) {
+            $self->deal_with_dependency_issues;
+            assert_screen 'installation-settings-overview-loaded';
+            send_key 'alt-u';
+            wait_screen_change { send_key 'alt-u' };
+            next;
+        }
         elsif (match_has_tag('autoyast-postpartscript')) {
             @needles        = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
@@ -260,7 +270,7 @@ sub run {
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error inst-bootmenu);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error inst-bootmenu lang_and_keyboard);
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     until (match_has_tag 'reboot-after-installation') {
@@ -286,6 +296,9 @@ sub run {
         }
         elsif (match_has_tag('inst-bootmenu')) {
             $self->wait_grub_to_boot_on_local_disk;
+        }
+        elsif (match_has_tag('lang_and_keyboard')) {
+            return;
         }
     }
 

@@ -44,7 +44,7 @@ sub run {
 
         mouse_set(0, 0);
         assert_and_click 'virt-manager_shutdown';
-        if (!check_screen 'virt-manager_notrunning', 30) {
+        if (!check_screen 'virt-manager_notrunning', 60) {
             assert_and_click 'virt-manager_shutdown_menu';
             assert_and_click 'virt-manager_shutdown_item';
             # There migh me 'Are you sure' dialog window

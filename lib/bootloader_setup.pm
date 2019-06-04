@@ -11,13 +11,10 @@ package bootloader_setup;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use File::Basename 'basename';
 use Time::HiRes 'sleep';
-
 use testapi;
 use utils;
 use version_utils qw(is_caasp is_jeos is_leap is_sle);
@@ -30,11 +27,14 @@ our @EXPORT = qw(
   stop_grub_timeout
   boot_local_disk
   boot_into_snapshot
+  compare_bootparams
+  parse_bootparams_in_serial
   pre_bootmenu_setup
+  select_bootmenu_more
   select_bootmenu_option
   uefi_bootmenu_params
   bootmenu_default_params
-  type_hyperv_fb_video_resolution
+  get_hyperv_fb_video_resolution
   bootmenu_network_source
   specific_bootmenu_params
   remote_install_bootmenu_params
@@ -43,6 +43,7 @@ our @EXPORT = qw(
   select_bootmenu_language
   tianocore_enter_menu
   tianocore_select_bootloader
+  tianocore_http_boot
   zkvm_add_disk
   zkvm_add_interface
   zkvm_add_pty
@@ -164,20 +165,20 @@ Boot the default kernel recovery mode (goes through "Advanced options"):
 
 =cut
 sub boot_grub_item {
-    my ($self, $menu1, $menu2) = @_;
+    my ($menu1, $menu2) = @_;
     $menu1 = 3 unless defined($menu1);
     $menu2 = 1 unless defined($menu2);
-    die((caller(0))[3] . " expects integer arguments ($menu1, $menu2") unless ($menu1 =~ /^\d+\z/ && $menu2 =~ /^\d+\z/);
+    die((caller(0))[3] . " expects integer arguments ($menu1, $menu2)") unless ($menu1 =~ /^\d+\z/ && $menu2 =~ /^\d+\z/);
 
     assert_screen "grub2";
 
-    for my $i (1 .. ($menu1 - 1)) {
+    for (1 .. ($menu1 - 1)) {
         wait_screen_change { send_key 'down' };
     }
     save_screenshot;
     send_key 'ret';
 
-    for my $i (1 .. ($menu2 - 1)) {
+    for (1 .. ($menu2 - 1)) {
         wait_screen_change { send_key 'down' };
     }
     save_screenshot;
@@ -192,7 +193,7 @@ sub boot_local_disk {
         # Currently the bootloader would bounce back to inst-bootmenu screen after pressing 'ret'
         # on 'local' menu-item, we have to check it and send 'ret' again to make booting properly
         my $counter = 3;
-        while (check_screen(['bootloader', 'inst-bootmenu'], 30) && $counter) {
+        while (check_screen(['bootloader', 'inst-bootmenu'], 3) && $counter) {
             record_info 'bounce back to inst-bootmenu, send ret again';
             send_key 'ret';
             wait_still_screen(1);
@@ -225,7 +226,6 @@ sub boot_local_disk {
 sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
-    record_soft_failure 'bsc#1017558:Cannot view timestamp of read-only snapshots in GRUB as names truncated' if is_leap;
     # assert needle to avoid send down key early in grub_test_snapshot.
     assert_screen 'snap-default' if get_var('OFW');
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
@@ -296,23 +296,22 @@ sub select_bootmenu_option {
     return 0;
 }
 
-sub bootmenu_type_extra_boot_params {
-    my $e = get_var("EXTRABOOTPARAMS");
-    if ($e) {
-        type_string_very_slow "$e ";
-        save_screenshot;
-    }
+sub get_extra_boot_params {
+    my @params = split ' ', get_var('EXTRABOOTPARAMS');
+    return @params;
 }
 
-sub bootmenu_type_console_params {
+sub get_bootmenu_console_params {
     my ($baud_rate) = shift // '';
+    my @params;
     $baud_rate = $baud_rate ? ",$baud_rate" : '';
     # To get crash dumps as text
-    type_string_very_slow "console=${serialdev}${baud_rate} ";
+    push @params, "console=${serialdev}${baud_rate}";
 
     # See bsc#1011815, last console set as boot parameter is linked to /dev/console
     # and doesn't work if set to serial device. Don't want this on some backends.
-    type_string_very_slow "console=tty " unless (get_var('BACKEND', '') =~ /ipmi|spvm/);
+    push @params, "console=tty" unless (get_var('BACKEND', '') =~ /ipmi|spvm/);
+    return @params;
 }
 
 sub uefi_bootmenu_params {
@@ -355,12 +354,13 @@ sub uefi_bootmenu_params {
 
 # Returns kernel framebuffer configuration we have to
 # explicitly set on Hyper-V to get 1024x768 resolution.
-sub type_hyperv_fb_video_resolution {
-    type_string_slow ' video=hyperv_fb:1024x768 ';
+sub get_hyperv_fb_video_resolution {
+    return 'video=hyperv_fb:1024x768';
 }
 
 sub bootmenu_default_params {
     my (%args) = @_;
+    my @params;
     if (get_var('OFW')) {
         # edit menu, wait until we get to grub edit
         wait_screen_change { send_key "e" };
@@ -372,29 +372,21 @@ sub bootmenu_default_params {
         wait_still_screen(1);
         # load kernel manually with append
         if (check_var('VIDEOMODE', 'text')) {
-            type_string_very_slow " textmode=1";
+            push @params, "textmode=1";
         }
-        type_string_very_slow " Y2DEBUG=1 ";
+        push @params, "Y2DEBUG=1";
     }
     else {
         # On JeOS and CaaSP we don't have YaST installer.
-        type_string_slow "Y2DEBUG=1 " unless is_jeos || is_caasp;
+        push @params, "Y2DEBUG=1" unless is_jeos || is_caasp;
 
         # gfxpayload variable replaced vga option in grub2
         if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-            type_string_slow "vga=791 ";
+            push @params, "vga=791";
             if (check_var("INSTALL_TO_OTHERS", 1) || !$args{pxe}) {
-                type_string_slow "video=1024x768-16 ";
+                push @params, "video=1024x768-16";
             } else {
-                type_string_slow "xvideo=1024x768 ";
-            }
-            # Do not assert on pxe boot as it's unreliable due to multiline input
-            if ($args{pxe})
-            {
-                save_screenshot;
-            }
-            else {
-                assert_screen check_var('UEFI', 1) ? 'inst-video-typed-grub2' : 'inst-video-typed', 4;
+                push @params, "xvideo=1024x768";
             }
         }
 
@@ -402,41 +394,42 @@ sub bootmenu_default_params {
 
     if (!get_var("NICEVIDEO")) {
         if (is_caasp) {
-            bootmenu_type_console_params $args{baud_rate};
+            push @params, get_bootmenu_console_params $args{baud_rate};
         }
         elsif (!is_jeos) {
             # make plymouth go graphical
-            type_string_very_slow "plymouth.ignore-serial-consoles " unless $args{pxe};
-            type_string_very_slow "linuxrc.log=/dev/$serialdev ";
-            bootmenu_type_console_params $args{baud_rate};
-            # Do not assert on pxe boot as it's unreliable due to multiline input
-            assert_screen "inst-consolesettingstyped", 30 unless $args{pxe};
+            push @params, "plymouth.ignore-serial-consoles" unless $args{pxe};
+            push @params, "linuxrc.log=/dev/$serialdev";
+            push @params, get_bootmenu_console_params $args{baud_rate};
 
             # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-            type_string_very_slow "linuxrc.core=/dev/$serialdev ";
-            type_string_very_slow "linuxrc.debug=4,trace ";
+            push @params, "linuxrc.core=/dev/$serialdev";
+            push @params, "linuxrc.debug=4,trace";
         }
-        bootmenu_type_extra_boot_params;
+        push @params, get_extra_boot_params();
     }
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
     # we have to use something else.
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        type_hyperv_fb_video_resolution;
-        type_string_slow 'namescheme=by-label ' unless is_jeos or is_caasp;
+        push @params, get_hyperv_fb_video_resolution;
+        push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
     }
+    type_string_very_slow(" @params ");
+    return @params;
 }
 
 sub bootmenu_network_source {
+    my @params;
     # set HTTP-source to not use factory-snapshot
     if (get_var("NETBOOT")) {
         if (get_var('OFW')) {
             if (get_var("SUSEMIRROR")) {
-                type_string_very_slow ' install=http://' . get_var("SUSEMIRROR");
+                push @params, 'install=http://' . get_var("SUSEMIRROR");
             }
             else {
-                type_string_very_slow ' kernel=1 insecure=1';
+                push @params, ('kernel=1', 'insecure=1');
             }
         }
         else {
@@ -445,84 +438,132 @@ sub bootmenu_network_source {
             die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
             # In case of https we have to use boot options and not UI
             if ($m_protocol eq "https") {
-                type_string_very_slow " install=$m_mirror";
+                push @params, "install=$m_mirror";
                 # Ignore certificate validation
-                type_string_very_slow ' ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
+                push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                return;
+                type_string_very_slow(" @params ");
+                return @params;
             }
 
             # fate#322276
             # Point linuxrc to a repomd repository and load the installation system from local medium
             if (($m_protocol eq "http") && (get_var('REMOTE_REPOINST'))) {
-                type_string_very_slow " install=$m_mirror";
+                push @params, "install=$m_mirror";
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
-                type_string_very_slow " instsys=disk:/boot/$arch/root";
-                return;
+                push @params, "instsys=disk:/boot/$arch/root";
+                type_string_very_slow(" @params ");
+                return @params;
             }
 
-            my ($m_server, $m_share, $m_directory);
-
-            # Parse SUSEMIRROR into variables
-            if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
-                ($m_server, $m_directory) = ($1, $2);
-                if ($m_protocol eq "smb") {
-                    ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
-                }
-            }
-
-            # select installation source (http, ftp, nfs, smb)
-            send_key "f4";
-            assert_screen "inst-instsourcemenu";
-            send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
-            send_key "ret";
-            assert_screen "inst-instsourcedialog-$m_protocol";
-
-            # Clean server name and path
-            if ($m_protocol eq "http") {
-                for (1 .. 2) {
-                    # just type enough backspaces
-                    for (1 .. 32) { send_key "backspace" }
-                    send_key "tab";
-                }
-            }
-
-            # Type variables into fields
-            type_string_slow "$m_server\t";
-            type_string_slow "$m_share\t" if $m_protocol eq "smb";
-            type_string_slow "$m_directory\n";
-            save_screenshot;
-
-            # HTTP-proxy
-            if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
-                my ($proxyhost, $proxyport) = ($1, $2);
-                send_key "f4";
-                for (1 .. 4) {
-                    send_key "down";
-                }
-                send_key "ret";
-                type_string_slow "$proxyhost\t$proxyport\n";
-                assert_screen "inst-proxy_is_setup";
-
-                # add boot parameters
-                # ZYPP... enables proxy caching
-            }
+            select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
 
             my $remote = get_var("REMOTE_TARGET");
             if ($remote) {
                 my $dns = get_host_resolv_conf()->{nameserver};
-                type_string_slow " " . get_var("NETSETUP") if get_var("NETSETUP");
-                type_string_slow " nameserver=" . join(",", @$dns);
-                type_string_slow " $remote=1 ${remote}password=$password";
+                push @params, get_var("NETSETUP") if get_var("NETSETUP");
+                push @params, "nameserver=" . join(",", @$dns);
+                push @params, ("$remote=1", "${remote}password=$password");
             }
         }
     }
+    type_string_very_slow(" @params ");
+    return @params;
+}
+
+sub select_installation_source {
+    my ($args_ref) = @_;
+    my $m_protocol = $args_ref->{m_protocol};
+    my $m_mirror   = $args_ref->{m_mirror};
+    my ($m_server, $m_share, $m_directory);
+
+    # Parse SUSEMIRROR into variables
+    if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
+        ($m_server, $m_directory) = ($1, $2);
+        if ($m_protocol eq "smb") {
+            ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+        }
+    }
+
+    # select installation source (http, ftp, nfs, smb)
+    send_key "f4";
+    assert_screen "inst-instsourcemenu";
+    send_key_until_needlematch "inst-instsourcemenu-$m_protocol", 'down';
+    send_key "ret";
+    assert_screen "inst-instsourcedialog-$m_protocol";
+
+    # Clean server name and path
+    if ($m_protocol eq "http") {
+        for (1 .. 2) {
+            # just type enough backspaces
+            for (1 .. 32) { send_key "backspace" }
+            send_key "tab";
+        }
+    }
+
+    # Type variables into fields
+    type_string_slow "$m_server\t";
+    type_string_slow "$m_share\t" if $m_protocol eq "smb";
+    type_string_slow "$m_directory\n";
+    save_screenshot;
+
+    # HTTP-proxy
+    if (get_var("HTTPPROXY", '') =~ m/([0-9.]+):(\d+)/) {
+        my ($proxyhost, $proxyport) = ($1, $2);
+        send_key "f4";
+        for (1 .. 4) {
+            send_key "down";
+        }
+        send_key "ret";
+        type_string_slow "$proxyhost\t$proxyport\n";
+        assert_screen "inst-proxy_is_setup";
+
+        # add boot parameters
+        # ZYPP... enables proxy caching
+    }
+}
+
+sub select_bootmenu_more {
+    my ($tag, $more) = @_;
+
+    my @params;
+
+    # do not waste time waiting when we already matched
+    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
+    stop_grub_timeout;
+
+    # after installation-images 14.210 added a submenu
+    if ($more && check_screen 'inst-submenu-more', 0) {
+        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
+        send_key "ret";
+    }
+    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
+    if (get_var('UEFI')) {
+        send_key 'e';
+        send_key 'down' for (1 .. 4);
+        send_key 'end';
+        # newer versions of qemu on arch automatically add 'console=ttyS0' so
+        # we would end up nowhere. Setting console parameter explicitly
+        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
+        push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64/;
+        # Hyper-V defaults to 1280x1024, we need to fix it here
+        push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+        type_string_very_slow(" @params ");
+        send_key 'f10';
+    }
+    else {
+        push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+        type_string_very_slow(" @params ");
+        send_key 'ret';
+    }
+    return @params;
 }
 
 sub autoyast_boot_params {
+    my @params;
     my $ay_var = get_var("AUTOYAST");
-    return '' unless $ay_var;
+    return @params unless $ay_var;
 
     my $autoyast_args = 'autoyast=';
     # In case of SUPPORT_SERVER, profiles are available on another VM
@@ -536,14 +577,15 @@ sub autoyast_boot_params {
     } else {
         $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
     }
-    return $autoyast_args . " ";
+    push @params, split ' ', $autoyast_args;
+    return @params;
 }
 
 sub specific_bootmenu_params {
-    my $args = "";
+    my @params;
 
     if (!check_var('ARCH', 's390x')) {
-        my $netsetup = "";
+        my @netsetup;
         my $autoyast = get_var("AUTOYAST", "");
         if ($autoyast || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
             # We need to use 'ifcfg=*=dhcp' instead of 'netsetup=dhcp' as a default
@@ -552,55 +594,55 @@ sub specific_bootmenu_params {
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic. Don't set on IPMI with net interface defined in SUT_NETDEVICE.
             my $ifcfg = check_var('BACKEND', 'ipmi') ? '' : 'ifcfg=*=dhcp SetHostname=0';
-            $netsetup = get_var("NETWORK_INIT_PARAM", "$ifcfg");
-            $args .= " $netsetup ";
-            $args .= autoyast_boot_params;
+            @netsetup = split ' ', get_var("NETWORK_INIT_PARAM", "$ifcfg");
+            push @params, @netsetup;
+            push @params, autoyast_boot_params;
         }
         else {
-            $netsetup = " " . get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
-            $args .= $netsetup;
+            @netsetup = split ' ', get_var("NETWORK_INIT_PARAM") if defined get_var("NETWORK_INIT_PARAM");    #e.g netsetup=dhcp,all
+            push @params, @netsetup;
         }
     }
     if (get_var("AUTOUPGRADE") || get_var("AUTOYAST") && (get_var("UPGRADE_FROM_AUTOYAST") || get_var("UPGRADE"))) {
-        $args .= " autoupgrade=1";
+        push @params, "autoupgrade=1";
     }
 
     # Boot the system with the debug options if shutdown takes suspiciously long time.
     # Please, see https://freedesktop.org/wiki/Software/systemd/Debugging/#index2h1 for the details.
     # Further actions for saving debug logs are done in 'shutdown/cleanup_before_shutdown' module.
     if (get_var('DEBUG_SHUTDOWN')) {
-        $args .= " systemd.log_level=debug systemd.log_target=kmsg log_buf_len=1M printk.devkmsg=on enforcing=0 plymouth.enable=0";
+        push @params, ('systemd.log_level=debug', 'systemd.log_target=kmsg', 'log_buf_len=1M', 'printk.devkmsg=on', 'enforcing=0', 'plymouth.enable=0');
     }
 
     if (get_var("IBFT")) {
-        $args .= " withiscsi=1";
+        push @params, "withiscsi=1";
     }
 
     if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
         diag "Disabling installer self update";
-        $args .= " self_update=0";
+        push @params, "self_update=0";
     }
     elsif (my $self_update_repo = get_var("INSTALLER_SELF_UPDATE")) {
-        $args .= " self_update=$self_update_repo";
+        push @params, "self_update=$self_update_repo";
         diag "Explicitly enabling installer self update with $self_update_repo";
     }
 
     if (get_var("FIPS")) {
-        $args .= " fips=1";
+        push @params, "fips=1";
     }
 
     if (my $kexec_value = get_var("LINUXRC_KEXEC")) {
-        $args .= " kexec=$kexec_value";
+        push @params, "kexec=$kexec_value";
         record_info('Info', 'boo#990374 - pass kexec to installer to use initrd from FTP');
     }
 
     if (get_var("DUD")) {
         my $dud = get_var("DUD");
         if ($dud =~ /http:\/\/|https:\/\/|ftp:\/\//) {
-            $args .= " dud=$dud insecure=1";
+            push @params, ("dud=$dud", 'insecure=1');
         }
         else {
-            $args .= " dud=" . data_url($dud) . " insecure=1";
+            push @params, ("dud=" . data_url($dud), 'insecure=1');
         }
     }
 
@@ -608,19 +650,22 @@ sub specific_bootmenu_params {
     if (addon_products_is_applicable() && is_leap('42.3+')) {
         my $addon_url = get_var("ADDONURL");
         $addon_url =~ s/\+/,/g;
-        $args .= " addon=" . $addon_url;
+        push @params, "addon=$addon_url";
     }
 
     if (get_var('ISO_IN_EXTERNAL_DRIVE')) {
-        $args .= " install=hd:/install.iso";
+        push @params, "install=hd:/install.iso";
     }
 
+    # Return parameters as string of space-separated values, because s390x test
+    # modules are using strings but not arrays to combine bootloader parameters.
     if (check_var('ARCH', 's390x')) {
-        return $args;
+        return " @params ";
     }
 
-    type_string_very_slow $args;
+    type_string_very_slow " @params " if @params;
     save_screenshot;
+    return @params;
 }
 
 sub remote_install_bootmenu_params {
@@ -769,6 +814,58 @@ sub tianocore_select_bootloader {
     send_key 'ret';
 }
 
+sub tianocore_http_boot {
+    tianocore_enter_menu;
+    # Go to Device manager
+    send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
+    send_key 'ret';
+    # In device manager, go to 'Network Device List'
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist', 'up', 5, 5);
+    send_key 'ret';
+    # In 'Network Device List', go to first MAC addr
+    send_key 'ret';
+    # Go to 'HTTP Boot Configuration'
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig', 'up', 5, 5);
+    send_key 'ret';
+    # Select 'Boot URI'
+    send_key_until_needlematch('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig-booturi', 'up', 5, 5);
+    send_key 'ret';
+    # Enter URI (full URI to EFI file)
+    my $arch = get_var("ARCH");
+    my $efi_file;
+    my $http_prefix = "http://";
+    if (get_var('UEFI_HTTPS_BOOT')) {
+        $http_prefix = "https://";
+    }
+    if ($arch =~ /aarch64/) {
+        $efi_file = "bootaa64.efi";
+    }
+    elsif ($arch =~ /x86_64/) {
+        $efi_file = "bootx64.efi";
+    }
+    else {
+        die "Unsupported architecture: $arch";
+    }
+    type_string($http_prefix . get_var('SUSEMIRROR') . "/EFI/BOOT/" . $efi_file);
+    send_key 'ret';
+    # Save config
+    send_key 'f10';
+    # Confirm save
+    assert_screen('tianocore-devicemanager-networkdevicelist-mac-httpbootconfig-booturi-save');
+    send_key 'y';
+    # Go back to main menu
+    send_key 'esc';
+    send_key 'esc';
+    send_key 'esc';
+    send_key 'esc';
+    # Select 'Boot manager' entry
+    send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
+    send_key 'ret';
+    # Select 'UEFI Http' entry
+    send_key_until_needlematch('tianocore-bootmanager-uefihttp', 'up', 5, 5);
+    send_key 'ret';
+}
+
 sub zkvm_add_disk {
     my ($svirt) = @_;
     if (my $hdd = get_var('HDD_1')) {
@@ -844,7 +941,9 @@ sub set_extrabootparams_grub_conf {
 sub ensure_shim_import {
     my (%args) = @_;
     $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
-    assert_screen($args{tags}, 30);
+    # aarch64 firmware 'tianocore' can take longer to load
+    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 60 : 30;
+    assert_screen($args{tags}, $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
@@ -958,6 +1057,44 @@ GRUB_CMDLINE_LINUX for JeOS, GRUB_CMDLINE_LINUX_DEFAULT for the rest.
 sub get_cmdline_var {
     my $label = is_jeos() ? 'GRUB_CMDLINE_LINUX' : 'GRUB_CMDLINE_LINUX_DEFAULT';
     return "^${label}=";
+}
+
+=head2 parse_bootparams_in_serial
+
+    parse_bootparams_in_serial();
+
+Parses serail output, searching for 'Command line' parameters. Then converts
+the found parameters to an array of the values.
+
+Returns the array of the boot parameters.
+
+=cut
+
+sub parse_bootparams_in_serial {
+    my $parsed_string = wait_serial(qr/command line:.*/msi);
+    $parsed_string =~ m/.*command line:(?<boot>.*)/i;
+    return split ' ', $+{boot};
+}
+
+=head2 compare_bootparams
+
+    compare_bootparams(\@array1, \@array2);
+
+Compares two arrays of bootparameters passed by array reference and logs the
+result to openQA using record_info.
+
+Does not fail the test module but just highlights the result of the comparison.
+
+=cut
+
+sub compare_bootparams {
+    my ($expected_boot_params, $received_boot_params) = @_;
+    my @difference = arrays_subset($expected_boot_params, $received_boot_params);
+    if (scalar @difference > 0) {
+        record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
+    } else {
+        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$expected_boot_params}");
+    }
 }
 
 1;

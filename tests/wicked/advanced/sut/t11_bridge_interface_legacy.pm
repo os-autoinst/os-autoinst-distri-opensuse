@@ -19,12 +19,13 @@ use warnings;
 use testapi;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-br0';
     my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
     record_info('Info', 'Create Bridge interface from legacy ifcfg files');
-    $self->get_from_data('wicked/ifcfg/br0',    $config);
-    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/ifcfg/br0',                 $config);
+    $self->get_from_data('wicked/ifcfg/dummy0',              $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     my $res = $self->get_test_result('br0');
     die if ($res eq 'FAILED');

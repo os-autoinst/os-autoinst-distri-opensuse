@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface type_hyperv_fb_video_resolution);
+use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
 use testapi;
 use strict;
 use warnings;
@@ -42,6 +42,13 @@ sub save_and_upload_log {
     script_run("$cmd | tee $file", $args->{timeout});
     upload_logs($file) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
+}
+
+sub tar_and_upload_log {
+    my ($self, $sources, $dest, $args) = @_;
+    script_run("tar -jcv -f $dest $sources", $args->{timeout});
+    upload_logs($dest) unless $args->{noupload};
+    save_screenshot() if $args->{screenshot};
 }
 
 sub save_and_upload_systemd_unit_log {
@@ -275,7 +282,7 @@ sub investigate_yast2_failure {
         }
         # remove empty lines
         $y2log_error_result =~ s/\n+/\n/gs;
-        $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result;
+        $detected_errors_detailed .= "$y2log_error_result\n" if $y2log_error_result !~ m/^(\n|\s)*$/;
     }
 
     # Send last lines to serial to copy in case of new critical bugs
@@ -299,6 +306,16 @@ sub investigate_yast2_failure {
     }
 }
 
+# Logs that make sense for any failure
+sub export_logs_basic {
+    my ($self) = @_;
+    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
+    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('dmesg',             '/tmp/dmesg.log',   {screenshot => 1});
+    $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
+}
+
 sub export_logs {
     my ($self) = shift;
     select_console 'log-console';
@@ -306,26 +323,15 @@ sub export_logs {
     $self->remount_tmp_if_ro;
     $self->problem_detection;
 
-    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
-    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
+    $self->export_logs_basic;
 
     # Just after the setup: let's see the network configuration
     $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
 
     save_screenshot;
 
-    # check whether xorg logs is exists in user's home, if yes, upload xorg logs from user's
-    # home instead of /var/log
-    script_run "test -d /home/*/.local/share/xorg ; echo user-xlog-path-\$? > /dev/$serialdev", 0;
-    if (wait_serial("user-xlog-path-0", 10)) {
-        $self->save_and_upload_log('cat /home/*/.local/share/xorg/X*', '/tmp/Xlogs.log', {screenshot => 1});
-    }
-    else {
-        $self->save_and_upload_log('cat /var/log/X*', '/tmp/Xlogs.log', {screenshot => 1});
-    }
+    $self->export_logs_desktop;
 
-    $self->upload_xsession_errors_log;
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
@@ -335,15 +341,11 @@ sub export_logs {
     $self->investigate_yast2_failure();
 }
 
-sub upload_xsession_errors_log {
-    my ($self) = @_;
-    # do not upload empty .xsession-errors
-    script_run "xsefiles=(/home/*/{.xsession-errors*,.local/share/sddm/*session.log}); "
-      . "for file in \${xsefiles[@]}; do if [ -s \$file ]; then echo xsefile-valid > /dev/$serialdev; fi; done",
-      0;
-    if (wait_serial("xsefile-valid", 10)) {
-        $self->save_and_upload_log('cat /home/*/{.xsession-errors*,.local/share/sddm/*session.log}', '/tmp/XSE.log', {screenshot => 1});
-    }
+sub export_logs_locale {
+    my ($self) = shift;
+    $self->save_and_upload_log('locale',                 '/tmp/locale.log');
+    $self->save_and_upload_log('localectl status',       '/tmp/localectl.log');
+    $self->save_and_upload_log('cat /etc/vconsole.conf', '/tmp/vconsole.conf');
 }
 
 sub upload_packagekit_logs {
@@ -357,55 +359,42 @@ sub set_standard_prompt {
     $testapi::distri->set_standard_prompt($user);
 }
 
-sub select_bootmenu_more {
-    my ($self, $tag, $more) = @_;
-
-    # do not waste time waiting when we already matched
-    assert_screen 'inst-bootmenu', 15 unless match_has_tag 'inst-bootmenu';
-    stop_grub_timeout;
-
-    # after installation-images 14.210 added a submenu
-    if ($more && check_screen 'inst-submenu-more', 0) {
-        send_key_until_needlematch('inst-onmore', get_var('OFW') ? 'up' : 'down', 10, 5);
-        send_key "ret";
-    }
-    send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
-    if (get_var('UEFI')) {
-        send_key 'e';
-        send_key 'down' for (1 .. 4);
-        send_key 'end';
-        # newer versions of qemu on arch automatically add 'console=ttyS0' so
-        # we would end up nowhere. Setting console parameter explicitly
-        # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        type_string_slow ' console=tty1' if get_var('MACHINE') =~ /aarch64/;
-        # Hyper-V defaults to 1280x1024, we need to fix it here
-        type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        send_key 'f10';
-    }
-    else {
-        type_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        send_key 'ret';
-    }
-}
-
-sub export_kde_logs {
+sub export_logs_desktop {
+    my ($self) = @_;
     select_console 'log-console';
     save_screenshot;
 
     if (check_var("DESKTOP", "kde")) {
         if (get_var('PLASMA5')) {
-            my $fn  = '/tmp/plasma5_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
+            $self->tar_and_upload_log("/home/$username/.config/*rc", '/tmp/plasma5_configs.tar.bz2');
         }
         else {
-            my $fn  = '/tmp/kde4_configs.tar.bz2';
-            my $cmd = sprintf 'tar cjf %s /home/%s/.kde4/share/config/*rc', $fn, $username;
-            type_string "$cmd\n";
-            upload_logs $fn;
+            $self->tar_and_upload_log("/home/$username/.kde4/share/config/*rc", '/tmp/kde4_configs.tar.bz2');
         }
         save_screenshot;
+    } elsif (check_var("DESKTOP", "gnome")) {
+        $self->tar_and_upload_log('/home/bernhard/.cache/gdm', '/tmp/gdm.tar.bz2');
+    }
+
+    # check whether xorg logs exist in user's home, if yes, upload xorg logs
+    # from user's home instead of /var/log
+    my $log_path = '/home/*/.local/share/xorg/';
+    if (!script_run("test -d $log_path")) {
+        $self->tar_and_upload_log("$log_path", '/tmp/Xlogs.users.tar.bz2', {screenshot => 1});
+    }
+    $log_path = '/var/log/X*';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/Xlogs.system.log', {screenshot => 1});
+    }
+
+    # do not upload empty .xsession-errors
+    $log_path = '/home/*/.xsession-errors*';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/xsession-errors.log', {screenshot => 1});
+    }
+    $log_path = '/home/*/.local/share/sddm/*session.log';
+    if (!script_run("ls -l $log_path")) {
+        $self->save_and_upload_log("cat $log_path", '/tmp/sddm_session.log', {screenshot => 1});
     }
 }
 
@@ -655,6 +644,8 @@ sub wait_boot {
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
         my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
+        # 2nd stage of autoyast can be considered as linux-login
+        push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
         # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
         # if not able to boot from snapshot
         if (get_var('TEST') !~ /extra_tests_on_gnome/) {
@@ -850,6 +841,9 @@ sub post_fail_hook {
     # see any interesting console logs.
     send_key 'esc';
     save_screenshot;
+    # the space prevents the esc from eating up the next alphanumerical
+    # character typed into the console
+    send_key 'spc';
 }
 
 1;

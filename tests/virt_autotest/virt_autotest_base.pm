@@ -19,6 +19,7 @@ use testapi;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
+use virt_utils;
 
 sub analyzeResult {
     die "You need to overload analyzeResult in your class";
@@ -45,6 +46,7 @@ sub generateXML {
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
+            push @{$self->{success_guest_list}}, $item;
         }
         elsif ($my_hash{$item}->{status} =~ m/SKIPPED/ && $item =~ m/iso/) {
             $skip_nums += 1;
@@ -53,6 +55,9 @@ sub generateXML {
             $fail_nums += 1;
         }
     }
+
+    diag '@{$self->{success_guest_list}} content is: ' . Dumper(@{$self->{success_guest_list}});
+
     my $count = $pass_nums + $fail_nums + $skip_nums;
     $writer->startTag(
         'testsuites',
@@ -147,7 +152,7 @@ sub push_junit_log {
 }
 
 sub run_test {
-    my ($self, $timeout, $assert_pattern, $add_junit_log_flag, $upload_virt_log_flag, $log_dir, $compressed_log_name) = @_;
+    my ($self, $timeout, $assert_pattern, $add_junit_log_flag, $upload_virt_log_flag, $log_dir, $compressed_log_name, $upload_guest_assets_flag) = @_;
     if (!$timeout) {
         $timeout = 300;
     }
@@ -158,6 +163,7 @@ sub run_test {
         virt_utils::lpar_cmd("$test_cmd");
         return;
     }
+
     my $script_output = $self->execute_script_run($test_cmd, $timeout);
 
     if ($add_junit_log_flag eq "yes") {
@@ -166,6 +172,12 @@ sub run_test {
 
     if ($upload_virt_log_flag eq "yes") {
         upload_virt_logs($log_dir, $compressed_log_name);
+        virt_utils::upload_supportconfig_log;
+    }
+
+    if ($upload_guest_assets_flag eq "yes") {
+        record_info('Check UPLOAD_GUEST_ASSETS flag', 'This test should upload guest assets!');
+        $self->upload_guest_assets;
     }
 
     if ($assert_pattern) {
@@ -187,15 +199,40 @@ sub add_junit_log {
 
 }
 
-sub upload_virt_logs {
-    my ($log_dir, $compressed_log_name) = @_;
+sub upload_guest_assets {
+    my $self = shift;
 
-    my $full_compressed_log_name = "/tmp/$compressed_log_name.tar";
-    script_run("tar cvf $full_compressed_log_name $log_dir; gzip -f $full_compressed_log_name; rm $log_dir -r", 60);
-    save_screenshot;
-    upload_logs "$full_compressed_log_name.gz";
-    save_screenshot;
+    record_info('Skip upload guest asset.', 'No successful guest, skip upload assets.') unless @{$self->{success_guest_list}};
 
+    foreach my $guest (@{$self->{success_guest_list}}) {
+        # Generate upload guest asset name
+        my $guest_upload_asset_name = generate_guest_asset_name($guest);
+        # Upload guest xml
+        my $guest_xml_name = $guest_upload_asset_name . '.xml';
+        # TODO: on host sle11sp4, the guest name has random string at the end of GUEST_PATTERN
+        # eg sles-15-sp1-64-fv-def-net-77b-a43, so need to add special handle here for guest name
+        assert_script_run("virsh dumpxml $guest > /tmp/$guest_xml_name");
+        upload_asset("/tmp/$guest_xml_name", 1, 1);
+        assert_script_run("rm /tmp/$guest_xml_name");
+        record_info('Guest xml upload done', "Guest $guest xml uploaded as $guest_xml_name.");
+        # Upload guest disk
+        # Uploaded guest disk name is different from original disk name in guest xml.
+        # This is to differentiate guest disk on different host, hypervisor and product build.
+        # Need to recover the disk name when recovering guests from openqa assets.
+        my $guest_disk_name_real      = get_guest_disk_name_from_guest_xml($guest);
+        my $guest_disk_name_to_upload = $guest_upload_asset_name . '.disk';
+        if ($guest_disk_name_real =~ /qcow2/) {
+            # Disk compression only for qcow2
+            compress_single_qcow2_disk($guest_disk_name_real, $guest_disk_name_to_upload);
+        }
+        else {
+            # Link real disk to uploaded disk name to be with needed name after upload
+            assert_script_run("ln -s $guest_disk_name_real $guest_disk_name_to_upload");
+        }
+        upload_asset("$guest_disk_name_to_upload", 1, 0);
+        assert_script_run("rm $guest_disk_name_to_upload");
+        record_info('Guest disk upload done', "Guest $guest disk uploaded as $guest_disk_name_to_upload.");
+    }
 }
 
 1;

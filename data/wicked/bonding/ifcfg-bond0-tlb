@@ -1,0 +1,10 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+
+BONDING_MASTER='yes'
+BONDING_SLAVE_0='iface0'
+BONDING_SLAVE_1='iface1'
+BONDING_MODULE_OPTS='mode=balance-tlb miimon=100'
+
+IPADDR='ipaddr4'
+IPADDR6='ipaddr6'

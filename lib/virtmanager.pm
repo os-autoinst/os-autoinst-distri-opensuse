@@ -618,14 +618,23 @@ sub detect_login_screen {
 
 sub select_guest {
     my $guest = shift;
+    send_key 'home';    # Go to top of the list
     assert_and_click "virt-manager_connected";
-    wait_still_screen 3;
+    wait_still_screen 3;    # Guests may be still loading
+    if (!check_screen "virt-manager_list-$guest") {    # If the guest is hidden down in the list
+        send_key 'end';                                # Go down so we will see every guest unselected on the way up
+        send_key_until_needlematch("virt-manager_list-$guest", 'up', 20, 3);
+    }
     assert_and_click "virt-manager_list-$guest";
     send_key 'ret';
-    if (check_screen('virt-manager_no-graphical-device', 3)) {
+    sleep 3;
+    if (check_screen 'virt-manager_notrunning') {
+        record_info("The Guest was powered off and that should not happen");
+        assert_and_click 'virt-manager_poweron', 'left', 90;
+        sleep 30;                                      # The boot would not be faster
+    }
+    if (check_screen('virt-manager_no-graphical-device')) {
         wait_screen_change { send_key 'ctrl-q'; };
-        assert_and_click "virt-manager_connected";
-        assert_and_click "virt-manager_list-$guest";
         send_key 'ret';
     }
 }

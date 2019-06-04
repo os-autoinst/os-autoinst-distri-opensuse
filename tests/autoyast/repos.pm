@@ -18,7 +18,7 @@
 
 use strict;
 use warnings;
-use base 'console_yasttest';
+use base 'y2_module_consoletest';
 use testapi;
 use utils;
 
@@ -26,9 +26,7 @@ sub run {
     # sles12_minimal.xml profile does not install "ip"
     assert_script_run 'ip a || ifstatus all';
     pkcon_quit;
-    # Enable local repositories if needed
-    zypper_call 'mr -el';    # Returns 0 even if repos are already enabled
-    zypper_call 'ref';
+    zypper_enable_install_dvd;
     # make sure that save_y2logs from yast2 package, tar and bzip2 are installed
     # even on minimal system
     zypper_call 'in yast2 tar bzip2';

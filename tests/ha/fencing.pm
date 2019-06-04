@@ -25,8 +25,26 @@ sub run {
     check_cluster_state;
     barrier_wait("CHECK_BEFORE_FENCING_END_$cluster_name");
 
-    # Fence the master node
-    assert_script_run 'crm -F node fence ' . get_node_to_join if is_node(2);
+    # Fence the master node with sysrq or crm node fence
+    # Sysrq fencing is more a real crash simulation
+    if (get_var('USE_SYSRQ_FENCING')) {
+        record_info('Fencing info', 'Fencing done by sysrq');
+        type_string "echo b > /proc/sysrq-trigger\n" if (get_var('HA_CLUSTER_INIT'));
+    }
+    else {
+        record_info('Fencing info', 'Fencing done by crm');
+        assert_script_run 'crm -F node fence ' . get_node_to_join if is_node(2);
+    }
+
+    # Wait for fencing to start only if running in the master node
+    if (get_var('HA_CLUSTER_INIT')) {
+        my $loop_count = 120;    # Wait at most for 120 seconds
+        while (check_screen('root-console', 0, no_wait => 1)) {
+            sleep 1;
+            $loop_count--;
+            last if !$loop_count;
+        }
+    }
 }
 
 1;

@@ -20,12 +20,13 @@ use network_utils 'ifc_exists';
 
 sub run {
     my ($self, $ctx) = @_;
+    my $iface  = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
     my $config = '/etc/sysconfig/network/ifcfg-br0';
     my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
     my $res;
-    $config = '/etc/sysconfig/network/ifcfg-br0';
-    $self->get_from_data('wicked/ifcfg/br0',    $config);
-    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
+    $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $iface);
+    $self->get_from_data('wicked/ifcfg/br0',                  $config);
+    $self->get_from_data('wicked/ifcfg/dummy0',               $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     $self->wicked_command('ifdown', 'br0');
     $self->wicked_command('ifdown', 'dummy0');

@@ -23,16 +23,16 @@ sub run {
     my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-' . $ctx->iface() . '.42';
     $self->get_from_data('wicked/ifcfg/eth0.42', $config);
-    my $local_ip = $self->get_ip(type => 'vlan', netmask => 1);
-    $local_ip =~ s'/'\\/';
-    file_content_replace($config, interface => $ctx->iface(), ip_address => $local_ip);
+    file_content_replace($config, interface => $ctx->iface(), ip_address => $self->get_ip(type => 'vlan', netmask => 1));
     $self->wicked_command('ifup', 'all');
-    assert_script_run('ip a');
     die if (!ifc_exists($ctx->iface() . '.42'));
     $self->wicked_command('ifdown', $ctx->iface() . '.42');
     die if (ifc_exists($ctx->iface() . '.42'));
     die if (!ifc_exists($ctx->iface()));
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
 
 1;

@@ -13,6 +13,7 @@
 use base "sles4sap";
 use testapi;
 use version_utils 'is_sle';
+use Utils::Architectures 'is_ppc64le';
 use strict;
 use warnings;
 

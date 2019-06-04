@@ -50,78 +50,78 @@ sub run {
     # NFSv4 uses different remotetarget with stripped path taken from showmount -e $nfs_server export
 
     # Autofs NFS test
-    foreach my $a (@nfs_versions) {
+    foreach my $i (@nfs_versions) {
         my $script = "";
-        $script .= "mkdir -p /tmp/$a\n";
-        if ($a eq "nfs") {
+        $script .= "mkdir -p /tmp/$i\n";
+        if ($i eq "nfs") {
             $script .= "echo -e \"share\\t$nfs_remotetarget\" > /etc/auto.nfs\n";
         }
-        elsif ($a eq "nfs4") {
+        elsif ($i eq "nfs4") {
             $script .= "echo -e \"share\\t-fstype=nfs4\\t$nfs_server:/\" > /etc/auto.nfs\n";
         }
-        $script .= "echo -e \"/tmp/$a\\t/etc/auto.nfs\\t--timeout=10\" >> /etc/auto.master\n";
+        $script .= "echo -e \"/tmp/$i\\t/etc/auto.nfs\\t--timeout=10\" >> /etc/auto.master\n";
         $script .= "systemctl start autofs\n";
-        $script .= chkdir_strip("/tmp/$a/share/");
+        $script .= chkdir_strip("/tmp/$i/share/");
 
         # autofs mount should be unmounted after 10 sec automatically
         $script .= "sleep 15\n";
-        $script .= "[ \"\$(mount -t $a | wc -l)\" -eq 0 ]\n";
+        $script .= "[ \"\$(mount -t $i | wc -l)\" -eq 0 ]\n";
         $script .= "systemctl stop autofs\n";
 
         # Cleanup
         $script .= "rm /var/lib/overlay/etc/auto.master\n";
         $script .= "rm /var/lib/overlay/etc/auto.nfs\n";
         $script .= "mount -o remount /etc\n";
-        $script .= "rm -r /tmp/$a\n";
+        $script .= "rm -r /tmp/$i\n";
 
         print "$script\n";
         script_output($script, 60);
     }
 
     # Mount command NFS test
-    foreach my $a (@nfs_versions) {
+    foreach my $i (@nfs_versions) {
         my $script = "";
-        $script .= "mkdir -p /tmp/$a\n";
-        if ($a eq "nfs") {
-            $script .= "mount -t $a $nfs_remotetarget /tmp/$a\n";
+        $script .= "mkdir -p /tmp/$i\n";
+        if ($i eq "nfs") {
+            $script .= "mount -t $i $nfs_remotetarget /tmp/$i\n";
         }
-        elsif ($a eq "nfs4") {
-            $script .= "mount -t $a $nfs_server:/ /tmp/$a\n";
+        elsif ($i eq "nfs4") {
+            $script .= "mount -t $i $nfs_server:/ /tmp/$i\n";
         }
-        $script .= chkdir_strip("/tmp/$a");
+        $script .= chkdir_strip("/tmp/$i");
 
         # mount should provide at least one line
-        $script .= "[ \"\$(mount -t $a | wc -l)\" -gt 0 ]\n";
+        $script .= "[ \"\$(mount -t $i | wc -l)\" -gt 0 ]\n";
 
         # nfsstat has an issue bsc#1017909 - returns 1 all the time
         $script .= "nfsstat -m || true\n";
 
         # Cleanup
-        $script .= "umount /tmp/$a\n";
-        $script .= "rm -r /tmp/$a\n";
+        $script .= "umount /tmp/$i\n";
+        $script .= "rm -r /tmp/$i\n";
 
         print "$script\n";
         script_output($script, 60);
     }
 
     # Fstab entry NFS test
-    foreach my $a (@nfs_versions) {
+    foreach my $i (@nfs_versions) {
         my $script = "";
-        $script .= "mkdir -p /tmp/$a\n";
-        if ($a eq "nfs") {
-            $script .= "echo -e \"$nfs_remotetarget\\t/tmp/$a\\t$a\" >> /etc/fstab\n";
+        $script .= "mkdir -p /tmp/$i\n";
+        if ($i eq "nfs") {
+            $script .= "echo -e \"$nfs_remotetarget\\t/tmp/$i\\t$i\" >> /etc/fstab\n";
         }
-        if ($a eq "nfs4") {
-            $script .= "echo -e \"$nfs_server:/\\t/tmp/$a\\t$a\" >> /etc/fstab\n";
+        if ($i eq "nfs4") {
+            $script .= "echo -e \"$nfs_server:/\\t/tmp/$i\\t$i\" >> /etc/fstab\n";
         }
-        $script .= "mount -a -t $a\n";
-        $script .= chkdir_strip("/tmp/$a");
-        $script .= "umount /tmp/$a\n";
+        $script .= "mount -a -t $i\n";
+        $script .= chkdir_strip("/tmp/$i");
+        $script .= "umount /tmp/$i\n";
 
         # Cleanup
         $script .= "rm /var/lib/overlay/etc/fstab\n";
         $script .= "mount -o remount /etc\n";
-        $script .= "rm -r /tmp/$a\n";
+        $script .= "rm -r /tmp/$i\n";
 
         print "$script\n";
         script_output($script, 60);

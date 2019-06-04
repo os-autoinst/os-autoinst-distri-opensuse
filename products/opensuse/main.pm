@@ -73,8 +73,9 @@ set_var('WINTER_IS_THERE', 1) if ($time[4] == 11 || $time[4] == 0);
 
 testapi::set_distribution(DistributionProvider->provide());
 
-# Set serial failures
+# Set failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 unless (get_var("DESKTOP")) {
     if (check_var("VIDEOMODE", "text")) {
@@ -373,6 +374,9 @@ elsif (get_var('SECURITY_TEST')) {
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
 }
+elsif (get_var('AUTOFS')) {
+    load_mm_autofs_tests;
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
         load_boot_tests();
@@ -419,7 +423,6 @@ else {
         loadtest "console/force_scheduled_tasks";
         loadtest "jeos/diskusage";
         loadtest "jeos/root_fs_size";
-        loadtest "jeos/mount_by_label";
         if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
             loadtest "jeos/sccreg";
         }

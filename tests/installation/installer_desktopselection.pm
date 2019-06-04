@@ -11,9 +11,9 @@
 # Summary: Select desktop in installer based on test settings
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use utils 'addon_products_is_applicable';
 use testapi;
 use version_utils 'is_leap';

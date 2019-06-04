@@ -33,7 +33,7 @@ EOF
     script_run 'wine timer.exe', 0;
     assert_screen([qw(wine-timer wine-package-install-mono-cancel)], 600);
     if (match_has_tag 'wine-package-install-mono-cancel') {
-        assert_and_click 'wine-package-install-mono-cancel';
+        send_key 'esc';
         assert_screen 'wine-timer', 600;
     }
     wait_screen_change { send_key 'alt-f4' };

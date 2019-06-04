@@ -100,7 +100,7 @@ sub run {
 
     #display test result
     my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Executing check validation/,/[0-9]* fail [0-9]* succeed/p'";
-    my $guest_migrate_log_content = &script_output("$cmd");
+    my $guest_migrate_log_content = script_output("$cmd");
     save_screenshot;
 
     #upload junit log

@@ -1,0 +1,59 @@
+# Last Modified: Wed Jul 25 15:59:14 2018
+#include <tunables/global>
+
+/usr/sbin/httpd-prefork {
+  #include <abstractions/apache2-common>
+  #include <abstractions/base>
+  #include <abstractions/php5>
+
+  capability kill,
+  capability setgid,
+  capability setuid,
+  capability net_admin,
+  capability net_admin,
+
+  /etc/apache2/** r,
+  /etc/mime.types r,
+  /etc/php7/apache2/php.ini r,
+  /etc/php7/conf.d/ r,
+  /etc/php7/conf.d/ctype.ini r,
+  /etc/php7/conf.d/dom.ini r,
+  /etc/php7/conf.d/iconv.ini r,
+  /etc/php7/conf.d/json.ini r,
+  /etc/php7/conf.d/mysqli.ini r,
+  /etc/php7/conf.d/pdo.ini r,
+  /etc/php7/conf.d/pdo_mysql.ini r,
+  /etc/php7/conf.d/pdo_sqlite.ini r,
+  /etc/php7/conf.d/sqlite3.ini r,
+  /etc/php7/conf.d/tokenizer.ini r,
+  /etc/php7/conf.d/xmlreader.ini r,
+  /etc/php7/conf.d/xmlwriter.ini r,
+  /run/httpd.pid rw,
+  /usr/lib{,32,64}/** mr,
+  /usr/lib{,32,64}/apache2*/** mr,
+  /var/log/apache2/** rw,
+
+  ^DEFAULT_URI {
+    #include <abstractions/apache2-common>
+
+    /var/log/apache2/** rw,
+  }
+
+  ^HANDLING_UNTRUSTED_INPUT {
+    #include <abstractions/apache2-common>
+
+    /var/log/apache2/** w,
+  }
+
+  ^adminer {
+    #include <abstractions/apache2-common>
+    #include <abstractions/base>
+
+    /proc/meminfo r,
+    /srv/www/htdocs/adminer/** r,
+    /tmp/adminer.invalid rwk,
+    /var/lib/php7/** krw,
+    /var/log/apache2/access_log w,
+    /var/log/apache2/error_log w,
+  }
+}

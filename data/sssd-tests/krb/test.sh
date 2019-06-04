@@ -3,6 +3,13 @@
 set -e
 
 . ../testincl.sh
+
+if ( usePython3 ); then
+	PYTHON=python3
+else
+	PYTHON=python2
+fi
+
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
@@ -49,7 +56,7 @@ test_ok
 
 credentials_test() {
 	mode=$1
-	
+
 	test_case "($mode) Look up users in LDAP and Kerberos via SSSD"
 	getent passwd root &> /dev/null &&
 	getent passwd testuser1@ldapdom &> /dev/null  &&
@@ -86,10 +93,10 @@ credentials_test() {
 
 	# Test user authentication and login, via PAM
 	test_case "($mode) Login via PAM"
-	../pamtest.py login testuser1 goodpass &&
-	../pamtest.py login testuser2 goodpass || test_fatal "($mode) Failed to login"
-	! ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal "($mode) Failed to deny login of incorrect password"
-	! ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal "($mode) Failed to deny login of false username"
+	$PYTHON ../pamtest.py login testuser1 goodpass &&
+	$PYTHON ../pamtest.py login testuser2 goodpass || test_fatal "($mode) Failed to login"
+	! $PYTHON ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal "($mode) Failed to deny login of incorrect password"
+	! $PYTHON ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal "($mode) Failed to deny login of false username"
 	test_ok
 }
 

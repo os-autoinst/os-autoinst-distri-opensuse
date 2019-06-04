@@ -14,7 +14,7 @@
 #    while launching atm.
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use base 'y2x11test';
+use base 'y2_module_guitest';
 use strict;
 use warnings;
 use testapi;
@@ -75,7 +75,17 @@ sub start_online_update {
         select_console 'root-console';
         my $version     = lc get_required_var('VERSION');
         my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
-        zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
+        my $repo_arch   = get_required_var('ARCH');
+        $repo_arch = 'ppc' if ($repo_arch =~ /ppc64|ppc64le/);
+        if ($repo_arch =~ /i586|i686|x86_64/) {
+            zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
+        } else {
+            if (is_tumbleweed()) {
+                zypper_call("ar -f http://download.opensuse.org/ports/$repo_arch/update/tumbleweed repo-update");
+            } else {
+                zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
+            }
+        }
         select_console 'x11', await_console => 0;
     }
     assert_and_click 'yast2_control-center_online-update';
@@ -317,9 +327,8 @@ sub run {
     my $self = shift;
     select_console 'x11';
     if (is_sle '15+') {
-        # kdump is disabled by default, so ensure that it's installed
+        # kdump is disabled by default in the installer, so ensure that it's installed
         ensure_installed 'yast2-kdump';
-        record_soft_failure 'bsc#1108669';
         # see bsc#1062331, sound is not added to the yast2 pattern
         # also add missing yast2-ca-management and yast2-auth-server
         ensure_installed 'yast2-boot-server yast2-sound yast2-ca-management yast2-auth-server';
@@ -359,7 +368,7 @@ sub run {
     }
     # only available on openSUSE or at least not SLES
     # drop fonts test for leap 15.0, see poo#29292
-    if (is_tumbleweed || is_leap('<15.0')) {
+    if (is_leap('<15.0')) {
         start_fonts;
     }
 

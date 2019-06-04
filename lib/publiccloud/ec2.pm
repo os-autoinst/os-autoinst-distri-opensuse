@@ -103,6 +103,12 @@ sub upload_img {
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
     my ($img_name) = $file =~ /([^\/]+)$/;
+    my $sec_group  = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
+    my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
+    my $ami_id     = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');         # Used for helper VM to create/build the image on CSP
+                                                                     # When uploading a on-demand image, this ID should point
+                                                                     # to and on-demand image.
+                                                                     # If not specified, the id gets read from ec2utils.conf file.
 
     assert_script_run("ec2uploadimg --access-id '"
           . $self->key_id
@@ -113,18 +119,22 @@ sub upload_img {
           . "--machine 'x86_64' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . (($img_name =~ /hvm/i) ? "--virt-type hvm --sriov-support " : "--virt-type para ")
-          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '')
+          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '--ena-support ')
           . "--verbose "
           . "--regions '" . $self->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
           . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA tests' "
+          . ($sec_group  ? "--security-group-ids '" . $sec_group . "' " : '')
+          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
+          . ($ami_id     ? "--ec2-ami '" . $ami_id . "' "               : '')
           . "'$file'",
         timeout => 60 * 60
     );
 
     my $ami = $self->find_img($img_name);
     die("Cannot find image after upload!") unless $ami;
+    validate_script_output('aws ec2 describe-images --image-id ' . $ami, sub { /"EnaSupport":\s+true/ });
     return $ami;
 }
 

@@ -8,18 +8,19 @@
 # without any warranty.
 
 # Summary: create and delete nis client configuration and functionality
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils 'zypper_call';
 
 sub run() {
     my ($self) = @_;
     select_console 'root-console';
-    zypper_call 'in yast2-nis-client';    # make sure yast client module installed
+    zypper_call 'in yast2-nis-client yast2-nfs-client';    # make sure yast client module installed
 
     # Configure firewalld ypbind service (bsc#1083487)
     if ($self->firewall eq 'firewalld' && script_run 'firewall-offline-cmd --get-services | grep ypbind') {
@@ -29,7 +30,7 @@ sub run() {
         assert_script_run 'firewall-cmd --permanent --service=ypbind --add-port=714/udp';
         assert_script_run 'firewall-cmd --reload';
     }
-    type_string "yast2 nis\n";
+    y2_module_consoletest::yast2_console_exec(yast2_module => 'nis');
     assert_screen([qw(nis-client yast2_package_install)], 60);
     if (match_has_tag 'yast2_package_install') {
         send_key 'alt-i';

@@ -43,7 +43,10 @@ sub snapper_nodbus_setup {
     my ($self) = @_;
     if (script_run('! systemctl is-active dbus')) {
         script_run('systemctl rescue', 0);
-        assert_screen('emergency-shell', 120);
+        if (!check_screen('emergency-shell', 120)) {
+            assert_screen('emergency-shell-boo1134533', no_wait => 1);
+            record_soft_failure 'boo#1134533 - Welcome message is missing in emergency shell';
+        }
         type_password;
         send_key 'ret';
         $self->set_standard_prompt('root');

@@ -589,11 +589,19 @@
       <hostname>sles12sp3PV</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">true</write_hostname>
+      <nameservers config:type="list">
+        <nameserver>192.168.122.1</nameserver>
+      </nameservers>
     </dns>
     <interfaces config:type="list">
       <interface>
-        <bootproto>dhcp</bootproto>
+        <bootproto>static</bootproto>
         <device>eth0</device>
+        <ipaddr>192.168.122.106</ipaddr>
+        <netmask>255.255.255.0</netmask>
+        <network>192.168.122.0</network>
+        <gateway>192.168.122.1</gateway>
+        <prefixlen>24</prefixlen>
         <startmode>auto</startmode>
       </interface>
       <interface>
@@ -621,6 +629,14 @@
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
       <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>-</device>
+          <gateway>192.168.122.1</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
     </routing>
   </networking>
   <nis>
@@ -720,7 +736,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>10724998656</size>
+          <size>13724998656</size>
         </partition>
       </partitions>
       <pesize/>

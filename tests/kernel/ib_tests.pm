@@ -9,7 +9,7 @@
 
 # Summary: run InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de, Nick Singer <nsinger@suse.de>
+# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>
 
 use base 'opensusebasetest';
 use strict;

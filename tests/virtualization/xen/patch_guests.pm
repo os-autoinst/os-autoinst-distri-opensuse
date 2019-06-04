@@ -15,17 +15,22 @@ use warnings;
 use strict;
 use testapi;
 use qam 'ssh_add_test_repositories';
-use utils 'ssh_fully_patch_system';
+use utils;
 use xen;
 
 sub run {
     my ($self) = @_;
+    my $version = get_var('VERSION');
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Patching $guest";
-        ssh_add_test_repositories "$guest";
-        ssh_fully_patch_system "$guest";
+        my $distro = $xen::guests{$guest}->{distro};
+        $distro =~ tr/_/-/;
+        if ($distro =~ m/$version/) {
+            record_info "$guest", "Adding test repositories and patching the $guest system";
+            ssh_add_test_repositories "$guest";
+            ssh_fully_patch_system "$guest";
+        }
     }
 }
 

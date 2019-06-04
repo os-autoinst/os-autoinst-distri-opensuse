@@ -22,7 +22,8 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
-
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
+use Utils::Architectures;
 use DistributionProvider;
 
 BEGIN {
@@ -119,16 +120,16 @@ sub is_desktop_module_available {
 }
 
 # SLE specific variables
-set_var('NOAUTOLOGIN', 1);
-set_var('HASLICENSE',  1);
+set_var('NOAUTOLOGIN', 1) unless check_var('NOAUTOLOGIN', '0');
+set_var('HASLICENSE', 1);
 set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
 # Always register against SCC if SLE 15
 if (is_sle('15+')) {
     set_var('SCC_REGISTER', get_var('SCC_REGISTER', 'installation'));
     # depending on registration only limited system roles are available
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', is_desktop_module_available() ? 'default' : 'minimal'));
-    # set SYSTEM_ROLE to textmode for SLE4SAP on SLE15 instead of triggering change_desktop (see poo#29589)
-    if (is_sles4sap && check_var('SYSTEM_ROLE', 'default') && check_var('DESKTOP', 'textmode')) {
+    # set SYSTEM_ROLE to textmode for SLE15 if DESKTOP = textmode instead of triggering change_desktop (see poo#29589)
+    if (!is_desktop && check_var('SYSTEM_ROLE', 'default') && check_var('DESKTOP', 'textmode')) {
         set_var('SYSTEM_ROLE', 'textmode');
     }
     # in the 'minimal' system role we can not execute many test modules
@@ -327,8 +328,8 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
-    for my $a (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
-        push(@addons, $a);
+    for my $i (split(/,/, get_var('ADDONS', '')), split(/,/, get_var('ADDONURL', ''))) {
+        push(@addons, $i);
     }
 
     # set SCC_ADDONS before push to slenkins
@@ -347,10 +348,10 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     set_var('ADDONURL',     '');
     set_var('ADDONURL_SDK', '');
 
-    for my $a (@addons) {
-        if ($a) {
-            $incidents{uc($a)} = get_var(uc($a) . '_TEST_ISSUES');
-            $u_url{uc($a)}     = get_var(uc($a) . '_TEST_TEMPLATE');
+    for my $i (@addons) {
+        if ($i) {
+            $incidents{uc($i)} = get_var(uc($i) . '_TEST_ISSUES');
+            $u_url{uc($i)}     = get_var(uc($i) . '_TEST_TEMPLATE');
         }
     }
 
@@ -582,16 +583,36 @@ sub load_default_autoyast_tests {
 }
 
 sub load_suseconnect_tests {
-    prepare_target;
+    if (get_var("AUTOYAST")) {
+        load_default_autoyast_tests;
+    }
+    else {
+        prepare_target;
+    }
     loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
+    loadtest "qa_automation/patch_and_reboot";
     loadtest "console/suseconnect";
+}
+
+sub load_yast2_registration_tests {
+    if (get_var("AUTOYAST")) {
+        load_default_autoyast_tests;
+    }
+    else {
+        prepare_target;
+    }
+    loadtest "console/system_prepare";
+    loadtest "console/consoletest_setup";
+    loadtest "qa_automation/patch_and_reboot";
+    loadtest "console/yast2_registration";
 }
 
 testapi::set_distribution(DistributionProvider->provide());
 
-# set serial failures
+# set failures
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
+$testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 return 1 if load_yaml_schedule;
 
@@ -617,7 +638,8 @@ elsif (get_var("NFV")) {
 elsif (get_var("REGRESSION")) {
     load_common_x11;
     load_hypervisor_tests if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"));
-    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
+    load_suseconnect_tests        if check_var("REGRESSION", "suseconnect");
+    load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }
 elsif (get_var("FEATURE")) {
     prepare_target();
@@ -714,6 +736,12 @@ elsif (get_var("XFSTESTS")) {
     loadtest "xfstests/run";
     loadtest "xfstests/generate_report";
 }
+elsif (get_var("BTRFS_PROGS")) {
+    prepare_target;
+    loadtest "btrfs-progs/install";
+    loadtest "btrfs-progs/run";
+    loadtest "btrfs-progs/generate_report";
+}
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
         #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
@@ -751,9 +779,13 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
+        loadtest "virt_autotest/download_guest_assets" if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
+        #loadtest "virt_autotest/set_config_as_glue";
+        #loadtest "virt_autotest/virsh_internal_snapshot";
+        #loadtest "virt_autotest/virsh_external_snapshot";
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
@@ -814,12 +846,17 @@ elsif (get_var("PERF_KERNEL")) {
         loadtest "virt_autotest/login_console";
         loadtest "kernel_performance/run_perf_case";
     }
+    elsif (get_var("PERF_FULLRUN")) {
+        loadtest "virt_autotest/login_console";
+        loadtest "kernel_performance/full_run";
+    }
 }
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
     loadtest "qam-minimal/install_update";
     loadtest "qam-minimal/update_minimal";
     loadtest "qam-minimal/check_logs";
+    loadtest 'qam-minimal/s390tools' if check_var('BACKEND', 's390x');
     if (check_var("QAM_MINIMAL", 'full')) {
         loadtest "qam-minimal/install_patterns";
         load_consoletests();
@@ -909,9 +946,16 @@ else {
         loadtest 'console/pulpito';
         return 1;
     }
-    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+    elsif (get_var('GRUB2')) {
         boot_hdd_image;
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'qa_automation/patch_and_reboot';
+        loadtest 'boot/grub2_test';
+        return 1;
+    }
+    elsif (get_var('AVOCADO') && check_var('BACKEND', 'ipmi')) {
+        load_boot_tests;
+        load_inst_tests;
+        loadtest 'virt_autotest/login_console';
         loadtest 'console/avocado_prepare';
         my @test_groups = ('block_device_hotplug', 'cpu', 'disk_image', 'memory_hotplug', 'nic_hotplug', 'qmp', 'usb');
         for my $test_group (@test_groups) {
@@ -960,15 +1004,26 @@ else {
             loadtest "network/salt_minion";
         }
     }
-    elsif (get_var("NFSSERVER") or get_var("NFSCLIENT")) {
+    elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
-        #loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (get_var("NFSSERVER")) {
             loadtest "console/yast2_nfs_server";
         }
         else {
             loadtest "console/yast2_nfs_client";
+        }
+    }
+    elsif (get_var("NFS4SERVER") || get_var("NFS4CLIENT")) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+        if (get_var("NFS4SERVER")) {
+            loadtest "console/yast2_nfs4_server";
+        }
+        else {
+            loadtest "console/yast2_nfs4_client";
         }
     }
     elsif (get_var('QAM_VSFTPD')) {
@@ -981,6 +1036,9 @@ else {
         loadtest 'network/setup_multimachine';
         loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         loadtest 'network/vsftpd';
+    }
+    elsif (get_var('AUTOFS')) {
+        load_mm_autofs_tests;
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
@@ -1061,6 +1119,10 @@ else {
         loadtest "kiwi_images_test/kiwi_boot";
         loadtest "kiwi_images_test/login_reboot";
         loadtest "kiwi_images_test/validate_build";
+    }
+    elsif (get_var("FADUMP")) {
+        prepare_target();
+        loadtest "console/kdump_and_crash";
     }
     else {
         if (get_var('BOOT_EXISTING_S390')) {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,7 +29,7 @@ sub run {
     my $n    = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
     $self->wait_boot;
 
-    select_console('root-virtio-terminal');
+    $self->select_serial_terminal;
     for my $i (0 .. $m) {
         script_run("echo '#$i'");
         script_output(sprintf($multiline_script, $n));
@@ -39,6 +39,11 @@ sub run {
 1;
 
 =head1 Configuration
+Testing virtio or svirt serial console.
+
+NOTE: test is using C<select_serial_terminal()> therefore
+VIRTIO_CONSOLE resp. SERIAL_CONSOLE must *not* be set to 0
+(otherwise root-console will be used).
 
 =head2 Example
 

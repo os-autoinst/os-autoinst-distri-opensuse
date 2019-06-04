@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -136,9 +136,13 @@ sub test_name {
 sub log_add {
     my ($file, $test, $status, $time) = @_;
     my $name = test_name($test);
-    my $cmd  = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
+    unless ($name and $status) { return; }
+    my $cmd = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
     type_string("\n");
     assert_script_run($cmd);
+    sleep 5;
+    my $ret = script_output("cat $file", 20);
+    return $ret;
 }
 
 # Return all the tests of a specific xfstests category
@@ -210,8 +214,12 @@ sub save_kdump {
     my ($test, $dir, %args) = @_;
     $args{vmcore} ||= 0;
     $args{kernel} ||= 0;
+    $args{debug}  ||= 0;
     my $name = test_name($test);
     my $ret  = script_run("mv /var/crash/* $dir/$name");
+    if ($args{debug}) {
+        $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz --absolute-names /usr/lib/debug/boot; fi");
+    }
     return 0 if $ret != 0;
 
     my $removed = "";
@@ -263,6 +271,7 @@ sub run {
 
     test_prepare;
     heartbeat_start;
+    my $status_log_content = "";
     foreach my $test (@tests) {
         # Skip tests inside blacklist
         if (exists($BLACKLIST{$test})) {
@@ -276,7 +285,7 @@ sub run {
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
-            log_add($STATUS_LOG, $test, $status, $time);
+            $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
             if ($status =~ /FAILED/) {
                 copy_log($category, $num, 'out.bad');
                 copy_log($category, $num, 'full');
@@ -289,7 +298,7 @@ sub run {
         # SUT crashed. Wait for kdump to finish.
         # After that, SUT will reboot automatically
         eval {
-            power_action('reboot', observe => 1, keepconsole => 1);
+            power_action('reboot', keepconsole => 1);
             $self->wait_boot(in_grub => 1, bootloader_time => 60);
         };
         # If SUT didn't reboot for some reason, force reset
@@ -302,7 +311,7 @@ sub run {
         select_console('root-console');
         # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
         unless (get_var('NO_KDUMP')) {
-            unless (save_kdump($test, $KDUMP_DIR)) {
+            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
                 # If no kdump data found, write warning to log
                 my $msg = "Warning: $test crashed SUT but has no kdump data";
                 script_run("echo '$msg' >> $LOG_DIR/$category/$num");
@@ -317,6 +326,22 @@ sub run {
 
     }
     heartbeat_stop;
+
+    #Save status log before next step(if run.pm fail will load into a last good snapshot)
+    save_tmp_file('status.log', $status_log_content);
+    my $local_file = "/tmp/opt_logs.tar.gz";
+    script_run("tar zcvf $local_file --absolute-names /opt/log/");
+    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 10; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 5 ]; then break; fi; done");
+    my $tar_content = script_output("cat $local_file");
+    save_tmp_file('opt_logs.tar.gz', $tar_content);
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    # Collect executed test logs
+    script_run 'tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/';
+    upload_logs '/tmp/opt_logs.tar.gz';
 }
 
 1;

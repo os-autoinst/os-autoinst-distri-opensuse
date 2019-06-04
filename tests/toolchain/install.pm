@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Systemd 'disable_and_stop_service';
 use version_utils 'is_sle';
 use registration;
 
@@ -24,9 +25,7 @@ sub run {
 
     select_console('root-console');
 
-    # disable packagekitd
-    systemctl 'mask packagekit';
-    systemctl 'stop packagekit';
+    disable_and_stop_service('packagekit.service', mask_service => 1);
 
     if (is_sle '<15') {
         # toolchain channels

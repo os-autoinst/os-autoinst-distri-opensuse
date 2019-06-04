@@ -16,13 +16,21 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils;
 
 sub run {
     x11_start_program('gedit', target_match => 'gedit-options-icon');
 
     # check about window
-    assert_and_click 'gedit-options-icon';
-    assert_and_click 'gedit-options-about';
+    if (is_tumbleweed) {
+        assert_and_click 'gedit-menu-icon';
+        assert_and_click 'gedit-menu-about';
+    }
+    else {
+        assert_and_click 'gedit-options-icon';
+        assert_and_click 'gedit-options-about';
+    }
+
     assert_screen 'gedit-help-about';
 
     # check credits

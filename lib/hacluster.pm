@@ -27,9 +27,11 @@ our @EXPORT = qw(
   add_file_in_csync
   get_cluster_name
   get_hostname
+  get_ip
   get_node_to_join
   get_node_number
   is_node
+  add_to_known_hosts
   choose_node
   save_state
   is_package_installed
@@ -92,6 +94,15 @@ sub get_node_to_join {
     return get_required_var('HA_CLUSTER_JOIN');
 }
 
+sub get_ip {
+    my $node_hostname = shift;
+    my $node_ip       = script_output "host -t A $node_hostname";
+    if ($node_ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
+        return $1;
+    }
+    return 0;
+}
+
 sub get_node_number {
     return script_output 'crm_mon -1 | awk \'/ nodes configured/ { print $1 }\'';
 }
@@ -105,6 +116,13 @@ sub is_node {
 
     # Return true if HOSTNAME contains $node_number at his end
     return ($hostname =~ /$node_number$/);
+}
+
+sub add_to_known_hosts {
+    my $host_to_add = shift;
+    assert_script_run "mkdir -p ~/.ssh";
+    assert_script_run "chmod 700 ~/.ssh";
+    assert_script_run "ssh-keyscan -H $host_to_add >> ~/.ssh/known_hosts";
 }
 
 sub choose_node {
@@ -241,7 +259,9 @@ sub ha_export_logs {
     my $packages_list = '/tmp/packages.list';
     my $iscsi_devs    = '/tmp/iscsi_devices.list';
     my $mdadm_conf    = '/etc/mdadm.conf';
+    my $clustername   = get_cluster_name;
     my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
+    my $cts_log       = '/tmp/cts_cluster_exerciser.log';
     my @y2logs;
 
     # Extract HA logs and upload them
@@ -265,6 +285,13 @@ sub ha_export_logs {
     # mdadm conf
     script_run "touch $mdadm_conf";
     upload_logs($mdadm_conf, failok => 1);
+
+    # supportconfig
+    script_run "supportconfig -g -B $clustername", 180;
+    upload_logs("/var/log/nts_$clustername.tgz", failok => 1);
+
+    # pacemaker cts log
+    upload_logs($cts_log, failok => 1) if (get_var('PACEMAKER_CTS_TEST_ROLE'));
 }
 
 sub check_cluster_state {

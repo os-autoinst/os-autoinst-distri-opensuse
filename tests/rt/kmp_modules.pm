@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 use rt_utils 'select_kernel';
 use File::Basename 'fileparse';
 
@@ -29,7 +30,7 @@ sub lttng_test {
         component => 'sched_switch',
         channel   => 'test-channel'
     };
-
+    # Trace demo
     assert_script_run 'lttng create ' . $trace->{label} . ' -o ' . $trace->{output};
     assert_script_run 'lttng enable-channel --kernel ' . $trace->{channel};
     assert_script_run 'lttng enable-event --kernel -a ' . $trace->{component} . ' -c ' . $trace->{label};
@@ -54,8 +55,11 @@ sub run {
     systemctl 'stop packagekit.service';
     # allow to load unsupported modules
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
+    zypper_call 'ref';
+    # slert12sp4 does not install lttng-tools by default as sle15sp1
+    zypper_call 'in lttng-tools' if (is_sle('<15'));
     # install kmp packages
-    assert_script_run 'zypper -n in *-kmp-rt', 500;
+    zypper_call 'in *-kmp-rt', 500;
     type_string "reboot\n";
     select_kernel('rt');
     assert_screen 'generic-desktop';

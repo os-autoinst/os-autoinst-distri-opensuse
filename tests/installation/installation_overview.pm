@@ -11,12 +11,12 @@
 # Summary: Check installation overview before and after any pattern change
 # Maintainer: Richard Brown <RBrownCCB@opensuse.org>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base "y2logsstep";
 use testapi;
-use version_utils qw(is_caasp is_hyperv is_upgrade);
-use Utils::Backends 'is_remote_backend';
+use version_utils qw(is_caasp is_upgrade);
+use Utils::Backends qw(is_remote_backend is_hyperv);
 
 
 sub ensure_ssh_unblocked {
@@ -27,6 +27,7 @@ sub ensure_ssh_unblocked {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';
                 assert_screen 'inst-overview-options';
+                send_key 'alt-e';
                 send_key 'alt-f';
                 assert_screen 'firewall-config';
                 send_key 'alt-p';
@@ -44,6 +45,7 @@ sub ensure_ssh_unblocked {
             if (match_has_tag 'firewall-enable') {
                 send_key 'alt-c';
                 assert_screen 'inst-overview-options';
+                send_key 'alt-e';
                 send_key 'alt-f';
                 assert_screen 'firewall-config';
                 send_key 'alt-e';
@@ -66,7 +68,6 @@ sub run {
     else {
         # Refer to: https://progress.opensuse.org/issues/47369
         assert_screen "installation-settings-overview-loaded", 250;
-        $self->deal_with_dependency_issues;
         assert_screen "inst-xen-pattern" if get_var('XEN');
         ensure_ssh_unblocked;
         # Check the systemd target, see poo#45020

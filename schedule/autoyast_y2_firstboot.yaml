@@ -1,0 +1,12 @@
+name:           autoyast_y2_firstboot
+description:    >
+    Smoke test for YaST2 firstboot module
+vars:
+    YAST2_FIRSTBOOT_USERNAME: y2_firstboot_tester
+schedule:
+    - autoyast/prepare_profile
+    - installation/isosize
+    - installation/bootloader_start
+    - autoyast/installation
+    - installation/yast2_firstboot
+    - console/validate_yast2_firstboot_configuration

@@ -370,11 +370,19 @@
       <hostname>sles15</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">false</write_hostname>
+      <nameservers config:type="list">
+        <nameserver>192.168.122.1</nameserver>
+      </nameservers>
     </dns>
     <interfaces config:type="list">
       <interface>
-        <bootproto>dhcp</bootproto>
+        <bootproto>static</bootproto>
         <device>eth0</device>
+        <ipaddr>192.168.122.101</ipaddr>
+        <netmask>255.255.255.0</netmask>
+        <network>192.168.122.0</network>
+        <gateway>192.168.122.1</gateway>
+        <prefixlen>24</prefixlen>
         <startmode>auto</startmode>
       </interface>
       <interface>
@@ -402,6 +410,14 @@
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
       <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>-</device>
+          <gateway>192.168.122.1</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
     </routing>
   </networking>
   <ntp-client>
@@ -436,7 +452,7 @@
           <partition_nr config:type="integer">2</partition_nr>
           <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
-          <size>10727964160</size>
+          <size>13727964160</size>
           <subvolumes config:type="list">
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>

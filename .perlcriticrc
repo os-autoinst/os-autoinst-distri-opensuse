@@ -1,9 +1,21 @@
-[-Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval]
+theme = freenode
+severity = 4
+
+# TODO: Remove once Perl::Critic::Freenode 0.028 is widely available
+[Freenode::DiscouragedModules]
+severity = 3
+
+# Test modules have no package declaration
+[Freenode::PackageMatchesFilename]
+severity = 1
 
 [Perl::Critic::Policy::HashKeyQuotes]
+severity = 5
 
 [Perl::Critic::Policy::ConsistentQuoteLikeWords]
-
-[Perl::Critic::Policy::ControlStructures::ProhibitDeepNests]
 severity = 5
-max_nests = 5
+
+[ControlStructures::ProhibitDeepNests]
+severity = 4
+add_themes = freenode
+max_nests = 4

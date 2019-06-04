@@ -14,16 +14,20 @@ use base "consoletest";
 use strict;
 use warnings;
 use utils;
-use version_utils 'is_desktop_installed';
+use version_utils qw(is_desktop_installed is_sles4sap);
 use testapi;
 use migration;
 
 sub run {
     my ($self) = @_;
 
-    # if source system is minimal installation then boot to textmode
+    # Do not attempt to log into the desktop of a system installed with SLES4SAP
+    # being prepared for upgrade, as it does not have an unprivileged user to test
+    # with other than the SAP Administrator
+    #
+    # If source system is minimal installation then boot to textmode
     # we don't care about source system start time because our SUT is upgraded one
-    $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600);
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => is_sles4sap);
     $self->setup_migration();
 }
 

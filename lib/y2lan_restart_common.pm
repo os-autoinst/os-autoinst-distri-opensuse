@@ -19,7 +19,8 @@ use Exporter 'import';
 use testapi;
 use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
-use y2_common 'accept_warning_network_manager_default';
+use y2_module_basetest 'accept_warning_network_manager_default';
+use y2_module_consoletest;
 
 our @EXPORT = qw(
   check_etc_hosts_update
@@ -30,6 +31,7 @@ our @EXPORT = qw(
   validate_etc_hosts_entry
   verify_network_configuration
 );
+my $module_name;
 
 sub initialize_y2lan
 {
@@ -49,7 +51,7 @@ sub initialize_y2lan
 }
 
 sub open_network_settings {
-    type_string "yast2 lan; echo yast2-lan-status-\$? > /dev/$serialdev\n";
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
     accept_warning_network_manager_default;
     assert_screen 'yast2_lan', 180;       # yast2 lan overview tab
     send_key 'home';                      # select first device
@@ -60,7 +62,7 @@ sub close_network_settings {
     wait_still_screen 1, 1;
     send_key 'alt-o';
     # new: warning pops up for firewall, alt-y for assign it to zone
-    if (!wait_serial("yast2-lan-status-0", 180)) {
+    if (!wait_serial("$module_name-0", 180)) {
         check_screen([qw(yast2-lan-restart_firewall_active_warning yast2_lan_packages_need_to_be_installed)], 0);
         if (match_has_tag 'yast2-lan-restart_firewall_active_warning') {
             send_key 'alt-y';
@@ -72,7 +74,7 @@ sub close_network_settings {
         elsif (match_has_tag 'yast2_lan_packages_need_to_be_installed') {
             send_key 'alt-i';
         }
-        wait_serial("yast2-lan-status-0", 180) || die "'yast2 lan' didn't finish or exited with non-zero code";
+        wait_serial("$module_name-0", 180) || die "'yast2 lan' didn't finish or exited with non-zero code";
     }
 
     type_string "\n\n";    # make space for better readability of the console

@@ -12,10 +12,10 @@
 
 use strict;
 use warnings;
-use base "console_yasttest";
+use base "y2_module_consoletest";
+
 use testapi;
 use utils;
-
 
 sub run {
     my ($self) = @_;
@@ -26,7 +26,7 @@ sub run {
     # install xinetd at first
     zypper_call("in xinetd yast2-inetd", timeout => 180);
 
-    script_run("yast2 xinetd; echo yast2-xinetd-status-\$? > /dev/$serialdev", 0);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'xinetd');
 
     # check xinetd network configuration got started
     assert_screen([qw(yast2_xinetd_startup yast2_xinetd_core-dumped)], 90);
@@ -91,7 +91,7 @@ sub run {
     wait_screen_change { send_key 'alt-f'; };
 
     # wait till xinetd got closed
-    wait_serial('yast2-xinetd-status-0', 180) || die "'yast2 xinetd' didn't finish";
+    wait_serial("$module_name-0", 180) || die "'yast2 xinetd' didn't finish";
 
     # check xinetd configuration
     systemctl 'show -p ActiveState xinetd.service | grep ActiveState=active';

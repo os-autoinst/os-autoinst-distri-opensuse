@@ -15,7 +15,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_jeos);
+use version_utils qw(is_sle is_jeos is_opensuse);
 
 sub run() {
     select_console('root-console');
@@ -30,10 +30,14 @@ sub run() {
         zypper_call("in dovecot", exitcode => [0, 102, 103]);
         zypper_call("rr dovecot_repo");
         save_screenshot;
-    }
-    else {
+    } else {
+        if (is_opensuse) {
+            # exim is installed by default in openSUSE, but we need postfix
+            zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
+            systemctl 'start postfix';
+        }
         zypper_call("in dovecot", exitcode => [0, 102, 103]);
-        zypper_call("in postfix", exitcode => [0, 102, 103]) if is_jeos;
+        zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
     # configure dovecot
@@ -53,7 +57,13 @@ sub run() {
     assert_script_run("openssl dhparam -out /etc/dovecot/dh.pem 2048", 900) unless is_sle('<15');
 
     # Generate default certificate for dovecot and postfix
-    my $dovecot_path = is_jeos() ? '/usr/share/dovecot' : '/usr/share/doc/packages/dovecot';
+    my $dovecot_path;
+    if (is_jeos) {
+        $dovecot_path = "/usr/share/dovecot";
+    } else {
+        $dovecot_path = "/usr/share/doc/packages/dovecot";
+    }
+
     assert_script_run "cd $dovecot_path;bash mkcert.sh";
 
     # configure postfix
@@ -77,8 +87,10 @@ sub run() {
     assert_script_run "useradd -m admin";
     script_run "passwd admin", 0;    # set user's password
     type_password "password123";
+    wait_still_screen(1);
     send_key 'ret';
     type_password "password123";
+    wait_still_screen(1);
     send_key 'ret';
 
     assert_script_run "useradd -m nimda";

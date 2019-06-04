@@ -45,7 +45,7 @@ sub dl_save {
     if (match_has_tag 'firefox-downloading-openwith') {
         send_key "alt-s";
     }
-    assert_and_click("firefox-downloading-save_enabled", "left", 90);
+    assert_and_click('firefox-downloading-save_enabled', timeout => 90);
     # wait a little time at the beginning of the download to avoid busy disk writing
     wait_still_screen 3, 6;
 }
@@ -81,7 +81,7 @@ sub run {
 
     dl_location_switch("ask");
     dl_save($self, $dl_link_01);
-    assert_and_click('firefox-downloading-saving_dialog', 'left', 90);
+    assert_and_click('firefox-downloading-saving_dialog', timeout => 90);
     assert_screen('firefox-downloading-library', 90);
 
     # Pause

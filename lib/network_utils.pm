@@ -44,7 +44,9 @@ sub setup_static_network {
     return first NIC which is not loopback
 =cut
 sub iface {
-    return script_output('ls /sys/class/net/ | grep -v lo | head -1');
+    my ($quantity) = @_;
+    $quantity ||= 1;
+    return script_output('ls /sys/class/net/ | grep -v lo | head -' . $quantity);
 }
 
 =head2 can_upload_logs
@@ -56,9 +58,14 @@ sub can_upload_logs {
     return (script_run('ping -c 1 ' . $gw) == 0);
 }
 
+
 =head2 check_and_recover_network
 Recover network with static config if is feasible, returns if can ping GW
 Main use case is post_fail_hook, to be able to upload logs
+accepts following parameters :
+C<ip> => allowing to specify certain IP which would be used for recovery
+in case skiped '10.0.2.15/24' will be used as fallback
+C<gw> => allowing to specify default gateway . Fallback to worker IP in case nothing specified
 =cut
 sub recover_network {
     my (%args) = @_;
