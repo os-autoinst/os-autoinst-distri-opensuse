@@ -16,6 +16,8 @@ use testapi;
 use strict;
 use warnings;
 use virt_utils;
+use Utils::Backends 'is_remote_backend';
+use ipmi_backend_utils;
 
 sub get_script_run {
     my $self = shift;
@@ -38,6 +40,12 @@ sub run {
     my ($upgrade_release)   = lc($upgrade_product) =~ /sles-([0-9]+)-sp/;
     if (($upgrade_release >= 15) && ($installed_release ne $upgrade_release)) {
         upload_logs('/root/autoupg.xml');
+    }
+
+    #online upgrade actually
+    if (is_remote_backend && check_var('ARCH', 'aarch64') && is_installed_equal_upgrade_major_release) {
+        set_serial_console_on_vh('', '', 'kvm');
+        set_pxe_efiboot('');
     }
 }
 

@@ -14,10 +14,16 @@ use strict;
 use warnings;
 use testapi;
 use base "reboot_and_wait_up";
+use virt_utils 'is_installed_equal_upgrade_major_release';
+use Utils::Backends 'is_remote_backend';
+use ipmi_backend_utils;
 
 sub run {
     my $self    = shift;
     my $timeout = 180;
+
+    #online upgrade actually
+    return if (is_remote_backend && check_var('ARCH', 'aarch64') && is_installed_equal_upgrade_major_release);
     $self->reboot_and_wait_up($timeout);
 }
 

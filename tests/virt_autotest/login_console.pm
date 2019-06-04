@@ -110,7 +110,11 @@ sub login_to_console {
             #grub may not showup after upgrade because default GRUB_TERMINAL setting
             #when fixed in separate PR, will uncomment following line
             #assert_screen([qw(grub2 grub1)], 120);
-
+            my $upgrade_machine = get_var('SUT_IP', 'nosutip');
+            if (is_remote_backend && check_var('ARCH', 'aarch64') && ($upgrade_machine =~ /huawei/img)) {
+                wait_still_screen 10;
+                boot_local_disk_arm_huawei;
+            }
             my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
             ($host_installed_version) = $host_installed_version =~ /^(\d+)/im;
             my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');         #format sles-15-sp0
