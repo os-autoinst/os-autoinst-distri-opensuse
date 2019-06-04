@@ -19,7 +19,6 @@ use warnings;
 use testapi;
 use base 'y2_installbase';
 use File::Basename;
-use Utils::Backends 'use_ssh_serial_console';
 
 sub full_run {
     #my $case   = get_var("CASE_NAME");
