@@ -952,7 +952,8 @@ sub load_inst_tests {
             and !get_var("REMOTE_CONTROLLER")
             and !is_hyperv_in_gui
             and !is_bridged_networking
-            and (get_var('BACKEND', '') !~ /ipmi|s390x/ || !is_spvm)
+            and (get_var('BACKEND', '') !~ /ipmi|s390x/)
+            and !is_spvm
             and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";
