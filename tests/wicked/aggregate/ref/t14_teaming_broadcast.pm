@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Bonding, active-backup
+# Summary: Teaming, Broadcast
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -18,7 +18,7 @@ use testapi;
 
 
 sub run {
-    record_info('INFO', 'Bonding, active-backup');
+    record_info('INFO', 'Teaming, Broadcast');
 }
 
 1;

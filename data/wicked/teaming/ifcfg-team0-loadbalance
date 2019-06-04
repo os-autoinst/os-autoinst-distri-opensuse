@@ -1,0 +1,10 @@
+STARTMODE=auto
+BOOTPROTO=static
+
+TEAM_RUNNER=loadbalance
+TEAM_LB_TX_HASH=eth
+TEAM_PORT_DEVICE=iface0
+TEAM_PORT_DEVICE_1=iface1
+
+IPADDR='ipaddr4'
+IPADDR6='ipaddr6'
