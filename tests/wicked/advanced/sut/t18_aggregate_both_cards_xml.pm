@@ -29,9 +29,7 @@ sub run {
     $self->wicked_command('ifup', $sut_iface);
     validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /SLAVE/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /SLAVE/ });
-    my $remote_ip = $self->get_remote_ip(type => 'host');
-    $self->ping_with_timeout(ip => $remote_ip, interface => $sut_iface);
-    validate_script_output("ping -c30 $remote_ip -I $sut_iface", sub { /0% packet loss/ });
+    $self->ping_with_timeout(type => 'host', interface => $sut_iface, count_success => 30, timeout => 4);
 }
 
 sub test_flags {
