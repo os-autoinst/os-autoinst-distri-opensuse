@@ -45,7 +45,7 @@ sub run {
     );
 
     # for sle 12 we still use and support python2
-    push @test_subjects, 'python-pam' if is_sle('<15');
+    push @test_subjects, 'python-pam'         if is_sle('<15');
     push @test_subjects, 'python3-python-pam' if is_sle('15+') || is_opensuse;
 
     disable_and_stop_service('packagekit.service', mask_service => 1, ignore_failure => 1);

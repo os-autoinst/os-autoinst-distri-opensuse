@@ -270,7 +270,7 @@ sub run {
         $svirt->suspend;
         my $cmdline = '';
         $cmdline .= 'textmode=1 ' if check_var('VIDEOMODE', 'text');
-        $cmdline .= 'rescue=1 ' if is_installcheck || is_rescuesystem;    # rescue mode
+        $cmdline .= 'rescue=1 ' if is_installcheck || is_rescuesystem;                # rescue mode
         $cmdline .= get_var('EXTRABOOTPARAMS') . ' ' if get_var('EXTRABOOTPARAMS');
         $cmdline .= registration_bootloader_cmdline . ' ' if check_var('SCC_REGISTER', 'installation');
         type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
@@ -279,18 +279,18 @@ sub run {
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to GRUB";
         # Do not boot OS from disk, select installation medium
         if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_caasp) {
-            type_string "echo -en '\\033[B' > \$pty\n";                   # key down
+            type_string "echo -en '\\033[B' > \$pty\n";                               # key down
         }
-        type_string "echo e > \$pty\n";                                   # edit
+        type_string "echo e > \$pty\n";                                               # edit
 
         if (is_jeos or is_caasp) {
-            for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
+            for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }              # four-times key down
         }
         else {
-            $cmdline .= 'linemode=0 ';                                      # workaround for bsc#1066919
-            for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }    # four-times key down
+            $cmdline .= 'linemode=0 ';                                                # workaround for bsc#1066919
+            for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }              # four-times key down
         }
-        type_string "echo -en '\\033[K' > \$pty\n";                         # end of line
+        type_string "echo -en '\\033[K' > \$pty\n";                                   # end of line
         type_string "echo -en ' $cmdline' > \$pty\n";
         if (is_sle('12-SP2+') or is_caasp) {
             type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer

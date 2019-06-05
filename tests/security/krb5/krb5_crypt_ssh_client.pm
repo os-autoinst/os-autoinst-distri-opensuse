@@ -38,7 +38,7 @@ sub run {
     script_run("kinit -p $tst |& tee /dev/$serialdev", 0);
     wait_serial(qr/Password.*$tst/) || die "Matching output failed";
     type_string "$pass_t\n";
-    script_output "echo \$?", sub { m/^0$/ };
+    script_output "echo \$?",       sub { m/^0$/ };
     validate_script_output "klist", sub {
         m/Default principal.*$tst/;
     };

@@ -49,8 +49,8 @@ sub run {
     wait_serial "Is Admin Server LDAP fingerprint correct" and type_string "Y\n" if get_var('SSL') eq 'yes';
 
     wait_serial "Use Branch LDAP on localhost" and type_string "Y\n" unless get_var('SLEPOS') =~ /^combo/;
-    wait_serial "Enable secure connection" and type_string "yes\n" if get_var('SSL') eq 'yes' && get_var('SLEPOS') !~ /^combo/;
-    wait_serial "Continue with configuration" and type_string "\n";
+    wait_serial "Enable secure connection"     and type_string "yes\n" if get_var('SSL') eq 'yes' && get_var('SLEPOS') !~ /^combo/;
+    wait_serial "Continue with configuration"  and type_string "\n";
     wait_serial "configuration successful";
 }
 

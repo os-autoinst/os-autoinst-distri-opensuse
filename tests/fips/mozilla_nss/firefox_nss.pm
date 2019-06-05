@@ -46,8 +46,8 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    type_string "Forms";       # Search "Forms & Passwords" section
-    send_key "tab";            # Hide blinking cursor in the search box
+    type_string "Forms";    # Search "Forms & Passwords" section
+    send_key "tab";         # Hide blinking cursor in the search box
     wait_still_screen 2;
     send_key "alt-shift-u";    # Use a master password
     assert_screen('firefox-passwd-master_setting');

@@ -40,7 +40,7 @@ sub run {
     assert_script_run("locale | tr -d \\'\\\" | awk -F= '\$1 ~ /LC_CTYPE/ { print \$2 }' | grep ^" . $locale_data{$lang} . "\$");
 
     my %lang_data = ('en_US' => 'For bug reporting', 'de_DE' => 'Eine Anleitung zum Melden');
-    my $proglang = $args{user_is_root} ? 'en_US' : $lang;
+    my $proglang  = $args{user_is_root} ? 'en_US' : $lang;
     assert_script_run("ldd --help | grep '^" . $lang_data{$proglang} . "'");
 
 }

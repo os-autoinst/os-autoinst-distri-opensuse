@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
     zypper_call "in yast2-country";
     my $timezone = script_output 'yast timezone summary 2>&1 | grep "Current Time Zone" | cut -d: -f2';
-    record_info 'default timezone', $timezone;
+    record_info 'default timezone',                   $timezone;
     validate_script_output 'yast timezone list 2>&1', sub { m#Africa/Cairo# };
     assert_script_run 'yast timezone set timezone=Africa/Cairo';
     validate_script_output 'yast timezone summary 2>&1', sub { m#Africa/Cairo# };

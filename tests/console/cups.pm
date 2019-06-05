@@ -22,7 +22,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call("in cups", exitcode => [0, 102, 103]);
+    zypper_call("in cups",         exitcode => [0, 102, 103]);
     zypper_call("in cups-filters", exitcode => [0, 102, 103]) if is_jeos;
 
     script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
@@ -32,7 +32,7 @@ sub run {
     validate_script_output 'systemctl --no-pager status cups.service | cat', sub { m/Active:\s*active/ };
 
     # Add printers
-    record_info "lpadmin", "Try to add printers and enable them";
+    record_info "lpadmin",                                          "Try to add printers and enable them";
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ };
     assert_script_run 'lpadmin -p printer_tmp -v file:/tmp/test_cups -m raw -E';
     assert_script_run 'lpadmin -p printer_null -v file:/dev/null -m raw -E';

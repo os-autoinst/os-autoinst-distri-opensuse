@@ -347,7 +347,7 @@ sub set_standard_prompt {
     my ($self, $user, %args) = @_;
     return if $args{skip_set_standard_prompt};
     $user ||= $testapi::username;
-    my $os_type = $args{os_type} // 'linux';
+    my $os_type     = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';

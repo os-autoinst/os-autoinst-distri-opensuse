@@ -34,7 +34,7 @@ sub add_device {
         send_key_until_needlematch 'yast2_lan_select_eth_card', 'down';
         send_key 'alt-i';    # Edit NIC
         assert_screen 'yast2_lan_network_card_setup';
-        send_key 'alt-k';             # No link (Bonding Slavees)
+        send_key 'alt-k';    # No link (Bonding Slavees)
         send_key 'alt-n';
         assert_screen 'yast2_lan';    # yast2 lan overview tab
     }
