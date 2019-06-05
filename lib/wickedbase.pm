@@ -486,20 +486,41 @@ sub setup_team {
     my $cfg_team0 = '/etc/sysconfig/network/ifcfg-team0';
     my $cfg_ifc0  = '/etc/sysconfig/network/ifcfg-' . $iface0;
     my $cfg_ifc1  = '/etc/sysconfig/network/ifcfg-' . $iface1;
-    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc0);
-    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc1);
+
+    my $data_ifcfg = 'wicked/ifcfg/ifcfg-eth0-hotplug';
+    $data_ifcfg .= '-static' if ($mode eq 'ab-nsna_ping');
+
+    $self->get_from_data($data_ifcfg,                           $cfg_ifc0);
+    $self->get_from_data($data_ifcfg,                           $cfg_ifc1);
     $self->get_from_data('wicked/teaming/ifcfg-team0-' . $mode, $cfg_team0);
-    file_content_replace($cfg_team0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $iface0, iface1 => $iface1);
+
+    my $ipaddr4  = $self->get_ip(type => 'host',  netmask       => 1);
+    my $ipaddr6  = $self->get_ip(type => 'host6', netmask       => 1);
+    my $ping_ip4 = $self->get_ip(type => 'host',  is_wicked_ref => 1);
+    my $ping_ip6 = $self->get_ip(type => 'host6', is_wicked_ref => 1);
+    file_content_replace($cfg_team0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip4 => $ping_ip4, ping_ip6 => $ping_ip6);
 
     $self->wicked_command('ifup', 'all');
 }
 
+sub get_team_active_link {
+    my ($self, $team_link) = @_;
+    my $out = script_output("teamdctl $team_link state view");
+    record_info('teamdctl', $out);
+    return $1 if ($out =~ m/active port: (\w+)/);
+    return;
+}
+
 sub validate_interfaces {
-    my ($self, $interface, $iface0, $iface1) = @_;
-    die("Missing interface $interface") unless ifc_exists($interface);
+    my ($self, $interface, $iface0, $iface1, $ping) = @_;
+    $ping //= 1;
+    if (!ifc_is_up($interface)) {
+        record_info('ip addr', script_output('ip addr'));
+        die("Interface $interface does not exist or is not UP");
+    }
     validate_script_output('ip a s dev ' . $iface0, sub { /master $interface/ });
     validate_script_output('ip a s dev ' . $iface1, sub { /master $interface/ });
-    $self->ping_with_timeout(type => 'host', interface => $interface, count_success => 30, timeout => 4);
+    $self->ping_with_timeout(type => 'host', interface => $interface, count_success => 30, timeout => 4) if ($ping);
 }
 
 sub wait_for_dhcpd {
