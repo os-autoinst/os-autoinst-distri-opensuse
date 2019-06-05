@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.2] - 2019-06-26
+### Added
+Add slurm accounting tests
+### Changed
+changing the naming convention of the HPC/slurm nodes to master-node and
+slave-node
+
 ## [1.0.1] - 2019-06-11
 ### Added
 Add slurm failover test using NFS shared dir as the StateSaveLocation

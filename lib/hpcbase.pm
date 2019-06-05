@@ -33,62 +33,69 @@ sub switch_user {
     assert_screen 'user-nobody';
 }
 
-## Prepare ctl node names, so those names could be reused, for instance
+## Prepare master node names, so those names could be reused, for instance
 ## in config preparation, munge key distribution, etc.
-## TODO: make it generic, once it is needed
-sub ctl_node_names {
-    my $ctl_nodes = get_required_var("CLUSTER_CTL_FAILOVER");
-    my @ctl_node_names;
+## The naming follows general pattern of master-slave
+sub master_node_names {
+    my $master_nodes = get_required_var("MASTER_NODES");
+    my @master_node_names;
 
-    for (my $node = 0; $node <= $ctl_nodes; $node++) {
-        my $name = sprintf("slurm-master%02d", $node);
-        push @ctl_node_names, $name;
+    for (my $node = 0; $node < $master_nodes; $node++) {
+        my $name = sprintf("master-node%02d", $node);
+        push @master_node_names, $name;
     }
 
-    return @ctl_node_names;
+    return @master_node_names;
 }
 
 ## Prepare compute node names, so those names could be reused, for
 ## instance in config preparation, munge key distribution, etc.
-## TODO: make it generic, once it is needed
-sub compute_node_names {
-    my $ctl_nodes = get_required_var("CLUSTER_CTL_FAILOVER");
-    my $nodes     = get_required_var("CLUSTER_NODES");
+## The naming follows general pattern of master-slave
+sub slave_node_names {
+    my $master_nodes = get_required_var("MASTER_NODES");
+    my $nodes        = get_required_var("CLUSTER_NODES");
+    my @slave_node_names;
 
-    my @compute_node_names;
-
-    #adjust node value, so slurm.conf could account for correct count of slaves
-    $nodes = $nodes - $ctl_nodes;
-    for (my $node = 1; $node < $nodes; $node++) {
-        my $name = sprintf("slurm-slave%02d", $node);
-        push @compute_node_names, $name;
+    my $slave_nodes = $nodes - $master_nodes;
+    for (my $node = 0; $node < $slave_nodes; $node++) {
+        my $name = sprintf("slave-node%02d", $node);
+        push @slave_node_names, $name;
     }
 
-    return @compute_node_names;
+    return @slave_node_names;
 }
 
 ## Prepare all node names, so those names could be reused
 sub cluster_names {
     my @cluster_names;
 
-    my @cluster_ctl_nodes     = ctl_node_names();
-    my @cluster_compute_nodes = compute_node_names();
+    my @master_nodes = master_node_names();
+    my @slave_nodes  = slave_node_names();
 
-    push(@cluster_ctl_nodes, @cluster_compute_nodes);
-    @cluster_names = @cluster_ctl_nodes;
+    push(@master_nodes, @slave_nodes);
+    @cluster_names = @master_nodes;
 
     return @cluster_names;
 }
 
+## TODO: improve this ever-growing sub, so that it will be easier to
+## maintain and expand if needed as well as there will be less duplications
 sub prepare_slurm_conf {
-    my $ctl_nodes = get_required_var("CLUSTER_CTL_FAILOVER");
+    my $slurm_conf = get_required_var("SLURM_CONF");
 
-    my @cluster_ctl_nodes     = ctl_node_names();
-    my @cluster_compute_nodes = compute_node_names();
+    my @cluster_ctl_nodes     = master_node_names();
+    my @cluster_compute_nodes = slave_node_names();
     my $cluster_ctl_nodes     = join(',', @cluster_ctl_nodes);
     my $cluster_compute_nodes = join(',', @cluster_compute_nodes);
 
-    if ($ctl_nodes) {
+    if ($slurm_conf eq "basic") {
+        my $config = << "EOF";
+sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
+sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
+sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+EOF
+        assert_script_run($_) foreach (split /\n/, $config);
+    } elsif ($slurm_conf eq "nfs") {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
 sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
@@ -99,14 +106,36 @@ sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
 sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
-    } else {
+    } elsif ($slurm_conf eq "db") {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
+sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
+sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
 sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
+sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
+sed -i "/^#AccountingStorageType.*/c\\AccountingStorageType=accounting_storage/slurmdbd" /etc/slurm/slurm.conf
+sed -i "/^#AccountingStorageHost.*/c\\AccountingStorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurm.conf
+sed -i "/^#AccountingStorageUser.*/c\\AccountingStoragePort=20088" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
+    } else {
+        die "Unsupported value of SLURM_CONF test setting!";
     }
+}
+
+sub prepare_slurmdb_conf {
+    my @cluster_compute_nodes = slave_node_names();
+
+    my $config = << "EOF";
+sed -i "/^DbdAddr.*/c\\#DbdAddr" /etc/slurm/slurmdbd.conf
+sed -i "/^DbdHost.*/c\\DbdHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf
+sed -i "/^#StorageHost.*/c\\StorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf
+sed -i "/^#StorageLoc.*/c\\StorageLoc=slurm_acct_db" /etc/slurm/slurmdbd.conf
+sed -i "/^#DbdPort.*/c\\DbdPort=20088" /etc/slurm/slurmdbd.conf
+EOF
+    assert_script_run($_) foreach (split /\n/, $config);
 }
 
 sub distribute_munge_key {
