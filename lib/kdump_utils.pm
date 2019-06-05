@@ -20,7 +20,7 @@ use y2_module_consoletest;
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
 
 sub install_kernel_debuginfo {
-    assert_script_run 'zypper ref', 300;
+    assert_script_run 'zypper ref', 600;
     # JeOS uses kernel-default-base, except on aarch64 openSUSE
     my $kernel    = is_jeos() && (!is_opensuse() && !check_var('ARCH', 'aarch64')) ? 'kernel-default-base' : 'kernel-default';
     my $debuginfo = script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel . '| sort --version-sort | tail -n 1');
