@@ -322,7 +322,7 @@ sub download_guest_assets {
 
     # mount the remote NFS location of guest assets
     # OPENQA_URL="localhost" in local openQA instead of the IP, so the line below need to be turned on and set to the webUI IP when you are using local openQA
-    # Tips: Using local openQA, you need "rcnfsserver start & vi /etc/exports; exportfs -r")
+    # Tips: Using local openQA, you need "rcnfs-server start & vi /etc/exports; exportfs -r")
     # set_var('OPENQA_URL', "your_ip");
     my $openqa_server = get_required_var('OPENQA_URL');
     $openqa_server =~ s/^http:\/\///;

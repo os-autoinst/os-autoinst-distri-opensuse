@@ -27,15 +27,15 @@ sub server_configure_network {
 
 sub try_nfsv2 {
     # Try that NFSv2 is disabled by default
-    systemctl 'start nfsserver';
+    systemctl 'start nfs-server';
     assert_script_run "cat /proc/fs/nfsd/versions | grep '\\-2'";
     file_content_replace("/etc/sysconfig/nfs", "MOUNTD_OPTIONS=.*" => "MOUNTD_OPTIONS=\"-V2\"", "NFSD_OPTIONS=.*" => "NFSD_OPTIONS=\"-V2\"");
-    systemctl 'restart nfsserver';
+    systemctl 'restart nfs-server';
     assert_script_run "cat /proc/fs/nfsd/versions | grep '+2'";
 
     # Disable NFSv2 again
     file_content_replace("/etc/sysconfig/nfs", "MOUNTD_OPTIONS=.*" => "MOUNTD_OPTIONS=\"\"", "NFSD_OPTIONS=.*" => "NFSD_OPTIONS=\"\"");
-    systemctl 'stop nfsserver';
+    systemctl 'stop nfs-server';
 }
 
 sub prepare_exports {
@@ -163,13 +163,13 @@ sub check_nfs_ready {
     assert_script_run "cat /etc/exports | tr -d ' \\t\\r' | grep '${rw}\\*(rw,\\|${ro}\\*(ro,'";
     assert_script_run "cat /proc/fs/nfsd/exports";
 
-    if ((script_run('systemctl is-enabled nfsserver')) != 0) {
-        record_info 'disabled', 'The nfsserver unit is disabled';
-        systemctl 'enable nfsserver';
+    if ((script_run('systemctl is-enabled nfs-server')) != 0) {
+        record_info 'disabled', 'The nfs-server unit is disabled';
+        systemctl 'enable nfs-server';
     }
-    if ((script_run('systemctl is-active nfsserver')) != 0) {
-        record_info 'stopped', 'The nfsserver unit is stopped';
-        systemctl 'start nfsserver';
+    if ((script_run('systemctl is-active nfs-server')) != 0) {
+        record_info 'stopped', 'The nfs-server unit is stopped';
+        systemctl 'start nfs-server';
     }
 }
 

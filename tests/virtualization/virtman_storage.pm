@@ -69,7 +69,7 @@ sub create_nfs_share {
     become_root();
     assert_script_run "mkdir -p $dir";
     assert_script_run "echo '$dir *(rw,sync)' >> /etc/exports";
-    systemctl 'restart nfsserver';
+    systemctl 'restart nfs-server';
     assert_script_run "exportfs";
     type_string 'exit';
     send_key 'ret';
