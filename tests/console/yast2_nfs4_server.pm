@@ -66,7 +66,7 @@ sub run {
     clear_console;
 
     # Server is up and running, client can use it now!
-    script_run "( journalctl -fu nfsserver > /dev/$serialdev & )";
+    script_run "( journalctl -fu nfs-server > /dev/$serialdev & )";
     mutex_create('nfs4_ready');
     check_nfs_ready($rw, $ro);
 

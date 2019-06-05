@@ -30,8 +30,8 @@ sub run {
     # create and start nfs export
     assert_script_run 'echo "/mnt *(ro,root_squash,sync,no_subtree_check)" >/etc/exports';
     assert_script_run 'echo "nfs is working" >/mnt/test';
-    systemctl 'start nfsserver';
-    systemctl 'status nfsserver';
+    systemctl 'start nfs-server';
+    systemctl 'status nfs-server';
 
     # wait for updated rpcinfo
     sleep 5;
@@ -45,7 +45,7 @@ sub run {
 
 sub post_run_hook {
     # stop started services
-    systemctl 'stop rpcbind.socket rpcbind.service nfsserver';
+    systemctl 'stop rpcbind.socket rpcbind.service nfs-server';
 }
 
 1;

@@ -250,7 +250,7 @@ sub setup_network {
     # SLE12GA uses too many old style services
     my $action = check_var('VERSION', '12') ? "enable" : "reenable";
 
-    foreach my $service (qw(auditd dnsmasq nfsserver rpcbind vsftpd)) {
+    foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
         if (is_sle('12+') || is_opensuse || is_jeos) {
             systemctl($action . " " . $service);
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
