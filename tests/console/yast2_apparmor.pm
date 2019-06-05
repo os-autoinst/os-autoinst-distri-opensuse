@@ -33,9 +33,10 @@ sub run {
 
     # start apparmor configuration
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
+    # assert that app was opened appeared
+    assert_screen 'yast2_apparmor';
     #SLES <15 extra packages are needed after main window:
     if (is_pre_15()) {
-        assert_screen 'yast2_apparmor';    #this window does not appear on >=15
         send_key 'ret';
         install_extra_packages_requested;
     } else {
