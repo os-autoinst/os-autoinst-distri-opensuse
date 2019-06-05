@@ -1,35 +1,15 @@
 ---
-name:           ext4@yast
+name:           autologin@yast
 description:    >
-  Test for ext4 filesystem.
-vars:
-  FILESYSTEM: ext4
-  FORMAT_DASD: install
-conditional_schedule:
-    disk_activation:
-        BACKEND:
-            s390x:
-                - installation/disk_activation
-    after_reboot:
-        ARCH:
-            s390x:
-                - boot/reconnect_mgmt_console
-            x86_64:
-                - installation/grub_test
-            aarch64:
-                - installation/grub_test
-            ppc64le:
-                - installation/grub_test
+  Test automatic login when selected for local user during installation.
 schedule:
-  - installation/bootloader_start
+  - installation/bootloader
   - installation/welcome
   - installation/accept_license
-  - {{disk_activation}}
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
@@ -41,5 +21,5 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - {{after_reboot}}
+  - installation/grub_test
   - installation/first_boot

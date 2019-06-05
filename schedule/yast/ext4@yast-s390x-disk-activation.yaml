@@ -1,15 +1,21 @@
 ---
-name:           autologin
+name:           ext4@yast-s390x-disk-activation
 description:    >
-  Test automatic login when selected for local user during installation.
+  Test for ext4 filesystem.
+  Requires disk activation and grub is not displayed due to console reconnection.
+vars:
+  FILESYSTEM: ext4
+  FORMAT_DASD: install
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
+  - installation/disk_activation
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
+  - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
@@ -21,5 +27,5 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
+  - boot/reconnect_mgmt_console
   - installation/first_boot

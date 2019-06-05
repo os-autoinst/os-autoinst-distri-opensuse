@@ -1,5 +1,20 @@
 #!/usr/bin/env perl
-use Test::More tests => 1;
+use Test::More;
 use Test::YAML::Valid qw(-Tiny);
+use File::Find;
 
-yaml_files_ok('./schedule/*.yaml', 'all YAML files are valid');
+# The Unix find utility recursively searches through the directory hierarchy;
+# the Perl glob built-in does not, therefore we could use File::Find which is core module
+sub find_yaml_files {
+    my $dir = shift;
+    my @yaml_files;
+    my $yaml_finder = sub {
+        return if ! -f;
+        return if ! /\.yaml\z/;
+        push @yaml_files, $File::Find::name;
+    };
+    find( $yaml_finder, $dir );
+    return @yaml_files;
+}
+yaml_file_ok($_, $_) for find_yaml_files('./schedule/');
+done_testing();
