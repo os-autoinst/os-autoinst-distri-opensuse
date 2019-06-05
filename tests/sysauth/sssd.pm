@@ -52,9 +52,9 @@ sub run {
     if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
         assert_script_run "zypper -n in psmisc";
     }
-    script_run "zypper -n refresh && zypper -n in @test_subjects";
-    script_run "cd; curl -L -v " . autoinst_url . "/data/lib/version_utils.sh > /usr/local/bin/version_utils.sh";
-    script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
+    assert_script_run "zypper -n refresh && zypper -n in @test_subjects", 200;
+    assert_script_run "cd; curl -L -v " . autoinst_url . "/data/lib/version_utils.sh > /usr/local/bin/version_utils.sh";
+    assert_script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 
     # Get sssd version, as 2.0+ behaves differently
     my $sssd_version = script_output('rpm -q sssd --qf \'%{VERSION}\'');
