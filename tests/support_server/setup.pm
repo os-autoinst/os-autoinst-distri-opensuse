@@ -40,6 +40,7 @@ my $ssh_server_set       = 0;
 my $xdmcp_server_set     = 0;
 my $iscsi_server_set     = 0;
 my $iscsi_tgt_server_set = 0;
+my $nfs_server_set       = 0;
 
 my $setup_script;
 my $disable_firewall = 0;
@@ -490,6 +491,30 @@ sub setup_mariadb_server {
     $disable_firewall = 1;
 }
 
+sub setup_nfs_server {
+    my $nfs_mount       = "/nfs/shared";
+    my $nfs_permissions = "rw,sync,no_root_squash";
+
+    # Added as the client test code might want to change the default
+    # values
+    if (get_var("CONFIGURE_NFS_SERVER")) {
+        $nfs_mount       = get_required_var("NFS_MOUNT");
+        $nfs_permissions = get_required_var("NFS_PERMISSIONS");
+    }
+
+    zypper_call('in rpcbind nfs-kernel-server');
+    systemctl("start rpcbind");
+    systemctl("start nfs-server");
+    assert_script_run("nfsstat –s");
+    assert_script_run("mkdir -p $nfs_mount");
+    assert_script_run("chmod 777 $nfs_mount");
+    assert_script_run("echo $nfs_mount 10.0.2.2/24\\($nfs_permissions\\) >> /etc/exports");
+    assert_script_run("exportfs -r");
+    systemctl("restart nfs-server");
+    systemctl("restart rpcbind");
+    systemctl("is-active nfs-server -a rpcbind");
+}
+
 sub run {
     configure_static_network('10.0.2.1/24');
 
@@ -562,6 +587,9 @@ sub run {
     }
     if (exists $server_roles{mariadb}) {
         setup_mariadb_server;
+    }
+    if (exists $server_roles{nfs}) {
+        setup_nfs_server();
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless $setup_script;
