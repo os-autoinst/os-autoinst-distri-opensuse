@@ -14,12 +14,12 @@ package power_action_utils;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils qw(is_sle is_vmware);
+use version_utils qw(is_sle is_opensuse is_vmware);
+use Carp 'croak';
 
 our @EXPORT = qw(
   prepare_system_shutdown
@@ -127,8 +127,15 @@ sub poweroff_x11 {
 
     if (check_var("DESKTOP", "lxqt")) {
         # opens logout dialog
-        x11_start_program('shutdown', target_match => 'lxqt_logoutdialog');
-        send_key "ret";
+        x11_start_program('shutdown', target_match => [qw(authentication-required authorization_failed lxqt_shutdowndialog)], match_timeout => 60);
+        # we have typing issue because of poor performance, to record this if happens.
+        # close authorization failed dialog caused by bsc#1137230
+        if (match_has_tag 'authorization_failed' || 'authentication-required') {
+            croak "bsc#1137230, CD-ROM pop-up displayed at shutdown, authorization failed";
+        }
+        elsif (match_has_tag 'lxqt_shutdowndialog') {
+            assert_and_click 'shutdowndialog-yes';
+        }
     }
     if (check_var("DESKTOP", "enlightenment")) {
         send_key "ctrl-alt-delete";    # shutdown
@@ -236,6 +243,10 @@ sub power_action {
     }
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $soft_fail_data = {bugref => 'bsc#1057637', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
+    }
+    # Sometimes QEMU CD-ROM pop-up is displayed on shutdown, see bsc#1137230
+    if (is_opensuse && check_screen 'qemu-cd-rom-authentication-required') {
+        $soft_fail_data = {bugref => 'bsc#1137230', soft_timeout => 60, timeout => $shutdown_timeout *= 5};
     }
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast or s390 zKVM reboot, as did initial reboot already
