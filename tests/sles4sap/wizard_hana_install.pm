@@ -16,16 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
-use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
-
-sub get_total_mem {
-    return get_required_var('QEMURAM') if (check_var('BACKEND', 'qemu'));
-    my $mem = script_output q@grep ^MemTotal /proc/meminfo | awk '{print $2}'@;
-    $mem /= 1024;
-    return $mem;
-}
 
 sub try_reclaiming_space {
     my $output = script_output q@parted /dev/sda print free | awk '/Free Space/ {print $3}' | tail -1@;
@@ -83,8 +74,8 @@ sub run {
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
 
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
-    my $RAM = get_total_mem();
+    $self->select_serial_terminal();
+    my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
     # If on IPMI, let's try to reclaim some of the space from the system PV which may be needed for Hana
@@ -123,7 +114,7 @@ sub run {
     wait_screen_change { send_key 'tab' };
     type_password $password;
     wait_screen_change { send_key $cmd{ok} };
-    assert_screen 'sap-wizard-performing-installation', 60;
+    assert_screen 'sap-wizard-performing-installation', 120;
     assert_screen 'sap-wizard-profile-ready',           300;
     send_key $cmd{next};
     if (check_screen('sap-wizard-disk-selection', 60)) {
@@ -151,7 +142,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal();
     assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs /var/tmp/hdb*; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
     assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
