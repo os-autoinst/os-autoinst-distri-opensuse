@@ -47,6 +47,7 @@ sub upload_subdirs {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    sleep 5;
 
     # Reload uploaded status log back to file
     script_run('curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG");
