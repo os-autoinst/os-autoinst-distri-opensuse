@@ -97,7 +97,13 @@ Mark the test as failed if the checkbox is not selected after sending an appropr
 
 sub accept_license {
     send_key $cmd{accept};
-    assert_screen('license-agreement-accepted');
+    assert_screen [qw(license-agreement-accepted license-agreement)];
+    if (match_has_tag('license-agreement')) {
+        record_soft_failure 'bsc#1133728';
+        # to workaround bsc#1133728, move the mouse a little
+        mouse_hide();
+        assert_screen('license-agreement-accepted');
+    }
 }
 
 sub verify_license_translations {
