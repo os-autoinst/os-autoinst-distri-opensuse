@@ -7,8 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Checking if it is possible to install packages in repo with libsolv
-# Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
+# Summary: checking if it is possible to install packages in repo with
+# external shell script
+# Maintainer: Sebastian Chlad <schlad@suse.de>
 
 use base "opensusebasetest";
 use testapi;

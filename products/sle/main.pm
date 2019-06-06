@@ -875,7 +875,7 @@ elsif (get_var("INSTALLTEST")) {
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
-    loadtest 'console/libsolv_installcheck';
+    loadtest 'hpc/libsolv_installcheck';
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
@@ -913,10 +913,14 @@ elsif (get_var('HPC')) {
     loadtest 'hpc/before_test';
     loadtest 'console/install_single_package' if (get_var('PACKAGETOINSTALL'));
 
+    if (check_var("HPC", "slurm") {
+        loadtest"hpc/";
+    } elsif {
     # load hpc multimachine scenario based on value of HPC variable
     # e.g 'hpc/$testsuite_[master|slave].pm'
     my $hpc_mm_scenario = get_var('HPC');
     loadtest "hpc/$hpc_mm_scenario" if $hpc_mm_scenario ne '1';
+    }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
