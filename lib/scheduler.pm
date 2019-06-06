@@ -26,7 +26,9 @@ use testapi qw(get_var set_var);
 use main_common 'loadtest';
 use YAML::Tiny;
 
-our @EXPORT = qw(load_yaml_schedule);
+our @EXPORT = qw(load_yaml_schedule get_test_data);
+
+my $test_data;
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -56,6 +58,27 @@ sub parse_schedule {
     return @scheduled;
 }
 
+=head2 get_test_data
+
+Returns test data parsed from the yaml file.
+
+=cut
+
+sub get_test_data {
+    return $test_data;
+}
+
+=head2 parse_test_data
+
+Parse test data from the yaml file which contains data used in the tests.
+
+=cut
+
+sub parse_test_data {
+    my ($schedule) = shift;
+    $test_data = $schedule->{test_data};
+}
+
 =head2 load_yaml_schedule
 
 Parse variables and test modules from a yaml file representing a test suite to be scheduled.
@@ -68,6 +91,7 @@ sub load_yaml_schedule {
         my %schedule_vars = parse_vars($schedule);
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
         my @schedule_modules = parse_schedule($schedule);
+        parse_test_data($schedule);
         loadtest($_) for (@schedule_modules);
         return 1;
     }

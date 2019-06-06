@@ -17,6 +17,7 @@ to replace it.
     * [_vars_](#vars)
     * [_conditional_schedule_](#conditional_schedule)
     * [_schedule_](#schedule)
+    * [_test_data_](#test_data)
   * [2. Enable scheduler in settings](#2-enable-scheduler-in-settings)
   * [3. Enable scheduler in main file](#3-enable-scheduler-in-main-file)
 * [Other uses](#other-uses)
@@ -59,6 +60,13 @@ schedule:
     - {{module1}}
     - path/to/module/module2
     ...
+test_data:
+  list:
+    - item1
+    - item2
+  hash:
+    key1: value1
+    key2: value2  
 ```
 Previous structure contains the following sections:
 
@@ -103,6 +111,40 @@ to indicate that the module or modules executed at this position is conditional 
 **NOTE:**
  - [conditional_schedule](#conditional_schedule) does not allow at the moment to represent complex logic like combination of 'and' or 'or' and it does intend to do it due to potentially it would create the same problem that occurs with main.pm. Other kind of logic like a simple exclusion list could be feasible in the near future, for example "run for all except when this variable value is set to some specific value". Reusing of blocks needs to be re-thinked as well and what would be a readable syntax for this. At the moment if the scenario you intend to migrate has complex conditional logic it would require changes in your test modules.
  - The only section that is mandatory is [schedule](#schedule). The rest of the sections in the YAML file can be skipped.
+
+#### test_data
+As vars.json has quite limited capabilities due to the design, in the yaml files
+it's possible to define any structure, which can be described using plain yaml
+format. This data will be parsed and available when calling `get_test_data()`
+method from `lib/scheduler.pm`. This feature is designed to store test related
+date for data driven tests and provide better structure for the test suite settings.
+
+The whole section is parsed with perl structures, so in case you have following
+settings:
+```
+...
+test_data:
+  list:
+    - item1
+    - item2
+  hash:
+    key1: value1
+    key2: value2
+...
+```
+Your test code will look like:
+```
+sub run {
+    my $test_data = get_test_data();
+    foreach my $item (@{$test_data->{list}}) {
+        diag $item;
+    }
+
+    while (($key, $value) = each (%{$test_data->{hash}})) {
+        diag "$key: $value";
+    }
+}
+```
 
 ### 2. Enable scheduler in settings
 
