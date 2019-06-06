@@ -5,4 +5,5 @@ All notable changes to this project will be documented in this file
 ### Added
 Add the change log along with the README
 ### Changed
+Move libsolv test to the HPC group as this should be well crafted for the HPC use
 ### Removed
