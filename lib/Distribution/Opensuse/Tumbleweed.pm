@@ -17,9 +17,14 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
+use Installation::Partitioner::LibstorageNG::ExpertPartitionerController;
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
+}
+
+sub get_expert_partitioner {
+    return Installation::Partitioner::LibstorageNG::ExpertPartitionerController->new();
 }
 
 1;
