@@ -7,9 +7,9 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces all accessing methods for Role Page, that are
-# common for all the versions of the page (e.g. for both Libstorage and
-# Libstorage-NG).
+# Summary: The class introduces all accessing methods for Role Page of Expert
+# Partitioner Wizard, that are common for all the versions of the page
+# (e.g. for both Libstorage and Libstorage-NG).
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 package Installation::Partitioner::RolePage;
@@ -21,6 +21,24 @@ use parent 'Installation::WizardPage';
 use constant {
     ROLE_PAGE => 'partition-role'
 };
+
+sub new {
+    my ($class, $args) = @_;
+    my $self = bless {
+        raw_volume_shortcut => $args->{raw_volume_shortcut}
+    }, $class;
+}
+
+sub select_role_radiobutton {
+    my ($self, $role) = @_;
+    assert_screen(ROLE_PAGE);
+    if ($role eq 'raw-volume') {
+        send_key($self->{raw_volume_shortcut});
+    }
+    if ($role eq 'operating-system') {
+        send_key('alt-o');
+    }
+}
 
 sub press_next {
     my ($self) = @_;

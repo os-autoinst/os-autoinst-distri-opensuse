@@ -7,7 +7,9 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: TODO
+# Summary: The class introduces all accessing methods for Raid Type Page in
+# Add RAID wizard, that are common for all the versions of the page (e.g. for
+# both Libstorage and Libstorage-NG).
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 package Installation::Partitioner::RaidTypePage;
@@ -17,12 +19,12 @@ use testapi;
 use parent 'Installation::WizardPage';
 
 use constant {
-    ADD_RAID_STEP1_PAGE => 'partitioning_raid-menu_add_raid'
+    RAID_TYPE_PAGE => 'partitioning_raid-menu_add_raid'
 };
 
 sub set_raid_level {
     my ($self, $raid_level) = @_;
-    assert_screen(ADD_RAID_STEP1_PAGE);
+    assert_screen(RAID_TYPE_PAGE);
     my %entry = (
         0  => 0,
         1  => 1,
@@ -34,7 +36,7 @@ sub set_raid_level {
 }
 
 sub select_available_devices_table {
-    assert_screen(ADD_RAID_STEP1_PAGE);
+    assert_screen(RAID_TYPE_PAGE);
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
     wait_screen_change { send_key "tab"; };      # move to "Avilable Devices" table
 }
@@ -52,22 +54,9 @@ sub select_devices_from_list {
     send_key('alt-a');
 }
 
-sub select_rows_in_available_devices_table {
-    my ($self, @rows) = @_;
-    select_available_devices_table();
-    for (my $current_row = 1; $current_row <= $rows[-1]; $current_row++) {
-        if ($current_row == $rows[0]) {
-            send_key "spc";
-            shift @rows;
-        }
-        send_key "ctrl-down";
-    }
-    send_key('alt-a');
-}
-
 sub press_next {
     my ($self) = @_;
-    $self->SUPER::press_next(ADD_RAID_STEP1_PAGE);
+    $self->SUPER::press_next(RAID_TYPE_PAGE);
 }
 
 1;

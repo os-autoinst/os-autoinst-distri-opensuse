@@ -18,7 +18,7 @@ use warnings FATAL => 'all';
 use testapi;
 
 sub new {
-    my ($class, %args) = @_;
+    my ($class, $args) = @_;
     my $self = bless {}, $class;
 }
 
