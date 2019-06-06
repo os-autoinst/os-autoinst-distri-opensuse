@@ -192,6 +192,11 @@ sub setup_env {
         my $format_dasd = get_var('S390_DISK') || get_var('UPGRADE') || get_var('ENCRYPT_ACTIVATE_EXISTING') ? 'never' : 'pre_install';
         set_var('FORMAT_DASD', get_var('FORMAT_DASD', $format_dasd));
     }
+    # This is for 12-sp5 project specific flavor Migration-from-SLE12-SP5-to-SLE15-SPx, this flavor belong 12sp5 test group but the real
+    # action is migration from 12-sp5 to 15-sp1, so we need change VERSION to 15-SP1 before the test case start
+    if (check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx')) {
+        set_var('VERSION', '15-SP1');
+    }
 }
 
 sub data_integrity_is_applicable {
