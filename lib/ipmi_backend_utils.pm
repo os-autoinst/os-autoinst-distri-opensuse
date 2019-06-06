@@ -67,7 +67,7 @@ sub get_dom0_serialdev {
         }
     }
     else {
-        $dom0_serialdev = 'ttyS1';
+        $dom0_serialdev = get_var("LINUX_CONSOLE_OVERRIDE", "ttyS1");
     }
 
     if (match_has_tag("grub1")) {
@@ -90,58 +90,59 @@ sub setup_console_in_grub {
 
     #set grub config file
     my $grub_default_file = "${root_dir}/etc/default/grub";
-    my $grub_cfg_file;
-    if ($grub_ver eq "grub2") {
-        $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
-    }
-    elsif ($grub_ver eq "grub1") {
-        $grub_cfg_file = "${root_dir}/boot/grub/menu.lst";
-    }
-    else {
-        die "The grub version is not supported!";
-    }
-
-    #setup serial console for xen
-    my $cmd;
+    my $grub_cfg_file     = "";
+    my $com_settings      = "";
+    my $bootmethod        = "";
+    my $search_pattern    = "";
+    my $cmd               = "";
     if ($grub_ver eq "grub2") {
         #grub2
+        $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
         if (${virt_type} eq "xen") {
-            my $com_settings = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            $com_settings   = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            $bootmethod     = "module";
+            $search_pattern = "vmlinuz";
             #bsc#1107572 workaround(Comment9 "This dom0 memory amount works well with hosts having 4 to 8 Gigs of RAM.
             #With host containing larger amounts of memory, you may want to increase this to something larger.")
             #dom0_mem=1024M,max:1024M
             $cmd
-              = "cp $grub_cfg_file ${grub_cfg_file}.org "
-              . "\&\& sed -ri '/(multiboot|module\\s*.*vmlinuz)/ "
+              = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ dom0_mem=1024M,max:1024M console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/; "
-              . "/module\\s*.*vmlinuz/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
-              . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
+              . "/multiboot/ s/\$/ dom0_mem=1024M,max:1024M console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
-            $cmd = "sed -rn '/(multiboot|module\\s*.*vmlinuz|timeout=)/p' $grub_cfg_file";
-            assert_script_run($cmd);
-            save_screenshot;
-        } elsif (${virt_type} eq "kvm") {
-            $cmd
-              = "cp $grub_cfg_file ${grub_cfg_file}.org "
-              . "\&\& sed -ri 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g' $grub_cfg_file "
-              . "\&\& sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file "
-              . "\&\& cat $grub_default_file $grub_cfg_file";
-            assert_script_run($cmd);
-            save_screenshot;
-        } else { die "Host Hypervisor is not xen or kvm"; }
+        }
+        elsif (${virt_type} eq "kvm") {
+            $bootmethod     = "linux";
+            $search_pattern = "boot";
+        }
+        else {
+            die "Host Hypervisor is not xen or kvm";
+        }
 
+        $cmd
+          = "cp $grub_cfg_file ${grub_cfg_file}.org "
+          . "\&\& sed -ri '/($bootmethod\\s*.*$search_pattern)/ "
+          . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
+          . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
+          . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
+          . "' $grub_cfg_file";
+        assert_script_run($cmd);
+        save_screenshot;
+        $cmd = "sed -rn '/(multiboot|$bootmethod\\s*.*$search_pattern|timeout=)/p' $grub_cfg_file";
+        assert_script_run($cmd);
+        save_screenshot;
 
         $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
         assert_script_run($cmd);
-        $cmd = "cat $grub_default_file $grub_cfg_file";
+        $cmd = "cat $grub_cfg_file $grub_default_file";
         assert_script_run($cmd);
         save_screenshot;
         upload_logs($grub_default_file);
     }
     elsif ($grub_ver eq "grub1") {
+        $grub_cfg_file = "${root_dir}/boot/grub/menu.lst";
         $cmd
           = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
         assert_script_run($cmd);
