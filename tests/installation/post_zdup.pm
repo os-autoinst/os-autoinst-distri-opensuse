@@ -21,7 +21,7 @@ use power_action_utils 'power_action';
 sub run {
     clear_console;
 
-    assert_script_run("zypper lr -d");
+    zypper_call "lr -d";
     # Remove the --force when this is fixed: https://bugzilla.redhat.com/1075131
     # Because of poo#32458 Hyper-V can't switch from VT to X11 and has to use
     # whatever the default in the image is.

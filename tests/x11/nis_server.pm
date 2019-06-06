@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use lockapi 'mutex_create';
 use mmapi 'wait_for_children';
-use utils 'systemctl';
+use utils;
 use mm_network 'setup_static_mm_network';
 use y2_module_guitest '%setup_nis_nfs_x11';
 use version_utils 'is_sle';
@@ -119,7 +119,7 @@ sub run {
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
     setup_static_mm_network($setup_nis_nfs_x11{server_address});
-    assert_script_run 'zypper -n in yast2-nis-server yast2-nfs-server';
+    zypper_call 'in yast2-nis-server yast2-nfs-server';
     # Workarounds:
     # Yast2 does not open ports for SuseFirewall2 (bsc#999873)
     # Missing firewalld service files for NFS/NIS -> lack of support for RPC (bsc#1083486)

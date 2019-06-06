@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use registration;
+use utils;
 
 sub run {
     select_console 'root-console';
@@ -32,14 +33,14 @@ sub run {
         }
     }
 
-    assert_script_run "zypper ref", 120;
+    zypper_call "ref";
 
     my $zypper_patches = "zypper -n patches 2>/dev/null";
     # List all critical security fixes available, exclude "Not Needed" ones
     script_run "$zypper_patches | grep \"security .* critical\" | grep -v \"Not Needed\" | tee available_sec_crit_fixes", 60;
 
     # Install critical security fixes only
-    assert_script_run 'zypper -n patch --category security --severity critical', 600;
+    zypper_call 'patch --category security --severity critical';
 
     # Make sure all critical security fixes are installed
     script_run "$zypper_patches | grep \"security .* critical\" | grep Installed | tee installed_sec_crit_fixes", 60;

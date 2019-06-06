@@ -50,9 +50,10 @@ sub run {
 
     disable_and_stop_service('packagekit.service', mask_service => 1, ignore_failure => 1);
     if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
-        assert_script_run "zypper -n in psmisc";
+        zypper_call "in psmisc";
     }
-    assert_script_run "zypper -n refresh && zypper -n in @test_subjects", 200;
+    zypper_call "refresh";
+    zypper_call "in @test_subjects";
     assert_script_run "cd; curl -L -v " . autoinst_url . "/data/lib/version_utils.sh > /usr/local/bin/version_utils.sh";
     assert_script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 

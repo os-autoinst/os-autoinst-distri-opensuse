@@ -32,13 +32,13 @@ sub check_or_install_packages {
         my $output = script_output "rpm -qa yast2-migration zypper-migration-plugin rollback-helper | sort";
         if ($output !~ /rollback-helper.*?yast2-migration.*?zypper-migration-plugin/s) {
             record_soft_failure 'bsc#982150: migration packages were not installed along with system update. Installing missed package to continue the test';
-            assert_script_run "zypper -n in yast2-migration zypper-migration-plugin rollback-helper snapper", 190;
+            zypper_call "in yast2-migration zypper-migration-plugin rollback-helper snapper";
         }
     }
     else {
         # install necessary packages for online migration if system is not updated
         # also update snapper to ensure rollback service work properly after migration
-        assert_script_run "zypper -n in yast2-migration zypper-migration-plugin rollback-helper snapper", 190;
+        zypper_call "in yast2-migration zypper-migration-plugin rollback-helper snapper";
     }
 }
 

@@ -24,8 +24,8 @@ sub run_yast_cli_test {
     my ($packname) = @_;
     my $PACKDIR = '/usr/src/packages';
 
-    assert_script_run "zypper -n in $packname";
-    assert_script_run "zypper -n si $packname";
+    zypper_call "in $packname";
+    zypper_call "si $packname";
     assert_script_run "rpmbuild -bp $PACKDIR/SPECS/$packname.spec";
     script_run "pushd $PACKDIR/BUILD/$packname-*";
 
@@ -48,10 +48,10 @@ sub run {
     prepare_source_repo;
 
     # Install test requirement
-    assert_script_run 'zypper -n in rpm-build';
+    zypper_call 'in rpm-build';
 
     # Enable source repo
-    assert_script_run 'zypper mr -e repo-source';
+    zypper_call 'mr -e repo-source';
 
     # Run YaST CLI tests
     run_yast_cli_test('yast2-network');

@@ -27,13 +27,13 @@ sub run {
     if (get_var('VERSION') =~ /^11/) {
         $slepos_repo         //= 'dvd:///?devices=/dev/sr1';
         $slepos_updates_repo //= 'http://' . $smt . '/repo/$RCE/SLE11-POS-SP3-Updates/sle-11-x86_64/';
-        assert_script_run "zypper ar '$slepos_repo' SLE-11-POS";
-        assert_script_run "zypper ar '$slepos_updates_repo' SLE-11-POS-UPDATES";
+        zypper_call "ar '$slepos_repo' SLE-11-POS";
+        zypper_call "ar '$slepos_updates_repo' SLE-11-POS-UPDATES";
     }
     elsif (get_var('VERSION') =~ /^12/) {
         # FIXME: no standard repos yet
-        assert_script_run "zypper ar '$slepos_repo' SLE-12-POS";
-        assert_script_run "zypper ar '$slepos_updates_repo' SLE-12-POS-UPDATES";
+        zypper_call "ar '$slepos_repo' SLE-12-POS";
+        zypper_call "ar '$slepos_updates_repo' SLE-12-POS-UPDATES";
     }
 
     save_screenshot;

@@ -27,7 +27,7 @@ sub run {
     assert_script_run "echo -e \"$REPO_SUSE\" > /etc/zypp/repos.d/sles.repo";
     assert_script_run "cat /etc/zypp/repos.d/sles.repo";
 
-    assert_script_run("zypper in -y kernel-default-debuginfo", timeout => 900);
+    zypper_call "in kernel-default-debuginfo";
     assert_script_run "[ -f /boot/vmlinux-4.4.73-5-default.gz ] && gunzip /boot/vmlinux-4.4.73-5-default.gz || true";
 
     $self->execute_script('vmcon.sh', '', 3000);
