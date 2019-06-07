@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use base "installbasetest";
 use strict;
 use warnings;
 use testapi;
-use utils 'OPENQA_FTP_URL';
+use utils qw(OPENQA_FTP_URL zypper_call);
 
 sub run {
     my $self = shift;
@@ -40,7 +40,7 @@ sub run {
 
     # Disable all repos, so we do not need to remove one by one
     # beware PackageKit!
-    script_run("zypper modifyrepo --all --disable | tee /dev/$serialdev", 0);
+    script_run("zypper -n mr --all --disable | tee /dev/$serialdev", 0);
     my $out = wait_serial([$zypper_packagekit, $zypper_repo_disabled], 120);
     while ($out) {
         if ($out =~ $zypper_packagekit || $out =~ $zypper_packagekit_again) {
@@ -97,10 +97,10 @@ sub run {
 
     my $nr = 1;
     foreach my $r (split(/\+/, get_var("ZDUPREPOS", $defaultrepo))) {
-        assert_script_run("zypper -n addrepo \"$r\" repo$nr");
+        zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
         $nr++;
     }
-    assert_script_run("zypper -n refresh", 240);
+    zypper_call '--gpg-auto-import-keys ref';
 
     script_run("(zypper dup -l;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
 
