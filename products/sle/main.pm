@@ -875,7 +875,7 @@ elsif (get_var("INSTALLTEST")) {
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
-    loadtest 'console/libsolv_installcheck';
+    loadtest 'hpc/libsolve_installcheck';
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;

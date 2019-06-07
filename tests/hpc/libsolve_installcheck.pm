@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Checking if it is possible to install packages in repo with libsolv
-# Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
+# Maintainer: Sebastian Chlad <schlad@suse.de>
 
 use base "opensusebasetest";
 use testapi;
