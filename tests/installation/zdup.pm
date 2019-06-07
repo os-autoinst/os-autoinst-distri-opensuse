@@ -96,7 +96,7 @@ sub run {
     }
 
     my $nr = 1;
-    foreach my $r (split(/\+/, get_var("ZDUPREPOS", $defaultrepo))) {
+    foreach my $r (split(/,/, get_var('ZDUPREPOS', $defaultrepo))) {
         zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
         $nr++;
     }
