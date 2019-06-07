@@ -43,7 +43,11 @@ sub run {
     wait_screen_change { send_key 'spc' };
     # close preferences
     send_key 'alt-c';
-    wait_screen_change { send_key 'esc' };
+    # Close stats screen
+    send_key 'esc';
+
+    # Make sure we have virt-manager window
+    assert_screen 'virt-manager';
 
     # go to view now
     wait_screen_change { send_key 'alt-v' };
