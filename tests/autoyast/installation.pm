@@ -106,10 +106,13 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot autoyast-error);
+    my @needles           = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
+    # Do not try to fail early in case of autoyast_error_dialog scenario
+    # where we test that certain error are properly handled
+    push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # bios-boot needle does not match if worker stalls during boot - poo#28648
     push @needles, 'linux-login-casp' if is_caasp;
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
