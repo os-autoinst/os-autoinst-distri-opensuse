@@ -117,23 +117,32 @@ sub prepare_profile {
     # SAP tuning activated
     systemctl 'restart systemd-logind.service';
 
-    # 'systemctl restart systemd-logind' is causing the X11 console to move
-    # out of tty2 on SLES4SAP-15, which in turn is causing the change back to
-    # the previous console in post_run_hook() to fail when running on systems
-    # with DESKTOP=gnome, which is a false positive as the test has already
-    # finished by that step. The following prevents post_run_hook from attempting
-    # to return to the console that was set before this test started. For more
-    # info on why X is running in tty2 on SLES4SAP-15, see bsc#1054782
-    $prev_console = undef;
+    # X11 workaround only on ppc64le
+    if (get_var('OFW')) {
+        # 'systemctl restart systemd-logind' is causing the X11 console to move
+        # out of tty2 on SLES4SAP-15, which in turn is causing the change back to
+        # the previous console in post_run_hook() to fail when running on systems
+        # with DESKTOP=gnome, which is a false positive as the test has already
+        # finished by that step. The following prevents post_run_hook from attempting
+        # to return to the console that was set before this test started. For more
+        # info on why X is running in tty2 on SLES4SAP-15, see bsc#1054782
+        $prev_console = undef;
 
-    # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
-    # reset and appear in SUD, so need to select 'root-console' again
-    assert_screen(
-        [
-            qw(root-console displaymanager displaymanager-password-prompt generic-desktop
-              text-login linux-login started-x-displaymanager-info)
-        ], 120);
-    $self->select_serial_terminal unless (match_has_tag 'root-console');
+        # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
+        # reset and appear in SUD, so need to select 'root-console' again
+        assert_screen(
+            [
+                qw(root-console displaymanager displaymanager-password-prompt generic-desktop
+                  text-login linux-login started-x-displaymanager-info)
+            ], 120);
+        select_console 'root-console' unless (match_has_tag 'root-console');
+    }
+    else {
+        # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical
+        # console to reset and appear in SUD, so need to select 'root-console' again
+        # 'root-console' can be re-selected safely even if DESKTOP=textmode
+        select_console 'root-console';
+    }
 
     if ($has_saptune) {
         assert_script_run "saptune daemon start";

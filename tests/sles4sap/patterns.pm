@@ -14,6 +14,7 @@ use base "sles4sap";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_upgrade);
+use Utils::Backends 'use_ssh_serial_console';
 use strict;
 use warnings;
 
@@ -22,7 +23,7 @@ sub run {
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
     my $output      = '';
 
-    $self->select_serial_terminal();
+    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
 
     # Disable packagekit
     pkcon_quit;
