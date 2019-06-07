@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils 'is_sle';
+use Utils::Backends 'use_ssh_serial_console';
 
 sub upload_install_log {
     script_run "tar -zcvf /tmp/hana_install.log.tgz /var/tmp/hdb*";
@@ -31,7 +32,7 @@ sub run {
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
 
-    $self->select_serial_terminal;
+    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
@@ -113,7 +114,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->select_serial_terminal();
+    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
     upload_install_log;
     assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
     upload_logs "/tmp/y2logs.tar.xz";
