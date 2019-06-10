@@ -62,6 +62,10 @@ sub run {
     script_run('env');
     upload_logs('/boot/config-$(uname -r)', failok => 1);
 
+    my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
+    script_run("rpm -qi kernel-default > $kernel_pkg_log 2>&1");
+    upload_logs($kernel_pkg_log, failok => 1);
+
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
     script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
     upload_logs($ver_linux_log, failok => 1);
