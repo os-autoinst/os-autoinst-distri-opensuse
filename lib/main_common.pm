@@ -2132,7 +2132,8 @@ sub load_security_tests_crypt_misc {
     # appropriate for other arches.
     loadtest "x11/hexchat_ssl" if (is_x86_64);
     loadtest "x11/x3270_ssl";
-    loadtest "x11/seahorse_sshkey";
+    # seahorse_sshkey is provided in WE only for x86_64 platform
+    loadtest "x11/seahorse_sshkey" if (is_x86_64);
 }
 
 sub load_security_tests_crypt_tool {
