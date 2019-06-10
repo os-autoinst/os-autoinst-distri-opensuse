@@ -52,11 +52,12 @@ sub run {
     zypper_call "in yast2-registration";
 
     cleanup_registration;
-    y2_module_consoletest::yast2_console_exec(yast2_module => 'registration');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'registration');
     assert_screen([qw(yast2_registration-overview yast2_registration-registration-page)]);
 
     send_key "alt-e" if (match_has_tag "yast2_registration-overview");
     register_system_and_add_extension;
+    wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
 
     assert_script_run "SUSEConnect --status-text |grep -A3 -E 'SUSE Linux Enterprise Server|Web and Scripting Module' | grep -qE '^\\s+Registered'";
 }
