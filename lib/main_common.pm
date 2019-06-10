@@ -2105,6 +2105,10 @@ sub load_security_tests_crypt_web {
     loadtest "console/curl_https";
     loadtest "console/wget_https";
     loadtest "console/w3m_https";
+    if (is_sle('15+') || is_tumbleweed) {
+        loadtest "console/links_https";
+        loadtest "console/lynx_https";
+    }
     loadtest "console/apache_ssl";
     if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
         loadtest "fips/mozilla_nss/apache_nssfips";
