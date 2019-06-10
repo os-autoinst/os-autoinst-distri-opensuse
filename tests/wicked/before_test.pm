@@ -53,6 +53,7 @@ sub run {
         systemctl 'start dhcpd.service';
     } else {
         # Common SUT Configuration
+        $self->get_from_data('wicked/ifbind.sh', 'ifbind.sh', executable => 1);
         my $package_list = 'openvswitch openvpn';
         $package_list .= ' libteam-tools libteamdctl0 python-libteam' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
