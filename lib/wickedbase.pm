@@ -475,9 +475,23 @@ sub setup_bond {
     $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc0);
     $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc1);
     $self->get_from_data('wicked/bonding/ifcfg-bond0-' . $mode, $cfg_bond0);
-    file_content_replace($cfg_bond0, ipaddr4 => $self->get_ip(type => 'host', netmask => 1), ipaddr6 => $self->get_ip(type => 'host6', netmask => 1), iface0 => $iface0, iface1 => $iface1, '--sed-modifier' => 'g');
+
+    my $ipaddr4   = $self->get_ip(type => 'host',        netmask       => 1);
+    my $ipaddr6   = $self->get_ip(type => 'host6',       netmask       => 1);
+    my $ping_ip_1 = $self->get_ip(type => 'host',        is_wicked_ref => 1);
+    my $ping_ip_2 = $self->get_ip(type => 'second_card', is_wicked_ref => 1);
+
+    file_content_replace($cfg_bond0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip_1 => $ping_ip_2, ping_ip_2 => $ping_ip_2, '--sed-modifier' => 'g');
 
     $self->wicked_command('ifup', 'all');
+}
+
+sub get_bond_active_link {
+    my ($self, $bond_link) = @_;
+    my $out = script_output("cat /proc/net/bonding/$bond_link");
+    record_info('bond', $out);
+    return $1 if ($out =~ m/Active Slave: (\w+)/);
+    return;
 }
 
 sub setup_team {
@@ -536,6 +550,13 @@ sub wait_for_dhcpd {
     }
     systemctl('status dhcpd.service');
     die('DHCP not comming up');
+}
+
+sub ifbind {
+    my ($self, $action, $interface) = @_;
+    my $cmd = "./ifbind.sh $action $interface";
+    record_info('bind', $cmd);
+    assert_script_run($cmd);
 }
 
 sub post_run {
