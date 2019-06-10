@@ -16,6 +16,7 @@ use base 'opensusebasetest';
 use testapi;
 use bootloader_setup 'boot_grub_item';
 use Utils::Backends 'use_ssh_serial_console';
+use LTP::WhiteList 'download_whitelist';
 
 sub run {
     my ($self, $tinfo) = @_;
@@ -39,6 +40,8 @@ sub run {
     else {
         $self->select_serial_terminal;
     }
+
+    download_whitelist if get_var('LTP_KNOWN_ISSUES');
 
     assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 

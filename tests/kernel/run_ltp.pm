@@ -20,6 +20,7 @@ use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
+use LTP::WhiteList 'override_known_failures';
 require bmwqemu;
 
 sub start_result {
@@ -307,6 +308,8 @@ sub run {
     }
     my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($cmd_file, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+
+    override_known_failures($self, $test_result_export->{environment}, $cmd_file, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
 
     push(@{$test_result_export->{results}}, $result_export);
     if ($timed_out) {
