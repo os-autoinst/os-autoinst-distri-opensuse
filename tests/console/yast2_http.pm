@@ -133,6 +133,12 @@ sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->save_and_upload_systemd_unit_log('apache2');
+    # Upload '/etc/apache2/*.conf' and '/etc/apache2/conf.d/*.conf' files
+    my @files = split / /, script_output("ls /etc/apache2/*.conf /etc/apache2/conf.d/*.conf", type_command => 1);
+    print("File list: @files\n"); # TMP: debug
+    foreach my $file (@files) {
+        upload_logs("$file");
+    }
     $self->SUPER::post_fail_hook;
 }
 
