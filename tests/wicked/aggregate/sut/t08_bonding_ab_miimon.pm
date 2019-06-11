@@ -18,18 +18,10 @@ use testapi;
 
 sub run {
     my ($self, $ctx) = @_;
-    my $failover_timeout = get_var('FAILOVER_TIMEOUT', 60);
     record_info('INFO', 'Bonding, active-backup, miimon');
     $self->setup_bond('ab', $ctx->iface(), $ctx->iface2());
     $self->validate_interfaces('bond0', $ctx->iface(), $ctx->iface2());
-    my $active_link = $self->get_bond_active_link('bond0');
-    $self->ifbind('unbind', $active_link);
-    while ($failover_timeout >= 0) {
-        last if ($self->get_bond_active_link('bond0') ne $active_link);
-        $failover_timeout -= 1;
-        sleep 1;
-    }
-    die('Active Link is the same after interface cut') if ($failover_timeout == 0);
+    $self->check_fail_over('bond0');
     $self->ping_with_timeout(type => 'host', interface => 'bond0', count_success => 30, timeout => 4);
 }
 
