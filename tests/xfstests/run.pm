@@ -334,6 +334,7 @@ sub run {
     script_run("NUM=0; while [ ! -f $local_file ]; do sleep 10; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 5 ]; then break; fi; done");
     my $tar_content = script_output("cat $local_file");
     save_tmp_file('opt_logs.tar.gz', $tar_content);
+    script_run('clear');
 }
 
 sub post_fail_hook {
