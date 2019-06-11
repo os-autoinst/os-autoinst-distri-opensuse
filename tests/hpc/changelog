@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.1] - 2019-06-11
+### Added
+Add slurm failover test using NFS shared dir as the StateSaveLocation
+
 ## [1.0.0] - 2019-06-06
 ### Added
 Add the change log along with the README
