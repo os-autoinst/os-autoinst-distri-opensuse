@@ -68,7 +68,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $3}')}, exitcode => [0, 3]);
+    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
     fully_patch_system;
 
