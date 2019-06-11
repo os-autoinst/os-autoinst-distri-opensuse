@@ -29,6 +29,8 @@ sub run {
     #if NetworkManager manager is in use a confirm command will be send to close the warning popup:
     if (match_has_tag 'yast2-lan-warning-network-manager') {
         send_key $cmd{continue};
+        # Make sure we do not hit 'alt-i' too early
+        assert_screen 'http-server';
     }
 
     send_key 'alt-i';    # Confirm apache2 and apache2-prefork installation
