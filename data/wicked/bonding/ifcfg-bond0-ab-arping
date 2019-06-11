@@ -1,0 +1,10 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+
+IPADDR='ipaddr4'
+IPADDR6='ipaddr6'
+
+BONDING_MASTER='yes'
+BONDING_SLAVE_0='iface0'
+BONDING_SLAVE_1='iface1'
+BONDING_MODULE_OPTS='mode=active-backup primary=eth1 arp_ip_target=ping_ip_1 arp_interval=60'

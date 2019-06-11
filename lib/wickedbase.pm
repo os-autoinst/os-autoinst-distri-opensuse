@@ -481,7 +481,7 @@ sub setup_bond {
     my $ping_ip_1 = $self->get_ip(type => 'host',        is_wicked_ref => 1);
     my $ping_ip_2 = $self->get_ip(type => 'second_card', is_wicked_ref => 1);
 
-    file_content_replace($cfg_bond0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip_1 => $ping_ip_2, ping_ip_2 => $ping_ip_2, '--sed-modifier' => 'g');
+    file_content_replace($cfg_bond0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip_1 => $ping_ip_1, ping_ip_2 => $ping_ip_2, '--sed-modifier' => 'g');
 
     $self->wicked_command('ifup', 'all');
 }
