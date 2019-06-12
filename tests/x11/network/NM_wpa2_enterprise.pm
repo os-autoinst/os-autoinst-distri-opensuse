@@ -105,7 +105,7 @@ sub enter_NM_credentials {
 
 sub handle_polkit_root_auth {
     assert_screen 'Policykit-root';
-    wait_still_screen 3;    # the input takes a couple of seconds to be ready
+    wait_still_screen 6;    # the input takes a couple of seconds to be ready
     type_password;
     send_key 'ret';
 }
