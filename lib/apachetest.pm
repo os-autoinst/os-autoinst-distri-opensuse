@@ -233,7 +233,7 @@ EOF
     assert_script_run 'unzip dvdrental.zip';
     assert_script_run 'p -c "CREATE DATABASE dvdrental"';
     assert_script_run 'psql -a -E -c "\l"|grep dvdrental';
-    assert_script_run 'pg_restore -d dvdrental -1 dvdrental.tar';
+    assert_script_run 'pg_restore --clean --if-exists -d dvdrental -1 dvdrental.tar';    # Use '--clean --if-exists' flags for poo#49187
     assert_script_run 'p -d dvdrental -c "\dt"';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer"|grep Davidson';
     assert_script_run 'p -d dvdrental -c "INSERT INTO customer VALUES (\'600\', \'1\', \'openQA\', \'openQA\', \'openqa@openqa.com\', \'1\')"';
@@ -241,7 +241,8 @@ EOF
     assert_script_run 'dropdb dvdrental';
     assert_script_run 'p -c "CREATE DATABASE dvdrental"';
     assert_script_run 'p -c "\l"|grep dvdrental';
-    assert_script_run 'pg_restore -d dvdrental -1 dvdrental_dump.tar';
+    # Use '--clean --if-exists' flags for poo#49187
+    assert_script_run 'pg_restore --clean --if-exists -d dvdrental -1 dvdrental_dump.tar';
     # check if db contains old and new table row
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE first_name = \'openQA\'"|grep openQA';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE last_name = \'Davidson\'"|grep Davidson';
