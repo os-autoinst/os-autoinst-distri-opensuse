@@ -13,7 +13,7 @@
 
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 use transactional;
 use utils;
