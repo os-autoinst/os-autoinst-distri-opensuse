@@ -1,6 +1,6 @@
 # SUSE's Apache tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -42,7 +42,7 @@ sub setup_apache2 {
     }
 
     # Make sure the packages are installed
-    zypper_call("in @packages");
+    zypper_call("--no-gpg-checks in @packages");
 
     # Enable php7
     if ($mode eq "PHP7") {
