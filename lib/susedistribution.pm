@@ -673,6 +673,7 @@ sub activate_console {
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
+            wait_still_screen 1;    # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet
             assert_screen \@tags, 60;
             if (match_has_tag("tty$nr-selected")) {
                 type_string "$user\n";
