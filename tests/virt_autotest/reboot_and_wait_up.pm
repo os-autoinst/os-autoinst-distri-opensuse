@@ -27,10 +27,6 @@ sub reboot_and_wait_up {
         record_info('INFO', 'Reboot LPAR');
         #Reboot s390x lpar
         power_action('reboot', observe => 1, keepconsole => 1);
-        #Wait for s390x lpar bootup
-        sleep 120;
-        #Switch to s390x lpar console
-        reset_consoles;
         my $svirt = select_console('svirt', await_console => 0);
         return;
     }
