@@ -57,24 +57,28 @@ sub select_partition_id {
     my ($self, $partition_id) = @_;
     assert_screen(FORMATTING_OPTIONS_PAGE);
     send_key 'alt-i';
-    send_key 'end';
+    # Getting to the end of the list. As on old storage we have
+    # editable combobox, so pressing end or home doesn't work
+    send_key 'pgdn' for (1 .. 15);
+    my $partition_id_needle;
     if ($partition_id eq 'efi') {
-        send_key_until_needlematch(PARTITION_ID_EFI_SYSTEM, 'up');
+        $partition_id_needle = PARTITION_ID_EFI_SYSTEM;
     }
     elsif ($partition_id eq 'bios-boot') {
-        send_key_until_needlematch(PARTITION_ID_BIOS_BOOT, 'up');
+        $partition_id_needle = PARTITION_ID_BIOS_BOOT;
     }
     elsif ($partition_id eq 'prep-boot') {
-        send_key_until_needlematch(PARTITION_ID_PREP_BOOT, 'up');
+        $partition_id_needle = PARTITION_ID_PREP_BOOT;
     }
     elsif ($partition_id eq 'linux-raid') {
-        # poo#35134 Sporadic synchronization failure resulted in incorrect choice of partition type
-        # add partition screen was not refreshing fast enough
-        send_key_until_needlematch(PARTITION_ID_LINUX_RAID, 'up', 20, 3);
+        $partition_id_needle = PARTITION_ID_LINUX_RAID;
     }
     else {
         die "\"$partition_id\" Partition ID is not known.";
     }
+    # poo#35134 Sporadic synchronization failure resulted in incorrect choice of partition type
+    # add partition screen was not refreshing fast enough
+    send_key_until_needlematch($partition_id_needle, 'up', 20, 5);
 }
 
 sub select_filesystem {

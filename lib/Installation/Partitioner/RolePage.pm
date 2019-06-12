@@ -38,10 +38,17 @@ sub select_role_radiobutton {
     if ($role eq 'operating-system') {
         send_key('alt-o');
     }
+    if ($role eq 'swap') {
+        send_key('alt-s');
+    }
+    if ($role eq 'data') {
+        send_key('alt-d');
+    }
 }
 
 sub press_next {
     my ($self) = @_;
+    assert_screen(ROLE_PAGE);
     $self->SUPER::press_next(ROLE_PAGE);
 }
 

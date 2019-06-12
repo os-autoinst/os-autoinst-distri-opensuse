@@ -81,6 +81,7 @@ sub press_add_partition_button {
 }
 
 sub press_accept_button {
+    wait_still_screen;
     assert_screen(EXPERT_PARTITIONER_PAGE);
     send_key('alt-a');
 }

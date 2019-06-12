@@ -15,6 +15,7 @@ package Installation::Partitioner::LibstorageNG::ExpertPartitionerController;
 use strict;
 use warnings;
 use testapi;
+use parent 'Installation::Partitioner::AbstractExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage;
 use Installation::Partitioner::LibstorageNG::ExpertPartitionerPage;
 use Installation::Partitioner::NewPartitionSizePage;
@@ -61,7 +62,7 @@ sub get_rescan_devices_dialog {
     return $self->{RescanDevicesDialog};
 }
 
-sub get_new_partitions_size_page {
+sub get_new_partition_size_page {
     my ($self) = @_;
     return $self->{NewPartitionSizePage};
 }
@@ -109,62 +110,15 @@ sub add_raid {
     $self->add_raid_partition($args->{partition});
 }
 
-# The method proceeds through the Expert Partitioner Wizard and sets the data,
-# that is specified by the method parameters.
-# This allows a test to select the specified options, depending on the data
-# provided to the method, instead of making different set of methods for all
-# the required test combinations.
-sub _add_partition {
-    my ($self, $args) = @_;
-    my $size               = $args->{size};
-    my $role               = $args->{role};
-    my $id                 = $args->{id};
-    my $formatting_options = $args->{formatting_options};
-    my $mounting_options   = $args->{mounting_options};
-
-    # Check if $size is defined to allow entering '0' size.
-    if (defined $size) {
-        $self->get_new_partitions_size_page()->select_custom_size_radiobutton();
-        $self->get_new_partitions_size_page()->enter_size($size);
-    }
-    $self->get_new_partitions_size_page()->press_next();
-    if ($role) {
-        $self->get_role_page()->select_role_radiobutton($role);
-    }
-    $self->get_role_page()->press_next();
-    # Set Formatting Options:
-    if ($formatting_options) {
-        if ($formatting_options->{should_format}) {
-            $self->get_formatting_options_page()->select_format_device_radiobutton();
-            if ($formatting_options->{filesystem}) {
-                $self->get_formatting_options_page()->select_filesystem($formatting_options->{filesystem});
-            }
-        }
-        else {
-            $self->get_formatting_options_page()->select_do_not_format_device_radiobutton();
-        }
-    }
-    if ($id) {
-        $self->get_formatting_options_page()->select_partition_id($id);
-    }
-    # Set Mounting Options:
-    if ($mounting_options) {
-        if ($mounting_options->{should_mount}) {
-            $self->get_formatting_options_page()->select_mount_device_radiobutton();
-            if ($mounting_options->{mount_point}) {
-                $self->get_formatting_options_page()->fill_in_mount_point_field($mounting_options->{mount_point});
-            }
-        }
-        else {
-            $self->get_formatting_options_page()->select_do_not_mount_device_radiobutton();
-        }
-    }
+sub _finish_partition_creation {
+    my ($self) = @_;
     $self->get_formatting_options_page()->press_next();
 }
 
 sub accept_changes {
     my ($self) = @_;
     $self->get_expert_partitioner_page()->press_accept_button();
+    $self->get_suggested_partitioning_page()->press_next();
 }
 
 
