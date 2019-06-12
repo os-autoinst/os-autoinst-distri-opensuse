@@ -21,18 +21,23 @@ sub run {
     select_console('x11');
 
     ensure_installed('gnucash gnucash-docs yelp');
-    x11_start_program('gnucash', target_match => [qw(gnucash gnucash-tip-close gnucash-assistant-close)]);
+    x11_start_program('gnucash', target_match => [qw(gnucash gnucash-tip-close gnucash-assistant-close gnucash-overlapped)], match_timeout => 120);
     if (match_has_tag('gnucash-tip-close')) {
-        send_key 'esc';
-        assert_screen([qw(gnucash gnucash-assistant-close)]);
+        assert_and_click 'gnucash-tip-close';
+        assert_screen([qw(gnucash gnucash-assistant-close)], 60);
     }
-    if (match_has_tag('gnucash-assistant-close')) {
+    elsif (match_has_tag('gnucash-assistant-close')) {
         assert_and_click 'gnucash-assistant-close';
         assert_and_click 'gnucash-assistant-show-again-no';
-        assert_screen([qw(gnucash gnucash-tip-close)]);
-        if (match_has_tag('gnucash-tip-close')) {
-            send_key 'esc';
-        }
+        assert_screen([qw(gnucash gnucash-tip-close)], 60);
+        assert_and_click 'gnucash-tip-close' if match_has_tag('gnucash-tip-close');
+    }
+    elsif (match_has_tag('gnucash-overlapped')) {
+        assert_and_click 'gnucash-overlapped';
+        assert_and_click 'gnucash-assistant-close';
+        assert_and_click 'gnucash-assistant-show-again-no';
+        assert_screen([qw(gnucash gnucash-tip-close)], 60);
+        assert_and_click 'gnucash-tip-close' if match_has_tag('gnucash-tip-close');
     }
     # < gnucash 3.3
     else {
@@ -52,7 +57,7 @@ sub run {
         }
     }
     assert_and_click('gnucash-close-window');
-    assert_screen([qw(generic-desktop gnucash-close-without-saving-changes)]);
+    assert_screen([qw(generic-desktop gnucash-close-without-saving-changes)], 60);
     assert_and_click('gnucash-close-without-saving-changes') if match_has_tag('gnucash-close-without-saving-changes');
 }
 
