@@ -33,6 +33,7 @@ our @EXPORT = qw(
   select_user_gnome
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
+  turn_off_gnome_suspend
 );
 
 
@@ -222,6 +223,17 @@ Disable screensaver in gnome. To be called from a command prompt, for example an
 =cut
 sub turn_off_gnome_screensaver {
     script_run 'gsettings set org.gnome.desktop.session idle-delay 0';
+}
+
+=head2 turn_off_gnome_suspend
+
+  turn_off_gnome_suspend()
+
+Disable suspend in gnome. To be called from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_suspend {
+    script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
 }
 
 1;

@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
-use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
+use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend);
 
 sub setup_system {
     x11_start_program('xterm');
@@ -27,6 +27,7 @@ sub setup_system {
 
     if (check_var("DESKTOP", "gnome")) {
         turn_off_gnome_screensaver;
+        turn_off_gnome_suspend;
     }
     else {
         script_run("xscreensaver-command -exit");
