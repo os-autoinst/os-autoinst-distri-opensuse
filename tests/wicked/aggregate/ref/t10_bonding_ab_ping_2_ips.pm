@@ -24,4 +24,8 @@ sub run {
     assert_script_run('ip a a ' . $ip . ' dev ' . $ctx->iface());
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;
