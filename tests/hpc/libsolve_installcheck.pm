@@ -22,7 +22,7 @@ sub run {
     my $installcheck_script = 'installcheck_hpc_module.sh';
     assert_script_run("wget --quiet " . data_url($installcheck_script) . " -O $installcheck_script");
     assert_script_run("chmod +x $installcheck_script");
-    my $rez = script_run("./$installcheck_script " . get_var('ARCH') . " > result.txt");
+    my $rez = script_run("./$installcheck_script " . get_required_var('ARCH') . ' ' . get_required_var('VERSION') . " > result.txt");
     if ($rez != 0) {
         upload_logs('./result.txt', failok => 1);
         die('There are failures! Check result.txt for details');
