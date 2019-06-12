@@ -53,7 +53,7 @@ sub run {
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
-    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error);
+    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error package-broken);
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
     }
@@ -130,6 +130,10 @@ sub run {
             send_key 'alt-i';    # ignore
             assert_screen 'WARNING-ignoring-package-failure';
             send_key 'alt-o';    # ok
+            next;
+        }
+        if (match_has_tag('package-broken')) {
+            send_key 'alt-i';    # ignore
             next;
         }
         if (get_var('LIVECD') and match_has_tag('screenlock')) {

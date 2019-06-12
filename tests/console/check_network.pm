@@ -26,8 +26,11 @@ sub run {
         # grep all also compressed files e.g. y2log-1.gz
         assert_script_run 'less /var/log/YaST2/y2log*|grep "Automatic DHCP configuration not started - an interface is already configured"';
     }
+    script_run "rpm -q --whatprovides xen";
     # check the network configuration
     script_run "ip addr show";
+    die 'Error: wrong sporadic bridge br0 found' if (script_run("ip addr show | grep 'br0'") == 0);
+
 }
 
 1;
