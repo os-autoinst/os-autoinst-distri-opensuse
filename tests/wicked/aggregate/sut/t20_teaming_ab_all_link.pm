@@ -21,10 +21,7 @@ sub run {
     record_info('INFO', 'Teaming, Active-Backup All Link');
     $self->setup_team('ab-all', $ctx->iface(), $ctx->iface2());
     $self->validate_interfaces('team0', $ctx->iface(), $ctx->iface2(), 0);
-    my $active_link1 = $self->get_team_active_link('team0');
-    assert_script_run("ip link set dev $active_link1 down");
-    my $active_link2 = $self->get_team_active_link('team0');
-    die('Active Link is the same after interface cut') if ($active_link1 eq $active_link2);
+    $self->check_fail_over('team0');
     $self->ping_with_timeout(type => 'host', interface => 'team0', count_success => 30, timeout => 4);
 }
 

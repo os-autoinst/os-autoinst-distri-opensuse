@@ -481,17 +481,9 @@ sub setup_bond {
     my $ping_ip_1 = $self->get_ip(type => 'host',        is_wicked_ref => 1);
     my $ping_ip_2 = $self->get_ip(type => 'second_card', is_wicked_ref => 1);
 
-    file_content_replace($cfg_bond0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip_1 => $ping_ip_2, ping_ip_2 => $ping_ip_2, '--sed-modifier' => 'g');
+    file_content_replace($cfg_bond0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip_1 => $ping_ip_1, ping_ip_2 => $ping_ip_2, '--sed-modifier' => 'g');
 
     $self->wicked_command('ifup', 'all');
-}
-
-sub get_bond_active_link {
-    my ($self, $bond_link) = @_;
-    my $out = script_output("cat /proc/net/bonding/$bond_link");
-    record_info('bond', $out);
-    return $1 if ($out =~ m/Active Slave: (\w+)/);
-    return;
 }
 
 sub setup_team {
@@ -517,11 +509,14 @@ sub setup_team {
     $self->wicked_command('ifup', 'all');
 }
 
-sub get_team_active_link {
-    my ($self, $team_link) = @_;
-    my $out = script_output("teamdctl $team_link state view");
-    record_info('teamdctl', $out);
-    return $1 if ($out =~ m/active port: (\w+)/);
+sub get_active_link {
+    my ($self, $link) = @_;
+    if ($link =~ /bond/) {
+        return $1 if (script_output("cat /proc/net/bonding/$link") =~ m/Active Slave: (\w+)/);
+    }
+    elsif ($link =~ /team/) {
+        return $1 if (script_output("teamdctl $link state view") =~ m/active port: (\w+)/);
+    }
     return;
 }
 
@@ -535,6 +530,21 @@ sub validate_interfaces {
     validate_script_output('ip a s dev ' . $iface0, sub { /master $interface/ });
     validate_script_output('ip a s dev ' . $iface1, sub { /master $interface/ });
     $self->ping_with_timeout(type => 'host', interface => $interface, count_success => 30, timeout => 4) if ($ping);
+}
+
+sub check_fail_over {
+    my ($self, $interface, $timeout) = @_;
+    $timeout //= get_var('FAILOVER_TIMEOUT', 60);
+    my $active_link = undef;
+    $active_link = $self->get_active_link($interface);
+    $self->ifbind('unbind', $active_link);
+
+    while ($timeout >= 0) {
+        return 1 if ($self->get_active_link($interface) ne $active_link);
+        $timeout -= 1;
+        sleep 1;
+    }
+    die('Active Link is the same after interface cut');
 }
 
 sub wait_for_dhcpd {
@@ -554,9 +564,8 @@ sub wait_for_dhcpd {
 
 sub ifbind {
     my ($self, $action, $interface) = @_;
-    my $cmd = "./ifbind.sh $action $interface";
-    record_info('bind', $cmd);
-    assert_script_run($cmd);
+    my $cmd = 'bash ' . WICKED_DATA_DIR . "/wicked/ifbind.sh $action $interface";
+    record_info('ifbind', $cmd . "\n" . script_output($cmd));
 }
 
 sub post_run {

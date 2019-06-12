@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,26 +19,13 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use web_browser qw(setup_web_browser_env run_web_browser_text_based);
 
 sub run {
-    select_console "root-console";
-
-    assert_script_run('rpm -q w3m');
-    zypper_call('--no-refresh search -it pattern fips');
-
-    my %https_url = (
-        google => "https://www.google.com/ncr",
-        suse   => "https://www.suse.com/",
-        OBS    => "https://build.opensuse.org/",
-    );
-
-    for my $p (keys %https_url) {
-        type_string "clear\n";
-        script_run "w3m $https_url{$p}", 0;
-        assert_screen "w3m-connect-$p-webpage";
-        send_key "q";
-        send_key "y";
-    }
+    select_console("root-console");
+    setup_web_browser_env();
+    zypper_call("--no-refresh --no-gpg-checks in w3m");
+    run_web_browser_text_based("w3m", undef);
 }
 
 1;

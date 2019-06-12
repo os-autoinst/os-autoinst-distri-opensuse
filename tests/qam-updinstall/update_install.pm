@@ -45,7 +45,7 @@ sub install_packages {
 sub get_patch {
     my ($incident_id, $repos) = @_;
     $repos =~ tr/,/ /;
-    my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { printf \$2 }'");
+    my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { printf \$2 }'", type_command => 1);
     $patches =~ s/\r//g;
     return $patches;
 }
@@ -68,7 +68,7 @@ sub run {
 
     select_console 'root-console';
 
-    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $3}')}, exitcode => [0, 3]);
+    zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
     fully_patch_system;
 
