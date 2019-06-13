@@ -33,6 +33,7 @@ sub reboot {
 sub run {
     record_info 'grub2 menu entry', 'install another kernel, another kernel will the previous one';
     select_console 'root-console';
+    zypper_call 'in -t pattern yast2_basis' if is_sle('15-sp1+');
     zypper_ar 'http://download.suse.de/ibs/Devel:/Kernel:/master/standard/', 'KERNEL_DEVEL';
     zypper_call 'in kernel-vanilla';
     assert_script_run 'uname -r >kernel.txt';
