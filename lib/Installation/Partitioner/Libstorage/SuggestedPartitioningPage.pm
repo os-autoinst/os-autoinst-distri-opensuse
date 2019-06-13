@@ -25,4 +25,9 @@ sub press_edit_proposal_settings_button {
     send_key('alt-d');
 }
 
+sub press_create_partition_setup_button {
+    my ($self) = @_;
+    assert_screen($self->SUGGESTED_PARTITIONING_PAGE);
+    send_key('alt-c');
+}
 1;

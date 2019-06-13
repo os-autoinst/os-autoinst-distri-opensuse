@@ -20,9 +20,14 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'Distribution::Opensuse::Tumbleweed';
 use Installation::Partitioner::Libstorage::EditProposalSettingsController;
+use Installation::Partitioner::Libstorage::ExpertPartitionerController;
 
 sub get_partitioner {
     return Installation::Partitioner::Libstorage::EditProposalSettingsController->new();
+}
+
+sub get_expert_partitioner {
+    return Installation::Partitioner::Libstorage::ExpertPartitionerController->new();
 }
 
 1;
