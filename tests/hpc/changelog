@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.2] - 2019-06-13
+###Changed
+Instead of taking care of munge key distribution in the test code, it is
+now done in the hpcbase library
+
 ## [1.0.1] - 2019-06-11
 ### Added
 Add slurm failover test using NFS shared dir as the StateSaveLocation
