@@ -118,7 +118,7 @@ sub upload_img {
           . "--grub2 "
           . "--machine 'x86_64' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
-          . (($img_name =~ /hvm/i) ? "--virt-type hvm --sriov-support " : "--virt-type para ")
+          . "--virt-type hvm --sriov-support "
           . (($img_name !~ /byos/i) ? '--use-root-swap ' : '--ena-support ')
           . "--verbose "
           . "--regions '" . $self->region . "' "
