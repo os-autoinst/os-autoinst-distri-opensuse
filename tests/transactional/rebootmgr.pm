@@ -82,6 +82,10 @@ sub check_strategy_maint_window {
 
 #3 Test etcd locking strategy
 sub check_strategy_etcd_lock {
+    if (check_var('ARCH', 'aarch64')) {
+        record_info('ETCD_UNSUPPORTED_ARCH', "export ETCD_UNSUPPORTED_ARCH=arm64");
+        assert_script_run "export ETCD_UNSUPPORTED_ARCH=arm64";
+    }
     rbm_call "set-strategy etcd-lock";
     systemctl 'enable --now etcd';
 
