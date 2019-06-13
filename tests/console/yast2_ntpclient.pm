@@ -33,11 +33,6 @@ sub run {
     # if support-server is used
     my $ntp_server = check_var('USE_SUPPORT_SERVER', 1) ? 'ns' : '0.opensuse.pool.ntp.org';
 
-    # test often fails due to info kernel messages disrupting screen
-    # decrease logging level to warning to avoid this
-    assert_script_run 'dmesg -n 4';
-    record_soft_failure 'bsc#1011815';
-
     # check network at first
     assert_script_run('if ! systemctl -q is-active network; then systemctl -q start network; fi');
 
