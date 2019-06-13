@@ -60,6 +60,9 @@ sub get_to_console {
     }
 }
 
+# Process unsigned files:
+# - return value 0 (false) when expected screen is present, regardless files were found or not
+# - return value 1 (true) when rearching number of retries
 sub process_unsigned_files {
     my ($self, $expected_screens) = @_;
     # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
@@ -71,10 +74,11 @@ sub process_unsigned_files {
             send_key 'alt-y';
         }
         elsif (check_screen $expected_screens, 0) {
-            last;
+            return 0;
         }
         wait_still_screen;
     }
+    return 1;
 }
 
 # to deal with dependency issues, either work around it, or break dependency to continue with installation
