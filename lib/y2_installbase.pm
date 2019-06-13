@@ -23,7 +23,7 @@ sub get_ip_address {
     return if (get_var('NOLOGS'));
 
     # avoid known issue in FIPS mode: bsc#985969
-    return if get_var('FIPS');
+    return if get_var('FIPS_INSTALLATION');
 
     if (get_var('OLD_IFCONFIG')) {
         use_ifconfig;

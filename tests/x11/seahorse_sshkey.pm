@@ -14,8 +14,13 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use utils 'zypper_call';
 
 sub run {
+    select_console 'root-console';
+    zypper_call "in seahorse";
+    select_console 'x11';
+
     x11_start_program('seahorse');
     send_key "ctrl-n";                            # New Keyring
     assert_screen 'seahorse-keyring-selector';    # Dialog "Select type to create"
