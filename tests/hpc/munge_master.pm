@@ -28,11 +28,8 @@ sub run {
     zypper_call('in munge');
     barrier_wait('MUNGE_INSTALLATION_FINISHED');
 
-    # Copy munge key to all slave nodes
-    for (my $node = 1; $node < $nodes; $node++) {
-        my $node_name = sprintf("munge-slave%02d", $node);
-        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
-    }
+    # Copy munge key to all nodes
+    $self->distribute_munge_key();
     barrier_wait('MUNGE_KEY_COPIED');
 
     # Enable and start service

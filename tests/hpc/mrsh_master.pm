@@ -30,11 +30,8 @@ sub run {
     zypper_call('in mrsh mrsh-server');
     barrier_wait("MRSH_INSTALLATION_FINISHED");
 
-    # Copy munge key to all slave nodes
-    for (my $node = 1; $node < $nodes; $node++) {
-        my $node_name = sprintf("mrsh-slave%02d", $node);
-        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@${node_name}:/etc/munge/munge.key");
-    }
+    # Copy munge key to all nodes
+    $self->distribute_munge_key();
     barrier_wait("MRSH_KEY_COPIED");
 
     # start munge
