@@ -103,9 +103,6 @@ sub setup_yast2_ldap_server {
 }
 
 sub setup_yast2_auth_server {
-    # workaround kernel message floating over console
-    assert_script_run "dmesg -n 4";
-    record_soft_failure 'bsc#1011815';
 
     # check network at first
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");

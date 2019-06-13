@@ -23,16 +23,9 @@ my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
 sub get_space {
     my ($script) = @_;
     my $script_output = script_output($script);
-    # Problem is that sometimes we get kernel messages or other output when execute the script
-    # So we assume that biggest number returned is size we are looking for
-    if ($script_output =~ /^(\d+)$/) {
-        return $script_output;
-    }
-    record_soft_failure('bsc#1011815');
-    my @numbers = $script_output =~ /(\d+)/g;
-
-    return max(@numbers);
+    return $script_output;
 }
+
 sub snapper_cleanup {
     my ($scratch_size_gb, $scratchfile_mb) = @_;
     my $snaps_numb = "snapper list | grep number | wc -l";
