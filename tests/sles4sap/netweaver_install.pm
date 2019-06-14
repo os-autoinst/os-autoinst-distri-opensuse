@@ -27,7 +27,7 @@ sub run {
     my $sid           = get_required_var('INSTANCE_SID');
     my $hostname      = get_var('INSTANCE_ALIAS', '$(hostname)');
     my $params_file   = "/sapinst/$instance_type.params";
-    my $nettout       = 900;                                        # Time out for NetWeaver's sources related commands
+    my $timeout       = 900 * get_var('TIMEOUT_SCALE', 1);          # Time out for NetWeaver's sources related commands
     my $product_id    = undef;
 
     # Set Product ID depending on the type of Instance
@@ -50,7 +50,7 @@ sub run {
     $self->prepare_profile('NETWEAVER');
 
     # Copy media
-    $self->copy_media($proto, $path, $nettout, '/sapinst');
+    $self->copy_media($proto, $path, $timeout, '/sapinst');
 
     # Define a valid hostname/IP address in /etc/hosts, but not in HA
     if (!get_var('HA_CLUSTER')) {
@@ -83,7 +83,7 @@ sub run {
     }
 
     if ($instance_type eq 'ASCS') {
-        assert_script_run $cmd, $nettout;
+        assert_script_run $cmd, $timeout;
     }
     elsif ($instance_type eq 'ERS') {
         # We have to workaround an installation issue:
@@ -91,7 +91,7 @@ sub run {
         #  because ASCS is running on the first node!
         # It's "normal" and documentation says that we have to install ERS on the 2nd node
         #  in order to have the SAP environment correctly set-up.
-        script_run $cmd, $nettout;
+        script_run $cmd, $timeout;
 
         # So we have to check in the log file that's the installation goes well
         # We simply checking for the ASCS stop error message!
