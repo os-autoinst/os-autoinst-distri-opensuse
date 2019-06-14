@@ -191,6 +191,23 @@ sub save_upload_y2logs {
     $self->investigate_yast2_failure() unless $args{skip_logs_investigation};
 }
 
+sub save_remote_upload_y2logs {
+    my ($self, %args) = @_;
+
+    return if (get_var('NOLOGS'));
+    $args{suffix} //= '';
+
+    type_string 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
+    send_key 'ret';
+    my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
+    type_string "save_y2logs $filename\n";
+    my $uploadname = +(split('/', $filename))[2];
+    my $upname     = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
+    type_string "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "\n";
+    save_screenshot();
+    $self->investigate_yast2_failure();
+}
+
 sub save_system_logs {
     my ($self) = @_;
 
@@ -268,18 +285,34 @@ sub save_strace_gdb_output {
 
 sub post_fail_hook {
     my $self = shift;
-    $self->SUPER::post_fail_hook;
-    get_to_console;
-    $self->detect_bsc_1063638;
-    $self->get_ip_address;
-    $self->remount_tmp_if_ro;
-    # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
-    $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
-    return if is_caasp;
-    $self->save_system_logs;
+    if (check_var("REMOTE_CONTROLLER", "vnc")) {
+        wait_screen_change { send_key 'ctrl-alt-shift-x' };
+        $self->save_remote_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+    }
+    elsif (check_var("REMOTE_CONTROLLER", "ssh")) {
+        my $remote_ip = get_var('TARGET_IP');
+        my $passwd    = get_var('PASSWD');
+        select_console 'root-console';
+        script_run("ssh -o StrictHostKeyChecking=no -l root $remote_ip");
+        assert_screen 'password-prompt';
+        type_string "$passwd\n";
+        assert_screen "remote-ssh-login-ok";
+        $self->save_remote_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+    }
+    else {
+        $self->SUPER::post_fail_hook;
+        get_to_console;
+        $self->detect_bsc_1063638;
+        $self->get_ip_address;
+        $self->remount_tmp_if_ro;
+        # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+        $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+        return if is_caasp;
+        $self->save_system_logs;
 
-    # Collect yast2 installer  strace and gbd debug output if is still running
-    $self->save_strace_gdb_output;
+        # Collect yast2 installer  strace and gbd debug output if is still running
+        $self->save_strace_gdb_output;
+    }
 }
 
 1;
