@@ -55,14 +55,16 @@ sub run {
         }
     }
 
-    # Ensure that screen sharing is available
-    # except for ppc64le that do not support it yet.
-    my @needles = qw(with_screensharing);
-    push @needles, qw(without_screensharing) if check_var('ARCH', 'ppc64le');
-    assert_screen \@needles;
-    if (match_has_tag 'without_screensharing') {
-        record_soft_failure 'boo#1122137 - screen sharing not yet supported';
+    # Ensure that screen sharing is available, on X11 only (wayland is not supported) - boo#1137569
+    x11_start_program('xterm');
+    assert_script_run("loginctl");
+    my $is_wayland = (script_run('loginctl show-session $(loginctl | grep $(whoami) | awk \'{print $1 }\') -p Type | grep wayland') == 0);
+    send_key 'alt-f4';
+    if ($is_wayland) {
+        assert_screen 'without_screensharing';
+        record_soft_failure 'boo#1137569 - screen sharing not yet supported on wayland';
     } else {
+        assert_screen 'with_screensharing';
         record_info 'vino present', 'Vino and the screen sharing are present';
     }
     send_key 'ctrl-q';
