@@ -76,6 +76,12 @@ sub install_package {
     #install qa_lib_virtauto
     if (check_var('ARCH', 's390x')) {
         lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
+        my $pkg_lib_data = "qa_lib_virtauto-data";
+        my $cmd          = "rpm -q $pkg_lib_data";
+        my $ret          = console('svirt')->run_cmd($cmd);
+        if ($ret == 0) {
+            lpar_cmd("zypper --non-interactive rm $pkg_lib_data");
+        }
         lpar_cmd("zypper --non-interactive in qa_lib_virtauto");
     }
     else {
