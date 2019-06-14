@@ -91,7 +91,7 @@ sub run {
     record_info 'grub2 password',                                                    'set password to boot';
     script_run "yast bootloader; echo yast-bootloader-status-\$? > /dev/$serialdev", 0;
     assert_screen 'test-yast2_bootloader-1';
-    my $options_key = is_sle('=12-sp1') ? 't' : 'l';
+    my $options_key = is_sle('=12-sp1') && get_var('UEFI') ? 't' : 'l';
     send_key "alt-$options_key";    # bootloader options tab
     assert_screen 'installation-bootloader-options';
     send_key 'alt-e';               # check protect boot loader with pw
