@@ -273,7 +273,10 @@ sub run {
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up autoyast-error inst-bootmenu lang_and_keyboard);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up inst-bootmenu lang_and_keyboard);
+    # Do not try to fail early in case of autoyast_error_dialog scenario
+    # where we test that certain error are properly handled
+    push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     until (match_has_tag 'reboot-after-installation') {
