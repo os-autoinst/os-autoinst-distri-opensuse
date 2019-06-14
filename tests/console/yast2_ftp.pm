@@ -101,7 +101,7 @@ sub run {
             after_reboot  => {start_on_boot => 'alt-a'}
         );
     } else {
-        send_key 'alt-w';          # make sure ftp start-up when booting
+        send_key 'alt-w';                     # make sure ftp start-up when booting
         send_key 'alt-d' if is_sle('=15');    # only sle 15 has this specific combination
     }
 

@@ -728,7 +728,7 @@ under test, the version and if the SUT is an upgrade.
 
 =cut
 sub firewall {
-    my $old_product_versions = is_sle('<15') || is_leap('<15.0');
+    my $old_product_versions      = is_sle('<15') || is_leap('<15.0');
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
     return ($old_product_versions || $upgrade_from_susefirewall) ? 'SuSEfirewall2' : 'firewalld';
 }

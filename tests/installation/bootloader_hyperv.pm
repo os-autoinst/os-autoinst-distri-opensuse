@@ -41,7 +41,7 @@ sub hyperv_cmd_with_retry {
         'The operation cannot be performed while the object is in use',
         'The process cannot access the file because it is being used by another process');
     for my $retry (1 .. $attempts) {
-        my @out = (console('svirt')->get_cmd_output($cmd, {wantarray => 1}))[0];
+        my @out    = (console('svirt')->get_cmd_output($cmd, {wantarray => 1}))[0];
         my $stderr = $out[0][1] || '';
         chomp($stderr);
         # Command succeeded, we are done here
@@ -155,7 +155,7 @@ sub run {
     hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
     hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
 
-    my $hddsize = get_var('HDDSIZEGB', 20);
+    my $hddsize            = get_var('HDDSIZEGB', 20);
     my $vm_generation      = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
     my @disk_paths         = ();

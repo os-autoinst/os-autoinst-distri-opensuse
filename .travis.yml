@@ -25,7 +25,7 @@ cache:
 before_install:
   - eval $(curl https://travis-perl.github.io/init) --perl --always-upgrade-modules
   - echo "requires 'Code::DRY';" >> cpanfile
-  - echo "requires 'Perl::Tidy', '== 20181120';" >> cpanfile
+  - echo "requires 'Perl::Tidy', '== 20190601';" >> cpanfile
 install:
   - make prepare
 script:

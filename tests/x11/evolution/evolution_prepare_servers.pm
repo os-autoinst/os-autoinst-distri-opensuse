@@ -36,7 +36,7 @@ sub run() {
             zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
             systemctl 'start postfix';
         }
-        zypper_call("in dovecot", exitcode => [0, 102, 103]);
+        zypper_call("in dovecot",                    exitcode => [0, 102, 103]);
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 

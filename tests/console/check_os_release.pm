@@ -37,8 +37,8 @@ sub run {
         $checker{PRETTY_NAME} = "SUSE Linux Enterprise Server $checker{VERSION}";
         $checker{PRETTY_NAME} =~ s/\-SP/ SP/;
         $checker{PRETTY_NAME} =~ s/Server/Server for SAP Applications/ if (is_sles4sap and is_sle('<=12-SP2'));
-        $checker{PRETTY_NAME} =~ s/Server/Desktop/                    if is_desktop;
-        $checker{PRETTY_NAME} =~ s/Server/Real Time/                  if is_rt;
+        $checker{PRETTY_NAME} =~ s/Server/Desktop/ if is_desktop;
+        $checker{PRETTY_NAME} =~ s/Server/Real Time/ if is_rt;
         $checker{PRETTY_NAME} =~ s/Server/High Performance Computing/ if is_hpc;
         $checker{ID}       = lc($checker{NAME});
         $checker{CPE_NAME} = "cpe:/o:suse:$product:$checker{VERSION}";
