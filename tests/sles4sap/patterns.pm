@@ -31,13 +31,13 @@ sub run {
     # Is HA pattern needed?
     push @sappatterns, 'ha_sles' if get_var('HA_CLUSTER');
 
-    my $base_pattern = is_sle('>=15') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
+    my $base_pattern = is_sle('15+') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
 
     zypper_enable_install_dvd;
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
     $output = script_output("zypper info -t pattern sap_server");
-    if ($output !~ /i\+\s\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
+    if ($output !~ /i.?\s+\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
         # Pattern sap_server is not installed. Could be a due to a bug, caused by the
         # use of the 'textmode' system role during install, or on upgrades when the
         # original system didn't have the pattern (for example, from SLES4SAP 11-SP4)
@@ -62,7 +62,7 @@ sub run {
         # Name of HA pattern is weird...
         $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
         die "SAP zypper pattern [$pattern] info check failed"
-          unless ($output =~ /i\+\s\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
+          unless ($output =~ /i.?\s+\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
     }
 
     # Some specific package may be needed in HA mode
