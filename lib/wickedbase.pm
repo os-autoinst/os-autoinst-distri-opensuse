@@ -270,9 +270,9 @@ The interface will be brought up using a wicked command.
 =cut
 sub setup_tuntap {
     my ($self, $config, $type, $iface) = @_;
-    my $local_ip = $self->get_ip(type => $type);
+    my $local_ip  = $self->get_ip(type => $type);
     my $remote_ip = $self->get_remote_ip(type => $type);
-    my $host_ip = $self->get_ip(type => 'host');
+    my $host_ip   = $self->get_ip(type => 'host');
     file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, host_ip => $host_ip, iface => $iface);
     $self->wicked_command('ifup', 'all');
 }
@@ -288,7 +288,7 @@ The interface will be brought up using a wicked command.
 =cut
 sub setup_tunnel {
     my ($self, $config, $type, $iface) = @_;
-    my $local_ip = $self->get_ip(type => 'host');
+    my $local_ip  = $self->get_ip(type => 'host');
     my $remote_ip = $self->get_remote_ip(type => 'host');
     my $tunnel_ip = $self->get_ip(type => $type);
     file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, tunnel_ip => $tunnel_ip, iface => $iface);
@@ -306,7 +306,7 @@ Supported tunnels in this function are GRE, SIT, IPIP, TUN.
 =cut
 sub create_tunnel_with_commands {
     my ($self, $type, $mode, $sub_mask) = @_;
-    my $local_ip = $self->get_ip(type => 'host');
+    my $local_ip  = $self->get_ip(type => 'host');
     my $remote_ip = $self->get_remote_ip(type => 'host');
     my $tunnel_ip = $self->get_ip(type => $type);
     assert_script_run("ip tunnel add $type mode $mode remote $remote_ip local $local_ip");

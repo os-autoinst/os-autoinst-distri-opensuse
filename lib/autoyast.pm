@@ -118,8 +118,8 @@ sub expand_addons {
 
 sub expand_template {
     my ($profile) = @_;
-    my $template = Mojo::Template->new(vars => 1);
-    my $vars     = {
+    my $template  = Mojo::Template->new(vars => 1);
+    my $vars      = {
         addons   => expand_addons,
         repos    => [split(/,/, get_var('MAINT_TEST_REPO'))],
         patterns => expand_patterns,

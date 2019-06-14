@@ -39,13 +39,13 @@ sub run {
     # check http server wizard (1/5) -- Network Device Selection
     assert_screen 'http_server_wizard';
     wait_still_screen(3);
-    send_key 'alt-n';                               # go to http server wizard (1/5) -- Network Device Selection
-    assert_screen 'http_server_modules';            # check modules and enable php, perl, python before go to next step
+    send_key 'alt-n';                       # go to http server wizard (1/5) -- Network Device Selection
+    assert_screen 'http_server_modules';    # check modules and enable php, perl, python before go to next step
     wait_still_screen 1;
     send_key 'alt-p';
-    assert_screen 'http_modules_enabled_php';       # check php module enabled
+    assert_screen 'http_modules_enabled_php';    # check php module enabled
     send_key 'alt-e';
-    assert_screen 'http_modules_enabled_perl';      # check perl module enabled
+    assert_screen 'http_modules_enabled_perl';    # check perl module enabled
     send_key 'alt-y';
     assert_screen 'http_modules_enabled_python';    # check python module enabled
     wait_still_screen 1;

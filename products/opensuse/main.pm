@@ -108,7 +108,7 @@ if (is_using_system_role && check_var('DESKTOP', 'xfce') && !get_var('PATTERNS')
 }
 
 # openSUSE specific variables
-set_var('LEAP', '1') if is_leap;
+set_var('LEAP',      '1') if is_leap;
 set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...

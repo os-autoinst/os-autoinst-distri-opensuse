@@ -394,7 +394,7 @@ sub check_device_available {
         --$tries;
         sleep 2;
     }
-    die "Test timed out while checking $dev" unless (defined $ret);
+    die "Test timed out while checking $dev"   unless (defined $ret);
     die "Nonexistent $dev after $tout seconds" unless ($tries > 0 or $ret == 0);
     return $ret;
 }

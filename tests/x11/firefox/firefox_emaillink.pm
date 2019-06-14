@@ -42,7 +42,7 @@ sub run {
             sleep 1;
             type_string "test\@suse.com\n";
             sleep 1;
-            send_key 'home';      # beginning of subject
+            send_key 'home';    # beginning of subject
             sleep 1;
             send_key 'ctrl-k';    # delete existing subject
             sleep 1;

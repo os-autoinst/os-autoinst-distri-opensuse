@@ -348,7 +348,7 @@ sub addboot {
 }
 
 sub skip_select_first_hard_disk {
-    return 1 if match_has_tag 'existing-partitions';    # no selection of hard-disk is required
+    return 1 if match_has_tag 'existing-partitions';          # no selection of hard-disk is required
     if (match_has_tag('select-hard-disks-one-selected')) {    # first hd is already pre-selected
         send_key $cmd{next};
         return 1;

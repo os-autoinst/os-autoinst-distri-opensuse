@@ -47,7 +47,7 @@ sub parse_openposix_runfile {
     while (my $line = <$rfile>) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
-            my $test = {name => basename($line, '.run-test'), command => $line};
+            my $test  = {name => basename($line, '.run-test'), command => $line};
             my $tinfo = testinfo($test_result_export, test => $test);
             loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);
         }
@@ -64,7 +64,7 @@ sub parse_runtest_file {
         #Command format is "<name> <command> [<args>...] [#<comment>]"
         if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
             next if (check_var('BACKEND', 'svirt') && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
-            my $test = {name => $1, command => $2};
+            my $test  = {name => $1, command => $2};
             my $tinfo = testinfo($test_result_export, test => $test);
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
                 loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);

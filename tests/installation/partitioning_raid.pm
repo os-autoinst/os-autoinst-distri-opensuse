@@ -514,9 +514,9 @@ sub enter_partitioning {
         assert_screen 'custompart_option-selected';
         send_key $cmd{next};
     }
-    assert_screen 'custompart';                               # verify available storage
+    assert_screen 'custompart';    # verify available storage
     send_key "tab";
-    assert_screen 'custompart_systemview-selected';           # select system (hostname) on System View
+    assert_screen 'custompart_systemview-selected';    # select system (hostname) on System View
     send_key "down";
     assert_screen 'partitioning_raid-hard_disks-selected';    # select Hard Disks on System View
 }
