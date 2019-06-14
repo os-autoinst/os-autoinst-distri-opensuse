@@ -510,22 +510,6 @@
       <pattern>gnome-basic</pattern>
     </patterns>
     <remove-packages config:type="list">
-      <package>glibc-32bit</package>
-      <package>libXaw3d6</package>
-      <package>libXaw3d7</package>
-      <package>libbz2-1-32bit</package>
-      <package>libdb-4_8-32bit</package>
-      <package>libgcc_s1-32bit</package>
-      <package>libgdbm4-32bit</package>
-      <package>libpython3_4m1_0</package>
-      <package>libqt4-sql-sqlite</package>
-      <package>libstdc++6-32bit</package>
-      <package>libz1-32bit</package>
-      <package>perl-32bit</package>
-      <package>perl-Test-Simple</package>
-      <package>python3</package>
-      <package>python3-base</package>
-      <package>xaw3dd</package>
       <package>yast2-control-center-qt</package>
     </remove-packages>
   </software>
