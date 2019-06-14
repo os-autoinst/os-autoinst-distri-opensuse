@@ -71,6 +71,7 @@ sub run {
     my ($proto, $path) = split m|://|, get_required_var('MEDIA');
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
 
+    my $timeout  = 3600 * get_var('TIMEOUT_SCALE', 1);
     my $sid      = get_required_var('INSTANCE_SID');
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
@@ -102,7 +103,7 @@ sub run {
     send_key 'tab';
     send_key $cmd{next};
     assert_screen 'sap-wizard-copying-media',     120;
-    assert_screen 'sap-wizard-supplement-medium', 4000;
+    assert_screen 'sap-wizard-supplement-medium', $timeout;
     send_key $cmd{next};
     assert_screen 'sap-wizard-additional-repos';
     send_key $cmd{next};
@@ -126,7 +127,7 @@ sub run {
     send_key 'alt-o' if (check_screen 'sap-wizard-partition-issues',      60);
     send_key 'alt-y' if (check_screen 'sap-wizard-continue-installation', 30);
     assert_screen 'sap-product-installation';
-    assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], 4000;
+    assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], $timeout;
     send_key $cmd{ok};
     if (match_has_tag 'sap-wizard-installation-summary') {
         assert_screen 'generic-desktop', 600;
