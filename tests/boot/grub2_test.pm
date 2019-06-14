@@ -104,6 +104,8 @@ sub run {
     save_screenshot;
     send_key 'alt-o';               # OK
     wait_serial 'yast-bootloader-status-0', 60 || die "'yast bootloader' didn't finish";
+    # verify password protect
+    assert_script_run 'grep \'password\' /boot/grub2/grub.cfg';
     reboot;
 
     record_info 'grub2 password', 'type login and password to boot';
