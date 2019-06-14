@@ -123,4 +123,4 @@ XDMUSED | boolean | false | Indicates availability of xdm.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAST2_FIRSTBOOT_USERNAME | string | | Defines username for the user to be created with YaST Firstboot
 ZDUP | boolean | false | Prescribes zypper dup scenario.
-ZDUPREPOS | string | | Defines repo to be added/used for zypper dup call.
+ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
