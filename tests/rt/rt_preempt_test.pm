@@ -17,11 +17,12 @@ use testapi;
 
 # Run preempt test
 sub run {
+    select_console 'root-console';
     script_run "zypper -q ar http://download.suse.de/ibs/Devel:/RTE:/SLE12SP1/standard/Devel:RTE:SLE12SP1.repo";
     script_run "zypper -q --gpg-auto-import-keys refresh";
     script_run "zypper -q --non-interactive install preempt-test";
-
-    assert_script_run "preempt-test | grep 'Test PASSED'";
+    assert_script_run "preempt-test | tee ~/preempt.out";
+    assert_script_run "grep \'Test PASSED\' ~/preempt.out && rm -f ~/preempt.out";
 }
 
 1;

@@ -20,6 +20,7 @@ use testapi;
 use utils 'zypper_call';
 
 sub run {
+    select_console 'root-console';
     zypper_call("in rt-tests ibmrtpkgs", log => 'rt_tests_zypper.log');
     assert_script_run "cyclictest -a -t -p 99 -l 100 -v";
     assert_script_run "hackbench -l 100";

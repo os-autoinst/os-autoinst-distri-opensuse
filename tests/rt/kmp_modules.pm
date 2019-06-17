@@ -23,7 +23,7 @@ use version_utils 'is_sle';
 use rt_utils 'select_kernel';
 use File::Basename 'fileparse';
 
-sub lttng_test {
+sub run_lttng_demo_trace {
     my $trace = {
         label     => 'TEST_TRACE',
         output    => '/tmp/sched_trace_example',
@@ -41,14 +41,13 @@ sub lttng_test {
     assert_script_run 'lttng destroy -a';
     if ((script_run "test -e $trace->{output}") == 0) {
         assert_script_run "ls -la $trace->{output}" . '/kernel';
-        if ((script_run('test -f ' . $trace->{output} . '/kernel/' . $trace->{label} . '_0')) == 0) {
-            assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{label} . '_0';
-        }
         if ((script_run('test -f ' . $trace->{output} . '/kernel/' . $trace->{channel} . '_0')) == 0) {
             assert_script_run "file $trace->{output}" . '/kernel/' . $trace->{channel} . '_0';
+        } else {
+            die 'Trace file ' . $trace->{output} . '/kernel/' . $trace->{channel} . "_0 is missing!\n";
         }
     } else {
-        die "Trace file \"$trace->{output}\" does not exist!\n";
+        die "Trace files directory \"$trace->{output}\" does not exist!\n";
     }
 }
 
@@ -82,7 +81,7 @@ sub run {
         assert_script_run "modinfo $basename";
         save_screenshot;
     }
-    lttng_test;
+    run_lttng_demo_trace;
     clear_console;
 }
 
