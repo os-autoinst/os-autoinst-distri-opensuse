@@ -20,6 +20,7 @@ use base "opensusebasetest";
 use testapi;
 use version_utils qw(is_caasp is_staging is_opensuse is_leap);
 use transactional;
+use utils;
 
 # Download files needed for transactional update test
 sub get_utt_packages {
@@ -87,7 +88,7 @@ sub run {
     unless (is_opensuse && is_staging) {
         record_info 'Update #1', 'Add repository and update - snapshot #2';
         # openSUSE does not need additional repo
-        assert_script_run 'zypper ar utt.repo' unless is_opensuse;
+        zypper_call 'ar utt.repo' unless is_opensuse;
         trup_call 'cleanup up';
         check_reboot_changes;
         check_package 'up';

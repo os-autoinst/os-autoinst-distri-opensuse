@@ -22,7 +22,7 @@ use strict;
 sub run {
     my $self = shift;
     $self->copy_testsuite('MEMORY_memtester');
-    assert_script_run "zypper in -y gcc";
+    zypper_call "in gcc";
     assert_script_run "tar -xzf memtester*tar.gz && rm -rf memtester*tar.gz";
     assert_script_run "cd memtester*&& make && make install && cd ..";
 

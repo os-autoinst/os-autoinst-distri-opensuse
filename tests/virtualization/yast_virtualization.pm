@@ -24,7 +24,7 @@ sub run {
     pkcon_quit;
     if (script_run('zypper se -i yast2-vm') == 104) {
         record_soft_failure 'bsc#1083398 - YaST2-virtualization provides wrong components for SLED';
-        assert_script_run 'zypper in -y yast2-vm';
+        zypper_call 'in yast2-vm';
     }
     $self->launch_yast2_module_x11('virtualization');
     # select everything

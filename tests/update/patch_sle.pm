@@ -41,10 +41,11 @@ sub patching_sle {
             set_var('HDD_SP2ORLATER', 1);
         }
         # disable existing repos temporary
-        assert_script_run("zypper lr && zypper mr --disable --all");
+        zypper_call "lr";
+        zypper_call "mr --disable --all";
         save_screenshot;
         sle_register("register");
-        assert_script_run('zypper lr -d');
+        zypper_call('lr -d');
     }
 
     # add test repositories and logs the required patches
@@ -102,7 +103,7 @@ sub patching_sle {
 
     # RMT didn't mirror all repos, cannot use enable all
     if (!get_var("SMT_URL")) {
-        assert_script_run("zypper mr --enable --all");
+        zypper_call("mr --enable --all");
     }
 
     # Disable old repositories during AutoYaST driven upgrade

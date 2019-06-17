@@ -24,12 +24,12 @@ sub run {
 
     # remove Factory repos
     my $repos_folder = '/etc/zypp/repos.d';
-    script_run("zypper lr -d");
+    zypper_call 'lr -d';
     assert_script_run(
 "find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
         15
     );
-    script_run("zypper lr -d");
+    zypper_call 'lr -d';
     save_screenshot;    # take a screenshot after repos removed
 
     if (get_var("STAGING")) {
@@ -37,7 +37,7 @@ sub run {
         # in Staging, enable it here.
         clear_console;
         assert_script_run("grep -rlE 'baseurl=cd:/(//)?\\?devices' $repos_folder | xargs --no-run-if-empty sed -i 's/^enabled=0/enabled=1/g'");
-        script_run("zypper lr -d");
+        zypper_call 'lr -d';
         save_screenshot;    # take a screenshot after repo enabled
     }
 }

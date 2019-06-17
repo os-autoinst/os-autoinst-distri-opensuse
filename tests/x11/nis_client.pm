@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi 'mutex_lock';
-use utils 'systemctl';
+use utils;
 use version_utils 'is_sle';
 use mm_network 'setup_static_mm_network';
 use y2_module_guitest '%setup_nis_nfs_x11';
@@ -99,7 +99,7 @@ sub run {
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
     setup_static_mm_network($setup_nis_nfs_x11{client_address});
-    assert_script_run 'zypper -n in yast2-nis-server';
+    zypper_call 'in yast2-nis-server';
 
     if ($self->firewall eq 'firewalld') {
         record_soft_failure('bsc#1083487');

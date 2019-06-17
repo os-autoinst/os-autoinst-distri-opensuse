@@ -15,6 +15,7 @@ use warnings;
 use base "virt_autotest_base";
 use testapi;
 use virt_utils;
+use utils;
 
 sub install_package {
 
@@ -31,7 +32,7 @@ sub install_package {
     }
     else {
         script_run "zypper --non-interactive rr server-repo";
-        assert_script_run("zypper --non-interactive --no-gpg-check ar -f '$qa_server_repo' server-repo");
+        zypper_call("--no-gpg-check ar -f '$qa_server_repo' server-repo");
     }
 
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
@@ -60,17 +61,17 @@ sub install_package {
             lpar_cmd("zypper --non-interactive rr dependency_repo");
         }
         else {
-            assert_script_run("zypper --non-interactive --no-gpg-check ar -f ${dependency_repo} dependency_repo");
-            assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
-            assert_script_run("zypper --non-interactive in $dependency_rpms");
-            assert_script_run("zypper --non-interactive rr dependency_repo");
+            zypper_call("--no-gpg-check ar -f ${dependency_repo} dependency_repo");
+            zypper_call("--gpg-auto-import-keys ref", 180);
+            zypper_call("in $dependency_rpms");
+            zypper_call("rr dependency_repo");
         }
     }
 
     ###SLE-12-SP4 arm64 installation has no KVM role selection
     if (($repo_0_to_install =~ /SLE-12-SP4/m) && check_var('ARCH', 'aarch64')) {
-        assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref",         180);
-        assert_script_run("zypper --non-interactive in -t pattern kvm_server kvm_tools", 300);
+        zypper_call("--gpg-auto-import-keys ref",         180);
+        zypper_call("in -t pattern kvm_server kvm_tools", 300);
     }
 
     #install qa_lib_virtauto
@@ -85,13 +86,13 @@ sub install_package {
         lpar_cmd("zypper --non-interactive in qa_lib_virtauto");
     }
     else {
-        assert_script_run("zypper --non-interactive --gpg-auto-import-keys ref", 180);
-        assert_script_run("zypper --non-interactive in qa_lib_virtauto",         1800);
+        zypper_call("--gpg-auto-import-keys ref", 180);
+        zypper_call("in qa_lib_virtauto",         1800);
     }
 
     if (get_var("PROXY_MODE")) {
         if (get_var("XEN")) {
-            assert_script_run("zypper --non-interactive in -t pattern xen_server", 1800);
+            zypper_call("in -t pattern xen_server", 1800);
         }
     }
 }

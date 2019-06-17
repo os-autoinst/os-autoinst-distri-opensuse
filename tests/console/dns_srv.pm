@@ -14,13 +14,13 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use utils qw(is_bridged_networking systemctl);
+use utils qw(is_bridged_networking systemctl zypper_call);
 
 sub run {
     select_console 'root-console';
 
     # Install bind
-    assert_script_run "zypper -n -q in bind";
+    zypper_call "-q in bind";
 
     # check that it can be enabled and disabled;
     systemctl 'enable named';

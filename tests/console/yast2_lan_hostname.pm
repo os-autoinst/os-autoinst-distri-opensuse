@@ -63,7 +63,7 @@ sub hostname_via_dhcp {
 
 sub run {
     select_console 'root-console';
-    assert_script_run 'zypper -n in yast2-network';    # make sure yast2 lan module installed
+    zypper_call 'in yast2-network';    # make sure yast2 lan module installed
     hostname_via_dhcp('no');
     hostname_via_dhcp('yes-any');
     hostname_via_dhcp('yes-eth0');

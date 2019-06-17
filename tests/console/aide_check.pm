@@ -21,12 +21,13 @@
 
 use base "consoletest";
 use testapi;
+use utils;
 use strict;
 use warnings;
 
 sub run {
     select_console 'root-console';
-    assert_script_run "zypper -n in aide", 90;
+    zypper_call "in aide";
     assert_script_run "cp /etc/aide.conf /etc/aide.conf.bak";
     assert_script_run "sed -i 's:^/:!/:g' /etc/aide.conf && sed -i 's:!/var/log:/var/log:g' /etc/aide.conf";
     assert_script_run "aide -i", 60;

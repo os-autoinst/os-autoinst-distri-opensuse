@@ -17,14 +17,14 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils 'systemctl';
+use utils;
 
 sub run {
     select_console 'root-console';
-    assert_script_run('zypper -n in rabbitmq-server');
+    zypper_call 'in rabbitmq-server';
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
-    assert_script_run('zypper -n in python-pika wget');
+    zypper_call 'in python-pika wget';
     my $cmd = <<'EOF';
 mkdir rabbitmq
 cd rabbitmq

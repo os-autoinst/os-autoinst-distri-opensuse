@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils 'is_caasp';
+use utils;
 
 sub run_rcshell_checks {
     # Check that system is using UTC timezone
@@ -60,13 +61,13 @@ sub run_caasp_checks {
 sub run_microos_checks {
     # Should not include kubernetes
     if (check_var('SYSTEM_ROLE', 'microos')) {
-        assert_script_run '! zypper se -i kubernetes';
+        zypper_call 'se -i kubernetes', exitcode => 104;
         assert_script_run '! rpm -q etcd';
     }
     # Should have unconfigured Kubernetes & container runtime environment
     if (check_var('SYSTEM_ROLE', 'kubeadm')) {
         assert_script_run 'which crio';
-        assert_script_run 'zypper se -i kubernetes';
+        zypper_call 'se -i kubernetes';
     }
 }
 

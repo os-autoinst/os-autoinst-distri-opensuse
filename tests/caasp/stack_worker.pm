@@ -18,13 +18,14 @@ use lockapi 'barrier_wait';
 use autotest 'query_isotovideo';
 use version_utils 'is_caasp';
 use caasp;
+use utils;
 
 # Updated from incident repo before adding to cluster
 sub incident_repo_dup {
     my $repo = get_required_var('INCIDENT_REPO');
     assert_script_run 'echo -e "[main]\nvendors = suse,opensuse,obs://build.suse.de,obs://build.opensuse.org" > /etc/zypp/vendors.d/vendors.conf';
-    assert_script_run "zypper ar --refresh --no-gpgcheck $repo UPDATE";
-    assert_script_run 'zypper lr -U';
+    zypper_call "ar --refresh --no-gpgcheck $repo UPDATE";
+    zypper_call 'lr -U';
     assert_script_run 'transactional-update cleanup dup', 300;
     microos_reboot 1;
 }
