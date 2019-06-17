@@ -57,7 +57,7 @@ sub run {
         $profile =~ s/\{\{$var\}\}/$value/g;
     }
     if (check_var('IPXE', '1')) {
-        $path = get_required_var('SUT_IP') + $path;
+        $path = get_required_var('SUT_IP') . $path;
     }
     # Upload modified profile
     save_tmp_file($path, $profile);
