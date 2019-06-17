@@ -17,6 +17,7 @@ use testapi;
 
 # https://fate.suse.com/317131
 sub run {
+    select_console 'root-console';
     assert_script_run "modprobe peak_pci";
     assert_script_run "lsmod | grep ^peak_pci";
 }

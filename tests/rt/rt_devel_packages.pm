@@ -18,6 +18,7 @@ use utils;
 
 # https://fate.suse.com/316652
 sub run {
+    select_console 'root-console';
     my $pkgs = "babeltrace-devel lttng-tools-devel kernel-rt-devel kernel-rt_debug-devel kernel-devel-rt libcpuset-devel lttng-tools";
     zypper_call "in $pkgs";
 }
