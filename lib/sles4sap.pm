@@ -47,7 +47,12 @@ sub ensure_serialdev_permissions_for_sap {
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
+# !! DEBUG !!
+script_run 'cat /etc/group';
+script_run 'local';
+# !! DEBUG !!
     my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
+    assert_script_run 'export LC_ALL=C ; export LANG=C';
     assert_script_run "grep '^${serial_group}:.*:${sapadmin}\$' /etc/group || (chown $sapadmin /dev/$testapi::serialdev && gpasswd -a $sapadmin $serial_group)";
 }
 
