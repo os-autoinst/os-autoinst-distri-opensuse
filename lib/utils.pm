@@ -24,6 +24,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use Utils::Architectures 'is_aarch64';
 use Utils::Systemd 'systemctl';
 use Mojo::UserAgent;
 
@@ -531,9 +532,12 @@ sub is_boot_encrypted {
     return 0 if get_var('UNENCRYPTED_BOOT');
     return 0 if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
     # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
-    # Only aarch64 needs separate handling
+    # Only aarch64 needs separate handling, it has unencrypted boot for fresh
+    # installations, but has encrypted boot if cancel activation of existing
+    # encrypted partitions
     # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW');
+    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW')
+      && !(get_var('ENCRYPT_CANCEL_EXISTING') && get_var('ENCRYPT') && is_aarch64());
     # SLES 15: we don't have scenarios for cryptlvm which boot partion is unencrypted.
     return 0 if is_sle('15+') && !get_var('ENCRYPT');
     # If the encrypted disk is "just activated" it does not mean that the
