@@ -157,8 +157,13 @@ sub run {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
-    $self->process_unsigned_files([qw(inst-addon addon-products)]);
-    assert_screen_with_soft_timeout([qw(inst-addon addon-products)], timeout => 60, soft_timeout => 30, bugref => 'bsc#1123963');
+    if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
+        assert_screen_with_soft_timeout(
+            [qw(inst-addon addon-products)],
+            timeout      => 60,
+            soft_timeout => 30,
+            bugref       => 'bsc#1123963');
+    }
     if (get_var("ADDONS")) {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
         # the ISO_X variables must match the ADDONS list

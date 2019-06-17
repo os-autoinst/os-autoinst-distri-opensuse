@@ -60,21 +60,25 @@ sub get_to_console {
     }
 }
 
+# Process unsigned files:
+# - return value 0 (false) when expected screen is present, regardless files were found or not
+# - return value 1 (true) when rearching number of retries or when this check does not apply.
 sub process_unsigned_files {
     my ($self, $expected_screens) = @_;
     # SLE 15 has unsigned file errors, workaround them - rbrown 04/07/2017
-    return unless (is_sle('15+'));
+    return 1 unless (is_sle('15+'));
     my $counter = 0;
     while ($counter++ < 5) {
         if (check_screen 'sle-15-unsigned-file', 0) {
             record_soft_failure 'bsc#1047304';
             send_key 'alt-y';
+            wait_still_screen;
         }
         elsif (check_screen $expected_screens, 0) {
-            last;
+            return 0;
         }
-        wait_still_screen;
     }
+    return 1;
 }
 
 # to deal with dependency issues, either work around it, or break dependency to continue with installation
