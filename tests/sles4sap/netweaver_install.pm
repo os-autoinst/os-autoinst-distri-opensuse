@@ -104,6 +104,10 @@ sub run {
         my $cluster_name = get_cluster_name;
         barrier_wait("ASCS_INSTALLED_$cluster_name");
     }
+
+    # Allow SAP Admin user to inform status via $testapi::serialdev
+    $self->set_sap_info($sid, $instance_id);
+    $self->ensure_serialdev_permissions_for_sap;
 }
 
 {

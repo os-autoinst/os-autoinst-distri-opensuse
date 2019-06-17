@@ -11,6 +11,7 @@ use isotovideo;
 use x11utils 'ensure_unlocked_desktop';
 
 our @EXPORT = qw(
+  ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
   set_sap_info
@@ -32,6 +33,23 @@ our $sapadmin;
 our $sid;
 our $instance;
 our $ps_cmd;
+
+=head2 ensure_serialdev_permissions_for_sap
+
+Derived from 'ensure_serialdev_permissions' function available in 'utils'.
+
+Grant user permission to access serial port immediately as well as persisting
+over reboots. Used to ensure that testapi calls like script_run work for the
+test user as well as root.
+=cut
+sub ensure_serialdev_permissions_for_sap {
+    my ($self) = @_;
+    # ownership has effect immediately, group change is for effect after
+    # reboot an alternative https://superuser.com/a/609141/327890 would need
+    # handling of optional sudo password prompt within the exec
+    my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
+    assert_script_run "grep '^${serial_group}:.*:${sapadmin}\$' /etc/group || (chown $sapadmin /dev/$testapi::serialdev && gpasswd -a $sapadmin $serial_group)";
+}
 
 sub fix_path {
     my ($self, $var) = @_;
@@ -64,7 +82,9 @@ sub set_sap_info {
 
 sub become_sapadm {
     # Allow SAP Admin user to inform status via $testapi::serialdev
-    assert_script_run "chown $sapadmin /dev/$testapi::serialdev";
+    # Note: need to be keep here and during product installation to
+    #       ensure compatibility with older generated images
+    ensure_serialdev_permissions_for_sap;
 
     type_string "su - $sapadmin\n";
 
