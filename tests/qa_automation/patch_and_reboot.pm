@@ -42,7 +42,7 @@ sub run {
     console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
     type_string "reboot\n";
 
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 150);
 }
 
 sub test_flags {
