@@ -638,14 +638,17 @@ sub specific_bootmenu_params {
         record_info('Info', 'boo#990374 - pass kexec to installer to use initrd from FTP');
     }
 
-    if (get_var("DUD")) {
-        my $dud = get_var("DUD");
-        if ($dud =~ /http:\/\/|https:\/\/|ftp:\/\//) {
-            push @params, ("dud=$dud", 'insecure=1');
+    if (get_var('DUD')) {
+        my @duds = split(/,/, get_var('DUD'));
+        foreach my $dud (@duds) {
+            if ($dud =~ /^(http|https|ftp):\/\//) {
+                push @params, "dud=$dud";
+            }
+            else {
+                push @params, 'dud=' . data_url($dud);
+            }
         }
-        else {
-            push @params, ("dud=" . data_url($dud), 'insecure=1');
-        }
+        push @params, 'insecure=1';
     }
 
     # For leap 42.3 we don't have addon_products screen
