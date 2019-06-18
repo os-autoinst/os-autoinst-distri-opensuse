@@ -26,6 +26,7 @@ sub run {
 
     # Create a new folder
     send_key 'f10';
+    assert_screen 'dolphin_new_folder_dialog';
     type_string 'stuff';
     assert_screen 'dolphin_new_folder';
     send_key 'ret';
