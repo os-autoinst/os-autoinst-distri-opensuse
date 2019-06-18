@@ -61,7 +61,7 @@ sub run_caasp_checks {
 sub run_microos_checks {
     # Should not include kubernetes
     if (check_var('SYSTEM_ROLE', 'microos')) {
-        zypper_call 'se -i kubernetes', exitcode => 104;
+        zypper_call 'se -i kubernetes', exitcode => [104];
         assert_script_run '! rpm -q etcd';
     }
     # Should have unconfigured Kubernetes & container runtime environment
