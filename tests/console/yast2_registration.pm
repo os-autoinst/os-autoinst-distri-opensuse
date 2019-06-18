@@ -39,8 +39,10 @@ sub register_system_and_add_extension {
     }
     send_key "alt-a";
     wait_still_screen 2;
+    assert_screen 'yast2-sw_automatic-changes';
     send_key "alt-o";
-    wait_still_screen 5;
+    wait_still_screen 2;
+    assert_screen 'installation-report';
     wait_screen_change { send_key "alt-f" };
 }
 
