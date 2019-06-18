@@ -17,6 +17,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use mm_network;
 
 our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up);
 
@@ -30,9 +31,8 @@ sub setup_static_network {
     # Set default values
     $args{ip} ||= '10.0.2.15';
     $args{gw} ||= testapi::host_ip();
-    my $dns_ip = get_required_var('STATIC_DNS_SERVER');
+    configure_static_dns(get_host_resolv_conf());
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
-    assert_script_run('echo "NETCONFIG_DNS_STATIC_SERVERS=' . $dns_ip . '" >> /etc/sysconfig/network/config');
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run 'rcnetwork restart';
