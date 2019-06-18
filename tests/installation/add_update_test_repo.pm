@@ -49,7 +49,7 @@ sub run() {
 }
 
 sub pre_run_hook {
-    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/) {
+    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-Updates$/) {
         select_console 'install-shell';
         wait_still_screen;
         type_string "tcpdump -i eth0 -nn -s0 -vv -w openqa_tcpdump.pcap &>/dev/$serialdev &\n";
@@ -60,7 +60,7 @@ sub pre_run_hook {
 }
 
 sub post_run_hook {
-    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/) {
+    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-Updates$/) {
         select_console 'install-shell';
         script_run 'killall tcpdump', 0;
         script_run 'rm -f openqa_tcpdump.pcap, 0';
@@ -69,7 +69,7 @@ sub post_run_hook {
 }
 
 sub post_fail_hook {
-    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/) {
+    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-Updates$/) {
         select_console 'install-shell';
         script_run 'killall tcpdump', 0;
         upload_logs 'openqa_tcpdump.pcap';
