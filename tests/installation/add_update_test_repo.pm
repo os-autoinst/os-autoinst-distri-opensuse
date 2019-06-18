@@ -15,7 +15,6 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use qam 'advance_installer_window';
-use version_utils 'is_sle';
 
 sub run() {
 
@@ -45,35 +44,6 @@ sub run() {
         advance_installer_window('addon-products');
         # if more repos to come, add more
         send_key_until_needlematch('addon-menu-active', 'alt-a', 10, 5) if @repos;
-    }
-}
-
-sub pre_run_hook {
-    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-Updates$/) {
-        select_console 'install-shell';
-        wait_still_screen;
-        type_string "tcpdump -i eth0 -nn -s0 -vv -w openqa_tcpdump.pcap &>/dev/$serialdev &\n";
-        sleep 2;
-        save_screenshot;
-        select_console 'installation';
-    }
-}
-
-sub post_run_hook {
-    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-Updates$/) {
-        select_console 'install-shell';
-        script_run 'killall tcpdump', 0;
-        script_run 'rm -f openqa_tcpdump.pcap, 0';
-        select_console 'installation';
-    }
-}
-
-sub post_fail_hook {
-    if (is_sle('15+') && get_var('FLAVOR', '') =~ /-Updates$/) {
-        select_console 'install-shell';
-        script_run 'killall tcpdump', 0;
-        upload_logs 'openqa_tcpdump.pcap';
-        select_console 'installation';
     }
 }
 
