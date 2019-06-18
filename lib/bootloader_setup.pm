@@ -385,11 +385,9 @@ sub bootmenu_default_params {
         # gfxpayload variable replaced vga option in grub2
         if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
             push @params, "vga=791";
-            if (check_var("INSTALL_TO_OTHERS", 1) || !$args{pxe}) {
-                push @params, "video=1024x768-16";
-            } else {
-                push @params, "xvideo=1024x768";
-            }
+            my $video = 'video=1024x768';
+            $video .= '-16' if check_var('QEMUVGA', 'cirrus');
+            push @params, $video;
         }
 
     }
