@@ -123,7 +123,8 @@ sub aa_status_stdout_check {
 }
 
 sub ip_fetch {
-    my $ip = script_output("hostname -I | cut -d ' ' -f1");
+    # "# hostname -i/-I" can not work in some cases
+    my $ip = script_output("ip -4 -f inet -o a | grep -E \'eth0|ens\' | sed -n 's/\.*inet \\([0-9.]\\+\\)\.*/\\1/p'");
     return $ip;
 }
 
