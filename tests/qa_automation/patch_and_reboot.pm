@@ -58,6 +58,7 @@ sub post_run_hook {
         select_console 'root-console';
         script_run 'killall tcpdump', 0;
         script_run 'rm -f openqa_tcpdump.pcap, 0';
+        select_console 'x11' if check_var('DESKTOP', 'gnome');
     }
 }
 
