@@ -552,8 +552,7 @@ sub wait_boot {
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
     # For IPMI machines PXE boot menu will appear first
-    # If KEEP_GRUB_TIMEOUT is set, SUT could be already in linux-login
-    if (check_var('BACKEND', 'ipmi') and !get_var('KEEP_GRUB_TIMEOUT')) {
+    if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
         # boot from harddrive
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 200);
