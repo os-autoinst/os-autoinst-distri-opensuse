@@ -122,7 +122,10 @@ sub advance_installer_window {
     my ($screenName) = @_;
 
     send_key $cmd{next};
-    assert_screen $screenName, 90;
+    unless (check_screen "$screenName", 90) {
+        send_key_until_needlematch $screenName, $cmd{next}, 3, 90;
+        record_soft_failure 'Retry most probably due to network problems poo#52319 or failed next click';
+    }
 }
 
 # Get list of patches
