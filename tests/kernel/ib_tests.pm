@@ -105,7 +105,7 @@ sub run {
     $self->select_serial_terminal;
 
     # unload firewall. MPI- and libfabric-tests require too many open ports
-    script_run("systemctl stop firewalld");
+    systemctl("stop " . opensusebasetest::firewall);
     barrier_wait('IBTEST_SETUP');
 
     # create and distribute ssh key
@@ -177,4 +177,3 @@ IBTEST_ROLE=IBTEST_SLAVE
 PARALLEL_WITH=ibtest-master
 TEST=ibtest-slave
 WORKER_CLASS=64bit-mlx_con5
-
