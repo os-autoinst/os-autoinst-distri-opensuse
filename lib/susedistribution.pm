@@ -19,7 +19,12 @@ use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 
-# Base class implementation of distribution class necessary for testapi
+=head1 SUSEDISTRIBUTION
+
+=head1 SYNOPSIS
+
+Base class implementation of distribution class necessary for testapi
+=cut
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
@@ -28,6 +33,10 @@ use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_s
   wait_still_screen wait_screen_change get_required_var diag);
 
 
+=head2 handle_password_prompt
+
+Types the password in a password prompt
+=cut
 sub handle_password_prompt {
     my ($console) = @_;
     $console //= '';
@@ -46,6 +55,10 @@ sub handle_password_prompt {
     send_key('ret');
 }
 
+=head2 init
+
+TODO needs to be documented
+=cut
 sub init {
     my ($self) = @_;
 
@@ -54,6 +67,10 @@ sub init {
     $self->init_consoles();
 }
 
+=head2 init_cmd
+
+TODO needs to be documented
+=cut
 sub init_cmd {
     my ($self) = @_;
 
@@ -142,6 +159,10 @@ sub init_cmd {
     ## keyboard cmd vars end
 }
 
+=head2 init_desktop_runner
+
+Starts the desktop runner for C<x11_start_program>
+=cut
 sub init_desktop_runner {
     my ($program, $timeout) = @_;
     $timeout //= 30;
@@ -219,9 +240,7 @@ using the default of C<assert_screen> itself. For other desktop environments
 we keep the old check for the runner border.
 
 This method is overwriting the base method in os-autoinst.
-
 =cut
-
 sub x11_start_program {
     my ($self, $program, %args) = @_;
     my $timeout = $args{timeout};
@@ -269,6 +288,10 @@ sub _ensure_installed_zypper_fallback {
     type_string "exit\n";
 }
 
+=head2 ensure_installed
+
+Ensure that a package is installed
+=cut
 sub ensure_installed {
     my ($self, $pkgs, %args) = @_;
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
@@ -320,6 +343,10 @@ sub ensure_installed {
     assert_screen 'generic-desktop' if is_opensuse;
 }
 
+=head2 script_sudo
+
+Execute the given command as sudo
+=cut
 sub script_sudo {
     my ($self, $prog, $wait) = @_;
 
@@ -359,6 +386,10 @@ sub set_standard_prompt {
     }
 }
 
+=head2 become_root
+
+Log in as root in the current console
+=cut
 sub become_root {
     my ($self) = @_;
 
@@ -371,7 +402,10 @@ sub become_root {
     type_string "clear\n";
 }
 
-# initialize the consoles needed during our tests
+=head2 init_consoles
+
+Initialize the consoles needed during our tests
+=cut
 sub init_consoles {
     my ($self) = @_;
 
@@ -545,7 +579,10 @@ sub init_consoles {
     return;
 }
 
-# Make sure the right user is logged in, e.g. when using remote shells
+=head2 ensure_user
+
+Make sure the right user is logged in, e.g. when using remote shells
+=cut
 sub ensure_user {
     my ($user) = @_;
     type_string("su - $user\n") if $user ne 'root';
@@ -750,9 +787,7 @@ test module specific.
 
 C<ignore> can be overridden to not check on certain consoles. By default the
 known uncheckable consoles are already ignored.
-
 =cut
-
 sub console_selected {
     my ($self, $console, %args) = @_;
     $args{await_console} //= 1;
