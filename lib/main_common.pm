@@ -1888,16 +1888,13 @@ sub load_x11_other {
     }
 }
 
-sub load_x11_webbrowser_core {
+sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_smoke";
     loadtest "x11/firefox/firefox_urlsprotocols";
     loadtest "x11/firefox/firefox_downloading";
     loadtest "x11/firefox/firefox_changesaving";
     loadtest "x11/firefox/firefox_fullscreen";
     loadtest "x11/firefox/firefox_flashplayer";
-}
-
-sub load_x11_webbrowser_extra {
     loadtest "x11/firefox/firefox_localfiles";
     loadtest "x11/firefox/firefox_headers";
     loadtest "x11/firefox/firefox_pdf";
@@ -2014,8 +2011,7 @@ sub load_common_x11 {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
         loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
-        load_x11_webbrowser_core();
-        load_x11_webbrowser_extra();
+        load_x11_webbrowser();
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
@@ -2039,17 +2035,6 @@ sub load_common_x11 {
         loadtest "x11/window_system";
         loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         loadtest "x11/piglit/piglit";
-    }
-    # Used by Desktop Applications Group
-    elsif (check_var("REGRESSION", "webbrowser_core")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
-        load_x11_webbrowser_core();
-    }
-    elsif (check_var("REGRESSION", "webbrowser_extra")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
-        load_x11_webbrowser_extra();
     }
     # Used by ibus tests
     elsif (check_var("REGRESSION", "ibus")) {
