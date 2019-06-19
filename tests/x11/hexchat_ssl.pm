@@ -9,7 +9,7 @@
 #
 # Summary: FIPS : hexchat_ssl
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#49139 , poo#49136
+# Tags: poo#49139 , poo#49136 , poo#52796
 
 use base "x11test";
 use strict;
@@ -27,6 +27,7 @@ sub run {
     # opens it's window where the mouse is. mouse_hide() would move
     # it to the lower right where the pk-update-icon's passive popup
     # may suddenly cover parts of the dialog ... o_O
+    select_console "x11";
     mouse_set(0, 0);
 
     if (my $url = get_var("XCHAT_URL")) {
