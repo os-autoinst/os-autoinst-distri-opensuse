@@ -293,10 +293,10 @@ sub process_scc_register_addons {
     if (get_var('SCC_ADDONS')) {
         if (check_screen('scc-beta-filter-checkbox', 5)) {
             if (get_var('SP3ORLATER')) {
-                send_key 'alt-i';    # uncheck 'Hide Beta Versions'
+                wait_screen_change { send_key 'alt-i' };    # uncheck 'Hide Beta Versions'
             }
             else {
-                send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
+                wait_screen_change { send_key 'alt-f'} ;    # uncheck 'Filter Out Beta Version'
             }
             assert_screen('scc-beta-filter-unchecked');
         }
