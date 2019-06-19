@@ -30,9 +30,6 @@ sub run {
     if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {
         assert_and_click "firefox-appearance-addto-permissions_requested";
     }
-    assert_screen('firefox-appearance-installed', 90);
-    # Undo the theme installation
-    send_key "alt-u";
 
     $self->exit_firefox;
 }
