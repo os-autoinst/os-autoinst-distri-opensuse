@@ -26,13 +26,13 @@ sub run {
 
     $self->firefox_open_url('addons.mozilla.org/en-US/firefox/addon/opensuse');
     assert_screen('firefox-appearance-mozilla_addons');
-    assert_and_click "firefox-appearance-addto";
-    if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {
-        assert_and_click "firefox-appearance-addto-permissions_requested";
+    for (1 .. 3) {
+        assert_and_click 'firefox-appearance-addto';
+        if (check_screen("firefox-appearance-addto-permissions_requested", 10)) {
+            assert_and_click "firefox-appearance-addto-permissions_requested";
+        }
+        last if check_screen 'firefox-appearance-installed', 90;
     }
-    assert_screen('firefox-appearance-installed', 90);
-    # Undo the theme installation
-    send_key "alt-u";
 
     $self->exit_firefox;
 }
