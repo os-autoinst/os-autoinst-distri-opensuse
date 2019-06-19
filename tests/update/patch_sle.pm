@@ -44,6 +44,8 @@ sub patching_sle {
         zypper_call "lr";
         zypper_call "mr --disable --all";
         save_screenshot;
+        # Set SCC_PROXY_URL if needed
+        set_scc_proxy_url if ((check_var('HDDVERSION', get_var('ORIGINAL_TARGET_VERSION')) && is_upgrade()));
         sle_register("register");
         zypper_call('lr -d');
     }
