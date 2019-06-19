@@ -36,7 +36,7 @@ sub wait_for_guestregister
 
 sub run {
     my ($self) = @_;
-    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/' . generate_version() . '/home:metan.repo');
+    my $ltp_repo = get_var('LTP_REPO', 'http://download.suse.de/ibs/QA:/Head:/Devel/' . generate_version() . 'QA:Head:Devel.repo');
     $self->select_serial_terminal;
 
     my $provider = $self->provider_factory();
