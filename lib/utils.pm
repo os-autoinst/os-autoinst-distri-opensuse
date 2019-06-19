@@ -1114,15 +1114,16 @@ sub reconnect_mgmt_console {
 }
 
 =head2 show_tasks_in_blocked_state
-
-TODO someone should document this
+Dumps tasks that are in uninterruptable (blocked) state and wait for headline
+of dump.
+  see: https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sysrq.rst
 =cut
 sub show_tasks_in_blocked_state {
     # sending sysrqs doesn't work for svirt
     if (!check_var('BACKEND', 'svirt')) {
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
-        wait_serial(('SysRq : Show Blocked State', 'sysrq : Show Blocked State'), 1);
+        wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i, 1);
         send_key 'ret';    # ensure clean shell prompt
     }
 }
