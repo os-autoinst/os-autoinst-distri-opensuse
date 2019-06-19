@@ -1606,6 +1606,7 @@ sub load_extra_tests_console {
     loadtest 'console/zziplib'   if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
+    loadtest 'console/libgpiod' if is_leap('15.1+') || is_tumbleweed;
 }
 
 sub load_extra_tests_docker {
