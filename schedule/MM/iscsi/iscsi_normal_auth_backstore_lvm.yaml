@@ -1,0 +1,28 @@
+name:           iscsi-normal-auth-only
+description:    >
+    iSCSI multimachine test suite with normal authentication, lvm backstore, simple static network
+test_data:
+  common:
+    password: 'susetesting'
+  target_conf:
+    backstore_type: 'lvm'
+    backstore: '/dev/mapper/vg_iscsi-remote_lv'
+    user: 'test_target'
+    name: 'iqn.2016-02.de.openqa'
+    ip: '10.0.2.1/24'
+    id: 'target'
+  initiator_conf:
+    ip: '10.0.2.3/24'
+    user: 'test_initiator'
+    id: 'init'
+    name: 'iqn.2016-02.de.openqa'
+conditional_schedule:
+    iscsi:
+        FUNCTION:
+            target:
+                - iscsi/iscsi_server
+            initiator:
+                - iscsi/iscsi_client
+schedule:
+    - boot/boot_to_desktop
+    - {{iscsi}}
