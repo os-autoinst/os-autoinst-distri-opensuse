@@ -2376,6 +2376,10 @@ sub load_virtualization_tests {
     loadtest "virtualization/virt_top";
     loadtest "virtualization/virtman_install";
     loadtest "virtualization/virtman_view";
+
+    # reboot the machine to kill the previously started virtual machines
+    loadtest "console/console_reboot";
+    loadtest "virtualization/vagrant/add_box";
     return 1;
 }
 
