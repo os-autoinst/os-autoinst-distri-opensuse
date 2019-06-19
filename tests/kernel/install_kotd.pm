@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
+use version_utils 'is_opensuse';
 
 =head2 grub_version
 
@@ -102,15 +103,19 @@ END
 
 sub run {
     my $self = shift;
-    $self->wait_boot;
 
+    $self->wait_boot;
     $self->select_serial_terminal;
 
-    my $url = get_required_var("INSTALL_KOTD");
-    if ($url !~ /^https?:\/\//) {
-        my $arch = get_required_var("ARCH");
-        $url = "http://download.suse.de/ibs/Devel:/Kernel:/$url/standard/$arch/";
+    my $baseurl = "http://download.suse.de/ibs/Devel:";
+    my $version = "SLE" . get_required_var("VERSION");
+    if (is_opensuse) {
+        $baseurl = "http://download.opensuse.org/repositories";
+        $version = "HEAD";
     }
+    my $default_url = "$baseurl/Kernel:/$version/standard";
+    my $url         = get_var("KOTD_REPO", $default_url);
+    $url .= "/" . get_required_var("ARCH") . "/";
 
     if (grub_version() == 1) {
         my $file = download_kernel($url, 'kernel-default-base');
@@ -133,7 +138,14 @@ sub test_flags {
 =head1 Notes
 
 =head2 INSTALL_KOTD
+Set 1 to enable KOTD.
 
-INSTALL_KOTD can be the version of operating system(e.g. openSUSE-42.2, SLE12-SP3) or the entire url of a zypper repo(e.g. http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP3/standard/)
+=head2 KOTD_REPO
+URL of a zypper repo, e.g.:
+http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP5/standard/
+
+Default values:
+http://download.suse.de/ibs/Devel:/Kernel:/SLE%VERSION%/standard/ (SLES)
+http://download.opensuse.org/repositories/Kernel:/HEAD/standard/ (openSUSE)
 
 =cut
