@@ -35,8 +35,9 @@ sub register_system_and_add_extension {
     if (check_screen "yast2_registration-license-agreement") {
         wait_screen_change { send_key "alt-a" };
         send_key "alt-n";
-        wait_still_screen 5;
+        wait_still_screen 2;
     }
+    assert_screen 'yast2-software-installation-summary';
     send_key "alt-a";
     wait_still_screen 2;
     assert_screen 'yast2-sw_automatic-changes';
