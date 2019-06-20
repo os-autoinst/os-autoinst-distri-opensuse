@@ -646,9 +646,8 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        # Fresh install sles12sp3/4 shortcut is different with upgrade version
-        # Refer https://progress.opensuse.org/issues/47327
-        if ((is_sle('12-sp3+') && is_sle('<15') && get_var('UPGRADE')) || is_sle('>=15')) {
+        # Fresh install sles12sp2/3/4 shortcut is different with upgrade version
+        if ((is_sle('12-sp2+') && is_sle('<15') && get_var('UPGRADE')) || is_sle('>=15')) {
             send_key "alt-l";
         }
         else {
