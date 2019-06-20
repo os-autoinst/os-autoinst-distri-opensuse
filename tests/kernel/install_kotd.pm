@@ -14,6 +14,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use version_utils 'is_opensuse';
 
 =head2 grub_version
@@ -109,11 +110,15 @@ sub run {
 
     my $baseurl = "http://download.suse.de/ibs/Devel:";
     my $version = "SLE" . get_required_var("VERSION");
+    my $subdir  = "standard";
     if (is_opensuse) {
         $baseurl = "http://download.opensuse.org/repositories";
         $version = "HEAD";
+        # currently only x86_64, i686 and i586 are supported in standard directory
+        $subdir = "ARM" if is_aarch64();
+        $subdir = "PPC" if is_ppc64le();
     }
-    my $default_url = "$baseurl/Kernel:/$version/standard";
+    my $default_url = "$baseurl/Kernel:/$version/$subdir";
     my $url         = get_var("KOTD_REPO", $default_url);
     $url .= "/" . get_required_var("ARCH") . "/";
 
