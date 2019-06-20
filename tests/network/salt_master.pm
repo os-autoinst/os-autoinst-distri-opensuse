@@ -39,7 +39,8 @@ sub run {
     # List and accept both minions when they are ready
     assert_script_run("salt-key -L");
     assert_script_run("salt-key --accept-all -y");
-    assert_script_run "salt '*' test.ping";
+    assert_script_run 'for i in {1..7}; do echo "try $i" && if [[ $(salt \'*\' test.ping |& tee ping.log) = *"Not connected"* ]];
+    then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
 
     # Run a command and wait for minion
     assert_script_run("salt '*' cmd.run 'touch /tmp/salt_touch'", 180);
