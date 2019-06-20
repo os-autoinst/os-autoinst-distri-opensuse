@@ -23,7 +23,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos is_tumbleweed);
+use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures 'is_aarch64';
 use Utils::Systemd 'systemctl';
 use Mojo::UserAgent;
@@ -867,10 +867,15 @@ sub get_x11_console_tty {
       && !check_var('VIRSH_VMM_FAMILY', 'hyperv')
       && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');
-    # starting with Tumbleweed build 20190614, we ship gdm 3.32 and gnome
-    # desktop runs on tty2 for both auto-login cases and non auto-login cases
-    my $gdm_3_32 = is_tumbleweed() && get_var('BUILD') ge "20190614";
-    return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $gdm_3_32) && $new_gdm) ? 2 : 7;
+    # $newer_gdm means GDM version >= 3.32, which will start gnome desktop
+    # on tty2 including auto-login cases. Also exclude cases which boot from
+    # older versions in HDD
+    my $newer_gdm
+      = $new_gdm
+      && !is_sle('<=15-SP1')
+      && !is_leap('<=15.1')
+      && get_var('HDD_1') !~ /opensuse-42/;
+    return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
 }
 
 =head2  arrays_differ
