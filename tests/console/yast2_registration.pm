@@ -24,7 +24,7 @@ sub register_system_and_add_extension {
     send_key "tab";
     wait_screen_change { type_string get_var "SCC_REGCODE" };
     send_key "alt-n";
-    assert_screen("yast2_registration-ext-mod-selection", timeout => 60);
+    assert_screen("yast2_registration-ext-mod-selection", timeout => 120);
     # enable Web and Scripting Module
     for my $i (0 .. 25) {
         send_key "down";
@@ -37,7 +37,7 @@ sub register_system_and_add_extension {
         send_key "alt-n";
         wait_still_screen 2;
     }
-    assert_screen 'yast2-software-installation-summary';
+    assert_screen 'yast2-software-installation-summary', 90;
     send_key "alt-a";
     wait_still_screen 2;
     assert_screen 'yast2-sw_automatic-changes';
