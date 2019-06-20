@@ -160,6 +160,13 @@ sub run {
                 # Arbitrary choice, a cluster always has at least two nodes
                 $node = choose_node(2);
 
+                # Workaround needed before 12sp4
+                # Restart of master/slave rsc after fs_rsc configuration
+                foreach my $action ('stop', 'start') {
+                    assert_script_run "crm resource $action ms_$resource";
+                    sleep 5;
+                }
+
                 # Migrate resource on the node
                 assert_script_run "crm resource migrate ms_$resource $node";
                 ensure_resource_running("$fs_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
