@@ -17,8 +17,6 @@ use Mojo::Base 'publiccloud::provider';
 use Mojo::Util 'b64_decode';
 use Mojo::JSON 'decode_json';
 use testapi;
-use strict;
-use warnings;
 use utils;
 
 use constant CREDENTIALS_FILE => '/root/google_credentials.json';
@@ -116,5 +114,72 @@ sub ipa {
 
     return $self->run_ipa(%args);
 }
+
+sub describe_instance
+{
+    my ($self, $instance) = @_;
+    my $name     = $instance->instance_id();
+    my $attempts = 10;
+
+    my $out = [];
+    while (@{$out} == 0 && $attempts-- > 0) {
+        $out = decode_json(script_output("gcloud compute instances list --filter=\"name=( 'NAME' '$name')\" --format json", quiet => 1));
+        sleep 3;
+    }
+
+    die("Unable to retrive description of instance $name") unless ($attempts > 0);
+    return $out->[0];
+}
+
+sub get_state_from_instance
+{
+    my ($self, $instance) = @_;
+    my $name = $instance->instance_id();
+
+    my $desc = $self->describe_instance($instance);
+    die("Unable to get status") unless exists($desc->{status});
+    return $desc->{status};
+}
+
+sub get_ip_from_instance
+{
+    my ($self, $instance) = @_;
+    my $name = $instance->instance_id();
+
+    my $desc = $self->describe_instance($instance);
+    die("Unable to get public_ip") unless exists($desc->{networkInterfaces}->[0]->{accessConfigs}->[0]->{natIP});
+    return $desc->{networkInterfaces}->[0]->{accessConfigs}->[0]->{natIP};
+}
+
+sub stop_instance
+{
+    my ($self, $instance) = @_;
+    my $name     = $instance->instance_id();
+    my $attempts = 60;
+
+    die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);
+
+    assert_script_run("gcloud compute instances stop $name --async", quiet => 1);
+    while ($self->get_state_from_instance($instance) ne 'TERMINATED' && $attempts-- > 0) {
+        sleep 5;
+    }
+    die("Failed to stop instance $name") unless ($attempts > 0);
+}
+
+sub start_instance
+{
+    my ($self, $instance, %args) = @_;
+    my $name     = $instance->instance_id();
+    my $attempts = 60;
+
+    die("Try to start a running instance") if ($self->get_state_from_instance($instance) ne 'TERMINATED');
+
+    assert_script_run("gcloud compute instances start $name --async", quiet => 1);
+    while ($self->get_state_from_instance($instance) eq 'TERMINATED' && $attempts-- > 0) {
+        sleep 1;
+    }
+    $instance->public_ip($self->get_ip_from_instance($instance));
+}
+
 
 1;

@@ -205,4 +205,51 @@ sub on_terraform_timeout {
     assert_script_run("az group delete --yes --no-wait --name $resgroup");
 }
 
+sub get_state_from_instance
+{
+    my ($self, $instance) = @_;
+    my $name = $instance->instance_id();
+    my $out = decode_json(script_output("az vm get-instance-view --name $name --resource-group $name --query instanceView.statuses[1] --output json", quiet => 1));
+    die("Expect PowerState but got " . $out->{code}) unless ($out->{code} =~ m'PowerState/(.+)$');
+    return $1;
+}
+
+sub get_ip_from_instance
+{
+    my ($self, $instance) = @_;
+    my $name = $instance->instance_id();
+
+    my $out = decode_json(script_output("az vm list-ip-addresses --name $name --resource-group $name", quiet => 1));
+    return $out->[0]->{virtualMachine}->{network}->{publicIpAddresses}->[0]->{ipAddress};
+}
+
+sub stop_instance
+{
+    my ($self, $instance) = @_;
+    # We assume that the instance_id on azure is actually the name
+    # which is equal to the resource group
+    # TODO maybe we need to change the azure.tf file to retrieve the id instead of the name
+    my $name     = $instance->instance_id();
+    my $attempts = 60;
+
+    die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);
+
+    assert_script_run("az vm stop --resource-group $name --name $name", quiet => 1);
+    while ($self->get_state_from_instance($instance) ne 'stopped' && $attempts-- > 0) {
+        sleep 5;
+    }
+    die("Failed to stop instance $name") unless ($attempts > 0);
+}
+
+sub start_instance
+{
+    my ($self, $instance, %args) = @_;
+    my $name = $instance->instance_id();
+
+    die("Try to start a running instance") if ($self->get_state_from_instance($instance) ne 'stopped');
+
+    assert_script_run("az vm start --name $name --resource-group $name", quiet => 1);
+    $instance->public_ip($self->get_ip_from_instance($instance));
+}
+
 1;

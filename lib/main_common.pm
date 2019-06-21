@@ -2490,7 +2490,7 @@ sub load_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
         loadtest "publiccloud/prepare_tools";
     }
-    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS') or get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
+    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS')) {
         loadtest "publiccloud/ipa";
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
@@ -2498,6 +2498,9 @@ sub load_publiccloud_tests {
     }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net';
+    }
+    elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
+        loadtest "publiccloud/boottime";
     }
     elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
         loadtest "publiccloud/upload_image";
