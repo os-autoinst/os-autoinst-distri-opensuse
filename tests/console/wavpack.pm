@@ -16,12 +16,23 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
-use registration 'add_suseconnect_product';
+use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
     # setup
     select_console 'root-console';
-    add_suseconnect_product('sle-module-desktop-applications') if is_sle("15-sp1+");
+    # development module needed for dependencies, released products are tested with sdk module
+    if (get_var('BETA')) {
+        my $sdk_repo = is_sle('15+') ? get_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS') : get_var('REPO_SLE_SDK');
+        zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", "SDK";
+    }
+    # maintenance updates are registered with sdk module
+    elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+        cleanup_registration;
+        register_product;
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product(get_addon_fullname('sdk'));
+    }
     zypper_call 'in alsa alsa-utils wavpack';
     assert_script_run("cp /usr/share/sounds/alsa/Noise.wav .");
     assert_script_run("cp /usr/share/sounds/alsa/test.wav .");
@@ -44,6 +55,14 @@ sub run {
     assert_script_run("wvgain -s Noise.wv 2>&1 | grep \"no ReplayGain values found\"");
     assert_script_run("wvgain Noise.wv 2>&1 | grep -Pzo \"replaygain_track_gain = \\+11.06 dB(.|\\n)*replaygain_track_peak = 0.126251(.|\\n)*2 ReplayGain values appended\"");
     assert_script_run("wvgain -s Noise.wv 2>&1 | grep -Pzo \"replaygain_track_gain = \\+11.06 dB(.|\\n)*replaygain_track_peak = 0.126251\"");
+
+    # unregister SDK
+    if (get_var('BETA')) {
+        zypper_call "rr SDK";
+    }
+    elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+        remove_suseconnect_product(get_addon_fullname('sdk'));
+    }
 }
 
 1;
