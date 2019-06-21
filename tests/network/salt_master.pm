@@ -43,7 +43,7 @@ sub run {
     then cat ping.log && false; else salt \'*\' test.ping && break; fi; done';
 
     # Run a command and wait for minion
-    assert_script_run("salt '*' cmd.run 'touch /tmp/salt_touch'", 180);
+    assert_script_run("salt '*' cmd.run 'touch /tmp/salt_touch'", 300);
     mutex_create 'SALT_TOUCH';
 
     # Install a package and wait for the minion
@@ -54,7 +54,7 @@ sysstat:
 base:
   '*':
     - pkg" > /srv/salt/top.sls));
-    assert_script_run("salt '*' state.highstate", 180);
+    assert_script_run("salt '*' state.highstate", 300);
     mutex_create 'SALT_STATES_PKG';
 
     # Create user and group and wait for the minion
@@ -70,7 +70,7 @@ salttestuser:
     - groups:
       - salttestgroup" > /srv/salt/user.sls));
     assert_script_run("echo '    - user' >> /srv/salt/top.sls");
-    assert_script_run("salt '*' state.highstate", 180);
+    assert_script_run("salt '*' state.highstate", 300);
     mutex_create 'SALT_STATES_USER';
 
     # Set sysctl key and wait for the minion
@@ -79,7 +79,7 @@ net.ipv4.ip_forward:
   sysctl.present:
     - value: 1" > /srv/salt/sysctl.sls));
     assert_script_run("echo '    - sysctl' >> /srv/salt/top.sls");
-    assert_script_run("salt '*' state.highstate", 180);
+    assert_script_run("salt '*' state.highstate", 300);
     mutex_create 'SALT_STATES_SYSCTL';
 
     # Stop both master and minion at the end
