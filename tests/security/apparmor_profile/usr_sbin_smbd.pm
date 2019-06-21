@@ -37,8 +37,7 @@ sub samba_server_setup {
 
     send_key "alt-w";
     type_string("WORKGROUP");
-    send_key "alt-n";
-    assert_screen("samba-server-configuration");
+    send_key_until_needlematch("samba-server-configuration", 'alt-n', 10, 2);
     send_key "alt-s";
     assert_screen("samba-server-configuration-shares");
     send_key "alt-a";
@@ -102,7 +101,8 @@ sub samba_client_access {
 
     # Do some operations, e.g., create a test folder then delete it
     send_key "shift-ctrl-n";
-    type_string("sub-testdir");
+    wait_still_screen(2);
+    type_string("sub-testdir", wait_screen_changes => 10);
     send_key "ret";
     send_key_until_needlematch("nautilus-sharedir-delete", "delete", 5, 2);
     send_key "ret";
