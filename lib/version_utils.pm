@@ -348,7 +348,8 @@ sub is_using_system_role_first_flow {
 
 # If there is only one role, there is no selection offered
 sub requires_role_selection {
-    return get_var('FLAVOR', '') !~ /Krypton/;
+    # Applies to Krypton and Argon based on Leap 15.1+
+    return !is_krypton_argon;
 }
 
 =head2 has_product_selection
