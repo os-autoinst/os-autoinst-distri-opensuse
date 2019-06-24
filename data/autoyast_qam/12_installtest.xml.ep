@@ -79,8 +79,8 @@
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-<!--12-SP3 is LTSS-->
       % unless ($check_var->('VERSION', '12-SP3')) {
+<!--12-SP3 is LTSS-->
       <listentry>
         <name>sle-sdk:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-sdk:<%= $get_var->('VERSION') %>::pool</alias>
@@ -108,7 +108,12 @@
     <global>
       <timeout config:type="integer">-1</timeout>
     </global>
+    % if ($check_var->('UEFI', '1')) {
+    <loader_type>grub2-efi</loader_type>
+    % }
+    % unless ($check_var->('UEFI', '1')) {
     <loader_type>grub2</loader_type>
+    % }
   </bootloader>
   <general>
     <mode>
@@ -139,19 +144,72 @@
     </interfaces>
   </networking>
   <firewall>
+    % if ($check_var->('ARCH', 's390x')) {
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+    % }
+    % unless ($check_var->('ARCH', 's390x')) {
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
+    % }
     <FW_ALLOW_PING_FW>yes</FW_ALLOW_PING_FW>
     <FW_DEV_EXT>eth0</FW_DEV_EXT>
-    <FW_SERVICES_ACCEPT_EXT>0/0,tcp,22</FW_SERVICES_ACCEPT_EXT>
+    <FW_CONFIGURATIONS_EXT>sshd vnc-server</FW_CONFIGURATIONS_EXT>
   </firewall>
   <partitioning config:type="list">
     <drive>
+      % if ($check_var->('ARCH', 's390x')) {
+      <device>/dev/disk/by-path/ccw-0.0.0000</device>
+      <disklabel>msdos</disklabel>
+      % }
+      % if ($check_var->('ARCH', 'ppc64le')) {
+      <device>/dev/vda</device>
+      <disklabel>msdos</disklabel>
+      % }
+      % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le')) {
       <device>/dev/vda</device>
       <disklabel>gpt</disklabel>
+      % }
       <enable_snapshots config:type="boolean">true</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">false</format>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext2</filesystem>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <filesystem config:type="symbol">vfat</filesystem>
+          % }
+          % if ($check_var->('ARCH', 's390x')) {
+          <mount>/boot/zipl</mount>
+          <fstopt>acl,user_xattr</fstopt>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <mount>/boot/efi</mount>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          % }
+          % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <mount>/boot</mount>
+          % }
+          <mountby config:type="symbol">path</mountby>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <partition_id config:type="integer">65</partition_id>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">131</partition_id>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">259</partition_id>
+          % }
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>500M</size>
+        </partition>
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
@@ -159,7 +217,7 @@
           <mount>swap</mount>
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">1</partition_nr>
+          <partition_nr config:type="integer">2</partition_nr>
           <partition_type>primary</partition_type>
           <size>2G</size>
         </partition>
@@ -169,7 +227,7 @@
           <mount>/</mount>
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
+          <partition_nr config:type="integer">3</partition_nr>
           <partition_type>primary</partition_type>
           <size>max</size>
         </partition>
@@ -197,6 +255,12 @@ sed -i '/^path*/d' /etc/zypp/repos.d/*
 
 # delete default ISO repo
 rm -f /etc/zypp/repos.d/SLE[SD]<%= $get_var->('VERSION') %>*
+% if ($check_var->('ARCH', 's390x')) {
+
+# don't know the service which would work on s390x ...
+systemctl start SuSEfirewall2.service
+systemctl enable SuSEfirewall2.service
+% }
 exit 0
 
 ]]></source>
