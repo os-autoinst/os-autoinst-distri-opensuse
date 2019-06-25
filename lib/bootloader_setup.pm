@@ -627,7 +627,7 @@ sub specific_bootmenu_params {
         diag "Explicitly enabling installer self update with $self_update_repo";
     }
 
-    if (get_var("FIPS")) {
+    if (get_var("FIPS_INSTALLATION")) {
         push @params, "fips=1";
     }
 

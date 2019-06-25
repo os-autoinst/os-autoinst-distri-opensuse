@@ -2060,9 +2060,9 @@ sub load_applicationstests {
 }
 
 sub load_security_console_prepare {
-    loadtest "console/system_prepare";
     loadtest "console/consoletest_setup";
-    loadtest "console/hostname" if get_var("SECURITY_TEST") !~ /crypt_krb5/;
+    loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/);
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
 }
 
 # The function name load_security_tests_crypt_* is to avoid confusing
@@ -2072,23 +2072,21 @@ sub load_security_console_prepare {
 sub load_security_tests_crypt_core {
     load_security_console_prepare;
 
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
+    if (get_var('FIPS_ENABLED')) {
         loadtest "fips/openssl/openssl_fips_alglist";
         loadtest "fips/openssl/openssl_fips_hash";
         loadtest "fips/openssl/openssl_fips_cipher";
-        loadtest "fips/openssh/openssh_fips";
     }
     loadtest "fips/openssl/openssl_pubkey_rsa";
     loadtest "fips/openssl/openssl_pubkey_dsa";
-    if (is_sle('12-SP2+') || is_tumbleweed) {
-        loadtest "console/openssl_alpn";
-    }
+    loadtest "console/openssl_alpn";
+
+    loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
     loadtest "console/sshd";
     loadtest "console/ssh_pubkey";
     loadtest "console/ssh_cleanup";
-    loadtest "console/openvswitch_ssl";
-    loadtest "console/consoletest_finish";
 }
+
 
 sub load_security_tests_crypt_web {
     load_security_console_prepare;
@@ -2101,53 +2099,60 @@ sub load_security_tests_crypt_web {
         loadtest "console/lynx_https";
     }
     loadtest "console/apache_ssl";
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
+    if (get_var('FIPS_ENABLED')) {
         loadtest "fips/mozilla_nss/apache_nssfips";
         loadtest "console/libmicrohttpd" if is_sle('<15');
     }
-    loadtest "console/consoletest_finish";
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
-        loadtest "fips/mozilla_nss/firefox_nss";
-    }
 }
 
-sub load_security_tests_crypt_misc {
+sub load_security_tests_crypt_kernel {
     load_security_console_prepare;
 
-    if (check_var('DISTRI', 'sle') && get_var('FIPS_ENABLED')) {
-        loadtest "fips/curl_fips_rc4_seed";
-        loadtest "console/aide_check";
-    }
-    loadtest "console/journald_fss";
-    loadtest "console/git";
-    loadtest "console/clamav";
-    loadtest "console/consoletest_finish";
-    # In SLE, the hexchat package is provided only in WE addon which is
-    # only for x86_64 platform. Then hexchat is x86_64 specific and not
-    # appropriate for other arches.
-    loadtest "x11/hexchat_ssl" if (is_x86_64);
+    loadtest "console/cryptsetup";
+    loadtest "security/dm_crypt";
+}
+
+sub load_security_tests_crypt_x11 {
+    set_var('SECTEST_REQUIRE_WE', 1);
+    load_security_console_prepare;
+
     loadtest "x11/x3270_ssl";
-    # seahorse_sshkey is provided in WE only for x86_64 platform
-    loadtest "x11/seahorse_sshkey" if (is_x86_64);
+    loadtest "fips/mozilla_nss/firefox_nss" if get_var('FIPS_ENABLED');
+
+    # In SLE, hexchat and seahorse are provided only in WE addon which is for
+    # x86_64 platform only.
+    if (is_x86_64) {
+        loadtest "x11/seahorse_sshkey";
+        loadtest "x11/hexchat_ssl";
+    }
 }
 
 sub load_security_tests_crypt_tool {
     load_security_console_prepare;
 
+    if (get_var('FIPS_ENABLED')) {
+        loadtest "fips/curl_fips_rc4_seed";
+        loadtest "console/aide_check";
+    }
     loadtest "console/gpg";
-    loadtest "security/dm_crypt" if not get_var('FIPS_ENV_MODE');
-    loadtest "console/cryptsetup";
-    loadtest "console/consoletest_finish";
+    loadtest "console/journald_fss";
+    loadtest "console/git";
+    loadtest "console/clamav";
+    loadtest "console/openvswitch_ssl";
 }
 
 sub load_security_tests_crypt_krb5kdc {
+    set_var('SECTEST_DVD_SRC', 1);
     load_security_console_prepare;
+
     loadtest "security/krb5/krb5_crypt_prepare";
     loadtest "security/krb5/krb5_crypt_setup_kdc";
 }
 
 sub load_security_tests_crypt_krb5server {
+    set_var('SECTEST_DVD_SRC', 1);
     load_security_console_prepare;
+
     loadtest "security/krb5/krb5_crypt_prepare";
     loadtest "security/krb5/krb5_crypt_setup_server";
     loadtest "security/krb5/krb5_crypt_ssh_server";
@@ -2155,7 +2160,9 @@ sub load_security_tests_crypt_krb5server {
 }
 
 sub load_security_tests_crypt_krb5client {
+    set_var('SECTEST_DVD_SRC', 1);
     load_security_console_prepare;
+
     loadtest "security/krb5/krb5_crypt_prepare";
     loadtest "security/krb5/krb5_crypt_setup_client";
     loadtest "security/krb5/krb5_crypt_ssh_client";
@@ -2273,7 +2280,7 @@ sub load_security_tests_system_check {
 
 sub load_security_tests {
     my @security_tests = qw(
-      fips_setup crypt_core crypt_web crypt_misc crypt_tool
+      fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_tool
       crypt_krb5kdc crypt_krb5server crypt_krb5client
       ipsec mmtest
       apparmor apparmor_profile selinux
@@ -2291,7 +2298,7 @@ sub load_security_tests {
             $test_to_run->();
         }
         else {
-            diag "unknown scenario for SECRITY_TEST value $test_name";
+            diag "unknown scenario for SECURITY_TEST value $test_name";
         }
     }
 }
