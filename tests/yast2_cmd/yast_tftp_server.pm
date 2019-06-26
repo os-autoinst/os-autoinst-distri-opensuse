@@ -11,6 +11,7 @@
 #          setup, enabled and disabled correctly in cmd mode.
 # Maintainer: Shukui Liu <skliu@suse.com>
 
+package yast_tftp_server;
 use base 'consoletest';
 use strict;
 use warnings;
@@ -27,4 +28,5 @@ sub run {
     assert_script_run 'yast tftp-server status disable';
     validate_script_output 'yast tftp-server status show 2>&1', sub { m/false/ };
 }
+
 1;
