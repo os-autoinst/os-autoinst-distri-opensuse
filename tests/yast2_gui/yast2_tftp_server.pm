@@ -11,6 +11,7 @@
 #          setup, enabled and disabled correctly in gui mode.
 # Maintainer: Shukui Liu <skliu@suse.com>
 
+package yast2_tftp_server;
 use base "y2_module_guitest";
 use strict;
 use warnings;
