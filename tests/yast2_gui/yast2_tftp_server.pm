@@ -7,14 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: yast2 tftp-server testcase.
-# Maintainer: shukui <skliu@suse.com>
-
+# Summary: this test checks that YaST2's tftp-server module are
+#          setup, enabled and disabled correctly in gui mode.
+# Maintainer: Shukui Liu <skliu@suse.com>
 
 use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;
+use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
