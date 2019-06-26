@@ -96,6 +96,23 @@ sub run {
     foreach my $sr (split("\n", $sr_out)) {
         zypper_call("ar dvd:///?devices=/dev/$sr $sr");
     }
+
+    # It is usually no DVD available for s390x testing, so we add repository
+    if (check_var('ARCH', 's390x')) {
+        my $mirror_src = get_required_var('MIRROR_HTTP');
+        zypper_call("ar $mirror_src MIRROR_HTTP_SRC");
+
+        if (is_sle('>=15')) {
+            my $urlprefix = get_required_var('MIRROR_PREFIX');
+            foreach my $n ('SLE_PRODUCT_SLES', 'SLE_MODULE_BASESYSTEM',
+                'SLE_MODULE_SERVER_APPLICATIONS', 'SLE_MODULE_DESKTOP_APPLICATIONS') {
+                next unless get_var("REPO_$n");
+                my $repourl = $urlprefix . "/" . get_var("REPO_$n");
+                zypper_call("ar $repourl $n");
+            }
+        }
+    }
+
     zypper_call("--gpg-auto-import-keys ref");
 }
 
