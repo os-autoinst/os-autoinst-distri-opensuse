@@ -7,19 +7,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: yast tftp-server, list, set and show summary
 # Maintainer: shukui <skliu@suse.com>
 
 
 use base "y2_module_guitest";
 use strict;
+use warnings;
 use testapi;
 
 sub run {
     my $self = shift;
 
     select_console 'root-console';
-    zypper_call "in tftp yast2-tftp-server";
+    zypper_call('in tftp yast2-tftp-server', timeout => 1200);
     script_run 'systemctl status tftp.socket';
 
     select_console 'x11';
