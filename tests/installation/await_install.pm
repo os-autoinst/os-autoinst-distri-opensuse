@@ -82,26 +82,25 @@ sub run {
     if (check_var('ARCH', 's390x')) {
         push(@tags, 'additional-packages');
     }
-    my $keep_trying                    = 1;
     my $screenlock_previously_detected = 0;
     my $mouse_x                        = 1;
-    while ($keep_trying) {
-        if (get_var('LIVECD') && $screenlock_previously_detected) {
-            my $ret = check_screen \@tags, 30;
-            if (!$ret) {
-                diag('installation not finished, move mouse around a bit to keep screen unlocked');
-                $mouse_x = ($mouse_x + 10) % 1024;
-                mouse_set($mouse_x, 1);
-                next;
-            }
+    while (1) {
+        my $ret = check_screen \@tags, 30;
+
+        if (!$ret) {
             $timeout -= 30;
             diag("left total await_install timeout: $timeout");
             if ($timeout <= 0) {
                 assert_screen \@tags;
+                die "timeout hit on during await_install";
             }
-        }
-        else {
-            assert_screen \@tags, $timeout;
+
+            if (get_var('LIVECD') && $screenlock_previously_detected) {
+                diag('installation not finished, move mouse around a bit to keep screen unlocked');
+                $mouse_x = ($mouse_x + 10) % 1024;
+                mouse_set($mouse_x, 1);
+            }
+            next;
         }
 
         if (match_has_tag('yast_error')) {
