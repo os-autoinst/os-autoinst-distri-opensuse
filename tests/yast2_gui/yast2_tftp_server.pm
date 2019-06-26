@@ -15,6 +15,7 @@ use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;
+use utils;
 
 sub run {
     my $self = shift;
