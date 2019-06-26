@@ -20,13 +20,7 @@ use testapi;
 
 sub run {
     my $self = shift;
-
     select_console 'root-console';
-    #   assert_script_run 'echo Hello World!';
-    #   assert_script_run 'ls -l';
-    #   assert_script_run 'ip a';
-    #   assert_script_run 'systemctl stop firewalld';
-    #   assert_script_run 'systemctl start sshd.service';
     assert_script_run 'zypper -n in tftp yast2-tftp-server', 200;
     script_run 'systemctl status tftp.socket';
 
