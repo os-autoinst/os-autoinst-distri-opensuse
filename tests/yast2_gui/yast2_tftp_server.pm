@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Summary: yast2 tftp-server testcase.
 # Maintainer: shukui <skliu@suse.com>
 
 
