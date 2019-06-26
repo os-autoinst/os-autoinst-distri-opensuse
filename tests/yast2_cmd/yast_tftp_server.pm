@@ -7,14 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: yast tftp-server, list, set and show summary.
-# Maintainer: shukui <skliu@suse.com>
+# Summary: this test checks that YaST's tftp-server module are
+#          setup, enabled and disabled correctly in cmd mode.
+# Maintainer: Shukui Liu <skliu@suse.com>
 
 use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
