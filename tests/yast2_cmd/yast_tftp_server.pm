@@ -7,13 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: yast tftp-server, list, set and show summary
+# Summary: yast tftp-server, list, set and show summary.
 # Maintainer: shukui <skliu@suse.com>
 
 use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use utils;
 
 sub run {
     select_console 'root-console';
@@ -25,6 +26,4 @@ sub run {
     assert_script_run 'yast tftp-server status disable';
     validate_script_output 'yast tftp-server status show 2>&1', sub { m/false/ };
 }
-
-#sub post_run_hook {}
 1;
