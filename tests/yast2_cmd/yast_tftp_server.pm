@@ -18,7 +18,7 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    zypper_call "in tftp yast2-tftp-server";
+    zypper_call('in tftp yast2-tftp-server', timeout => 1200);
     assert_script_run 'yast tftp-server directory path=/srv/tftpboot';
     validate_script_output 'yast tftp-server directory list 2>&1', sub { m/tftpboot/ };
     assert_script_run 'yast tftp-server status enable';
