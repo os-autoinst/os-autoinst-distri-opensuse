@@ -11,10 +11,7 @@
 #          setup, enabled and disabled correctly in cmd mode.
 # Maintainer: Shukui Liu <skliu@suse.com>
 
-use base 'consoletest';
-use strict;
-use warnings;
-use testapi;
+
 
 sub run {
     select_console 'root-console';
