@@ -37,7 +37,7 @@ sub lock_screen {
 
 sub logout_and_login {
     handle_logout;
-    assert_screen 'displaymanager';
+    send_key_until_needlematch 'displaymanager', 'esc', 30, 3;
     mouse_hide();
     wait_still_screen;
     assert_and_click "displaymanager-$username";
@@ -161,8 +161,7 @@ sub run {
     # We should kill the active user test in SLE15
     assert_script_run 'loginctl terminate-user test' if is_sle('15+') || is_tumbleweed;
     wait_still_screen;
-    type_string "userdel -f test\n";
-    assert_screen "user-test-deleted";
+    assert_script_run 'userdel -f test';
     send_key "alt-f4";
     send_key "ret";
 
