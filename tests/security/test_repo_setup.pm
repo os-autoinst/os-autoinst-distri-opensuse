@@ -89,16 +89,18 @@ sub run {
 
     repo_cleanup;
 
-    # Add all available ISO images can be found
-    my $sr_out = script_output("cd /dev && ls -1 sr* && cd", proceed_on_failure => 1);
-    die "DVD images not found!" if ($sr_out =~ /No such file/);
-
-    foreach my $sr (split("\n", $sr_out)) {
-        zypper_call("ar dvd:///?devices=/dev/$sr $sr");
-    }
-
-    # It is usually no DVD available for s390x testing, so we add repository
-    if (check_var('ARCH', 's390x')) {
+    if (!check_var('ARCH', 's390x')) {
+        # Add all available ISO images can be found
+        my $sr_out = script_output("cd /dev && ls -1 sr* && cd", proceed_on_failure => 1);
+        if ($sr_out =~ /No such file/) {
+            die "DVD images not found!" if (!check_var('ARCH', 'x86_64'));
+        } else {
+            foreach my $sr (split("\n", $sr_out)) {
+                zypper_call("ar dvd:///?devices=/dev/$sr $sr");
+            }
+        }
+    } else {
+        # DVD is usually not available for s390x, so add repository instead
         my $mirror_src = get_required_var('MIRROR_HTTP');
         zypper_call("ar $mirror_src MIRROR_HTTP_SRC");
 
