@@ -25,14 +25,9 @@ sub application_test {
     send_key "ret";
     wait_still_screen;
 
-    x11_start_program('firefox');
-    $self->firefox_check_default;
-    $self->firefox_check_popups;
-    assert_screen "firefox-gnome", 150;
+    x11_start_program('xterm');
+    assert_screen 'xterm';
     send_key "alt-f4";
-    wait_still_screen;
-    send_key "ret";
-    wait_still_screen;
 
 }
 
