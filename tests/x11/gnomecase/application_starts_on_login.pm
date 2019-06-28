@@ -75,7 +75,7 @@ sub alter_status_auto_save_session {
     else {
         send_key 'ctrl-f';
         assert_screen 'dconf-search-bar';
-        type_string "auto-save-session\n";
+        type_string "auto-save-session\n", max_interval => 200;
     }
     assert_and_click "auto-save-session";
     if (check_screen("changing-scheme-popup", 5)) {
