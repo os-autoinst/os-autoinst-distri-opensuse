@@ -31,7 +31,7 @@ our $default_services = {
     susefirewall => {
         srv_pkg_name  => 'SuSEfirewall2',
         srv_proc_name => 'SuSEfirewall2',
-        support_ver   => '12-SP3,12-SP4'
+        support_ver   => '12-SP3,12-SP4,12-SP5'
     },
     firewall => {
         srv_pkg_name  => 'firewalld',
@@ -41,7 +41,7 @@ our $default_services = {
     ntp => {
         srv_pkg_name  => 'ntp',
         srv_proc_name => 'ntpd',
-        support_ver   => '12-SP3,12-SP4'
+        support_ver   => '12-SP3,12-SP4,12-SP5'
     },
     chrony => {
         srv_pkg_name  => 'chrony',
@@ -51,7 +51,7 @@ our $default_services = {
     postfix => {
         srv_pkg_name  => 'postfix',
         srv_proc_name => 'postfix',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     # Quick hack for poo 50576, we need this workround before full solution
     #    apache => {
@@ -62,57 +62,57 @@ our $default_services = {
     bind => {
         srv_pkg_name  => 'bind',
         srv_proc_name => 'named',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     snmp => {
         srv_pkg_name  => 'net-snmp',
         srv_proc_name => 'snmpd',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     nfs => {
         srv_pkg_name  => 'yast2-nfs-server',
         srv_proc_name => 'nfs',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     rpcbind => {
         srv_pkg_name  => 'rpcbind',
         srv_proc_name => 'rpcbind',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     nfs => {
         srv_pkg_name  => 'yast2-nfs-server',
         srv_proc_name => 'nfs',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     rpcbind => {
         srv_pkg_name  => 'rpcbind',
         srv_proc_name => 'rpcbind',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     autofs => {
         srv_pkg_name  => 'autofs',
         srv_proc_name => 'autofs',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     cups => {
         srv_pkg_name  => 'cups',
         srv_proc_name => 'cups',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     radvd => {
         srv_pkg_name  => 'radvd',
         srv_proc_name => 'radvd',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     cron => {
         srv_pkg_name  => 'cron',
         srv_proc_name => 'cron',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     apparmor => {
         srv_pkg_name  => 'apparmor',
         srv_proc_name => 'apparmor',
-        support_ver   => '12-SP3,12-SP4,15,15-SP1'
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
 };
 
