@@ -23,7 +23,7 @@ sub run {
     record_info('Version', script_output('gpiodetect --version | head -n1'));
 
     # ARM qemu has already gpiochip0 [ARMH0061:00] (8 lines) for ACPI
-    my $gpiochipX = "gpiochip" . get_var('ARCH') =~ /aarch64/ ? '1' : '0';
+    my $gpiochipX = get_var('ARCH') =~ /aarch64/ ? 'gpiochip1' : 'gpiochip0';
 
     record_info('gpiochip', "$gpiochipX");
 
