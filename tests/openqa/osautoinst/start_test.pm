@@ -30,11 +30,7 @@ job_id=\$(openqa-client --host $openqa_url --json-output jobs get version=Tumble
 echo "Job Id: \$job_id"
 [ ! -z \$job_id  ]
 echo "Scenario: $arch-$ttest-NET: \$job_id"
-sudo -u _openqa-worker touch /var/lib/openqa/factory/iso/.test || (echo "TODO: workaround, _openqa-worker should be able to write factory/iso" && mkdir -p /var/lib/openqa/factory/iso && chmod ugo+rwX /var/lib/openqa/factory/iso)
-ls -la /var/lib/openqa/factory/iso
-echo "Prevent bsc#1027347"
-cd /tmp
-sudo -u _openqa-worker /usr/share/openqa/script/clone_job.pl --from $openqa_url \$job_id $clone_options
+openqa-clone-job --from $openqa_url \$job_id $clone_options
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
 }
