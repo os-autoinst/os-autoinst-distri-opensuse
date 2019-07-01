@@ -1737,6 +1737,12 @@ sub load_extra_tests {
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
 
+    # For extratests let's enable kernel.softlockup panic mode, so that we're sure
+    # that whenever there's a softlockup in the kernel, we for sure get at least
+    # that backtrace in the serial console
+
+    set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . ' kernel.softlockup_panic=1');
+
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
     # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
