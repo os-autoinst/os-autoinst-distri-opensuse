@@ -21,6 +21,7 @@ use version_utils qw(is_jeos is_opensuse);
 
 sub run {
     select_console 'root-console';
+    assert_screen('fail-here');
     zypper_call('in clamav');
     # Initialize and download ClamAV database which needs time
     assert_script_run('freshclam', 700);
