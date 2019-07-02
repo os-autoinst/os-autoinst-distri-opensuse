@@ -75,7 +75,7 @@
         <alias>sle-module-public-cloud:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Public-Cloud/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % if ($check_var->('VERSION', '15-SP1')) {
+      % unless ($check_var->('VERSION', '15')) {
       <listentry>
         <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
