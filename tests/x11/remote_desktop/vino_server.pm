@@ -53,12 +53,21 @@ sub run {
     send_key 'alt-f4';
     assert_screen 'gcc-sharing-activate';
 
+    # The following section opens a terminal to print vino-server log
+    # to help debug poo#49811
+    x11_start_program('xterm');
+    assert_script_run('killall vino-server');
+    type_string("/usr/lib/vino/vino-server | tee /tmp/vino-server.log\n");
+    send_key 'alt-tab';
+
     # Notice vino server is ready for remote access
     mutex_create 'vino_server_ready';
 
     # Wait until vino client finishes remote access
     wait_for_children;
 
+    save_screenshot;
+    wait_screen_change { send_key 'alt-f4' };
     wait_screen_change { send_key 'alt-f4' };
 }
 
