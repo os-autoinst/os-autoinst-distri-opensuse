@@ -194,8 +194,12 @@ sub setup_env {
     }
     # This is for 12-sp5 project specific flavor Migration-from-SLE12-SP5-to-SLE15-SPx, this flavor belong 12sp5 test group but the real
     # action is migration from 12-sp5 to 15-sp1, so we need change VERSION to 15-SP1 before the test case start
-    if (check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx')) {
+    if (check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx') || check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx-Milestone')
+        || check_var('FLAVOR', 'Regression-on-SLE15-SPx-migrated-from-SLE12-SP5')) {
         set_var('VERSION', '15-SP1');
+        if (check_var('ARCH', 's390x')) {
+            set_var('TAR_BUILD', get_var('TARGET_BUILD'));
+        }
     }
 }
 
