@@ -870,31 +870,33 @@ sub tianocore_http_boot {
 }
 
 sub zkvm_add_disk {
-    my ($svirt) = @_;
-    if (my $hdd = get_var('HDD_1')) {
-        my $basename = basename($hdd);
-        my $basedir  = svirt_host_basedir();
-        my $hdd_dir  = "$basedir/openqa/share/factory/hdd";
-        my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
-        die "Unable to find image $basename in $hdd_dir" unless $hdd_path;
-        diag("HDD path found: $hdd_path");
-        if (get_var('PATCHED_SYSTEM')) {
-            diag('in patched systems just load the patched image');
-            my $name        = $svirt->name;
-            my $patched_img = "$zkvm_img_path/$name" . "a.img";
-            $svirt->add_disk({file => $patched_img, dev_id => 'a'});
+    my ($svirt)  = @_;
+    my $dev_id   = 'a';
+    my $numdisks = get_var('NUMDISKS') || '1';
+
+    foreach my $n (1 .. $numdisks) {
+        if (my $hdd = get_var('HDD_' . $n)) {
+            my $basename = basename($hdd);
+            my $basedir  = svirt_host_basedir();
+            my $hdd_dir  = "$basedir/openqa/share/factory/hdd";
+            my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
+            die "Unable to find image $basename in $hdd_dir" unless $hdd_path;
+            diag("HDD path found: $hdd_path");
+            if (get_var('PATCHED_SYSTEM')) {
+                diag('in patched systems just load the patched image');
+                my $name        = $svirt->name;
+                my $patched_img = "$zkvm_img_path/${name}${dev_id}" . ".img";
+                $svirt->add_disk({file => $patched_img, dev_id => $dev_id});
+            }
+            else {
+                type_string("# copying image...\n");
+                $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id});    # Copy disk to local storage
+            }
+            $dev_id = chr((ord $dev_id) + 1);
         }
         else {
-            type_string("# copying image...\n");
-            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
-        }
-    }
-    else {
-        # Add new disks according to NUMDISKS
-        my $size_i   = get_var('HDDSIZEGB') || '4';
-        my $numdisks = get_var('NUMDISKS')  || '1';
-        my $dev_id   = 'a';
-        foreach my $n (1 .. $numdisks) {
+            # Add new disks according to NUMDISKS
+            my $size_i = get_var('HDDSIZEGB') || '4';
             $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => $dev_id});
             # apply next letter as dev_id
             $dev_id = chr((ord $dev_id) + 1);
