@@ -1,0 +1,66 @@
+---
+- hosts: all
+
+  tasks:
+
+    - name: add a test user
+      user:
+        name: test
+        state: present
+
+    - name: cat the testfile
+      command: cat /vagrant/testfile.txt
+      changed_when: false
+      register: testfile_result
+
+    - name: grep for the zypper setting that only required packages get installed
+      command: grep '^\S*solver\.onlyRequires' /etc/zypp/zypp.conf
+      changed_when: false
+      register: only_reguires_grep
+
+    - name: grep for multiversion kernel settings (expected to fail)
+      command: grep '^\S*multiversion' /etc/zypp/zypp.conf
+      changed_when: false
+      ignore_errors: true  # grep should not find this but will then return 1
+      register: multiversion_grep
+
+    - name: get the list of installed packages
+      command: rpm -qa
+      args:
+        # we use rpm directly so silence the warning here
+        warn: false
+      changed_when: false
+      register: pkg_list
+
+    - name: find the ssh host keys
+      find:
+        paths: "/etc/ssh/"
+        recurse: no
+        patterns: "ssh_host_*key*"
+      register: ssh_host_keys
+
+    - name: stat the newly generated ssh keys
+      stat:
+        path: "{{ item.path }}"
+      loop: "{{ ssh_host_keys.files }}"
+      register: ssh_host_keys_stat
+
+    - name: try to install etags
+      zypper:
+        name:
+          - etags
+
+    - assert:
+        that:
+          # contents of testfile.txt
+          - "testfile_result.stdout == 'Nothing in here!'"
+          # hostname from the Vagrantfile (this is broken)
+          # - "ansible_hostname == 'vm-test'"
+          # expected setting from autoYast
+          - "only_reguires_grep.stdout == 'solver.onlyRequires = true'"
+          # multiversion should be turned off by default
+          - "(multiversion_grep.stdout == '') and (multiversion_grep.rc == 1)"
+          # ensure that no YaST packages are left
+          - "(pkg_list.stdout_lines | select('match','yast*') | list | length) == 0"
+          # check that the ssh keys are not older than the uptime
+          - "(ansible_date_time.epoch | float) - (ssh_host_keys_stat.results | map(attribute='stat') | selectattr('exists') | map(attribute='ctime') | min) <= (ansible_uptime_seconds)"
