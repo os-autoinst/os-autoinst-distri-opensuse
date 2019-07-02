@@ -45,32 +45,6 @@ sub run {
     $self->wait_boot(bootloader_time => 150);
 }
 
-sub pre_run_hook {
-    if (get_var('FLAVOR', '') =~ /-Updates$/) {
-        select_console 'root-console';
-        zypper_call 'in tcpdump';
-        type_string "tcpdump -i eth0 -nn -s0 -vv -w openqa_tcpdump.pcap &>/dev/$serialdev &\n";
-    }
-}
-
-sub post_run_hook {
-    if (get_var('FLAVOR', '') =~ /-Updates$/) {
-        select_console 'root-console';
-        script_run 'killall tcpdump', 0;
-        script_run 'rm -f openqa_tcpdump.pcap, 0';
-        select_console 'x11' if check_var('DESKTOP', 'gnome');
-    }
-}
-
-sub post_fail_hook {
-    if (get_var('FLAVOR', '') =~ /-Updates$/) {
-        select_console 'root-console';
-        script_run 'killall tcpdump', 0;
-        upload_logs 'openqa_tcpdump.pcap';
-        script_run 'rm -f openqa_tcpdump.pcap, 0';
-    }
-}
-
 sub test_flags {
     return {fatal => 1};
 }
