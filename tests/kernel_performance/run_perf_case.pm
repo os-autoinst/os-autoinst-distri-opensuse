@@ -70,6 +70,10 @@ sub run {
     run_one_by_one;
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+}
+
 sub test_flags {
     return {fatal => 1};
 }
