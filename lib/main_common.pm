@@ -1546,8 +1546,8 @@ sub load_extra_tests_console {
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
-        # wavpack is available only sle12sp3 onwards
-        if (is_opensuse || is_sle '12-sp3+') {
+        # wavpack is available only sle12sp4 onwards
+        if (is_opensuse || is_sle '12-sp4+') {
             loadtest "console/wavpack";
         }
     }
@@ -1607,7 +1607,7 @@ sub load_extra_tests_console {
     loadtest 'console/procps';
     loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/quota' unless is_jeos;
-    loadtest 'console/zziplib'   if (is_sle('12-SP3+') && !is_jeos);
+    loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
     loadtest 'console/libgpiod' if is_leap('15.1+') || is_tumbleweed;
