@@ -21,7 +21,7 @@ use version_utils 'is_sle';
 sub run {
     select_console 'root-console';
     zypper_call "in yast2-network";
-    my $type = is_sle('15+') ? 'type=vlan' : '';
+    my $type = is_sle('>15') ? 'type=vlan' : '';
     validate_script_output "yast lan add name=vlan50 ethdevice=eth0 $type 2>&1", sub { m/Virtual/ };
     validate_script_output 'yast lan show id=1 2>&1',                            sub { m/vlan50/ };
     validate_script_output 'yast lan edit id=1 bootproto=dhcp 2>&1',             sub { m/IP address assigned using DHCP/ }, 60;
