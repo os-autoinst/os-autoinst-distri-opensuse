@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 for test in $(git ls-files "*tests/*.pm") ; do
-    t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@.pm@@')
+    t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
     t_dir=$(echo $test | sed -e 's@tests/\(.*\)/.*$@\1@')
     git grep -qE "($t|load_testdir.*$t_dir)" || echo $test
 done | \
