@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """HAWK GUI interface Selenium test: tests hawk GUI with Selenium using firefox or chrome"""
 
-import argparse, re, hawk_test_driver, hawk_test_ssh, hawk_test_results
+import sys, argparse, re, hawk_test_driver, hawk_test_ssh, hawk_test_results
 
 ### MAIN
 
@@ -57,7 +57,10 @@ if args.secret:
     ssh.verify_node_maintenance(results)
 browser.test('test_disable_maintenance_first_node', results)
 browser.test('test_add_new_cluster', results, mycluster)
-browser.test('test_remove_cluster', results, mycluster)
+if sys.version_info[0] >= 3:
+    browser.test('test_remove_cluster', results, mycluster)
+else:
+    browser.skip('test_remove_cluster', results)
 browser.test('test_click_on_history', results)
 browser.test('test_generate_report', results)
 browser.test('test_click_on_command_log', results)

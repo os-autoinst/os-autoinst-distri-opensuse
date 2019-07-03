@@ -14,6 +14,7 @@ class resultSetError(Exception):
 class resultSet:
     def __init__(self):
         self.my_tests = []
+        self.start_time = time.time()
         for f in dir(hawk_test_driver.hawkTestDriver):
             if f.startswith('test_') and callable(getattr(hawk_test_driver.hawkTestDriver, f)):
                 self.my_tests.append(f)
@@ -46,7 +47,7 @@ class resultSet:
     def set_test_status(self, testname, status):
         status = str(status)
         testname = str(testname)
-        if status not in ['passed', 'failed']:
+        if status not in ['passed', 'failed', 'skipped']:
             raise resultSetError('test status must be either [passed] or [failed]')
         if (status == 'passed' and
                 self.results_set['tests'][self.my_tests.index(testname)]['outcome'] != 'passed'):
@@ -54,8 +55,11 @@ class resultSet:
         elif (status == 'failed' and
               self.results_set['tests'][self.my_tests.index(testname)]['outcome'] != 'failed'):
             self.results_set['summary']['passed'] -= 1
+        elif (status == 'skipped' and
+              self.results_set['tests'][self.my_tests.index(testname)]['outcome'] != 'skipped'):
+            self.results_set['summary']['num_tests'] -= 1
         self.results_set['tests'][self.my_tests.index(testname)]['outcome'] = status
-        self.results_set['summary']['duration'] = time.process_time()
+        self.results_set['summary']['duration'] = time.time() - self.start_time
         self.results_set['info']['timestamp'] = time.time()
 
     def get_failed_tests_total(self):
