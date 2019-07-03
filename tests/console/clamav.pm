@@ -19,6 +19,16 @@ use testapi;
 use utils;
 use version_utils qw(is_jeos is_opensuse);
 
+sub scan_and_parse {
+    my $re       = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
+    my $cmd      = shift;
+    my $log_file = "$cmd.log";
+
+    script_run "$cmd -i --log=$log_file eicar_test_files", 60;
+    validate_script_output("cat $log_file", sub { $re });
+    script_run "rm -f $log_file";
+}
+
 sub run {
     select_console 'root-console';
     zypper_call('in clamav');
@@ -49,6 +59,7 @@ sub run {
     systemctl('daemon-reload');
 
     # Start the deamons
+    script_run("sed -i 's/User vscan/User root/g' /etc/clamd.conf");
     systemctl('start clamd', timeout => 400);
     systemctl('start freshclam');
 
@@ -61,8 +72,22 @@ sub run {
         die "Virus scan result was not expected" unless (wait_serial qr/vim\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
 
+    # test 3 different file formats containing the EICAR signature
+    assert_script_run "mkdir eicar_test_files";
+    my $rel_path;
+    for my $ext (qw(pdf txt zip)) {
+        $rel_path = "eicar_test_files/eicar.$ext";
+        assert_script_run("curl -o $rel_path " . data_url("$rel_path"));
+    }
+
+    my $re = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
+
+    scan_and_parse "clamscan";
+    scan_and_parse "clamdscan";
+
     # Clean up
-    script_run 'rm -f test.hdb';
+    script_run "rm -f test.hdb";
+    script_run "rm -rf eicar_test_files/";
 }
 
 sub post_run_hook {
