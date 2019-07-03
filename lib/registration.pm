@@ -208,13 +208,13 @@ sub register_addons {
         if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
-            if (check_var('VIDEOMODE', 'text')) {
-                send_key_until_needlematch "scc-code-field-$addon", 'tab';
+            while (1) {
+                next if check_screen('contacting-registration-server', 5);
+                last;
             }
-            else {
-                assert_and_click("scc-code-field-$addon", timeout => 240);
-            }
+            send_key_until_needlematch 'regcode-field-selected', 'tab';
             type_string $regcode;
+            sleep 1;
             save_screenshot;
             $regcodes_entered++;
         }
