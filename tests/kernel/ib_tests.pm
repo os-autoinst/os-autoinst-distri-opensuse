@@ -109,7 +109,7 @@ sub run {
     barrier_wait('IBTEST_SETUP');
 
     # remove, if present, create and distribute ssh key
-    script_run('rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub');
+    script_run('rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts');
     assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$master");
     script_run("/usr/bin/clear");
