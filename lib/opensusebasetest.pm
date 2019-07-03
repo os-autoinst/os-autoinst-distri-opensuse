@@ -621,6 +621,8 @@ sub wait_boot {
             wait_screen_change { send_key 'e' };
             for (1 .. $linux_boot_entry) { send_key 'down' }
             wait_screen_change { send_key 'end' };
+            send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
+            for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
             type_string_very_slow "$boot_params ";
             save_screenshot;
             send_key 'ctrl-x';
