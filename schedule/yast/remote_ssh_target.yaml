@@ -1,0 +1,9 @@
+---
+name:           remote_ssh_target
+description:    >
+  Boot with ssh=1 parameter and wait for parallel job (remote_ssh_controller) 
+  to install the system.
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - remote/remote_target

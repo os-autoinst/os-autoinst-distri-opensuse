@@ -1,0 +1,25 @@
+---
+name:           remote_ssh_controller
+description:    >
+  Install remote server (parallel job) with ssh.
+schedule:
+ - support_server/login
+ - support_server/setup
+ - remote/remote_controller
+ - installation/welcome
+ - installation/accept_license
+ - installation/scc_registration
+ - installation/addon_products_sle
+ - installation/system_role
+ - installation/partitioning
+ - installation/partitioning_finish
+ - installation/installer_timezone
+ - installation/user_settings
+ - installation/user_settings_root
+ - installation/resolve_dependency_issues
+ - installation/installation_overview
+ - installation/disable_grub_timeout
+ - installation/start_install
+ - installation/await_install
+ - installation/reboot_after_installation
+ - support_server/wait_children
