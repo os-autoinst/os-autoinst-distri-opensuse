@@ -42,6 +42,11 @@ sub run {
     setup_environment;
     power_action('poweroff', keepconsole => 1, textmode => 1);
 }
+
+sub post_fail_hook {
+    my ($self) = @_;
+}
+
 sub test_flags {
     return {fatal => 1};
 }
