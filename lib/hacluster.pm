@@ -264,6 +264,8 @@ sub ha_export_logs {
     my $cts_log       = '/tmp/cts_cluster_exerciser.log';
     my @y2logs;
 
+    select_console 'root-console';
+
     # Extract HA logs and upload them
     script_run "touch $corosync_conf";
     script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 300;
@@ -292,6 +294,10 @@ sub ha_export_logs {
 
     # pacemaker cts log
     upload_logs($cts_log, failok => 1) if (get_var('PACEMAKER_CTS_TEST_ROLE'));
+
+    # HAWK test logs if present
+    upload_logs("/tmp/hawk_test.log", failok => 1);
+    upload_logs("/tmp/hawk_test.ret", failok => 1);
 }
 
 sub check_cluster_state {
