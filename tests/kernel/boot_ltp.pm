@@ -15,8 +15,9 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use bootloader_setup 'boot_grub_item';
-use Utils::Backends 'use_ssh_serial_console';
+use LTP::Install;
 use LTP::WhiteList 'download_whitelist';
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my ($self, $tinfo) = @_;
@@ -24,14 +25,15 @@ sub run {
     my $cmd_file   = get_var('LTP_COMMAND_FILE') || '';
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $is_ima     = $cmd_file =~ m/^ima$/i;
+    # during install_ltp, the second boot may take longer than usual
+    my $timeout = 500;
 
     if ($is_ima) {
-        # boot kernel with IMA parameters
+        # boot with IMA kernel parameters
         boot_grub_item();
     }
     else {
-        # during install_ltp, the second boot may take longer than usual
-        $self->wait_boot(ready_time => 500);
+        $self->wait_boot(ready_time => $timeout);
     }
 
     if (check_var('BACKEND', 'ipmi')) {
@@ -44,6 +46,16 @@ sub run {
     download_whitelist if get_var('LTP_KNOWN_ISSUES');
 
     assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+
+    if (get_var('LTP_BAREMETAL') && script_run('test -d $LTPROOT') != 0) {
+        bmwqemu::fctwarn('Missing LTP, installing it!');
+        set_var('INSTALL_LTP', 'from_git') if !get_var('INSTALL_LTP');
+        install_ltp;
+
+        # we booted without IMA kernel parameters
+        power_action('reboot', textmode => 1, keepconsole => 1) if ($is_ima);
+        $self->wait_boot(ready_time => $timeout, bootloader_time => $timeout);
+    }
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");

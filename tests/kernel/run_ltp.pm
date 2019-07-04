@@ -374,6 +374,9 @@ LTP_COMMAND_PATTERN=memcg
 LTP_TIMEOUT=1200
 START_AFTER_TEST=install_ltp
 
+NOTE: for baremetal/IPMI START_AFTER_TEST should be set (see install_ltp.pm):
+START_AFTER_TEST=create_hdd_minimal_base+sdk
+
 =head2 LTP_COMMAND_FILE
 
 Either specifies the name of an LTP runfile from the runtest directory or
