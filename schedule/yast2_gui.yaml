@@ -6,13 +6,8 @@ description:    >
     as the gnome environment for the GUI tests.
 vars:
     BOOTFROM: c
-    BOOT_HDD_IMAGE: 1
-    # DESKTOP: gnome -> When added, an empty key appears first in the list
     HDDSIZEGB: 20
-    # HDD_1: SLES-%VERSION%-%ARCH%-Build%BUILD%@%MACHINE%-gnome.qcow2 -> if added, openQA will not publish in UI
     SOFTFAIL_BSC1063638: 1
-    START_AFTER_TEST: create_hdd_gnome
-    # UEFI_PFLASH_VARS: SLES-%VERSION%-%ARCH%-Build%BUILD%@%MACHINE%-gnome-uefi-vars.qcow2  -> if added, openQA will not publish in UI
     VALIDATE_ETC_HOSTS: 1
 schedule:
     - boot/boot_to_desktop

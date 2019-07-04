@@ -2,9 +2,7 @@ name:           boot_to_snapshot
 description:    >
     Test booting to automatically created snapshots.
 vars:
-    BOOT_HDD_IMAGE: 1
     BOOT_TO_SNAPSHOT: 1
-    START_AFTER_TEST: create_hdd_textmode
 schedule:
     - installation/grub_test
     - installation/boot_into_snapshot
