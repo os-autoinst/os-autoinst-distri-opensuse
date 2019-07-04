@@ -2523,6 +2523,9 @@ sub load_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
         loadtest "publiccloud/boottime";
     }
+    elsif (get_var('PUBLIC_CLOUD_FIO')) {
+        loadtest 'publiccloud/storage_perf';
+    }
     elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
         loadtest "publiccloud/upload_image";
     }

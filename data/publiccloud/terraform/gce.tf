@@ -36,6 +36,14 @@ variable "project" {
     default = "suse-sle-qa"
 }
 
+variable "extra-disk-size" {
+    default = "100"
+}
+
+variable "create-extra-disk" {
+    default=false
+}
+
 resource "random_id" "service" {
     count = "${var.instance_count}"
     keepers = {
@@ -73,7 +81,25 @@ resource "google_compute_instance" "openqa" {
         email = "${data.external.gce_cred.result["client_email"]}"
         scopes = ["cloud-platform"]
     }
+}
 
+resource "google_compute_attached_disk" "default" {
+    count    =  "${var.create-extra-disk ? var.instance_count: 0}"
+    disk     = "${element(google_compute_disk.default.*.self_link, count.index)}"
+    instance = "${element(google_compute_instance.openqa.*.self_link, count.index)}"
+}
+
+resource "google_compute_disk" "default" {
+    name                      = "ssd-disk-${element(random_id.service.*.hex, count.index)}"
+    count                     = "${var.create-extra-disk ? var.instance_count : 0}"
+    type                      = "pd-ssd"
+    zone                      = "${var.region}"
+    size                      = "${var.extra-disk-size}"
+    physical_block_size_bytes = 4096
+    labels = {
+        openqa_created_by = "${var.name}"
+        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+    }
 }
 
 output "public_ip" {
