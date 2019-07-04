@@ -21,10 +21,11 @@ use x11utils;
 use version_utils 'is_desktop_installed';
 
 sub install_geckodriver {
+    my $python_ver       = shift;
     my $arch             = check_var('ARCH', 'x86_64') ? 'linux64' : 'linux32';
     my $geckodriver_from = "https://github.com/mozilla/geckodriver/releases/download";
-    # Using latest stable version of geckodriver
-    my $geckodriver_ver = "v0.24.0";
+    # Using latest stable version of geckodriver depending on which python is being used
+    my $geckodriver_ver = ($python_ver eq 'python3') ? "v0.24.0" : "v0.17.0";
     my $geckodriver_pkg = "geckodriver-$geckodriver_ver-$arch.tar.gz";
 
     assert_script_run "wget -P /tmp $geckodriver_from/$geckodriver_ver/$geckodriver_pkg";
@@ -36,6 +37,8 @@ sub install_geckodriver {
 
 sub install_required_python_pkgs {
     my $inst_cmd = '';
+    my $pydeps   = 'selenium paramiko';
+
     assert_script_run "zypper in -y python3-pip || zypper in -y python-pip || zypper in -y python-setuptools";
 
     # Determine how to install python packages
@@ -44,11 +47,15 @@ sub install_required_python_pkgs {
     }
     elsif (is_package_installed('python-setuptools')) {
         $inst_cmd = 'easy_install';
+        # When using easy_install, need to force an older version of urllib3 as the newer ones are broken
+        # for easy_install. Will also use a fixed version of paramiko for the same reason
+        $pydeps = 'selenium paramiko==2.1.6';
+        assert_script_run "$inst_cmd -U urllib3==1.23";
     }
     die "Couldn't find a way to install python packages" unless ($inst_cmd);
 
     # Install paramiko and selenium driver for python and determine which python to use
-    my $output = script_output "$inst_cmd -U selenium paramiko";
+    my $output = script_output "$inst_cmd -U $pydeps";
     my $python = '';
     if ($output =~ m|.+(python[0-9])[0-9\.]+/site-packages.+|) {
         $python = $1;    # easy_install way
@@ -87,7 +94,7 @@ sub run {
     select_console 'root-console';
 
     my $python = install_required_python_pkgs;
-    install_geckodriver;
+    install_geckodriver $python;
     # The line below can be changed for a call to lib/selenium.pm::enable_selenium_port()
     # once Selenium::Remote::Driver it's available in the openqa.suse.de workers
     assert_script_run('systemctl stop ' . opensusebasetest::firewall());
@@ -124,7 +131,7 @@ sub run {
             # browser but it's in the process of opening a new browser instance.
             # The following check_screen tries to catch scenario 2, if it doesn't
             # then we assume we're in scenario 1
-            next if (check_screen("hawk-$browser", 30));    # python script still running
+            next if (check_screen("hawk-$browser", 60));    # python script still running
             last;
         }
         sleep 5;

@@ -167,7 +167,12 @@ class hawkTestDriver:
             print("ERROR: Couldn't find element '%s'" % text)
             self.test_status = False
             return False
-        elem.click()
+        try:
+            elem.click()
+        except ElementNotInteractableException:
+            # Element is obscured. Wait and click again
+            time.sleep(2*self.timeout_scale)
+            elem.click()
         time.sleep(self.timeout_scale)
         return True
 
@@ -229,6 +234,10 @@ class hawkTestDriver:
                 time.sleep(2*self.timeout_scale)
                 elem.click()
             time.sleep(2*self.timeout_scale)
+
+    # Test skip function
+    def skip(self, testname, results):
+        self.set_test_status(results, testname, 'skipped')
 
     # Generic function to perform the tests
     def test(self, testname, results, *extra):
