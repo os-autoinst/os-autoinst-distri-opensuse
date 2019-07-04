@@ -36,6 +36,8 @@ sub samba_server_setup {
     y2_module_guitest::launch_yast2_module_x11(module => "samba-server", target_match => "samba-server-installation", match_timeout => 200);
 
     send_key "alt-w";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("WORKGROUP");
     send_key_until_needlematch("samba-server-configuration", 'alt-n', 10, 2);
     send_key "alt-s";
@@ -43,11 +45,17 @@ sub samba_server_setup {
     send_key "alt-a";
     assert_screen("samba-server-configuration-shares-newshare");
     send_key "alt-n";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("$testdir");
     send_key "alt-a";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("This is smbtest");
     send_key "alt-d";
     send_key "alt-s";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("/home/$testdir");
     send_key "alt-o";
     assert_screen("samba-server-configuration-shares-newshare-createdir");
@@ -91,10 +99,16 @@ sub samba_client_access {
     assert_screen("nautilus-selected-sharedir-access-passwd");
     send_key_until_needlematch("nautilus-registered-user-login", 'down', 5, 2);
     send_key "tab";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("$testuser");
     send_key "ret";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("WORKGROUP");
     send_key "ret";
+    send_key "ctrl-a";
+    send_key "delete";
     type_string("$pw");
     send_key "ret";
     assert_screen("nautilus-sharedir-opened");
