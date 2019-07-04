@@ -569,6 +569,10 @@ sub load_nfv_tests {
     }
 }
 
+sub load_kotd_baremetal {
+    loadtest "kernel/install_hello_world";
+}
+
 sub load_default_tests {
     load_boot_tests();
     load_inst_tests();
@@ -636,6 +640,21 @@ elsif (get_var('IBTESTS')) {
 elsif (get_var("NFV")) {
     load_baremetal_tests();
     load_nfv_tests();
+}
+## contrary to other tests in this main.pm, this section is meant to deal
+## with the tests scheduled not with prodcut builds but rather with rpms updates,
+## upstream releases etc. It is expected that this section will be expanded
+## so also some upstream repos will be tested. TODO: Consider separate main.pm
+## for those flows or altogether other mechanism
+elsif (get_var("NO_PRODUCT_TESTING")) {
+    load_baremetal_tests();
+    if (get_var("RDMA_UPSTREAM")) {
+        load_correct_tests();
+    } elsif (get_var("KERNEL_UPSTREAM") {
+        load_correct_tests();
+    } elsif (get_var("LTP_UPSTREAM") {
+        load_correct_tests();
+    }
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
