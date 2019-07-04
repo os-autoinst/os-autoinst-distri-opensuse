@@ -18,13 +18,14 @@ use utils;
 use version_utils "is_sle";
 
 sub run {
-    my $iso_name = get_var('ISO');
+    my $install_type = get_var('KIWI_OLD');
+    my $iso_name     = get_var('ISO');
     # bootloader screen is too fast to openqa
     sleep(10);
     send_key 'down';
     send_key 'up';
-    # sle12sp3 oem installer does not work correctly on non interactive
-    if (is_sle('<=12-SP3') && ($iso_name =~ /OEM/)) {
+    # perl kiwi oem installer does not work correctly on non interactive
+    if (($install_type == 1) && ($iso_name =~ /OEM/)) {
         assert_screen('kiwi_boot', 15);
         send_key 'ret';
         # choose last option on installer screen
@@ -44,7 +45,7 @@ sub run {
     else {
         assert_screen('kiwi_boot', 15);
         send_key 'ret';
-        assert_screen('kiwi_login', 600);
+        assert_screen('kiwi_login', 1000);
     }
 }
 1;
