@@ -88,20 +88,34 @@ Example SLE test suite configuration for installation by Git:
 
 BOOT_HDD_IMAGE=1
 DESKTOP=textmode
-HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2
+GRUB_PARAM=ima_policy=tcb
+HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
 INSTALL_LTP=from_git
-ISO=SLE-%VERSION%-Server-DVD-%ARCH%-Build%BUILD%-Media1.iso
-ISO_1=SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso
-ISO_2=SLE-%VERSION%-WE-DVD-%ARCH%-Build%BUILD_WE%-Media1.iso
-PUBLISH_HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_ltp_installed.qcow2
+PROC_SYS_DUMP=1
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
 QEMUCPUS=4
 QEMURAM=4096
 START_AFTER_TEST=create_hdd_minimal_base+sdk
+UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
 
-For openSUSE the configuration should be simpler as you can install git and the
+For openSUSE the configuration is simpler as you can install git and the
 other dev tools from the main repository. You just need a text mode installation
-image to boot from (a graphical one will probably work as well). Depending how
-OpenQA is configured the ISO variable may not be necessary either.
+image to boot from (a graphical one will probably work as well).
+
+Example openSUSE Tumbleweed test suite configuration for installation by Git:
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=ima_policy=tcb
+HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%DESKTOP%@%MACHINE%.qcow2
+INSTALL_LTP=from_git
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+START_AFTER_TEST=create_hdd_textmode
+UEFI_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%DESKTOP%@%MACHINE%-uefi-vars.qcow2
 
 =head2 INSTALL_LTP
 
