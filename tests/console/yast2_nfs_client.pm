@@ -28,6 +28,9 @@ sub run {
     # Preparation
     #
     select_console 'root-console';
+
+    # NFSCLIENT defines if the test should be run on multi-machine setup.
+    # Otherwise, configure server and client on the single machine.
     if (get_var('NFSCLIENT')) {
         # Configure static IP for client/server test
         configure_default_gateway;
@@ -93,27 +96,40 @@ sub run {
     #
 
     mount_export();
+    if (get_var('NFSCLIENT')) {
+        # Check NFS version
+        assert_script_run "nfsstat -m | grep vers=3";
 
-    # Check NFS version
-    assert_script_run "nfsstat -m | grep vers=3";
+        client_common_tests();
 
-    client_common_tests();
+        # Test NFSv3 POSIX permissions
+        assert_script_run "ls -la /tmp/nfs/client/secret.txt | grep '\\-rwxr\\-\\-\\-\\-\\-'";
+        assert_script_run "! sudo -u $testapi::username cat /tmp/nfs/client/secret.txt";
 
-    # Test NFSv3 POSIX permissions
-    assert_script_run "ls -la /tmp/nfs/client/secret.txt | grep '\\-rwxr\\-\\-\\-\\-\\-'";
-    assert_script_run "! sudo -u $testapi::username cat /tmp/nfs/client/secret.txt";
+        # Test NFSv3 ro export
+        assert_script_run "mkdir /tmp/nfs/ro";
+        assert_script_run "mount 10.0.2.101:/srv/ro /tmp/nfs/ro";
+        assert_script_run "ls /tmp/nfs/ro";
+        assert_script_run "grep success /tmp/nfs/ro/file.txt";
+        assert_script_run "! echo modified > /tmp/nfs/ro/file.txt";
+        assert_script_run "! grep modified /tmp/nfs/ro/file.txt";
 
-    # Test NFSv3 ro export
-    assert_script_run "mkdir /tmp/nfs/ro";
-    assert_script_run "mount 10.0.2.101:/srv/ro /tmp/nfs/ro";
-    assert_script_run "ls /tmp/nfs/ro";
-    assert_script_run "grep success /tmp/nfs/ro/file.txt";
-    assert_script_run "! echo modified > /tmp/nfs/ro/file.txt";
-    assert_script_run "! grep modified /tmp/nfs/ro/file.txt";
+        # Safely umount NFS share
+        assert_script_run 'umount /tmp/nfs/ro';
+        assert_script_run 'umount /tmp/nfs/client';
+    }
+    else {
+        # remove added nfs from /etc/fstab
+        assert_script_run 'sed -i \'/nfs/d\' /etc/fstab';
 
-    # Safely umount NFS share
-    assert_script_run 'umount /tmp/nfs/ro';
-    assert_script_run 'umount /tmp/nfs/client';
+        # compare saved and current fstab, should be same
+        if ((script_run 'diff -b /etc/fstab fstab_before') != 0) {
+            record_soft_failure 'bsc#429326 comments were deleted';
+        }
+
+        # compare last line, should be not deleted
+        assert_script_run 'diff -b <(tail -n1 /etc/fstab) <(tail -n1 fstab_before)';
+    }
 
 }
 

@@ -76,6 +76,7 @@ NAME | string | | Name of the test run including distribution, build, machine na
 NET | boolean | false | Indicates net installation.
 NETBOOT | boolean | false | Indicates net boot.
 NETDEV | string | | Network device to be used when adding interface on zKVM.
+NFSCLIENT | boolean | false | Indicates/enables nfs client in `console/yast2_nfs_client` for multi-machine test.
 NFSSERVER | boolean | false | Indicates/enables nfs server in `console/yast2_nfs_server`.
 NICEVIDEO |||
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
