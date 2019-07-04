@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use repo_tools 'generate_version';
+use Mojo::UserAgent;
 
 sub wait_for_guestregister
 {
@@ -34,14 +35,35 @@ sub wait_for_guestregister
     die('guestregister didn\'t end in expected time');
 }
 
+sub get_ltp_rpm
+{
+    my ($url) = @_;
+    my $ua    = Mojo::UserAgent->new();
+    my $links = $ua->get($url)->res->dom->find('a')->map(attr => 'href');
+    for my $link (grep(/^ltp-.*rpm$/, @{$links})) {
+        return $link;
+    }
+    die('Could not find LTP package in ' . $url);
+}
+
 sub run {
     my ($self) = @_;
-    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/home:/metan/' . generate_version() . '/home:metan.repo');
+    my $ltp_repo = get_var('LTP_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version("-") . '/x86_64/');
+    my $REG_CODE = get_required_var('SCC_REGCODE');
+
     $self->select_serial_terminal;
+
+    my $ltp_rpm         = get_ltp_rpm($ltp_repo);
+    my $source_rpm_path = '/root/' . $ltp_rpm;
+    my $remote_rpm_path = '/tmp/' . $ltp_rpm;
+    record_info('LTP RPM', $ltp_repo . $ltp_rpm);
+    assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
     wait_for_guestregister($instance);
+
+    $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path);
 
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
     assert_script_run('chmod +x ~/restart_instance.sh');
@@ -49,9 +71,9 @@ sub run {
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
     # Install ltp from package on remote
-    $instance->run_ssh_command(cmd => 'sudo zypper ar ' . $ltp_repo);
-    $instance->run_ssh_command(cmd => 'sudo zypper -q --gpg-auto-import-keys in -y ltp', timeout => 300);
-    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh');
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE,                                                timeout => 600);
+    $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
+    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh',                                       timeout => 300);
 
     my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
     $reset_cmd .= $instance->instance_id . ' ' . $instance->public_ip;

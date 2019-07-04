@@ -55,7 +55,7 @@ sub run_ssh_command {
     scp($from, $to, timeout => 90);
 
 Use scp to copy a file from or to this instance. A url starting with
-C<remote:> is replaces with the IP from this instance. E.g. a call to copy
+C<remote:> is replaced with the IP from this instance. E.g. a call to copy
 the file I</var/log/cloudregister> to I</tmp> looks like:
 C<<<$instance->scp('remote:/var/log/cloudregister', '/tmp');>>>
 =cut
