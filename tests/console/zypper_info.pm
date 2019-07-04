@@ -18,17 +18,38 @@ use testapi;
 use utils;
 use repo_tools qw(prepare_source_repo disable_source_repo);
 use version_utils qw(is_sle is_leap is_opensuse);
+use registration;
+
+sub check_srcpackage_output {
+    my ($pkgname, $info_output) = @_;
+
+    my $expected_header = "Information for srcpackage $pkgname:";
+    die "Missing info header. Expected: /$expected_header/" unless $info_output =~ /$expected_header/;
+
+    my $expected_package_name = "Name *: $pkgname";
+    die "Missing package name. Expected: /$expected_package_name/" unless $info_output =~ /$expected_package_name/;
+}
 
 sub test_srcpackage_output {
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
+    check_srcpackage_output 'coreutils', $info_output_coreutils;
 
-    my $expected_header_coreutils = 'Information for srcpackage coreutils:';
-    die "Missing info header. Expected: /$expected_header_coreutils/"
-      unless $info_output_coreutils =~ /$expected_header_coreutils/;
-
-    my $expected_package_name_coreutils = 'Name *: coreutils';
-    die "Missing package name. Expected: /$expected_package_name_coreutils/"
-      unless $info_output_coreutils =~ /$expected_package_name_coreutils/;
+    if (is_sle) {
+        if (is_sle '<15') {
+            register_product;
+        }
+        else {
+            # only scc has update repos with src packages
+            cleanup_registration;
+            assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE') . ' --url https://scc.suse.com';
+        }
+        zypper_call 'ref';
+        my $reponame          = ((is_sle '15+') ? 'SLE-Module-Basesystem' : 'SLES') . get_var('VERSION') . '-Updates';
+        my $info_output_glib2 = script_output "zypper info -r $reponame srcpackage:glib2";
+        check_srcpackage_output 'glib2', $info_output_glib2;
+        cleanup_registration if (is_sle);
+        register_product if (is_sle '15+');
+    }
 }
 
 sub test_package_output {
