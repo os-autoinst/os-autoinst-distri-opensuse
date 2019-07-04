@@ -2004,25 +2004,21 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "documentation")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         load_x11_documentation();
     }
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         load_x11_other();
     }
     elsif (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         load_x11_webbrowser();
     }
     elsif (check_var("REGRESSION", "message")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
@@ -2033,19 +2029,16 @@ sub load_common_x11 {
             loadtest 'boot/boot_to_desktop';
             loadtest "x11/window_system";
         }
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         loadtest "x11/piglit/piglit";
     }
     # Used by ibus tests
     elsif (check_var("REGRESSION", "ibus")) {
         loadtest "boot/boot_to_desktop";
-        loadtest "qa_automation/patch_and_reboot" if is_updates_tests;
         loadtest "x11/ibus/ibus_installation";
         loadtest "x11/ibus/ibus_test_ch";
         loadtest "x11/ibus/ibus_test_jp";
@@ -2198,7 +2191,6 @@ sub load_security_tests_apparmor {
     load_security_console_prepare;
 
     if (check_var('TEST', 'mau-apparmor')) {
-        loadtest "qa_automation/patch_and_reboot";
         loadtest "security/apparmor/aa_prepare";
     }
     loadtest "security/apparmor/aa_status";
@@ -2213,7 +2205,6 @@ sub load_security_tests_apparmor {
 
 sub load_security_tests_apparmor_profile {
     if (check_var('TEST', 'mau-apparmor_profile')) {
-        loadtest "qa_automation/patch_and_reboot";
         load_security_console_prepare;
         loadtest "security/apparmor/aa_prepare";
     }
@@ -2344,6 +2335,7 @@ sub load_system_prepare_tests {
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/system_prepare';
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
@@ -2607,8 +2599,6 @@ sub load_ha_cluster_tests {
         return 1;
     }
 
-    # Patch (if needed) and basic configuration
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest "console/system_prepare";
     loadtest 'console/consoletest_setup';
     loadtest 'console/check_os_release';
@@ -2846,7 +2836,6 @@ sub load_mm_autofs_tests {
         }
         boot_hdd_image;
         loadtest 'network/setup_multimachine';
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (check_var('HOSTNAME', 'server')) {
             loadtest "network/autofs_server";
         }

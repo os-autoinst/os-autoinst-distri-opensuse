@@ -705,9 +705,6 @@ elsif (get_var("QA_TESTSET")) {
     if (get_var('INSTALL_KOTD')) {
         loadtest 'kernel/install_kotd';
     }
-    if (get_var('MAINT_TEST_REPO')) {
-        loadtest "qa_automation/patch_and_reboot";
-    }
     if (check_var('QA_TESTSET', 'kernel_kexec')) {
         loadtest 'kernel/kernel_kexec';
     }
@@ -882,10 +879,6 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 }
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
-    # update system with agregate repositories
-    if (is_updates_tests) {
-        loadtest "qa_automation/patch_and_reboot";
-    }
     load_extra_tests();
 }
 elsif (get_var("WINDOWS")) {
@@ -912,7 +905,6 @@ elsif (have_scc_repos()) {
 }
 elsif (get_var('HPC')) {
     boot_hdd_image;
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest 'hpc/before_test';
     loadtest 'console/install_single_package' if (get_var('PACKAGETOINSTALL'));
 
@@ -951,7 +943,6 @@ else {
     }
     elsif (get_var('GRUB2')) {
         boot_hdd_image;
-        loadtest 'qa_automation/patch_and_reboot';
         loadtest 'boot/grub2_test';
         return 1;
     }
@@ -983,7 +974,6 @@ else {
         }
         boot_hdd_image;
         loadtest 'network/setup_multimachine';
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (check_var('HOSTNAME', 'server')) {
             loadtest "network/openvpn_server";
         }
@@ -999,7 +989,6 @@ else {
         }
         boot_hdd_image;
         loadtest 'network/setup_multimachine';
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (check_var('HOSTNAME', 'master')) {
             loadtest "network/salt_master";
         }
@@ -1010,7 +999,6 @@ else {
     elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (get_var("NFSSERVER")) {
             loadtest "console/yast2_nfs_server";
         }
@@ -1021,7 +1009,6 @@ else {
     elsif (get_var("NFS4SERVER") || get_var("NFS4CLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         if (get_var("NFS4SERVER")) {
             loadtest "console/yast2_nfs4_server";
         }
@@ -1037,7 +1024,6 @@ else {
         }
         boot_hdd_image;
         loadtest 'network/setup_multimachine';
-        loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
         loadtest 'network/vsftpd';
     }
     elsif (get_var('AUTOFS')) {
