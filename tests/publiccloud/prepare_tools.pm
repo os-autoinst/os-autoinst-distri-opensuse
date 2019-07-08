@@ -36,7 +36,7 @@ sub run {
     for my $repo (split(/\s+/, $tools_repo)) {
         zypper_call('ar ' . $repo);
     }
-    zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core ntp');
+    zypper_call('--gpg-auto-import-keys -q in python3-img-proof python3-img-proof-tests git-core ntp');
 
     # Install AWS cli
     zypper_call('-q in gcc python3-pip');
