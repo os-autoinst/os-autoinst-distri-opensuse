@@ -114,8 +114,6 @@ sub add_custom_grub_entries {
     assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old");
     upload_logs($cfg_old, failok => 1);
 
-    assert_script_run('cp /etc/grub.d/40_custom 40_custom.tmp');
-
     assert_script_run("cp $script_old $script_new");
 
     my $cmd = "sed -i -e 's/\\(args=.\\)\\(\\\$4\\)/\\1$grub_param \\2/'";
