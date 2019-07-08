@@ -23,6 +23,7 @@ use power_action_utils 'power_action';
 use serial_terminal 'add_serial_console';
 use upload_system_log;
 use version_utils qw(is_sle is_opensuse is_jeos);
+use Utils::Architectures qw(is_aarch64 is_s390x);
 use Utils::Backends 'use_ssh_serial_console';
 
 our @EXPORT = qw(install_ltp);
@@ -106,11 +107,11 @@ sub install_debugging_tools {
 
 sub install_from_git {
     my ($tag) = @_;
-    my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
-    my $rel = get_var('LTP_RELEASE') || '';
-    my $timeout     = check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') ? 7200 : 1440;
+    my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
+    my $rel = get_var('LTP_RELEASE', '');
+    my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
     my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
-    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
+    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
     if ($rel) {
         $rel = ' -b ' . $rel;
     }
