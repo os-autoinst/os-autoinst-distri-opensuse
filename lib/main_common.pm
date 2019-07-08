@@ -2540,6 +2540,7 @@ sub load_installation_validation_tests {
 }
 
 sub load_transactional_role_tests {
+    replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/transactional_update';
     loadtest 'transactional/rebootmgr';
