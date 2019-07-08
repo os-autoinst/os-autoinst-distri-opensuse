@@ -152,7 +152,7 @@ sub rmt_mirror_repo {
 
 =head2 rmt_import_data
     rmt_import_data($datafile);
-RMT server import data about available repositories and the mirrored packages 
+RMT server import data about available repositories and the mirrored packages
 from disconnected RMT server, then verify imported repos on new RMT server.
 =cut
 sub rmt_import_data {
@@ -229,17 +229,19 @@ sub disable_source_repo {
 }
 
 sub generate_version {
-    my $dist    = get_required_var('DISTRI');
-    my $version = get_required_var('VERSION');
+    my ($separator) = @_;
+    my $dist        = get_required_var('DISTRI');
+    my $version     = get_required_var('VERSION');
+    $separator //= '_';
     if (is_sle) {
         $dist = 'SLE';
-        $version =~ s/-/_/;
+        $version =~ s/-/$separator/;
     } elsif (is_tumbleweed) {
         $dist = 'openSUSE';
     } elsif (is_leap) {
         $dist = 'openSUSE_Leap';
     }
-    return $dist . "_" . $version;
+    return $dist . $separator . $version;
 }
 
 1;
