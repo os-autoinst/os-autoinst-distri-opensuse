@@ -1604,6 +1604,7 @@ sub load_extra_tests_console {
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST') || is_sle('12-SP5+');
     loadtest 'console/timezone';
+    loadtest 'console/ntp';
     loadtest 'console/procps';
     loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/quota' unless is_jeos;
