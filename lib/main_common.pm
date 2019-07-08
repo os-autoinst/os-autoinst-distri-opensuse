@@ -2271,6 +2271,12 @@ sub load_security_tests_ima_appraisal {
     loadtest "security/ima/evmctl_ima_sign";
 }
 
+sub load_security_tests_evm_protection {
+    loadtest "security/ima/ima_setup";
+    loadtest "security/ima/evm_setup";
+    loadtest "security/ima/evm_protection_hmacs";
+}
+
 sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
 }
@@ -2282,7 +2288,7 @@ sub load_security_tests {
       ipsec mmtest
       apparmor apparmor_profile selinux
       openscap
-      mok_enroll ima_measurement ima_appraisal
+      mok_enroll ima_measurement ima_appraisal evm_protection
       system_check
     );
 
