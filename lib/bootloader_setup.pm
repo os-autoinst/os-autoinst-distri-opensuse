@@ -108,10 +108,11 @@ sub add_custom_grub_entries {
     my $script_new_esc = $script_new =~ s~/~\\/~rg;
     my $cfg_old        = 'grub.cfg.old';
 
+    bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu");
+    assert_script_run('[ -x /sbin/purge-kernels ] && /sbin/purge-kernels');
+
     assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old");
     upload_logs($cfg_old, failok => 1);
-
-    assert_script_run('cp /etc/grub.d/40_custom 40_custom.tmp');
 
     assert_script_run("cp $script_old $script_new");
 
