@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -36,7 +36,7 @@ sub run {
     pkcon_quit;
 
     # Add QA repo
-    if (script_run("zypper lr qa-ibs")) {
+    if (script_run('zypper lr qa-ibs')) {
         my $qa_head_repo = get_var('QA_HEAD_REPO', '');
         zypper_call("--no-gpg-check ar -f '$qa_head_repo' qa-ibs", timeout => 600);
     }
@@ -44,6 +44,7 @@ sub run {
     # Install qa_test_xfstests
     zypper_call('--gpg-auto-import-keys ref', timeout => 600);
     zypper_call('in qa_test_xfstests',        timeout => 1200);
+    zypper_call('in fio');
 
     if (get_var('XFSTESTS_REPO')) {
         # Add filesystems repository and install xfstests package
