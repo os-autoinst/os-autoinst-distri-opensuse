@@ -247,12 +247,9 @@ sub setup_network {
     # echo/echoes, getaddrinfo_01
     assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
 
-    # SLE12GA uses too many old style services
-    my $action = check_var('VERSION', '12') ? "enable" : "reenable";
-
     foreach my $service (qw(auditd dnsmasq nfsserver rpcbind vsftpd)) {
         if (is_sle('12+') || is_opensuse || is_jeos) {
-            systemctl($action . " " . $service);
+            systemctl("reenable $service");
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
         }
         else {
