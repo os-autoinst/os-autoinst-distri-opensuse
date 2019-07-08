@@ -119,7 +119,8 @@ sub disable_installation_repos {
 # Record disk info to help debug diskspace exhausted
 # issue during upgrade
 sub record_disk_info {
-    if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
+    my $out = script_output 'findmnt -n -o fstype /';
+    if ($out =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df / | tee /tmp/btrfs-filesystem-df.txt';
         assert_script_run 'btrfs filesystem usage / | tee /tmp/btrfs-filesystem-usage.txt';
         assert_script_run 'snapper list | tee /tmp/snapper-list.txt' unless (is_sles4sap());
