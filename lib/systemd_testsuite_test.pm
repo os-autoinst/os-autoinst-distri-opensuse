@@ -20,17 +20,28 @@ use known_bugs;
 use testapi;
 use power_action_utils 'power_action';
 use utils 'zypper_call';
-use version_utils;
+use version_utils qw(is_opensuse is_sle is_tumbleweed);
 
 
 sub testsuiteinstall {
+    # The isotovideo setting QA_HEAD_REPO is not mandatory.
+    # QA_HEAD_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
     my $qa_head_repo = get_var('QA_HEAD_REPO', '');
     if (!$qa_head_repo) {
-        if (is_leap('15.0+')) {
-            $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/Leap:/15/openSUSE_Leap_15.0/';
+        if (is_opensuse()) {
+            my $sub_project;
+            if (is_tumbleweed()) {
+                $sub_project = 'Tumbleweed/openSUSE_Tumbleweed/';
+            }
+            else {
+                (my $version, my $service_pack) = split('\.', get_required_var('VERSION'));
+                $sub_project = "Leap:/$version/openSUSE_Leap_$version.$service_pack/";
+            }
+            $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/' . $sub_project;
         }
-        elsif (is_sle('15+')) {
-            $qa_head_repo = 'http://download.suse.de/ibs/QA:/SLE15/standard/';
+        else {
+            (my $version, my $service_pack) = split('-', get_required_var('VERSION'));
+            $qa_head_repo = "http://download.suse.de/ibs/QA:/$version$service_pack/standard/";
         }
         die '$qa_head_repo is not set' unless ($qa_head_repo);
     }
