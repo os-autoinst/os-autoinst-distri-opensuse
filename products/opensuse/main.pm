@@ -342,9 +342,6 @@ elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
 }
-elsif (get_var("LINUXRC")) {
-    loadtest "linuxrc/system_boot";
-}
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot";
     loadtest "support_server/login";

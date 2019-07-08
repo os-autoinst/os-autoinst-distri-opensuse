@@ -1,0 +1,5 @@
+name:           boot_linuxrc
+description:    >
+    Test booting from cd to existing linux with linuxrc.
+schedule:
+     - boot/boot_linuxrc

@@ -540,6 +540,8 @@ sub select_bootmenu_more {
         send_key "ret";
     }
     send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
+    # Redirect linuxrc logs to console when booting from menu: "boot linux system"
+    push @params, "linuxrc.log=/dev/$serialdev" if get_var('LINUXRC_BOOT');
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
