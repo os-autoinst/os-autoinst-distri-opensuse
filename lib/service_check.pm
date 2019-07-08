@@ -11,13 +11,14 @@
 # Maintainer: GAO WEI <wegao@suse.com>
 
 package service_check;
-use base Exporter;
-use Exporter;
+
+use Exporter 'import';
 use testapi;
 use utils;
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use services::apache;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -54,11 +55,12 @@ our $default_services = {
         support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     # Quick hack for poo 50576, we need this workround before full solution
-    #    apache => {
-    #    srv_pkg_name  => 'apache2',
-    #    srv_proc_name => 'apache2',
-    #    support_ver   => '12-SP3,12-SP4,15,15-SP1'
-    #},
+    apache => {
+        srv_pkg_name       => 'apache2',
+        srv_proc_name      => 'apache2',
+        support_ver        => '12-SP3,12-SP4,15,15-SP1',
+        service_check_func => \&services::apache::full_apache_check
+    },
     bind => {
         srv_pkg_name  => 'bind',
         srv_proc_name => 'named',
@@ -117,13 +119,17 @@ our $default_services = {
 };
 
 sub install_services {
-    my $service = shift;
+    my ($service) = @_;
     $hdd_base_version = get_var('HDDVERSION');
     foreach my $s (keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
         if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
+            if (exists $service->{$s}->{service_check_func}) {
+                $service->{$s}->{service_check_func}->('before');
+                next;
+            }
 
             if ($srv_pkg_name ne 'apparmor') {
                 zypper_call("in $srv_pkg_name") if $srv_pkg_name ne 'apparmor';
@@ -139,14 +145,21 @@ sub install_services {
 }
 
 sub check_services {
-    my $service = shift;
+    my ($service) = @_;
     foreach my $s (keys %$service) {
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
         if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
+            # service check after migration. if we've set up service check
+            # function, we don't need following actions to check the service.
+            if (exists $service->{$s}->{service_check_func}) {
+                $service->{$s}->{service_check_func}->();
+                next;
+            }
+
             assert_script_run 'systemctl status '
               . $srv_proc_name
-              . ' --no-pager | grep active';
+              . ' --no-pager | grep -w active';
         }
     }
 }
