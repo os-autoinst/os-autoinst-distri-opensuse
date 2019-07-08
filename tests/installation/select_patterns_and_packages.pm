@@ -28,7 +28,11 @@ use testapi;
 sub accept3rdparty {
     #Third party licenses sometimes appear
     while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
-        last if match_has_tag("automatic-changes");
+        if (match_has_tag("automatic-changes")) {
+            send_key 'alt-o';
+            last;
+        }
+
         last if match_has_tag("inst-overview");
         wait_screen_change { send_key $cmd{acceptlicense} };
     }
@@ -174,7 +178,11 @@ sub switch_selection {
 }
 
 sub accept_changes {
-    send_key 'alt-o';
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-a';
+    } else {
+        send_key 'alt-o';
+    }
     accept3rdparty;
     assert_screen 'inst-overview';
 }
