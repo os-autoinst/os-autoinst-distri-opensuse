@@ -90,7 +90,7 @@ sub run {
             # get all attached ISOs including addons' as zdup dup repos
             my $srx = script_output("ls -al /dev/disk/by-label | grep -E /sr[0-9]+ | wc -l");
             for my $n (0 .. $srx - 1) {
-                $defaultrepo .= "dvd:/?devices=\${dev:-/dev/sr$n}+";
+                $defaultrepo .= "dvd:/?devices=\${dev:-/dev/sr$n},";
             }
         }
     }
