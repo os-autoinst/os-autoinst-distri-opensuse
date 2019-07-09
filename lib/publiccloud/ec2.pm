@@ -13,6 +13,7 @@
 
 package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
+use Mojo::JSON 'decode_json';
 use testapi;
 
 has ssh_key      => undef;
@@ -157,6 +158,61 @@ sub cleanup {
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
     $self->vault_revoke();
+}
+
+sub describe_instance
+{
+    my ($self, $instance) = @_;
+    my $json_output = decode_json(script_output('aws ec2 describe-instances  --filter Name=instance-id,Values=' . $instance->instance_id(), quiet => 1));
+    my $i_desc      = $json_output->{Reservations}->[0]->{Instances}->[0];
+    return $i_desc;
+}
+
+sub get_state_from_instance
+{
+    my ($self, $instance) = @_;
+    return $self->describe_instance($instance)->{State}->{Name};
+}
+
+sub get_ip_from_instance
+{
+    my ($self, $instance) = @_;
+    return $self->describe_instance($instance)->{PublicIpAddress};
+}
+
+sub stop_instance
+{
+    my ($self, $instance) = @_;
+    my $instance_id = $instance->instance_id();
+    my $attempts    = 60;
+
+    die("Outdated instance object") if ($instance->public_ip ne $self->get_ip_from_instance($instance));
+
+    assert_script_run('aws ec2 stop-instances --instance-ids ' . $instance_id, quiet => 1);
+
+    while ($self->get_state_from_instance($instance) ne 'stopped' && $attempts-- > 0) {
+        sleep 5;
+    }
+    die("Failed to stop instance $instance_id") unless ($attempts > 0);
+}
+
+sub start_instance
+{
+    my ($self, $instance, %args) = @_;
+    my $attempts    = 60;
+    my $instance_id = $instance->instance_id();
+
+    my $i_desc = $self->describe_instance($instance);
+    die("Try to start a running instance") if ($i_desc->{State}->{Name} ne 'stopped');
+
+    assert_script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1);
+    sleep 1;    # give some time to update public_ip
+    my $public_ip;
+    while (!defined($public_ip) && $attempts-- > 0) {
+        $public_ip = $self->get_ip_from_instance($instance);
+    }
+    die("Unable to get new public IP") unless ($public_ip);
+    $instance->public_ip($public_ip);
 }
 
 1;

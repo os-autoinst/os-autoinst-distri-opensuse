@@ -225,16 +225,16 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
 =cut
 sub create_instance {
     my ($self, %args) = @_;
+    $args{check_connectivity} //= 1;
 
     my @vms      = $self->terraform_apply();
     my $instance = $vms[0];
     record_info('INSTANCE', Dumper($instance));
 
-    for (1 .. 60) {
-        return $instance if script_run("nc -vz -w 1 $instance->{public_ip} 22") == 0;
-        sleep 5;
+    if ($args{check_connectivity}) {
+        $instance->check_ssh_port();
     }
-    die('Cannot reach port 22 on IP ' . $instance->{public_ip});
+    return $instance;
 }
 
 =head2 on_terraform_timeout
@@ -416,5 +416,26 @@ sub cleanup {
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->vault_revoke();
 }
+
+=head2 stop_instance
+
+This function implements a provider specifc stop call for a given instance.
+
+=cut
+sub stop_instance
+{
+    die('stop_instance() isn\'t implemented');
+}
+
+=head2 start_instance
+
+This function implements a provider specifc start call for a given instance.
+
+=cut
+sub start_instance
+{
+    die('start_instance() isn\'t implemented');
+}
+
 
 1;
