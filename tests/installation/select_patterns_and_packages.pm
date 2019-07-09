@@ -239,6 +239,9 @@ sub select_specific_patterns_by_iteration {
     # check if we have processed all patterns mentioned in the test suite settings
     my @unseen = keys %patterns;
     die "Not all patterns given in the job settings were processed:" . join(", ", @unseen) if @unseen;
+
+    # accept the patterns and conninue for virtualization tests
+    wait_screen_change { send_key $cmd{acceptlicense} } if (check_var('VIRT_AUTOTEST', '1'));
 }
 
 sub process_patterns {
