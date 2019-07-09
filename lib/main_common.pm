@@ -1438,7 +1438,7 @@ sub load_extra_tests_desktop {
         loadtest 'x11/vnc_two_passwords';
         # TODO: check why this is not called on opensuse
         # poo#35574 - Excluded for Xen PV as it was never passed due to the fail while interacting with grub.
-        loadtest 'x11/user_defined_snapshot' unless (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'));
+        loadtest 'x11/user_defined_snapshot' unless is_s390x || (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'));
     }
     elsif (check_var('DISTRI', 'opensuse')) {
         if (gnomestep_is_applicable()) {
