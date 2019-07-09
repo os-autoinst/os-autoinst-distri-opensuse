@@ -96,7 +96,7 @@ sub expand_patterns {
 
 my @unversioned_products = qw(asmm contm lgm tcm wsm);
 
-sub get_product_version {
+sub get_product_version_autoyast {
     my ($name) = @_;
     my $version = get_version();
     return $version =~ s/^(\d*)\.\d$/$1/r if is_sle('<15') && grep(/^$name$/, @unversioned_products);
@@ -109,7 +109,7 @@ sub expand_addons {
     foreach my $addon (@addons) {
         $addons{$addon} = {
             name    => get_addon_fullname($addon),
-            version => get_product_version($addon),
+            version => get_product_version_autoyast($addon),
             arch    => get_var('ARCH'),
         };
     }

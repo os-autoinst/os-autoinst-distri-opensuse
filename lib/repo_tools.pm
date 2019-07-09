@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use version_utils qw(get_distro get_version is_sle is_leap is_tumbleweed);
 use y2_module_consoletest;
 
 our @EXPORT = qw(
@@ -34,6 +34,7 @@ our @EXPORT = qw(
   prepare_oss_repo
   disable_oss_repo
   generate_version);
+
 
 =head2 get_repo_var_name
 This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter

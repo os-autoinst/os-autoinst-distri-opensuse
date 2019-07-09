@@ -29,6 +29,7 @@ use constant {
     VERSION => [
         qw(
           get_distro
+          get_product_version
           get_version
           is_sle
           is_pre_15
@@ -328,6 +329,19 @@ sub get_version {
     my $version = shift;
     $version //= get_required_var('VERSION');
     return $version =~ s/-SP/./gr;
+}
+
+=head2 get_product_version
+
+    get_product_version();
+
+Get product major version based on VERSION variable, e.g.:
+15.1 => 15
+Tumbleweed => Tumbleweed
+=cut
+sub get_product_version {
+    my $version = get_version();
+    return $version =~ s/^(\d*)\.\d$/$1/r;
 }
 
 sub install_this_version {
