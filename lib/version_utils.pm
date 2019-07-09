@@ -28,6 +28,7 @@ use Utils::Architectures 'is_s390x';
 use constant {
     VERSION => [
         qw(
+          get_distro
           is_sle
           is_pre_15
           is_caasp
@@ -297,6 +298,21 @@ sub is_server {
     # If unified installer, we need to check SLE_PRODUCT
     return 0 if get_var('FLAVOR', '') !~ /^Installer-/;
     return check_var('SLE_PRODUCT', 'sles');
+}
+
+=head2 get_distro
+
+    get_distro();
+
+Return distribution string (SLE, Tumbleweed, Leap)
+TODO: Add other distributions (i.e. caasp, jeos, ...)
+=cut
+sub get_distro {
+    return 'SLE' if (is_sle);
+    if (is_opensuse) {
+        return 'Tumbleweed' if (is_tumbleweed);
+        return 'Leap';
+    }
 }
 
 sub install_this_version {
