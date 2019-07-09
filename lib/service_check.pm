@@ -57,7 +57,7 @@ our $default_services = {
     #    apache => {
     #    srv_pkg_name  => 'apache2',
     #    srv_proc_name => 'apache2',
-    #    support_ver   => '12-SP3,12-SP4,15,15-SP1'
+    #    support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     #},
     bind => {
         srv_pkg_name  => 'bind',
