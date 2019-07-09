@@ -27,6 +27,7 @@ use lockapi;
 use mmapi;
 use mm_network;
 use nfs_common;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -87,7 +88,12 @@ sub run {
     validate_script_output("cat /mnt/file.txt", sub { m,success, }, 95);
 
     # Check NFS version
-    validate_script_output "nfsstat -m", sub { m/vers=3/ };
+    if (is_sle('=12-sp1') && script_run 'nfsstat -m') {
+        record_soft_failure 'bsc#1140731';
+    }
+    else {
+        validate_script_output "nfsstat -m", sub { m/vers=3/ };
+    }
 
     assert_script_run 'umount /mnt';
 
