@@ -1722,14 +1722,12 @@ sub load_extra_tests_filesystem {
 }
 
 sub get_wicked_tests {
-    my (%args)     = @_;
-    my $basedir    = $bmwqemu::vars{CASEDIR} . '/tests/';
-    my $wicked_dir = $basedir . 'wicked/';
-    my $suite      = get_required_var('WICKED');
-    my $type       = get_required_var('IS_WICKED_REF') ? 'ref' : 'sut';
+    my (%args)  = @_;
+    my $basedir = $bmwqemu::vars{CASEDIR} . '/tests/';
+    my $suite   = get_required_var('WICKED');
     my $exclude   = get_var('WICKED_EXCLUDE', '$a');
-    my $suite_dir = $wicked_dir . $suite . '/';
-    my $tests_dir = $suite_dir . $type . '/';
+    my $suite_dir = $basedir . 'wicked/' . $suite . '/';
+    my $tests_dir = $suite_dir . 'sut/';
     my @tests;
     $args{only_names} //= 0;
 
@@ -1760,9 +1758,19 @@ sub wicked_init_locks {
 
 sub load_extra_tests_wicked {
     wicked_init_locks();
-    my $ctx = wicked::TestContext->new();
-    for my $test (get_wicked_tests()) {
-        loadtest($test, run_args => $ctx);
+    my $ctx   = wicked::TestContext->new();
+    my @tests = get_wicked_tests();
+    for my $test (@tests) {
+        $test =~ s/\/sut\//\/ref\// if (get_var('IS_WICKED_REF'));
+        my $full_path = $bmwqemu::vars{CASEDIR} . '/tests/' . $test . '.pm';
+        if (-e $full_path) {
+            loadtest($test, run_args => $ctx);
+        }
+        else {    # in case file not exists this mean that we don't need something specific from ref machine
+                  # so we will load dummy replacement
+            die "Not expected template load for SUT" unless get_var('IS_WICKED_REF');
+            loadtest('wicked/ref_template', run_args => $ctx, name => basename($test));
+        }
     }
 }
 
