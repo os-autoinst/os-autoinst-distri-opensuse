@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -56,7 +56,7 @@ sub run {
     send_key "alt-l";
     $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
-    $self->wait_grub(bootloader_time => 90);
+    $self->wait_grub;
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
     $self->{in_wait_boot} = 0;

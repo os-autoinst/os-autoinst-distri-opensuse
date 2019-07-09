@@ -652,10 +652,14 @@ sub wait_boot {
         if (get_var('TEST') !~ /extra_tests_on_gnome/) {
             assert_screen $textmode_needles, $ready_time;
         }
-        elsif (!check_screen $textmode_needles, $ready_time) {
+        elsif (is_sle('<15') && !check_screen $textmode_needles, $ready_time / 2) {
             # We are not able to boot due to bsc#980337
             record_soft_failure 'bsc#980337';
             # Switch to root console and continue
+            select_console 'root-console';
+        }
+        elsif (check_screen 'displaymanager', 90) {
+            # due to workaround on sle15+ is test user_defined_snapshot expecting to boot textmode despite snapshot booted properly
             select_console 'root-console';
         }
 
