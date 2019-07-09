@@ -17,6 +17,7 @@ use warnings;
 use File::Basename;
 use base "opensusebasetest";
 use registration 'add_suseconnect_product';
+use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use version_utils 'is_sle';
@@ -78,17 +79,9 @@ sub prepare_repos {
             zypper_call("--no-gpg-check ar -f '$qa_sdk_repo' sle-sdk");
         }
     }
-    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
-    my $qa_web_repo  = get_var('QA_WEB_REPO',  '');
-    unless ($qa_head_repo) {
-        die "No QA_HEAD_REPO specified!";
-    }
-    zypper_call("--no-gpg-check ar -f '$qa_head_repo' qa-ibs");
-    if ($qa_web_repo) {
-        zypper_call("--no-gpg-check ar -f '$qa_web_repo' qa-web");
-    }
-    # sometimes updates.suse.com is busy, so we need to wait for possiblye retries
-    zypper_call("--gpg-auto-import-keys ref");
+
+    add_qa_head_repo;
+    add_qa_web_repo;
     add_suseconnect_product('sle-module-python2') if is_sle('>15');
     zypper_call("in qa_testset_automation qa_tools python-base python-xml");
 }

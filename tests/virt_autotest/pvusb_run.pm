@@ -24,7 +24,7 @@ sub get_script_run {
     if ($which_usb eq "") {
         die "The PVUSB_DEVICE is not properly set in workers.ini.";
     }
-    my $qa_repo = get_var("QA_HEAD_REPO", "http://dist.nue.suse.com/ibs/QA:/Head/SLE-12-SP3/");
+    my $qa_repo = get_required_var("QA_HEAD_REPO");
     handle_sp_in_settings_with_sp0("GUEST");
     my $guest = get_var("GUEST", "sles-12-sp3-64-fv-def-net");
     $pre_test_cmd .= " -w \"" . $which_usb . "\"" . " -r $qa_repo -g $guest";

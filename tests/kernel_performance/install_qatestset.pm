@@ -7,7 +7,6 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-#
 # Summary: setup performance run environment
 # Maintainer: Joyce Na <jna@suse.de>
 
@@ -18,13 +17,10 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use repo_tools 'add_qa_head_repo';
 
 sub install_pkg {
-    my $qa_server_repo = get_required_var('QA_REPO');
-    zypper_call("rr qa-ibs");
-    zypper_call(
-        "--no-gpg-check ar -f '$qa_server_repo' qa-ibs");
-    zypper_call("--no-gpg-check ref");
+    add_qa_head_repo;
     zypper_call("install qa_testset_automation");
 }
 

@@ -22,15 +22,11 @@ use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
 use power_action_utils 'power_action';
+use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
 use upload_system_log;
 use version_utils qw(is_sle is_opensuse is_jeos);
 use Utils::Backends 'use_ssh_serial_console';
-
-sub add_repos {
-    my $qa_head_repo = get_required_var('QA_HEAD_REPO');
-    zypper_ar($qa_head_repo, 'qa_repo');
-}
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -318,7 +314,7 @@ sub run {
         install_from_git($tag);
     }
     else {
-        add_repos;
+        add_qa_head_repo;
         install_from_repo($tag);
     }
 
