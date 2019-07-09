@@ -12,7 +12,7 @@ data "external" "gce_cred" {
     query =  { }
 }
 
-variable "count" {
+variable "instance_count" {
     default = "1"
 }
 
@@ -37,15 +37,15 @@ variable "project" {
 }
 
 resource "random_id" "service" {
-    count = "${var.count}"
-    keepers {
+    count = "${var.instance_count}"
+    keepers = {
         name = "${var.name}"
     }
     byte_length = 8
 }
 
 resource "google_compute_instance" "openqa" {
-    count        = "${var.count}"
+    count        = "${var.instance_count}"
     name         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
     machine_type = "${var.type}"
     zone         = "${var.region}"
@@ -56,7 +56,7 @@ resource "google_compute_instance" "openqa" {
         }
     }
 
-    metadata {
+    metadata = {
         sshKeys = "susetest:${file("/root/.ssh/id_rsa.pub")}"
         openqa_created_by = "${var.name}"
         openqa_created_date = "${timestamp()}"

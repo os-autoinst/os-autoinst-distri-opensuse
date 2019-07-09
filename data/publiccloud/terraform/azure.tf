@@ -1,6 +1,6 @@
 provider "azurerm" {}
 
-variable "count" {
+variable "instance_count" {
     default = "1"
 }
 
@@ -21,8 +21,8 @@ variable "image_id" {
 }
 
 resource "random_id" "service" {
-    count = "${var.count}"
-    keepers {
+    count = "${var.instance_count}"
+    keepers = {
         name = "${var.name}"
     }
     byte_length = 8
@@ -30,13 +30,13 @@ resource "random_id" "service" {
 
 
 resource "azurerm_resource_group" "openqa-group" {
-    name     = "openqa-${random_id.service.hex}"
+    name     = "openqa-${element(random_id.service.*.hex, 0)}"
     location = "${var.region}"
 
     tags = {
         openqa_created_by = "${var.name}"
         openqa_created_date = "${timestamp()}"
-        openqa_created_id = "${random_id.service.hex}"
+        openqa_created_id = "${element(random_id.service.*.hex, 0)}"
     }
 }
 
@@ -58,7 +58,7 @@ resource "azurerm_public_ip" "openqa-publicip" {
     name                         = "${azurerm_resource_group.openqa-group.name}-public-ip"
     location                     = "${var.region}"
     resource_group_name          = "${azurerm_resource_group.openqa-group.name}"
-    public_ip_address_allocation = "dynamic"
+    allocation_method            = "Dynamic"
 }
 
 resource "azurerm_network_security_group" "openqa-nsg" {
@@ -112,6 +112,7 @@ resource "azurerm_virtual_machine" "openqa-vm" {
     resource_group_name   = "${azurerm_resource_group.openqa-group.name}"
     network_interface_ids = ["${azurerm_network_interface.openqa-nic.id}"]
     vm_size               = "${var.type}"
+    count                 = "${var.instance_count}"
 
     storage_image_reference {
         id = "${azurerm_image.image.id}"
@@ -150,7 +151,7 @@ output "vm_name" {
 
 data "azurerm_public_ip" "openqa-publicip" {
     name                = "${azurerm_public_ip.openqa-publicip.name}"
-    resource_group_name = "${azurerm_virtual_machine.openqa-vm.resource_group_name}"
+    resource_group_name = "${azurerm_virtual_machine.openqa-vm.0.resource_group_name}"
 }
 
 output "public_ip" {
