@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test module to activate multipath
+# Summary: Test module to activate multipath during initial installation
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'y2_installbase';
@@ -19,7 +19,15 @@ use testapi;
 sub run {
     # Sometimes multipath detection takes longer
     assert_screen "enable-multipath", 60;
-    send_key "alt-y";
+    # This module is supposed to be invoked only if MULTIPATH is true
+    # or MULTIPATH_DIALOG_YES is set
+    if (get_var("MULTIPATH") or get_var("MULTIPATH_DIALOG_YES")) {
+        send_key "alt-y";
+    }
+    else {
+        # MULTIPATH_DIALOG_YES set to false
+        send_key "alt-n";
+    }
 }
 
 1;
