@@ -15,8 +15,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils 'is_sle';
-use registration 'scc_version';
+use version_utils qw(get_version is_sle);
 use autoyast 'expand_template';
 use File::Copy 'copy';
 use File::Path 'make_path';
@@ -33,7 +32,7 @@ sub run {
     die $profile if $profile->isa('Mojo::Exception');
 
     # Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
-    if (my $version = scc_version(get_var('VERSION', ''))) {
+    if (my $version = get_version()) {
         $profile =~ s/\{\{VERSION\}\}/$version/g;
     }
     # For s390x and svirt backends need to adjust network configuration

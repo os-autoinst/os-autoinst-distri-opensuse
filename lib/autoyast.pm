@@ -18,8 +18,8 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_sle';
-use registration qw(scc_version get_addon_fullname);
+use version_utils qw(get_version is_sle);
+use registration 'get_addon_fullname';
 
 our @EXPORT = qw(expand_template);
 
@@ -98,7 +98,7 @@ my @unversioned_products = qw(asmm contm lgm tcm wsm);
 
 sub get_product_version {
     my ($name) = @_;
-    my $version = scc_version(get_var('VERSION', ''));
+    my $version = get_version();
     return $version =~ s/^(\d*)\.\d$/$1/r if is_sle('<15') && grep(/^$name$/, @unversioned_products);
     return $version;
 }

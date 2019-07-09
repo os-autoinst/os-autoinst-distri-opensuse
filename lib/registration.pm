@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
-use version_utils qw(is_sle is_caasp is_upgrade);
+use version_utils qw(get_version is_sle is_caasp is_upgrade);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 
@@ -37,7 +37,6 @@ our @EXPORT = qw(
   yast_scc_registration
   skip_registration
   scc_deregistration
-  scc_version
   get_addon_fullname
   rename_scc_addons
   is_module
@@ -124,19 +123,6 @@ sub accept_addons_license {
     }
 }
 
-=head2 scc_version
-
-    scc_version([$version]);
-
-Helper for parsing SLE RC version into integer. It replaces SLE version
-in format X-SPY into X.Y.
-=cut
-sub scc_version {
-    my $version = shift;
-    $version //= get_required_var('VERSION');
-    return $version =~ s/-SP/./gr;
-}
-
 =head2 add_suseconnect_product
 
     add_suseconnect_product($name, [$version, [$arch, [$params]]]);
@@ -160,7 +146,7 @@ Wrapper for SUSEConnect -d $name.
 =cut
 sub remove_suseconnect_product {
     my ($name, $version, $arch, $params) = @_;
-    $version //= scc_version();
+    $version //= get_version();
     $arch    //= get_required_var('ARCH');
     $params  //= '';
     assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");

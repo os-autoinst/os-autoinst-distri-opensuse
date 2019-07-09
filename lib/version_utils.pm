@@ -19,7 +19,7 @@ use base Exporter;
 use Exporter;
 use strict;
 use warnings;
-use testapi qw(check_var get_var set_var);
+use testapi qw(check_var get_required_var get_var set_var);
 use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
@@ -29,6 +29,7 @@ use constant {
     VERSION => [
         qw(
           get_distro
+          get_version
           is_sle
           is_pre_15
           is_caasp
@@ -313,6 +314,20 @@ sub get_distro {
         return 'Tumbleweed' if (is_tumbleweed);
         return 'Leap';
     }
+}
+
+=head2 get_version
+
+    get_version([$version]);
+
+Helper for parsing openSUSE/SLE RC version into integer. It replaces version
+in format X-SPY into X.Y.
+Possible to use for openSUSE as well.
+=cut
+sub get_version {
+    my $version = shift;
+    $version //= get_required_var('VERSION');
+    return $version =~ s/-SP/./gr;
 }
 
 sub install_this_version {
