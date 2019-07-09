@@ -59,6 +59,16 @@ sub poweron_host {
     }
 }
 
+sub set_pxe_boot {
+    while (1) {
+        my $stdout = ipmitool('chassis bootparam get 5');
+        last if $stdout =~ m/Force PXE/;
+        diag "setting boot device to pxe";
+        ipmitool("chassis bootdev pxe");
+        sleep(3);
+    }
+}
+
 sub set_bootscript {
     my $host        = get_required_var('SUT_IP');
     my $ip          = inet_ntoa(inet_aton($host));
@@ -96,7 +106,7 @@ sub run {
 
     set_bootscript;
 
-    ipmitool('chassis bootdev pxe');
+    set_pxe_boot;
     poweron_host;
 
     select_console 'sol', await_console => 0;
@@ -104,7 +114,6 @@ sub run {
     # make sure to wait for a while befor changing the boot device again, in order to not change it too early
     sleep 120;
 
-    ipmitool('chassis bootdev disk');
     assert_screen('linux-login', 1800);
 }
 
