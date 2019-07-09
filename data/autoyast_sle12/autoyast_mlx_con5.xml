@@ -76,6 +76,23 @@
     </interfaces>
     <ipv6 config:type="boolean">false</ipv6>
   </networking>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <packages  config:type="list">
+      <package>openssh</package>
+    </packages>
+  </software>
   <report>
     <errors>
       <log config:type="boolean">true</log>
