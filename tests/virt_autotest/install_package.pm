@@ -61,10 +61,13 @@ sub install_package {
             lpar_cmd("zypper --non-interactive rr dependency_repo");
         }
         else {
+            my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
+            my ($host_installed_relver) = $host_installed_version =~ /^(\d+)/im;
+            my ($host_installed_spver)  = $host_installed_version =~ /sp(\d+)$/im;
             zypper_call("--no-gpg-check ar -f ${dependency_repo} dependency_repo");
             zypper_call("--gpg-auto-import-keys ref", 180);
             zypper_call("in $dependency_rpms");
-            zypper_call("rr dependency_repo");
+            zypper_call("rr dependency_repo") unless ($host_installed_relver eq '11' && $host_installed_spver eq '4');
         }
     }
 
