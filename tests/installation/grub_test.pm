@@ -19,6 +19,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
+use power_action_utils 'power_action';
 
 =head2 handle_installer_medium_bootup
 
@@ -83,6 +84,10 @@ sub run {
         # avoid timeout for booting to HDD
         send_key 'ret';
     }
+
+    # for ipmi we need to shutdown at first, otherwise the following test first_boot won't work
+    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
+    power_action('poweroff') if $gnome_ipmi;
 }
 
 sub test_flags {
