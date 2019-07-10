@@ -551,6 +551,19 @@ sub select_bootmenu_more {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         type_string_very_slow(" @params ");
         send_key 'f10';
+        # Attempt to workaround path issue bsc#1141038, with the least possible needles.
+        if ( check_screen "wrong_loader_path" ) {
+            record_soft_failure 'bsc#1141038';
+            assert_screen "gfxpayload_changed";
+            for (0 .. 38) { send_key "backspace" }
+            type_string "linux";
+            push @params, 'systemboot=1';
+            type_string_very_slow(" @params ");
+            for (1.. 2) { send_key 'down' }
+            for (0 .. 12) { send_key "backspace" }
+            type_string 'initrd';
+            send_key 'f10';
+        }
     }
     else {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
