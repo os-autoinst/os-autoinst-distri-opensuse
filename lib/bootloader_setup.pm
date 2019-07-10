@@ -195,14 +195,11 @@ sub boot_local_disk {
         wait_screen_change { send_key 'ret' };
         # Currently the bootloader would bounce back to inst-bootmenu screen after pressing 'ret'
         # on 'local' menu-item, we have to check it and send 'ret' again to make booting properly
-        my $counter = 3;
-        while (check_screen(['bootloader', 'inst-bootmenu'], 3) && $counter) {
+        if (check_screen(['bootloader', 'inst-bootmenu'], 30)) {
             record_info 'bounce back to inst-bootmenu, send ret again';
             send_key 'ret';
-            wait_still_screen(1);
-            $counter--;
         }
-        my @tags = qw(inst-slof bootloader grub2 inst-bootmenu);
+        my @tags = qw(inst-slof grub2);
         push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
         assert_screen(\@tags);
         if (match_has_tag 'grub2') {
