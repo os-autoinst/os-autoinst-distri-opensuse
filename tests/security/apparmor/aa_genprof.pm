@@ -13,7 +13,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Test the profile generation utility of Apparmor
+# Summary: Test the profile generation utility of Apparmor using aa-genprof.
+# Uses aa-genprof to create test profiles for nscd on a temporary directory.
+# While aa-genprof waits, restarts nscd and interactivelly accepts and save
+# changes. Validates the generated profile against a predetermined set of values.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36886, poo#45803
 

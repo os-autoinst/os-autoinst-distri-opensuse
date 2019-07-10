@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Test the basic information output function for apparmor aa-status
-#          and whether AppArmor was enabled by default
+# Summary: Test the basic information output function for apparmor using
+# aa-status and whether AppArmor was enabled by default.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36874, poo#44912
 

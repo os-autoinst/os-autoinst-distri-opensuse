@@ -13,7 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Display information about logged AppArmor messages
+# Summary: Display information about logged AppArmor messages. The test starts
+# by creating a temporary profile for nscd. Then adds root to user group. To
+# validate, removes /etc/nscd.conf from temporary profile directory, restarts
+# nscd with temporary security profile and checks the aa-notify output looking
+# for missing /etc/nscd.conf entry.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36883, tc#1621139
 

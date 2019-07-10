@@ -13,7 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Enforce a disabled profile with aa-enforce
+# Summary: Enforce a disabled profile with aa-enforce. Test uses nscd as base.
+# Disables nscd profile using aa-disable, then validates by checking status by aa-status.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36877, tc#1621145
 

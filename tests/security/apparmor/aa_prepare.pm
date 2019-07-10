@@ -7,7 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Make sure apparmor is installed and running for later testing.
+# Summary: Make sure apparmor is installed and running for later testing by
+# installing apparmor pattern.
 # Maintainer: Juraj Hura <jhura@suse.com>
 
 use base "basetest";
