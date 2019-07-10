@@ -27,7 +27,7 @@ sub run {
     zypper_call "ar http://download.suse.de/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/SES6/images/repo/SUSE-Enterprise-Storage-6-POOL-$arch-Media1/ SES6"
       if is_sle('>=15');
     # install SES packages, chrony and git
-    zypper_call 'in chrony git-core deepsea ceph';
+    zypper_call 'in chrony git-core deepsea';
     # deepsea testsuite from repo is stable, not changing every day and better for QAM testing
     if (get_var('DEEPSEA_TESTSUITE_STABLE')) {
         my $deepsea_qa
