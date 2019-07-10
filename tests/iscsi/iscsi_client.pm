@@ -8,58 +8,140 @@
 # without any warranty.
 
 # Summary: Test suite for iSCSI server and client
-#   Multimachine testsuites, server test creates iscsi target and client test uses it
+#    Multimachine testsuites, server test creates iscsi target and client test uses it
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "x11test";
+use base "y2_module_guitest";
 use strict;
 use warnings;
 use testapi;
-use mm_network;
-use lockapi;
-use x11utils 'turn_off_gnome_screensaver';
-use y2_module_consoletest;
+use lockapi qw(mutex_create mutex_wait);
+use version_utils qw(is_sle is_leap);
+use yast2_widget_utils 'change_service_configuration';
+use utils qw(systemctl type_string_slow_extended);
+use scheduler 'get_test_data';
+use y2_mm_common 'prepare_xterm_and_setup_static_network';
+
+# load expected test data from yaml
+# common for both iscsi MM modules
+my $test_data = get_test_data();
+
+sub initiator_service_tab {
+    unless (is_sle('<15') || is_leap('<15.1')) {
+        change_service_configuration(
+            after_writing => {start         => 'alt-f'},
+            after_reboot  => {start_on_boot => 'alt-a'}
+        );
+    }
+    # go to initiator name field
+    send_key "alt-i";
+    type_string_slow_extended($test_data->{initiator_conf}->{name} . ':' . $test_data->{initiator_conf}->{id});
+    assert_screen 'iscsi-initiator-service';
+}
+
+sub initiator_discovered_targets_tab {
+    # go to discovered targets tab
+    send_key "alt-v";
+    assert_screen 'iscsi-discovered-targets', 120;
+    # press discovery button
+    send_key "alt-d";
+    assert_screen 'iscsi-discovery';
+    # go to IP address field
+    send_key "alt-i";
+    my $target_ip_only = (split('/', $test_data->{target_conf}->{ip}))[0];
+    type_string_slow_extended $target_ip_only;
+    assert_screen 'iscsi-initiator-discovered-IP-adress';
+    # next and press connect button
+    send_key "alt-n";
+    assert_and_click 'iscsi-initiator-connect-button';
+    assert_screen 'iscsi-initiator-connect-manual';
+    send_key 'alt-o';
+    assert_screen 'iscsi-initiator-discovery-enable-login-auth';
+    send_key 'alt-u';
+    type_string_slow_extended $test_data->{initiator_conf}->{user};
+    assert_screen 'iscsi-initiator-discovery-auth-initiators-username';
+    send_key 'alt-p';
+    my $init_pass = reverse $test_data->{common}->{password};
+    wait_screen_change { type_string_slow_extended $init_pass; };
+    send_key 'alt-r';
+    type_string_slow_extended $test_data->{target_conf}->{user};
+    assert_screen 'iscsi-initiator-discovery-auth-targets-username';
+    send_key 'alt-a';
+    wait_screen_change { type_string_slow_extended $test_data->{common}->{password}; };
+    send_key 'alt-n';
+}
+
+sub initiator_connected_targets_tab {
+    # go to discovered targets tab
+    send_key "alt-d";
+    assert_screen 'iscsi-initiator-discovered-targets';
+    # go to connected targets tab
+    send_key "alt-n";
+    assert_screen 'iscsi-initiator-connected-targets';
+    # press OK twice
+    send_key "alt-o";
+    wait_still_screen(2, 10);
+    send_key "alt-o";
+}
+
 
 sub run {
-    x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
-    turn_off_gnome_screensaver;
-    become_root;
-    configure_default_gateway;
-    configure_static_ip('10.0.2.3/24');
-    configure_static_dns(get_host_resolv_conf());
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'iscsi-client');
-    assert_screen 'iscsi-client', 180;
-    mutex_lock('iscsi_ready');    # wait for server setup
-    send_key "alt-i";             # go to initiator name field
-    wait_still_screen(2, 10);
-    type_string "iqn.2016-02.de.openqa";
-    wait_still_screen(2, 10);
-    assert_screen 'iscsi-initiator-service';
-    send_key "alt-v";             # go to discovered targets tab
-    assert_screen 'iscsi-discovered-targets', 120;
-    send_key "alt-d";             # press discovery button
-    assert_screen 'iscsi-discovery';
-    send_key "alt-i";             # go to IP address field
-    wait_still_screen(2, 10);
-    type_string "10.0.2.1";
-    assert_screen 'iscsi-initiator-discovered-IP-adress';
-    send_key "alt-n";                                     # next
-    assert_and_click 'iscsi-initiator-connect-button';    # press connect button
-    assert_screen 'iscsi-initiator-connect-manual';
-    send_key "alt-n";                                     # go to connected targets tab
-    assert_screen 'iscsi-initiator-discovered-targets';
-    send_key "alt-n";                                     # next
-    assert_screen 'iscsi-initiator-connected-targets';
-    send_key "alt-o";                                     # OK
-    wait_still_screen(2, 10);
+    my $self = shift;
+    prepare_xterm_and_setup_static_network(ip => $test_data->{initiator_conf}->{ip}, message => 'Configure MM network - client');
+    mutex_wait('iscsi_target_ready', undef, 'Target configuration in progress!');
+    record_info 'Target Ready!', 'iSCSI target is configured, start initiator configuration';
+    my $module_name = $self->launch_yast2_module_x11('iscsi-client', target_match => 'iscsi-client');
+    initiator_service_tab;
+    initiator_discovered_targets_tab;
+    initiator_connected_targets_tab;
     wait_serial("$module_name-0", 180) || die "'yast2 iscsi-client ' didn't finish or exited with non-zero code";
-    assert_script_run 'lsscsi';
-    assert_script_run "echo -e \"n\\np\\n1\\n\\n\\nw\\n\" \| fdisk /dev/sda";    # create one partition
-    assert_script_run 'mkfs.ext4 /dev/sda1';                                     # format partition to ext4
-    assert_script_run 'mount /dev/sda1 /mnt';                                    # mount partition to /mnt
-    assert_script_run 'echo "iscsi is working" > /mnt/iscsi';                    # write text to file on iscsi disk
-    assert_script_run 'grep "iscsi is working" /mnt/iscsi';                      # grep expected text from file
+    # logging in to a target will create a local disc device
+    # it takes a moment, since udev actually handles it
+    sleep 5;
+    record_info 'Systemd', 'Verify status of iscsi services and sockets';
+    systemctl("is-active iscsid.service");
+    systemctl("is-active iscsid.socket");
+    systemctl("is-active iscsi.service");
+    record_info 'Display iSCSI session';
+    assert_script_run 'iscsiadm --mode session -P 3 | tee -a ' . "/dev/$serialdev | grep LOGGED_IN";
+    record_info 'Verify LUN availability';
+    my $backstore_model = ($test_data->{target_conf}->{backstore_type} eq 'fileio') ? 'fileio' : 'iblock';
+    assert_script_run "lsscsi | tee -a /dev/$serialdev | grep -i $backstore_model";
+    assert_script_run "lsblk --scsi | tee -a /dev/$serialdev | grep -i $backstore_model";
+    assert_script_run 'ls /dev/disk/by-path |grep ' . $test_data->{target_conf}->{name} . ':' . $test_data->{target_conf}->{id};
+    # filter out iscsi drive according to TRAN column
+    my $iscsi_drive = script_output "lsblk --scsi -p | grep iscsi | awk '{print \$1}'";
+    # making a single partition actually causes the kernel code to re-read the starting part of the disc
+    # in order for it to recognize that you now have a partition table when before there was none
+    # create one partition and format it to ext4
+    # lvm does not need a partition, we can deploy fs directly on lvm
+    unless ($test_data->{target_conf}->{backstore_type} eq 'lvm') {
+        assert_script_run "echo -e \"n\\np\\n1\\n\\n\\nw\\n\" \| fdisk $iscsi_drive";
+        $iscsi_drive .= '1';
+    }
+    sleep 3;
+    assert_script_run "mkfs.ext4 $iscsi_drive";
+    sleep 2;
+    # try mount remote partition to /mnt
+    assert_script_run "mount $iscsi_drive /mnt";
+    # write text to file on iscsi disk
+    assert_script_run 'echo "iscsi is working" > /mnt/iscsi';
+    # grep expected text from file
+    assert_script_run 'grep "iscsi is working" /mnt/iscsi';
+    mutex_create('iscsi_initiator_ready');
+    mutex_wait('iscsi_display_sessions', undef, 'Verifying sessions on target');
+    record_info 'Logout iSCSI', 'Logout iSCSI sessions & unmount LUN';
+    assert_script_run 'iscsiadm --mode node --logoutall=all';
+    assert_script_run 'umount /mnt';
     type_string "killall xterm\n";
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    select_console 'root-console';
+    $self->save_and_upload_log("iscsiadm --mode session -P 3",                     "/tmp/iscsi_init_session_data.log");
+    $self->save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /etc/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
+    $self->SUPER::post_fail_hook;
 }
 
 1;
