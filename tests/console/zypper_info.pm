@@ -34,7 +34,7 @@ sub test_srcpackage_output {
     my $info_output_coreutils = script_output 'zypper info srcpackage:coreutils';
     check_srcpackage_output 'coreutils', $info_output_coreutils;
 
-    if (is_sle) {
+    if (is_sle '>=12-SP3') {
         if (is_sle '<15') {
             register_product;
         }
