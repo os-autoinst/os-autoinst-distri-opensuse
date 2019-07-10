@@ -25,8 +25,8 @@ class resultSet:
         self.results_set['info']['timestamp'] = time.time()
         with open('/etc/os-release', 'r') as fh:
             osrel = fh.read()
-        self.results_set['info']['distro'] = str(osrel[osrel.find('ID=')+3:
-                                                       osrel.find('ID_LIKE=')-1])
+        osrel = osrel[osrel.find('\nPRETTY_NAME=')+14:len(osrel)]
+        self.results_set['info']['distro'] = str(osrel[0:osrel.find('\n')-1])
         self.results_set['info']['results_file'] = 'hawk_test.results'
         self.results_set['summary']['duration'] = 0
         self.results_set['summary']['passed'] = 0

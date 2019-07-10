@@ -21,6 +21,9 @@ XPATH_ERR_FMT = "check_and_click_by_xpath requires a list of xpath strings. Got 
 # XPATH constants
 CLICK_OK_SUBMIT = "//*[@id=\"modal\"]/div/div/form/div[3]/input"
 CONFIG_EDIT = '//a[contains(@href, "config/edit")]'
+RESOURCES_TYPES = '//a[contains(@href, "resources/types")]'
+HREF_DASHBOARD = '//a[contains(@href, "/dashboard")]'
+HREF_REPORTS = '//a[contains(@href, "/reports")]'
 OCF_OPT_LIST = '//option[contains(@value, "ocf")]'
 ANYTHING_OPT_LIST = '//option[contains(@value, "anything")]'
 EDIT_START_TIMEOUT = "//*[@id=\"oplist\"]/fieldset/div/div[1]/div[1]/div[2]/div/div/a[1]"
@@ -281,6 +284,7 @@ class hawkTestDriver:
     def test_view_details_first_node(self):
         print("TEST: test_view_details_first_node: Checking details of first cluster node")
         self.click_on('Nodes')
+        self.check_and_click_by_xpath(". Click on Nodes", [HREF_NODES])
         self.check_and_click_by_xpath(". Could not find first node pull down menu", [NODE_DETAILS])
         self.check_and_click_by_xpath(". Could not find button to dismiss node details popup",
                                       [DISMISS_MODAL])
@@ -290,6 +294,7 @@ class hawkTestDriver:
     def test_clear_state_first_node(self):
         print("TEST: test_clear_state_first_node")
         self.click_on('Nodes')
+        self.check_and_click_by_xpath(". Click on Nodes", [HREF_NODES])
         self.check_and_click_by_xpath(". Could not find pull down menu for first cluster node",
                                       [CLEAR_STATE])
         self.click_on('Clear state')
@@ -305,6 +310,7 @@ class hawkTestDriver:
     def test_set_first_node_maintenance(self):
         print("TEST: test_set_first_node_maintenance: switching node to maintenance")
         self.click_on('Nodes')
+        self.check_and_click_by_xpath(". Click on Nodes", [HREF_NODES])
         self.check_and_click_by_xpath(MAINT_TOGGLE_ERR, [NODE_MAINT, COMMIT_BTN_DANGER])
         if self.verify_success():
             print("INFO: node successfully switched to maintenance mode")
@@ -315,6 +321,7 @@ class hawkTestDriver:
     def test_disable_maintenance_first_node(self):
         print("TEST: test_disable_maintenance_first_node: switching node to ready")
         self.click_on('Nodes')
+        self.check_and_click_by_xpath(". Click on Nodes", [HREF_NODES])
         self.check_and_click_by_xpath(MAINT_TOGGLE_ERR, [NODE_READY, COMMIT_BTN_DANGER])
         if self.verify_success():
             print("INFO: node successfully switched to ready mode")
@@ -325,6 +332,7 @@ class hawkTestDriver:
     def test_add_new_cluster(self, cluster_name):
         print("TEST: test_add_new_cluster")
         self.click_on('Dashboard')
+        self.check_and_click_by_xpath(". Click on Dashboard", [HREF_DASHBOARD])
         elem = self.find_element(By.CLASS_NAME, "btn-default")
         if not elem:
             print("ERROR: Couldn't find class 'btn-default'")
@@ -357,6 +365,7 @@ class hawkTestDriver:
     def test_remove_cluster(self, cluster_name):
         print("TEST: test_remove_cluster")
         self.click_on('Dashboard')
+        self.check_and_click_by_xpath(". Click on Dashboard", [HREF_DASHBOARD])
         elem = self.find_element(By.PARTIAL_LINK_TEXT, str(cluster_name))
         if not elem:
             print("ERROR: Couldn't find cluster [%s]. Cannot remove" % cluster_name)
@@ -400,6 +409,7 @@ class hawkTestDriver:
         print("TEST: test_generate_report: click on Generate report")
         self.click_if_major_version("15", self.link_by_browser('troubleshooting'))
         self.click_on('History')
+        self.check_and_click_by_xpath(". Click on History", [HREF_REPORTS])
         if self.find_element(By.XPATH, GENERATE_REPORT):
             self.check_and_click_by_xpath(". Could not find button for Generate report",
                                           [GENERATE_REPORT])
@@ -429,6 +439,7 @@ class hawkTestDriver:
         print("TEST: test_add_primitive: Add Resources: Primitive %s" % priminame)
         self.click_if_major_version("15", self.link_by_browser('configuration'))
         self.click_on('Resource')
+        self.check_and_click_by_xpath(". Click on Add Resource", [RESOURCES_TYPES])
         self.click_on('rimitive')
         # Fill the primitive
         elem = self.find_element(By.NAME, 'primitive[id]')
@@ -528,6 +539,7 @@ class hawkTestDriver:
         print("TEST: test_add_clone: Adding clone [%s]" % clone)
         self.click_if_major_version("15", self.link_by_browser('configuration'))
         self.click_on('Resource')
+        self.check_and_click_by_xpath(". Click on Add Resource", [RESOURCES_TYPES])
         self.check_and_click_by_xpath("on Create Clone [%s]" % clone, [CLONE_DATA_HELP_FILTER])
         elem = self.find_element(By.NAME, 'clone[id]')
         if not elem:
@@ -547,6 +559,7 @@ class hawkTestDriver:
         print("TEST: test_add_group: Adding group [%s]" % group)
         self.click_if_major_version("15", self.link_by_browser('configuration'))
         self.click_on('Resource')
+        self.check_and_click_by_xpath(". Click on Add Resource", [RESOURCES_TYPES])
         self.check_and_click_by_xpath("while adding group [%s]" % group, [GROUP_DATA_FILTER])
         elem = self.find_element(By.NAME, 'group[id]')
         if not elem:
