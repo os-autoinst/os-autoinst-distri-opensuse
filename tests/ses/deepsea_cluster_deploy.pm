@@ -50,7 +50,14 @@ alternative_defaults:
     tuned_mon_init: default-off
     tuned_osd_init: default-off
 EOF
-        script_run("echo -e '$tuned_off' >> /srv/pillar/ceph/stack/global.yml") if is_sle('15+');
+        if (is_sle('15+')) {
+            script_run("echo -e '$tuned_off' >> /srv/pillar/ceph/stack/global.yml");
+            record_soft_failure "bnc:#1139379 - Workaround deepsea subvolume checks. PR https://github.com/SUSE/DeepSea/pull/1701 is not merged yet!";
+            assert_script_run "wget -nd -O /srv/salt/ceph/subvolume/default.sls https://raw.githubusercontent.com/SUSE/DeepSea/7cab8f2265e7afc052b9209ae1f82d3b7693de21/srv/salt/ceph/subvolume/default.sls |& tee /dev/$serialdev";
+            # appy state on monitor nodes with the changed default.sls
+            assert_script_run "wget -nd -O /srv/salt/_modules/subvolume.py https://raw.githubusercontent.com/SUSE/DeepSea/7cab8f2265e7afc052b9209ae1f82d3b7693de21/srv/salt/_modules/subvolume.py && salt '*' saltutil.sync_all |& tee /dev/$serialdev";
+            assert_script_run "salt 'node[234]*' state.apply ceph.subvolume |& tee /dev/$serialdev";
+        }
         assert_script_run 'wget ' . data_url("ses/$policy");
         assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.0 |& tee /dev/$serialdev", 700;
         assert_script_run "salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev",                  700;
