@@ -100,6 +100,7 @@ ROOTONLY | boolean | false | Request installation to create only the root accoun
 SCC_ADDONS | string | | Coma separated list of modules to be enabled using SCC/RMT.
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
 SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.
+SES5_TESTING_REPO | string | | URL for repo containing ceph-qa-health-ok package.
 SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certificate validation of the remote source, e.g. when using self-signed https url.
 SLE_PRODUCT | string | | Defines SLE product. Possible values: `sles`, `sled`, `sles4sap`. Is mainly used for SLE 15 installation flow.
 SOFTFAIL_BSC1063638 | boolean | false | Enable bsc#1063638 detection.

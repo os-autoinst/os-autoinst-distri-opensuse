@@ -36,7 +36,6 @@ sub run {
         # give time to salt to establish connection, to accept keys of all nodes
         sleep 2;
         assert_script_run 'salt-key --accept-all --yes';
-        assert_script_run 'cd /usr/lib/deepsea/qa/';
         # print system info
         assert_script_run 'uname -a';
         assert_script_run 'cat /etc/os-release';
@@ -49,8 +48,16 @@ sub run {
         my $deepsea_cli       = is_sle('>=15') ? '' : '--cli';
         my $deepsea_testsuite = get_var('DEEPSEA_TESTSUITE');
         my $deepsea_options   = get_var('DEEPSEA_OPTIONS');
-        # temporary fix https://github.com/SUSE/DeepSea/pull/1417
-        script_run 'sed -i \'s/MASTER_MINION=$(hostname)/MASTER_MINION=$(hostname --fqdn)/\' common/deploy.sh';
+        if (is_sle('<15')) {
+            record_soft_failure("/usr/lib/deepsea/qa for SES5 is now provided via separate pkg");
+            my $ses5_testing_repo = get_required_var('SES5_TESTING_REPO');
+            zypper_call("ar in ${ses5_testing_repo} ses5_testing_repo");
+            zypper_call("--gpg-auto-import-keys ref");
+            zypper_call("in ceph-qa-health-ok", exitcode => [0, 102, 103]);
+            zypper_call("rr ses5_testing_repo");
+        }
+        assert_script_run 'cd /usr/lib/deepsea/qa/';
+        script_run 'common/deploy.sh';
         assert_script_run "suites/basic/$deepsea_testsuite.sh $deepsea_cli $deepsea_options | grep \"test result: PASS\$\"", 4000;
     }
     else {
