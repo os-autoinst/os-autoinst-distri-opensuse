@@ -26,9 +26,16 @@ sub wait_serial_or_die {
 
 
 sub run {
+
+    #Extra setup for testing on Xen.
+    if (check_var('VIRSH_VMM_FAMILY','xen')){
+        set_var('SERIAL_CONSOLE',1);
+    }
+
     #Setup console for text feedback.
     my ($self) = @_;
     $self->select_serial_terminal();
+
     zypper_call('in gcc glibc-devel gdb');    #Install test depedencies.
 
     #Test Case 1
@@ -78,6 +85,11 @@ sub run {
     type_string("y\n");
     assert_script_run("pkill -9 test3");
     select_console("root-console");
+
+    if (check_var('VIRSH_VMM_FAMILY','xen')){
+        set_var('SERIAL_CONSOLE',0);
+    }
+
 }
 
 1;
