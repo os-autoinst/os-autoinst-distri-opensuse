@@ -7,18 +7,23 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Bonding, Balance-alb
+# Summary: Template used to load when ref machine is working in fully passive mode
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 
-use Mojo::Base 'wickedbase';
+use base 'wickedbase';
+use strict;
+use warnings;
 use testapi;
 
-
 sub run {
-    record_info('INFO', 'Bonding, Balance-alb');
+    my ($self) = @_;
+}
+
+sub test_flags {
+    return {always_rollback => 1};
 }
 
 1;
