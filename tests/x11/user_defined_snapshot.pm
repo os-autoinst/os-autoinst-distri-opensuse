@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -41,7 +41,7 @@ sub run {
     script_run "cd";
 
     # Start the yast2 snapper module and wait until it is started
-    type_string "yast2 snapper\n";
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'snapper');
     assert_screen 'yast2_snapper-snapshots', 100;
     # ensure the last screenshots are visible
     wait_screen_change { send_key 'end' };
@@ -54,9 +54,10 @@ sub run {
     send_key_until_needlematch([qw(grub_comment)], 'pgdn');
     # C'l'ose  the snapper module
     send_key "alt-l";
+    wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
-    $self->wait_grub(bootloader_time => 90);
+    $self->wait_grub;
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
     $self->{in_wait_boot} = 0;
