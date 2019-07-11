@@ -310,7 +310,7 @@ sub is_updates_tests {
 
 sub is_updates_test_repo {
     # mru stands for Maintenance Released Updates and skips unreleased updates
-    return get_var('TEST') !~ /^mru-/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
+    return get_var('TEST') =~ /-install/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
 sub is_repo_replacement_required {
