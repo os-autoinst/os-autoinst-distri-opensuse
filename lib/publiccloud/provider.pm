@@ -270,8 +270,7 @@ sub terraform_apply {
     assert_script_run('cd ' . TERRAFORM_DIR);
     record_info('INFO', "Creating instance $instance_type from $image ...");
     assert_script_run('terraform init -no-color', TERRAFORM_TIMEOUT);
-
-    my $cmd = sprintf("terraform plan -no-color -var 'image_id=%s' -var 'count=%s' -var 'type=%s' -var 'region=%s' -var 'name=%s' -out myplan",
+    my $cmd = sprintf("terraform plan -no-color -var 'image_id=%s' -var 'instance_count=%s' -var 'type=%s' -var 'region=%s' -var 'name=%s' -out myplan",
         $image, $args{count}, $instance_type, $self->region, $name);
 
     assert_script_run($cmd);
@@ -288,8 +287,9 @@ sub terraform_apply {
 
     $self->terraform_applied(1);
 
-    my $vms = decode_json(script_output("terraform output -json vm_name"))->{value};
-    my $ips = decode_json(script_output("terraform output -json public_ip"))->{value};
+    my $output = decode_json(script_output("terraform output -json"));
+    my $vms    = $output->{vm_name}->{value};
+    my $ips    = $output->{public_ip}->{value};
 
     foreach my $i (0 .. $#{$vms}) {
         my $instance = publiccloud::instance->new(

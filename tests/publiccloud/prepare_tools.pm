@@ -47,7 +47,7 @@ sub run {
         assert_script_run("pip3 install -q keyring");
     }
     elsif (is_sle) {
-        zypper_call('-q in aws-cli');
+        zypper_call('-q in --force-resolution aws-cli');
 
         if (script_output('aws --version', 60, proceed_on_failure => 1) =~ /No module named vendored.requests.packages.urllib3.exceptions/m) {
             record_soft_failure('workaround for boo#1122199');
@@ -61,31 +61,37 @@ sub run {
     }
     zypper_call('-q in python-ec2uploadimg');
     assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
+    record_info('EC2', script_output('aws --version'));
 
     # install azure cli
+    my $azure_cli_version = get_var('AZURE_CLI_VERSION', '2.0.64');
     zypper_call('-q in curl');
     assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
     zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
-    zypper_call('-q in --from azure-cli -y azure-cli');
+    zypper_call('-q in --from azure-cli -y azure-cli=' . $azure_cli_version);
+    record_info('Azure', script_output('az -v'));
+
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
     assert_script_run("curl sdk.cloud.google.com | bash");
     assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
     assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
+    record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
+
 
     # Create some directories, ipa will need them
     assert_script_run("mkdir -p ~/ipa/tests/");
     assert_script_run("mkdir -p .config/ipa");
     assert_script_run("touch .config/ipa/config");
     assert_script_run("ipa list");
-    assert_script_run("ipa --version");
+    record_info('IPA', script_output('ipa --version'));
 
-    # Download and Install Terraform
-    my $terraform_url = get_var('TERRAFORM_URL', 'https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip');
-    assert_script_run("wget -q $terraform_url");
-    assert_script_run('unzip terraform_* terraform -d /usr/bin/');
-    assert_script_run('terraform -v');
+    # Install Terraform from repo
+    my $tfm_repo = get_var('TERRAFORM_REPO', 'https://download.opensuse.org/repositories/systemsmanagement:/terraform/' . generate_version() . '/systemsmanagement:terraform.repo');
+    zypper_call('ar ' . $tfm_repo);
+    zypper_call('--gpg-auto-import-keys -q in terraform');
+    record_info('Terraform', script_output('terraform -v'));
 
     select_console 'root-console';
 }
