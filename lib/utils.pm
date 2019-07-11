@@ -456,13 +456,16 @@ sub zypper_enable_install_dvd {
 
 =head2 zypper_ar
 
-Works exactly like zypper_ar on console
+Add repository (with zypper ar) unless it's already repo C<$name> already added.
+
 =cut
 sub zypper_ar {
     my ($url, $name) = @_;
 
-    zypper_call("ar $url $name",                           dumb_term => 1);
-    zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
+    if (script_run("zypper lr $name")) {
+        zypper_call("ar $url $name",                           dumb_term => 1);
+        zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
+    }
 }
 
 =head2 fully_patch_system
