@@ -41,7 +41,7 @@
   </add-on>
   <bootloader>
     <global>
-      <timeout config:type="integer">-1</timeout>
+      <timeout config:type="integer">30</timeout>
     </global>
   </bootloader>
   <general>
