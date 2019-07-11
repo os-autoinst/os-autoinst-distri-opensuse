@@ -24,6 +24,13 @@ has storage_account => 'openqa';
 has container       => 'sle-images';
 has lease_id        => undef;
 
+# due to https://github.com/Azure/azure-cli/issues/9903 we need to trim 4 last chars in az output
+sub decode_azure_json {
+    my $json = shift;
+    $json =~ s/.{4}$//;
+    return decode_json($json);
+}
+
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
@@ -86,7 +93,7 @@ sub find_img {
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('INFO', $json);
     eval {
-        my $image = decode_json($json);
+        my $image = decode_azure_json($json);
         return $image->{name};
     };
 }
@@ -95,7 +102,7 @@ sub get_storage_account_keys {
     my ($self, %args) = @_;
     my $output = script_output("az storage account keys list --resource-group "
           . $self->resource_group . " --account-name " . $self->storage_account);
-    my $json = decode_json($output);
+    my $json = decode_azure_json($output);
     my $key  = undef;
     if (@{$json} > 0) {
         $key = $json->[0]->{value};
@@ -209,7 +216,7 @@ sub get_state_from_instance
 {
     my ($self, $instance) = @_;
     my $name = $instance->instance_id();
-    my $out = decode_json(script_output("az vm get-instance-view --name $name --resource-group $name --query instanceView.statuses[1] --output json", quiet => 1));
+    my $out = decode_azure_json(script_output("az vm get-instance-view --name $name --resource-group $name --query instanceView.statuses[1] --output json", quiet => 1));
     die("Expect PowerState but got " . $out->{code}) unless ($out->{code} =~ m'PowerState/(.+)$');
     return $1;
 }
@@ -219,7 +226,7 @@ sub get_ip_from_instance
     my ($self, $instance) = @_;
     my $name = $instance->instance_id();
 
-    my $out = decode_json(script_output("az vm list-ip-addresses --name $name --resource-group $name", quiet => 1));
+    my $out = decode_azure_json(script_output("az vm list-ip-addresses --name $name --resource-group $name", quiet => 1));
     return $out->[0]->{virtualMachine}->{network}->{publicIpAddresses}->[0]->{ipAddress};
 }
 

@@ -25,21 +25,13 @@ sub run {
 
     $self->select_serial_terminal;
 
-    if (is_sle) {
-        my $modver = get_required_var('VERSION') =~ s/-SP\d+//gr;
-        add_suseconnect_product('sle-module-public-cloud', $modver, get_required_var('ARCH'));
+    if (my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO')) {
+        for my $repo (split(/\s+/, $tools_repo)) {
+            zypper_call('ar ' . $repo);
+        }
     }
-
-    my $default_tools_repos = 'http://download.suse.de/ibs/Devel:/PubCloud:/CI/' . generate_version() . '/Devel:PubCloud:CI.repo';
-    $default_tools_repos .= ' https://download.opensuse.org/repositories/devel:/languages:/python:/backports/' . generate_version() . '/devel:languages:python:backports.repo';
-    my $tools_repo = get_var('PUBLIC_CLOUD_TOOLS_REPO', $default_tools_repos);
-    for my $repo (split(/\s+/, $tools_repo)) {
-        zypper_call('ar ' . $repo);
-    }
-    zypper_call('--gpg-auto-import-keys -q in python3-ipa python3-ipa-tests git-core ntp');
 
     # Install AWS cli
-    zypper_call('-q in gcc python3-pip');
     if (is_opensuse) {
         zypper_call('-q in python3-devel');
         assert_script_run("pip3 install -q pycrypto");
@@ -64,11 +56,9 @@ sub run {
     record_info('EC2', script_output('aws --version'));
 
     # install azure cli
-    my $azure_cli_version = get_var('AZURE_CLI_VERSION', '2.0.64');
-    zypper_call('-q in curl');
     assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
     zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
-    zypper_call('-q in --from azure-cli -y azure-cli=' . $azure_cli_version);
+    zypper_call('-q in --from azure-cli -y azure-cli');
     record_info('Azure', script_output('az -v'));
 
 
@@ -84,12 +74,11 @@ sub run {
     assert_script_run("mkdir -p ~/ipa/tests/");
     assert_script_run("mkdir -p .config/ipa");
     assert_script_run("touch .config/ipa/config");
-    assert_script_run("ipa list");
-    record_info('IPA', script_output('ipa --version'));
+    assert_script_run("img-proof list");
+    record_info('IPA', script_output('img-proof --version'));
 
     # Install Terraform from repo
-    my $tfm_repo = get_var('TERRAFORM_REPO', 'https://download.opensuse.org/repositories/systemsmanagement:/terraform/' . generate_version() . '/systemsmanagement:terraform.repo');
-    zypper_call('ar ' . $tfm_repo);
+    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15/systemsmanagement:terraform.repo');
     zypper_call('--gpg-auto-import-keys -q in terraform');
     record_info('Terraform', script_output('terraform -v'));
 

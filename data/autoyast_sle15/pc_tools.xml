@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <general>
+        <ask-list config:type="list"/>
+        <mode>
+            <confirm config:type="boolean">false</confirm>
+        </mode>
+        <proposals config:type="list"/>
+        <signature-handling>
+            <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+            <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+            <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+            <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+            <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+            <import_gpg_key config:type="boolean">true</import_gpg_key>
+        </signature-handling>
+    </general>
+    <add-on>
+        <add_on_products config:type="list">
+            <listentry>
+                <media_url>http://download.suse.de/ibs/Devel:/PubCloud:/CI/SLE_15</media_url>
+                <product>public_cloud_devel</product>
+                <alias>Public Cloud Devel</alias>
+                <product_dir>/</product_dir>
+                <priority config:type="integer">20</priority>
+                <ask_on_error config:type="boolean">false</ask_on_error>
+                <confirm_license config:type="boolean">false</confirm_license>
+                <name>Public Cloud Devel</name>
+                <ask_user config:type="boolean">false</ask_user>
+                <selected config:type="boolean">true</selected>
+            </listentry>
+            <listentry>
+                <media_url>https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_15/</media_url>
+                <product>python_devel</product>
+                <alias>Python Devel</alias>
+                <product_dir>/</product_dir>
+                <priority config:type="integer">20</priority>
+                <ask_on_error config:type="boolean">false</ask_on_error>
+                <confirm_license config:type="boolean">false</confirm_license>
+                <name>Python Devel</name>
+                <ask_user config:type="boolean">false</ask_user>
+                <selected config:type="boolean">true</selected>
+            </listentry>
+        </add_on_products>
+    </add-on>
+    <suse_register>
+        <do_registration config:type="boolean">true</do_registration>
+        <email/>
+        <reg_code>{{SCC_REGCODE}}</reg_code>
+        <install_updates config:type="boolean">true</install_updates>
+        <addons config:type="list">
+            <addon>
+                <name>sle-module-basesystem</name>
+                <version>15</version>
+                <arch>x86_64</arch>
+            </addon>
+            <addon>
+                <name>sle-module-public-cloud</name>
+                <version>15</version>
+                <arch>x86_64</arch>
+            </addon>
+            <addon>
+                <name>sle-module-development-tools</name>
+                <version>15</version>
+                <arch>x86_64</arch>
+            </addon>
+            <addon>
+                <name>sle-module-legacy</name>
+                <version>15</version>
+                <arch>x86_64</arch>
+            </addon>
+        </addons>
+    </suse_register>
+    <bootloader>
+        <device_map config:type="list">
+            <device_map_entry>
+                <firmware>hd0</firmware>
+                <linux>/dev/vda</linux>
+            </device_map_entry>
+        </device_map>
+        <global>
+            <timeout config:type="integer">1</timeout>
+            <append>splash=verbose</append>
+        </global>
+    </bootloader>
+    <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <software>
+        <products config:type="list">
+            <product>SLES</product>
+        </products>
+         <packages config:type="list">
+            <package>netcat-openbsd</package>
+            <package>python3-img-proof</package>
+            <package>python3-img-proof-tests</package>
+            <package>git-core</package>
+            <package>ntp</package>
+            <package>gcc</package>
+            <package>python3-pip</package>
+            <package>aws-cli</package>
+            <package>sudo</package>
+            <package>python</package>
+        </packages>
+    </software>
+    <scripts>
+        <chroot-scripts config:type="list">
+            <script>
+                <chrooted config:type="boolean">true</chrooted>
+                <interpreter>shell</interpreter>
+                <source>
+                    <![CDATA[
+                        #!/bin/sh
+                        sed -i 's/resume=\/dev\/sda.//' /etc/default/grub
+                        sed -i 's/splash=silent\ quiet//' /etc/default/grub
+                        sed -i '/GRUB_DISABLE_LINUX_UUID/s/^# //' /etc/default/grub
+                        grub2-mkconfig -o /boot/grub2/grub.cfg
+                        cd /etc/alternatives/
+                        ln -fs /usr/bin/python3 python
+                        ]]>
+                </source>
+            </script>
+        </chroot-scripts>
+    </scripts>
+    <partitioning config:type="list">
+        <drive>
+            <device>/dev/vda</device>
+            <disklabel>msdos</disklabel>
+            <initialize config:type="boolean">true</initialize>
+            <partitions config:type="list">
+                <partition>
+                    <mountby config:type="symbol">device</mountby>
+                    <filesystem config:type="symbol">swap</filesystem>
+                    <mount>swap</mount>
+                </partition>
+                <partition>
+                    <mountby config:type="symbol">device</mountby>
+                    <filesystem config:type="symbol">ext4</filesystem>
+                    <mount>/</mount>
+                </partition>
+            </partitions>
+            <use>all</use>
+        </drive>
+    </partitioning>
+    <users config:type="list">
+        <user>
+            <fullname>Bernhard M. Wiedemann</fullname>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+        </user>
+        <user>
+            <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>root</username>
+        </user>
+    </users>
+</profile>

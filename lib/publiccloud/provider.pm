@@ -159,10 +159,10 @@ sub run_ipa {
     $args{distro}      //= 'sles';
     $args{tests} =~ s/,/ /g;
 
-    my $version = script_output('ipa --version');
+    my $version = script_output('img-proof --version');
     record_info("IPA version", $version);
 
-    my $cmd = 'ipa --no-color test ' . $args{provider};
+    my $cmd = 'img-proof --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
     $cmd .= "--distro " . $args{distro} . " ";
     $cmd .= '--region "' . $self->region . '" ';
