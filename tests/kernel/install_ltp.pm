@@ -211,14 +211,14 @@ sub install_from_git {
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find /opt/ltp/ -name '*.run-test' > ~/openposix-test-list-$tag";
+    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list-$tag";
 }
 
 sub install_from_repo {
     my ($tag) = @_;
     zypper_call('in qa_test_ltp', dumb_term => 1);
     script_run 'rpm -q qa_test_ltp | tee /opt/ltp_version';
-    assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
+    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
 
 sub setup_network {
@@ -320,7 +320,7 @@ sub run {
 
     setup_network;
 
-    upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
+    upload_runtest_files('/opt/ltp/runtest', $tag);
 
     power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
 }
