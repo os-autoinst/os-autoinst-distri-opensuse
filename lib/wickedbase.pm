@@ -178,16 +178,6 @@ This method is used by before_test.pm.
 sub download_data_dir {
     assert_script_run("mkdir -p '" . WICKED_DATA_DIR . "'");
     assert_script_run("(cd '" . WICKED_DATA_DIR . "'; curl -L -v " . autoinst_url . "/data/wicked > wicked.data && cpio -id < wicked.data && mv data wicked && rm wicked.data)");
-    if (script_run('test -d ' . WICKED_DATA_DIR . '/static_address') != 0) {
-        record_info('WORKAROUND', "poo#52022 - os-autoinst doesn't support recursive download");
-        my $base = $bmwqemu::vars{CASEDIR} . "/data/wicked";
-        for my $file (path($base)->list_tree({dir => 1})->each) {
-            next unless (-d $file);
-            next if ($file eq $base);
-            my $fn = substr($file, length($base) + 1);
-            assert_script_run("(cd '" . WICKED_DATA_DIR . "'; curl -L -v " . autoinst_url . "/data/wicked/$fn > wicked.data && cpio -id < wicked.data && mkdir -p wicked/$fn && mv data/* wicked/$fn/ && rmdir data && rm wicked.data)");
-        }
-    }
 }
 
 =head2 get_from_data
