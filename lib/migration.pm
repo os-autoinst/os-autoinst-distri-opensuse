@@ -37,6 +37,7 @@ our @EXPORT = qw(
   check_rollback_system
   reset_consoles_tty
   boot_into_ro_snapshot
+  set_scc_proxy_url
 );
 
 sub setup_sle {
@@ -187,6 +188,14 @@ sub boot_into_ro_snapshot {
         }
         die "Boot into read-only snapshot failed over 5 minutes, considering a product issue";
     }
+}
+
+# Register the already installed system on a specific SCC server/proxy if needed
+sub set_scc_proxy_url {
+    if (my $u = get_var('SCC_PROXY_URL')) {
+        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
+    }
+    save_screenshot;
 }
 
 1;

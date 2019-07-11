@@ -121,7 +121,7 @@ sub is_desktop_module_available {
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1) unless check_var('NOAUTOLOGIN', '0');
-set_var('HASLICENSE', 1);
+set_var('HASLICENSE',  1) unless check_var('HASLICENSE',  '0');    # Only if we specifically set HASLICENSE to 0 in test, for upgrade case for example
 set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
 # Always register against SCC if SLE 15
 if (is_sle('15+')) {
@@ -484,8 +484,11 @@ sub load_patching_tests {
     if (is_upgrade) {
         # Save HDDVERSION to ORIGIN_SYSTEM_VERSION
         set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
-        # Save VERSION to UPGRADE_TARGET_VERSION
-        set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
+        # Save VERSION to UPGRADE_TARGET_VERSION if it is not already set
+        set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
+        # Save the original target version, needed for testing upgrade from a beta version to a non-beta
+        # SLE12-SP5 to SLE15-SP1 for example
+        set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION'));
         # Always boot from installer DVD in upgrade test
         set_var('BOOTFROM', 'd');
         loadtest "migration/version_switch_origin_system" if (!get_var('ONLINE_MIGRATION'));
@@ -1034,7 +1037,7 @@ else {
         # Set origin and target version
         set_var('DESKTOP',                'gnome');
         set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
-        set_var('UPGRADE_TARGET_VERSION', get_var('VERSION'));
+        set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
         loadtest "migration/version_switch_origin_system";
         # Use autoyast to perform origin system installation
         load_default_autoyast_tests;
