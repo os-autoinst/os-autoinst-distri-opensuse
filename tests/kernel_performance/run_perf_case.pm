@@ -55,7 +55,7 @@ sub run_one_by_one {
             --$time_out;
         }
         if ($i == $repeat) {
-            power_action('poweroff');
+            power_action('poweroff', textmode => 1, keepconsole => 1);
         }
         else {
             power_action('reboot', textmode => 1, keepconsole => 1);
