@@ -14,9 +14,10 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use bootloader_setup "select_bootmenu_more";
+use bootloader_setup qw(select_bootmenu_more ensure_shim_import);
 
 sub run {
+    ensure_shim_import;
     select_bootmenu_more('inst-boot_linuxrc', 1);
     for (1 .. 3) {
         assert_screen("OK_button_linuxrc", 120);
