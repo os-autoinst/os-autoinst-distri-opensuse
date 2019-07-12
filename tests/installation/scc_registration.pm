@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2016 SUSE LLC
+# Copyright (C) 2014-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ sub run {
         return if check_var('SLE_PRODUCT', 'leanos');
         record_info('Skip reg.', 'Skip registration');
         assert_screen_with_soft_timeout(
-            [qw(scc-registration yast2-windowborder-corner)],
+            [qw(scc-registration yast2-windowborder-corner registration-online-repos)],
             timeout      => 300,
             soft_timeout => 100,
             bugref       => 'bsc#1028774'
@@ -59,6 +59,23 @@ sub run {
                 bugref       => 'bsc#1028774'
             );
         }
+
+        # Tags: poo#53426
+        # we need to confirm 'Yes' for the keep registered scenario,
+        # while migrate from sle12sp4 to sle12sp5.
+        #
+        # In this scenario we migrate via Proxy SCC with system registered,
+        # while do not need to de-register on base system then register
+        # system again during migration process.
+        #
+        if (match_has_tag('registration-online-repos')) {
+            if (is_sle('=12-SP5') && check_var('KEEP_REGISTERED', '1')) {
+                wait_screen_change { send_key('alt-y') };
+                assert_screen('module-selection');
+                return wait_screen_change { send_key('alt-n') };
+            }
+        }
+
         skip_registration();
     }
 }
