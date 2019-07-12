@@ -196,10 +196,10 @@ sub setup_env {
     # action is migration from 12-sp5 to 15-sp1, so we need change VERSION to 15-SP1 before the test case start
     if (check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx') || check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx-Milestone')
         || check_var('FLAVOR', 'Regression-on-SLE15-SPx-migrated-from-SLE12-SP5')) {
-        set_var('VERSION', '15-SP1');
-        if (check_var('ARCH', 's390x')) {
-            set_var('TAR_BUILD', get_var('TARGET_BUILD'));
-        }
+        # Save the original target version, needed for testing upgrade from a beta version to a non-beta
+        # SLE12-SP5 to SLE15-SP1 for example
+        set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION'));
+        set_var('VERSION',                 '15-SP1');
     }
 }
 
