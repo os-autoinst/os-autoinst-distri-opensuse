@@ -22,9 +22,9 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('ar -f -G ' . get_required_var('BENCHMARK_REPO'));
+    zypper_ar(get_required_var('BENCHMARK_REPO'));
     if (get_var('DEVEL_LANG_PYTHON_REPO')) {
-        zypper_call('ar -f -G ' . get_var('DEVEL_LANG_PYTHON_REPO'));
+        zypper_ar(get_var('DEVEL_LANG_PYTHON_REPO'));
     }
     else {
         assert_script_run('python -m ensurepip --default-pip');

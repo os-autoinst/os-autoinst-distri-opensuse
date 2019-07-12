@@ -477,9 +477,9 @@ Examples:
 =cut
 sub zypper_ar {
     my ($url, %args) = @_;
-    my $name = $args{name} // '';
+    my $name     = $args{name}     // '';
     my $priority = $args{priority} // '';
-    my $params = $args{params} // '';
+    my $params   = $args{params}   // '';
 
     $priority = "-p $priority" if ($priority);
     my $cmd = "--gpg-auto-import-keys ar -f $priority $params $url";

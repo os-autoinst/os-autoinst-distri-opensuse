@@ -44,7 +44,7 @@ our @EXPORT = qw(
 Helper to add QA:HEAD repository repository (usually from IBS).
 =cut
 sub add_qa_head_repo {
-    zypper_ar(get_required_var('QA_HEAD_REPO'), 'qa-head');
+    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa-head');
 }
 
 =head2 add_qa_web_repo
@@ -54,7 +54,7 @@ sub add_qa_head_repo {
 Helper to add QA web repository repository.
 =cut
 sub add_qa_web_repo {
-    zypper_ar(get_required_var('QA_WEB_REPO'), 'qa-web');
+    zypper_ar(get_required_var('QA_WEB_REPO'), name => 'qa-web');
 }
 
 =head2 get_repo_var_name

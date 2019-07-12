@@ -29,7 +29,7 @@ sub run {
 
     if (is_sle) {
         my $repo_url = 'http://download.suse.de/ibs/home:/asmorodskyi/' . generate_version() . '/';
-        zypper_ar($repo_url, 'trinity');
+        zypper_ar($repo_url, name => 'trinity');
     }
     zypper_call('in trinity');
 
