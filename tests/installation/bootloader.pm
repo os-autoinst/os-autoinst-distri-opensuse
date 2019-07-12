@@ -22,8 +22,9 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use bootloader_spvm;
 use registration;
-use version_utils ':SCENARIO';
+use version_utils qw(:VERSION :SCENARIO);
 use utils;
+use Utils::Architectures qw(is_i586 is_i686);
 use Utils::Backends 'is_spvm';
 
 # hint: press shift-f10 trice for highest debug level
@@ -31,6 +32,9 @@ sub run {
     return boot_spvm if is_spvm;
     return           if pre_bootmenu_setup == 3;
     return           if select_bootmenu_option == 3;
+    my $boot_cmd = 'ret';
+    # Tumbleweed livecd has been switched to grub with kiwi 9.17.41 except 32bit
+    uefi_bootmenu_params() if (is_livecd && is_tumbleweed && !is_i586 && !is_i686);
     my @params;
     push @params, bootmenu_default_params;
     push @params, bootmenu_network_source;
@@ -43,13 +47,13 @@ sub run {
     if (!get_var('OFW')) {
         select_bootmenu_language;
         select_bootmenu_video_mode;
-        # boot
-        send_key 'ret';
+        # the loader is grub rather than isolinux on non-32bit livecd
+        $boot_cmd = 'ctrl-x' if (is_livecd && is_tumbleweed && !is_i586 && !is_i686);
+    } else {
+        $boot_cmd = 'ctrl-x';
     }
-    else {
-        # boot
-        send_key 'ctrl-x';
-    }
+    # boot
+    send_key $boot_cmd;
     # On the live images boot parameters are not printed on the serial,
     # skip the check there
     compare_bootparams(\@params, [parse_bootparams_in_serial]) if !is_livecd;
