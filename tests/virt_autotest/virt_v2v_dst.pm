@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use lockapi;
 use mmapi;
+use virt_utils;
 
 sub get_script_run {
     my ($self) = @_;
@@ -24,7 +25,8 @@ sub get_script_run {
     my $src_ip   = $self->get_var_from_parent('SRC_IP');
     my $src_user = $self->get_var_from_parent('SRC_USER');
     my $src_pass = $self->get_var_from_parent('SRC_PASS');
-    my $guests   = get_var("GUEST_LIST");
+    handle_sp_in_settings_with_sp0("GUEST_LIST");
+    my $guests = get_var("GUEST_LIST");
     our $virt_v2v_log;
 
     my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/virt_v2v_test.sh -s $src_ip -u $src_user -p $src_pass -i \"$guests\" 2>&1 | tee $virt_v2v_log";

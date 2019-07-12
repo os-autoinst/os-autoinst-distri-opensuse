@@ -21,7 +21,7 @@ use mmapi;
 sub run {
     my ($self) = @_;
 
-    my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 30);
+    my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f9|head -1', 30);
     set_var('SRC_IP',   $ip_out);
     set_var('SRC_USER', "root");
     set_var('SRC_PASS', $password);
