@@ -193,4 +193,21 @@
       <username>root</username>
     </user>
   </users>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>post.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+#!/bin/sh
+# zypper process is locked by some ruby process, modify the repo file
+cd /etc/zypp/repos.d
+sed -i 's/enabled=1/enabled=0/' $(ls|grep -i nvidia)
+zypper lr
+exit 0
+
+]]></source>
+      </script>
+    </post-scripts>
+  </scripts>
 </profile>

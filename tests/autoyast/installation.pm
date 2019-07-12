@@ -276,7 +276,7 @@ sub run {
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot warning-pop-up inst-bootmenu lang_and_keyboard);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard);
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
@@ -296,6 +296,10 @@ sub run {
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
             last;    # we missed reboot-after-installation, wait for boot is in autoyast/console
+        }
+        elsif (match_has_tag('unreachable-repo')) {
+            # skip nvidia repo, this repo is problematic and not needed
+            send_key 'alt-s';
         }
         elsif (match_has_tag('warning-pop-up')) {
             handle_warnings;    # Process warnings during stage 2
