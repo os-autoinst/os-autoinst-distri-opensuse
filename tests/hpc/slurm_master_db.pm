@@ -53,7 +53,16 @@ sub run {
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     # run basic test against first compute node
+    # add sleep; bugzilla#1140403
+    sleep(5);
     assert_script_run("srun -w slave-node00 date");
+
+    ## TODO provide more comprehensive checks for slurm
+    # job scheduling
+    for (my $i = 0; $i < 20; $i++) {
+        assert_script_run("srun -w slave-node00 date");
+        assert_script_run("srun -w slave-node01 date");
+    }
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
