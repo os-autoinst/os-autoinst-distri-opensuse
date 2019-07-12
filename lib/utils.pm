@@ -456,15 +456,42 @@ sub zypper_enable_install_dvd {
 
 =head2 zypper_ar
 
+    zypper_ar($url,[ name => NAME ], [ priority => N ]);
+
 Add repository (with zypper ar) unless it's already repo C<$name> already added.
 
+Options:
+
+C<$name> alias for repository, optional
+When used, additional check if repo not yet exists is done, and adding
+only if it doesn't exist.
+NOTE: if not used, $url must be a URI pointing to a .repo file.
+
+C<$priority> set repo priority, optional
+
+C<$params> other ar subcommand parameters, optional
+
+Examples:
+    zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', priority => 90);
+    zypper_ar('http://dist.nue.suse.com/ibs/QA:/Head/SLE-15-SP1', name => 'qa-head);
 =cut
 sub zypper_ar {
-    my ($url, $name) = @_;
+    my ($url, %args) = @_;
+    my $name = $args{name} // '';
+    my $priority = $args{priority} // '';
+    my $params = $args{params} // '';
 
+    $priority = "-p $priority" if ($priority);
+    my $cmd = "--gpg-auto-import-keys ar -f $priority $params $url";
+
+    # repo file
+    if (!$name) {
+        return zypper_call($cmd, dumb_term => 1);
+    }
+
+    # URI alias
     if (script_run("zypper lr $name")) {
-        zypper_call("ar $url $name",                           dumb_term => 1);
-        zypper_call("--gpg-auto-import-keys ref --repo $name", dumb_term => 1);
+        return zypper_call("$cmd $name", dumb_term => 1);
     }
 }
 
