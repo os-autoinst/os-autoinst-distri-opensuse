@@ -310,7 +310,7 @@ sub is_updates_tests {
 
 sub is_updates_test_repo {
     # mru stands for Maintenance Released Updates and skips unreleased updates
-    return get_var('TEST') =~ /-install/ && is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
+    return is_updates_tests && get_required_var('FLAVOR') !~ /-Minimal$/;
 }
 
 sub is_repo_replacement_required {
@@ -1808,6 +1808,7 @@ sub load_x11_installation {
     load_inst_tests();
     load_reboot_tests();
     loadtest "x11/x11_setup";
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest "console/sle15_workarounds" if is_sle('15+');
     loadtest "console/hostname"              unless is_bridged_networking;
@@ -2342,13 +2343,13 @@ sub load_systemd_patches_tests {
 
 sub load_system_prepare_tests {
     loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds' if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/system_prepare';
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
