@@ -90,7 +90,7 @@ sub run {
     $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
     $cmd .= '--json-format=openqa ';
 
-    assert_script_run($cmd, timeout => 30 * 60);
+    assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
 }
 
 
