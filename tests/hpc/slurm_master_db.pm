@@ -53,6 +53,8 @@ sub run {
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     # run basic test against first compute node
+    # add sleep; bugzilla#1140403
+    sleep(5);
     assert_script_run("srun -w slave-node00 date");
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
