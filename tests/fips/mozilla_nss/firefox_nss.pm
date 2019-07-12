@@ -18,7 +18,6 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use x11utils 'turn_off_gnome_screensaver';
 
 sub quit_firefox {
     send_key "alt-f4";
@@ -28,7 +27,8 @@ sub quit_firefox {
 }
 
 sub run {
-    my ($self) = shift;
+    my ($self) = @_;
+    select_console 'root-console';
 
     # Define FIPS password for firefox, and it should be consisted by:
     # - at least 8 characters
@@ -36,8 +36,7 @@ sub run {
     # - at least one non-alphabet-non-number character (like: @-.=%)
     my $fips_password = 'openqa@SUSE';
 
-    # Turn off screensaver before launch firefox in order to avoid the screensaver block
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
     # Firfox Preferences
