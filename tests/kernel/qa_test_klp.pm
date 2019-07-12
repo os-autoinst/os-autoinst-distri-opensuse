@@ -16,6 +16,7 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use registration;
+use repo_tools 'add_qa_head_repo';
 use version_utils 'is_sle';
 
 sub run {
@@ -29,7 +30,7 @@ sub run {
     my ($test_type) = $git_repo =~ /qa_test_(\w+).git/;
 
     (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');
-    zypper_call('ar -f -G ' . get_required_var('QA_HEAD_REPO') . ' qa_head');
+    add_qa_head_repo;
     zypper_call('in -l bats hiworkload', exitcode => [0, 106, 107]);
 
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));

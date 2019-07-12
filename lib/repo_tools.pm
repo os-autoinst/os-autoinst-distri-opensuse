@@ -19,10 +19,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use version_utils qw(is_leap is_sle is_tumbleweed);
 use y2_module_consoletest;
 
 our @EXPORT = qw(
+  add_qa_head_repo
+  add_qa_web_repo
   smt_wizard
   smt_mirror_repo
   rmt_wizard
@@ -34,6 +36,26 @@ our @EXPORT = qw(
   prepare_oss_repo
   disable_oss_repo
   generate_version);
+
+=head2 add_qa_head_repo
+
+    add_qa_head_repo();
+
+Helper to add QA:HEAD repository repository (usually from IBS).
+=cut
+sub add_qa_head_repo {
+    zypper_ar(get_required_var('QA_HEAD_REPO'), 'qa-head');
+}
+
+=head2 add_qa_web_repo
+
+    add_qa_web_repo();
+
+Helper to add QA web repository repository.
+=cut
+sub add_qa_web_repo {
+    zypper_ar(get_required_var('QA_WEB_REPO'), 'qa-web');
+}
 
 =head2 get_repo_var_name
 This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter

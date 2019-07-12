@@ -17,16 +17,15 @@ use y2_module_guitest;
 use mm_network;
 use mmapi 'wait_for_children';
 use utils qw(systemctl zypper_call exec_and_insert_password);
+use repo_tools 'add_qa_head_repo';
 use strict;
 use warnings;
 
 sub run {
     select_console "root-console";
 
-    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
-    zypper_call("ar -Gf '$qa_head_repo'/ qa-ibs");
-
     # Install openvpn, generate static key
+    add_qa_head_repo;
     zypper_call('in openvpn easy-rsa');
     assert_script_run('cd /etc/openvpn');
     assert_script_run('openvpn --genkey --secret static.key');

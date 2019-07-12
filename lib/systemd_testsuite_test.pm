@@ -10,7 +10,6 @@
 # Summary: library functions for setting up the tests and uploading logs in error case.
 # Maintainer: Thomas Blume <tblume@suse.com>
 
-
 package systemd_testsuite_test;
 use base "opensusebasetest";
 
@@ -19,33 +18,11 @@ use warnings;
 use known_bugs;
 use testapi;
 use power_action_utils 'power_action';
+use repo_tools 'add_qa_head_repo';
 use utils 'zypper_call';
 use version_utils qw(is_opensuse is_sle is_tumbleweed);
 
-
 sub testsuiteinstall {
-    # The isotovideo setting QA_HEAD_REPO is not mandatory.
-    # QA_HEAD_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
-    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
-    if (!$qa_head_repo) {
-        if (is_opensuse()) {
-            my $sub_project;
-            if (is_tumbleweed()) {
-                $sub_project = 'Tumbleweed/openSUSE_Tumbleweed/';
-            }
-            else {
-                (my $version, my $service_pack) = split('\.', get_required_var('VERSION'));
-                $sub_project = "Leap:/$version/openSUSE_Leap_$version.$service_pack/";
-            }
-            $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/' . $sub_project;
-        }
-        else {
-            (my $version, my $service_pack) = split('-', get_required_var('VERSION'));
-            $qa_head_repo = "http://download.suse.de/ibs/QA:/$version$service_pack/standard/";
-        }
-        die '$qa_head_repo is not set' unless ($qa_head_repo);
-    }
-
     select_console 'root-console';
 
     if (is_sle('15+')) {
@@ -57,8 +34,7 @@ sub testsuiteinstall {
     zypper_call 'in strace';
 
     # install systemd testsuite
-    zypper_call "ar $qa_head_repo systemd-testrepo";
-    zypper_call '--gpg-auto-import-keys ref';
+    add_qa_head_repo;
     zypper_call 'in systemd-qa-testsuite';
 }
 

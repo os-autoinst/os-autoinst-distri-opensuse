@@ -20,6 +20,7 @@ use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
 use power_action_utils 'power_action';
+use repo_tools 'add_qa_head_repo';
 use Utils::Backends 'use_ssh_serial_console';
 
 
@@ -278,21 +279,19 @@ sub run {
     }
 
     if (get_var('KGRAFT')) {
-        my $qa_head = get_required_var('QA_HEAD_REPO');
         prepare_kgraft($repo, $incident_id);
         boot_to_console($self);
 
         # dependencies for heavy load script
         if (!$wk_ker) {
-            zypper_call("ar $qa_head qa_repo");
-            zypper_call("--gpg-auto-import-keys ref");
+            add_qa_head_repo;
             zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
         }
         # update kgraft patch under heavy load
         update_kgraft($repo, $incident_id);
 
         if (!$wk_ker) {
-            zypper_call("rr qa_repo");
+            zypper_call("rr qa-head");
             zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
         }
         power_action('reboot', textmode => 1);

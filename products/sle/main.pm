@@ -21,6 +21,7 @@ use version_utils
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
+use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
 use Utils::Architectures;
@@ -720,7 +721,8 @@ elsif (get_var("QA_TESTSET")) {
 }
 elsif (get_var("QA_TESTSUITE")) {
     boot_hdd_image;
-    loadtest "qa_automation/prepare_qa_repo";
+    add_qa_head_repo;
+    add_qa_web_repo;
     loadtest "qa_automation/install_test_suite";
     loadtest "qa_automation/execute_test_run";
 }

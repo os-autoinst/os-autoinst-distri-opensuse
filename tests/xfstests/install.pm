@@ -17,6 +17,7 @@ use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;
+use repo_tools 'add_qa_head_repo';
 
 my $STATUS_LOG = '/opt/status.log';
 
@@ -35,11 +36,7 @@ sub run {
     # This is done by the previous module (enable_kdump) only if NO_KDUMP is not set
     pkcon_quit;
 
-    # Add QA repo
-    if (script_run('zypper lr qa-ibs')) {
-        my $qa_head_repo = get_var('QA_HEAD_REPO', '');
-        zypper_call("--no-gpg-check ar -f '$qa_head_repo' qa-ibs", timeout => 600);
-    }
+    add_qa_head_repo;
 
     # Install qa_test_xfstests
     zypper_call('--gpg-auto-import-keys ref', timeout => 600);
