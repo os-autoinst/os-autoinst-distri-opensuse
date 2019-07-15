@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.3] - 2019-07-15
+### Added
+Add HPC comprehensive initial tests
+## Changed
+NFS client code moved as a sub to the hpcbase.pm
+
 ## [1.0.2] - 2019-06-26
 ### Added
 Add slurm accounting tests
