@@ -71,7 +71,7 @@ sub run {
         if (match_has_tag('registration-online-repos')) {
             if (is_sle('=12-SP5') && check_var('KEEP_REGISTERED', '1')) {
                 wait_screen_change { send_key('alt-y') };
-                assert_screen('module-selection');
+                assert_screen('module-selection', 300);
                 return wait_screen_change { send_key('alt-n') };
             }
         }
