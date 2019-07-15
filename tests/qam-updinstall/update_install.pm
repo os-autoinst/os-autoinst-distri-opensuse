@@ -31,7 +31,7 @@ use testapi;
 
 sub install_packages {
     my $patch_info = shift;
-    my $pattern    = qr/\s+(.+)(?!\.src)\..*\s<\s.*/;
+    my $pattern    = qr/\s+(.+)(?!\.(src|nosrc))\..*\s<\s.*/;
 
     # loop over packages in patchinfo and try installation
     foreach my $line (split(/\n/, $patch_info)) {
