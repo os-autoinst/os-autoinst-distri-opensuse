@@ -152,6 +152,23 @@ sub distribute_slurm_conf {
     }
 }
 
+sub check_nodes_availability {
+    my @cluster_nodes = cluster_names();
+    foreach (@cluster_nodes) {
+        assert_script_run("ping -c 5 $_");
+    }
+}
+
+sub mount_nfs {
+    ## TODO: get rid of hardcoded name for the NFS-dir
+    systemctl("start nfs");
+    systemctl("start rpcbind");
+    record_info('show mounts aviable on the supportserver', script_output('showmount -e 10.0.2.1'));
+    assert_script_run('mkdir -p /shared/slurm');
+    assert_script_run('chown -Rcv slurm:slurm /shared/slurm');
+    assert_script_run('mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm');
+}
+
 =head2
     prepare_user_and_group()
   creating slurm user and group with some pre-defined ID
