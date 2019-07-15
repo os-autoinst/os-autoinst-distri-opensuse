@@ -409,8 +409,9 @@ Used to syncronize the wicked tests for SUT and REF creating the corresponding m
 
 =cut
 sub do_mutex {
-    my ($self) = @_;
-    my $barrier_name = 'test_' . $self->{name} . '_ready';
+    my ($self, $type) = @_;
+    $type //= 'ready';
+    my $barrier_name = 'test_' . $self->{name} . '_' . $type;
     barrier_wait($barrier_name);
 }
 
@@ -562,10 +563,10 @@ sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
 
+    $self->do_mutex();
     eval {
         $self->upload_wicked_logs('post');
     };
-    $self->do_mutex();
 }
 
 sub pre_run_hook {
@@ -578,6 +579,7 @@ sub pre_run_hook {
         type_string("\n");
         $self->upload_wicked_logs('pre');
     }
+    $self->do_mutex('start');
 }
 
 sub post_fail_hook {

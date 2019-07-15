@@ -28,6 +28,9 @@ sub run {
 
             record_info('barrier create', $barrier_name . ' num_children: 2');
             barrier_create($barrier_name, 2);
+            $barrier_name = 'test_' . $test . '_start';
+            barrier_create($barrier_name, 2);
+            record_info('barrier create', $barrier_name . ' num_children: 2');
         }
         mutex_create('wicked_barriers_created');
     }
