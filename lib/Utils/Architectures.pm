@@ -25,6 +25,8 @@ use constant {
     ARCH => [
         qw(
           is_s390x
+          is_i586
+          is_i686
           is_x86_64
           is_aarch64
           is_ppc64le
@@ -42,6 +44,12 @@ our %EXPORT_TAGS = (
 
 sub is_s390x {
     return check_var('ARCH', 's390x');
+}
+sub is_i586 {
+    return check_var('ARCH', 'i586');
+}
+sub is_i686 {
+    return check_var('ARCH', 'i686');
 }
 sub is_x86_64 {
     return check_var('ARCH', 'x86_64');
