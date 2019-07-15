@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname);
+use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils 'is_sle';
 
 sub run {
@@ -62,6 +62,13 @@ sub run {
     assert_script_run "unzzip $filezip";
     #Clean files used:
     assert_script_run "cd ; rm -rf /tmp/zip ; rm /tmp/$filezip";
+    # unregister SDK
+    if (get_var('BETA')) {
+        zypper_call "rr SDK";
+    }
+    elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+        remove_suseconnect_product(get_addon_fullname('sdk'));
+    }
 }
 
 1;
