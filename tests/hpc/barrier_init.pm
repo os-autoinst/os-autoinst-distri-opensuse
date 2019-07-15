@@ -55,6 +55,12 @@ sub run {
         barrier_create("GANGLIA_GMETAD_STARTED", $nodes);
         barrier_create("GANGLIA_GMOND_STARTED",  $nodes);
     }
+    elsif (check_var("HPC", "hpc_comprehensive")) {
+        barrier_create("HPC_MASTER_SERVICES_ENABLED", $nodes);
+        barrier_create("HPC_SLAVE_SERVICES_ENABLED",  $nodes);
+        barrier_create("HPC_SETUPS_DONE",             $nodes);
+        barrier_create("HPC_MASTER_RUN_TESTS",        $nodes);
+    }
     else {
         die("Unsupported test, check content of HPC variable");
     }
