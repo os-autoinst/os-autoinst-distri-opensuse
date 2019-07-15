@@ -16,11 +16,12 @@ use warnings;
 use testapi;
 use utils qw(systemctl zypper_call);
 use Utils::Systemd 'disable_and_stop_service';
-use version_utils 'is_jeos';
+use version_utils;
+use Utils::Architectures;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal unless (is_s390x);
 
     zypper_call("in cups",         exitcode => [0, 102, 103]);
     zypper_call("in cups-filters", exitcode => [0, 102, 103]) if is_jeos;
