@@ -36,7 +36,18 @@ sub install_packages {
     # loop over packages in patchinfo and try installation
     foreach my $line (split(/\n/, $patch_info)) {
         if (my ($package) = $line =~ $pattern and $line !~ "xen-tools-domU" and $line !~ "-devel" and $line !~ "-base\$") {
-            zypper_call("in -l $package", exitcode => [0, 102, 103, 104]);
+            # uninstall conflicting packages to allow problemless install
+            my %conflict = (
+                'kernel-default'      => 'kernel-default-base',
+                'kernel-default-base' => 'kernel-default',
+                'kernel-azure'        => 'kernel-azure-base',
+                'kernel-azure-base'   => 'kernel-azure',
+                'kernel-rt'           => 'kernel-rt-base',
+                'kernel-rt-base'      => 'kernel-rt',
+            );
+            zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
+            # install package
+            zypper_call("in -l $package", exitcode => [0, 102, 103]);
             save_screenshot;
         }
     }
