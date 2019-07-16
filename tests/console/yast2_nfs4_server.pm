@@ -13,6 +13,11 @@
 #    after mounting.
 #    It can also be used as a server in an "/ on NFS" test scenario.
 #    the server is accessible as 10.0.2.101 and it provides a mutex "nfs4_ready".
+#    * The NFSv4 test is started and configured using YaST
+#    * Two exports are created - one is read-only
+#    * We also create some testing file
+#    * 1GB file is created and the md5 checksum saved for later comparing
+#    * The NFSv4 ACL are used to protest some files - the client then tries to access those
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use base "y2_module_consoletest";

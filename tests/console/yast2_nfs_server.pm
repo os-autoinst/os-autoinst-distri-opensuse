@@ -14,6 +14,9 @@
 #    It can also be used as a server in an "/ on NFS" test scenario.
 #    In this case, NFSSERVER has to be 1, the server is accessible as
 #    10.0.2.101 and it provides a mutex "nfs_ready".
+#    * We used YaST for configuring and creating this server
+#    * We also create some testing files for the client
+#    * The NFSv3 version is mounted and checked
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
 use strict;

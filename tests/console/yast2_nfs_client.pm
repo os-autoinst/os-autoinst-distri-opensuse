@@ -11,6 +11,12 @@
 # Summary: yast2_nfs_client module
 #   Ensures that it works with the current version of nfs-client (it got broken
 #   with the conversion from init.d to systemd services)
+#   This test expects version 3 of the NFS protocol
+#   * The 2nd version is just enabled, checked and disabled
+#   * The NFSv3 export is found and added using YaST
+#   * We test mount and umount and we check for the version
+#   * We try to read and write some forbiden files
+#   * We download 1GB file and check it's checksum
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "y2_module_consoletest";
@@ -19,7 +25,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use utils qw(clear_console zypper_call systemctl);
+use utils qw(clear_console zypper_call systemctl script_retry);
 use mm_network;
 use nfs_common;
 
@@ -40,7 +46,7 @@ sub run {
         zypper_call('in yast2-nfs-client nfs-client', timeout => 480, exitcode => [0, 106, 107]);
 
         mutex_wait('nfs_ready');
-        assert_script_run 'ping -c3 10.0.2.101';
+        script_retry('ping -c3 10.0.2.101', delay => 15, retry => 12);
         assert_script_run "showmount -e 10.0.2.101";
     }
     else {

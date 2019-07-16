@@ -11,13 +11,20 @@
 # Summary: yast2_nfs4_client module
 #   This is the client side of yast2_nfs4_server module.
 #   This uses the yast2 nfs-client module with NFS4 strictly enabled.
+#   * The /ec/fstab is checked that it does not remove comments
+#   * The YaST is used to find and add the NFSv4 mount
+#   * The version is checked so it must be 4 in this case
+#   * The permissons of some exported files are checked
+#   * The NFSv4 ACLs are tested as well
+#   * Every forbidden file is tested so no read nor write operations suceed
+#   * We download 1GB file and check it's checksum
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use base "y2_module_consoletest";
 
 use strict;
 use warnings;
-use utils qw(clear_console zypper_call systemctl);
+use utils qw(clear_console zypper_call systemctl script_retry);
 use version_utils;
 use testapi;
 use lockapi;
@@ -38,7 +45,7 @@ sub run {
     zypper_call('in yast2-nfs-client nfs-client nfs4-acl-tools', timeout => 480, exitcode => [0, 106, 107]);
 
     mutex_wait('nfs4_ready');
-    assert_script_run 'ping -c3 10.0.2.101';
+    script_retry('ping -c3 10.0.2.101', delay => 15, retry => 12);
 
     # add comments into fstab and save current fstab bsc#429326
     assert_script_run 'sed -i \'5i# test comment\' /etc/fstab';
