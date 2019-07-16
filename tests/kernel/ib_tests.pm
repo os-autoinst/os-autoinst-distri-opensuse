@@ -64,7 +64,7 @@ sub ibtest_master {
     my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
 
     # do all test preparations and setup
-    zypper_ar(get_required_var('DEVEL_TOOLS_REPO'));
+    zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
     zypper_call('in git-core twopence bc iputils python');
 
     # create symlinks, the package is (for now) broken

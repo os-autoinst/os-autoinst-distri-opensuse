@@ -42,7 +42,7 @@ sub run {
         assert_script_run 'tar -xzf sonobuoy_0.12.1_linux_amd64.tar.gz';
         assert_script_run 'mv sonobuoy /usr/bin/';
     } else {
-        my $repo = get_var('SONOBUOY_REPO', 'https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo');
+        my $repo = get_var('SONOBUOY_REPO', 'https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', no_gpg_check => 1);
         zypper_ar($repo);
         zypper_call 'in sonobuoy';
     }
