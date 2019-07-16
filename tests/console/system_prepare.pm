@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -35,6 +35,19 @@ sub run {
         }
         elsif (get_var('OFW')) {
             add_serial_console('hvc1');
+        }
+    }
+
+    # Register the modules after media migration, only for sle<15
+    # poo#54131 [SLE][Migration][SLE12SP5]test fails in system_prepare -
+    # media upgrade need add modules after migration
+    if (get_var('SCC_ADDONS') && is_sle('<15') && get_var('MEDIA_UPGRADE')) {
+        assert_script_run 'SUSEConnect --url ' . get_required_var('SCC_URL') . ' -r ' . get_required_var('SCC_REGCODE');
+        my $myaddons = get_var('SCC_ADDONS');
+        # After media upgrade, system don't include ltss extension
+        $myaddons =~ s/ltss,?//g;
+        if ($myaddons ne '') {
+            register_addons_cmd($myaddons);
         }
     }
 

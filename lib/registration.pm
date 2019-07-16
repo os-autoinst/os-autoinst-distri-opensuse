@@ -44,6 +44,8 @@ our @EXPORT = qw(
   install_docker_when_needed
   verify_scc
   investigate_log_empty_license
+  register_addons_cmd
+  register_product_proxyscc
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   @SLE15_ADDONS_WITHOUT_LICENSE
@@ -189,6 +191,31 @@ Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
 =cut
 sub register_product {
     assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE');
+}
+
+sub register_addons_cmd {
+    my ($addonlist) = @_;
+    $addonlist //= get_var('SCC_ADDONS');
+    my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
+    foreach my $addon (@addons) {
+        my $name = get_addon_fullname($addon);
+        if ($name =~ /module/) {
+            my @ver = split(/\./, scc_version());
+            add_suseconnect_product($name, $ver[0]);
+        }
+        elsif ($name =~ /live/) {
+            add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_LIVE'));
+        }
+        elsif ($name =~ /we/) {
+            add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_WE'));
+        }
+        elsif ($name =~ /LTSS/) {
+            add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_LTSS'));
+        }
+        else {
+            add_suseconnect_product($name);
+        }
+    }
 }
 
 sub register_addons {
