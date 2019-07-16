@@ -18,10 +18,7 @@ use testapi;
 use version_utils qw(is_sle is_caasp);
 
 sub run {
-    if (is_caasp) {
-        record_soft_failure 'bsc#1099477 - Release notes button is missing in installation wizard';
-        return;
-    }
+    return if is_caasp();
     assert_screen('release-notes-button', 60);
 
     # workaround for bsc#1014178
