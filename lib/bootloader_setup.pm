@@ -1046,7 +1046,7 @@ Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/
 =cut
 sub remove_grub_cmdline_settings {
     my $remove = shift;
-    replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', "", "g");
+    replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', " ", "g");
 }
 
 =head2 grub_mkconfig
