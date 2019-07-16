@@ -27,7 +27,7 @@ sub run {
         zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", "SDK";
     }
     # maintenance updates are registered with sdk module
-    elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+    elsif (get_var('FLAVOR') !~ /Updates|Incidents/ && is_sle) {
         cleanup_registration;
         register_product;
         add_suseconnect_product('sle-module-desktop-applications');
@@ -60,7 +60,7 @@ sub run {
     if (get_var('BETA')) {
         zypper_call "rr SDK";
     }
-    elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+    elsif (get_var('FLAVOR') !~ /Updates|Incidents/ && is_sle) {
         remove_suseconnect_product(get_addon_fullname('sdk'));
     }
 }
