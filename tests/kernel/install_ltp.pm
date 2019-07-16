@@ -44,8 +44,7 @@ sub add_we_repo_if_available {
         $ar_url = 'dvd:///?devices=/dev/sr2';
     }
     if ($ar_url) {
-        zypper_call("ar $ar_url WE",              dumb_term => 1);
-        zypper_call('--gpg-auto-import-keys ref', dumb_term => 1);
+        zypper_ar($ar_url, name => 'WE', dumb_term => 1);
     }
 }
 

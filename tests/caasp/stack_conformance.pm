@@ -43,7 +43,7 @@ sub run {
         assert_script_run 'mv sonobuoy /usr/bin/';
     } else {
         my $repo = get_var('SONOBUOY_REPO', 'https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo');
-        zypper_call "ar -Gf $repo";
+        zypper_ar($repo);
         zypper_call 'in sonobuoy';
     }
     type_string "exit\n";

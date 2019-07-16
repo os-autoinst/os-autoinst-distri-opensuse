@@ -53,7 +53,7 @@ sub run {
             record_soft_failure('workaround for boo#1122199');
             my $repo      = 'http://download.opensuse.org/repositories/devel:/languages:/python:/aws/' . generate_version();
             my $repo_name = 'devel_languages_python_aws';
-            zypper_ar($repo, $repo_name);
+            zypper_ar($repo, name => $repo_name);
             zypper_call('-q in -f --repo ' . $repo_name . ' python-s3transfer');
             zypper_call('rr ' . $repo_name);
         }
