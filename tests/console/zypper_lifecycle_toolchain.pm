@@ -25,18 +25,19 @@ use utils 'zypper_call';
 
 sub run {
     my %expiration = (
-        gcc5      => 'Now',
-        libada5   => 'Now',
-        gcc6      => 'Now',
-        gcc7      => '2019-04-30',
-        libada7   => '2019-04-30',
-        toolchain => '2024-10-31',
+        gcc6                              => 'Now',
+        gcc7                              => 'Now',
+        libada7                           => 'Now',
+        libada8                           => '2024-10-30',
+        cpp8                              => '2024-10-30',
+        'sle-module-toolchain-release-cd' => '2024-10-30',
     );
 
     select_console 'root-console';
     # Get gcc packages, ignore conflicting gcc6-ada and libada6 and cross-nvptx-newlib7 packages
+    # Ignore gcc8 due to bsc#1141474 (missing gcc8 dependencies)
     my $gcc_packages
-      = script_output "zypper -q se -ur SLE-Module-Toolchain12-Updates -t package | awk -F '|' '{print \$2}' | tail -n +3 | grep -vE '(gcc6-ada|libada6|cross-nvptx-newlib7)'", 300;
+      = script_output "zypper -q se -ur SLE-Module-Toolchain12-Updates -t package | awk -F '|' '{print \$2}' | tail -n +3 | grep -vE '(gcc6-ada|libada6|cross-nvptx-newlib7|gcc8)'", 300;
     # Create list by removing blank symbols and new lines
     $gcc_packages =~ s/(\R|\s)+/ /g;
     # Install gcc packages
