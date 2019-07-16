@@ -458,13 +458,14 @@ sub zypper_enable_install_dvd {
 
     zypper_ar($url,[ name => NAME ], [ priority => N ]);
 
-Add repository (with zypper ar) unless it's already repo C<$name> already added.
+Add repository (with zypper ar) unless it's already repo C<$name> already added
+and refresh repositories.
 
 Options:
 
 C<$name> alias for repository, optional
 When used, additional check if repo not yet exists is done, and adding
-only if it doesn't exist.
+only if it doesn't exist. Also zypper ref is run only on this repository.
 NOTE: if not used, $url must be a URI pointing to a .repo file.
 
 C<$no_gpg_check> pass --no-gpgcheck for repos with not valid GPG key, optional
@@ -486,16 +487,19 @@ sub zypper_ar {
 
     $priority     = "-p $priority"  if ($priority);
     $no_gpg_check = "--no-gpgcheck" if ($no_gpg_check);
-    my $cmd = "--gpg-auto-import-keys ar -f $priority $no_gpg_check $params $url";
+    my $cmd_ar  = "--gpg-auto-import-keys ar -f $priority $no_gpg_check $params $url";
+    my $cmd_ref = "--gpg-auto-import-keys ref";
 
     # repo file
     if (!$name) {
-        return zypper_call($cmd, dumb_term => 1);
+        zypper_call($cmd_ar, dumb_term => 1);
+        return zypper_call($cmd_ref, dumb_term => 1);
     }
 
     # URI alias
     if (script_run("zypper lr $name")) {
-        return zypper_call("$cmd $name", dumb_term => 1);
+        zypper_call("$cmd_ar $name", dumb_term => 1);
+        return zypper_call("$cmd_ref --repo $name", dumb_term => 1);
     }
 }
 
