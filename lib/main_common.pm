@@ -2126,6 +2126,7 @@ sub load_security_tests_crypt_x11 {
     set_var('SECTEST_REQUIRE_WE', 1);
     load_security_console_prepare;
 
+    loadtest "fips/mozilla_nss/firefox_nss" if get_var('FIPS_ENABLED');
     # In SLE, hexchat and seahorse are provided only in WE addon which is for
     # x86_64 platform only.
     if (is_x86_64) {
@@ -2133,7 +2134,6 @@ sub load_security_tests_crypt_x11 {
         loadtest "x11/hexchat_ssl";
     }
     loadtest "x11/x3270_ssl";
-    loadtest "fips/mozilla_nss/firefox_nss" if get_var('FIPS_ENABLED');
 }
 
 sub load_security_tests_crypt_tool {
