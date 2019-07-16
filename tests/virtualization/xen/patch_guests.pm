@@ -28,8 +28,21 @@ sub run {
         $distro =~ tr/_/-/;
         if ($distro =~ m/$version/) {
             record_info "$guest", "Adding test repositories and patching the $guest system";
+
+            # Check the virt-related packages before
+            script_run "ssh root\@$guest zypper lr -d";
+            script_run "ssh root\@$guest rpm -qa | grep -i xen | nl";
+            script_run "ssh root\@$guest rpm -qa | grep -i irt | nl";
+            script_run "ssh root\@$guest rpm -qa | grep -i emu | nl";
+
             ssh_add_test_repositories "$guest";
             ssh_fully_patch_system "$guest";
+
+            # Check the virt-related packages before
+            script_run "ssh root\@$guest zypper lr -d";
+            script_run "ssh root\@$guest rpm -qa | grep -i xen | nl";
+            script_run "ssh root\@$guest rpm -qa | grep -i irt | nl";
+            script_run "ssh root\@$guest rpm -qa | grep -i emu | nl";
         }
     }
 }

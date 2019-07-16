@@ -17,6 +17,7 @@ use base qw(y2_installbase installsummarystep);
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_sle';
 
 sub change_desktop {
     my ($self) = @_;
@@ -47,6 +48,24 @@ sub change_desktop {
         send_key 'ret';
     }
     send_key_until_needlematch 'patterns-list-selected', 'tab', 10, 2;
+
+    if ((is_sle('<=12-SP1')) && (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"))) {
+        assert_and_click 'gnome_logo';
+        send_key 'spc';
+
+        assert_and_click 'xorg_logo';
+        send_key 'spc';
+
+        if (check_var("REGRESSION", "qemu-hypervisor")) {
+            assert_and_click 'kvm_logo';
+            send_key 'spc';
+        } elsif (check_var("REGRESSION", "xen-hypervisor")) {
+            assert_and_click 'xen_logo';
+            send_key 'spc';
+        }
+
+        assert_and_click 'apparmor_logo';
+    }
 
     if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default')) {
         assert_screen "desktop-unselected";

@@ -16,12 +16,21 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
 
     # Ensure additional package is installed
     zypper_call '-t in libvirt-client';
+
+    assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
+
+    if (is_sle('<=12-SP1')) {
+        script_run "umount /home";
+        assert_script_run qq(sed -i 's/\\/home/\\/var\\/lib\\/libvirt\\/images\\/xen/g' /etc/fstab);
+        script_run "mount /var/lib/libvirt/images/xen/";
+    }
 
     assert_script_run qq(echo 'log_level = 1
     log_filters="3:remote 4:event 3:json 3:rpc"
@@ -46,7 +55,6 @@ sub run {
 
     # Show all guests
     assert_script_run 'virsh list --all';
-    assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
     wait_still_screen 1;
 
     # Install every defined guest
@@ -54,7 +62,8 @@ sub run {
         $self->create_guest($guest, 'virt-install');
     }
 
-    wait_still_screen 30;    # Here we are sure guests are still in process of installation
+    script_run 'history -a';
+    script_run('cat ~/virt-install* | grep ERROR', 30);
 }
 
 1;
