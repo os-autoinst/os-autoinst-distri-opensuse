@@ -128,4 +128,4 @@ YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAST2_FIRSTBOOT_USERNAME | string | | Defines username for the user to be created with YaST Firstboot
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
-LINUXRC_BOOT | boolean | true | To be used when booting from installer medium with the option "Boot Linux System" (uses linuxrc)
+LINUXRC_BOOT | boolean | true | To be used when booting hdd from installer medium with the menu option "Boot Linux System" (tries to detect an existing linux installation and uses linuxrc to boot it)
