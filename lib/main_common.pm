@@ -1416,6 +1416,10 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_tftp_server';
 }
 
+sub load_extra_tests_texlive {
+    loadtest 'texlive/latexdiff';
+}
+
 sub load_extra_tests_openqa_bootstrap {
     if (get_var 'BOOTSTRAP_CONTAINER') {
         loadtest 'openqa/install/openqa_bootstrap_container';
