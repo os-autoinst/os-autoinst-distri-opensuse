@@ -48,6 +48,10 @@ sub run {
 
     die "There is no Mellanox card here" if !@devices;
 
+    # no need to configure the devices if already in the right mode
+    my $ports_configured = script_output("mstconfig -d $devices[0] q | grep LINK_TYPE | grep -c $protocol");
+    return if $ports_configured == scalar @devices;
+
     # Change Link protocol for all devices
     foreach (@devices) {
         record_info("INFO", "Wanted Link protocol for $_ is $protocol");
@@ -55,7 +59,7 @@ sub run {
         assert_script_run("mstconfig -y -d $_ set LINK_TYPE_P1=$protocol LINK_TYPE_P2=$protocol SRIOV_EN=$sriov_en NUM_OF_VFS=$num_vfs");
     }
     # verify our new settings
-    my $ports_configured = script_output("mstconfig -d $devices[0] q | grep LINK_TYPE | grep -c $protocol");
+    $ports_configured = script_output("mstconfig -d $devices[0] q | grep LINK_TYPE | grep -c $protocol");
     die "unable to configure all ports!" unless $ports_configured == scalar @devices;
 
     # Reboot system
