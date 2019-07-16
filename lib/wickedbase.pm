@@ -386,6 +386,7 @@ sub upload_wicked_logs {
     script_run("wicked show-xml > $logs_dir/wicked_xml.log 2>&1");
     script_run("ip addr show > $logs_dir/ip_addr.log 2>&1");
     script_run("ip route show table all > $logs_dir/ip_route.log 2>&1");
+    script_run("cat /etc/resolv.conf > $logs_dir/resolv.conf 2>&1");
     script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
     eval {
