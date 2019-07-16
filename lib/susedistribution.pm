@@ -18,6 +18,7 @@ use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tu
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends 'use_ssh_serial_console';
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
+use Cwd;
 
 =head1 SUSEDISTRIBUTION
 
@@ -424,6 +425,9 @@ sub init_consoles {
 
     if (check_var('BACKEND', 'qemu')) {
         $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
+        for (my $num = 1; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
+            $self->add_console('root-virtio-terminal' . $num, 'virtio-terminal', {socked_path => cwd() . '/virtio_console' . $num});
+        }
     }
 
     # svirt backend, except s390x ARCH

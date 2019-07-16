@@ -17,9 +17,10 @@ use utils qw(systemctl file_content_replace zypper_call);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
-use serial_terminal;
+use serial_terminal 'upload_file';
 use Carp;
 use Mojo::File 'path';
+
 use strict;
 use warnings;
 
@@ -388,17 +389,10 @@ sub upload_wicked_logs {
     script_run("ip route show table all > $logs_dir/ip_route.log 2>&1");
     script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
-    eval {
-        upload_logs("$dir_name.tar.gz", failok => 0, log_name => " ");
-        1;
-    } or do {
-        my $e = $@;
-        record_info('Info', 'Need to re-configure the network to upload logs as the test removed all the setup');
-        reset_wicked();
-        recover_network();
-        upload_logs("$dir_name.tar.gz", failok => 1, log_name => " ");
-        reset_wicked();
-    };
+
+    select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+    upload_file("$dir_name.tar.gz", "$dir_name.tar.gz");
+    $self->select_serial_terminal;
 }
 
 =head2 do_mutex
