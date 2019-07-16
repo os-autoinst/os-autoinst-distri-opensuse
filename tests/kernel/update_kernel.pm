@@ -252,7 +252,7 @@ sub install_kotd {
     my $repo = shift;
     fully_patch_system;
     remove_kernel_packages;
-    zypper_ar($repo, name => 'KOTD', priority => 90);
+    zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
     zypper_call("in -l kernel-default");
 }
 

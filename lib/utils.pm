@@ -467,22 +467,26 @@ When used, additional check if repo not yet exists is done, and adding
 only if it doesn't exist.
 NOTE: if not used, $url must be a URI pointing to a .repo file.
 
+C<$no_gpg_check> pass --no-gpgcheck for repos with not valid GPG key, optional
+
 C<$priority> set repo priority, optional
 
 C<$params> other ar subcommand parameters, optional
 
 Examples:
-    zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', priority => 90);
     zypper_ar('http://dist.nue.suse.com/ibs/QA:/Head/SLE-15-SP1', name => 'qa-head);
+    zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', no_gpg_check => priority => 90);
 =cut
 sub zypper_ar {
     my ($url, %args) = @_;
-    my $name     = $args{name}     // '';
-    my $priority = $args{priority} // '';
-    my $params   = $args{params}   // '';
+    my $name         = $args{name}         // '';
+    my $priority     = $args{priority}     // '';
+    my $params       = $args{params}       // '';
+    my $no_gpg_check = $args{no_gpg_check} // '';
 
-    $priority = "-p $priority" if ($priority);
-    my $cmd = "--gpg-auto-import-keys ar -f $priority $params $url";
+    $priority     = "-p $priority"  if ($priority);
+    $no_gpg_check = "--no-gpgcheck" if ($no_gpg_check);
+    my $cmd = "--gpg-auto-import-keys ar -f $priority $no_gpg_check $params $url";
 
     # repo file
     if (!$name) {
