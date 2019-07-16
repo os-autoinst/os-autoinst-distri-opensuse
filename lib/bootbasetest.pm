@@ -18,7 +18,7 @@ sub post_fail_hook {
     $self->SUPER::export_logs();
 
     # Dump memory on qemu backend
-    if (check_var('BACKEND', 'qemu')) {
+    if (check_var('BACKEND', 'qemu') && get_var('DEBUG_DUMP_MEMORY')) {
         diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
         save_memory_dump;
     }
