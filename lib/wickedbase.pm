@@ -17,7 +17,7 @@ use utils qw(systemctl file_content_replace zypper_call);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
-use serial_terminal 'upload_file';
+use serial_terminal;
 use Carp;
 use Mojo::File 'path';
 
