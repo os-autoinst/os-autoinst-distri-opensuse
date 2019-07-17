@@ -1045,6 +1045,7 @@ sub load_console_server_tests {
     }
     loadtest "console/rsync";
     loadtest "console/http_srv";
+    loadtest "console/apache";
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
