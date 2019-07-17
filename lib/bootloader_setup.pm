@@ -538,7 +538,7 @@ sub select_bootmenu_more {
     }
     send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
     # Redirect linuxrc logs to console when booting from menu: "boot linux system"
-    push @params, "linuxrc.log=/dev/$serialdev" if get_var('LINUXRC_BOOT');
+    push @params, "linuxrc.log=/dev/$serialdev linuxrc.debug=4,trace linuxrc.core=/dev/$serialdev" if get_var('LINUXRC_BOOT');
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
@@ -550,11 +550,13 @@ sub select_bootmenu_more {
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         type_string_very_slow(" @params ");
+        save_screenshot;
         send_key 'f10';
     }
     else {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         type_string_very_slow(" @params ");
+        save_screenshot;
         send_key 'ret';
     }
     return @params;
