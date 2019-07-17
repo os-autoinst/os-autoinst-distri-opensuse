@@ -40,7 +40,7 @@ sub run {
     systemctl 'status apache2';
 
     # Check if the server works and serves the right content
-    assert_script_run 'curl http://localhost/ | grep "index"';
+    assert_script_run 'curl -v http://localhost/ | grep "index"';
 
     # Check if the permissions are set correctly
     assert_script_run 'ls -la /srv/www/htdocs | head -n2 | grep "drwxr\-xr\-x"';
@@ -49,11 +49,11 @@ sub run {
     # Stop the server and check it's not listening nor running any more
     systemctl 'stop apache2';
     exit 0 if script_run('systemctl is-active apache2') == 0;
-    exit 0 if script_run('curl http://localhost/') == 0;
+    exit 0 if script_run('curl -v http://localhost/') == 0;
 
     # Start apache again
     systemctl 'start apache2';
-    assert_script_run 'curl http://[::1]/ | grep "index"';
+    assert_script_run 'curl -v http://[::1]/ | grep "index"';
 
     # Listen on 85 and create a vhost for it
     assert_script_run 'echo "Listen 85" >> /etc/apache2/listen.conf';
@@ -81,20 +81,19 @@ sub run {
     systemctl 'reload apache2';
 
     # Check the 'localhost' vhost via IPv4 and IPv6
-    assert_script_run 'curl -H "Host: localhost" http://[::1]/ | grep "This is the local host"';
-    assert_script_run 'curl http://localhost/ | grep "This is the local host"';
+    assert_script_run 'curl -vH "Host: localhost" http://[::1]/ | grep "This is the local host"';
+    assert_script_run 'curl -v http://localhost/ | grep "This is the local host"';
 
     # Check the 'foo.bar' vhost via IPv4 and IPv6
-    assert_script_run 'curl -4 http://foo.bar | grep "This is the foo host"';
-    assert_script_run 'curl -6 http://foo.bar/ | grep "This is the foo host"';
+    assert_script_run 'curl -v4 http://foo.bar | grep "This is the foo host"';
+    assert_script_run 'curl -v6 http://foo.bar/ | grep "This is the foo host"';
 
     # Works we have also special vhost listening on port 85 both IPv4 and IPv6
-    assert_script_run 'curl http://localhost:85/ | grep "listed_test_file"';
-    assert_script_run 'curl http://[::1]:85/ | grep "listed_test_file"';
+    assert_script_run 'curl -v http://localhost:85/ | grep "listed_test_file"';
+    assert_script_run 'curl -v http://[::1]:85/ | grep "listed_test_file"';
 
     # We stop current webserver and prepare another http2-prefork environment
     systemctl 'stop apache2';
-    zypper_call 'in libapr1 apache2 apache2-prefork';
     assert_script_run 'mkdir -p /tmp/prefork';
     assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
 
@@ -108,16 +107,16 @@ sub run {
     assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
 
     # Test both instances
-    assert_script_run 'curl http://localhost:80/';
-    assert_script_run 'curl http://localhost:8080/';
+    assert_script_run 'curl -v http://localhost:80/';
+    assert_script_run 'curl -v http://localhost:8080/';
 
     # Stop both instances
     assert_script_run 'killall -TERM httpd2-prefork';
     systemctl 'stop apache2';
 
     # Test everything is stopped properly
-    assert_script_run '! curl http://localhost:80/';
-    assert_script_run '! curl http://localhost:8080/';
+    assert_script_run '! curl -v http://localhost:80/';
+    assert_script_run '! curl -v http://localhost:8080/';
 
     # Clean up
     assert_script_run 'rm -r /tmp/prefork';
@@ -130,7 +129,7 @@ sub run {
     assert_script_run 'touch /srv/www/vhosts/localhost/authtest/.htpasswd';
     assert_script_run 'chmod 640 /srv/www/vhosts/localhost/authtest/.htpasswd';
     assert_script_run 'chown root:www /srv/www/vhosts/localhost/authtest/.htpasswd';
-    assert_script_run 'htpasswd2 -s -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
+    assert_script_run 'htpasswd2 -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
 
     # Paste the .htaccess file
     assert_script_run "echo 'AuthType Basic
@@ -145,8 +144,8 @@ sub run {
 
     # Start the webserver and test the password access
     systemctl 'start apache2';
-    assert_script_run 'curl -s "http://joe:secret@localhost/authtest/" | grep "HI, JOE"';
-    assert_script_run 'curl -sI "http://joe:secret@localhost/authtest/" | head -n1 | grep "HTTP/1.1 200 OK"';
+    assert_script_run 'curl -vI -u "joe:secret" "http://localhost/authtest/" | grep -A99 -B99 "HTTP/1.1 200 OK"';
+    assert_script_run 'curl -v -u "joe:secret" "http://localhost/authtest/" | grep -A99 -B99 "HI, JOE"';
 
     # Stop the webserver for next testing
     systemctl 'stop apache2';
