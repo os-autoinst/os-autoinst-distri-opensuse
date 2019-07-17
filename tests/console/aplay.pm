@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Test audio using aplay.
+# - stop packagekit daemon and install alsa-utils and alsa, checks output
+# for # "Installing:.*alsa" or "'alsa' is already installed"
+# - clear console and check
+# - change for user console
+# - run set_default_volume -f
+# - run alsamixer 0
+# - send key "ESC"
+# - clear console
+# - run aplay ~/data/1d5d9dD.wav
+# - run check_recorded_sound 'DTMF-159D', otherwise, softfail test (bsc#1048271)
 # Maintainer: Rodion Iafarov <aplanas@suse.com>
 
 use base "consoletest";
