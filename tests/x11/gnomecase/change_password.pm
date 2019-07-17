@@ -115,19 +115,22 @@ sub auto_login_alter {
 sub run {
     my ($self) = @_;
 
+    # Open gdm debug info for poo#54224, this issue happen sometimes in openqa env
+    script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
+
     #change pwd for current user and add new user for switch scenario
     assert_screen "generic-desktop";
     $self->unlock_user_settings;
     change_pwd;
     add_user;
     #verify changed password work well in the following scenario:
-    lock_screen;
-    logout_and_login;
     $self->reboot_system;
     if (is_tumbleweed && !get_var('NOAUTOLOGIN')) {
         set_var('NOAUTOLOGIN', 1);
         $self->auto_login_alter;
     }
+    lock_screen;
+    logout_and_login;
 
     #swtich to new added user then switch back
     switch_user;
