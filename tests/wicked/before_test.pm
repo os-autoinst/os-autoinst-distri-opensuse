@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use utils qw(zypper_call systemctl file_content_replace);
 use network_utils qw(iface setup_static_network);
-use serial_terminal 'add_serial_console';
+use serial_terminal;
 
 sub run {
     my ($self, $ctx) = @_;
