@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Guess basic AppArmor profile requirements with aa_autodep
+# Summary: Single testcase for AppArmor that guesses basic profile requirements
+# for nscd and pam using aa_autodep. Validates output by comparing the profiles
+# with a pre determined structure and for pam, output results to serial terminal.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36889, poo#45803
 

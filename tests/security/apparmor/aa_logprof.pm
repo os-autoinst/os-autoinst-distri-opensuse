@@ -13,7 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Test the utility for updating AppArmor security profiles
+# Summary: Test the utility for updating AppArmor security profiles.
+# It creates a profile for nscd in a temp dir. To test, remove some rules
+# from temp nscd profile and puts nscd in complain mode using the temporary
+# files as reference. In case of tumbleweed, unload nscd profile, otherwise
+# start it and run aa-logprof to update apparmor profiles.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36892, poo#45803
 
