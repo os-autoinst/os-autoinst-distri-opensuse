@@ -29,11 +29,6 @@ use main_common 'is_desktop';
 sub run {
 
     select_console 'root-console';
-    zypper_call 'in vsftpd';
-    systemctl 'start vsftpd';
-    systemctl 'status vsftpd';
-    save_screenshot;
-    assert_script_run 'systemctl status vsftpd --no-pager | grep active';
 
     install_services($default_services)
       if is_sle

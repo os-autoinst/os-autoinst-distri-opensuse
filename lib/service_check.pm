@@ -116,6 +116,11 @@ our $default_services = {
         srv_proc_name => 'apparmor',
         support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
+    vsftp => {
+        srv_pkg_name  => 'vsftpd',
+        srv_proc_name => 'vsftpd',
+        support_ver   => '12-SP3,12-SP4,12-SP5,15,15-SP1'
+    },
 };
 
 sub install_services {
@@ -125,6 +130,7 @@ sub install_services {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
+        record_info($srv_pkg_name, "service check before migration");
         if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
             if (exists $service->{$s}->{service_check_func}) {
                 $service->{$s}->{service_check_func}->('before');
@@ -147,8 +153,10 @@ sub install_services {
 sub check_services {
     my ($service) = @_;
     foreach my $s (keys %$service) {
+        my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
+        record_info($srv_pkg_name, "service check after migration");
         if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
             # service check after migration. if we've set up service check
             # function, we don't need following actions to check the service.

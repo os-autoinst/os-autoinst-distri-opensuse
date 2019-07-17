@@ -21,10 +21,6 @@ use main_common 'is_desktop';
 
 sub run {
     select_console 'root-console';
-    systemctl 'start vsftpd';
-    systemctl 'status vsftpd';
-    save_screenshot;
-    assert_script_run 'systemctl status vsftpd --no-pager | grep active';
     check_services($default_services) if (is_sle && !is_desktop && !is_sles4sap && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && !get_var('INSTALLONLY'));
 }
 
