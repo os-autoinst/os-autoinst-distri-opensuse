@@ -16,10 +16,13 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use utils 'type_string_slow';
 
 sub run {
     x11_start_program('oomath');
-    type_string "E %PHI = H %PHI\nnewline\n1 = 1";
+    # be more resilient during the automatic evaluation of formulas to prevent
+    # mistyping
+    type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
     wait_still_screen(1);
 
     # test broken undo
