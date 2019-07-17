@@ -231,7 +231,7 @@ sub register_addons {
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP
         push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap'));
-        if (my $regcode = get_var("SCC_REGCODE_$uc_addon")) {
+        if ((my $regcode = get_var("SCC_REGCODE_$uc_addon")) or ($addon eq "ltss")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
             if (check_var('VIDEOMODE', 'text')) {
@@ -239,6 +239,12 @@ sub register_addons {
             }
             else {
                 assert_and_click("scc-code-field-$addon", timeout => 240);
+            }
+            # avoid duplicated tests to manage LTSS regcode by integrating new variables
+            if ($addon eq "ltss") {
+                my $os_sp_version = get_var("HDDVERSION");
+                $os_sp_version =~ s/-/_/g;
+                $regcode = get_var("SCC_REGCODE_LTSS_$os_sp_version", $regcode);
             }
             type_string $regcode;
             save_screenshot;
