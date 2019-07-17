@@ -17,6 +17,7 @@ use Utils::Backends 'use_ssh_serial_console';
 use version_utils 'is_sle';
 use serial_terminal 'add_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
+use registration;
 use strict;
 use warnings;
 
