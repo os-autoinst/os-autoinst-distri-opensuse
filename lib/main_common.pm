@@ -2290,6 +2290,8 @@ sub load_security_tests_evm_protection {
     loadtest "security/ima/ima_setup";
     loadtest "security/ima/evm_setup";
     loadtest "security/ima/evm_protection_hmacs";
+    loadtest "security/ima/evm_protection_digital_signatures";
+    loadtest "security/ima/evm_verify";
 }
 
 sub load_security_tests_system_check {
