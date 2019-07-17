@@ -21,8 +21,7 @@ sub from_repo {
     my ($repo, $pkg) = @_;
 
     zypper_ar($repo, name => 'change-kernel') if ($repo);
-    zypper_call("in --force-resolution --force --replacefiles --repo change-kernel $pkg",
-        dumb_term => 1);
+    zypper_call("in --force-resolution --force --replacefiles --repo change-kernel $pkg");
 }
 
 sub from_rpm {
