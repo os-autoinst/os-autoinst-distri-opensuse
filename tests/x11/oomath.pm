@@ -21,16 +21,16 @@ use utils 'type_string_slow';
 sub run {
     x11_start_program('oomath');
     # be more resilient during the automatic evaluation of formulas to prevent
-    # mistyping
-    type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
-    wait_still_screen(1);
-
-    # test broken undo
-    send_key 'shift-left';
-    send_key '2';
-    # undo produces "12" instead of "1"
-    send_key 'ctrl-z';
-    assert_screen [qw(test-oomath-1 oomath-bsc1127895)];
+    # mistyping with slow typing and retrying.
+    my $retries = 7;
+    for (1 .. $retries) {
+        type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
+        last if check_screen [qw(test-oomath-1 oomath-bsc1127895)];
+        die "Could not match on correct formula within multiple retries" if $_ == $retries;
+        record_info 'workaround', 'retrying unstable formula typing, see https://progress.opensuse.org/issues/53795 for details';
+        send_key 'ctrl-a';
+        send_key 'delete';
+    }
     if (match_has_tag('oomath-bsc1127895')) {
         record_soft_failure 'bsc#1127895';
         send_key 'alt-f4';
