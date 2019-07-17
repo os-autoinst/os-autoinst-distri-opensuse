@@ -59,11 +59,12 @@ sub run {
         assert_screen 'yast2_tftp_open_port';
         send_key $firewall_detail_shortcut;    # open firewall details window
         assert_screen 'yast2_tftp_firewall_details';
-        send_key 'alt-o';                      # close the window
+        send_key 'alt-o';                        # close the window
+        assert_screen 'yast2_tftp_open_port';    # assert that window is closed
     }
 
     # view log
-    send_key 'alt-v';                          # open log window
+    send_key 'alt-v';                            # open log window
 
     # bsc#1008493 is still open, but error pop-up doesn't always appear immediately
     # so wait still screen before assertion

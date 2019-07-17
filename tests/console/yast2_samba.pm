@@ -127,7 +127,8 @@ sub setup_yast2_auth_server {
 
     assert_screen 'yast2_ldap_configuration_stand-alone_tls';
     # move to next page basic database settings and set base dn, ldap admin password
-    wait_screen_change { send_key 'alt-n' };
+    send_key 'alt-n';
+    assert_screen 'yast2_ldap_basic_db_configuration';
     wait_screen_change { send_key 'alt-s' };
     type_string($ldap_directives{dn_container});
     wait_screen_change { send_key 'alt-a' };
