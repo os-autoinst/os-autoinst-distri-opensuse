@@ -12,9 +12,13 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
-#
-# Summary: Enforce a disabled profile with aa-enforce. Test uses nscd as base.
-# Disables nscd profile using aa-disable, then validates by checking status by aa-status.
+
+# Summary: Enforce a disabled profile with aa-enforce.
+# - restarts apparmor
+# - disables nscd by running aa-disable /usr/sbin/nscd
+# - use aa-status to check if nscd is really disabled
+# - runs aa-enforce on /usr/bin/nscd to enforce mode and check output
+# - runs aa-status and check if nscd is on enforce mode.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36877, tc#1621145
 

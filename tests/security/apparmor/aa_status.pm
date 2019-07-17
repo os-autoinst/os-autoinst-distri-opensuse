@@ -14,7 +14,10 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Test the basic information output function for apparmor using
-# aa-status and whether AppArmor was enabled by default.
+# aa-status.
+# - Check if apparmor is active
+# - Run aa-status, check the output for strings about modules/profiles/processes
+# and strings enforced, complain, unconfined and loaded.
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36874, poo#44912
 

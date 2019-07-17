@@ -13,11 +13,19 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Display information about logged AppArmor messages. The test starts
-# by creating a temporary profile for nscd. Then adds root to user group. To
-# validate, removes /etc/nscd.conf from temporary profile directory, restarts
-# nscd with temporary security profile and checks the aa-notify output looking
-# for missing /etc/nscd.conf entry.
+# Summary: Display information about logged AppArmor messages
+# - Restart auditd
+# - Create temporary apparmor profile on /tmp
+# - Add root to use_group on /etc/apparmor/notify.conf
+# - Run "aa-notify -l"
+# - Make nscd fail intentionally, removing "/etc/nscd.conf" entry from
+# /tmp/apparmor.d/usr.sbin.nscd
+# - Run "aa-disable nscd"
+# - Put nscd back in enforce mode: "aa-enforce -d /tmp/apparmor.d nscd"
+# - Restart nscd
+# - Check the errors from "aa-notify -l -v"
+# - Disable temporary profile, put nscd back in enforce mode, restart nscd
+# - Cleanup temporary profiles
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36883, tc#1621139
 
