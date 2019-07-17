@@ -98,7 +98,7 @@ sub wait_for_networkd {
     $self->assert_script_run_container($machine, "ip a");
     $self->assert_script_run_container($machine, "networkctl");
     # wait until network is configured
-    $self->assert_script_run_container($machine, "for i in {1..20} ; do networkctl | grep $netif.*configured && break ; sleep 1 ; done");
+    $self->assert_script_run_container($machine, "for i in {1..35} ; do networkctl | grep $netif.*configured && break ; sleep 1 ; done");
     $self->assert_script_run_container($machine, "networkctl");
     $self->assert_script_run_container($machine, "networkctl | grep $netif.*configured");
     $self->assert_script_run_container($machine, "networkctl status");
