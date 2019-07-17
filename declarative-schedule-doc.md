@@ -147,6 +147,32 @@ sub run {
 }
 ```
 
+Besides having test_data in the same yaml file for scheduling, it is possible to import test_data from another file with the following constrains:
+ - test_data will be in a dedicated file that only contains data.
+ - test_data file will not import data from another file (only one nested level to avoid complexity).
+ For instance, we can have a test data file named `scenario_name_test_data.yaml` containing data as follows:
+
+ ```
+ disks:
+  - name: vda
+    partitions:
+      - size: 2mb
+  ...
+```
+And we can include those data in `scenario_name.yaml` using `!include` and the path to the file:
+```
+name:           scenario_name_test_data.yaml
+description:    >
+  ...
+vars:
+...
+schedule:
+  - path/to/module
+...
+test_data:
+  !include: schedule/path/to/scenario_name_test_data.yaml
+```
+
 ### 2. Enable scheduler in settings
 
 It is required to add in openQA WebUI in the test suite configuration a new setting `YAML_SCHEDULE` pointing to .yaml file path, for instance:

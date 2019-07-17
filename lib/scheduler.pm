@@ -70,13 +70,21 @@ sub get_test_data {
 
 =head2 parse_test_data
 
-Parse test data from the yaml file which contains data used in the tests.
+Parse test data from the yaml file which contains data used in the tests which could be located
+in the same file than the schedule or in a dedicated file only for data.
 
 =cut
 
 sub parse_test_data {
     my ($schedule) = shift;
     $test_data = $schedule->{test_data};
+    my $include_tag = "!include";
+    if (exists $test_data->{$include_tag}) {
+        $test_data = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $test_data->{$include_tag});
+        if (exists $test_data->{schedule}) {
+            die "Error: test_data can only be defined in a dedicated file for data\n";
+        }
+    }
 }
 
 =head2 load_yaml_schedule
