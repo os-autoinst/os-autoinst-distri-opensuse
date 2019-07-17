@@ -171,7 +171,7 @@ sub init_desktop_runner {
 
     send_key($hotkey);
 
-    mouse_hide(1);
+    mouse_hide(200);
     if (!check_screen('desktop-runner', $timeout)) {
         record_info('workaround', "desktop-runner does not show up on $hotkey, retrying up to three times (see bsc#978027)");
         send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608

@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2017 SUSE LLC
+# Copyright (C) 2015-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,36 +25,24 @@ use utils;
 sub run {
     my $name = ref($_[0]);
     ensure_installed($name);
-    # we need to move the mouse in the top left corner as xchat
-    # opens it's window where the mouse is. mouse_hide() would move
-    # it to the lower right where the pk-update-icon's passive popup
-    # may suddenly cover parts of the dialog ... o_O
-    mouse_set(0, 10);
-    if (my $url = get_var('XCHAT_URL')) {
-        x11_start_program("$name --url=$url", target_match => "$name-main-window");
-    }
-    else {
-        x11_start_program($name, target_match => "$name-network-select");
-        type_string "freenode\n";
-        assert_and_click "hexchat-nick-$username";
-        send_key 'ctrl-a';
-        send_key 'delete';
-        assert_screen "hexchat-nick-empty";
-        type_string "openqa" . random_string(5);
-        assert_and_click "$name-connect-button";
-        assert_screen "$name-connection-complete-dialog";
-        assert_and_click "$name-join-channel";
-        type_string "openqa\n";
-        send_key 'ret';
-    }
+    x11_start_program($name, target_match => "$name-network-select");
+    type_string "freenode\n";
+    assert_and_click "hexchat-nick-$username";
+    send_key 'ctrl-a';
+    send_key 'delete';
+    assert_screen "hexchat-nick-empty";
+    type_string "openqa" . random_string(5);
+    assert_and_click "$name-connect-button";
+    assert_screen "$name-connection-complete-dialog";
+    assert_and_click "$name-join-channel";
+    type_string "openqa\n";
+    send_key 'ret';
     assert_screen "$name-main-window";
     type_string "hello, this is openQA running $name!\n";
     assert_screen "$name-message-sent-to-channel";
     type_string "/quit I'll be back\n";
     assert_screen "$name-quit";
     send_key 'alt-f4';
-    # now hide the mouse again
-    mouse_hide;
 }
 
 1;
