@@ -497,7 +497,8 @@ sub zypper_ar {
     }
 
     # URI alias
-    if (script_run("zypper lr $name")) {
+    my $out = script_output("LC_ALL=C zypper lr $name 2>&1", proceed_on_failure => 1);
+    if ($out =~ /Repository.*$name.*not found/i) {
         zypper_call("$cmd_ar $name", dumb_term => 1);
         return zypper_call("$cmd_ref --repo $name", dumb_term => 1);
     }
