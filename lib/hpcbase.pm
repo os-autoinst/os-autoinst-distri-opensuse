@@ -152,6 +152,14 @@ sub distribute_slurm_conf {
     }
 }
 
+sub generate_and_distribute_ssh {
+    my @cluster_nodes = cluster_names();
+    assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
+    foreach (@cluster_nodes) {
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$_");
+    }
+}
+
 sub check_nodes_availability {
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
