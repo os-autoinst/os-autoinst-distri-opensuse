@@ -74,7 +74,7 @@ sub run {
 
     foreach my $scenario (@scenario_list) {
         # Download the source code of test scenario
-        script_run "cd ~/sssd && mkdir $scenario && curl -L -v " . autoinst_url . "/data/sssd-tests/$scenario > $scenario/cdata";
+        script_run "cd ~/sssd && curl -L -v " . autoinst_url . "/data/sssd-tests/$scenario > $scenario/cdata";
         script_run "cd $scenario && cpio -idv < cdata && mv data/* ./; ls";
         validate_script_output "./test.sh", sub {
             (/junit testsuite/ && /junit success/ && /junit endsuite/) or push @scenario_failures, $scenario;
