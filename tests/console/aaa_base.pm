@@ -7,9 +7,22 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: test that uses some aaa_base binaries command line tool to regression test.
-# If succeed, the test passes without error.
-#
+# Summary: test that uses some aaa_base binaries command line tools to regression test.
+# - Creates directory /tmp/aaa_base_test
+# - Changes to /tmp/aaa_base_test directory
+# - Creates test-file.txt and test_dir
+# - run command "old test-file.txt", after, ls -lah test-file*
+# - run safe-rm /tmp/aaa_base_test/test-file.txt; then ls -lah
+# - run safe-rmdir /tmp/aaa_base_test/test_dir; then ls -lah
+# - run get_kernel_version \$(ls /boot/vmlinu*-* | sort | tail -1)
+# - run rpmlocate aaa_base
+# - run /usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_ENCODING
+# ISO-8859-1; grep CONSOLE_ENCODING /etc/sysconfig/console
+# - run /usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1;
+# grep CONSOLE_ENCODING /etc/sysconfig/console
+# - run service --status-all, checks for "loaded"
+# - run chkconfig --list
+# - remove /tmp/aa_base_test directory
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
 use base "consoletest";
