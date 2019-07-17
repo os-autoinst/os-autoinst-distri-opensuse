@@ -45,7 +45,6 @@ our @EXPORT = qw(
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
-  register_product_proxyscc
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   @SLE15_ADDONS_WITHOUT_LICENSE
