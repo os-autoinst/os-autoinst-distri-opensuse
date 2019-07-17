@@ -677,7 +677,7 @@ sub lxdestep_is_applicable {
 
 sub is_smt {
     # Smt is replaced with rmt in SLE 15, see bsc#1061291
-    return ((get_var("PATTERNS", '') || get_var('HDD_1', '')) =~ /smt/) && is_sle('<15');
+    return (check_var('SMT_TEST', '1') && is_sle('<15'));
 }
 
 sub is_rmt {
