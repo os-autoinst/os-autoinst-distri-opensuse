@@ -198,7 +198,7 @@ sub register_addons_cmd {
     my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
     foreach my $addon (@addons) {
         my $name = get_addon_fullname($addon);
-        if ($name =~ /module/) {
+        if ($name =~ /adv|containers|legacy|toolchain|web-scripting|public-cloud/) {
             my @ver = split(/\./, scc_version());
             add_suseconnect_product($name, $ver[0]);
         }
@@ -211,8 +211,11 @@ sub register_addons_cmd {
         elsif ($name =~ /LTSS/) {
             add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_LTSS'));
         }
-        else {
+        elsif ($name =~ /sdk/) {
             add_suseconnect_product($name);
+        }
+        else {
+            next;
         }
     }
 }

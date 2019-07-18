@@ -21,7 +21,7 @@ use testapi;
 use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 
-our @EXPORT = qw(expand_template);
+our @EXPORT = qw(expand_template init_autoyast_profile);
 
 sub expand_patterns {
     if (get_var('PATTERNS') =~ m/^\s*$/) {
@@ -132,5 +132,15 @@ sub expand_template {
     return $output;
 }
 
+sub init_autoyast_profile {
+    select_console('root-console');
+    my $profile_path = '/root/autoinst.xml';
+    # Generate profile if doesn't exist
+    if (script_run("[ -e $profile_path ]")) {
+        my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
+        wait_serial("$module_name-0", 60) || die "'yast2 clone_system' exited with non-zero code";
+    }
+    return script_output("cat $profile_path");
+}
 
 1;

@@ -1045,6 +1045,7 @@ sub load_console_server_tests {
     }
     loadtest "console/rsync";
     loadtest "console/http_srv";
+    loadtest "console/apache";
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
@@ -1507,6 +1508,7 @@ sub load_extra_tests_zypper {
     }
     # Check for availability of packages and the corresponding repository, as of now only makes sense for SLE
     loadtest 'console/validate_packages_and_patterns' if is_sle '12-sp2+';
+    loadtest 'console/zypper_extend';
 }
 
 sub load_extra_tests_dracut {
