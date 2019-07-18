@@ -16,7 +16,6 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
 use x11utils 'turn_off_gnome_screensaver';
 
 sub try_reclaiming_space {
@@ -76,7 +75,7 @@ sub run {
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
 
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    select_console 'root-console';
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
@@ -144,7 +143,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    select_console 'root-console';
     assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs /var/tmp/hdb*; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
     assert_script_run "save_y2logs /tmp/y2logs.tar.xz";

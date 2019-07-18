@@ -15,7 +15,6 @@ use base "sles4sap";
 use testapi;
 use lockapi;
 use hacluster;
-use Utils::Backends 'use_ssh_serial_console';
 use strict;
 use warnings;
 
@@ -43,7 +42,7 @@ sub run {
     push @sapoptions, "SAPINST_INPUT_PARAMETERS_URL=$params_file";
     push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.HDB.ABAPHA";
 
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    select_console 'root-console';
 
     # This installs Netweaver's ASCS. Start by making sure the correct
     # SAP profile and solution are configured in the system
