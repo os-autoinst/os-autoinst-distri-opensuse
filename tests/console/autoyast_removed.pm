@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Confirm autoyast has been removed from installation overview
+# - Check if autoinst.xml does not exist anymore on /root "[ ! -f /root/autoinst.xml ]"
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
