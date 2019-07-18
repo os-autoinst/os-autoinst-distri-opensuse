@@ -678,8 +678,12 @@ sub fill_in_reg_server {
     }
     else {
         send_key "alt-i";
-        # Fresh install sles12sp2/3/4/5 shortcut is different with upgrade version
-        if ((is_sle('12-sp2+') && is_sle('<15') && (get_var('UPGRADE') || get_var('ONLINE_MIGRATION'))) || is_sle('>=15')) {
+        # Fresh install sles12sp2/3/4/5 shortcut is different with upgrade version.
+        # We add a workaround for bug bsc#1141962, which was caused by different shortcuts for
+        # patch_sle and scc_register for local smt scenario. So we add IN_PATCH_SLE check for this.
+        send_key "alt-l" if is_sle('>=15');
+        if (is_sle('12-sp2+') && is_sle('<15') && (get_var('UPGRADE') || get_var('ONLINE_MIGRATION'))
+            && check_var('IN_PATCH_SLE', '1')) {
             send_key "alt-l";
         }
         else {
