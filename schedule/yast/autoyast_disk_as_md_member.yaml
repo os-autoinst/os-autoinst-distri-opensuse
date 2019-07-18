@@ -1,0 +1,34 @@
+name:           autoyast_disk_as_md_member
+description:    >
+  Test autoyast installation, while using a disk as a MD RAID member
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_disk_as_md_member.xml
+  AUTOYAST_CONFIRM: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - autoyast/verify_disk_as_md_member
+  - autoyast/verify_disk_as_md_member_clone
+test_data:
+  disk: '/dev/md0'
+  partitions_count: 2
+  type_part: 'part'
+  raid_level: 'raid1'
+  mount_point:
+    root: '/'
+    data: '/data'
+  xpath:
+    mount: '//ns:partitioning/ns:drive[ns:device="/dev/md/0"]/ns:partitions/ns:partition/ns:mount'
+    raid_type: '//ns:partitioning/ns:drive[ns:device="/dev/md/0"]/ns:raid_options/ns:raid_type'

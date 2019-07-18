@@ -20,7 +20,7 @@ use Exporter 'import';
    Returns XPathContext for the dom build using the string, which contains xml.
 =cut
 
-our @EXPORT = qw(get_xpc verify_option);
+our @EXPORT = qw(get_xpc verify_option find_nodes);
 
 sub get_xpc {
     my ($string) = @_;
@@ -45,11 +45,7 @@ sub get_xpc {
 sub verify_option {
     my (%args) = @_;
 
-    my $nodeset = $args{xpc}->findnodes($args{xpath});
-    for my $node ($nodeset->get_nodelist) {
-        print $node->to_literal;
-    }
-    my @nodes = $nodeset->get_nodelist;
+    my @nodes = find_nodes(%args);
     ## Verify that there is node found by xpath and it's single one
     if (scalar @nodes != 1) {
         return "Generated autoinst.xml contains unexpected number of nodes for xpath: $args{xpath}. Found: " . scalar @nodes . ", expected: 1.";
@@ -60,6 +56,24 @@ sub verify_option {
 
     return '';
 
+}
+
+=head2 find_nodes
+   find_nodes(%args);
+
+   Finds all the nodes by xpath and returns the nodes as array.
+   C<xpc> - XPathContext object for the parsed xml,
+   C<xpath> - XPath to the target node
+
+=cut
+
+sub find_nodes {
+    my (%args) = @_;
+    my $nodeset = $args{xpc}->findnodes($args{xpath});
+    for my $node ($nodeset->get_nodelist) {
+        print $node->to_literal;
+    }
+    return $nodeset->get_nodelist;
 }
 
 1;
