@@ -679,7 +679,7 @@ sub fill_in_reg_server {
     else {
         send_key "alt-i";
         # Fresh install sles12sp2/3/4/5 shortcut is different with upgrade version
-        if ((is_sle('12-sp2+') && is_sle('<15') && (get_var('UPGRADE') || get_var('ONLINE_MIGRATION'))) || is_sle('>=15')) {
+        if ((is_sle('12-sp2+') && is_sle('<12-sp5') && (get_var('UPGRADE') || get_var('ONLINE_MIGRATION'))) || is_sle('>=15')) {
             send_key "alt-l";
         }
         else {
