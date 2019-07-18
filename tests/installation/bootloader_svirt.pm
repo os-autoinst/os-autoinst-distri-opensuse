@@ -82,11 +82,13 @@ sub run {
     if (check_var('BOOTFROM', 'c')) {
         $boot_device = 'hd';
     }
-    elsif (check_var('BOOTFROM', 'd')) {
+    elsif (check_var('BOOTFROM', 'd') || (get_var('ISO') && !get_var('BOOT_HDD_IMAGE'))) {
         $boot_device = 'cdrom';
-    }
-    else {
-        get_var('ISO') ? $boot_device = 'cdrom' : $boot_device = 'hd';
+    } else {
+        record_info("No boot medium", "Failed to select a bootable medium, please check ISO,"
+              . "BOOT_FROM and BOOT_HDD_IMAGE settings",
+            result => 'fail'
+        );
     }
     # Does not make any difference on VMware. For ad hoc device selection
     # see vmware_select_boot_device_from_menu().
