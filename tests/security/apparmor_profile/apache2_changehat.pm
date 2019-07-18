@@ -13,9 +13,42 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Test Web application apache2 using ChangeHat
+# Summary: Test Web application apache2 using ChangeHat.
+# - Stops apparmor daemon
+# - if sle 15+ or tumbleweed, runs aa-teardown
+# - if sle, add sle-module-web-scripting module
+# - Install apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql
+# - Restarts apparmor daemon
+# - Setup mariadb using mariadb_setup function
+# - Setup Web environment for Adminer using adminer_setup
+# - Run a2enmod apparmor
+# - run "echo '<Directory /srv/www/htdocs/adminer>' >
+# /etc/apache2/conf.d/apparmor.conf"
+# - run "echo 'AAHatName adminer' >> /etc/apache2/conf.d/apparmor.conf"
+# - run "echo '</Directory>' >> /etc/apache2/conf.d/apparmor.conf"
+# - restart apache daemon
+# - if sle is 12+, to $profile_name (usr.sbin.httpd-prefork) "-sle12" will be added
+# - Download a pre-build profile (using the rule above) from data_dir and save it in /etc/apparmor.d
+# - restart apparmor daemon
+# - Check if apparmor was properly activated
+# - run aa-enforce $profile_name, check for "Setting .*$profile_name to enforce
+# mode" output
+# - get test profile name by calling get_named_profile
+# - check if profile is running in enforce mode by calling aa_status_stdout_check
+# - restart apache2
+# - drop adminer database by calling adminer_database_delete
+# - Opens audit.log and check for messages:
+#   - if "type=AVC .*apparmor=.*DENIED.* operation=.*change_hat.*" is found,
+#   record error message in log: "ERROR", "There are denied change_hat records
+#   found in $audit_log" and fail test.
+#   - if "type=AVC .*apparmor=.*DENIED.* operation=.*profile_replace.*
+#   profile=.*httpd-prefork.*adminer.*" is found, record error message in test
+#   log: ""ERROR", "There are denied profile_replace records found in
+#   $audit_log" and fail test.
+# - upload /var/log/apache2/error_log and audit.log
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#48773, tc#1695946
+
 
 use base apparmortest;
 use strict;
