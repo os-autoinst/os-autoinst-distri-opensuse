@@ -129,7 +129,7 @@ sub run {
     assert_script_run 'touch /srv/www/vhosts/localhost/authtest/.htpasswd';
     assert_script_run 'chmod 640 /srv/www/vhosts/localhost/authtest/.htpasswd';
     assert_script_run 'chown root:www /srv/www/vhosts/localhost/authtest/.htpasswd';
-    assert_script_run 'htpasswd2 -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
+    assert_script_run 'htpasswd2 -s -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
 
     # Paste the .htaccess file
     assert_script_run "echo 'AuthType Basic

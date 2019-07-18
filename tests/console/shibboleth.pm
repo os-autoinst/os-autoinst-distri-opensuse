@@ -26,5 +26,8 @@ sub run {
     assert_script_run "curl --no-buffer http://localhost/Shibboleth.sso/Status | grep 'Cannot connect to shibd process'";
 
     assert_script_run "curl --no-buffer http://localhost/Shibboleth.sso/Session | grep 'A valid session was not found.'";
+
+    assert_script_run "a2dismod shib";
 }
+
 1;
