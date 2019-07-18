@@ -42,7 +42,7 @@ sub run {
     # Register the modules after media migration, only for sle<15
     # poo#54131 [SLE][Migration][SLE12SP5]test fails in system_prepare -
     # media upgrade need add modules after migration
-    if (get_var('SCC_ADDONS') && is_sle('<15') && get_var('MEDIA_UPGRADE')) {
+    if (get_var('SCC_ADDONS') && is_sle('<15') && get_var('MEDIA_UPGRADE') && get_var('KEEP_REGISTERED')) {
         assert_script_run 'SUSEConnect --url ' . get_required_var('SCC_URL') . ' -r ' . get_required_var('SCC_REGCODE');
         my $myaddons = get_var('SCC_ADDONS');
         # After media upgrade, system don't include ltss extension
