@@ -80,12 +80,12 @@ sub add_shares {
     # Permissions dialog
     assert_screen 'nfs-share-host';
     send_key 'tab';
-    # Change 'ro,root_squash' to 'rw,fsid=0,no_root_squash,...'
+    # Change 'ro,root_squash' to 'rw,no_root_squash,...'
     send_key 'home';
     send_key 'delete';
     send_key 'delete';
     send_key 'delete';
-    type_string "rw,fsid=0,no_";
+    type_string "rw,no_";
     send_key 'alt-o';
 
     # Saved
