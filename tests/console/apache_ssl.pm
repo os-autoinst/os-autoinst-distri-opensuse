@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Enable SSL module on Apache2 server
+# - calls setup_apache2 with mode = SSL (lib/apachetest.pm)
 # Maintainer: Qingming Su <qingming.su@suse.com>
 
 use base "consoletest";
