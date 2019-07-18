@@ -35,6 +35,9 @@ sub post_fail_hook {
     my $self = shift;
 
     $self->export_logs();
+
+    # Also list branding packages (help to debug desktop branding issues)
+    $self->save_and_upload_log('zypper --no-refresh se *branding*', '/tmp/list_branding_packages.txt', {screenshot => 1});
 }
 
 1;
