@@ -145,12 +145,20 @@ sub scc_version {
 Wrapper for SUSEConnect -p $name.
 =cut
 sub add_suseconnect_product {
-    my ($name, $version, $arch, $params, $timeout) = @_;
+    my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     assert_script_run 'source /etc/os-release';
     $version //= '${VERSION_ID}';
     $arch    //= '${CPU}';
     $params  //= '';
-    assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+    $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+
+    my $result = script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+    if ($result != 0 && $retry) {
+        if ($name =~ /PackageHub/) {
+            record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
+        }
+        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+    }
 }
 
 =head2 remove_suseconnect_product
