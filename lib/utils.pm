@@ -1348,4 +1348,16 @@ sub file_content_replace {
     script_run("cat $filename") if $debug;
 }
 
+=head2
+  Sets a break point to pause the test execution.
+   The test execution can be continue by creating a file like /tmp/break on the worker host.
+=cut
+sub conditional_sleep {
+    my ($breakpoint_number) = @_;
+    return undef unless get_var('CONDITIONAL_SLEEP_ENABLED');
+    while (script_output("[ ! -f '/tmp/break' . $breakpoint_number ]")) {
+        sleep(60);
+    }
+}
+
 1;
