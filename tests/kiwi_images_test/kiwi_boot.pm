@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Boot kiwi live or oem image
+# - at bootloader screen, manipulate grub to stop timeout
+# - checks if imagem is based on old kiwi and is oem type
+# - in this case, press down key 16 times and accept option (hard drive, not
+# ramdisk)
+# - confirm installation procedure and wait for login screen
+# - if not old kiwi & oem, just press ENTER and wait for login screen
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
 use base "installbasetest";
@@ -40,12 +46,12 @@ sub run {
         send_key 'ret';
         assert_screen('kiwi_oem_install_confirm', 1200);
         send_key 'ret';
-        assert_screen('kiwi_login', 1200);
+        assert_screen('linux-login', 1200);
     }
     else {
         assert_screen('kiwi_boot', 15);
         send_key 'ret';
-        assert_screen('kiwi_login', 1000);
+        assert_screen('linux-login', 1000);
     }
 }
 1;
