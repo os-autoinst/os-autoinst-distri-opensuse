@@ -447,6 +447,7 @@ sub load_reboot_tests {
         if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION') && !get_var('LIVE_UPGRADE')) {
             loadtest "installation/system_workarounds";
         }
+        loadtest "console/early_test_setup";
     }
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd";
@@ -789,6 +790,7 @@ sub boot_hdd_image {
     }
     loadtest 'installation/bootloader' if is_pvm;
     loadtest 'boot/boot_to_desktop';
+    loadtest 'console/early_test_setup';
 }
 
 sub load_common_installation_steps_tests {
@@ -1736,12 +1738,6 @@ sub load_extra_tests {
     return unless get_var('EXTRATEST');
     # pre-conditions for extra tests ie. the tests are running based on preinstalled image
     return if get_var("INSTALLONLY") || get_var("DUALBOOT") || get_var("RESCUECD");
-
-    # For extratests let's enable kernel.softlockup panic mode, so that we're sure
-    # that whenever there's a softlockup in the kernel, we for sure get at least
-    # that backtrace in the serial console
-
-    set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '') . ' kernel.softlockup_panic=1');
 
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
