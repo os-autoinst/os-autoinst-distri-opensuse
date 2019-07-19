@@ -14,6 +14,8 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Reboot for autoyast scenarios
+# - Call power_action reboot, with options "keepconsole => 1" and "textmode =>
+# 1"
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use strict;
