@@ -17,6 +17,7 @@ use Exporter;
 use bmwqemu ();
 use version_utils qw(is_sle is_leap);
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
+use Mojo::File 'path';
 use File::Basename;
 use File::Temp 'tempfile';
 
@@ -101,7 +102,6 @@ sub serial_term_prompt {
     return $serial_term_prompt;
 }
 
-
 =head2 download_file
 
   download_file($src, $dst [, force => $force][, chunk_size => $cz][, chunk_retry => $cr])
@@ -149,7 +149,7 @@ sub download_file {
     }
     close($fh);
     my $sha1_remote = script_output("sha1sum $result_file | cut -d ' ' -f 1", undef, quiet => 1);
-    my $sha1        = trim(`sha1sum $src | cut -d ' ' -f 1`);
+    my $sha1        = sha1_sum(path($src)->slurp());
     die("Failed to transfer file $src - final checksum mismatch") if ($sha1_remote ne $sha1);
     assert_script_run("mv $result_file '$dst'", quiet => 1);
     assert_script_run("rmdir $tmpdir",          quiet => 1);
@@ -173,7 +173,7 @@ sub upload_file {
 
     $dst = basename($dst);
     $dst = "ulogs/" . $dst;
-    my ($fh, $tmpfilename) = tempfile();
+    my ($fh, $tmpfilename) = tempfile(UNLINK => 1, SUFFIX => '.openqa.upload');
 
     die("File $src doesn't exists on SUT") if (script_run("test -f $src", undef, quiet => 1) != 0);
     die("File $dst already exists on worker") if (system("test -f $dst", undef, quiet => 1) == 0);
@@ -193,13 +193,13 @@ sub upload_file {
         } while ($sha1 ne $sha1_remote);
         print $fh b64_decode($b64);
     }
-    my $sha1        = trim(`sha1sum $tmpfilename | cut -d ' ' -f 1`);
+    close($fh);
+    my $sha1        = sha1_sum(path($tmpfilename)->slurp());
     my $sha1_remote = script_output("sha1sum $src | cut -d ' ' -f 1", undef, quiet => 1);
-    die("Failed to upload file $src - final checksum mismatch") if ($sha1_remote ne $sha1);
+    die("Failed to upload file $src - final checksum mismatch\nremote: $sha1_remote\ndestination:$sha1") if ($sha1_remote ne $sha1);
     system('mkdir -p ulogs/') == 0 or die('Failed to create ulogs/ directory');
     system(sprintf("cp '%s' '%s'", $tmpfilename, $dst)) == 0
       or die("Failed to finally copy file from '$tmpfilename' to '$dst'");
-    close($fh);
 }
 
 
