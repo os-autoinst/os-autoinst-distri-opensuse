@@ -9,6 +9,20 @@
 # without any warranty.
 
 # Summary: Bootloader to setup boot process with arguments/options
+# - Check if bootloader is isolinux or grub and set different commands for each
+# - Create a array containing all the actions for bootloader phase
+# bootmenu_default_params,bootmenu_network_source, specific_bootmenu_params
+# specific_caasp_params, registration_bootloader_params
+# - If bootloader is grub, try to set graphics mode to 1024x768
+#   - If is NETBOOT, type "install=" in bootloader command line
+#   - If product is Jeos and VIDEOMODE is "text", type videomode=1 on bootloader
+#   command line
+# - Wait for mutex wait if USE_SUPPORT_SERVER is defined
+# - If OFW is not defined, set bootloader language and set bootloader video
+# mode, otherwise sent "ctrl-x"
+# - Send ret or ctrl-x to boot system
+# - Compare boot parameters with parameters obtained by serial, unless it is
+# live image
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 package bootloader;
