@@ -9,6 +9,29 @@
 # without any warranty.
 
 # Summary: Boot on UEFI systems with configuration of boot parameters
+# - If system is DUALBOOT, call tianocore_select_bootloader (tianocore boot
+# menu) and choose dvd boot
+# - If aarch64 tianocore, raise delay to 60s
+# - If "UEFI_HTTP_BOOT" or "UEFI_HTTPS_BOOT" are defined, call
+# tianocore_http_boot (tianocore boot menu, choose network boot via http or
+# https
+# - If "ZDUP" is defined, boot using harddisk. In case of aarch64, call
+# handle_uefi_boot_disk_workaround (select hard disk from tianocore menu)
+# - If "UPGRADE" is defined, go to upgrade option on bootloader
+# - Or if "PROMO", "LIVETEST" or "LIVECD" are defined, boot desktop
+# option.
+# - Otherwise, if it is not "is_jeos" and not "VMX", boot installation option.
+# - Call uefi_bootmenu_params (1024x768 graphics mode, "install=" if NETBOOT or
+# "textmode=1" if VIDEOMODE="text")
+# - Call bootmenu_default_params (Edit grub parameters, add "Y2DEBUG=1",
+# graphics mode and resolution, serial output, console/log redirection)
+# - Call specific_bootmenu_params (Autoyast options, network options, debug
+# options, installer specific options, fips enablement, kexec parameters, addon
+# products, DUD loading, external ISO) unless it is is_caasp or is_jeos
+# - Call specific_caasp_params (STACK_ROLE)
+# - Save bootloader parameters in a screenshot
+# - if "USE_SUPPORT_SERVER" is defined, wait for mutex to unlock before sending
+# "F10"
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 package bootloader_uefi;
