@@ -24,8 +24,14 @@ sub run {
     my $hostname = get_var('HOSTNAME');
     select_console 'root-console';
 
+    # Do not use external DNS for our internal hostnames
+    assert_script_run('echo "10.0.2.101 server master" >> /etc/hosts');
+    assert_script_run('echo "10.0.2.102 client minion" >> /etc/hosts');
+
     # Configure static network, disable firewall
     disable_and_stop_service($self->firewall);
+
+    # Configure the internal network an  try it
     if ($hostname =~ /server|master/) {
         setup_static_mm_network('10.0.2.101/24');
     }
@@ -40,3 +46,4 @@ sub run {
 }
 
 1;
+
