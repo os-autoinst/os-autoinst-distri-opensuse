@@ -567,6 +567,15 @@ sub select_bootmenu_more {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         type_string_very_slow(" @params ");
         save_screenshot;
+            # workaround for debugging
+            assert_screen "gfxpayload_changed";
+            for (0 .. 38) { send_key "backspace" }
+            type_string "linux";
+            push @params, 'systemboot=1';
+            type_string_very_slow(" @params ");
+            for (1.. 2) { send_key 'down' }
+            for (0 .. 12) { send_key "backspace" }
+            type_string 'initrd';
         send_key 'f10';
     }
     else {
