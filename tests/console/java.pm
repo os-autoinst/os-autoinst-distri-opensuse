@@ -26,19 +26,23 @@ sub run {
     # Make sure that PackageKit is not running
     pkcon_quit;
 
-    # Capture the return code value of the following scenarios
-    my $bootstrap_pkg_rt = zypper_call("se java-*bootstrap", exitcode => [0, 104]);
-    my $bootstrap_conflicts_rt = zypper_call("in --auto-agree-with-licenses --dry-run java-*", exitcode => [0, 4]);
-
-    # logs / debugging purposes
-    diag "checking variable: bootstrap_pkg_rt = $bootstrap_pkg_rt";
-    diag "checking variable: bootstrap_conflicts_rt = $bootstrap_conflicts_rt";
-
     if (check_var("DISTRI", "sle")) {
-        zypper_call("in --auto-agree-with-licenses java-*", timeout => 1400);
+        if (script_run('zypper -n in --auto-agree-with-licenses java-*', 500) == 4) {
+            record_soft_failure 'bsc#1137466';
+            # install only java-11-openjdk* & java-*-ibm*
+            zypper_call('in --auto-agree-with-licenses java-11-openjdk* java-*-ibm*');
+        }
     }
 
     if (check_var("DISTRI", "opensuse")) {
+        # Capture the return code value of the following scenarios
+        my $bootstrap_pkg_rt = zypper_call("se java-*bootstrap", exitcode => [0, 104]);
+        my $bootstrap_conflicts_rt = zypper_call("in --auto-agree-with-licenses --dry-run java-*", exitcode => [0, 4]);
+
+        # logs / debugging purposes
+        diag "checking variable: bootstrap_pkg_rt = $bootstrap_pkg_rt";
+        diag "checking variable: bootstrap_conflicts_rt = $bootstrap_conflicts_rt";
+
         if ($bootstrap_pkg_rt == 0) {
             diag "There are java bootstrap packages available to be installed";
             print "There are java bootstrap packages available to be installed\n";
