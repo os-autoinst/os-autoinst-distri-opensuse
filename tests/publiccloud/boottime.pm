@@ -13,6 +13,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use db_utils;
 
 sub extract_startup_timings {
     my $string = shift;
@@ -45,32 +46,6 @@ sub do_systemd_analyze {
 
     die("Unable to get system-analyze in $args{timeout} seconds") unless (time() - $start_time < $args{timeout});
     return extract_startup_timings($output);
-}
-
-=head2 build_influx_kv
-Build a influx-db key value pair with all needed escapings see doc:
-    https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/#special-characters-and-keywords
-=cut
-sub build_influx_kv {
-    my $hash = shift;
-    my $req  = '';
-    for my $k (keys(%{$hash})) {
-        my $v = $hash->{$k};
-        $v =~ s/,/\\,/g;
-        $v =~ s/ /\\ /g;
-        $v =~ s/=/\\=/g;
-        $req .= $k . '=' . $v . ',';
-    }
-    return substr($req, 0, -1);
-}
-
-sub build_influx_query {
-    my $data = shift;
-    my $req  = $data->{table} . ',';
-    $req .= build_influx_kv($data->{tags});
-    $req .= ' ';
-    $req .= build_influx_kv($data->{values});
-    return $req;
 }
 
 sub run {
@@ -158,11 +133,10 @@ sub run {
             tags   => $tags,
             values => $startup_timings
         };
-        $data = build_influx_query($data);
-        assert_script_run(sprintf("curl -i -X POST '%s/write?db=publiccloud' --data-binary '%s'", $url, $data), quiet => 1);
+        $data = influxdb_query($url, $data);
     }
 
-    # Validate bootup timeing against hard limits
+    # Validate bootup timing against hard limits
     for my $key (keys(%{$thresholds})) {
         my $limit = $thresholds->{$key};
         my $value = $startup_timings->{$key};
