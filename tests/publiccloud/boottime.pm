@@ -133,7 +133,7 @@ sub run {
             tags   => $tags,
             values => $startup_timings
         };
-        $data = influxdb_query($url, $data);
+        $data = influxdb_push_data($url, 'publiccloud', $data);
     }
 
     # Validate bootup timing against hard limits
@@ -164,7 +164,7 @@ All values are stored in a influx db.
 
 =head2 PUBLIC_CLOUD_PERF_DB_URI
 
-If this variable is set, the bootup timings get stored inside the influx
+Optional variable. If set, the bootup times get stored in the influx
 database. The database name is 'publiccloud'.
 (e.g. PUBLIC_CLOUD_PERF_DB_URI=http://openqa-perf.qa.suse.de:8086)
 

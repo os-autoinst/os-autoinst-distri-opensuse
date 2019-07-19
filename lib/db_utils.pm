@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 
 our @EXPORT = qw(
-  influxdb_query
+  influxdb_push_data
 );
 
 sub build_influx_kv {
@@ -53,9 +53,13 @@ sub build_influx_query {
     builds an influx-db query and posts it to the given database by C<url>.
     C<data> should contain a hash containing the table name in Influx DB, the tags and the values to plot.
 =cut
-sub influxdb_query {
-    my ($url, $data, %args) = @_;
+sub influxdb_push_data {
+    my ($url, $db, $data, %args) = @_;
     $args{quiet} //= 1;
     $data = build_influx_query($data);
-    assert_script_run(sprintf("curl -i -X POST '%s' --data-binary '%s'", $url, $data), quiet => $args{quiet});
+    my $cmd = sprintf("curl -i -X POST '%s/write?db=%s' --write-out 'RETURN_CODE:%{response_code}' --data-binary '%s'", $url, $db, $data);
+    record_info('curl', $cmd);
+    my $output = script_output($cmd, quiet => $args{quiet});
+    my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;
+    die("Fail to push data into Influx DB:\n$output") unless ($return_code >= 200 && $return_code < 300);
 }

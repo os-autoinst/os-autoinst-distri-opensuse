@@ -14,7 +14,9 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
-use repo_tools 'generate_version';
+use db_utils;
+use Mojo::JSON;
+
 use constant NUMJOBS => 4;
 use constant IODEPTH => 4;
 
@@ -24,6 +26,7 @@ sub run {
     my $reg_code = get_var('SCC_REGCODE');
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME',  300);
     my $size    = get_var('PUBLIC_CLOUD_FIO_SSD_SIZE', 100);
+    my $url     = get_var('PUBLIC_CLOUD_PERF_DB_URI');
 
     my @scenario = (
         {
@@ -52,10 +55,25 @@ sub run {
             bs        => '64k'
         }
     );
+
+    my $tags = {
+        instance_type     => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        os_flavor         => get_required_var('FLAVOR'),
+        os_version        => get_required_var('VERSION'),
+        os_build          => get_required_var('BUILD'),
+        os_pc_build       => get_required_var('PUBLIC_CLOUD_BUILD'),
+        os_pc_kiwi_build  => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
+        os_kernel_release => undef,
+        os_kernel_version => undef,
+    };
+
     $self->select_serial_terminal;
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(use_extra_disk => {size => 100});
+
+    $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
+    $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
 
     $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code, timeout => 600) if $reg_code;
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
@@ -64,7 +82,7 @@ sub run {
     record_info('dev', "Block device under test: $block_device");
 
     for my $href (@scenario) {
-        print "$href->{name}\n";
+        my $values = {};
         record_info('FIO', 'Running test case "' . $href->{name} . '"');
 
         my $cmd = 'sudo fio --name=' . $href->{name};
@@ -84,7 +102,26 @@ sub run {
         my $output = $instance->run_ssh_command(cmd => $cmd, timeout => $runtime + 60);
         record_info('Result', $output);
 
-        # TODO: Parse results and push them to performance DB
+        $tags->{scenario} = $href->{name};
+
+        # Parse results
+        my $json = Mojo::JSON::decode_json($output);
+        $values->{read_throughput}  = $json->{jobs}[0]->{read}->{bw};
+        $values->{read_iops}        = $json->{jobs}[0]->{read}->{iops};
+        $values->{read_latency}     = $json->{jobs}[0]->{read}->{lat_ns}->{mean} / 1000;
+        $values->{write_throughput} = $json->{jobs}[0]->{write}->{bw};
+        $values->{write_iops}       = $json->{jobs}[0]->{write}->{iops};
+        $values->{write_latency}    = $json->{jobs}[0]->{write}->{lat_ns}->{mean} / 1000;
+
+        # Store values in influx-db
+        if ($url) {
+            my $data = {
+                table  => 'storage',
+                tags   => $tags,
+                values => $values
+            };
+            $data = influxdb_push_data($url, 'publiccloud', $data);
+        }
     }
 }
 
@@ -124,5 +161,11 @@ Set the execution time for each FIO tests. 300s by default.
 
 Set the additional disk size for the FIO tests. 100GB by default.
 
+
+=head2 PUBLIC_CLOUD_PERF_DB_URI
+
+Optional variable. If set, the bootup times get stored in the influx
+database. The database name is 'publiccloud'.
+(e.g. PUBLIC_CLOUD_PERF_DB_URI=http://openqa-perf.qa.suse.de:8086)
 
 =cut
