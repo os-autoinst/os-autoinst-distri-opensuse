@@ -9,6 +9,17 @@
 
 # Summary: bind upstream testsuite
 #          prepare, build, fix broken tests and execute testsuite
+# - Register and add correct products by calling "handle_bind_source_dependencies.sh"
+# - Install required packages for the test, depending on SLES version
+# - Enable source repositories and install bind src.rpm
+# - Change to /usr/src/packages and rebuild bind package by calling "rpmbuild
+# -bc SPECS/bind.spec"
+# - Replace bind from build with system binaries on "conf.sh"
+# - Upload "conf.sh" as reference
+# - Setup loopback interfaces
+# - Run "runall.sh" testsuite
+# - De register repositores
+# - In case of failure, upload "systests.output" log
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'consoletest';
