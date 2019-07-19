@@ -40,6 +40,7 @@ use constant {
           is_rescuesystem
           is_sles4sap
           is_sles4sap_standard
+          is_sles4migration
           is_released
           is_rt
           is_hpc
@@ -238,6 +239,10 @@ sub is_transactional {
     return check_var('SYSTEM_ROLE', 'serverro');
 }
 
+sub is_sles4migration {
+    return get_var('FLAVOR', '') =~ /Migration|migrated/ && check_var('SLE_PRODUCT', 'sles');
+}
+
 sub is_sles4sap {
     return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
 }
@@ -293,6 +298,7 @@ sub is_aarch64_uefi_boot_hdd {
 
 sub is_server {
     return 1 if is_sles4sap();
+    return 1 if is_sles4migration();
     return 1 if get_var('FLAVOR', '') =~ /^Server/;
     # If unified installer, we need to check SLE_PRODUCT
     return 0 if get_var('FLAVOR', '') !~ /^Installer-/;
