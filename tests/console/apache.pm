@@ -19,6 +19,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
@@ -94,32 +95,36 @@ sub run {
 
     # We stop current webserver and prepare another http2-prefork environment
     systemctl 'stop apache2';
-    assert_script_run 'mkdir -p /tmp/prefork';
-    assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
 
-    # Run and test this new environment
-    assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
-    assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
+    if (is_sle('12-SP2+')) {
+        # Create directory for the new instance and prepare config
+        assert_script_run 'mkdir -p /tmp/prefork';
+        assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
 
-    # Run and test the old environment too
-    assert_script_run 'rm /var/run/httpd.pid';
-    systemctl 'start apache2';
-    assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
+        # Run and test this new environment
+        assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
+        assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
 
-    # Test both instances
-    assert_script_run 'curl -v http://localhost:80/';
-    assert_script_run 'curl -v http://localhost:8080/';
+        # Run and test the old environment too
+        assert_script_run 'rm /var/run/httpd.pid';
+        systemctl 'start apache2';
+        assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
 
-    # Stop both instances
-    assert_script_run 'killall -TERM httpd2-prefork';
-    systemctl 'stop apache2';
+        # Test both instances
+        assert_script_run 'curl -v http://localhost:80/';
+        assert_script_run 'curl -v http://localhost:8080/';
 
-    # Test everything is stopped properly
-    assert_script_run '! curl -v http://localhost:80/';
-    assert_script_run '! curl -v http://localhost:8080/';
+        # Stop both instances
+        assert_script_run 'killall -TERM httpd2-prefork';
+        systemctl 'stop apache2';
 
-    # Clean up
-    assert_script_run 'rm -r /tmp/prefork';
+        # Test everything is stopped properly
+        assert_script_run '! curl -v http://localhost:80/';
+        assert_script_run '! curl -v http://localhost:8080/';
+
+        # Clean up
+        assert_script_run 'rm -r /tmp/prefork';
+    }
 
     # Create a new directory with the index file
     assert_script_run 'mkdir /srv/www/vhosts/localhost/authtest';
