@@ -9,6 +9,43 @@
 # without any warranty.
 
 # Summary: Monitor installation progress and wait for "reboot now" dialog
+# - Inside a loop, run check_screen for each element of array @tags
+# - Check return code of check_screen against array @tags
+#   - If no return code, decreate timeout by 30s, print diagnose text: "left total await_install timeout: $timeout"
+#   - If timeout less than 0, assert_screen on element of @tags and abort: "timeout hit on during await_install"
+#   - If LIVECD is defined AND $screenlock_previously_detected, print message
+#   'installation not finished, move mouse around a bit to keep screen unlocked'
+#   'installation not finished, move mouse around a bit to keep screen unlocked'
+#   and move mouse to prevent screenlock
+#   - If needle matches "yast_error", abort with 'YaST error detected. Test is terminated.'
+#   - If needle matches 'yast2_wrong_digest', abort with 'Wrong Digest detected error, need to end test.'
+#   - If needle matches 'yast2_package_retry', record_soft_failure 'boo#1018262
+#   retry failing packages', send 'alt-y', retry in 4s, otherwise, abort with 'boo#1018262 - seems to be stuck on retry'
+#   - If needle matches 'DIALOG-packages-notifications', send alt-o
+#   - if needle matches 'ERROR-removing-package':
+#     - Send 'alt-d', check for needle 'ERROR-removing-package-details'
+#     - Send 'alt-i', check for needle 'WARNING-ignoring-package-failure'
+#     - Send 'alt-o'
+#   - If LIVECD is defined and needle "screenlock" matches:
+#     - Call "handle_livecd_screenlock"
+#       - Call record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock'
+#       - Print diag message 'unlocking screenlock with no password in LIVECD mode'
+#       - While "screenlock" needle matches:
+#         - Send 'alt-tab'
+#         - While no "blackscreen" matches:
+#           - Send 'tab'
+#           - Send 'ret'
+#       - Save a screenshot
+#       - Check for a needle: "yast-still-running"
+#   - Set $screenlock_previously_detected to 1
+#   - If needle matches 'additional-packages'
+#     - Send 'alt-i'
+#   - If needle matches 'package-update-found'
+#     - Send 'alt-n'
+#   - Unless REMOTE_CONTROLLER is set or is_caasp
+#     - Start a countdown, send 'alt-s' and print 'workaround', "While trying to stop countdown
+#     we saw a screen change, retrying up to $counter times more" on each
+#     iteration, while trying to match screens with 55% similarity.
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
