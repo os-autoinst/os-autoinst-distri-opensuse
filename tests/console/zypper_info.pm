@@ -35,20 +35,24 @@ sub test_srcpackage_output {
     check_srcpackage_output 'coreutils', $info_output_coreutils;
 
     if (is_sle '>=12-SP3') {
-        if (is_sle '<15') {
-            register_product;
+        if (get_var('FLAVOR') !~ /-Updates$|-Incidents$/) {
+            if (is_sle '<15') {
+                register_product;
+            }
+            else {
+                # only scc has update repos with src packages
+                cleanup_registration;
+                assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE') . ' --url https://scc.suse.com';
+            }
+            zypper_call 'ref';
         }
-        else {
-            # only scc has update repos with src packages
-            cleanup_registration;
-            assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE') . ' --url https://scc.suse.com';
-        }
-        zypper_call 'ref';
         my $reponame          = ((is_sle '15+') ? 'SLE-Module-Basesystem' : 'SLES') . get_var('VERSION') . '-Updates';
         my $info_output_glib2 = script_output "zypper info -r $reponame srcpackage:glib2";
         check_srcpackage_output 'glib2', $info_output_glib2;
-        cleanup_registration if (is_sle);
-        register_product if (is_sle '15+');
+        if (get_var('FLAVOR') !~ /-Updates$|-Incidents$/) {
+            cleanup_registration if (is_sle);
+            register_product if (is_sle '15+');
+        }
     }
 }
 
