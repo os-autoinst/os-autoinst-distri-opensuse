@@ -82,7 +82,7 @@ sub run {
     if (check_var('BOOTFROM', 'c')) {
         $boot_device = 'hd';
     }
-    elsif (check_var('BOOTFROM', 'd') || (get_var('ISO') && !get_var('BOOT_HDD_IMAGE'))) {
+    elsif (check_var('BOOTFROM', 'd') || get_var('ISO')) {
         $boot_device = 'cdrom';
     } else {
         record_info("No boot medium", "Failed to select a bootable medium, please check ISO,"
