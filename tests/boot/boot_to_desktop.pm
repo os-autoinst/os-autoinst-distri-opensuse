@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Boot from existing image to desktop
+# - Define the timeout value conditioned to some system variables
+# - If VIRSH_VMM_TYPE is defined as "linux", check serial for 'Welcome to SUSE Linux'
+# - Otherwise, wait for boot with determined timeout
 # Maintainer: mitiao <mitiao@gmail.com>
 
 use base 'bootbasetest';
