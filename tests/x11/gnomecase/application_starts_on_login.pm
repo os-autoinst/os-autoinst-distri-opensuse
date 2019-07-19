@@ -8,6 +8,31 @@
 # without any warranty.
 
 # Summary: testcase 5255-1503973: Gnome: Applications starts on login
+# - Checks if machine is at a generic desktop
+# - Launches a xterm
+# - Turns off screensaver
+# - Closes xterm
+# - Call gnome-tweak (gnome-tweak-tool on sle15+) and increase default timeout
+# - Add xterm to startup applications list by using gnome-tweaks and "Startup
+# Applications" option
+# - Relogin by calling "handle_relogin" function
+# - Checks if xterm started up
+# - Kill xterm and check for generic desktop
+# - Remove xterm from startup applications list using gnome-tweal
+# - Relogin by calling "handle_relogin" again
+# - Check for generic desktop
+# - Call dconf; on sle<15, navigate until "gnome-session" is found, press down
+# - On sle15+ or tumbleweed, look for auto-save-session option and toggle it
+# - Check for options "auto-save-session-alter-use-default", "auto-save-session-true";
+# "auto-save-session-apply", if available, click it
+# - Close dconf
+# - Start xterm
+# - Relogin by calling "handle_relogin"
+# - Send alt-tab
+# - Check for xterm
+# - Close xterm
+# - Call dconf and rollback changes for save session
+
 # Maintainer: xiaojun <xjin@suse.com>
 
 use base "x11test";
