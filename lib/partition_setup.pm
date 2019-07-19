@@ -122,7 +122,7 @@ sub create_new_partition_table {
 # Set mount point and volume label
 sub mount_device {
     my ($mount) = shift;
-    send_key 'alt-o' if is_storage_ng;
+    send_key 'alt-o';
     wait_still_screen 1;
     send_key 'alt-m';
     for (1 .. 10) { send_key "backspace" }
