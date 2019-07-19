@@ -1408,6 +1408,7 @@ sub load_extra_tests_y2uitest_gui {
     if (get_var("QAM_YAST2UI")) {
         loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_security"   if is_sle("12-SP2+");
+        loadtest "yast2_gui/yast2_keyboard"   if is_sle("12-SP2+");
     }
 }
 
@@ -1416,6 +1417,7 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_timezone';
     loadtest 'yast2_cmd/yast_tftp_server';
     loadtest 'yast2_cmd/yast_rdp', if is_sle('15+');
+    loadtest 'yast2_cmd/yast_keyboard';
 }
 
 sub load_extra_tests_texlive {
