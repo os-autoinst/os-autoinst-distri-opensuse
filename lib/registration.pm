@@ -150,7 +150,13 @@ sub add_suseconnect_product {
     $version //= '${VERSION_ID}';
     $arch    //= '${CPU}';
     $params  //= '';
-    assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+    $timeout //= 300;
+    my $cmd = "SUSEConnect -p $name/$version/$arch $params";
+    return assert_script_run($cmd, $timeout) unless ($name =~ /PackageHub/ && is_sle '>=15');
+    if (script_run($cmd, $timeout)) {
+        record_soft_failure 'bsc#1124318 - Fail to get PackageHub Pool Metadata - running the command again as a workaround';
+        assert_script_run($cmd, $timeout);
+    }
 }
 
 =head2 remove_suseconnect_product
