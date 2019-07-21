@@ -1,0 +1,7 @@
+name:           remote_lab_poc
+description:    >
+    https://progress.opensuse.org/issues/49901
+schedule:
+     - remote_lab/setup_vpn
+     - remote_lab/connect_vpn
+     - remote_lab/poc
