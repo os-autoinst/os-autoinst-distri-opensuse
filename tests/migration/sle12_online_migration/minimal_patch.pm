@@ -15,10 +15,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use migration;
 
 sub run {
     select_console 'root-console';
     minimal_patch_system(version_variable => 'HDDVERSION');
+    remove_ltss;
 }
 
 sub test_flags {
