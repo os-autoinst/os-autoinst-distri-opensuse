@@ -25,12 +25,13 @@ use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
 use upload_system_log;
-use version_utils qw(is_sle is_opensuse is_jeos);
+use version_utils qw(is_jeos is_opensuse is_released is_sle);
+use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
 use Utils::Backends 'use_ssh_serial_console';
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
-    return if check_var('DISTRI', 'opensuse');
+    return if (is_opensuse);
 
     my ($ar_url, $we_repo);
     $we_repo = get_var('REPO_SLE_PRODUCT_WE');
@@ -192,11 +193,11 @@ curl --form upload=\@/root/openposix-test-list-$tag --form target=assets_public 
 
 sub install_from_git {
     my ($tag) = @_;
-    my $url = get_var('LTP_GIT_URL') || 'https://github.com/linux-test-project/ltp';
-    my $rel = get_var('LTP_RELEASE') || '';
-    my $timeout     = check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64') ? 7200 : 1440;
+    my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
+    my $rel         = get_var('LTP_RELEASE');
+    my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
     my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
-    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS') || '';
+    my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
     if ($rel) {
         $rel = ' -b ' . $rel;
     }
@@ -210,14 +211,43 @@ sub install_from_git {
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find /opt/ltp/ -name '*.run-test' > ~/openposix-test-list-$tag";
+    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list-$tag";
+}
+
+sub want_stable {
+    return get_var('LTP_STABLE', is_sle && is_released);
+}
+
+sub add_ltp_repo {
+    my $repo = get_var('LTP_REPOSITORY');
+
+    if (!$repo) {
+        if (is_sle) {
+            add_qa_head_repo;
+            return;
+        }
+
+        my $arch = '';
+        $arch = "_ARM"      if is_aarch64();
+        $arch = "_PowerPC"  if is_ppc64le();
+        $arch = "_zSystems" if is_s390x();
+
+        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_Tumbleweed$arch/";
+        if (want_stable) {
+            $repo = "https://download.opensuse.org/repositories/benchmark/openSUSE_Factory$arch/";
+        }
+    }
+
+    zypper_ar($repo, name => 'ltp_repo');
 }
 
 sub install_from_repo {
     my ($tag) = @_;
-    zypper_call('in qa_test_ltp', dumb_term => 1);
-    script_run 'rpm -q qa_test_ltp | tee /opt/ltp_version';
-    assert_script_run q(find ${LTPROOT:-/opt/ltp}/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
+    my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
+
+    zypper_call("in $pkg", dumb_term => 1);
+    script_run "rpm -q $pkg | tee /opt/ltp_version";
+    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
 
 sub setup_network {
@@ -294,6 +324,17 @@ sub run {
 
     add_we_repo_if_available;
 
+    if ($inst_ltp =~ /git/i) {
+        install_build_dependencies;
+        # bsc#1024050 - Watch for Zombies
+        script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
+        install_from_git($tag);
+    }
+    else {
+        add_ltp_repo;
+        install_from_repo($tag);
+    }
+
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
     if (defined $grub_param) {
@@ -306,20 +347,9 @@ sub run {
     install_runtime_dependencies_network;
     install_debugging_tools;
 
-    if ($inst_ltp =~ /git/i) {
-        install_build_dependencies;
-        # bsc#1024050 - Watch for Zombies
-        script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
-        install_from_git($tag);
-    }
-    else {
-        add_qa_head_repo;
-        install_from_repo($tag);
-    }
-
     setup_network;
 
-    upload_runtest_files('${LTPROOT:-/opt/ltp}/runtest', $tag);
+    upload_runtest_files('/opt/ltp/runtest', $tag);
 
     power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
 }
@@ -342,7 +372,7 @@ sub test_flags {
 
 =head1 Configuration
 
-=head2 Required Repositories
+=head2 Required Repositories for runtime and compilation
 
 For OpenSUSE the standard OSS repositories will suffice. On SLE the SDK addon
 is essential when installing from Git. The Workstation Extension is nice to have,
@@ -352,12 +382,12 @@ test.
 
 =head2 Example
 
-Example SLE test suite configuration for installation by Git:
+Example SLE test suite configuration for installation from repository:
 
 BOOT_HDD_IMAGE=1
 DESKTOP=textmode
 HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2
-INSTALL_LTP=from_git
+INSTALL_LTP=from_repo
 ISO=SLE-%VERSION%-Server-DVD-%ARCH%-Build%BUILD%-Media1.iso
 ISO_1=SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso
 ISO_2=SLE-%VERSION%-WE-DVD-%ARCH%-Build%BUILD_WE%-Media1.iso
@@ -375,6 +405,43 @@ OpenQA is configured the ISO variable may not be necessary either.
 
 Either should contain 'git' or 'repo'. Git is recommended for now. If you decide
 to install from the repo then also specify QA_HEAD_REPO.
+
+=head2 LTP_REPOSITORY
+
+When installing from repository default repository URL is generated (for SLES
+uses QA head repository in IBS, using QA_HEAD_REPO variable; for openSUSE
+Tumbleweed benchmark repository in OBS), with respect whether stable or nightly
+build LTP is required (see LTP_STABLE). Variable allows to use custom repository.
+When defined, it requires LTP_PKG to be set properly.
+
+Examples (these are set by default):
+
+QA_HEAD_REPO=http://dist.suse.de/ibs/QA:/Head/SLE-12-SP5
+QA head repository for SLE12 SP5.
+
+https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_Tumbleweed_PowerPC
+Nightly build for openSUSE Tumbleweed ppc64le.
+
+https://download.opensuse.org/repositories/benchmark/openSUSE_Factory
+Stable release for openSUSE Tumbleweed x86_64.
+
+=head2 LTP_STABLE
+
+When defined and installing from repository stable release. Default is stable
+for SLES QAM, otherwise nightly builds.
+
+=head2 LTP_PKG
+
+Name of the package from repository. Sometimes packages are named differently
+than 'ltp'. Allow to define it, when custom repository is used (via LTP_REPOSITORY).
+
+Examples:
+LTP_PKG=ltp-32bit
+32bit based builds (which are for compilation set with
+LTP_EXTRA_CONF_FLAGS="CFLAGS=-m32 LDFLAGS=-m32").
+
+LTP_PKG=qa_test_ltp
+Stable LTP package in QA head repository.
 
 =head2 LTP_RELEASE
 
