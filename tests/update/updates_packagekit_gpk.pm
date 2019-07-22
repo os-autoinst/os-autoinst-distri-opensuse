@@ -82,10 +82,10 @@ sub run {
             send_key "alt-i";    # install
 
             # Wait until installation is done
-            push @updates_installed_tags, 'updates_authenticate' if is_sle;
+            push @updates_installed_tags, 'Policykit' if is_sle;
             do {
                 assert_screen \@updates_installed_tags, 3600;
-                if (match_has_tag("updates_authenticate")) {
+                if (match_has_tag("Policykit")) {
                     type_string "$password\n";
                     pop @updates_installed_tags;
                 }
@@ -94,7 +94,7 @@ sub run {
                     save_screenshot;
                     die "Failed to process request";
                 }
-            } while (match_has_tag 'updates_authenticate');
+            } while (match_has_tag 'Policykit');
             if (match_has_tag("updates_none")) {
                 wait_screen_change { send_key 'ret'; };
                 if (check_screen "updates_installed-restart", 0) {
