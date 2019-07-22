@@ -21,7 +21,8 @@ use power_action_utils 'power_action';
 sub run {
     my $self = shift;
     $self->wait_boot;
-    $self->select_serial_terminal;
+    # Use root-console for KOTD installation on svirt instead of root-sut-serial poo#54275
+    check_var('BACKEND', 'svirt') ? select_console('root-console') : $self->select_serial_terminal;
     # Get url of kotd/kmp repositories
     my $kotd_repo = get_required_var('KOTD_REPO');
     my $kmp_repo  = get_var('KMP_REPO');
