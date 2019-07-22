@@ -17,13 +17,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
 
     # prepare the setup for test, this test just supports sle15+.
-    zypper_call("in yast2-rdp", exitcode => [0, 102, 103]);
+    zypper_call("in yast2-rdp xrdp", exitcode => [0, 102, 103]);
     systemctl("stop xrdp.service",    ignore_failure => 1);
     systemctl("disable xrdp.service", ignore_failure => 1);
 
