@@ -55,6 +55,11 @@ sub run {
         barrier_create("GANGLIA_GMETAD_STARTED", $nodes);
         barrier_create("GANGLIA_GMOND_STARTED",  $nodes);
     }
+    elsif (check_var("HPC", "mpi")) {
+        barrier_create("MPI_SETUP_READY",    $nodes);
+        barrier_create("MPI_BINARIES_READY", $nodes);
+        barrier_create("MPI_RUN_TEST",       $nodes);
+    }
     elsif (check_var("HPC", "hpc_comprehensive")) {
         barrier_create("HPC_MASTER_SERVICES_ENABLED", $nodes);
         barrier_create("HPC_SLAVE_SERVICES_ENABLED",  $nodes);
