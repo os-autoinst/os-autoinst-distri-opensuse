@@ -1180,6 +1180,7 @@ sub load_consoletests {
     }
     loadtest "console/sshd";
     loadtest "console/ssh_cleanup";
+    loadtest 'console/rpm';
     if (is_opensuse && !get_var("LIVETEST") && !is_staging() && !is_jeos) {
         # in live we don't have a password for root so ssh doesn't
         # work anyways, and except staging_core image, the rest of
@@ -1553,6 +1554,7 @@ sub load_extra_tests_console {
     loadtest "console/sshd";
     # start extra console tests from here
     loadtest "console/update_alternatives";
+    loadtest 'console/rpm';
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
