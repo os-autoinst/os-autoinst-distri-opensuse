@@ -21,9 +21,6 @@ use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnom
 
 sub setup_system {
     x11_start_program('xterm');
-    become_root;
-    ensure_serialdev_permissions;
-    type_string "exit\n";
 
     if (check_var("DESKTOP", "gnome")) {
         turn_off_gnome_screensaver;
