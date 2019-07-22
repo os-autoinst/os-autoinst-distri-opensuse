@@ -24,7 +24,7 @@ sub run {
     # development module needed for dependencies, released products are tested with sdk module
     if (get_var('BETA')) {
         my $sdk_repo = is_sle('15+') ? get_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS') : get_var('REPO_SLE_SDK');
-        zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", "SDK";
+        zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", name => "SDK";
     }
     # maintenance updates are registered with sdk module
     elsif (get_var('FLAVOR') !~ /Updates|Incidents/ && is_sle) {
