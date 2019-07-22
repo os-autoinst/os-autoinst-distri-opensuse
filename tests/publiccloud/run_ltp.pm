@@ -40,7 +40,7 @@ sub get_ltp_rpm
     my ($url) = @_;
     my $ua    = Mojo::UserAgent->new();
     my $links = $ua->get($url)->res->dom->find('a')->map(attr => 'href');
-    for my $link (grep(/^ltp-.*rpm$/, @{$links})) {
+    for my $link (grep(/^ltp-20.*rpm$/, @{$links})) {
         return $link;
     }
     die('Could not find LTP package in ' . $url);
