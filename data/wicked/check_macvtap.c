@@ -72,6 +72,9 @@ void read_packet() {
     printf("Can't open tap device %s\n", fn);
     exit(-2);
   }
+  else {
+    printf("Device %s opened. ready to read \n", fn);
+  }
   if (read(fd, &buffer, PACKET_SIZE) < 0) {
     printf("Error reading %s\n", fn);
     close(fd);

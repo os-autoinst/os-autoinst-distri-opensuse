@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use testapi;
 
-our $macvtap_log = '/tmp/macvtap_results.txt';
+our $macvtap_log = '/tmp/macvtap_results_xml.txt';
 
 sub run {
     my ($self, $ctx) = @_;
