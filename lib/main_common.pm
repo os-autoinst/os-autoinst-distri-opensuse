@@ -1648,7 +1648,6 @@ sub load_extra_tests_prepare {
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/hostname";
     loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
 }
 
