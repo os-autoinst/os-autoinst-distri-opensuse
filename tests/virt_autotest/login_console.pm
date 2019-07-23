@@ -36,13 +36,16 @@ sub ipmitool {
 }
 
 sub login_to_console {
-    my ($self, $timeout) = @_;
-    $timeout //= 240;
+    my ($self, $timeout, $counter) = @_;
+    $timeout //= 5;
+    $counter //= 240;
+
+
 
     if (check_var('PERF_KERNEL', '1')) {
         reset_consoles;
         select_console 'sol', await_console => 0;
-        send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $timeout, 5);
+        send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $counter, $timeout);
         #use console based on ssh to avoid unstable ipmi
         save_screenshot;
         use_ssh_serial_console;
