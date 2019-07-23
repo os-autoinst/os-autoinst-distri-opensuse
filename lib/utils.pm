@@ -412,7 +412,7 @@ sub zypper_call {
     my $allow_exit_codes = $args{exitcode} || [0];
     my $timeout          = $args{timeout} || 700;
     my $log              = $args{log};
-    my $dumb_term        = $args{dumb_term};
+    my $dumb_term        = $args{dumb_term} // is_serial_terminal;
 
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
@@ -492,14 +492,15 @@ sub zypper_ar {
 
     # repo file
     if (!$name) {
-        zypper_call($cmd_ar, dumb_term => 1);
-        return zypper_call($cmd_ref, dumb_term => 1);
+        zypper_call($cmd_ar);
+        return zypper_call($cmd_ref);
     }
 
     # URI alias
-    if (script_run("zypper lr $name")) {
-        zypper_call("$cmd_ar $name", dumb_term => 1);
-        return zypper_call("$cmd_ref --repo $name", dumb_term => 1);
+    my $out = script_output("LC_ALL=C zypper lr $name 2>&1", proceed_on_failure => 1);
+    if ($out =~ /Repository.*$name.*not found/i) {
+        zypper_call("$cmd_ar $name");
+        return zypper_call("$cmd_ref --repo $name");
     }
 }
 

@@ -45,20 +45,20 @@ sub add_we_repo_if_available {
         $ar_url = 'dvd:///?devices=/dev/sr2';
     }
     if ($ar_url) {
-        zypper_ar($ar_url, name => 'WE', dumb_term => 1);
+        zypper_ar($ar_url, name => 'WE');
     }
 }
 
 sub install_runtime_dependencies {
     if (is_jeos) {
-        zypper_call('in --force-resolution gettext-runtime', dumb_term => 1);
+        zypper_call('in --force-resolution gettext-runtime');
     }
 
     my @deps = qw(
       sysstat
       iputils
     );
-    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+    zypper_call('-t in ' . join(' ', @deps));
 
     # kernel-default-extra are only for SLE (in WE)
     # net-tools-deprecated are not available for SLE15
@@ -113,14 +113,14 @@ sub install_runtime_dependencies_network {
       psmisc
       tcpdump
     );
-    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+    zypper_call('-t in ' . join(' ', @deps));
 
     # clients
     @deps = qw(
       dhcp-client
       telnet
     );
-    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+    zypper_call('-t in ' . join(' ', @deps));
 
     # services
     @deps = qw(
@@ -131,7 +131,7 @@ sub install_runtime_dependencies_network {
       rsync
       vsftpd
     );
-    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+    zypper_call('-t in ' . join(' ', @deps));
 }
 
 sub install_build_dependencies {
@@ -153,7 +153,7 @@ sub install_build_dependencies {
       libtirpc-devel
       make
     );
-    zypper_call('-t in ' . join(' ', @deps), dumb_term => 1);
+    zypper_call('-t in ' . join(' ', @deps));
 
     my @maybe_deps = qw(
       gcc-32bit
@@ -245,7 +245,7 @@ sub install_from_repo {
     my ($tag) = @_;
     my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
 
-    zypper_call("in $pkg", dumb_term => 1);
+    zypper_call("in $pkg");
     script_run "rpm -q $pkg | tee /opt/ltp_version";
     assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
