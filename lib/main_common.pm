@@ -1512,6 +1512,10 @@ sub load_extra_tests_dracut {
     loadtest "console/dracut";
 }
 
+sub load_extra_tests_perl_bootloader {
+    loadtest "console/perl_bootloader";
+}
+
 sub load_extra_tests_kdump {
     return unless kdump_is_applicable;
     loadtest "console/kdump_and_crash";
