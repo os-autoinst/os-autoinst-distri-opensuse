@@ -37,7 +37,6 @@ our @EXPORT = qw(
   check_env
   chromestep_is_applicable
   chromiumstep_is_applicable
-  console_is_applicable
   consolestep_is_applicable
   default_desktop
   get_ltp_tag
@@ -212,11 +211,6 @@ sub data_integrity_is_applicable {
 
 sub any_desktop_is_applicable {
     return get_var("DESKTOP") !~ /textmode/;
-}
-
-sub console_is_applicable {
-    # wicked tests using VIRTIO console so no point to run consoletest_finish()
-    return !any_desktop_is_applicable() && !check_var('EXTRATEST', 'wicked');
 }
 
 sub logcurrentenv {
@@ -1648,7 +1642,6 @@ sub load_extra_tests_prepare {
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest "console/zypper_ref" if (console_is_applicable and get_var('EXTRATEST') !~ /zypper/);
 }
 
 sub load_extra_tests {
@@ -1672,7 +1665,6 @@ sub load_extra_tests {
             diag "unknown scenario for EXTRATEST value $test_name";
         }
     }
-    loadtest "console/consoletest_finish" if console_is_applicable;
     return 1;
 }
 
