@@ -1180,7 +1180,6 @@ sub load_consoletests {
     }
     loadtest "console/sshd";
     loadtest "console/ssh_cleanup";
-    loadtest 'console/rpm';
     if (is_opensuse && !get_var("LIVETEST") && !is_staging() && !is_jeos) {
         # in live we don't have a password for root so ssh doesn't
         # work anyways, and except staging_core image, the rest of
