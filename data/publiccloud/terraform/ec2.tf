@@ -21,7 +21,11 @@ variable "region" {
 }
 
 variable "extra-disk-size" {
-    default = "100"
+    default = "1000"
+}
+
+variable "extra-disk-type" {
+    default = "gp2"
 }
 
 variable "create-extra-disk" {
@@ -91,7 +95,7 @@ resource "aws_ebs_volume" "ssd_disk" {
     count             = "${var.create-extra-disk ? var.instance_count : 0}"
     availability_zone = "${element(aws_instance.openqa.*.availability_zone, count.index)}"
     size              = "${var.extra-disk-size}"
-    type              = "gp2"
+    type              = "${var.extra-disk-type}"
     tags = {
         openqa_created_by = "${var.name}"
         openqa_created_date = "${timestamp()}"

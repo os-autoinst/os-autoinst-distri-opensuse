@@ -260,10 +260,6 @@ sub terraform_apply {
     my @instances;
     my $create_extra_disk = 'false';
     my $extra_disk_size   = 0;
-    if ($args{use_extra_disk}) {
-        $create_extra_disk = 'true';
-        $extra_disk_size   = $args{use_extra_disk}->{size};
-    }
 
     $args{count} //= '1';
     my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
@@ -276,8 +272,20 @@ sub terraform_apply {
     assert_script_run('cd ' . TERRAFORM_DIR);
     record_info('INFO', "Creating instance $instance_type from $image ...");
     assert_script_run('terraform init -no-color', TERRAFORM_TIMEOUT);
-    my $cmd = sprintf("terraform plan -no-color -var 'image_id=%s' -var 'instance_count=%s' -var 'type=%s' -var 'region=%s' -var 'name=%s' -var 'create-extra-disk=%s' -var 'extra-disk-size=%s' -out myplan",
-        $image, $args{count}, $instance_type, $self->region, $name, $create_extra_disk, $extra_disk_size);
+
+    my $cmd = 'terraform plan -no-color ';
+    $cmd .= "-var 'image_id=" . $image . "' ";
+    $cmd .= "-var 'instance_count=" . $args{count} . "' ";
+    $cmd .= "-var 'type=" . $instance_type . "' ";
+    $cmd .= "-var 'region=" . $self->region . "' ";
+    $cmd .= "-var 'name=" . $name . "' ";
+    if ($args{use_extra_disk}) {
+        $cmd .= "-var 'create-extra-disk=true' ";
+        $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
+        $cmd .= "-var 'extra-disk-type=" . $args{use_extra_disk}->{type} . "' " if $args{use_extra_disk}->{type};
+    }
+    $cmd .= "-out myplan";
+    record_info('TFM cmd', $cmd);
 
     assert_script_run($cmd);
     my $ret = script_run('terraform apply -no-color myplan', TERRAFORM_TIMEOUT);
