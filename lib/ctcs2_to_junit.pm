@@ -122,6 +122,19 @@ sub generateXML {
                 $writer->endTag('system-err');
             }
         }
+        if ((get_var('BTRFS_PROGS')) && ($case_status eq 'failure' || $case_status eq 'skipped')) {
+            (my $test_path = $test) =~ s/-/\//;
+            $test_path = '/opt/logs/' . $test_path . '.txt';
+            my $test_out_content = script_output("
+                if [ -f $test_path ];
+                    then sed -n -e \"s/'//g\" -e 's/[^[:print:]\\r\\t\\n]//g' -e '1!H;/====== RUN /h;\${g;p;}' $test_path | head -n 100;
+                else echo 'Test Crashed, find log in serial0.txt';
+                fi
+            ", 600);
+            $writer->startTag('system-out');
+            $writer->characters($test_out_content);
+            $writer->endTag('system-out');
+        }
         $writer->endTag('testcase');
     }
 
