@@ -10,6 +10,14 @@ else
 	PYTHON=python2
 fi
 
+# kerberos.schema changing path /usr/share/kerberos/ldap/kerberos.schema
+# https://bugzilla.suse.com/show_bug.cgi?id=1135543
+if [ -f /usr/share/doc/packages/krb5/kerberos.schema ]; then
+    CONF=slapd_old.conf
+else
+    CONF=slapd.conf
+fi
+
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
@@ -24,7 +32,7 @@ mkdir -p /tmp/ldap-sssdtest &&
 cp ldap.crt /tmp/ldap-sssdtest.cacrt &&
 cp ldap.crt /tmp/ldap-sssdtest.crt &&
 cp ldap.key /tmp/ldap-sssdtest.key &&
-$SLAPD -h 'ldap:///' -f slapd.conf &&
+$SLAPD -h 'ldap:///' -f $CONF &&
 ldapadd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -f db.ldif &> /dev/null &&
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -spass 'cn=krbkdc,dc=ldapdom,dc=net' &&
 ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -spass 'cn=krbadm,dc=ldapdom,dc=net' || test_abort 'Failed to prepare LDAP server'

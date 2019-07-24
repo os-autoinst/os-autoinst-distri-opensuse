@@ -17,15 +17,15 @@ use strict;
 use warnings;
 
 use testapi;
-use utils;
+use utils 'zypper_call';
 use Utils::Systemd 'disable_and_stop_service';
-use version;
 use version_utils qw(is_sle is_opensuse);
 use registration "add_suseconnect_product";
 
 sub run {
-    # Assume consoletest_setup is completed
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
+
     if (is_sle) {
         assert_script_run 'source /etc/os-release';
         if (is_sle '>=15') {
@@ -48,7 +48,6 @@ sub run {
     push @test_subjects, 'python-pam'         if is_sle('<15');
     push @test_subjects, 'python3-python-pam' if is_sle('15+') || is_opensuse;
 
-    disable_and_stop_service('packagekit.service', mask_service => 1, ignore_failure => 1);
     if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
         zypper_call "in psmisc";
     }
@@ -76,7 +75,7 @@ sub run {
         # Download the source code of test scenario
         script_run "cd ~/sssd && curl -L -v " . autoinst_url . "/data/sssd-tests/$scenario > $scenario/cdata";
         script_run "cd $scenario && cpio -idv < cdata && mv data/* ./; ls";
-        validate_script_output "./test.sh", sub {
+        validate_script_output 'bash -x test.sh', sub {
             (/junit testsuite/ && /junit success/ && /junit endsuite/) or push @scenario_failures, $scenario;
         }, 120;
     }
