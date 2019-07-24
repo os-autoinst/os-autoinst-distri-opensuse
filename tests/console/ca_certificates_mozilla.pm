@@ -7,7 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: QAM regression testing
+# Summary: Install ca-certificates-mozilla and test connection to a secure website
+# - install ca-certificates-mozilla and openssl
+# - connect to static.opensuse.org:443 using openssl and verify that the return code is 0
 # Maintainer: Orestis Nalmpantis <onalmpantis@suse.de>
 
 use base "consoletest";
