@@ -35,7 +35,7 @@ sub _check_credentials {
     my ($self) = @_;
     my $max_tries = 6;
     for my $i (1 .. $max_tries) {
-        my $out = script_output('aws ec2 describe-images --dry-run', 60, proceed_on_failure => 1);
+        my $out = script_output('aws ec2 describe-images --dry-run', 300, proceed_on_failure => 1);
         return 1 if ($out !~ /AuthFailure/m);
         sleep 30;
     }
