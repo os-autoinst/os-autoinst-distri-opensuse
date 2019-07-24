@@ -1,6 +1,6 @@
 ---
 description: 'Main JeOS test suite. Maintainer: ccret.'
-name: 'jeos-main@uefi-virtio-vga ( qemu )'
+name: 'jeos-main@64bit-virtio-vga ( qemu )'
 schedule:
   - installation/bootloader_uefi
   - jeos/firstrun
@@ -11,15 +11,15 @@ schedule:
   - jeos/root_fs_size
   - jeos/build_key
   - console/suseconnect_scc
-  - console/apache
-  - console/apache_ssl
-  - console/apache_nss
   - console/system_prepare
   - console/check_network
   - console/system_state
   - console/prepare_test_data
   - console/consoletest_setup
   - locale/keymap_or_locale
+  - console/apache
+  - console/apache_ssl
+  - console/apache_nss
   - console/textinfo
   - console/hostname
   - console/installation_snapshots
@@ -44,7 +44,6 @@ schedule:
   - console/mtab
   - console/mysql_srv
   - console/rsync
-  - console/http_srv
   - console/dns_srv
   - console/postgresql_server
   - console/shibboleth

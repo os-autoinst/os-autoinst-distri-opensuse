@@ -1,0 +1,52 @@
+---
+description: 'Main JeOS test suite. Maintainer: ccret.'
+name: 'jeos-main@svirt-xen-hvm ( svirt )'
+schedule:
+  - installation/bootloader_svirt
+  - installation/bootloader_uefi
+  - jeos/firstrun
+  - jeos/record_machine_id
+  - console/force_scheduled_tasks
+  - jeos/grub2_gfxmode
+  - jeos/revive_xen_domain
+  - jeos/diskusage
+  - jeos/root_fs_size
+  - jeos/build_key
+  - console/suseconnect_scc
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/apache
+  - console/apache_ssl
+  - console/apache_nss
+  - console/textinfo
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - console/curl_https
+  - console/glibc_sanity
+  - update/zypper_up
+  - console/console_reboot
+  - console/zypper_in
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/firewall_enabled
+  - console/gpt_ptable
+  - console/kdump_disabled
+  - console/sshd_running
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/mysql_srv
+  - console/rsync
+  - console/dns_srv
+  - console/postgresql_server
+  - console/shibboleth
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish
