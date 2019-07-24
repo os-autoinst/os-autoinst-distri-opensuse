@@ -5,7 +5,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check for network daemon
+# Summary: Check that the network daemon in use is the expected one
+# - check which network daemon is in use
+# - based on the system (SLE, JeOS, SLED, openSUSE), check that
+#   the running daemon is the expected one (wicked, wicked, NetworkManager, NetworkManager)
+# - check if network daemon is installed, enabled and running
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use base 'consoletest';
