@@ -37,7 +37,11 @@ variable "project" {
 }
 
 variable "extra-disk-size" {
-    default = "100"
+    default = "1000"
+}
+
+variable "extra-disk-type" {
+    default = "pd-ssd"
 }
 
 variable "create-extra-disk" {
@@ -92,7 +96,7 @@ resource "google_compute_attached_disk" "default" {
 resource "google_compute_disk" "default" {
     name                      = "ssd-disk-${element(random_id.service.*.hex, count.index)}"
     count                     = "${var.create-extra-disk ? var.instance_count : 0}"
-    type                      = "pd-ssd"
+    type                      = "${var.extra-disk-type}"
     zone                      = "${var.region}"
     size                      = "${var.extra-disk-size}"
     physical_block_size_bytes = 4096

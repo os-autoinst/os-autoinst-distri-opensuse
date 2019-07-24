@@ -24,6 +24,10 @@ variable "extra-disk-size" {
     default = "100"
 }
 
+variable "extra-disk-type" {
+    default = "Premium_LRS"
+}
+
 variable "create-extra-disk" {
     default=false
 }
@@ -154,7 +158,7 @@ resource "azurerm_virtual_machine" "openqa-vm" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {
-    count              =  "${var.create-extra-disk ? var.instance_count: 0}"
+    count              = "${var.create-extra-disk ? var.instance_count: 0}"
     managed_disk_id    = "${element(azurerm_managed_disk.ssd_disk.*.id, count.index)}"
     virtual_machine_id = "${element(azurerm_virtual_machine.openqa-vm.*.id, count.index)}"
     lun                = "1"
@@ -162,11 +166,11 @@ resource "azurerm_virtual_machine_data_disk_attachment" "default" {
 }
 
 resource "azurerm_managed_disk" "ssd_disk" {
-  count                =  "${var.create-extra-disk ? var.instance_count: 0}"
+  count                = "${var.create-extra-disk ? var.instance_count: 0}"
   name                 = "ssd-disk-${element(random_id.service.*.hex, count.index)}"
   location             = "${azurerm_resource_group.openqa-group.location}"
   resource_group_name  = "${azurerm_resource_group.openqa-group.name}"
-  storage_account_type = "StandardSSD_LRS"
+  storage_account_type = "${var.extra-disk-type}"
   create_option        = "Empty"
   disk_size_gb         = "${var.extra-disk-size}"
 }

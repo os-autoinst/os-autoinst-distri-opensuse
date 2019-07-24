@@ -24,28 +24,29 @@ use constant IODEPTH => 4;
 sub run {
     my ($self) = @_;
     my $reg_code = get_var('SCC_REGCODE');
-    my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME',  300);
-    my $size    = get_var('PUBLIC_CLOUD_FIO_SSD_SIZE', 100);
-    my $url     = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+    my $runtime   = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
+    my $disk_size = get_var('PUBLIC_CLOUD_FIO_SSD_SIZE');
+    my $disk_type = get_var('PUBLIC_CLOUD_FIO_SSD_TYPE');
+    my $url       = get_var('PUBLIC_CLOUD_PERF_DB_URI');
 
     my @scenario = (
         {
             name      => 'reference',
             rw        => 'randread',
             rwmixread => '100',
-            bs        => '8k'
+            bs        => '4k'
         },
         {
             name      => 'reallife',
             rw        => 'randrw',
             rwmixread => '65',
-            bs        => '8k'
+            bs        => '4k'
         },
         {
             name      => 'writeintensive',
             rw        => 'randwrite',
             rwmixread => '10',
-            bs        => '8k'
+            bs        => '4k'
 
         },
         {
@@ -70,7 +71,7 @@ sub run {
     $self->select_serial_terminal;
 
     my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance(use_extra_disk => {size => 100});
+    my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
@@ -78,7 +79,7 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code, timeout => 600) if $reg_code;
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
-    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk|grep ' . $size . '|cut -f 1 -d " "');
+    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk|grep ' . $disk_size . '|cut -f 1 -d " "');
     record_info('dev', "Block device under test: $block_device");
 
     for my $href (@scenario) {
