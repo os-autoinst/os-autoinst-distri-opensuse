@@ -19,7 +19,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_jeos);
 
 sub run {
     select_console 'root-console';
@@ -30,10 +30,14 @@ sub run {
     # Ensure apache is installed and stopped
     if (script_run('rpm -qa | grep apache2') == 0) {
         systemctl('stop apache2');
+    } elsif (is_jeos) {
+        # installation of docs and manpages is excluded in zypp.conf
+        zypper_call 'in --download-only apache2';
+        assert_script_run('cd /var/cache/zypp/packages/SUSE_Linux_*/' . get_required_var('ARCH'));
+        assert_script_run('rpm -Uvh --includedocs ./*');
     } else {
         zypper_call 'in apache2';
     }
-
 
     # Check if the unit is enabled (and if not, enable it), started (and if not, start it) and display its status
     systemctl 'enable apache2';
@@ -115,7 +119,8 @@ sub run {
         assert_script_run 'curl -v http://localhost:8080/';
 
         # Stop both instances
-        assert_script_run 'killall -TERM httpd2-prefork';
+        # binary killall is not present in JeOS
+        assert_script_run('kill -TERM $(ps aux| grep [h]ttpd2-prefork| awk \'{print $2}\')');
         systemctl 'stop apache2';
 
         # Test everything is stopped properly
