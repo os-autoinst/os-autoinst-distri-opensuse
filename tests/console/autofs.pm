@@ -26,13 +26,15 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils;
+use version_utils qw(is_sle is_jeos);
 use autofs_utils qw(setup_autofs_server check_autofs_service);
 use utils qw(systemctl zypper_call);
 
 sub run {
     select_console 'root-console';
-    zypper_call("in autofs mkisofs") if is_sle('15+');
+    # mkisofs is not distributed in JeOS
+    my $mk_iso_tool = (is_jeos) ? 'genisoimage' : 'mkisofs';
+    zypper_call("in autofs $mk_iso_tool") if (is_sle('15+') or is_jeos);
     my $autofs_conf_file       = '/etc/auto.master';
     my $autofs_map_file        = '/etc/auto.master.d/autofs_regression_test.autofs';
     my $test_conf_file         = '/etc/auto.iso';
@@ -41,7 +43,7 @@ sub run {
     my $test_conf_file_content = "echo  iso     -fstype=auto,ro         :$file_to_mount > $test_conf_file";
     assert_script_run("mkdir -p $test_mount_dir");
     assert_script_run("dd if=/dev/urandom of=$test_mount_dir/README bs=4024 count=1");
-    assert_script_run("mkisofs -o $file_to_mount $test_mount_dir");
+    assert_script_run("$mk_iso_tool -o $file_to_mount $test_mount_dir");
     assert_script_run("ls -lh $file_to_mount");
     check_autofs_service();
     assert_script_run("test -f $autofs_conf_file");
