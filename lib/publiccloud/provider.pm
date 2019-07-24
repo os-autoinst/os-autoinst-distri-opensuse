@@ -19,7 +19,7 @@ use Data::Dumper;
 use Mojo::JSON 'decode_json';
 
 use constant TERRAFORM_DIR     => '/root/terraform';
-use constant TERRAFORM_TIMEOUT => 600;
+use constant TERRAFORM_TIMEOUT => 17 * 60;
 
 has key_id            => undef;
 has key_secret        => undef;
