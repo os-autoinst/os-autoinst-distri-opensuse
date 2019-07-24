@@ -7,7 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Simple clamav test for SLE FIPS and openSUSE
+# Summary: check freshclam and clamscan against some fake virus samples
+# - refresh the database using freshclam
+# - change user vscan to root in clamd.conf (clamd runs as root)
+# - start clamd and freshclam using systemctl
+# - check that clamscan is able to recognize a fake vim virus
+# - check that clamscan is able to recognize an EICAR virus pdf, txt and zip format
+# - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
 # Author: Wei Jiang <wjiang@suse.com>
 # Maintainer: wnereiz <wnereiz@member.fsf.org>
 # Tags: TC1595169, poo#46880
@@ -79,8 +85,6 @@ sub run {
         $rel_path = "eicar_test_files/eicar.$ext";
         assert_script_run("curl -o $rel_path " . data_url("$rel_path"));
     }
-
-    my $re = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
 
     scan_and_parse "clamscan";
     scan_and_parse "clamdscan";
