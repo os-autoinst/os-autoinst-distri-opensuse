@@ -14,6 +14,11 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Clone the existing installation for use in validation
+# - remove existing autoinst.xml
+# - call yast2 clone_system
+# - upload autoinst.xml
+# - upload original installedSystem.xml
+# - run save_y2logs and upload the generated tar.bz2
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
