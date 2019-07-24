@@ -8,6 +8,9 @@
 # without any warranty.
 
 # Summary: check contents of /etc/os-release per the current settings
+# - get information from the running system (name, pretty name, id, cpe name)
+# - get data from /etc/os-release
+# - compare current values with those from /etc/os-release
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
 
 use base "consoletest";
