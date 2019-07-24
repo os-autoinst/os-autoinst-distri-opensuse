@@ -20,9 +20,8 @@ use utils;
 # but other data which was written to serial device. We have to ensure
 # that we got what we expect. See poo#25716
 sub get_last_snap_number {
-    # get snapshot id column, tail before head to avoid SIGPIPE
-    my $snap_head = script_output("snapper list | tail -n +1 | head -n1");
-
+    # get snapshot id column, parse output in perl to avoid SIGPIPE
+    my $snap_head = (split(/\n/, script_output("snapper list")))[0];
     # strip kernel messages - for some reason we always get something like this at this very position:
     # [ 1248.663412] BTRFS info (device vda2): qgroup scan completed (inconsistency flag cleared)
     my @lines = split(/\n/, $snap_head);
