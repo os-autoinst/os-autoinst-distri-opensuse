@@ -11,7 +11,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 # Tags: fate#318787 poo#11450
 
-use base 'y2_installbase';
+use base 'y2_module_guitest';
 use strict;
 use warnings;
 use testapi;
@@ -82,13 +82,6 @@ sub run {
         verify_network_configuration(\&change_hw_device_name, 'dyn0', 'restart');
     }
     type_string "killall xterm\n";
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    assert_script_run 'journalctl -b > /tmp/journal', 90;
-    upload_logs '/tmp/journal';
-    $self->SUPER::post_fail_hook;
 }
 
 sub test_flags {
