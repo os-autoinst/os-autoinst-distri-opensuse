@@ -14,6 +14,9 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils;
+use Utils::Architectures 'is_aarch64';
+use registration;
 
 sub wait_serial_or_die {
     my $feedback = shift;
@@ -29,6 +32,10 @@ sub run {
     #Setup console for text feedback.
     my ($self) = @_;
     $self->select_serial_terminal();
+    if (is_sle('=12-SP5') && is_aarch64()) {
+        register_product;
+        add_suseconnect_product 'sle-sdk';
+    }
     zypper_call('in gcc glibc-devel gdb');    #Install test depedencies.
 
     #Test Case 1
@@ -63,7 +70,7 @@ sub run {
 
     #Test 3
     assert_script_run("curl -O " . data_url('gdb/test3.c'));
-    assert_script_run("gcc -g  -std=c99 test3.c -o test3");
+    assert_script_run("gcc -g -std=c99 test3.c -o test3");
     script_run("./test3 & echo 'this is a workaround'");
     assert_script_run("pidof test3");    #Make sure the process was launched.
     type_string('gdb -p $(pidof test3)');
@@ -78,6 +85,9 @@ sub run {
     type_string("y\n");
     assert_script_run("pkill -9 test3");
     select_console("root-console");
+    if (is_sle('12-SP5') && is_aarch64()) {
+        cleanup_registration;
+    }
 }
 
 1;
