@@ -101,6 +101,7 @@
             <package>python3-pip</package>
             <package>aws-cli</package>
             <package>sudo</package>
+            <package>wget</package>
             <package>python</package>
         </packages>
     </software>
