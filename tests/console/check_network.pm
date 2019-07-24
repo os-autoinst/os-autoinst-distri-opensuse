@@ -1,13 +1,15 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check network and ip address
+# Summary: Check that an interface is configured and show some network info
+# - check from logs that an interface is already configured, if NETWORK_INIT_PARAM is set
+# - get some info using 'ip addr'
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use base "consoletest";
