@@ -51,7 +51,7 @@ secret /etc/openvpn/static.key" > static.conf));
 
     # Generate certificates
     assert_script_run("easyrsa init-pki");
-    assert_script_run("easyrsa gen-dh",                              300);
+    assert_script_run("easyrsa gen-dh",                              400);
     assert_script_run("yes '' | easyrsa build-ca nopass",            120);
     assert_script_run("yes '' | easyrsa gen-req server nopass",      120);
     assert_script_run("echo 'yes' | easyrsa sign-req server server", 120);
