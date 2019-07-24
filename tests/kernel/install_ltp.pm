@@ -26,7 +26,7 @@ use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
 use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle);
-use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
+use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
 use Utils::Backends 'use_ssh_serial_console';
 
 sub add_we_repo_if_available {
@@ -232,9 +232,11 @@ sub add_ltp_repo {
         $arch = "_PowerPC"  if is_ppc64le();
         $arch = "_zSystems" if is_s390x();
 
-        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_Tumbleweed$arch/";
         if (want_stable) {
             $repo = "https://download.opensuse.org/repositories/benchmark/openSUSE_Factory$arch/";
+        } else {
+            $arch = ((is_x86_64) ? "Tumbleweed" : "Factory") . $arch;
+            $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$arch/";
         }
     }
 
