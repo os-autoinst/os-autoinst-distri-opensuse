@@ -67,6 +67,7 @@ sub run {
     assert_script_run 'rpm -qp --requires /tmp/aaa_base.rpm';
 
     # Prepare test rpm file of missing package
+    assert_script_run('rpm -e sysstat') if (script_run("rpm -q sysstat") == 0);
     zypper_call 'in -fy --download-only sysstat';
     assert_script_run 'mv `find /var/cache/zypp/packages/ | grep sysstat | head -n1` /tmp/sysstat.rpm';
 
@@ -81,6 +82,9 @@ sub run {
 
     # Uninstall an already installed package
     assert_script_run 'rpm -evh sysstat';
+
+    # Install the package again
+    assert_script_run 'rpm -ivh /tmp/sysstat.rpm';
 }
 
 1;
