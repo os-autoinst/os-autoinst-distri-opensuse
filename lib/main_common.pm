@@ -716,7 +716,7 @@ sub map_incidents_to_repo {
     for my $i (keys %$incidents) {
         for my $j (split(/,/, $incidents->{$i})) {
             if ($j) {
-                push @maint_repos, join($j, split('%INCIDENTNR%', $templates->{$i}));
+                push @maint_repos, join($j, split('@INCIDENTNR@', $templates->{$i}));
             }
         }
     }
