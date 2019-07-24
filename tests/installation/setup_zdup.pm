@@ -20,6 +20,8 @@ use utils;
 sub run {
     my ($self) = @_;
 
+    # #7501: load_boot_tests is present, needs to confirm grub is up
+    sleep 2;
     $self->wait_boot(ready_time => 600);
     if (get_var('ZDUP_IN_X')) {
         x11_start_program('xterm');
