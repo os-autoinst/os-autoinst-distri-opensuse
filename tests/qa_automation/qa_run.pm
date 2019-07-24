@@ -82,7 +82,7 @@ sub prepare_repos {
 
     add_qa_head_repo;
     add_qa_web_repo;
-    add_suseconnect_product('sle-module-python2') if is_sle('>15');
+    add_suseconnect_product('sle-module-python2') if is_sle('>15') && get_var('FLAVOR') !~ /-Updates$|-Incidents/;
     zypper_call("in qa_testset_automation qa_tools python-base python-xml");
 }
 
