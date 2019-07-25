@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check no more updates are available in the queue after they have
-#   been previously applied
+# Summary: Check that no updates are available after they were previoulsy applied
+# - execute pkcon get-updates and check that the message says 'there are no updates'
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base "consoletest";
