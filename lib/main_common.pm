@@ -1236,9 +1236,6 @@ sub load_x11tests {
         loadtest "x11/gnome_terminal";
         loadtest "x11/gedit";
     }
-    if (kdestep_is_applicable() && !is_kde_live) {
-        loadtest "x11/kate";
-    }
     loadtest "x11/firefox";
     if (is_opensuse && !get_var("OFW") && check_var('BACKEND', 'qemu') && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
@@ -1314,12 +1311,11 @@ sub load_x11tests {
         loadtest "x11/vlc";
     }
     if (kdestep_is_applicable()) {
+        loadtest "x11/kate";
         if (!is_krypton_argon && !is_kde_live) {
             loadtest "x11/amarok";
         }
         loadtest "x11/kontact" unless is_kde_live;
-    }
-    if (kdestep_is_applicable()) {
         if (!get_var("USBBOOT") && !is_livesystem) {
             if (get_var("PLASMA5")) {
                 loadtest "x11/reboot_plasma5";
