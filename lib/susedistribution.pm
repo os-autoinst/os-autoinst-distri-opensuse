@@ -682,7 +682,7 @@ sub activate_console {
             assert_screen "inst-console";
         }
     }
-    elsif ($console =~ m/root-console$/ && is_remote_backend) {
+    elsif ($console =~ m/root-console$/ && get_var('BACKEND' =~ /ikvm|ipmi|spvm/)) {
         # Select configure serial and redirect to root-ssh instead
         use_ssh_serial_console;
         return;
