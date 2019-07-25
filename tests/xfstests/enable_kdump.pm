@@ -23,7 +23,7 @@ use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    select_console 'root-console';
 
     # Also panic when softlockup
     # workaround bsc#1104778, skip s390x in 12SP4

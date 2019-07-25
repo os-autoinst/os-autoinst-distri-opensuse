@@ -23,7 +23,7 @@ use warnings;
 
 sub run {
     my ($self) = @_;
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    select_console 'root-console';
 
     ensure_serialdev_permissions;
 

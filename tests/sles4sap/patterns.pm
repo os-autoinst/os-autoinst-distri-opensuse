@@ -23,7 +23,7 @@ sub run {
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
     my $output      = '';
 
-    check_var('BACKEND', 'ipmi') ? use_ssh_serial_console : select_console 'root-console';
+    select_console 'root-console';
 
     # Disable packagekit
     pkcon_quit;

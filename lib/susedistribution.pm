@@ -16,7 +16,7 @@ use utils qw(
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 use Cwd;
 
@@ -682,7 +682,7 @@ sub activate_console {
             assert_screen "inst-console";
         }
     }
-    elsif ($console =~ m/root-console$/ && check_var('BACKEND', 'spvm')) {
+    elsif ($console =~ m/root-console$/ && is_remote_backend) {
         # Select configure serial and redirect to root-ssh instead
         use_ssh_serial_console;
         return;
