@@ -85,7 +85,7 @@ sub run {
     type_string("y\n");
     assert_script_run("pkill -9 test3");
     select_console("root-console");
-    if (is_sle('12-SP5') && is_aarch64()) {
+    if (is_sle('=12-SP5') && is_aarch64()) {
         cleanup_registration;
     }
 }
