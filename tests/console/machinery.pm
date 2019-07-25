@@ -43,7 +43,7 @@ sub run {
     validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
     prepare_ssh_localhost_key_login 'root';
     if (get_var('ARCH') =~ /aarch64|ppc64le/ && \
-        script_run "machinery inspect localhost | grep 'no machinery-helper for the remote system architecture'", 300) {
+        script_run("machinery inspect localhost | grep 'no machinery-helper for the remote system architecture'", 300) == 0) {
         record_soft_failure 'boo#1125785 - no machinery-helper for this architecture.';
     } else {
         assert_script_run 'machinery inspect localhost',               300;
