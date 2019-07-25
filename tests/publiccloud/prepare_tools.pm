@@ -55,12 +55,11 @@ sub run {
     assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
     record_info('EC2', script_output('aws --version'));
 
-    # install azure cli
-    assert_script_run('sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc');
-    zypper_call('addrepo --name "Azure CLI" --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli');
-    zypper_call('-q in --from azure-cli -y azure-cli');
+    # Install Azure cli
+    zypper_call('-q in python3-devel');
+    assert_script_run("pip3 install -q --ignore-installed azure-cli", 240);
+    assert_script_run("sed -i 's/^python /python3 /' /usr/bin/az");    # Workaround to force the use of python3, needed for performance!
     record_info('Azure', script_output('az -v'));
-
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
@@ -68,7 +67,6 @@ sub run {
     assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
     assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
     record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
-
 
     # Create some directories, ipa will need them
     assert_script_run("mkdir -p ~/ipa/tests/");
