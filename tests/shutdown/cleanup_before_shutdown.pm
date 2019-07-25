@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,6 +10,12 @@
 # Summary: Additional actions and cleanup logic for the system before shutdown.
 # The purpose of the module is to separate all the preparations from the shutdown
 # itself and make the system ready for power off.
+# - if DEBUG_SHUTDOWN is set, then collect detailed logs to investigate shutdown issues
+#   and redirect them to serial console
+# - if DROP_PERSISTENT_NET_RULES is set, then remove 70-persistent-net.rules
+# - dhcp cleanup on qemu backend (stop network and wickedd, remove xml files from /var/lib/wicked)
+# - if DESKTOP is set, then set 'ForwardToConsole=yes', 'MaxLevelConsole=debug' and 'TTYPath=/dev/$serialdev'
+#   in /etc/systemd/journald.conf and restart systemd-journalctl
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
 use strict;
