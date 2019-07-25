@@ -31,9 +31,12 @@ sub run {
         }
     }
 
+    # Install prerequesite packages
+    zypper_call('-q in python-xml python3-devel python3-pip python3-img-proof python3-img-proof-tests');
+    record_info('python', script_output('python --version'));
+
     # Install AWS cli
     if (is_opensuse) {
-        zypper_call('-q in python3-devel');
         assert_script_run("pip3 install -q pycrypto");
         assert_script_run("pip3 install -q awscli");
         assert_script_run("pip3 install -q keyring");
@@ -56,9 +59,7 @@ sub run {
     record_info('EC2', script_output('aws --version'));
 
     # Install Azure cli
-    zypper_call('-q in python3-devel');
     assert_script_run("pip3 install -q --ignore-installed azure-cli", 240);
-    assert_script_run("sed -i 's/^python /python3 /' /usr/bin/az");    # Workaround to force the use of python3, needed for performance!
     record_info('Azure', script_output('az -v'));
 
     # Install Google Cloud SDK

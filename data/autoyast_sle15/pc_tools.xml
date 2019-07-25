@@ -93,12 +93,9 @@
         </products>
          <packages config:type="list">
             <package>netcat-openbsd</package>
-            <package>python3-img-proof</package>
-            <package>python3-img-proof-tests</package>
             <package>git-core</package>
             <package>ntp</package>
             <package>gcc</package>
-            <package>python3-pip</package>
             <package>sudo</package>
             <package>wget</package>
             <package>python</package>
@@ -116,8 +113,8 @@
                         sed -i 's/splash=silent\ quiet//' /etc/default/grub
                         sed -i '/GRUB_DISABLE_LINUX_UUID/s/^# //' /etc/default/grub
                         grub2-mkconfig -o /boot/grub2/grub.cfg
-                        cd /etc/alternatives/
-                        ln -fs /usr/bin/python3 python
+                        update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+                        update-alternatives --install /usr/bin/python python /usr/bin/python3 2
                         ]]>
                 </source>
             </script>
