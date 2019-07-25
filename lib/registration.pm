@@ -483,7 +483,7 @@ sub fill_in_registration_data {
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            assert_screen(\@tags, 60);
+            assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
                 next;
