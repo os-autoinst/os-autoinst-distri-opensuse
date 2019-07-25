@@ -25,19 +25,32 @@ use utils;
 sub run() {
     select_console('root-console');
 
-    zypper_call('in vagrant virtualbox');
+    zypper_call('in vagrant virtualbox vagrant-libvirt');
+
     assert_script_run('systemctl start vboxdrv');
     assert_script_run('systemctl start vboxautostart');
+    assert_script_run('systemctl start libvirtd');
+
     assert_script_run('usermod -a -G vboxusers bernhard');
+    assert_script_run('usermod -a -G libvirt bernhard');
 
     select_console('user-console');
     assert_script_run('echo "test" > testfile');
 
-    assert_script_run('vagrant init ubuntu/xenial64');
+    assert_script_run('vagrant init centos/7');
     assert_script_run('vagrant up --provider virtualbox', timeout => 1200);
 
     assert_script_run('vagrant ssh -c "[ $(cat testfile) = \"test\" ]"');
     assert_script_run('vagrant halt');
+    assert_script_run('vagrant destroy -f');
+
+    assert_script_run('vagrant up', timeout => 1200);
+
+    assert_script_run('vagrant ssh -c "[ $(cat testfile) = \"test\" ]"');
+    assert_script_run('vagrant halt');
+    assert_script_run('vagrant destroy -f');
+
+    assert_script_run('rm -rf Vagrantfile testfile .vagrant');
 }
 
 1;

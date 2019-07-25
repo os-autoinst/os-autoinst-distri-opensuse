@@ -2389,7 +2389,12 @@ sub load_virtualization_tests {
 
     # reboot the machine to kill the previously started virtual machines
     loadtest "console/console_reboot";
-    loadtest "virtualization/vagrant/add_box";
+
+    # the tests currently require x86 & Tumbleweed
+    if (is_x86_64 && is_tumbleweed) {
+        loadtest "virtualization/vagrant/add_box";
+        loadtest "virtualization/vagrant/boxes/tumbleweed";
+    }
     return 1;
 }
 

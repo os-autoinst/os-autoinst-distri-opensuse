@@ -1,0 +1,34 @@
+# This is a Vagrantfile "template", you have to replace DISTRO, BOXNAME_LIBVIRT
+# and BOXNAME_VIRTUALBOX with the appropriate values
+Vagrant.configure("2") do |config|
+
+  config.vm.provider "virtualbox" do |virtbox|
+    virtbox.memory = 2048
+    virtbox.cpus = 4
+  end
+
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.cpus = 4
+    libvirt.memory = 2048
+  end
+
+  config.vm.hostname = "vm-test"
+
+  config.vm.define "DISTRO-libvirt" do |tw|
+    tw.vm.box = "../BOXNAME_LIBVIRT"
+  end
+
+  config.vm.define "DISTRO-virtualbox" do |tw|
+    tw.vm.box = "../BOXNAME_VIRTUALBOX"
+  end
+
+  config.vm.provision "shell", path: "provision.sh"
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "ansible_playbook.yml"
+    ansible.become = true
+    ansible.become_user = "root"
+    ansible.verbose = "-vv"
+  end
+
+end
