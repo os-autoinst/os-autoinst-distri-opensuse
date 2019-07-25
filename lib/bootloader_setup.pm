@@ -358,6 +358,24 @@ sub get_hyperv_fb_video_resolution {
     return 'video=hyperv_fb:1024x768';
 }
 
+
+=head2 get_linuxrc_boot_params
+
+  get_linuxrc_boot_params();
+
+Returns array of strings C<@params> with linurc boot options to enable logging to the serial
+console, enable core dumps and set debug level for logging.
+
+=cut
+sub get_linuxrc_boot_params {
+    my @params;
+    push @params, "linuxrc.log=/dev/$serialdev";
+    # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
+    push @params, "linuxrc.core=/dev/$serialdev";
+    push @params, "linuxrc.debug=4,trace";
+    return @params;
+}
+
 sub bootmenu_default_params {
     my (%args) = @_;
     my @params;
@@ -397,12 +415,10 @@ sub bootmenu_default_params {
         elsif (!is_jeos) {
             # make plymouth go graphical
             push @params, "plymouth.ignore-serial-consoles" unless $args{pxe};
-            push @params, "linuxrc.log=/dev/$serialdev";
             push @params, get_bootmenu_console_params $args{baud_rate};
 
-            # Enable linuxrc core dumps https://en.opensuse.org/SDB:Linuxrc#p_linuxrccore
-            push @params, "linuxrc.core=/dev/$serialdev";
-            push @params, "linuxrc.debug=4,trace";
+            # Enable linuxrc logging
+            push @params, get_linuxrc_boot_params;
         }
         push @params, get_extra_boot_params();
     }
@@ -538,7 +554,7 @@ sub select_bootmenu_more {
     }
     send_key_until_needlematch($tag, get_var('OFW') ? 'up' : 'down', 10, 3);
     # Redirect linuxrc logs to console when booting from menu: "boot linux system"
-    push @params, "linuxrc.log=/dev/$serialdev linuxrc.debug=4,trace linuxrc.core=/dev/$serialdev" if get_var('LINUXRC_BOOT');
+    push @params, get_linuxrc_boot_params if get_var('LINUXRC_BOOT');
     if (get_var('UEFI')) {
         send_key 'e';
         send_key 'down' for (1 .. 4);
