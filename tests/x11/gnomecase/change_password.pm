@@ -7,8 +7,16 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Change password in GNOME and check if it's accepted everywhere
-#  Testtopia: tc#1503803 tc#1503905; entry for tc#1503973
+# Summary: in GNOME, change password for current user and check that it's
+# accepted everywhere. Create then a new user and login with it.
+# - change password for current user
+# - add new user
+# - lock and unlock screen for current user
+# - logout and login with current user
+# - switch to the newly created user
+# - login with the new user
+# - switch back to original user
+# - restore password to its original value
 # Maintainer: chuchingkai <chuchingkai@gmail.com>
 
 use base "x11test";
