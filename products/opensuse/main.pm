@@ -364,6 +364,9 @@ elsif (get_var("ISO_IN_EXTERNAL_DRIVE")) {
     load_inst_tests();
     load_reboot_tests();
 }
+elsif (get_var('CPU_BUGS')) {
+    load_mitigation_tests;
+}
 elsif (get_var('SECURITY_TEST')) {
     prepare_target();
     load_security_tests;

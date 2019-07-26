@@ -85,6 +85,7 @@ our @EXPORT = qw(
   load_rescuecd_tests
   load_rollback_tests
   load_applicationstests
+  load_mitigation_tests
   load_security_tests
   load_shutdown_tests
   load_slepos_tests
@@ -2294,6 +2295,53 @@ sub load_security_tests_evm_protection {
 
 sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
+}
+
+sub load_mitigation_tests {
+    if (check_var('BACKEND', 'ipmi')) {
+        loadtest "virt_autotest/login_console";
+
+    }
+    elsif (check_var('BACKEND', 'qemu')) {
+        boot_hdd_image;
+        loadtest "console/system_prepare";
+        loadtest "console/consoletest_setup";
+        loadtest "console/hostname";
+        if (get_var('PREPARE_REPO')) {
+            loadtest "cpu_bugs/add_repos_qemu";
+        }
+    }
+    if (get_var('IPMI_TO_QEMU')) {
+        loadtest "cpu_bugs/ipmi_to_qemu";
+    }
+    if (get_var('MELTDOWN')) {
+        loadtest "cpu_bugs/meltdown";
+    }
+    if (get_var('SPECTRE_V2')) {
+        loadtest "cpu_bugs/spectre_v2";
+    }
+    if (get_var('SPECTRE_V2_USER')) {
+        loadtest "cpu_bugs/spectre_v2_user";
+    }
+    if (get_var('SPECTRE_V4')) {
+        loadtest "cpu_bugs/spectre_v4";
+    }
+    if (get_var('MDS')) {
+        loadtest "cpu_bugs/mds";
+    }
+    if (get_var('L1TF')) {
+        loadtest "cpu_bugs/l1tf";
+    }
+    if (get_var('MITIGATIONS')) {
+        loadtest "cpu_bugs/mitigations";
+    }
+    if (get_var('KVM_GUEST_INST')) {
+        loadtest "autoyast/prepare_profile";
+        loadtest "cpu_bugs/kvm_guest_install";
+    }
+    if (get_var('KVM_GUEST_MIGRATION')) {
+        loadtest "cpu_bugs/kvm_guest_migration";
+    }
 }
 
 sub load_security_tests {
