@@ -61,7 +61,7 @@ sub run {
     die "Command 'saptune solution list' output is not recognized" unless ($output =~ m|$regexp|s);
 
     $output = script_output "saptune note list";
-    $regexp = 'All notes \(\+ denotes manually enabled notes, \* denotes notes enabled by solutions\):';
+    $regexp = 'All notes \(\+ denotes manually enabled notes, \* denotes notes enabled by solutions';
     die "Command 'saptune note list' output is not recognized" unless ($output =~ m|$regexp|);
 }
 

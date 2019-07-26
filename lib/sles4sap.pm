@@ -166,7 +166,9 @@ sub prepare_profile {
 
     if ($has_saptune) {
         assert_script_run "saptune daemon start";
-        assert_script_run "saptune solution verify $profile";
+        if (script_run "saptune solution verify $profile") {
+            record_soft_failure("poo#54695: 'saptune solution verify' returned warnings or errors! Please check!");
+        }
         my $output = script_output "saptune daemon status";
         record_info("tuned status", $output);
     }
