@@ -1407,6 +1407,7 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_lan';
     loadtest 'yast2_cmd/yast_timezone';
     loadtest 'yast2_cmd/yast_tftp_server';
+    loadtest 'yast2_cmd/yast_ftp_server';
     loadtest 'yast2_cmd/yast_rdp', if is_sle('15+');
     loadtest 'yast2_cmd/yast_keyboard';
 }
