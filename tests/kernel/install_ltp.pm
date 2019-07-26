@@ -372,6 +372,12 @@ but most tests will run without it. At the time of writing their is no appropria
 HDD image available with WE already configured so we must add its media inside this
 test.
 
+=head2 Runtime dependencies
+
+Runtime dependencies are needed to be listed both in this module (for git
+installation) and for all LTP rpm packages (for installation from repo), where
+listed as 'Recommends:'. See list of available LTP packages in LTP_PKG section.
+
 =head2 Example
 
 Example SLE test suite configuration for installation from repository:
@@ -434,6 +440,23 @@ LTP_EXTRA_CONF_FLAGS="CFLAGS=-m32 LDFLAGS=-m32").
 
 LTP_PKG=qa_test_ltp
 Stable LTP package in QA head repository.
+
+=head3 Available LTP packages
+https://confluence.suse.com/display/qasle/LTP+repositories
+
+* QA:Head/qa_test_ltp (IBS, stable - latest release, used by QAM)
+https://build.suse.de/package/show/QA:Head/qa_test_ltp
+Configured via
+https://github.com/SUSE/qa-testsuites
+
+* QA:Head/ltp (IBS, nightly build)
+https://build.suse.de/package/show/QA:Head/ltp
+
+* benchmark/ltp (OBS, stable - latest release)
+https://build.opensuse.org/package/show/benchmark/ltp
+
+* benchmark:ltp:devel/ltp (OBS, nightly build)
+https://build.opensuse.org/package/show/benchmark:ltp:devel/ltp
 
 =head2 LTP_RELEASE
 
