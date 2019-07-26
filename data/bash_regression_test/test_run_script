@@ -1,0 +1,25 @@
+ #!/bin/bash
+ #count how many lines in regressions file, meaning how many tests failed.
+ repeat=$(awk 'END {print NR}' possible_regressions)
+ for (( i=1; i<=$repeat; i++)); do
+         results=0;
+         #take the name of the test that failed from the regressions file and run it 20 times
+         testname=$(awk -v var=$i 'NR==var{print}' possible_regressions);
+         for (( j=1; j<=20 ; j++));
+                 do bash /usr/share/qa/qa_test_bash/qa_$testname > /dev/null 2>&1;
+#                do bash /home/orestis87/Documents/BASH_SCRIPT/TESTS/$testname > /dev/null 2>&1;
+                 if [ $? -eq 0 ]; then
+			 #everytime the test runs succesfully increase the value of results by 1 
+			 results=$(($results+1));
+			 fi
+		 done
+			 if [ $results -eq 20 ]; then
+				 echo -e " \n Test $testname  run succesfully 20 out of 20 times.False positive regression";
+			 elif [ $results -lt 20 -a $results -ge 15 ] ; then
+				 echo -e " \n Test $testname run succesfully $results out of 20 times. No regression but this test is unreliable.";
+			 else
+				 echo -e " \n Test $testname run succesfully $results out of 20 times. Its a regression " ;
+                fi
+         done
+ 
+

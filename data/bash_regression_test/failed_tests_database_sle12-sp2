@@ -1,0 +1,8 @@
+run-appendop.sh
+run-builtins.sh
+run-errors.sh
+run-execscript.sh
+run-posix2.sh
+run-read.sh
+run-shopt.sh
+run-trap.sh

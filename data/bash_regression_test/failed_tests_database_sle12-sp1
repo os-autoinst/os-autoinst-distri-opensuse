@@ -1,0 +1,4 @@
+run-builtins.sh
+run-execscript.sh
+run-read.sh
+run-trap.sh

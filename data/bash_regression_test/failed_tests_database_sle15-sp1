@@ -1,0 +1,11 @@
+run-appendop.sh
+run-array.sh
+run-errors.sh
+run-execscript.sh 
+run-herestr.sh
+run-jobs.sh
+run-nquote4.sh
+run-posix2.sh
+run-read.sh
+run-shopt.sh
+run-trap.sh
