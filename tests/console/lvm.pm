@@ -16,12 +16,28 @@
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "consoletest";
-use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
 use version_utils;
 use utils 'zypper_call';
+
+sub set_playground_disk {
+    # TODO check which vda is unpartitioned and use that one
+    unless (get_var('PLAYGROUNDDISK')) {
+        my $vd = 'vd';    # KVM
+        if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+            $vd = 'xvd';
+        }
+        elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+            $vd = 'sd';
+        }
+        assert_script_run 'parted --script --machine -l';
+        my $unpartitioned_device = script_output("parted --script --machine -l 2>/dev/null | grep unknown | cut -f1 -d':' | grep /dev/$vd");
+        validate_script_output("echo $unpartitioned_device", sub { /\/dev\/$vd[ab]/ });
+        set_var('PLAYGROUNDDISK', $unpartitioned_device);
+    }
+}
 
 sub run {
     my ($self) = @_;
@@ -30,6 +46,7 @@ sub run {
 
     $self->set_playground_disk;
     my $disk = get_required_var('PLAYGROUNDDISK');
+    record_info("Information", "The playground disk used by this test is: $disk");
 
     zypper_call 'in lvm2';
     zypper_call 'in xfsprogs';
@@ -42,7 +59,7 @@ sub run {
 
     # Create pv vg lv
     validate_script_output("pvcreate ${disk}1",             sub { m/successfully created/ }, $timeout);
-    validate_script_output("pvdisplay",                     sub { m/\/dev\/vdb1/ },          $timeout);
+    validate_script_output("pvdisplay",                     sub { m/${disk}1/ },             $timeout);
     validate_script_output("vgcreate test ${disk}1",        sub { m/successfully created/ }, $timeout);
     validate_script_output("vgdisplay test",                sub { m/test/ },                 $timeout);
     validate_script_output("lvcreate -n one -L 1020M test", sub { m/created/ },              $timeout);
@@ -58,7 +75,7 @@ sub run {
 
     # extend test volume group
     validate_script_output("pvcreate ${disk}2",      sub { m/successfully created/ },  $timeout);
-    validate_script_output("pvdisplay",              sub { m/\/dev\/vdb2/ },           $timeout);
+    validate_script_output("pvdisplay",              sub { m/${disk}2/ },              $timeout);
     validate_script_output("vgextend test ${disk}2", sub { m/successfully extended/ }, $timeout);
 
     # extend one logical volume with the new space
