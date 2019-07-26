@@ -37,7 +37,10 @@ sub set_data_and_validate {
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    # We used to select serial console here, but it was failing in 5% of cases
+    # So switching to root-console for the time being, which takes a bit longer, but
+    # seems to be more reliable for the time being.
+    select_console 'root-console';
 
     assert_script_run("rpm -q timezone");
 
