@@ -48,7 +48,7 @@ sub run {
     }
 
     # aarch64 firmware 'tianocore' can take longer to load
-    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 60 : 15;
+    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 90 : 15;
     if (get_var('UEFI_HTTP_BOOT') || get_var('UEFI_HTTPS_BOOT')) {
         tianocore_http_boot;
     }
