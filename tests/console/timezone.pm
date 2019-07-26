@@ -12,10 +12,10 @@
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base 'opensusebasetest';
-use testapi;
-use utils;
 use strict;
 use warnings;
+use testapi;
+use utils;
 
 sub get_tz_data {
     my $save      = shift;
