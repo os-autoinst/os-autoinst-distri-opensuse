@@ -245,8 +245,8 @@ sub install_from_repo {
     my ($tag) = @_;
     my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
 
-    zypper_call("in $pkg");
-    script_run "rpm -q $pkg | tee /opt/ltp_version";
+    zypper_call("in --recommends $pkg");
+    script_run "rpm -qi $pkg | tee /opt/ltp_version";
     assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
 
@@ -317,7 +317,6 @@ sub run {
     }
 
     upload_logs('/boot/config-$(uname -r)', failok => 1);
-
     add_we_repo_if_available;
 
     if ($inst_ltp =~ /git/i) {
@@ -325,6 +324,10 @@ sub run {
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
         install_from_git($tag);
+
+        install_runtime_dependencies;
+        install_runtime_dependencies_network;
+        install_debugging_tools;
     }
     else {
         add_ltp_repo;
@@ -338,15 +341,8 @@ sub run {
     }
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
-
-    install_runtime_dependencies;
-    install_runtime_dependencies_network;
-    install_debugging_tools;
-
     setup_network;
-
     upload_runtest_files('/opt/ltp/runtest', $tag);
-
     power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
 }
 
