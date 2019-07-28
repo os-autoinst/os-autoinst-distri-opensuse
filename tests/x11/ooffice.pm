@@ -18,7 +18,9 @@ use testapi;
 use utils 'type_string_slow';
 
 sub run {
-    x11_start_program('oowriter');
+    my ($self) = shift;
+
+    $self->libreoffice_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
     wait_screen_change { assert_and_click('ooffice-writing-area', timeout => 10) };
     # auto-correction does not handle super-fast typing well
