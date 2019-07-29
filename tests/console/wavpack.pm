@@ -22,16 +22,18 @@ sub run {
     # setup
     select_console 'root-console';
     # development module needed for dependencies, released products are tested with sdk module
-    if (get_var('BETA')) {
-        my $sdk_repo = is_sle('15+') ? get_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS') : get_var('REPO_SLE_SDK');
-        zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", name => "SDK";
-    }
-    # maintenance updates are registered with sdk module
-    elsif (get_var('FLAVOR') !~ /Updates|Incidents/ && is_sle) {
-        cleanup_registration;
-        register_product;
-        add_suseconnect_product('sle-module-desktop-applications');
-        add_suseconnect_product(get_addon_fullname('sdk'));
+    if (is_sle) {
+        if (get_var('BETA')) {
+            my $sdk_repo = is_sle('15+') ? get_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS') : get_var('REPO_SLE_SDK');
+            zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", name => "SDK";
+        }
+        # maintenance updates are registered with sdk module
+        elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+            cleanup_registration;
+            register_product;
+            add_suseconnect_product('sle-module-desktop-applications');
+            add_suseconnect_product(get_addon_fullname('sdk'));
+        }
     }
     zypper_call 'in alsa alsa-utils wavpack';
     assert_script_run("cp /usr/share/sounds/alsa/Noise.wav .");
@@ -57,11 +59,13 @@ sub run {
     assert_script_run("wvgain -s Noise.wv 2>&1 | grep -Pzo \"replaygain_track_gain = \\+11.06 dB(.|\\n)*replaygain_track_peak = 0.126251\"");
 
     # unregister SDK
-    if (get_var('BETA')) {
-        zypper_call "rr SDK";
-    }
-    elsif (get_var('FLAVOR') !~ /Updates|Incidents/ && is_sle) {
-        remove_suseconnect_product(get_addon_fullname('sdk'));
+    if (is_sle) {
+        if (get_var('BETA')) {
+            zypper_call "rr SDK";
+        }
+        elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
+            remove_suseconnect_product(get_addon_fullname('sdk'));
+        }
     }
 }
 
