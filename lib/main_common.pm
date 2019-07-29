@@ -1606,6 +1606,7 @@ sub load_extra_tests_console {
     loadtest 'console/supportutils' if (is_sle && !is_jeos);
     loadtest 'console/mdadm' unless is_jeos;
     loadtest 'console/journalctl';
+    loadtest 'console/quota' unless is_jeos;
     loadtest 'console/vhostmd';
     loadtest 'console/rpcbind' unless is_jeos;
     loadtest 'console/dracut' if is_sle('12-SP5+');
@@ -1614,8 +1615,7 @@ sub load_extra_tests_console {
     loadtest 'console/timezone';
     loadtest 'console/ntp';
     loadtest 'console/procps';
-    loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
-    loadtest 'console/quota' unless is_jeos;
+    loadtest "console/lshw"      if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
