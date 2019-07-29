@@ -18,8 +18,10 @@ use testapi;
 
 sub run {
     ensure_installed 'Mesa-demo-x';
-    # 'no_wait' for screen check because glxgears will be always moving
-    x11_start_program('glxgears', match_no_wait => 1);
+    # as glxgears is constantly moving:
+    # 'no_wait' to not wait for a still screen after the program has started
+    # 'match_no_wait' to check the screen as often as possible
+    x11_start_program('glxgears', match_no_wait => 1, no_wait => 1);
     send_key 'alt-f4';
 }
 
