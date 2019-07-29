@@ -424,9 +424,8 @@ sub init_consoles {
     }
 
     if (check_var('BACKEND', 'qemu')) {
-        $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
-        for (my $num = 1; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
-            $self->add_console('root-virtio-terminal' . $num, 'virtio-terminal', {socked_path => cwd() . '/virtio_console' . $num});
+        for (my $num = 0; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
+            $self->add_console('root-virtio-terminal', 'virtio-terminal', {console_num => $num});
         }
     }
 
