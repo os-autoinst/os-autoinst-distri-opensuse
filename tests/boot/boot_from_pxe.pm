@@ -21,6 +21,7 @@ use testapi;
 use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params);
 use registration 'registration_bootloader_cmdline';
 use utils 'type_string_slow';
+use Utils::Backends 'is_remote_backend';
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -60,8 +61,17 @@ sub run {
 
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
-        my $repo = $openqa_url . "/assets/repo/${image_name}";
-        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot)], 'esc', 8, 3;
+        my $repo        = $openqa_url . "/assets/repo/${image_name}";
+        my $sut_machine = get_var('SUT_IP', 'nosutip');
+        my $key_used    = '';
+        if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /arch\.suse\.de/img)) {
+            $key_used = 'c';
+            send_key 'down';
+        }
+        else {
+            $key_used = 'esc';
+        }
+        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot)], $key_used, 8, 3;
         if (match_has_tag("qa-net-boot")) {
             #Nuremberg
             my $path_prefix = "/mnt/openqa/repo";
