@@ -1,9 +1,8 @@
 name:           autoyast_reinstall
 description:    >
-    Parent job produces autoyast profile after successful completion. 
+    Parent job produces autoyast profile after successful completion.
     This test uses generated profile to do autoyast installation.
 schedule:
-    - installation/isosize
     - installation/bootloader_start
     - autoyast/installation
     - autoyast/console
