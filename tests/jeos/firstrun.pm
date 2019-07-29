@@ -99,7 +99,10 @@ sub run {
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
     # Meltdown/Spectre mitigations makes this even worse.
-    assert_screen_with_soft_timeout('linux-login', timeout => 1000, soft_timeout => 300, bugref => 'bsc#1077007');
+    assert_screen [qw(linux-login reached-power-off)], 1000;
+    if (match_has_tag 'reached-power-off') {
+        die "At least it reaches power off, but booting up failed, see boo#1143051. A workaround is not possible";
+    }
 
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
 
