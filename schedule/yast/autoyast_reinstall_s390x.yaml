@@ -1,0 +1,24 @@
+name:           autoyast_reinstall_s390x
+description:    >
+    Parent job produces autoyast profile after successful completion. 
+    This test uses generated profile to do autoyast installation.
+schedule:
+    - installation/bootloader_start
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - autoyast/verify_imported_users
+    - autoyast/wicked
+    - autoyast/repos
+    - autoyast/clone
+    - autoyast/logs
+    - autoyast/autoyast_reboot
+    - boot/reconnect_mgmt_console
+    - installation/first_boot
+test_data:
+  paths:
+    - /var/lib/gdm/.bashrc
+    - /var/lib/empty/.bashrc
+    - /var/lib/polkit/.bashrc
+    - /var/lib/nobody/.bashrc
+    - /var/lib/pulseaudio/.bashrc
