@@ -154,6 +154,7 @@ sub load_kernel_tests {
     }
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest 'virtio_console';
+        loadtest 'virtio_console_long_output';
     }
     elsif (get_var('NVMFTESTS')) {
         boot_hdd_image();
