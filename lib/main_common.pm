@@ -2015,27 +2015,27 @@ sub load_common_x11 {
         load_x11_installation;
     }
     elsif (check_var("REGRESSION", "gnome")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/window_system";
         load_x11_gnome();
     }
     elsif (check_var("REGRESSION", "documentation")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/window_system";
         load_x11_documentation();
     }
     elsif (check_var("REGRESSION", "other")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/window_system";
         load_x11_other();
     }
     elsif (check_var("REGRESSION", "firefox")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/window_system";
         load_x11_webbrowser();
     }
     elsif (check_var("REGRESSION", "message")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/window_system";
         load_x11_message();
     }
@@ -2050,13 +2050,13 @@ sub load_common_x11 {
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/window_system";
         loadtest "x11/piglit/piglit";
     }
     # Used by ibus tests
     elsif (check_var("REGRESSION", "ibus")) {
-        loadtest "boot/boot_to_desktop";
+        boot_hdd_image;
         loadtest "x11/ibus/ibus_installation";
         loadtest "x11/ibus/ibus_test_ch";
         loadtest "x11/ibus/ibus_test_jp";
