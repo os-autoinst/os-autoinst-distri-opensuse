@@ -16,10 +16,10 @@
 Reference:
 https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_admin.html#id-1.3.3.6.13.6.14
 
-a) 
+a)
     run various commands to configure ftp server.
 
-b) 
+b)
     run "yast ftp-server show", and using regular expression to
     check the configuration results.
 
@@ -102,7 +102,15 @@ sub run {
         'hello everybody',
         'Anonymous and Authenticated Users');
 
-    my $output = script_output "yast ftp-server show 2>&1";
+    my $output;
+    if (is_sle('<=12-sp2')) {
+        $output = script_output("yast ftp-server show 2>&1", proceed_on_failure => 1);
+        record_soft_failure 'known bug bsc#1143193, "yast ftp-server show" should not exit with code 16';
+    } else {
+        $output = script_output("yast ftp-server show 2>&1");
+    }
+
+
     foreach my $item (@pattern) {
         if ($item eq 'hello everybody') {
             $output =~ m#$item#i || die '"yast ftp-server show" message error';
@@ -126,6 +134,7 @@ sub run {
     assert_script_run 'echo "hello world" > /srv/ftp/tmp.txt';
     assert_script_run 'wget ftp://127.0.0.1:/tmp.txt';
     validate_script_output 'cat tmp.txt 2>&1', sub { m/hello world/ };
+    assert_script_run 'rm -f tmp.txt';
 }
 
 1;
