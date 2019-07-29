@@ -79,10 +79,12 @@ sub configure_default_gateway {
 
 sub configure_static_dns {
     my ($conf) = @_;
-    my $servers = join(" ", @{$conf->{nameserver}});
-    script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config");
-    script_run("netconfig -f update");
-    script_run("cat /etc/resolv.conf");
+    my @servers = @{$conf->{nameserver}};
+    assert_script_run("ping -c 1 $_") foreach @servers;
+    my $server_list = join(' ', @servers);
+    assert_script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$server_list\"|' /etc/sysconfig/network/config");
+    assert_script_run("netconfig -f update");
+    assert_script_run("cat /etc/resolv.conf");
 }
 
 sub parse_network_configuration {
