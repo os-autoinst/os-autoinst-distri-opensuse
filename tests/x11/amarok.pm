@@ -32,7 +32,8 @@ sub run {
     # do not playing audio file as we have not testdata if NICEVIDEO
     if (!get_var("NICEVIDEO")) {
         start_audiocapture;
-        x11_start_program('amarok -l ~/data/1d5d9dD.oga', target_match => 'test-amarok-3');
+        x11_start_program('amarok -l ~/data/1d5d9dD.oga', valid => 0, no_wait => 1);
+        assert_screen 'test-amarok-3';
         assert_recorded_sound('DTMF-159D');
     }
     send_key "ctrl-q";       # really quit (alt-f4 just backgrounds)
