@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test module to activate multipath
+# Summary: Test module to activate multipath during initial installation
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'y2_installbase';
@@ -19,7 +19,7 @@ use testapi;
 sub run {
     # Sometimes multipath detection takes longer
     assert_screen "enable-multipath", 60;
-    send_key "alt-y";
+    send_key((get_var("MULTIPATH_CONFIRM") =~ /\bNO\b/i) ? "alt-n" : "alt-y");
 }
 
 1;

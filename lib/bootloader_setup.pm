@@ -632,7 +632,7 @@ sub specific_bootmenu_params {
         push @params, ('systemd.log_level=debug', 'systemd.log_target=kmsg', 'log_buf_len=1M', 'printk.devkmsg=on', 'enforcing=0', 'plymouth.enable=0');
     }
 
-    if (get_var("IBFT")) {
+    if (get_var("IBFT") or get_var("WITHISCSI")) {
         push @params, "withiscsi=1";
     }
 

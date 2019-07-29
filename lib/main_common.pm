@@ -816,6 +816,9 @@ sub load_inst_tests {
     if (get_var('IBFT')) {
         loadtest "installation/iscsi_configuration";
     }
+    if (get_var('WITHISCSI')) {
+        loadtest "installation/disk_activation_iscsi";
+    }
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation";
@@ -827,7 +830,7 @@ sub load_inst_tests {
     if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         loadtest "installation/encrypted_volume_activation";
     }
-    if (get_var('MULTIPATH')) {
+    if (get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM')) {
         loadtest "installation/multipath";
     }
     if (is_opensuse && noupdatestep_is_applicable() && !is_livecd) {
