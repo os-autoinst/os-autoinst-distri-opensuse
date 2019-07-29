@@ -37,7 +37,12 @@ sub run {
     }
 
     if (zypper_call('in machinery', exitcode => [0, 4]) == 4) {
-        record_soft_failure 'bsc#1124304 - Dependency of machinery missing (dep is in HA module)';
+        if (is_sle) {
+            record_soft_failure 'bsc#1124304 - Dependency of machinery missing (dep is in HA module)';
+        }
+        elsif (is_opensuse) {
+            record_soft_failure 'boo#1142975 - Dependency of machinery missing in TW';
+        }
         return;
     }
     validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
