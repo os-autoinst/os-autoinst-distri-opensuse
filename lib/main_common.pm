@@ -1413,7 +1413,7 @@ sub load_extra_tests_y2uitest_cmd {
 }
 
 sub load_extra_tests_texlive {
-    loadtest 'texlive/latexdiff';
+    loadtest 'texlive/latexdiff' if is_sle('15+') || is_opensuse;
 }
 
 sub load_extra_tests_openqa_bootstrap {
