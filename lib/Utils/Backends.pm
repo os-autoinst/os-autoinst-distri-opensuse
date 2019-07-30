@@ -128,7 +128,7 @@ sub is_svirt_except_s390x {
     return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
 }
 
-=head2 is_spvm 
+=head2 is_spvm
 
 Returns true if the current instance is running as PowerVM backend 'spvm'
 
