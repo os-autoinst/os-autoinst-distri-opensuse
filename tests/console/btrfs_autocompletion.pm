@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Bash autocompletion for btrfs
+# - Installs bash-completion package in case jeos
+# - Call compare_commands with btrfs commands wth "short" (tabbed) version and
+# compare obtained results
+# - Call "complete" and check for btrfs functions
+# - Run "btrfs inspect-internal min-dev-size / | grep -E '^[0-9]{6,} bytes'" to
+# check if device is working and it is at least 1MB in size.
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base 'btrfs_test';

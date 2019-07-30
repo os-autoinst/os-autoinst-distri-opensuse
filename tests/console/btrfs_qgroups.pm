@@ -10,6 +10,15 @@
 # Summary: Btrfs quota group limit tests improvements
 #	 Creating qgroups in a hierarchy for multiple subvolumes,
 #	 putting data into them and then running btrfsck on the hard disk
+# - Call set_playground_disk (Return a disk without a partition table)
+# - Create a btrfs filesystem on it, mounts the disk and change to mount point
+# - Enable quota in filesystem
+# - Create subvolumes, qgroups, assigns, set limits, fill with data
+# - Create a test file, copy and sync to test limits
+# - Check quota limits (single file, overwrite existing file)
+# - Test exceeding real quota
+# - Umount test filesystem; check filesystem for btrfs errors, erase partition
+# table.
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base 'btrfs_test';
