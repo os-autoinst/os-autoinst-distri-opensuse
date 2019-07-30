@@ -27,8 +27,12 @@ sub run {
     assert_script_run('mkdir -p ~/.kube');
     assert_script_run('cp -i /etc/kubernetes/admin.conf ~/.kube/config');
 
-    record_info 'Test #3', 'Test: Configure flannel';
-    assert_script_run('kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml');
+    record_info 'Test #3', 'Test: Configure CNI';
+    if (check_var('CNI', 'cilium')) {
+        assert_script_run('kubectl apply -f /usr/share/k8s-yaml/cilium/cilium.yaml');
+    } else {
+        assert_script_run('kubectl apply -f /usr/share/k8s-yaml/flannel/kube-flannel.yaml');
+    }
 
     record_info 'Test #4', 'Test: Record cluster info';
     # Cluster isn't ready immediately
