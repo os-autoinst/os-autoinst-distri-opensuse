@@ -12,6 +12,17 @@
 #          they have been successfully set.
 # Maintainer: Ming Li <mli@suse.com>
 
+=head1 Create regression test for keyboard layout and verify
+
+Reference:
+https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_admin.html#id-1.3.3.6.13.6.17
+
+1. Set keyboard layout to korean and validate.
+2. Set keyboard layout to german.
+3. Restore keyboard settings to english-us and verify (enter using german characters).
+
+=cut
+
 use base 'consoletest';
 use strict;
 use warnings;
@@ -28,7 +39,7 @@ sub run {
     assert_script_run("yast keyboard set layout=korean");
     validate_script_output("yast keyboard summary 2>&1", sub { m/korean/ });
 
-    # Set keyboard layout to German.
+    # Set keyboard layout to german.
     assert_script_run("yast keyboard set layout=german");
 
     # Restore keyboard settings to english-us and verify(enter using german characters).
