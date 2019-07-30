@@ -11,6 +11,13 @@
 # Summary: console test pre setup, performing actions required to run tests
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
+# - disable email notification for both root and bernhard users
+# - disable serial-getty
+# - check console font
+# - source /etc/bash.bashrc.local
+# - disable and stop packagekit
+# - clear console
+# - switch to normal user
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
