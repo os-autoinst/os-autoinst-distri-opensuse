@@ -58,6 +58,9 @@ sub find_img {
 
 Upload a image to the CSP. Required parameter is the
 location of the C<image> file.
+UEFI images are supported by giving the optional
+parameter C<type> = 'uefi'. This is only supported
+on GCE at the momment.
 
 Retrieves the image-id after upload or die.
 
