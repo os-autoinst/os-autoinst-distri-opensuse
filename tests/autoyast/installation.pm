@@ -125,7 +125,7 @@ sub run {
     # Workaround for removing package error during upgrade
     push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
     # resolve conflicts and this is a workaround during the update
-    push(@needles, 'manual-intervention') if get_var("BREAK_DEPS");
+    push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
