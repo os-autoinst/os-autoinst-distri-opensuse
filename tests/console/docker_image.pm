@@ -66,13 +66,13 @@ sub run {
         # zypper lr
         assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'zypper lr -s'", 120);
         # zypper ref
-        assert_script_run("docker container run --name refreshed --entrypoint '/bin/bash' $image_names->[$i] -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("docker container run --name refreshed --entrypoint '/bin/bash' $image_names->[$i] -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 180);
         # Commit the image
         assert_script_run("docker commit refreshed refreshed-image", 120);
         # Remove it
         assert_script_run("docker rm --force refreshed", 120);
         # Verify the image works
-        assert_script_run("docker container run --name refreshed --entrypoint '/bin/bash' --rm refreshed-image -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("docker container run --name refreshed --entrypoint '/bin/bash' --rm refreshed-image -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 180);
 
         if (check_var("ARCH", "x86_64")) {
             # container-diff
