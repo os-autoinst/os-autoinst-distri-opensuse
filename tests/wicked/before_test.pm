@@ -44,6 +44,13 @@ sub run {
     systemctl('is-active wicked');
 
     $self->download_data_dir();
+    
+    # DEBUG network connectivity
+    script_run('cat /etc/resolv.conf');
+    script_run('ip a');
+    script_run('ip route');
+    script_run('ping -c 1 8.8.8.8');
+    script_run('curl -L 216.58.204.99');
 
     if (check_var('IS_WICKED_REF', '1')) {
         # Common REF Configuration
