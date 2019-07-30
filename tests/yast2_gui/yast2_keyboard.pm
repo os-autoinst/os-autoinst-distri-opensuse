@@ -38,7 +38,8 @@ sub run {
     # 1. start yast2 keyboard
     $self->launch_yast2_module_x11("keyboard", match_timeout => 120);
     send_key "alt-k";
-    send_key "home";
+    wait_still_screen 1;
+    send_key "g";
 
     # 2. Switch keymap from us to german
     send_key_until_needlematch("yast2_keyboard-layout-german", "down");
@@ -62,7 +63,9 @@ sub run {
     type_password;
     send_key("ret");
     wait_still_screen 3;
-    send_key "home";
+    send_key "alt-k";
+    wait_still_screen 2;
+    send_key "e";
     send_key_until_needlematch("yast2_keyboard-layout-us", "down");
     send_key "alt-o";
     assert_screen "generic-desktop", timeout => 90;
