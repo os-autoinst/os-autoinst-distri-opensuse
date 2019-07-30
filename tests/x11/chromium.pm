@@ -22,7 +22,8 @@ sub run {
     ensure_installed 'chromium';
 
     # avoid async keyring popups
-    x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
+    # do not wait for a still screen after hitting return, default homepage shows an animated geeko
+    x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50, no_wait => 1);
 
     wait_screen_change { send_key 'esc' };       # get rid of popup (or abort loading)
     wait_screen_change { send_key 'ctrl-l' };    # select text in address bar
