@@ -31,7 +31,14 @@ sub handle_installer_medium_bootup {
     assert_screen 'inst-bootmenu';
 
     if (check_var("BOOTFROM", "d") && check_var("AUTOUPGRADE") && check_var("PATCH")) {
-        assert_screen 'grub2';
+        # poo#54218, on ppc64le the grub2 just show 1 second, so it's hard for openqa to
+        # catch this screen.
+        if (check_var('ARCH', 'ppc64le') && !check_screen('grub2')) {
+            record_info('softfail', 'grub2 screen was not catched.');
+        }
+        else {
+            assert_screen 'grub2';
+        }
     }
 
     send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
