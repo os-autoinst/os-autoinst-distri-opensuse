@@ -21,10 +21,10 @@ sub extract_startup_timings {
     $string =~ s/Startup finished in\s*//;
     $string =~ s/=(.+)$/+$1 (overall)/;
     for my $time (split(/\s*\+\s*/, $string)) {
-        if ($time =~ /((\d{1,2})min\s*)?(\d{1,2}\.\d{1,3})s\s*\((\w+)\)/) {
-            my $sec = $3;
-            $sec += $2 * 60 if (defined($1));
-            $res->{$4} = $sec;
+        if ($time =~ /(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)\s*\((?<type>\w+)\)/) {
+            my $sec = $+{sec} // $+{ms} / 1000;
+            $sec += $+{min} * 60 if (defined($+{check_min}));
+            $res->{$+{type}} = $sec;
         }
     }
     map { die("Fail to detect $_ timing") unless exists($res->{$_}) } qw(kernel initrd userspace overall);
