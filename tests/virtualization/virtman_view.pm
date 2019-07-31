@@ -27,7 +27,7 @@ sub run {
     launch_virtmanager();
     # go to preferences
     wait_screen_change { send_key 'alt-e' };
-    send_key 'p';
+    wait_screen_change { send_key 'p' };
     assert_screen 'virtman-preferences';
     # go to polling
     wait_screen_change { send_key 'right' };
@@ -50,7 +50,7 @@ sub run {
     assert_screen 'virt-manager';
 
     # go to view now
-    wait_screen_change { send_key 'alt-v' };
+    send_key 'alt-v';
     wait_screen_change { send_key 'right' };
     # activate everything
     for (1 .. 4) {
