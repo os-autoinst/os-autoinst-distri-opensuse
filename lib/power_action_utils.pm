@@ -126,10 +126,19 @@ sub poweroff_x11 {
     }
 
     if (check_var("DESKTOP", "lxqt")) {
+        # Handle bsc#1137230
+        if (check_screen 'authorization_failed') {
+            record_soft_failure 'bsc#1137230 - "Authorization failed" pop-up shown';
+            assert_and_click 'authorization_failed_ok_btn';
+        }
+        elsif (check_screen 'authentication-required') {
+            record_soft_failure 'bsc#1137230 - "Authentication required" pop-up shown';
+            assert_and_click 'authentication-required_cancel_btn';
+        }
         # opens logout dialog
         x11_start_program('shutdown', target_match => [qw(authentication-required authorization_failed lxqt_shutdowndialog)], match_timeout => 60);
         # we have typing issue because of poor performance, to record this if happens.
-        # close authorization failed dialog caused by bsc#1137230
+        # Double check for bsc#1137230
         if (match_has_tag 'authorization_failed' || 'authentication-required') {
             croak "bsc#1137230, CD-ROM pop-up displayed at shutdown, authorization failed";
         }
