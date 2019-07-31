@@ -17,8 +17,7 @@
 
 NEW_DEPLOY_NEEDED=0
 
-if [ -z $GITHUB_TOKEN  ]
-then
+if [ -z $GITHUB_TOKEN  ] ; then
     NEW_DEPLOY_NEEDED=0
     exit 0
 fi
@@ -31,13 +30,13 @@ pod2html --infile=lib/utils.pm --outfile=docs/utils.html
 sed -i '/^<link rev="made" href="mailto:/d' docs/utils.html
 
 #checkout old docs and compare to new ones, then toggle flag accordingly
+git fetch origin gh-pages:gh-pages
 git checkout gh-pages utils.html
 diff -u utils.html docs/utils.html
 ret_val=$?
 git reset HEAD utils.html
 rm utils.html
-if [ ${ret_val} -ne 0 ]
-then
+if [ ${ret_val} -ne 0 ] ; then
     NEW_DEPLOY_NEEDED=1
 else
     NEW_DEPLOY_NEEDED=0

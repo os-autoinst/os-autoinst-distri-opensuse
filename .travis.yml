@@ -31,8 +31,7 @@ install:
 script:
   - git checkout cpanfile
   - make test
-before_deploy:
-  - script/generateUtilsDoc.sh
+  - source script/generateUtilsDoc.sh
 deploy:
     provider: pages
     skip_cleanup: true
@@ -40,6 +39,6 @@ deploy:
     local-dir: $TRAVIS_BUILD_DIR/docs/
     on:
         branch: master
-        condition: $NEW_DEPLOY_NEEDED
+        condition: "$NEW_DEPLOY_NEEDED = 1 && $TESTS = unit"
     target_branch: gh-pages
 
