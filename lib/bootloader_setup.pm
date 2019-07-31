@@ -691,9 +691,13 @@ sub specific_bootmenu_params {
 
 sub remote_install_bootmenu_params {
     my $params = "";
-    if (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
+    if (check_var("VIDEOMODE", "vnc")) {
+        $params .= " sshd=1 VNC=1 VNCPassword=$testapi::password "; # trigger vnc installation
+    }
+    elsif (check_var("VIDEOMODE", "text") || check_var("VIDEOMODE", "ssh-x")) {
         $params .= " ssh=1 ";    # trigger ssh-text installation
     }
+    
     else {
         $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
     }
