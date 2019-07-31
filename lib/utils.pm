@@ -248,7 +248,7 @@ sub integration_services_check {
 
 =head2 unlock_if_encrypted
 
-Check whether the system under test has an encrypted partition and attempts to unlock it
+Check whether the system under test has an encrypted partition and attempts to unlock it.
 =cut
 sub unlock_if_encrypted {
     my (%args) = @_;
@@ -319,7 +319,7 @@ sub assert_gui_app {
 
 13.2, Leap 42.1, SLE12 GA&SP1 have problems with setting up the
 console font, we need to call systemd-vconsole-setup to workaround
-that
+that.
 =cut
 sub check_console_font {
     # Does not make sense on ssh-based consoles
@@ -350,7 +350,7 @@ sub type_string_slow_extended {
 
 =head2 type_string_slow
 
-Typing a string with SLOW_TYPING_SPEED to avoid losing keys
+Typing a string with SLOW_TYPING_SPEED to avoid losing keys.
 =cut
 sub type_string_slow {
     my ($string) = @_;
@@ -445,7 +445,7 @@ sub zypper_call {
 
 =head2 zypper_enable_install_dvd
 
-TODO someone should document this
+Enables the install DVDs if they were used during the installation.
 =cut
 sub zypper_enable_install_dvd {
     # If DVD Packages is used we need to (re-)enable the local repos

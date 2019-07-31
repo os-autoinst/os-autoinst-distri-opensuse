@@ -57,7 +57,7 @@ sub run {
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
-    $self->wait_grub;
+    $self->wait_grub(bootloader_time => 150);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
     $self->{in_wait_boot} = 0;

@@ -28,9 +28,9 @@ sub run {
         gcc6                              => 'Now',
         gcc7                              => 'Now',
         libada7                           => 'Now',
-        libada8                           => '2024-10-30',
-        cpp8                              => '2024-10-30',
-        'sle-module-toolchain-release-cd' => '2024-10-30',
+        libada8                           => '2024-10-31',
+        cpp8                              => '2024-10-31',
+        'sle-module-toolchain-release-cd' => '2024-10-31',
     );
 
     select_console 'root-console';

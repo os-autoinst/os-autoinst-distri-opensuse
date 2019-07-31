@@ -18,6 +18,7 @@ use utils;
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use version_utils 'is_sle';
 use services::apache;
 
 our @EXPORT = qw(
@@ -144,7 +145,11 @@ sub install_services {
                 record_soft_failure('workaround for bug#1132292 zypper in apparmor failed msg popup');
             }
 
-            assert_script_run 'systemctl enable ' . $srv_proc_name;
+            # SLE12-SP2 doesn't support systemctl to enable apparmor
+            unless ($srv_pkg_name eq 'apparmor' && is_sle('<12-SP3')) {
+                assert_script_run 'systemctl enable ' . $srv_proc_name;
+            }
+
             assert_script_run 'systemctl start ' . $srv_proc_name;
         }
     }
