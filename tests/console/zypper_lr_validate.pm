@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Validate SLE zypper repositories
+# - List download repositories and outputs to serial device
+# - Calls validate_repos_sle (checks system variables, SLE channels table,
+# products, install media, architectures and determine if the correct
+# repositores are added)
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base "consoletest";

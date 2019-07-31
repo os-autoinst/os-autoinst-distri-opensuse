@@ -8,6 +8,23 @@
 # without any warranty.
 
 # Summary: test for 'zypper lifecycle'
+# - Run "zypper lifecycle" and parse its output for some header and links
+# - Runs a series of checks to determine a suitable package to validade
+# lifecycle, else hardcode to "sles-release"
+# - Backup original lifecycle data files (if exists)
+# (/var/lib/lifecycle/data/$prod.lifecycle) and create a new one with
+# "2020-02-03" as date and sles-release as package
+# - Check zypper lifecycle sles-release output
+# - Check zypper lifecycle sles-release --date 2020-02-04
+# - Check zypper lifecycle sles-release --date 2020-02-02
+# - Delete lifecycle data previously created
+# - Get product EOL by parsing /etc/products.d/$product.prod
+# - Check if product EOL matches test package EOL
+# - Restore original lifecycle data
+# - Check output of "zypper lifecycle --help"
+# - Check return of "zypper lifecycle --days 0"
+# - Check output of "zypper lifecycle --days 9999"
+# - Check output of "zypper lifecycle --date $(date --iso-8601)"
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: fate#320597
 

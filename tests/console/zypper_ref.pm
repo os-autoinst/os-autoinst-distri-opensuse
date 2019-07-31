@@ -10,6 +10,8 @@
 
 # Summary: Ensure zypper can refresh repos and enable them if the install
 # medium used was a dvd
+# - Enable install dvd
+# - Import gpg keys and refresh repositories
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";

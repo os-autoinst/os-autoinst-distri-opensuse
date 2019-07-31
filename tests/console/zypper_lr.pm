@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Only do very basic zypper lr test and show repos for easy investigation
+# - Prints output of zypper lr --uri to serial console.
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base "consoletest";
