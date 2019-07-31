@@ -91,12 +91,17 @@ sub find_img {
 }
 
 sub upload_img {
-    my ($self, $file) = @_;
+    my ($self, $file, $type) = @_;
     my $img_name = $self->file2name($file);
     my $uri      = $self->storage_name . '/' . $file;
+    $type //= 'default';
+    assert_script_run("gsutil cp $file gs://$uri", timeout => 60 * 60);
 
-    assert_script_run("gsutil cp $file gs://$uri",                                     timeout => 60 * 60);
-    assert_script_run("gcloud compute images create $img_name --source-uri gs://$uri", timeout => 60 * 10);
+    my $cmd = "gcloud compute images create $img_name --source-uri gs://$uri";
+    if ($type eq 'uefi') {
+        $cmd .= " --guest-os-features MULTI_IP_SUBNET,SECURE_BOOT,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE";
+    }
+    assert_script_run($cmd, timeout => 60 * 10);
 
     if (!$self->find_img($file)) {
         die("Cannot find image after upload!");
