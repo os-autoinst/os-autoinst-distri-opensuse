@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,8 +32,15 @@ sub run {
     }
 
     # hardware detection and waiting for updates from suse.com can take a while
-    assert_screen_with_soft_timeout('select-for-update', timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
-    send_key $cmd{next};
+    # Add tag 'all-partition' for poo#54050 - Need to show all Partition or the base partition for continous migration from SLE11SP4 won't be shown
+    assert_screen_with_soft_timeout([qw(select-for-update all-partition)], timeout => 500, soft_timeout => 100, bugref => 'bsc#1028774');
+    if (match_has_tag("all-partition")) {
+        send_key 'alt-s';
+        send_key $cmd{next};
+    }
+    if (match_has_tag("select-for-update")) {
+        send_key $cmd{next};
+    }
     assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
     if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
         send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
