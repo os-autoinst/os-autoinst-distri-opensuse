@@ -30,6 +30,9 @@ sub run {
 
     select_console 'root-console';
 
+    # saptune is not installed by default on SLES4SAP 12 on ppc64le
+    zypper_call "-n in saptune" if (get_var('OFW') and is_sle('<15'));
+
     unless (tuned_is 'running') {
         assert_script_run "saptune daemon start";
     }
