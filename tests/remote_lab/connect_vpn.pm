@@ -14,21 +14,13 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use Remote::Lab 'connect_vpn';
 use testapi;
-use utils;
+
 
 sub run {
-    my ($self) = @_;
-    my $vpn_username = get_required_var('VPN_USERNAME');
-    my $vpn_endpoint = get_var('VPN_ENDPOINT', 'asa003b.centers.ihost.com');
-    my $vpn_group    = get_var('VPN_GROUP',    'ACC');
-    # nohup should already go to background but during test development I
-    # observed that it still blocked the terminal – regardless of e.g. using a
-    # virtio serial terminal or VNC based – so let's force it to the
-    # background.
-    # accessing shell variables for the (secret) passwords defined in setup_vpn.
-    script_run "(echo \$vpn_password | nohup openconnect --user=$vpn_username --passwd-on-stdin --authgroup=$vpn_group $vpn_endpoint > vpn.log &)", 0;
-    wait_serial 'Welcome to the IBM Systems WW Client Experience Center';
+    select_console 'tunnel-console';
+    connect_vpn();
 }
 
 sub post_fail_hook {

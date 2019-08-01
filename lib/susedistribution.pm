@@ -461,6 +461,7 @@ sub init_consoles {
         $self->add_console('log-console',    'tty-console', {tty => 5});
         $self->add_console('displaymanager', 'tty-console', {tty => 7});
         $self->add_console('x11',            'tty-console', {tty => get_x11_console_tty});
+        $self->add_console('tunnel-console', 'tty-console', {tty => 3}) if get_var('TUNNELED');
     }
 
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
@@ -642,7 +643,8 @@ sub console_nr {
     my ($name) = ($1) || return;
     my $nr = 4;
     $nr = get_root_console_tty if ($name eq 'root');
-    $nr = 5 if ($name eq 'log');
+    $nr = 5                    if ($name eq 'log');
+    $nr = 3                    if ($name eq 'tunnel');
     return $nr;
 }
 
@@ -663,7 +665,6 @@ sub activate_console {
     my ($self, $console, %args) = @_;
 
     # Select configure serial and redirect to root-ssh instead
-    # TODO maybe for TUNNELED we want to use the same?
     return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/ && $console =~ m/root-console$|install-shell/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
@@ -686,7 +687,7 @@ sub activate_console {
     if ($name eq 'user') {
         $user = $testapi::username;
     }
-    elsif ($name eq 'log') {
+    elsif ($name =~ /log|tunnel/) {
         $user = 'root';
     }
 
@@ -769,6 +770,11 @@ sub activate_console {
             # Disable console screensaver
             $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
+    }
+    if (get_var('TUNNELED') && $name !~ /tunnel/) {
+        die "Console '$console' activated in TUNNEL mode activated but tunnel(s) are not yet initialized, use the 'tunnel' console and call 'setup_ssh_tunnels' first" unless get_var('_SSH_TUNNELS_INITIALIZED');
+        $self->script_run('ssh -t sut', 0);
+        ensure_user($user);
     }
     set_var('CONSOLE_JUST_ACTIVATED', 1);
 }
