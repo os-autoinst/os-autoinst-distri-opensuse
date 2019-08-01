@@ -67,7 +67,7 @@ sub assert_wicked_state {
     systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
     systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
     assert_script_run(sprintf("grep -q \"%s\" /sys/class/net/%s/operstate", $args{interfaces_down} ? 'down' : 'up', $args{iface}));
-    assert_script_run("ping -c 4 $args{ping_ip}") if $args{ping_ip};
+    $self->ping_with_timeout(ip => $args{ping_ip}) if $args{ping_ip};
 }
 
 
