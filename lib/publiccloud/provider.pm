@@ -162,7 +162,7 @@ sub run_ipa {
     $args{distro}      //= 'sles';
     $args{tests} =~ s/,/ /g;
 
-    my $version = script_output('img-proof --version');
+    my $version = script_output('img-proof --version', 300);
     record_info("IPA version", $version);
 
     my $cmd = 'img-proof --no-color test ' . $args{provider};
