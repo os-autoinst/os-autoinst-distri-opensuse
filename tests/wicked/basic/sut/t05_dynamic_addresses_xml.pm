@@ -22,6 +22,7 @@ use utils 'file_content_replace';
 sub run {
     my ($self, $ctx) = @_;
     my $config = '/data/dynamic_address/dynamic-addresses.xml';
+    sleep 30;    # W/A give ovs some time for setup !?
     record_info('Info', 'Set up dynamic addresses from wicked XML files');
     $self->get_from_data('wicked/dynamic_address/dynamic-addresses.xml', $config);
     file_content_replace($config, '--sed-modifier' => 'g', xxx => $ctx->iface());
