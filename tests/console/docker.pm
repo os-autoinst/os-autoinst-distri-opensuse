@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,18 +9,17 @@
 # without any warranty.
 
 # Summary: Test docker installation and extended usage
-#    Cover the following aspects of docker:
-#      * docker package can be installed
-#      * docker daemon can be started
-#      * images can be searched on the Docker Hub
-#      * images can be pulled from the Docker Hub
-#      * local images can be listed
-#      * containers can be spawned
-#      * containers state can be saved to an image
-#      * network is working inside of the containers
-#      * containers can be stopped
-#      * containers can be deleted
-#      * images can be deleted
+# - docker package can be installed
+# - docker daemon can be started
+# - images can be searched on the Docker Hub
+# - images can be pulled from the Docker Hub
+# - local images can be listed (with and without tag)
+# - containers can be run and created
+# - containers state can be saved to an image
+# - network is working inside of the containers
+# - containers can be stopped
+# - containers can be deleted
+# - images can be deleted
 # Maintainer: Flavio Castelli <fcastelli@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 use base "consoletest";
