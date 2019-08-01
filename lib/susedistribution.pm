@@ -416,11 +416,9 @@ sub init_consoles {
     my ($self) = @_;
 
     # avoid complex boolean logic by setting interim variables
-    if (check_var('BACKEND', 'svirt')) {
-        if (check_var('ARCH', 's390x')) {
-            set_var('S390_ZKVM',         1);
-            set_var('SVIRT_VNC_CONSOLE', 'x11');
-        }
+    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
+        set_var('S390_ZKVM',         1);
+        set_var('SVIRT_VNC_CONSOLE', 'x11');
     }
 
     if (check_var('BACKEND', 'qemu')) {
@@ -664,6 +662,9 @@ Option C<ensure_tty_selected> ensures TTY is selected.
 sub activate_console {
     my ($self, $console, %args) = @_;
 
+    # Select configure serial and redirect to root-ssh instead
+    # TODO maybe for TUNNELED we want to use the same?
+    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/ && $console =~ m/root-console$|install-shell/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
@@ -671,21 +672,11 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }
-        elsif (get_var('BACKEND', '') =~ /ipmi|spvm/) {
-            # Select configure serial and redirect to root-ssh instead
-            use_ssh_serial_console;
-            return;
-        }
         else {
             # on s390x we need to login here by providing a password
             handle_password_prompt if check_var('ARCH', 's390x');
             assert_screen "inst-console";
         }
-    }
-    elsif ($console =~ m/root-console$/ && get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/) {
-        # Select configure serial and redirect to root-ssh instead
-        use_ssh_serial_console;
-        return;
     }
 
     $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell)/;
