@@ -204,7 +204,7 @@ sub get_from_data {
 
   ping_with_timeout(type => $type[, ip => $ip, timeout => 60, ip_version => 'v4', proceed_on_failure => 0])
 
-Pings a given IP with a given C<timeout>.
+Pings a given C<ip> with a given C<timeout> using fping.
 C<ip_version> defines the ping command to be used, 'ping' by default and 'ping6' for 'v6'.
 IP could be specified directly via C<ip> or using C<type> variable. In case of C<type> variable
 it will be bypassed to C<get_remote_ip> function to get IP by label.
@@ -213,39 +213,39 @@ If ping fails, command die unless you specify C<proceed_on_failure>.
 sub ping_with_timeout {
     my ($self, %args) = @_;
     $args{ip_version}         //= 'v4';
-    $args{timeout}            //= '60';
+    $args{timeout}            //= '1';
     $args{proceed_on_failure} //= 0;
-    $args{count_success}      //= 1;
+    $args{count_success}      //= 3;
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
-    $args{threshold} //= 50;
-    my $timeout      = $args{timeout};
-    my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
-    $ping_command .= " -c 1 $args{ip}";
-    $ping_command .= " -I $args{interface}" if $args{interface};
-    while ($timeout > 0) {
-        if (script_run($ping_command) == 0) {
-            if ($args{count_success} > 1) {
-                my $cnt = $args{count_success} - 1;
-                $ping_command =~ s/\s-c\s1\s+/ -c $cnt /;
-                my $ping_out = script_output($ping_command, proceed_on_failure => 1);
-                $ping_out =~ /, (\d{1,3})% packet loss/;
-                #we treat interface in workable state if it manage to echo more than half packets
-                if ($1 > $args{threshold}) {
-                    die('PING EXCEED THRESHOLD ' . $args{threshold} . '%\n' . $ping_out);
-                }
-                elsif ($1) {
-                    record_info('WARNING', sprintf('PING with %d%% packet loss. Threshold is %d%% \n %s', $1, $args{threshold}, $ping_out));
-                }
-            }
-            return 1;
+    $args{packet_loss} //= 50;
+
+    my $ping_command = 'fping -q -s ';
+    #$ping_command .= ($args{ip_version} eq 'v6') ? '-6' : '-4';
+    $ping_command .= ' -I ' . $args{interface} if $args{interface};
+    $ping_command .= ' -t ' . $args{timeout} * 1000;
+    $ping_command .= ' -c ' . $args{count_success};
+    $ping_command .= ' ' . $args{ip};
+
+    my $ping_out = script_output($ping_command, $args{timeout} * $args{count_success} + 10, proceed_on_failure => 1);
+    record_info('ping', $ping_command . "\n" . $ping_out);
+
+    my ($icmp_tx) = $ping_out =~ /^(.*ICMP Echos sent.*)$/m;
+    ($icmp_tx) = $icmp_tx =~ m/([0-9])/;
+    my ($icmp_rx) = $ping_out =~ /^(.*ICMP Echo Replies received.*)$/m;
+    ($icmp_rx) = $icmp_rx =~ m/([0-9])/;
+    my $packet_loss = ($icmp_tx - $icmp_rx) / $icmp_tx * 100;
+
+    if ($packet_loss > $args{packet_loss}) {
+        my $msg = 'Ping packet-loss ' . $packet_loss . '% exceeds threshold ' . $args{packet_loss} . '%.';
+        if ($args{proceed_on_failure}) {
+            record_info('WARNING', $msg);
+            return 0;
         }
-        $timeout -= 1;
-        sleep 5;
+        else {
+            die($msg);
+        }
     }
-    if (!$args{proceed_on_failure}) {
-        die('PING failed: ' . $ping_command);
-    }
-    return 0;
+    return 1;
 }
 
 
