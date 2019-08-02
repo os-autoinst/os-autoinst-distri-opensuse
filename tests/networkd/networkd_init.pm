@@ -30,6 +30,7 @@ sub run {
 
     assert_script_run("ip li add name br0 type bridge");
     assert_script_run("ip li set br0 up");
+    systemctl("stop firewalld");
 
     $self->setup_nspawn_unit();
 
