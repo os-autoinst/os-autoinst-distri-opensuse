@@ -12,8 +12,8 @@
 
 use base "sles4sap";
 use testapi;
+use utils "zypper_call";
 use version_utils 'is_sle';
-use Utils::Architectures 'is_ppc64le';
 use strict;
 use warnings;
 
@@ -26,18 +26,7 @@ sub tuned_is {
 sub run {
     my ($self) = @_;
 
-    # Test has to work differently on x86_64 and ppc64le. Will verify test
-    # is running on ppc64le via the OFW variable
-    my $is_ppc64le = get_var('OFW');
-
-    # List of solutions is different between saptune in x86_64 and in ppc64le
-    my @solutions
-      = $is_ppc64le ?
-      qw(HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER)
-      : qw(BOBJ HANA MAXDB NETWEAVER S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
-
-    # Skip test if SLES4SAP version is before 15 and running on ppc64le
-    return if (is_sle('<15') and $is_ppc64le);
+    my @solutions = qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER\+HANA S4HANA-APP\+DB S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
     select_console 'root-console';
 
