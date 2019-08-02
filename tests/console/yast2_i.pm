@@ -9,6 +9,17 @@
 # without any warranty.
 
 # Summary: Install packages using yast2.
+# - Remove package from "$PACKAGETOINSTALL_RECOMMENDED" or yast2-nfs-client and nfs-client
+# - Install yast2-packager
+# - Launch yast2 sw_single
+# - On Yast2, enable "recommended packages"
+# - Search for "$PACKAGETOINSTALL_RECOMMENDED" or "yast2-nfs-client" (test
+# package_
+# - Select package to install
+# - On sles newer than sle12sp0, search for "$PACKAGETOINSTALL_RECOMMENDED" or
+# "nfs-client"
+# - Disable "recommended packages" and accept install of test package
+# - Remove test package
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base "y2_module_consoletest";

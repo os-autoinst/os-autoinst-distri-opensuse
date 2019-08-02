@@ -8,8 +8,16 @@
 # without any warranty.
 
 # Summary: this test checks that YaST2's Security module is behaving
-#          correctly by changing some valules and verifying that they
+#          correctly by changing some values and verifying that they
 #          have been successfully set.
+# - Launch yast2 security
+# - Access Password Settings, change minimum password lenght to "8", change
+# days before expiration warning to "30"
+# - Launch yast2 security and check the values on Password Settings
+# - Access Login Settings and change Delay after Incorrect login attempt to "5"
+# - Launch yast2 security and check the values on Login Settings
+# - Access Miscellaneous Settings, Change File Permissions to "secure"
+# - Launch yast2 security again and check the values on Miscellaneous Settings
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "y2_module_guitest";

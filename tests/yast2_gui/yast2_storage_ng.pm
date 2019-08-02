@@ -10,6 +10,26 @@
 # Summary: This test will check that creating, resizing, encrypting and
 #          deleting a partition, a volume group and some logical volumes work as
 #          intended.
+# - Starts yast2 storage and select /dev/vdb device
+# - Create a custom partition on /dev/vdb (200MiB, ext4)
+# - Encrypt the partition created (password "susetesting")
+# - Validate the partition creating by parsing the output of fdisk -l | grep
+# "/dev/vdb1" inside a xterm
+# - Starts yast2 storage and select /dev/vdb device
+# - Select /dev/vdb1, select custom size and resize it to 170MiB
+# - Validate the partition creating by parsing the output of fdisk -l | grep
+# "/dev/vdb1" inside a xterm
+# - Starts yast2 storage again, select /dev/vdb and delete partition created.
+# Checks if device is unpartitioned afterwards.
+# - Starts yast2 storage
+# - Create a new VG "vgtest" on /dev/vdb
+# - Inside "vgtest", create lv1, type: xfs
+# - Inside "vgtest", create lv2, type: ext3, encrypt that partition with
+# password "susetesting"
+# - Inside "vgtest", create lv3, type btrfs, encrypt partition unless is SLE12SP4
+# - Inside "vgtest", create lv4, type raw
+# - Start xterm, run "lvdisplay /dev/vgtest/lv<number>" for each partition
+# - Close xterm, start a new yast2 storage and delete all partitions created
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "y2_module_guitest";

@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: yast timezone, list, set and show summary
+# - Install yast2-country
+# - Check current timezone
+# - List available timezones
+# - Set timezone to Africa/Cairo
+# - Check if timezone was set to Africa/Cairo
+# - Return to previous timezone
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
 use base 'consoletest';

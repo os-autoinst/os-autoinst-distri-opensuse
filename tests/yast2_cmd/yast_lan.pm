@@ -9,6 +9,12 @@
 
 # Summary: yast lan in cli, creates, edits and deletes device and lists and
 # shows details of the device
+# - Installs yast2-network
+# - Adds a vlan device on interface eth0
+# - Display configuration summary for a lan interface with id=1
+# - Change lan interface with id=1 to bootproto=dhcp
+# - Delete a lan interface with id=1
+# - List all available network interfaces
 # Maintainer: Vit Pelcak <vpelcak@suse.cz>
 
 use base 'consoletest';

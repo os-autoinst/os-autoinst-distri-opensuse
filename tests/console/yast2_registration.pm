@@ -9,6 +9,16 @@
 
 # Summary: check if an unregistered system can be registered and if
 #          enabling and disabling extensions correctly work.
+# - Install yast2-registration
+# - Cleanup registration (SUSEConnect --cleanup)
+# - Launch yast2 registration
+# - Fill email and registration code (using system variables)
+# - Enable web and scripting modules
+# - Accept license agreement
+# - Accept install summary
+# - Accept automatic changes
+# - Wait for installation report
+# - Check registration status by checking output of "SUSEConnect --status-text"
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "opensusebasetest";
