@@ -1693,8 +1693,9 @@ sub load_extra_tests_toolkits {
 
 sub load_rollback_tests {
     return if check_var('ARCH', 's390x');
-    # On Xen PV we don't have GRUB
-    loadtest "boot/grub_test_snapshot" unless check_var('VIRSH_VMM_TYPE', 'linux');
+    # On Xen PV we don't have GRUB. 
+    # For continuous migration test from SLE11SP4, the filesystem is 'ext3' and btrfs snapshot is not supported.
+    loadtest "boot/grub_test_snapshot" unless check_var('VIRSH_VMM_TYPE', 'linux') || check_var('FILESYSTEM', 'ext3')
     # Skip load version switch for online migration
     loadtest "migration/version_switch_origin_system" if (!get_var("ONLINE_MIGRATION"));
     if (get_var('UPGRADE') || get_var('ZDUP')) {
