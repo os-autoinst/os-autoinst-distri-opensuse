@@ -28,10 +28,16 @@ my $test_data = get_test_data();
 
 sub initiator_service_tab {
     unless (is_sle('<15') || is_leap('<15.1')) {
-        change_service_configuration(
-            after_writing => {start         => 'alt-f'},
-            after_reboot  => {start_on_boot => 'alt-a'}
-        );
+        if (is_sle('=15')) {
+            change_service_configuration(
+                after_reboot => {start_on_boot => 'alt-b'}
+            );
+        } else {
+            change_service_configuration(
+                after_writing => {start         => 'alt-f'},
+                after_reboot  => {start_on_boot => 'alt-a'}
+            );
+        }
     }
     # go to initiator name field
     send_key "alt-i";
