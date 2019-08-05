@@ -8,6 +8,9 @@
 # without any warranty.
 
 # Summary: Very simple, needle free, bind server test
+# - check that named can be enabled and disabled
+# - start named service
+# - verify that the dns server responds
 # Maintainer: sysrich <RBrownCCB@opensuse.org>
 
 use strict;
