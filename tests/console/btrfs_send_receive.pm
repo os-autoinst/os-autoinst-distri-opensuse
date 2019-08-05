@@ -8,6 +8,14 @@
 # without any warranty.
 
 # Summary: Btrfs send & receive snapshots
+# - Creates a btrfs subvolume in /root/sr
+# - Prepares an external disk volume, formats with btrfs and mounts at /mnt/sr
+# - On /root/sv, creates 100 files, 1MB each
+# - Creates a full snapshot of /root/sr as /root/sr/snap1
+# - Send the snapshot to /mnt/sr using ""btrfs send /root/sr/snap1 | btrfs receive $dest"
+# - Check the copied files are ok by comparing md5sums
+# - Repeat the process (copy & check) twice (incremental snapshots)
+# - Umount external disk volume and erase partition table
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base 'btrfs_test';
