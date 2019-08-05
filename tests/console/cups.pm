@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Test basic capabilities of cups
+# - check 'cupsd -t' output
+# - enable and start cups.service
+# - check that cups is active
+# - check using lpstat that no destination is present
+# - add printers using lpadmin
+# - for each printer, submit a print job to the queue, list it and cancel it
+# - restart cups and check its status
+# - print a file using all prints
+# - check cups access log
+# - remove all previously added printers
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
 use base 'consoletest';
