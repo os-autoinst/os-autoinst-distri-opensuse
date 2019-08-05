@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Test installation and running of the docker image from the registry for this snapshot
+# - if on SLE, enable internal registry
+# - load image
+# - run container
+# - run some zypper commands
+# - commit the image
+# - remove the container, run it again and verify that the new image works
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base 'consoletest';
