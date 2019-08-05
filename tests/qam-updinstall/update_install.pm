@@ -38,14 +38,16 @@ sub install_packages {
         if (my ($package) = $line =~ $pattern and $1 !~ /-devel$|-patch-/) {
             # uninstall conflicting packages to allow problemless install
             my %conflict = (
-                'kernel-default'      => 'kernel-default-base',
-                'kernel-default-base' => 'kernel-default',
-                'kernel-azure'        => 'kernel-azure-base',
-                'kernel-azure-base'   => 'kernel-azure',
-                'kernel-rt'           => 'kernel-rt-base',
-                'kernel-rt-base'      => 'kernel-rt',
-                'kernel-xen'          => 'kernel-xen-base',
-                'kernel-xen-base'     => 'kernel-xen',
+                'reiserfs-kmp-default' => 'kernel-default-base',
+                'kernel-default'       => 'kernel-default-base',
+                'kernel-default-extra' => 'kernel-default-base',
+                'kernel-default-base'  => 'kernel-default',
+                'kernel-azure'         => 'kernel-azure-base',
+                'kernel-azure-base'    => 'kernel-azure',
+                'kernel-rt'            => 'kernel-rt-base',
+                'kernel-rt-base'       => 'kernel-rt',
+                'kernel-xen'           => 'kernel-xen-base',
+                'kernel-xen-base'      => 'kernel-xen',
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
             # install package
