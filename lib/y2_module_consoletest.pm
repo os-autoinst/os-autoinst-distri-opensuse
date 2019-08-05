@@ -2,7 +2,7 @@
 
 package y2_module_consoletest;
 use parent 'y2_module_basetest';
-use y2_installbase qw(save_upload_y2logs save_system_logs save_strace_gdb_output);
+use y2_installbase;
 use strict;
 use warnings;
 use testapi;
@@ -43,10 +43,10 @@ sub post_fail_hook {
     show_tasks_in_blocked_state if ($defer_blocked_task_info);
 
     $self->remount_tmp_if_ro;
-    $self->save_upload_y2logs;
+    y2_installbase::save_upload_y2logs();
     upload_logs('/var/log/zypper.log', failok => 1);
-    $self->save_system_logs;
-    $self->save_strace_gdb_output('yast');
+    y2_installbase::save_system_logs();
+    y2_installbase::save_strace_gdb_output('yast');
 }
 
 sub post_run_hook {
