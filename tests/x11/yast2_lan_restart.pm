@@ -15,7 +15,7 @@
 # - If not managed by network manager, do the following
 #   - Check network card setup, hardware and general tabs
 #   - Check network card routing tab (add 10.0.2.2 as default ipv4 route)
-#   - Check hardware device name, edit card, change name to "dyn0", 
+#   - Check hardware device name, edit card, change name to "dyn0",
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 # Tags: fate#318787 poo#11450
 
