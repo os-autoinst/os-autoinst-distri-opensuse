@@ -8,6 +8,8 @@
 # without any warranty.
 
 # Summary: Show information about current session (window system)
+# - Check current session type
+# - Select graphic console (x11), unless DESKTOP is set to textmode
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
 use base "opensusebasetest";
