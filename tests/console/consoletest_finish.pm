@@ -9,6 +9,14 @@
 # without any warranty.
 
 # Summary: Cleanup and switch (back) to X11
+# - from root-console execute 'loginctl --no-pager'
+# - unmask packagekit.service
+# - logout root (needed for KDE)
+# - reset console
+# - switch to normal user
+# - logout user
+# - reset console
+# - if not in textmode, then ensure that desktop is unlocked
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "opensusebasetest";
