@@ -67,10 +67,17 @@ sub prepare_iscsi_deps {
 
 sub target_service_tab {
     unless (is_sle('<15') || is_leap('<15.1')) {
-        change_service_configuration(
-            after_writing => {start         => 'alt-w'},
-            after_reboot  => {start_on_boot => 'alt-a'}
-        );
+        if (is_sle('=15')) {
+            change_service_configuration(
+                after_writing => {start         => 'alt-a'},
+                after_reboot  => {start_on_boot => 'alt-d'}
+            );
+        } else {
+            change_service_configuration(
+                after_writing => {start         => 'alt-w'},
+                after_reboot  => {start_on_boot => 'alt-a'}
+            );
+        }
     }
     # open port in firewall
     send_key 'alt-o';
@@ -109,6 +116,7 @@ sub config_2way_authentication {
         $key_shortcuts{auth_target_user}   = 'alt-u';
         $key_shortcuts{auth_target_pass}   = 'alt-p';
     }
+    $key_shortcuts{enable_auth_target} = 'alt-n' if (is_sle('=15'));
     send_key $key_shortcuts{enable_auth_init};
     assert_screen 'iscsi-target-acl-auth-initiator-enable-auth';
     send_key $key_shortcuts{auth_init_user};
