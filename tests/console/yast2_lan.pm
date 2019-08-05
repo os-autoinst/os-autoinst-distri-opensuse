@@ -10,6 +10,13 @@
 
 
 # Summary: yast2 lan functionality test https://bugzilla.novell.com/show_bug.cgi?id=600576
+# - Install yast2-network
+# - Launch yast2 lan
+# - Return if handled by network manager
+# - Handle firewall install screen and dhcp popups
+# - Set domain (zq1.de) and hostname (system var, or "susetest")
+# - Optionally, set ip, mask, hostname and check if /etc/hosts reflects the changes
+# - Get system ip and hostname
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2_module_consoletest";

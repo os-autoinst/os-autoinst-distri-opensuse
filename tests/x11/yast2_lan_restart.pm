@@ -8,6 +8,14 @@
 # without any warranty.
 
 # Summary: YaST logic on Network Restart while no config changes were made
+# - Launch xterm as root, stop firewalld
+# - Put network in debug mode (DEBUG="yes" on /etc/sysconfig/network/config)
+# - Launch yast2 lan, check network status
+# - Set ip, mask, hostname and check if /etc/hosts reflects the changes
+# - If not managed by network manager, do the following
+#   - Check network card setup, hardware and general tabs
+#   - Check network card routing tab (add 10.0.2.2 as default ipv4 route)
+#   - Check hardware device name, edit card, change name to "dyn0", 
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 # Tags: fate#318787 poo#11450
 

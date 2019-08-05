@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: YaST logic on Network Restart while no config changes were made
+# - Launch xterm as root, stop firewalld
+# - Put network in debug mode (DEBUG="yes" on /etc/sysconfig/network/config)
+# - Launch yast2 lan
+# - Add a device type brigde (dhcp)
+# - Add a device type bond
+# - Add a device type vlan
+# - Select the device
+# - Check the network status for each device (if network was restarted after
+# changes made)
+# - Delete all created devices
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 # Tags: fate#318787 poo#11450
 

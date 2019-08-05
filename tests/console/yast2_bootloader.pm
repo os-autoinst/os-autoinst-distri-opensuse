@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: Basic test for yast2 bootloader
+# - Install yast2-bootloader
+# - Launch yast2 bootloader
+# - Handle missing package screen
+# - Wait to yast2 to finish (initrd regenerated)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "y2_module_consoletest";

@@ -9,6 +9,15 @@
 # without any warranty.
 
 # Summary: Test for yast2-snapper
+# - Disable gnome-screensaver
+# - Install yast2-snapper
+# - Launch a xterm as root and run yast2 snapper
+# - In yast2 snapper, create a new snapshot, named "awesome snapshot"
+# - Decompress /home/$username/data/yast2_snapper.tgz
+# - Launch yast2 snapper again, select created snapshot, display the differences
+# after tarball was uncompressed
+# - Delete "awesome snapshot"
+# - Close yast2 snapper, delete testadata
 # Maintainer: Richard Brown <rbrown@suse.de>
 
 use base qw(y2snapper_common x11test);
