@@ -1,16 +1,17 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: consoletests: add a new curl_https test
-#    Ensure curl is able to successfully connect to a https site
-#    (www.opensuse.org) without certificate errors.
+# Summary: ensure curl is able to successfully connect to a https site
+#          without certificate errors.
+# - switch to normal user
+# - connect to a website using https (retry multiple times in case of failure)
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "consoletest";
