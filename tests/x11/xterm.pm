@@ -9,6 +9,8 @@
 # without any warranty.
 
 # Summary: Basic functionality of xterm terminal emulator
+# - Launch xterm
+# - Type "If you can see this text xterm is working" in the terminal
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
