@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Common setup for x11 tests
+# - Switch to X11 (make sure that is running in graphics mode)
 # Maintainer: mitiao <mitiao@gmail.com>
 
 use base "x11test";
