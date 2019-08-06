@@ -327,7 +327,7 @@ sub is_mediacheck {
 }
 
 sub is_desktop {
-    return get_var('FLAVOR', '') =~ /^Desktop/ || check_var('SLE_PRODUCT', 'sled');
+    return get_var('FLAVOR', '') =~ /^Desktop/ || check_var('SLE_PRODUCT', 'sled')
 }
 
 sub is_desktop_module_selected {
