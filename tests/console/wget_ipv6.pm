@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Test curl fallback from IPv6 to IPv4
+# - Install wget
+# - Test that wget is installed
+# - Download a file and display its contents
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: bsc#598574
 
