@@ -8,6 +8,17 @@
 # without any warranty.
 
 # Summary: Test basic functionality of wavpack audio compression format.
+# - Add SDK repository
+# - Install alsa, alsa-utils and wavpac
+# - Compress file using wavpack
+# - Compress file using wavpack in fast mode
+# - Compress file using very high qualit
+# - Compress and delete file (if success)
+# - Decompress file created by wavpack
+# - Check compressed file created by wavpack
+# - Display calculated values on compressed files
+# - Add gain values to compressed files
+# - Show stored values on compressed files
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
 use base "consoletest";
