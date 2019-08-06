@@ -27,7 +27,10 @@ sub run {
     zypper_call "in autoyast2";
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
-    wait_serial("$module_name-0", 180) || die "'yast2 clone_system' didn't finish";
+    wait_serial("$module_name-0", 360) || die "'yast2 clone_system' didn't finish";
+    
+    # Workaround for aarch64, as ncurces UI is not updated properly sometimes
+    script_run('clear');
 
     $self->select_serial_terminal;
     # Replace unitialized email variable - bsc#1015158
