@@ -28,7 +28,7 @@ sub run {
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'clone_system');
     wait_serial("$module_name-0", 360) || die "'yast2 clone_system' didn't finish";
-    
+
     # Workaround for aarch64, as ncurces UI is not updated properly sometimes
     script_run('clear');
 

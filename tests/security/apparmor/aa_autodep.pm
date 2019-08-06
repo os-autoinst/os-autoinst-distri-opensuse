@@ -15,7 +15,7 @@
 
 # Summary: Single testcase for AppArmor that guesses basic profile requirements
 # for nscd and pam using aa_autodep.
-# - Create a temporary profile for nscd in "/tmp/apparmor.d" using 
+# - Create a temporary profile for nscd in "/tmp/apparmor.d" using
 # "aa-autodep -d $aa_tmp_prof/ nscd"
 # - Check if "/tmp/apparmor.d/usr.sbin.nscd" contains required fields
 # - Create a temporaty profile for /usr/bin/pam*
