@@ -49,7 +49,7 @@ sub enter_rootinfo {
     assert_screen "inst-rootpassword";
     type_password_and_verification;
     assert_screen "rootpassword-typed";
-    assert_and_click 'next-button';
+    send_key $cmd{next};
     await_password_check;
 }
 

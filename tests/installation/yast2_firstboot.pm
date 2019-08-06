@@ -47,7 +47,7 @@ sub license {
     }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
     # Workaround license checkbox, applicable for sle12sp5 only currently
-    assert_screen([qw(license-agreement inst-timezone)], 60);
+    assert_screen([qw(license-agreement inst-timezone)]);
     if (match_has_tag('license-agreement')) {
         record_soft_failure 'bsc#1131327 License checkbox was cleared! Re-check again!';
         send_key 'alt-a';
@@ -100,7 +100,7 @@ sub run {
     user_setup(1);
     root_setup;
     assert_screen 'installation_completed';
-    assert_and_click 'finish-button';
+    send_key $cmd{finish};
     assert_screen([qw(displaymanager generic-desktop)], 120);
 }
 
