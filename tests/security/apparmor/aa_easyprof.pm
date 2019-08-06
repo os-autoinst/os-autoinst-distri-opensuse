@@ -13,9 +13,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: AppArmor profile generation made easy testing, using aa-easyprof and
-# a pre-determined set of parameters. Creates json files on newer (sle15+) sles.
-# Validation is done by checking generated profiles against input parameters.
+# Summary: AppArmor profile generation made easy testing.
+# - Run aa-easyprof with a pre-determined set of parameters. In case of sles or
+# leap > 15, add "--output-format=json to parameter list and create output as
+# json. Capture the output of the command in a log file
+# - Upload the logfile
+# - Check the logfile for a specific set of values
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36895, tc#1621144
 

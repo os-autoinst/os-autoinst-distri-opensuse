@@ -14,10 +14,16 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Test the utility for updating AppArmor security profiles.
-# It creates a profile for nscd in a temp dir. To test, remove some rules
-# from temp nscd profile and puts nscd in complain mode using the temporary
-# files as reference. In case of tumbleweed, unload nscd profile, otherwise
-# start it and run aa-logprof to update apparmor profiles.
+# - Stops nscd and restarts auditd
+# - Create a temporary profile dir on /tmp
+# - Remove '/usr.*nscd mrix' and 'nscd\.conf' from /tmp/apparmor.d/usr.sbin.nscd
+# - Run "aa-complain -d /tmp/apparmor.d usr.sbin.nscd" check for "setting
+# complain"
+# - Start nscd, upload logfiles
+# - Run "aa-logprof -d /tmp/apparmor.d" interactivelly
+# - Check /tmp/apparmor.d/usr.sbin.nscd" for '/usr.*nscd mrix' and 'nscd\.conf'
+# - Check if nscd could start with the temporary apparmor profiles
+# - Cleanup temporary directory
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36892, poo#45803
 

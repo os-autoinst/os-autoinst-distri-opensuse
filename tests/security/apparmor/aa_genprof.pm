@@ -14,9 +14,16 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Test the profile generation utility of Apparmor using aa-genprof.
-# Uses aa-genprof to create test profiles for nscd on a temporary directory.
-# While aa-genprof waits, restarts nscd and interactivelly accepts and save
-# changes. Validates the generated profile against a predetermined set of values.
+# - Starts auditd
+# - Creates a temporary profile dir in /tmp
+# - Run "aa-genprof -d /tmp/apparmor.d nscd" inside a screen
+# - While the command is running, detach screen and restart nscd
+# - Reattach screen and continue execution (interactive mode)
+# - Run "cat /tmp/apparmor.d/usr.sbin.nscd" and check the output for a set of
+# parameters
+# - Run function "aa_tmp_prof_verify" (check if program is able to start using
+# the temporary profiles)
+# - Clean the temporary profiles directory
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#36886, poo#45803
 
