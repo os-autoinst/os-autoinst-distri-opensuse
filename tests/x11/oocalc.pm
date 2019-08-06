@@ -17,7 +17,9 @@ use warnings;
 use testapi;
 
 sub run {
-    x11_start_program('oocalc');
+    my ($self) = shift;
+
+    $self->libreoffice_start_program('oocalc');
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     wait_screen_change { assert_and_click('input-area-oocalc', timeout => 10) };
     type_string "Hello World!\n";

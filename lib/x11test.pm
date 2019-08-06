@@ -935,4 +935,16 @@ sub check_desktop_runner {
     x11_start_program('true', target_match => 'generic-desktop', no_wait => 1);
 }
 
+# Start one of the libreoffice components, close any first-run dialogs
+sub libreoffice_start_program {
+    my ($self, $program) = @_;
+
+    x11_start_program($program);
+    if (match_has_tag('ooffice-tip-of-the-day')) {
+        # Unselect "_S_how tips on startup", select "_O_k"
+        send_key "alt-s";
+        send_key "alt-o";
+    }
+}
+
 1;
