@@ -30,8 +30,8 @@ install:
   - make prepare
 script:
   - git checkout cpanfile
-  - make test
   - source script/generateUtilsDoc.sh
+  - make test
 deploy:
     provider: pages
     skip_cleanup: true
