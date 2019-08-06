@@ -9,7 +9,14 @@
 
 # Summary: test that uses zip command line tool to regression test.
 # If succeed, the test passes without error.
-#
+# - Add SDK repository if necessary (devel package necessary for test)
+# - Create a temp dir, copy files from /usr/share/doc to it
+# - Compress all the files on temp dir in zip file
+# - List zip file contents using unzip-mem -l
+# - List zip file contents using unzip-mem -v
+# - List zip file contents using unzip-mem -t
+# - Unzip file using unzzip
+# - Cleanup files
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
 use base "consoletest";
