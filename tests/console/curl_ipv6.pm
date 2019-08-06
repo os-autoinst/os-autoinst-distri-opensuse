@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Test curl fallback from IPv6 to IPv4
+# - switch to normal user
+# - curl a website
+# - ensure that curl and libcurl4 are installed
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: bsc#598574
 
