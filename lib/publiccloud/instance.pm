@@ -96,12 +96,14 @@ sub upload_log {
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
-=head2 wait_fo_guestregister
+=head2 wait_for_guestregister
 
     wait_for_guestregister([timeout => 300]);
 
-Run command C<systemctl is-active guestregister> on the instance in a loop
-for max C<timeout> seconds until it will return inactive.
+Run command C<systemctl is-active guestregister> on the instance in a loop and
+wait till guestregister is ready. If guestregister finish with state failed,
+a soft-failure will be recorded.
+If guestregister will not finish within C<timeout> seconds, job dies.
 =cut
 sub wait_for_guestregister
 {
@@ -113,6 +115,11 @@ sub wait_for_guestregister
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         if ($out eq 'inactive') {
+            return time() - $start_time;
+        }
+        if ($out eq 'failed') {
+            $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', proceed_on_failure => 1, quiet => 1);
+            record_soft_failure("guestregister failed:\n\n" . $out);
             return time() - $start_time;
         }
         if (time() - $last_info > 10) {
