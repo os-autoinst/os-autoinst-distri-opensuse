@@ -14,6 +14,21 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: wicked script for more logs if eth0 is not up
+# - Check wickedd status
+# - Send network interface list to serial output
+# - Check each network interface status
+# - If any interface fails
+#   - Enable wicked debug
+#   - Restart wickedd
+#   - Bring all interfaces up in debug mode
+#   - Save a screenshot
+#   - Collect interface config and save
+#   - Collect interface status and save
+#   - Collect system log and save
+#   - Collect route and ip address
+#   - Collect network card info
+#   - Compress everything and upload the logs
+#   - Save a screenshot
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
