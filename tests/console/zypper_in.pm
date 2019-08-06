@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Simple 'zypper in' test
+# - List download repositories ("zypper lr -d") and redirect to serial output
+# - If no specific package is defined, try to install "x3270" in sle or
+# "xdelta3" in openSUSE and "screen"
+# - Remove package using rpm -e
+# - Check if package was removed
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use base "consoletest";

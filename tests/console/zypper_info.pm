@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Ensure zypper info shows expected output
+# - Check output of "zypper info vim" for header and package name
+# - Add zypper source repository to correspondent distro version
+# - Check headers and package name on output of "zypper info srcpackage:coreutils"
+# - Remove source repositories added before
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 # Tags: fate#321104, poo#15932
 
