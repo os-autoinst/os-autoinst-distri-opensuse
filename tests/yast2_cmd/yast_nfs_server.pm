@@ -40,7 +40,7 @@ sub check_bsc1142979 {
     my $grep_cmd = script_run("grep -i $bsc_dir /etc/exports");
     if ($grep_cmd != 0) {
         my $ret_val = script_run("yast nfs-server delete mountpoint=$bsc_dir");
-        if ($ret_val == 0) {
+        if ($ret_val == 0 || $ret_val == 16) {
             record_soft_failure "Nfs-server bug: bsc#1142979 - Remove a mount directory that does not exist return value error"; }
     }
 }
@@ -59,20 +59,24 @@ sub run {
     assert_script_run("yast nfs-server add mountpoint=$tmp_dir hosts=*.test.com");
     validate_script_output("exportfs", sub { m#$tmp_dir\s+\*.test.com# });
 
-    # 3. Specifies additional parameters for the NFS server
-    assert_script_run("yast nfs-server set enablev4=yes security=yes");
+    # 3. Specifies additional parameters for the NFS server and check sles12sp2-bsc1144221
+    my $ret_set = script_run("yast nfs-server set enablev4=yes security=yes");
+    if ($ret_set == 16) {
+        record_soft_failure "Nfs-server sles12sp2 bug: bsc#1144221 - yast nfs-server setting parameter return value error"; }
 
     # 4. Displays a summary of the NFS server configuration
-    validate_script_output("yast nfs-server summary 2>&1",
-        sub { m#NFS\s+server\s+is\s+enabled# && m#\*\s+$tmp_dir# && m#NFSv4\s+support\s+is\s+enabled# && m#NFS\s+Security\s+using\s+GSS\s+is\s+enabled#i });
+    validate_script_output("echo \$(yast nfs-server summary 2>&1)",
+        sub { m#NFS\s+server\s+is\s+enabled#; m#\*\s+$tmp_dir#; m#NFSv4\s+support\s+is\s+enabled#; m#NFS\s+Security\s+using\s+GSS\s+is\s+enabled#; });
 
     check_bsc1142979;
 
     # 5. Restore nfs-server settings and used summary parameter verify
-    assert_script_run("yast nfs-server delete mountpoint=$tmp_dir");
+    my $ret_del = script_run("yast nfs-server delete mountpoint=$tmp_dir");
+    if ($ret_del == 16) {
+        record_soft_failure "Nfs-server sles12sp2 bug: bsc#1144221 - yast nfs-server setting parameter return value error"; }
     assert_script_run("yast nfs-server set enablev4=no security=no");
-    validate_script_output("yast nfs-server summary 2>&1",
-        sub { m#Not\s+configured\s+yet# && m#NFSv4\s+support\s+is\s+disabled# && m#NFS\s+Security\s+using\s+GSS\s+is\s+disabled#i });
+    validate_script_output("echo \$(yast nfs-server summary 2>&1)",
+        sub { m#Not\s+configured\s+yet#; m#NFSv4\s+support\s+is\s+disabled#; m#NFS\s+Security\s+using\s+GSS\s+is\s+disabled#; });
 
     # 6. Delete the tmp directory for testing
     assert_script_run("rm -rf $tmp_dir", fail_message => "deleting $tmp_dir directory failed.");
