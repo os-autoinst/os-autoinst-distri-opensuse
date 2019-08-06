@@ -19,22 +19,6 @@ use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
 
-sub wait_for_guestregister
-{
-    my ($instance) = @_;
-    my $retries = 20;
-
-    for (my $loop = 0; $loop < $retries; $loop++) {
-        my $out = $instance->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1);
-        if ($out eq 'inactive') {
-            return;
-        }
-        record_info('WAIT', 'Wait for guest register: ' . $out);
-        sleep 30;
-    }
-    die('guestregister didn\'t end in expected time');
-}
-
 sub get_ltp_rpm
 {
     my ($url) = @_;
@@ -61,7 +45,7 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
-    wait_for_guestregister($instance);
+    $instance->wait_for_guestregister();
 
     $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path);
 
