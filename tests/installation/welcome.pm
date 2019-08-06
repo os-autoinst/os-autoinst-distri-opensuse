@@ -9,6 +9,18 @@
 # without any warranty.
 
 # Summary: Wait for installer welcome screen. Covers loading linuxrc
+# - Check if system is on installer environment
+# - Goes through install steps (welcome screen, product lists, beta warning,
+# dhcp confirmation)
+# - If scc url error is found, try to type one from "$SCC_URL_VALID" system variable
+# - Handle self update server and untrusted ca warnings
+# - Handle dhcp question
+# - Handle beta warnings
+# - Check product selection
+# - Go to console and check bootloader parameters, checking /proc/cmdline and /etc/install.inf
+# - Save screenshot
+# - If necessary, change keyboard layout
+# - Proceed install (Next, next) until license on welcome screen is found
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
