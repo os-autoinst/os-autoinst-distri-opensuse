@@ -176,13 +176,6 @@ sub setup_env {
         set_var('INSTLANG', 'en_US');
     }
 
-    if (get_var('UEFI') && !is_aarch64) {
-        # avoid having to update all job templates, but newer qemu
-        # BIOS wants to have the bios passed differently
-        # https://github.com/os-autoinst/os-autoinst/pull/377
-        # Does _not_ work on aarch64
-        set_var('UEFI_PFLASH', 1);
-    }
     # By default format DASD devices before installation
     if (check_var('BACKEND', 's390x')) {
         # Format DASD before the installation by default
