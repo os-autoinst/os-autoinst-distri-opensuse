@@ -9,6 +9,18 @@
 
 # Summary: vsftpd QAM regression testsuite
 #          not testing SSL now due to https://bugzilla.suse.com/show_bug.cgi?id=1116571
+# - If system is server, create a lock ("barrier") for sshd service
+#   - Install vsftpd
+#   - Otherwise, install expect
+# - Add hostnames to /etc/hosts
+# - Generate ssh keys
+# - Unlock sshd barrier
+# - Copy ssh keys to server and client using "ssh-copy-id" using expect in
+# interactive mode
+# - Get vsftpd testsuite and uncompress on /tmp
+# - Create a lock for vsftpd suite
+# - If HOSTNAME contains "client", run "run.sh" script
+# - Unlock vsftpd barrier
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'consoletest';
