@@ -22,6 +22,9 @@
   </services-manager>
   <software>
     <install_recommended config:type="boolean">true</install_recommended>
+    <products config:type="list">
+        <product>openSUSE</product>
+    </products>
     <patterns config:type="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
