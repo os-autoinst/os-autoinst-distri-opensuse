@@ -15,6 +15,10 @@
 #
 # Summary: Test with "usr.sbin.nscd" is in "enforce" mode and AppArmor is
 #          "enabled && active", stop and start the nscd service have no error.
+# - Install nscd
+# - Run "aa-enforce usr.sbin.nscd", checks output for enforce mode confirmation
+# - Stop, start, restart and check status on nscd service
+# - Check audit.log for errors related to nscd
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#44993, tc#1695951
 

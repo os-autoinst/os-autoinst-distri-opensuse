@@ -15,6 +15,14 @@
 #
 # Summary: Test with "usr.lib.dovecot.*" (mainly *.imap*) & "usr.sbin.dovecot"
 #          are in "enforce" mode retrieve mails with imap should have no error.
+# - Start apparmor service
+# - Run "aa-enforce usr.sbin.dovecot" and check output for enforce mode is set
+# - Run "aa-enforce /etc/apparmor.d/usr.lib.dovecot*" and check output for enforce mode is set
+# - Run aa-status and confirm that "usr.lib.dovecot.imap is on enforce mode
+# - Restart dovecot
+# - Use telnet and retrieve email using imap
+# - Check audit.log for existence of errors related to dovecot
+
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#46235, tc#1695943
 
