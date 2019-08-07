@@ -15,6 +15,14 @@
 #
 # Summary: Test if the Screen Sharing GNOME Desktop functionality works
 #   We currently need to install vino package for that
+# - Launch "gnome-control-center sharing"
+# - Enable sharing function
+# - Install vino if necessary
+#   - Relogin in case of install is necessary
+#   - Redo screensharing enabling steps
+# - Check if wayland is being used
+#   - If wayland is detected, record_soft_failure (boo#1137569)
+# - Finish with ctrl-q
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "x11test";
