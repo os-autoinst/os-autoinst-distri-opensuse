@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Check VNC Secondary viewonly password
+# - Stop vncmanager
+# - Create custom passwords (one for readonly, other for # read/write)
+# - Starts a vncserver with the custom password file
+# - Starts a xterm
+# - For each password (read only/read write)
+#   - Starts xev to monitor events
+#   - Launch vncview with supplied password
+#   - Send some vnc events to xev
+# - Check if events were recorded by xev
+# - Close all opened windows
 # Maintainer: mkravec <mkravec@suse.com>
 # Tags: poo#11794
 
