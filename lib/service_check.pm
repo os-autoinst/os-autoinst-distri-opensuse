@@ -26,6 +26,7 @@ our @EXPORT = qw(
   $default_services
   install_services
   check_services
+  check_nvidia
 );
 
 our $hdd_base_version;
@@ -175,6 +176,11 @@ sub check_services {
               . ' --no-pager | grep -w active';
         }
     }
+}
+
+sub check_nvidia {
+    record_info("Check NVIDIA package");
+    assert_script_run("zypper lr -u | grep NVIDIA");
 }
 
 1;

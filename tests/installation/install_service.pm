@@ -46,6 +46,8 @@ sub run {
       && !get_var('MEDIA_UPGRADE')
       && !get_var('ZDUP')
       && !get_var('INSTALLONLY');
+
+    check_nvidia() if (get_var('SCC_ADDONS') =~ m/we/);
 }
 
 sub test_flags {
