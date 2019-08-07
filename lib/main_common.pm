@@ -1608,7 +1608,6 @@ sub load_extra_tests_console {
     loadtest 'console/quota' unless is_jeos;
     loadtest 'console/vhostmd';
     loadtest 'console/rpcbind' unless is_jeos;
-    loadtest 'console/dracut' if is_sle('12-SP5+');
     # sysauth test scenarios run in the console
     loadtest "sysauth/sssd" if get_var('SYSAUTHTEST') || is_sle('12-SP5+');
     loadtest 'console/timezone';
