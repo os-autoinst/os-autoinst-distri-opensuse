@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Test vim editor display including syntax highlighting
+# - Check if vim is installed
+# - Check if vim-data is installed (should not be on JeOS (cexcept openSUSE
+# aarch64))
+# - Run "vim /etc/passwd"
+# - Check if file is opened correctly (with syntax hightlight)
+# - Force exit vim (":q!")
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
