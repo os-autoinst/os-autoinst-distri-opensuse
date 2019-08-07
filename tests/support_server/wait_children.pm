@@ -15,6 +15,9 @@
 
 # Summary: Main purpose not allow support server to go down
 # until all parallel jobs finish what they are doing
+# - Wait for children jobs to finish
+# - If REMOTE_CONTROLLER is undefined, send "ctrl-c"
+# - Upload logs, if opensuse
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;
