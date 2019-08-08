@@ -15,6 +15,10 @@
 #
 # Summary: Test with "usr.sbin.traceroute" is in "enforce" mode and AppArmor is
 #          "enabled && active", the "/usr/sbin/traceroute" can work as usual.
+# - Run "aa-enforce usr.sbin.traceroute", check output for enforce mode set
+# - Clean "/var/log/audit/audit.log"
+# - Run "traceroute www.baidu.com"
+# - Log (audit.log) should not contain no errors related to traceroute
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#44996, tc#1682587
 

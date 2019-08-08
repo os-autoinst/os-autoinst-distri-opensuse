@@ -15,6 +15,13 @@
 #
 # Summary: Test with "usr.lib.dovecot.*" (mainly *.pop3*) & "usr.sbin.dovecot"
 #          are in "enforce" mode retrieve mails with pop3 should have no error.
+# - Start apparmor service
+# - Run "aa-enforce usr.sbin.dovecot" and check output for enforce mode is set
+# - Run "aa-enforce /etc/apparmor.d/usr.lib.dovecot*" and check output for enforce mode is set
+# - Run aa-status and confirm that "usr.lib.dovecot.pop3 is on enforce mode
+# - Restart dovecot
+# - Use telnet and retrieve email using pop3
+# - Check audit.log for existence of errors related to dovecot
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#46238, tc#1695947
 

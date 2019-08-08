@@ -15,6 +15,27 @@
 #
 # Summary: Test with "usr.sbin.smbd" is in "enforce" mode and AppArmor is
 #          "enabled && active", access the shared directory should have no error.
+# - Install samba samba-client yast2-samba-client yast2-samba-server
+# - Restart smb
+# - Select X11 console
+# - Launch yast2 samba-server
+# - Fill Workgroup name as "WORKGROUP"
+# - Add a new share named "testdir", description "This is smbtest", type
+# directory, at "/home/testdir"
+# - Switch to text console
+# - Install expect
+# - Delete/create testuser
+# - Set a smb password for testuser
+# - Run "aa-enforce usr.sbin.smbd" and check for enforce mode confirmation
+# - Run aa-status to make sure profile is on enforce mode
+# - Restart apparmor and smb
+# - Go to X11 console
+# - Launch nautilus and access "smb://<server address>"
+# - Check for the shared dir
+# - Fill in user, workgroup, password and access the share directory
+# - Create and delete a test folder inside the share
+# - Switch back to text console
+# - Check audit.log for error messages related to smbd
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#48776, tc#1695952
 
