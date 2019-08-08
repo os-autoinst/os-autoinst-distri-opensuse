@@ -43,7 +43,7 @@ sub post_fail_hook {
     show_tasks_in_blocked_state if ($defer_blocked_task_info);
 
     $self->remount_tmp_if_ro;
-    y2_installbase::save_upload_y2logs();
+    y2_installbase::save_upload_y2logs($self);
     upload_logs('/var/log/zypper.log', failok => 1);
     y2_installbase::save_system_logs($self);
     y2_installbase::save_strace_gdb_output($self, 'yast');

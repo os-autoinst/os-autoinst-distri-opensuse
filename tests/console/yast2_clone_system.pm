@@ -71,7 +71,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    $self->upload_logs($xml_schema_path);
+    upload_logs($xml_schema_path);
 }
 
 1;
