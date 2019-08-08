@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Test OpenVPN on two machines. This one is client.
+#  * After server is done, we use SCP to download the shared key
+#  * When connected, we perform the ping, disconnect and wait again
+#  * After server is done, we use SCP to download the root certificate, client certificate and key
+#  * When connected, we perform the ping, and finally disconnect.
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base 'consoletest';

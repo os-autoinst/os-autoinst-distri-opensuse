@@ -7,7 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test OpenVPN on two machines - this one is server.
+# Summary: Test OpenVPN on two machines - this one is the server.
+#  * Shared key is generated, server configured and started
+#  * After client connects, both sides perform ping, then disconnect
+#  * Easy-RSA CA infrastructure is generated, server configured and started
+#  * After client connects, both sides perform ping, then disconnect
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base 'consoletest';
