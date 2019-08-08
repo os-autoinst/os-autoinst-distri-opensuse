@@ -439,10 +439,9 @@ sub wait_grub {
     my $in_grub         = $args{in_grub}         // 0;
     my @tags            = ('grub2');
     push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
-    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');             # LIVETEST won't to do installation and no grub2 menu show up
+    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
     push @tags, 'bootloader'                      if get_var('OFW');
     push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
-    push @tags, 'linux-login'                     if get_var('KEEP_GRUB_TIMEOUT');    # Also wait for linux-login if grub timeout was not disabled
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
     }
@@ -480,12 +479,6 @@ sub wait_grub {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
         assert_screen "grub2", 15;
-    }
-    # If KEEP_GRUB_TIMEOUT is set, SUT may be at linux-login already, so no need to abort in that case
-    elsif (!match_has_tag("grub2") and !match_has_tag('linux-login')) {
-        # check_screen timeout
-        my $failneedle = get_var('KEEP_GRUB_TIMEOUT') ? 'linux-login' : 'grub2';
-        die "needle '$failneedle' not found";
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }
