@@ -27,15 +27,16 @@ sub run {
     my ($self) = @_;
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
-    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
+    # DEBUG FIXME spvm
+    my $gnome_ipmi = ((get_var('BACKEND', '') =~ /ipmi|spvm/) && check_var('DESKTOP', 'gnome'));
     if ($gnome_ipmi) {
         # first boot takes sometimes quite long time, ensure that it reaches login prompt
         $self->wait_boot(textmode => 1);
         select_console('x11');
     }
     my $boot_timeout = (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 450 : 200;
-    # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
-    return if check_var('ARCH', 's390x') && is_sle('15+');
+    # SLE >= 15 s390x and powerVM does not offer auto-started VNC server in SUT, only login prompt as in textmode
+    return if (check_var('ARCH', 's390x') && is_sle('15+')) || check_var('BACKEND', 'spvm');
     if (check_var('WORKER_CLASS', 'hornet')) {
         # hornet does not show the console output
         diag "waiting $boot_timeout seconds to let hornet boot and finish initial script";
