@@ -19,6 +19,8 @@ use version_utils qw(is_sle is_opensuse);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
 
+my $xml_schema_path = "/usr/share/YaST2/schema/autoyast/rng/profile.rng";
+
 sub run {
     my $self = shift;
     select_console 'root-console';
@@ -33,11 +35,12 @@ sub run {
     script_run('clear');
 
     $self->select_serial_terminal;
+    my $ay_profile_path = '/root/autoinst.xml';
     # Replace unitialized email variable - bsc#1015158
-    assert_script_run 'sed -i "/server_email/ s/postmaster@/\0suse.com/" /root/autoinst.xml';
+    assert_script_run "sed -i \"/server_email/ s/postmaster@/\\0suse.com/\" $ay_profile_path";
 
     # Check and upload profile for chained tests
-    upload_asset "/root/autoinst.xml";
+    upload_asset $ay_profile_path;
 
     unless (is_opensuse) {
         my $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
@@ -47,8 +50,8 @@ sub run {
     zypper_call '--gpg-auto-import-keys ref';
     zypper_call 'install jing';
 
-    my $rc_jing    = script_run 'jing /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml';
-    my $rc_xmllint = script_run 'xmllint --noout --relaxng /usr/share/YaST2/schema/autoyast/rng/profile.rng /root/autoinst.xml';
+    my $rc_jing    = script_run "jing $xml_schema_path $ay_profile_path";
+    my $rc_xmllint = script_run "xmllint --noout --relaxng $xml_schema_path $ay_profile_path";
 
     if (($rc_jing) || ($rc_xmllint)) {
         if (is_sle('<15')) {
@@ -60,9 +63,15 @@ sub run {
     }
 
     # Remove for autoyast_removed test - poo#11442
-    assert_script_run "rm /root/autoinst.xml";
+    assert_script_run "rm $ay_profile_path";
     # Return from VirtIO console
     select_console 'root-console';
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    $self->upload_logs($xml_schema_path);
 }
 
 1;
