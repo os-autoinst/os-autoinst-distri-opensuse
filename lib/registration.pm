@@ -398,9 +398,15 @@ sub process_scc_register_addons {
         while ($counter--) {
             die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen [
-                qw(import-untrusted-gpg-key yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
+                qw(import-untrusted-gpg-key nvidia-validation-failed yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository)];
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
+                next;
+            }
+            elsif (match_has_tag('nvidia-validation-failed')) {
+                # nvidia repos unreliable
+                send_key 'alt-y';
+                record_soft_failure 'bsc#1144831';
                 next;
             }
             elsif (match_has_tag('yast_scc-pkgtoinstall')) {
@@ -474,7 +480,7 @@ sub fill_in_registration_data {
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my $counter = ADDONS_COUNT;
         my @tags
-          = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key module-selection contacting-registration-server refreshing-repository);
+          = qw(local-registration-servers registration-online-repos import-untrusted-gpg-key nvidia-validation-failed module-selection contacting-registration-server refreshing-repository);
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
         }
@@ -486,6 +492,12 @@ sub fill_in_registration_data {
             assert_screen(\@tags, timeout => 360);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
+                next;
+            }
+            elsif (match_has_tag('nvidia-validation-failed')) {
+                # sometimes nvidia driver repos are unreliable
+                send_key 'alt-y';
+                record_soft_failure 'bsc#1144831';
                 next;
             }
             elsif (match_has_tag('contacting-registration-server')) {
