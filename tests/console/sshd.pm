@@ -11,6 +11,14 @@
 # Summary: Test to verify sshd starts and accepts connections.
 #  We need this test to succeed for followup tests using ssh localhost
 #  This regression test has also an interactive part (in VirtIO console)
+#   * Systemd unit is checked
+#   * The default port is checked on both IPv4 and IPv6
+#   * Password authentication is tested
+#   * Publik key authentication is tested
+#   * SSH Interactive mode is tested using VirtIO console
+#   * Utilities ssh-keygen and ssh-copy-id are used
+#   * Local and remote port forwarding are tested
+#   * The SCP is tested by copying various files
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use warnings;
