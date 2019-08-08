@@ -961,6 +961,7 @@ sub load_inst_tests {
         if (is_sles4sap()) {
             if (
                 is_sles4sap_standard()    # Schedule module only for SLE15 with non-default role
+                || is_updates_test_repo()
                 || is_sle('15+') && get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))
             {
                 loadtest "installation/user_settings";

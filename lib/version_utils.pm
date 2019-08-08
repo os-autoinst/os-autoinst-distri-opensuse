@@ -342,6 +342,7 @@ sub is_using_system_role {
       && is_server()
       && (!is_sles4sap() || is_sles4sap_standard())
       && (install_this_version() || install_to_other_at_least('12-SP2'))
+      || (is_sles4sap() && main_common::is_updates_test_repo())
       || is_sle('=15')
       || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
       || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, MicroOS
