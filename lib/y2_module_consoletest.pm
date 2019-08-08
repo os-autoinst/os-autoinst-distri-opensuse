@@ -45,8 +45,8 @@ sub post_fail_hook {
     $self->remount_tmp_if_ro;
     y2_installbase::save_upload_y2logs();
     upload_logs('/var/log/zypper.log', failok => 1);
-    y2_installbase::save_system_logs();
-    y2_installbase::save_strace_gdb_output('yast');
+    y2_installbase::save_system_logs($self);
+    y2_installbase::save_strace_gdb_output($self, 'yast');
 }
 
 sub post_run_hook {
