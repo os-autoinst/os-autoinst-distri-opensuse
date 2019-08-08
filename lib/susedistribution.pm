@@ -378,7 +378,7 @@ skip the entire routine.
 =cut
 sub set_standard_prompt {
     my ($self, $user, %args) = @_;
-    return if $args{skip_set_standard_prompt};
+    return if $args{skip_set_standard_prompt} || get_var('SKIP_SET_STANDARD_PROMPT');
     $user ||= $testapi::username;
     my $os_type     = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
@@ -416,11 +416,9 @@ sub init_consoles {
     my ($self) = @_;
 
     # avoid complex boolean logic by setting interim variables
-    if (check_var('BACKEND', 'svirt')) {
-        if (check_var('ARCH', 's390x')) {
-            set_var('S390_ZKVM',         1);
-            set_var('SVIRT_VNC_CONSOLE', 'x11');
-        }
+    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
+        set_var('S390_ZKVM',         1);
+        set_var('SVIRT_VNC_CONSOLE', 'x11');
     }
 
     if (check_var('BACKEND', 'qemu')) {
@@ -463,6 +461,7 @@ sub init_consoles {
         $self->add_console('log-console',    'tty-console', {tty => 5});
         $self->add_console('displaymanager', 'tty-console', {tty => 7});
         $self->add_console('x11',            'tty-console', {tty => get_x11_console_tty});
+        $self->add_console('tunnel-console', 'tty-console', {tty => 3}) if get_var('TUNNELED');
     }
 
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
@@ -644,7 +643,8 @@ sub console_nr {
     my ($name) = ($1) || return;
     my $nr = 4;
     $nr = get_root_console_tty if ($name eq 'root');
-    $nr = 5 if ($name eq 'log');
+    $nr = 5                    if ($name eq 'log');
+    $nr = 3                    if ($name eq 'tunnel');
     return $nr;
 }
 
@@ -664,6 +664,8 @@ Option C<ensure_tty_selected> ensures TTY is selected.
 sub activate_console {
     my ($self, $console, %args) = @_;
 
+    # Select configure serial and redirect to root-ssh instead
+    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/ && $console =~ m/root-console$|install-shell/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
@@ -671,21 +673,11 @@ sub activate_console {
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }
-        elsif (get_var('BACKEND', '') =~ /ipmi|spvm/) {
-            # Select configure serial and redirect to root-ssh instead
-            use_ssh_serial_console;
-            return;
-        }
         else {
             # on s390x we need to login here by providing a password
             handle_password_prompt if check_var('ARCH', 's390x');
             assert_screen "inst-console";
         }
-    }
-    elsif ($console =~ m/root-console$/ && get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/) {
-        # Select configure serial and redirect to root-ssh instead
-        use_ssh_serial_console;
-        return;
     }
 
     $console =~ m/^(\w+)-(console|virtio-terminal|sut-serial|ssh|shell)/;
@@ -695,7 +687,7 @@ sub activate_console {
     if ($name eq 'user') {
         $user = $testapi::username;
     }
-    elsif ($name eq 'log') {
+    elsif ($name =~ /log|tunnel/) {
         $user = 'root';
     }
 
@@ -778,6 +770,11 @@ sub activate_console {
             # Disable console screensaver
             $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
+    }
+    if (get_var('TUNNELED') && $name !~ /tunnel/) {
+        die "Console '$console' activated in TUNNEL mode activated but tunnel(s) are not yet initialized, use the 'tunnel' console and call 'setup_ssh_tunnels' first" unless get_var('_SSH_TUNNELS_INITIALIZED');
+        $self->script_run('ssh -t sut', 0);
+        ensure_user($user);
     }
     set_var('CONSOLE_JUST_ACTIVATED', 1);
 }

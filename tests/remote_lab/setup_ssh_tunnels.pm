@@ -7,23 +7,22 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Setup VPN to a remote lab using openconnect compatible with Cisco
-#  AnyConnect VPN
+# Summary: Setup a convenience SSH tunnel setup to a remote lab hardware for
+#  test execution
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: https://progress.opensuse.org/issues/49901
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use Remote::Lab 'setup_vpn';
 use testapi;
+use Remote::Lab 'setup_ssh_tunnels';
 
 
 sub run {
     my ($self) = @_;
-    $self->wait_boot;
     select_console 'tunnel-console';
-    setup_vpn();
+    setup_ssh_tunnels();
 }
 
 1;
