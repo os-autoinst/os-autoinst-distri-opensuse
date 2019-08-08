@@ -106,7 +106,7 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
@@ -238,6 +238,12 @@ sub run {
         }
         elsif (match_has_tag('autoyast-error')) {
             die 'Error detected during first stage of the installation';
+        }
+        elsif (match_has_tag('nvidia-validation-failed')) {
+            # nvidia repositories are unstable and really not needed for anything
+            record_info("nVidia", "nVidia repository is broken");
+            send_key 'alt-y';
+            wait_still_screen { send_key 'alt-o' };
         }
         elsif (match_has_tag('package-notification')) {
             send_key 'alt-o';
