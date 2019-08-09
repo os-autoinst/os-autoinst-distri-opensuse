@@ -9,6 +9,11 @@
 
 # Summary: Select UEFI boot device in BIOS
 #    OVMF doesn't honor the -boot XX setting of qemu so we have to manually enter the boot manager in the BIOS
+# - If MACHINE is defined as aarch64 and BOOT_HDD_IMAGE is defined, press F2 and
+# enter bootmenu and access bootmanager
+# - If BOOTFROM is "d", access dvd boot
+# - If BOOTFROM is "c", access hdd boot
+# - Boot selected entry
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
 use base "basetest";
