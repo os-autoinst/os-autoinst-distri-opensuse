@@ -22,9 +22,9 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activ
 sub install_kernel_debuginfo {
     zypper_call 'ref';
     # JeOS uses kernel-default-base, except on aarch64 openSUSE
-    my $kernel    = is_jeos() && (!is_opensuse() && !check_var('ARCH', 'aarch64')) ? 'kernel-default-base' : 'kernel-default';
+    my $kernel    = script_output('rpm -qf --qf %{name} /lib/modules/$(uname -r)');
     my $debuginfo = script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel . '| sort --version-sort | tail -n 1');
-    $debuginfo =~ s/$kernel/kernel-default-debuginfo/g;
+    $debuginfo =~ s/$kernel/$kernel-debuginfo/g;
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
 
