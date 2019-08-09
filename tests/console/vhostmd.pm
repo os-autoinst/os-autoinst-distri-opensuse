@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Simple vhostmd test
+# - Install libvirt and vhostmd
+# - Start libvirtd (and check status)
+# - For vhostmd, start, check status, stop, check status again for errors, restart and
+# check status one more time
+# - Run "cat /dev/shm/vhostmd0" (if device exists)
+# - Check system logs for vhostmd messages
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use warnings;
