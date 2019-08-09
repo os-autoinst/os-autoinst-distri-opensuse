@@ -476,17 +476,17 @@ C<$params> other ar subcommand parameters, optional
 
 Examples:
     zypper_ar('http://dist.nue.suse.com/ibs/QA:/Head/SLE-15-SP1', name => 'qa-head);
-    zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', no_gpg_check => priority => 90);
+    zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', no_gpg_check => 1, priority => 90);
 =cut
 sub zypper_ar {
     my ($url, %args) = @_;
     my $name         = $args{name}         // '';
-    my $priority     = $args{priority}     // '';
+    my $priority     = $args{priority}     // undef;
     my $params       = $args{params}       // '';
     my $no_gpg_check = $args{no_gpg_check} // '';
 
-    $priority     = "-p $priority"  if ($priority);
-    $no_gpg_check = "--no-gpgcheck" if ($no_gpg_check);
+    $priority     = defined($priority) ? "-p $priority"  : "";
+    $no_gpg_check = $no_gpg_check      ? "--no-gpgcheck" : "";
     my $cmd_ar  = "--gpg-auto-import-keys ar -f $priority $no_gpg_check $params $url";
     my $cmd_ref = "--gpg-auto-import-keys ref";
 
