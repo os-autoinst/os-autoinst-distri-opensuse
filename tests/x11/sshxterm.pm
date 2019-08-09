@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Ensure ssh X-forwarding is working
+# - Launch xterm
+# - Create ssh keys for user and add to root authorized_keys
+# - Run "SSH_AUTH_SOCK=0 ssh -XC root@localhost xterm"
+# - Check if another xterm opened
+# - Check for "If you can see this text ssh-X-forwarding is working"
+# - Kill xterm
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
