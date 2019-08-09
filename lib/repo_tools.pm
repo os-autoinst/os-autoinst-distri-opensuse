@@ -45,7 +45,7 @@ Helper to add QA:HEAD repository repository (usually from IBS).
 This repository *is* mandatory.
 =cut
 sub add_qa_head_repo {
-    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa-head', no_gpg_check => 1);
+    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa-head', no_gpg_check => is_sle("<12") ? 0 : 1);
 }
 
 =head2 add_qa_web_repo
@@ -57,7 +57,7 @@ This repository is *not* mandatory.
 =cut
 sub add_qa_web_repo {
     my $repo = get_var('QA_WEB_REPO');
-    zypper_ar($repo, name => 'qa-web', no_gpg_check => 1) if ($repo);
+    zypper_ar($repo, name => 'qa-web', no_gpg_check => is_sle("<12") ? 0 : 1) if ($repo);
 }
 
 =head2 get_repo_var_name
