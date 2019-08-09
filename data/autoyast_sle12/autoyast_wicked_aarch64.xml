@@ -8,15 +8,15 @@
     <device_map config:type="list">
       <device_map_entry>
         <firmware>hd0</firmware>
-        <linux>/dev/sda</linux>
+        <linux>/dev/vda</linux>
       </device_map_entry>
     </device_map>
     <global>
       <timeout config:type="integer">1</timeout>
-      <append> splash=verbose </append>
+      <append>splash=verbose</append>
     </global>
   </bootloader>
-   <scripts>
+  <scripts>
     <chroot-scripts config:type="list">
       <script>
         <chrooted config:type="boolean">true</chrooted>
@@ -24,7 +24,7 @@
         <source>
           <![CDATA[
             #!/bin/sh
-            sed -i 's/resume=\/dev\/sda.//' /etc/default/grub
+            sed -i 's/resume=\/dev\/vda.//' /etc/default/grub
             sed -i 's/splash=silent\ quiet//' /etc/default/grub
             sed -i '/GRUB_DISABLE_LINUX_UUID/s/^# //' /etc/default/grub
             grub2-mkconfig -o /boot/grub2/grub.cfg
@@ -35,19 +35,42 @@
   </scripts>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/sda</device>
-      <disklabel>msdos</disklabel>
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
           <mountby config:type="symbol">device</mountby>
-          <filesystem config:type="symbol">swap</filesystem>
-          <mount>swap</mount>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/boot/efi</mount>
+          <partition_id config:type="integer">259</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
           <filesystem config:type="symbol">ext4</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
           <mount>/</mount>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
         </partition>
       </partitions>
       <use>all</use>

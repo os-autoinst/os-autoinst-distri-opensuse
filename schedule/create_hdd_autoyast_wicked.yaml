@@ -1,12 +1,11 @@
 ---
 name: create_hdd_autoyast_wicked
 vars:
-  AUTOYAST: autoyast_sle12/autoyast_wicked.xml
   AUTOYAST_CONFIRM: 1
   DESKTOP: textmode
   HDDSIZEGB: 30
 schedule:
   - autoyast/prepare_profile
-  - installation/bootloader
+  - installation/bootloader_start
   - autoyast/installation
   - shutdown/shutdown
