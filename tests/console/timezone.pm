@@ -9,6 +9,13 @@
 
 # Summary: Check that it's possible to dump a zone data and to set a
 #          custom rule for a given zone.
+# - Check if timezone is installed
+# - Run "zdump Europe/London", check output string format
+# - Run "date", check output string format
+# - Create custom command "zdump -v Europe/Rome | grep -E 'Sun Mar 25
+# [0-9]{2}:[0:9]{2}:[0-9]{2} 2018'"" and validate output for "Europe" "Rome" and isdst=1
+# - Compile a custom timezone rule using the command above, check "isdst=" output
+# - Revert timezone changes
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base 'opensusebasetest';
