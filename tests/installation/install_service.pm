@@ -38,14 +38,6 @@ sub run {
       && !get_var('MEDIA_UPGRADE')
       && !get_var('ZDUP')
       && !get_var('INSTALLONLY');
-    check_services($default_services)
-      if is_sle
-      && !is_desktop
-      && !is_sles4sap
-      && !is_hyperv
-      && !get_var('MEDIA_UPGRADE')
-      && !get_var('ZDUP')
-      && !get_var('INSTALLONLY');
 }
 
 sub test_flags {

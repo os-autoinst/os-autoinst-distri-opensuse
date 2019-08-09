@@ -151,6 +151,7 @@ sub install_services {
             }
 
             assert_script_run 'systemctl start ' . $srv_proc_name;
+            systemctl 'is-active ' . $srv_proc_name;
         }
     }
 }
@@ -170,9 +171,7 @@ sub check_services {
                 next;
             }
 
-            assert_script_run 'systemctl status '
-              . $srv_proc_name
-              . ' --no-pager | grep -w active';
+            systemctl 'is-active ' . $srv_proc_name;
         }
     }
 }
