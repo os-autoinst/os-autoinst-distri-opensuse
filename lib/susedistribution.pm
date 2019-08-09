@@ -665,7 +665,7 @@ sub activate_console {
     my ($self, $console, %args) = @_;
 
     # Select configure serial and redirect to root-ssh instead
-    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/ && $console =~ m/root-console$|install-shell/);
+    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/ && $console =~ m/root-console$|install-shell|log-console/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
