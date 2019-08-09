@@ -8,6 +8,13 @@
 # without any warranty.
 
 # Summary: send an email using SMTP and receive it using IMAP
+# - Kill thunderbird, erase all config files
+# - Launch thunderbird
+# - Create a imap account
+# - Send and email to the created mail acount
+# - Fetch emails, search for the sent email
+# - Check that email was well received, delete the message
+# - Exit thunderbird
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use warnings;
