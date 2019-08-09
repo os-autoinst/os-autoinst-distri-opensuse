@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: tracker search in nautilus
+# - Launch nautilus
+# - Send ctrl-f and type "newfile" on search box
+# - Check if gedit is opened with a new file
+# - Close gedit and nautilus
 # Maintainer: nick wang <nwang@suse.com>
 
 use base "x11test";

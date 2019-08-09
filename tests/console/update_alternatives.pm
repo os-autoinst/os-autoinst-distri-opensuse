@@ -8,6 +8,8 @@
 # without any warranty.
 
 # Summary: console/update_alternatives test for bsc#969171
+# - Run "stat -c"%N" -L /etc/alternatives/*" to check for broken links
+# - Capture an screenshot
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 use base "consoletest";

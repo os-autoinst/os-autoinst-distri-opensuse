@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Tracker: search from command line
+# - Launch xterm
+# - Run "tracker-search newfile" if version is older than SLE12SP2
+# - Otherwise, run "tracker search emtpyfile"
+# - Wait 20 seconds, run "tracker search newfile"
+# - Check output of command
+# - Close xterm
 # Maintainer: nick wang <nwang@suse.com>
 # Tags: tc#1436343
 

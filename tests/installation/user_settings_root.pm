@@ -9,6 +9,7 @@
 # without any warranty.
 
 # Summary: Handle root user password entry
+# - Fill password field (and password confirmation) during install procedure
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;

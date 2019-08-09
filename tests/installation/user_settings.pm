@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Handle user name and password entry; check for password security
+# - Check if installer is on user setup step
+# - Select "Skip user creation" if ROOTONLY is defined
+# - Fill user real name, username and password
+# - Disable autologin if NOAUTOLOGIN is defined
+# - Otherwise, if distro is sle and NOAUTOLOGIN is undefined, enable autologin
+# - Select next, handle "password is too simple" screen
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;

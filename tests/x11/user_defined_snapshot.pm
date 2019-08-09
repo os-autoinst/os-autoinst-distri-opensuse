@@ -8,6 +8,15 @@
 # without any warranty.
 
 # Summary: Show user defined comments in grub2 menu for snapshots
+# - Launch yast2 snapper
+# - Create a new snapshot, name "grub_comment", user_data
+# "bootloader="Bootloader_Comment""
+# - Check main window for the created snapshot
+# - Reboot test machine
+# - On grub, select "Start bootloader from a read-only snapshot"
+# - Select "Bootloader_comment" option
+# - Reboot
+# - Make sure machine is back to original system
 # Maintainer: Dumitru Gutu <dgutu@suse.com>
 
 use base "x11test";

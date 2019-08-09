@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Totem launch
+# - Install totem if necessary
+# - Launch totem
+# - Check if totem was launched
+# - Close totem
 # Maintainer: Grace Wang <gwang@suse.com>
 
 use base "x11test";
