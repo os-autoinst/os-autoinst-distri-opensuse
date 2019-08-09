@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Tracker: tracker info for file
+# - Launch a xterm
+# - Run "tracker info newpl.pl" or "tracker-info newpl.pl" if older than
+# SLE12SP2
+# - Check if output matches
+# - Close xterm
 # Maintainer: nick wang <nwang@suse.com>
 # Tags: tc#1436341
 
