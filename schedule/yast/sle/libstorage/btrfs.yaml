@@ -1,0 +1,106 @@
+name:           btrfs
+description:    >
+  Validate default installation with btrfs and Libstorage.
+vars:
+  FILESYSTEM: btrfs
+schedule:
+  # Called on BACKEND: qemu
+  - {{isosize}}
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  # Called only on BACKEND: s390x
+  - {{disk_activation}}
+  - installation/scc_registration
+  - installation/addon_products_sle
+  # Called only on ARCH: x86_64
+  - {{system_role}}
+  - installation/partitioning
+  - installation/partitioning_filesystem
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  # Called on all, except BACKEND: s390x
+  - {{hostname_inst}}
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  # Called on ARCH: s390x
+  - {{reconnect_mgmt_console}}
+  # Called on BACKEND: qemu
+  - {{grub_test}}
+  - installation/first_boot
+  - console/validate_no_cow_attribute
+  # On all the architectures except s390x, /home is located on a separate partition
+  - {{validate_home_partition}}
+conditional_schedule:
+  isosize:
+    BACKEND:
+      qemu:
+        - installation/isosize
+  disk_activation:
+    BACKEND:
+      s390x:
+        - installation/disk_activation
+  system_role:
+    ARCH:
+      x86_64:
+        - installation/system_role
+  reconnect_mgmt_console:
+    ARCH:
+      s390x:
+        - boot/reconnect_mgmt_console
+  grub_test:
+    BACKEND:
+      qemu:
+        - installation/grub_test
+  hostname_inst:
+    BACKEND:
+      qemu:
+        - installation/hostname_inst
+      svirt:
+        - installation/hostname_inst
+  validate_home_partition:
+    ARCH:
+      s390x:
+        - console/verify_no_separate_home
+      x86_64:
+        - console/verify_separate_home
+        - console/validate_file_system
+      aarch64:
+        - console/verify_separate_home
+        - console/validate_file_system
+      ppc64le:
+        - console/verify_separate_home
+        - console/validate_file_system
+test_data:
+  subvolume:
+    cow:
+      - /opt
+      - /srv
+      - /tmp
+      - /usr/local
+      - /var/cache
+      - /var/crash
+      - /var/lib/machines
+      - /var/lib/mailman
+      - /var/lib/named
+      - /var/opt
+      - /var/spool
+      - /var/tmp
+      - /.snapshots
+    no_cow:
+      - /var/lib/libvirt/images
+      - /var/lib/mariadb
+      - /var/lib/mysql
+      - /var/lib/pgsql
+      - /var/log
+  file_system:
+     /home: xfs
+     /: btrfs
+     
