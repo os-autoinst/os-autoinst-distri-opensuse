@@ -1553,7 +1553,7 @@ sub load_extra_tests_console {
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
-        loadtest "console/soundtouch" if is_sle('<15');
+        loadtest "console/soundtouch" if is_opensuse || (is_sle('12-sp4+') && is_sle('<15'));
         # wavpack is available only sle12sp4 onwards
         if (is_opensuse || is_sle '12-sp4+') {
             loadtest "console/wavpack";
