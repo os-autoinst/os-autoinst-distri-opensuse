@@ -35,8 +35,11 @@ sub change_system_role {
             send_key_until_needlematch "system-role-$system_role-selected", 'spc';     # enable role
         }
         else {
+            # scroll down in case role is not visible straight away
+            send_key_until_needlematch "system-role-$system_role", 'down', 5, 1;
             assert_and_click "system-role-$system_role";
-            assert_screen "system-role-$system_role-selected";
+            # after role is selected, we get top of the list shown, so might need to scroll again
+            send_key_until_needlematch "system-role-$system_role-selected", 'down', 5, 1;
         }
     }
     else {
