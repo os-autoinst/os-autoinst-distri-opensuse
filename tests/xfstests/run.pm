@@ -8,6 +8,15 @@
 # without any warranty.
 #
 # Summary: Run tests
+# - Shuffle the list of xfs tests to run
+# - Create heartbeat script, directorie
+# - Start heartbeat, setup environment variables
+# - Start test from list, write log to file
+# - Collect test log and system logs
+# - Check if SUT crashed, reset if necessary
+# - Save kdump data, unless NO_KDUMP is set
+# - Stop heartbeat after last test on list
+# - Collect all logs
 # Maintainer: Yong Sun <yosun@suse.com>
 package run;
 
