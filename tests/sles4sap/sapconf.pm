@@ -16,13 +16,6 @@ use version_utils qw(is_staging is_sle);
 use strict;
 use warnings;
 
-my @tuned_profiles = is_sle('>=15') ?
-  qw(balanced desktop latency-performance network-latency network-throughput
-  powersave sapconf saptune throughput-performance virtual-guest virtual-host)
-  : qw(balanced desktop latency-performance network-latency
-  network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver
-  throughput-performance virtual-guest virtual-host);
-
 my %sapconf_profiles = (
     hana   => 'sap-hana',
     b1     => 'sap-hana',
@@ -113,6 +106,12 @@ sub verify_sapconf_service {
 
 sub run {
     my ($self) = @_;
+    my @tuned_profiles = is_sle('>=15') ?
+      qw(balanced desktop latency-performance network-latency network-throughput
+      powersave sapconf saptune throughput-performance virtual-guest virtual-host)
+      : qw(balanced desktop latency-performance network-latency
+      network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver
+      throughput-performance virtual-guest virtual-host);
 
     select_console 'root-console';
 
