@@ -9,6 +9,11 @@
 
 # Summary: Expand variables in the autoyast profiles and make it accessible for SUT
 #
+# - Get profile from autoyast template
+# - Map version names
+# - Get IP address from system variables
+# - Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH LOADER_TYPE
+# - Modify profile with obtained values and upload new autoyast profile
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use strict;
