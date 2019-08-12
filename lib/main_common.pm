@@ -2651,6 +2651,7 @@ sub load_sles4sap_tests {
     loadtest "sles4sap/patterns";
     loadtest "sles4sap/sapconf";
     loadtest "sles4sap/saptune";
+    loadtest "sles4sap/saptune/mr_test" if (get_var('MR_TEST'));
     if (get_var('NW')) {
         loadtest "sles4sap/netweaver_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_test_instance";
