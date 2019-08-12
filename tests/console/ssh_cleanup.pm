@@ -12,6 +12,7 @@ use testapi;
 
 # Summary: Cleanup ssh test user to prevent the user showing up in
 #  displaymanager and confusing other tests
+# - If user sshboy exists, remove the user
 # Maintainer: Oliver Kurz <okurz@suse.de>
 sub run {
     select_console 'root-console';
