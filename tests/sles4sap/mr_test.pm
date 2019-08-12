@@ -194,6 +194,60 @@ sub test_solutions {
     }
 }
 
+sub test_ppc64le {
+    my ($self) = @_;
+
+    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
+
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Power_1";
+    # Apply all notes except 1805750
+    foreach my $note (get_notes()) {
+        next if ($note eq "1805750");
+        assert_script_run "saptune note apply $note";
+    }
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Power_2";
+    assert_script_run "saptune revert all";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Power_3";
+}
+
+sub test_x86_64 {
+    my ($self) = @_;
+
+    my $SLE;
+    my $note;
+
+    if (is_sle(">=15")) {
+        $SLE  = "SLE15";
+        $note = "2684254";
+    } else {
+        $SLE  = "SLE12";
+        $note = "2205917";
+    }
+
+    # energy_perf_bias=6
+    assert_script_run 'cpupower set -b 6';
+    # governor=powersave
+    assert_script_run 'cpupower frequency-set -g powersave';
+    # force_latency=max
+    assert_script_run 'cpupower idle-set -E';
+    $self->reboot;
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
+    assert_script_run "saptune apply note $note";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_2";
+    assert_script_run "saptune revert note $note";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
+    assert_script_run "echo -e '[cpu]\\nenergy_perf_bias=powersave\\ngovernor=powersave\\nforce_latency=' > /etc/saptune/override/$note";
+    assert_script_run "saptune apply note $note";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_3";
+    assert_script_run "saptune revert note $note";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
+    assert_script_run "echo -e '[cpu]\\nenergy_perf_bias=\\ngovernor=\\nforce_latency=\\n' > /etc/saptune/override/$note";
+    assert_script_run "saptune apply note $note";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_4";
+    assert_script_run "saptune revert note $note";
+    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
+}
+
 sub run {
     my ($self) = @_;
 
@@ -216,6 +270,9 @@ sub run {
         # be tested with an override file
         $self->test_note($test) if ($test ne "1805750");
         $self->test_override($test);
+    } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
+        $self->test_x86_64 if (check_var('BACKEND', 'ipmi'));
+        $self->test_ppc64le if (get_var('OFW'));
     } else {
         die "Invalid value for MR_TEST";
     }
