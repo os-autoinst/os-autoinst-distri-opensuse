@@ -14,6 +14,9 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Prepare system for actual desktop specific updates
+# - Disable delta rpms if system is not sle
+# - Unmask packagekit service
+# - Run "pkcon refresh"
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "consoletest";
