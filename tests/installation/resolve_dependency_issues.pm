@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: Unified dependency issues resolver
+# - If manual intervention is needed during software selection on installation:
+#   - If WORKAROUND_DEPS is set, try to use first suggestion to fix dependency issue
+#   - If BREAK_DEPS is set, choose option to break dependencies
+# - Handle license, automatic changes, unsupported packages, errors with
+# patterns.
 # Maintainer: Yiannis Bonatakis <ybonatakis@suse.com>
 
 use base "y2_installbase";
