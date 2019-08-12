@@ -1,0 +1,42 @@
+name:           btrfs
+description:    >
+  Validate default installation with btrfs.
+vars:
+  FILESYSTEM: btrfs
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_filesystem
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_no_cow_attribute
+  - console/verify_no_separate_home
+test_data:
+  subvolume:
+    cow:
+      - /
+      - /home
+      - /root
+      - /tmp
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
