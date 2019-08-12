@@ -10,6 +10,25 @@
 
 # Summary: Get useful text-based information from the system and upload it as a log.
 #          For more information regarding the collected data, check data/textinfo
+# - Run script /root/data/textinfo, collecting the folling data
+#   - Kernel version
+#   - Loaded modules
+#   - Memory information
+#   - Fstab entries
+#   - Mounted filesystems
+#   - Free space
+#   - Ip address (ipv4/ipv6), routes
+#   - DNS info
+#   - Network files
+#   - List of kernel packages
+#   - Current display manager
+#   - Current window manager
+#   - Ntp files (if any)
+#   - /var/log/messages size (if any)
+#   - Running processes
+#   - System services
+#   - Installed package list
+#   - System logs
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "consoletest";

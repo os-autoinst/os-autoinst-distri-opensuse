@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Test SUSEConnect by registering system, module and deregistration.
+# - De-register system using SUSEConnect (-d, --cleanup,  --status-text)
+# - Register product using SCC_REGCODE code
+# - Add live patching if SLE < 15 using SCC_REGCODE_LIVE
+# - Check registering status
 # Maintainer: Juraj Hura <jhura@suse.com>
 
 use base "basetest";

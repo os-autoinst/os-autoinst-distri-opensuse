@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: Execute SUT changes which should be permanent
+# - Grant permissions on serial device
+# - Add hvc0/hvc1 to /etc/securetty
+# - Register modules if SLE<15 and SCC_ADDONS, MEDIA_UPGRADE and KEEP_REGISTERED
+# are defined
+# - If system is vmware, set resolution to 1024x768 (and write to grub)
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'consoletest';

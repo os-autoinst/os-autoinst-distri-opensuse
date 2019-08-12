@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: test sysstat basic functionalities
+# - Install sysstat
+# - Start/stop/restart sysstat service
+# - Test pidstat and validate output
+# - Test iostat and validate output
+# - Test mpstat and validate output
+# - Test sar (-u, -n DEV, -b, -B, -H, -s options) and validate output
 # Maintainer: Sergio Rafael Lemke <slemke@suse.cz>
 
 use base 'consoletest';

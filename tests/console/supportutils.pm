@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Test is files created by supportconfig are readable and contain some basic data.
+# - Delete any previously existing supportconfig data
+# - Run supportconfig -t . -B test
+# - Check for supportconfig contents
+# - Cleanup supportconfig data
 # Maintainer: Juraj Hura <jhura@suse.com>
 
 use base "consoletest";

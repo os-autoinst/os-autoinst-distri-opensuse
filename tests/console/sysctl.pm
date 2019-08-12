@@ -8,6 +8,8 @@
 # without any warranty.
 
 # Summary: test sysctl because it can go wrong https://bugzilla.opensuse.org/show_bug.cgi?id=1077746
+# - Run 'sysctl -w vm.swappiness=59'
+# - Check /proc/sys/vm/swappiness and validate value "59"
 # Maintainer: Bernhard M. Wiedemann <bwiedemann+openqa@suse.de>
 
 use base "consoletest";

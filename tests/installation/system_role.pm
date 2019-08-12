@@ -8,6 +8,8 @@
 # without any warranty.
 
 # Summary: Check default system role selection screen (only for SLE) and select system role. Added in SLE 12 SP2
+# - Check default system role
+# - Change system role according to SYSTEM_ROLE value
 # Maintainer: Jozef Pupava <jpupava@suse.com>, Joaquín Rivera <jeriveramoya@suse.com>
 # Tags: poo#16650, poo#25850
 
