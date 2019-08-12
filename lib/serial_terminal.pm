@@ -176,7 +176,7 @@ sub upload_file {
     my ($fh, $tmpfilename) = tempfile(UNLINK => 1, SUFFIX => '.openqa.upload');
 
     die("File $src doesn't exists on SUT") if (script_run("test -f $src", undef, quiet => 1) != 0);
-    die("File $dst already exists on worker") if (system("test -f $dst", undef, quiet => 1) == 0);
+    die("File $dst already exists on worker") if (-f $dst);
 
     my $filesize = script_output("stat --printf='%s' $src", undef, quiet => 1);
 
