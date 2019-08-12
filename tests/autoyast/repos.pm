@@ -14,6 +14,11 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Verify network and repos are available
+# - Check status of all network interfaces
+# - Stop packagekit service
+# - Enable install DVD
+# - Install yast2 tar bzip2
+# - Save yast2 logs
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
 use strict;
