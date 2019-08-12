@@ -48,6 +48,11 @@ sub patching_sle {
         set_scc_proxy_url if ((check_var('HDDVERSION', get_var('ORIGINAL_TARGET_VERSION')) && is_upgrade()));
         sle_register("register");
         zypper_call('lr -d');
+        # Check system version
+        if (get_var('ORIGIN_SYSTEM_VERSION')) {
+            check_registered_system(get_var('ORIGIN_SYSTEM_VERSION'));
+        }
+        check_registered_addons();
     }
 
     # add test repositories and logs the required patches
