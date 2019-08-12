@@ -29,9 +29,16 @@ sub wait_serial_or_die {
 
 
 sub run {
+    #Setup console for Xen.
+    if (check_var('VIRSH_VMM_FAMILY','xen')){
+        set_var('SERIAL_CONSOLE',1);
+    }
+
     #Setup console for text feedback.
     my ($self) = @_;
     $self->select_serial_terminal();
+
+    
     if (is_sle('=12-SP5') && is_aarch64()) {
         register_product;
         add_suseconnect_product 'sle-sdk';
@@ -84,7 +91,15 @@ sub run {
     wait_serial_or_die("Quit anyway?");
     type_string("y\n");
     assert_script_run("pkill -9 test3");
+
+
+    if (check_var('VIRSH_VMM_FAMILY','xen')){
+        set_var('SERIAL_CONSOLE',0);
+    }
+
+    
     select_console("root-console");
+
     if (is_sle('=12-SP5') && is_aarch64()) {
         cleanup_registration;
     }
