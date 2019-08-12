@@ -19,6 +19,7 @@ use utils;
 use power_action_utils 'power_action';
 use lockapi;
 use ipmi_backend_utils;
+use version_utils 'is_sle';
 
 
 our $master;
@@ -96,12 +97,25 @@ sub ibtest_master {
 }
 
 sub run {
-    my $self = shift;
-    my $role = get_required_var('IBTEST_ROLE');
+    my $self        = shift;
+    my $role        = get_required_var('IBTEST_ROLE');
+    my $version     = get_required_var("VERSION");
+    my $arch        = get_required_var("ARCH");
+    my $sdk_version = get_required_var("BUILD_SDK");
+
     $master = get_required_var('IBTEST_IP1');
     $slave  = get_required_var('IBTEST_IP2');
 
     $self->select_serial_terminal;
+
+    ## adding required sdk
+    ##TODO: consider better ways of handling addons/modules etc
+    ## https://progress.opensuse.org/issues/54773
+    if (is_sle '<15') {
+        zypper_call("ar -f ftp://openqa.suse.de/SLE-$version-SDK-POOL-$arch-Build$sdk_version-Media1/ SDK");
+    } else {
+        add_suseconnect_product("sle-module-development-tools");
+    }
 
     # unload firewall. MPI- and libfabric-tests require too many open ports
     systemctl("stop " . opensusebasetest::firewall);
