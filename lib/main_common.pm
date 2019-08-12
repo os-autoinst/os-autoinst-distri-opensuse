@@ -2927,7 +2927,6 @@ sub load_mm_autofs_tests {
             loadtest "network/autofs_client";
         }
     }
-
 }
 
 1;
