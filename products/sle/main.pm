@@ -488,8 +488,8 @@ sub load_patching_tests {
         # Save VERSION to UPGRADE_TARGET_VERSION if it is not already set
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
         # Save the original target version, needed for testing upgrade from a beta version to a non-beta
-        # SLE12-SP5 to SLE15-SP1 for example
-        set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION'));
+        # SLE12-SP5 to SLE15-SP1 for example. Won't set ORIGINAL_TARGET_VERSION if already set in setup_env.
+        set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION')) if (!get_var('ORIGINAL_TARGET_VERSION'));
         # Always boot from installer DVD in upgrade test
         set_var('BOOTFROM', 'd');
         loadtest "migration/version_switch_origin_system" if (!get_var('ONLINE_MIGRATION'));
