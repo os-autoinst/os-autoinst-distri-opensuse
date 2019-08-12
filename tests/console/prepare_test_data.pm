@@ -8,6 +8,9 @@
 # without any warranty.
 
 # Summary: prepare test data
+# - As user, get "test.data" from local autoinst service
+# - Run "cpio -id < test.data"
+# - Run "ls -al data"
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use base "consoletest";
