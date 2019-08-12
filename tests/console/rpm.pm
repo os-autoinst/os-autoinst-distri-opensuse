@@ -76,6 +76,12 @@ sub run {
         assert_script_run("rpm -q --provides $installed_pkg");
         # Dump basic file information of every file in a package
         assert_script_run("rpm -q --dump $installed_pkg");
+        # List all packages that require a given package
+        # Custom openqa_rpm_test package does not require any deps, therefore rpm returns false
+        # And is not required by any other package
+        if ((script_run("rpm -q --whatrequires $installed_pkg")) and ($pkg =~ /aaa_base/)) {
+            die "There should be at least one dependent package on \'aaa_base\'\n";
+        }
         # Uninstall an already installed package
         # aaa_base has to fail due to external deps
         if (script_run("rpm -evh $installed_pkg")) {
@@ -98,11 +104,6 @@ sub run {
             record_info('Installed!', $installed_pkg);
         }
     }
-    # List all packages that require a given package
-    # Custom openqa_rpm_test package does not require any deps
-    # And is not required by any other package
-    assert_script_run("rpm -q --whatrequires aaa_base");
-    assert_script_run("rpm -q --whatrequires openqa_rpm_test | grep 'no package requires'");
     # Execute installled script
     assert_script_run('/opt/openqa_tests/openqa_rpm_test.sh');
     assert_script_run('rpm -e openqa_rpm_test-1.0-0');
