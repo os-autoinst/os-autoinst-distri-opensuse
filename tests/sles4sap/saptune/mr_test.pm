@@ -272,7 +272,6 @@ sub run {
         $self->test_override($test);
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
         $self->test_x86_64 if (check_var('BACKEND', 'ipmi'));
-        $self->test_ppc64le if (get_var('OFW'));
     } else {
         die "Invalid value for MR_TEST";
     }
