@@ -66,7 +66,7 @@ our $default_services = {
     dhcpd => {
         srv_pkg_name       => 'dhcp-server',
         srv_proc_name      => 'dhcpd',
-        support_ver        => '12-SP2,12-SP3,12-SP4,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
         service_check_func => \&services::dhcpd::full_dhcpd_check
     },
     bind => {

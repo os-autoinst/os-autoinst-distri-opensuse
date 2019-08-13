@@ -33,10 +33,11 @@ sub get_subnet_3 {
 }
 
 sub config_service {
-    my $iface    = "br0";
+    # Get first active network interface name.
+    my $iface    = script_output("ip -br -4 addr | grep -v '^lo' | grep 'UP' | head -n 1 | cut -d ' ' -f 1", type_command => 1);
     my $subnet_3 = get_subnet_3($iface);
     # Setting dhcpd range in /etc/dhcpd.conf.
-    type_string("echo '# Example conf for dhcpd test.' > /etc/dhcpd.conf\n");
+    type_string("echo '# Configuration for dhcpd test.' > /etc/dhcpd.conf\n");
     type_string("echo 'option domain-name \"aaa\";' >> /etc/dhcpd.conf\n");
     type_string("echo 'subnet $subnet_3.0 netmask 255.255.255.0 {' >> /etc/dhcpd.conf\n");
     type_string("echo '  range $subnet_3.253 $subnet_3.254;' >> /etc/dhcpd.conf\n");
