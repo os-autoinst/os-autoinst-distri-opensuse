@@ -30,6 +30,11 @@ our @EXPORT = qw(
   open_network_settings
   validate_etc_hosts_entry
   verify_network_configuration
+  handle_Networkmanager_controlled
+  handle_dhcp_popup
+  open_yast2_lan
+  close_yast2_lan
+
 );
 my $module_name;
 
@@ -190,6 +195,50 @@ sub check_etc_hosts_update {
 
     # Set back to dhcp
     set_network;
+}
+
+sub handle_Networkmanager_controlled {
+    assert_screen "Networkmanager_controlled";
+    send_key "ret";    # confirm networkmanager popup
+    assert_screen "Networkmanager_controlled-approved";
+    send_key "alt-c";
+    if (check_screen('yast2-lan-really', 3)) {
+        # SLED11...
+        send_key 'alt-y';
+    }
+    wait_serial("$module_name-0", 60) || die "'yast2 lan' didn't finish";
+}
+
+sub handle_dhcp_popup {
+    if (match_has_tag('dhcp-popup')) {
+        wait_screen_change { send_key 'alt-o' };
+    }
+}
+
+sub open_yast2_lan {
+    my $is_nm = !script_run('systemctl is-active NetworkManager');    # Revert boolean because of bash vs perl's return code.
+
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
+
+    if ($is_nm) {
+        handle_Networkmanager_controlled;                             # don't change any settings
+        return "Controlled by network manager";
+    }
+
+    assert_screen [qw(yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
+    handle_dhcp_popup;
+
+    if (match_has_tag('install-susefirewall2') || match_has_tag('install-firewalld')) {
+        # install firewall
+        send_key "alt-i";
+        # check yast2_lan again after firewall is installed
+        assert_screen('yast2_lan', 90);
+    }
+}
+
+sub close_yast2_lan {
+    send_key "alt-o";    # OK=>Save&Exit
+    wait_serial("$module_name-0", 180) || die "'yast2 lan' didn't finish";
 }
 
 1;
