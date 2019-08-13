@@ -396,16 +396,15 @@ sub upload_wicked_logs {
     $self->select_serial_terminal;
 }
 
-=head2 do_mutex
+=head2 do_barrier
 
-  do_mutex()
+  do_barrier(<barrier_postfix>)
 
 Used to syncronize the wicked tests for SUT and REF creating the corresponding mutex locks.
 
 =cut
-sub do_mutex {
+sub do_barrier {
     my ($self, $type) = @_;
-    $type //= 'ready';
     my $barrier_name = 'test_' . $self->{name} . '_' . $type;
     barrier_wait($barrier_name);
 }
@@ -558,23 +557,28 @@ sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
 
-    $self->do_mutex();
-    eval {
+    $self->do_barrier('post_run');
+    my $result = eval {
         $self->upload_wicked_logs('post');
     };
+    record_info('Failed to upload post logs', $@, result => 'fail') unless defined $result;
 }
 
 sub pre_run_hook {
     my ($self) = @_;
-    if (is_serial_terminal()) {
-        my $coninfo = '## START: ' . $self->{name};
-        wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
-        type_string($coninfo);
-        wait_serial($coninfo, undef, 0, no_regex => 1);
-        type_string("\n");
-        $self->upload_wicked_logs('pre');
-    }
-    $self->do_mutex('start');
+
+    my $result = eval {
+        if (is_serial_terminal()) {
+            my $coninfo = '## START: ' . $self->{name};
+            wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
+            type_string($coninfo);
+            wait_serial($coninfo, undef, 0, no_regex => 1);
+            type_string("\n");
+            $self->upload_wicked_logs('pre');
+    } };
+
+    record_info('Failed to upload pre logs', $@, result => 'fail') unless defined $result;
+    $self->do_barrier('pre_run');
 }
 
 sub post_fail_hook {

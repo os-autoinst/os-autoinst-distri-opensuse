@@ -24,11 +24,11 @@ sub run {
 
     if (get_var('IS_WICKED_REF')) {
         for my $test (@{$args->{wicked_tests}}) {
-            my $barrier_name = 'test_' . $test . '_ready';
+            my $barrier_name = 'test_' . $test . '_pre_run';
 
             record_info('barrier create', $barrier_name . ' num_children: 2');
             barrier_create($barrier_name, 2);
-            $barrier_name = 'test_' . $test . '_start';
+            $barrier_name = 'test_' . $test . '_post_run';
             barrier_create($barrier_name, 2);
             record_info('barrier create', $barrier_name . ' num_children: 2');
         }
