@@ -82,14 +82,9 @@ sub run {
     assert_script_run "df -h";
 
     # Check we have an hdblcm
-    my $hdblcm = "/sapinst/DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm";
-    my $ret    = script_run "ls $hdblcm";
-    if ($ret and get_var('OFW')) {
-        # Some older versions of hana for ppc64le have hdblcm in HDB_SERVER_LINUX_PPC64 instead
-        $hdblcm = "/sapinst/DATA_UNITS/HDB_SERVER_LINUX_PPC64/hdblcm";
-        $ret    = script_run "ls $hdblcm";
-    }
-    die "hdblcm is not in $hdblcm" unless (defined $ret and $ret == 0);
+    my $hdblcm = '/sapinst/' . get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm");
+    die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
+      if (script_run "ls $hdblcm");
 
     # Install hana
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch

@@ -133,9 +133,20 @@ sub prepare_profile {
         assert_script_run 'tuned-adm profile $(tuned-adm recommend)';
     }
 
-    # Restart systemd-logind to ensure that all new connections will have the
-    # SAP tuning activated
-    systemctl 'restart systemd-logind.service';
+    if (!$has_saptune) {
+        # Restart systemd-logind to ensure that all new connections will have the
+        # SAP tuning activated. Since saptune v2, the call to 'saptune solution apply'
+        # above can make the SUT change focus to the x11 console, which may not be ready
+        # for the systemctl command. If the systemctl command times out, change to
+        # root-console and try again. Run the first call to systemctl with
+        # ignore_failure => 1 to avoid stopping the test. Second call runs as usual
+        my $ret = systemctl('restart systemd-logind.service', ignore_failure => 1);
+        die "systemctl restart systemd-logind.service failed with retcode: [$ret]" if $ret;
+        if (!defined $ret) {
+            select_console 'root-console';
+            systemctl 'restart systemd-logind.service';
+        }
+    }
 
     # X11 workaround only on ppc64le
     if (get_var('OFW')) {
@@ -166,10 +177,23 @@ sub prepare_profile {
 
     if ($has_saptune) {
         assert_script_run "saptune daemon start";
-        if (script_run "saptune solution verify $profile") {
-            record_soft_failure("poo#54695: 'saptune solution verify' returned warnings or errors! Please check!");
+        my $ret = script_run "saptune solution verify $profile";
+        if (!defined $ret) {
+            # Command timed out. 'saptune daemon start' could have caused the SUT to
+            # move out of root-console, so select root-console and try again
+            select_console 'root-console';
+            $ret = script_run "saptune solution verify $profile";
         }
-        my $output = script_output "saptune daemon status";
+        record_soft_failure("poo#54695: 'saptune solution verify' returned warnings or errors! Please check!")
+          if $ret;
+
+        my $output = script_output "saptune daemon status", proceed_on_failure => 1;
+        if (!defined $output) {
+            # Command timed out or failed. 'saptune solution verify' could have caused
+            # the SUT to move out of root-console, so select root-console and try again
+            select_console 'root-console';
+            $output = script_output "saptune daemon status";
+        }
         record_info("tuned status", $output);
     }
     else {
