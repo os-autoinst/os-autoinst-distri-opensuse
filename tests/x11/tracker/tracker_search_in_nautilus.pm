@@ -28,8 +28,8 @@ sub run {
     save_screenshot;
     send_key 'ret';
     assert_screen 'gedit-launched';    # should open file newfile
-    wait_screen_change { send_key 'alt-f4' };
-    send_key "alt-f4";
+    send_key 'alt-f4';
+    send_key_until_needlematch('generic-desktop', 'alt-f4', 3, 10);
 }
 
 1;
