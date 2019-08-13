@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Startup, basic input, shutdown of oowriter
+# - Launch oowriter
+# - Type 'Hello World!'
+# - Close oowriter
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";

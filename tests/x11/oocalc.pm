@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Startup, basic input and shutdown of oocalc
+# - Launch oocalc
+# - Type "Hello World!"
+# - Close oocalc
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
