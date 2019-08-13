@@ -15,37 +15,22 @@ use base 'consoletest';
 use strict;
 use testapi;
 use utils qw(systemctl zypper_call);
+use services::rpcbind;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal();
-    zypper_call 'in rpcbind nfs-kernel-server';
-    assert_script_run 'rpm -q rpcbind';
-
-    # start libvirt hypervisor for vhostmd
-    systemctl 'start rpcbind';
-    systemctl 'status rpcbind';
-    assert_script_run 'rpcinfo';
-
-    # create and start nfs export
-    assert_script_run 'echo "/mnt *(ro,root_squash,sync,no_subtree_check)" >/etc/exports';
-    assert_script_run 'echo "nfs is working" >/mnt/test';
-    systemctl 'start nfs-server';
-    systemctl 'status nfs-server';
-
-    # wait for updated rpcinfo
-    sleep 5;
-    assert_script_run 'rpcinfo|grep nfs';
-    assert_script_run 'mkdir -p /tmp/nfs';
-    assert_script_run 'mount -t nfs localhost:/mnt /tmp/nfs';
-    sleep 3;
-    assert_script_run 'grep working /tmp/nfs/test';
-    assert_script_run 'umount -f /tmp/nfs';
+    services::rpcbind::install_service();
+    services::rpcbind::check_install();
+    services::rpcbind::config_service();
+    services::rpcbind::enable_service();
+    services::rpcbind::start_service();
+    services::rpcbind::check_service();
+    services::rpcbind::check_function();
 }
 
 sub post_run_hook {
-    # stop started services
-    systemctl 'stop rpcbind.socket rpcbind.service nfs-server';
+    services::rpcbind::stop_service();
 }
 
 1;
