@@ -18,7 +18,7 @@
 =head1 SYNOPSIS
 
 use Utils::Backends
-It defines various functions that allows to check for different backend or console types. It exports C<CONSOLES> and C<BACKEND> 
+It defines various functions that allows to check for different backend or console types. It exports C<CONSOLES> and C<BACKEND>
 
 =cut
 
@@ -39,6 +39,7 @@ use constant {
           is_hyperv_in_gui
           is_svirt_except_s390x
           is_spvm
+          is_xen
           )
     ],
     CONSOLES => [
@@ -106,6 +107,16 @@ sub is_hyperv {
     my $hyperv_version = shift;
     return 0 unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     return defined($hyperv_version) ? check_var('HYPERV_VERSION', $hyperv_version) : 1;
+}
+
+=head2 is_xen
+
+Returns true if the current instance is running as xen backend
+
+=cut
+
+sub is_xen {
+    return check_var('VIRSH_VMM_FAMILY', 'xen');
 }
 
 =head2 is_hyperv_in_gui
