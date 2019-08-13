@@ -16,7 +16,7 @@ use utils qw(
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend is_xen);
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 use Cwd;
 
@@ -442,7 +442,9 @@ sub init_consoles {
                 password => $testapi::password
             });
         set_var('SVIRT_VNC_CONSOLE', 'sut');
-    } else {
+    }
+
+    if (get_var('S390_ZKVM') || is_xen) {
         # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
                 pty_dev     => SERIAL_TERMINAL_DEFAULT_DEVICE,
