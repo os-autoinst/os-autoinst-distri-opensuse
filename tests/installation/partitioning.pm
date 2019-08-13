@@ -9,6 +9,8 @@
 # without any warranty.
 
 # Summary: Check initial partitioning screen and prepare optional substeps
+# - If DUALBOOT is set, keep windows partition by resizing it
+# - If system uses storage NG or opensuse, add changed shortcuts
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
 use base 'y2_installbase';
