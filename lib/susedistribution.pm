@@ -444,7 +444,9 @@ sub init_consoles {
         set_var('SVIRT_VNC_CONSOLE', 'sut');
     }
 
+    bmwqemu::fctwarn("pev: BEFORE adding root-sut-serial console"); # FIXME: debug
     if (get_var('S390_ZKVM') || is_xen) {
+        bmwqemu::fctwarn("pev: ADDING root-sut-serial console"); # FIXME: debug
         # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
                 pty_dev     => SERIAL_TERMINAL_DEFAULT_DEVICE,
