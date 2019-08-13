@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: Rework the tests layout.
+# - Run test as user
+# - Run "test -L /etc/mtab"
+# - Run "cat /etc/mtab"
+# - Save screenshot
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
 use base "consoletest";
