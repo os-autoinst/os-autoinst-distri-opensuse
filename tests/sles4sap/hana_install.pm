@@ -89,7 +89,13 @@ sub run {
         $hdblcm = "/sapinst/DATA_UNITS/HDB_SERVER_LINUX_PPC64/hdblcm";
         $ret    = script_run "ls $hdblcm";
     }
-    die "hdblcm is not in $hdblcm" unless (defined $ret and $ret == 0);
+    # hdblcm path can be different depending on the type of installation master in use
+    if ($ret) {
+        $hdblcm = "/sapinst/SAP_HANA_DATABASE/hdblcm";
+        $ret    = script_run "ls $hdblcm";
+    }
+    die "hdblcm is not in [/sapinst/DATA_UNITS/HDB_SERVER_LINUX_%ARCH%/hdblcm] nor in [/sapinst/SAP_HANA_DATABASE/hdblcm]"
+      unless (defined $ret and $ret == 0);
 
     # Install hana
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
