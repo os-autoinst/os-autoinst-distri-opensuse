@@ -42,6 +42,12 @@ sub setup {
         # Ignore disk_elevator on VM's
         assert_script_run "sed -ri '/:scripts\\/disk_elevator/s/^/#/' \$(fgrep -rl :scripts/disk_elevator Pattern/)";
     }
+    if (check_var('VERSION', '12-SP1')) {
+        # 12-SP1 lacks pids cgroup
+        assert_script_run "sed -ri '/UserTasksMax/s/^/#/' \$(grep -rl ^UserTasksMax Pattern/)";
+        # Ignore older systemd version
+        assert_script_run "sed -ri '/:systemd/s/^/#/' \$(fgrep -rl :systemd Pattern/)";
+    }
     $self->reboot;
 }
 
@@ -78,7 +84,9 @@ sub test_sapconf {
     # Scenario 1: sapconf is running and active with sap-netweaver profile.
     # The test shall show, that a running tuned profile or sapconf is not compromised.
     assert_script_run 'cp /etc/systemd/logind.conf.d/sap.conf{.bak,}';
-    systemctl "enable --now sapconf";
+    systemctl "enable sapconf";
+    # "systemctl enable --now" is not supported on SLES 12-SP1
+    systemctl "start sapconf";
     systemctl "disable tuned";
     systemctl "start tuned";
     if (is_sle('>=15')) {
