@@ -12,7 +12,7 @@
 
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 # Tags: poo#51521
-#
+
 use base "consoletest";
 use strict;
 use warnings;
@@ -20,8 +20,8 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
-
+    my ($self) = @_;
+    $self->select_serial_terminal();
 
     #Search for a package (star
     zypper_call 'se star';
@@ -91,7 +91,6 @@ sub run {
 
     #Enter zypper shell and run the lr command | echo lr
     assert_script_run('echo lr |zypper shell');
-
 }
 
 1;
