@@ -29,7 +29,6 @@ sub load_boot_from_disk_tests {
 
 sub load_feature_tests {
     # Feature tests for Micro OS operating system
-    loadtest 'caasp/create_autoyast' unless check_var('VIRSH_VMM_FAMILY', 'hyperv');
     loadtest 'caasp/libzypp_config';
     loadtest 'caasp/one_line_checks';
     loadtest 'caasp/services_enabled';
