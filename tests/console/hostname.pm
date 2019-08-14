@@ -9,6 +9,16 @@
 # without any warranty.
 
 # Summary: server hostname setup and check
+# - Set hostname as "susetest"
+# - If network is down (using ip command)
+#   - Reload network
+#   - Check network status
+#   - Save screenshot
+#   - Restart network
+#   - Check status
+#   - Save screenshot
+# - Check network status (using ip command)
+# - Save screenshot
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";
