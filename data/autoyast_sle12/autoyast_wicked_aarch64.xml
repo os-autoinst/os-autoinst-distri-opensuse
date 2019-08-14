@@ -16,6 +16,15 @@
       <append> splash=verbose </append>
     </global>
   </bootloader>
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE:/SLE-12-SP5:/GA:/TEST/images/repo/SLE-12-SP5-SDK-POOL-aarch64-Media1/]]></media_url>
+        <product>sle-sdk</product>
+        <product_dir>/</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
   <scripts>
     <chroot-scripts config:type="list">
       <script>
