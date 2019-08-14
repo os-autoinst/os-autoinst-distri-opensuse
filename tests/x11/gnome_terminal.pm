@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: Basic functionality of gnome terminal
+# - Launch "gnome-terminal" and confirm it is running
+# - Open a second tab
+# - Type "If you can see this text gnome-terminal is working."
+# - Close gnome-terminal
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
