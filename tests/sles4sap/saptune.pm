@@ -48,6 +48,9 @@ sub run {
     die "Command 'saptune daemon start' didn't start tuned"
       unless (tuned_is 'running');
 
+    # Skip test if saptune version is 1
+    return if (is_upgrade() and script_output("saptune version") =~ m/current active saptune version is '1'/);
+
     my $output = script_output "saptune solution list";
     my $regexp = join('.+', @solutions);
     die "Command 'saptune solution list' output is not recognized" unless ($output =~ m|$regexp|s);
