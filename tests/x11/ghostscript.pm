@@ -12,6 +12,15 @@
 #    the examples to .pdf files. If one (or more) were not converted
 #    then a file called failed is created and the test fails. Also it
 #    will display one of the generated PDFs to see if gv works.
+# - Launch a xterm
+# - Stop packagekit service
+# - Install ghostscript ghostscript-x11 and gv
+# - Download test files from datadir
+# - Run "ghostscript_ps2pdf.sh"
+# - Upload log results
+# - Check a reference pdf
+# - Close gv
+# - Cleanup
 # Maintainer: Dario Abatianni <dabatianni@suse.de>
 
 use base "x11test";
