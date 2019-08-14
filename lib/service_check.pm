@@ -22,6 +22,7 @@ use services::apache;
 use services::apparmor;
 use services::dhcpd;
 use nfs_common;
+use services::ntpd;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -43,9 +44,10 @@ our $default_services = {
         support_ver   => '15,15-SP1'
     },
     ntp => {
-        srv_pkg_name  => 'ntp',
-        srv_proc_name => 'ntpd',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5'
+        srv_pkg_name       => 'ntp',
+        srv_proc_name      => 'ntpd',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5',
+        service_check_func => \&services::ntpd::full_ntpd_check
     },
     chrony => {
         srv_pkg_name  => 'chrony',
