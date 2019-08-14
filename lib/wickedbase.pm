@@ -442,16 +442,11 @@ sub validate_macvtap {
     my ($self, $macvtap_log) = @_;
     my $ref_ip     = $self->get_ip(type => 'host',    netmask => 0, is_wicked_ref => 1);
     my $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);
-    my $cmd_text   = "./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 &";
-    sleep(30);    # OVS on a worker is slow sometimes to change and we haven't found better way how to handle it
-    type_string($cmd_text);
-    wait_serial($cmd_text, undef, 0, no_regex => 1);
-    type_string("\n");
-
+    script_run("./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 & export CHECK_MACVTAP_PID=\$!");
     # arping not getting packet back it is expected because check_macvtap
     # executable is consume it from tap device before it actually reaches arping
     script_run("arping -c 1 -I macvtap1 $ref_ip");
-    assert_script_run("wait", timeout => 90);
+    assert_script_run('time wait ${CHECK_MACVTAP_PID}', timeout => 90);
     validate_script_output("cat $macvtap_log", sub { m/Success listening to tap device/ });
 }
 
@@ -562,18 +557,28 @@ sub post_run {
     $self->{wicked_post_run} = 1;
 
     $self->do_barrier('post_run');
+    if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
+        script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
+        select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+        upload_file('/tmp/tcpdump' . $self->{name} . '.pcap', 'tcpdump' . $self->{name} . '.pcap');
+        $self->select_serial_terminal();
+    }
     $self->upload_wicked_logs('post');
 }
 
 sub pre_run_hook {
     my ($self) = @_;
     $self->select_serial_terminal();
-    add_serial_console('hvc1') if ($self->{name} eq 'before_test');
     my $coninfo = '## START: ' . $self->{name};
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
     type_string($coninfo);
     wait_serial($coninfo, undef, 0, no_regex => 1);
     type_string("\n");
+    add_serial_console('hvc1') if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+    if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
+        script_run('tcpdump -s0 -U -w /tmp/tcpdump' . $self->{name} . '.pcap >& /dev/null & export CHECK_TCPDUMP_PID=$!');
+        set_var('WICKED_TCPDUMP_PID', script_output('echo $CHECK_TCPDUMP_PID'));
+    }
     $self->upload_wicked_logs('pre');
     $self->do_barrier('pre_run');
 }
