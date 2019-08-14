@@ -127,7 +127,7 @@ our $default_services = {
 sub install_services {
     my ($service) = @_;
     $hdd_base_version = get_var('HDDVERSION');
-    foreach my $s (keys %$service) {
+    foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
@@ -157,7 +157,7 @@ sub install_services {
 
 sub check_services {
     my ($service) = @_;
-    foreach my $s (keys %$service) {
+    foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
