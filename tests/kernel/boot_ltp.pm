@@ -15,7 +15,6 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use bootloader_setup 'boot_grub_item';
-use Utils::Backends 'use_ssh_serial_console';
 use LTP::WhiteList 'download_whitelist';
 
 sub run {
@@ -34,12 +33,7 @@ sub run {
         $self->wait_boot(ready_time => 500);
     }
 
-    if (check_var('BACKEND', 'ipmi')) {
-        use_ssh_serial_console;
-    }
-    else {
-        $self->select_serial_terminal;
-    }
+    $self->select_serial_terminal;
 
     download_whitelist if get_var('LTP_KNOWN_ISSUES');
 

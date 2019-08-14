@@ -751,8 +751,21 @@ sub remount_tmp_if_ro {
 Select most suitable text console with root user. The choice is made by
 BACKEND and other variables.
 
+Purpose of this wrapper is to avoid if/else conditions when selecting console.
+
 Optional C<root> parameter specifies, whether use root user (C<root>=1, also
 default when parameter not specified) or prefer non-root user if available.
+
+Variables affecting behavior:
+C<VIRTIO_CONSOLE>=0 disables virtio console (use {root,user}-console instead
+of the default {root-,}virtio-terminal)
+
+C<SERIAL_CONSOLE>=0 disables serial console (use {root,user}-console instead
+of the default {root-,}sut-serial)
+
+On ikvm|ipmi|spvm it's expected, that use_ssh_serial_console() has been called
+(done via activate_console()) therefore SERIALDEV has been set and we can
+use root-ssh console directly.
 =cut
 sub select_serial_terminal {
     my ($self, $root) = @_;
