@@ -8,6 +8,13 @@
 # without any warranty.
 
 # Summary: Remove quiet kernel option
+# - On SLE12PS2 and aarch64, run commands and wait for screen change
+# - Otherwise:
+#   - Load grub variables from /etc/default/grub
+#   - Remove "quiet" from $GRUB_CMDLINE_LINUX_DEFAULT
+#   - If FIPS_ENABLED is set, add fips=1 to new grub command line
+#   - If encryption is enabled, add "boot=<boot device>" to grub command line
+#   - Apply all changes by running: "grub2-mkconfig -o /boot/grub2/grub.cfg"
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use base 'y2_installbase';
