@@ -20,7 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2lan_restart_common;
 
 sub run {
@@ -67,7 +67,7 @@ sub run {
     assert_script_run "ip r s | grep dhcp";
 
     # on SLE15-SP1+ / Leap 15.1+ the assign loopback checkbox has been dropped
-    if (is_sle('<=15') || is_leap('<= 15.0')) {
+    if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();
 
         send_key "alt-s";              # move to hostname/DNS tab
@@ -91,14 +91,20 @@ sub run {
 
     send_key "alt-a";    # add another device
     send_key "tab";
-    for (1 .. 3) { send_key "down" }    # open device type drop down and select vlan
-    send_key "ret";
+    # open device type drop down and select vlan
+    if (is_tumbleweed) {
+        send_key "alt-v";
+    }
+    else {
+        for (1 .. 3) { send_key "down" }
+        send_key "ret";
+    }
     assert_screen 'add-vlan-selected';
-    send_key "alt-n";                   # next
+    send_key "alt-n";    # next
     assert_screen 'edit-network-card';
-    send_key "alt-y";                   # set dynamic address
+    send_key "alt-y";    # set dynamic address
     assert_screen 'dynamic-address-selected';
-    send_key "alt-n";                   # next
+    send_key "alt-n";    # next
     assert_screen 'vlan-added';
     close_yast2_lan();
 
@@ -107,10 +113,10 @@ sub run {
 
     open_yast2_lan();
 
-    for (1 .. 2) { send_key "tab" }     # move to device list
-    send_key "down";                    # move to vlan
+    for (1 .. 2) { send_key "tab" }    # move to device list
+    send_key "down";                   # move to vlan
     assert_screen 'vlan-selected';
-    send_key "alt-t";                   # remove vlan
+    send_key "alt-t";                  # remove vlan
     assert_screen 'vlan-deleted';
     close_yast2_lan();
     wait_still_screen;
