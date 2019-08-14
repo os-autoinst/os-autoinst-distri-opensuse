@@ -2453,7 +2453,8 @@ sub load_virtualization_tests {
 
     # the tests currently require x86 & Tumbleweed
     if (is_x86_64 && is_tumbleweed) {
-        loadtest "virtualization/vagrant/add_box";
+        loadtest "virtualization/vagrant/add_box_virtualbox";
+        loadtest "virtualization/vagrant/add_box_libvirt";
         loadtest "virtualization/vagrant/boxes/tumbleweed";
     }
     return 1;

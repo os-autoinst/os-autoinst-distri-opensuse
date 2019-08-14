@@ -13,38 +13,24 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test for vagrant and packaged addons
+# Summary: Test for vagrant
 # Maintainer: dancermak <dcermak@suse.com>
 
+use base "consoletest";
 use strict;
 use warnings;
-use base "basetest";
 use testapi;
 use utils;
+use vagrant;
 
 sub run() {
-    select_console('root-console');
-
-    zypper_call('in vagrant virtualbox vagrant-libvirt');
-
-    assert_script_run('systemctl start vboxdrv');
-    assert_script_run('systemctl start vboxautostart');
-    assert_script_run('systemctl start libvirtd');
-
-    assert_script_run('usermod -a -G vboxusers bernhard');
-    assert_script_run('usermod -a -G libvirt bernhard');
+    setup_vagrant_virtualbox();
 
     select_console('user-console');
     assert_script_run('echo "test" > testfile');
 
     assert_script_run('vagrant init centos/7');
     assert_script_run('vagrant up --provider virtualbox', timeout => 1200);
-
-    assert_script_run('vagrant ssh -c "[ $(cat testfile) = \"test\" ]"');
-    assert_script_run('vagrant halt');
-    assert_script_run('vagrant destroy -f');
-
-    assert_script_run('vagrant up', timeout => 1200);
 
     assert_script_run('vagrant ssh -c "[ $(cat testfile) = \"test\" ]"');
     assert_script_run('vagrant halt');
