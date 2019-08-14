@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Use qa_test_multipath to test multipath over iscsi
+# - Install open-iscsi qa_test_multipath
+# - Start iscsid and multipathd services
+# - Set default variables for iscsi iqn and target
+# - Configure test suite with proper iscsi iqn, target and wwid
+# - Run "/usr/share/qa/qaset/qaset reset"
+# - Run "/usr/share/qa/qaset/run/kernel-all-run.openqa"
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use base 'qa_run';
