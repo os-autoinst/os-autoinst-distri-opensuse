@@ -25,8 +25,8 @@ sub run {
     type_string "grep -o \"Got release notes.*\" /var/log/YaST2/y2log\n";
     assert_screen [qw(got-releasenotes-RPM got-releasenotes-URL)];
     unless (match_has_tag "got-releasenotes-$src") {
-        if (is_sle '=15-SP1') {
-            record_soft_failure 'bsc#1106066';
+        if (is_sle '=15-SP2') {
+            record_soft_failure 'bsc#1145615';
         } else {
             die "Release notes source does NOT match expectaions or not found in YaST logs, expected source: $src";
         }
