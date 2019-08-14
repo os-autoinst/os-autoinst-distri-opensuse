@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: glxgears can start
+# - Handle installing of Mesa-demo-x (if necessary)
+# - Launch glxgears and check if it is running
+# - Close glxgears
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
