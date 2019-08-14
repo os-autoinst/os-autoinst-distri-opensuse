@@ -631,6 +631,7 @@ sub wait_boot {
     unlock_if_encrypted if !get_var('S390_ZKVM');
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
+        select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
         my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
         # 2nd stage of autoyast can be considered as linux-login
         push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
