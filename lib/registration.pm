@@ -109,7 +109,7 @@ sub accept_addons_license {
 
     # In SLE 15 some modules do not have license or have the same
     # license (see bsc#1089163) and so are not be shown twice
-    push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
+    push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless (is_sle('15+') || (is_upgrade && is_sle('12-sp5+')));
     # HA and WE have licenses when calling yast2 scc
     push @addons_with_license, @SLE15_ADDONS_WITH_LICENSE_NOINSTALL if (is_sle('15+') and get_var('IN_PATCH_SLE'));
 
@@ -273,7 +273,7 @@ sub register_addons {
         # WE doesn't need code on SLED
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP
-        push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap'));
+        push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap') || (is_upgrade && is_sle('12-sp5+')));
         if ((my $regcode = get_var("SCC_REGCODE_$uc_addon")) or ($addon eq "ltss")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
