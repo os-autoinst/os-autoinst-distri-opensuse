@@ -201,14 +201,13 @@ sub modify_uefi_boot_partition {
     assert_screen 'partitioning_raid-disk_vdd_with_partitions-selected';
     # fold the drive tree
     send_key 'left';
-    send_key 'left' if (is_storage_ng && !is_tumbleweed);    # With storage-ng first press folds vdd, except on Tumbleweed where vdd is now already folded
     assert_screen 'partitioning_raid-hard_disks-unfolded';
     # select first partition of the first disk (usually vda1), bit of a short-cut
     send_key 'right';
     # In storage ng other partition of the first disk can be selected, so select vda1 in the tree
     send_key 'right' if is_storage_ng;
-    # On Tumbleweed, an additional 'right' is needed as vda is folded
-    send_key 'right' if (is_storage_ng && is_tumbleweed);
+    # On storage ng, an additional 'right' is needed as vda is folded
+    send_key 'right' if is_storage_ng;
     assert_screen 'partitioning_raid-disk_vda_with_partitions-selected';
     # edit first partition
     send_key 'alt-e';
