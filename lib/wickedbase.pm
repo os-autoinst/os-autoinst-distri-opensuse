@@ -442,6 +442,7 @@ sub validate_macvtap {
     my $ref_ip     = $self->get_ip(type => 'host',    netmask => 0, is_wicked_ref => 1);
     my $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);
     my $cmd_text   = "./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 &";
+    sleep(30);    # OVS on a worker is slow sometimes to change and we haven't found better way how to handle it
     type_string($cmd_text);
     wait_serial($cmd_text, undef, 0, no_regex => 1);
     type_string("\n");
@@ -449,6 +450,7 @@ sub validate_macvtap {
     # arping not getting packet back it is expected because check_macvtap
     # executable is consume it from tap device before it actually reaches arping
     script_run("arping -c 1 -I macvtap1 $ref_ip");
+    assert_script_run("wait", timeout => 90);
     validate_script_output("cat $macvtap_log", sub { m/Success listening to tap device/ });
 }
 
