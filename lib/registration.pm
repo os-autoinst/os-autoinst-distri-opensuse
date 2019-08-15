@@ -232,8 +232,10 @@ sub register_addons_cmd {
 
 sub check_registered_system {
     my ($system) = @_;
-    my $version = get_var('SLE_PRODUCT') . $system;
-    assert_script_run "zypper lr --uri | grep -i $version";
+    if (check_var('SLE_PRODUCT', 'sles')) {
+        my $version = get_var('SLE_PRODUCT') . $system;
+        assert_script_run "zypper lr --uri | grep -i $version";
+    }
 }
 
 sub check_registered_addons {
@@ -706,6 +708,7 @@ sub get_addon_fullname {
         tcm       => 'sle-module-toolchain',
         wsm       => 'sle-module-web-scripting',
         python2   => 'sle-module-python2',
+        phub      => 'PackageHub',
     );
     return $product_list{"$addon"};
 }
