@@ -284,9 +284,31 @@ sub test_start_instance {
     my $output = script_output "sapcontrol -nr $instance -function Start";
     die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
 
-    $output = script_output $ps_cmd;
-    my @olines = split(/\n/, $output);
-    die "sapcontrol: failed to start the instance" unless (@olines > 1);
+    my $time_to_wait = get_var('WAIT_INSTANCE_START_TIME', 300);    # Wait by default for 5 minutes
+    $time_to_wait = 600 if ($time_to_wait > 600);                   # Limit this to 10 minutes max
+
+    while ($time_to_wait > 0) {
+        $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
+        die "sapcontrol: GetSystemInstanceList: command failed" unless ($output =~ /GetSystemInstanceList[\r\n]+OK/);
+
+        if ($output =~ /GREEN/) {
+            $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
+            die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
+
+            my $failing_services = 0;
+            for my $line (split(/\n/, $output)) {
+                next if ($line =~ /GetProcessList|OK|^name/);
+                $failing_services++ if ($line !~ /GREEN/);
+            }
+            last unless $failing_services;
+        }
+
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+
+    die "Timed out waiting for SAP instance to start" unless ($time_to_wait > 0);
+    script_run $ps_cmd;    # Show list of processes
 }
 
 sub post_run_hook {
