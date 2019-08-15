@@ -30,7 +30,25 @@ sub run {
     my $path = get_required_var('AUTOYAST');
     # Get file from data directory
     my $profile = get_test_data($path);
-    # Return if profile is not available
+
+    # try to detect directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
+    # TODO: autoyast_{caasp,kvm,qam,xen}
+    my $dir    = "autoyast_";
+    my $regexp = $dir . '\E[^/]+\/';
+
+    if (!$profile && $path !~ /\Q$regexp/) {
+        my $distri = get_required_var('DISTRI');
+        if (is_sle) {
+            $distri .= "s" if is_sle('<12');    # sles11
+            my $major_version = get_required_var('VERSION');
+            $major_version =~ s/-SP.*//;
+            $distri .= $major_version;
+        }
+        $path = "$dir${distri}/$path";
+        record_info('INFO', "Trying to use path with detected folder: '$path'");
+        $profile = get_test_data($path);
+    }
+
     return unless $profile;
 
     # Profile is a template, expand and rename
