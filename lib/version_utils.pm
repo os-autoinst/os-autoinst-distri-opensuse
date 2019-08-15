@@ -65,6 +65,7 @@ use constant {
           install_this_version
           install_to_other_at_least
           is_upgrade
+          is_online_migration
           is_sle12_hdd_in_upgrade
           is_installcheck
           is_desktop_installed
@@ -370,7 +371,15 @@ sub is_storage_ng {
 Returns true in upgrade scenarios
 =cut
 sub is_upgrade {
-    return get_var('UPGRADE') || get_var('ONLINE_MIGRATION') || get_var('ZDUP') || get_var('AUTOUPGRADE') || get_var('LIVE_UPGRADE');
+    return get_var('UPGRADE') || is_online_migration() || get_var('ZDUP') || get_var('AUTOUPGRADE') || get_var('LIVE_UPGRADE');
+}
+
+=head2 is_online_migration
+
+Returns true in online migration scenario
+=cut
+sub is_online_migration {
+    return get_var('ONLINE_MIGRATION');
 }
 
 =head2 is_sle12_hdd_in_upgrade
