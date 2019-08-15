@@ -14,23 +14,12 @@
 use base "consoletest";
 use strict;
 use warnings;
-use registration;
 use testapi;
 use utils 'zypper_call';
 
 sub run {
     select_console 'root-console';
     assert_script_run "zypper lr --uri | tee /dev/$serialdev";
-    # Check system version
-    if (get_var('VERSION')) {
-        check_registered_system(get_var('VERSION'));
-    }
-
-    if (get_var('SCC_ADDONS')) {
-        my $myaddons = get_var('SCC_ADDONS');
-        $myaddons =~ s/ltss,?//g;
-        check_registered_addons($myaddons);
-    }
 }
 
 1;
