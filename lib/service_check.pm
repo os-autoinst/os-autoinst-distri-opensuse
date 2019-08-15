@@ -23,6 +23,7 @@ use services::apparmor;
 use services::dhcpd;
 use nfs_common;
 use services::ntpd;
+use services::cups;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -104,9 +105,10 @@ our $default_services = {
         support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     cups => {
-        srv_pkg_name  => 'cups',
-        srv_proc_name => 'cups',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'cups',
+        srv_proc_name      => 'cups',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::cups::full_cups_check
     },
     radvd => {
         srv_pkg_name  => 'radvd',
