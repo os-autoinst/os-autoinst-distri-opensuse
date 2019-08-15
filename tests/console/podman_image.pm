@@ -25,6 +25,12 @@ sub run {
 
     zypper_call "in podman";
 
+    # If there is no other CNI configured...
+    if (get_var("CNI", "podman") == "podman") {
+        # ... use the minimal podman CNI
+        zypper_call "in podman-cni-config";
+    }
+
     if (is_leap("=15.1")) {
         # bsc#1123387
         zypper_call "in apparmor-parser";
