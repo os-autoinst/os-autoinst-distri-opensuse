@@ -13,9 +13,18 @@
     </device_map>
     <global>
       <timeout config:type="integer">1</timeout>
-      <append>splash=verbose</append>
+      <append> splash=verbose </append>
     </global>
   </bootloader>
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE:/SLE-12-SP5:/GA:/TEST/images/repo/SLE-12-SP5-SDK-POOL-aarch64-Media1/]]></media_url>
+        <product>sle-sdk</product>
+        <product_dir>/</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
   <scripts>
     <chroot-scripts config:type="list">
       <script>
@@ -45,10 +54,7 @@
           <filesystem config:type="symbol">vfat</filesystem>
           <format config:type="boolean">true</format>
           <fstopt>umask=0002,utf8=true</fstopt>
-          <loop_fs config:type="boolean">false</loop_fs>
           <mount>/boot/efi</mount>
-          <partition_id config:type="integer">259</partition_id>
-          <partition_nr config:type="integer">1</partition_nr>
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
@@ -56,10 +62,7 @@
           <filesystem config:type="symbol">swap</filesystem>
           <format config:type="boolean">true</format>
           <fstopt>defaults</fstopt>
-          <loop_fs config:type="boolean">false</loop_fs>
           <mount>swap</mount>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
@@ -67,10 +70,7 @@
           <filesystem config:type="symbol">ext4</filesystem>
           <format config:type="boolean">true</format>
           <fstopt>defaults</fstopt>
-          <loop_fs config:type="boolean">false</loop_fs>
           <mount>/</mount>
-          <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">3</partition_nr>
         </partition>
       </partitions>
       <use>all</use>
