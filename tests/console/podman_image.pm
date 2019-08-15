@@ -25,6 +25,11 @@ sub run {
 
     zypper_call "in podman";
 
+    if (is_leap("=15.1")) {
+        # bsc#1123387
+        zypper_call "in apparmor-parser";
+    }
+
     for my $i (0 .. $#$image_names) {
         # Load the image
         assert_script_run("podman pull $image_names->[$i]", 900);

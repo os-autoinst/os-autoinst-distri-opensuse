@@ -1638,7 +1638,7 @@ sub load_extra_tests_docker {
     }
     if (is_opensuse) {
         loadtest "console/docker_image";
-        loadtest "console/podman_image" if is_tumbleweed;
+        loadtest "console/podman_image" if (is_leap('15.1+') || is_tumbleweed);
         loadtest "console/docker_compose";
     }
     loadtest "console/zypper_docker";
