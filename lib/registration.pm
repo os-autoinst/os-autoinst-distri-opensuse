@@ -245,11 +245,12 @@ sub check_registered_addons {
     }
     my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
     foreach my $addon (@addons) {
+        $addon =~ s/(^\s+|\s+$)//g;
         my $name = get_addon_fullname($addon);
         if ($name =~ /LTSS/) {
             $name = 'LTSS';
         }
-        if ($name =~ /ha/) {
+        if ($name =~ /sle-ha/) {
             next;
         }
         assert_script_run "zypper lr --uri | grep -i $name";
