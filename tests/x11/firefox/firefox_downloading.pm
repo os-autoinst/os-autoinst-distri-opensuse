@@ -9,6 +9,25 @@
 # without any warranty.
 
 # Summary: Case#1436106: Firefox: Downloading
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open firefox preferences, change download to "Always ask you where to save
+# files"
+# - Open url "http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso"
+# - Show download window
+# - Pause download
+# - Resume download and check
+# - Cancel download
+# - Retry download
+# - Cancel download and remove from history
+# - Open firefox preferences, change download to save files by default
+# - Open
+# url"http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso"
+# and "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso"
+# - Open download library and check both downloads running
+# - Cancel both downloads
+# - Exit firefox
+
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;

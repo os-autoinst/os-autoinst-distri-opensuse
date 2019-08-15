@@ -9,6 +9,15 @@
 # without any warranty.
 
 # Summary: Case#1436102: Firefox: Page Saving
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open "http://www.mozilla.org/en-US"
+# - Download the opened page (save as)
+# - Exit firefox
+# - Open xterm
+# - Run "ls Downloads/|grep "Internet for people, not profit"
+# - Delete downloaded page
+# - Exit xterm
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

@@ -9,6 +9,14 @@
 # without any warranty.
 
 # Summary: Case#1479557: Firefox: RSS Button
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open View -> Toolbars -> Customize
+#   - Add RSS button
+# - Access "https://linux.slashdot.org"
+#   - Handle cookies if necessary
+# - Click on rss button and check resulting page
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

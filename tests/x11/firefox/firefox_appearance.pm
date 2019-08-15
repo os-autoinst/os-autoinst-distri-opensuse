@@ -9,6 +9,13 @@
 # without any warranty.
 
 # Summary: Firefox Case#1479190: Add-ons - Appearance
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open addon manager
+# - Select themes
+# - Open url "addons.mozilla.org/en-US/firefox/addon/opensuse" and check
+# - Install opensuse theme and check
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Case#1436075 Firefox: Open local file with various types
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open "/usr/share/w3m/w3mhelp.html" and check result
+# - Open "/usr/share/sounds/alsa/test.wav" and check result
+# - open "/usr/lib64/libnss3.so" and check result
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;

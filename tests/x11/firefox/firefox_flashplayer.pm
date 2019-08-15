@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Case#1436061: Firefox: Flash Player
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open "http://www.adobe.com/software/flash/about/" and check
+# - Of flash is supported, open url
+# "https://www.youtube.com/watch?v=Z4j5rJQMdOU" and check
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

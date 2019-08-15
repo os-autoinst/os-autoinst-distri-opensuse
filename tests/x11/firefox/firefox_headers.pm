@@ -9,6 +9,15 @@
 # without any warranty.
 
 # Summary: Test firefox HTTP headers (Case#1436066)
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open network monitor tab in developer tools
+# - Open url "gnu.org" and check
+# - Select HTML and check
+# - Select Other and check
+# - Refresh page
+# - Select "gnu.org", press "shift-F10" and select "Edit and resend" and check
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
