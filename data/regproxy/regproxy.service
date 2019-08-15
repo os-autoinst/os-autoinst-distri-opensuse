@@ -1,0 +1,12 @@
+[Unit]
+Description=Registry proxy
+After=network.target
+
+[Service]
+WorkingDirectory=/usr/local/bin
+EnvironmentFile=/etc/regproxy.conf
+ExecStart=/usr/bin/python3 regproxy.py $PREFIX
+Type=simple
+
+[Install]
+WantedBy=default.target
