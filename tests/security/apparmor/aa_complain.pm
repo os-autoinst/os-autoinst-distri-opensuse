@@ -28,34 +28,11 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
+use services::apparmor;
 
 sub run {
-
-    my $aa_tmp_prof = "/tmp/apparmor.d";
-
-    # Test both situation for default profiles location and the location
-    # specified with '-d'
-    my @aa_complain_cmds = ("aa-complain usr.sbin.nscd", "aa-complain -d $aa_tmp_prof usr.sbin.nscd");
-
     select_console 'root-console';
-
-    systemctl('restart apparmor');
-
-    assert_script_run "cp -r /etc/apparmor.d $aa_tmp_prof";
-
-    foreach my $cmd (@aa_complain_cmds) {
-        validate_script_output $cmd, sub {
-            m/Setting.*nscd to complain mode/s;
-        };
-        save_screenshot;
-
-        # Restore to the enforce mode
-        assert_script_run "aa-enforce usr.sbin.nscd";
-    }
-
-    # Clean Up
-    assert_script_run "rm -rf $aa_tmp_prof";
-
+    services::apparmor::check_aa_complain();
 }
 
 1;
