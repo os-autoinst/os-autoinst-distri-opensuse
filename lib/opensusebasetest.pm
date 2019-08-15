@@ -544,6 +544,7 @@ sub wait_boot {
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
+    select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
     # reconnect s390
     if (check_var('ARCH', 's390x')) {
         my $login_ready = get_login_message();
@@ -631,7 +632,6 @@ sub wait_boot {
     unlock_if_encrypted if !get_var('S390_ZKVM');
 
     if ($textmode || check_var('DESKTOP', 'textmode')) {
-        select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
         my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
         # 2nd stage of autoyast can be considered as linux-login
         push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
