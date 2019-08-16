@@ -390,9 +390,11 @@ sub upload_wicked_logs {
     script_run("cat /etc/resolv.conf > $logs_dir/resolv.conf 2>&1");
     script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
-
-    select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
-    upload_file("$dir_name.tar.gz", "$dir_name.tar.gz");
+    my $result = eval {
+        select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+        upload_file("$dir_name.tar.gz", "$dir_name.tar.gz");
+    };
+    record_info('Failed to upload logs', $@, result => 'fail') unless defined $result;
     $self->select_serial_terminal;
 }
 
@@ -560,26 +562,19 @@ sub post_run {
     $self->{wicked_post_run} = 1;
 
     $self->do_barrier('post_run');
-    my $result = eval {
-        $self->upload_wicked_logs('post');
-    };
-    record_info('Failed to upload post logs', $@, result => 'fail') unless defined $result;
+    $self->upload_wicked_logs('post');
 }
 
 sub pre_run_hook {
     my ($self) = @_;
-
-    my $result = eval {
-        if (is_serial_terminal()) {
-            my $coninfo = '## START: ' . $self->{name};
-            wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
-            type_string($coninfo);
-            wait_serial($coninfo, undef, 0, no_regex => 1);
-            type_string("\n");
-            $self->upload_wicked_logs('pre');
-    } };
-
-    record_info('Failed to upload pre logs', $@, result => 'fail') unless defined $result;
+    $self->select_serial_terminal();
+    add_serial_console('hvc1') if ($self->{name} eq 'before_test');
+    my $coninfo = '## START: ' . $self->{name};
+    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
+    type_string($coninfo);
+    wait_serial($coninfo, undef, 0, no_regex => 1);
+    type_string("\n");
+    $self->upload_wicked_logs('pre');
     $self->do_barrier('pre_run');
 }
 
