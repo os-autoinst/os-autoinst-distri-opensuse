@@ -90,15 +90,22 @@ sub run {
     open_yast2_lan();
 
     send_key "alt-a";    # add another device
+    assert_screen [qw(hardware-dialog device-setup-pop-up)];
+    if (match_has_tag 'device-setup-pop-up') {
+        send_key "alt-o";
+        assert_screen 'hardware-dialog';
+    }
     send_key "tab";
+
     # open device type drop down and select vlan
-    if (is_tumbleweed) {
+    if (is_tumbleweed || is_leap('15.2+')) {
         send_key "alt-v";
     }
     else {
         for (1 .. 3) { send_key "down" }
         send_key "ret";
     }
+
     assert_screen 'add-vlan-selected';
     send_key "alt-n";    # next
     assert_screen 'edit-network-card';
