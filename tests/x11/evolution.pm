@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Startup of evolution with check of first-startup dialogs
+# - Start evolution and check if it is running
+# - Handle evolution first time wizard
+# - Close evolution
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";
