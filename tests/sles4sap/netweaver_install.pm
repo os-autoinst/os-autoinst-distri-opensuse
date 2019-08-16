@@ -52,10 +52,7 @@ sub run {
     $self->copy_media($proto, $path, $timeout, '/sapinst');
 
     # Define a valid hostname/IP address in /etc/hosts, but not in HA
-    if (!get_var('HA_CLUSTER')) {
-        assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/add_ip_hostname2hosts.sh > /tmp/add_ip_hostname2hosts.sh";
-        assert_script_run "/bin/bash -ex /tmp/add_ip_hostname2hosts.sh";
-    }
+    $self->add_hostname_to_hosts if (!get_var('HA_CLUSTER'));
 
     # Use the correct Hostname and InstanceNumber in SAP's params file
     # Note: $hostname can be '$(hostname)', so we need to protect with '"'

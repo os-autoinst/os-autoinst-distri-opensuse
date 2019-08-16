@@ -19,6 +19,7 @@ our @EXPORT = qw(
   get_total_mem
   prepare_profile
   copy_media
+  add_hostname_to_hosts
   test_pids_max
   test_forkbomb
   test_version_info
@@ -220,6 +221,11 @@ sub copy_media {
     type_string "cd $target\n";
     assert_script_run "umount /mnt";
     assert_script_run "md5sum -c /tmp/check-nw-media", $nettout;
+}
+
+sub add_hostname_to_hosts {
+    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
+    assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
 }
 
 sub test_pids_max {
