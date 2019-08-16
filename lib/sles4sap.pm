@@ -287,11 +287,23 @@ sub test_start_service {
 }
 
 sub test_start_instance {
+    my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
+    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+
+    while ($time_to_wait > 0) {
+        my $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
+        die "sapcontrol: GetSystemInstanceList: command failed" unless ($output =~ /GetSystemInstanceList[\r\n]+OK/);
+        last if ($output =~ /GRAY/);
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+    die "Timed out waiting for SAP instance status to turn GRAY" unless ($time_to_wait > 0);
+
     my $output = script_output "sapcontrol -nr $instance -function Start";
     die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
 
-    my $time_to_wait = get_var('WAIT_INSTANCE_START_TIME', 300);    # Wait by default for 5 minutes
-    $time_to_wait = 600 if ($time_to_wait > 600);                   # Limit this to 10 minutes max
+    $time_to_wait = get_var('WAIT_INSTANCE_START_TIME', 300);    # Wait by default for 5 minutes
+    $time_to_wait = 600 if ($time_to_wait > 600);                # Limit this to 10 minutes max
 
     while ($time_to_wait > 0) {
         $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
