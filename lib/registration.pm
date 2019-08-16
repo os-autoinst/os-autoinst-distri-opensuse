@@ -232,7 +232,9 @@ sub register_addons_cmd {
 
 sub check_registered_system {
     my ($system) = @_;
-    my $version = get_var('SLE_PRODUCT') . $system;
+    my $version = get_var('SLE_PRODUCT');
+    $version = 'sles' if ($version eq 'sles4sap');
+    $version .= $system;
     assert_script_run "zypper lr --uri | grep -i $version";
 }
 
