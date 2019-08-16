@@ -98,10 +98,10 @@ sub deal_with_dependency_issues {
         send_key_until_needlematch 'packages-section-selected', 'tab';
         send_key 'ret';
     }
-    if (get_var("WORKAROUND_DEPS")) {
+    if (check_var("WORKAROUND_DEPS", '1')) {
         y2_logs_helper::workaround_dependency_issues;
     }
-    elsif (get_var("BREAK_DEPS")) {
+    elsif (check_var("BREAK_DEPS", '1')) {
         y2_logs_helper::break_dependency;
     }
     else {

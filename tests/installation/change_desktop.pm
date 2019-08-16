@@ -32,10 +32,10 @@ sub change_desktop {
         wait_screen_change { send_key 'ret'; };
     }
 
-    if (check_screen('dependency-issue', 5) && get_var("WORKAROUND_DEPS")) {
+    if (check_screen('dependency-issue', 5) && check_var("WORKAROUND_DEPS", '1')) {
         $self->workaround_dependency_issues;
     }
-    if (check_screen('dependency-issue', 0) && get_var("BREAK_DEPS")) {
+    if (check_screen('dependency-issue', 0) && check_var("BREAK_DEPS", '1')) {
         $self->break_dependency;
     }
 
