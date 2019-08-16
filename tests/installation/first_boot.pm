@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use bootbasetest;
 use testapi;
-use utils 'handle_emergency';
+use utils qw(handle_emergency assert_and_click_until_screen_change);
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use x11utils 'handle_login';
 use base 'opensusebasetest';
@@ -65,6 +65,9 @@ sub run {
     if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
         push(@tags, 'kde-greeter');
     }
+    if (get_var('DESKTOP', '') =~ /kde|gnome|xfce/) {
+        push(@tags, 'openSUSE-welcome');
+    }
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
@@ -91,6 +94,12 @@ sub run {
         x11_start_program('xterm');
         wait_still_screen;
         script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
+        wait_screen_change { send_key 'alt-f4' };
+    }
+    if (match_has_tag('openSUSE-welcome')) {
+        # Unselect "Show on next startup"
+        assert_and_click_until_screen_change('openSUSE-welcome');
+        # Close
         wait_screen_change { send_key 'alt-f4' };
     }
     if (match_has_tag('kde-greeter')) {
