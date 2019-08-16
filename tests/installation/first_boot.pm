@@ -62,9 +62,6 @@ sub run {
     }
 
     my @tags = qw(generic-desktop);
-    if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
-        push(@tags, 'kde-greeter');
-    }
     if (get_var('DESKTOP', '') =~ /kde|gnome|xfce/) {
         push(@tags, 'openSUSE-welcome');
     }
@@ -101,10 +98,6 @@ sub run {
         assert_and_click_until_screen_change('openSUSE-welcome');
         # Close
         wait_screen_change { send_key 'alt-f4' };
-    }
-    if (match_has_tag('kde-greeter')) {
-        send_key "esc";
-        assert_screen 'generic-desktop';
     }
 }
 
