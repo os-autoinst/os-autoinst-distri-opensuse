@@ -454,6 +454,11 @@ sub load_feature_tests {
 sub load_online_migration_tests {
     # stop packagekit service and more
     loadtest "migration/sle12_online_migration/online_migration_setup";
+    # switch VERSION to ensure migrate to expected target for online migration
+    set_var('ORIGIN_SYSTEM_VERSION',  get_var('HDDVERSION'));
+    set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
+    loadtest "migration/version_switch_origin_system";
+
     loadtest "migration/sle12_online_migration/register_system";
     # do full/minimal update before migration
     if (get_var("FULL_UPDATE")) {
@@ -465,6 +470,7 @@ sub load_online_migration_tests {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         loadtest "migration/sle12_online_migration/register_without_ltss";
     }
+    loadtest "migration/version_switch_upgrade_target";
     loadtest "migration/sle12_online_migration/pre_migration";
     loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     if (get_var("LOCK_PACKAGE")) {
