@@ -9,6 +9,15 @@
 
 # Summary: Collect logs from the installation system just before we try to
 #   reboot into the installed system
+# - If BACKEND is s390x or S390_DISK is not ZFCP, run "lsreipl | grep 0.0.0150"
+# to check IPL device
+# - If BACKEND is ipmi or spvm, set serial console type depending, HYPERVISOR TYPE (xen,
+# kvm) or ARCH (aarch64)
+# - Otherwise
+#   - Get ip for network interface
+#   - Get /etc/resolv.conf contents
+#   - Save screenshot
+# - Upload yast2 installation network logs
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'y2_installbase';
