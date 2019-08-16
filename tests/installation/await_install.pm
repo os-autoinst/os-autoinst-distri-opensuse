@@ -115,6 +115,8 @@ sub run {
     $timeout *= 2 if check_var_array('PATTERNS', 'all');
     # multipath installations seem to take longer (failed some time)
     $timeout *= 2 if check_var('MULTIPATH', 1);
+    # Scale timeout
+    $timeout *= get_var('TIMEOUT_SCALE', 1);
     # on s390 we might need to install additional packages depending on the installation method
     if (check_var('ARCH', 's390x')) {
         push(@tags, 'additional-packages');
