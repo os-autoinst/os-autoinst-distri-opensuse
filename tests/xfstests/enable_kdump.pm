@@ -8,6 +8,17 @@
 # without any warranty.
 #
 # Summary: Enable kdump and verify it's enabled
+# - Run "echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf"
+# - Run "sysctl -p"  and check for "kernel.softlockup_panic = 1"
+# - Stop packagekit service
+# - Install yast2-kdump kdump crash
+# - If distro is sle, add kernel debuginfo repository
+# - Otherwise, add repository from REPO_OSS_DEBUGINFO variable
+# - Install kernel debuginfo
+# - Add crashkernel parameters on grub commandline
+# - Enable kdump service
+# - Reboot
+# - Check if kdump is enabled
 # Maintainer: Yong Sun <yosun@suse.com>
 package enable_kdump;
 
