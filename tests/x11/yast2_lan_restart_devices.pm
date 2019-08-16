@@ -26,6 +26,8 @@ use strict;
 use warnings;
 use testapi;
 use y2lan_restart_common qw(initialize_y2lan open_network_settings close_network_settings check_network_status);
+use version_utils 'is_sle';
+use Utils::Architectures 'is_s390x';
 
 sub check_bsc1111483 {
     return 0 unless match_has_tag('yast2_lan_device_bsc1111483');
@@ -154,7 +156,14 @@ sub check_device {
 
 sub run {
     initialize_y2lan;
-    check_device($_) foreach qw(bridge bond VLAN);
+    my @devices = qw(bridge VLAN);
+    if (is_sle('<=12-SP5') && is_s390x()) {
+        record_soft_failure 'bsc#1145943';
+    } else {
+        push @devices, 'bond';
+    }
+
+    check_device($_) foreach @devices;
     type_string "killall xterm\n";
 }
 
