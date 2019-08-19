@@ -180,6 +180,7 @@ sub run {
     start_y2sn $self;
     select_vdb;
     wait_screen_change { send_key "alt-l" };
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-y" };
     assert_screen "yast2_storage_ng-unpartitioned";
     wait_screen_change { send_key "alt-n" };
