@@ -28,7 +28,7 @@ sub run {
     # installation of NetWeaver. This ensures the current hostname can be resolved
     if (is_upgrade) {
         assert_script_run 'sed -i /$(hostname)/d /etc/hosts';
-        $self->add_hostname_to_hosts if is_upgrade;
+        $self->add_hostname_to_hosts;
     }
 
     # The SAP Admin was set in sles4sap/netweaver_install
