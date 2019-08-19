@@ -201,6 +201,7 @@ sub test_solutions {
 sub test_ppc64le {
     my ($self) = @_;
 
+    die "This test cannot be run on QEMU" if (check_var('BACKEND', 'qemu'));
     my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
 
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Power_1";
