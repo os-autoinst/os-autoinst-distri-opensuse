@@ -16,11 +16,24 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use version_utils "is_upgrade";
 
 sub run {
     my ($self) = @_;
     if ($self->firewall eq 'firewalld') {
-        assert_script_run('firewall-cmd --state');
+        my $ret = script_run('firewall-cmd --state');
+        if ($ret && is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/) {
+            # In case of upgrades from SFW2-based distros (Leap < 15.0 to TW) we end up without
+            # any firewall
+            record_soft_failure "boo#1144543 - Migration from SFW2 to firewalld: no firewall enabled";
+            $ret = 0;
+        }
+        if ($ret == 0) {
+            $self->result('ok');
+        }
+        else {
+            $self->result('fail');
+        }
     }
     else {
         assert_script_run('SuSEfirewall2 status');
