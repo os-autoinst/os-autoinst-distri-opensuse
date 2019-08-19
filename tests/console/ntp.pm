@@ -25,7 +25,7 @@ sub run {
     assert_script_run 'echo "server 2.europe.pool.ntp.org" >> /etc/ntp.conf';
     systemctl 'restart ntpd.service';
     assert_script_run 'ntpq -p';
-    $server_count + 2 == script_output 'ntpq -p | tail -n +3 | wc -l' or die "Configuration not loaded";
+    $server_count + 2 <= script_output 'ntpq -p | tail -n +3 | wc -l' or die "Configuration not loaded";
 
     assert_script_run 'echo "server ntp1.suse.de iburst" >> /etc/ntp.conf';
     assert_script_run 'echo "server ntp2.suse.de iburst" >> /etc/ntp.conf';
