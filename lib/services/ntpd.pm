@@ -22,6 +22,16 @@ sub install_service {
     zypper_call('in ntp');
 }
 
+# This will be used by QAM ntp test.
+sub check_config {
+    my $server_count = script_output 'ntpq -p | tail -n +3 | wc -l';
+    assert_script_run 'echo "server 3.europe.pool.ntp.org" >> /etc/ntp.conf';
+    assert_script_run 'echo "server 2.europe.pool.ntp.org" >> /etc/ntp.conf';
+    systemctl 'restart ntpd.service';
+    assert_script_run 'ntpq -p';
+    $server_count + 2 <= script_output 'ntpq -p | tail -n +3 | wc -l' or die "Configuration not loaded";
+}
+
 sub config_service {
     assert_script_run("echo 'server ntp1.suse.de iburst' >> /etc/ntp.conf");
     assert_script_run("echo 'server ntp2.suse.de iburst' >> /etc/ntp.conf");

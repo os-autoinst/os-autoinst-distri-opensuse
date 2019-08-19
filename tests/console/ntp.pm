@@ -22,14 +22,7 @@ sub run {
     services::ntpd::install_service();
     services::ntpd::enable_service();
     services::ntpd::start_service();
-
-    my $server_count = script_output 'ntpq -p | tail -n +3 | wc -l';
-    assert_script_run 'echo "server 3.europe.pool.ntp.org" >> /etc/ntp.conf';
-    assert_script_run 'echo "server 2.europe.pool.ntp.org" >> /etc/ntp.conf';
-    systemctl 'restart ntpd.service';
-    assert_script_run 'ntpq -p';
-    $server_count + 2 <= script_output 'ntpq -p | tail -n +3 | wc -l' or die "Configuration not loaded";
-
+    services::ntpd::check_config();
     services::ntpd::config_service();
     services::ntpd::check_service();
     services::ntpd::check_function();
