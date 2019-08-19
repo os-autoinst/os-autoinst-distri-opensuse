@@ -1490,7 +1490,8 @@ sub load_extra_tests_desktop {
             loadtest 'x11/network/yast2_network_use_nm';
             loadtest 'x11/network/NM_wpa2_enterprise';
         }
-        loadtest "console/yast2_lan_device_settings";
+        # We cannot change network device settings as rely on ssh/vnc connection to the machine
+        loadtest "console/yast2_lan_device_settings" unless is_s390x();
         loadtest "console/check_default_network_manager";
     }
 }
