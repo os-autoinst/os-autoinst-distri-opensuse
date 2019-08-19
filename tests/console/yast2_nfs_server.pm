@@ -34,51 +34,17 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my $rw     = '/srv/nfs';
-    my $ro     = '/srv/ro';
     select_console 'root-console';
 
     if (get_var('NFSSERVER')) {
         server_configure_network($self);
     }
 
-    # Make sure packages are installed
-    zypper_call 'in yast2-nfs-server nfs-kernel-server', timeout => 480, exitcode => [0, 106, 107];
+    install_service;
+    config_service($rw, $ro);
+    start_service($rw, $ro);
 
-    try_nfsv2();
-
-    prepare_exports($rw, $ro);
-
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server');
-
-    yast2_server_initial();
-
-    # Start server
-    send_key 'alt-s';
-
-    # Disable NFSv4
-    send_key 'alt-v';
-    wait_still_screen 1;
-
-    yast_handle_firewall();
-
-    # Next step
-    send_key 'alt-n';
-
-    assert_screen 'nfs-overview';
-
-    add_shares($rw, $ro);
-
-    send_key 'alt-f';
-    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
-
-    # Back on the console, test mount locally
-    clear_console;
-
-    # Server is up and running, client can use it now!
-    script_run "( journalctl -fu nfs-server > /dev/$serialdev & )";
     mutex_create('nfs_ready');
-    check_nfs_ready($rw, $ro);
 
     if (get_var('NFSSERVER')) {
         assert_script_run "mount 10.0.2.101:${rw} /mnt";
@@ -91,12 +57,14 @@ sub run {
     validate_script_output("cat /mnt/file.txt", sub { m,success, }, 95);
 
     # Check NFS version
-    if (is_sle('=12-sp1') && script_run 'nfsstat -m') {
+    if ((is_sle('=12-sp1') || is_sle('=12-sp2')) && script_run 'nfsstat -m') {
         record_soft_failure 'bsc#1140731';
     }
     else {
         validate_script_output "nfsstat -m", sub { m/vers=3/ };
     }
+
+    check_service($rw, $ro);
 
     assert_script_run 'umount /mnt';
 

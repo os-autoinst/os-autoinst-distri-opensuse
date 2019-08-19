@@ -21,6 +21,7 @@ use warnings;
 use version_utils 'is_sle';
 use services::apache;
 use services::dhcpd;
+use nfs_common;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -80,18 +81,14 @@ our $default_services = {
         support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     nfs => {
-        srv_pkg_name  => 'yast2-nfs-server',
-        srv_proc_name => 'nfs',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'yast2-nfs-server',
+        srv_proc_name      => 'nfs',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&check_y2_nfs_func
     },
     rpcbind => {
         srv_pkg_name  => 'rpcbind',
         srv_proc_name => 'rpcbind',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
-    },
-    nfs => {
-        srv_pkg_name  => 'yast2-nfs-server',
-        srv_proc_name => 'nfs',
         support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     rpcbind => {

@@ -3,7 +3,7 @@ use mmapi;
 use testapi;
 use strict;
 use warnings;
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl file_content_replace clear_console zypper_call);
 use Utils::Systemd 'disable_and_stop_service';
 use mm_network;
 use version_utils;
@@ -11,7 +11,10 @@ use version_utils;
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(server_configure_network try_nfsv2 prepare_exports yast_handle_firewall add_shares
-  mount_export client_common_tests check_nfs_ready yast2_server_initial);
+  mount_export client_common_tests check_nfs_ready yast2_server_initial check_y2_nfs_func install_service config_service start_service check_service $rw $ro);
+
+our $rw = '/srv/nfs';
+our $ro = '/srv/ro';
 
 sub server_configure_network {
     # Configure static IP for client/server test
@@ -181,6 +184,74 @@ sub yast2_server_initial {
             send_key 'alt-i';
         }
     } while (not match_has_tag('nfs-config'));
+}
+
+sub install_service {
+    # Make sure packages are installed
+    zypper_call 'in yast2-nfs-server nfs-kernel-server', timeout => 480;
+}
+
+sub config_service {
+    my ($rw, $ro) = @_;
+
+    try_nfsv2();
+
+    prepare_exports($rw, $ro);
+
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-server');
+
+    yast2_server_initial();
+
+    # Start server
+    send_key 'alt-s';
+
+    # Disable NFSv4
+    send_key 'alt-v';
+    wait_still_screen 1;
+
+    yast_handle_firewall();
+
+    # Next step
+    send_key 'alt-n';
+
+    assert_screen 'nfs-overview';
+
+    add_shares($rw, $ro);
+
+    send_key 'alt-f';
+    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
+}
+
+sub start_service {
+    my ($rw, $ro) = @_;
+    # Back on the console
+    clear_console;
+
+    # Server is up and running, client can use it now!
+    script_run "( journalctl -fu nfs-server > /dev/$serialdev & )";
+    check_nfs_ready($rw, $ro);
+}
+
+sub check_service {
+    my ($rw, $ro) = @_;
+
+    assert_script_run "exportfs | grep '${rw}'";
+    assert_script_run "exportfs | grep '${ro}'";
+    assert_script_run "cat /etc/exports | tr -d ' \\t\\r' | grep '${rw}\\*(rw,\\|${ro}\\*(ro,'";
+    assert_script_run "cat /proc/fs/nfsd/exports";
+    assert_script_run('systemctl is-enabled nfs-server');
+    assert_script_run('systemctl is-active nfs-server');
+}
+
+sub check_y2_nfs_func {
+    my ($stage) = @_;
+    $stage //= '';
+    if ($stage eq 'before') {
+        install_service();
+        config_service($rw, $ro);
+        start_service($rw, $ro);
+    }
+    check_service($rw, $ro);
 }
 
 1;
