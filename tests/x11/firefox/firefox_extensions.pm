@@ -47,10 +47,13 @@ sub run {
     assert_screen('firefox-extensions-show_flag');
 
     send_key "alt-2";
-    assert_and_click('firefox-extensions-flagfox_installed');
+    if ($self->is_firefox_60) {
+        assert_and_click('firefox-extensions-flagfox_installed');
 
-    send_key "alt-1";
-    assert_screen('firefox-extensions-no_flag', 90);
+        send_key "alt-1";
+        assert_screen('firefox-extensions-no_flag', 90);
+    }
+    # for firefox 68, it needs much more to disable the extension
 
     $self->exit_firefox;
 }

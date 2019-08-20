@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,11 +28,17 @@ sub run {
     # go to advanced button and press it
     send_key "tab";
     send_key "ret";
-    for (1 .. 2) { send_key "tab"; }
-    send_key "ret";
+    if ($self->is_firefox_60) {
+        for (1 .. 2) { send_key "tab"; }
+        send_key "ret";
 
-    assert_screen('firefox-ssl-addexception', 60);
-    send_key "alt-c";
+        assert_screen('firefox-ssl-addexception', 60);
+        send_key "alt-c";
+    } else {
+        ## This is new behavior for firefox 68
+        for (1 .. 4) { send_key "tab"; }
+        send_key "ret";
+    }
 
     assert_screen('firefox-ssl-loadpage', 60);
 
