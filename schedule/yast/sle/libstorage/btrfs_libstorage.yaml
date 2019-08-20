@@ -1,4 +1,4 @@
-name:           btrfs
+name:           btrfs_libstorage
 description:    >
   Validate default installation with btrfs and Libstorage.
 vars:
