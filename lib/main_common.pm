@@ -207,6 +207,12 @@ sub any_desktop_is_applicable {
     return get_var("DESKTOP") !~ /textmode/;
 }
 
+sub opensuse_welcome_applicable {
+    # openSUSE-welcome is expected to show up on openSUSE Tumbleweed only (Leap possibly in the future)
+    # icewm (aka minimalx) does not honor /etc/xdg/autostart, thus opensuse-welcome does not autostart there
+    return get_var('DESKTOP', '') =~ /kde|gnome|xfce/ && is_tumbleweed;
+}
+
 sub logcurrentenv {
     for my $k (@_) {
         my $e = get_var("$k");
@@ -431,6 +437,7 @@ sub load_reboot_tests {
         }
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
+        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
         if (is_aarch64 && !get_var('INSTALLONLY')) {
             loadtest "installation/system_workarounds";
         }
