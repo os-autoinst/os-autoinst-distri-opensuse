@@ -2608,7 +2608,8 @@ sub load_installation_validation_tests {
     # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
     # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
     # - console/verify_separate_home.pm: validate if separate /home partition enabled
-    # - console/validate_lvm_encrypt: validate lvm encrypted partitioning
+    # - console/validate_lvm_: validate lvm partitioning
+    # - console/validate_encrypt: validate encrypted paritioning
     # - console/autoyast_smoke: validate autoyast installation
     # - installation/validation/ibft: validate autoyast installation
     # - console/validate_raid: validate raid layout partitioning
