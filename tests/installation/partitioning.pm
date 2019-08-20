@@ -20,6 +20,15 @@ use partition_setup qw(%partition_roles is_storage_ng_newui);
 
 sub run {
     assert_screen 'partitioning-edit-proposal-button', 40;
+    if (check_var('PARTITION_EDIT', 'ext4_btrfs')) {
+        send_key "alt-d";
+        send_key "alt-f";
+        send_key "e";
+        send_key "alt-i";
+        send_key "b";
+        assert_screen 'partitioning-ext4_root-btrfs_home';
+        send_key "alt-o";
+    }
 
     if (get_var("DUALBOOT")) {
         if (is_sle('15+')) {
