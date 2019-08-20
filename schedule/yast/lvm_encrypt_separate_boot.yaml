@@ -34,4 +34,5 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
-  - console/validate_lvm_encrypt
+  - console/validate_lvm
+  - console/validate_encrypt
