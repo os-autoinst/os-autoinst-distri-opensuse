@@ -112,6 +112,8 @@ sub accept_addons_license {
     push @addons_with_license, @SLE15_ADDONS_WITHOUT_LICENSE unless is_sle('15+');
     # HA and WE have licenses when calling yast2 scc
     push @addons_with_license, @SLE15_ADDONS_WITH_LICENSE_NOINSTALL if (is_sle('15+') and get_var('IN_PATCH_SLE'));
+    # HA does not show EULA when doing migration to 12-SP5
+    @addons_with_license = grep { $_ ne 'ha' } @addons_with_license if (is_sle('12-sp5+') && get_var('UPGRADE'));
 
     for my $addon (@scc_addons) {
         # most modules don't have license, skip them
@@ -275,8 +277,8 @@ sub register_addons {
         my @addons_with_code = qw(geo live rt ltss ses);
         # WE doesn't need code on SLED
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
-        # HA doesn't need code on SLES4SAP
-        push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap'));
+        # HA doesn't need code on SLES4SAP or in migrations to 12-SP5
+        push @addons_with_code, 'ha' unless (check_var('SLE_PRODUCT', 'sles4sap') || (is_sle('12-sp5+') && get_var('UPGRADE')));
         if ((my $regcode = get_var("SCC_REGCODE_$uc_addon")) or ($addon eq "ltss")) {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
