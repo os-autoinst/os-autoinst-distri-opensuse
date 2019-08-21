@@ -64,7 +64,8 @@ sub nfs_shares_tab {
     assert_screen 'nis-client-nfs-client-shares-conf';
     send_key 'alt-a';          # add
     wait_still_screen 4;
-    send_key 'alt-v';          # NFSV4 share checkbox
+    send_key 'alt-v';          # NFSV4 share checkbox (selectable box for newer products)
+    wait_still_screen 2;       # Requires refresh for newer products
     send_key 'alt-s';          # choose NFS server button
     assert_screen 'nis-client-nfs-server';
     send_key 'alt-o';          # OK
