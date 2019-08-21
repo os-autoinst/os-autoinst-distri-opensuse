@@ -188,11 +188,11 @@ sub setup_env {
     # This is for 12-sp5 project specific flavor Migration-from-SLE12-SP5-to-SLE15-SPx, this flavor belong 12sp5 test group but the real
     # action is migration from 12-sp5 to 15-sp1, so we need change VERSION to 15-SP1 before the test case start
     if (check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx') || check_var('FLAVOR', 'Migration-from-SLE12-SP5-to-SLE15-SPx-Milestone')
-        || check_var('FLAVOR', 'Regression-on-SLE15-SPx-migrated-from-SLE12-SP5')) {
+        || check_var('FLAVOR', 'Regression-on-SLE15-SPx-migrated-from-SLE12-SP5') || check_var('UPGRADE_TARGET_RELEASED_VERSION', 1)) {
         # Save the original target version, needed for testing upgrade from a beta version to a non-beta
         # SLE12-SP5 to SLE15-SP1 for example
         set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION'));
-        set_var('VERSION',                 '15-SP1');
+        set_var('VERSION',                 get_var('UPGRADE_TARGET_VERSION'));
     }
 }
 
