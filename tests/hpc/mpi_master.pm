@@ -9,7 +9,7 @@
 
 # Summary: Basic MPI integration test. Checking for installability and
 # usability of mpirun and mpicc. Using mpirun locally and across
-# available nodes
+# available nodes. Test meant to be run in VMs, so thus using ethernet
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
 use base "hpcbase";
@@ -72,6 +72,15 @@ sub run {
     record_info('Run MPI over several nodes');
     if ($mpi eq 'openmpi') {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --allow-run-as-root --host $cluster_nodes  /tmp/simple_mpi");
+    } elsif ($mpi eq 'mvapich2') {
+        # we do not support ethernet with mvapich2
+        my $return = script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi");
+        if ($return == 143) {
+            record_info("echo $return - No IB device found");
+        } else {
+            ##TODO: condider more rebust handling of various errors
+            die("echo $return - not expected errorcode");
+        }
     } else {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi");
     }
