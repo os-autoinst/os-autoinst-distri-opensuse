@@ -45,8 +45,6 @@ our @EXPORT = qw(
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
-  check_registered_system
-  check_registered_addons
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   @SLE15_ADDONS_WITHOUT_LICENSE
@@ -226,39 +224,6 @@ sub register_addons_cmd {
         }
         else {
             next;
-        }
-    }
-}
-
-sub check_registered_system {
-    my ($system) = @_;
-    my $version = get_var('SLE_PRODUCT');
-    $version = 'sles' if ($version eq 'sles4sap');
-    $version .= $system;
-    assert_script_run "zypper lr --uri | grep -i $version";
-}
-
-sub check_registered_addons {
-    my ($addonlist) = @_;
-    $addonlist //= get_var('SCC_ADDONS');
-    # Check auto-select modules after migration only for sle15-sp1
-    if (is_sle('=15-sp1') and !get_var('IN_PATCH_SLE')) {
-        $addonlist = $addonlist . ",base,desktop,sdk,lgm,python2,serverapp,wsm";
-    }
-    my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
-    foreach my $addon (@addons) {
-        $addon =~ s/(^\s+|\s+$)//g;
-        my $name = get_addon_fullname($addon);
-        if ($name =~ /LTSS/) {
-            $name = 'LTSS';
-        }
-        if ($name =~ /sle-ha/) {
-            next;
-        }
-        assert_script_run "zypper lr --uri | grep -i $name";
-        # If has WE addon, need check nvidia repo
-        if ($name =~ /sle-we/) {
-            assert_script_run "zypper lr --uri | grep -i NVIDIA";
         }
     }
 }
