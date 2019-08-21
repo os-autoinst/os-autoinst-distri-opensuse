@@ -1,25 +1,22 @@
-name:           lvm-encrypt-separate-boot_uefi
-description:    >
-  Creates UEFI boot with Expert Partioner test for Net installer.
-  In sense we enable lvm-encrypt-separate-boot to Tumbleweed
-vars:
-  UNENCRYPTED_BOOT: 1
-  ENCRYPT: 1
-  FULL_LVM_ENCRYPT: 1
-  DESKTOP: gnome
+---
+description: >
+  Conduct installation with encrypted LVM selected during installation.
+  Generated disk image used in downstream jobs. (crypt-)LVM installations can
+  take longer, especially on non-x86_64 architectures.
+name: cryptlvm
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
-  - installation/online_repos
-  - installation/installation_mode
-  - installation/logpackages
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_full_lvm
+  - installation/partitioning/encrypt_lvm
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
+  - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -30,9 +27,8 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
-  - console/hostname
-  - console/system_prepare
-  - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
   - console/validate_lvm
   - console/validate_encrypt
+  - console/yast2_i
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

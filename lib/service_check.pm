@@ -20,6 +20,8 @@ use strict;
 use warnings;
 use version_utils 'is_sle';
 use services::apache;
+use services::dhcpd;
+use nfs_common;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -62,6 +64,12 @@ our $default_services = {
         support_ver        => '12-SP2,12-SP3,12-SP4,15,15-SP1',
         service_check_func => \&services::apache::full_apache_check
     },
+    dhcpd => {
+        srv_pkg_name       => 'dhcp-server',
+        srv_proc_name      => 'dhcpd',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::dhcpd::full_dhcpd_check
+    },
     bind => {
         srv_pkg_name  => 'bind',
         srv_proc_name => 'named',
@@ -73,18 +81,14 @@ our $default_services = {
         support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     nfs => {
-        srv_pkg_name  => 'yast2-nfs-server',
-        srv_proc_name => 'nfs',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'yast2-nfs-server',
+        srv_proc_name      => 'nfs',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&check_y2_nfs_func
     },
     rpcbind => {
         srv_pkg_name  => 'rpcbind',
         srv_proc_name => 'rpcbind',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
-    },
-    nfs => {
-        srv_pkg_name  => 'yast2-nfs-server',
-        srv_proc_name => 'nfs',
         support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     rpcbind => {
@@ -127,7 +131,7 @@ our $default_services = {
 sub install_services {
     my ($service) = @_;
     $hdd_base_version = get_var('HDDVERSION');
-    foreach my $s (keys %$service) {
+    foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
@@ -158,7 +162,7 @@ sub install_services {
 
 sub check_services {
     my ($service) = @_;
-    foreach my $s (keys %$service) {
+    foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};

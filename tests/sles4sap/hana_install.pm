@@ -37,8 +37,7 @@ sub run {
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
 
     # Add host's IP to /etc/hosts
-    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
-    assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
+    $self->add_hostname_to_hosts;
 
     # This installs HANA. Start by configuring the appropiate SAP profile
     $self->prepare_profile('HANA');

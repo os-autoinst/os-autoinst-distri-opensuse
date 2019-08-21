@@ -207,6 +207,12 @@ sub any_desktop_is_applicable {
     return get_var("DESKTOP") !~ /textmode/;
 }
 
+sub opensuse_welcome_applicable {
+    # openSUSE-welcome is expected to show up on openSUSE Tumbleweed only (Leap possibly in the future)
+    # icewm (aka minimalx) does not honor /etc/xdg/autostart, thus opensuse-welcome does not autostart there
+    return get_var('DESKTOP', '') =~ /kde|gnome|xfce/ && is_tumbleweed;
+}
+
 sub logcurrentenv {
     for my $k (@_) {
         my $e = get_var("$k");
@@ -416,8 +422,8 @@ sub load_reboot_tests {
     if (installyaststep_is_applicable()) {
         # test makes no sense on s390 because grub2 can't be captured
         if (!(is_s390x or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
-            # exclude this scenario for autoyast test with switched keyboard layaout
-            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT');
+            # exclude this scenario for autoyast test with switched keyboard layaout. also exclude on ipmi as installation/first_boot will call wait_grub
+            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || check_var('BACKEND', 'ipmi');
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
             }
@@ -431,6 +437,7 @@ sub load_reboot_tests {
         }
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
+        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
         if (is_aarch64 && !get_var('INSTALLONLY')) {
             loadtest "installation/system_workarounds";
         }
@@ -1490,7 +1497,8 @@ sub load_extra_tests_desktop {
             loadtest 'x11/network/yast2_network_use_nm';
             loadtest 'x11/network/NM_wpa2_enterprise';
         }
-        loadtest "console/yast2_lan_device_settings";
+        # We cannot change network device settings as rely on ssh/vnc connection to the machine
+        loadtest "console/yast2_lan_device_settings" unless is_s390x();
         loadtest "console/check_default_network_manager";
     }
 }
@@ -1638,7 +1646,7 @@ sub load_extra_tests_docker {
     }
     if (is_opensuse) {
         loadtest "console/docker_image";
-        loadtest "console/podman_image" if is_tumbleweed;
+        loadtest "console/podman_image" if (is_leap('15.1+') || is_tumbleweed);
         loadtest "console/docker_compose";
     }
     loadtest "console/zypper_docker";
@@ -2607,7 +2615,8 @@ sub load_installation_validation_tests {
     # - autoyast/verify_ext4: validate installation using autoyast_ext4 profile
     # - console/verify_no_separate_home.pm: validate if separate /home partition disabled
     # - console/verify_separate_home.pm: validate if separate /home partition enabled
-    # - console/validate_lvm_encrypt: validate lvm encrypted partitioning
+    # - console/validate_lvm_: validate lvm partitioning
+    # - console/validate_encrypt: validate encrypted paritioning
     # - console/autoyast_smoke: validate autoyast installation
     # - installation/validation/ibft: validate autoyast installation
     # - console/validate_raid: validate raid layout partitioning
@@ -2927,7 +2936,6 @@ sub load_mm_autofs_tests {
             loadtest "network/autofs_client";
         }
     }
-
 }
 
 1;

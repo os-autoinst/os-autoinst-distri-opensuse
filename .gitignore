@@ -6,3 +6,4 @@ tools/tidy
 .perltidyrc
 *.tdy
 .*.swp
+*~

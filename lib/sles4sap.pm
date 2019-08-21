@@ -19,6 +19,7 @@ our @EXPORT = qw(
   get_total_mem
   prepare_profile
   copy_media
+  add_hostname_to_hosts
   test_pids_max
   test_forkbomb
   test_version_info
@@ -222,6 +223,11 @@ sub copy_media {
     assert_script_run "md5sum -c /tmp/check-nw-media", $nettout;
 }
 
+sub add_hostname_to_hosts {
+    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
+    assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
+}
+
 sub test_pids_max {
     # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
     my $uid = script_output "id -u $sapadmin";
@@ -281,12 +287,46 @@ sub test_start_service {
 }
 
 sub test_start_instance {
+    my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
+    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+
+    while ($time_to_wait > 0) {
+        my $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
+        die "sapcontrol: GetSystemInstanceList: command failed" unless ($output =~ /GetSystemInstanceList[\r\n]+OK/);
+        last if ($output =~ /GRAY/);
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+    die "Timed out waiting for SAP instance status to turn GRAY" unless ($time_to_wait > 0);
+
     my $output = script_output "sapcontrol -nr $instance -function Start";
     die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
 
-    $output = script_output $ps_cmd;
-    my @olines = split(/\n/, $output);
-    die "sapcontrol: failed to start the instance" unless (@olines > 1);
+    $time_to_wait = get_var('WAIT_INSTANCE_START_TIME', 300);    # Wait by default for 5 minutes
+    $time_to_wait = 600 if ($time_to_wait > 600);                # Limit this to 10 minutes max
+
+    while ($time_to_wait > 0) {
+        $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
+        die "sapcontrol: GetSystemInstanceList: command failed" unless ($output =~ /GetSystemInstanceList[\r\n]+OK/);
+
+        if ($output =~ /GREEN/) {
+            $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
+            die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
+
+            my $failing_services = 0;
+            for my $line (split(/\n/, $output)) {
+                next if ($line =~ /GetProcessList|OK|^name/);
+                $failing_services++ if ($line !~ /GREEN/);
+            }
+            last unless $failing_services;
+        }
+
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+
+    die "Timed out waiting for SAP instance to start" unless ($time_to_wait > 0);
+    script_run $ps_cmd;    # Show list of processes
 }
 
 sub post_run_hook {

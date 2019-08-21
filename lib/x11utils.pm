@@ -51,7 +51,8 @@ sub ensure_unlocked_desktop {
                 type_string "$username";
                 save_screenshot;
             }
-            if (!check_var('DESKTOP', 'gnome') || (is_sle('<15') || is_leap('<15.0'))) {
+            # Always select user if DM_NEEDS_USERNAME is set
+            if ((!check_var('DESKTOP', 'gnome') || (is_sle('<15') || is_leap('<15.0'))) && !get_var('DM_NEEDS_USERNAME')) {
                 send_key 'ret';
             }
             # On gnome, user may not be selected and using 'ret' is not enough in this case

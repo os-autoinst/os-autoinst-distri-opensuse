@@ -13,7 +13,7 @@
 use base "sles4sap";
 use testapi;
 use utils "zypper_call";
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_upgrade);
 use strict;
 use warnings;
 
@@ -48,8 +48,12 @@ sub run {
     die "Command 'saptune daemon start' didn't start tuned"
       unless (tuned_is 'running');
 
-    # Skip test if saptune version is 1
-    return if (is_upgrade() and script_output("saptune version") =~ m/current active saptune version is '1'/);
+    # Skip test if saptune version is 1 in case of upgrade only!
+    if (is_upgrade()) {
+        return if (script_output("rpm -q saptune") =~ m/saptune-1\./);
+        # saptune_v2 can run in v1 compat mode
+        return if (script_output("saptune version") =~ m/current active saptune version is '1'/);
+    }
 
     my $output = script_output "saptune solution list";
     my $regexp = join('.+', @solutions);

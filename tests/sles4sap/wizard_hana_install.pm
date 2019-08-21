@@ -83,8 +83,8 @@ sub run {
     try_reclaiming_space if (check_var('BACKEND', 'ipmi'));
 
     # Add host's IP to /etc/hosts
-    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
-    assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
+    $self->add_hostname_to_hosts;
+
     select_console 'x11';
     # Hide the mouse so no needle will fail because of the mouse pointer appearing
     mouse_hide;
