@@ -34,7 +34,6 @@ sub run {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sapadm      = $self->set_sap_info($sid, $instance_id);
     $self->test_pids_max;
-    $self->test_forkbomb;
     $self->become_sapadm;
 
     # Check HDB with a database query
@@ -42,15 +41,11 @@ sub run {
     my $output   = script_output "hdbsql -j -d $sid -u SYSTEM -n localhost:30015 -p $password 'SELECT * FROM DUMMY'";
     die "hdbsql: failed to query the dummy table\n\n$output" unless ($output =~ /1 row selected/);
 
+    # Do the stop/start tests
     $self->test_version_info;
     $self->test_instance_properties;
     $self->test_stop;
-
-    assert_script_run "$ps_cmd ; $ps_cmd | wc -l";
-    save_screenshot;
-
-    $self->test_start_service;
-    $self->test_start_instance;
+    $self->test_start;
 
     assert_script_run "HDB info";
 

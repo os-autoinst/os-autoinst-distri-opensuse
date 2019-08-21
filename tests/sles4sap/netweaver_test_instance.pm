@@ -37,15 +37,11 @@ sub run {
     $self->test_pids_max if !get_var('UPGRADE');
     $self->become_sapadm;
 
+    # Do the stop/start tests
     $self->test_version_info;
     $self->test_instance_properties;
     $self->test_stop;
-
-    script_run "$pscmd | wc -l ; $pscmd";
-    save_screenshot;
-
-    $self->test_start_service;
-    $self->test_start_instance;
+    $self->test_start;
 
     # Rollback changes to $testapi::serialdev and close the window
     type_string "exit\n";

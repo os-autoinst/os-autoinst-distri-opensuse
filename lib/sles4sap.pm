@@ -8,7 +8,10 @@ use testapi;
 use utils;
 use hacluster 'pre_run_hook';
 use isotovideo;
+use ipmi_backend_utils;
 use x11utils 'ensure_unlocked_desktop';
+use power_action_utils 'power_action';
+use Utils::Backends 'use_ssh_serial_console';
 
 our @EXPORT = qw(
   ensure_serialdev_permissions_for_sap
@@ -25,8 +28,8 @@ our @EXPORT = qw(
   test_version_info
   test_instance_properties
   test_stop
-  test_start_service
-  test_start_instance
+  test_start
+  reboot
 );
 
 our $prev_console;
@@ -248,13 +251,12 @@ sub test_pids_max {
 }
 
 sub test_forkbomb {
-    # NOTE: Do not call this function on the qemu backend.
-    #   The first forkbomb can create 3 times as many processes as the second due to unknown bug
-    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/forkbomb.pl > /tmp/forkbomb.pl; chmod +x /tmp/forkbomb.pl";
+    my $script = 'forkbomb.pl';
+    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$script -o /tmp/$script; chmod +x /tmp/$script";
     # The systemd-run command generates syslog output that may end up in the console, so save the output to a file
-    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c /tmp/forkbomb.pl | tr -d '\\r' > /tmp/user-procs", 600;
+    assert_script_run "systemd-run --slice user -qt su - $sapadmin -c /tmp/$script | tr -d '\\r' > /tmp/user-procs", 600;
     my $user_procs = script_output "cat /tmp/user-procs";
-    my $root_procs = script_output "/tmp/forkbomb.pl", 600;
+    my $root_procs = script_output "/tmp/$script", 600;
     # Check that the SIDadm user can create at least 99% of the processes root could create
     record_soft_failure "bsc#1031355" if ($user_procs < $root_procs * 0.99);
 }
@@ -273,48 +275,86 @@ sub test_instance_properties {
 }
 
 sub test_stop {
+    my ($self) = @_;
+
     my $output = script_output "sapcontrol -nr $instance -function Stop";
     die "sapcontrol: Stop API failed\n\n$output" unless ($output =~ /Stop[\r\n]+OK/);
 
+    # Check if instance is correctly stopped
+    $self->check_instance_state('gray');
+
     $output = script_output "sapcontrol -nr $instance -function StopService";
     die "sapcontrol: StopService API failed\n\n$output" unless ($output =~ /StopService[\r\n]+OK/);
+
+    # Check if service is correctly stopped
+    $self->check_service_state('stop');
 }
 
-sub test_start_service {
+sub test_start {
+    my ($self) = @_;
+
     my $output = script_output "sapcontrol -nr $instance -function StartService $sid";
-    die "sapcontrol: StartService API failed\n\n$output" unless ($output =~ /StartService[\r\n]+OK/);
+    die "sapcontrol: StartService API failed\n\n$output" unless ($output =~ /StartService.+OK/s);
 
-    # We can't use the $ps_cmd alias, as number of process can be >1 on some HANA version
-    $output = script_output "pgrep -a sapstartsrv | grep -w $sid";
-    my @olines = split(/\n/, $output);
-    die "sapcontrol: wrong number of processes running after a StartService\n\n" . @olines unless (@olines == 1);
-    die "sapcontrol failed to start the service" unless ($output =~ /sapstartsrv/);
+    # Check if service is correctly started
+    $self->check_service_state('start');
+
+    # Process can take some time to initialize all
+    sleep 10;
+    $self->check_instance_state('gray');
+
+    $output = script_output "sapcontrol -nr $instance -function Start";
+    die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
+
+    $self->check_instance_state('green');
+
+    # Show list of processes
+    script_run $ps_cmd;
 }
 
-sub test_start_instance {
+sub check_service_state {
+    my ($self, $state) = @_;
+    my $uc_state = uc $state;
+
+    my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
+    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+
+    while ($time_to_wait > 0) {
+        my $output = script_output "pgrep -a sapstartsrv | grep -w $sid", proceed_on_failure => 1;
+        my @olines = split(/\n/, $output);
+
+        # Exit if there is no more process
+        last if ((@olines == 0) && ($uc_state eq 'STOP'));
+
+        if (($output =~ /sapstartsrv/) && ($uc_state eq 'START')) {
+            die "sapcontrol: wrong number of processes running after a StartService\n\n" . @olines unless (@olines == 1);
+
+            # Exit if service is started
+            last;
+        }
+
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+
+    die "Timed out waiting for SAP service status to turn $state" unless ($time_to_wait > 0);
+}
+
+sub check_instance_state {
+    my ($self, $state) = @_;
+    my $uc_state = uc $state;
+
     my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
     $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
 
     while ($time_to_wait > 0) {
         my $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
         die "sapcontrol: GetSystemInstanceList: command failed" unless ($output =~ /GetSystemInstanceList[\r\n]+OK/);
-        last if ($output =~ /GRAY/);
-        $time_to_wait -= 10;
-        sleep 10;
-    }
-    die "Timed out waiting for SAP instance status to turn GRAY" unless ($time_to_wait > 0);
 
-    my $output = script_output "sapcontrol -nr $instance -function Start";
-    die "sapcontrol: Start API failed\n\n$output" unless ($output =~ /Start[\r\n]+OK/);
+        # Exit if instance is not running anymore
+        last if (($output =~ /GRAY/) && ($uc_state eq 'GRAY'));
 
-    $time_to_wait = get_var('WAIT_INSTANCE_START_TIME', 300);    # Wait by default for 5 minutes
-    $time_to_wait = 600 if ($time_to_wait > 600);                # Limit this to 10 minutes max
-
-    while ($time_to_wait > 0) {
-        $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
-        die "sapcontrol: GetSystemInstanceList: command failed" unless ($output =~ /GetSystemInstanceList[\r\n]+OK/);
-
-        if ($output =~ /GREEN/) {
+        if (($output =~ /GREEN/) && ($uc_state eq 'GREEN')) {
             $output = script_output "sapcontrol -nr $instance -function GetProcessList | egrep -i ^[a-z]", proceed_on_failure => 1;
             die "sapcontrol: GetProcessList: command failed" unless ($output =~ /GetProcessList[\r\n]+OK/);
 
@@ -330,8 +370,23 @@ sub test_start_instance {
         sleep 10;
     }
 
-    die "Timed out waiting for SAP instance to start" unless ($time_to_wait > 0);
-    script_run $ps_cmd;    # Show list of processes
+    die "Timed out waiting for SAP instance status to turn $uc_state" unless ($time_to_wait > 0);
+}
+
+sub reboot {
+    my ($self) = @_;
+
+    if (check_var('BACKEND', 'ipmi')) {
+        power_action('reboot', textmode => 1, keepconsole => 1);
+        switch_from_ssh_to_sol_console;
+        $self->wait_boot(textmode => 1);
+        use_ssh_serial_console;
+    }
+    else {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+        select_console 'root-console';
+    }
 }
 
 sub post_run_hook {
@@ -340,6 +395,12 @@ sub post_run_hook {
     return unless ($prev_console);
     select_console($prev_console, await_console => 0);
     ensure_unlocked_desktop if ($prev_console eq 'x11');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->select_serial_terminal;
+    $self->SUPER::post_fail_hook;
 }
 
 1;

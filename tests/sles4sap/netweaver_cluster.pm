@@ -37,13 +37,11 @@ sub run {
 
     select_console 'root-console';
 
-    # Do stuff with SAP account
+    # Stop the NW instance to add it in the cluster stack
     $self->become_sapadm;
     $self->test_version_info;
     $self->test_instance_properties;
     $self->test_stop;
-    script_run "$pscmd | wc -l ; $pscmd";
-    save_screenshot;
 
     # Rollback changes to $testapi::serialdev and close the window
     type_string "exit\n";
