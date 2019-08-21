@@ -271,6 +271,9 @@
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
     </patterns>
+    <packages config:type="list">
+      <package>yast2-kdump</package>
+    </packages>
     <image/>
     <instsource/>
     <products config:type="list">
