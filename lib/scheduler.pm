@@ -78,9 +78,10 @@ in the same file than the schedule or in a dedicated file only for data.
 
 sub parse_test_data {
     my ($schedule) = shift;
+    $test_data = {};
+    # return if section is not defined
     return unless exists $schedule->{test_data};
 
-    $test_data = {};
     if (defined(my $import = $schedule->{test_data}->{$include_tag})) {
         # Allow both lists and scalar value for import "!include" key
         if (ref $import eq 'ARRAY') {

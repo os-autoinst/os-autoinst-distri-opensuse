@@ -1,0 +1,2 @@
+test_in_yaml_schedule: test_in_yaml_import_value_1
+!include: this_is_not_allowed
