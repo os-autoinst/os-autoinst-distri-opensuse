@@ -42,10 +42,6 @@ sub setup {
         # Ignore disk_elevator on VM's
         assert_script_run "sed -ri '/:scripts\\/disk_elevator/s/^/#/' \$(fgrep -rl :scripts/disk_elevator Pattern/)";
     }
-    if (get_var('OFW') && check_var('BACKEND', 'qemu')) {
-        # This test pattern fails on ppc64le on QEMU.
-        assert_script_run "sed -i '/^kernel.shm/s/^/#/' Pattern/SLE12/testpattern_note_941735_a_override";
-    }
     $self->reboot;
 }
 
