@@ -32,6 +32,9 @@ sub setup {
     zypper_call "-n in python3-rpm";
     # Download mr_test and extract it to $HOME
     assert_script_run "curl -sk $tarball | tar zxf - --strip-components 1";
+    assert_script_run "cat Pattern/SLE12/testpattern_note_941735_a_override";
+    assert_script_run "cat /boot/sysctl.conf-\$(uname -r)";
+    assert_script_run "sysctl kernel.shmall ; sysctl kernel.shmmax";
     # Add $HOME to $PATH
     assert_script_run "echo 'export PATH=\$PATH:\$HOME' >> /root/.bashrc";
     # Remove any configuration set by sapconf
