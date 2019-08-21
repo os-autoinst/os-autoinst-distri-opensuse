@@ -66,13 +66,12 @@ sub smb_conf_checker {
 sub setup_yast2_ldap_server {
     my %ldap_options_to_dirs = (
         f => 'fqdn',
-        i => 'dir_instance',
-        t => 'dir_suffix',
-        d => 'dir_manager_dn',
+        d => 'dir_instance',
+        i => 'dir_suffix',
+        n => 'dir_manager_passwd',
         r => 'dir_manager_passwd',
-        e => 'dir_manager_passwd',
         s => 'ca_cert_pem',
-        v => 'srv_cert_key_pkcs12'
+        e => 'srv_cert_key_pkcs12'
     );
     assert_script_run 'wget ' . data_url('console/samba_ca_cert.pem');
     assert_script_run 'wget ' . data_url('console/samba_server_cert.p12');
