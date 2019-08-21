@@ -394,6 +394,8 @@ pre init scripts feature. See poo#20818.
       <package>vsftpd</package>
       <package>xauth</package>
       <package>xterm</package>
+      <package>yast2-kdump</package>
+      <package>yast2-mail</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
