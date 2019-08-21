@@ -32,12 +32,7 @@ sub run() {
         next if $maintrepo =~ /^\s*$/;
         assert_screen('addon-menu-active', 60);
         wait_screen_change { send_key 'alt-u' };    # specify url
-        if (check_var('VERSION', '12') and check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-x';
-        }
-        else {
-            send_key $cmd{next};
-        }
+        send_key $cmd{next};
         assert_screen 'addonurl-entry';
         send_key 'alt-u';                           # select URL field
         type_string $maintrepo;
