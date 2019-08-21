@@ -139,6 +139,7 @@ sub test_override {
         assert_script_run "mr_test dump Pattern/$SLE/testpattern_note_${override}_b > baseline_testpattern_note_${override}_b";
         assert_script_run "cp Pattern/$SLE/override/$override /etc/saptune/override/$note";
         assert_script_run "saptune note apply $note";
+        assert_script_run "sysctl kernel.shmall ; sysctl kernel.shmmax";
         assert_script_run "mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override";
         assert_script_run "mr_test verify baseline_testpattern_note_${override}_b";
         tune_baseline("baseline_testpattern_note_${override}_b");
