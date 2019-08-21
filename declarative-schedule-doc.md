@@ -172,6 +172,31 @@ schedule:
 test_data:
   !include: schedule/path/to/scenario_name_test_data.yaml
 ```
+-  it is allowed to use multiple `!include` tags in yaml scheduling
+   file. In the case they should be provided as list:
+   
+```
+...
+test_data:
+  - !include: path/to/first_test_data.yaml
+  - !include: path/to/second_test_data.yaml
+```
+
+- `!include` tag can be mixed with the test data that is defined in
+  scheduling file directly:
+  
+> **_IMPORTANT:_** Test data in scheduling file has priority over the
+> same data from the imported file (i.e. it allows to override imported
+> data).
+```
+...
+test_data:
+  disks:
+    - name: vdb
+      partitions:
+        - size: 3mb
+  !include: path/to/test_data.yaml
+```
 
 ### 2. Enable scheduler in settings
 
