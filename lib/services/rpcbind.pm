@@ -30,7 +30,7 @@ sub check_install {
 }
 
 sub config_service {
-    type_string("echo '/mnt *(ro,root_squash,sync,no_subtree_check)' > /etc/exports\n");
+    type_string("echo '/mnt *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports\n");
     type_string("echo 'nfs is working' > /mnt/test\n");
 }
 
