@@ -29,6 +29,7 @@ use YAML::Tiny;
 our @EXPORT = qw(load_yaml_schedule get_test_data);
 
 my $test_data;
+my $include_tag = "!include";
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -77,14 +78,22 @@ in the same file than the schedule or in a dedicated file only for data.
 
 sub parse_test_data {
     my ($schedule) = shift;
-    $test_data = $schedule->{test_data};
-    my $include_tag = "!include";
-    if (exists $test_data->{$include_tag}) {
-        $test_data = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $test_data->{$include_tag});
-        if (exists $test_data->{schedule}) {
-            die "Error: test_data can only be defined in a dedicated file for data\n";
+    return unless exists $schedule->{test_data};
+
+    $test_data = {};
+    if (defined(my $import = $schedule->{test_data}->{$include_tag})) {
+        # Allow both lists and scalar value for import "!include" key
+        if (ref $import eq 'ARRAY') {
+            for my $include (@{$import}) {
+                _import_test_data_from_yaml($include);
+            }
+        }
+        else {
+            _import_test_data_from_yaml($import);
         }
     }
+    # test_data from schedule file has priority over imported one
+    $test_data = {%$test_data, %{$schedule->{test_data}}};
 }
 
 =head2 load_yaml_schedule
@@ -104,6 +113,15 @@ sub load_yaml_schedule {
         return 1;
     }
     return 0;
+}
+
+sub _import_test_data_from_yaml {
+    my ($yaml_file) = @_;
+    my $include_yaml = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $yaml_file);
+    if (exists $include_yaml->{$include_tag}) {
+        die "Error: test_data can only be defined in a dedicated file for data\n";
+    }
+    $test_data = {%$test_data, %{$include_yaml}};
 }
 
 1;
