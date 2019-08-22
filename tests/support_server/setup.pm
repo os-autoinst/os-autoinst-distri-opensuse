@@ -27,6 +27,7 @@ use mm_tests;
 use opensusebasetest 'firewall';
 use registration 'scc_version';
 use iscsi;
+use version_utils 'is_opensuse';
 
 my $pxe_server_set       = 0;
 my $http_server_set      = 0;
@@ -540,7 +541,7 @@ sub run {
     }
 
     if (exists $server_roles{dhcp}) {
-        zypper_call("in -t pattern dhcp_dns_server");
+        zypper_call("in -t pattern dhcp_dns_server") if is_opensuse;
         setup_dhcp_server((exists $server_roles{dns}), 0);
     }
     if (exists $server_roles{qemuproxy}) {
@@ -554,7 +555,7 @@ sub run {
         $setup_script .= "systemctl restart apache2\n";
     }
     if (exists $server_roles{dns}) {
-        zypper_call("in -t pattern dhcp_dns_server");
+        zypper_call("in -t pattern dhcp_dns_server") if is_opensuse;
         setup_dns_server();
     }
 
