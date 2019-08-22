@@ -209,18 +209,23 @@ sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
 
     # First copy media
+    my $mnt_path = '/mnt';
     assert_script_run "mkdir $target";
-    assert_script_run "mount -t $proto $path /mnt";
-    type_string "cd /mnt\n";
+    assert_script_run "mount -t $proto -o ro $path $mnt_path";
+    type_string "cd $mnt_path\n";
     type_string "cd " . get_var('ARCH') . "\n";    # Change to ARCH specific subdir if exists
     assert_script_run "cp -ax . $target/", $nettout;
 
-    # Then verify everything was copied correctly
-    my $cmd = q|find . -type f -exec md5sum {} \; > /tmp/check-nw-media|;
-    assert_script_run $cmd, $nettout;
+    # Go back to target directory and umount the share, as we don't need it anymore
     type_string "cd $target\n";
-    assert_script_run "umount /mnt";
-    assert_script_run "md5sum -c /tmp/check-nw-media", $nettout;
+    assert_script_run "umount $mnt_path";
+
+    # Then verify everything was copied correctly
+    # NOTE: checksum is generated with this command: "find . -type f -exec md5sum {} \; > checksums.md5sum"
+    my $chksum_file = 'checksum.md5sum';
+    # We can't check the checksum file itself as well as the clustered NFS share part
+    assert_script_run "sed -i -e '/$chksum_file\$/d' -e '/\\/nfs_share/d' $chksum_file";
+    assert_script_run "md5sum -c $chksum_file", $nettout;
 }
 
 sub add_hostname_to_hosts {
