@@ -234,6 +234,7 @@ sub start_service {
 
 sub stop_service {
     systemctl('stop nfs-server');
+    systemctl('stop rpcbind');
 }
 
 sub check_service {
