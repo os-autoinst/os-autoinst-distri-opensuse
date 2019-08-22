@@ -33,4 +33,4 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  !include: schedule/yast/raid/raid_prep_boot_test_data.yaml
+  !include: test_data/yast/raid/raid_prep_boot_test_data.yaml

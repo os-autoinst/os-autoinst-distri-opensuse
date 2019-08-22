@@ -1,4 +1,4 @@
-name:           RAID0_gpt
+name:           RAID0_gpt_opensuse
 description:    >
   Configure RAID 0 on the disks with GPT partition tables using Expert Partitioner.
   Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
@@ -6,18 +6,19 @@ description:    >
 vars:
   RAIDLEVEL: 0
 schedule:
+  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/raid_gpt
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
-  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -33,4 +34,4 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  !include: schedule/yast/raid/raid_gpt_test_data.yaml
+  !include: test_data/yast/raid/raid_gpt_test_data.yaml

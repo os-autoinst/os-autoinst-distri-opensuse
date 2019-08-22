@@ -1,7 +1,7 @@
-name:           RAID0_gpt_uefi
+name:           RAID0_gpt
 description:    >
-  Configure RAID 0 on the disks with GPT partition tables and UEFI using Expert Partitioner.
-  Creates EFI boot, root and swap partitions on each of the 4 disks and then uses
+  Configure RAID 0 on the disks with GPT partition tables using Expert Partitioner.
+  Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
   them for RAID 0.
 vars:
   RAIDLEVEL: 0
@@ -33,4 +33,4 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  !include: schedule/yast/raid/raid_gpt_uefi_test_data.yaml
+  !include: test_data/yast/raid/raid_gpt_test_data.yaml
