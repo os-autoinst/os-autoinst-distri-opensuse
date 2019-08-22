@@ -15,14 +15,13 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use suse_container_urls 'get_suse_container_urls';
+use suse_container_urls 'get_opensuse_registry_prefix';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
 sub run {
     select_console 'root-console';
 
-    # TODO: Use suse_container_urls
-    my $redirectprefix = get_required_var('REGISTRY_PREFIX');
+    my $opensuse_prefix = get_opensuse_registry_prefix();
 
     # Can't install deps here, this also runs on transactional RO systems
     # zypper_call('in python3-base');
@@ -32,7 +31,7 @@ sub run {
     assert_script_run('curl -L -v ' . autoinst_url('/data/regproxy') . ' | cpio -id && mv data/* .');
     # Make it persistent
     assert_script_run('cp $PWD/regproxy.service /etc/systemd/system/');
-    assert_script_run('echo "PREFIX=' . $redirectprefix . '" > /etc/regproxy.conf');
+    assert_script_run('echo "PREFIX=' . $opensuse_prefix . '" > /etc/regproxy.conf');
     assert_script_run('systemctl daemon-reload && systemctl enable --now regproxy.service');
     # Install the MITM cert
     assert_script_run('ln -s $PWD/regproxy-cert.pem /etc/pki/trust/anchors && update-ca-certificates');

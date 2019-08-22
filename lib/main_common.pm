@@ -288,9 +288,6 @@ sub replace_opensuse_repos_tests {
     set_var('CLEAR_REPOS', 1);
     loadtest "console/zypper_ar";
     loadtest "console/zypper_ref";
-
-    # Different topic but in the same spirit, start the registry proxy
-    loadtest "console/regproxy" if get_var("REGISTRY_PREFIX");
 }
 
 sub is_updates_tests {
