@@ -30,7 +30,7 @@ install:
   - make prepare
 script:
   - git checkout cpanfile
-  - source script/generateUtilsDoc.sh
+  - source script/generateLibDocs.sh
   - make test
 deploy:
     provider: pages
