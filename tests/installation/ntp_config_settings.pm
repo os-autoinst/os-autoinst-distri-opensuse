@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Kubic kubeadm role configuration
+# Summary: YaST/Installation screen: NTP Configuration
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
 use base 'y2_installbase';
@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 
 sub run {
-    assert_screen 'kubeadm-settings';
+    assert_screen ['ntp_config_settings', 'kubeadm-settings'];
     if (check_screen 'kubeadm-ntp-empty') {
         record_soft_failure 'bsc#1114818';
     }
