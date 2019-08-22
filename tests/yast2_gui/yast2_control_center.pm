@@ -243,7 +243,9 @@ sub start_user_and_group_management {
 }
 
 sub start_hypervisor {
-    search('hypervisor');
+    # Module title got changed in SLE 15 SP2
+    my $search_string = is_sle('15-SP2+') ? 'install vm' : 'hypervisor';
+    search($search_string);
     assert_and_click 'yast2_control-center_install-hypervisor-and-tools';
     assert_screen 'yast2-install-hypervisor-and-tools', timeout => 180;
     send_key 'alt-c';
