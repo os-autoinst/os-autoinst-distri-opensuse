@@ -16,12 +16,16 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
+use registration 'add_suseconnect_product';
 
 sub run() {
     select_console('root-console');
     pkcon_quit;
 
     if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
+        if (is_sle("15-sp1+")) {
+            add_suseconnect_product('sle-module-server-applications');
+        }
         my $dovecot_repo = get_required_var("DOVECOT_REPO");
         # Add dovecot repository and install dovecot
         zypper_call("ar ${dovecot_repo} dovecot_repo");
