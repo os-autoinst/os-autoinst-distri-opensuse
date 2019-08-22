@@ -21,8 +21,31 @@ use testapi;
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
 our @EXPORT = qw(
+  get_opensuse_registry_prefix
   get_suse_container_urls
 );
+
+# Returns a string which should be prepended to every pull from registry.opensuse.org.
+sub get_opensuse_registry_prefix {
+    # Can't use is_tumbleweed as that would also return true for stagings
+    if (check_var("VERSION", "Tumbleweed") && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        return "opensuse/factory/totest/containers/";
+    }
+    elsif (check_var("VERSION", "Tumbleweed") && check_var('ARCH', 'aarch64')) {
+        return "opensuse/factory/arm/totest/containers/";
+    }
+    elsif (check_var("VERSION", "Tumbleweed") && check_var('ARCH', 'ppc64le')) {
+        return "opensuse/factory/powerpc/totest/containers/";
+    }
+    elsif (get_var("VERSION") =~ /^Staging:(?<letter>.)$/ && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        # Tumbleweed letter staging
+        my $lowercaseletter = lc $+{letter};
+        return "opensuse/factory/staging/${lowercaseletter}/images/";
+    }
+    else {
+        die("Unknown combination of distro/arch.");
+    }
+}
 
 # Returns a tuple of image urls and their matching released "stable" counterpart.
 # If empty, no images available.
@@ -47,16 +70,8 @@ sub get_suse_container_urls {
         push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/images/suse/sle15:${dotversion}";
         push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
     }
-    elsif (is_tumbleweed && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
-        push @image_names,  "registry.opensuse.org/opensuse/factory/totest/containers/opensuse/tumbleweed";
-        push @stable_names, "docker.io/opensuse/tumbleweed";
-    }
-    elsif (is_tumbleweed && check_var('ARCH', 'aarch64')) {
-        push @image_names,  "registry.opensuse.org/opensuse/factory/arm/totest/containers/opensuse/tumbleweed";
-        push @stable_names, "docker.io/opensuse/tumbleweed";
-    }
-    elsif (is_tumbleweed && check_var('ARCH', 'ppc64le')) {
-        push @image_names,  "registry.opensuse.org/opensuse/factory/powerpc/totest/containers/opensuse/tumbleweed";
+    elsif (is_tumbleweed && get_opensuse_registry_prefix) {
+        push @image_names,  "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
         push @stable_names, "docker.io/opensuse/tumbleweed";
     }
     elsif (is_leap(">15.0") && check_var('ARCH', 'x86_64')) {
