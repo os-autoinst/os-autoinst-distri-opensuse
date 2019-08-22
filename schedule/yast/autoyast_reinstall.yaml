@@ -3,19 +3,36 @@ description:    >
     Parent job produces autoyast profile after successful completion. 
     This test uses generated profile to do autoyast installation.
 schedule:
-    - installation/isosize
-    - installation/bootloader_start
-    - autoyast/installation
-    - autoyast/console
-    - autoyast/login
-    - autoyast/verify_imported_users
-    - autoyast/wicked
-    - autoyast/repos
-    - autoyast/clone
-    - autoyast/logs
-    - autoyast/autoyast_reboot
-    - installation/grub_test
-    - installation/first_boot
+  # Called on BACKEND: qemu
+  - {{isosize}}
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/verify_imported_users
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  # Called on ARCH: s390x
+  - {{reconnect_mgmt_console}}
+  # Called on BACKEND: qemu
+  - {{grub_test}}
+  - installation/first_boot
+conditional_schedule:
+  isosize:
+    BACKEND:
+      qemu:
+        - installation/isosize
+  reconnect_mgmt_console:
+    ARCH:
+      s390x:
+        - boot/reconnect_mgmt_console
+  grub_test:
+    BACKEND:
+      qemu:
+        - installation/grub_test
 test_data:
   paths:
     - /var/lib/gdm/.bashrc
