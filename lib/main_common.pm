@@ -109,6 +109,7 @@ our @EXPORT = qw(
   map_incidents_to_repo
   need_clear_repos
   noupdatestep_is_applicable
+  opensuse_welcome_applicable
   remove_common_needles
   remove_desktop_needles
   replace_opensuse_repos_tests
@@ -209,8 +210,9 @@ sub any_desktop_is_applicable {
 
 sub opensuse_welcome_applicable {
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed only (Leap possibly in the future)
-    # icewm (aka minimalx) does not honor /etc/xdg/autostart, thus opensuse-welcome does not autostart there
-    return get_var('DESKTOP', '') =~ /kde|gnome|xfce/ && is_tumbleweed;
+    # since not all DE's honr xdg/autostart, we are filtering based on desktop environments
+    my $desktop = shift // get_var('DESKTOP', '');
+    return $desktop =~ /gnome|kde|lxqt|mate|xfce/ && is_tumbleweed;
 }
 
 sub logcurrentenv {

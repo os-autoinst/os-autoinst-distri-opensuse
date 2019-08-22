@@ -206,6 +206,7 @@ sub load_otherDE_tests {
         loadtest "console/consoletest_finish";
         loadtest "x11/${de}_reconfigure_openqa";
         loadtest "x11/reboot_icewm";
+        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable($de);
         # here comes the actual desktop specific test
         if ($de =~ /^awesome$/)       { load_awesome_tests(); }
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
