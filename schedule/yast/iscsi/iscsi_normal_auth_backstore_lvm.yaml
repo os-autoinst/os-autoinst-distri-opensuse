@@ -1,12 +1,12 @@
-name:           iscsi-normal-auth-only
+name:           iscsi_normal_auth_backstore_lvm
 description:    >
-    iSCSI multimachine test suite with normal authentication, fileIO backstore, simple static network
+    iSCSI multimachine test suite with normal authentication, lvm backstore, simple static network
 test_data:
   common:
     password: 'susetesting'
   target_conf:
-    backstore_type: 'fileio'
-    backstore: '/root/iscsi-disk'
+    backstore_type: 'lvm'
+    backstore: '/dev/mapper/vg_iscsi-remote_lv'
     user: 'test_target'
     name: 'iqn.2016-02.de.openqa'
     ip: '10.0.2.1/24'
