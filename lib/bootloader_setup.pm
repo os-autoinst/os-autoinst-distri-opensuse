@@ -38,6 +38,7 @@ our @EXPORT = qw(
   bootmenu_default_params
   get_hyperv_fb_video_resolution
   bootmenu_network_source
+  bootmenu_remote_target
   specific_bootmenu_params
   remote_install_bootmenu_params
   specific_caasp_params
@@ -472,15 +473,20 @@ sub bootmenu_network_source {
             }
 
             select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
-
-            my $remote = get_var("REMOTE_TARGET");
-            if ($remote) {
-                my $dns = get_host_resolv_conf()->{nameserver};
-                push @params, get_var("NETSETUP") if get_var("NETSETUP");
-                push @params, "nameserver=" . join(",", @$dns);
-                push @params, ("$remote=1", "${remote}password=$password");
-            }
         }
+    }
+    type_string_very_slow(" @params ");
+    return @params;
+}
+
+sub bootmenu_remote_target {
+    my @params;
+    my $remote = get_var("REMOTE_TARGET");
+    if ($remote) {
+        my $dns = get_host_resolv_conf()->{nameserver};
+        push @params, get_var("NETSETUP") if get_var("NETSETUP");
+        push @params, "nameserver=" . join(",", @$dns);
+        push @params, ("$remote=1", "${remote}password=$password");
     }
     type_string_very_slow(" @params ");
     return @params;
