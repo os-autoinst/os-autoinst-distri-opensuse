@@ -33,51 +33,6 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  disks:
-    - name: vda
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdb
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdc
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdd
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
   mds:
     - raid_level: 6
       chunk_size: 64
@@ -98,3 +53,4 @@ test_data:
           filesystem: swap
         mounting_options:
           should_mount: 1
+  !include: test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
