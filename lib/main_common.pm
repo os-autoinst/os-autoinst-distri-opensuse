@@ -981,7 +981,7 @@ sub load_inst_tests {
             loadtest 'installation/user_import';
         }
         elsif (is_caasp 'microos') {
-            loadtest "installation/kubeadm_settings" if check_var('SYSTEM_ROLE', 'kubeadm');
+            loadtest "installation/ntp_config_settings";
         } else {
             loadtest "installation/user_settings" unless check_var('SYSTEM_ROLE', 'hpc-node');
         }
