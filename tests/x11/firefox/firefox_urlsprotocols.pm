@@ -9,6 +9,13 @@
 # without any warranty.
 
 # Summary: Firefox: URLs with various protocols (Case#1436118)
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - On firefox, access a http url
+# - On firefox, access a https url
+# - On firefox, access a ftp url
+# - On firefox, access a local url
+# - Close firefox
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;

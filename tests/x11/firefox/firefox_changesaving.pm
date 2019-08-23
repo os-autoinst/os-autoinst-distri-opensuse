@@ -9,6 +9,19 @@
 # without any warranty.
 
 # Summary: Case#1436111: Firefox: Preferences Change Saving
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Switch back to xterm (alt-tab), run "ll --time-style=full-iso
+# .mozilla/firefox/*.default/prefs.js | cut -d' ' -f7 " and save output to a
+# file
+# - Save screenshot
+# - Open firefox preferences
+# - Change firefox start to "Show a blank page"
+# - Run "ll --time-style=full-iso
+# .mozilla/firefox/*.default/prefs.js | cut -d' ' -f7" again and save to a new
+# file
+# - Compare timestamps recorded
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

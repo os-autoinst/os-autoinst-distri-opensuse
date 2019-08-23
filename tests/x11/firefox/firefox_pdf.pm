@@ -9,6 +9,16 @@
 # without any warranty.
 
 # Summary: Firefox PDF reader test (Case#1436081)
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open "http://www.gnupg.org/gph/en/manual.pdf"
+# - Click on zoom out button
+# - Click on zoom in button
+# - Access zoom menu and select "Actual size"
+# - Select "Full screen"
+# - Select "Actual size"
+# - Jump to page 3
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

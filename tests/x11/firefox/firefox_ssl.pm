@@ -9,6 +9,16 @@
 # without any warranty.
 
 # Summary: Case#1436067: Firefox: SSL Certificate
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Access "https://build.suse.de"
+# - Check for ssl certificate issue
+# - Add security exception
+# - Check if page is loaded
+# - Open preferences, certificates, select "HongKong Post Root CA 1" cert
+#   - Uncheck "This certificate can identify websites"
+# - Access "https://www.hongkongpost.gov.hk"
+# - Close firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

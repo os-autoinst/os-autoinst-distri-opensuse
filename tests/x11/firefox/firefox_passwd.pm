@@ -9,6 +9,25 @@
 # without any warranty.
 
 # Summary: Case#1436079: Firefox: Password Management
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open firefox preferences
+#   - Enter security preferences
+#   - Select "Use a master password"
+#   - Fill and confirm with password "firefox_test"
+# - Restart firefox
+# - Open url
+# "https://www-archive.mozilla.org/quality/browser/front-end/testcases/wallet/login.html"
+# - Access page with user and password
+# - Handle password remembering confirmation
+# - Open
+# "https://www-archive.mozilla.org/quality/browser/front-end/testcases/wallet/login.html"
+# once more
+# - Check that username/password were auto-filled
+# - Open firefox preferences -> security -> saved passwords
+# - Check that passwords were saved
+# - Clear saved passwords
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

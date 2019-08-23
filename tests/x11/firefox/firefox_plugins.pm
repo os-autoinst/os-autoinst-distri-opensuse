@@ -11,6 +11,12 @@
 # Case#1479188: Firefox: Add-ons - Plugins
 
 # Summary: Case#1479188: Firefox: Add-ons - Plugins
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open Add-Ons screen
+# - Click on Plugins and check plugins installed
+# - Open plugins tools option and select "Check for Updates"
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

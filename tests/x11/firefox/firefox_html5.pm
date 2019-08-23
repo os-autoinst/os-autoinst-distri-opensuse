@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Case#1479221: Firefox: HTML5 Video
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open "youtube.com/html5" and check result
+# - Open "youtube.com/watch?v=Z4j5rJQMdOU" and check result
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

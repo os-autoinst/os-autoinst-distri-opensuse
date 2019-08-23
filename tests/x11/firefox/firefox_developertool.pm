@@ -9,6 +9,13 @@
 # without any warranty.
 
 # Summary: Case#1479522: Firefox: Web Developer Tools
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open url "opensuse.org"
+# - Open developer tool
+# - Select element
+# - Select console
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Very basic firefox test opening an html-test
+# - Start firefox with url "https://html5test.opensuse.org"
+# - Open about window and check
+# - Exit firefox
 # Maintainer: Stephan Kulow <coolo@suse.com>
 
 package firefox;

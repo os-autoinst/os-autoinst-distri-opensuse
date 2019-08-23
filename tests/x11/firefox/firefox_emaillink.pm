@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Firefox emaillink test (Case#1436117)
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open file menu and "Email link"
+# - Handle sending email using email client
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;

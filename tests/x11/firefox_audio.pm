@@ -12,6 +12,10 @@
 #  Depending on if firefox has been started in before firefox might behave
 #  different but should always show the play controls which the test is
 #  looking for.
+# - Start audio capture subsystem
+# - Start firefox opening file "1d5d9dD.oga" from datadir
+# - Check recorded sound
+# - Exit firefox
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";

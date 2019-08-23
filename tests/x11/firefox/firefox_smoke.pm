@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Case#1479153 Firefox: Smoke Test
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox and handle popups
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@github>
 
 use strict;

@@ -9,6 +9,17 @@
 # without any warranty.
 
 # Summary: Case#1479189: Firefox: Add-ons - Extensions
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open firefox addon manager
+# - Open extensions
+# - Search for "flagfox"
+# - Add and confirm extension install
+# - Open url "opensuse.org"
+# - Press "alt-1" and check for flag
+# - Press "alt-2" and check for flag
+# - Press "alt-1" and check for flag
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

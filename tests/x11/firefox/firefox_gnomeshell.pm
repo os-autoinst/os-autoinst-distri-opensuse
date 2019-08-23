@@ -11,6 +11,17 @@
 # Case#1479556: Firefox: Gnome Shell Integration
 
 # Summary: Case#1479556: Firefox: Gnome Shell Integration
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open firefox addon manager
+# - Check if gnomeshell plugin exists
+# - Open url "extensions.gnome.org"
+# - Allow firefox to run gnomeshell extension
+# - Open url "extensions.gnome.org/extension/512/wikipedia-search-provider/" and
+# check
+# - Install extension
+# - Cleanup installed extension
+# - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;

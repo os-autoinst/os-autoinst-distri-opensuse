@@ -9,6 +9,15 @@
 # without any warranty.
 
 # Summary: Case#1479412: Firefox: Private Browsing
+# - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
+# firefox
+# - Open private browsing
+#   - Open "facebook.com" and check
+# - Restart firefox
+# - Open history
+# - Select "Today"
+# - Check that facebook is not recorded
+# - Close history and firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
 use strict;
