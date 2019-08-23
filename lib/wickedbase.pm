@@ -390,11 +390,11 @@ sub upload_wicked_logs {
     script_run("cat /etc/resolv.conf > $logs_dir/resolv.conf 2>&1");
     script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
-    my $result = eval {
+    eval {
         select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
         upload_file("$dir_name.tar.gz", "$dir_name.tar.gz");
     };
-    record_info('Failed to upload logs', $@, result => 'fail') unless defined $result;
+    record_info('Failed to upload logs', $@, result => 'fail') if ($@);
     $self->select_serial_terminal;
 }
 
@@ -559,8 +559,11 @@ sub post_run {
     $self->do_barrier('post_run');
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
         script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
-        select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
-        upload_file('/tmp/tcpdump' . $self->{name} . '.pcap', 'tcpdump' . $self->{name} . '.pcap');
+        eval {
+            select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+            upload_file('/tmp/tcpdump' . $self->{name} . '.pcap', 'tcpdump' . $self->{name} . '.pcap');
+        };
+        record_info('Failed to upload tcp', $@, result => 'fail') if ($@);
         $self->select_serial_terminal();
     }
     $self->upload_wicked_logs('post');
