@@ -8,6 +8,8 @@
 # without any warranty.
 
 # Summary: Check and output orphaned packages
+# - Run "zypper packages --orphaned"
+# - Save screenshot
 # Maintainer: Wes <whdu@suse.com>
 # Tags: poo#19606
 

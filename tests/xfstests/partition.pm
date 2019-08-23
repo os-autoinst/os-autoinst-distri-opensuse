@@ -8,6 +8,9 @@
 # without any warranty.
 #
 # Summary: Create partitions for xfstests
+# - Create a gpt partition table on device
+# - Partition device according to system variable XFSTESTS_DEVICE or
+# calculated home size
 # Maintainer: Yong Sun <yosun@suse.com>
 package partition;
 

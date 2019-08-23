@@ -11,6 +11,12 @@
 # inherit qa_run, but overwrite run
 # Summary: QA Automation: patch the system before running the test
 #          This is to test Test Updates
+# - Stop packagekit service (unless DESKTOP is textmode)
+# - Disable nvidia repository
+# - Add test repositories from system variables (PATCH_TEST_REPO,
+# MAINT_TEST_REPO)
+# - Install system patches
+# - Reboot system and wait for bootloader
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "opensusebasetest";

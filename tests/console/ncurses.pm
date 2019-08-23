@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Ensure simple ncurses applications can start and look correct
+# - Install dialog
+# - Run "dialog --yesno "test for boo#1054448"
+# - If screen matches, add export TERM=linux to /etc/profile
+# - Run export TERM=linux  and start root console
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'consoletest';

@@ -13,6 +13,14 @@
 #   all succeed, the test passes.
 #
 #   The test requires the Web and Scripting module on SLE
+# - Setup apache to use php7 modules
+# - Install php7-mysql mysql sud
+# - Restart mysql service
+# - Create a test database
+# - Insert a element "can you read this?"
+# - Grab a php test file from datadir, test it with curl in apache
+# - Run select manually to check for the element
+# - Drop created database
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 

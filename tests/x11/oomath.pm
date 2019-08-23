@@ -10,6 +10,11 @@
 
 # Summary: Test formula rendering in oomath
 # Maintainer: Oliver Kurz <okurz@suse.de>
+# - Launch oomath
+# - Enter formula
+# - Select text and replace
+# - Test undo
+# - Close oomath
 # Tags: https://bugs.freedesktop.org/show_bug.cgi?id=42301
 
 use base 'x11test';

@@ -9,6 +9,7 @@
 # without any warranty.
 
 # Summary: Test module to activate multipath during initial installation
+# - If MULTIPATH_CONFIRM is set to YES, select yes at multipath detection screen
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'y2_installbase';

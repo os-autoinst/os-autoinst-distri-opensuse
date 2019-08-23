@@ -9,6 +9,8 @@
 
 # Summary: Simple PHP7 code hosted locally
 #   This test requires the Web and Scripting module on SLE.
+# - Setup apache2 to use php7 modules
+# - Run "curl http://localhost/index.php", check output for "PHP Version 7"
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 

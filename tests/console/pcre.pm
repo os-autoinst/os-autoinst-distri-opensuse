@@ -8,6 +8,14 @@
 # without any warranty.
 
 # Summary: Test pcre and applications using it
+# - Install gcc-c++ pcre-devel
+# - Download testfiles from autoinst_url
+# - Compile C++t test code and run test
+# - Save screenshot
+# - Install php5 or 7 depending on distro
+# - Run some php tests using pcre
+# - Run "grep -qP '^VERSI(O?)N' /etc/os-release"
+# - Cleanup test files
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use strict;

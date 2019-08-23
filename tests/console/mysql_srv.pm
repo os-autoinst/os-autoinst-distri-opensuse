@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: simple mysql server startup test
+# - Install mysql
+# - Check mysql service status
+# - Start mysql
+# - Check mysql service status
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;

@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Keyboard layout test in console and display manager after boot
+# - Access console as root
+#   - Type keystrokes for selected language (default = us)
+# - Access console as user
+#   - Type keystrokes for selected language (default = us)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "locale";
