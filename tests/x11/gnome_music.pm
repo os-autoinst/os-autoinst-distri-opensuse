@@ -9,6 +9,8 @@
 # without any warranty.
 
 # Summary: Gnome music startup
+# - Launch gnome-music and check if it is running
+# - Close gnome-music
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base "x11test";

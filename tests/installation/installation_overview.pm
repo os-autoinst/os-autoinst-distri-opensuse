@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Check installation overview before and after any pattern change
+# - Check if install scenario has proposals
+# - Check if xen pattern is going to be installed if XEN is defined
+# - Unblock sshd
+# - Disable firewall if DISABLE_FIREWALL is set
+# - Check system target
 # Maintainer: Richard Brown <RBrownCCB@opensuse.org>
 
 use base 'y2_installbase';

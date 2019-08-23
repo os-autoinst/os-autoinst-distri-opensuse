@@ -9,6 +9,8 @@
 # without any warranty.
 
 # Summary: Ensure firewall is running
+# - Check firewalld status by running "firewall-cmd --state"
+# - Or check SuSEfirewall2 status by running "SuSEfirewall2 status"
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: fate#323436
 

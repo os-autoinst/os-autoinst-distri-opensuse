@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Check /lib{,64}/libc.so.6 provides correct content
+# - Install package providing "libc.so.6"
+# - Check "/lib/libc.so.6" for "GNU C Library"
+# - Check "/lib/libc.so.6" for "i686-suse-linux"
+# - Install package providing "libc.so.6()(64bit)"
+# - Check "/lib64/libc.so.6" for "GNU C Library"
+# - Check "/lib64/libc.so.6" for "x86_64-suse-linux"
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "consoletest";

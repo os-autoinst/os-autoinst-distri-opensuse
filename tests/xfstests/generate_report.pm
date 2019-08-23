@@ -8,6 +8,13 @@
 # without any warranty.
 #
 # Summary: Upload logs and generate junit report
+# - Get xfs status.log from datadir
+# - End log and upload logs (and all subdirs)
+# - Upload kdump logs unless NO_KDUMP is set
+# - Upload system logs
+# - Parse /opt/status.log for PASSED/FAILED/SKIPPED
+# - Generate XML file using parsed results from previous step
+# - Upload XML file for analysis by OpenQA::Parser
 # Maintainer: Yong Sun <yosun@suse.com>
 package generate_report;
 

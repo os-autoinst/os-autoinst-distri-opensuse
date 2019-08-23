@@ -9,6 +9,11 @@
 
 # Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
 #   jobs or systemd timer
+# - Show dmesg output in console during cron run
+# - Settle system load before starting tasks
+# - Run cron jobs and systemd timers
+# - Disable btrfs cron jobs symlinking them to /bin/true
+# - Settle system load again
 # Maintainer: Stephan Kulow <coolo@suse.de>
 # Tags: bsc#1017461, bsc#1063638
 

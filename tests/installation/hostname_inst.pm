@@ -8,6 +8,9 @@
 # without any warranty.
 
 # Summary: Assert hostname in YaST Installer is set properly
+# - Check if hostname matches the one defined on EXPECTED_INSTALL_HOSTNAME or is
+# "install"
+# - Save screenshot
 # Maintainer: Michal Nowak <mnowak@suse.com>
 # Tags: pr#11456, fate#319639
 

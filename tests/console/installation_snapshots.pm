@@ -9,6 +9,8 @@
 # without any warranty.
 
 # Summary: Check post-installation snapshot
+# - Parse system variables and define snapshot type and description
+# - Using the type and description, check if snapshot was already created
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: fate#317973, bsc#935923
 

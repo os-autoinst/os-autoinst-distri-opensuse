@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Simple apache server test
+# - Install apache2
+# - Enable apache2 service
+# - Start apache2 service
+# - Check status of apache2 service
+# - Create index.html, connect to apache instance, check page
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 package http_srv;

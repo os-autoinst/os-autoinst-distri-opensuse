@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: Test for gnome-control-center, with panel
+# - Login user if necessary
+# - Start gnome-control-center and check if it is running
+# - Access "about" (if gnome 3.26) otherwise "details"
+# - Close gnome-control-center
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 # Tags: boo#897687
 

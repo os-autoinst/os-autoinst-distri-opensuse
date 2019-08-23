@@ -8,6 +8,11 @@
 # without any warranty.
 #
 # Summary: Install xfstests
+# - Stop packagekit service
+# - Add qa-head repository
+# - Install qa_test_xfstests fio
+# - If XFSTESTS_REPO is set, install xfstests, filesystems
+# - Otherwise, run "/usr/share/qa/qa_test_xfstests/install.sh"
 # Maintainer: Yong Sun <yosun@suse.com>
 package install;
 

@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: Verify timezone settings page and proceed to next page
+# - Proceed only if in timezone selection screen
+# - If TIMEZONE is "beijing", select timezone-beijing in timezone selection
+# screen
+# - Select next
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'y2_installbase';
