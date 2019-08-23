@@ -9,6 +9,13 @@
 # without any warranty.
 
 # Summary: Verify installation starts and is in progress
+# - If install type is upgrade, handle conflict solution screen, license popup,
+# package selection, automatic changes
+# - If is standard installation, handle license popup
+# - If LIVECD, NICEVIDEO, UPGRADE are not defined or VIDEOMODE=text, monitor
+# install progress
+# - If USEIMAGES is set, check desktop install type (either kde, gnome or
+# textmode)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'y2_installbase';

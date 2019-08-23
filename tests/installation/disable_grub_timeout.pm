@@ -9,6 +9,9 @@
 
 # Summary: Disable grub timeout from the Installer
 #   in order to ensure tests do not skip over it.
+# - Enter bootloader configuration option during install (unless is update)
+# - Set grub timeout to "-1" (60 if older than sle12sp1)
+# - Save screenshot
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
 use strict;

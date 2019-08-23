@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: eye of gnome image viewer
+# - Installs eog if necessary
+# - Launch eog
+# - Check if eog is running
+# - Close eog
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "x11test";

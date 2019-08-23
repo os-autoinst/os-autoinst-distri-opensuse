@@ -11,6 +11,11 @@
 # Summary: console test pre setup, performing actions required to run tests
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
+# - Save screenshot
+# - Disable mail notifications
+# - Disable/stop serial-getty service
+# - Disable/stop packagekit service
+# - Enable pipefail
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
