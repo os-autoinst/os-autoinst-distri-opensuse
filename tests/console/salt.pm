@@ -9,6 +9,15 @@
 
 # Summary: Test installation of salt-master as well as salt-minion on same
 #  machine. Test simple operation with loopback.
+# - Add suse connect product according to distribution in test
+# - Stop packagekit service
+# - Install salt-master salt-minion
+# - Start salt-master service, check its status
+# - Configure and start salt-minion, check its status
+# - Run "salt-run state.event tagmatch="salt/auth" quiet=True count=1"
+# - Run "salt-key --accept-all -y"
+# - Ping the minion. If fails, try again 7 times.
+# - Stop both minion and master
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: fate#318875, fate#320919
 

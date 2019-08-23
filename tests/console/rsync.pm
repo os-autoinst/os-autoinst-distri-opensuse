@@ -8,6 +8,12 @@
 # without any warranty.
 #
 # Summary: This module creates files that are synced afterwards using rsync.
+# - Install rsync (if not jeos)
+# - Create two test directories and populate with files, scripts and compressed
+# files
+# - Create a ssh key and copy to root authorized_keys
+# - Run "rsync -avzr /tmp/rsync_test_folder_a/ root@localhost:/tmp/rsync_test_folder_b; echo $? > /tmp/rsync_return_code.txt"
+# - Check the operation return code and md5sum from files transfered
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
 

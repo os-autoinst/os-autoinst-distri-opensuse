@@ -14,6 +14,10 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Do the registration against SCC or skip it
+# - If SCC_REGISTER or REGISTER is installation
+#   - Handle registration (gpg key, nvidia validation, registration server,
+#   repositories, beta, products, addons)
+# - Otherwise, skip registration
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;

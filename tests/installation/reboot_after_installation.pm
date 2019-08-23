@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Prepare and trigger the reboot into the installed system
+# - Change system for boot from hard disk next time
+# - Select OK and reboot system
+# - Keep console and reconnect VNC, unless DESKTOP is minimalx and shutdown
+# timeouts
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'y2_installbase';

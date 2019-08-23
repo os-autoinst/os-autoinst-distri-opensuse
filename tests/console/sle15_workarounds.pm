@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 # Summary: performing extra actions specific to sle 15 which are not available normally
+# - If sle15+, switch to text console (ctrl-alt-f2)
+# - If system still in graphic, record failure
+# - Stop packagekit service
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base qw(consoletest distribution);
