@@ -47,6 +47,7 @@ my $INST_DIR     = '/opt/xfstests';
 my $LOG_DIR      = '/opt/log';
 my $KDUMP_DIR    = '/opt/kdump';
 my $MAX_TIME     = 2400;
+my $FSTYPE       = get_required_var('XFSTESTS');
 
 # Create heartbeat script, directories(Call it only once)
 sub test_prepare {
@@ -270,6 +271,48 @@ sub dump_btrfs_img {
     script_run($cmd);
 }
 
+sub collect_fs_status {
+    my ($category, $num) = @_;
+    my $cmd = <<END_CMD;
+mount \$TEST_DEV \$TEST_DIR &> /dev/null
+if [[ -z "\$SCRATCH_DEV_POOL" ]]; then
+    mount \$SCRATCH_DEV \$SCRATCH_MNT &> /dev/null
+fi
+END_CMD
+    if ($FSTYPE eq 'xfs') {
+        $cmd = <<END_CMD;
+$cmd
+echo "==> /sys/fs/$FSTYPE/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
+cat /sys/fs/$FSTYPE/stats/stats >> $LOG_DIR/$category/$num.fs_stat
+tail -n +1 /sys/fs/$FSTYPE/*/log/* >> $LOG_DIR/$category/$num.fs_stat
+tail -n +1 /sys/fs/$FSTYPE/*/stats/stats >> $LOG_DIR/$category/$num.fs_stat
+END_CMD
+    }
+    elsif ($FSTYPE eq 'btrfs') {
+        $cmd = <<END_CMD;
+$cmd
+tail -n +1 /sys/fs/$FSTYPE/*/allocation/data/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
+tail -n +1 /sys/fs/$FSTYPE/*/allocation/metadata/[bdft]* >> $LOG_DIR/$category/$num.fs_stat
+tail -n +1 /sys/fs/$FSTYPE/*/allocation/metadata/dup/* >> $LOG_DIR/$category/$num.fs_stat
+tail -n +1 /sys/fs/$FSTYPE/*/allocation/*/single/* >> $LOG_DIR/$category/$num.fs_stat
+END_CMD
+    }
+    elsif ($FSTYPE eq 'ext4') {
+        $cmd = <<END_CMD;
+$cmd
+tail -n +1 /sys/fs/$FSTYPE/*/* >> $LOG_DIR/$category/$num.fs_stat
+END_CMD
+    }
+    $cmd = <<END_CMD;
+$cmd
+umount \$TEST_DEV &> /dev/null
+if [[ -z "\$SCRATCH_DEV_POOL" ]]; then
+    umount \$SCRATCH_DEV &> /dev/null
+fi
+END_CMD
+    type_string("$cmd\n");
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -299,6 +342,7 @@ sub run {
                 copy_log($category, $num, 'out.bad');
                 copy_log($category, $num, 'full');
                 copy_log($category, $num, 'dmesg');
+                collect_fs_status($category, $num);
                 if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
             }
             next;
