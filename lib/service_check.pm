@@ -18,8 +18,8 @@ use utils;
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use version_utils 'is_sle';
 use services::apache;
+use services::apparmor;
 use services::dhcpd;
 use nfs_common;
 
@@ -117,9 +117,10 @@ our $default_services = {
         support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
     },
     apparmor => {
-        srv_pkg_name  => 'apparmor',
-        srv_proc_name => 'apparmor',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'apparmor',
+        srv_proc_name      => 'apparmor',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::apparmor::full_apparmor_check
     },
     vsftp => {
         srv_pkg_name  => 'vsftpd',
@@ -142,19 +143,7 @@ sub install_services {
                 next;
             }
 
-            if ($srv_pkg_name ne 'apparmor') {
-                zypper_call("in $srv_pkg_name") if $srv_pkg_name ne 'apparmor';
-            }
-            else {
-                record_soft_failure('workaround for bug#1132292 zypper in apparmor failed msg popup');
-            }
-
-            # SLE12-SP2 doesn't support systemctl to enable apparmor
-            unless ($srv_pkg_name eq 'apparmor' && is_sle('<12-SP3')) {
-                assert_script_run 'systemctl enable ' . $srv_proc_name;
-            }
-
-            assert_script_run 'systemctl start ' . $srv_proc_name;
+            systemctl 'start ' . $srv_proc_name;
             systemctl 'is-active ' . $srv_proc_name;
         }
     }

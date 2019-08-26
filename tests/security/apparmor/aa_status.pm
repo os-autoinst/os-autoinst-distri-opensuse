@@ -26,22 +26,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use services::apparmor;
 
 sub run {
     select_console 'root-console';
-
-    systemctl('is-active apparmor');
-
-    validate_script_output "aa-status", sub {
-        m/
-        module\ is\ loaded.*
-        profiles\ are\ loaded.*
-        profiles\ are\ in\ enforce\ mode.*
-        profiles\ are\ in\ complain\ mode.*
-        processes\ are\ in\ enforce\ mode.*
-        processes\ are\ in\ complain\ mode.*
-        processes\ are\ unconfined/sxx
-    };
+    services::apparmor::check_service();
+    services::apparmor::check_aa_status();
 }
 
 1;
