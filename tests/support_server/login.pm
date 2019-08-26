@@ -22,14 +22,19 @@ use base 'basetest';
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'is_desktop_installed';
+use version_utils qw(is_desktop_installed is_opensuse);
 
 sub run {
     my ($self) = @_;
     # we have some tests that waits for dvd boot menu timeout and boot from hdd
     # - the timeout here must cover it
-    $self->wait_boot(bootloader_time => 80, textmode => !is_desktop_installed);
-
+    if (is_opensuse && get_var('SUPPORT_SERVER')) {
+        # opensuse uses image booting in desktop mode for MM tests
+        $self->wait_boot(bootloader_time => 80);
+    }
+    else {
+        $self->wait_boot(bootloader_time => 80, textmode => !is_desktop_installed);
+    }
     # the supportserver image can be different version than the currently tested system
     # so try to login without use of needles
     $self->select_serial_terminal;
