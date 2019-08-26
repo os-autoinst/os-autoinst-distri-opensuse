@@ -62,6 +62,18 @@ sub run {
         assert_script_run("srun -w slave-node01 date");
     }
 
+    ## test sbatch
+    my $sbatch = "hpc_slurm_sbatch.sh";
+    script_run("wget --quiet " . data_url($sbatch) . " -O $sbatch");
+    assert_script_run("chmod +x $sbatch");
+    record_info('meminfo', script_output("cat /proc/meminfo"));
+    script_output("sbatch $sbatch");
+    ##sbatch SBATCH --time=0-00:01:00
+    ## so the worker should wait for the sbatch to finish
+    sleep(70);
+    upload_logs('/tmp/sbatch1');
+    record_info('sbatch hpc_slurm_sbatch.sh');
+
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
 
