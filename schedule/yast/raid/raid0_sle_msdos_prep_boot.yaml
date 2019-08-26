@@ -13,7 +13,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning/raid_gpt
+  - installation/partitioning/raid_msdos
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/user_settings
@@ -33,4 +33,4 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  !include: schedule/yast/raid/raid_prep_boot_test_data.yaml
+  !include: test_data/yast/raid/raid_msdos_prep_boot_test_data.yaml

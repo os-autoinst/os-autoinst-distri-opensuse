@@ -1,4 +1,4 @@
-name:           RAID5_gpt
+name:           RAID5_gpt_opensuse
 description:    >
   Configure RAID 5 on the disks with GPT partition tables using Expert Partitioner.
   Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
@@ -6,18 +6,19 @@ description:    >
 vars:
   RAIDLEVEL: 5
 schedule:
+  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/raid_gpt
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
-  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -33,51 +34,6 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  disks:
-    - name: vda
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdb
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdc
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdd
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
   mds:
     - raid_level: 5
       chunk_size: 64
@@ -98,3 +54,4 @@ test_data:
           filesystem: swap
         mounting_options:
           should_mount: 1
+  !include: test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml

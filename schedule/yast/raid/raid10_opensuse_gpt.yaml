@@ -1,10 +1,10 @@
-name:           RAID5_gpt_opensuse
+name:           RAID10_gpt_opensuse
 description:    >
-  Configure RAID 5 on the disks with GPT partition tables using Expert Partitioner.
+  Configure RAID 10 on the disks with GPT partition tables using Expert Partitioner.
   Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
-  them for RAID 5.
+  them for RAID 10.
 vars:
-  RAIDLEVEL: 5
+  RAIDLEVEL: 10
 schedule:
   - installation/isosize
   - installation/bootloader_start
@@ -34,53 +34,8 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  disks:
-    - name: vda
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdb
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdc
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
-    - name: vdd
-      partitions:
-        - size: 2mb
-          id: bios-boot
-          role: raw-volume
-        - size: 8000mb
-          role: raw-volume
-          id: linux-raid
-        - size: 100mb
-          role: raw-volume
-          id: linux-raid
   mds:
-    - raid_level: 5
+    - raid_level: 10
       chunk_size: 64
       device_selection_step: 2
       partition:
@@ -89,7 +44,7 @@ test_data:
           should_format: 1
         mounting_options:
           should_mount: 1
-    - raid_level: 5
+    - raid_level: 10
       chunk_size: 64
       device_selection_step: 1
       partition:
@@ -99,3 +54,4 @@ test_data:
           filesystem: swap
         mounting_options:
           should_mount: 1
+  !include: test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
