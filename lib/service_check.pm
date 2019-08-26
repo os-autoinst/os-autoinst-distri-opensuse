@@ -22,6 +22,7 @@ use services::apache;
 use services::apparmor;
 use services::dhcpd;
 use nfs_common;
+use services::registered_addons;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -32,6 +33,12 @@ our @EXPORT = qw(
 
 our $hdd_base_version;
 our $default_services = {
+    registered_addons => {
+        srv_pkg_name       => 'registered_addons',
+        srv_proc_name      => 'registered_addons',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15-SP1',
+        service_check_func => \&services::registered_addons::full_registered_check
+    },
     susefirewall => {
         srv_pkg_name  => 'SuSEfirewall2',
         srv_proc_name => 'SuSEfirewall2',

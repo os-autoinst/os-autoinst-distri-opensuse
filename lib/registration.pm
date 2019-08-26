@@ -675,6 +675,7 @@ sub get_addon_fullname {
         tcm       => 'sle-module-toolchain',
         wsm       => 'sle-module-web-scripting',
         python2   => 'sle-module-python2',
+        phub      => 'PackageHub'
     );
     return $product_list{"$addon"};
 }
