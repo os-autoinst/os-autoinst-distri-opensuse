@@ -1,0 +1,8 @@
+name:           yast2_cmd
+description:    >
+    Yast2 cmd interface tests.
+
+schedule:
+     - boot/boot_to_desktop
+     - yast2_cmd/yast_rdp
+     - yast2_cmd/yast_timezone
