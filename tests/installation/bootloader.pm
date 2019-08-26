@@ -56,6 +56,7 @@ sub run {
     my @params;
     push @params, bootmenu_default_params;
     push @params, bootmenu_network_source;
+    push @params, bootmenu_remote_target;
     push @params, specific_bootmenu_params;
     specific_caasp_params;
     push @params, registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
