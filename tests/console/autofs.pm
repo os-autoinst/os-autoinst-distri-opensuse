@@ -32,8 +32,8 @@ use utils qw(systemctl zypper_call);
 
 sub run {
     select_console 'root-console';
-    # mkisofs is not distributed in JeOS
-    my $mk_iso_tool = (is_jeos) ? 'genisoimage' : 'mkisofs';
+    # mkisofs is not distributed in JeOS based on sle12
+    my $mk_iso_tool = (is_jeos and is_sle('<15')) ? 'genisoimage' : 'mkisofs';
     zypper_call("in autofs $mk_iso_tool") if (is_sle('15+') or is_jeos);
     my $autofs_conf_file       = '/etc/auto.master';
     my $autofs_map_file        = '/etc/auto.master.d/autofs_regression_test.autofs';
