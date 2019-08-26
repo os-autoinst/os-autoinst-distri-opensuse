@@ -27,7 +27,7 @@ sub run {
     # provision HPC cluster, so the proper rpms are installed,
     # munge key is distributed to all nodes, so is slurm.conf
     # and proper services are enabled and started
-    zypper_call('in slurm slurm-munge');
+    zypper_call('in slurm slurm-munge slurm-torque');
 
     zypper_call('in nfs-client rpcbind');
     systemctl 'start nfs';
@@ -73,6 +73,19 @@ sub run {
     sleep(70);
     upload_logs('/tmp/sbatch1');
     record_info('sbatch hpc_slurm_sbatch.sh');
+
+    ## test slurm-torque: https://fate.suse.com/323998
+    my $pbs = "hpc_slurm_pbs.sh";
+    script_run("wget --quiet " . data_url($pbs) . " -O $pbs");
+    assert_script_run("chmod +x $pbs");
+    script_output("sbatch $pbs");
+    ## execution (wall time) time set to 1m and there is a sleep
+    ## in the PBS script
+    ## so the worker should wait for the pbs to finish
+    sleep(80);
+    upload_logs('/tmp/Job_PBS_o');
+    upload_logs('/tmp/Job_PBS_e');
+    record_info('sbatch hpc_slurm_pbs.sh');
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
