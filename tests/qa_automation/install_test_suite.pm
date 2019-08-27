@@ -15,9 +15,14 @@ use warnings;
 use base "opensusebasetest";
 use utils;
 use testapi;
+use version_utils 'is_jeos';
+use repo_tools 'add_qa_head_repo';
 
 sub run {
     my $test = get_required_var('QA_TESTSUITE');
+
+    add_qa_head_repo if (is_jeos);
+
     record_info("Repo",    "The corresponding repository can be found at http://build.suse.de/package/show/QA:Head/qa_test_$test");
     record_info("sources", "The corresponding test sources can be found at https://github.com/SUSE/qa-testsuites/tree/master/tests/qa_test_$test");
     zypper_call("in 'qa_test_$test'");
