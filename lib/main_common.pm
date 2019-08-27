@@ -1942,7 +1942,10 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_passwd";
     loadtest "x11/firefox/firefox_html5";
     loadtest "x11/firefox/firefox_developertool";
-    loadtest "x11/firefox/firefox_rss";
+    ## RSS is removed since Firefox 64
+    if (is_sle('<=15-SP1') || is_leap('<=15.1')) {
+        loadtest "x11/firefox/firefox_rss";
+    }
     loadtest "x11/firefox/firefox_ssl";
     loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
