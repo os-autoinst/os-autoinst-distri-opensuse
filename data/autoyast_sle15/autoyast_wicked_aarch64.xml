@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/vda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <timeout config:type="integer">1</timeout>
+      <append>splash=verbose</append>
+    </global>
+  </bootloader>
+  <scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <chrooted config:type="boolean">true</chrooted>
+        <interpreter>shell</interpreter>
+        <source>
+          <![CDATA[
+            #!/bin/sh
+            sed -i 's/resume=\/dev\/vda.//' /etc/default/grub
+            sed -i 's/splash=silent\ quiet//' /etc/default/grub
+            sed -i '/GRUB_DISABLE_LINUX_UUID/s/^# //' /etc/default/grub
+            grub2-mkconfig -o /boot/grub2/grub.cfg
+            ]]>
+        </source>
+      </script>
+    </chroot-scripts>
+  </scripts>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <mount>/boot/efi</mount>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <mount>swap</mount>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">ext4</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <mount>/</mount>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <software>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
