@@ -1128,8 +1128,7 @@ sub reconnect_mgmt_console {
             }
         }
 
-        # SLE >= 15 does not offer auto-started VNC server in SUT, only login prompt as in textmode
-        if (!check_var('DESKTOP', 'textmode') && is_sle('<15')) {
+        if (!check_var('DESKTOP', 'textmode')) {
             select_console('x11', await_console => 0);
         }
     }
