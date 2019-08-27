@@ -1871,6 +1871,9 @@ sub load_x11_documentation {
 
 sub load_x11_gnome {
     return unless check_var('DESKTOP', 'gnome');
+    if (is_sle('12-SP2+')) {
+        loadtest "x11/gdm_session_switch";
+    }
     loadtest "x11/gnomecase/nautilus_cut_file";
     loadtest "x11/gnomecase/nautilus_permission";
     loadtest "x11/gnomecase/nautilus_open_ftp";
