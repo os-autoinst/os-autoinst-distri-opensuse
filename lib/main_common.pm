@@ -1562,6 +1562,7 @@ sub load_extra_tests_console {
     # start extra console tests from here
     loadtest "console/update_alternatives";
     loadtest 'console/rpm';
+    loadtest 'console/slp';
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
