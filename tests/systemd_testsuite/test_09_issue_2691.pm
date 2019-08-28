@@ -20,7 +20,7 @@ use utils 'get_root_console_tty';
 sub pre_run_hook {
     my ($self) = @_;
     #prepare test
-    $self->testsuiteprepare('TEST-09-ISSUE-2691');
+    $self->testsuiteprepare('TEST-09-ISSUE-2691', 'needreboot');
 }
 
 sub run {

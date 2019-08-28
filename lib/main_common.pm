@@ -2474,7 +2474,14 @@ sub load_security_tests {
 }
 
 sub load_systemd_patches_tests {
-    boot_hdd_image;
+    if (get_var('BOOT_HDD_IMAGE')) {
+        if (check_var('ARCH', 'aarch64')) {
+            loadtest 'installation/bootloader_uefi';
+        }
+        else {
+            boot_hdd_image;
+        }
+    }
     loadtest 'systemd_testsuite/binary_tests';
     loadtest 'systemd_testsuite/test_01_basic';
     loadtest 'systemd_testsuite/test_02_cryptsetup';
@@ -2491,7 +2498,16 @@ sub load_systemd_patches_tests {
     loadtest 'systemd_testsuite/test_13_nspawn_smoke';
     loadtest 'systemd_testsuite/test_14_machine_id';
     loadtest 'systemd_testsuite/test_15_dropin';
+    loadtest 'systemd_testsuite/test_16_extend_timeout';
+    loadtest 'systemd_testsuite/test_17_udev_wants';
+    loadtest 'systemd_testsuite/test_18_failureaction';
+    loadtest 'systemd_testsuite/test_19_delegate';
+    loadtest 'systemd_testsuite/test_20_mainpidgames';
+    loadtest 'systemd_testsuite/test_21_sysusers';
     loadtest 'systemd_testsuite/test_22_tmpfiles';
+    loadtest 'systemd_testsuite/test_23_type_exec';
+
+    load_shutdown_tests;
 }
 
 sub load_system_prepare_tests {

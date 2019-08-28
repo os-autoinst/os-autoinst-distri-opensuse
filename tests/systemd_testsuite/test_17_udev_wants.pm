@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,19 +18,18 @@ use testapi;
 sub pre_run_hook {
     my ($self) = @_;
     #prepare test
-    $self->testsuiteprepare('TEST-15-DROPIN', 'nspawn');
+    $self->testsuiteprepare('TEST-17-UDEV-WANTS');
 }
 
 sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-15-DROPIN --run 2>&1 | tee /tmp/testsuite.log', 120;
-    assert_screen("systemd-testsuite-test-15-dropin");
+    assert_script_run './run-tests.sh TEST-17-UDEV-WANTS --run 2>&1 | tee /tmp/testsuite.log', 120;
+    assert_screen("systemd-testsuite-test-17-udev-wants");
 }
 
 sub test_flags {
     return {always_rollback => 1};
 }
-
 
 1;
