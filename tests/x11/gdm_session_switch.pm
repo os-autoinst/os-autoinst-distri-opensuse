@@ -10,6 +10,7 @@
 # Summary: Add a case for gdm session switch
 #    openSUSE has shipped SLE-Classic since Leap 42.2, this case will test
 #    gdm session switch among sle-classic, gnome-classic, icewm and gnome.
+#    Also test rebooting from login screen.
 # Maintainer: Chingkai Chu <chuchingkai@gmail.com>
 
 use base "x11test";
