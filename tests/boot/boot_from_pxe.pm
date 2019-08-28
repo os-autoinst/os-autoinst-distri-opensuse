@@ -22,6 +22,7 @@ use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params);
 use registration 'registration_bootloader_cmdline';
 use utils 'type_string_slow';
 use Utils::Backends 'is_remote_backend';
+use Utils::Architectures 'is_aarch64';
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -62,9 +63,10 @@ sub run {
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
         my $repo        = $openqa_url . "/assets/repo/${image_name}";
-        my $sut_machine = get_var('SUT_IP', 'nosutip');
+        my $sut_fqdn    = get_var('SUT_IP', 'nosutip');
+        my $sut_allowed = qr/(arch\.suse\.de|qa2\.suse\.asia)/im;
         my $key_used    = '';
-        if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /arch\.suse\.de/img)) {
+        if (is_remote_backend && is_aarch64 && ($sut_fqdn =~ $sut_allowed)) {
             $key_used = 'c';
             send_key 'down';
         }
