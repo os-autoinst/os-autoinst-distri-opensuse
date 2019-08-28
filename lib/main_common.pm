@@ -440,7 +440,7 @@ sub load_reboot_tests {
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
         loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
-        if (is_aarch64 && !get_var('INSTALLONLY')) {
+        if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION')) {
             loadtest "installation/system_workarounds";
         }
     }
