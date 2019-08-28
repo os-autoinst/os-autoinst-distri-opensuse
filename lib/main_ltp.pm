@@ -172,6 +172,9 @@ sub load_kernel_tests {
             boot_hdd_image();
         }
         loadtest "trinity";
+    } elsif (get_var('NUMA_IRQBALANCE')) {
+        boot_hdd_image();
+        loadtest 'numa_irqbalance';
     }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
