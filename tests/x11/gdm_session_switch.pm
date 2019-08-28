@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,6 +10,7 @@
 # Summary: Add a case for gdm session switch
 #    openSUSE has shipped SLE-Classic since Leap 42.2, this case will test
 #    gdm session switch among sle-classic, gnome-classic, icewm and gnome.
+#    Also test rebooting from login screen.
 # Maintainer: Chingkai Chu <chuchingkai@gmail.com>
 
 use base "x11test";
@@ -33,12 +34,31 @@ sub run {
     $self->prepare_sle_classic;
     $self->application_test;
 
+    # Reboot and log in
+    $self->switch_wm;
+    assert_and_click "displaymanager-systembutton";
+    assert_and_click "displaymanager-system-powerbutton";
+    assert_and_click "displaymanager-reboot";
+
+    if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+        assert_screen 'reboot-auth', 15;
+        type_password;
+        send_key "ret";
+    }
+
+    $self->wait_boot(bootloader_time => 300);
+
+    # Log out and log in again
+    $self->switch_wm;
+    send_key "ret";
+    assert_screen "generic-desktop";
+
     # Log out and switch to icewm
     $self->switch_wm;
     assert_and_click "displaymanager-settings";
     assert_and_click "dm-icewm";
     send_key "ret";
-    assert_screen "desktop-icewm", 120;
+    assert_screen "desktop-icewm";
     # Smoke test: launch some applications
     send_key "super-spc";
     wait_still_screen;
@@ -58,7 +78,7 @@ sub run {
     send_key "alt-l";
     wait_still_screen;
     send_key "alt-o";
-    assert_screen "displaymanager";
+    assert_screen "displaymanager", 60;
     send_key "ret";
     assert_screen "originUser-login-dm";
     type_password;
@@ -66,6 +86,10 @@ sub run {
     assert_and_click "dm-gnome";
     send_key "ret";
     assert_screen "generic-desktop", 120;
+
+    # Log out and switch to SLE classic
+    $self->prepare_sle_classic;
+    $self->application_test;
 }
 
 1;
