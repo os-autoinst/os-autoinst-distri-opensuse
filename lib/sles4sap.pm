@@ -225,7 +225,7 @@ sub copy_media {
     my $chksum_file = 'checksum.md5sum';
     # We can't check the checksum file itself as well as the clustered NFS share part
     assert_script_run "sed -i -e '/$chksum_file\$/d' -e '/\\/nfs_share/d' $chksum_file";
-    assert_script_run "md5sum -c $chksum_file", $nettout;
+    assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
 }
 
 sub add_hostname_to_hosts {
