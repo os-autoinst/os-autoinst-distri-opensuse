@@ -373,7 +373,7 @@ sub export_logs_desktop {
         }
         save_screenshot;
     } elsif (check_var("DESKTOP", "gnome")) {
-        $self->tar_and_upload_log('/home/bernhard/.cache/gdm', '/tmp/gdm.tar.bz2');
+        $self->tar_and_upload_log("/home/$username/.cache/gdm", '/tmp/gdm.tar.bz2');
     }
 
     # check whether xorg logs exist in user's home, if yes, upload xorg logs
