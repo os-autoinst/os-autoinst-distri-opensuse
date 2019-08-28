@@ -23,8 +23,7 @@ sub run {
     select_console 'root-console';
 
     assert_script_run "rm -rf nts_* ||:";
-    my $timeout = check_var('ARCH', 'aarch64') ? '400' : '300';
-    assert_script_run "supportconfig -t . -B test", $timeout;
+    assert_script_run "supportconfig -t . -B test", 400;
     assert_script_run "cd nts_test";
 
     # Check few file whether expected content is there.
