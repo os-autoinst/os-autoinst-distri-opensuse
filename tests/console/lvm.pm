@@ -91,10 +91,14 @@ sub run {
     # move data from the original extend to the new one
     validate_script_output("pvcreate ${disk}3",      sub { m/successfully created/ },  $timeout);
     validate_script_output("vgextend test ${disk}3", sub { m/successfully extended/ }, $timeout);
-    assert_script_run "pvmove ${disk}1 ${disk}3";
-
-    # after moving data, remove the old extend with no data
-    validate_script_output("vgreduce test ${disk}1", sub { m/Removed/ }, $timeout);
+    # JeOS kernel does not come with all device mapper modules
+    # it tends to keep dm modules tree simple
+    # dm-mirror module is missing -> pvmove operation always fails on JeOS images
+    unless (is_jeos) {
+        assert_script_run "pvmove ${disk}1 ${disk}3";
+        # after moving data, remove the old extend with no data
+        validate_script_output("vgreduce test ${disk}1", sub { m/Removed/ }, $timeout);
+    }
 
     # check the data just to be sure
     validate_script_output("cat /mnt/test_lvm/test", sub { m/test/ });
