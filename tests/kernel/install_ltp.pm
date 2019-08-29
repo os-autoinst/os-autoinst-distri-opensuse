@@ -347,7 +347,8 @@ sub run {
 
     upload_runtest_files('/opt/ltp/runtest', $tag);
 
-    power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
+    power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT') ||
+        get_var('LTP_COMMAND_FILE');
 }
 
 sub post_fail_hook {

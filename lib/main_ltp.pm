@@ -128,10 +128,15 @@ sub load_kernel_tests {
             loadtest 'update_kernel';
         }
         loadtest 'install_ltp';
-        if (get_var('LTP_INSTALL_REBOOT')) {
-            loadtest 'boot_ltp';
+        if (get_var('LTP_COMMAND_FILE')) {
+            loadtest_from_runtest_file();
         }
-        shutdown_ltp();
+        else {
+            if (get_var('LTP_INSTALL_REBOOT')) {
+                loadtest 'boot_ltp';
+            }
+            shutdown_ltp();
+        }
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {
