@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use base "consoletest";
+use base "opensusebasetest";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
