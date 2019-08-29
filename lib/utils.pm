@@ -426,8 +426,9 @@ sub zypper_call {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 record_soft_failure 'Retrying because of error 502 - bsc#1070851';
             }
+            next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
-        if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ && ($ret == 4 || $ret == 8 || $ret == 106)) {
+        if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106)) {
             record_soft_failure 'Retry due to network problems poo#52319';
             next;
         }
