@@ -140,7 +140,7 @@ TODO someone should document this
 =cut
 sub unlock_zvm_disk {
     my ($console) = @_;
-    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
+    eval { $console->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
     if ($@) {
         diag 'No passphrase asked, continuing';
     }
