@@ -18,6 +18,9 @@ schedule:
   - console/consoletest_setup
   - locale/keymap_or_locale
   - console/apache
+  - console/dns_srv
+  - console/postgresql_server
+  - console/shibboleth
   - console/apache_ssl
   - console/apache_nss
   - console/textinfo
@@ -44,9 +47,7 @@ schedule:
   - console/mtab
   - console/mysql_srv
   - console/rsync
-  - console/dns_srv
-  - console/postgresql_server
-  - console/shibboleth
   - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish
+  

@@ -1,9 +1,8 @@
 ---
 description: 'Main JeOS test suite. Maintainer: ccret.'
-name: 'jeos-main@svirt-xen-hvm ( svirt )'
+name: 'jeos-main@svirt-xen-pv ( svirt )'
 schedule:
   - installation/bootloader_svirt
-  - installation/bootloader_uefi
   - jeos/firstrun
   - jeos/record_machine_id
   - console/force_scheduled_tasks
@@ -20,6 +19,9 @@ schedule:
   - console/consoletest_setup
   - locale/keymap_or_locale
   - console/apache
+  - console/dns_srv
+  - console/postgresql_server
+  - console/shibboleth
   - console/apache_ssl
   - console/apache_nss
   - console/textinfo
@@ -50,3 +52,4 @@ schedule:
   - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish
+  
