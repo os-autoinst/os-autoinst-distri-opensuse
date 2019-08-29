@@ -17,7 +17,6 @@ use base "y2_module_consoletest";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use yast2_widget_utils 'change_service_configuration';
 
 sub run {
     select_console 'root-console';
@@ -25,26 +24,29 @@ sub run {
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'tftp-server');
     # make sure the module is loaded and any potential popups are there to be
     # asserted later
-    wait_still_screen(3);
-    my $boot_image_dir_shortcut  = 'alt-i';
-    my $firewall_detail_shortcut = 'alt-d';
+    wait_still_screen(6);
+    my $firewall_detail_shortcut = 'alt-i';
 
     if (is_sle('>15') || is_leap('>15.0') || is_tumbleweed) {
-        change_service_configuration(
-            after_writing => {start           => 'alt-t'},
-            after_reboot  => {start_on_demand => 'alt-a'}
-        );
+        sleep 10 if is_sle('>15');    #15.1 needs little more time to initialize
+        send_key 'alt-t';
+        send_key 'up';                #selects 'Start'
+        send_key 'ret';               #confirm
+
+        send_key 'alt-a';             #start service after reboot
+        send_key 'up';                #selects 'Start on demand'
+        send_key 'ret';               #confirm
+
+        send_key 'alt-i';             #enter boot image directory field
+        $firewall_detail_shortcut = 'alt-d';
     } else {
+        sleep 10 if is_sle('=15');    #15.0 needs little more time to initialize
         assert_screen 'yast2_tftp-server_configuration';
-        send_key 'alt-e';    # enable tftp
+        send_key 'alt-e';             # enable tftp
         assert_screen 'yast2_tftp-server_configuration_enabled';
-        $boot_image_dir_shortcut  = 'alt-t';
-        $firewall_detail_shortcut = 'alt-i';
+        send_key 'alt-t';             #enter boot image dir
     }
 
-    # provide a new TFTP root directory path
-    # workaround to resolve problem with first key press is lost, improve stability here by retrying
-    send_key_until_needlematch 'yast2_tftp-server_configuration_chdir', $boot_image_dir_shortcut, 2, 3;
     for (1 .. 20) { send_key 'backspace'; }
     my $tftpboot_newdir = '/srv/tftpboot/new_dir';
     type_string $tftpboot_newdir;
