@@ -46,9 +46,6 @@ schedule:
   - console/mtab
   - console/mysql_srv
   - console/rsync
-  - console/dns_srv
-  - console/postgresql_server
-  - console/shibboleth
   - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish
