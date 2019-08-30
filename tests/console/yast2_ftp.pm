@@ -17,7 +17,6 @@ use testapi;
 use utils;
 use version_utils;
 use y2_installbase;
-use yast2_widget_utils 'change_service_configuration';
 
 sub vsftd_setup_checker {
     my $config_ref              = pop();
@@ -77,6 +76,9 @@ sub run {
         record_soft_failure 'bsc#1132116';
     }
 
+    # clear any existing vsftpd leftover configs:
+    script_run 'rm /etc/vsftpd.conf';
+
     # bsc#694167
     # create RSA certificate for ftp server at first which can be used for SSL configuration
     # type_string("openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout /etc/vsftpd.pem -out /etc/vsftpd.pem\n");
@@ -96,10 +98,13 @@ sub run {
     assert_screen 'ftp-server';    # check ftp server configuration page
 
     if (is_sle('>15') || is_leap('>15.0') || is_tumbleweed) {
-        change_service_configuration(
-            after_writing => {start         => 'alt-t'},
-            after_reboot  => {start_on_boot => 'alt-a'}
-        );
+        send_key 'alt-t';          #opens service popup (start service after this config)
+        send_key 'up';             #selects 'Start'
+        send_key 'ret';            #confirm
+
+        send_key 'alt-a';          #opens service popup (enable service after reboot)
+        send_key 'up';             #selects 'Start on boot'
+        send_key 'ret';            #confirm
     } else {
         send_key 'alt-w';                     # make sure ftp start-up when booting
         send_key 'alt-d' if is_sle('=15');    # only sle 15 has this specific combination
@@ -153,6 +158,7 @@ sub run {
     send_key_until_needlematch 'yast2_tftp_performance_selected', 'shift-tab';
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'ret' };
+    send_key 'alt-b';                                                              # enable anon upload by authenticated an anon users
     send_key 'alt-e';
     assert_screen 'yast2_ftp_authentication_enabled';
     wait_screen_change { send_key 'alt-y' };
