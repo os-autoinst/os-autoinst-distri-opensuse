@@ -30,6 +30,7 @@ use Utils::Backends 'use_ssh_serial_console';
 use ipmi_backend_utils;
 
 sub run {
+    # Test line to check if Travis will comment on the change
     my ($self) = @_;
     select_console 'install-shell';
 

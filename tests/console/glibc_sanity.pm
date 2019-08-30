@@ -28,6 +28,7 @@ sub run {
 
     my $libcstr = 'GNU C Library';
     zypper_call 'in -C libc.so.6';
+    # Test line to check if Travis will comment on the change
     assert_script_run "/lib/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
     assert_script_run '/lib/libc.so.6 | grep --color "i686-suse-linux"';
     return if !check_var('ARCH', 'x86_64');    # On Tumbleweed we still support 32-bit x86
