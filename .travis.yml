@@ -32,6 +32,7 @@ script:
   - git checkout cpanfile
   - source script/generateLibDocs.sh
   - make test
+  - bash comment_on_staging_test_change.sh
 deploy:
     provider: pages
     skip_cleanup: true
