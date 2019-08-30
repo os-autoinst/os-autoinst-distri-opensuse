@@ -8,16 +8,22 @@
 # without any warranty.
 
 package kdump_utils;
-use base Exporter;
-use Exporter;
+use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
 use utils;
+use registration;
+use Utils::Backends 'is_spvm';
+use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_opensuse);
-use y2_module_consoletest;
 
-our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump activate_kdump activate_kdump_without_yast kdump_is_active do_kdump);
+
+our @ISA    = qw(Exporter);
+our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
+  activate_kdump activate_kdump_without_yast kdump_is_active
+  do_kdump install_service configure_service
+  check_function full_kdump_check);
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
@@ -63,9 +69,14 @@ sub prepare_for_kdump_sle {
 }
 
 sub prepare_for_kdump {
+    my ($test_type) = @_;
+    $test_type //= '';
+
     # disable packagekitd
     pkcon_quit;
     zypper_call('in yast2-kdump kdump crash');
+
+    return if ($test_type eq 'before');
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
@@ -88,6 +99,7 @@ sub prepare_for_kdump {
     zypper_call("mr -d $opensuse_debug_repos");
 }
 
+# use yast2 kdump to enable the kdump service
 sub activate_kdump {
     # activate kdump
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
@@ -137,7 +149,6 @@ sub activate_kdump_without_yast {
 
 sub kdump_is_active {
     # make sure kdump is enabled after reboot
-
     my $status;
     for (1 .. 10) {
         $status = script_output('systemctl status kdump ||:');
@@ -162,6 +173,110 @@ sub kdump_is_active {
 sub do_kdump {
     # get dump
     script_run "echo c > /proc/sysrq-trigger", 0;
+}
+
+#
+# Install debug kernel and use yast2 kdump to enable kdump service.
+# we use $test_type to distingush  migration or function check.
+#
+# For migration test we just do activate kdump. migration test do
+# not need to run prepare_for_kdump function because it can't get
+# the debug media for the base system.
+#
+# For function test we need to install the debug kernel and activate kdump.
+#
+sub configure_service {
+    my ($test_type) = @_;
+    $test_type //= '';
+
+    my $self = y2_module_consoletest->new();
+    if ($test_type eq 'function') {
+        # preparation for crash test
+        if (is_sle '15+') {
+            add_suseconnect_product('sle-module-desktop-applications');
+            add_suseconnect_product('sle-module-development-tools');
+        }
+    }
+
+    prepare_for_kdump($test_type);
+    activate_kdump;
+
+    # restart to activate kdump
+    power_action('reboot', keepconsole => is_spvm);
+    reconnect_mgmt_console if is_spvm;
+    $self->wait_boot;
+
+    select_console 'root-console';
+    if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'ppc64')) {
+        if (script_run('kver=$(uname -r); kconfig="/boot/config-$kver"; [ -f $kconfig ] && grep ^CONFIG_RELOCATABLE $kconfig')) {
+            record_soft_failure 'poo#49466 -- No kdump if no CONFIG_RELOCATABLE in kernel config';
+            return 1;
+        }
+    }
+}
+
+#
+# Trigger kernel dump and check the core files.
+#
+# For migration we just simply check the system memory can be dumped
+# and core files are existed after reboot.
+#
+# For function test we need check the system memory can be dumped
+# and can be debugged by crash.
+#
+sub check_function {
+    my ($test_type) = @_;
+    $test_type //= '';
+
+    my $self = y2_module_consoletest->new();
+
+    # often kdump could not be enabled: bsc#1022064
+    return 1 unless kdump_is_active;
+
+    do_kdump;
+
+    if (get_var('FADUMP')) {
+        reconnect_mgmt_console;
+        assert_screen 'grub2', 180;
+        wait_screen_change { send_key 'ret' };
+    }
+    elsif (is_spvm) {
+        reconnect_mgmt_console;
+    }
+    else {
+        power_action('reboot', observe => 1, keepconsole => 1);
+    }
+
+    # Wait for system's reboot; more time for Hyper-V as it's slow.
+    $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
+    select_console 'root-console';
+
+    # all but PPC64LE arch's vmlinux images are gzipped
+    my $suffix = check_var('ARCH', 'ppc64le') ? '' : '.gz';
+    assert_script_run 'find /var/crash/';
+
+    if ($test_type eq 'function') {
+        my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`$suffix";
+        validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
+    }
+
+    assert_script_run 'rm -fr /var/crash/*';
+}
+
+#
+# Check kdump service before and after migration,
+# parameter $stage is 'before' or 'after' of a system migration stage.
+#
+sub full_kdump_check {
+    my ($stage) = @_;
+    $stage //= '';
+
+    select_console 'root-console';
+
+    if ($stage eq 'before') {
+        configure_service('before');
+    }
+    check_function();
 }
 
 1;
