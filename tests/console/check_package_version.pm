@@ -21,19 +21,23 @@ use strict;
 use warnings;
 use version;
 use testapi;
-use utils 'zypper_call';
+use utils qw(systemctl zypper_call);
 
 my %package = (
-    autofs              => '5.1.5',
-    openscap            => '1.3.0',
-    augeas              => '1.0.0',
-    'freeradius-server' => '3.0.18',
-    gpgme               => '1.9.0',
-    'libgpg-error0'     => '1.17',
+    autofs              => ['5.1.5',   'jsc#5754'],
+    openscap            => ['1.3.0',   'jsc#5699'],
+    augeas              => ['1.0.0',   'jsc#5739'],
+    'freeradius-server' => ['3.0.18',  'jsc#5892'],
+    gpgme               => ['1.9.0',   'jsc#5953'],
+    'libgpg-error'      => ['1.17',    'jsc#5953'],
+    rsync               => ['3.1.3',   'jsc#5584'],
+    dpdk                => ['18.11.2', 'jsc#6820'],
+    python36            => ['3.6.0',   'jsc#7100'],
+    'python-daemon'     => ['1.6',     'jsc#5708']
 );
 
 my %package_s390x = (
-    'libnuma-devel' => '2.0.12',
+    'libnuma-devel' => ['2.0.12', 'jsc#6508'],
 );
 
 sub cmp_version {
@@ -45,35 +49,34 @@ sub cmp_version {
 }
 
 sub cmp_packages {
-    my ($pcks, $pckv) = @_;
+    my ($pcks, $pckv, $jsc) = @_;
     record_info($pcks, "$pcks version check after migration");
     my $output = script_output("zypper se -s $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", 80);
     if ($output ne '' && !cmp_version($pckv, $output)) {
-        record_info("Version Failed", "The $pcks version is $output, but request is $pckv");
-        return $pcks;
+        record_soft_failure("$jsc, The $pcks version is $output, but request is $pckv");
     }
-    return $pcks if ($output eq '');
+    record_soft_failure("$jsc, The $pcks is not existed") if ($output eq '');
 }
 
 sub run {
 
     select_console 'root-console';
 
-    my @failed_pcks;
     foreach my $key (keys %package) {
-        my $pcks = cmp_packages($key, $package{$key});
-        push @failed_pcks, $pcks if $pcks;
+        my $pcks = cmp_packages($key, $package{$key}[0], $package{$key}[1]);
     }
 
+    # Those modules only can be installed at s390x
     if (get_var('ARCH') =~ /s390x/) {
         foreach my $key (keys %package_s390x) {
-            my $pcks = cmp_packages($key, $package_s390x{$key});
-            push @failed_pcks, $pcks if $pcks;
+            my $pcks = cmp_packages($key, $package_s390x{$key}[0], $package_s390x{$key}[1]);
         }
     }
 
-    assert_script_run('python3 --version', 30);
-    die "there are failed packages" if @failed_pcks;
+    # jsc#5668:Replace init script of ebtables with systemd service file
+    zypper_call('in ebtables');
+    systemctl 'start ebtables';
+    systemctl 'is-active ebtables';
 }
 
 sub test_flags {
