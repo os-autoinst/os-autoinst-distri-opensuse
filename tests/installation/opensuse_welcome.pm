@@ -23,22 +23,22 @@ sub run {
     # Untick box - (Retries may be needed: poo#56024)
     for my $retry (1 .. 5) {
         assert_and_click("opensuse-welcome-show-on-boot");
+        sleep 5;    # Slow down loop
         last unless check_screen("opensuse-welcome-show-on-boot");
         die "Unable to untick 'Show on next startup'" if $retry == 5;
-        sleep 5;    # Slow down loop
     }
 
     # Close welcome screen - (Retries may be needed: poo#56024)
     for my $retry (1 .. 5) {
         assert_and_click("opensuse-welcome-close-btn");
+        sleep 5;    # Slow down loop
         last unless check_screen("opensuse-welcome");
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
-        sleep 5;    # Slow down loop
     }
 }
 
- sub test_flags {
-     return {milestone => 1};
- }
- 
+sub test_flags {
+    return {milestone => 1};
+}
+
 1;
