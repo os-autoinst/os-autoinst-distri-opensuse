@@ -15,7 +15,12 @@ vars:
   SLES4SAP_MODE: sles4sap
   SLE_PRODUCT: sles4sap
   SYSTEM_ROLE: default
-  WORKAROUND_MODULES: base,desktop,sapapp,serverapp,ha
+  ADDONURL: base,desktop,sapapp,serverapp,ha
+  ADDONURL_BASE: ftp://openqa.suse.de/%REPO_SLE_MODULE_BASESYSTEM%
+  ADDONURL_DESKTOP: ftp://openqa.suse.de/%REPO_SLE_MODULE_DESKTOP_APPLICATIONS%
+  ADDONURL_SERVERAPP: ftp://openqa.suse.de/%REPO_SLE_MODULE_SERVER_APPLICATIONS%
+  ADDONURL_SAPAPP: ftp://openqa.suse.de/%REPO_SLE_MODULE_SAP_APPLICATIONS%
+  ADDONURL_HA: ftp://openqa.suse.de/%REPO_SLE_PRODUCT_HA%
 schedule:
   - installation/bootloader_start
   - installation/welcome

@@ -338,8 +338,7 @@ sub is_desktop_module_selected {
     # same is true for sles4sap
     return
       get_var('ADDONS', '') =~ /all-packages|desktop|we/
-      || get_var('WORKAROUND_MODULES', '') =~ /desktop|we/
-      || get_var('ADDONURL',           '') =~ /desktop|we/
+      || get_var('ADDONURL', '') =~ /desktop|we/
       || (!is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we|productivity|ha/)
       || (is_sle('15+')  && get_var('SCC_ADDONS', '') =~ /desktop|we/)
       || is_sles4sap;
