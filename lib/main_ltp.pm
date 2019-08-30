@@ -28,7 +28,10 @@ use 5.018;
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
 # use warnings;
 
-our @EXPORT = 'load_kernel_tests';
+our @EXPORT = qw(
+  load_kernel_tests
+  loadtest_from_runtest_file
+);
 
 sub loadtest {
     my ($test, %args) = @_;
@@ -75,7 +78,7 @@ sub parse_runtest_file {
 
 sub loadtest_from_runtest_file {
     my $namelist           = get_var('LTP_COMMAND_FILE');
-    my $path               = get_var('ASSETDIR') . '/other';
+    my $path               = shift || get_var('ASSETDIR') . '/other';
     my $tag                = get_ltp_tag();
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
@@ -144,10 +147,14 @@ sub load_kernel_tests {
             loadtest 'update_kernel';
         }
         loadtest 'install_ltp';
-        if (get_var('LTP_INSTALL_REBOOT')) {
-            loadtest 'boot_ltp';
+        # If LTP_COMMAND_FILE is set, boot_ltp() and shutdown_ltp() will be added
+        # later by install_ltp task.
+        if (!get_var('LTP_COMMAND_FILE')) {
+            if (get_var('LTP_INSTALL_REBOOT')) {
+                loadtest 'boot_ltp';
+            }
+            shutdown_ltp();
         }
-        shutdown_ltp();
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {
