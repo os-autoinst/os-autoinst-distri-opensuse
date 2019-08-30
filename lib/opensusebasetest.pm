@@ -22,21 +22,45 @@ sub new {
     return $self;
 }
 
-# Additional to backend testapi 'clear-console' we do a needle match to ensure
-# continuation only after verification
+=head2 clear_and_verify_console
+
+ clear_and_verify_console();
+
+Clear the console and ensure that it really got cleared
+using a needle.
+
+=cut
 sub clear_and_verify_console {
     my ($self) = @_;
 
     clear_console;
     assert_screen('cleared-console');
-
 }
 
+=head2 post_run_hook
+
+ post_run_hook();
+
+This method will be called after each module finished.
+It will B<not> get executed when the test module failed.
+Test modules (or their intermediate base classes) may overwrite
+this method.
+
+=cut
 sub post_run_hook {
     my ($self) = @_;
     # overloaded in x11 and console
 }
 
+=head2 save_and_upload_log
+
+ save_and_upload_log($cmd, $file [, timeout => $timeout] [, screenshot => $screenshot] [, noupload => $noupload]);
+
+Will run C<$cmd> on the SUT (without caring for the return code) and tee the standard output to a file called C<$file>.
+The C<$timeout> parameter specifies how long C<$cmd> may run.
+When C<$cmd> returns, the output file will be uploaded to openQA unless C<$noupload> is set.
+Afterwards a screenshot will be created if C<$screenshot> is set.
+=cut
 sub save_and_upload_log {
     my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
@@ -44,6 +68,17 @@ sub save_and_upload_log {
     save_screenshot if $args->{screenshot};
 }
 
+=head2 tar_and_upload_log
+
+ tar_and_upload_log($sources, $dest, [, timeout => $timeout] [, screenshot => $screenshot] [, noupload => $noupload]);
+
+Will create an xz compressed tar archive with filename C<$dest> from the folder(s) listed in C<$sources>.
+The return code of C<tar> will be ignored.
+The C<$timeout> parameter specifies how long C<tar> may run.
+When C<tar> returns, the output file will be uploaded to openQA unless C<$noupload> is set.
+Afterwards a screenshot will be created if C<$screenshot> is set.
+
+=cut
 sub tar_and_upload_log {
     my ($self, $sources, $dest, $args) = @_;
     script_run("tar -jcv -f $dest $sources", $args->{timeout});
@@ -51,19 +86,43 @@ sub tar_and_upload_log {
     save_screenshot() if $args->{screenshot};
 }
 
+=head2 save_and_upload_systemd_unit_log
+
+ save_and_upload_systemd_unit_log($unit);
+
+Saves the journal of the systemd unit C<$unit> to C<journal_$unit.log> and uploads it to openQA.
+
+=cut
 sub save_and_upload_systemd_unit_log {
     my ($self, $unit) = @_;
     $self->save_and_upload_log("journalctl --no-pager -u $unit", "journal_$unit.log");
 }
 
-# btrfs maintenance jobs lead to the system being unresponsive and affects SUT's performance
-# Not to waste time during investigation of the failures, we would like to detect
-# if such jobs are running, providing a hint why test timed out.
+=head2 detect_bsc_1063638
+
+ detect_bsc_1063638();
+
+Btrfs maintenance jobs lead to the system being unresponsive and affects SUT's performance.
+Not to waste time during investigation of the failures, we would like to detect
+if such jobs are running, providing a hint why test timed out.
+This method will create a softfail if such a problem is detected.
+
+=cut
 sub detect_bsc_1063638 {
     # Detect bsc#1063638
     record_soft_failure 'bsc#1063638' if (script_run('ps x | grep "btrfs-\(scrub\|balance\|trim\)"') == 0);
 }
 
+=head2 problem_detection
+
+ problem_detection();
+
+This method will upload a number of logs and debugging information.
+This includes a log with all journal errors, a systemd unit plot and the
+output of rpmverify.
+The files will be uploaded as a single tarball called C<problem_detection_logs.tar.xz>.
+
+=cut
 sub problem_detection {
     my $self = shift;
 
@@ -139,6 +198,13 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
     type_string "popd\n";
 }
 
+=head2 investigate_yast2_failure
+
+ investigate_yast2_failure();
+
+Inspect the YaST2 logfile checking for known issues.
+
+=cut
 sub investigate_yast2_failure {
     my ($self) = shift;
 
@@ -306,7 +372,14 @@ sub investigate_yast2_failure {
     }
 }
 
-# Logs that make sense for any failure
+=head2 export_logs_basic
+
+ export_logs_basic();
+
+Upload logs that make sense for any failure.
+This includes C</proc/loadavg>, C<ps axf>, complete journal since last boot, C<dmesg> and C</etc/sysconfig>.
+
+=cut
 sub export_logs_basic {
     my ($self) = @_;
     $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
@@ -316,6 +389,13 @@ sub export_logs_basic {
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
 }
 
+=head2 export_logs
+
+ export_logs();
+
+This method will call several other log gathering methods from this class.
+
+=cut
 sub export_logs {
     my ($self) = shift;
     select_console 'log-console';
@@ -341,6 +421,14 @@ sub export_logs {
     $self->investigate_yast2_failure();
 }
 
+=head2 export_logs_locale
+
+ export_logs_locale();
+
+Upload logs related to system locale settings.
+This includes C<locale>, C<localectl> and C</etc/vconsole.conf>.
+
+=cut
 sub export_logs_locale {
     my ($self) = shift;
     $self->save_and_upload_log('locale',                 '/tmp/locale.log');
@@ -348,17 +436,37 @@ sub export_logs_locale {
     $self->save_and_upload_log('cat /etc/vconsole.conf', '/tmp/vconsole.conf');
 }
 
+=head2 upload_packagekit_logs
+
+ upload_packagekit_logs();
+
+Upload C</var/log/pk_backend_zypp>.
+
+=cut
 sub upload_packagekit_logs {
     my ($self) = @_;
     upload_logs '/var/log/pk_backend_zypp';
 }
 
-# Set a simple reproducible prompt for easier needle matching without hostname
+=head2 set_standard_prompt
+
+ set_standard_prompt();
+
+Set a simple reproducible prompt for easier needle matching without hostname.
+
+=cut
 sub set_standard_prompt {
     my ($self, $user) = @_;
     $testapi::distri->set_standard_prompt($user);
 }
 
+=head2 export_logs_desktop
+
+ export_logs_desktop();
+
+Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.
+
+=cut
 sub export_logs_desktop {
     my ($self) = @_;
     select_console 'log-console';
@@ -373,7 +481,7 @@ sub export_logs_desktop {
         }
         save_screenshot;
     } elsif (check_var("DESKTOP", "gnome")) {
-        $self->tar_and_upload_log('/home/bernhard/.cache/gdm', '/tmp/gdm.tar.bz2');
+        $self->tar_and_upload_log("/home/$username/.cache/gdm", '/tmp/gdm.tar.bz2');
     }
 
     # check whether xorg logs exist in user's home, if yes, upload xorg logs
@@ -398,8 +506,14 @@ sub export_logs_desktop {
     }
 }
 
-# Our aarch64 setup fails to boot properly from an installed hard disk so
-# point the firmware boot manager to the right file.
+=head2 handle_uefi_boot_disk_workaround
+
+ handle_uefi_boot_disk_workaround();
+
+Our aarch64 setup fails to boot properly from an installed hard disk so
+point the firmware boot manager to the right file.
+
+=cut
 sub handle_uefi_boot_disk_workaround {
     my ($self) = @_;
     record_info 'workaround', 'Manually selecting boot entry, see bsc#1022064 for details';
@@ -427,7 +541,7 @@ sub handle_uefi_boot_disk_workaround {
 
 =head2 wait_grub
 
-  wait_grub([bootloader_time => $bootloader_time] [,in_grub => $in_grub]);
+ wait_grub([bootloader_time => $bootloader_time] [,in_grub => $in_grub]);
 
 Makes sure the bootloader appears. Returns successfully when reached the bootloader menu, ready to control it further or continue. The time waiting for the bootloader can be configured with
 C<$bootloader_time> in seconds. Set C<$in_grub> to 1 when the
@@ -485,7 +599,7 @@ sub wait_grub {
 
 =head2 wait_grub_to_boot_on_local_disk
 
-  wait_grub_to_boot_on_local_disk
+ wait_grub_to_boot_on_local_disk
 
 When bootloader appears, make sure to boot from local disk when it is on aarch64.
 =cut
@@ -510,7 +624,7 @@ sub wait_grub_to_boot_on_local_disk {
 
 =head2 wait_boot
 
-  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
+ wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
 
 Makes sure the bootloader appears and then boots to desktop or text mode
 correspondingly. Returns successfully when the system is ready on a login
@@ -695,6 +809,20 @@ sub wait_boot {
     $self->{in_wait_boot} = 0;
 }
 
+=head2 enter_test_text
+
+ enter_test_text($name [, cmd => $cmd] [, slow => $slow]);
+
+For testing a text editor or terminal emulator.
+This will type some newlines and then enter the following text:
+
+ If you can see this text $name is working.
+
+C<$name> will default to "I<your program>".
+If C<$slow> is set, the typing will be slow.
+If C<$cmd> is set, the text will be prefixed by an C<echo> command.
+
+=cut
 sub enter_test_text {
     my ($self, $name, %args) = @_;
     $name       //= 'your program';
@@ -714,7 +842,7 @@ sub enter_test_text {
 
 =head2 firewall
 
-  firewall();
+ firewall();
 
 Return the default expected firewall implementation depending on the product
 under test, the version and if the SUT is an upgrade.
@@ -728,7 +856,7 @@ sub firewall {
 
 =head2 remount_tmp_if_ro
 
-    remount_tmp_if_ro()
+ remount_tmp_if_ro();
 
 Mounts /tmp to shared memory if not possible to write to tmp.
 For example, save_y2logs creates temporary files there.
@@ -740,7 +868,7 @@ sub remount_tmp_if_ro {
 
 =head2 select_serial_terminal
 
-    select_serial_terminal($root);
+ select_serial_terminal($root);
 
 Select most suitable text console with root user. The choice is made by
 BACKEND and other variables.
@@ -790,7 +918,7 @@ sub select_serial_terminal {
 
 =head2 select_user_serial_terminal
 
-    select_user_serial_terminal();
+ select_user_serial_terminal();
 
 Select most suitable text console with non-root user.
 The choice is made by BACKEND and other variables.
@@ -799,10 +927,17 @@ sub select_user_serial_terminal {
     select_serial_terminal(0);
 }
 
-# useful post_fail_hook for any module that calls wait_boot and x11_start_program
-##
-## we could use the same approach in all cases of boot/reboot/shutdown in case
-## of wait_boot, e.g. see `git grep -l reboot | xargs grep -L wait_boot`
+=head2 post_fail_hook
+
+ post_fail_hook();
+
+When the test module fails, this method will be called.
+It will try to fetch some logs from the SUT.
+Test modules (or their intermediate base classes) may overwrite
+this method to export certain specific logfiles and call the
+base method using C<$self-E<gt>SUPER::post_fail_hook;> at the end.
+
+=cut
 sub post_fail_hook {
     my ($self) = @_;
     return if testapi::is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense

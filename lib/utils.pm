@@ -109,7 +109,9 @@ my $svirt_pty_saved = 0;
 
 =head2 save_svirt_pty
 
-save the pty device within the svirt shell session so that we can refer to the
+ save_svirt_pty();
+
+Save the pty device within the svirt shell session so that we can refer to the
 correct pty pointing to the first tty, e.g. for password entry for encrypted
 partitions and rewriting the network definition of zKVM instances.
 
@@ -124,7 +126,12 @@ sub save_svirt_pty {
 
 =head2 type_line_svirt
 
-TODO someone should document this
+ type_line_svirt($string [, expect => $expect] [, timeout => $timeout] [, fail_message => $fail_message]);
+
+Sends C<$string> to the svirt terminal, waits up to C<$timeout> seconds
+and expects C<$expect> to be returned on the terminal if C<$expect> is set.
+If the expected text is not found, it will fail with C<$fail_message>.
+
 =cut
 sub type_line_svirt {
     my ($string, %args) = @_;
@@ -136,11 +143,16 @@ sub type_line_svirt {
 
 =head2 unlock_zvm_disk
 
-TODO someone should document this
+ unlock_zvm_disk($console);
+
+Unlock the zvm disk if needed.
+C<$console> should be set to C<console('x3270')>.
+C<$testapi::password> will be used as password.
+
 =cut
 sub unlock_zvm_disk {
     my ($console) = @_;
-    eval { console('x3270')->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
+    eval { $console->expect_3270(output_delim => 'Please enter passphrase', timeout => 30) };
     if ($@) {
         diag 'No passphrase asked, continuing';
     }
@@ -153,7 +165,11 @@ sub unlock_zvm_disk {
 
 =head2 handle_grub_zvm
 
-TODO someone should document this
+ handle_grub_zvm($console);
+
+Make sure that grub was started and send four enter keys to boot the system.
+C<$console> should be set to C<console('x3270')>.
+
 =cut
 sub handle_grub_zvm {
     my ($console) = @_;
@@ -168,7 +184,12 @@ sub handle_grub_zvm {
 
 =head2 handle_untrusted_gpg_key
 
-TODO someone should document this
+ handle_untrusted_gpg_key();
+
+This function is used during the installation.
+Check if a previous needle match included the tag C<import-known-untrusted-gpg-key>.
+If yes, import the key, otherwise don't.
+
 =cut
 sub handle_untrusted_gpg_key {
     if (match_has_tag('import-known-untrusted-gpg-key')) {
@@ -183,7 +204,11 @@ sub handle_untrusted_gpg_key {
 
 =head2 integration_services_check_ip
 
+ integration_services_check_ip();
+
 Check that guest IP address that host and guest see is the same.
+Die, if this is not the case.
+
 =cut
 sub integration_services_check_ip {
     # Workaround for poo#44771 "Can't call method "exec" on an undefined value"
@@ -214,8 +239,11 @@ sub integration_services_check_ip {
 
 =head2 integration_services_check
 
+ integration_services_check();
+
 Make sure integration services (e.g. kernel modules, utilities, services)
 are present and in working condition.
+
 =cut
 sub integration_services_check {
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
@@ -248,7 +276,11 @@ sub integration_services_check {
 
 =head2 unlock_if_encrypted
 
+ unlock_if_encrypted([check_typed_password => $check_typed_password]);
+
 Check whether the system under test has an encrypted partition and attempts to unlock it.
+C<$check_typed_password> will default to C<0>.
+
 =cut
 sub unlock_if_encrypted {
     my (%args) = @_;
@@ -287,25 +319,43 @@ sub unlock_if_encrypted {
     }
 }
 
-# 'ctrl-l' does not get queued up in buffer. If this happens to fast, the
-# screen would not be cleared
+=head2 clear_console
+
+ clear_console();
+
+C<ctrl-l> does not get queued up in buffer.
+If this happens to fast, the screen would not be cleared.
+So this function will simply type C<clear\n>.
+
+=cut
 sub clear_console {
     type_string "clear\n";
 }
 
 =head2 assert_gui_app
 
+ assert_gui_app($application [, install => $install] [, exec_param => $exec_param] [, remain => $remain]);
+
 assert_gui_app (optionally installs and) starts an application, checks it started
 and closes it again. It's the most minimalistic way to test a GUI application
-Mandatory parameter: application: the name of the application.
+
+Mandatory parameter: C<application> (the name of the application).
+
 Optional parameters are:
-   install: boolean    => does the application have to be installed first? Especially
-                         on live images where we want to ensure the disks are complete
-                         the parameter should not be set to true - otherwise we might
-                         mask the fact that the app is not on the media
-   exec_param: string => When calling the application, pass this parameter on the command line
-   remain: boolean    => If set to true, do not close the application when tested it is
-                         running. This can be used if the application shall be tested further
+
+ install: boolean
+     Does the application have to be installed first? Especially
+     on live images where we want to ensure the disks are complete
+     the parameter should not be set to true - otherwise we might
+     mask the fact that the app is not on the media.
+ 
+ exec_param: string
+     When calling the application, pass this parameter on the command line.
+ 
+ remain: boolean
+     If set to true, do not close the application when tested it is
+     running. This can be used if the application shall be tested further.
+
 =cut
 sub assert_gui_app {
     my ($application, %args) = @_;
@@ -315,11 +365,16 @@ sub assert_gui_app {
     send_key "alt-f4" unless $args{remain};
 }
 
-=head2 check_console font
+=head2 check_console_font
+
+ check_console_font();
+
+Check the console font using a needle.
 
 13.2, Leap 42.1, SLE12 GA&SP1 have problems with setting up the
 console font, we need to call systemd-vconsole-setup to workaround
 that.
+
 =cut
 sub check_console_font {
     # Does not make sense on ssh-based consoles
@@ -341,7 +396,10 @@ sub check_console_font {
 
 =head2 type_string_slow_extended
 
-Enable additional arguments for nested calls of wait_still_screen
+ type_string_slow_extended($string);
+
+Enable additional arguments for nested calls of C<wait_still_screen>.
+
 =cut
 sub type_string_slow_extended {
     my ($string) = @_;
@@ -350,7 +408,10 @@ sub type_string_slow_extended {
 
 =head2 type_string_slow
 
-Typing a string with SLOW_TYPING_SPEED to avoid losing keys.
+ type_string_slow($string);
+
+Typing a string with C<SLOW_TYPING_SPEED> to avoid losing keys.
+
 =cut
 sub type_string_slow {
     my ($string) = @_;
@@ -360,23 +421,27 @@ sub type_string_slow {
 
 =head2 type_string_very_slow
 
-Typing a string even slower with VERY_SLOW_TYPING_SPEED
+ type_string_very_slow($string);
+
+Typing a string even slower with C<VERY_SLOW_TYPING_SPEED>.
+
+The bootloader prompt line is very delicate with typing especially when
+scrolling. We are typing very slow but this could still pose problems
+when the worker host is utilized so better wait until the string is
+displayed before continuing
+For the special winter grub screen with moving penguins
+C<wait_still_screen> does not work so we just revert to sleeping a bit
+instead of waiting for a still screen which is never happening. Sleeping
+for 3 seconds is less waste of time than waiting for the
+C<wait_still_screen> to timeout, especially because C<wait_still_screen> is
+also scaled by C<TIMEOUT_SCALE> which we do not need here.
+
 =cut
 sub type_string_very_slow {
     my ($string) = @_;
 
     type_string $string, VERY_SLOW_TYPING_SPEED;
 
-    # the bootloader prompt line is very delicate with typing especially when
-    # scrolling. We are typing very slow but this could still pose problems
-    # when the worker host is utilized so better wait until the string is
-    # displayed before continuing
-    # For the special winter grub screen with moving penguins
-    # `wait_still_screen` does not work so we just revert to sleeping a bit
-    # instead of waiting for a still screen which is never happening. Sleeping
-    # for 3 seconds is less waste of time than waiting for the
-    # wait_still_screen to timeout, especially because wait_still_screen is
-    # also scaled by TIMEOUT_SCALE which we do not need here.
     if (get_var('WINTER_IS_THERE')) {
         sleep 3;
     }
@@ -388,7 +453,10 @@ sub type_string_very_slow {
 
 =head2 get_netboot_mirror
 
-TODO someone should document this
+ get_netboot_mirror();
+
+Return the mirror URL eg from the C<MIRROR_HTTP> var if C<INSTALL_SOURCE> is set to C<http>.
+
 =cut
 sub get_netboot_mirror {
     my $m_protocol = get_var('INSTALL_SOURCE', 'http');
@@ -397,14 +465,21 @@ sub get_netboot_mirror {
 
 =head2 zypper_call
 
-function wrapping 'zypper -n' with allowed return code, timeout and logging facility
-first parammeter is required command , all others are named and provided as hash
-for example : zypper_call("up", exitcode => [0,102,103], log => "zypper.log");
-up -- zypper -n up -- update system
-exitcode -- allowed return code values
-log -- capture log and store it in zypper.log
-dumb_term -- pipes through cat if set to 1 and log is not set. This is a  workaround
-to get output without any ANSI characters in zypper before 1.14.1. See boo#1055315.
+ zypper_call($command [, exitcode => $exitcode] [, timeout => $timeout] [, log => $log] [, dumb_term => $dumb_term]);
+
+Function wrapping 'zypper -n' with allowed return code, timeout and logging facility.
+First parammeter is required command, all others are named and provided as hash
+for example:
+
+ zypper_call("up", exitcode => [0,102,103], log => "zypper.log");
+
+ # up        --> zypper -n up --> update system
+ # exitcode  --> allowed return code values
+ # log       --> capture log and store it in zypper.log
+ # dumb_term --> pipes through cat if set to 1 and log is not set. This is a  workaround
+ #               to get output without any ANSI characters in zypper before 1.14.1. See boo#1055315.
+
+C<dumb_term> will default to C<is_serial_terminal()>.
 =cut
 sub zypper_call {
     my $command          = shift;
@@ -446,7 +521,10 @@ sub zypper_call {
 
 =head2 zypper_enable_install_dvd
 
+ zypper_enable_install_dvd();
+
 Enables the install DVDs if they were used during the installation.
+
 =cut
 sub zypper_enable_install_dvd {
     # If DVD Packages is used we need to (re-)enable the local repos
@@ -457,9 +535,9 @@ sub zypper_enable_install_dvd {
 
 =head2 zypper_ar
 
-    zypper_ar($url,[ name => NAME ], [ priority => N ]);
+ zypper_ar($url, [ name => NAME ], [ priority => N ]);
 
-Add repository (with zypper ar) unless it's already repo C<$name> already added
+Add repository (with C<zypper ar>) unless it's already repo C<$name> already added
 and refresh repositories.
 
 Options:
@@ -476,8 +554,10 @@ C<$priority> set repo priority, optional
 C<$params> other ar subcommand parameters, optional
 
 Examples:
-    zypper_ar('http://dist.nue.suse.com/ibs/QA:/Head/SLE-15-SP1', name => 'qa-head);
-    zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', no_gpg_check => 1, priority => 90);
+
+ zypper_ar('http://dist.nue.suse.com/ibs/QA:/Head/SLE-15-SP1', name => 'qa-head);
+ zypper_ar('https://download.opensuse.org/repositories/devel:/kubic/openSUSE_Tumbleweed/devel:kubic.repo', no_gpg_check => 1, priority => 90);
+
 =cut
 sub zypper_ar {
     my ($url, %args) = @_;
@@ -507,7 +587,11 @@ sub zypper_ar {
 
 =head2 fully_patch_system
 
-TODO someone should document this
+ fully_patch_system();
+
+Run C<zypper patch> twice. The first run will update the package manager,
+the second run will update the system.
+
 =cut
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
@@ -518,7 +602,12 @@ sub fully_patch_system {
 
 =head2 ssh_fully_patch_system
 
-TODO someone should document this
+ ssh_fully_patch_system($host);
+
+Connect to the remote host C<$host> using ssh and update the system by
+running C<zypper patch> twice. The first run will update the package manager,
+the second run will update the system.
+
 =cut
 sub ssh_fully_patch_system {
     my $host = shift;
@@ -531,6 +620,8 @@ sub ssh_fully_patch_system {
 }
 
 =head2 minimal_patch_system
+
+ minimal_patch_system([version_variable => $version_variable]);
 
 zypper doesn't offer --updatestack-only option before 12-SP1, use patch for sp0 to update packager
 =cut
@@ -547,7 +638,7 @@ sub minimal_patch_system {
 
 =head2 workaround_type_encrypted_passphrase
 
-    workaround_type_encrypted_passphrase()
+ workaround_type_encrypted_passphrase();
 
 Record soft-failure for unresolved feature fsc#320901 which we think is
 important and then unlock encrypted boot partitions if we expect it to be
@@ -556,6 +647,7 @@ boot partition within the encrypted LVM same as in test scenarios where we
 explicitly create an LVM including boot (C<FULL_LVM_ENCRYPT>). C<ppc64le> was
 already doing the same by default also in the case of pre-storage-ng but not
 anymore for storage-ng.
+
 =cut
 sub workaround_type_encrypted_passphrase {
     # nothing to do if the boot partition is not encrypted in FULL_LVM_ENCRYPT
@@ -566,7 +658,11 @@ sub workaround_type_encrypted_passphrase {
 
 =head2 is_boot_encrypted
 
-TODO someone should document this
+ is_boot_encrypted();
+
+This will return C<1> if the env variables suggest
+that the boot partition is encrypted.
+
 =cut
 sub is_boot_encrypted {
     return 0 if get_var('UNENCRYPTED_BOOT');
@@ -589,7 +685,10 @@ sub is_boot_encrypted {
 
 =head2 is_bridged_networking
 
-returns BRIDGED_NETWORKING
+ is_bridged_networking();
+
+returns C<BRIDGED_NETWORKING>.
+
 =cut
 sub is_bridged_networking {
     return get_var('BRIDGED_NETWORKING');
@@ -597,7 +696,10 @@ sub is_bridged_networking {
 
 =head2 set_bridged_networking
 
-sets BRIDGED_NETWORKING if applicable
+ set_bridged_networking();
+
+Sets C<BRIDGED_NETWORKING> to C<1> if applicable.
+
 =cut
 sub set_bridged_networking {
     my $ret = 0;
@@ -611,18 +713,19 @@ sub set_bridged_networking {
 
 =head2 set_hostname
 
-set_hostname($hostname);
+ set_hostname($hostname);
 
 Setting hostname according input parameter using hostnamectl.
 Calling I<reload-or-restart> to make sure that network stack will propogate
-hostname into DHCP/DNS
+hostname into DHCP/DNS.
 
-if you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
+If you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
 will fail with I<hostname: Name or service not known> also DHCP/DNS don't know
 about the changed hostname, you need to send a new DHCP request to update
 dynamic DNS yast2-network module does
 C<NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh>
-if hostname is changed via C<yast2 lan>
+if hostname is changed via C<yast2 lan>.
+
 =cut
 sub set_hostname {
     my ($hostname) = @_;
@@ -636,7 +739,11 @@ sub set_hostname {
 
 =head2 assert_and_click_until_screen_change
 
-TODO someone should document this
+ assert_and_click_until_screen_change($mustmatch, $wait_change, $repeat);
+
+This will repeat C<assert_and_click($mustmatch)> up to C<$repeat> times until
+the screen changed within C<$wait_change> seconds after the C<assert_and_click>.
+
 =cut
 sub assert_and_click_until_screen_change {
     my ($mustmatch, $wait_change, $repeat) = @_;
@@ -654,8 +761,11 @@ sub assert_and_click_until_screen_change {
 
 =head2 handle_livecd_reboot_failure
 
+ handle_livecd_reboot_failure();
+
 Handle a potential failure on a live CD related to boo#993885 that the reboot
 action from a desktop session does not work and we are stuck on the desktop.
+
 =cut
 sub handle_livecd_reboot_failure {
     mouse_hide;
@@ -671,7 +781,7 @@ sub handle_livecd_reboot_failure {
 
 =head2 assert_screen_with_soft_timeout
 
-  assert_screen_with_soft_timeout($mustmatch [,timeout => $timeout] [, bugref => $bugref] [,soft_timeout => $soft_timeout] [,soft_failure_reason => $soft_failure_reason]);
+ assert_screen_with_soft_timeout($mustmatch [,timeout => $timeout] [, bugref => $bugref] [,soft_timeout => $soft_timeout] [,soft_failure_reason => $soft_failure_reason]);
 
 Extending assert_screen with a soft timeout. When C<$soft_timeout> is hit, a
 soft failure is recorded with the message C<$soft_failure_reason> but
@@ -682,7 +792,7 @@ performance issues.
 
 Example:
 
-  assert_screen_with_soft_timeout('registration-found', timeout => 300, soft_timeout => 60, bugref => 'bsc#123456');
+ assert_screen_with_soft_timeout('registration-found', timeout => 300, soft_timeout => 60, bugref => 'bsc#123456');
 
 =cut
 sub assert_screen_with_soft_timeout {
@@ -703,13 +813,19 @@ sub assert_screen_with_soft_timeout {
 
 =head2 pkcon_quit
 
-TODO someone should document this
+ pkcon_quit();
+
+Stop and mask packagekit service and wait until it is really dead.
+This is needed to prevent access conflicts to the RPM database.
+
 =cut
 sub pkcon_quit {
     script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done");
 }
 
 =head2 addon_decline_license
+
+ addon_decline_license();
 
 TODO someone should document this
 =cut
@@ -730,6 +846,8 @@ sub addon_decline_license {
 }
 
 =head2 addon_license
+
+ addon_license($addon);
 
 TODO someone should document this
 =cut
@@ -764,7 +882,10 @@ sub addon_license {
 
 =head2 addon_products_is_applicable
 
-TODO some should document this
+ addon_products_is_applicable();
+
+Return C<1> if C<ADDONURL> is set and C<LIVECD> is unset.
+
 =cut
 sub addon_products_is_applicable {
     return !get_var('LIVECD') && get_var('ADDONURL');
@@ -772,7 +893,10 @@ sub addon_products_is_applicable {
 
 =head2 noupdatestep_is_applicable
 
-TODO someone should document this
+ noupdatestep_is_applicable();
+
+Return C<1> if neither C<UPGRADE> nor C<LIVE_UPGRADE> is set.
+
 =cut
 sub noupdatestep_is_applicable {
     return !get_var("UPGRADE") && !get_var("LIVE_UPGRADE");
@@ -780,7 +904,11 @@ sub noupdatestep_is_applicable {
 
 =head2 installwithaddonrepos_is_applicable
 
-TODO someone should document this
+ installwithaddonrepos_is_applicable();
+
+Return C<1> if installation should be done with addon repos
+based on ENV variables.
+
 =cut
 sub installwithaddonrepos_is_applicable {
     return get_var("HAVE_ADDON_REPOS") && !get_var("UPGRADE") && !get_var("NET");
@@ -788,7 +916,11 @@ sub installwithaddonrepos_is_applicable {
 
 =head2 random_string
 
-returns a random string
+ random_string($length);
+
+Returns a random string with length C<$length> (default: 4)
+containing alphanumerical characters.
+
 =cut
 sub random_string {
     my ($self, $length) = @_;
@@ -799,7 +931,11 @@ sub random_string {
 
 =head2 handle_emergency
 
-Handle emergency mode
+ handle_emergency();
+
+Handle emergency shell or (systemd) emergency mode and dump
+some basic logging information to the serial output.
+
 =cut
 sub handle_emergency {
     if (match_has_tag('emergency-shell')) {
@@ -817,14 +953,14 @@ sub handle_emergency {
 
 =head2 service_action
 
-  service_action($service_name [, {type => ['$unit_type', ...] [,action => ['$service_action', ...]]}]);
+ service_action($service_name [, {type => ['$unit_type', ...] [,action => ['$service_action', ...]]}]);
 
 Control systemd services. C<type> may be set to service, socket, ... and C<$action>
 to start, stop, ... Default action is to 'stop' $service_name.service unit file.
 
 Example:
 
-  service_action('dbus', {type => ['socket', 'service'], action => ['unmask', 'start']});
+ service_action('dbus', {type => ['socket', 'service'], action => ['unmask', 'start']});
 
 =cut
 sub service_action {
@@ -842,12 +978,13 @@ sub service_action {
 
 =head2 run_scripted_command_slow
 
-    run_scripted_command_slow($cmd [, slow_type => <num>]);
+ run_scripted_command_slow($cmd [, slow_type => <num>]);
 
 Type slowly to run very long command in scripted way to avoid issue of 'key event queue full' (see poo#12250).
 Pass optional slow_type key to control how slow to type the command.
 Scripted very long command to shorten typing length.
 Default slow_type is type_string_slow.
+
 =cut
 sub run_scripted_command_slow {
     my ($cmd, %args) = @_;
@@ -883,10 +1020,13 @@ sub run_scripted_command_slow {
 
 =head2 get_root_console_tty
 
+ get_root_console_tty();
+
 Returns tty number used designed to be used for root-console.
 When console is not yet initialized, we cannot get it from arguments.
 Since SLE 15 gdm is running on tty2, so we change behaviour for it and
 openSUSE distris, except for Xen PV (bsc#1086243).
+
 =cut
 sub get_root_console_tty {
     return (!is_sle('<15') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
@@ -894,10 +1034,13 @@ sub get_root_console_tty {
 
 =head2 get_x11_console_tty
 
+ get_x11_console_tty();
+
 Returns tty number used designed to be used for X.
 Since SLE 15 gdm is always running on tty7, currently the main GUI session
 is running on tty2 by default, except for Xen PV and Hyper-V (bsc#1086243).
 See also: bsc#1054782
+
 =cut
 sub get_x11_console_tty {
     my $new_gdm
@@ -918,7 +1061,9 @@ sub get_x11_console_tty {
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
 }
 
-=head2  arrays_differ
+=head2 arrays_differ
+
+ arrays_differ(\@array1, \@array2);
 
 Comparing two arrays passed by reference. Return 1 if arrays has symmetric difference
 and 0 otherwise.
@@ -936,7 +1081,7 @@ sub arrays_differ {
 
 =head2 arrays_subset
 
-    arrays_subset(\@array1, \@array2);
+ arrays_subset(\@array1, \@array2);
 
 Compares two arrays passed by reference to identify if array1 is a subset of
 array2.
@@ -944,6 +1089,7 @@ array2.
 Returns resulting array containing items of array1 that do not exist in array2.
 If all the items of array1 exist in array2, returns an empty array (which means
 array1 is a subset of array2).
+
 =cut
 sub arrays_subset {
     my ($array1_ref, $array2_ref) = @_;
@@ -956,9 +1102,12 @@ sub arrays_subset {
 
 =head2 ensure_serialdev_permissions
 
+ ensure_serialdev_permissions();
+
 Grant user permission to access serial port immediately as well as persisting
 over reboots. Used to ensure that testapi calls like script_run work for the
 test user as well as root.
+
 =cut
 sub ensure_serialdev_permissions {
     my ($self) = @_;
@@ -977,10 +1126,13 @@ sub ensure_serialdev_permissions {
 
 =head2 disable_serial_getty
 
+ disable_serial_getty();
+
 Serial getty service pollutes serial output with login propmt, which
-interferes with the output, e.g. when calling script_output.
+interferes with the output, e.g. when calling C<script_output>.
 Login prompt messages on serial are used on some remote backend to
-identify that system has been booted, so do not mask on non-qemu backends
+identify that system has been booted, so do not mask on non-qemu backends.
+
 =cut
 sub disable_serial_getty {
     my ($self) = @_;
@@ -1001,11 +1153,14 @@ sub disable_serial_getty {
 
 =head2 exec_and_insert_password
 
-    exec_and_insert_password($cmd);
+ exec_and_insert_password($cmd);
 
- 1. Execute a command that ask for a password
- 2. Detects password prompt
- 3. Insert password and hits enter
+1. Execute a command (C<$cmd>) that ask for a password
+
+2. Detects password prompt
+
+3. Insert password and hits enter
+
 =cut
 sub exec_and_insert_password {
     my ($cmd) = @_;
@@ -1035,8 +1190,13 @@ sub exec_and_insert_password {
 
 =head2 shorten_url
 
+ shorten_url($url, [wishid => $wishid]);
+
 Shorten url via schort(s.qa.suse.de)
-This is mainly used for autoyast url shorten to avoid limit of x3270 xedit
+This is mainly used for autoyast url shorten to avoid limit of x3270 xedit.
+
+C<$url> is the url to short. C<$wishid> is the prefered short url id.
+
 =cut
 sub shorten_url {
     my ($url, %args) = @_;
@@ -1056,9 +1216,12 @@ sub shorten_url {
 }
 
 
-=head2 _handle_lofin_not_found
+=head2 _handle_login_not_found
 
-TODO someone should document this
+ _handle_login_not_found($str);
+
+Internal helper function used by C<reconnect_mgmt_console>.
+
 =cut
 sub _handle_login_not_found {
     my ($str) = @_;
@@ -1090,7 +1253,10 @@ sub _handle_login_not_found {
 
 =head2 reconnect_mgmt_console
 
+ reconnect_mgmt_console([timeout => $timeout]);
+
 After each reboot we have to reconnect to the management console on remote backends
+
 =cut
 sub reconnect_mgmt_console {
     my (%args) = @_;
@@ -1154,9 +1320,14 @@ sub reconnect_mgmt_console {
 }
 
 =head2 show_tasks_in_blocked_state
+
+ show_tasks_in_blocked_state();
+
 Dumps tasks that are in uninterruptable (blocked) state and wait for headline
 of dump.
-  see: https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sysrq.rst
+
+See L<https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sysrq.rst>.
+
 =cut
 sub show_tasks_in_blocked_state {
     # sending sysrqs doesn't work for svirt
@@ -1170,7 +1341,10 @@ sub show_tasks_in_blocked_state {
 
 =head2 svirt_host_basedir
 
-TODO someone should document this
+ svirt_host_basedir();
+
+Return C<VIRSH_OPENQA_BASEDIR> or fall back to C</var/lib>.
+
 =cut
 sub svirt_host_basedir {
     return get_var('VIRSH_OPENQA_BASEDIR', '/var/lib');
@@ -1178,7 +1352,10 @@ sub svirt_host_basedir {
 
 =head2 prepare_ssh_localhost_key_login
 
-TODO someone should document this
+ prepare_ssh_localhost_key_login($source_user);
+
+Add the SSH key of C<$source_user> to the C<.ssh/authorized_keys> file of root.
+
 =cut
 sub prepare_ssh_localhost_key_login {
     my ($source_user) = @_;
@@ -1204,8 +1381,25 @@ sub prepare_ssh_localhost_key_login {
 
 =head2 script_retry
 
-Repeat command until expected result or timeout
-script_retry 'ping -c1 -W1 machine', retry => 5
+ script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
+
+Repeat command until expected result or timeout.
+
+C<$expect> refers to the expected command exit code and defaults to C<0>.
+
+C<$retry> refers to the number of retries and defaults to C<10>.
+
+C<$delay> is the time between retries and defaults to C<30>.
+
+The command must return within C<$timeout> seconds (default: 25).
+
+If the command doesn't return C<$expect> after C<$retry> retries,
+this function will die, if C<$die> is set.
+
+Example:
+
+ script_retry('ping -c1 -W1 machine', retry => 5);
+
 =cut
 sub script_retry {
     my ($cmd, %args) = @_;
@@ -1231,10 +1425,10 @@ sub script_retry {
 
 =head2 script_run_interactive
 
-    script_run_interactive($cmd, $prompt, $timeout);
+ script_run_interactive($cmd, $prompt, $timeout);
 
 For interactive command, input strings or keys according to the prompt message
-in the run time. Pass arrayref $prompt which contains the prompt message to
+in the run time. Pass arrayref C<$prompt> which contains the prompt message to
 be matched (regex) and the answer with string or key to be typed. for example:
 
     [{
@@ -1249,7 +1443,7 @@ be matched (regex) and the answer with string or key to be typed. for example:
 A "EOS~~~" message followed by return value will be printed as a mark
 for the end of interaction after the command finished running.
 
-If the first argument is undef, only the sencond part will be processed - to
+If the first argument is C<undef>, only the sencond part will be processed - to
 match output and react. If the second argument is undef, the first part will
 be processed - to run the command without interaction with terminal output.
 This is useful for some situation when you want to do more between inputing
@@ -1306,8 +1500,11 @@ sub script_run_interactive {
 
 =head2 create_btrfs_subvolume
 
-create btrfs subvolume for /boot/grub2/arm64-efi before migration.
+ create_btrfs_subvolume();
+
+Create btrfs subvolume for C</boot/grub2/arm64-efi> before migration.
 ref:bsc#1122591
+
 =cut
 sub create_btrfs_subvolume {
     record_soft_failure 'bsc#1122591 - Create subvolume for aarch64 to make snapper rollback works';
@@ -1320,18 +1517,20 @@ sub create_btrfs_subvolume {
 
 =head2 file_content_replace
 
-  file_content_replace("filename",
-        regex_to_find => text_to_replace,
-        '--sed-modifier' => 'g',
-        'another^&&*(textToFind' => "replacement")
+ file_content_replace("filename",
+       regex_to_find => text_to_replace,
+       '--sed-modifier' => 'g',
+       'another^&&*(textToFind' => "replacement")
 
-  generify sed usage as config file modification tool.
-  allow to modify several items in one function call
-  by providing  regex_to_find / text_to_replace as hash key/value pairs
+Generify sed usage as config file modification tool.
+allow to modify several items in one function call
+by providing  C<regex_to_find> / C<text_to_replace> as hash key/value pairs
 
-  special key '--sed-modifier' allowing to add modifiers to expression
-  special key '--debug' allow to output full file content into serial. Disabled
-  by default
+Special key C<--sed-modifier> allowing to add modifiers to expression.
+
+Special key C<--debug> allow to output full file content into serial.
+Disabled by default.
+
 =cut
 sub file_content_replace {
     my ($filename, %to_replace) = @_;
