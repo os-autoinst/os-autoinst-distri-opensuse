@@ -199,7 +199,10 @@ sub install_from_git {
     if ($rel) {
         $rel = ' -b ' . $rel;
     }
-    assert_script_run("git clone -q --depth 1 $url" . $rel, timeout => 360);
+    my $ret = script_run("git clone -q --depth 1 $url" . $rel, timeout => 360);
+    if (!defined($ret) || $ret) {
+        assert_script_run("git clone -q $url" . $rel, timeout => 360);
+    }
     assert_script_run 'cd ltp';
     # It is a shallow clone so 'git describe' won't work
     script_run 'git log -1 --pretty=format:"git-%h" | tee /opt/ltp_version';
