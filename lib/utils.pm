@@ -739,10 +739,12 @@ sub set_hostname {
 
 =head2 assert_and_click_until_screen_change
 
- assert_and_click_until_screen_change($mustmatch, $wait_change, $repeat);
+ assert_and_click_until_screen_change($mustmatch [, $wait_change [, $repeat ]]);
 
-This will repeat C<assert_and_click($mustmatch)> up to C<$repeat> times until
-the screen changed within C<$wait_change> seconds after the C<assert_and_click>.
+This will repeat C<assert_and_click($mustmatch)> up to C<$repeat> times, trying
+againg if the screen has not changed within C<$wait_change> seconds after
+the C<assert_and_click>. Returns the number of attempts made.
+C<$wait_change> defaults to 2 (seconds) and C<$repeat> defaults to 3.
 
 =cut
 sub assert_and_click_until_screen_change {
@@ -751,6 +753,8 @@ sub assert_and_click_until_screen_change {
     $repeat      //= 3;
     my $i = 0;
 
+    # This is not totally race free - wait_screen_change may timeout, then the screen
+    # changes and the next assert_and_click will fail.
     for (; $i < $repeat; $i++) {
         my $changed = wait_screen_change(sub { assert_and_click $mustmatch }, $wait_change);
         last if $changed;
