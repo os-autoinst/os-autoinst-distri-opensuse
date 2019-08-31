@@ -71,7 +71,7 @@ sub run {
     # install vsftps
     zypper_call("in vsftpd yast2-ftp-server", timeout => 180);
 
-    if (is_sle('=15')) {
+    if (is_sle('>=15')) {
         zypper_call("in yast2-users", timeout => 180);
         record_soft_failure 'bsc#1132116';
     }
