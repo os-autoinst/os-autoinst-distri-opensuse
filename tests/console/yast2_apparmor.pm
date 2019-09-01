@@ -18,7 +18,7 @@ use utils qw(zypper_call systemctl);
 use version_utils qw(is_pre_15 is_sle is_opensuse is_leap);
 
 sub install_extra_packages_requested {
-    if (check_screen 'yast2_apparmor_extra_packages_requested') {
+    if (assert_screen 'yast2_apparmor_extra_packages_requested') {
         send_key 'alt-i';
         save_screenshot;
         wait_still_screen 5;
@@ -34,9 +34,9 @@ sub run {
     # start apparmor configuration
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'apparmor');
     # assert that app was opened appeared
-    assert_screen 'yast2_apparmor';
     #SLES <15 extra packages are needed after main window:
     if (is_pre_15()) {
+        assert_screen 'yast2_apparmor';
         send_key 'ret';
         install_extra_packages_requested;
     } else {
@@ -50,10 +50,10 @@ sub run {
         send_key 'alt-e';
         assert_screen 'yast2_apparmor_enabled';
     } else {
-        #workaround needed for 12.4 and sle 15.0 to keep the test moving.
-        #conditional wrapping  this 2 products and catch if appears in another versions as well:
+        #workaround needed for SLES > 12.4 to keep the test moving.
+        #conditional wrapping  this products and catch if appears in another versions as well:
         #this entire else block can be removed once bsc#1129280 is fixed via maintenance channels.
-        if (is_sle('=12-SP4') || is_sle('=15') || is_leap('=15.0')) {
+        if (is_sle('>=12-SP4') || is_leap('>=15.0')) {
             send_key 'alt-e';
             sleep 3;
             send_key 'alt-e';
@@ -79,8 +79,9 @@ sub run {
         return;
     }
 
-    #Show all configs
+    #Show all profiles
     send_key(is_pre_15() ? 'alt-o' : 'alt-s');
+    wait_still_screen(3);
     assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
     wait_screen_change { send_key 'tab' };                              # focus on first element in the list
     wait_screen_change { send_key(is_pre_15() ? 'alt-t' : 'alt-c') };
