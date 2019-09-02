@@ -40,7 +40,7 @@ sub handle_installer_medium_bootup {
     }
 
     # Layout of live is different from installation media
-    my $key = is_livecd ? 'down' : 'up';
+    my $key = is_livecd() ? 'down' : 'up';
     send_key_until_needlematch 'inst-bootmenu-boot-harddisk', $key;
     send_key 'ret';
 
