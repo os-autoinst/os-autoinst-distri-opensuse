@@ -35,7 +35,8 @@ else
         pod2html --infile=lib/${docfile}.pm --outfile=docs/${docfile}.html
         # remove line that contains perl version and breaks diff
         sed -i '/^<link rev="made" href="mailto:/d' docs/${docfile}.html
-        sed -i 's|^</head>|<link rel="stylesheet" href="style.css" />\n</head>|' docs/${docfile}.html
+        stylepath=$(dirname ${docfile} | sed 's|[^/.][^/.]*|..|g')
+        sed -i "s|^</head>|<link rel='stylesheet' href='${stylepath}/style.css' />\n</head>|" docs/${docfile}.html
         sed -i "s|></title>|>lib/${docfile}.pm</title>|" docs/${docfile}.html
         sed -i "s|^</ul>|</ul><h1>lib/${docfile}.pm</h1>|" docs/${docfile}.html
 
