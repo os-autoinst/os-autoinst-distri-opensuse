@@ -127,6 +127,14 @@ sub run {
     type_string "calc";                                                             #open calc
     assert_and_click 'overview-office-calc';
     assert_screen 'test-oocalc-1';
+    if (match_has_tag('ooffice-tip-of-the-day')) {
+        # Unselect "_S_how tips on startup", select "_O_k"
+        send_key "alt-s";
+        send_key "alt-o";
+        while (match_has_tag('ooffice-tip-of-the-day')) {
+            assert_screen 'test-oocalc-1';
+        }
+    }
     send_key "ctrl-q";                                                              #close calc
 
     $self->open_overview();

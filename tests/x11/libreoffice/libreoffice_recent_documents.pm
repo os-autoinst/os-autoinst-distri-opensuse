@@ -19,8 +19,10 @@ use utils;
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
+    my ($self) = shift;
+
     # Edit file hello.odt using oowriter
-    x11_start_program('oowriter');
+    $self->libreoffice_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
     assert_and_click('ooffice-writing-area', timeout => 10);
     wait_still_screen;
