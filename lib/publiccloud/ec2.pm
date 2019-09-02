@@ -24,7 +24,7 @@ sub vault_create_credentials {
     my ($self) = @_;
 
     record_info('INFO', 'Get credentials from VAULT server.');
-    my $res = $self->vault_api('/v1/aws/creds/openqa-role', method => 'get');
+    my $res = $self->vault_api('/aws/creds/openqa-role', method => 'get');
     $self->vault_lease_id($res->{lease_id});
     $self->key_id($res->{data}->{access_key});
     $self->key_secret($res->{data}->{secret_key});

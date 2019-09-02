@@ -379,12 +379,13 @@ sub vault_api {
     my $data   = $args{data}   // {};
     my $ua     = Mojo::UserAgent->new;
     my $url    = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $namespace = get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '');
     my $res;
 
     $self->vault_login() unless ($self->vault_token);
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
-    $url = $url . $path;
+    $url = $url . '/v1/' . $namespace . $path;
     if ($method eq 'get') {
         $res = $ua->get($url =>
               {'X-Vault-Token' => $self->vault_token()})->result;
@@ -418,7 +419,7 @@ sub vault_revoke {
 
     return unless (defined($self->vault_lease_id));
 
-    $self->vault_api('/v1/sys/leases/revoke', method => 'post', data => {lease_id => $self->vault_lease_id});
+    $self->vault_api('/sys/leases/revoke', method => 'post', data => {lease_id => $self->vault_lease_id});
     $self->vault_lease_id(undef);
 }
 
