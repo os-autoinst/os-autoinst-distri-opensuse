@@ -27,9 +27,10 @@ else
     echo "Documentation of libs" > docs/index.html
     echo "<ul><li>libs/</li><ul>" >> docs/index.html
 
-    for docfile in $(cd lib ; grep -s ^=head * | grep .pm | cut -d. -f1 | sort -u) ; do
+    for docfile in $(cd lib ; grep -rs ^=head * | grep .pm | cut -d. -f1 | sort -u) ; do
         echo "Generating docs for lib/${docfile}.pm"
         echo "<li><a href="${docfile}.html">${docfile}.pm</a></li>" >> docs/index.html
+        mkdir -p docs/$(dirname ${docfile})
         touch docs/${docfile}.html
         pod2html --infile=lib/${docfile}.pm --outfile=docs/${docfile}.html
         # remove line that contains perl version and breaks diff
