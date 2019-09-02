@@ -22,7 +22,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_livecd);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 =head2 handle_installer_medium_bootup
@@ -39,7 +39,9 @@ sub handle_installer_medium_bootup {
         assert_screen 'grub2';
     }
 
-    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+    # Layout of live is different from installation media
+    my $key = is_livecd ? 'down' : 'up';
+    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', $key;
     send_key 'ret';
 
     # use firmware boot manager of aarch64 to boot upgraded system
