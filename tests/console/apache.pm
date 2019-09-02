@@ -24,17 +24,19 @@ use version_utils qw(is_sle is_jeos);
 sub run {
     select_console 'root-console';
 
+    # installation of docs and manpages is excluded in zypp.conf
+    # enable full package installation, and clean up previous apache2 deployment
+    if (is_jeos) {
+        assert_script_run('sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf');
+        script_run('zypper rm apache2');
+    }
+
     # Even before the installation there should be htdocs so we can create the index
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
     # Ensure apache is installed and stopped
     if (script_run('rpm -qa | grep apache2') == 0) {
         systemctl('stop apache2');
-    } elsif (is_jeos) {
-        # installation of docs and manpages is excluded in zypp.conf
-        zypper_call 'in --download-only apache2';
-        assert_script_run('cd /var/cache/zypp/packages/SUSE_Linux_*/' . get_required_var('ARCH'));
-        assert_script_run('rpm -Uvh --includedocs ./*');
     } else {
         zypper_call 'in apache2';
     }
@@ -105,6 +107,10 @@ sub run {
         assert_script_run 'mkdir -p /tmp/prefork';
         assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
 
+        # httpd.default.conf contains wrong service userid and groupid
+        assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
+        assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
+
         # Run and test this new environment
         assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
         assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
@@ -159,6 +165,11 @@ sub run {
 
     # Stop the webserver for next testing
     systemctl 'stop apache2';
+
+    # Revert zypp.conf changes on JeOS
+    if (is_jeos) {
+        assert_script_run('sed -ie \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf');
+    }
 }
 
 1;
