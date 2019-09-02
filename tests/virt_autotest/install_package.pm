@@ -16,6 +16,7 @@ use base "virt_autotest_base";
 use testapi;
 use virt_utils;
 use utils;
+use Utils::Backends 'is_remote_backend';
 
 sub install_package {
 
@@ -68,10 +69,10 @@ sub install_package {
         }
     }
 
-    ###SLE-12-SP4 arm64 installation has no KVM role selection
-    if (($repo_0_to_install =~ /SLE-12-SP4/m) && check_var('ARCH', 'aarch64')) {
-        zypper_call("--gpg-auto-import-keys ref",         180);
-        zypper_call("in -t pattern kvm_server kvm_tools", 300);
+    ###Install KVM role patterns for aarch64 virtualization host
+    if (is_remote_backend && check_var('ARCH', 'aarch64')) {
+        zypper_call("--gpg-auto-import-keys ref",         timeout => 180);
+        zypper_call("in -t pattern kvm_server kvm_tools", timeout => 300);
     }
 
     #install qa_lib_virtauto
