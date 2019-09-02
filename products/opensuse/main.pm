@@ -382,6 +382,7 @@ else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
         load_boot_tests();
         loadtest "installation/finish_desktop";
+        loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable;
         if (get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
             loadtest "installation/live_installation";
             load_inst_tests();
