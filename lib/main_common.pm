@@ -255,7 +255,8 @@ sub is_kernel_test {
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('NVMFTESTS')
         || get_var('TRINITY')
-        || get_var('NUMA_IRQBALANCE'));
+        || get_var('NUMA_IRQBALANCE')
+        || get_var('TUNED'));
 }
 
 sub get_ltp_tag {
