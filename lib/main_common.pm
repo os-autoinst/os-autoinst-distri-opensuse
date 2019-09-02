@@ -2653,6 +2653,9 @@ sub load_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest 'publiccloud/run_ltp';
     }
+    elsif (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        loadtest 'publiccloud/sles4sap';
+    }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net';
     }

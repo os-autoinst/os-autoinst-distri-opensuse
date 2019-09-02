@@ -16,6 +16,8 @@ use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
 
+use constant CREDENTIALS_FILE => '/root/amazon_credentials';
+
 has ssh_key      => undef;
 has ssh_key_file => undef;
 has credentials  => undef;
@@ -36,9 +38,10 @@ sub _check_credentials {
     my $max_tries = 6;
     for my $i (1 .. $max_tries) {
         my $out = script_output('aws ec2 describe-images --dry-run', 300, proceed_on_failure => 1);
-        return 1 if ($out !~ /AuthFailure/m);
+        return 1 if ($out !~ /AuthFailure/m && $out !~ /"aws configure"/m);
         sleep 30;
     }
+    return;
 }
 
 sub init {
@@ -54,6 +57,15 @@ sub init {
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
 
     die('Credentials are invalid') unless ($self->_check_credentials());
+
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        my $credentials_file = "[default]" . $/
+          . 'aws_access_key_id=' . $self->key_id . $/
+          . 'aws_secret_access_key=' . $self->key_secret;
+
+        save_tmp_file(CREDENTIALS_FILE, $credentials_file);
+        assert_script_run('curl -O ' . autoinst_url . "/files/" . CREDENTIALS_FILE);
+    }
 }
 
 sub find_img {
@@ -136,6 +148,7 @@ sub upload_img {
     my $ami = $self->find_img($img_name);
     die("Cannot find image after upload!") unless $ami;
     validate_script_output('aws ec2 describe-images --image-id ' . $ami, sub { /"EnaSupport":\s+true/ });
+    record_info('INFO', "AMI: $ami");    # Show the ami-* number, could be useful
     return $ami;
 }
 
@@ -155,7 +168,7 @@ sub img_proof {
 
 sub cleanup {
     my ($self) = @_;
-    $self->terraform_destroy() if ($self->terraform_applied);
+    $self->terraform_destroy();
     $self->delete_keypair();
     $self->vault_revoke();
 }
@@ -163,7 +176,7 @@ sub cleanup {
 sub describe_instance
 {
     my ($self, $instance) = @_;
-    my $json_output = decode_json(script_output('aws ec2 describe-instances  --filter Name=instance-id,Values=' . $instance->instance_id(), quiet => 1));
+    my $json_output = decode_json(script_output('aws ec2 describe-instances --filter Name=instance-id,Values=' . $instance->instance_id(), quiet => 1));
     my $i_desc      = $json_output->{Reservations}->[0]->{Instances}->[0];
     return $i_desc;
 }
