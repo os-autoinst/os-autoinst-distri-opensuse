@@ -23,7 +23,7 @@ use autotest;
 use utils;
 use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
-use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag);
+use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag load_boot_tests load_inst_tests load_reboot_tests);
 use 5.018;
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
 # use warnings;
@@ -112,6 +112,20 @@ sub stress_snapshots {
     }
 }
 
+sub prepare_target {
+    if (get_var("BOOT_HDD_IMAGE")) {
+        boot_hdd_image;
+    }
+    elsif (check_var('IPXE', '1')) {
+        return;
+    }
+    else {
+        load_boot_tests();
+        load_inst_tests();
+        load_reboot_tests();
+    }
+}
+
 sub load_kernel_tests {
     load_bootloader_s390x();
 
@@ -175,6 +189,10 @@ sub load_kernel_tests {
     } elsif (get_var('NUMA_IRQBALANCE')) {
         boot_hdd_image();
         loadtest 'numa_irqbalance';
+    }
+    elsif (get_var('TUNED')) {
+        prepare_target;
+        loadtest "tuned";
     }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
