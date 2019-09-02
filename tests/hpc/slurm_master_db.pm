@@ -63,8 +63,8 @@ sub run {
     }
 
     ## test sbatch
-    my $sbatch = "hpc_slurm_sbatch.sh";
-    script_run("wget --quiet " . data_url($sbatch) . " -O $sbatch");
+    my $sbatch = 'slurm_sbatch.sh';
+    script_run("wget --quiet " . data_url("hpc/$sbatch") . " -O $sbatch");
     assert_script_run("chmod +x $sbatch");
     record_info('meminfo', script_output("cat /proc/meminfo"));
     script_output("sbatch $sbatch");
@@ -72,11 +72,11 @@ sub run {
     ## so the worker should wait for the sbatch to finish
     sleep(70);
     upload_logs('/tmp/sbatch1');
-    record_info('sbatch hpc_slurm_sbatch.sh');
+    record_info('INFO', 'sbatch slurm_sbatch.sh');
 
     ## test slurm-torque: https://fate.suse.com/323998
-    my $pbs = "hpc_slurm_pbs.sh";
-    script_run("wget --quiet " . data_url($pbs) . " -O $pbs");
+    my $pbs = 'slurm_pbs.sh';
+    script_run("wget --quiet " . data_url("hpc/$pbs") . " -O $pbs");
     assert_script_run("chmod +x $pbs");
     script_output("sbatch $pbs");
     ## execution (wall time) time set to 1m and there is a sleep
@@ -85,7 +85,7 @@ sub run {
     sleep(80);
     upload_logs('/tmp/Job_PBS_o');
     upload_logs('/tmp/Job_PBS_e');
-    record_info('sbatch hpc_slurm_pbs.sh');
+    record_info('INFO', 'sbatch slurm_pbs.sh');
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
