@@ -2532,7 +2532,7 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/virtmanager/) {
         loadtest 'virtualization/xen/virtmanager_init';     # Connect to the Xen hypervisor using virt-manager
         loadtest 'virtualization/xen/virtmanager_offon';    # Turn all VMs off and then on again
-        if (is_sle('12-SP2+')) {
+        if (is_sle('12-SP3+')) {
             loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
             loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
         }
