@@ -8,3 +8,4 @@ tools/tidy
 .*.swp
 *~
 docs/*.html
+docs/**/*.html
