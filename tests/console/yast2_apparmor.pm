@@ -42,7 +42,7 @@ sub run {
     } else {
         #SLES >=15 imediatelly asks for extra packages, not after main menu:
         install_extra_packages_requested;
-        send_key 'ret';
+        send_key 'alt-l';
     }
 
     assert_screen [qw(yast2_apparmor_disabled yast2_apparmor_enabled)];
