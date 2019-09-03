@@ -318,7 +318,9 @@ sub get_bootmenu_console_params {
 sub uefi_bootmenu_params {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
-    send_key "e";
+    #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5);
+    (is_jeos) ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
+      :         send_key 'e';
     for (1 .. 2) { send_key "down"; }
     send_key "end";
     # delete "keep" word
