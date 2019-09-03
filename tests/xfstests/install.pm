@@ -24,13 +24,20 @@ use utils;
 use testapi;
 use repo_tools 'add_qa_head_repo';
 
-my $STATUS_LOG = '/opt/status.log';
+my $STATUS_LOG  = '/opt/status.log';
+my $VERSION_LOG = '/opt/version.log';
 
 # Create log file used to generate junit xml report
 sub log_create {
     my $file = shift;
     my $cmd  = "[[ -f $file ]] || echo 'Test in progress' > $file";
     assert_script_run($cmd);
+}
+
+sub collect_version {
+    my $file = shift;
+    my $cmd  = "(cd /tmp/xfstests-dev; git rev-parse HEAD; cd - > /dev/null; rpm -qa xfsprogs xfsdump btrfsprogs; uname -r) | tee $file";
+    script_run($cmd);
 }
 
 sub run {
@@ -64,6 +71,7 @@ sub run {
 
     # Create log file
     log_create($STATUS_LOG);
+    collect_version($VERSION_LOG);
 }
 
 sub test_flags {
