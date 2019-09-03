@@ -541,7 +541,6 @@ sub run {
     }
 
     if (exists $server_roles{dhcp}) {
-        zypper_call("in -t pattern dhcp_dns_server") if is_opensuse;
         setup_dhcp_server((exists $server_roles{dns}), 0);
     }
     if (exists $server_roles{qemuproxy}) {
@@ -555,7 +554,6 @@ sub run {
         $setup_script .= "systemctl restart apache2\n";
     }
     if (exists $server_roles{dns}) {
-        zypper_call("in -t pattern dhcp_dns_server") if is_opensuse;
         setup_dns_server();
     }
 
