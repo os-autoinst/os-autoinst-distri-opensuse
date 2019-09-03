@@ -1647,6 +1647,7 @@ sub load_extra_tests_console {
     loadtest 'console/aaa_base' unless is_jeos;
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
+    loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
 }
 
 sub load_extra_tests_docker {
