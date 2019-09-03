@@ -62,12 +62,12 @@ sub vault_create_credentials {
     my ($self) = @_;
 
     record_info('INFO', 'Get credentials from VAULT server.');
-    my $res = $self->vault_api('/azure/creds/openqa-role', method => 'get');
+    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/azure/creds/openqa-role', method => 'get');
     $self->vault_lease_id($res->{lease_id});
     $self->key_id($res->{data}->{client_id});
     $self->key_secret($res->{data}->{client_secret});
 
-    $res = $self->vault_api('/secret/azure/openqa-role', method => 'get');
+    $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/secret/azure/openqa-role', method => 'get');
     $self->tenantid($res->{data}->{tenant_id});
     $self->subscription($res->{data}->{subscription_id});
 
