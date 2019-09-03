@@ -32,7 +32,7 @@ sub run {
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test
     # with other than the SAP Administrator
-    my $nologin = (get_var('HDDVERSION') and is_upgrade() and is_sles4sap());
+    my $nologin = (get_var('HDDVERSION') && is_upgrade() && is_sles4sap()) || get_var('HA_CLUSTER');
     if (check_var('VIRSH_VMM_TYPE', 'linux')) {
         wait_serial('Welcome to SUSE Linux', $timeout) || die "System did not boot in $timeout seconds.";
     }
