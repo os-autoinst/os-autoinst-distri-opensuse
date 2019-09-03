@@ -3,6 +3,10 @@
 # Run the script only in case if it is a PR
 if [ ! -z "$TRAVIS_PULL_REQUEST" ]; then
 
+    # Workaround due to https://github.com/travis-ci/travis-ci/issues/6069
+    git remote set-branches --add origin master
+    git fetch
+
     # Add all changed files under 'test/' folder to the array in the format how they are used in scheduling files (excluding 'tests/' and file extension).
     readarray -t CHANGED_TESTS < <(git diff --name-only origin/master | grep '^tests/*' | cut -f 2- -d '/' | cut -f 1 -d '.')
 
