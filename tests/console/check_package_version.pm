@@ -51,11 +51,9 @@ sub cmp_version {
 sub cmp_packages {
     my ($pcks, $pckv, $jsc) = @_;
     record_info($pcks, "$pcks version check after migration");
-    my $output = script_output("zypper se -s $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", 80);
-    if ($output ne '' && !cmp_version($pckv, $output)) {
-        record_soft_failure("$jsc, The $pcks version is $output, but request is $pckv");
-    }
+    my $output = script_output("zypper se -s $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", proceed_on_failure => 1, 100);
     record_soft_failure("$jsc, The $pcks is not existed") if ($output eq '');
+    record_soft_failure("$jsc, The $pcks version is $output, but request is $pckv") if ($output ne '' and !cmp_version($pckv, $output));
 }
 
 sub run {

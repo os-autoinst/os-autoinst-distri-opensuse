@@ -1097,8 +1097,8 @@ sub load_consoletests {
     if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY')) {
         loadtest "console/check_upgraded_service";
         loadtest "console/supportutils";
+        loadtest "console/check_package_version" if check_var('UPGRADE_TARGET_VERSION', '12-SP5');
     }
-    loadtest "console/check_package_version" if check_var('ORIGINAL_TARGET_VERSION', '12-SP5');
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
