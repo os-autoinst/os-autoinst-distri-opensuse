@@ -1417,6 +1417,7 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_tftp_server';
     loadtest 'yast2_cmd/yast_ftp_server';
     loadtest 'yast2_cmd/yast_rdp' if is_sle('15+');
+    loadtest 'yast2_cmd/yast_users';
     loadtest 'yast2_cmd/yast_sysconfig';
     loadtest 'yast2_cmd/yast_keyboard';
     loadtest 'yast2_cmd/yast_nfs_server';
