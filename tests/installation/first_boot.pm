@@ -11,6 +11,12 @@
 # Summary: Special handling to get to the desktop the first time after
 #          the installation has been completed (either find the desktop after
 #          auto-login or handle the login screen to reach the desktop)
+# - Wait for login screen
+# - Select console type, x11 or ssh
+# - Handle displaymanager
+# - Handle login screen
+# - Check if generic-desktop was reached
+# - Disable wayland
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base 'y2_installbase';
