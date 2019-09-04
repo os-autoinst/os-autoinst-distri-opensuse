@@ -48,7 +48,7 @@ sub run {
         assert_and_click "close-xrdp-sharing-window";
         assert_and_click "confirm-close-remote-session";
     }
-    assert_and_click "close-remote-desktop-connection";
+    assert_and_click [qw(close-remote-desktop-connection remote-desktop-connection-ended)];
 
     send_key "c";
 }
