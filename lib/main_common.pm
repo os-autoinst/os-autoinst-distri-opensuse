@@ -121,6 +121,7 @@ our @EXPORT = qw(
   unregister_needle_tags
   updates_is_applicable
   we_is_applicable
+  load_extra_tests_y2uitest_gui
 );
 
 sub init_main {
