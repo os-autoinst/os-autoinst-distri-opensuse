@@ -28,14 +28,14 @@ sub run {
     # enable full package installation, and clean up previous apache2 deployment
     if (is_jeos) {
         assert_script_run('sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf');
-        script_run('zypper rm apache2');
+        zypper_call('rm apache2', exitcode => [0, 104]);
     }
 
     # Even before the installation there should be htdocs so we can create the index
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
-    # Ensure apache is installed and stopped
-    if (script_run('rpm -qa | grep apache2') == 0) {
+    # Ensure apache2 is installed and stopped
+    if (script_run('rpm -q apache2') == 0) {
         systemctl('stop apache2');
     } else {
         zypper_call 'in apache2';
