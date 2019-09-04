@@ -9,6 +9,7 @@
 
 # Summary: Test the desktop runner which is a prerequisite for many other
 #   modules
+# - Launch "true" and check if desktop is matched
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base 'x11test';
