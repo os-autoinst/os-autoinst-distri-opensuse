@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: validate package and patterns in the SUT
+# - Create an structure containing some software names and patterns
+# - Using zypper, check if packages are installed, following rules defined in
+#   the structure
+# - Using zypper, check if patterns are installed, following rules defined in
+#   the structure
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 
 use base "consoletest";
