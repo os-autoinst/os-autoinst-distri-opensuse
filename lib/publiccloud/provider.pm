@@ -287,6 +287,10 @@ sub terraform_apply {
         $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
         $cmd .= "-var 'extra-disk-type=" . $args{use_extra_disk}->{type} . "' " if $args{use_extra_disk}->{type};
     }
+    if (get_var('FLAVOR') =~ 'UEFI') {
+        $cmd .= "-var 'uefi=true' ";
+    }
+
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
