@@ -14,6 +14,24 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Autoyast installation
+# - Create a list with expected installation steps
+# - Iterate the list and check results against the steps
+#   - Handle pxe and network boot
+#   - Handle nonexisting package messages
+#   - Handle autoyast warning pop-ups
+#   - Handle scc and linuxrc errors
+#   - Handle licence and beta warnings
+#   - Handle certificate warnings
+#   - Handle package failures
+#   - Handle installation overview
+#   - Handle nvidia repositories
+#   - Confirm installation
+# - After installation is finished and system reboots
+#   - Handle pxe and network boot
+#   - Handle unreachable repositories
+#   - Handle warning pop ups
+#   - Handle autoyast errors during second stage
+#   - Handle grub to boot on local disk (aarch64)
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
 use strict;
