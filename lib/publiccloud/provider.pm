@@ -264,7 +264,7 @@ sub terraform_apply {
     my $create_extra_disk = 'false';
     my $extra_disk_size   = 0;
 
-    $args{count} //= '1';
+    my $instance_count       = get_var('PUBLIC_CLOUD_INSTANCE_COUNT');
     my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image                = $self->get_image_id();
     my $ssh_private_key_file = '/root/.ssh/id_rsa';
@@ -278,7 +278,7 @@ sub terraform_apply {
 
     my $cmd = 'terraform plan -no-color ';
     $cmd .= "-var 'image_id=" . $image . "' ";
-    $cmd .= "-var 'instance_count=" . $args{count} . "' ";
+    $cmd .= "-var 'instance_count=" . $instance_count . "' ";
     $cmd .= "-var 'type=" . $instance_type . "' ";
     $cmd .= "-var 'region=" . $self->region . "' ";
     $cmd .= "-var 'name=" . $name . "' ";
