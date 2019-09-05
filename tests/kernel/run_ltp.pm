@@ -378,7 +378,8 @@ START_AFTER_TEST=install_ltp
 
 Either specifies the name of an LTP runfile from the runtest directory or
 'openposix'. When set to openposix it will load openposix_test_list.txt which
-is created by install_ltp.pm.
+is created by install_ltp.pm. Multiple runfiles separated by comma are also
+supported.
 
 =head2 LTP_COMMAND_PATTERN
 
