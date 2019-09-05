@@ -1644,7 +1644,8 @@ sub load_extra_tests_console {
     loadtest 'console/timezone';
     loadtest 'console/ntp' if is_sle('<15');
     loadtest 'console/procps';
-    loadtest "console/lshw"      if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
+    loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
+    loadtest 'console/kmod';
     loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
