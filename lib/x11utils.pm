@@ -34,6 +34,10 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
+  turn_off_xfce_screensaver
+  turn_off_x11_dpms
+  turn_off_screensaver
+  set_screensaver_timeout
 );
 
 
@@ -213,6 +217,13 @@ sub turn_off_kde_screensaver {
     assert_screen 'screenlock-disabled';
     send_key('alt-o');
     assert_screen 'generic-desktop';
+    x11_start_program('kcmshell5 powerdevilprofilesconfig', target_match => [qw(kde-screenpower-enabled kde-screenpower-disabled)]);
+    if (match_has_tag('kde-screenpower-enabled')) {
+        assert_and_click('kde-disable-screenpower');
+    }
+    assert_screen 'kde-screenpower-disabled';
+    send_key('alt-o');
+    assert_screen 'generic-desktop';
 }
 
 =head2 turn_off_gnome_screensaver
@@ -235,6 +246,100 @@ Disable suspend in gnome. To be called from a command prompt, for example an xte
 =cut
 sub turn_off_gnome_suspend {
     script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
+}
+
+=head2 turn_off_xfce_screensaver
+
+ turn_off_xfce_screensaver();
+
+Disables screensaver in xfce. To be called from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_xfce_screensaver {
+    script_run 'xfconf-query -c xfce4-screensaver -p /saver/enabled -n -t bool -s false';
+    script_run 'xfconf-query -c xfce4-screensaver -p /lock/enabled -n -t bool -s false';
+}
+
+=head2 turn_of_x11_dpms
+
+ turn_off_x11_dpms();
+
+This will disable the X11 Display Power Management Signaling
+eg. blanking the screen and sending the monitor to sleep after some time.
+
+This will disable the setting at runtime and also add a config file for the
+XServer to make this change persist reboots.
+
+This function must be called from an xterm - B<not> from a bare tty.
+This is because the tty will not have the permissions to run C<xset>.
+
+=cut
+sub turn_off_x11_dpms {
+    script_run 'xset -dpms';
+    script_run 'xset s off';
+    become_root;
+    script_run "echo 'Section \"Extensions\"' > /etc/X11/xorg.conf.d/90-nodpms.conf";
+    script_run "echo ' Option \"DPMS\" \"Disable\"' >> /etc/X11/xorg.conf.d/90-nodpms.conf";
+    script_run "echo 'EndSection' >> /etc/X11/xorg.conf.d/90-nodpms.conf";
+    type_string "exit\n";
+}
+
+=head2 turn_off_screensaver
+
+ turn_off_screensaver();
+
+This will disable the screensaver for your current desktop.
+
+=cut
+sub turn_off_screensaver {
+    if (check_var 'DESKTOP', 'kde') {
+        # kde settings will be changed via gui
+        # so xterm will be started afterwards
+        turn_off_kde_screensaver;
+        x11_start_program('xterm');
+    }
+    elsif (check_var 'DESKTOP', 'gnome') {
+        x11_start_program('xterm');
+        turn_off_gnome_screensaver;
+    }
+    elsif (check_var 'DESKTOP', 'xfce') {
+        x11_start_program('xterm');
+        turn_off_xfce_screensaver;
+    }
+    turn_off_x11_dpms();
+    sleep 10;
+    type_string "exit\n";
+}
+
+=head2 set_screensaver_timeout
+
+ set_screensaver_timeout($timeout);
+
+This will set the screensaver timeout to C<$timeout>.
+
+=cut
+sub set_screensaver_timeout {
+    my ($timeout) = @_;
+    if (check_var 'DESKTOP', 'kde') {
+        x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-timeout)]);
+        assert_and_click('kde-screenlock-timeout');
+        send_key('ctrl-a');
+        type_string("$timeout");
+        assert_screen 'kde-screenlock-enabled';
+        send_key('alt-o');
+        assert_screen 'generic-desktop';
+        return;
+    }
+    elsif (check_var 'DESKTOP', 'gnome') {
+        x11_start_program('xterm');
+        $timeout = $timeout * 60;    # gnome uses seconds
+        script_run "gsettings set org.gnome.desktop.session idle-delay $timeout";
+    }
+    elsif (check_var 'DESKTOP', 'xfce') {
+        x11_start_program('xterm');
+        script_run "xfconf-query -c xfce4-screensaver -p /saver/idle-activation/delay -n -t int -s $timeout";
+    }
+    type_string "exit\n";
 }
 
 1;
