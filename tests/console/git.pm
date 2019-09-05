@@ -9,6 +9,13 @@
 
 # Case 1525281  - FIPS: git
 # Summary: To check  whether can be successful via ssh or https protocol by using git
+# - Create ssh key and copy to root
+# - Create a test repo
+# - Clone to a bare git repo
+# - Clone repo via ssh
+# - Push update via ssh
+# - Git clone via https protocol
+# - Clean up
 # Maintainer: Dehai Kong <dhkong@suse.com>
 
 use base "consoletest";
