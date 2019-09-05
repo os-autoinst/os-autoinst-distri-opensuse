@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Test function search all notes
+# - Launch gnote and check
+# - Select All notes
+# - Send CTRL-F, type "and", check and close gnote
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436174
 

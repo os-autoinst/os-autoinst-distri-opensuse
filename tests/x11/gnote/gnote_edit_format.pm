@@ -9,6 +9,16 @@
 # without any warranty.
 
 # Summary: test gnote note format
+# - Launch gnome, create a new note and check
+# - Type "opensuse" and CTRL-H to turn highlight on
+# - Type "opensuse" and CTRL-B to turn bold on
+# - Type "opensuse" and CTRL-B to turn bold off
+# - Press CTRL-B to turn highlight off
+# - Press CTRL-I to turn italic on
+# - Type "opensuse" and CTRL-S to turn strikeline on
+# - Type "opensuse" and CTRL-S to turn strikeline off
+# - Press CTRL-I to turn italic off and check results
+# - Close gnote and cleanup
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436163
 

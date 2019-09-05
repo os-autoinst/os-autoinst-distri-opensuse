@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Test link in note
+# - Start gnote with a new note and check
+# - Type "Start Here"
+# - Press "UP", then CTRL-RET to switch to link and check
+# - Select menu button, and click "what link here"
+# - Press ESC, close gnote and check
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436158
 
