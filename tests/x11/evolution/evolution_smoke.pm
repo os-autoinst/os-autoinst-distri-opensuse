@@ -15,7 +15,7 @@ use warnings;
 use base "x11test";
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub evolution_wizard {
     my ($self, $mail_box) = @_;
@@ -23,12 +23,7 @@ sub evolution_wizard {
     # Follow the wizard to setup mail account
     $self->start_evolution($mail_box);
     assert_screen "evolution_wizard-account-summary", 60;
-    if (is_sle('12-SP2+')) {
-        assert_and_click "evolution-option-next";
-    }
-    else {
-        send_key $self->{next};
-    }
+    assert_and_click "evolution-option-next";
 
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
@@ -65,6 +60,15 @@ sub run {
     send_key "ret";
     if (check_screen "evolution_mail-init-window", 30) {
         send_key "super-up";
+    }
+    # tumbleweed may pop another auth window
+    if (is_tumbleweed) {
+        if (check_screen "evolution_mail-auth", 30) {
+            send_key "alt-a";    #disable keyring option, in SP2 or tumbleweed
+            send_key "alt-p";
+            type_string "$mail_passwd";
+            send_key "ret";
+        }
     }
     assert_screen "evolution_mail-max-window";
 

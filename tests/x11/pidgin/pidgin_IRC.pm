@@ -16,7 +16,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     my ($self) = @_;
@@ -24,7 +24,7 @@ sub run {
     x11_start_program('pidgin');
 
     # Focus the welcome window in SLE15
-    assert_and_click("pidgin-welcome-not-focused") if is_sle('>=15');
+    assert_and_click("pidgin-welcome-not-focused") if is_sle('>=15') or is_tumbleweed;
 
     # Create account
     wait_screen_change { send_key "alt-a" };

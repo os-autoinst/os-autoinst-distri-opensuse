@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     mouse_hide(1);
@@ -30,10 +30,10 @@ sub run {
     # pidgin main window is hidden in tray at first run
     # need to show up the main window (12-SP2 and SP3)
     # the main window is shown correctly in SLE15
-    if (is_sle('>=15')) {
+    if (is_sle('>=15') or is_tumbleweed) {
         wait_still_screen;
     }
-    elsif (is_sle('>=12-sp2')) {
+    else {
         hold_key "ctrl-alt";
         send_key "tab";
         wait_still_screen;
@@ -43,12 +43,6 @@ sub run {
         assert_screen "status-icons";
         release_key "ctrl-alt";
         assert_and_click "status-icons-pidgin";
-    }
-    else {
-        send_key "super-m";
-        wait_still_screen;
-        send_key "ret";
-        wait_still_screen;
     }
 
     # check showoffline status is off

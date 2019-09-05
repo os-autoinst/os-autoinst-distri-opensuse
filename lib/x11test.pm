@@ -224,9 +224,8 @@ sub check_new_mail_evolution {
     assert_screen "evolution_mail-online", 240;
     assert_and_click "evolution-send-receive";
     if (check_screen "evolution_mail-auth", 30) {
-        if (is_sle('12-SP2+')) {
-            send_key "alt-p";
-        }
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
         type_password $mail_passwd;
         send_key "ret";
         assert_screen "evolution_mail-max-window";
@@ -281,9 +280,7 @@ sub send_meeting_request {
     wait_still_screen;
     type_string "$mail_box";
     send_key "alt-s";
-    if (is_sle('12-SP2+')) {
-        send_key "alt-s";    #only need in sp2
-    }
+    send_key "alt-s";
     type_string "$mail_subject this is a evolution test meeting";
     send_key "alt-l";
     type_string "the location of this meetinng is conference room";
@@ -292,15 +289,14 @@ sub send_meeting_request {
     assert_screen "evolution_mail-sendinvite_meeting", 60;
     send_key "ret";
     if (check_screen "evolution_mail-auth", 30) {
-        if (is_sle('12-SP2+')) {
-            send_key "alt-a";    #disable keyring option, only need in SP2 or later
-            send_key "alt-p";
-        }
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
         type_password $mail_passwd;
         send_key "ret";
     }
-    assert_screen "evolution_mail-compse_meeting", 60;
-    send_key "ctrl-w";
+    if (check_screen "evolution_mail-compse_meeting", 30) {
+        send_key "ctrl-w";
+    }
     assert_screen [qw(evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window)];
     if (match_has_tag "evolution_mail-save_meeting_dialog") {
         send_key "ret";
@@ -327,17 +323,18 @@ sub start_evolution {
     my ($self, $mail_box) = @_;
 
     $self->{next} = "alt-o";
-    if (is_sle('12-SP2+')) {
-        $self->{next} = "alt-n";
-    }
+    $self->{next} = "alt-n";
     mouse_hide(1);
     # Clean and Start Evolution
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
-    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1)]);
+    x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1 evolution-welcome-not_focused)]);
     # Follow the wizard to setup mail account
     if (match_has_tag 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
+    }
+    elsif (match_has_tag "evolution-welcome-not_focused") {
+        assert_and_click "evolution-welcome-not_focused";
     }
     send_key $self->{next};
     assert_screen "evolution_wizard-restore-backup";
@@ -352,8 +349,11 @@ sub start_evolution {
     };
     wait_screen_change { type_string "$mail_box" };
     save_screenshot();
-
-    send_key $self->{next};
+    if (is_tumbleweed) {
+        assert_and_click 'evolution_wizard-identity-next';
+    } else {
+        send_key $self->{next};
+    }
 }
 
 sub evolution_add_self_signed_ca {
@@ -433,11 +433,14 @@ sub setup_mail_account {
     };
     $self->evolution_add_self_signed_ca($account);
     save_screenshot;
-    assert_screen "evolution_wizard-receiving-opts";
-    send_key $self->{next};
-    if (is_sle('12-SP2+')) {
-        send_key "ret";    #only need in SP2 or later
+    assert_screen [qw(evolution_wizard-receiving-opts evolution_wizard-receiving-not-focused)];
+    if (match_has_tag 'evolution_wizard-receiving-not-focused') {
+        record_info('workaround', "evolution window not focused, sending key");
+        assert_and_click "evolution_wizard-receiving-not-focused";
+        send_key "ret";
+        assert_screen "evolution_wizard-receiving-opts";
     }
+    send_key "ret";    #only need in SP2 or later, or tumbleweed
 
     #setup sending protocol as smtp
     assert_screen "evolution_wizard-sending";
@@ -485,17 +488,13 @@ sub setup_mail_account {
     send_key "ret";
     assert_screen "evolution_wizard-account-summary";
     send_key $self->{next};
-    if (is_sle('12-SP2+')) {
-        send_key "alt-n";    #only in sp2
-        send_key "ret";
-    }
+    send_key "alt-n";
+    send_key "ret";
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
     if (check_screen "evolution_mail-auth", 30) {
-        if (is_sle('12-SP2+')) {
-            send_key "alt-a";    #disable keyring option, only in SP2
-            send_key "alt-p";
-        }
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
         type_password $mail_passwd;
         send_key "ret";
     }
@@ -503,9 +502,7 @@ sub setup_mail_account {
         send_key "super-up";
     }
     if (check_screen "evolution_mail-auth", 30) {
-        if (is_sle('12-SP2+')) {
-            send_key "alt-p";
-        }
+        send_key "alt-p";
         type_password $mail_passwd;
         send_key "ret";
     }
@@ -819,6 +816,12 @@ sub evolution_send_message {
     my $mail_subject = $self->get_dated_random_string(4);
 
     send_key "shift-ctrl-m";
+    if (check_screen "evolution_mail-auth", 30) {
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
+        type_string "$mail_passwd";
+        send_key "ret";
+    }
     assert_screen "evolution_mail-compose-message";
     assert_and_click "evolution_mail-message-to";
     type_string "$mailbox";
@@ -830,16 +833,12 @@ sub evolution_send_message {
     assert_and_click "evolution_mail-message-body";
     type_string "Test email send and receive.";
     send_key "ctrl-ret";
-    if (is_sle('12-SP2+')) {
-        if (check_screen "evolution_mail_send_mail_dialog", 30) {
-            send_key "ret";
-        }
+    if (check_screen "evolution_mail_send_mail_dialog", 30) {
+        send_key "ret";
     }
     if (check_screen "evolution_mail-auth", 30) {
-        if (is_sle('12-SP2+')) {
-            send_key "alt-a";    #disable keyring option, only in SP2
-            send_key "alt-p";
-        }
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
         type_string "$mail_passwd";
         send_key "ret";
     }

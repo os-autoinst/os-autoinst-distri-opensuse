@@ -44,8 +44,9 @@ sub run {
         send_key_until_needlematch("timezone-shanghai", "up");
     }
     else {
-        send_key_until_needlematch("timezone-asia-shanghai", "up")
-          || send_key_until_needlematch("timezone-asia-shanghai", "down");
+        send_key_until_needlematch("timezone-asia", "down");
+        send_key "right";
+        send_key_until_needlematch("timezone-asia-shanghai", "up");
     }
     send_key "ret";
     assert_screen "asia-shanghai-timezone-setup";

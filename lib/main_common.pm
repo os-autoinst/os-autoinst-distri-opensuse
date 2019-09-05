@@ -1945,9 +1945,9 @@ sub load_x11_webbrowser {
 sub load_x11_message {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11/empathy/empathy_irc" if is_sle("<15");
-        loadtest "x11/evolution/evolution_smoke" if !is_opensuse;
+        loadtest "x11/evolution/evolution_smoke" if is_sle || is_tumbleweed;
         loadtest "x11/evolution/evolution_prepare_servers";
-        if (!is_opensuse) {
+        if (is_sle || is_tumbleweed) {
             loadtest "x11/evolution/evolution_mail_imap";
             loadtest "x11/evolution/evolution_mail_pop";
             loadtest "x11/evolution/evolution_timezone_setup";
@@ -1959,9 +1959,9 @@ sub load_x11_message {
             loadtest "x11/thunderbird/thunderbird_imap";
             loadtest "x11/thunderbird/thunderbird_pop";
         }
-        loadtest "x11/groupwise/groupwise" if !is_opensuse;
+        loadtest "x11/groupwise/groupwise" if is_sle || is_tumbleweed;
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && !is_opensuse) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && is_sle || is_tumbleweed) {
         loadtest "x11/pidgin/prep_pidgin";
         loadtest "x11/pidgin/pidgin_IRC";
         loadtest "x11/pidgin/clean_pidgin";
