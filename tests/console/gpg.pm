@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: gpg key generation, passphrase test, encrypt file and support fips test
+# - Install haveged if necessary
+# - Generate gpg key pair using pre determined data (using gpg itself or openqa
+#   commands, depending on gpg version)
+# - Check if key lenght is between 2048 and 4096 bits
+# - Encrypt text file
+# - Decrypt gpg file created
+# - Reload gpg-agent (drop passphrase cache)
+# - Sign test file
+# - Check test file signature
+# - Cleanup
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Dehai Kong <dhkong@suse.com>
 #             wnereiz <wnereiz@member.fsf.org>
 
