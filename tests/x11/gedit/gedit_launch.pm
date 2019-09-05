@@ -9,6 +9,10 @@
 # without any warranty.
 
 # Summary: Gedit: Start and exit
+# - Launch gedit
+# - Close gedit by "close" button
+# - Launch gedit again
+# - Close gedit by CTRL-Q
 # Maintainer: mitiao <mitiao@gmail.com>
 # Tags: tc#1436122
 
