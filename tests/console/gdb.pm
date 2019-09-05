@@ -7,6 +7,14 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 # Summary: Basic GDB test. (Breakpoints/backtraces/attaching)
+# - Add sdk repository if necessary
+# - Install gcc glibc-devel gdb
+# - Download and compile "test1.c" from datadir
+#   - Using gdb, insert a breakpoint at main, run test and check
+# - Download and compile "test2.c" from datadir
+#   - Using gdb, run program, get a backtrace info and check
+# - Download and compile "test3.c" from datadir
+#   - Run test3, attach gdb to its pid, add a breakpoint and check
 # Maintainer: apappas@suse.de
 
 use base 'consoletest';
