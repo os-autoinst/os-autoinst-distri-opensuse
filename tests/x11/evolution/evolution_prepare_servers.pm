@@ -8,6 +8,14 @@
 # without any warranty.
 
 # Summary: Setup dovecot and postfix servers as backend for evolution
+# - Stop packagekit service
+# - Install dovecot if DOVECOT_REPO is defined or it is sled. Otherwise, install
+#   dovecot and postfix and start the later
+# - Configure dovecot enabling ssl and for use of plain login
+# - Enable postix smtp auth in dovecot and generate certificates
+# - Configure postfix enabling tls, smtpd sasl and hostname as localhost
+# - Start dovecot and restart postfix
+# - Create 2 test users: admin and nimda
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use strict;

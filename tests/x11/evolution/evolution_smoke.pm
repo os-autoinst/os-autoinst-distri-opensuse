@@ -8,6 +8,13 @@
 # without any warranty.
 
 # Summary: Case #1503857: Evolution First time launch and setup assistant
+# - Cleanup evolution config files and start application
+# - Handle evolution first time wizard
+# - Register an account using the provided credentials
+# - Check for authentication or folder scan attempts
+# - Open help and then go to about
+# - Send esc to close help
+# - Exit evolution
 # Maintainer: Qingming Su <qingming.su@suse.com>
 
 use strict;
