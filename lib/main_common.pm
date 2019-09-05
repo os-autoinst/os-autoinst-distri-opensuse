@@ -1411,6 +1411,7 @@ sub load_extra_tests_y2uitest_gui {
     # on older SLE versions and, if so, add them here.
     # On openSUSE, the scheduling happens in schedule/yast2_gui.yaml
     if (get_var("QAM_YAST2UI")) {
+        loadtest "yast2_gui/yast2_bootloader" if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_security"   if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_keyboard"   if is_sle("12-SP2+");
