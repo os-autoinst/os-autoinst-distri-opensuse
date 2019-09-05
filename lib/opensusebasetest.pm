@@ -927,6 +927,26 @@ sub select_user_serial_terminal {
     select_serial_terminal(0);
 }
 
+=head2 upload_coredumps
+
+ upload_coredumps();
+
+Upload all coredumps to logs
+=cut
+sub upload_coredumps {
+    my $res = script_run("coredumpctl -q --no-pager", timeout => 10);
+    if (!$res) {
+        record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
+        script_run("coredumpctl info --no-pager | tee coredump-info.log");
+        upload_logs("coredump-info.log");
+        my $basedir = '/var/lib/systemd/coredump/';
+        my @files   = split("\n", script_output("\\ls -1 $basedir | cat"));
+        foreach my $file (@files) {
+            upload_logs($basedir . $file);
+        }
+    }
+}
+
 =head2 post_fail_hook
 
  post_fail_hook();
@@ -956,7 +976,6 @@ sub post_fail_hook {
     }
 
     if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
-        my $self = shift;
         select_console 'root-console';
         my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
         my $out           = script_output 'lvmdump';
@@ -964,6 +983,11 @@ sub post_fail_hook {
             upload_logs "$+{lvmdump_gzip}";
         }
         $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
+    }
+
+    if (get_var('COLLECT_COREDUMPS')) {
+        select_console 'root-console';
+        $self->upload_coredumps;
     }
 
     if ($self->{in_wait_boot}) {
