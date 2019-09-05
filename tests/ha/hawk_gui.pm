@@ -20,64 +20,15 @@ use x11test;
 use x11utils;
 use version_utils 'is_desktop_installed';
 
-sub install_geckodriver {
-    my $python_ver       = shift;
-    my $arch             = check_var('ARCH', 'x86_64') ? 'linux64' : 'linux32';
-    my $geckodriver_from = "https://github.com/mozilla/geckodriver/releases/download";
-    # Using latest stable version of geckodriver depending on which python is being used
-    my $geckodriver_ver = ($python_ver eq 'python3') ? "v0.24.0" : "v0.17.0";
-    my $geckodriver_pkg = "geckodriver-$geckodriver_ver-$arch.tar.gz";
+sub install_docker {
+    my $docker_url = "https://download.docker.com/linux/static/stable/x86_64/docker-19.03.2.tgz";
 
-    assert_script_run "wget -P /tmp $geckodriver_from/$geckodriver_ver/$geckodriver_pkg";
-    type_string "cd /tmp\n";
-    assert_script_run "tar -zxvf $geckodriver_pkg";
-    assert_script_run "mv -i geckodriver /usr/local/bin/";
-    type_string "cd\n";
+    assert_script_run "curl -s $docker_url | tar zxf - --strip-components 1 -C /usr/bin", 120;
+    # Allow the user to run docker. We can't add him to the docker group without restarting X.
+    # The final colon is to avoid a bash syntax error when assert_script_run() appends a semicolon
+    assert_script_run "/usr/bin/dockerd -G users --insecure-registry registry.suse.de >/dev/null 2>&1 & :";
 }
 
-sub install_required_python_pkgs {
-    my $inst_cmd = '';
-    my $pydeps   = 'selenium paramiko';
-
-    assert_script_run "zypper in -y python3-pip || zypper in -y python-pip || zypper in -y python-setuptools";
-
-    # Determine how to install python packages
-    if (is_package_installed('python3-pip') or is_package_installed('python-pip')) {
-        $inst_cmd = 'pip install';
-    }
-    elsif (is_package_installed('python-setuptools')) {
-        $inst_cmd = 'easy_install';
-        # When using easy_install, need to force an older version of urllib3 as the newer ones are broken
-        # for easy_install. Will also use a fixed version of paramiko for the same reason
-        $pydeps = 'selenium paramiko==2.1.6';
-        assert_script_run "$inst_cmd -U urllib3==1.23";
-    }
-    die "Couldn't find a way to install python packages" unless ($inst_cmd);
-
-    # Install paramiko and selenium driver for python and determine which python to use
-    my $output = script_output "$inst_cmd -U $pydeps";
-    my $python = '';
-    if ($output =~ m|.+(python[0-9])[0-9\.]+/site-packages.+|) {
-        $python = $1;    # easy_install way
-    }
-    else {
-        # pip way
-        $output = script_output "pip --version";
-        $output =~ m|.+(python[0-9])[0-9\.]+/site-packages.+|;
-        $python = $1;
-    }
-    die "Couldn't determine which python is installed in the system: [$python]"
-      unless ($python eq 'python2' or $python eq 'python3');
-    return $python;
-}
-
-sub download_selenium_script {
-    my ($pyscr, $path) = @_;
-
-    foreach my $ext (qw(_driver.py _ssh.py _results.py .py)) {
-        assert_script_run "curl -f -v " . autoinst_url . "/data/ha/$pyscr$ext > $path/$pyscr$ext";
-    }
-}
 
 sub run {
     my ($self) = @_;
@@ -92,36 +43,37 @@ sub run {
     }
 
     select_console 'root-console';
+    install_docker;
 
-    my $python = install_required_python_pkgs;
-    install_geckodriver $python;
-    # The line below can be changed for a call to lib/selenium.pm::enable_selenium_port()
-    # once Selenium::Remote::Driver it's available in the openqa.suse.de workers
-    assert_script_run('systemctl stop ' . opensusebasetest::firewall());
+    # TODO: Use another namespace in DockerHub
+    my $docker_image = "registry.suse.de/home/rbranco/branches/opensuse.org/opensuse/templates/images/tumbleweed/containers/hawk_test";
+    assert_script_run("docker pull $docker_image", 120);
 
     select_console 'x11';
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
 
-    # Download and prepare python selenium script
     my $pyscr = 'hawk_test';
-    my $path  = '/tmp';
-    download_selenium_script($pyscr, $path);
+    my $path  = 'test';
 
     # Run test
-    my $browser  = 'firefox';
-    my $version  = get_required_var('VERSION');
-    my $hostname = choose_node(1);
-    my $results  = "$path/$pyscr.results";
-    my $retcode  = "$path/$pyscr.ret";
-    my $logs     = "$path/$pyscr.log";
+    my $browser    = 'firefox';
+    my $version    = get_required_var('VERSION');
+    my $hostname   = choose_node(1);
+    my $results    = "$path/$pyscr.results";
+    my $retcode    = "$path/$pyscr.ret";
+    my $logs       = "$path/$pyscr.log";
+    my $virtual_ip = "10.0.2.222/24";
 
     add_to_known_hosts($hostname);
-    # Run the test
-    type_string "$python $path/$pyscr.py -b $browser -t $version -H $hostname -s $testapi::password -r $results > $logs 2>&1; echo $pyscr-\$? > $retcode; exit\n";
+    assert_script_run "mkdir -m 1777 $path";
+    assert_script_run "xhost +";
+    my $docker_cmd = "docker run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
+    $docker_cmd .= "$docker_image -b $browser -t $version -H $hostname -s $testapi::password -r /$results --virtual-ip $virtual_ip";
+    type_string "$docker_cmd | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode\n";
     assert_screen "hawk-$browser", 60;
 
-    my $loop_count = 180;    # 15 minutes (180*5)
+    my $loop_count = 360;    # 30 minutes (360*5)
     while (1) {
         $loop_count--;
         last if ($loop_count < 0);
@@ -137,15 +89,16 @@ sub run {
         sleep 5;
     }
     if ($loop_count < 0) {
-        record_info("$browser failed", "Test with browser [$browser] could not be completed in 10 minutes", result => 'softfail');
-        send_key 'alt-f4';                                  # Force close of browser
+        record_info("$browser failed", "Test with browser [$browser] could not be completed in 30 minutes", result => 'softfail');
+        script_run "docker container kill test";
     }
+
     save_screenshot;
+
+    assert_screen "generic-desktop";
 
     # Error, log and results handling
     select_console 'user-console';
-    type_string "touch geckodriver.log\n";                  # Create geckodriver.log if it doesn't exist
-    upload_logs 'geckodriver.log';
 
     # Upload output of python/selenium scripts
     my $output = script_output "cat $retcode";
@@ -157,7 +110,8 @@ sub run {
     else {
         record_info("$browser unknown error", "Test [$pyscr] failed on browser [$browser]. Unknow error: [$output]. Check log files for details", result => 'softfail');
     }
-    upload_logs $logs;
+    script_run "tar zcf logs.tgz $path";
+    upload_logs "logs.tgz";
 
     # Upload results
     my $are_results = script_run("ls $results");
