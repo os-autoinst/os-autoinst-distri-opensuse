@@ -118,6 +118,7 @@ sub download_file {
     $opts{chunk_size}  //= 1024 * 2;
     $opts{chunk_retry} //= 16;
     $opts{force}       //= 0;
+    $opts{timeout}     //= bmwqemu::scale_timeout(180);
     record_info('Download file', "From worker ($src) to SUT ($dst)");
     die("Relative path is forbidden - '$src'") if $src =~ m'/\.\.|\.\./';
     $src =~ s'^/+'';
@@ -126,9 +127,9 @@ sub download_file {
     } else {
         $src = $bmwqemu::vars{ASSETDIR} . '/' . $src;
     }
-    die("File $dst already exists on SUT") if (!$opts{force} && script_run("test -f $dst", undef, quiet => 1) == 0);
+    die("File $dst already exists on SUT") if (!$opts{force} && script_run("test -f $dst", quiet => 1, timeout => $opts{timeout}) == 0);
     die("File $src not found on worker") unless (-f $src);
-    my $tmpdir = script_output('mktemp -d', undef, quiet => 1);
+    my $tmpdir = script_output('mktemp -d', quiet => 1, timeout => $opts{timeout});
     assert_script_run("test -d $tmpdir", quiet => 1);
 
     open(my $fh, '<:raw', $src) or die "Could not open file '$src' $!";
@@ -142,17 +143,17 @@ sub download_file {
         $cnt += 1;
         do {
             die("Failed to transfer chunk[$cnt] of file $src") if ($tries-- < 0);
-            script_output("cat > $tmpfile << 'EOT'\n" . $b64 . "EOT", undef, quiet => 1);
-        } while ($sha1 ne script_output("sha1sum $tmpfile | cut -d ' ' -f 1", undef, quiet => 1));
-        assert_script_run("base64 -d $tmpfile >> $result_file", quiet => 1);
-        assert_script_run("rm $tmpfile",                        quiet => 1);
+            script_output("cat > $tmpfile << 'EOT'\n" . $b64 . "EOT", quiet => 1, timeout => $opts{timeout});
+        } while ($sha1 ne script_output("sha1sum $tmpfile | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout}));
+        assert_script_run("base64 -d $tmpfile >> $result_file", quiet => 1, timeout => $opts{timeout});
+        assert_script_run("rm $tmpfile",                        quiet => 1, timeout => $opts{timeout});
     }
     close($fh);
-    my $sha1_remote = script_output("sha1sum $result_file | cut -d ' ' -f 1", undef, quiet => 1);
+    my $sha1_remote = script_output("sha1sum $result_file | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout});
     my $sha1        = sha1_sum(path($src)->slurp());
     die("Failed to transfer file $src - final checksum mismatch") if ($sha1_remote ne $sha1);
-    assert_script_run("mv $result_file '$dst'", quiet => 1);
-    assert_script_run("rmdir $tmpdir",          quiet => 1);
+    assert_script_run("mv $result_file '$dst'", quiet => 1, timeout => $opts{timeout});
+    assert_script_run("rmdir $tmpdir",          quiet => 1, timeout => $opts{timeout});
 }
 
 =head2 upload_file
@@ -169,16 +170,17 @@ sub upload_file {
     my ($src, $dst, %opts) = @_;
     my $chunk_size = $opts{chunk_size} //= 1024 * 2;
     $opts{chunk_retry} //= 16;
+    $opts{timeout}     //= bmwqemu::scale_timeout(180);
     record_info('Upload file', "From SUT($src) to worker ($dst)");
 
     $dst = basename($dst);
     $dst = "ulogs/" . $dst;
     my ($fh, $tmpfilename) = tempfile(UNLINK => 1, SUFFIX => '.openqa.upload');
 
-    die("File $src doesn't exists on SUT") if (script_run("test -f $src", undef, quiet => 1) != 0);
+    die("File $src doesn't exists on SUT") if (script_run("test -f $src", quiet => 1, timeout => $opts{timeout}) != 0);
     die("File $dst already exists on worker") if (-f $dst);
 
-    my $filesize = script_output("stat --printf='%s' $src", undef, quiet => 1);
+    my $filesize = script_output("stat --printf='%s' $src", quiet => 1, timeout => $opts{timeout});
 
     my $num_chunks = int(($filesize + $chunk_size - 1) / $chunk_size);
     for (my $i = 0; $i < $num_chunks; $i += 1) {
@@ -186,8 +188,8 @@ sub upload_file {
         my ($sha1_remote, $sha1, $b64);
         do {
             die("Failed to transfer chunk[$i] of file $src") if ($tries-- < 0);
-            $b64 = script_output("dd if='$src' bs=$chunk_size skip=$i count=1 status=none | base64", undef, quiet => 1);
-            $sha1_remote = script_output("dd if='$src' bs=$chunk_size skip=$i count=1 status=none | base64 | sha1sum | cut -d ' ' -f 1", undef, quiet => 1);
+            $b64 = script_output("dd if='$src' bs=$chunk_size skip=$i count=1 status=none | base64", quiet => 1, timeout => $opts{timeout});
+            $sha1_remote = script_output("dd if='$src' bs=$chunk_size skip=$i count=1 status=none | base64 | sha1sum | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout});
             # W/A: script_output skips the last newline
             $sha1 = sha1_sum($b64 . "\n");
         } while ($sha1 ne $sha1_remote);
@@ -195,7 +197,7 @@ sub upload_file {
     }
     close($fh);
     my $sha1        = sha1_sum(path($tmpfilename)->slurp());
-    my $sha1_remote = script_output("sha1sum $src | cut -d ' ' -f 1", undef, quiet => 1);
+    my $sha1_remote = script_output("sha1sum $src | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout});
     die("Failed to upload file $src - final checksum mismatch\nremote: $sha1_remote\ndestination:$sha1") if ($sha1_remote ne $sha1);
     system('mkdir -p ulogs/') == 0 or die('Failed to create ulogs/ directory');
     system(sprintf("cp '%s' '%s'", $tmpfilename, $dst)) == 0
