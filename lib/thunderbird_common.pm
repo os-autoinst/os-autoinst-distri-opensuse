@@ -129,6 +129,19 @@ sub tb_send_message {
         unless (check_screen("thunderbird_send-message-error")) {
             wait_screen_change { send_key "alt-`" };
         }
+        # buggy part, retrying window switch up to 3 times
+        if (check_screen("thunderbird-main-window", 5)) {
+            wait_screen_change { send_key "alt-`" };
+        }
+        if (check_screen("thunderbird-main-window", 5)) {
+            sleep 5;
+            wait_screen_change { send_key "alt-`" };
+        }
+        if (check_screen("thunderbird-main-window", 5)) {
+            sleep 5;
+            wait_screen_change { send_key "super" };
+            assert_and_click "thunderbird_select-compose-window";
+        }
         wait_screen_change { assert_and_click "thunderbird_send-message-error-ok-button" };
     }
 
