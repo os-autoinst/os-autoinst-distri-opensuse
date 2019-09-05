@@ -1158,6 +1158,9 @@ sub disable_serial_getty {
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
     systemctl "mask $service_name", ignore_failure => 1 if check_var('BACKEND', 'qemu');
     record_info 'serial-getty', "Serial getty mask for $testapi::serialdev";
+    # agetty changed the group from "dialout" to "tty". This won't happen again on next boot,
+    # but we need to manually change it back for now.
+    assert_script_run "chown :dialout /dev/$testapi::serialdev";
 }
 
 =head2 exec_and_insert_password
