@@ -15,13 +15,12 @@ use base "sles4sap";
 use testapi;
 use strict;
 use warnings;
-use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
     my $ps_cmd = $self->set_ps_cmd('HDB');
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Check the memory/disk configuration
     assert_script_run 'clear ; free -m';
@@ -34,7 +33,7 @@ sub run {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sapadm      = $self->set_sap_info($sid, $instance_id);
     $self->test_pids_max;
-    $self->become_sapadm;
+    $self->user_change;
 
     # Check HDB with a database query
     my $password = get_required_var('PASSWORD');
@@ -49,9 +48,8 @@ sub run {
 
     assert_script_run "HDB info";
 
-    # Rollback changes to $testapi::serialdev and close the window
-    type_string "exit\n";
-    ensure_serialdev_permissions;
+    # Disconnect SAP account
+    $self->reset_user_change;
 }
 
 1;

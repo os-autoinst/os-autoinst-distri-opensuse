@@ -14,7 +14,7 @@ use base "sles4sap";
 use testapi;
 use lockapi;
 use hacluster;
-use utils qw(ensure_serialdev_permissions systemctl);
+use utils 'systemctl';
 use strict;
 use warnings;
 
@@ -35,20 +35,19 @@ sub run {
     # Synchronize the nodes
     barrier_wait "NW_CLUSTER_INSTALL_$cluster_name";
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Stop the NW instance to add it in the cluster stack
-    $self->become_sapadm;
+    $self->user_change;
     $self->test_version_info;
     $self->test_instance_properties;
     $self->test_stop;
 
-    # Rollback changes to $testapi::serialdev and close the window
-    type_string "exit\n";
-    ensure_serialdev_permissions;
+    # Disconnect SAP account
+    $self->reset_user_change;
 
     # Some file changes are needed for HA
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     my $profile_file = "/usr/sap/$sid/SYS/profile/${sid}_${type}${instance_id}_${alias}";
 

@@ -29,7 +29,7 @@ sub run {
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Check that there is enough RAM for HANA
     my $RAM = $self->get_total_mem();
@@ -109,7 +109,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    select_console 'root-console';
+    $self->select_serial_terminal;
     assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs /var/tmp/hdb*; xz -9v /tmp/logs.tar';
     upload_logs '/tmp/logs.tar.xz';
     assert_script_run "save_y2logs /tmp/y2logs.tar.xz";

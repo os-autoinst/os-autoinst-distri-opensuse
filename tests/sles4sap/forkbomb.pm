@@ -23,7 +23,7 @@ sub run {
     # The first forkbomb can create 3 times as many processes as the second due to unknown bug
     return if check_var('BACKEND', 'qemu');
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # The SAP Admin was set in sles4sap/wizard_hana_install
     my $sid         = get_required_var('INSTANCE_SID');

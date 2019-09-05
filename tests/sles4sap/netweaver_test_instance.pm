@@ -15,14 +15,13 @@ use base "sles4sap";
 use testapi;
 use strict;
 use warnings;
-use utils 'ensure_serialdev_permissions';
 use version_utils 'is_upgrade';
 
 sub run {
     my ($self) = @_;
     my $pscmd = $self->set_ps_cmd(get_required_var('INSTANCE_TYPE'));
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # On upgrade scenarios, hostname and IP address could have changed from the original
     # installation of NetWeaver. This ensures the current hostname can be resolved
@@ -35,7 +34,7 @@ sub run {
     $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     # Don't test pids_max on migration
     $self->test_pids_max if !get_var('UPGRADE');
-    $self->become_sapadm;
+    $self->user_change;
 
     # Do the stop/start tests
     $self->test_version_info;
@@ -43,9 +42,8 @@ sub run {
     $self->test_stop;
     $self->test_start;
 
-    # Rollback changes to $testapi::serialdev and close the window
-    type_string "exit\n";
-    ensure_serialdev_permissions;
+    # Disconnect SAP account
+    $self->reset_user_change;
 }
 
 1;
