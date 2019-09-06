@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use y2_module_basetest 'is_network_manager_default';
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
@@ -59,7 +60,11 @@ sub run {
     assert_screen 'yast2-network-settings_overview';
     unless (is_network_manager_default) {
         send_key $cmd{add_device};
-        assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type';
+        # Older than 15-SP2 versions require two steps to select device type: expand the list and then select the option.
+        # On 15-SP2 it is a list of radio buttons, so only one step with selecting the radio is needed.
+        if (is_sle('<15-SP2')) {
+            assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type';
+        }
         assert_and_click 'yast2-network-settings_overview_hardware-dialog_device-type_bridge';
         send_key $cmd{next};
         assert_screen 'yast2-network-settings_overview_network-card-setup';
