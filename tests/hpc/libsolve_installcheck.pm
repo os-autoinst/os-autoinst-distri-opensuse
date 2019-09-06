@@ -20,7 +20,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my $installcheck_script = 'installcheck_hpc_module.sh';
-    assert_script_run("wget --quiet " . data_url($installcheck_script) . " -O $installcheck_script");
+    assert_script_run("wget --quiet " . data_url("hpc/$installcheck_script") . " -O $installcheck_script");
     assert_script_run("chmod +x $installcheck_script");
     my $rez = script_run("./$installcheck_script " . get_required_var('ARCH') . ' ' . get_required_var('VERSION') . " > result.txt");
     if ($rez != 0) {
