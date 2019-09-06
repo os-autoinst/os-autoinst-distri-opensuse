@@ -503,8 +503,13 @@ sub zypper_call {
             }
             next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
-        if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106)) {
-            record_soft_failure 'Retry due to network problems poo#52319';
+        if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106 || $ret == 139 || $ret == 141)) {
+            if (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
+                record_soft_failure 'Zypper exiting on SIGPIPE received during package download bsc#1145521';
+            }
+            else {
+                record_soft_failure 'Retry due to network problems poo#52319';
+            }
             next;
         }
         last;
