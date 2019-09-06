@@ -123,7 +123,8 @@ sub get_to_yast {
 
     # qaboot
     my $dir_with_suse_ins = get_var('REPO_UPGRADE_BASE_0') ? get_required_var('REPO_UPGRADE_BASE_0') : get_required_var('REPO_0');
-    my $repo_host         = get_var('REPO_HOST', 'openqa.suse.de');
+    my $repo_host         = '10.160.0.207';
+    my $zvm_guest         = get_required_var('ZVM_GUEST');
 
     my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
     my $sequence                = <<"EO_frickin_boot_parms";
@@ -139,10 +140,10 @@ EO_frickin_boot_parms
             # ensure that we are in cms mode before executing qaboot
             $s3270->sequence_3270("String(\"#cp i cms\")", "ENTER", "ENTER", "ENTER", "ENTER",);
             $r = $s3270->expect_3270(output_delim => qr/CMS/, timeout => 20);
-            $s3270->sequence_3270("String(\"qaboot $repo_host $dir_with_suse_ins\")", "ENTER", "Wait(InputField)",);
-            # wait for qaboot dumping us into xedit. If this fails, probably the
-            # download of kernel or initrd timed out and we retry
-            $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/, timeout => 60);
+            $s3270->sequence_3270("String(\"getfiles $zvm_guest $repo_host $dir_with_suse_ins/boot/s390x\")", "ENTER");
+            $r = $s3270->expect_3270(output_delim => qr/Opening BINARY mode data connection for linux/, timeout => 20);
+            $r = $s3270->expect_3270(output_delim => qr/Opening BINARY mode data connection for initrd/, timeout => 20);
+            $r = $s3270->expect_3270(output_delim => qr/bytes transferred in/, timeout => 20);
         };
         last unless ($@);
         diag "s3270 sequence failed: $@";
@@ -150,29 +151,7 @@ EO_frickin_boot_parms
     }
     die "Download of Kernel or Initrd took too long (with retries)" unless $r;
 
-    $s3270->sequence_3270(qw( String(INPUT) ENTER ));
-
-    $r = $s3270->expect_3270(buffer_ready => qr/Input-mode/);
-
-    # can't use qw() because of space in commands...
-    $s3270->sequence_3270(split /\n/, $sequence);
-
-    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
-
-    ## Remove the "manual=1" and the empty line at the end
-    ## of the parmfile.
-
-    ## HACK HACK HACK HACK this code just 'knows' there is
-    ## an empty line and a single "manual=1" at the bottom
-    ## of the ftpboot parmfile.  This may fail in obscure
-    ## ways when that changes.
-    $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
-    $s3270->sequence_3270(qw(String(BOTTOM) ENTER String(DELETE) ENTER));
-
-    $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
-
-    # save the parmfile.  ftpboot then starts the installation.
-    $s3270->sequence_3270(qw( String(FILE) ENTER ));
+    $s3270->sequence_3270("String(\"install $zvm_guest\")", "ENTER");
 
     # linuxrc
     $r = $s3270->expect_3270(
@@ -282,7 +261,7 @@ sub run {
     $s3270->sequence_3270('String("DEFINE STORAGE ' . get_var('QEMURAM', 1024) . 'M") ', "ENTER",);
     # arbitrary number of retries for CTC only as it fails often to retrieve
     # media
-    if (get_required_var('S390_NETWORK_PARAMS') =~ /ctc/) {
+    if (get_var('S390_NETWORK_PARAMS') =~ /ctc/) {
         # CTC still can fail with even 7 retries, see https://progress.opensuse.org/issues/10466
         # so an even higher number is selected which might fix this
         my $max_retries = 20;
