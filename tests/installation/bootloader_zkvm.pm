@@ -37,10 +37,6 @@ sub set_svirt_domain_elements {
             $cmdline .= "upgrade=1 ";
         }
 
-        if (get_var('FIPS_ENABLED') || get_var('FIPS_INSTALLATION')) {
-            $cmdline .= "fips=1 ";
-        }
-
         if (my $autoyast = get_var('AUTOYAST')) {
             $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
             $cmdline .= " autoyast=" . $autoyast;
