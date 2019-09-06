@@ -24,11 +24,6 @@ sub run {
     my $timeout = 600;
     assert_screen "generic-desktop", $timeout;
 
-    ## duplicated from second stage, combine!
-    if (check_var('DESKTOP', 'kde')) {
-        send_key "esc";
-        assert_screen "generic-desktop", 25;
-    }
 }
 
 sub post_fail_hook {
