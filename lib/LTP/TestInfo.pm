@@ -18,6 +18,7 @@ use Mojo::Base 'OpenQA::Test::RunArgs';
 our @EXPORT_OK = qw(testinfo);
 use Exporter 'import';
 
+has 'runfile';
 has 'test';
 has test_result_export => sub { die 'Require test_result_export hashref'; };
 
