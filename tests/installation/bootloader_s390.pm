@@ -86,7 +86,7 @@ sub prepare_parmfile {
 
     # we have to hardcode the hostname here - the true hostname would
     # create a too long parameter ;(
-    my $instsrc = get_var('INSTALL_SOURCE', 'ftp') . '://' . get_var('REPO_HOST', 'openqa') . '/';
+    my $instsrc = get_var('INSTALL_SOURCE', 'ftp') . '://ftp:ftp@' . get_var('REPO_HOST', 'openqa') . '/';
     if (check_var('INSTALL_SOURCE', 'smb')) {
         $instsrc .= "inst/" . $repo;
         $params  .= " info=" . create_infofile("install: $instsrc");
