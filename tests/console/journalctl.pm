@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Test basic journalctl functionality (assert bsc#1063066 is not present)
+# - Verify "man -P cat journalctl" for broken man page format
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 # Tags: bsc#1063066
 
