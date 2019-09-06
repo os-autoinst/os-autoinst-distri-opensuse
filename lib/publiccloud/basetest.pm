@@ -78,6 +78,11 @@ sub _cleanup {
     eval { $self->cleanup(); } or bmwqemu::fctwarn($@);
 
     $self->{provider} //= [];
+    my $flags = $self->test_flags();
+    if ($flags->{publiccloud_multi_module} &&
+        !($self->{result} eq 'fail' && $flags->{fatal})) {
+        return;    # skip cleanup
+    }
     for my $provider (@{$self->{provider}}) {
         eval { $provider->cleanup(); } or bmwqemu::fctwarn($@);
     }
@@ -92,8 +97,5 @@ sub post_run_hook {
     my ($self) = @_;
     $self->_cleanup() unless $self->{cleanup_called};
 }
-
-
-
 
 1;

@@ -68,7 +68,13 @@ sub run_ssh_command {
     delete($args{no_quote});
     delete($args{ssh_opts});
     delete($args{username});
-    return script_output($ssh_cmd, %args);
+    if ($args{timeout} == 0) {
+        # Run the command and don't wait for it - no output nor returncode here
+        script_run($ssh_cmd, %args);
+    } else {
+        # Run the command, wait for it and return the output
+        return script_output($ssh_cmd, %args);
+    }
 }
 
 =head2 scp
