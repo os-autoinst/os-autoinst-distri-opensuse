@@ -9,6 +9,15 @@
 
 # Summary: Test suite for iSCSI server and client
 #    Multimachine testsuites, server test creates iscsi target and client test uses it
+# - Configure a static network and test connectivity
+# - Launch yast2 iscsi client wizard
+# - Check iscsid systemd services and general disk status
+# - Partition (if necessary) and format iscsi drive
+# - Try mount remote partition to /mnt
+# - Write text to file on iscsi disk
+# - Grep expected text from file
+# - Create mutex lock
+# - Cleanup
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2_module_guitest";
