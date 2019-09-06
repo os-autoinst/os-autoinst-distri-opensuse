@@ -274,10 +274,10 @@ sub thetime {
 
 sub run {
     my ($self, $tinfo) = @_;
-    my $cmd_file = get_var 'LTP_COMMAND_FILE';
-    die 'Need LTP_COMMAND_FILE to know which tests to run' unless $cmd_file;
+    die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
+    my $runfile  = $tinfo->runfile;
     my $timeout  = get_var('LTP_TIMEOUT') || 900;
-    my $is_posix = $cmd_file =~ m/^\s*openposix\s*$/i;
+    my $is_posix = $runfile =~ m/^\s*openposix\s*$/i;
 
     unless (defined $tinfo) {
         die 'Require LTP::TestInfo object from loadtest with LTP test case name and command line';
@@ -307,9 +307,9 @@ sub run {
         type_string("($cmd_text) | tee /dev/$serialdev\n");
     }
     my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
-    my ($timed_out, $result_export) = $self->record_ltp_result($cmd_file, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+    my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
 
-    override_known_failures($self, $test_result_export->{environment}, $cmd_file, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
+    override_known_failures($self, $test_result_export->{environment}, $runfile, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
 
     push(@{$test_result_export->{results}}, $result_export);
     if ($timed_out) {
