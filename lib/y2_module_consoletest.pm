@@ -36,7 +36,7 @@ sub post_run_hook {
 }
 
 sub test_flags {
-    return {fatal => 0};
+    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1, fatal => 0} : {fatal => 0};
 }
 
 1;
