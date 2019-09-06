@@ -204,6 +204,7 @@ sub run {
     send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_dclick "wireshark-profiles-default";
+    wait_still_screen 3;
     # QT GUI does not close window after selecting profile
     send_key "ret" if $wireshark_gui_version eq "qt";
     assert_screen "wireshark-fullscreen";
