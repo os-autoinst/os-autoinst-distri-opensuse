@@ -41,6 +41,7 @@ sub run {
     send_key 'tab';
     # activate Mem stat
     wait_screen_change { send_key 'spc' };
+    save_screenshot;
     # close preferences
     send_key 'alt-c';
     # Close stats screen
@@ -50,12 +51,19 @@ sub run {
     assert_screen 'virt-manager';
 
     # go to view now
-    wait_screen_change { send_key 'alt-v' };
+    send_key_until_needlematch 'virt-manager-view-menu', 'alt-v';
+    assert_screen 'virt-manager-view-menu';
+    sleep 1;
+    save_screenshot;
+    sleep 1;
+    save_screenshot;
     wait_screen_change { send_key 'right' };
+    save_screenshot;
     # activate everything
     for (1 .. 4) {
         send_key 'down';
         wait_screen_change { send_key 'spc' };
+        save_screenshot;
     }
     assert_screen 'virtman-viewcheck';
     # close every open windows
