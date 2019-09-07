@@ -52,7 +52,7 @@ sub run {
     barrier_wait("MPI_SETUP_READY");
     $self->check_nodes_availability();
 
-    assert_script_run("wget --quiet " . data_url($mpi_c) . " -O /tmp/$mpi_c");
+    assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O /tmp/$mpi_c");
     assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpicc /tmp/simple_mpi.c -o /tmp/simple_mpi | tee /tmp/make.out");
 
     ## distribute the binary
