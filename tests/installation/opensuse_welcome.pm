@@ -19,19 +19,21 @@ use utils;
 
 sub run {
     assert_screen("opensuse-welcome");
+    my $wait_time = 12;
+    my $max_attempts = 5;
 
     # Untick box - (Retries may be needed: poo#56024)
-    for my $retry (1 .. 5) {
-        assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
+    for my $retry (1 .. $max_attempts) {
+        assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", $wait_time, $max_attempts);
         last unless check_screen("opensuse-welcome-show-on-boot");
-        die "Unable to untick 'Show on next startup'" if $retry == 5;
+        die "Unable to untick 'Show on next startup'" if $retry == $max_attempts;
     }
 
     # Close welcome screen - (Retries may be needed: poo#56024)
-    for my $retry (1 .. 5) {
-        assert_and_click_until_screen_change("opensuse-welcome-close-btn", 5, 5);
+    for my $retry (1 .. $max_attempts) {
+        assert_and_click_until_screen_change("opensuse-welcome-close-btn", $wait_time, $max_attempts);
         last unless check_screen("opensuse-welcome");
-        die "Unable to close openSUSE Welcome screen" if $retry == 5;
+        die "Unable to close openSUSE Welcome screen" if $retry == $max_attempts;
     }
 }
 
