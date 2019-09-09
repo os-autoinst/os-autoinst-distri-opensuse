@@ -90,10 +90,13 @@ resource "google_compute_instance" "openqa" {
         scopes = ["cloud-platform"]
     }
 
-    shielded_instance_config {
-        enable_secure_boot = "${var.uefi}"
-        enable_vtpm = "${var.uefi}"
-        enable_integrity_monitoring = "${var.uefi}"
+    dynamic "shielded_instance_config" {
+        for_each = "${var.uefi}" ? [ "UEFI" ] : []
+        content {
+            enable_secure_boot = "true"
+            enable_vtpm = "true"
+            enable_integrity_monitoring = "true"
+        }
     }
 }
 
