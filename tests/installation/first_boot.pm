@@ -22,6 +22,7 @@ use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use x11utils 'handle_login';
 use base 'opensusebasetest';
+use main_common 'opensuse_welcome_applicable';
 
 sub run {
     my ($self) = @_;
@@ -60,6 +61,7 @@ sub run {
     }
 
     my @tags = qw(generic-desktop);
+    push(@tags, qw(opensuse-welcome)) if opensuse_welcome_applicable;
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');

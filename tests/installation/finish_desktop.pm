@@ -15,6 +15,7 @@ use base "installbasetest";
 use testapi;
 use strict;
 use warnings;
+use main_common 'opensuse_welcome_applicable';
 
 # using this as base class means only run when an install is needed
 sub run {
@@ -22,8 +23,11 @@ sub run {
 
     # live may take ages to boot
     my $timeout = 600;
-    assert_screen "generic-desktop", $timeout;
 
+    my @tags = qw(generic-desktop);
+    push(@tags, qw(opensuse-welcome)) if opensuse_welcome_applicable;
+
+    assert_screen \@tags, $timeout;
 }
 
 sub post_fail_hook {
