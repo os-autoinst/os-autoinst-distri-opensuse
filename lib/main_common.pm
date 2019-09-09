@@ -212,8 +212,9 @@ sub any_desktop_is_applicable {
 sub opensuse_welcome_applicable {
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed only (Leap possibly in the future)
     # since not all DEs honor xdg/autostart, we are filtering based on desktop environments
+    # except for ppc64/ppc64le because not built libqt5-qtwebengine sr#323144
     my $desktop = shift // get_var('DESKTOP', '');
-    return $desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed;
+    return $desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed && (get_var('ARCH') !~ /ppc64/);
 }
 
 sub logcurrentenv {
