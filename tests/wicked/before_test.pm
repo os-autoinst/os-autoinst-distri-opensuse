@@ -54,6 +54,21 @@ sub run {
         systemctl 'start dhcpd.service';
     } else {
         # Common SUT Configuration
+        if (get_var('WICKED_SOURCES')) {
+            zypper_call('--quiet in -t pattern Basis-Devel');
+            zypper_call('--quiet in automake autoconf libtool libnl-devel libnl3-devel libiw-devel dbus-1-devel pkg-config libgcrypt-devel systemd-devel git');
+            my $repo_url = get_var('WICKED_SOURCES');
+            if ($repo_url =~ /\#/) {
+                my ($repo_url, $branch) = ($repo_url =~ /(.*)\#(.*)/);
+                assert_script_run('git clone ' . $repo_url);
+                assert_script_run("git checkout -b $branch origin/$branch");
+            }
+            else {
+                assert_script_run('git clone ' . $repo_url);
+            }
+            assert_script_run('cd ./wicked ; ./autogen.sh ', timeout => 600);
+            assert_script_run('make ; make install',         timeout => 600);
+        }
         my $package_list = 'openvswitch openvpn';
         $package_list .= ' libteam-tools libteamdctl0 python-libteam' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
