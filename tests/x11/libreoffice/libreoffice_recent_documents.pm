@@ -9,6 +9,13 @@
 
 # Summary: LibreOffice: Verify Main Menu Recent Documents get populated
 #   with files accessed and modified using LibreOffice (Case 1503783)
+# - Launch oowriter
+# - Write "Hello World!" and save the file as "hello.odt"
+# - Close libreoffice
+# - Relaunch oowriter and check Recent documents
+# - Clear recent documents list
+# - Quit libreoffice
+# - Cleanup
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11test";

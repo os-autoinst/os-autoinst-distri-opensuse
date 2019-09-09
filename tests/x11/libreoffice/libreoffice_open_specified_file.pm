@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: Case 1503881 - Verify LibreOffice opens specified file types correctly
+# - Download and uncompress libreoffise sample files from datadir
+# - Launch libreoffice
+# - Open test files of different formats and check
+# - Quit libreoffice
+# - Cleanup
 # Maintainer: dehai <dhkong@suse.com>
 
 use base "x11test";

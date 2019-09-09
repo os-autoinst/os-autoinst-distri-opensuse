@@ -8,6 +8,45 @@
 # without any warranty.
 
 # Summary: Case 1503827 - LibreOffice: Launch application components from system menu
+# - Open menu button -> office menu
+#   - Launch libreoffice and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office base and check
+#   - Save a database named "testdatabase"
+#   - Cleanup created database
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office calc and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office draw and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office impress and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office writer and check
+#   - Quit libreoffice
+# - Install libreoffice-base if necessary
+# - Open gnome activities overview
+#   - Type "base", send <ENTER> and check
+#   - Save a database named "testdatabase"
+#   - Cleanup created database
+# - Open gnome activities overview
+#   - Type "calc", send <ENTER> and check
+#   - Uncheck "show tips on startup"
+#   - Quit libreoffice
+# - Open gnome activities overview
+#   - Type "draw", send <ENTER> and check
+#   - Quit libreoffice
+# - Open gnome activities overview
+#   - Type "impress", send <ENTER> and check
+#   - Quit libreoffice
+# - Open gnome activities overview
+#   - Type "writer", send <ENTER> and check
+#   - Click on writing area
+#   - Quit libreoffice
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11test";
