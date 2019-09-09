@@ -13,6 +13,24 @@
 # vgextend lvextend
 # pvmove vgreduce
 # pvremove vgremove lvremove
+# - Choose test disk
+# - Install lvm2 and xfsprogs
+# - Partition test disk
+# - Create a pv and display result
+# - Create a vg and display result
+# - Create a lv and display result
+# - Create a xfs fs
+# - Mount, create a test file, check and umount
+# - Create a second pv and display result
+# - Extend the created pv
+# - Extend first lv to 1020M
+# - Mount and check test file
+# - Extend xfs filesystem and check test file and fs size
+# - Create a third pv and extend
+# - Move data from first pv to third
+# - Remove old pv
+# - Check data from test file
+# - Cleanup
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "consoletest";
