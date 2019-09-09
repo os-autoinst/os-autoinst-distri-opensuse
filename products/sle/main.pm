@@ -886,6 +886,10 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
+    loadtest "console/coredump_collect";
+    loadtest "shutdown/cleanup_before_shutdown";
+    loadtest "shutdown/shutdown";
+
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
