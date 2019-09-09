@@ -26,6 +26,7 @@ use services::ntpd;
 use services::cups;
 use services::rpcbind;
 use autofs_utils;
+use services::postfix;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -58,9 +59,10 @@ our $default_services = {
         support_ver   => '15,15-SP1'
     },
     postfix => {
-        srv_pkg_name  => 'postfix',
-        srv_proc_name => 'postfix',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'postfix',
+        srv_proc_name      => 'postfix',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::postfix::full_postfix_check
     },
     # Quick hack for poo 50576, we need this workround before full solution
     apache => {
