@@ -9,6 +9,14 @@
 # without any warranty.
 
 # Summary: case 1436125-use nautilus to change file permissions
+# - Create a test file called "newfile"
+# - Launch nautilus
+# - Right click "newfile" (or send "SHIFT-F10") and check
+# - Send "r" (properties)
+# - Open permissions tab and change some permitions
+# - Close nautilus dialog
+# - Right click, open permissions again, check if permittions were changed
+# - Close nautilus
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 
 use base "x11test";

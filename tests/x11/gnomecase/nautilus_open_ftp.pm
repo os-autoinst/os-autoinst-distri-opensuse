@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Test nautilus open ftp
+# - Launch nautilus
+# - Inside nautilus, open "ftp://ftp.suse.com" and check
+# - Send "SHIFT-F10" and check
+# - Umount ftp
+# - Close nautilus
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: tc#1436143
 

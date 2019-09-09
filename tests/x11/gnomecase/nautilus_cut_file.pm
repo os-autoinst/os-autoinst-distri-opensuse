@@ -9,6 +9,13 @@
 # without any warranty.
 
 # Summary: testcase 4158-1249067 move a file with nautilus
+# - Launch nautilus
+# - Create a test file called "newfile"
+# - Select the file in nautilus and send "CTRL-X"
+# - Open Downloads folder
+# - Send "CTRL-V" and check
+# - Return to homedir and check for "newfile"
+# - Cleanup
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 
 use base "x11test";
