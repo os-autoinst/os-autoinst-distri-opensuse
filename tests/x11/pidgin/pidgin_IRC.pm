@@ -9,6 +9,13 @@
 # without any warranty.
 
 # Summary: Pidgin: IRC
+# - Launch pidgin
+# - Create a new account, type IRC, nickname "susetesting"
+# - Handle ip spoofing and ctcp warning
+# - Join channel "#sledtesting" and check
+# - Send message "Hello from openQA" and check
+# - Close chat window
+# - Cleanup
 # Maintainer: nick wang <nwang@suse.com>
 # Tags: tc#1248849
 
