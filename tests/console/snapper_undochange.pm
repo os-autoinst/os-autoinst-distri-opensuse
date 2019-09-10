@@ -8,6 +8,15 @@
 # without any warranty.
 
 # Summary: Check that snapper can revert file changes between snapshots
+# - Disable dbus if necessary
+# - Create a snapshot with description "before undochange test"
+# - Create a test file on fs to simulate change
+# - Create a snapshot with description "after undochange test"
+# - Undo last change by running snapper undochange
+# - Check for file
+# - Undo last change by running snapper undochange one more time
+# - Check for file
+# - Cleanup
 # Maintainer: mkravec <mkravec@suse.com>
 
 use base 'btrfs_test';

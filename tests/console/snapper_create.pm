@@ -8,6 +8,13 @@
 # without any warranty.
 
 # Summary: snapper without DBus service running tests / POO#15944 FATE#321049
+# - Run snapper create for the following options:
+#   - Types 'single', 'command', 'pre' and 'post'
+#   - Cleanup algorithms 'number', 'timeline', and 'empty-pre-post'
+#   - Use options --pre-number, --cleanup-algorithm, --print-number,
+#     --description, --userdata
+#   - List all created snapshots
+#   - Cleanup by deleting created snapshots
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use strict;

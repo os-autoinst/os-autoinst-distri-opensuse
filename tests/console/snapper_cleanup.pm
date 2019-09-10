@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Snapper cleanup test based on FATE#312751
+# - In case of upgrade or BOOT_TO_SNAPSHOT not set
+#   - Run snapper setup-quota
+#   - snapper set-config NUMBER_LIMIT_IMPORTANT=4-10 SPACE_LIMIT=0.5
+# - Get initial cfg and save initial NUMBER_LIMIT and NUMBER_MIN_AGE settings for later restore
+# - Check amount of free fs disk space and adapt to it
+# - Set NUMBER_LIMIT such that disk space after cleanup
+# - Exclusive disk space of qgroup should be ~50% of the fs space as set with
+#   SPACE_LIMIT
+# - Run snapper at least couple of times to ensure it cleans up properly
+# - Cleanup
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'btrfs_test';
