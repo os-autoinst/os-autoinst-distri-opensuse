@@ -22,6 +22,7 @@ use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use x11utils 'handle_login';
 use base 'opensusebasetest';
+use main_common 'opensuse_welcome_applicable';
 
 sub run {
     my ($self) = @_;
@@ -60,9 +61,7 @@ sub run {
     }
 
     my @tags = qw(generic-desktop);
-    if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
-        push(@tags, 'kde-greeter');
-    }
+    push(@tags, qw(opensuse-welcome)) if opensuse_welcome_applicable;
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
@@ -90,10 +89,6 @@ sub run {
         wait_still_screen;
         script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
         wait_screen_change { send_key 'alt-f4' };
-    }
-    if (match_has_tag('kde-greeter')) {
-        send_key "esc";
-        assert_screen 'generic-desktop';
     }
 }
 
