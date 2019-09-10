@@ -19,7 +19,6 @@ schedule:
   - installation/user_settings
   - installation/resolve_dependency_issues
   - installation/select_patterns_and_packages
-  - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
