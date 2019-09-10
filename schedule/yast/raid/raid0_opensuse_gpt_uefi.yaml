@@ -1,24 +1,24 @@
-name:           RAID10_gpt_uefi
+name:           RAID0_opensuse_gpt_uefi
 description:    >
-  Configure RAID 10 on the disks with GPT partition tables and UEFI using Expert Partitioner.
+  Configure RAID 0 on the disks with GPT partition tables and UEFI using Expert Partitioner.
   Creates EFI boot, root and swap partitions on each of the 4 disks and then uses
-  them for RAID 10.
+  them for RAID 0.
 vars:
-  RAIDLEVEL: 10
+  RAIDLEVEL: 0
 schedule:
+  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
-  - installation/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/raid_gpt
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
-  - installation/user_settings_root
   - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -33,4 +33,4 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  !include: test_data/yast/raid/raid10_gpt_uefi_test_data.yaml
+  !include: test_data/yast/raid/raid0_gpt_uefi_test_data.yaml
