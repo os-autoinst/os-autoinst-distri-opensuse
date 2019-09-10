@@ -23,14 +23,15 @@ sub run {
     # Untick box - (Retries may be needed: poo#56024)
     for my $retry (1 .. 5) {
         assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
-        last unless check_screen("opensuse-welcome-show-on-boot");
+        # Moving the cursor already causes screen changes - do not fail the check
+        # immediately but allow some time to reach the final state
+        last if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
         die "Unable to untick 'Show on next startup'" if $retry == 5;
     }
 
-    # Close welcome screen - (Retries may be needed: poo#56024)
     for my $retry (1 .. 5) {
-        assert_and_click_until_screen_change("opensuse-welcome-close-btn", 5, 5);
-        last unless check_screen("opensuse-welcome");
+        wait_screen_change { send_key 'alt-f4' };
+        last unless check_screen("opensuse-welcome", timeout => 2);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
 }
