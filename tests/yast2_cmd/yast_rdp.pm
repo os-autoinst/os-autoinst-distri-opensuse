@@ -10,6 +10,11 @@
 # Summary: this test checks that YaST2's RDP module is behaving
 #          correctly in cmdline mode  and verifying that RDP service
 #          has been successfully set.
+# - Install xrdp yast2-rdp
+# - Disable and stop xrdp
+# - Start xrdp using yast: yast rdp allow set=yes and check status
+# - Check rdp list
+# - Stop rdp service and check
 # Maintainer: Jun Wang <jgwang@suse.com>
 
 use base 'consoletest';
