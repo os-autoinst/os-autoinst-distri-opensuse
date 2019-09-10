@@ -25,6 +25,7 @@ use nfs_common;
 use services::ntpd;
 use services::cups;
 use services::rpcbind;
+use autofs_utils;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -97,9 +98,10 @@ our $default_services = {
         service_check_func => \&services::rpcbind::full_rpcbind_check
     },
     autofs => {
-        srv_pkg_name  => 'autofs',
-        srv_proc_name => 'autofs',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'autofs',
+        srv_proc_name      => 'autofs',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&full_autofs_check
     },
     cups => {
         srv_pkg_name       => 'cups',
