@@ -7,15 +7,18 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces business actions for Libstorage-NG Expert
-# Partitioner.
+# Summary: The class introduces business actions for Libstorage-NG (ver.4)
+# Expert Partitioner.
+# Libstorage-NG (ver.4) introduces some different shortcuts in comparing to the
+# ver.3. Also RAID creation wizard differs.
+#
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-package Installation::Partitioner::LibstorageNG::ExpertPartitionerController;
+package Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController;
 use strict;
 use warnings;
 use testapi;
-use parent 'Installation::Partitioner::AbstractExpertPartitionerController';
+use parent 'Installation::Partitioner::LibstorageNG::v3::ExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage;
 use Installation::Partitioner::LibstorageNG::ExpertPartitionerPage;
 use Installation::Partitioner::NewPartitionSizePage;
@@ -37,59 +40,6 @@ sub new {
     }, $class;
 }
 
-sub get_suggested_partitioning_page {
-    my ($self) = @_;
-    return $self->{SuggestedPartitioningPage};
-}
-
-sub get_raid_options_page {
-    my ($self) = @_;
-    return $self->{RaidOptionsPage};
-}
-
-sub get_expert_partitioner_page {
-    my ($self) = @_;
-    return $self->{ExpertPartitionerPage};
-}
-
-sub get_formatting_options_page {
-    my ($self) = @_;
-    return $self->{FormattingOptionsPage};
-}
-
-sub get_rescan_devices_dialog {
-    my ($self) = @_;
-    return $self->{RescanDevicesDialog};
-}
-
-sub get_new_partition_size_page {
-    my ($self) = @_;
-    return $self->{NewPartitionSizePage};
-}
-
-sub get_raid_type_page {
-    my ($self) = @_;
-    return $self->{RaidTypePage};
-}
-
-sub get_role_page {
-    my ($self) = @_;
-    return $self->{RolePage};
-}
-
-sub run_expert_partitioner {
-    my ($self) = @_;
-    $self->get_suggested_partitioning_page()->select_start_with_existing_partitions();
-}
-
-sub add_partition_on_gpt_disk {
-    my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{disk});
-    $self->get_expert_partitioner_page()->select_partitions_tab();
-    $self->get_expert_partitioner_page()->press_add_partition_button();
-    $self->_add_partition($args->{partition});
-}
-
 sub add_raid_partition {
     my ($self, $args) = @_;
     $self->get_expert_partitioner_page()->select_item_in_system_view_table('raid');
@@ -109,17 +59,5 @@ sub add_raid {
     $self->get_raid_options_page()->press_next();
     $self->add_raid_partition($args->{partition});
 }
-
-sub _finish_partition_creation {
-    my ($self) = @_;
-    $self->get_formatting_options_page()->press_next();
-}
-
-sub accept_changes {
-    my ($self) = @_;
-    $self->get_expert_partitioner_page()->press_accept_button();
-    $self->get_suggested_partitioning_page()->press_next();
-}
-
 
 1;
