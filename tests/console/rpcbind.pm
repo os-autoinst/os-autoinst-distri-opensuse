@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: rpcbind test
+# - Install rpcbind and nfs-kernel-server and check
+# - Export a mount point on /etc/exports and create a test file inside
+# - Enable and start rpcbind, nfs-server and check
+# - Mount nfs point, check test file
+# - Umount nfs
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use warnings;
