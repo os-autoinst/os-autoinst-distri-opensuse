@@ -9,6 +9,24 @@
 
 # Summary: Test Salt stack on two machines. Here we test mainly the
 #  master but minion is also present just for having more of those.
+# - Install salt-master
+#   - Enable debug
+#   - Enable, start and check salt-master service
+#   - Enable event logging
+# - Install salt-minion
+#   - Set hostname
+#   - Enable debug
+#   - Enable, start and check salt-minion service
+# - Create mutex lock for tests
+# - List and accept both minions when they are ready
+# - Inform minion that keys were accepted
+# - Try to ping both minions
+# - Run a command and wait for minion
+# - Fetch top.sls from datadir
+# - Install a package and wait for the minion
+# - Create user and group and wait for the minion
+# - Set sysctl key and wait for the minion
+# - Stop both master and minion at the end
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use base "saltbase";
