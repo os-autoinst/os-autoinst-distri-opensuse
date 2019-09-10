@@ -8,6 +8,10 @@
 # without any warranty.
 #
 # Summary: Partially dump /sys and /proc
+# - Download test script from "https://raw.githubusercontent.com/richiejp/ltp/dump/scripts/proc_sys_dump.sh"
+# - Make executable and create a temp dir
+# - Run test script
+# - Upload logs
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
