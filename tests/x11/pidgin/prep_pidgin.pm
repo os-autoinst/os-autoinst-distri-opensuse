@@ -10,6 +10,10 @@
 
 # Summary: setup pidgin test cases; startup main window and check basic
 #   account status
+# - Install pidgin if necessary
+# - Bring pidgin up (can be hidden on tray)
+# - Enable showoffline and check
+# - Exit pidgin
 # Maintainer: Chingkai <chuchingkai@gmail.com>
 
 use base "x11test";
