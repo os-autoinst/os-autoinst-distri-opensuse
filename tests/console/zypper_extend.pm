@@ -9,7 +9,27 @@
 #
 # Summary: This is a zypper extend regression tests. poo#51521.
 #   This test is based on https://gitlab.suse.de/ONalmpantis/scripts/blob/master/zypper_regression_test.sh.
-
+# - Search for a package (star)
+# - Get information about what a package provides
+# - Get information about the requirements of a package
+# - Only download a package for later installation, don't ask for permission
+# - Check if the RPM actually been downloaded
+# - Disable auto-refresh, install star, don't ask for permission
+# - Remove star, don't ask for permission
+# - List all applicable patches
+# - List applicable patches for all CVE issues, or issues whose number matches the given string
+# - List applicable patches for all Bugzilla issues, or issues whose number matches the given string
+# - List all available released patches, no matter if they are applicable on our system or not
+# - Show packages which are without repository
+# - Show packages which are installed but are not needed
+# - List all available patterns
+# - List all available products
+# - List all defined repositories and corresponding URIs
+# - Disable a specific repository
+# - Enable a specific repository
+# - Disable/Enable rpm file caching for all the repositories.
+# - Disable/Enable rpm file caching for remote repositories
+# - Enter zypper shell and run the lr command | echo lr
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 # Tags: poo#51521
 #
