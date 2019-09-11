@@ -24,6 +24,7 @@ use Exporter;
 use registration 'add_suseconnect_product';
 use testapi;
 use utils;
+use Utils::Backends 'set_sshserial_dev';
 use version_utils 'is_sle';
 
 
@@ -108,9 +109,7 @@ EOF
     # remote SUT
     select_console 'root-console';
     # now we can redirect the serial output
-    $serialdev = 'sshserial';
-    set_var('SERIALDEV', $serialdev);
-    bmwqemu::save_vars();
+    set_sshserial_dev;
 }
 
 1;
