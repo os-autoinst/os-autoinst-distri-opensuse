@@ -9,6 +9,19 @@
 
 # Summary: Test snapper on thin-provisioned LVM
 # poo#15944 FATE#321049
+# - Install lvm2
+# - Disable dbus
+# - Check for a disk without partition table
+# - Partition test disk
+# - Create a vg called test
+# - Create a storage pool (lv) size 3G
+# - Create a thin logical volume (lv) size 5G
+# - Format and mount created volume
+# - Create a snapshot from the logical volume and mount
+# - Create snapper config
+# - Create a test file inside filesystem and test if snapper detects its
+#   creation
+# - Cleanup
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use base 'btrfs_test';

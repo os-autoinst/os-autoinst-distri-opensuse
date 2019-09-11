@@ -9,6 +9,17 @@
 
 # Summary: Test Salt stack on two machines. This machine is running
 #  salt-minion only and here we test the end result of master operations.
+# - Install salt-minion
+#   - Set hostname
+#   - Enable debug
+#   - Enable, start and check salt-minion service
+# - Both machines are ready
+# - Wait for the keys to be accepted
+# - Check that the command executed from the master was successfully done
+# - Check that the package installed from the master is present
+# - Check that the user and it's group created from the master are present
+# - Check that the sysctl value set from the master has right value
+# - Stop the minion at the end
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use base "saltbase";

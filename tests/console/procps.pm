@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Test procps installation and verify that its tools work as exepected
+# - Install procps
+# - Run free and check
+# - Run pgrep 1 and check
+# - Run pmap 1 and check
+# - Run pwdx 1 and check
+# - Run vmstat and check
+# - Run w and check
+# - Run sysctl kernel.random and check
+# - Run ps -p 1 and check
+# - Run top -b -n 1 and check
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base 'opensusebasetest';

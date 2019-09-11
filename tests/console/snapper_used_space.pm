@@ -9,6 +9,10 @@
 
 # Summary: Display of used space per snapshot
 # Tags: poo#17848
+# - Check if quota is enabled
+# - Display the exclusive space used by each snapshot
+# - Query the exclusive space when data is included in a single snapshot
+# - Query the exclusive space when data is included in several snapshots (pre- and post-)
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
 use base 'btrfs_test';

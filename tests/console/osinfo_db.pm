@@ -9,10 +9,10 @@
 
 # Summary: Regression test osinfo-db:
 # use osinfo-query tool to query the OS database;
-# list all OSes in the database;
-# list all OSes from a specific vendor;
-# list all OSes drom a specific vendor and specified columns only;
-# If succeed, the test passes, proving All commands return without error.
+# - List all OSes in the database;
+# - List all OSes from a specific vendor;
+# - List all OSes drom a specific vendor and specified columns only;
+# - If succeed, the test passes, proving All commands return without error.
 #
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 use base "consoletest";

@@ -10,6 +10,9 @@
 # Summary: this test checks that YaST Command Line Keyboard module is behaving
 #          correctly by changing keyboard layout and verifying that
 #          they have been successfully set.
+# - Set keyboard layout to korean and validate.
+# - Set keyboard layout to german.
+# - Restore keyboard settings to english-us and verify (enter using german characters).
 # Maintainer: Ming Li <mli@suse.com>
 
 =head1 Create regression test for keyboard layout and verify
