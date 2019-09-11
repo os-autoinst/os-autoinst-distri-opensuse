@@ -25,10 +25,17 @@ sub run {
     my $is_ima     = $cmd_file =~ m/^ima$/i;
 
     if ($is_ima) {
+        record_info('INFO', 'IMA boot');
         # boot kernel with IMA parameters
         boot_grub_item();
     }
+    elsif (check_var('BACKEND', 'ipmi')) {
+        record_info('INFO', 'IPMI boot');
+        select_console 'sol', await_console => 0;
+        assert_screen('linux-login', 1800);
+    }
     else {
+        record_info('INFO', 'normal boot');
         # during install_ltp, the second boot may take longer than usual
         $self->wait_boot(ready_time => 500);
     }
