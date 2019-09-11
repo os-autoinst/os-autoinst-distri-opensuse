@@ -32,6 +32,7 @@ DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dep
 DEV_IMAGE | boolean | false | This setting is used to set veriables properly when SDK or Development-Tools are required.
 DISABLE_ONLINE_REPOS | boolean | false | Enables `installation/disable_online_repos` test module, relevant for openSUSE only. Test module explicitly disables online repos not to be used during installation.
 DISABLE_SLE_UPDATES | boolean | false | Disables online updates for the installation. Is true if `QAM_MINIMAL` is true for SLE.
+DISK_DEVICES | string | | Comma separated list of disk devices in the system, e.g. `sda,sdb,vda`. Can be used to format disks as a precondition for the test suite.
 DISTRI | string | | Defines distribution. Possible values: `sle`, `opensuse`, `casp`, `caasp`, `microos`.
 DOCRUN | boolean | false |
 DUALBOOT | boolean | false | Enables dual boot configuration during the installation.
