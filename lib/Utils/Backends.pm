@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 =head1 SYNOPSIS
 
 use Utils::Backends
-It defines various functions that allows to check for different backend or console types. It exports C<CONSOLES> and C<BACKEND> 
+It defines various functions that allows to check for different backend or console types. It exports C<CONSOLES> and C<BACKEND>
 
 =cut
 
@@ -43,6 +43,7 @@ use constant {
     ],
     CONSOLES => [
         qw(
+          set_sshserial_dev
           use_ssh_serial_console
           )
     ]
@@ -55,6 +56,12 @@ our %EXPORT_TAGS = (
     BACKEND  => (BACKEND)
 );
 
+sub set_sshserial_dev {
+    $serialdev = 'sshserial';
+    set_var('SERIALDEV', $serialdev);
+    bmwqemu::save_vars();
+}
+
 # Use it after SUT boot finish, as it requires ssh connection to SUT to
 # interact with SUT, including window and serial console
 
@@ -66,9 +73,7 @@ Selects the root-ssh and saves it to SERIALDEV
 
 sub use_ssh_serial_console {
     select_console('root-ssh');
-    $serialdev = 'sshserial';
-    set_var('SERIALDEV', $serialdev);
-    bmwqemu::save_vars();
+    set_sshserial_dev;
 }
 
 =head2 is_remote_backend

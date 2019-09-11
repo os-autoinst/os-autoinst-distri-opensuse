@@ -16,7 +16,7 @@ use utils qw(
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
+use Utils::Backends qw(set_sshserial_dev use_ssh_serial_console is_remote_backend);
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 use Cwd;
 
@@ -742,9 +742,7 @@ sub activate_console {
         ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        $serialdev = 'sshserial';
-        set_var('SERIALDEV', $serialdev);
-        bmwqemu::save_vars();
+        set_sshserial_dev;
     }
     elsif ($console eq 'svirt' || $console eq 'hyperv-intermediary') {
         my $os_type = (check_var('VIRSH_VMM_FAMILY', 'hyperv') && $console eq 'svirt') ? 'windows' : 'linux';
