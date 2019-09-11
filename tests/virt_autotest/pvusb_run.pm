@@ -17,6 +17,7 @@ use warnings;
 use base "virt_autotest_base";
 use virt_utils;
 use testapi;
+use Utils::Architectures;
 
 sub get_script_run {
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-pvusb-run";
@@ -24,17 +25,22 @@ sub get_script_run {
     if ($which_usb eq "") {
         die "The PVUSB_DEVICE is not properly set in workers.ini.";
     }
-    my $qa_repo = get_required_var("QA_HEAD_REPO");
     handle_sp_in_settings_with_sp0("GUEST");
     my $guest = get_var("GUEST", "sles-12-sp3-64-fv-def-net");
-    $pre_test_cmd .= " -w \"" . $which_usb . "\"" . " -r $qa_repo -g $guest";
+    $pre_test_cmd .= " -w \"" . $which_usb . "\"" . " -g $guest";
+    my $vm_xml_dir = "/tmp/download_vm_xml";
+    if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {
+        $pre_test_cmd .= " -k $vm_xml_dir";
+    }
 
     return $pre_test_cmd;
 }
 
 sub run {
-    my $self = shift;
-    $self->run_test(5000, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/", "pvusb-test-logs");
+    my $self            = shift;
+    my $timeout         = get_var('MAX_TEST_TIME', '5000');
+    my $upload_log_name = 'pvusb-test-logs';
+    $self->run_test($timeout, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/", $upload_log_name);
 }
 
 1;
