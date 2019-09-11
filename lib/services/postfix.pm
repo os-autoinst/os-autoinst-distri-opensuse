@@ -40,7 +40,7 @@ sub check_service {
 # check postfix function
 sub check_function {
     # Clear mailbox
-    assert_script_run("rm /var/spool/mail/$testapi::username");
+    type_string("rm /var/spool/mail/$testapi::username\n");
     # Send testing mail
     assert_script_run("echo 'Mail body' | mailx -v -s 'openQA Testing' $testapi::username\@localhost");
     # Flush mail queue to ensure mail has been sent
