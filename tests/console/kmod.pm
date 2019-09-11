@@ -23,17 +23,29 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils 'is_opensuse';
 
 sub run {
     select_console 'root-console';
 
-    #test modinfo command
-    assert_script_run('OUT="$(modinfo kvm)"');
-    #test the output for common words that should always appear
-    assert_script_run('grep -o -m 1 \'^filename:.*kvm.ko\' <<< "$OUT"');
-    assert_script_run('grep -o -m 1 \'^license:.*GPL\' <<< "$OUT"');
-    assert_script_run('grep -o -m 1 \'^author:.*Qumranet\' <<< "$OUT"');
-    assert_script_run('grep -o -m 1 \'^parm:.*ignore_msrs:bool\' <<< "$OUT"');
+    # openSUSE aarch64 has kvm as built-in, so use tcrypt.ko instead
+    if (check_var('ARCH', 'aarch64') && is_opensuse) {
+        #test modinfo command
+        assert_script_run('OUT="$(modinfo tcrypt)"');
+        #test the output for common words that should always appear
+        assert_script_run('grep -o -m 1 \'^filename:.*tcrypt.ko\' <<< "$OUT"');
+        assert_script_run('grep -o -m 1 \'^license:.*GPL\' <<< "$OUT"');
+        assert_script_run('grep -o -m 1 \'^author:.*Morris.*\' <<< "$OUT"');
+        assert_script_run('grep -o -m 1 \'^parm:.*alg:charp\' <<< "$OUT"');
+    } else {
+        #test modinfo command
+        assert_script_run('OUT="$(modinfo kvm)"');
+        #test the output for common words that should always appear
+        assert_script_run('grep -o -m 1 \'^filename:.*kvm.ko\' <<< "$OUT"');
+        assert_script_run('grep -o -m 1 \'^license:.*GPL\' <<< "$OUT"');
+        assert_script_run('grep -o -m 1 \'^author:.*Qumranet\' <<< "$OUT"');
+        assert_script_run('grep -o -m 1 \'^parm:.*ignore_msrs:bool\' <<< "$OUT"');
+    }
 
     #test lsmod command
     #test that the output has the expected correct format
