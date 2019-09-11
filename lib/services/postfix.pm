@@ -39,10 +39,14 @@ sub check_service {
 
 # check postfix function
 sub check_function {
+    # Clear mailbox
+    assert_script_run("rm /var/spool/mail/$testapi::username");
     # Send testing mail
     assert_script_run("echo 'Mail body' | mailx -v -s 'openQA Testing' $testapi::username\@localhost");
+    # Flush mail queue to ensure mail has been sent
+    assert_script_run("postfix flush");
     # Verify mail received
-    assert_script_run("postfix flush; grep 'openQA Testing' /var/spool/mail/$testapi::username");
+    assert_script_run("grep 'openQA Testing' /var/spool/mail/$testapi::username");
 }
 
 # check postfix service before and after migration
