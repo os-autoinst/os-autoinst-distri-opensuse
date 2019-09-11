@@ -282,24 +282,19 @@ sub run {
     $s3270->sequence_3270('String("DEFINE STORAGE ' . get_var('QEMURAM', 1024) . 'M") ', "ENTER",);
     # arbitrary number of retries for CTC only as it fails often to retrieve
     # media
+    my $max_retries = 1;
     if (get_required_var('S390_NETWORK_PARAMS') =~ /ctc/) {
         # CTC still can fail with even 7 retries, see https://progress.opensuse.org/issues/10466
         # so an even higher number is selected which might fix this
-        my $max_retries = 20;
-        for (1 .. $max_retries) {
-            eval {
-                # connect to zVM, login to the guest
-                get_to_yast();
-            };
-            last unless ($@);
-            diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries";
-        }
+        $max_retries = 20;
     }
-    else {
+    for (1 .. $max_retries) {
         eval {
             # connect to zVM, login to the guest
             get_to_yast();
         };
+        last unless ($@);
+        diag "It looks like CTC network connection is unstable. Retry: $_ of $max_retries" if (get_required_var('S390_NETWORK_PARAMS') =~ /ctc/);
     }
 
     my $exception = $@;
