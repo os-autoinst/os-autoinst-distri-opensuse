@@ -24,7 +24,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd 'systemctl';
 use Mojo::UserAgent;
 
@@ -348,10 +348,10 @@ Optional parameters are:
      on live images where we want to ensure the disks are complete
      the parameter should not be set to true - otherwise we might
      mask the fact that the app is not on the media.
- 
+
  exec_param: string
      When calling the application, pass this parameter on the command line.
- 
+
  remain: boolean
      If set to true, do not close the application when tested it is
      running. This can be used if the application shall be tested further.
@@ -677,7 +677,7 @@ sub is_boot_encrypted {
     # installations, but has encrypted boot if cancel activation of existing
     # encrypted partitions
     # ppc64le on pre-storage-ng boot was part of encrypted LVM
-    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !get_var('OFW')
+    return 0 if !get_var('FULL_LVM_ENCRYPT') && !is_storage_ng && !is_ppc64le()
       && !(get_var('ENCRYPT_CANCEL_EXISTING') && get_var('ENCRYPT') && is_aarch64());
     # SLES 15: we don't have scenarios for cryptlvm which boot partion is unencrypted.
     return 0 if is_sle('15+') && !get_var('ENCRYPT');
