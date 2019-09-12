@@ -73,12 +73,9 @@ sub run {
             script_run 'umount -a';
             script_run 'mount -o remount,ro /';
             type_string "kexec -e\n";
-            assert_screen 'linux-login';
-            type_string "root\n";
-            wait_still_screen 3;
-            type_password;
-            wait_still_screen 3;
-            send_key 'ret';
+            assert_screen 'linux-login', 90;
+            reset_consoles;
+            select_console 'root-console';
             assert_script_run 'uname -a';
             assert_script_run 'mokutil --sb-state';
             assert_script_run 'mokutil --list-enrolled';
