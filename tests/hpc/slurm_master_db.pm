@@ -18,6 +18,127 @@ use warnings;
 use testapi;
 use lockapi;
 use utils;
+use Data::Dumper;
+use Mojo::JSON;
+
+## TODO: provide better parser for HPC specific tests
+sub validate_result {
+    my ($result) = @_;
+
+    if ($result == 0) {
+        return 'PASS';
+    } elsif ($result == 1) {
+        return 'FAIL';
+    } else {
+        return undef;
+    }
+}
+
+sub generate_results {
+    my ($name, $description, $result) = @_;
+
+    my %results = (
+        test        => $name,
+        description => $description,
+        result      => validate_result($result)
+    );
+    return %results;
+}
+
+sub pars_results {
+    my (%test) = @_;
+    my $file = 'tmpresults.xml';
+
+    my $test_name   = $test{test};
+    my $description = $test{description};
+    my $result      = $test{result};
+
+    if ($result eq 'FAIL') {
+        script_run("echo \"<testcase name='$test_name' errors='1'>\" >>  $file");
+    } else {
+        script_run("echo \"<testcase name='$test_name'>\" >> $file");
+    }
+    script_run("echo \"<system-out>\" >> $file");
+    script_run("echo $description >>  $file");
+    script_run("echo \"</system-out>\" >> $file");
+    script_run("echo \"</testcase>\" >> $file");
+}
+
+sub test_01 {
+    my $name        = 'Srun check';
+    my $description = 'Basic SRUN test';
+
+    my $result = script_run("srun -w slave-node00 date");
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub test_02 {
+    my $name        = 'Sinfo check';
+    my $description = 'Simple SINFO test';
+
+    my $result = script_run('sinfo');
+
+    ##TODO: add check of sinfo vs slurm.conf?
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub test_03 {
+    my $name        = 'Stress tests with srun';
+    my $description = 'SRUN stress test';
+
+    ##TODO: implement srun stress test; run 100+ srun jobs
+}
+
+sub test_04 {
+    my $name        = 'Sbatch test';
+    my $description = 'Basic SBATCH test';
+    my $sbatch      = 'slurm_sbatch.sh';
+
+    script_run("wget --quiet " . data_url("hpc/$sbatch") . " -O $sbatch");
+    assert_script_run("chmod +x $sbatch");
+    record_info('meminfo', script_output("cat /proc/meminfo"));
+    my $result = script_output("sbatch $sbatch");
+    ##sbatch SBATCH --time=0-00:01:00
+    ## so the worker should wait for the sbatch to finish
+    ## sbatch is publishing some files, so the test should hang
+    sleep(70);
+    upload_logs('/tmp/sbatch1');
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub test_05 {
+    my $name        = 'Slurm-torque test';
+    my $description = 'Basic slurm-torque test. https://fate.suse.com/323998';
+    my $pbs         = 'slurm_pbs.sh';
+
+    script_run("wget --quiet " . data_url("hpc/$pbs") . " -O $pbs");
+    assert_script_run("chmod +x $pbs");
+    my $result = script_output("sbatch $pbs");
+    ## execution (wall time) time set to 1m and there is a sleep
+    ## in the PBS script
+    ## so the worker should wait for the pbs to finish
+    ## sbatch is publishing some files, so the test should hang
+    sleep(80);
+    upload_logs('/tmp/Job_PBS_o');
+    upload_logs('/tmp/Job_PBS_e');
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub test_06 {
+    ##TODO: Add fail-over test
+}
+
+sub test_07 {
+    ##TODO: Accounting check
+}
 
 sub run {
     my $self  = shift;
@@ -53,39 +174,26 @@ sub run {
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
 
     $self->check_nodes_availability();
-    assert_script_run("srun -w slave-node00 date");
 
-    ## TODO provide more comprehensive checks for slurm
-    # job scheduling
-    for (my $i = 0; $i < 20; $i++) {
-        assert_script_run("srun -w slave-node00 date");
-        assert_script_run("srun -w slave-node01 date");
-    }
+    my $file = 'tmpresults.xml';
+    assert_script_run("touch $file");
+    script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
 
-    ## test sbatch
-    my $sbatch = 'slurm_sbatch.sh';
-    script_run("wget --quiet " . data_url("hpc/$sbatch") . " -O $sbatch");
-    assert_script_run("chmod +x $sbatch");
-    record_info('meminfo', script_output("cat /proc/meminfo"));
-    script_output("sbatch $sbatch");
-    ##sbatch SBATCH --time=0-00:01:00
-    ## so the worker should wait for the sbatch to finish
-    sleep(70);
-    upload_logs('/tmp/sbatch1');
-    record_info('INFO', 'sbatch slurm_sbatch.sh');
+    my %test;
+    %test = test_01();
+    pars_results(%test);
 
-    ## test slurm-torque: https://fate.suse.com/323998
-    my $pbs = 'slurm_pbs.sh';
-    script_run("wget --quiet " . data_url("hpc/$pbs") . " -O $pbs");
-    assert_script_run("chmod +x $pbs");
-    script_output("sbatch $pbs");
-    ## execution (wall time) time set to 1m and there is a sleep
-    ## in the PBS script
-    ## so the worker should wait for the pbs to finish
-    sleep(80);
-    upload_logs('/tmp/Job_PBS_o');
-    upload_logs('/tmp/Job_PBS_e');
-    record_info('INFO', 'sbatch slurm_pbs.sh');
+    %test = test_02();
+    pars_results(%test);
+
+    %test = test_04();
+    pars_results(%test);
+
+    %test = test_05();
+    pars_results(%test);
+
+    script_run("echo \"</testsuite>\" >> $file");
+    parse_extra_log('XUnit', 'tmpresults.xml');
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
