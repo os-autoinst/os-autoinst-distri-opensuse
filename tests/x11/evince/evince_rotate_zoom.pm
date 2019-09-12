@@ -9,6 +9,14 @@
 # without any warranty.
 
 # Summary: Evince: Rotate and Zoom
+# - Launch evince and open test.pdf from datadir
+# - Send CTRL-LEFT (rotate left) and check
+# - Send CTRL-RIGHT (rotate right) 2 times and check
+# - Send CTRL-LEFT (rotate left) and check
+# - Send CTRL-+ (zoom in) and check
+# - Send CTRL-MINUS (zoom out) and check
+# - Send CTRL-+ (zoom in)
+# - Exit evince
 # Maintainer: mitiao <mitiao@gmail.com>
 # Tags: tc#1436024
 

@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: Case 1503978 - LibreOffice: pyuno bridge
+# - Launch oowriter
+# - Open tools menu and select option "Run macros"
+# - On macro selector, choose python samples
+# - Run create table and check
+# - Quit libreoffice without saving
 # Maintainer: Grace Wang <gwang@suse.com>
 # Tags: poo#34141
 

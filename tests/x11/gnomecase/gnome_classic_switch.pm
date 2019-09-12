@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Gnome: switch between gnome(now default is sle-classic) and gnome-classic
+# - On display manager, switch to gnome classic
+# - Launch gnome-terminal
+# - Close gnome-terminal
+# - Launch xterm and check
+# - Close xterm
+# - Swich back to default session
+# - Launch gnome-terminal
+# - Close gnome-terminal
+# - Launch xterm and check
+# - Close xterm
 # Maintainer: xiaojun <xjin@suse.com>
 # Tags: tc#5255-1503849
 

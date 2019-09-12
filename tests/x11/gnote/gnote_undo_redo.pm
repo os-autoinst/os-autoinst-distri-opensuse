@@ -9,6 +9,17 @@
 # without any warranty.
 
 # Summary: Gnote: Test undo and redo
+# - Launch gnote
+# - Send CTRL-N, create a new note and check
+# - Type "opensuse"<ENTER>
+# - Type "OPENSUSE"<ENTER>
+# - Send CTRL-Z and check
+# - Send CTRL-SHIFT-Z and check
+# - Click button to back to all notes
+# - Select new note
+# - Send CTRL-Z and check
+# - Send CTRL-SHIFT-Z and check
+# - Cleanup gnote
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436173
 

@@ -10,6 +10,12 @@
 #testcase 5255-1503908:Evolution: setup timezone
 
 # Summary: tc#1503908: evolution_timezone_setup
+# - Open edit menu, preferences
+# - Open Calendar and Tasks
+# - Click on timezone selection
+# - On the map, select Shanghai timezone
+# - Select OK
+# - Close Evolution
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use strict;

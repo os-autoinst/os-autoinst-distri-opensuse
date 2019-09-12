@@ -10,6 +10,13 @@
 # Summary: tc# 1503817: Evolution: Imap Meeting
 #   This is used for tc# 1503817, Send the meeting request by evolution and the
 #   receiver will get the meeting request with imap protocol.
+# - Setup an imap account with credentials from internal_account_A
+# - Send a meeting request, from internal_account_A to internal_account_B,
+#   subject: current date and random strings and check
+# - Exit evolution
+# - Setup an imap account with credentials from internal_account_B
+# - Check for email with invitation and check results
+# - Exit evolution
 # Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
 
 use base "x11test";

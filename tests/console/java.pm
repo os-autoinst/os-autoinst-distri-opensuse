@@ -11,6 +11,9 @@
 #          the repositories and then it performs a series of basic
 #          tests, such as verifying the version, compile and run
 #          the Hello World program
+# - Stop packagekit service
+# - Install java packages according to system
+# - Download test_java.sh from data dir and execute
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 # Maintainer: Andrej Semen <asemen@suse.com>
 
