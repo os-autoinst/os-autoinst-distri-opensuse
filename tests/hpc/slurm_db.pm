@@ -47,6 +47,8 @@ EOF
     assert_script_run("mysql -uroot -e \"CREATE DATABASE slurm_acct_db;\"");
     assert_script_run("mysql -uroot -e \"CREATE USER \'slurm\'@\'$hostname.openqa.test\' IDENTIFIED BY \'password\';\"");
     assert_script_run("mysql -uroot -e \"GRANT ALL ON slurm_acct_db.* TO \'slurm\'@\'$hostname.openqa.test\';\"");
+    # Handle permissons for master node
+    assert_script_run("mysql -uroot -e \"GRANT ALL ON slurm_acct_db.* TO \'slurm\'@\'master-node00.openqa.test\';\"");
     assert_script_run("mysql -uroot -e \"FLUSH PRIVILEGES;\"");
 
     systemctl("restart mariadb");

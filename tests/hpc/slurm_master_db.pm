@@ -137,7 +137,80 @@ sub test_06 {
 }
 
 sub test_07 {
-    ##TODO: Accounting check
+    my $name        = 'Slurm accounting';
+    my $description = 'Basic check for slurm accounting cmd';
+    my $result      = 0;
+    my %users       = (
+        'user_1' => 'Sebastian',
+        'user_2' => 'Egbert',
+        'user_3' => 'Christina',
+        'user_4' => 'Jose',
+    );
+
+    ##Add users TODO: surely this should be abstracted
+    script_run("useradd $users{user_1}");
+    script_run("useradd $users{user_2}");
+    script_run("useradd $users{user_3}");
+    script_run("useradd $users{user_4}");
+
+    script_run('sacctmgr -i add cluster linux');
+    my $cluster = script_output('sacctmgr -n -p list cluster');
+
+    if (index($cluster, 'linux') == -1) {
+        #cluster not successfully added
+        $result = 1;
+        goto FAIL;
+    }
+
+    ### Create accounts in org=UNI_X
+    script_run("sacctmgr -i add account UNI_X_IT Description=\"IT at UNI_X\" Organization=UNI_X");
+    script_run("sacctmgr -i add account UNI_X_Math Description=\"Math at ORG_X\" Organization=UNI_X");
+    #Add users associated with account in org=UNI_X
+    script_run("sacctmgr -i create user name=$users{user_1} DefaultAccount=UNI_X_Math");
+    script_run("sacctmgr -i create user name=Jose DefaultAccount=UNI_X_Math");
+    script_run("sacctmgr -i create user name=$users{user_2} DefaultAccount=UNI_X_IT");
+    script_run("sacctmgr -i create user name=Christian DefaultAccount=UNI_X_IT");
+
+    ### Create accounts in org=UNI_Y
+    script_run("sacctmgr -i add account UNI_Y_Physics Description=\"UNI_Y\" Organization=UNI_Y");
+    script_run("sacctmgr -i add account UNI_Y_Biology Description=\"UNI_Y\" Organization=UNI_Y");
+    #Add users associated with account in org=UNI_Y
+    script_run("sacctmgr -i create user name=Joe DefaultAccount=UNI_Y_Physics");
+    script_run("sacctmgr -i create user name=Noah DefaultAccount=UNI_Y_Biology");
+    script_run("sacctmgr -i create user name=$users{user_4} DefaultAccount=UNI_Y_Physics");
+    script_run("sacctmgr -i create user name=$users{user_3} DefaultAccount=UNI_Y_Biology");
+
+    script_run('sacctmgr show account');
+    script_run('sacctmgr show associations');
+    record_info('INFO', script_run('sacctmgr show account'));
+
+    script_run("srun --uid=$users{user_1} --account=UNI_X_Math -N 2 date");
+    script_run("srun --uid=$users{user_2} --account=UNI_X_IT -N 2 hostname");
+
+    script_run("srun --uid=$users{user_3} --account=UNI_Y_Biology -N 3 date");
+    script_run("srun --uid=$users{user_4} --account=UNI_Y_Physics -N 3 hostname");
+
+    #Yet another sleep. Slurm.conf::JobAcctGatherFrequency=12
+    #In order to allow information to be dumped to the DB, we need to wait some time
+    sleep(30);
+
+    my $jobs = script_output("sacct -n -p --starttime 2010-01-01 --format=User,Account,JobID,Jobname,partition,state,time,start,end,elapsed,MaxRss,MaxVMSize,nnodes,ncpus,nodelist");
+
+    #check if there are expected srun jobs being recorded in the accounting db
+    $result = 1 unless (($jobs =~ /$users{user_1}/) &&
+        ($jobs =~ /$users{user_2}/) &&
+        ($jobs =~ /$users{user_3}/) &&
+        ($jobs =~ /$users{user_4}/));
+
+    ##check the content directly in the db; see: bugzilla#1150565
+    # This is only for information now
+    # TODO: consider adding sanity checks - direct checks in the db - for some tests
+    my $db_elements = script_output("mysql -h slave-node02.openqa.test -uslurm -e \"use slurm_acct_db; select * from linux_job_table;\"");
+    record_info('INFO DB', "$db_elements");
+
+  FAIL:
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 sub run {
@@ -150,7 +223,7 @@ sub run {
     # and proper services are enabled and started
     zypper_call('in slurm slurm-munge slurm-torque');
 
-    zypper_call('in nfs-client rpcbind');
+    zypper_call('in nfs-client rpcbind mariadb');
     systemctl 'start nfs';
     systemctl 'start rpcbind';
     record_info('show mounts aviable on the supportserver', script_output('showmount -e 10.0.2.1'));
@@ -190,6 +263,9 @@ sub run {
     pars_results(%test);
 
     %test = test_05();
+    pars_results(%test);
+
+    %test = test_07();
     pars_results(%test);
 
     script_run("echo \"</testsuite>\" >> $file");
