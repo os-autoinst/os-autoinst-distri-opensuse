@@ -15,13 +15,19 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_tumbleweed';
 use x11utils 'desktop_runner_hotkey';
 
 
 sub run {
     wait_screen_change { send_key desktop_runner_hotkey };
     send_key "down";
-    type_string "about\n";
+    # In XFCE 4.14+, a dynamic search is performed - poo#56111
+    if (is_tumbleweed) {
+        type_string "about";
+    } else {
+        type_string "about\n";
+    }
     assert_screen 'test-xfce4_appfinder-1';
     send_key "ret";
     assert_screen 'test-xfce4_appfinder-2';
