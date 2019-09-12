@@ -99,7 +99,7 @@ test on the client side. The test runs TEST_TIME seconds.
 sub run_test {
     my ($self, $client, $server) = @_;
     record_info('server', 'Start IPERF in server' . $server->public_ip);
-    $server->run_ssh_command(cmd => 'nohup iperf -s -D &');
+    $server->run_ssh_command(cmd => 'nohup iperf -s -D &', no_quote => 1);
     sleep 60;    # Wait 60 seconds so that the server starts up safely and the clinet can connect to it
     record_info('client', 'Start IPERF in client');
     my $output = $client->run_ssh_command(cmd => 'iperf -t ' . get_required_var('TEST_TIME') . ' -c ' . $server->public_ip);
