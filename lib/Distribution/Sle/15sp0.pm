@@ -18,7 +18,7 @@ package Distribution::Sle::15sp0;
 use strict;
 use warnings;
 use Installation::Partitioner::LibstorageNG::v3::ExpertPartitionerController;
-use parent 'Distribution::Opensuse::Tumbleweed';
+use parent 'Distribution::Sle::15_current';
 
 # override
 sub get_expert_partitioner {
