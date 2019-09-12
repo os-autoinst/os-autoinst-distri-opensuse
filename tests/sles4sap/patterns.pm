@@ -14,7 +14,6 @@ use base "sles4sap";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_upgrade);
-use Utils::Backends 'use_ssh_serial_console';
 use strict;
 use warnings;
 

@@ -16,7 +16,6 @@ use strict;
 use warnings;
 use testapi;
 use version_utils 'is_sle';
-use Utils::Backends 'use_ssh_serial_console';
 
 sub upload_install_log {
     script_run "tar -zcvf /tmp/hana_install.log.tgz /var/tmp/hdb*";
