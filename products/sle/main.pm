@@ -886,9 +886,7 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
-    loadtest "console/coredump_collect";
-    loadtest "shutdown/cleanup_before_shutdown";
-    loadtest "shutdown/shutdown";
+    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked'));
 
 }
 elsif (get_var("WINDOWS")) {
