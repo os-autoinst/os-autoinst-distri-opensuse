@@ -9,6 +9,11 @@
 # without any warranty.
 
 # Summary: Gedit: help about
+# - Launch gedit
+# - Check about window
+# - Check credits
+# - Close about
+# - Exit gedit
 # Maintainer: mitiao <mitiao@gmail.com>
 # Tags: tc#1436120
 

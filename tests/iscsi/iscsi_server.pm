@@ -9,6 +9,16 @@
 
 # Summary: Test suite for iSCSI server and client
 #    Multimachine testsuites, server test creates iscsi target and client test uses it
+# - Open xterm, configure server network and create drive for iscsi
+# - Verify iscsi connection before setup
+# - Start yast2 iscsi server wizard
+# - Verify systemd services after configuration
+# - Create mutex for child job -> triggers start of initiator configuration
+# - Wait for child mutex, initiator is being configured
+# - Verify iscsi connections, ACL must be set!
+# - Initiator can continue to test iscsi drive
+# - Wait idle while initiator finishes its execution
+# - Run till client is done
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2_module_guitest";

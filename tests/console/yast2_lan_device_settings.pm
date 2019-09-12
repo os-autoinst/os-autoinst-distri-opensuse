@@ -70,9 +70,8 @@ sub run {
     if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();
 
-        send_key "alt-s";              # move to hostname/DNS tab
-        send_key "alt-a";              # assign hostname to loopback IP
-        assert_screen 'loopback-assigned';
+        send_key 'alt-s';              # move to hostname/DNS tab
+        send_key_until_needlematch 'loopback-assigned', 'alt-a';    # assign hostname to loopback IP
         close_yast2_lan();
 
         # verify that loopback has been set
@@ -81,9 +80,8 @@ sub run {
         open_yast2_lan();
 
         # unassign back from loopback IP
-        send_key "alt-s";
-        send_key "alt-a";
-        assert_screen 'loopback-unassigned';
+        send_key 'alt-s';
+        send_key_until_needlematch 'loopback-unassigned', 'alt-a';
         close_yast2_lan();
     }
 

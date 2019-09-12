@@ -29,7 +29,7 @@ Base class implementation of distribution class necessary for testapi
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
-  match_has_tag set_var type_password type_string wait_serial
+  match_has_tag set_var type_password type_string wait_serial $serialdev
   mouse_hide send_key_until_needlematch record_info record_soft_failure
   wait_still_screen wait_screen_change get_required_var diag);
 
@@ -742,6 +742,9 @@ sub activate_console {
         ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
+        $serialdev = 'sshserial';
+        set_var('SERIALDEV', $serialdev);
+        bmwqemu::save_vars();
     }
     elsif ($console eq 'svirt' || $console eq 'hyperv-intermediary') {
         my $os_type = (check_var('VIRSH_VMM_FAMILY', 'hyperv') && $console eq 'svirt') ? 'windows' : 'linux';

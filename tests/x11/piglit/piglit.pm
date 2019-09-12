@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Piglit testsuite
+# - Enable piglit repository and install piglit
+# - Create a temporary directory
+# - Start piglit testsuite
+# - handle vnc stalling
+# - Upload logs
+# - Check results from crashed tests
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 

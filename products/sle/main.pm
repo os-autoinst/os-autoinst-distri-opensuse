@@ -21,7 +21,6 @@ use version_utils
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
-use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
 use Utils::Architectures;
@@ -138,12 +137,6 @@ if (is_sle('15+')) {
 }
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
-if (is_sle('15+')) {
-    if (check_var('ARCH', 's390x') and get_var('DESKTOP', '') =~ /gnome|minimalx/) {
-        diag 'BUG: bsc#1058071 - No VNC server available in SUT, disabling X11 tests. Re-enable after bug is fixed';
-        set_var('DESKTOP', 'textmode');
-    }
-}
 
 # don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
 # For released products we want install updates during installation, only in minimal workflow disable
@@ -730,8 +723,7 @@ elsif (get_var("QA_TESTSET")) {
 }
 elsif (get_var("QA_TESTSUITE")) {
     boot_hdd_image;
-    add_qa_head_repo;
-    add_qa_web_repo;
+    loadtest "qa_automation/prepare_qa_repo";
     loadtest "qa_automation/install_test_suite";
     loadtest "qa_automation/execute_test_run";
 }
@@ -894,6 +886,10 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
+    loadtest "console/coredump_collect";
+    loadtest "shutdown/cleanup_before_shutdown";
+    loadtest "shutdown/shutdown";
+
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
@@ -1044,9 +1040,7 @@ else {
         load_mm_autofs_tests;
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {
-        # Set 'DESKTOP' for origin system to avoid SLE15 s390x bug: bsc#1058071 - No VNC server available in SUT
         # Set origin and target version
-        set_var('DESKTOP',                'gnome');
         set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
         loadtest "migration/version_switch_origin_system";

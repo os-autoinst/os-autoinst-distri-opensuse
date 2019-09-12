@@ -9,7 +9,14 @@
 
 # Summary: Configure nfs-server services in yast command line mode,
 #          including add, delete, set and summary.
-#
+
+# - Start the nfs-server service.
+# - Add a directory to export and used exportfs command verify.
+# - Specifies additional parameters for the NFS server.
+# - Displays a summary of the NFS server configuration.
+# - Restore nfs-server settings and used summary parameter verify.
+# - Delete the tmp directory for testing.
+# - Stop the nfs-server service and verify the service status.
 # Maintainer: Ming Li <mli@suse.com>
 
 =head1 Create regression test for nfs-server and verify

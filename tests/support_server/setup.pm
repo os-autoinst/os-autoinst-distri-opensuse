@@ -14,6 +14,24 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: supportserver and supportserver generator implementation
+# - Configure a static network at "10.0.2.1" and check if it is working
+# - Configure network and enable nat
+# - Setup dhcp server if necessary
+# - Setup pxe server if necessary
+# - Setup tftp server if necessary
+# - Setup http server if necessary
+# - Setup dns server if necessary
+# - Setup autoyast tests if necessary
+# - Setup ntp server if necessary
+# - Setup xvnc server if necessary
+# - Setup ssh server if necessary
+# - Setup xdmcp server if necessary
+# - Setup iscsi server if necessary
+# - Setup iscsi target server if necessary
+# - Setup stunnel server if necessary
+# - Setup mariadb server if necessary
+# - Setup nfs server if necessary
+# - Create locks for each server created
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
 use strict;
@@ -541,7 +559,6 @@ sub run {
     }
 
     if (exists $server_roles{dhcp}) {
-        zypper_call("in -t pattern dhcp_dns_server") if is_opensuse;
         setup_dhcp_server((exists $server_roles{dns}), 0);
     }
     if (exists $server_roles{qemuproxy}) {
@@ -555,7 +572,6 @@ sub run {
         $setup_script .= "systemctl restart apache2\n";
     }
     if (exists $server_roles{dns}) {
-        zypper_call("in -t pattern dhcp_dns_server") if is_opensuse;
         setup_dns_server();
     }
 

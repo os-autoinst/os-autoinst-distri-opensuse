@@ -15,6 +15,10 @@
 #
 # Summary: Setup mail server for testing "usr.lib.dovecot.*" & "usr.sbin.dovecot":
 #          set up it with Postfix and Dovecot and create a testing mail.
+# - Set up mail server with Postfix and Dovecot
+# - Install telnet
+# - Using telnet, send an email through smtp server
+# - Upload mail logs as reference
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#46235, poo#46238, tc#1695947, tc#1695943
 

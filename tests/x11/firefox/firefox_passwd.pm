@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -52,7 +52,7 @@ sub run {
 
     send_key "alt-shift-u";
     wait_still_screen 3;
-    send_key 'spc';
+    send_key 'spc' if $self->is_firefox_60;
 
     assert_screen('firefox-passwd-master_setting');
 
@@ -85,15 +85,18 @@ sub run {
     send_key "alt-e";
     send_key "n";    #Preferences
     assert_and_click('firefox-passwd-security');
-    send_key "alt-shift-p";    #"Saved Passwords..."
-    send_key "alt-shift-p";    #"Show Passwords"
-    type_string $masterpw. "\n";
-    send_key "alt-shift-l";
+    if ($self->is_firefox_60) {
+        send_key "alt-shift-l";    #"Saved Logins"
+    } else {
+        ## tweak for firefox 68
+        send_key "alt-shift-l";    #"Clear Data"
+        send_key "alt-shift-l";    #"Saved Logins"
+    }
     wait_still_screen 3;
     send_key 'spc';
     assert_screen('firefox-passwd-saved');
 
-    send_key "alt-shift-a";    #"Remove"
+    send_key "alt-shift-a";        #"Remove"
     wait_still_screen 3;
     send_key "alt-y";
     wait_still_screen 3;

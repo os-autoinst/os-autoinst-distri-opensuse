@@ -8,6 +8,9 @@
 # without any warranty.
 
 # Summary: mdadm test, run script creating RAID 0, 1, 5, re-assembling and replacing faulty drive
+# - Fetch mdadm.sh from datadir
+# - Execute bash mdadm.sh |& tee mdadm.log
+# - Upload mdadm.log
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base 'consoletest';

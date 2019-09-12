@@ -1,0 +1,9 @@
+name:           yast2_cmd@yast-s390x-kvm
+description:    >
+    Yast2 cmd interface tests.
+
+schedule:
+     - installation/bootloader_zkvm
+     - boot/boot_to_desktop
+     - yast2_cmd/yast_rdp
+     - yast2_cmd/yast_timezone

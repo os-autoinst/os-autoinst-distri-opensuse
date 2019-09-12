@@ -8,6 +8,13 @@
 # without any warranty.
 
 # Summary: snapper without DBus service running tests / POO#15944 FATE#321049
+# - Run snapper create for the following options:
+#   - Types 'single', 'command', 'pre' and 'post'
+#   - Cleanup algorithms 'number', 'timeline', and 'empty-pre-post'
+#   - Use options --pre-number, --cleanup-algorithm, --print-number,
+#     --description, --userdata
+#   - List all created snapshots
+#   - Cleanup by deleting created snapshots
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
 use strict;
@@ -21,12 +28,12 @@ use utils;
 # that we got what we expect. See poo#25716
 sub get_last_snap_number {
     # get snapshot id column, parse output in perl to avoid SIGPIPE
-    my $snap_head = (split(/\n/, script_output("snapper list")))[0];
+    my $snap_head = script_output("snapper list");
     # strip kernel messages - for some reason we always get something like this at this very position:
     # [ 1248.663412] BTRFS info (device vda2): qgroup scan completed (inconsistency flag cleared)
     my @lines = split(/\n/, $snap_head);
     @lines = grep(/\|/, @lines);
-    die "Unable to receive snapshot list column header line" unless (@lines);
+    die "Unable to receive snapshot list column header line - got this output: $snap_head" unless (@lines);
     $snap_head = $lines[0];
 
     my $snap_col_found    = 0;

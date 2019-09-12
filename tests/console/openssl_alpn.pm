@@ -8,6 +8,13 @@
 # without any warranty.
 
 # Summary: Test ALPN support in openssl
+# - Run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365
+#   -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"' and create
+#   certificate
+# - Run "openssl s_server -key domain.key -cert domain.crt -alpn http" and check
+# - Run "openssl s_client -alpn http < /dev/null" and check for "ALPN protocol:
+#   http"
+# - Send "CTRL-C" and save screenshot
 # Maintainer: Michal Nowak <mnowak@suse.com>
 # Tags: fate#320292
 

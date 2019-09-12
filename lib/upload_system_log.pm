@@ -33,6 +33,8 @@ sub system_status {
         repos                      => "zypper repos -u",
         lspci                      => "lspci",
         lsmod                      => "lsmod",
+        vmstat                     => "vmstat -w",
+        w                          => "w",
         '/proc/sys/kernel/tainted' => "cat /proc/sys/kernel/tainted",
     );
 

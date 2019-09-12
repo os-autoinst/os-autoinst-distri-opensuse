@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Run 'crash' utility on a kernel memory dump
-# Maintainer: Michal Nowak <mnowak@suse.com>
+# Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use base "y2_module_consoletest";
 use strict;
@@ -60,6 +60,7 @@ sub run {
     else {
         power_action('reboot', observe => 1, keepconsole => 1);
     }
+    unlock_if_encrypted;
     # Wait for system's reboot; more time for Hyper-V as it's slow.
     $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
     select_console 'root-console';

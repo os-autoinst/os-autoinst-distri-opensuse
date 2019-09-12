@@ -1,4 +1,18 @@
 # Declarative Schedule
+- [Introduction](#introduction)
+- [Overview](#overview)
+- [Getting started](#getting-started)
+	- [1. Create declarative schedule](#1-create-declarative-schedule)
+		- [name](#name)
+		- [description](#description)
+		- [vars](#vars)
+		- [conditional_schedule](#conditional_schedule)
+		- [schedule](#schedule)
+		- [test_data](#test_data)
+	- [2. Enable scheduler in settings](#2-enable-scheduler-in-settings)
+	- [3. Enable scheduler in main file](#3-enable-scheduler-in-main-file)
+	- [4. Use different schedules for the same scenario](#4-use-different-schedules-for-the-same-scenario)
+- [Other uses](#other-uses)
 
 ## Introduction
 
@@ -6,21 +20,6 @@ This is the documentation for declarative scheduling of test modules
 which allows testers to schedule existing test modules in a more flexible way replacing main.pm mechanism.
 However it is still work-in-progress due to it missing some features to be a full working solution
 to replace it.
-
-## Contents
-
-* [Overview](#overview)
-* [Getting started](#getting-started)
-  * [1. Create declarative schedule](#1-create-declarative-schedule)
-    * [_name_](#name)
-    * [_description_](#description)
-    * [_vars_](#vars)
-    * [_conditional_schedule_](#conditional_schedule)
-    * [_schedule_](#schedule)
-    * [_test_data_](#test_data)
-  * [2. Enable scheduler in settings](#2-enable-scheduler-in-settings)
-  * [3. Enable scheduler in main file](#3-enable-scheduler-in-main-file)
-* [Other uses](#other-uses)
 
 ## Overview
 
@@ -174,7 +173,7 @@ test_data:
 ```
 -  it is allowed to use multiple `!include` tags in yaml scheduling
    file. In the case they should be provided as list:
-   
+
 ```
 ...
 test_data:
@@ -184,7 +183,7 @@ test_data:
 
 - `!include` tag can be mixed with the test data that is defined in
   scheduling file directly:
-  
+
 > **_IMPORTANT:_** Test data in scheduling file has priority over the
 > same data from the imported file (i.e. it allows to override imported
 > data).
@@ -215,6 +214,64 @@ It is recommended to call the function after all variables have been set in main
 ...
 return 1 if load_yaml_schedule;
 ```
+
+### 4. Use different schedules for the same scenario
+
+Due to the fact that different backends need extra steps and that we want to abstract from the details,
+we might want to use single scenario even when there are distinct.
+For example, RAID 0 on UEFI will require different partitioning then in case of legacy boot.
+Since we got Job template YAML feature, we can easily manage small and big discrepancies.
+
+Consider example with RAID 0, assume we have multiple architectures to test on, then our scenarios section
+can look like following:
+
+```yaml
+scenarios:
+  aarch64:
+    medium:
+    - RAID0:
+        settings:
+          YAML_SCHEDULE: schedule/yast/raid/raid0_sle_gpt_uefi.yaml
+  ppc64le:
+    medium:
+    - RAID0:
+      settings:
+        YAML_SCHEDULE: schedule/yast/raid/raid0_sle_gpt_prep_boot.yaml
+  ppc64le:
+    medium:
+    - RAID0:
+      settings:
+        YAML_SCHEDULE: schedule/yast/raid/raid0_sle_gpt_prep_boot.yaml
+  x86_64:
+    medium:
+    - RAID0_gpt:
+      settings:
+        YAML_SCHEDULE: schedule/yast/raid/raid0_sle_gpt.yaml
+```
+
+You have differences due to backend implementation? Not a problem, you can override
+settings per machine:
+
+```yaml
+scenarios:
+  x86_64:
+    medium:
+    - minimal+base_yast:
+      machine: 64bit
+      settings:
+        YAML_SCHEDULE: schedule/yast/minimal+base/minimal+base@yast.yaml
+    - minimal+base_yast:
+      machine: svirt-xen-hvm
+      settings:
+        YAML_SCHEDULE: schedule/yast/minimal+base/minimal+base@yast-xen.yaml
+    - minimal+base_yast:
+      machine: svirt-hyperv
+      settings:
+        YAML_SCHEDULE: schedule/yast/minimal+base/minimal+base@yast-svirt-hyperv.yaml
+```
+
+And on top of that you can use aliases to avoid duplication. For more details, check output
+[official documentation of openQA](http://open.qa/docs/)
 
 ## Other uses
 

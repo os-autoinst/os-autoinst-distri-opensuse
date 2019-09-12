@@ -20,22 +20,22 @@ use Test::Assert ':all';
 #
 # Define blocks of expected data for partitioning layout in different products and architectures
 #
-# 4 btrfs partitions mounted on / in raid partition
-my $btrfs = qr/(md0(p1)?.+btrfs.+\/.*){4}/s;
-# 4 swap partitions in raid partition
-my $swap = qr/(md((1|2)p1)?.+swap.+\[SWAP\].*){4}/s;
-# 8 raid partitions
-my $raid_partitions_2_arrays = qr/(md(0|1).*){8}/s;
-# 12 raid partitions
-my $raid_partitions_3_arrays = qr/(md(0|1|2).*){12}/s;
+# 4 btrfs partitions mounted on / in raid partition, with new lsblk output, partition is listed only once
+my $btrfs = qr/(md0(p1)?.+btrfs.+\/.*){4}|(md0(p1)?.+btrfs.+\/.*){1}/s;
+# 4 swap partitions in raid partition, with new lsblk output partitions are listed only once
+my $swap = qr/(md((1|2)p1)?.+swap.+\[SWAP\].*){4}|(md((1|2)p1)?.+swap.+\[SWAP\].*){1}/s;
+# 8 raid partitions, with new lsblk output, with new lsblk output partitions are listed only once
+my $raid_partitions_2_arrays = qr/(md(0|1).*){8}|(md(0|1).*){2}/s;
+# 12 raid partitions, with new lsblk output partitions are listed only once
+my $raid_partitions_3_arrays = qr/(md(0|1|2).*){12}|(md(0|1|2).*){3}/s;
 # 8 linux raid members
 my $linux_raid_member_2_arrays = qr/(vd(a|b|c|d)(2|3).+linux_raid_member.*){8}/s;
 # 12 linux raid members
 my $linux_raid_member_3_arrays = qr/(vd(a|b|c|d)(1|2|3|4).+linux_raid_member.*){12}/s;
 # 4 hard disks
 my $hard_disks = qr/(vd(a|b|c|d)\D+.*){4}/s;
-# 4 ext4 partitions mounted on /boot
-my $ext4_boot = qr/(md1(p1)?.+ext4.+\/boot.*){4}/s;
+# 4 ext4 partitions mounted on /boot, with new lsblk output partitions are listed only once
+my $ext4_boot = qr/(md1(p1)?.+ext4.+\/boot.*){4}|(md1(p1)?.+ext4.+\/boot.*){1}/s;
 # Unique vfat partition in first disk (mounted on /boot)
 my $vfat_efi = qr/vda1.+vfat.\s+\/boot\/efi.*(vd(b|c|d)1(?!.*vfat).*){3}/s;
 #

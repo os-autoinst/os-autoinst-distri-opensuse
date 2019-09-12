@@ -9,6 +9,13 @@
 
 # Summary: LibreOffice: Verify Main Menu Recent Documents get populated
 #   with files accessed and modified using LibreOffice (Case 1503783)
+# - Launch oowriter
+# - Write "Hello World!" and save the file as "hello.odt"
+# - Close libreoffice
+# - Relaunch oowriter and check Recent documents
+# - Clear recent documents list
+# - Quit libreoffice
+# - Cleanup
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11test";
@@ -19,8 +26,10 @@ use utils;
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
+    my ($self) = shift;
+
     # Edit file hello.odt using oowriter
-    x11_start_program('oowriter');
+    $self->libreoffice_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
     assert_and_click('ooffice-writing-area', timeout => 10);
     wait_still_screen;

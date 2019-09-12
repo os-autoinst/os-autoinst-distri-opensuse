@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: gnote startup
+# - Install gnote if necessary
+# - Launch gnote
+# - Close application
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 
 use base "x11test";

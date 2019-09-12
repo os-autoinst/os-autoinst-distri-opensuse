@@ -8,7 +8,7 @@ use testapi;
 use LWP::Simple;
 use Config::Tiny;
 use utils;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 use POSIX 'strftime';
 
 sub post_fail_hook {
@@ -512,6 +512,11 @@ sub setup_mail_account {
     assert_screen "evolution_mail-max-window";
 }
 
+# Firefox 60 is the current Extended Support Release.
+sub is_firefox_60 {
+    is_sle('<=15-SP1') || is_leap('<=15.1');
+}
+
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
 # .mozilla is stored as .mozilla_first_run to be reference profile for following tests
 sub start_clean_firefox {
@@ -526,7 +531,7 @@ sub start_clean_firefox {
     # to avoid stuck trackinfo pop-up, refresh the browser
     $self->firefox_open_url('opensuse.org');
     my $count = 10;
-    while ($count--) {
+    while (is_firefox_60() && $count--) {
         # workaround for bsc#1046005
         wait_screen_change { assert_and_click 'firefox_titlebar' };
         if (check_screen 'firefox_trackinfo', 3) {
@@ -539,6 +544,12 @@ sub start_clean_firefox {
         else {
             send_key 'f5';
         }
+    }
+
+    # get rid of "Firefox Privacy Notice" page
+    wait_still_screen(3);
+    if (check_screen 'firefox_privacy_notice') {
+        assert_and_click 'firefox_privacy_notice';
     }
 
     # get rid of the reader & tracking pop-up once, first test should have milestone flag
@@ -592,10 +603,7 @@ sub restart_firefox {
     $url ||= '/home';
     # exit firefox properly
     wait_still_screen 2;
-    send_key 'alt-f';
-    assert_screen('firefox-menu-quit');
-    send_key 'q';
-    assert_screen 'xterm';
+    $self->exit_firefox_common;
     type_string "$cmd\n";
     type_string "firefox $url >>firefox.log 2>&1 &\n";
     $self->firefox_check_default;
@@ -665,7 +673,7 @@ sub firefox_open_url {
     }
 }
 
-sub exit_firefox {
+sub exit_firefox_common {
     # Exit
     send_key 'alt-f4';
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
@@ -679,6 +687,11 @@ sub exit_firefox {
         assert_and_click 'xterm-without-focus';
         assert_screen 'xterm-left-open';
     }
+}
+
+sub exit_firefox {
+    my ($self) = @_;
+    $self->exit_firefox_common;
     script_run "cat firefox.log";
     save_screenshot;
     upload_logs "firefox.log";

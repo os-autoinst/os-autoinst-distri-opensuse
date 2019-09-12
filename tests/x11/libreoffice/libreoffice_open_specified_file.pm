@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: Case 1503881 - Verify LibreOffice opens specified file types correctly
+# - Download and uncompress libreoffise sample files from datadir
+# - Launch libreoffice
+# - Open test files of different formats and check
+# - Quit libreoffice
+# - Cleanup
 # Maintainer: dehai <dhkong@suse.com>
 
 use base "x11test";
@@ -24,7 +29,7 @@ sub run {
     $self->upload_libreoffice_specified_file();
 
     # start libreoffice
-    x11_start_program('libreoffice');
+    $self->libreoffice_start_program('libreoffice');
 
     # open test files of different formats
     my $i = 0;
@@ -36,6 +41,11 @@ sub run {
         type_string_slow "/home/$username/Documents/ooo-test-doc-types/test.$tag\n";
         wait_still_screen 3;
         assert_screen("libreoffice-test-$tag", 120);
+        if (match_has_tag('ooffice-tip-of-the-day')) {
+            # Unselect "_S_how tips on startup", select "_O_k"
+            send_key "alt-s";
+            send_key "alt-o";
+        }
         # Close every 3 files to reduce the VM's burden
         if ($i % 3 == 0) { send_key_until_needlematch('libreoffice-test-doc', 'alt-f4', 5, 10); }
         $i++;

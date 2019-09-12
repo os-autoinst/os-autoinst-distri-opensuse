@@ -9,6 +9,13 @@
 
 # Summary: this test checks that YaST's tftp-server module are
 #          setup, enabled and disabled correctly in cmd mode.
+# - Install yast2-tftp-server tftp
+# - Setup tftp using directory as "/srv/tftpboot", enable directory listing
+# - Enable tftp-server service
+# - Adjust permissions and create a test file inside directory
+# - Connect using tftp command, get test file and check
+# - Connect using tftp command, put test file back
+# - Cleanup
 # Maintainer: Shukui Liu <skliu@suse.com>
 
 use base 'consoletest';

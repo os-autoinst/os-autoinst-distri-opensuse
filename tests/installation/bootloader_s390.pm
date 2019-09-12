@@ -317,7 +317,9 @@ sub run {
 
     # We have textmode installation via ssh and the default vnc installation so far
     if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-        type_string("yast.ssh\n");
+        # Workaround for bsc#1142040
+        # type_string("yast.ssh\n");
+        type_string("QT_XCB_GL_INTEGRATION=none yast.ssh\n") && record_soft_failure('bsc#1142040');
     }
     wait_still_screen;
 

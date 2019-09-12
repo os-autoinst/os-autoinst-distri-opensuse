@@ -54,12 +54,13 @@ sub load_installation_tests {
         # boo#1099762
         # undefined method "safe_copy" for nil:NilClass
         # YaST2 crashes if disk is too small for a viable proposal
-        loadtest('installation/welcome');
-        loadtest('installation/installation_mode');
-        loadtest('installation/logpackages');
-        loadtest('installation/system_role');
-        loadtest('installation/user_settings_root');
-        loadtest('installation/installation_overview');
+        loadtest 'installation/welcome';
+        loadtest 'installation/installation_mode';
+        loadtest 'installation/logpackages';
+        loadtest 'installation/system_role';
+        loadtest 'installation/ntp_config_settings';
+        loadtest 'installation/user_settings_root';
+        loadtest 'installation/installation_overview';
     }
     else {
         # Full list of installation test-modules can be found at 'main_common.pm'

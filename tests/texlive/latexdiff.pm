@@ -8,6 +8,11 @@
 # without any warranty.
 
 # Summary: Test the latexdiff command with a simple example
+# - Install texlive-latexdiff-bin
+# - Run latexdiff between to latex files (original and modified) and save output
+# - Convert output file from diff to pdf
+# - Open created pdf and check
+# - Cleanup
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
 use base 'x11test';

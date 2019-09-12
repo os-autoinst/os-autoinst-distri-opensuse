@@ -253,6 +253,10 @@ sub power_action {
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $soft_fail_data = {bugref => 'bsc#1057637', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+    # Kubeadm also requires some extra time
+    if (check_var 'SYSTEM_ROLE', 'kubeadm') {
+        $soft_fail_data = {bugref => 'poo#55127', soft_timeout => 90, timeout => $shutdown_timeout *= 2};
+    }
     # Sometimes QEMU CD-ROM pop-up is displayed on shutdown, see bsc#1137230
     if (is_opensuse && check_screen 'qemu-cd-rom-authentication-required') {
         $soft_fail_data = {bugref => 'bsc#1137230', soft_timeout => 60, timeout => $shutdown_timeout *= 5};

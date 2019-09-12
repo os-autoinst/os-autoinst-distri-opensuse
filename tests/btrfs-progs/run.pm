@@ -62,17 +62,21 @@ sub get_test_list {
 # Run a single test, return test result and copy log to file
 # test - test to run(e.g. 001)
 sub test_run {
-    my $num = shift;
+    my $num     = shift;
+    my $status  = 'PASSED';
+    my $logfile = CATEGORY . '-tests-results.txt';
+
     script_run("./clean-tests.sh");
-    my $ret    = script_output("TEST=$num\\* ./" . CATEGORY . '-tests.sh', 600, proceed_on_failure => 1);
-    my $status = 'PASSED';
-    if ($ret =~ /[Ff]ailed/) {
+    my $ret = script_output("TEST=$num\\* ./" . CATEGORY . '-tests.sh | tee output.log;', 600, proceed_on_failure => 1);
+
+    if ($ret =~ /test\s+failed\s+for\s+case/i) {
         $status = 'FAILED';
     }
-    elsif ($ret =~ /NOTRUN/) {
-        $status = 'SKIPPED';
+    elsif ($ret =~ /NOTRUN|[Ff]ailed\s+prerequisiti?es/) {
+        $status  = 'SKIPPED';
+        $logfile = 'output.log';
     }
-    script_run('cp ' . CATEGORY . '-tests-results.txt ' . LOG_DIR . CATEGORY . "/$num.txt");
+    script_run("cp $logfile " . LOG_DIR . CATEGORY . "/$num.txt");
     return $status;
 }
 

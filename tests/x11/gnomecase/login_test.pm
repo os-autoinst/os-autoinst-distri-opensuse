@@ -10,6 +10,9 @@
 # Summary: testcase 5255-1503905: Gnome:gnome-login test
 #   other login scenario has been coverred by the change_password
 #   script, here only cover the auto_login
+# - Start gnome-settings, unlock user settings
+# - Enable auto-login and reboot
+# - Disable auto-login
 # Maintainer: xiaojun <xjin@suse.com>
 
 use base "x11test";

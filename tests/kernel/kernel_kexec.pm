@@ -25,6 +25,8 @@ use utils;
 sub run {
     my $self = shift;
     select_console('root-console');
+    # clear console to prevent linux-login to match before reboot
+    clear_console;
     # Copy kernel image and rename it
     my $kernel_orig = script_output('find /boot -maxdepth 1 -name "*$(uname -r)" | grep -iP "image|vmlinu"', 120);
     (my $kernel_new = $kernel_orig) =~ s/-default$/-kexec/;
@@ -43,9 +45,6 @@ sub run {
 
     # kexec -l
     assert_script_run("kexec -l $kernel_new --initrd=$initrd_new --command-line='$cmdline'");
-    # clear console to prevent next assert_screen to match on the prompt
-    # before reboot
-    clear_console;
     # kexec -e
     # don't use built-in systemctl api, see poo#31180
     script_run("systemctl kexec", 0);

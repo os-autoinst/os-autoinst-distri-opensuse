@@ -17,10 +17,15 @@ use warnings;
 use testapi;
 
 sub run {
+    assert_and_click 'windows-desktop';
     send_key 'alt-f4';
     assert_screen 'windows-shutdown';
     send_key 'ret';    # press ok to shutdown the os
     assert_shutdown;
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

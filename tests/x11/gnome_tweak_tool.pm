@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: GNOME Tweak Tool
+# - Launch gnome-tweaks and check
+# - In case of fail, try gnome-tweak-tool
+# - Open fonts dialog
+# - Close gnome tweak tool
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
 use base "x11test";

@@ -329,8 +329,9 @@ sub download_guest_assets {
     my $remote_export_dir = "/var/lib/openqa/factory/other/";
     my $mount_point       = "/tmp/remote_guest";
 
-    assert_script_run "if [ ! -d $mount_point ];then mkdir -p $mount_point;fi";
+    script_run "if [ -d $mount_point ]; then if findmnt $mount_point; then umount $mount_point; fi; else mkdir -p $mount_point; fi";
     save_screenshot;
+
     # tip: nfs4 is not supported on sles12sp4
     assert_script_run("mount -t nfs $openqa_server:$remote_export_dir $mount_point", 120);
     save_screenshot;
@@ -352,6 +353,7 @@ sub download_guest_assets {
         script_run("ls -l $vm_xml_dir", 10);
         save_screenshot;
         my $local_guest_image = script_output "grep '<source file=' $vm_xml_dir/$guest.xml | sed \"s/^\\s*<source file='\\([^']*\\)'.*\$/\\1/\"";
+        script_run "if [ ! -d `dirname $local_guest_image` ]; then mkdir -p `dirname $local_guest_image`; fi";
         $rc = script_run("cp $mount_point/$remote_guest_disk $local_guest_image", 300);    #it took 75 seconds copy from vh016 to vh001
         script_run "ls -l $local_guest_image";
         save_screenshot;

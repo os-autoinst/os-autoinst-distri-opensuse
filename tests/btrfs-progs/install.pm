@@ -35,6 +35,7 @@ sub install_dependencies {
       gcc
       libblkid-devel
       zlib-devel
+      libext2fs-devel
     );
     zypper_call('in ' . join(' ', @deps));
 }
@@ -45,15 +46,10 @@ sub run {
 
     # Install btrfs-progs
     install_dependencies;
-    assert_script_run('git clone -q --depth 1 ' . GIT_URL, timeout => 360);
-    assert_script_run 'cd btrfs-progs';
-    assert_script_run './autogen.sh';
-    assert_script_run './configure --disable-documentation --disable-convert --disable-zstd \
---disable-programs --disable-shared --disable-static --disable-python';
-    assert_script_run 'make testsuite', timeout => 300;
-    assert_script_run 'mkdir -p ' . INST_DIR;
-    assert_script_run 'tar zxf tests/btrfs-progs-tests.tar.gz -C ' . INST_DIR;
-    assert_script_run 'cp tests/clean-tests.sh ' . INST_DIR . ';cd ' . INST_DIR;
+    assert_script_run 'wget ' . autoinst_url('/data/btrfs-progs/install.sh');
+    assert_script_run 'chmod a+x install.sh';
+    assert_script_run './install.sh ' . GIT_URL . " " . INST_DIR . " " . get_var('CATEGORY'), timeout => 1200;
+    assert_script_run 'cd ' . INST_DIR;
 
     # Create log file
     log_create STATUS_LOG;

@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Evince: Open PDF
+# - Launch evince and open test.pdf from datadir
+# - Send ALT-F10 (maximize) and check
+# - Close evince
 # Maintainer: mitiao <mitiao@gmail.com>
 # Tags: tc#1436023
 

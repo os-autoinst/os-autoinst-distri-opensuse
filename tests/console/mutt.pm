@@ -8,6 +8,16 @@
 # without any warranty.
 
 # Summary: Test basic capabilities of mutt
+# - Install mutt and wget (if necessary)
+# - Check if mutt has built in support for imap and smtp
+# - Get sample configuration from datadir
+# - Send email and check postfix log
+# - Open mutt and check for emails
+# - Reply test email and check sent messages
+# - Archive mail message and quit
+# - Open local mailbox, check and quit
+# - Cleanup
+# - Save screenshot
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
 use base 'consoletest';

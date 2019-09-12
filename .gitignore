@@ -7,3 +7,5 @@ tools/tidy
 *.tdy
 .*.swp
 *~
+docs/*.html
+docs/**/*.html

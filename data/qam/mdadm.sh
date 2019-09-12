@@ -136,7 +136,8 @@ run mdadm --create --verbose $MD_DEVICE --level=0 --raid-devices=3 --size=522240
 
 rungrep "active raid0" cat /proc/mdstat
 
-rungrep "1.5 GiB" fdisk -l $MD_DEVICE
+# Different fdisk versions either report "1.5 GiB" or "1.51 GiB"
+rungrep "1.51\? GiB" fdisk -l $MD_DEVICE
 
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 

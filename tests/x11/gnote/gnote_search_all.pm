@@ -9,6 +9,9 @@
 # without any warranty.
 
 # Summary: Test function search all notes
+# - Launch gnote and check
+# - Send CTRL-F, type "welcome" and check result
+# - Close gnote
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436174
 

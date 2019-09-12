@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Test all officially SLE supported shells
+# - Install tcsh and zsh (when supported)
+# - Run ksh -c "print hello" | grep hello (when supported)
+# - Run 'tcsh -c "printf \'hello\n\'" | grep hello'
+# - Run 'csh -c "printf \'hello\n\'" | grep hello'
+# - Run 'zsh -c "echo hello" | grep hello'
+# - Run 'sh -c "echo hello" | grep hello'
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";

@@ -11,6 +11,12 @@
 # Summary: Special handling to get to the desktop the first time after
 #          the installation has been completed (either find the desktop after
 #          auto-login or handle the login screen to reach the desktop)
+# - Wait for login screen
+# - Select console type, x11 or ssh
+# - Handle displaymanager
+# - Handle login screen
+# - Check if generic-desktop was reached
+# - Disable wayland
 # Maintainer: Max Lin <mlin@suse.com>
 
 use base 'y2_installbase';
@@ -22,6 +28,7 @@ use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use x11utils 'handle_login';
 use base 'opensusebasetest';
+use main_common 'opensuse_welcome_applicable';
 
 sub run {
     my ($self) = @_;
@@ -34,8 +41,6 @@ sub run {
         select_console('x11');
     }
     my $boot_timeout = (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 450 : 200;
-    # SLE >= 15 s390x does not offer auto-started VNC server in SUT, only login prompt as in textmode
-    return if check_var('ARCH', 's390x') && is_sle('15+');
     if (check_var('WORKER_CLASS', 'hornet')) {
         # hornet does not show the console output
         diag "waiting $boot_timeout seconds to let hornet boot and finish initial script";
@@ -62,9 +67,7 @@ sub run {
     }
 
     my @tags = qw(generic-desktop);
-    if (check_var('DESKTOP', 'kde') && get_var('VERSION', '') =~ /^1[23]/) {
-        push(@tags, 'kde-greeter');
-    }
+    push(@tags, qw(opensuse-welcome)) if opensuse_welcome_applicable;
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
@@ -92,10 +95,6 @@ sub run {
         wait_still_screen;
         script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
         wait_screen_change { send_key 'alt-f4' };
-    }
-    if (match_has_tag('kde-greeter')) {
-        send_key "esc";
-        assert_screen 'generic-desktop';
     }
 }
 

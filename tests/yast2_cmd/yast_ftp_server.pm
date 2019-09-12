@@ -9,6 +9,31 @@
 #
 # Summary: this test checks "yast ftp-server" module.
 #          this module configure ftp-server services in yast command line mode.
+# - Install yast2-ftp-server and yast2-users
+# - Enable SSL/TLS
+# - Enable access for anonymous and authenticated users
+# - Enable access permissions and upload for anonymous users
+# - Set directory for anonymous users to /srv/ftp
+# - Enable ftp chrooting
+# - Set maximum idle time to 15 minutes
+# - Enable saving log messages into the log file
+# - Set maximum connected clients to 1500
+# - Set maximum number of clients connected via IP to 20
+# - Set maximum data transfer rate permitted for anonymous clients to 10000KB/s
+# - Set maximum data transfer rate permitted for local authenticated users to
+#   10000KB/s
+# - Set start FTP daemon in the boot process
+# - Set start FTP daemon manually
+# - Set Start FTP daemon via systemd socket (SLE15+)
+# - Set Start FTP daemon via xinetd (SLE12SP4)
+# - Set FTP daemon mask as 177:077
+# - Set welcome message is the text to display when someone connects to the
+#   server as "hello everybody"
+# - Disable saving log messages into the log file
+# - Disable ftp chrooting
+# - Disable SSL/TLS
+# - Create a test file
+# - Download test file via wget using ftp
 # Maintainer: Shukui Liu <skliu@suse.com>
 
 =head1 Create regression test for ftp-server and verify

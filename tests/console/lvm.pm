@@ -13,6 +13,24 @@
 # vgextend lvextend
 # pvmove vgreduce
 # pvremove vgremove lvremove
+# - Choose test disk
+# - Install lvm2 and xfsprogs
+# - Partition test disk
+# - Create a pv and display result
+# - Create a vg and display result
+# - Create a lv and display result
+# - Create a xfs fs
+# - Mount, create a test file, check and umount
+# - Create a second pv and display result
+# - Extend the created pv
+# - Extend first lv to 1020M
+# - Mount and check test file
+# - Extend xfs filesystem and check test file and fs size
+# - Create a third pv and extend
+# - Move data from first pv to third
+# - Remove old pv
+# - Check data from test file
+# - Cleanup
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
 use base "consoletest";
@@ -91,10 +109,14 @@ sub run {
     # move data from the original extend to the new one
     validate_script_output("pvcreate ${disk}3",      sub { m/successfully created/ },  $timeout);
     validate_script_output("vgextend test ${disk}3", sub { m/successfully extended/ }, $timeout);
-    assert_script_run "pvmove ${disk}1 ${disk}3";
-
-    # after moving data, remove the old extend with no data
-    validate_script_output("vgreduce test ${disk}1", sub { m/Removed/ }, $timeout);
+    # JeOS kernel does not come with all device mapper modules
+    # it tends to keep dm modules tree simple
+    # dm-mirror module is missing -> pvmove operation always fails on JeOS images
+    unless (is_jeos) {
+        assert_script_run "pvmove ${disk}1 ${disk}3";
+        # after moving data, remove the old extend with no data
+        validate_script_output("vgreduce test ${disk}1", sub { m/Removed/ }, $timeout);
+    }
 
     # check the data just to be sure
     validate_script_output("cat /mnt/test_lvm/test", sub { m/test/ });

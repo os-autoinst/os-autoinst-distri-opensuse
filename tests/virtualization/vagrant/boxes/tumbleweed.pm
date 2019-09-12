@@ -13,18 +13,22 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test for vagrant and packaged addons
+# Summary: Test for the openSUSE vagrant boxes
 # Maintainer: dancermak <dcermak@suse.com>
 
+use base "consoletest";
 use strict;
 use warnings;
-use base "basetest";
 use testapi;
 use utils;
+use vagrant;
 use File::Basename;
 
 
 sub run() {
+    setup_vagrant_libvirt();
+    setup_vagrant_virtualbox();
+
     select_console('root-console');
     zypper_call('in ansible');
 

@@ -8,6 +8,10 @@
 # without any warranty.
 
 # Summary: Test basic functionality of libvorbis audio compression format.
+# - Install vorbis-tools libvorbis0
+# - Download sample from datadir
+# - Get info on sample file and check
+# - run ogginfo on sample and check
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
 use base "consoletest";

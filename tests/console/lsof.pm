@@ -14,6 +14,25 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Test lsof command
+# - Install netcat, lsof and psmisc
+# - Run lsof alone
+# - Run lsof selecting root files
+# - Run lsof selecting all networks
+# - Run lsof selecting applications listening on port 22
+# - Run lsof listing all files owned by root
+# - Run "exec 3>testoutput && echo 'random words' >&3"
+# - Run lsof and search all open instances with "testoutput"
+# - Run lsof and check on fd 3, for root opened files with "testoutput"
+# - Stop echo test
+# - Run "exec 4<> testoutput && read line <&4 && echo $line"
+# - Run lsof and check on fd 4, for root opened files with "testoutput"
+# - Stop echo test
+# - Run "netcat -l 5555 &"
+# - Run lsof, check for port 5555 and netcat
+# - Kill netcat
+# - Run "netcat -ul 5555 &"
+# - Run lsof, check for port 5555 and netcat
+# - Kill netcat
 # Maintainer: Antonio Caristia <acaristia@suse.com>
 
 use base 'consoletest';

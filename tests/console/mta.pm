@@ -6,6 +6,9 @@
 # without any warranty.
 
 # Summary: Check for MTAs
+# - Check if exim is not installed
+# - Check if postfix is installed, enabled and running
+# - Test email transmission
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use base 'consoletest';

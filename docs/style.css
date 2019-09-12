@@ -1,0 +1,77 @@
+body {
+    font-family: "Noto Serif","DejaVu Serif",serif;
+    padding-left: 21em;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Open Sans","DejaVu Sans",sans-serif;
+    font-weight: 300;
+    font-style: normal;
+    color: #ba3925;
+    text-rendering: optimizeLegibility;
+    margin-top: 1em;
+    margin-bottom: .5em;
+}
+
+pre {
+    background: #f7f7f8;
+    border-radius: 4px;
+    word-wrap: break-word;
+    overflow-x: auto;
+    padding: 1em;
+}
+
+code {
+    font-family: "Droid Sans Mono","DejaVu Sans Mono",monospace;
+    font-weight: 400;
+    font-size: .9375em;
+    font-style: normal !important;
+    letter-spacing: 0;
+    padding: .1em .5ex;
+    word-spacing: -.15em;
+    background: #f7f7f8;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    line-height: 1.45;
+    text-rendering: optimizeSpeed;
+    word-wrap: break-word;
+}
+
+
+ul#index {
+    font-size: .9375em;
+    width: 20em;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    background: #f8f8f7;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid #e7e7e9;
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    z-index: 1000;
+    padding: 1.25em 1em;
+    overflow: auto;
+
+    font-family: "Open Sans","DejaVu Sans",sans-serif;
+    list-style-type: none;
+}
+
+li {
+    margin-top: 0.5em;
+    list-style-type: none;
+}
+
+li:last-of-type {
+    margin-bottom: 0.7em;
+}
+
+ul a {
+    text-decoration: none;
+    color: #2156a5;
+}
+
+ul#index ul {
+    padding-left: 0;
+}

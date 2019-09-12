@@ -121,6 +121,7 @@ our @EXPORT = qw(
   unregister_needle_tags
   updates_is_applicable
   we_is_applicable
+  load_extra_tests_y2uitest_gui
 );
 
 sub init_main {
@@ -254,7 +255,9 @@ sub is_kernel_test {
         || get_var('INSTALL_KOTD')
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('NVMFTESTS')
-        || get_var('TRINITY'));
+        || get_var('TRINITY')
+        || get_var('NUMA_IRQBALANCE')
+        || get_var('TUNED'));
 }
 
 sub get_ltp_tag {
@@ -440,7 +443,7 @@ sub load_reboot_tests {
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
         loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
-        if (is_aarch64 && !get_var('INSTALLONLY')) {
+        if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION')) {
             loadtest "installation/system_workarounds";
         }
     }
@@ -1092,8 +1095,11 @@ sub load_consoletests {
     }
 
     loadtest "locale/keymap_or_locale";
-    loadtest "console/check_upgraded_service" if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY'));
-    loadtest "console/check_package_version" if check_var('ORIGINAL_TARGET_VERSION', '12-SP5');
+    if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY')) {
+        loadtest "console/check_upgraded_service";
+        loadtest "console/supportutils";
+        loadtest "console/check_package_version" if check_var('UPGRADE_TARGET_VERSION', '12-SP5');
+    }
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
@@ -1405,6 +1411,7 @@ sub load_extra_tests_y2uitest_gui {
     # on older SLE versions and, if so, add them here.
     # On openSUSE, the scheduling happens in schedule/yast2_gui.yaml
     if (get_var("QAM_YAST2UI")) {
+        loadtest "yast2_gui/yast2_bootloader" if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_storage_ng" if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_security"   if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_keyboard"   if is_sle("12-SP2+");
@@ -1417,9 +1424,17 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_tftp_server';
     loadtest 'yast2_cmd/yast_ftp_server';
     loadtest 'yast2_cmd/yast_rdp' if is_sle('15+');
+    loadtest 'yast2_cmd/yast_users';
     loadtest 'yast2_cmd/yast_sysconfig';
     loadtest 'yast2_cmd/yast_keyboard';
     loadtest 'yast2_cmd/yast_nfs_server';
+
+    #temporary runs for QAM while tests under y2uitest_ncurses are being ported
+    loadtest "console/yast2_apparmor";
+    loadtest "console/yast2_http";
+    loadtest "console/yast2_nis" if is_sle;
+    loadtest "console/yast2_ftp";
+    loadtest "console/yast2_tftp";
 }
 
 sub load_extra_tests_texlive {
@@ -1562,6 +1577,7 @@ sub load_extra_tests_console {
     # start extra console tests from here
     loadtest "console/update_alternatives";
     loadtest 'console/rpm';
+    loadtest 'console/slp';
     # Audio device is not supported on ppc64le, s390x, JeOS, and Xen PV
     if (!get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
         loadtest "console/aplay";
@@ -1628,12 +1644,14 @@ sub load_extra_tests_console {
     loadtest 'console/timezone';
     loadtest 'console/ntp' if is_sle('<15');
     loadtest 'console/procps';
-    loadtest "console/lshw"      if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
+    loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
+    loadtest 'console/kmod';
     loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
+    loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
 }
 
 sub load_extra_tests_docker {
@@ -1873,6 +1891,9 @@ sub load_x11_documentation {
 
 sub load_x11_gnome {
     return unless check_var('DESKTOP', 'gnome');
+    if (is_sle('12-SP2+')) {
+        loadtest "x11/gdm_session_switch";
+    }
     loadtest "x11/gnomecase/nautilus_cut_file";
     loadtest "x11/gnomecase/nautilus_permission";
     loadtest "x11/gnomecase/nautilus_open_ftp";
@@ -1941,7 +1962,10 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_passwd";
     loadtest "x11/firefox/firefox_html5";
     loadtest "x11/firefox/firefox_developertool";
-    loadtest "x11/firefox/firefox_rss";
+    ## RSS is removed since Firefox 64
+    if (is_sle('<=15-SP1') || is_leap('<=15.1')) {
+        loadtest "x11/firefox/firefox_rss";
+    }
     loadtest "x11/firefox/firefox_ssl";
     loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
@@ -2453,7 +2477,8 @@ sub load_virtualization_tests {
 
     # the tests currently require x86 & Tumbleweed
     if (is_x86_64 && is_tumbleweed) {
-        loadtest "virtualization/vagrant/add_box";
+        loadtest "virtualization/vagrant/add_box_virtualbox";
+        loadtest "virtualization/vagrant/add_box_libvirt";
         loadtest "virtualization/vagrant/boxes/tumbleweed";
     }
     return 1;
@@ -2514,7 +2539,7 @@ sub load_hypervisor_tests {
     if ($virt_part =~ m/virtmanager/) {
         loadtest 'virtualization/xen/virtmanager_init';     # Connect to the Xen hypervisor using virt-manager
         loadtest 'virtualization/xen/virtmanager_offon';    # Turn all VMs off and then on again
-        if (is_sle('12-SP2+')) {
+        if (is_sle('12-SP3+')) {
             loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
             loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
         }

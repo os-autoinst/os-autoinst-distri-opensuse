@@ -9,6 +9,12 @@
 # without any warranty.
 
 # Summary: Evince: View
+# - Launch evince and open test.pdf from datadir
+# - Send F11 (full screen) and check
+# - Send ESC to exit fullscreen
+# - Send F5 (presentation mode) and check
+# - Send ESC to exit presentation mode
+# - Close evince
 # Maintainer: mitiao <mitiao@gmail.com>
 # Tags: tc#1436026
 

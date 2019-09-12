@@ -21,22 +21,28 @@ use registration qw(cleanup_registration register_product);
 sub run {
     my ($self)  = @_;
     my $regcode = get_required_var('SCC_REGCODE_SLES4SAP');
-    my $cmd     = "/usr/sbin/Migrate_SLES_to_SLES_for_SAP.sh";
+    my $cmd     = '/usr/sbin/Migrate_SLES_to_SLES-for-SAP.sh';
 
-    select_console 'root-console';
-    zypper_call "in -y migrate-sles-to-sles4sap";
-    if (is_sle("15+")) {
-        # Clean up and re-register not to affect other job which are sharing same qcow2
+    $self->select_serial_terminal;
+
+    # Clean up and re-register not to affect other job which are sharing same qcow2
+    if (is_sle('15+')) {
         cleanup_registration();
         register_product();
-    } else {
-        $cmd = "/usr/sbin/Migrate_SLES_to_SLES-for-SAP-12.sh";
     }
+
+    # Check the build number, can useful for debugging!
+    my $build_version = script_output('cat /etc/YaST2/build', proceed_on_failure => 1);
+    record_info("Build version", "Build version installed: $build_version");
+
+    # Install migration tool
+    zypper_call 'in -y migrate-sles-to-sles4sap';
+
     type_string "$cmd && touch /tmp/OK\n";
     wait_serial 'Do you want to continue\?', timeout => 5;
     type_string "y\n";
-    wait_serial 'Do you want to use a local [RS]MT server\?', timeout => 5;
-    type_string "n\n";
+    wait_serial 'This script can use a local RMT or SMT', timeout => 5;
+    type_string "c\n";    # Use SCC for now, TODO: add support for SMT/RMT
     wait_serial "Please enter the email address to be used to register", timeout => 5;
     type_string "\n";
     wait_serial "Please enter your activation code", timeout => 5;

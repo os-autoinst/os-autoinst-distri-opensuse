@@ -5,6 +5,7 @@
 # - os-autoinst-distri-opensuse-deps in devel:openQA will get updated immediately
 # - os-autoinst-distri-opensuse-deps in Factory will get updated with next openQA submit
 
+requires 'Config::Tiny';
 requires 'File::Basename';
 requires 'Data::Dumper';
 requires 'XML::LibXML';

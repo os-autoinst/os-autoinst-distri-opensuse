@@ -8,6 +8,45 @@
 # without any warranty.
 
 # Summary: Case 1503827 - LibreOffice: Launch application components from system menu
+# - Open menu button -> office menu
+#   - Launch libreoffice and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office base and check
+#   - Save a database named "testdatabase"
+#   - Cleanup created database
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office calc and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office draw and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office impress and check
+#   - Quit libreoffice
+# - Open menu button -> office menu
+#   - Launch office writer and check
+#   - Quit libreoffice
+# - Install libreoffice-base if necessary
+# - Open gnome activities overview
+#   - Type "base", send <ENTER> and check
+#   - Save a database named "testdatabase"
+#   - Cleanup created database
+# - Open gnome activities overview
+#   - Type "calc", send <ENTER> and check
+#   - Uncheck "show tips on startup"
+#   - Quit libreoffice
+# - Open gnome activities overview
+#   - Type "draw", send <ENTER> and check
+#   - Quit libreoffice
+# - Open gnome activities overview
+#   - Type "impress", send <ENTER> and check
+#   - Quit libreoffice
+# - Open gnome activities overview
+#   - Type "writer", send <ENTER> and check
+#   - Click on writing area
+#   - Quit libreoffice
 # Maintainer: Chingkai <qkzhu@suse.com>
 
 use base "x11test";
@@ -127,17 +166,31 @@ sub run {
     type_string "calc";                                                             #open calc
     assert_and_click 'overview-office-calc';
     assert_screen 'test-oocalc-1';
-    send_key "ctrl-q";                                                              #close calc
+    if (!match_has_tag('ooffice-tip-of-the-day')) {
+        # Sometimes the dialog does not appear immediately but after a short delay,
+        # or is fading in slowly - poo#56510
+        wait_still_screen 2;
+        assert_screen 'test-oocalc-1';
+    }
+    if (match_has_tag('ooffice-tip-of-the-day')) {
+        # Unselect "_S_how tips on startup", select "_O_k"
+        send_key "alt-s";
+        send_key "alt-o";
+        while (match_has_tag('ooffice-tip-of-the-day')) {
+            assert_screen 'test-oocalc-1';
+        }
+    }
+    send_key "ctrl-q";    #close calc
 
     $self->open_overview();
-    type_string "draw";                                                             #open draw
+    type_string "draw";    #open draw
     assert_screen 'overview-office-draw';
     send_key "ret";
     assert_screen 'oodraw-launched';
-    send_key "ctrl-q";                                                              #close draw
+    send_key "ctrl-q";     #close draw
 
     $self->open_overview();
-    type_string "impress";                                                          #open impress
+    type_string "impress";    #open impress
     assert_screen 'overview-office-impress';
     send_key "ret";
     assert_screen [qw(ooimpress-select-a-template ooimpress-select-template-nofocus ooimpress-launched)];
@@ -147,18 +200,18 @@ sub run {
         assert_screen 'ooimpress-launched';
     }
     elsif (match_has_tag 'ooimpress-select-a-template') {
-        send_key 'alt-f4';                                                          # close impress template window
+        send_key 'alt-f4';    # close impress template window
         assert_screen 'ooimpress-launched';
     }
-    send_key "ctrl-q";                                                              #close impress
+    send_key "ctrl-q";        #close impress
 
     $self->open_overview();
-    type_string "writer";                                                           #open writer
+    type_string "writer";     #open writer
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
     assert_and_click('ooffice-writing-area', timeout => 10);
-    send_key "ctrl-q";                                                              #close writer
+    send_key "ctrl-q";        #close writer
 }
 
 1;

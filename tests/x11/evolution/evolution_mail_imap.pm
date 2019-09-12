@@ -8,6 +8,12 @@
 # without any warranty.
 
 # Summary: Test Case #1503768: Evolution: send and receive email via IMAP
+# - Setup imap account on evolution with credentials from internal_account_A
+# - Send an email to internal_account_A with subject as current date and random
+#   string
+# - Check for test email and check result
+# - Save a screenshot
+# - Exit evolution
 # Maintainer: Qingming Su <qingming.su@suse.com>
 
 use strict;

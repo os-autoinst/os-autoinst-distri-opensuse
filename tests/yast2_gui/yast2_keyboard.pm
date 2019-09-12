@@ -10,6 +10,11 @@
 # Summary: this test checks that YaST2's Keyboard module is behaving
 #          correctly by changing keyboard layout and verifying that
 #          they have been successfully set.
+# - Start yast2 keyboard
+# - Switch keymap from us to german
+# - Use gedit to enter german characters to verify keyboard layout
+# - Simulate german keystrokes to switch back us keymap
+# - Expose and reproduce bsc#1142559 which was found during writing this script.
 # Maintainer: Ming Li <mli@suse.com>
 
 =head1 Create regression test for keyboard layout and verify

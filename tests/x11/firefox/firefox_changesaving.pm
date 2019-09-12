@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -33,7 +33,10 @@ use version_utils 'is_sle';
 sub run {
 
     my ($self) = @_;
-    my $changesaving_checktimestamp = "ll --time-style=full-iso .mozilla/firefox/*.default/prefs.js | cut -d' ' -f7";
+    my $profilename = '*.default-*';
+    $profilename = '*.default' if $self->is_firefox_60;
+
+    my $changesaving_checktimestamp = "ll --time-style=full-iso .mozilla/firefox/" . $profilename . "/prefs.js | cut -d' ' -f7";
 
     $self->start_firefox_with_profile;
 

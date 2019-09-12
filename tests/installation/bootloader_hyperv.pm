@@ -122,6 +122,13 @@ sub run {
     # Verify checksums of the copied mediums
     my $errors = verify_checksum("$root\\cache\\");
     record_info("Checksum", $errors, result => 'fail') if $errors;
+    # Delete copied mediums with wrong checksum
+    foreach (split("\n", $errors)) {
+        next unless ($_ =~ m/SHA256 checksum does not match for (.*):/);
+        my $bad_image = basename(get_required_var($1));
+        record_info("Delete medium", "Trying to delete wrong checksum downloaded medium $bad_image...", result => 'fail');
+        hyperv_cmd_with_retry("del /F $root\\cache\\$bad_image");
+    }
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
     my $iso      = get_var('ISO') ? "$root\\cache\\" . basename(get_var('ISO')) : undef;

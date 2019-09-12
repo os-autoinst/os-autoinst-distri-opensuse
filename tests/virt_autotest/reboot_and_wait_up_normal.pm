@@ -23,7 +23,7 @@ sub run {
     my $timeout = 180;
 
     #online upgrade actually
-    return if (is_remote_backend && check_var('ARCH', 'aarch64') && is_installed_equal_upgrade_major_release);
+    return if (is_remote_backend && check_var('ARCH', 'aarch64') && (is_installed_equal_upgrade_major_release || get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_PRJ4_GUEST_UPGRADE")));
     $self->reboot_and_wait_up($timeout);
 }
 

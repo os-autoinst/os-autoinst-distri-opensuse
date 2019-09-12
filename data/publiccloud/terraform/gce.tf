@@ -48,6 +48,10 @@ variable "create-extra-disk" {
     default=false
 }
 
+variable "uefi" {
+    default=false
+}
+
 resource "random_id" "service" {
     count = "${var.instance_count}"
     keepers = {
@@ -84,6 +88,15 @@ resource "google_compute_instance" "openqa" {
     service_account {
         email = "${data.external.gce_cred.result["client_email"]}"
         scopes = ["cloud-platform"]
+    }
+
+    dynamic "shielded_instance_config" {
+        for_each = "${var.uefi}" ? [ "UEFI" ] : []
+        content {
+            enable_secure_boot = "true"
+            enable_vtpm = "true"
+            enable_integrity_monitoring = "true"
+        }
     }
 }
 

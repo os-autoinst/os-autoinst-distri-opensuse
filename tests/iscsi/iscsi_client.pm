@@ -9,6 +9,15 @@
 
 # Summary: Test suite for iSCSI server and client
 #    Multimachine testsuites, server test creates iscsi target and client test uses it
+# - Configure a static network and test connectivity
+# - Launch yast2 iscsi client wizard
+# - Check iscsid systemd services and general disk status
+# - Partition (if necessary) and format iscsi drive
+# - Try mount remote partition to /mnt
+# - Write text to file on iscsi disk
+# - Grep expected text from file
+# - Create mutex lock
+# - Cleanup
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
 use base "y2_module_guitest";
@@ -100,14 +109,16 @@ sub run {
     initiator_service_tab;
     initiator_discovered_targets_tab;
     initiator_connected_targets_tab;
-    wait_serial("$module_name-0", 180) || die "'yast2 iscsi-client ' didn't finish or exited with non-zero code";
+    wait_serial("yast2-iscsi-client-status-0", 180) || die "'yast2 iscsi-client ' didn't finish or exited with non-zero code";
     # logging in to a target will create a local disc device
     # it takes a moment, since udev actually handles it
     sleep 5;
     record_info 'Systemd', 'Verify status of iscsi services and sockets';
     systemctl("is-active iscsid.service");
     systemctl("is-active iscsid.socket");
-    systemctl("is-active iscsi.service");
+    if (!is_sle('=12-SP4')) {
+        systemctl("is-active iscsi.service");
+    }
     record_info 'Display iSCSI session';
     assert_script_run 'iscsiadm --mode session -P 3 | tee -a ' . "/dev/$serialdev | grep LOGGED_IN";
     record_info 'Verify LUN availability';

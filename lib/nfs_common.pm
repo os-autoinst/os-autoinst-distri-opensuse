@@ -232,6 +232,12 @@ sub start_service {
     check_nfs_ready($rw, $ro);
 }
 
+sub stop_service {
+    systemctl('stop nfs-server');
+    systemctl('stop rpcbind');
+    systemctl('stop rpcbind.socket');
+}
+
 sub check_service {
     my ($rw, $ro) = @_;
 
@@ -252,6 +258,9 @@ sub check_y2_nfs_func {
         start_service($rw, $ro);
     }
     check_service($rw, $ro);
+    if ($stage eq 'before') {
+        stop_service();
+    }
 }
 
 1;

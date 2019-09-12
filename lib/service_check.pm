@@ -23,6 +23,10 @@ use services::apparmor;
 use services::dhcpd;
 use nfs_common;
 use services::registered_addons;
+use services::ntpd;
+use services::cups;
+use services::rpcbind;
+use autofs_utils;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -50,9 +54,10 @@ our $default_services = {
         support_ver   => '15,15-SP1'
     },
     ntp => {
-        srv_pkg_name  => 'ntp',
-        srv_proc_name => 'ntpd',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5'
+        srv_pkg_name       => 'ntp',
+        srv_proc_name      => 'ntpd',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5',
+        service_check_func => \&services::ntpd::full_ntpd_check
     },
     chrony => {
         srv_pkg_name  => 'chrony',
@@ -94,24 +99,22 @@ our $default_services = {
         service_check_func => \&check_y2_nfs_func
     },
     rpcbind => {
-        srv_pkg_name  => 'rpcbind',
-        srv_proc_name => 'rpcbind',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
-    },
-    rpcbind => {
-        srv_pkg_name  => 'rpcbind',
-        srv_proc_name => 'rpcbind',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'rpcbind',
+        srv_proc_name      => 'rpcbind',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::rpcbind::full_rpcbind_check
     },
     autofs => {
-        srv_pkg_name  => 'autofs',
-        srv_proc_name => 'autofs',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'autofs',
+        srv_proc_name      => 'autofs',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&full_autofs_check
     },
     cups => {
-        srv_pkg_name  => 'cups',
-        srv_proc_name => 'cups',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        srv_pkg_name       => 'cups',
+        srv_proc_name      => 'cups',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::cups::full_cups_check
     },
     radvd => {
         srv_pkg_name  => 'radvd',
@@ -150,6 +153,7 @@ sub install_services {
                 next;
             }
 
+            systemctl 'enable ' . $srv_proc_name;
             systemctl 'start ' . $srv_proc_name;
             systemctl 'is-active ' . $srv_proc_name;
         }

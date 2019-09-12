@@ -71,7 +71,7 @@ sub run {
         }
     }
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'sw_single');
-    assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 90;
+    assert_screen [qw(empty-yast2-sw_single yast2-preselected-driver)], 120;
 
     # we need to change filter to Search, in case yast2 reports available automatic update
     if ($is_inr_package) {
