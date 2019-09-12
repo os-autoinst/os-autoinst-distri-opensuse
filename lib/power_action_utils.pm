@@ -32,6 +32,8 @@ our @EXPORT = qw(
 
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_shutdown {
+    console('root-sut-serial')->disable;
+
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm/;
 
