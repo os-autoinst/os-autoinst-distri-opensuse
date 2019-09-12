@@ -18,19 +18,25 @@ use testapi;
 sub run {
     my $self = shift;
 
-    my $wait_script             = "180";
-    my $dns_bash_script_url     = data_url("virt_autotest/setup_dns_service.sh");
-    my $execute_dns_bash_script = "bash <(curl -s $dns_bash_script_url)";
-    script_output($execute_dns_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my $wait_script          = "180";
+    my $dns_bash_script_name = "setup_dns_service.sh";
+    my $dns_bash_script_url  = data_url("virt_autotest/$dns_bash_script_name");
+    my $dns_forward_domain   = "testvirt.net";
+    my $dns_reverse_domain   = "123.168.192";
+    my $dns_server_ipaddr    = "192.168.123.1";
+    my $download_bash_script = "curl -s -o ~/$dns_bash_script_name $dns_bash_script_url";
+    script_output($download_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my $execute_bash_script = "chmod +x ~/$dns_bash_script_name && ~/$dns_bash_script_name -f $dns_forward_domain -r $dns_reverse_domain -s $dns_server_ipaddr";
+    script_output($execute_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
 
     upload_logs("/var/log/virt_dns_setup.log");
-    diag("SSH Connection to all virtual machines by using DNS names is working now");
+    diag("SSH Connections to all virtual machines with their DNS names and without inputting login passwords already work.");
 }
 
 sub post_fail_hook {
     my $self = shift;
 
-    diag("There is something wrong with eastablishing dns service. At least one vm can not be reached by its dns name.");
+    diag("There is something wrong with establishing dns service for vm guest or ssh connection to vm guest without inputting login password.");
     diag("Module setup_dns_service post fail hook starts.");
     for (my $i = 0; $i < 4; $i++) {
         script_run("head -n \$((($i+1)*50)) /etc/named.conf");
@@ -40,7 +46,7 @@ sub post_fail_hook {
     save_screenshot;
     script_run("cat /var/lib/named/123.168.192.zone");
     save_screenshot;
-    script_run("mv /etc/resolv.conf.orig /etc/resolv.conf; mv /etc/named.conf.orig /etc/named.conf");
+    script_run("mv /etc/resolv.conf.orig /etc/resolv.conf; mv /etc/named.conf.orig /etc/named.conf; mv /etc/ssh/ssh_config.orig /etc/ssh/ssh_config; mv /etc/dhcpd.conf.orig /etc/dhcpd.conf");
     script_run("sed -irn '/^nameserver 192\\.168\\.123\\.1/d' /etc/resolv.conf");
     script_run("rm /var/lib/named/testvirt.net.zone; rm /var/lib/named/123.168.192.zone");
 
