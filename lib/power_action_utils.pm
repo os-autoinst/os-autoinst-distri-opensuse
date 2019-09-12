@@ -32,7 +32,12 @@ our @EXPORT = qw(
 
 # in some backends we need to prepare the reboot/shutdown
 sub prepare_system_shutdown {
+    record_info('pev: START prepare_system_shutdown'); # FIXME: debug
+    bmwqemu::fctwarn("pev: START prepare_system_shutdown"); # FIXME: debug
+
+    record_info('pev: BEFORE root-sut-serial'); # FIXME: debug
     console('root-sut-serial')->disable;
+    record_info('pev: AFTER root-sut-serial'); # FIXME: debug
 
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm/;
@@ -219,6 +224,8 @@ unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 
 =cut
 sub power_action {
+    record_info('pev: START power_action'); # FIXME: debug
+    bmwqemu::fctwarn("pev: START power_action"); # FIXME: debug
     my ($action, %args) = @_;
     $args{observe}      //= 0;
     $args{keepconsole}  //= 0;
@@ -227,6 +234,7 @@ sub power_action {
     die "'action' was not provided" unless $action;
     prepare_system_shutdown;
     unless ($args{keepconsole}) {
+        record_info('pev: keepconsole: select_console ' . $args{textmode} ? 'root-console' : 'x11'); # FIXME: debug
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
     unless ($args{observe}) {
@@ -274,6 +282,7 @@ sub power_action {
     else {
         if (check_var('DESKTOP', 'minimalx') && check_screen('shutdown-wall', timeout => 30)) {
             record_soft_failure 'bsc#1076817 manually shutting down';
+            record_info('pev: root-console; poweroff'); # FIXME: debug
             select_console 'root-console';
             systemctl 'poweroff';
         }
@@ -285,13 +294,24 @@ sub power_action {
         handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
         # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
         select_console('svirt') if is_vmware && $action eq 'reboot';
+        record_info('pev: BEFORE reset_consoles'); # FIXME: debug
         reset_consoles;
+        record_info('pev: AFTER reset_consoles'); # FIXME: debug
         if ((check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) && $action ne 'poweroff') {
+            record_info('pev: BEFORE svirt start_serial_grab'); # FIXME: debug
             console('svirt')->start_serial_grab;
+            record_info('pev: AFTER svirt start_serial_grab'); # FIXME: debug
+
+            record_info('pev: NOW I would activate root-sut-serial'); # FIXME: debug
+            #record_info('pev: BEFORE root-sut-serial activate'); # FIXME: debug
+            #console('root-sut-serial')->activate;
+            # TODO maybe select_console('root-sut-serial')
+            #record_info('pev: AFTER root-sut-serial activate'); # FIXME: debug
         }
         # When 'sut' is ready, select it
         if (is_vmware && $action eq 'reboot') {
             wait_serial('GNU GRUB', 180) || die 'GRUB not found on serial console';
+            record_info('pev: sut'); # FIXME: debug
             select_console('sut');
         }
     }
@@ -302,6 +322,8 @@ sub power_action {
 # with stalled VNC connection. The tricky part is to know *when* the system
 # is already booting.
 sub assert_shutdown_and_restore_system {
+    record_info('pev: START assert_shutdown_and_restore_system'); # FIXME: debug
+    bmwqemu::fctwarn("pev: START assert_shutdown_and_restore_system"); # FIXME: debug
     my ($action, $shutdown_timeout) = @_;
     $action           //= 'reboot';
     $shutdown_timeout //= 60;
@@ -321,6 +343,7 @@ sub assert_shutdown_and_restore_system {
         }
         else {
             $svirt->define_and_start;
+            record_info("pev: select_console($vnc_console)"); # FIXME: debug
             select_console($vnc_console);
         }
     }

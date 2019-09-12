@@ -447,6 +447,7 @@ sub init_consoles {
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
                 pty_dev     => SERIAL_TERMINAL_DEFAULT_DEVICE,
                 target_port => SERIAL_TERMINAL_DEFAULT_PORT});
+        bmwqemu::fctwarn("pev: add_console root-sut-serial"); # FIXME: debug
     }
 
     if (get_var('BACKEND', '') =~ /qemu|ikvm|generalhw/
@@ -662,6 +663,7 @@ point, you should set it on your own.
 Option C<ensure_tty_selected> ensures TTY is selected.
 =cut
 sub activate_console {
+    bmwqemu::fctwarn("pev: START activate_console"); # FIXME: debug
     my ($self, $console, %args) = @_;
 
     # Select configure serial and redirect to root-ssh instead
@@ -726,6 +728,7 @@ sub activate_console {
         assert_screen $console;
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
+        bmwqemu::fctwarn("pev: serial_terminal::login"); # FIXME: debug
         serial_terminal::login($user, $self->{serial_term_prompt});
     }
     elsif ($console eq 'novalink-ssh') {
