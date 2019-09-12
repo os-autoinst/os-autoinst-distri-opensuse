@@ -65,13 +65,8 @@ sub run {
     sudo_with_pw 'sudo echo 2 >/proc/sys/vm/drop_caches';
     assert_script_run 'grep 1 /proc/sys/vm/drop_caches';
     # fail with permission denied
-    if (is_sle('=12-sp1')) {
-        record_soft_failure 'bsc#1130159';
-    }
-    else {
-        script_run 'sudo cat 2> check_err.log </proc/1/maps';
-        assert_script_run 'grep -i "permission denied" check_err.log';
-    }
+    script_run 'sudo cat 2> check_err.log </proc/1/maps';
+    assert_script_run 'grep -i "permission denied" check_err.log';
     assert_script_run 'echo 2 | sudo dd of=/proc/sys/vm/drop_caches';
     assert_script_run 'grep 2 /proc/sys/vm/drop_caches';
     assert_script_run 'sudo dd if=/proc/1/maps|cat|grep lib';
