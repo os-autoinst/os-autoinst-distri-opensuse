@@ -116,7 +116,7 @@ sub cleanup_needles {
 }
 
 sub is_desktop_module_available {
-    return check_var('SCC_REGISTER', 'installation') || check_var_array('ADDONS', 'all-packages') || check_var_array('WORKAROUND_MODULES', 'desktop');
+    return check_var('SCC_REGISTER', 'installation') || check_var_array('ADDONS', 'all-packages') || check_var_array('ADDONURL', 'desktop');
 }
 
 # SLE specific variables
@@ -260,10 +260,7 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
         # By default add all modules
         @modules = qw(base sdk desktop legacy script serverapp);
     }
-    # If WORKAROUND_MODULES contains a list of modules, add only them
-    if (get_var('WORKAROUND_MODULES')) {
-        @modules = split(/,/, get_var('WORKAROUND_MODULES'));
-    }
+
     if (@modules) {
         my $arch    = get_required_var("ARCH");
         my $build   = get_required_var("BUILD");
