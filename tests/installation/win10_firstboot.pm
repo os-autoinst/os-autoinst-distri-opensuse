@@ -13,7 +13,6 @@
 use base "installbasetest";
 use strict;
 use warnings;
-
 use testapi;
 
 sub run {
@@ -24,7 +23,6 @@ sub run {
     assert_screen 'windows-second-keyboard';
     assert_and_click 'windows-skip-second-keyboard';
     # Network setup takes ages
-    # Coffee time!
     assert_screen 'windows-account-setup', 360;
     assert_and_click 'windows-select-personal-use', dclick => 1;
     wait_still_screen stilltime => 10, timeout => 1, similarity_level => 43;
