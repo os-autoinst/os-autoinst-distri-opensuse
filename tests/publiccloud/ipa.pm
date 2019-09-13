@@ -48,7 +48,7 @@ sub run {
             $instance->upload_log('/var/log/cloudregister');
             last;
         }
-        $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt');
+        $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
         upload_logs('/tmp/rpm_qa.txt');
     }
 }

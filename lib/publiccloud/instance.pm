@@ -31,26 +31,43 @@ has ssh_opts    => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no 
 
 =head2 run_ssh_command
 
-    run_ssh_command(cmd => 'command', timeout => 90);
+    run_ssh_command(cmd => 'command'[, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0]);
 
 Runs a command C<cmd> via ssh in the given VM. Retrieves the output.
 If the command retrieves not zero, a exception is thrown..
 Timeout can be set by C<timeout> or 90 sec by default.
-TODO Do not raise exception on error
-TODO Be aware of special shell letters like ';'
+C<<proceed_on_failure=>1>> allows to proceed with validation when C<cmd> is
+failing (return non-zero exit code)
+By default, the command is passed in single quotes to SSH.
+To avoid quoting us C<<no_quote=>1>>.
+With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
+C<<$instance->ssh_opts>>.
+Use argument C<username> to specify a different username then
+C<<$instance->username()>>.
 =cut
 sub run_ssh_command {
     my ($self, %args) = @_;
-
     die('Argument <cmd> missing') unless ($args{cmd});
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '$self->ssh_key'";
+    $args{username} //= $self->username();
+    $args{timeout}  //= SSH_TIMEOUT;
+    $args{quiet}    //= 1;
+    $args{no_quote} //= 0;
 
-    $args{timeout} //= SSH_TIMEOUT;
+    my $cmd = $args{cmd};
+    unless ($args{no_quote}) {
+        $cmd =~ s/'/'"'"'/g;
+        $cmd = "'$cmd'";
+    }
 
-    my $ssh_cmd = sprintf('ssh %s -i "%s" "%s@%s" -- %s',
-        $self->ssh_opts, $self->ssh_key, $self->username, $self->public_ip, $args{cmd});
+    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s',
+        $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
     record_info('SSH CMD', $ssh_cmd);
+
     delete($args{cmd});
-    $args{quiet} //= 1;
+    delete($args{no_quote});
+    delete($args{ssh_opts});
+    delete($args{username});
     return script_output($ssh_cmd, %args);
 }
 
