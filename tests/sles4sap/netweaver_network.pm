@@ -28,7 +28,7 @@ sub run {
     # Export needed variables
     set_var('INSTANCE_ALIAS', "$alias");
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Get the network interface and add IP alias
     my $eth = script_output "ip -o route | sed -rn '/^default/s/.+dev ([a-z]+[0-9]).+/\\1/p'";

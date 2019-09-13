@@ -28,7 +28,7 @@ sub run {
 
     my @solutions = qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER\+HANA S4HANA-APP\+DB S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # saptune is not installed by default on SLES4SAP 12 on ppc64le
     zypper_call "-n in saptune" if (get_var('OFW') and is_sle('<15'));

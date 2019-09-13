@@ -113,7 +113,7 @@ sub run {
       network-throughput powersave sap-ase sap-bobj sap-hana sap-netweaver
       throughput-performance virtual-guest virtual-host);
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     assert_script_run("rpm -q sapconf");
 

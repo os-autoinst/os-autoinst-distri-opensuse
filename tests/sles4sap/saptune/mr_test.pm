@@ -13,7 +13,6 @@
 use base "sles4sap";
 use testapi;
 use utils;
-use power_action_utils 'power_action';
 use version_utils 'is_sle';
 use strict;
 use warnings;
@@ -43,14 +42,6 @@ sub setup {
         assert_script_run "sed -ri '/:scripts\\/disk_elevator/s/^/#/' \$(fgrep -rl :scripts/disk_elevator Pattern/)";
     }
     $self->reboot;
-}
-
-sub reboot {
-    my ($self) = @_;
-
-    power_action('reboot');
-    $self->wait_boot;
-    select_console 'root-console';
 }
 
 sub get_notes {

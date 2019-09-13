@@ -30,7 +30,7 @@ sub run {
     # LUN information is needed after for the HA configuration
     set_var('INSTANCE_LUN', "$lun");
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Create/format/mount local filesystems
     assert_script_run "mkfs -t xfs -f $lun";
