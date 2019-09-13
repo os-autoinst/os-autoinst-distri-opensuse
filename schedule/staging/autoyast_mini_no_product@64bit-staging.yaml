@@ -1,0 +1,19 @@
+name:           autoyast_mini_no_product@64bit-staging
+description:    >
+    Test verifies installation with minimal autoyast profile, without
+    registration.
+vars:
+    AUTOYAST: autoyast/mini.xml
+    AUTOYAST_CONFIRM: 1
+schedule:
+    - installation/bootloader
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - autoyast/wicked
+    - autoyast/repos
+    - autoyast/clone
+    - autoyast/logs
+    - autoyast/autoyast_reboot
+    - installation/grub_test
+    - installation/first_boot
