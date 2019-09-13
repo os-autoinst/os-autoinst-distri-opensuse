@@ -121,8 +121,15 @@ sub boot_spvm {
     assert_screen("novalink-successful-first-boot", 120);
     assert_screen("run-yast-ssh",                   60);
 
+    # Delete partition table before starting installation
+    select_console('install-shell');
+    foreach my $disk (split(',', get_var('DISK_DEVICES', 'sda'))) {
+        script_run("wipefs -a /dev/$disk");
+    }
+    # Switch to installation console (ssh or vnc)
     select_console('installation');
-    type_string("yast.ssh\n");
+    # We need to start installer only if it's pure ssh installation
+    type_string("yast.ssh\n") if check_var('VIDEOMODE', 'ssh-x');
     wait_still_screen;
 }
 
