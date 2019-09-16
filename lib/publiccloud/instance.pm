@@ -48,7 +48,7 @@ C<<$instance->username()>>.
 sub run_ssh_command {
     my ($self, %args) = @_;
     die('Argument <cmd> missing') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts() . " -i '$self->ssh_key'";
+    $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
     $args{username} //= $self->username();
     $args{timeout}  //= SSH_TIMEOUT;
     $args{quiet}    //= 1;
