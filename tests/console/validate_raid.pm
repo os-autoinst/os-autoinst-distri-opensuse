@@ -119,7 +119,7 @@ sub prepare_test_data {
                 $raid_partitions_2_arrays, $hard_disks, $linux_raid_member_2_arrays,
                 $btrfs, $swap,
             );
-            if (is_sle('<=15-SP1') || get_var('STAGING') ||
+            if (is_sle('<=15-SP1') || (is_sle() && get_var('STAGING')) ||
                 is_leap() || (is_tumbleweed() && check_var('FLAVOR', 'NET'))) {
                 # raid0 for swap is required in some products
                 @raid = (($raid_level, $raid0), @raid_detail);
