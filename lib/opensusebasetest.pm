@@ -9,6 +9,7 @@ use utils;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed);
+use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
 
@@ -803,7 +804,9 @@ sub wait_boot {
         }
     }
 
-    assert_screen [qw(generic-desktop emergency-shell emergency-mode)], $ready_time + 100;
+    my @tags = qw(generic-desktop emergency-shell emergency-mode);
+    push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
+    assert_screen \@tags, $ready_time + 100;
     handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
     mouse_hide(1);
     $self->{in_wait_boot} = 0;
