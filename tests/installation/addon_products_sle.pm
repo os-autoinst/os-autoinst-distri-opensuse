@@ -135,18 +135,10 @@ sub handle_addon {
 }
 
 sub test_addonurl {
-    my $testvalue = get_var('ADDONURL');
-    my @missing_modules;
-    my @test_modules = split(/,/, get_var('WORKAROUND_MODULES'));
+    my @test_modules = split(/,/, get_var('ADDONURL'));
 
     foreach (@test_modules) {
-        push @missing_modules, $_ unless ($testvalue =~ $_);
         die('URL ADDONURL_' . uc $_ . ' could not be accessed') unless head(get_var('ADDONURL_' . uc $_));
-    }
-
-    if (@missing_modules) {
-        my $str_missed_mod = join(',', @missing_modules);
-        die "Missing modules in ADDONURL which are set in WORKAROUND_MODULES: $str_missed_mod";
     }
 }
 
@@ -183,11 +175,7 @@ sub run {
             }
         }
     }
-    test_addonurl
-      if is_sle('>=15')
-      and !check_var('SCC_REGISTER', 'installation')
-      and (get_var('ALL_MODULES') || get_var('WORKAROUND_MODULES'));
-
+    test_addonurl if is_sle('>=15') && get_var('ADDONURL');
     if (get_var("ADDONURL")) {
         if (match_has_tag('inst-addon')) {
             send_key 'alt-k';                                                   # install with addons
