@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use mm_network;
 use lockapi;
-use utils 'systemctl';
+use utils qw(systemctl zypper_call);
 use version_utils 'is_sle';
 
 sub run {
@@ -33,10 +33,9 @@ sub run {
         systemctl 'enable salt-minion';
         systemctl 'status salt-minion';
         barrier_wait {name => 'salt_minions_connected', check_dead_job => 1};
-        # give time to salt to establish connection, to accept keys of all nodes
-        sleep 2;
+        # before accepting the key, wait until the minions are fully started (systemd might be not reliable)
+        assert_script_run "salt-run state.event pretty=False tagmatch='salt/auth' quiet=False count=$num_nodes |& tee /dev/$serialdev", 300;
         assert_script_run 'salt-key --accept-all --yes';
-        assert_script_run 'cd /usr/lib/deepsea/qa/';
         # print system info
         assert_script_run 'uname -a';
         assert_script_run 'cat /etc/os-release';
@@ -49,9 +48,15 @@ sub run {
         my $deepsea_cli       = is_sle('>=15') ? '' : '--cli';
         my $deepsea_testsuite = get_var('DEEPSEA_TESTSUITE');
         my $deepsea_options   = get_var('DEEPSEA_OPTIONS');
-        # temporary fix https://github.com/SUSE/DeepSea/pull/1417
-        script_run 'sed -i \'s/MASTER_MINION=$(hostname)/MASTER_MINION=$(hostname --fqdn)/\' common/deploy.sh';
-        assert_script_run "suites/basic/$deepsea_testsuite.sh $deepsea_cli $deepsea_options | grep \"test result: PASS\$\"", 4000;
+        if (is_sle('<15')) {
+            my $ses5_ceph_qa_health_ok_repo = get_required_var('SES5_CEPH_QA_HEALTH_OK');
+            zypper_call("ar --priority 200 ${ses5_ceph_qa_health_ok_repo}");
+            zypper_call("--gpg-auto-import-keys ref");
+            zypper_call("in ceph-qa-health-ok", exitcode => [0, 102, 103]);
+            assert_script_run 'rpm -q --changelog ceph-qa-health-ok | head -n 20';
+        }
+        assert_script_run 'cd /usr/lib/deepsea/qa/';
+        assert_script_run "./$deepsea_testsuite.sh $deepsea_cli $deepsea_options | grep \"test result: PASS\$\"", 4000;
     }
     else {
         barrier_wait {name => 'salt_master_ready', check_dead_job => 1};
