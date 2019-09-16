@@ -8,6 +8,7 @@ description: >
 name: cryptlvm
 vars:
     OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+    DESKTOP: textmode
 schedule:
   - installation/bootloader
   - installation/welcome
