@@ -2,7 +2,7 @@
 description: 'Main JeOS test suite. Maintainer: ccret.'
 name: 'jeos-main@64bit-virtio-vga ( qemu )'
 schedule:
-  - installation/bootloader_uefi
+  - jeos/grub2
   - jeos/firstrun
   - jeos/record_machine_id
   - console/force_scheduled_tasks
