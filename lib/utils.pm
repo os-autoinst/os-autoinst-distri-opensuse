@@ -1414,14 +1414,14 @@ sub script_retry {
     my $ecode   = $args{expect}  // 0;
     my $retry   = $args{retry}   // 10;
     my $delay   = $args{delay}   // 30;
-    my $timeout = $args{timeout} // 25;
+    my $timeout = $args{timeout} // 30;
     my $die     = $args{die}     // 1;
 
     my $ret;
     for (1 .. $retry) {
         type_string "# Trying $_ of $retry:\n";
 
-        $ret = script_run "timeout $timeout $cmd";
+        $ret = script_run "timeout " . ($timeout - 3) . " $cmd", $timeout;
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;

@@ -70,15 +70,15 @@ sub run {
             validate_script_output qq{docker container run --rm $image_names->[$i] cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
         }
         # zypper lr
-        assert_script_run("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'zypper lr -s'", 120);
+        script_retry("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'zypper lr -s'", timeout => 300, delay => 5, retry => 5);
         # zypper ref
-        assert_script_run("docker container run --name refreshed --entrypoint '/bin/bash' $image_names->[$i] -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 180);
+        script_retry("docker container run --name refreshed --entrypoint '/bin/bash' $image_names->[$i] -c 'zypper -v ref | grep \"All repositories have been refreshed\"'; if [[ \"\$?\" != \"0\" ]]; then docker rm --force refreshed; false; fi", timeout => 600, delay => 5, retry => 5);
         # Commit the image
-        assert_script_run("docker commit refreshed refreshed-image", 120);
+        assert_script_run("docker commit refreshed refreshed-image", 300);
         # Remove it
         assert_script_run("docker rm --force refreshed", 120);
         # Verify the image works
-        assert_script_run("docker container run --name refreshed --entrypoint '/bin/bash' --rm refreshed-image -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 180);
+        script_retry("docker container run --entrypoint '/bin/bash' --rm refreshed-image -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", timeout => 600, delay => 5, retry => 5);
 
         if (check_var("ARCH", "x86_64")) {
             # container-diff
