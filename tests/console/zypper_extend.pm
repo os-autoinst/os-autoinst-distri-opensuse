@@ -38,6 +38,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
@@ -93,9 +94,20 @@ sub run {
 
     #Disable a specific repository
     zypper_call 'mr -d 1';
+    validate_script_output('zypper lr 1', sub { m/Enabled\s+:\sNo/ });
 
     #Enable a specific repository
     zypper_call 'mr -e 1';
+    validate_script_output('zypper lr 1', sub { m/Enabled\s+:\sYes/ });
+
+    #Autorefresh on repository on/off
+    my $refresh = is_sle('=12-sp1') ? '-r' : '-f';
+    zypper_call "mr $refresh 1";
+    my $autorefresh = is_sle('=12-sp1') ? 'Auto-refresh' : 'Autorefresh';
+    validate_script_output('zypper lr 1', sub { m/$autorefresh\s+:\sOn/ });
+    my $no_refresh = is_sle('=12-sp1') ? '-R' : '-F';
+    zypper_call "mr $no_refresh 1";
+    validate_script_output('zypper lr 1', sub { m/$autorefresh\s+:\sOff/ });
 
     #Disable rpm file caching for all the repositories.
     zypper_call 'mr -Ka';
