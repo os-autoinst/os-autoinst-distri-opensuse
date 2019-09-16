@@ -30,7 +30,6 @@ use utils 'zypper_call';
 use power_action_utils 'power_action';
 use kdump_utils;
 use testapi;
-use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $self = shift;
