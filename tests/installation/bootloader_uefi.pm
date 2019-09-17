@@ -84,7 +84,7 @@ sub run {
     if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
         sleep 5;
     }
-    if (get_var("ZDUP")) {
+    if (get_var("ZDUP") && !is_jeos) {
         # 'eject_cd' is broken ATM (at least on aarch64), so select HDD from menu - poo#47303
         # Check we are booting the ISO
         assert_screen 'inst-bootmenu';
