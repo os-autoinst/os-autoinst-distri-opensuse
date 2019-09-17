@@ -1,0 +1,36 @@
+---
+description: >
+  Conduct installation with LVM selected during installation using guided setup.
+  In comparison to SLE 12 we register the installation and have system roles
+  wizard screen.
+name: cryptlvm
+vars:
+    OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+    DESKTOP: textmode
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/lvm
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_lvm
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/zypper_in
+  - console/firewall_enabled
