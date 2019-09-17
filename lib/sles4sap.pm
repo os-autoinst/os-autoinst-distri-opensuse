@@ -346,7 +346,7 @@ sub check_service_state {
         last if ((@olines == 0) && ($uc_state eq 'STOP'));
 
         if (($output =~ /sapstartsrv/) && ($uc_state eq 'START')) {
-            die "sapcontrol: wrong number of processes running after a StartService\n\n" . @olines unless (@olines == 1);
+            die "sapcontrol: wrong number of processes running after a StartService\n\n" . @olines unless ((@olines == 1) || ($time_to_wait > 10));
 
             # Exit if service is started
             last;
