@@ -26,7 +26,7 @@ our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mys
 sub setup_apache2 {
     my %args      = @_;
     my $mode      = uc $args{mode} || "";
-    my $nsspasswd = "httptest";
+    my $nsspasswd = "hTtp.Te5t";
     my @packages  = qw(apache2);
 
     if (($mode eq "NSS") && get_var("FIPS")) {
