@@ -3,7 +3,7 @@ description: 'Main JeOS test suite. Maintainer: ccret.'
 name: 'jeos-main@svirt-hyperv ( svirt )'
 schedule:
   - installation/bootloader_hyperv
-  - installation/bootloader_uefi
+  - jeos/grub2
   - jeos/firstrun
   - jeos/record_machine_id
   - console/force_scheduled_tasks
