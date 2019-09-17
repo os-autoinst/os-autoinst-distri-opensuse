@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use version_utils 'is_sle';
 use registration 'get_addon_fullname';
+use Mojo::JSON;
 
 sub zypper_lr {
     my ($search) = @_;
@@ -62,9 +63,20 @@ sub check_upgraded_addons {
     check_registered_addons($addonls);
 }
 
+sub check_suseconnect {
+    my $output = script_output("SUSEConnect -s");
+    my $json   = Mojo::JSON::decode_json($output);
+    foreach (@$json) {
+        my $iden   = $_->{identifier};
+        my $status = $_->{status};
+        die "$iden register status is: $status" if ($status ne 'Registered');
+    }
+}
+
 sub full_registered_check {
     my ($stage) = @_;
     $stage //= '';
+    check_suseconnect();
     zypper_lr();
     if ($stage eq 'before') {
         check_registered_system(get_var('ORIGIN_SYSTEM_VERSION'));
