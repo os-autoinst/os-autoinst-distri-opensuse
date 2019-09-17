@@ -127,7 +127,7 @@ sub generateXML {
             $test_path = '/opt/logs/' . $test_path . '.txt';
             my $test_out_content = script_output("
                 if [ -f $test_path ];
-                    then sed -n -e \"s/'//g\" -e 's/[^[:print:]\\r\\t\\n]//g' -e '1!H;/====== RUN /h;\${g;p;}' $test_path | head -n 100;
+                    then sed -n -e \"s/'//g\" -e 's/[^[:print:]\\r\\t\\n]//g' -e 'H;/====== RUN /h;\${g;p;}' $test_path | head -n 100;
                 else echo 'Test Crashed, find log in serial0.txt';
                 fi
             ", 600);
