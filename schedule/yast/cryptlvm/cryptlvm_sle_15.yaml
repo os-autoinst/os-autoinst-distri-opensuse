@@ -17,7 +17,6 @@ schedule:
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
-  - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -29,6 +28,7 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
+  - console/zypper_lr
   - console/yast2_i
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
