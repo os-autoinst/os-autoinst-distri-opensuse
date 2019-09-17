@@ -8,7 +8,7 @@ use warnings;
 use utils;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed);
+use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos);
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
@@ -573,6 +573,7 @@ sub wait_grub {
     # Refer to ticket: https://progress.opensuse.org/issues/49340
     $self->handle_uefi_boot_disk_workaround
       if (is_aarch64_uefi_boot_hdd
+        && !is_jeos
         && !$in_grub
         && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP')));
     assert_screen(\@tags, $bootloader_time);

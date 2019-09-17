@@ -396,7 +396,7 @@ else {
         load_reboot_tests();
     }
     elsif (installzdupstep_is_applicable()) {
-        load_boot_tests();
+        load_boot_tests() unless is_jeos;
         load_zdup_tests();
     }
     elsif (get_var("BOOT_HDD_IMAGE")) {
