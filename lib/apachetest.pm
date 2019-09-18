@@ -98,7 +98,7 @@ sub setup_apache2 {
 
     # Start apache service
     systemctl 'stop apache2';
-    my $nsspasswd = (script_run('rpm -q apache2-mod_nss') == 0) ? script_output('awk \'/The database password is/ {print$5}\' /etc/apache2/mod_nss.d/install.log') : 'hTtp.Te5ti';
+    my $nsspasswd = (script_run('rpm -q apache2-mod_nss') == 0) ? script_output('awk \'/The database password is/ {print$5}\' /etc/apache2/mod_nss.d/install.log') : 'hTtp.Te5t';
     if ($mode eq "NSS") {
         assert_script_run "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for internal (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
