@@ -21,7 +21,8 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use bootloader_setup 'uefi_bootmenu_params';
+use utils 'type_string_very_slow';
+use bootloader_setup qw(uefi_bootmenu_params get_hyperv_fb_video_resolution);
 
 sub run {
     my $self = shift;
@@ -36,7 +37,12 @@ sub run {
     }
     $self->wait_grub(in_grub => 1, bootloader_time => 10);
     uefi_bootmenu_params;
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        type_string_very_slow(get_hyperv_fb_video_resolution);
+        assert_screen('set-hyperv-framebuffer');
+    }
     send_key "f10";
+    save_screenshot;
 }
 
 sub test_flags {
