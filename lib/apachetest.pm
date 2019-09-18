@@ -24,10 +24,9 @@ our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mys
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
 # Example: setup_apache2(mode => 'SSL');
 sub setup_apache2 {
-    my %args      = @_;
-    my $mode      = uc $args{mode} || "";
-    my $nsspasswd = "hTtp.Te5t";
-    my @packages  = qw(apache2);
+    my %args     = @_;
+    my $mode     = uc $args{mode} || "";
+    my @packages = qw(apache2);
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
@@ -99,6 +98,7 @@ sub setup_apache2 {
 
     # Start apache service
     systemctl 'stop apache2';
+    my $nsspasswd = (script_run('rpm -q apache2-mod_nss') == 0) ? script_output('awk \'/The database password is/ {print$5}\' /etc/apache2/mod_nss.d/install.log') : 'hTtp.Te5ti';
     if ($mode eq "NSS") {
         assert_script_run "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for internal (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
