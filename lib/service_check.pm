@@ -162,6 +162,7 @@ sub install_services {
                 next;
             }
 
+            zypper_call "in $srv_pkg_name";
             systemctl 'enable ' . $srv_proc_name;
             systemctl 'start ' . $srv_proc_name;
             systemctl 'is-active ' . $srv_proc_name;
