@@ -16,7 +16,7 @@
 # Summary: Check system info like `/etc/issue` or `/etc/os-release`.
 # Maintainer: Alynx Zhou <alynx.zhou@suse.com>
 
-use base "basetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -35,10 +35,6 @@ sub run {
         assert_script_run("grep $milestone_version /etc/issue");
     }
     assert_script_run('cat /etc/os-release');
-}
-
-sub test_flags {
-    return {fatal => 0};
 }
 
 1;
