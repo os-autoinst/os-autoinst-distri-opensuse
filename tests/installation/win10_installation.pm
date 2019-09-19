@@ -31,7 +31,7 @@ sub run {
     save_screenshot;
     send_key 'alt-n';      # next
     assert_screen 'windows-activate';
-    send_key 'alt-i';      # I dont have the product key
+    assert_and_click 'windows-no-prod-key';
     assert_screen 'windows-select-system';
     send_key_until_needlematch('windows-10-pro', 'down');
     send_key 'alt-n';      # select OS (Win 10 Pro)
