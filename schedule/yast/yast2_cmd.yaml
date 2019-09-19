@@ -4,5 +4,4 @@ description:    >
 
 schedule:
      - boot/boot_to_desktop
-     - yast2_cmd/yast_rdp
-     - yast2_cmd/yast_timezone
+     - boot/fake
