@@ -31,7 +31,11 @@ sub fufill_guests_in_setting {
     my $get_vm_hostnames   = "virsh list  --all | grep sles | awk \'{print \$2}\'";
     my $vm_hostnames       = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
-    foreach (@vm_hostnames_array) { $xen::guests{$_} = '1'; }
+    foreach (@vm_hostnames_array) {
+        my $get_vm_macaddress = "virsh domiflist --domain $_ | grep -oE \"([0-9|a-z]{2}:){5}[0-9|a-z]{2}\"";
+        my $vm_macaddress     = script_output($get_vm_macaddress, $wait_script, type_command => 0, proceed_on_failure => 0);
+        $xen::guests{$_}->{macaddress} = $vm_macaddress;
+    }
 }
 
 sub run {
