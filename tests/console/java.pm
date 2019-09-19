@@ -30,7 +30,7 @@ sub run {
     pkcon_quit;
 
     if (check_var("DISTRI", "sle")) {
-        if (script_run('zypper -n in --auto-agree-with-licenses java-*', 500) == 4) {
+        if (script_retry('zypper -n in --auto-agree-with-licenses java-*', timeout => 500, expect => 4, retry => 5) == 4) {
             record_soft_failure 'bsc#1137466';
             # install only java-11-openjdk* & java-*-ibm*
             zypper_call('in --auto-agree-with-licenses java-11-openjdk* java-*-ibm*');
