@@ -25,8 +25,8 @@ use utils;
 sub run {
     select_console('root-console');
 
-    script_output("SUSEConnect --list");
-    script_output("SUSEConnect --status-text");
+    assert_script_run("SUSEConnect --list > /dev/$serialdev");
+    assert_script_run("SUSEConnect --status-text > /dev/$serialdev");
 
     if (!get_var('MILESTONE_VERSION')) {
         assert_script_run('cat /etc/issue');
