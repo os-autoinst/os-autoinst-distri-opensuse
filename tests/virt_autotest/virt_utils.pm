@@ -16,6 +16,7 @@ use base Exporter;
 use Exporter;
 use strict;
 use warnings;
+use Sys::Hostname;
 use File::Basename;
 use testapi;
 use Data::Dumper;
@@ -25,7 +26,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release);
+  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data);
 
 sub get_version_for_daily_build_guest {
     my $version = '';
@@ -399,6 +400,74 @@ sub is_installed_equal_upgrade_major_release {
     my $host_upgrade_version = get_var('UPGRADE_PRODUCT', 'sles-1-sp0');                   #format sles-15-sp0
     ($host_upgrade_version) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
     return $host_installed_version eq $host_upgrade_version;
+}
+
+#Generate XML to be consumed by junit log utilities
+sub generateXML_from_data {
+    my ($tc_data, $data) = @_;
+    my %my_hash  = %$tc_data;
+    my %xmldata  = %$data;
+    my $case_num = scalar(keys %my_hash);
+    my $case_status;
+    my $writer = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
+
+    my $count = $xmldata{"pass_nums"} + $xmldata{"fail_nums"} + $xmldata{"skip_nums"};
+    $writer->startTag(
+        'testsuites',
+        error    => "0",
+        failures => $xmldata{"fail_nums"},
+        name     => $xmldata{"product_name"},
+        skipped  => "0",
+        tests    => "$count",
+        time     => ""
+    );
+    $writer->startTag(
+        'testsuite',
+        error     => "0",
+        failures  => $xmldata{"fail_nums"},
+        hostname  => hostname(),
+        id        => "0",
+        name      => $xmldata{"product_tested_on"},
+        package   => $xmldata{"package_name"},
+        skipped   => "0",
+        tests     => $case_num,
+        time      => "",
+        timestamp => "2016-02-16T02:50:00"
+    );
+
+    foreach my $item (keys(%my_hash)) {
+        if ($my_hash{$item}->{status} =~ m/PASSED/) {
+            $case_status = "success";
+        }
+        elsif ($my_hash{$item}->{status} =~ m/SKIPPED/ && $item =~ m/iso/) {
+            $case_status = "skipped";
+        }
+        else {
+            $case_status = "failure";
+        }
+        $writer->startTag(
+            'testcase',
+            classname => $item,
+            name      => $item,
+            status    => $case_status,
+            time      => $my_hash{$item}->{time});
+        $writer->startTag('system-err');
+        my $system_err = ($my_hash{$item}->{error} ? $my_hash{$item}->{error} : 'None');
+        $writer->characters("$system_err");
+        $writer->endTag('system-err');
+        $writer->startTag('system-out');
+        $writer->characters($my_hash{$item}->{time});
+        $writer->endTag('system-out');
+        $writer->dataElement(vmguest => $item);
+        $writer->endTag('testcase');
+    }
+
+    $writer->endTag('testsuite');
+    $writer->endTag('testsuites');
+    $writer->end();
+    $writer->to_string();
+
+    return $writer;
 }
 
 1;
