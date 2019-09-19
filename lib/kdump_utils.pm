@@ -259,8 +259,10 @@ sub check_function {
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`$suffix";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
-
-    assert_script_run 'rm -fr /var/crash/*';
+    else {
+        # migration tests need remove core files before migration start
+        assert_script_run 'rm -fr /var/crash/*';
+    }
 }
 
 #

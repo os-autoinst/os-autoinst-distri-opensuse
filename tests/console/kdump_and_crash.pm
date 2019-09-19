@@ -18,6 +18,7 @@ use utils;
 use kdump_utils;
 
 sub run {
+    select_console('root-console');
     kdump_utils::configure_service('function');
     kdump_utils::check_function('function');
 }
