@@ -268,7 +268,11 @@ sub format_dasd {
     }
 
     # bring DASD down again to test the activation during the installation
-    assert_script_run("dasd_configure 0.0.0150 0");
+    #assert_script_run("dasd_configure 0.0.0150 0");
+    assert_script_run("sed -i 's/chzdev/chzdev -V /' \$(which dasd_configure)");
+    assert_script_run("modprobe ctcm");
+    assert_script_run("modprobe lcs");
+    assert_script_run("bash -x \$(which dasd_configure) 0.0.0150 0 2\&>/dev/$serialdev", 30);  
 }
 
 sub run {
