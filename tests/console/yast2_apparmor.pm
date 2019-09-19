@@ -18,8 +18,7 @@ use utils qw(zypper_call systemctl);
 use version_utils qw(is_pre_15 is_sle is_opensuse is_leap);
 
 sub install_extra_packages_requested {
-    check_screen([qw(yast2_apparmor_extra_packages_requested yast2_apparmor)], 30);
-    if (match_has_tag 'yast2_apparmor_extra_packages_requested') {
+    if (check_screen 'yast2_apparmor_extra_packages_requested', 15) {
         send_key 'alt-i';
         save_screenshot;
         wait_still_screen 5;
@@ -43,11 +42,11 @@ sub run {
     } else {
         #SLES >=15 imediatelly asks for extra packages, not after main menu:
         install_extra_packages_requested;
-        send_key 'alt-l';
         assert_screen 'yast2_apparmor';
+        send_key 'alt-l';
     }
 
-    assert_screen [qw(yast2_apparmor_disabled yast2_apparmor_enabled)];
+    assert_screen([qw(yast2_apparmor_disabled yast2_apparmor_enabled)], 10);
     if (match_has_tag 'yast2_apparmor_disabled') {
         send_key 'alt-e';
         assert_screen 'yast2_apparmor_enabled';
