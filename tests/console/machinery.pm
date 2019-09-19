@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
-use registration qw(add_suseconnect_product register_product);
+use registration qw(add_suseconnect_product remove_suseconnect_product register_product);
 
 
 sub run {
@@ -53,6 +53,17 @@ sub run {
     } else {
         assert_script_run 'machinery inspect localhost',               300;
         assert_script_run 'machinery show localhost | grep machinery', 100;
+    }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook();
+
+    if (zypper_call('ref', exitcode => [0, 106]) == 106) {
+        # 106 - ZYPPER_EXIT_INF_REPOS_SKIPPED
+        # Some repository had to be disabled temporarily because it failed to refresh. You should check your repository configuration (e.g. zypper ref -f).
+        remove_suseconnect_product('PackageHub');
     }
 }
 
