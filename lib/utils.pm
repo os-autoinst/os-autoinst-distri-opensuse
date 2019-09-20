@@ -498,6 +498,10 @@ sub zypper_call {
         $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
         if ($ret == 4) {
+            if ($command =~ /^in.*java-\*$/ && script_run('grep "do not install java-" /var/log/zypper.log') == 0) {
+                record_soft_failure 'bsc#1137466';
+                last;
+            }
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 record_soft_failure 'Retrying because of error 502 - bsc#1070851';
             }
