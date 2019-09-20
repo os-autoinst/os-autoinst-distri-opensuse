@@ -801,8 +801,15 @@ elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
         if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64) {
-            loadtest "virt_autotest/setup_dns_service";
             loadtest "virt_autotest/set_config_as_glue";
+            if (get_var("ENABLE_VIR_NET")) {
+                loadtest "virt_autotest/libvirt_virtual_network_init";
+                loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+                loadtest "virt_autotest/libvirt_nated_virtual_network";
+                loadtest "virt_autotest/libvirt_routed_virtual_network";
+                loadtest "virt_autotest/libvirt_isolated_virtual_network";
+            }
+            loadtest "virt_autotest/setup_dns_service";
             loadtest "virtualization/xen/hotplugging" if get_var("ENABLE_HOTPLUGGING");
             loadtest "virt_autotest/virsh_internal_snapshot";
             loadtest "virt_autotest/virsh_external_snapshot";
