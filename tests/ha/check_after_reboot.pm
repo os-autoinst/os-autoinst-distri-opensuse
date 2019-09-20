@@ -87,6 +87,8 @@ sub run {
 
     # Synchronize all nodes
     barrier_wait("CHECK_AFTER_REBOOT_END_$cluster_name");
+
+    barrier_wait("HAWK_FENCE_$cluster_name") if (check_var('HAWKGUI_TEST_ROLE', 'server'));
 }
 
 1;
