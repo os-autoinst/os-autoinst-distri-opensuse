@@ -1527,11 +1527,17 @@ ref:bsc#1122591
 
 =cut
 sub create_btrfs_subvolume {
+    my @sub_list = split(/\n/, script_output("btrfs subvolume list /boot/grub2/arm64-efi/", 120));
+    foreach my $line (@sub_list) {
+        return if ($line =~ /\/boot\/grub2\/arm64-efi/);
+    }
     record_soft_failure 'bsc#1122591 - Create subvolume for aarch64 to make snapper rollback works';
-    assert_script_run("mv /boot/grub2/arm64-efi /boot/grub2/arm64-efi.bk");
+    assert_script_run("mkdir -p /tmp/arm64-efi/");
+    assert_script_run("cp -r /boot/grub2/arm64-efi/* /tmp/arm64-efi/");
+    assert_script_run("rm -fr /boot/grub2/arm64-efi");
     assert_script_run("btrfs subvolume create /boot/grub2/arm64-efi");
-    assert_script_run("cp -r /boot/grub2/arm64-efi.bk/* /boot/grub2/arm64-efi/");
-    assert_script_run("rm -fr /boot/grub2/arm64-efi.bk");
+    assert_script_run("cp -r /tmp/arm64-efi/* /boot/grub2/arm64-efi/");
+    assert_script_run("rm -fr /tmp/arm64-efi/");
 }
 
 
