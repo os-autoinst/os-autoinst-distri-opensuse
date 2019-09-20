@@ -35,7 +35,7 @@ sub run() {
 
     assert_script_run('echo "test" > testfile');
 
-    assert_script_run('vagrant init centos/7');
+    assert_script_run('vagrant init dcermak/Tumbleweed.' . get_required_var('ARCH'));
 
     assert_script_run('vagrant up', timeout => 1200);
 

@@ -2495,9 +2495,13 @@ sub load_virtualization_tests {
     # reboot the machine to kill the previously started virtual machines
     loadtest "console/console_reboot";
 
-    # the tests currently require x86 & Tumbleweed
+    # the virtualbox tests require x86_64 & Tumbleweed
     if (is_x86_64 && is_tumbleweed) {
         loadtest "virtualization/vagrant/add_box_virtualbox";
+    }
+
+    # libvirt works on aarch64 and x86_64
+    if ((is_aarch64 || is_x86_64) && is_tumbleweed) {
         loadtest "virtualization/vagrant/add_box_libvirt";
         loadtest "virtualization/vagrant/boxes/tumbleweed";
     }

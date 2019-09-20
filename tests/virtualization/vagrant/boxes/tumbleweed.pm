@@ -26,24 +26,32 @@ use File::Basename;
 
 
 sub run() {
+    # version = Tumbleweed, Leap 15 etc
+    my $version = get_required_var('VERSION');
+    my $arch    = get_required_var('ARCH');
+    my $build   = get_required_var('BUILD');
+
     setup_vagrant_libvirt();
-    setup_vagrant_virtualbox();
+    if ($arch eq 'x86_64') {
+        setup_vagrant_virtualbox();
+    }
 
     select_console('root-console');
     zypper_call('in ansible');
 
     select_console('user-console');
 
-    # version = Tumbleweed, Leap 15 etc
-    my $version = get_required_var('VERSION');
-    my $arch    = get_required_var('ARCH');
-    my $build   = get_required_var('BUILD');
-
-    my %boxes = (
-        # openSUSE-Tumbleweed-Vagrant.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
-        libvirt    => "openSUSE-$version-Vagrant.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box",
-        virtualbox => "openSUSE-$version-Vagrant.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box"
-    );
+    # for x86_64:
+    # Tumbleweed.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
+    # for aarch64:
+    # Tumbleweed.aarch64-1.0-libvirt_aarch64-Snapshot20190920.vagrant.libvirt.box
+    my %boxes = ();
+    if ($arch eq 'x86_64') {
+        $boxes{libvirt}    = "$version.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box";
+        $boxes{virtualbox} = "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box";
+    } elsif ($arch eq 'aarch64') {
+        $boxes{libvirt} = "$version.$arch.-1.0-libvirt_$arch-Snapshot$build.vagrant.libvirt.box";
+    }
 
     my @providers = keys %boxes;
 
