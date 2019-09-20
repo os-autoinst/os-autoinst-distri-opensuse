@@ -35,8 +35,11 @@ sub run {
     # development module needed for dependencies, released products are tested with sdk module
     if (is_sle) {
         if (get_var('BETA')) {
-            my $sdk_repo = is_sle('15+') ? get_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS') : get_var('REPO_SLE_SDK');
-            zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", name => "SDK";
+            if (is_sle('15-sp1+')) {
+                add_suseconnect_product('sle-module-desktop-applications');
+            } else {
+                add_suseconnect_product(get_addon_fullname('sdk'));
+            }
         }
         # maintenance updates are registered with sdk module
         elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
@@ -72,7 +75,11 @@ sub run {
     # unregister SDK
     if (is_sle) {
         if (get_var('BETA')) {
-            zypper_call "rr SDK";
+            if (is_sle('15-sp1+')) {
+                remove_suseconnect_product('sle-module-desktop-applications');
+            } else {
+                remove_suseconnect_product(get_addon_fullname('sdk'));
+            }
         }
         elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
             remove_suseconnect_product(get_addon_fullname('sdk'));
