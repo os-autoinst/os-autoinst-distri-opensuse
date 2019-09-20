@@ -2812,12 +2812,16 @@ sub load_ha_cluster_tests {
             return 1;
         }
 
-        # Test Haproxy
-        loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
-
         # If testing HAWK's GUI or HAPROXY, skip the rest of the cluster
         # setup tests and only check logs
         if (get_var('HAWKGUI_TEST_ROLE') or get_var('HA_CLUSTER_HAPROXY')) {
+            if (get_var('HAWKGUI_TEST_ROLE')) {
+                # Node1 will be fenced
+                boot_hdd_image if get_var('HA_CLUSTER_INIT');
+                loadtest 'ha/check_after_reboot';
+            }
+            # Test Haproxy
+            loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
             loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
             return 1;
         }
