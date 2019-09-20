@@ -24,6 +24,10 @@ use utils;
 sub run {
     select_console 'root-console';
     zypper_call('in mysql');
+    if (script_run('grep \'bindir="$basedir/sbin"\' /usr/bin/mysql_install_db') == 0) {
+        record_soft_failure 'bsc#1142058';
+        assert_script_run 'sed -i \'s|resolveip="$bindir/resolveip"|resolveip="/usr/bin/resolveip"|\' /usr/bin/mysql_install_db';
+    }
     systemctl 'status mysql', expect_false => 1, fail_message => 'mysql should be disabled by default';
     systemctl 'start mysql';
     systemctl 'status mysql';
