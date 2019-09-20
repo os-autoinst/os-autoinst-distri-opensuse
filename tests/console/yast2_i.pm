@@ -146,7 +146,7 @@ sub run {
     #   restart - go back to the package manager, install/remove more packages
     #   summary - display an installation summary dialog, there user can decide whether to finish or restart
     if ($y2_exit_action =~ m/summary/) {
-        assert_screen 'yast2-sw_shows_summary';
+        assert_screen 'yast2-sw_shows_summary', 90;
         wait_screen_change { send_key 'alt-f' };
     } elsif ($y2_exit_action =~ m/restart/) {
         assert_screen 'empty-yast2-sw_single';
