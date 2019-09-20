@@ -444,7 +444,6 @@ sub load_reboot_tests {
         # exclude this scenario for autoyast test with switched keyboard layaout
         loadtest "installation/first_boot" unless get_var('INSTALL_KEYBOARD_LAYOUT');
         loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
-        load_system_prepare_tests();
         if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION') && !get_var('LIVE_UPGRADE')) {
             loadtest "installation/system_workarounds";
         }
@@ -1078,6 +1077,7 @@ sub load_console_server_tests {
 sub load_consoletests {
     return unless consolestep_is_applicable();
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
+    loadtest "console/system_prepare";
     loadtest "console/check_network";
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
@@ -1102,11 +1102,13 @@ sub load_consoletests {
         loadtest "console/supportutils";
         loadtest "console/check_package_version" if check_var('UPGRADE_TARGET_VERSION', '12-SP5');
     }
+    loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/check_locked_package";
     }
     loadtest "console/textinfo";
     loadtest "console/rmt" if is_rmt;
+    loadtest "console/hostname" unless is_bridged_networking;
     # Add non-oss and debug repos for o3 and remove other by default
     replace_opensuse_repos_tests if is_repo_replacement_required;
     if (get_var('SYSTEM_ROLE', '') =~ /kvm|xen/) {
@@ -2440,7 +2442,6 @@ sub load_system_prepare_tests {
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/system_prepare';
-    loadtest "x11/disable_screensaver" if any_desktop_is_applicable();
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
@@ -2451,6 +2452,7 @@ sub load_system_prepare_tests {
 sub load_create_hdd_tests {
     return unless get_var('INSTALLONLY');
     # install SES packages and deepsea testsuites
+    load_system_prepare_tests;
     load_shutdown_tests;
     if (check_var('BACKEND', 'svirt')) {
         if (is_hyperv) {
