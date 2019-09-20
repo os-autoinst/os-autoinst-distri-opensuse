@@ -96,7 +96,7 @@ sub run {
     send_key "tab";
 
     # open device type drop down and select vlan
-    if (is_tumbleweed || is_leap('15.2+')) {
+    if (is_tumbleweed || is_leap('15.2+') || is_sle('15-SP2+')) {
         send_key "alt-v";
     }
     else {
