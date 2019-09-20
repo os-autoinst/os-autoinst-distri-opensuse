@@ -122,6 +122,7 @@ our @EXPORT = qw(
   updates_is_applicable
   we_is_applicable
   load_extra_tests_y2uitest_gui
+  load_extra_tests_kernel
 );
 
 sub init_main {
@@ -2604,6 +2605,11 @@ sub load_toolchain_tests {
     loadtest "toolchain/gcc_fortran_compilation";
     loadtest "toolchain/gcc_compilation";
     loadtest "console/kdump_and_crash" if is_sle && kdump_is_applicable;
+}
+
+sub load_extra_tests_kernel {
+    loadtest "kernel/module_build";
+    loadtest "kernel/tuned";
 }
 
 sub load_publiccloud_tests {
