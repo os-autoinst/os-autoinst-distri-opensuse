@@ -16,12 +16,19 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster qw(get_cluster_name ha_export_logs);
+use version_utils 'is_sle';
 
 sub run {
     my $cluster_name = get_cluster_name;
 
     # Checking cluster state can take time, so default timeout is not enough
-    assert_script_run 'crm script run health', 240;
+    if (check_var('ARCH', 's390x') and is_sle('12-sp5+')) {
+        # 'crm script run health' is currently failing in SLES+HA 12-SP5 and newer on s390x
+        record_soft_failure "bsc#1150704 - 'crm script run health' is known to crash the cluster on SLES+HA 12-SP5+ on s390x";
+    }
+    else {
+        assert_script_run 'crm script run health', 240 * get_var('TIMEOUT_SCALE', 1);
+    }
 
     barrier_wait("LOGS_CHECKED_$cluster_name");
 
