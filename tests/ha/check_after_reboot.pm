@@ -22,7 +22,9 @@ use utils 'systemctl';
 sub run {
     my $cluster_name = get_cluster_name;
     # In ppc64le and aarch64, workers are slower
-    set_var('TIMEOUT_SCALE', 2) unless (check_var('ARCH', 'x86_64'));
+    my $timeout_scale = get_var('TIMEOUT_SCALE', 2);
+    $timeout_scale = 2 if ($timeout_scale < 2);
+    set_var('TIMEOUT_SCALE', $timeout_scale) unless (check_var('ARCH', 'x86_64'));
 
     # Check cluster state *after* reboot
     barrier_wait("CHECK_AFTER_REBOOT_BEGIN_$cluster_name");
@@ -54,6 +56,23 @@ sub run {
             systemctl 'restart pacemaker';
         }
     }
+
+    # Check iSCSI server is connected
+    my $ret = script_run 'ls /dev/disk/by-path/ip-*', $default_timeout;
+    if ($ret) {    # iscsi is not connected?
+        script_run("yast2 iscsi-client; echo yast2-iscsi-client-status-\$? > /dev/$serialdev", 0);
+        assert_screen 'iscsi-client-overview-service-tab', $default_timeout;
+        send_key 'alt-v';
+        wait_still_screen 3;
+        assert_screen 'iscsi-client-target-connected', $default_timeout;
+        send_key 'alt-c';
+        wait_still_screen 3;
+        wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
+        assert_screen 'root-console',                    $default_timeout;
+        assert_script_run 'systemctl restart pacemaker', $default_timeout;
+    }
+    assert_script_run 'systemctl list-units | grep iscsi', $default_timeout;
+    assert_script_run 'systemctl status pacemaker',        $default_timeout;
 
     # Wait for resources to be started
     if (is_sles4sap) {
