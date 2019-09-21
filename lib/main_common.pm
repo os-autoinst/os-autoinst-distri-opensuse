@@ -2715,6 +2715,9 @@ sub load_ha_cluster_tests {
     # Only SLE-15+ has support for lvmlockd
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
+    # When not using a support server, node 1 setups barriers and mutex
+    loadtest 'ha/barrier_init' if (get_var('HA_CLUSTER_INIT') and !get_var('USE_SUPPORT_SERVER'));
+
     # Wait for barriers to be initialized except when testing HAWK as a client
     # or Pacemaker CTS regression tests
     loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client') or
@@ -2768,6 +2771,7 @@ sub load_ha_cluster_tests {
     # Basic configuration
     loadtest 'ha/firewall_disable';
     loadtest 'ha/iscsi_client';
+    loadtest 'ha/setup_hosts_and_luns' unless get_var('USE_SUPPORT_SERVER');
     loadtest 'ha/watchdog';
 
     # Some patterns/packages may be needed for SLES4SAP
@@ -2830,8 +2834,8 @@ sub load_ha_cluster_tests {
     # Show HA cluster status *before* fencing test and execute fencing test
     loadtest 'ha/fencing';
 
-    # Node1 will be fenced, so we have to wait for it to boot
-    boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
+    # Node1 will be fenced, so we have to wait for it to boot. On svirt load only boot_to_desktop
+    check_var('BACKEND', 'svirt') ? loadtest 'boot/boot_to_desktop' : boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
 
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';

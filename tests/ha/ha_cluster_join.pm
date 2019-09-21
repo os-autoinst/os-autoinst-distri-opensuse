@@ -27,11 +27,11 @@ sub run {
 
     # Try to join the HA cluster through first node
     assert_script_run "ping -c1 $node_to_join";
-    type_string "ha-cluster-join -yc $node_to_join\n";
-    assert_screen 'ha-cluster-join-password';
+    type_string "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? > /dev/$serialdev\n";
+    assert_screen 'ha-cluster-join-password', $join_timeout;
     type_password;
     send_key 'ret';
-    wait_still_screen(stilltime => 10);
+    wait_serial("ha-cluster-join-finished-0", $join_timeout);
 
     # Indicate that the other nodes have joined the cluster
     barrier_wait("NODE_JOINED_$cluster_name");
