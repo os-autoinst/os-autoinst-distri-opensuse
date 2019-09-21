@@ -74,7 +74,7 @@ sub run {
 
     # Format the Filesystem device
     if (is_node(1)) {
-        assert_script_run "mkfs -t $fs_type $fs_opts $fs_lun";
+        assert_script_run "mkfs -t $fs_type $fs_opts $fs_lun", $default_timeout;
     }
     else {
         diag 'Wait until Filesystem device is formatted...';
@@ -86,20 +86,20 @@ sub run {
     if (is_node(1)) {
         # Create the Filesystem resource
         assert_script_run
-"EDITOR=\"sed -ie '\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device='$fs_lun' directory='/srv/$fs_rsc' fstype='$fs_type''\" crm configure edit";
+"EDITOR=\"sed -ie '\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device='$fs_lun' directory='/srv/$fs_rsc' fstype='$fs_type''\" crm configure edit", $default_timeout;
 
         # Only OCFS2 can be cloned
         if ($fs_type eq 'ocfs2') {
-            assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $fs_rsc/'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $fs_rsc/'\" crm configure edit", $default_timeout;
         }
         else {
             if ($resource eq 'drbd_passive') {
-                assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:Master'\" crm configure edit";
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start'\" crm configure edit";
+                assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:Master'\" crm configure edit", $default_timeout;
+                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start'\" crm configure edit", $default_timeout;
             }
             else {
-                assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource'\" crm configure edit";
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc'\" crm configure edit";
+                assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource'\" crm configure edit", $default_timeout;
+                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc'\" crm configure edit",     $default_timeout;
             }
 
             # Sometimes we need to cleanup the resource
@@ -117,13 +117,13 @@ sub run {
     barrier_wait("FS_GROUP_ADDED_${barrier_tag}_$cluster_name");
 
     # Do a check of the cluster with a screenshot
-    script_run 'df -h';
+    script_run 'df -h', $default_timeout;
     save_state;
 
     if ($resource eq 'drbd_passive') {
         # To ensure a proper resource migration, we need to stop/start it
         if (is_node(1)) {
-            assert_script_run "crm resource stop $fs_rsc";
+            assert_script_run "crm resource stop $fs_rsc", $default_timeout;
         }
 
         # Wait for Filesystem to be stopped
@@ -133,13 +133,13 @@ sub run {
     if (is_node(1)) {
         if ($resource eq 'drbd_passive') {
             # Start the resource
-            script_run "crm resource start $fs_rsc";
+            script_run "crm resource start $fs_rsc", $default_timeout;
             ensure_resource_running("$fs_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
         }
 
         # Add files/data in the Filesystem
-        assert_script_run "cp -r /usr/bin/ /srv/$fs_rsc ; sync";
-        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out";
+        assert_script_run "cp -r /usr/bin/ /srv/$fs_rsc ; sync",                               $default_timeout;
+        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out", $default_timeout;
     }
     else {
         diag 'Wait until Filesystem is filled with data...';
@@ -163,16 +163,16 @@ sub run {
                 # Workaround needed before 12sp4
                 # Restart of master/slave rsc after fs_rsc configuration
                 foreach my $action ('stop', 'start') {
-                    assert_script_run "crm resource $action ms_$resource";
+                    assert_script_run "crm resource $action ms_$resource", $default_timeout;
                     sleep 5;
                 }
 
                 # Migrate resource on the node
-                assert_script_run "crm resource migrate ms_$resource $node";
+                assert_script_run "crm resource migrate ms_$resource $node", $default_timeout;
                 ensure_resource_running("$fs_rsc", "is running on:[[:blank:]]*$node\[[:blank:]]*\$");
 
                 # Do a check of the cluster with a screenshot
-                script_run 'df -h';
+                script_run 'df -h', $default_timeout;
                 save_state;
             }
             else {
@@ -181,8 +181,8 @@ sub run {
         }
 
         # Check if files/data are different in the Filesystem
-        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node";
-        assert_script_run "cd /srv/$fs_rsc ; diff -urN out out_$node";
+        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node", $default_timeout;
+        assert_script_run "cd /srv/$fs_rsc ; diff -urN out out_$node",                               $default_timeout;
     }
 
     # Return to default directory
