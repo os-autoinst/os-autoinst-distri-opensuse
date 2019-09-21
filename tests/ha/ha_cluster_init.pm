@@ -25,7 +25,6 @@ sub run {
     my $sbd_device    = get_lun;
     my $unicast_opt   = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
-    my $join_timeout  = 60;
     my $fencing_opt   = "-s $sbd_device";
 
     # If we failed to initialize the cluster, trying again but in debug mode
