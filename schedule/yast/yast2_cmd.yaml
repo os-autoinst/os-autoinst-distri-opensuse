@@ -3,5 +3,12 @@ description:    >
     Yast2 cmd interface tests.
 
 schedule:
+     - {{uefi_bootmenu}}
      - boot/boot_to_desktop
      - boot/fake
+     
+conditional_schedule:
+    uefi_bootmenu:
+        ARCH:
+            aarch64:
+                - boot/uefi_bootmenu
