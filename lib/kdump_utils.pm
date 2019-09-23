@@ -246,7 +246,7 @@ sub check_function {
     else {
         power_action('reboot', observe => 1, keepconsole => 1);
     }
-
+    unlock_if_encrypted;
     # Wait for system's reboot; more time for Hyper-V as it's slow.
     $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
     select_console 'root-console';
