@@ -129,7 +129,7 @@ sub boot_spvm {
     # Switch to installation console (ssh or vnc)
     select_console('installation');
     # We need to start installer only if it's pure ssh installation
-    type_string("yast.ssh\n") if check_var('VIDEOMODE', 'ssh-x');
+    type_string("yast.ssh\n") if get_var('VIDEOMODE', '') =~ /ssh-x|text/;
     wait_still_screen;
 }
 
