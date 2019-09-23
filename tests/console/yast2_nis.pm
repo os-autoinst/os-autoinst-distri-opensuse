@@ -50,10 +50,8 @@ sub run() {
     send_key_until_needlematch 'nis-domain-empty-field', 'backspace';    # clear NIS Domain field if it is prefilled
     type_string "suse.de";
     send_key 'alt-a';
-    #clear suggested NIS server adresses on SLE15+
-    if (is_sle '15+') {
-        for (1 .. 15) { send_key 'backspace'; }
-    }
+    #clear suggested NIS server adress
+    for (1 .. 15) { send_key 'backspace'; }
     wait_screen_change { type_string "10.162.0.1" };
     wait_screen_change { send_key 'alt-p' };                             # check Netconfif NIS Policy
     send_key 'up';
