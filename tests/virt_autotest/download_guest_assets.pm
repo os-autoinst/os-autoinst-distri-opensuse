@@ -21,6 +21,7 @@ use virt_utils;
 sub run {
     # download vm image and xml file from NFS location to skip installing guest
     my $vm_xml_dir = "/tmp/download_vm_xml";
+    set_var("GUEST_LIST", get_var("GUEST")) if get_var("GUEST");
     handle_sp_in_settings_with_fcs("GUEST_LIST");
     my $guest_list = get_required_var("GUEST_LIST");
     if (download_guest_assets($guest_list, $vm_xml_dir)) {

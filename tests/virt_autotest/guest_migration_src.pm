@@ -103,8 +103,8 @@ sub run {
     my $upload_log_name = "guest-migration-src-logs";
 
     # clean up logs from prevous tests
+    $self->execute_script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30) if !get_var('SKIP_GUEST_INSTALL');
     $self->execute_script_run('[ -d /var/log/qa/ctcs2/ ] && rm -r /var/log/qa/ctcs2/*',                     30);
-    $self->execute_script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30);
     $self->execute_script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
     $self->run_test($timeout, "", "no", "yes", "$log_dirs", "$upload_log_name");

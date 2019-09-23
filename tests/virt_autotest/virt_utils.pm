@@ -329,10 +329,16 @@ sub download_guest_assets {
     my $remote_export_dir = "/var/lib/openqa/factory/other/";
     my $mount_point       = "/tmp/remote_guest";
 
-    script_run "if [ -d $mount_point ]; then if findmnt $mount_point; then umount $mount_point; fi; else mkdir -p $mount_point; fi";
+    # clean up vm stuff
+    script_run "[ -d $mount_point ] && { if findmnt $mount_point; then umount $mount_point; rm -rf $mount_point; fi }";
+    script_run "mkdir -p $mount_point";
+    script_run "[ -d $vm_xml_dir ] && rm -rf $vm_xml_dir; mkdir -p $vm_xml_dir";
+    my $disk_image_dir = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vm_disk_dir";
+    script_run "umount $disk_image_dir; rm -rf $disk_image_dir";
+    script_run "[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/" if get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE');
     save_screenshot;
 
-    # tip: nfs4 is not supported on sles12sp4
+    # tip: nfs4 is not supported on sles12sp4, so use '-t nfs' instead of 'nfs4' here.
     assert_script_run("mount -t nfs $openqa_server:$remote_export_dir $mount_point", 120);
     save_screenshot;
 
@@ -343,8 +349,9 @@ sub download_guest_assets {
         my $guest_asset           = generate_guest_asset_name("$guest");
         my $remote_guest_xml_file = $guest_asset . '.xml';
         my $remote_guest_disk     = $guest_asset . '.disk';
-        # change the long guest image name and xml file name to normal ones in local
-        my $rc = script_run("if [ ! -d $vm_xml_dir ];then mkdir -p $vm_xml_dir;fi; cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
+
+        # download vm xml file
+        my $rc = script_run("cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
         save_screenshot;
         if ($rc) {
             record_soft_failure("Failed copying: $mount_point/$remote_guest_xml_file");
@@ -352,8 +359,21 @@ sub download_guest_assets {
         }
         script_run("ls -l $vm_xml_dir", 10);
         save_screenshot;
+
+        # download vm disk files
         my $local_guest_image = script_output "grep '<source file=' $vm_xml_dir/$guest.xml | sed \"s/^\\s*<source file='\\([^']*\\)'.*\$/\\1/\"";
-        script_run "if [ ! -d `dirname $local_guest_image` ]; then mkdir -p `dirname $local_guest_image`; fi";
+        # put the downloded xml and disk files in the backup dir directory
+        # in case of being flushed up by the NFS workaround from dst job
+        if (get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE')) {
+            my $backupRootDir   = "/tmp/prj3_guest_migration/vm_backup";
+            my $backupCfgXmlDir = "$backupRootDir/vm-config-xmls";
+            my $backupDiskDir   = "$backupRootDir/vm-disk-files";
+            script_run "mkdir -p $backupCfgXmlDir; mkdir -p $backupDiskDir";
+            script_run "cp $vm_xml_dir/$guest.xml $backupCfgXmlDir";
+            script_run "ls -l $backupCfgXmlDir";
+            $local_guest_image = $backupDiskDir . $local_guest_image;
+        }
+        script_run "[ -d `dirname $local_guest_image` ] || mkdir -p `dirname $local_guest_image`";
         $rc = script_run("cp $mount_point/$remote_guest_disk $local_guest_image", 300);    #it took 75 seconds copy from vh016 to vh001
         script_run "ls -l $local_guest_image";
         save_screenshot;
