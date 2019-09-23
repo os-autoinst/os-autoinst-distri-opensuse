@@ -61,10 +61,10 @@ our @EXPORT = qw(
 
 # Global variables
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
-our $softdog_timeout = 60 * get_var('TIMEOUT_SCALE', 1);
+our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
-our $join_timeout    = 60 * get_var('TIMEOUT_SCALE', 1);
-our $default_timeout = 30 * get_var('TIMEOUT_SCALE', 1);
+our $join_timeout    = bmwqemu::scale_timeout(60);
+our $default_timeout = bmwqemu::scale_timeout(30);
 
 sub exec_csync {
     # Sometimes we need to run csync2 twice to have all the files updated!
@@ -333,7 +333,7 @@ sub check_cluster_state {
 sub wait_until_resources_started {
     my %args    = @_;
     my @cmds    = ('crm cluster wait_for_startup');
-    my $timeout = ($args{timeout} // 120) * get_var('TIMEOUT_SCALE', 1);
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
     my $ret     = undef;
 
     # Some CRM options can only been added on recent versions

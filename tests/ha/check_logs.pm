@@ -27,7 +27,7 @@ sub run {
         record_soft_failure "bsc#1150704 - 'crm script run health' is known to crash the cluster on SLES+HA 12-SP5+ on s390x";
     }
     else {
-        assert_script_run 'crm script run health', 240 * get_var('TIMEOUT_SCALE', 1);
+        assert_script_run 'crm script run health', bmwqemu::scale_timeout(240);
     }
 
     barrier_wait("LOGS_CHECKED_$cluster_name");
