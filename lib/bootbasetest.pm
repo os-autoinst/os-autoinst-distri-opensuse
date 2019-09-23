@@ -12,11 +12,15 @@ sub post_fail_hook {
 
     # if we found a shell, we do not need the memory dump
     if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
-        die "save_memory_dump not implemented, no way to save memory_dump" unless check_var('BACKEND', 'qemu');
-        select_console 'root-console';
-        diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
-        save_memory_dump;
-        record_info('Sucessfuly saved memory dump');
+        if (check_var('BACKEND', 'qemu')) {
+            select_console 'root-console';
+            diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
+            save_memory_dump;
+            record_info('Memory dumo', 'Memory dump available for this module');
+        } else {
+            record_info('No memory dump', 'save_memory_dump not implemented for ' . get_var('BACKEND', 'NO-BACKEND')
+                  . ', no way to save memory_dump');
+        }
     }
 
     # crosscheck for text login on tty1
