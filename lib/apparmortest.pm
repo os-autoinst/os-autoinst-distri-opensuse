@@ -16,6 +16,11 @@
 # Summary: Base module for AppArmor test cases
 # Maintainer: Wes <whdu@suse.com>
 
+=head1 Apparmor Tests
+
+Apparmor tests
+
+=cut
 package apparmortest;
 
 use strict;
@@ -61,6 +66,14 @@ our $testdir  = "testdir";
 # $type:
 # 0  - Copy only the basic structure of profile directory
 # != 0 (default) - Copy full contents under the profile directory
+
+=head2 aa_tmp_prof_prepare
+
+ aa_tmp_prof_prepare();
+
+Prepare apparmor profile directory
+
+=cut
 sub aa_tmp_prof_prepare {
     my ($self, $prof_dir_tmp, $type) = @_;
     my $prof_dir = "/etc/apparmor.d";
@@ -80,6 +93,14 @@ sub aa_tmp_prof_prepare {
 
 # Verify the program could start with the temporary profiles
 # Then restore it to the enforce status with normal profiles
+
+=head2 aa_tmp_prof_verify
+
+ aa_tmp_prof_verify();
+
+Verify that program can start with temporary profiles and then restore to the enforce status with normal profiles
+
+=cut
 sub aa_tmp_prof_verify {
     my ($self, $prof_dir_tmp, $prog) = @_;
 
@@ -93,6 +114,13 @@ sub aa_tmp_prof_verify {
     systemctl("restart $prog");
 }
 
+=head2 aa_tmp_prof_clean
+
+ aa_tmp_prof_clean();
+
+Remove appamor temporary profiles
+
+=cut
 sub aa_tmp_prof_clean {
     my ($self, $prof_dir_tmp) = @_;
 
@@ -100,6 +128,14 @@ sub aa_tmp_prof_clean {
 }
 
 # Get the named profile for an executable program
+
+=head2 get_named_profiled
+
+ get_named_profiled();
+
+Get the named profile for an executable program
+
+=cut
 sub get_named_profile {
     my ($self, $profile_name) = @_;
 
@@ -112,6 +148,13 @@ sub get_named_profile {
 }
 
 # Check the output of aa-status: if a given profile belongs to a given mode
+
+=head2 aa_status_stdout_check
+
+ aa_status_stdout_check();
+
+Check the output of aa-status: if a given profile belongs to a given mode
+=cut
 sub aa_status_stdout_check {
     my ($self, $profile_name, $profile_mode) = @_;
 
@@ -122,6 +165,13 @@ sub aa_status_stdout_check {
     assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
 }
 
+=head2 ip_fetch
+
+ ip_fetch();
+
+Fetch ip details
+
+=cut
 sub ip_fetch {
     # "# hostname -i/-I" can not work in some cases
     my $ip = script_output("ip -4 -f inet -o a | grep -E \'eth0|ens\' | sed -n 's/\.*inet \\([0-9.]\\+\\)\.*/\\1/p'");
@@ -131,6 +181,26 @@ sub ip_fetch {
 # Set up mail server with Postfix and Dovecot:
 #   setting Postfix for outgoing mail,
 #   setting Dovecot for ingoing mail,
+
+=head2 setup_mail_server_postfix_dovecot
+
+ setup_mail_server_postfix_dovecot();
+
+Set up mail server with Postfix and Dovecot:
+
+=over
+
+=item * 1. Setting Postfix for outgoing mail by: setting hostname and domain, restart rcnetwork services, double check the setting
+
+=item * 2. Setting mail sender/recipient as needed
+
+=item * 3. Setting Postfix for outgoing mail (SMTP server with Postfix) by: install Postfix by using zypper_call, start Postfix service, set "/etc/postfix/main.cf" file, output the setting for reference, restart Postfix service, output the status for reference
+
+=item * 4. Setting Dovecot for ingoing mail by: set the config files $testfile, restart Dovecot service, output the status for reference
+    
+=back
+
+=cut
 sub setup_mail_server_postfix_dovecot {
     my ($self)   = @_;
     my $ip       = "";
@@ -232,6 +302,13 @@ sub setup_mail_server_postfix_dovecot {
     systemctl("status dovecot");
 }
 
+=head2 send_mail_smtp
+
+ send_mail_smtp();
+
+Send mail with telnet SMTP by using script_run_interactive
+
+=cut
 # Send mail with telnet SMTP
 sub send_mail_smtp {
 
@@ -271,6 +348,13 @@ sub send_mail_smtp {
     );
 }
 
+=head2 Retrieve email with POP3
+
+ retrieve_mail_pop3
+
+Retrieve email with POP3 by using script_run_interactive
+
+=cut
 # Retrieve email with POP3
 sub retrieve_mail_pop3 {
     # NOTE: Please put "prompt => qr/\+OK/m," to the end of the reference list
@@ -303,6 +387,13 @@ sub retrieve_mail_pop3 {
     );
 }
 
+=head2 retrieve_mail_imap
+
+ retrieve_mail_imap();
+
+Retrieve email with IMAP by using script_run_interactive
+
+=cut
 # Retrieve email with IMAP
 sub retrieve_mail_imap {
     script_run_interactive(
@@ -349,6 +440,13 @@ sub retrieve_mail_imap {
     );
 }
 
+=head2 mariadb_setup
+
+ mariadb_setup();
+
+Set up Mariadb and test account by using zypper_call, assert_script_run, script_run_interactive
+
+=cut
 # Set up Mariadb and test account
 sub mariadb_setup {
     # Install Mariadb
@@ -396,6 +494,31 @@ sub mariadb_setup {
     );
 }
 
+=head2 adminer_setup
+
+ adminer_setup();
+
+Set up Web environment for running Adminer by:
+
+=over
+
+=item * use assert_script_run to enable php5 andphp7, restart apache2 and mysql
+
+=item * download Adminer and copy it to directory /srv/www/htdocs/adminer/
+
+=item * test Adminer
+
+=item * clean and start Firefox
+
+=item * exit x11 and turn to console
+
+=item * exit xterm
+
+=item * send "ret" key in case of any pop up message
+
+=back
+
+=cut
 # Set up Web environment for running Adminer
 sub adminer_setup {
     assert_script_run("a2enmod php5");
@@ -458,6 +581,21 @@ sub adminer_setup {
     clear_console;
 }
 
+=head2 adminer_database_delete
+
+ adminer_database_delete();
+
+Log in Adminer, seletct "test" database and delete it
+
+=over
+
+=item * do some operations on web, e.g., log in, select/delete a database
+
+=item * exit x11 and turn to console
+
+=back
+
+=cut
 # Log in Adminer, seletct "test" database and delete it
 sub adminer_database_delete {
     select_console 'x11';
@@ -486,6 +624,13 @@ sub adminer_database_delete {
     clear_console;
 }
 
+=head2 upload_logs_mail
+
+ upload_logs_mail();
+
+Upload mail warn, err and info logs for reference
+
+=cut
 sub upload_logs_mail {
     # Upload mail warn, err and info logs for reference
     upload_logs("$mail_err_log");
@@ -493,6 +638,13 @@ sub upload_logs_mail {
     upload_logs("$mail_info_log");
 }
 
+=head2 pre_run_hook
+
+ pre_run_hook();
+
+Restart auditd and apparmor in root-console
+
+=cut
 sub pre_run_hook {
     my ($self) = @_;
 
@@ -501,6 +653,13 @@ sub pre_run_hook {
     systemctl('restart apparmor');
 }
 
+=head2 post_fail_hook
+
+ post_fail_hook();
+
+Run post_fail_hook and upload audit logs
+
+=cut
 sub post_fail_hook {
     my ($self) = shift;
 
