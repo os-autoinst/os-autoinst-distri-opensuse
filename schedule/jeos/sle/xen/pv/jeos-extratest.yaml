@@ -52,7 +52,6 @@ schedule:
   - console/procps
   - console/docker
   - console/docker_runc
-  - console/sle2docker
   - console/docker_image
   - sysauth/sssd
   - console/zypper_docker
