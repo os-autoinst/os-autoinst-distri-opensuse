@@ -21,7 +21,7 @@ sub remove_state_join {
     my ($method, $cluster_name, $node_01, $node_02) = @_;
     my $remove_cmd = 'crm cluster remove -y -c';
     my $join_cmd   = 'crm cluster join -y -w /dev/watchdog -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
-    my $timer      = 5 * get_var('TIMEOUT_SCALE', 1);
+    my $timer      = bmwqemu::scale_timeout(5);
 
     # Waiting for the other nodes to be ready
     barrier_wait("REMOVE_NODE_BY_" . "$method" . "_INIT_" . "$cluster_name");
