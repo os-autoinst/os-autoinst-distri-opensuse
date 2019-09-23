@@ -5,6 +5,7 @@ schedule:
   - installation/bootloader_svirt
   - jeos/firstrun
   - jeos/record_machine_id
+  - console/system_prepare
   - console/force_scheduled_tasks
   - jeos/grub2_gfxmode
   - jeos/revive_xen_domain

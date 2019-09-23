@@ -5,6 +5,7 @@ schedule:
   - installation/bootloader_svirt
   - jeos/firstrun
   - jeos/record_machine_id
+  - console/system_prepare
   - console/force_scheduled_tasks
   - jeos/grub2_gfxmode
   - jeos/revive_xen_domain
@@ -12,10 +13,8 @@ schedule:
   - jeos/root_fs_size
   - jeos/build_key
   - console/suseconnect_scc
-  - console/system_prepare
   - console/check_network
   - console/system_state
-  - console/prepare_test_data
   - console/consoletest_setup
   - locale/keymap_or_locale
   - console/apache
