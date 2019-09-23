@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster;
+use hacluster qw(get_cluster_name get_hostname get_my_ip is_node);
 
 sub run {
     my $nfs_share    = get_required_var('NFS_SUPPORT_SHARE');

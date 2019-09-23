@@ -87,8 +87,7 @@ sub run {
     barrier_wait("DRBD_CREATE_CONF_$cluster_name");
 
     # Create the DRBD device
-    my $force = get_var('USE_SUPPORT_SERVER') ? '' : '--force';    # force the md creation if reusing luns
-    assert_script_run "drbdadm create-md $force $drbd_rsc";
+    assert_script_run "drbdadm create-md --force $drbd_rsc";
     assert_script_run "drbdadm up $drbd_rsc";
 
     # Wait for first node to complete its configuration
