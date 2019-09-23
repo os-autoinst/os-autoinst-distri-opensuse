@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: Check system info like `/etc/issue` or `/etc/os-release`.
+# Summary: Verify milestone version and display some info.
 # Maintainer: Alynx Zhou <alynx.zhou@suse.com>
 
 use base "consoletest";
