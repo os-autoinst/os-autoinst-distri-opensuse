@@ -41,21 +41,21 @@ sub shutdown_ltp {
 }
 
 sub parse_openposix_runfile {
-    my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
+    my ($path, $name, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
     open(my $rfile, $path) or die "Can not open runfile asset $path: $!";    ## no critic (InputOutput::ProhibitTwoArgOpen)
     while (my $line = <$rfile>) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
             my $test  = {name => basename($line, '.run-test'), command => $line};
-            my $tinfo = testinfo($test_result_export, test => $test);
+            my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);
         }
     }
 }
 
 sub parse_runtest_file {
-    my ($path, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
+    my ($path, $name, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
     open(my $rfile, $path) or die "Can not open runtest asset $path: $!";    ## no critic (InputOutput::ProhibitTwoArgOpen)
     while (my $line = <$rfile>) {
@@ -65,7 +65,7 @@ sub parse_runtest_file {
         if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
             next if (check_var('BACKEND', 'svirt') && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
             my $test  = {name => $1, command => $2};
-            my $tinfo = testinfo($test_result_export, test => $test);
+            my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
                 loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);
             }
@@ -74,7 +74,7 @@ sub parse_runtest_file {
 }
 
 sub loadtest_from_runtest_file {
-    my $name               = get_var('LTP_COMMAND_FILE');
+    my $namelist           = get_var('LTP_COMMAND_FILE');
     my $path               = get_var('ASSETDIR') . '/other';
     my $tag                = get_ltp_tag();
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
@@ -89,11 +89,13 @@ sub loadtest_from_runtest_file {
         loadtest 'create_junkfile_ltp';
     }
 
-    if ($name eq 'openposix') {
-        parse_openposix_runfile($path . '/openposix-test-list-' . $tag, $cmd_pattern, $cmd_exclude, $test_result_export);
-    }
-    else {
-        parse_runtest_file($path . "/ltp-$name-" . $tag, $cmd_pattern, $cmd_exclude, $test_result_export);
+    for my $name (split(/,/, $namelist)) {
+        if ($name eq 'openposix') {
+            parse_openposix_runfile($path . '/openposix-test-list-' . $tag, $name, $cmd_pattern, $cmd_exclude, $test_result_export);
+        }
+        else {
+            parse_runtest_file($path . "/ltp-$name-" . $tag, $name, $cmd_pattern, $cmd_exclude, $test_result_export);
+        }
     }
 
     shutdown_ltp(run_args => testinfo($test_result_export));
