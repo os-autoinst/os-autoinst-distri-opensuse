@@ -32,7 +32,7 @@ sub run {
         assert_script_run('cat /etc/issue');
     } else {
         my $milestone_version = get_var('MILESTONE_VERSION');
-        assert_script_run("grep $milestone_version /etc/issue");
+        assert_script_run("grep -w $milestone_version /etc/issue");
     }
     assert_script_run('cat /etc/os-release');
 }
