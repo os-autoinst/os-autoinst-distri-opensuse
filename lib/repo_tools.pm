@@ -10,6 +10,41 @@
 # Summary: common parts on SMT and RMT
 # Maintainer: Dehai Kong <dhkong@suse.com> Jaiwei Sun <jwsun@suse.com> Lemon Li <leli@suse.com>
 
+=head1 repo_tools
+
+Tools for repositories used by openQA: 
+
+=over 
+
+=item * add_qa_head_repo
+
+=item * add_qa_web_repo
+
+=item * smt_wizard
+
+=item * smt_mirror_repo
+
+=item * rmt_wizard
+
+=item * rmt_mirror_repo
+
+=item * prepare_source_repo
+
+=item * disable_source_repo
+
+=item * get_repo_var_name
+
+=item * type_password_twice
+
+=item * prepare_oss_repo
+
+=item * disable_oss_repo
+
+=item * generate_version
+
+=back
+
+=cut
 package repo_tools;
 
 use base Exporter;
@@ -39,10 +74,11 @@ our @EXPORT = qw(
 
 =head2 add_qa_head_repo
 
-    add_qa_head_repo();
+ add_qa_head_repo();
 
 Helper to add QA:HEAD repository repository (usually from IBS).
 This repository *is* mandatory.
+
 =cut
 sub add_qa_head_repo {
     zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa-head', no_gpg_check => is_sle("<12") ? 0 : 1);
@@ -50,10 +86,11 @@ sub add_qa_head_repo {
 
 =head2 add_qa_web_repo
 
-    add_qa_web_repo();
+ add_qa_web_repo();
 
 Helper to add QA web repository repository.
 This repository is *not* mandatory.
+
 =cut
 sub add_qa_web_repo {
     my $repo = get_var('QA_WEB_REPO');
@@ -61,9 +98,12 @@ sub add_qa_web_repo {
 }
 
 =head2 get_repo_var_name
-This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter
-and returns "REPO_SLE15_SP1_MODULE_BASESYSTEM_SOURCE" when being
-called on SLE15-SP1.
+
+ get_repo_var_name($repo_name);
+ 
+This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter C<$repo_name> 
+and returns "REPO_SLE15_SP1_MODULE_BASESYSTEM_SOURCE" when being called on SLE15-SP1.
+
 =cut
 sub get_repo_var_name {
     my ($repo_name) = @_;
@@ -71,6 +111,13 @@ sub get_repo_var_name {
     return "REPO_${distri}_${repo_name}";
 }
 
+=head2 smt_wizard
+
+ smt_wizard();
+
+Run smt wizard workflow and to get repository synced with smt server
+
+=cut
 sub smt_wizard {
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'smt-wizard');
     assert_screen 'smt-wizard-1';
@@ -111,6 +158,14 @@ sub smt_wizard {
     wait_serial("$module_name-0", 800) || die 'smt wizard failed, it can be connection issue or credential issue';
 }
 
+=head2 get_repo_var_name
+
+ get_repo_var_name();
+
+Verify smt mirror function and mirror a tiny released repo from SCC. Hardcode it as SLES12-SP3-Installer-Updates.
+
+=cut
+
 sub smt_mirror_repo {
     # Verify smt mirror function and mirror a tiny released repo from SCC. Hardcode it as SLES12-SP3-Installer-Updates
     assert_script_run 'smt-repos --enable-mirror SLES12-SP3-Installer-Updates sle-12-x86_64';
@@ -119,6 +174,13 @@ sub smt_mirror_repo {
     save_screenshot;
 }
 
+=head2 type_password_twice
+
+ type_password_twice();
+
+Type password, TAB, password, ALT+o. This is for use within YaST.
+
+=cut
 sub type_password_twice {
     type_password;
     send_key "tab";
@@ -126,6 +188,14 @@ sub type_password_twice {
     send_key "alt-o";
 }
 
+
+=head2 rmt_wazard
+
+rmt_wizard();
+
+Install Repository Mirroring Tool and mariadb database
+
+=cut
 sub rmt_wizard {
     # install RMT and mariadb
     zypper_call 'in rmt-server';
@@ -165,6 +235,13 @@ sub rmt_wizard {
     wait_serial("yast2-rmt-wizard-0", 800) || die 'rmt wizard failed, it can be connection issue or credential issue';
 }
 
+=head2 rmt_mirror_repo
+
+ rmt_mirror_repo();
+
+Function to verify and enable repository mirror
+
+=cut
 sub rmt_mirror_repo {
     my $repo_list = get_var('RMT_REPO') || 'sle-module-legacy/15/x86_64';
     assert_script_run 'rmt-cli sync', 1800;
@@ -176,9 +253,13 @@ sub rmt_mirror_repo {
 }
 
 =head2 rmt_import_data
-    rmt_import_data($datafile);
+
+ rmt_import_data($datafile);
+
 RMT server import data about available repositories and the mirrored packages
-from disconnected RMT server, then verify imported repos on new RMT server.
+from disconnected RMT server, then verify imported repositories on new RMT server.
+C<$datafile> is repository source.
+
 =cut
 sub rmt_import_data {
     my ($datafile) = @_;
@@ -198,6 +279,13 @@ sub rmt_import_data {
     assert_script_run("rm -rf $datapath");
 }
 
+=head2 prepare_source_repo
+
+ prepare_source_repo($repo_name);
+
+Prepare SLES or OSS souce repositories
+
+=cut
 sub prepare_source_repo {
     my $cmd;
     if (is_sle) {
@@ -244,6 +332,13 @@ sub prepare_source_repo {
     zypper_call("ref");
 }
 
+=head2 disable_source_repo
+
+ disable_source_repo();
+
+Disable source repositories
+
+=cut
 sub disable_source_repo {
     if (is_sle && get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
         zypper_call(q{mr -d $(zypper -n lr | awk '/-Source/ {print $1}')});
@@ -253,6 +348,14 @@ sub disable_source_repo {
     }
 }
 
+
+=head2 generate_version
+
+ generate_version($separator);
+
+Generate SLE or openSUSE versions. C<$separator> is separator used for version number, it will be default to _ if omitted. Example: SLES-12-4, openSUSE_Leap
+
+=cut
 sub generate_version {
     my ($separator) = @_;
     my $dist        = get_required_var('DISTRI');
