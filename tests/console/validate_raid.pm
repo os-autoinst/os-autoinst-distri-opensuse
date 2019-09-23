@@ -95,7 +95,8 @@ sub prepare_test_data {
             $vfat_efi,
             $btrfs, $swap,
         );
-        if (is_sle('>=15-SP2') || is_sle('=12-SP5') || is_tumbleweed) {
+        if (is_sle('>=15-SP2') || is_sle('=12-SP5') ||
+            (is_tumbleweed() && !check_var('FLAVOR', 'NET'))) {
             @raid = ($raid_both_same_level, @raid_detail);
         }
         else {
