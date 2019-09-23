@@ -19,15 +19,13 @@
 # - Disable wayland
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base 'y2_installbase';
 use strict;
 use warnings;
-use bootbasetest;
+use base 'bootbasetest';
 use testapi;
 use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
 use x11utils 'handle_login';
-use base 'opensusebasetest';
 use main_common 'opensuse_welcome_applicable';
 
 sub run {
