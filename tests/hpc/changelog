@@ -1,12 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.7] - 2019-09-23
+### Added
+Add more complex accounting test under slurm_master_db - test07
+
 ## [1.0.6] - 2019-09-13
 ### Added
 Initial test using parse_extra_logs
 ### Changed
 Tests for slurm with db accounting are run as functions
-
 
 ## [1.0.5] - 2019-08-26
 ### Added
