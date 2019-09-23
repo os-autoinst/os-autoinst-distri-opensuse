@@ -28,9 +28,8 @@ sub run {
     x11_start_program($name, target_match => "$name-network-select");
     type_string "freenode\n";
     assert_and_click "hexchat-nick-$username";
-    send_key 'ctrl-a';
-    send_key 'delete';
-    assert_screen "hexchat-nick-empty";
+    send_key 'home';
+    send_key_until_needlematch 'hexchat-nick-empty', 'delete';
     type_string "openqa" . random_string(5);
     assert_and_click "$name-connect-button";
     assert_screen "$name-connection-complete-dialog";
