@@ -60,7 +60,8 @@ sub run() {
     send_key 'alt-p';                                                    # enter Netconfif NIS Policy again for custom policy
     wait_screen_change { send_key 'down' };
     send_key 'ret';
-    wait_screen_change { send_key 'alt-x' };                             # check Expert...
+    send_key 'alt-x';                                                    # check Expert...
+    wait_still_screen 3;
     wait_screen_change { send_key 'alt-b' };
     assert_screen 'expert_settings';                                     # check the needle enable Broken server
     send_key 'alt-y';
