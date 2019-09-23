@@ -245,8 +245,8 @@ sub install_from_repo {
     my ($tag) = @_;
     my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
 
-    zypper_call("in $pkg");
-    script_run "rpm -q $pkg | tee /opt/ltp_version";
+    zypper_call("in --recommends $pkg");
+    script_run "rpm -qi $pkg | tee /opt/ltp_version";
     assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
 }
 
@@ -317,7 +317,6 @@ sub run {
     }
 
     upload_logs('/boot/config-$(uname -r)', failok => 1);
-
     add_we_repo_if_available;
 
     if ($inst_ltp =~ /git/i) {
@@ -325,6 +324,10 @@ sub run {
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
         install_from_git($tag);
+
+        install_runtime_dependencies;
+        install_runtime_dependencies_network;
+        install_debugging_tools;
     }
     else {
         add_ltp_repo;
@@ -338,15 +341,8 @@ sub run {
     }
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
-
-    install_runtime_dependencies;
-    install_runtime_dependencies_network;
-    install_debugging_tools;
-
     setup_network;
-
     upload_runtest_files('/opt/ltp/runtest', $tag);
-
     power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
 }
 
@@ -375,6 +371,12 @@ is essential when installing from Git. The Workstation Extension is nice to have
 but most tests will run without it. At the time of writing their is no appropriate
 HDD image available with WE already configured so we must add its media inside this
 test.
+
+=head2 Runtime dependencies
+
+Runtime dependencies are needed to be listed both in this module (for git
+installation) and for all LTP rpm packages (for installation from repo), where
+listed as 'Recommends:'. See list of available LTP packages in LTP_PKG section.
 
 =head2 Example
 
@@ -438,6 +440,23 @@ LTP_EXTRA_CONF_FLAGS="CFLAGS=-m32 LDFLAGS=-m32").
 
 LTP_PKG=qa_test_ltp
 Stable LTP package in QA head repository.
+
+=head3 Available LTP packages
+https://confluence.suse.com/display/qasle/LTP+repositories
+
+* QA:Head/qa_test_ltp (IBS, stable - latest release, used by QAM)
+https://build.suse.de/package/show/QA:Head/qa_test_ltp
+Configured via
+https://github.com/SUSE/qa-testsuites
+
+* QA:Head/ltp (IBS, nightly build)
+https://build.suse.de/package/show/QA:Head/ltp
+
+* benchmark/ltp (OBS, stable - latest release)
+https://build.opensuse.org/package/show/benchmark/ltp
+
+* benchmark:ltp:devel/ltp (OBS, nightly build)
+https://build.opensuse.org/package/show/benchmark:ltp:devel/ltp
 
 =head2 LTP_RELEASE
 
