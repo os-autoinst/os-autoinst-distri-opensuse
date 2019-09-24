@@ -25,6 +25,7 @@ use warnings;
 use testapi;
 use y2lan_restart_common;
 use y2_module_basetest 'is_network_manager_default';
+use version_utils ':VERSION';
 
 sub check_network_settings_tabs {
     send_key 'alt-g';    # Global options tab
@@ -66,8 +67,12 @@ sub change_hw_device_name {
 
     send_key 'alt-i';        # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
-    send_key 'alt-w';        # Hardware tab
-    assert_screen 'yast2_lan_hardware_tab';
+    if (is_sle('15-SP2+')) {
+        send_key 'alt-g';    # Starting with SLE15 SP2, "Device name" field is shown in General tab
+    } else {
+        send_key 'alt-w';    # Hardware tab
+        assert_screen 'yast2_lan_hardware_tab';
+    }
     send_key 'alt-e';        # Change device name
     assert_screen 'yast2_lan_device_name';
     send_key 'tab' for (1 .. 2);
