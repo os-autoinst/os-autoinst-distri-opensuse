@@ -35,6 +35,10 @@ sub run {
     # enable SELinux in grub
     add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 1);
 
+    # control (enable) the status of SELinux on the system
+    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
+    assert_script_run("echo 'SELINUX=permissive' >> /etc/selinux/config");
+
     power_action("reboot", textmode => 1);
     $self->wait_boot;
     $self->select_serial_terminal;
