@@ -7,6 +7,11 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+=head1 Apache tests
+
+Apache tests for various scenarios
+
+=cut
 package apachetest;
 
 use base Exporter;
@@ -23,6 +28,17 @@ our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mys
 
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
 # Example: setup_apache2(mode => 'SSL');
+
+=head2 setup_apache2
+
+ setup_apache2(mode => $mode);
+
+Setup Apache service in different mode.
+Possible values for C<$mode> are: SSL, NSS, NSSFIPS and PHP7
+
+ setup_apache2(mode => 'SSL');
+
+=cut
 sub setup_apache2 {
     my %args     = @_;
     my $mode     = uc $args{mode} || "";
@@ -125,6 +141,14 @@ sub setup_apache2 {
         assert_script_run "curl --no-buffer http://localhost/index.php | grep \"\$(uname -s -n -r -v -m)\"";
     }
 }
+
+=head2 setup_pgsqldb
+
+ setup_pgsqldb();
+
+Set up a postgres data base
+
+=cut
 sub setup_pgsqldb {
     # without changing current working directory we get:
     # 'could not change directory to "/root": Permission denied'
@@ -138,6 +162,13 @@ sub setup_pgsqldb {
     assert_script_run 'popd';    # back to previous directory
 }
 
+=head2 destroy_pgsqldb
+
+ destroy_pgsqldb();
+
+Destroy a postgres data base
+
+=cut
 sub destroy_pgsqldb {
     assert_script_run 'pushd /tmp';
 
@@ -146,6 +177,33 @@ sub destroy_pgsqldb {
     assert_script_run 'popd';    # back to previous directory
 }
 
+=head2 test_pgsqldb
+
+ test_pgsqldb();
+
+Set up a postgres database and configure for:
+
+=over
+
+=item * PHP can access PostgreSQL by using password authentication.
+
+=item * Comment out default configuration.
+
+=item * Allow postgres to access the database with password authentication
+
+=item * Configure the PHP code to read table 'test' from the 'openQAdb' database (created in 'console/postgresql...' test) and insert a new element into the same table
+
+=item * Access the website and verify that it can read the database
+
+=item * Verify that PHP successfully wrote the element in the database
+ 
+=item * Add sudo rights to switch postgresql version and run script to determine oldest and latest version
+
+=item * Upgrade db from oldest version to latest version
+
+=back
+
+=cut
 sub test_pgsql {
     # configuration so that PHP can access PostgreSQL
     # setup password
@@ -249,6 +307,13 @@ EOF
     type_string "exit\n", wait_still_screen => 1;
 }
 
+=head2 test_mysql
+
+ test_mysql();
+
+Create the 'openQAdb' database with table 'test' and insert one element
+
+=cut
 sub test_mysql {
     # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
     assert_script_run
