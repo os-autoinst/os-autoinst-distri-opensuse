@@ -1659,6 +1659,11 @@ sub load_extra_tests_console {
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
 }
 
+sub load_extra_tests_phub {
+    loadtest 'console/machinery';
+    loadtest 'sysauth/sssd';
+}
+
 sub load_extra_tests_docker {
     my ($image_names, $stable_names) = get_suse_container_urls();
     return unless @$image_names;
