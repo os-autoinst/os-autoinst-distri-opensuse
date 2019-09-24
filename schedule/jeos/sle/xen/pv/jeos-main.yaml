@@ -23,7 +23,6 @@ schedule:
   - console/shibboleth
   - console/apache_ssl
   - console/apache_nss
-  - console/textinfo
   - console/installation_snapshots
   - console/zypper_lr
   - console/zypper_ref
