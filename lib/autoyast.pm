@@ -1,3 +1,8 @@
+=head1 autoyast
+
+Provide translations for autoyast XML file
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2018 SUSE LLC
@@ -23,6 +28,13 @@ use registration qw(scc_version get_addon_fullname);
 
 our @EXPORT = qw(expand_template init_autoyast_profile);
 
+=head2 expand_patterns
+
+ expand_patterns();
+
+Expand patterns for sle12 and sle15
+
+=cut
 sub expand_patterns {
     if (get_var('PATTERNS') =~ m/^\s*$/) {
         if (is_sle('15+')) {
@@ -96,12 +108,27 @@ sub expand_patterns {
 
 my @unversioned_products = qw(asmm contm lgm tcm wsm);
 
+=head2 get_product_version
+
+ get_product_version
+
+Get product version
+
+=cut
 sub get_product_version {
     my ($name) = @_;
     my $version = scc_version(get_var('VERSION', ''));
     return $version =~ s/^(\d*)\.\d$/$1/r if is_sle('<15') && grep(/^$name$/, @unversioned_products);
     return $version;
 }
+
+=head2 expand_addons
+
+ expand_addons();
+
+Expand addons for name, version, arch
+
+=cut
 
 sub expand_addons {
     my %addons;
@@ -116,6 +143,13 @@ sub expand_addons {
     return \%addons;
 }
 
+=head2 expand_template
+
+ expand_template();
+
+Expand template for C<$var> addons, repos, patterns, get_var
+
+=cut
 sub expand_template {
     my ($profile) = @_;
     my $template  = Mojo::Template->new(vars => 1);
@@ -132,6 +166,13 @@ sub expand_template {
     return $output;
 }
 
+=head2 init_autoyast_profile
+
+ init_autoyast_profile();
+
+Initialize or create autoyast profile by 'yast2 clone_system' if doesn't exist
+
+=cut
 sub init_autoyast_profile {
     select_console('root-console');
     my $profile_path = '/root/autoinst.xml';
