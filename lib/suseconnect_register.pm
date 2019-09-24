@@ -10,6 +10,11 @@
 # Summary: Register base product & extensions with SUSEConnect
 # Maintainer: Jiawei Sun <jwsun@suse.com>
 
+=head1 suseconnect_register
+
+Register base product & extensions with SUSEConnect
+
+=cut
 package suseconnect_register;
 
 use base Exporter;
@@ -24,6 +29,13 @@ use registration;
 
 our @EXPORT = qw(suseconnect_registration command_register is_module assert_module);
 
+=head2 suseconnect_registration
+ 
+ suseconnect_registration();
+
+Register base prodcut and extensions without reg code
+
+=cut
 sub suseconnect_registration {
     my $product_version = get_required_var('VERSION');
 
@@ -39,6 +51,16 @@ sub suseconnect_registration {
     zypper_call 'lr';
 }
 
+=head2 command_register
+
+ command_register($version, $addon, $addon_regcode);
+
+Register sles and it's extension with or without reg code. 
+The variables used for registion are product version C<$version>, extension name C<$addon> and it's extension registration code C<$addon_regcode>.
+
+Precompile regexes, handle zdup migration and resolve potential conflict by zypper for extension or just register a bare system
+
+=cut
 sub command_register {
     my ($version, $addon, $addon_regcode) = @_;
     my $arch = get_required_var("ARCH");
@@ -97,6 +119,13 @@ sub command_register {
     zypper_call 'lr';
 }
 
+=head2 assert_module
+
+ assert_module();
+
+check there are modules in the addon list
+
+=cut
 # check there are modules in the addon list
 sub assert_module {
     return 1 if (get_var('SCC_ADDONS', '') =~ /asmm|contm|hpcm|lgm|pcm|tcm|wsm|idu|ids/);
