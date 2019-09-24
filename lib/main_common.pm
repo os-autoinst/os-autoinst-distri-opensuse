@@ -1128,6 +1128,7 @@ sub load_consoletests {
         loadtest "console/xorg_vt";
     }
     loadtest "console/zypper_lr";
+    loadtest "console/check_system_info" if (is_sle && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
     # Enable installation repo from the usb, unless we boot from USB, but don't use it
     # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror
     if (check_var('USBBOOT', 1) && !is_livecd && !get_var('NETBOOT')) {
