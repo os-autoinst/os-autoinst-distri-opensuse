@@ -22,7 +22,6 @@ schedule:
   - console/shibboleth
   - console/apache_ssl
   - console/apache_nss
-  - console/textinfo
   - console/hostname
   - console/installation_snapshots
   - console/zypper_lr
