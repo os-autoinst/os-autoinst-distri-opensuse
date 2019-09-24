@@ -28,13 +28,11 @@ sub run {
     my $self = shift;
 
     # JeOS images GRUB2 timeout is set to 10s
-    my $counter = 0;
-    while ((!check_screen('grub2', 1)) && ($counter < 10)) {
-        wait_screen_change(sub {
-                send_key 'home';
-        }, 0.5);
+    my $counter = -1;
+    do {
+        send_key 'home' for (1 .. 3);
         $counter++;
-    }
+    } while ((!check_screen('grub2', 1)) && ($counter < 10));
     $self->wait_grub(in_grub => 1, bootloader_time => 10);
     uefi_bootmenu_params;
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
