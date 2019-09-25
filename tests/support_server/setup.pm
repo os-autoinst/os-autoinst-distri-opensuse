@@ -68,7 +68,26 @@ sub setup_pxe_server {
     return if $pxe_server_set;
 
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/pxe/setup_pxe.sh  > setup_pxe.sh\n";
-    $setup_script .= "/bin/bash -ex setup_pxe.sh\n";
+    my $ckrnl;
+    if ($ckrnl = get_var('SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        # For later. To be executed when the custom kernel actually becomes available. See custom_pxeboot.pm
+        # DEBUG: no option -f and echo command before execution
+        my $download_me = "curl -v " . autoinst_url
+          . "/data/supportserver/pxe/pxe_customkrnl.sh > /usr/local/bin/pxe_customkrnl.sh\n";
+        $setup_script .= "echo \"$download_me\"\n$download_me\n"
+          . "chmod +x /usr/local/bin/pxe_customkrnl.sh\n";
+        # DEBUG: this fails for unknown reasons. No /usr/local/bin/pxe_customkrnl.sh!
+        # $setup_script .= "curl -f -v " . autoinst_url
+        # 			       . "/data/supportserver/pxe/pxe_customkrnl.sh > /usr/local/bin/pxe_customkrnl.sh\n"
+        #			       . "chmod +x /usr/local/bin/pxe_customkrnl.sh\n";
+        # Replace default settings "1" "yes" "YES"
+        $ckrnl = "" if ($ckrnl =~ /^(yes|1)$/i);
+        # other settings constitute explicit command line parts (device, kernel etc.)
+        $setup_script .= "/bin/bash -ex setup_pxe.sh -C $ckrnl\n";
+    }
+    else {
+        $setup_script .= "/bin/bash -ex setup_pxe.sh\n";
+    }
 
     $pxe_server_set = 1;
 }

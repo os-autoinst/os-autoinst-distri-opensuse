@@ -426,6 +426,11 @@ sub load_boot_tests {
 sub load_reboot_tests {
     return if check_var("IPXE", "1");
 
+    # Special case: our disk and boot config is on the support server
+    if (get_var('SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        loadtest "boot/boot_from_pxe";
+        return;
+    }
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
     if ((is_s390x && !get_var('ENCRYPT')) || uses_qa_net_hardware() || is_spvm) {
         loadtest "boot/reconnect_mgmt_console";

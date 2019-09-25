@@ -37,7 +37,15 @@ sub run {
     if (check_var('BACKEND', 'ipmi')) {
         select_console 'sol', await_console => 0;
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+    if (get_var('SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        # Continuation from installation/reboot_after_installation.pm:
+        # The mandatory parallel supportserver job is supposedly ready
+        # to provide a customized PXE boot menu.
+        assert_screen("pxe-custom-kernel", 40);
+    }
+    else {
+        assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+    }
     # boot bare-metal/IPMI machine
     if (check_var('BACKEND', 'ipmi') && get_var('BOOT_IPMI_SYSTEM')) {
         send_key 'ret';
@@ -45,7 +53,28 @@ sub run {
         return 1;
     }
     #detect pxe location
-    if (match_has_tag("virttest-pxe-menu")) {
+    if (match_has_tag('pxe-custom-kernel')) {
+        # The supportserver's PXE menu features three entries.
+        # Select "Custom kernel" (third entry: the boot configuration
+        # from the just-finished initial installation)
+        send_key "down";
+        send_key "down";
+        sleep 2;
+        save_screenshot();
+        send_key "ret";
+        # This is a reboot rather than an initial installation:
+        # just let the system boot up to the default (displaymanager)
+        # login screen, check this screen and then terminate.
+        #
+        # FIXME: would like to be more thorough here, like wait_boot() from
+        # opensusebasetests. However, wait_boot() starts with expecting
+        # a GRUB bootmenu: inappropriate here.
+        #
+        # references: os-autoinst-needles-sles/displaymanager-201?????.json
+        assert_screen("displaymanager", 180);
+        return 1;
+    }
+    elsif (match_has_tag("virttest-pxe-menu")) {
         #BeiJing
         # Login to command line of pxe management
         send_key_until_needlematch "virttest-pxe-edit-prompt", "esc", 60, 1;
