@@ -26,9 +26,9 @@ sub run {
 
     # check language details and change detailed locale setting
     assert_and_click 'yast2-lang_details';
-    assert_and_click 'yast2-lang_detailed-locale-setting';
-    assert_and_click 'yast2-lang_detailed-locale-setting_en_GB';
-    assert_screen 'yast2-lang_detailed-locale-setting_changed';
+    assert_screen 'yast2-lang_detailed-locale-setting';
+    send_key 'alt-d';
+    send_key_until_needlematch 'yast2-lang_detailed-locale-setting_changed', 'up';
     send_key 'alt-o';
 
     # change adapt time zone to German
