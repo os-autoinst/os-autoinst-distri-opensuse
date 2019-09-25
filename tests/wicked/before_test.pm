@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call systemctl file_content_replace);
+use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
 use serial_terminal;
 
@@ -30,8 +31,10 @@ sub run {
     my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");
     assert_script_run($enable_command_logging);
-    systemctl("stop " . opensusebasetest::firewall);
-    systemctl("disable " . opensusebasetest::firewall);
+    unless (is_sle('15+')) {    # image which we using for sle15 don't have firewall running
+        systemctl("stop " . opensusebasetest::firewall);
+        systemctl("disable " . opensusebasetest::firewall);
+    }
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
     record_info('INFO', 'Setting debug level for wicked logs');
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug"');
