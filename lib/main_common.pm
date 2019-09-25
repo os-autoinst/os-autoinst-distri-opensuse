@@ -2444,7 +2444,8 @@ sub load_system_prepare_tests {
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/system_prepare';
-    loadtest "x11/disable_screensaver" if any_desktop_is_applicable();
+    # No need to test the screensaver on SLES4SAP
+    loadtest "x11/disable_screensaver" if any_desktop_is_applicable() && !is_sles4sap();
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests if is_repo_replacement_required;
