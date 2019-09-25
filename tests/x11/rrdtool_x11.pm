@@ -65,7 +65,8 @@ sub run {
     verify_rrd_image 'speed-1';
 
     # make the graph 2.
-    assert_script_run "rrdtool graph speed-2.png --start 920804400 --end 920808000 --vertical-label m/s DEF:myspeed=test.rrd:speed:AVERAGE CDEF:realspeed=myspeed,1000,* LINE2:realspeed#FF0000";
+    type_string_slow "rrdtool graph speed-2.png --start 920804400 --end 920808000 --vertical-label m/s DEF:myspeed=test.rrd:speed:AVERAGE CDEF:realspeed=myspeed,1000,* LINE2:realspeed#FF0000";
+    send_key 'ret';
     #open image and verify if correct.
     verify_rrd_image 'speed-2';
 
