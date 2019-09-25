@@ -1,4 +1,6 @@
-provider "azurerm" {}
+provider "azurerm" {
+   version = "<= 1.33"
+}
 
 variable "instance_count" {
     default = "1"
