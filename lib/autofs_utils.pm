@@ -1,3 +1,8 @@
+=head1 autofs_utils
+
+C<autofs_utils> - Functions for setup autofs server and check autofs service
+
+=cut
 package autofs_utils;
 
 use strict;
@@ -18,6 +23,13 @@ my $test_mount_dir         = '/mnt/test_autofs_local';
 my $file_to_mount          = '/tmp/test-iso.iso';
 my $test_conf_file_content = "echo  iso     -fstype=auto,ro         :$file_to_mount > $test_conf_file";
 
+=head2 setup_autofs_server
+
+ setup_autofs_server();
+
+Set up an autofs server by using scripts
+
+=cut
 sub setup_autofs_server {
     my (%args) = @_;
     my $grep_output = script_output("grep '#+dir' $args{autofs_conf_file}");
@@ -28,6 +40,13 @@ sub setup_autofs_server {
     assert_script_run($args{test_conf_file_content}, fail_message => "File $args{test_conf_file} could not be created");
 }
 
+=head2 check_autofs_service
+
+ check_autofs_service();
+
+Check autofs service by starting and stopping service
+
+=cut
 sub check_autofs_service {
     systemctl 'start autofs';
     systemctl 'is-active autofs';
