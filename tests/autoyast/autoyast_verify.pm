@@ -22,7 +22,7 @@ use warnings;
 use base 'basetest';
 use testapi;
 use lockapi;
-use utils "zypper_call";
+use utils qw(zypper_call systemctl);
 
 sub expected_failures {
     # Function is used to sof-fail known issues. As long as we use generic
@@ -38,6 +38,9 @@ sub run {
     my $self = shift;
     $self->result('fail');    # default result
     my $success = 0;
+    systemctl("restart tftp.socket");
+    # assert_script_run("grep \"server ntp.suse.de iburst\" /etc/ntp.conf");
+    # assert_script_run("grep \"driftfile /var/lib/ntp/drift/ntp.drift\" /etc/ntp.conf");
     # make sure that curl has been installed
     zypper_call("in curl", timeout => 180);
     #wait for supportserver if not yet ready
