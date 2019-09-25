@@ -2,7 +2,7 @@
 description: 'Filesystem stress test for JeOS. Maintainer: ccret'
 name: 'jeos-fs_stress@64bit-virtio-vga ( qemu )'
 schedule:
-  - installation/bootloader_svirt
+  - installation/bootloader_hyperv
   - jeos/grub2
   - jeos/firstrun
   - jeos/record_machine_id
