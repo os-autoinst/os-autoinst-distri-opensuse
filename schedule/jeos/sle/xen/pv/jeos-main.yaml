@@ -13,6 +13,7 @@ schedule:
   - jeos/root_fs_size
   - jeos/build_key
   - console/suseconnect_scc
+  - jeos/glibc_locale
   - console/check_network
   - console/system_state
   - console/consoletest_setup
