@@ -1666,6 +1666,10 @@ sub load_extra_tests_phub {
     loadtest 'sysauth/sssd';
 }
 
+sub load_extra_tests_sdk {
+    loadtest 'console/gdb';
+}
+
 sub load_extra_tests_docker {
     my ($image_names, $stable_names) = get_suse_container_urls();
     return unless @$image_names;
