@@ -263,6 +263,13 @@ sub copy_log {
     script_run($cmd);
 }
 
+# Copy junk.fsxops for fails fsx test included in subtests
+sub copy_fsxops {
+    my ($category, $num) = @_;
+    my $cmd = "if [ -e /mnt/test/junk.fsxops ]; then cp /mnt/test/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
+    script_run($cmd);
+}
+
 sub dump_btrfs_img {
     my ($category, $num) = @_;
     my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
@@ -342,6 +349,7 @@ sub run {
                 copy_log($category, $num, 'out.bad');
                 copy_log($category, $num, 'full');
                 copy_log($category, $num, 'dmesg');
+                copy_fsxops($category, $num);
                 collect_fs_status($category, $num);
                 if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
             }
