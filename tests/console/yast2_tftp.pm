@@ -22,34 +22,35 @@ sub run {
     select_console 'root-console';
     zypper_call("in tftp yast2-tftp-server", timeout => 240);
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'tftp-server');
-    # make sure the module is loaded and any potential popups are there to be
-    # asserted later
     wait_still_screen(6);
+    assert_screen 'yast2_tftp-server_configuration_main_screen';    #raw main screen
     my $firewall_detail_shortcut = 'alt-i';
 
     if (is_sle('>15') || is_leap('>15.0') || is_tumbleweed) {
-        sleep 10 if is_sle('>15');    #15.1 needs little more time to initialize
+        sleep 10 if is_sle('>15');                                  #15.1 needs little more time to initialize
         send_key 'alt-t';
-        send_key 'up';                #selects 'Start'
-        send_key 'ret';               #confirm
+        send_key 'up';                                              #selects 'Start'
+        send_key 'ret';                                             #confirm
 
-        send_key 'alt-a';             #start service after reboot
-        send_key 'up';                #selects 'Start on demand'
-        send_key 'ret';               #confirm
+        send_key 'alt-a';                                           #start service after reboot
+        send_key 'up';                                              #selects 'Start on demand'
+        send_key 'ret';                                             #confirm
 
-        send_key 'alt-i';             #enter boot image directory field
+        send_key 'alt-i';                                           #enter boot image directory field
         $firewall_detail_shortcut = 'alt-d';
     } else {
-        sleep 10 if is_sle('=15');    #15.0 needs little more time to initialize
-        assert_screen 'yast2_tftp-server_configuration';
-        send_key 'alt-e';             # enable tftp
-        assert_screen 'yast2_tftp-server_configuration_enabled';
-        send_key 'alt-t';             #enter boot image dir
+        sleep 10 if is_sle('=15');                                  #15.0 needs little more time to initialize
+        assert_screen 'yast2_tftp-server_configuration';            #main screen with service status
+        send_key 'alt-e';                                           # enable tftp
+        send_key 'alt-t';                                           #enter boot image directory field
     }
+    wait_still_screen(3);
+    assert_screen([qw(yast2_tftp-server_configuration_enabled yast2_tftp-server_configuration_enabled_new)]);
 
     for (1 .. 20) { send_key 'backspace'; }
+    wait_still_screen(3);
     my $tftpboot_newdir = '/srv/tftpboot/new_dir';
-    type_string $tftpboot_newdir;
+    type_string_slow $tftpboot_newdir;
     assert_screen 'yast2_tftp-server_configuration_newdir_typed';
 
     # open port in firewall, if needed
