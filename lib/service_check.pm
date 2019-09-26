@@ -1,3 +1,9 @@
+=head1 service_check
+
+check service status or service function before and after migration
+
+=cut
+
 # SUSE's openQA tests
 #
 # Copyright © 2019 SUSE LLC
@@ -148,6 +154,17 @@ our $default_services = {
     },
 };
 
+=head2 instal_services
+
+ install_services($service);
+
+Install services, details of default services are defined in $default_services: 
+
+registered_addons, susefirewall, ntp, chrony, postfix, apache, dhcpd, bind, snmp, rpcbind, autofs, cups, radvd, cron, apparmor, vsftp, kdump
+
+Check service before migration, zypper install service package, enable, start and check service status
+
+=cut
 sub install_services {
     my ($service) = @_;
     $hdd_base_version = get_var('HDDVERSION');
@@ -170,6 +187,13 @@ sub install_services {
     }
 }
 
+=head2 check_services
+
+ check_services($service);
+
+check service status after migration
+
+=cut
 sub check_services {
     my ($service) = @_;
     foreach my $s (sort keys %$service) {
