@@ -39,7 +39,7 @@ sub run {
     $self->result('fail');    # default result
     my $success = 0;
     systemctl("restart tftp.socket");
-    assert_script_run("which pool && cat /etc/ntp.conf");
+    assert_script_run("which pool && cat /etc/chrony.conf");
     # make sure that curl has been installed
     zypper_call("in curl", timeout => 180);
     #wait for supportserver if not yet ready
