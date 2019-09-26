@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use Test::Assert ':all';
 use scheduler 'get_test_data';
-use version_utils 'is_sle';
+use version_utils "is_sle";
 use power_action_utils 'power_action';
 
 sub run {
@@ -37,7 +37,6 @@ sub run {
     _remove_raid_disk($config, $actual_num_devs);
     _reboot();
     $self->wait_boot;
-
     _check_raid_disks_after_reboot($config, $actual_num_devs);
     _restore_raid_disk($config);
 }
@@ -80,7 +79,7 @@ sub _remove_raid_disk {
 
 sub _reboot {
     record_info('system reboots');
-    power_action('reboot');
+    power_action('reboot', textmode => 'textmode');
 }
 
 sub _check_raid_disks_after_reboot {
