@@ -274,6 +274,8 @@ sub addlv {
     }, 5);
     send_key_until_needlematch('volume_management_feature', 'down');
     wait_still_screen(stilltime => 2, timeout => 4);
+    # Ensure Volume Management selected due to in slower archs sporadically root tree selection keys arrives with a delay
+    send_key_until_needlematch('volume_management_feature', 'down');
     # Expand collapsed list with VGs
     send_key_until_needlematch('lvm_uncollapse_vgs', 'right') if is_sle('<15');
     send_key_until_needlematch 'partition-select-vg-' . "$args{vg}", 'down';
