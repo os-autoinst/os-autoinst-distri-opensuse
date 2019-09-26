@@ -121,12 +121,11 @@ sub run {
 
     # Try to stop container using ctrl+c
     my $sleep_time = 60 * get_var('TIMEOUT_SCALE', 1);
-    type_string("docker run --rm opensuse/tumbleweed sleep $sleep_time\n");
+    type_string("docker run --rm opensuse/tumbleweed sleep $sleep_time ; echo 'ctrlc_timeout' > /dev/$serialdev \n");
     type_string("#Press ctrl+c ");
     send_key 'ctrl-c';
     type_string("#still in container\n");
     # If echo works then ctrl-c stopped sleep
-    type_string "echo 'ctrlc_timeout' > /dev/$serialdev\n";
     if (wait_serial('ctrlc_timeout', 10, 1)) {
         die 'Sleep schould be still running so ctrl-c stopped container';
     }
