@@ -633,9 +633,15 @@ Upload mail warn, err and info logs for reference
 =cut
 sub upload_logs_mail {
     # Upload mail warn, err and info logs for reference
-    upload_logs("$mail_err_log");
-    upload_logs("$mail_warn_log");
-    upload_logs("$mail_info_log");
+    if (script_run("! [[ -e $mail_err_log ]]")) {
+        upload_logs("$mail_err_log");
+    }
+    if (script_run("! [[ -e $mail_warn_log ]]")) {
+        upload_logs("$mail_warn_log");
+    }
+    if (script_run("! [[ -e $mail_info_log ]]")) {
+        upload_logs("$mail_info_log");
+    }
 }
 
 =head2 pre_run_hook
@@ -666,8 +672,9 @@ sub post_fail_hook {
     # Exit x11 and turn to console in case
     send_key("alt-f4");
     select_console("root-console");
-
-    upload_logs("$audit_log");
+    if (script_run("! [[ -e $audit_log ]]")) {
+        upload_logs("$audit_log");
+    }
     $self->SUPER::post_fail_hook;
 }
 
