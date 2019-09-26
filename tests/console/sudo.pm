@@ -74,11 +74,11 @@ sub run {
     sudo_with_pw 'sudo -i';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /root';
-    type_string "exit\n";
+    type_string "exit\n", wait_still_screen => 3;
     sudo_with_pw 'sudo -s';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /home/bernhard';
-    type_string "exit\n";
+    type_string "exit\n", wait_still_screen => 3;
     # environment variables
     assert_script_run 'ENVVAR=test132 env | grep ENVVAR=test132';
     sudo_with_pw 'sudo env', grep => '-v ENVVAR=test132', env => 'ENVVAR test132';
@@ -90,7 +90,7 @@ sub run {
     test_sudoers $test_password;
     sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password";
     assert_script_run 'grep -i "not allowed" check_err.log';
-    type_string "exit\n";
+    type_string "exit\n", wait_still_screen => 3;
 }
 
 sub post_run_hook {
