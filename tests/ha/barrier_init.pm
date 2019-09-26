@@ -106,6 +106,7 @@ sub run {
         # HAWK_GUI_ barriers also have to wait in the client
         barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);
         barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
+        barrier_create("HAWK_FENCE_$cluster_name",       $num_nodes + 1);
 
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
