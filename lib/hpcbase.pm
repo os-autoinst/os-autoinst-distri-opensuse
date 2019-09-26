@@ -179,6 +179,70 @@ sub mount_nfs {
     assert_script_run('mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm');
 }
 
+## Initial migration lib function
+#TODO: move to separate hpc-migration lib
+sub register_products {
+    my $register = "register_installed_products.pl";
+    my $reg_code = get_required_var('SCC_REGCODE');
+    my @products_to_register;
+
+    script_run("SUSEConnect --status-text > /tmp/installed_products");
+    script_run("wget --quiet " . data_url("hpc/$register") . " -O $register");
+    script_run("chmod +x $register");
+    my $products = script_output("./$register");
+
+    if ($products =~ 'empty') {
+        goto NOREGISTRATION;
+    }
+
+    @products_to_register = split(/\|/, $products);
+    s{^\s+|\s+$}{}g foreach @products_to_register;
+
+    record_info('Some registration is ongoing');
+    foreach my $i (@products_to_register) {
+        script_run("SUSEConnect -p $i -r $reg_code");
+    }
+
+  NOREGISTRATION:
+    record_info('All installed products are registered!');
+}
+
+## simplistic way of re-trying the migration
+## TODO: implement proper error handling
+sub migration_err {
+    record_info('recording err');
+    assert_script_run("SUSEConnect --rollback");
+}
+
+## function: get_migration_targets()
+## should return the array of available migration targets
+## As this is online migration only, it should only contain
+## the list of respective Service Packs available for migration
+sub get_migration_targets {
+    my $pars = "pars_migration.pl";
+    my $targets;
+    my @migration_targets;
+
+    $targets = script_run('zypper migration --query > /tmp/migration_targets');
+    if ($targets != 0) {
+        record_info('targets err');
+        die('Something went wrong!');
+    } else {
+        record_info('Available migration targets: ', script_output('cat /tmp/migration_targets'));
+    }
+    script_run("wget --quiet " . data_url("hpc/$pars") . " -O $pars");
+    assert_script_run("chmod +x $pars");
+
+    $targets = script_output("./$pars");
+
+    # script executed on SUT returns scalar with | as a delimiter
+    # change scalar to array and trimm the whitespces
+    @migration_targets = split(/\|/, $targets);
+    s{^\s+|\s+$}{}g foreach @migration_targets;
+
+    return @migration_targets;
+}
+
 =head2
     prepare_user_and_group()
   creating slurm user and group with some pre-defined ID

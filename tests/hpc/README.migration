@@ -1,0 +1,26 @@
+HPC Migration
+
+The tests rely on the fact that openQA fixed directory contains ready
+qcow2 images. Those should be registered against SCC for base products,
+as well as relevant parts: HPC and Web & Scripting.
+
+The overall idea is to run some functional tests on system before the
+actual migration. Then the system should be patched and eventually
+migrated.
+
+Upon successful migration the HPC cluster of VMs should be re-booted,
+and all sanity checks should be performed, so that one can check if
+all relevant parts of the HPC cluster still work as expected.
+
+The overall concept differes from exisiting migration tests, as instead
+of using openQA modules with run() functions, the tests are calling
+relevant functions which take care of migration logic.
+This approach allows for creating barriers without complicating exisiting
+openQA migration modules.
+
+Test organization
+-----------------
+
+MIGRATION_A - single machine tests checking basics
+-- checking for correct migration targets
+-- basic migration of a single machine
