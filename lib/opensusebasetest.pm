@@ -938,7 +938,7 @@ sub select_user_serial_terminal {
 Upload all coredumps to logs
 =cut
 sub upload_coredumps {
-    my $res = script_run("coredumpctl -q --no-pager", timeout => 10);
+    my $res = script_run("coredumpctl --no-pager", timeout => 10);
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
