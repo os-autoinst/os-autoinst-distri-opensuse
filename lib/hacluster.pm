@@ -23,11 +23,14 @@ use x11utils 'ensure_unlocked_desktop';
 our @EXPORT = qw(
   $crm_mon_cmd
   $softdog_timeout
+  $join_timeout
+  $default_timeout
   exec_csync
   add_file_in_csync
   get_cluster_name
   get_hostname
   get_ip
+  get_my_ip
   get_node_to_join
   get_node_number
   is_node
@@ -58,8 +61,10 @@ our @EXPORT = qw(
 
 # Global variables
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
-our $softdog_timeout = 60;
+our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
+our $join_timeout    = bmwqemu::scale_timeout(60);
+our $default_timeout = bmwqemu::scale_timeout(30);
 
 sub exec_csync {
     # Sometimes we need to run csync2 twice to have all the files updated!
@@ -94,13 +99,25 @@ sub get_node_to_join {
     return get_required_var('HA_CLUSTER_JOIN');
 }
 
-sub get_ip {
-    my $node_hostname = shift;
-    my $node_ip       = script_output "host -t A $node_hostname";
+sub _just_the_ip {
+    my $node_ip = shift;
     if ($node_ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
         return $1;
     }
     return 0;
+}
+
+sub get_ip {
+    my $node_hostname = shift;
+    my $node_ip       = get_var('USE_SUPPORT_SERVER') ? script_output "host -t A $node_hostname" :
+      script_output "awk 'BEGIN {RET=1} /$node_hostname/ {print \$1; RET=0; exit} END {exit RET}' /etc/hosts";
+    return _just_the_ip($node_ip);
+}
+
+sub get_my_ip {
+    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
+    my $node_ip   = script_output "ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
+    return _just_the_ip($node_ip);
 }
 
 sub get_node_number {
@@ -140,8 +157,8 @@ sub choose_node {
 }
 
 sub save_state {
-    script_run 'yes | crm configure show';
-    assert_script_run "$crm_mon_cmd";
+    script_run 'yes | crm configure show', $default_timeout;
+    assert_script_run "$crm_mon_cmd",      $default_timeout;
     save_screenshot;
 }
 
@@ -161,17 +178,16 @@ sub check_rsc {
 
 sub ensure_process_running {
     my $process   = shift;
-    my $timeout   = 30 * get_var('TIMEOUT_SCALE', 1);
     my $starttime = time;
     my $ret       = undef;
 
     while ($ret = script_run "ps -A | grep -q '\\<$process\\>'") {
         my $timerun = time - $starttime;
-        if ($timerun < $timeout) {
+        if ($timerun < $default_timeout) {
             sleep 5;
         }
         else {
-            die "Process '$process' did not start within $timeout seconds";
+            die "Process '$process' did not start within $default_timeout seconds";
         }
     }
 
@@ -181,17 +197,16 @@ sub ensure_process_running {
 
 sub ensure_resource_running {
     my ($rsc, $regex) = @_;
-    my $timeout   = 30 * get_var('TIMEOUT_SCALE', 1);
     my $starttime = time;
     my $ret       = undef;
 
-    while ($ret = script_run "crm resource status $rsc | grep -E -q '$regex'") {
+    while ($ret = script_run("crm resource status $rsc | grep -E -q '$regex'", $default_timeout)) {
         my $timerun = time - $starttime;
-        if ($timerun < $timeout) {
+        if ($timerun < $default_timeout) {
             sleep 5;
         }
         else {
-            die "Resource '$rsc' did not start within $timeout seconds";
+            die "Resource '$rsc' did not start within $default_timeout seconds";
         }
     }
 
@@ -318,7 +333,7 @@ sub check_cluster_state {
 sub wait_until_resources_started {
     my %args    = @_;
     my @cmds    = ('crm cluster wait_for_startup');
-    my $timeout = ($args{timeout} // 120) * get_var('TIMEOUT_SCALE', 1);
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
     my $ret     = undef;
 
     # Some CRM options can only been added on recent versions
@@ -332,7 +347,7 @@ sub wait_until_resources_started {
         my $starttime = time;
 
         # Check for cluster/resources status and exit loop when needed
-        while ($ret = script_run "$cmd") {
+        while ($ret = script_run("$cmd", $default_timeout)) {
             # Otherwise wait a while if timeout is not reached
             my $timerun = time - $starttime;
             if ($timerun < $timeout) {
@@ -352,14 +367,21 @@ sub wait_until_resources_started {
 sub get_lun {
     my %args          = @_;
     my $hostname      = get_hostname;
-    my $lun_list_file = '/tmp/' . get_cluster_name . '-lun.list';
+    my $cluster_name  = get_cluster_name;
+    my $lun_list_file = '/tmp/' . $cluster_name . '-lun.list';
     my $use_once      = $args{use_once} // 1;
+    my $supportdir    = get_var('NFS_SUPPORT_DIR', '/mnt');
 
     # Use mutex to be sure that only *one* node at a time can access the file
     mutex_lock 'iscsi';
 
     # Get the LUN file from the support server to have an up-to-date version
-    exec_and_insert_password "scp -o StrictHostKeyChecking=no root\@ns:$lun_list_file $lun_list_file";
+    if (get_var('USE_SUPPORT_SERVER')) {
+        exec_and_insert_password "scp -o StrictHostKeyChecking=no root\@ns:$lun_list_file $lun_list_file";
+    }
+    else {
+        assert_script_run "cp $supportdir/$cluster_name-lun.list $lun_list_file";
+    }
 
     # Extract the first *free* line for this server
     my $lun = script_output "grep -Fv '$hostname' $lun_list_file | awk 'NR==1 { print \$1 }'";
@@ -380,7 +402,12 @@ sub get_lun {
     }
 
     # Copy the modified file on the support server (for the other nodes)
-    exec_and_insert_password "scp -o StrictHostKeyChecking=no $lun_list_file root\@ns:$lun_list_file";
+    if (get_var('USE_SUPPORT_SERVER')) {
+        exec_and_insert_password "scp -o StrictHostKeyChecking=no $lun_list_file root\@ns:$lun_list_file";
+    }
+    else {
+        assert_script_run "cp $lun_list_file $supportdir/$cluster_name-lun.list";
+    }
 
     mutex_unlock 'iscsi';
 

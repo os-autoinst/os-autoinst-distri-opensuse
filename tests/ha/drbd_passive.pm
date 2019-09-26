@@ -87,7 +87,7 @@ sub run {
     barrier_wait("DRBD_CREATE_CONF_$cluster_name");
 
     # Create the DRBD device
-    assert_script_run "drbdadm create-md $drbd_rsc";
+    assert_script_run "drbdadm create-md --force $drbd_rsc";
     assert_script_run "drbdadm up $drbd_rsc";
 
     # Wait for first node to complete its configuration

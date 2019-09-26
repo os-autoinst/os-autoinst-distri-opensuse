@@ -21,13 +21,13 @@ sub remove_state_join {
     my ($method, $cluster_name, $node_01, $node_02) = @_;
     my $remove_cmd = 'crm cluster remove -y -c';
     my $join_cmd   = 'crm cluster join -y -w /dev/watchdog -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
-    my $timer      = 5 * get_var('TIMEOUT_SCALE', 1);
+    my $timer      = bmwqemu::scale_timeout(5);
 
     # Waiting for the other nodes to be ready
     barrier_wait("REMOVE_NODE_BY_" . "$method" . "_INIT_" . "$cluster_name");
 
     # Remove the second node
-    assert_script_run("$remove_cmd $node_02") if is_node(1);
+    assert_script_run("$remove_cmd $node_02", $default_timeout) if is_node(1);
     # Need to wait a bit for cluster configuration refresh
     sleep $timer;
 
@@ -35,10 +35,10 @@ sub remove_state_join {
     barrier_wait("REMOVE_NODE_BY_" . "$method" . "_DONE_" . "$cluster_name");
 
     # Show cluster status
-    is_node(2) ? script_run "$crm_mon_cmd" : save_state;
+    is_node(2) ? script_run("$crm_mon_cmd", $default_timeout) : save_state;
 
     # Second node needs to be reintegrated
-    assert_script_run("$join_cmd $node_01") if is_node(2);
+    assert_script_run("$join_cmd $node_01", 2 * $join_timeout) if is_node(2);
 
     # Synchronize all the nodes after the join
     barrier_wait("JOIN_NODE_BY_" . "$method" . "_DONE_" . "$cluster_name");

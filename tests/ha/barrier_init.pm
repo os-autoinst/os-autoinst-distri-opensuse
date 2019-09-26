@@ -17,6 +17,11 @@ use testapi;
 use lockapi;
 use mmapi;
 
+# This tells the module whether the test is running in a supportserver or in node1
+sub is_not_supportserver_scenario {
+    return (get_var('HA_CLUSTER_INIT') and !get_var('USE_SUPPORT_SERVER'));
+}
+
 sub run {
     my $cluster_infos = get_required_var('CLUSTER_INFOS');
 
@@ -32,7 +37,16 @@ sub run {
         mutex_create 'cluster_restart';
 
         # BARRIER_HA_ needs to also wait the support-server
-        barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
+        if (is_not_supportserver_scenario) {
+            mutex_create 'iscsi';
+            barrier_create("BARRIER_HA_$cluster_name",                       $num_nodes);
+            barrier_create("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name", $num_nodes);
+            barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name",     $num_nodes);
+            barrier_create("BARRIER_HA_LUNS_FILES_READY_$cluster_name",      $num_nodes);
+        }
+        else {
+            barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
+        }
 
         # Create barriers for HA clusters
         barrier_create("CLUSTER_INITIALIZED_$cluster_name",         $num_nodes);
@@ -124,11 +138,14 @@ sub run {
     # Children are server/test suites that use the PARALLEL_WITH variable
     wait_for_children_to_start;
 
+    # Finish early if running in node 1 instead of supportserver
+    return if is_not_supportserver_scenario;
+
     # For getting informations from iSCSI server
     my $target_iqn     = script_output 'lio_node --listtargetnames 2>/dev/null';
     my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
     my $dev_by_path    = '/dev/disk/by-path';
-    my $index          = 0;
+    my $index          = get_var('ISCSI_LUN_INDEX', 0);
 
     for my $cluster_info (split(/,/, $cluster_infos)) {
         # The CLUSTER_INFOS variable for support_server also contains the number of LUN

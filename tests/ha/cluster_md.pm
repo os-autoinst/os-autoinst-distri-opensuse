@@ -45,11 +45,11 @@ sub run {
     if (is_node(1)) {
         # Create cluster-md device
         assert_script_run
-"mdadm --create $clustermd_device $clustermd_name_opt --bitmap=clustered --metadata=1.2 --raid-devices=2 --level=mirror $clustermd_lun_01 $clustermd_lun_02";
+"mdadm --create $clustermd_device $clustermd_name_opt --bitmap=clustered --metadata=1.2 --raid-devices=2 --level=mirror $clustermd_lun_01 $clustermd_lun_02", $default_timeout;
 
         # We need to create the configuration file on all nodes
-        assert_script_run "echo DEVICE $clustermd_lun_01 $clustermd_lun_02 > $mdadm_conf";
-        assert_script_run "mdadm --detail --scan >> $mdadm_conf";
+        assert_script_run "echo DEVICE $clustermd_lun_01 $clustermd_lun_02 > $mdadm_conf", $default_timeout;
+        assert_script_run "mdadm --detail --scan >> $mdadm_conf",                          $default_timeout;
 
         # We need to add the configuration in csync2.conf
         add_file_in_csync(value => "$mdadm_conf");
@@ -63,7 +63,7 @@ sub run {
 
     # We need to start the cluster-md device on all nodes but node01, as it still has the device started
     if (!is_node(1)) {
-        assert_script_run "mdadm -A $clustermd_device $clustermd_lun_01 $clustermd_lun_02";
+        assert_script_run "mdadm -A $clustermd_device $clustermd_lun_01 $clustermd_lun_02", $default_timeout;
     }
 
     # Wait until cluster-md device is started
@@ -72,8 +72,8 @@ sub run {
     if (is_node(1)) {
         # Create cluster-md resource
         assert_script_run
-"EDITOR=\"sed -ie '\$ a primitive $clustermd_rsc ocf:heartbeat:Raid1 params raiddev=auto force_clones=true raidconf=$mdadm_conf'\" crm configure edit";
-        assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $clustermd_rsc/'\" crm configure edit";
+"EDITOR=\"sed -ie '\$ a primitive $clustermd_rsc ocf:heartbeat:Raid1 params raiddev=auto force_clones=true raidconf=$mdadm_conf'\" crm configure edit", $default_timeout;
+        assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $clustermd_rsc/'\" crm configure edit", $default_timeout;
     }
     else {
         diag 'Wait until cluster-md resource is created...';
