@@ -29,7 +29,6 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    disable_serial_getty;
     ensure_serialdev_permissions;
 
     # Configure serial consoles for virtio support
