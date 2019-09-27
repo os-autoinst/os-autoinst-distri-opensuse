@@ -1,3 +1,8 @@
+=head1 network_utils
+
+Functional methods to operate on network
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2018 SUSE LLC
@@ -22,9 +27,13 @@ use mm_network;
 our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up);
 
 =head2 setup_static_network
+
+ setup_static_network(ip => '10.0.2.15', gw => '10.0.2.1');
+
 Configure static IP on SUT with setting up default GW.
 Also doing test ping to 10.0.2.2 to check that network is alive
 Set DNS server defined via required variable C<STATIC_DNS_SERVER>
+
 =cut
 sub setup_static_network {
     my (%args) = @_;
@@ -41,7 +50,11 @@ sub setup_static_network {
 }
 
 =head2 iface
-    return first NIC which is not loopback
+
+ iface([$quantity]);
+
+Return first NIC which is not loopback
+
 =cut
 sub iface {
     my ($quantity) = @_;
@@ -50,6 +63,9 @@ sub iface {
 }
 
 =head2 can_upload_logs
+
+ can_upload_logs([$gw]);
+
 Returns if can ping worker host gateway
 =cut
 sub can_upload_logs {
@@ -59,13 +75,19 @@ sub can_upload_logs {
 }
 
 
-=head2 check_and_recover_network
-Recover network with static config if is feasible, returns if can ping GW
-Main use case is post_fail_hook, to be able to upload logs
-accepts following parameters :
+=head2 recover_network
+
+ recover_network([ip => $ip] [, gw => $gw]);
+
+Recover network with static config if is feasible, returns if can ping GW. 
+Main use case is post_fail_hook, to be able to upload logs. 
+
+Accepts following parameters :
+
 C<ip> => allowing to specify certain IP which would be used for recovery
-in case skiped '10.0.2.15/24' will be used as fallback
-C<gw> => allowing to specify default gateway . Fallback to worker IP in case nothing specified
+in case skiped '10.0.2.15/24' will be used as fallback.
+
+C<gw> => allowing to specify default gateway. Fallback to worker IP in case nothing specified.
 =cut
 sub recover_network {
     my (%args) = @_;
@@ -89,11 +111,25 @@ sub recover_network {
     return can_upload_logs();
 }
 
+=head2 ifc_exists
+
+ ifc_exists([$ifc]);
+
+Return if ifconfig exists.
+
+=cut
 sub ifc_exists {
     my ($ifc) = @_;
     return !script_run('ip link show dev ' . $ifc);
 }
 
+=head2 ifc_is_up
+
+ ifc_is_up([$ifc]);
+
+Return only if network status is UP.
+
+=cut
 sub ifc_is_up {
     my ($ifc) = @_;
     return !script_run("ip link show dev $ifc | grep 'state UP'");
