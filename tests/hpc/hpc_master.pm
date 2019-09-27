@@ -28,6 +28,16 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
 
+    # make sure products are registered; it might happen that the older SPs aren't
+    # register with valid scc regcode
+    if (get_var("HPC_MIGRATION")) {
+        $self->register_products();
+        barrier_wait("HPC_PRE_MIGRATION");
+    }
+
+    my $registration_status = script_output("SUSEConnect --status-text");
+    record_info('INFO', "$registration_status");
+
     # provision HPC cluster, so the proper rpms are installed,
     # and all the set-up is done, including external services, like NFS etc.
     record_info('Start installing all components');

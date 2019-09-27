@@ -919,6 +919,10 @@ elsif (get_var('HPC')) {
     # e.g 'hpc/$testsuite_[master|slave].pm'
     my $hpc_mm_scenario = get_var('HPC');
     loadtest "hpc/$hpc_mm_scenario" if $hpc_mm_scenario ne '1';
+    if (get_var('HPC_MIGRATION')) {
+        loadtest 'hpc/hpc_migration';
+        loadtest 'hpc/post_migration';
+    }
 }
 elsif (get_var('SYSTEMD_TESTSUITE')) {
     load_systemd_patches_tests;
