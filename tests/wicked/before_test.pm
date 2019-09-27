@@ -72,7 +72,7 @@ sub run {
             assert_script_run('cd ./wicked ; ./autogen.sh ', timeout => 600);
             assert_script_run('make ; make install',         timeout => 600);
         }
-        my $package_list = 'openvswitch openvpn';
+        my $package_list = 'openvswitch openvpn iputils';
         $package_list .= ' libteam-tools libteamdctl0 python-libteam' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
