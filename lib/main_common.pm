@@ -1670,6 +1670,8 @@ sub load_extra_tests_docker {
     my ($image_names, $stable_names) = get_suse_container_urls();
     return unless @$image_names;
 
+    loadtest "console/zypper_ref";
+
     loadtest "console/docker";
     loadtest "console/docker_runc";
     if (is_sle(">=12-sp3")) {

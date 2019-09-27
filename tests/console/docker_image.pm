@@ -70,7 +70,7 @@ sub run {
             validate_script_output qq{docker container run --rm $image_names->[$i] cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
         }
         # zypper lr
-        script_retry("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'zypper lr -s'", timeout => 300, delay => 5, retry => 5);
+        script_retry("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'zypper lr -s'", timeout => 600, delay => 5, retry => 5);
         # zypper ref
         script_retry("docker container run --name refreshed --entrypoint '/bin/bash' $image_names->[$i] -c 'zypper -v ref | grep \"All repositories have been refreshed\"'; if [[ \"\$?\" != \"0\" ]]; then docker rm --force refreshed; false; fi", timeout => 600, delay => 5, retry => 5);
         # Commit the image

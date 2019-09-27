@@ -48,6 +48,7 @@ sub test_seccomp {
 
 sub run {
     select_console("root-console");
+    my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
 
     install_docker_when_needed();
     test_seccomp();
@@ -118,19 +119,6 @@ sub run {
         assert_script_run('man -P cat docker build | grep "docker-build - Build an image from a Dockerfile"');
         assert_script_run('man -P cat docker config | grep "docker-config - Manage Docker configs"');
     }
-
-    # Try to stop container using ctrl+c
-    my $sleep_time = 60 * get_var('TIMEOUT_SCALE', 1);
-    type_string("docker run --rm opensuse/tumbleweed sleep $sleep_time\n");
-    type_string("#Press ctrl+c ");
-    send_key 'ctrl-c';
-    type_string("#still in container\n");
-    # If echo works then ctrl-c stopped sleep
-    type_string "echo 'ctrlc_timeout' > /dev/$serialdev\n";
-    if (wait_serial('ctrlc_timeout', 10, 1)) {
-        die 'Sleep schould be still running so ctrl-c stopped container';
-    }
-    die "Sleep should already be finished but there is no output from the echo" unless wait_serial('ctrlc_timeout', $sleep_time + 30);
 
     # containers can be stopped
     assert_script_run("docker container stop $container_name");
