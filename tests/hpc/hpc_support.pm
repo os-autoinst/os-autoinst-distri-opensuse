@@ -33,6 +33,13 @@ sub run {
     my $self = shift;
     $self->prepare_user_and_group();
 
+    # make sure products are registered; it might happen that the older SPs aren't
+    # register with valid scc regcode
+    if (get_var("HPC_MIGRATION")) {
+        $self->register_products();
+        barrier_wait("HPC_PRE_MIGRATION");
+    }
+
     zypper_call("in slurm-munge slurm-slurmdbd mariadb ganglia-gmond");
     # install slurm-node if sle15, not available yet for sle12
     zypper_call('in slurm-node') if is_sle '15+';

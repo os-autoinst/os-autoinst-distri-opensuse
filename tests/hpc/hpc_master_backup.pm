@@ -27,6 +27,13 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
 
+    # make sure products are registered; it might happen that the older SPs aren't
+    # register with valid scc regcode
+    if (get_var("HPC_MIGRATION")) {
+        $self->register_products();
+        barrier_wait("HPC_PRE_MIGRATION");
+    }
+
     # provision HPC cluster, so the proper rpms are installed,
     # and all the set-up is done, including external services, like NFS etc.
     record_info('Start installing all components');

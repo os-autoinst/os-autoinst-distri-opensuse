@@ -2,7 +2,8 @@ HPC Migration
 
 The tests rely on the fact that openQA fixed directory contains ready
 qcow2 images. Those should be registered against SCC for base products,
-as well as relevant parts: HPC and Web & Scripting.
+as well as relevant parts: HPC and Web & Scripting. For multimachine set-up
+there should be separate qcow2 registered.
 
 The overall idea is to run some functional tests on system before the
 actual migration. Then the system should be patched and eventually
@@ -22,5 +23,15 @@ Test organization
 -----------------
 
 MIGRATION_A - single machine tests checking basics
+-- checking for both supported arches
+-- checking for zypper online (next: yast and offline migrations)
 -- checking for correct migration targets
 -- basic migration of a single machine
+
+MIGRATION_B - cluster tests checking HPC functionality upon migration
+-- focused on zypper online migration as relevant for multimachine set-ups
+-- starting the cluster on older SP
+-- conducting HPC functional tests
+-- running online zypper migration
+-- restarting the cluster
+-- conducting HPC functional tests
