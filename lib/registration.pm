@@ -789,13 +789,13 @@ sub install_docker_when_needed {
     }
     else {
         if (is_sle('<15')) {
-            assert_script_run('zypper se docker || zypper -n ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/SUSE:SLE-12:Update.repo');
+            assert_script_run('zypper se docker || zypper -n ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/SUSE:SLE-12:Update.repo', timeout => 600);
         }
         elsif (is_sle) {
             add_suseconnect_product('sle-module-containers');
         }
         # docker package can be installed
-        zypper_call('in docker');
+        zypper_call('in docker', timeout => 900);
     }
 
     # docker daemon can be started
