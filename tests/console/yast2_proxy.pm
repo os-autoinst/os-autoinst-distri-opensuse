@@ -17,7 +17,6 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
-use yast2_widget_utils 'change_service_configuration';
 
 my %sub_menu_needles = (
     start_up      => 'yast2_proxy_start-up',
@@ -83,14 +82,26 @@ sub run {
     }
 
     # enable service start
-    if (is_sle('<15') || is_leap('<15.1')) {
-        send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';    #Start service when booting
+    if (is_sle('<=15') || is_leap('<15.1')) {
+        #Start service when machine boots:
+        send_key_until_needlematch 'yast2_proxy_service_start', 'alt-b';
     }
     else {
-        change_service_configuration(
-            after_writing => {start         => 'alt-f'},
-            after_reboot  => {start_on_boot => 'alt-a'}
-        );
+        #open 'after writting configuration' dropdown:
+        send_key 'alt-f';
+
+        #Go up to select 'start', check sanity via needle and confirm sending enter:
+        send_key 'up';
+        assert_screen 'yast2_ncurses_service_start_after_writing_conf';
+        send_key 'ret';
+
+        #open 'after reboot' dropdown:
+        send_key 'alt-a';
+
+        #Go up to elect start on boot', check sanity via needle and confirm sending enter:
+        send_key 'up';
+        assert_screen 'yast2_ncurses_service_start_on_boot_after_reboot';
+        send_key 'ret';
     }
 
     # if firewall is enabled, then send_key alt-p, else move to page http ports
