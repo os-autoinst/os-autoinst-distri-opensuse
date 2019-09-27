@@ -1,3 +1,8 @@
+=head1 data_integrity_utils
+
+Library to verify image data integrity by comparing SHA256 checksums
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2018 SUSE LLC
@@ -22,8 +27,13 @@ use Digest::file 'digest_file_hex';
 
 our @EXPORT = qw(verify_checksum get_image_digest);
 
-=head2
-Returns image digest. Digest retrieval is platform-specific depends.
+=head2 get_image_digest
+
+ get_image_digest($image_path);
+
+Returns image digest. Image path C<$image_path> is the parameter which is used to get image digest.
+Digest retrieval is platform-specific depends.
+
 =cut
 sub get_image_digest {
     my ($image_path) = shift;
@@ -42,8 +52,14 @@ sub get_image_digest {
 }
 
 =head2 verify_checksum
-Verify image data integrity by comparing SHA256 checksums
-Returns error message in case of failure, empty string in case of success
+
+ verify_checksum($dir_path);
+
+Verify image data integrity by comparing SHA256 checksums.
+Directory path C<$dir_path> is the parameter which is a part of image path '$image_path' if exists.
+
+Returns error message in case of failure, empty string in case of success.
+
 =cut
 sub verify_checksum {
     my ($dir_path) = shift;
