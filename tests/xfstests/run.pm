@@ -256,20 +256,21 @@ sub shuffle {
     return @arr;
 }
 
-# Copy log to ready to save
+# Log & Must included: Copy log to ready to save
 sub copy_log {
     my ($category, $num, $log_type) = @_;
     my $cmd = "if [ -e /opt/xfstests/results/$category/$num.$log_type ]; then cat /opt/xfstests/results/$category/$num.$log_type | tee $LOG_DIR/$category/$num.$log_type; fi";
     script_run($cmd);
 }
 
-# Copy junk.fsxops for fails fsx test included in subtests
+# Log: Copy junk.fsxops for fails fsx tests included in subtests
 sub copy_fsxops {
     my ($category, $num) = @_;
     my $cmd = "if [ -e /mnt/test/junk.fsxops ]; then cp /mnt/test/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
     script_run($cmd);
 }
 
+# Log: Only run in test Btrfs, collect image dump for inconsistent error
 sub dump_btrfs_img {
     my ($category, $num) = @_;
     my $cmd = "echo \"no inconsistent error, skip btrfs image dump\"";
@@ -278,13 +279,12 @@ sub dump_btrfs_img {
     script_run($cmd);
 }
 
+# Log: Collect fs runtime status for XFS, Btrfs and Ext4
 sub collect_fs_status {
     my ($category, $num) = @_;
     my $cmd = <<END_CMD;
 mount \$TEST_DEV \$TEST_DIR &> /dev/null
-if [[ -z "\$SCRATCH_DEV_POOL" ]]; then
-    mount \$SCRATCH_DEV \$SCRATCH_MNT &> /dev/null
-fi
+[ -n "\$SCRATCH_DEV" ] && mount \$SCRATCH_DEV /mnt/scratch &> /dev/null
 END_CMD
     if ($FSTYPE eq 'xfs') {
         $cmd = <<END_CMD;
@@ -293,6 +293,8 @@ echo "==> /sys/fs/$FSTYPE/stats/stats <==" > $LOG_DIR/$category/$num.fs_stat
 cat /sys/fs/$FSTYPE/stats/stats >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$FSTYPE/*/log/* >> $LOG_DIR/$category/$num.fs_stat
 tail -n +1 /sys/fs/$FSTYPE/*/stats/stats >> $LOG_DIR/$category/$num.fs_stat
+xfs_info /mnt/test > $LOG_DIR/$category/$num.xfsinfo
+xfs_info /mnt/scratch >> $LOG_DIR/$category/$num.xfsinfo
 END_CMD
     }
     elsif ($FSTYPE eq 'btrfs') {
@@ -313,9 +315,7 @@ END_CMD
     $cmd = <<END_CMD;
 $cmd
 umount \$TEST_DEV &> /dev/null
-if [[ -z "\$SCRATCH_DEV_POOL" ]]; then
-    umount \$SCRATCH_DEV &> /dev/null
-fi
+[ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
     type_string("$cmd\n");
 }
