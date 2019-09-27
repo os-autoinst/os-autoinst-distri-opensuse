@@ -1,5 +1,5 @@
 package hpcbase;
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
@@ -37,6 +37,7 @@ sub switch_user {
 ## in config preparation, munge key distribution, etc.
 ## The naming follows general pattern of master-slave
 sub master_node_names {
+    my ($self) = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
     my @master_node_names;
 
@@ -52,6 +53,7 @@ sub master_node_names {
 ## instance in config preparation, munge key distribution, etc.
 ## The naming follows general pattern of master-slave
 sub slave_node_names {
+    my ($self)       = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
     my $nodes        = get_required_var("CLUSTER_NODES");
     my @slave_node_names;
@@ -67,6 +69,7 @@ sub slave_node_names {
 
 ## Prepare all node names, so those names could be reused
 sub cluster_names {
+    my ($self) = @_;
     my @cluster_names;
 
     my @master_nodes = master_node_names();
@@ -78,69 +81,8 @@ sub cluster_names {
     return @cluster_names;
 }
 
-## TODO: improve this ever-growing sub, so that it will be easier to
-## maintain and expand if needed as well as there will be less duplications
-sub prepare_slurm_conf {
-    my $slurm_conf = get_required_var("SLURM_CONF");
-
-    my @cluster_ctl_nodes     = master_node_names();
-    my @cluster_compute_nodes = slave_node_names();
-    my $cluster_ctl_nodes     = join(',', @cluster_ctl_nodes);
-    my $cluster_compute_nodes = join(',', @cluster_compute_nodes);
-
-    if ($slurm_conf eq "basic") {
-        my $config = << "EOF";
-sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "nfs") {
-        my $config = << "EOF";
-sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
-sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
-sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "db") {
-        my $config = << "EOF";
-sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
-sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
-sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
-sed -i "/^#JobAcctGatherType.*/c\\JobAcctGatherType=jobacct_gather/linux" /etc/slurm/slurm.conf
-sed -i "/^#JobAcctGatherFrequency.*/c\\JobAcctGatherFrequency=12" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageType.*/c\\AccountingStorageType=accounting_storage/slurmdbd" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageHost.*/c\\AccountingStorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageUser.*/c\\AccountingStoragePort=20088" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } else {
-        die "Unsupported value of SLURM_CONF test setting!";
-    }
-}
-
-sub prepare_slurmdb_conf {
-    my @cluster_compute_nodes = slave_node_names();
-
-    my $config = << "EOF";
-sed -i "/^DbdAddr.*/c\\#DbdAddr" /etc/slurm/slurmdbd.conf
-sed -i "/^DbdHost.*/c\\DbdHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf
-sed -i "/^#StorageHost.*/c\\StorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf
-sed -i "/^#StorageLoc.*/c\\StorageLoc=slurm_acct_db" /etc/slurm/slurmdbd.conf
-sed -i "/^#DbdPort.*/c\\DbdPort=20088" /etc/slurm/slurmdbd.conf
-EOF
-    assert_script_run($_) foreach (split /\n/, $config);
-}
-
 sub distribute_munge_key {
+    my ($self) = @_;
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
         exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$_:/etc/munge/munge.key");
@@ -148,6 +90,7 @@ sub distribute_munge_key {
 }
 
 sub distribute_slurm_conf {
+    my ($self) = @_;
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
         exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$_:/etc/slurm/slurm.conf");
@@ -155,6 +98,7 @@ sub distribute_slurm_conf {
 }
 
 sub generate_and_distribute_ssh {
+    my ($self) = @_;
     my @cluster_nodes = cluster_names();
     assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
     foreach (@cluster_nodes) {
@@ -163,6 +107,7 @@ sub generate_and_distribute_ssh {
 }
 
 sub check_nodes_availability {
+    my ($self) = @_;
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
         assert_script_run("ping -c 3 $_");
@@ -170,6 +115,7 @@ sub check_nodes_availability {
 }
 
 sub mount_nfs {
+    my ($self) = @_;
     ## TODO: get rid of hardcoded name for the NFS-dir
     systemctl("start nfs");
     systemctl("start rpcbind");
@@ -177,70 +123,6 @@ sub mount_nfs {
     assert_script_run('mkdir -p /shared/slurm');
     assert_script_run('chown -Rcv slurm:slurm /shared/slurm');
     assert_script_run('mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm');
-}
-
-## Initial migration lib function
-#TODO: move to separate hpc-migration lib
-sub register_products {
-    my $register = "register_installed_products.pl";
-    my $reg_code = get_required_var('SCC_REGCODE');
-    my @products_to_register;
-
-    script_run("SUSEConnect --status-text > /tmp/installed_products");
-    script_run("wget --quiet " . data_url("hpc/$register") . " -O $register");
-    script_run("chmod +x $register");
-    my $products = script_output("./$register");
-
-    if ($products =~ 'empty') {
-        goto NOREGISTRATION;
-    }
-
-    @products_to_register = split(/\|/, $products);
-    s{^\s+|\s+$}{}g foreach @products_to_register;
-
-    record_info('Some registration is ongoing');
-    foreach my $i (@products_to_register) {
-        script_run("SUSEConnect -p $i -r $reg_code");
-    }
-
-  NOREGISTRATION:
-    record_info('All installed products are registered!');
-}
-
-## simplistic way of re-trying the migration
-## TODO: implement proper error handling
-sub migration_err {
-    record_info('recording err');
-    assert_script_run("SUSEConnect --rollback");
-}
-
-## function: get_migration_targets()
-## should return the array of available migration targets
-## As this is online migration only, it should only contain
-## the list of respective Service Packs available for migration
-sub get_migration_targets {
-    my $pars = "pars_migration.pl";
-    my $targets;
-    my @migration_targets;
-
-    $targets = script_run('zypper migration --query > /tmp/migration_targets');
-    if ($targets != 0) {
-        record_info('targets err');
-        die('Something went wrong!');
-    } else {
-        record_info('Available migration targets: ', script_output('cat /tmp/migration_targets'));
-    }
-    script_run("wget --quiet " . data_url("hpc/$pars") . " -O $pars");
-    assert_script_run("chmod +x $pars");
-
-    $targets = script_output("./$pars");
-
-    # script executed on SUT returns scalar with | as a delimiter
-    # change scalar to array and trimm the whitespces
-    @migration_targets = split(/\|/, $targets);
-    s{^\s+|\s+$}{}g foreach @migration_targets;
-
-    return @migration_targets;
 }
 
 =head2

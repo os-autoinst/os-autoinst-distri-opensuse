@@ -12,7 +12,8 @@
 #    that the slurm db accounting can be configured
 # Maintainer: Sebastian Chlad <schlad@suse.de>
 
-use base "hpcbase";
+use base 'hpcbase';
+use base 'hpc::configs';
 use strict;
 use warnings;
 use testapi;

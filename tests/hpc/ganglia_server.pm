@@ -13,8 +13,8 @@
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
 # Tags: https://fate.suse.com/323979
 
-use base "hpcbase";
-use base "x11test";
+use base 'hpcbase';
+use base 'x11test';
 use strict;
 use warnings;
 use testapi;
