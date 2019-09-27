@@ -10,7 +10,7 @@
 # Summary: slurm cluster initialization
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base "hpcbase";
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;

@@ -12,7 +12,8 @@
 #    (database)
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base "hpcbase";
+use base 'hpc::base';
+use base 'hpc:configs';
 use strict;
 use warnings;
 use testapi;

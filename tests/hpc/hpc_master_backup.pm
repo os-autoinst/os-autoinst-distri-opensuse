@@ -15,7 +15,7 @@
 #    database(s) are ready to be used, artificial users are added etc.
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base "hpcbase";
+use base 'hpcbase';
 use strict;
 use warnings;
 use testapi;

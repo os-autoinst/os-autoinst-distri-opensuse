@@ -16,7 +16,8 @@
 #    the databases, artificial users are added etc.
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base "hpcbase";
+use base 'hpcbase';
+use base 'hpc::configs';
 use strict;
 use warnings;
 use testapi;

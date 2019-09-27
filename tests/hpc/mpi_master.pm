@@ -12,7 +12,7 @@
 # available nodes. Test meant to be run in VMs, so thus using ethernet
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base "hpcbase";
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;

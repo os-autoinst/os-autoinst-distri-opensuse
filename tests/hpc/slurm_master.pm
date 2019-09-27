@@ -12,7 +12,8 @@
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 # Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
-use base "hpcbase";
+use base 'hpc::base';
+use base 'hpc::configs';
 use strict;
 use warnings;
 use testapi;

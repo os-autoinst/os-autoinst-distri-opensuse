@@ -16,7 +16,7 @@
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 # Tags: https://fate.suse.com/318824
 
-use base 'hpcbase';
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;

@@ -12,7 +12,8 @@
 #    supportive services, like for instance required database
 # Maintainer: Sebastian Chlad <schlad@suse.de>
 
-use base "hpcbase";
+use base 'hpcbase';
+use base 'hpc::configs';
 use strict;
 use warnings;
 use testapi;

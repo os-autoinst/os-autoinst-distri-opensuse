@@ -14,7 +14,7 @@
 # Tags: https://fate.suse.com/321722
 
 
-use base "hpcbase";
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;

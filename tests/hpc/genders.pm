@@ -13,7 +13,7 @@
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 # Tags: https://fate.suse.com/324149
 
-use base 'hpcbase';
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;

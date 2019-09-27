@@ -10,7 +10,7 @@
 # Summary:  Basic preparation before any HPC test
 # Maintainer: mgriessmeier <mgriessmeier@suse.com>
 
-use base "hpcbase";
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;

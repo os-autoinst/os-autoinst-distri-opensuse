@@ -12,7 +12,7 @@
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
 # Tags: https://fate.suse.com/316379, https://progress.opensuse.org/issues/20308
 
-use base "hpcbase";
+use base 'hpc::base';
 use strict;
 use warnings;
 use testapi;
