@@ -214,14 +214,18 @@ console at the time of C<power_action> call, is switched to the expected
 console, that is 'root-console' for textmode, 'x11' otherwise. The actual
 execution happens in a shell for textmode or with GUI commands otherwise
 unless explicitly overridden by setting C<$textmode> to either 0 or 1.
+C<$skipconsolereset> skips console reset to allow capture of messages during
+system shutdown on backends where management console needs to be reconnected
+(like spvm).
 
 =cut
 sub power_action {
     my ($action, %args) = @_;
-    $args{observe}      //= 0;
-    $args{keepconsole}  //= 0;
-    $args{textmode}     //= check_var('DESKTOP', 'textmode');
-    $args{first_reboot} //= 0;
+    $args{observe}          //= 0;
+    $args{keepconsole}      //= 0;
+    $args{textmode}         //= check_var('DESKTOP', 'textmode');
+    $args{first_reboot}     //= 0;
+    $args{skipconsolereset} //= 0;
     die "'action' was not provided" unless $action;
     prepare_system_shutdown;
     unless ($args{keepconsole}) {
@@ -283,7 +287,7 @@ sub power_action {
         handle_livecd_reboot_failure if get_var('LIVECD') && $action eq 'reboot';
         # Look aside before we are sure 'sut' console on VMware is ready, see poo#47150
         select_console('svirt') if is_vmware && $action eq 'reboot';
-        reset_consoles;
+        reset_consoles unless $args{skipconsolereset};
         if ((check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) && $action ne 'poweroff') {
             console('svirt')->start_serial_grab;
         }
