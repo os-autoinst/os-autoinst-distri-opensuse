@@ -45,19 +45,7 @@ sub license {
         $self->verify_license_has_to_be_accepted;
         $self->accept_license;
     }
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
-    # Workaround license checkbox, applicable for sle12sp5 only currently
-    assert_screen([qw(license-agreement inst-timezone)]);
-    if (match_has_tag('license-agreement')) {
-        record_soft_failure 'bsc#1131327 License checkbox was cleared! Re-check again!';
-        send_key 'alt-a';
-        assert_screen('license-agreement-accepted');
-        wait_screen_change(sub { send_key $cmd{next}; }, 7);
-    }
-    elsif (match_has_tag('inst-timezone')) {
-        return;
-    }
-    # End of WA
+    send_key $cmd{next};
 }
 
 sub welcome {
@@ -66,7 +54,12 @@ sub welcome {
 }
 
 sub clock_and_timezone {
-    assert_screen 'inst-timezone';
+    assert_screen [qw(inst-timezone blank-screen-with-accept-button)];
+    # bsc#1152532 - On Leap15.2, blank screen is appeared sporadically after Welcome
+    if (match_has_tag 'blank-screen-with-accept-button') {
+        record_soft_failure 'bsc#1152532 - Blank Screen is appeared before Clock and Timezone';
+        assert_screen('inst-timezone', 60);
+    }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
