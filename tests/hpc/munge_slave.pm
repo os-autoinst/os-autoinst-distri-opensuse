@@ -11,7 +11,7 @@
 # of this package
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, soulofdestiny <mgriessmeier@suse.com>
 
-use base "hpcbase";
+use base 'hpcbase';
 use strict;
 use warnings;
 use testapi;

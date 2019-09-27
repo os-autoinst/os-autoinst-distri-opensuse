@@ -8,9 +8,9 @@
 # without any warranty.
 
 # Summary:  Basic preparation before any HPC test
-# Maintainer: mgriessmeier <mgriessmeier@suse.com>
+# Maintainer: Sebastian Chlad <schlad@suse.de>
 
-use base "hpcbase";
+use base 'hpcbase';
 use strict;
 use warnings;
 use testapi;

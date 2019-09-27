@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Initialization of barriers for HPC multimachine tests
-# Maintainer: Petr Cervinka <pcervinka@suse.com>
+# Maintainer: Petr Cervinka <pcervinka@suse.com>, Sebastian Chlad <schlad@suse.de>
 
 use base 'opensusebasetest';
 use strict;
