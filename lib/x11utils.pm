@@ -170,16 +170,15 @@ sub handle_logout {
     # hide mouse for clean logout needles
     mouse_hide();
     # logout
-    if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
-        my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-        my $target_match = check_var('DESKTOP', 'gnome') ? undef : 'logoutdialog';
-        x11_start_program($command, target_match => $target_match);    # opens logout dialog
+    if (check_var('DESKTOP', 'lxde')) {
+        x11_start_program('lxsession-logout', target_match => 'logoutdialog');    # opens logout dialog
     }
     else {
         my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
-        send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
+        $key = 'ctrl-alt-l' if check_var('DESKTOP', 'gnome');                     # On GNOME, 'ctrl-alt-delete' only allow to poweroff/restart
+        send_key_until_needlematch 'logoutdialog', "$key";                        # opens logout dialog
     }
-    assert_and_click 'logout-button';                                  # press logout
+    assert_and_click 'logout-button';                                             # press logout
 }
 
 sub handle_relogin {
