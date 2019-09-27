@@ -211,7 +211,8 @@ sub turn_off_kde_screensaver {
         assert_and_click('kde-disable-screenlock');
     }
     assert_screen 'screenlock-disabled';
-    send_key('alt-o');
+    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
+    send_key('ctrl-ret');
     assert_screen 'generic-desktop';
 }
 
