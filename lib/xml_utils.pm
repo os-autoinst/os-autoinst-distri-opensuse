@@ -1,3 +1,8 @@
+=head1 xml_utils.pm
+
+Library for parsing xml files
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2018 SUSE LLC
@@ -15,9 +20,11 @@ use XML::LibXML;
 use Exporter 'import';
 
 =head2 get_xpc
-   get_xpc($string);
 
-   Returns XPathContext for the dom build using the string, which contains xml.
+ get_xpc($string);
+
+Returns XPathContext for the dom build using the string, which contains xml.
+
 =cut
 
 our @EXPORT = qw(get_xpc verify_option find_nodes);
@@ -33,13 +40,21 @@ sub get_xpc {
 }
 
 =head2 verify_option
-   verify_option(%args);
 
-   Verifies that node by given XPath is unique and has expected value. C<%args> is
-   a hash which must have following keys:
-   C<xpc> - XPathContext object for the parsed xml,
-   C<xpath> - XPath to the node which value we want to check
-   C<expected_val> - expected value for the node
+ verify_option(%args);
+
+Verifies that node by given XPath is unique and has expected value. C<%args> is a hash which must have following keys:
+
+=over 
+
+=item * C<xpc> - XPathContext object for the parsed xml,
+
+=item * C<xpath> - XPath to the node which value we want to check
+
+=item * C<expected_val> - expected value for the node
+
+=back
+
 =cut
 
 sub verify_option {
@@ -59,14 +74,15 @@ sub verify_option {
 }
 
 =head2 find_nodes
-   find_nodes(%args);
 
-   Finds all the nodes by xpath and returns the nodes as array.
-   C<xpc> - XPathContext object for the parsed xml,
-   C<xpath> - XPath to the target node
+ find_nodes(%args);
+
+Finds all the nodes by xpath and returns the nodes as array.
+
+C<xpc> - XPathContext object for the parsed xml,
+C<xpath> - XPath to the target node
 
 =cut
-
 sub find_nodes {
     my (%args) = @_;
     my $nodeset = $args{xpc}->findnodes($args{xpath});
