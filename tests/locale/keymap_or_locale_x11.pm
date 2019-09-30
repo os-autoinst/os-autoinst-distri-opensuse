@@ -20,6 +20,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    select_console('x11');
     # uncomment in case of different keyboard than us is used during installation ( feature not ready yet )
     # my $expected   = get_var('INSTALL_KEYBOARD_LAYOUT','us');
     my $expected   = 'us';
