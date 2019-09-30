@@ -184,7 +184,7 @@ sub test_07 {
     script_run('sacctmgr show associations');
     record_info('INFO', script_run('sacctmgr show account'));
 
-    script_run("srun --uid=$users{user_1} --account=UNI_X_Math -N 2 date");
+    script_run("srun --uid=$users{user_1} --account=UNI_X_Math -w slave-node00,slave-node01 date");
     script_run("srun --uid=$users{user_2} --account=UNI_X_IT -N 2 hostname");
 
     script_run("srun --uid=$users{user_3} --account=UNI_Y_Biology -N 3 date");
