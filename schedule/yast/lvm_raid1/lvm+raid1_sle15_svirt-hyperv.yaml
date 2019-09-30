@@ -11,6 +11,7 @@ test_data :
 schedule :
   - installation/isosize
   - installation/bootloader_hyperv
+  - installation/bootloader
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
