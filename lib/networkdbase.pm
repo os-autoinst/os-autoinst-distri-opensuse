@@ -19,22 +19,52 @@ use utils;
 
 use base 'consoletest';
 
+=head2 assert_script_run_container
+
+ assert_script_run_container($machine, $script);
+
+Run C<$script> in the systemd-nspawn container called C<$machine>.
+
+=cut
 sub assert_script_run_container {
     my ($self, $machine, $script) = @_;
     assert_script_run("systemd-run -tM $machine /bin/bash -c \"$script\"");
 }
 
+=head2 start_nspawn_container
+
+ start_nspawn_container($machine);
+
+Start the systemd-nspawn container called C<$machine>.
+
+=cut
 sub start_nspawn_container {
     my ($self, $machine) = @_;
     assert_script_run("systemctl start systemd-nspawn-openqa@" . $machine);
 }
 
+=head2 restart_nspawn_container
+
+ restart_nspawn_container($machine);
+
+Restart the systemd-nspawn container called C<$machine>.
+
+=cut
 sub restart_nspawn_container {
     my ($self, $machine) = @_;
     assert_script_run("systemctl stop systemd-nspawn-openqa@" . $machine);
     assert_script_run("systemctl start systemd-nspawn-openqa@" . $machine);
 }
 
+=head2 setup_nspawn_container
+
+ setup_nspawn_container($machine, $repo, $packages);
+
+Create a chroot for a systemd-nspawn container called C<$machine>.
+Use C<zypper> to add a repo to the chroot and install (with C<--no-recommends>)
+the packages listed in C<$packages>.
+
+=cut
 sub setup_nspawn_container {
     my ($self, $machine, $repo, $packages) = @_;
     my $path = "/var/lib/machines/$machine";
@@ -43,7 +73,15 @@ sub setup_nspawn_container {
     zypper_call("--root $path install --no-recommends -ly $packages", exitcode => [0, 107]);
 }
 
+=head2 setup_nspawn_unit
 
+ setup_nspawn_unit();
+
+Create a custom systemd service unit file called C<systemd-nspawn-openqa@.service>.
+This will have some custom config that is needed for our tests
+(eg. bridged network and binding C</dev/sr0> to access the DVD drive from within the container).
+
+=cut
 sub setup_nspawn_unit {
     my ($self) = @_;
     my $systemd_nspawn_openqa_service = "
@@ -81,18 +119,40 @@ WantedBy=machines.target
     $self->write_file("/etc/systemd/system/systemd-nspawn-openqa@.service", $systemd_nspawn_openqa_service);
 }
 
+=head2 write_container_file
+
+ write_container_file($machine, $file, $content);
+
+Create a file at path (including filename) C<$file> within the container called C<$machine>
+with the content C<$content>.
+
+=cut
 sub write_container_file {
     my ($self, $machine, $file, $content) = @_;
     my $path = "/var/lib/machines/$machine/$file";
     $self->write_file($path, $content);
 }
 
+=head2 write_file
+
+ write_file($file, $content);
+
+Helper function to write a file at path (including filename) C<$file> with the content C<$content>.
+
+=cut
 sub write_file {
     my ($self, $file, $content) = @_;
     type_string("cat > $file <<EOF\n$content\nEOF\n");
     assert_script_run("test \$? == 0");
 }
 
+=head2 wait_for_networkd
+
+ wait_for_networkd($machine, $netif);
+
+Wait until networkd in the container C<$machine> has configured the network interface C<$netif>.
+
+=cut
 sub wait_for_networkd {
     my ($self, $machine, $netif) = @_;
     $self->assert_script_run_container($machine, "ip a");
@@ -104,6 +164,15 @@ sub wait_for_networkd {
     $self->assert_script_run_container($machine, "networkctl status");
 }
 
+=head2 export_container_journal
+
+ export_container_journal($machine);
+
+Get the journal from container C<$machine> and upload it to openQA.
+This works without interacting with the container as logs are
+redirected to the host system journal.
+
+=cut
 sub export_container_journal {
     my ($self, $machine) = @_;
 
@@ -111,6 +180,13 @@ sub export_container_journal {
     upload_logs "/tmp/" . $machine . "_journal.log";
 }
 
+=head2 post_fail_hook
+
+ post_fail_hook();
+
+Upload the logs of all known containers.
+
+=cut
 sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');
