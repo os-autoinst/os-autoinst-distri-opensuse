@@ -528,11 +528,17 @@ sub start_clean_firefox {
     # to avoid stuck trackinfo pop-up, refresh the browser
     $self->firefox_open_url('opensuse.org');
     my $count = 10;
-    while (is_firefox_60() && $count--) {
+    while ($count--) {
         # workaround for bsc#1046005
         wait_screen_change { assert_and_click 'firefox_titlebar' };
         if (check_screen 'firefox_trackinfo', 3) {
+            record_info 'Tracking protection', 'Track info did show up';
             assert_and_click 'firefox_trackinfo';
+            last;
+        }
+        # the needle match area has to be where trackinfo would pop-up
+        elsif (check_screen 'firefox-developertool-opensuse') {
+            record_info 'Tracking protection', 'Track info pop-up did NOT show up';
             last;
         }
         elsif ($count eq 1) {
