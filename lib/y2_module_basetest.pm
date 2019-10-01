@@ -18,6 +18,8 @@ use Exporter 'import';
 use strict;
 use warnings;
 use testapi;
+use utils 'show_tasks_in_blocked_state';
+use y2_installbase;
 use version_utils qw(is_opensuse is_leap is_tumbleweed);
 
 our @EXPORT = qw(is_network_manager_default
@@ -69,6 +71,24 @@ sub workaround_suppress_lvm_warnings {
         record_soft_failure('bsc#1124481 - LVM is polluting stdout with leaked invocation warnings');
         assert_script_run('export LVM_SUPPRESS_FD_WARNINGS=1');
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    my $defer_blocked_task_info = testapi::is_serial_terminal();
+    show_tasks_in_blocked_state unless ($defer_blocked_task_info);
+
+    select_console 'log-console';
+    save_screenshot;
+
+    show_tasks_in_blocked_state if ($defer_blocked_task_info);
+
+    $self->remount_tmp_if_ro;
+    y2_installbase::save_upload_y2logs($self);
+    upload_logs('/var/log/zypper.log', failok => 1);
+    y2_installbase::save_system_logs($self);
+    y2_installbase::save_strace_gdb_output($self, 'yast');
 }
 
 1;
