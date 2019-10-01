@@ -86,6 +86,9 @@ sub run {
         }
         $index++;
     }
+    if (get_var("HPC_MIGRATION")) {
+        barrier_wait('HPC_MIGRATION_START');
+    }
     # TODO: https://progress.opensuse.org/issues/57296
     script_run("zypper migration -n --no-recommends --auto-agree-with-licenses --migration $migration_target", 840);
 
@@ -94,6 +97,9 @@ sub run {
     power_action('reboot', keepconsole => 1, textmode => 0);
     #reboot and check the status again
     assert_script_run("SUSEConnect --status-text", 180);
+    if (get_var("HPC_MIGRATION")) {
+        barrier_wait('HPC_MIGRATION_TESTS');
+    }
 }
 
 sub test_flags {

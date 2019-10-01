@@ -37,6 +37,9 @@ sub run {
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call 'up';
     }
+
+    # list registration status for ease of investigating in case the test fails
+    record_info('INFO', script_output("SUSEConnect --status-text"));
 }
 
 sub test_flags {

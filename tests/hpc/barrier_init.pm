@@ -61,10 +61,19 @@ sub run {
         barrier_create("MPI_RUN_TEST",       $nodes);
     }
     elsif (check_var("HPC", "hpc_comprehensive")) {
+        if (get_var("HPC_MIGRATION")) {
+            barrier_create("HPC_PRE_MIGRATION", $nodes);
+        }
         barrier_create("HPC_MASTER_SERVICES_ENABLED", $nodes);
         barrier_create("HPC_SLAVE_SERVICES_ENABLED",  $nodes);
         barrier_create("HPC_SETUPS_DONE",             $nodes);
         barrier_create("HPC_MASTER_RUN_TESTS",        $nodes);
+        if (get_var("HPC_MIGRATION")) {
+            barrier_create("HPC_MIGRATION_START",          $nodes);
+            barrier_create("HPC_MIGRATION_TESTS",          $nodes);
+            barrier_create("HPC_POST_MIGRATION_TESTS",     $nodes);
+            barrier_create("HPC_POST_MIGRATION_TESTS_RUN", $nodes);
+        }
     }
     else {
         die("Unsupported test, check content of HPC variable");
