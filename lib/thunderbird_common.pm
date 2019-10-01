@@ -24,6 +24,15 @@ use Exporter;
 
 our @EXPORT = qw(tb_setup_account tb_send_message tb_check_email);
 
+=head2 tb_setup_account
+
+ tb_setup_account($proto, $account);
+
+Create an email account in Thunderbird.
+C<$proto> can be C<pop> or C<imap>.
+C<$account> can be C<internal_account_A> or C<internal_account_B>.
+
+=cut
 sub tb_setup_account {
     my ($self, $proto, $account) = @_;
 
@@ -85,6 +94,15 @@ sub tb_setup_account {
     send_key "ret";
 }
 
+=head2 tb_send_message
+
+ tb_send_message($account);
+
+Test sending an email using Thunderbird.
+C<$account> can be C<internal_account_A> or C<internal_account_B>.
+Returns email subject.
+
+=cut
 sub tb_send_message {
     my ($self, $account) = @_;
 
@@ -159,6 +177,14 @@ sub tb_send_message {
     return $mail_subject;
 }
 
+=head2 tb_check_email
+
+ tb_check_email($mail_search);
+
+Check for new emails.
+C<$mail_search> may be an email subject to search for.
+
+=cut
 sub tb_check_email {
     my ($self, $mail_search) = @_;
 
