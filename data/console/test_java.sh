@@ -86,9 +86,9 @@ list_all_javaplugin_alternatives () {
 # Check if there's a 1:1 analogy with update-alternatives and the java versions
 test_java_alternatives () {
     list_all_java_alternatives
-    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | wc -l)
-    java_alternatives=$(cat $LIST_ALL_JAVA_ALTERNATIVES | wc -l)
-    if [ $java_versions -eq $java_alternatives ]; then
+    java_versions=$(wc -l < $LIST_ALL_INSTALLED_VERSIONS)
+    java_alternatives=$(wc -l < $LIST_ALL_JAVA_ALTERNATIVES)
+    if [[ "$java_versions" -eq "$java_alternatives" ]]; then
         echo "java: PASS"
     else
         echo "java: FAIL"
@@ -97,7 +97,7 @@ test_java_alternatives () {
         echo
         echo "List all java alternatives"
         cat $LIST_ALL_JAVA_ALTERNATIVES
-        for i in $(update-alternatives --list java); do rpm -qf $i; done
+        for i in $(update-alternatives --list java); do rpm -qf "$i"; done
         exit 1
     fi
 }
@@ -108,9 +108,9 @@ test_java_alternatives () {
 test_javac_alternatives () {
     list_all_javac_alternatives
 #    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | wc -l)
-    javac_versions=$(rpm -qa | grep java | grep devel | grep -v debuginfo | wc -l)
-    javac_alternatives=$(cat $LIST_ALL_JAVAC_ALTERNATIVES | wc -l)
-    if [ $javac_versions -eq $javac_alternatives ]; then
+    javac_versions=$(rpm -qa | grep -v debuginfo | grep -c 'java.*devel')
+    javac_alternatives=$(wc -l < $LIST_ALL_JAVAC_ALTERNATIVES)
+    if [ "$javac_versions" -eq "$javac_alternatives" ]; then
         echo "javac: PASS"
     else
         echo "javac: FAIL"
@@ -118,7 +118,7 @@ test_javac_alternatives () {
         echo "Number of java versions: $javac_versions and number of javac_alternatives $javac_alternatives"
         echo
         echo "List all javac_versions"
-        rpm -qa | grep java | grep devel | grep -v debuginfo
+        rpm -qa | grep 'java.*devel' | grep -v debuginfo
         echo "List all javac alternatives"
         cat $LIST_ALL_JAVAC_ALTERNATIVES
         exit 1
@@ -129,9 +129,9 @@ test_javac_alternatives () {
 test_javaplugin_alternatives () {
     list_all_javaplugin_alternatives
     # This exists only for java-ibm so far
-    java_plugins=$(rpm -qa | grep java | grep plugin | wc -l)
-    javaplugin_alternatives=$(cat $LIST_ALL_JAVAPLUGIN_ALTERNATIVES | wc -l)
-    if [ $java_plugins -eq $javaplugin_alternatives ]; then
+    java_plugins=$(rpm -qa | grep -c 'java.*plugin')
+    javaplugin_alternatives=$(wc -l < $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
+    if [ "$java_plugins" -eq "$javaplugin_alternatives" ]; then
         echo "javaplugin: PASS"
     else
         echo "javaplugin: FAIL"
@@ -141,12 +141,12 @@ test_javaplugin_alternatives () {
 
 test_java_version_active () {
     # find active java version
-    java_version_active=`java -version 2>&1 | awk '/version/{print $3}' | sed 's/"//g' | awk -F "_" '{print $1}'`
+    java_version_active=$(java -version 2>&1 | awk '/version/{print $3}' | sed 's/"//g' | awk -F "_" '{print $1}')
 }
 
 test_javac_version_active () {
     # find active javac version
-    javac_version_active=`javac -version 2>&1 | awk '/javac/{print $2}' | awk -F "-" '{print $1}' | awk -F "_" '{print $1}'`
+    javac_version_active=$(javac -version 2>&1 | awk '/javac/{print $2}' | awk -F "-" '{print $1}' | awk -F "_" '{print $1}')
 }
 
 check_version_active_vs_dot () {
@@ -157,7 +157,7 @@ check_version_active_vs_dot () {
     version=$1
     name=$2
 
-    dot_version_short=`echo $dot_version | awk -F '-' '{print $1}'`
+    dot_version_short=$(echo "$dot_version" | awk -F '-' '{print $1}')
     if [ $version == $dot_version_short ]; then
         echo "check linked $name version: PASS"
     else
@@ -217,7 +217,7 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
     # Current java under test
     dot_version=$(echo $java_version | awk -F '-' '{print $2 "-" $3}' | sed 's/_/./g')
     # Test if there's an alternativ for java, and if yes, set it as the current used one
-    if grep $dot_version $LIST_ALL_JAVA_ALTERNATIVES > /dev/null; then
+    if grep -q $dot_version $LIST_ALL_JAVA_ALTERNATIVES; then
         java=$(grep $dot_version $LIST_ALL_JAVA_ALTERNATIVES)
         update-alternatives --set java $java
     else
@@ -225,15 +225,15 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
         exit 1
     fi
     # Test if there's an alternative for javac, and if yes, set it as the current used one
-    if grep $dot_version $LIST_ALL_JAVAC_ALTERNATIVES > /dev/null; then
+    if grep -q $dot_version $LIST_ALL_JAVAC_ALTERNATIVES; then
         javac=$(grep $dot_version $LIST_ALL_JAVAC_ALTERNATIVES)
         update-alternatives --set javac $javac
     else
-        if echo $java_version | grep ibm > /dev/null; then
-            if ! rpm -qa | grep java | grep devel | grep $dot_version > /dev/null; then
+        if echo $java_version | grep -q ibm; then
+            if ! rpm -qa | grep 'java.*devel' | grep -q $dot_version; then
                 echo "Warning: java compiler alternative not found for $java_version"
                 echo "Reason : devel pkg is not installed, thus it is normal there is not javac"
-                if zypper products -i | grep sle-sdk > /dev/null; then
+                if zypper products -i | grep -q sle-sdk; then
                     echo "Status : Error! The devel pkg should be installed. Check your repos!"
                     exit 1
                 else
@@ -249,13 +249,15 @@ for java_version in $(cat $LIST_ALL_INSTALLED_VERSIONS); do
     fi
     # Test if there's an alternativ for javaplugin, and if yes, set it as the current used one
     # So far, only java-ibm offers this
-    if echo $java_version | grep ibm > /dev/null; then
-        if grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES > /dev/null; then
-            javaplugin=$(grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
-            update-alternatives --set javaplugin $javaplugin
-        else
-            echo "Error: java plugin alternative not found for $java_version"
-            exit 1
+    if [[ $(uname -m) -ne "s390x" ]]; then
+        if echo $java_version | grep -q ibm; then
+            if grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES > /dev/null; then
+                javaplugin=$(grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
+                update-alternatives --set javaplugin $javaplugin
+            else
+                echo "Error: java plugin alternative not found for $java_version"
+                exit 1
+            fi
         fi
     fi
 
