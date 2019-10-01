@@ -70,11 +70,11 @@ sub upload_image {
 }
 
 
-=head2 ipa
+=head2 img_proof
 
-  ipa(instance_type => <string>, cleanup => <bool>, tests => <string>, timeout => <seconds>, results_dir => <string>, distro => <string>);
+  img_proof(instance_type => <string>, cleanup => <bool>, tests => <string>, timeout => <seconds>, results_dir => <string>, distro => <string>);
 
-Call ipa tool and retrieves a hashref as result. Do not die if ipa call exit with error.
+Call img-proof tool and retrieves a hashref as result. Do not die if img-proof call exit with error.
   $result_hash = {
         instance    => <publiccloud:instance>,    # instance object
         logfile     => <string>,                  # the pytest logfile
@@ -87,16 +87,16 @@ Call ipa tool and retrieves a hashref as result. Do not die if ipa call exit wit
   };
 
 =cut
-sub ipa {
-    die('ipa() isn\'t implemented');
+sub img_proof {
+    die('img_proof() isn\'t implemented');
 }
 
-=head2 parse_ipa_output
+=head2 parse_img_proof_output
 
-Parse the output from ipa command and retrieves instance-id, ip and logfile names.
+Parse the output from img-proof command and retrieves instance-id, ip and logfile names.
 
 =cut
-sub parse_ipa_output {
+sub parse_img_proof_output {
     my ($self, $output) = @_;
     my $ret = {};
     my $instance_id;
@@ -147,23 +147,23 @@ sub create_ssh_key {
     }
 }
 
-=head2 run_ipa
+=head2 run_img_proof
 
-called by childs within ipa function
+called by childs within img-proof function
 
 =cut
-sub run_ipa {
+sub run_img_proof {
     my ($self, %args) = @_;
     die('Must provide an instance object') if (!$args{instance});
 
     $args{tests}       //= '';
     $args{timeout}     //= 60 * 30;
-    $args{results_dir} //= 'ipa_results';
+    $args{results_dir} //= 'img_proof_results';
     $args{distro}      //= 'sles';
     $args{tests} =~ s/,/ /g;
 
     my $version = script_output('img-proof --version', 300);
-    record_info("IPA version", $version);
+    record_info("img-proof version", $version);
 
     my $cmd = 'img-proof --no-color test ' . $args{provider};
     $cmd .= ' --debug ';
@@ -181,19 +181,19 @@ sub run_ipa {
     $cmd .= '--running-instance-id "' . $args{instance}->instance_id . '" ';
 
     $cmd .= $args{tests};
-    record_info("IPA cmd", $cmd);
+    record_info("img-proof cmd", $cmd);
 
     my $output = script_output($cmd . ' 2>&1', $args{timeout}, proceed_on_failure => 1);
-    record_info("IPA output", $output);
-    my $ipa = $self->parse_ipa_output($output);
-    record_info("IPA results", Dumper($ipa));
-    die($output) unless (defined($ipa));
+    record_info("img-proof output", $output);
+    my $img_proof = $self->parse_img_proof_output($output);
+    record_info("img-proof results", Dumper($img_proof));
+    die($output) unless (defined($img_proof));
 
-    $args{instance}->public_ip($ipa->{ip});
-    delete($ipa->{instance_id});
-    delete($ipa->{ip});
+    $args{instance}->public_ip($img_proof->{ip});
+    delete($img_proof->{instance_id});
+    delete($img_proof->{ip});
 
-    return $ipa;
+    return $img_proof;
 }
 
 =head2 get_image_id

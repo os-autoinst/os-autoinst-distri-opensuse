@@ -2623,8 +2623,8 @@ sub load_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
         loadtest "publiccloud/prepare_tools";
     }
-    elsif (get_var('PUBLIC_CLOUD_IPA_TESTS')) {
-        loadtest "publiccloud/ipa";
+    elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+        loadtest "publiccloud/img_proof";
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest 'publiccloud/run_ltp';
