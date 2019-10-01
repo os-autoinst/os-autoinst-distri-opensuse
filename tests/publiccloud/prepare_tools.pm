@@ -70,11 +70,8 @@ sub run {
     record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
 
     # Create some directories, ipa will need them
-    assert_script_run("mkdir -p ~/ipa/tests/");
-    assert_script_run("mkdir -p .config/ipa");
-    assert_script_run("touch .config/ipa/config");
     assert_script_run("img-proof list");
-    record_info('IPA', script_output('img-proof --version'));
+    record_info('img-proof', script_output('img-proof --version'));
 
     # Install Terraform from repo
     zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15/systemsmanagement:terraform.repo');

@@ -139,7 +139,7 @@ sub upload_img {
     return $ami;
 }
 
-sub ipa {
+sub img_proof {
     my ($self, %args) = @_;
 
     $args{instance_type}        //= 't2.large';
@@ -150,7 +150,7 @@ sub ipa {
     $args{key_secret}           //= $self->key_secret;
     $args{key_name}             //= $self->ssh_key;
 
-    return $self->run_ipa(%args);
+    return $self->run_img_proof(%args);
 }
 
 sub cleanup {
