@@ -56,13 +56,6 @@ sub launch_yast2_module_x11 {
     send_key 'alt-f10' if $args{maximize_window};
 }
 
-sub post_fail_hook {
-    my ($self) = shift;
-    show_tasks_in_blocked_state;
-    $self->export_logs;
-    save_screenshot;
-}
-
 sub post_run_hook {
     assert_screen('generic-desktop');
 }
