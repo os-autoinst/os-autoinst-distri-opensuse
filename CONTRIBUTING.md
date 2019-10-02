@@ -19,7 +19,7 @@ Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 #### Relevant documentation
 
 * All openQA documentation in a single [html page](https://open.qa/docs/)
-* openQA [test api](http://open.qa/api/testapi/) documentation
+* openQA [testapi](http://open.qa/api/testapi/) documentation
 * (wip) Available test library documentation http://os-autoinst.github.io/openQA/
 
 ### Reporting an issue
@@ -57,8 +57,8 @@ and additionally the following rules:
   but the travis results are available too, in case they need to be investigated further
 * Whenever possible, [provide a verification run][1] of a job that runs the code [provided in the pull request][2]
 
-Also see the [DoD/DoR][2] as a helpful (but not mandatory) guideline for new contributions.
-[1]: https://open.qa/docs/#_cloning_existing_jobs_openqa_clone_job
-[2]: https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY
-[3]: https://open.qa/docs/#_triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request
+Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new contributions.
 
+[1]: https://open.qa/docs/#_cloning_existing_jobs_openqa_clone_job
+[2]: https://open.qa/docs/#_triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request
+[3]: https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY
