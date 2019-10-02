@@ -8,6 +8,7 @@ use testapi;
 use network_utils;
 use version_utils qw(is_caasp is_sle);
 use y2_logs_helper 'get_available_compression';
+use utils 'zypper_call';
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
