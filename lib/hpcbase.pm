@@ -165,7 +165,7 @@ sub generate_and_distribute_ssh {
 sub check_nodes_availability {
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
-        assert_script_run("ping -c 5 $_");
+        assert_script_run("ping -c 3 $_");
     }
 }
 
