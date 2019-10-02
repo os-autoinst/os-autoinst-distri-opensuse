@@ -308,8 +308,17 @@ sub run {
     }
     my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
+    my %env = %{$test_result_export->{environment}};
 
-    override_known_failures($self, $test_result_export->{environment}, $runfile, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
+    if ($test_log =~ qr/$fin_msg(\d+)$/) {
+        $env{retval} = $1;
+    }
+    else {
+        $env{retval} = 'undefined';
+    }
+
+    $env{backend} = get_var('BACKEND');
+    override_known_failures($self, \%env, $runfile, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
 
     push(@{$test_result_export->{results}}, $result_export);
     if ($timed_out) {
