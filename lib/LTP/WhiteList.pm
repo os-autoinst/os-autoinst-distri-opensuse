@@ -63,12 +63,13 @@ sub override_known_failures {
 
   ISSUE:
     foreach my $cond (@issues) {
-        foreach my $filter (qw(product ltp_version revision arch kernel)) {
+        foreach my $filter (qw(product ltp_version revision arch kernel backend retval)) {
             next ISSUE if exists $cond->{$filter} and $env->{$filter} !~ m/$cond->{$filter}/;
         }
 
         bmwqemu::diag("Failure in LTP:$suite:$test is known, overriding to softfail");
         $self->{result} = 'softfail';
+        record_soft_failure($cond->{message}) if exists $cond->{message};
         last;
     }
 }
