@@ -37,17 +37,11 @@ sub run {
 
     # go to advanced button and press it
     send_key "tab";
-    send_key "ret";
-    if ($self->is_firefox_60) {
-        for (1 .. 2) { send_key "tab"; }
-        send_key "ret";
-
-        assert_screen('firefox-ssl-addexception', 60);
-        send_key "alt-c";
-    } else {
-        ## This is new behavior for firefox 68
-        for (1 .. 4) { send_key "tab"; }
-        send_key "ret";
+    send_key 'spc';
+    send_key_until_needlematch 'firefox-ssl-risk-accept-and-continue-button-selected', 'tab', 7, 1;
+    send_key 'spc';
+    if (check_screen 'firefox-ssl-addexception', 5) {
+        send_key 'alt-c';
     }
 
     assert_screen('firefox-ssl-loadpage', 60);
