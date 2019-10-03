@@ -31,17 +31,6 @@ sub run {
     select_console 'root-console';
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
-    if (script_run("ip addr show br0 | grep DOWN") == 0) {
-        record_soft_failure('bsc#1061051');
-        systemctl('reload network');
-        systemctl('status network');
-        save_screenshot;
-        systemctl('restart network');
-        systemctl('status network');
-        save_screenshot;
-        assert_script_run "ip addr show br0 | grep UP";
-        save_screenshot;
-    }
 }
 
 sub test_flags {
