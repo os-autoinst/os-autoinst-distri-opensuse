@@ -7,11 +7,15 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: HPC migration basics
-#    This test is aiming at very rudimentary checks of migration of HPC
-#    Check is migration targets are available at all
-#    Check for availability of the correct migration targets
-#    Basic migration of a singe VM
+# Summary: HPC online migration
+#    This test module is aiming at both, rudimentary and multimachine
+#    checks of zypper online migration of HPC product.
+#    In its simple form it can be run on a single VM to check if:
+#    - migration targets are available at all,
+#    - available migration target(s) are correct etc.
+#    Upon providing 'HPC_MIGRATION' in the test setting, the module
+#    can be used for multimachine set-up, so that some HPC functionalities
+#    could be checked before and after online zypper migration.
 #    See: README.migration
 #
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
