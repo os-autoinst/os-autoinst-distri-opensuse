@@ -13,10 +13,10 @@ Upon successful migration the HPC cluster of VMs should be re-booted,
 and all sanity checks should be performed, so that one can check if
 all relevant parts of the HPC cluster still work as expected.
 
-The overall concept differes from exisiting migration tests, as instead
+The overall concept differs from existing migration tests, as instead
 of using openQA modules with run() functions, the tests are calling
 relevant functions which take care of migration logic.
-This approach allows for creating barriers without complicating exisiting
+This approach allows for creating barriers without complicating existing
 openQA migration modules.
 
 Test organization
