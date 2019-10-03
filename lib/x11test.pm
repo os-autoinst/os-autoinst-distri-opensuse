@@ -509,11 +509,6 @@ sub setup_mail_account {
     assert_screen "evolution_mail-max-window";
 }
 
-# Firefox 60 is the current Extended Support Release.
-sub is_firefox_60 {
-    is_sle('<=15-SP1') || is_leap('<=15.1');
-}
-
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
 # .mozilla is stored as .mozilla_first_run to be reference profile for following tests
 sub start_clean_firefox {
@@ -536,7 +531,7 @@ sub start_clean_firefox {
             assert_and_click 'firefox_trackinfo';
             last;
         }
-        # the needle match area has to be where trackinfo would pop-up
+        # the needle match area has to be where trackinfo does pop-up
         elsif (check_screen 'firefox-developertool-opensuse') {
             record_info 'Tracking protection', 'Track info pop-up did NOT show up';
             last;
@@ -678,7 +673,7 @@ sub firefox_open_url {
 
 sub exit_firefox_common {
     # Exit
-    send_key 'alt-f4';
+    send_key 'ctrl-q';
     send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 3, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"

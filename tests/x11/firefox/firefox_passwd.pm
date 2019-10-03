@@ -52,16 +52,14 @@ sub run {
 
     send_key "alt-shift-u";
     wait_still_screen 3;
-    send_key 'spc' if $self->is_firefox_60;
+    send_key 'spc' unless check_screen('firefox-passwd-master_setting');
 
     assert_screen('firefox-passwd-master_setting');
 
-    type_string $masterpw;
+    type_string $masterpw, 150;
     send_key "tab";
-    type_string $masterpw;
-
-    # confirm password change
-    for (1 .. 2) { send_key 'tab'; }
+    type_string $masterpw, 150;
+    wait_still_screen 3;
     send_key 'ret';
     assert_and_click('firefox-passwd-success');
 
@@ -85,18 +83,12 @@ sub run {
     send_key "alt-e";
     send_key "n";    #Preferences
     assert_and_click('firefox-passwd-security');
-    if ($self->is_firefox_60) {
-        send_key "alt-shift-l";    #"Saved Logins"
-    } else {
-        ## tweak for firefox 68
-        send_key "alt-shift-l";    #"Clear Data"
-        send_key "alt-shift-l";    #"Saved Logins"
-    }
+    send_key_until_needlematch 'firefox-saved-logins-button', 'alt-shift-l', 5, 1;
     wait_still_screen 3;
     send_key 'spc';
     assert_screen('firefox-passwd-saved');
 
-    send_key "alt-shift-a";        #"Remove"
+    send_key "alt-shift-a";    #"Remove"
     wait_still_screen 3;
     send_key "alt-y";
     wait_still_screen 3;

@@ -43,9 +43,13 @@ sub run {
         assert_and_click 'firefox-extensions-flagfox';
         wait_still_screen 3;
         assert_and_click 'firefox-extensions-add-to-firefox';
+        wait_still_screen 3;
         assert_screen 'firefox-extensions-confirm-add';
         send_key 'alt-a';
         wait_still_screen 3;
+        assert_and_click 'firefox-extensions-added';
+        wait_still_screen 3;
+        assert_and_click 'firefox-extensions-flagfox-tab';
         # close the flagfox relase notes tab and flagfox search tab
         send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
         # refresh the page to see addon buttons
@@ -58,13 +62,11 @@ sub run {
     assert_screen('firefox-extensions-show_flag');
 
     send_key "alt-2";
-    if ($self->is_firefox_60) {
-        assert_and_click('firefox-extensions-flagfox_installed');
+    assert_and_click('firefox-extensions-menu-icon') if check_screen('firefox-extensions-menu-icon');
+    assert_and_click('firefox-extensions-flagfox_installed');
 
-        send_key "alt-1";
-        assert_screen('firefox-extensions-no_flag', 90);
-    }
-    # for firefox 68, it needs much more to disable the extension
+    send_key "alt-1";
+    assert_screen('firefox-extensions-no_flag', 90);
 
     $self->exit_firefox;
 }
