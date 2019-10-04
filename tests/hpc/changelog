@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.10] - 2019-10-04
+### Changed
+hpcbase lib is splitted into smaller chunks, so that subs could be
+kept in logical order
+
 ## [1.0.9] - 2019-10-01
 ### Added
 HPC cluster zypper online migration tests
