@@ -95,7 +95,8 @@ sub kgraft_state {
 sub install_lock_kernel {
     my $version = shift;
     if ($version eq '4.12.14-25.13.1')     { $wk_ker = 1; }
-    if ($version eq '3.12.74-60.64.104.1') { $wk_ker = 2; }
+    if ($version eq '4.12.14-197.15.1')    { $wk_ker = 2; }
+    if ($version eq '3.12.74-60.64.104.1') { $wk_ker = 3; }
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
@@ -232,6 +233,9 @@ sub update_kgraft {
             zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
         }
         elsif ($wk_ker == 2) {
+            zypper_call("in -l  kernel-livepatch-4_12_14-197_15-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        }
+        elsif ($wk_ker == 3) {
             zypper_call("in -l kgraft-patch-3_12_74-60_64_104-xen kgraft-patch-3_12_74-60_64_104-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
         }
         else {
