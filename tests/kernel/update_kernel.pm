@@ -192,7 +192,7 @@ sub right_kversion {
     my ($kversion, $pversion) = @_;
     my ($kver_fragment) = $pversion =~ qr/(?:kgraft-|kernel-live)patch-(\d+_\d+_\d+-\d+_*\d*_*\d*)-default/;
     $kver_fragment =~ s/_/\\\./g;
-    my ($real_version) = $kversion =~ qr/($kver_fragment\.*\d*)/;
+    my ($real_version) = $kversion =~ qr/($kver_fragment\.+\d+)/;
 
     return $real_version;
 }
