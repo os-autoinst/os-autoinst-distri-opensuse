@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Use IPA framework to test public cloud SUSE images
+# Summary: Use img-proof framework to test public cloud SUSE images
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
@@ -23,20 +23,20 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
-    my $tests    = get_var('PUBLIC_CLOUD_IPA_TESTS', '');
+    my $tests    = get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS', '');
 
-    my $ipa = $provider->ipa(
+    my $img_proof = $provider->img_proof(
         instance    => $instance,
         tests       => $tests,
-        results_dir => 'ipa_results'
+        results_dir => 'img_proof_results'
     );
 
-    upload_logs($ipa->{logfile});
-    parse_extra_log(IPA => $ipa->{results});
-    assert_script_run('rm -rf ipa_results');
+    upload_logs($img_proof->{logfile});
+    parse_extra_log(IPA => $img_proof->{results});
+    assert_script_run('rm -rf img_proof_results');
 
     # fail, if at least one test failed
-    if ($ipa->{fail} > 0) {
+    if ($img_proof->{fail} > 0) {
 
         # Upload cloudregister log if corresponding test fails
         for my $t (@{$self->{extra_test_results}}) {
@@ -57,10 +57,10 @@ sub cleanup {
     my ($self) = @_;
 
     # upload logs on unexpected failure
-    my $ret = script_run('test -d ipa_results');
+    my $ret = script_run('test -d img_proof_results');
     if (defined($ret) && $ret == 0) {
-        assert_script_run('tar -zcvf ipa_results.tar.gz ipa_results');
-        upload_logs('ipa_results.tar.gz', failok => 1);
+        assert_script_run('tar -zcvf img_proof_results.tar.gz img_proof_results');
+        upload_logs('img_proof_results.tar.gz', failok => 1);
     }
 }
 
@@ -68,14 +68,14 @@ sub cleanup {
 
 =head1 Discussion
 
-This module use IPA tool to test public cloud SLE images.
+This module use img-proof tool to test public cloud SLE images.
 Logs are uploaded at the end.
 
-When running IPA from SLES, it must have a valid SCC registration to enable
+When running img-proof from SLES, it must have a valid SCC registration to enable
 public cloud module.
 
 The variables DISTRI, VERSION and ARCH must correspond to the system where
-IPA get installed in and not to the public cloud image.
+img-proof get installed in and not to the public cloud image.
 
 =head1 Configuration
 

@@ -155,7 +155,7 @@ sub upload_img {
     return $img_name;
 }
 
-sub ipa {
+sub img_proof {
     my ($self, %args) = @_;
 
     my $credentials_file = 'azure_credentials.txt';
@@ -180,7 +180,7 @@ sub ipa {
     $args{user}          //= 'azureuser';
     $args{provider}      //= 'azure';
 
-    return $self->run_ipa(%args);
+    return $self->run_img_proof(%args);
 }
 
 sub on_terraform_timeout {

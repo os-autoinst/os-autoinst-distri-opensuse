@@ -109,7 +109,7 @@ sub upload_img {
     return $img_name;
 }
 
-sub ipa {
+sub img_proof {
     my ($self, %args) = @_;
 
     $args{credentials_file} = CREDENTIALS_FILE;
@@ -117,7 +117,7 @@ sub ipa {
     $args{user}          //= 'susetest';
     $args{provider}      //= 'gce';
 
-    return $self->run_ipa(%args);
+    return $self->run_img_proof(%args);
 }
 
 sub describe_instance
