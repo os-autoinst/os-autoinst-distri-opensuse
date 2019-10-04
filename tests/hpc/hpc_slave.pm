@@ -12,7 +12,8 @@
 #    are ready to be used
 # Maintainer: Sebastian Chlad <schlad@suse.de>
 
-use base "hpcbase";
+use base 'hpcbase';
+use base 'hpc::migration';
 use strict;
 use warnings;
 use testapi;

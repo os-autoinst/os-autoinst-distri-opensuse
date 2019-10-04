@@ -16,7 +16,7 @@
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
 
 
-use base "hpcbase";
+use base 'hpcbase';
 use strict;
 use warnings;
 use testapi;

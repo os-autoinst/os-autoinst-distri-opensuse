@@ -10,7 +10,7 @@
 # Summary: openmpi mpirun check
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
-use base "hpcbase";
+use base 'hpcbase';
 use strict;
 use warnings;
 use testapi;
