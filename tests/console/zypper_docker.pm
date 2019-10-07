@@ -51,7 +51,7 @@ sub run {
     if (is_sle('>=15')) {
         record_soft_failure 'bsc#1123173';
     } else {
-        assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 600);
+        assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
     }
 }
 
