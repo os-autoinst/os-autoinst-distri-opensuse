@@ -577,7 +577,6 @@ sub load_jeos_tests {
             loadtest "jeos/grub2_gfxmode";
             loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
             loadtest "jeos/diskusage";
-            loadtest "jeos/root_fs_size";
             loadtest "jeos/build_key";
         }
         if (is_sle) {
