@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use version_utils 'is_sle';
 use Test::Assert ':all';
 
 #
@@ -52,10 +52,8 @@ my $raid_level = qr/\/dev\/md0:.*?Raid Level : raid$level/s;
 # RAID array always with level 0
 my $raid0 = qr/\/dev\/md(1|2):.*?Raid Level : raid0/s;
 # RAID array always with level 1? why?
-my $raid1 = qr/\/dev\/md1:.*?Raid Level : raid1/s;
-# RAID arrays both with the same level
-my $raid_both_same_level = qr/(\/dev\/md(0|1):.*?Raid Level : raid$level.*){2}/s;
-my @raid_detail          = (
+my $raid1       = qr/\/dev\/md1:.*?Raid Level : raid1/s;
+my @raid_detail = (
     # 4 RAID devices per RAID array
     /(Raid Devices : 4.*){$num_raid_arrays}/s,
     # 4 active RAID devices per RAID array
@@ -95,40 +93,24 @@ sub prepare_test_data {
             $vfat_efi,
             $btrfs, $swap,
         );
-        if (is_sle('>=15-SP2') || is_sle('=12-SP5') ||
-            (is_tumbleweed() && !check_var('FLAVOR', 'NET'))) {
-            @raid = ($raid_both_same_level, @raid_detail);
-        }
-        else {
-            # raid0 for swap is required in some products
-            @raid = (($raid_level, $raid0), @raid_detail);
-        }
+        @raid = (($raid_level, $raid0), @raid_detail);
     }
-    elsif (check_var('ARCH', 'x86_64')) {
-        if (is_sle('<15')) {
-            @partitioning = (
-                $btrfs, $ext4_boot, $swap,
-                $hard_disks, $linux_raid_member_3_arrays,
-            );
-            # Additional RAID array (update num_raid_arrays to regenerate regex)
-            push(@raid_arrays, '/dev/md2');
-            $num_raid_arrays = @raid_arrays;
-            @raid            = (($raid_level, $raid0, $raid1), @raid_detail);
-        }
-        else {
-            @partitioning = (
-                $raid_partitions_2_arrays, $hard_disks, $linux_raid_member_2_arrays,
-                $btrfs, $swap,
-            );
-            if (is_sle('<=15-SP1') || (is_sle() && get_var('STAGING')) ||
-                is_leap() || (is_tumbleweed() && check_var('FLAVOR', 'NET'))) {
-                # raid0 for swap is required in some products
-                @raid = (($raid_level, $raid0), @raid_detail);
-            }
-            else {
-                @raid = ($raid_both_same_level, @raid_detail);
-            }
-        }
+    elsif (check_var('ARCH', 'x86_64') && is_sle('<15')) {
+        @partitioning = (
+            $btrfs, $ext4_boot, $swap,
+            $hard_disks, $linux_raid_member_3_arrays,
+        );
+        # Additional RAID array (update num_raid_arrays to regenerate regex)
+        push(@raid_arrays, '/dev/md2');
+        $num_raid_arrays = @raid_arrays;
+        @raid            = (($raid_level, $raid0, $raid1), @raid_detail);
+    }
+    else {
+        @partitioning = (
+            $raid_partitions_2_arrays, $hard_disks, $linux_raid_member_2_arrays,
+            $btrfs, $swap,
+        );
+        @raid = (($raid_level, $raid0), @raid_detail);
     }
 }
 
