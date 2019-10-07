@@ -2737,6 +2737,9 @@ sub load_sles4sap_tests {
     if (get_var('NW')) {
         loadtest "sles4sap/netweaver_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
         loadtest "sles4sap/netweaver_test_instance";
+    } elsif (get_var('HANA')) {
+        loadtest "sles4sap/hana_install" if (get_var('SLES4SAP_MODE') !~ /wizard/);
+        loadtest "sles4sap/hana_test";
     }
 }
 
@@ -2830,6 +2833,9 @@ sub load_ha_cluster_tests {
             loadtest 'sles4sap/netweaver_install';
             loadtest 'sles4sap/netweaver_cluster';
             loadtest 'sles4sap/sap_suse_cluster_connector';
+        } elsif (get_var('HANA')) {
+            loadtest 'sles4sap/hana_install';
+            loadtest 'sles4sap/hana_cluster';
         }
     }
     else {

@@ -127,13 +127,19 @@ sub run {
         # Create barriers for SAP cluster
         # Note: we always create these barries even if they are not used, mainly
         # because it's not easy to know at this stage that we are testing a SAP cluster...
-        barrier_create("ASCS_INSTALLED_$cluster_name",     $num_nodes);
-        barrier_create("ERS_INSTALLED_$cluster_name",      $num_nodes);
-        barrier_create("NW_CLUSTER_HOSTS_$cluster_name",   $num_nodes);
-        barrier_create("NW_CLUSTER_INSTALL_$cluster_name", $num_nodes);
-        barrier_create("NW_INIT_CONF_$cluster_name",       $num_nodes);
-        barrier_create("NW_CREATED_CONF_$cluster_name",    $num_nodes);
-        barrier_create("NW_LOADED_CONF_$cluster_name",     $num_nodes);
+        barrier_create("ASCS_INSTALLED_$cluster_name",       $num_nodes);
+        barrier_create("ERS_INSTALLED_$cluster_name",        $num_nodes);
+        barrier_create("NW_CLUSTER_HOSTS_$cluster_name",     $num_nodes);
+        barrier_create("NW_CLUSTER_INSTALL_$cluster_name",   $num_nodes);
+        barrier_create("NW_INIT_CONF_$cluster_name",         $num_nodes);
+        barrier_create("NW_CREATED_CONF_$cluster_name",      $num_nodes);
+        barrier_create("NW_LOADED_CONF_$cluster_name",       $num_nodes);
+        barrier_create("NW_RA_RESTART_$cluster_name",        $num_nodes);
+        barrier_create("HANA_CLUSTER_INSTALL_$cluster_name", $num_nodes);
+        barrier_create("HANA_INIT_CONF_$cluster_name",       $num_nodes);
+        barrier_create("HANA_CREATED_CONF_$cluster_name",    $num_nodes);
+        barrier_create("HANA_LOADED_CONF_$cluster_name",     $num_nodes);
+        barrier_create("HANA_RA_RESTART_$cluster_name",      $num_nodes);
     }
 
     # Wait for all children to start

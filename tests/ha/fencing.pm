@@ -25,6 +25,15 @@ sub run {
     check_cluster_state;
     barrier_wait("CHECK_BEFORE_FENCING_END_$cluster_name");
 
+    # Give time for HANA to replicate the database
+    #    if (check_var('AUTOMATED_REGISTER', 'true')) {
+    if (check_var('CLUSTER_NAME', 'hana')) {
+        # TODO: Fix
+        sleep 300;
+        assert_script_run "SAPHanaSR-showAttr";
+        save_screenshot;
+    }
+
     # Fence the master node with sysrq or crm node fence
     # Sysrq fencing is more a real crash simulation
     if (get_var('USE_SYSRQ_FENCING')) {
@@ -38,6 +47,7 @@ sub run {
 
     # Wait for fencing to start only if running in the master node
     if (get_var('HA_CLUSTER_INIT')) {
+        sleep bmwqemu::scale_timeout(300) if check_var('AUTOMATED_REGISTER', 'false');
         my $loop_count = 120;    # Wait at most for 120 seconds
         while (check_screen('root-console', 0, no_wait => 1)) {
             sleep 1;

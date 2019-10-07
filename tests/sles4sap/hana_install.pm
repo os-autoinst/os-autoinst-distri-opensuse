@@ -15,6 +15,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub upload_install_log {
@@ -24,7 +25,7 @@ sub upload_install_log {
 
 sub run {
     my ($self) = @_;
-    my ($proto, $path) = $self->fix_path(get_required_var('MEDIA'));
+    my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
 
     my $sid      = get_required_var('INSTANCE_SID');
     my $instid   = get_required_var('INSTANCE_ID');
@@ -34,6 +35,8 @@ sub run {
     $self->select_serial_terminal;
     my $RAM = $self->get_total_mem();
     die "RAM=$RAM. The SUT needs at least 24G of RAM" if $RAM < 24000;
+
+    zypper_call('in SAPHanaSR SAPHanaSR-doc ClusterTools2') if get_var('HA_CLUSTER');
 
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
@@ -56,7 +59,7 @@ sub run {
     # Partition disks for Hana
     if (check_var('HANA_PARTITIONING_BY', 'yast')) {
         my $yast_partitioner = is_sle('15+') ? 'sap_create_storage_ng' : 'sap_create_storage';
-        assert_script_run "yast $yast_partitioner /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml";
+        assert_script_run "yast $yast_partitioner /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml", 120;
     }
     else {
         # If running on QEMU and with a second disk configured, then configure
@@ -74,6 +77,7 @@ sub run {
                 assert_script_run "lvcreate -y -W y -n lv_$mounts --size $mountpts{$mounts}->{size} vg_hana";
                 assert_script_run "mkfs.xfs /dev/vg_hana/lv_$mounts";
                 assert_script_run "mount /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt}";
+                assert_script_run "echo /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt} xfs defaults 0 0 >> /etc/fstab";
             }
         }
     }

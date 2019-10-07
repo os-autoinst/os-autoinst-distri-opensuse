@@ -76,7 +76,20 @@ sub run {
 
     # Wait for resources to be started
     if (is_sles4sap) {
-        wait_until_resources_started(timeout => 300);
+        if (get_var('HA_CLUSTER_INIT') && check_var('CLUSTER_NAME', 'hana')) {
+            my $instance_id = get_required_var('INSTANCE_ID');
+            my $sid         = get_required_var('INSTANCE_SID');
+            my $sapadm      = lc($sid) . "adm";
+            my $node2       = choose_node(2);
+            if (check_var('AUTOMATED_REGISTER', 'false')) {
+                sleep bmwqemu::scale_timeout(300);
+                assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --name=NODE1 --remoteHost=$node2 --remoteInstance=$instance_id --replicationMode=sync --operationMode=logreplay'";
+                sleep 10;
+                assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", 300;
+            }
+        }
+        barrier_wait("HANA_RA_RESTART_$cluster_name") if check_var('CLUSTER_NAME', 'hana');
+        wait_until_resources_started(timeout => 900);
     }
     else {
         wait_until_resources_started;
