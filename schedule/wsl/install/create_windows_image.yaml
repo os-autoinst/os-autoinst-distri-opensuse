@@ -1,0 +1,9 @@
+---
+name:         create_windows_image.yaml
+description:  >
+      Basic Windows system deployment job.
+      Exports qcow2 with clean Windows installation.
+      Scheduled on bios boot and uefi workers.
+schedule:
+  - wsl/install/ms_win_installation
+  - wsl/install/ms_win_firstboot
