@@ -1979,7 +1979,6 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
     loadtest "x11/firefox/firefox_extcontent";
-    loadtest "x11/firefox/firefox_gnomeshell";
     if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
         loadtest "x11/firefox_audio";
     }
