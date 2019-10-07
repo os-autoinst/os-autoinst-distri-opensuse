@@ -177,9 +177,10 @@ sub run {
 
     ## Reboot and double check if the locale settings haven't changed
     power_action('reboot', textmode => 1);
+    record_info('Rebooting', "Expected locale set=$rc_lc_changed->{RC_LANG}");
     $self->wait_boot;
     select_console('root-console');
-    (test_users_locale($rc_lc_changed, $original_glibc_string) eq $updated_glibc_string) or die "Locale has changed after reboot!";
+    (test_users_locale($rc_lc_changed, $original_glibc_string) eq $updated_glibc_string) or die "Locale has changed after reboot!\n";
 
     ## Final check, is english locale set ?
     if (is_sle('15+')) {
@@ -189,6 +190,7 @@ sub run {
     } else {
         (/$updated_glibc_string/ eq /$test_lang_data{$lang_new}/) or die "Exit locale settings have not been changed to english!\n";
     }
+    reset_consoles;
 }
 
 1;
