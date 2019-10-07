@@ -1,3 +1,8 @@
+=head1 bootloader_spvm
+
+Library for spvm backend to boot and install SLES
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2016-2019 SUSE LLC
@@ -24,6 +29,13 @@ our @EXPORT = qw(
   boot_spvm
 );
 
+=head2 get_into_net_boot
+
+ get_into_net_boot();
+
+Get into SMS menu for booting from net.
+
+=cut
 sub get_into_net_boot {
     assert_screen 'pvm-bootmenu';
 
@@ -55,6 +67,13 @@ sub get_into_net_boot {
     assert_screen ["pvm-grub", "novalink-failed-first-boot"];
 }
 
+=head2 boot_spvm
+
+ boot_spvm();
+
+Boot from spvm backend via novalink and switch to installation console (ssh or vnc).
+
+=cut
 sub boot_spvm {
     my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
     my $novalink = select_console 'novalink-ssh';
