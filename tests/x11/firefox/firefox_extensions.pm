@@ -62,8 +62,13 @@ sub run {
     assert_screen('firefox-extensions-show_flag');
 
     send_key "alt-2";
+    wait_still_screen 3;
     assert_and_click('firefox-extensions-menu-icon') if check_screen('firefox-extensions-menu-icon');
-    assert_and_click('firefox-extensions-flagfox_installed');
+    assert_and_click('firefox-extensions-remove');
+    wait_still_screen 2, 4;
+    send_key 'spc';
+    save_screenshot;
+    wait_still_screen 2, 4;
 
     send_key "alt-1";
     assert_screen('firefox-extensions-no_flag', 90);

@@ -59,7 +59,7 @@ sub run {
     type_string $masterpw, 150;
     send_key "tab";
     type_string $masterpw, 150;
-    wait_still_screen 3;
+    wait_still_screen 2, 4;
     send_key 'ret';
     assert_and_click('firefox-passwd-success');
 
