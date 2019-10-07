@@ -17,9 +17,13 @@ use Exporter;
 
 use testapi;
 use utils;
+use List::Util 'max';
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+
+use constant ZYPPER_PACKAGE_COL => 1;
+use constant ZYPPER_STATUS_COL  => 5;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -136,10 +140,18 @@ sub get_patches {
     $repo =~ tr/,/ /;
 
     # Search for patches by incident, exclude not needed
-    my $patches = script_output("zypper patches -r $repo | awk -F '|' '/[Nn]eeded/ && !/[Nn]ot [Nn]eeded/ && /$incident_id/ { printf \$2 }'");
-    # Remove carriage returns and make patch list on one line
-    $patches =~ s/\r//g;
-    return $patches;
+    my $patches = script_output("zypper patches -r $repo");
+    my @patch_list;
+
+    for my $line (split /\n/, $patches) {
+        my @tokens = split /\s*\|\s*/, $line;
+        next if $#tokens < max(ZYPPER_PACKAGE_COL, ZYPPER_STATUS_COL);
+        my $packname = $tokens[ZYPPER_PACKAGE_COL];
+        push @patch_list, $packname if $packname =~ m/$incident_id/ &&
+          'needed' eq lc $tokens[ZYPPER_STATUS_COL];
+    }
+
+    return join(' ', @patch_list);
 }
 
 # Check variables for patch definition
