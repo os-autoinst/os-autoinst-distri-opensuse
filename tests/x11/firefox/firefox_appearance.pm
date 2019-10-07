@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use base "x11test";
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -40,7 +41,8 @@ sub run {
         }
         last if check_screen 'firefox-appearance-installed', 90;
     }
-
+    # on SLE 12 window gets unselected after pop-up is handled
+    assert_and_click 'firefox-appearance-mozilla_addons' if is_sle('<15');
     $self->exit_firefox;
 }
 1;
