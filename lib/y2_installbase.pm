@@ -204,9 +204,10 @@ sub save_remote_upload_y2logs {
     type_string "save_y2logs $filename\n";
     my $uploadname = +(split('/', $filename))[2];
     my $upname     = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
-    type_string "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "\n";
+    type_string "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname");
+    send_key 'ret';
+    sleep 60;
     save_screenshot();
-    $self->investigate_yast2_failure();
 }
 
 sub save_system_logs {

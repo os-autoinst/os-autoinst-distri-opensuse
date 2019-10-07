@@ -87,7 +87,7 @@ sub get_product_shortcuts {
 sub run {
     my ($self) = @_;
     my $iterations;
-
+    assert_screen("foo");
     my @welcome_tags     = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
     my $expect_beta_warn = get_var('BETA');
     if ($expect_beta_warn) {
