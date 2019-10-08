@@ -53,7 +53,7 @@ sub get_notes {
 }
 
 sub get_solutions {
-    return qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER\+HANA S4HANA-APP\+DB S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
+    return qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER+HANA S4HANA-APP+DB S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
 }
 
 sub tune_baseline {
@@ -245,7 +245,7 @@ sub run {
 
     $self->setup;
 
-    my $test = get_required_var("MR_TEST");
+    my $test = quotemeta(get_required_var("MR_TEST"));
     if ($test eq "sapconf") {
         $self->test_sapconf;
     } elsif ($test eq "solutions") {
