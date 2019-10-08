@@ -86,7 +86,7 @@ sub login {
     type_string("\n");
     wait_serial(qr/login:\s*$/i);
     type_string("$user\n");
-    wait_serial(qr/Password\s*$/i);
+    wait_serial(qr/Password:\s*$/i);
     type_password;
     type_string("\n");
     wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
