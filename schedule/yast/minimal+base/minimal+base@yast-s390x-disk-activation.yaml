@@ -2,10 +2,8 @@
 name:           minimal+base@yast-s390x-disk-activation
 description:    >
   Select a minimal textmode installation by starting with the default and unselecting all patterns
-  except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
+  except for "base" and "enhanced_base". Not to be confused with the new system role "minimal" introduced with SLE15.
   Requires disk activation and grub is not displayed due to console reconnection.
-vars:
-  PATTERNS: base,minimal
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -29,3 +27,14 @@ schedule:
   - installation/reboot_after_installation
   - boot/reconnect_mgmt_console
   - installation/first_boot
+  - console/system_prepare
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/validate_selected_patterns
+  - console/consoletest_finish
+
