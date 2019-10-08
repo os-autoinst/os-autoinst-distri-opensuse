@@ -15,6 +15,12 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
+sub is_regproxy_required {
+    # For now only the Kubic kubeadm test needs a registry proxy.
+    # docker_image and podman_image pull with the full path themselves.
+    return check_var('SYSTEM_ROLE', 'kubeadm');
+}
+
 sub load_boot_from_dvd_tests {
     loadtest 'installation/bootloader_uefi' if (get_var("UEFI"));
     loadtest 'installation/bootloader' unless (get_var("UEFI"));
@@ -66,6 +72,7 @@ sub load_installation_tests {
         # Full list of installation test-modules can be found at 'main_common.pm'
         load_inst_tests;
         load_boot_from_disk_tests;
+        loadtest 'console/regproxy' if is_regproxy_required;
         load_feature_tests if (check_var 'EXTRA', 'FEATURES');
         loadtest 'shutdown/shutdown';
     }
