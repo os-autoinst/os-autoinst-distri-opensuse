@@ -10,7 +10,6 @@ schedule:
   - console/force_scheduled_tasks
   - jeos/grub2_gfxmode
   - jeos/diskusage
-  - jeos/root_fs_size
   - jeos/build_key
   - console/suseconnect_scc
   - console/consoletest_setup

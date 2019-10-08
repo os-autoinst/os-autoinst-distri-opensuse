@@ -10,7 +10,6 @@ schedule:
   - jeos/grub2_gfxmode
   - jeos/revive_xen_domain
   - jeos/diskusage
-  - jeos/root_fs_size
   - jeos/build_key
   - console/suseconnect_scc
   - qa_automation/prepare_qa_repo
