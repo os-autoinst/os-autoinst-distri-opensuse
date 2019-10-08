@@ -1,3 +1,8 @@
+=head1 y2_module_basetest.pm
+
+This module provides common subroutines for YaST2 modules in graphical and text mode.
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2018 SUSE LLC
@@ -29,14 +34,22 @@ our @EXPORT = qw(is_network_manager_default
 );
 
 =head2 is_network_manager_default
-openSUSE has network manager as default except for older leap versions
+
+ is_network_manager_default();
+
+openSUSE has network manager as default except for older leap versions. The function returns 'is_opensuse' unless is_leap('<=15.0').
+
 =cut
 sub is_network_manager_default {
     return is_opensuse unless is_leap('<=15.0');
 }
 
 =head2 continue_info_network_manager_default
+
+ continue_info_network_manager_default();
+
 Click on Continue when appears info indicating that network interfaces are controlled by Network Manager
+
 =cut
 sub continue_info_network_manager_default {
     if (is_network_manager_default) {
@@ -46,7 +59,11 @@ sub continue_info_network_manager_default {
 }
 
 =head2 accept_warning_network_manager_default
-Click on OK when appears a warning indicating that network interfaces are controlled by Network Manager
+
+ accept_warning_network_manager_default();
+
+Click on OK when appears a warning indicating that network interfaces are controlled by Network Manager.
+
 =cut
 sub accept_warning_network_manager_default {
     if (is_network_manager_default) {
@@ -60,12 +77,15 @@ sub accept_warning_network_manager_default {
 
 =head2 workaround_suppress_lvm_warnings
 
+ workaround_suppress_lvm_warnings();
+
 LVM is polluting stdout with leaked invocation warnings because of file descriptor 3 is assigned to /root/.bash_history.
+
+record_soft_failure if is 'is_tumbleweed' for issue 'bsc#1124481 - LVM is polluting stdout with leaked invocation warnings'.
 
 The workaround suppresses the warnings by setting the environment variable LVM_SUPPRESS_FD_WARNINGS.
 
 =cut
-
 sub workaround_suppress_lvm_warnings {
     if (is_tumbleweed) {
         record_soft_failure('bsc#1124481 - LVM is polluting stdout with leaked invocation warnings');
