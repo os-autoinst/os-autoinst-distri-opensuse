@@ -1,3 +1,8 @@
+=head1 power_action_utils
+
+The module provides base and helper functions for powering off or rebooting a machine under test.
+
+=cut
 # SUSE's openQA tests
 #
 # Copyright © 2018-2019 SUSE LLC
@@ -30,7 +35,18 @@ our @EXPORT = qw(
   assert_shutdown_with_soft_timeout
 );
 
-# in some backends we need to prepare the reboot/shutdown
+=head2 prepare_system_shutdown
+
+ prepare_system_shutdown();
+
+Need to kill ssh connection with backends like ipmi, spvm, s390x.
+
+For s390_zkvm or xen, assign console($vnc_console) with C<disable_vnc_stalls> 
+and assign console('svirt') with C<stop_serial_grab>. 
+
+$vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
+
+=cut
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm/;
@@ -50,6 +66,15 @@ sub prepare_system_shutdown {
     }
 }
 
+=head2 reboot_x11
+
+ reboot_x11();
+
+Reboot from Gnome Desktop and handle authentification scenarios during shutdown.
+
+Run C<prepare_system_shutdown> if shutdown needs authentification.
+
+=cut
 sub reboot_x11 {
     my ($self) = @_;
     wait_still_screen;
@@ -84,6 +109,15 @@ sub reboot_x11 {
     }
 }
 
+=head2 poweroff_x11
+
+Power off desktop.
+
+Handle each desktop differently for kde, gnome, xfce, lxde, lxqt, enlightenment, awesome, mate, minimalx. 
+
+Work around issue with CD-ROM pop-up: bsc#1137230 and make sure that s390 SUT shutdown correctly.
+
+=cut
 sub poweroff_x11 {
     my ($self) = @_;
     wait_still_screen;
@@ -185,6 +219,8 @@ sub poweroff_x11 {
 
 =head2 handle_livecd_reboot_failure
 
+ handle_livecd_reboot_failure();
+
 Handle a potential failure on a live CD related to boo#993885 that the reboot
 action from a desktop session does not work and we are stuck on the desktop.
 
@@ -203,17 +239,17 @@ sub handle_livecd_reboot_failure {
 
 =head2 power_action
 
-    power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
+ power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
 
-Executes the selected power action (e.g. poweroff, reboot). If C<$observe> is
-set the function expects that the specified C<$action> was already executed by
-another actor and the function justs makes sure the system shuts down, restart
-etc. properly. C<$keepconsole> prevents a console change, which we do by
-default to make sure that a system with a GUI desktop which was in text
-console at the time of C<power_action> call, is switched to the expected
-console, that is 'root-console' for textmode, 'x11' otherwise. The actual
-execution happens in a shell for textmode or with GUI commands otherwise
-unless explicitly overridden by setting C<$textmode> to either 0 or 1.
+Executes the selected power action (e.g. poweroff, reboot). 
+
+If C<$observe> is set, the function expects that the specified C<$action> was already executed by
+another actor and the function just makes sure the system shuts down, restarts etc. properly. 
+
+C<$keepconsole> prevents a console change, which we do by default to make sure that a system with a GUI 
+desktop which was in text console at the time of C<power_action> call, is switched to the expected 
+console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell 
+for textmode or with GUI commands otherwise unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 
 =cut
 sub power_action {
@@ -295,6 +331,17 @@ sub power_action {
     }
 }
 
+=head2 assert_shutdown_and_restore_system
+
+ assert_shutdown_and_restore_system($action, $shutdown_timeout);
+
+VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt backend 
+and we have to re-connect *after* the restart, otherwise we end up with stalled 
+VNC connection. The tricky part is to know *when* the system is already booting.
+
+Default $action is reboot, $shutdown_timeout is timeout for shutdown, default value is 60 seconds.
+
+=cut
 # VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt
 # backend and we have to re-connect *after* the restart, otherwise we end up
 # with stalled VNC connection. The tricky part is to know *when* the system
@@ -326,26 +373,25 @@ sub assert_shutdown_and_restore_system {
 
 =head2 assert_shutdown_with_soft_timeout
 
-  assert_shutdown_with_soft_timeout([$args]);
+ assert_shutdown_with_soft_timeout([$args]);
 
-  $args = {[timeout => $timeout] [,soft_timeout => $soft_timeout] [,bugref => $bugref] [,soft_failure_reason => $soft_failure_reason]}
+ $args = {[timeout => $timeout] [,soft_timeout => $soft_timeout] [,bugref => $bugref] [,soft_failure_reason => $soft_failure_reason]}
 
-Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached,
-a soft failure is recorded with the message C<$args->{soft_failure_reason}>. After
-that, assert_shutdown continues until the (hard) timeout C<$args->{timeout}> is hit.
+Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached, 
+a soft failure is recorded with the message C<$args->{soft_failure_reason}>. 
+
+After that, assert_shutdown continues until the (hard) timeout C<$args->{timeout}> is hit.
 
 This makes sense when a shutdown sporadically takes longer then it normally should take
-and the proper statistics of such cases should be gathered instead of just increasing
-a timeout.
+and the proper statistics of such cases should be gathered instead of just increasing a timeout.
 
 If C<$args->{soft_timeout}> is not specified, then the default assert_shutdown is executed.
 
 Example:
 
-  assert_shutdown_with_soft_timeout({timeout => 300, soft_timeout => 60, bugref => 'bsc#123456'});
+ assert_shutdown_with_soft_timeout({timeout => 300, soft_timeout => 60, bugref => 'bsc#123456'});
 
 =cut
-
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
     $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : 60;
