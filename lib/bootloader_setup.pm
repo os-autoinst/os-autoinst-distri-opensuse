@@ -1005,15 +1005,14 @@ sub grep_grub_settings {
 
 =head2 grep_grub_cmdline_settings
 
-    grep_grub_cmdline_settings($pattern [, $search])
+    grep_grub_cmdline_settings($pattern)
 
 Search for C<$pattern> in grub cmdline variable (usually
 GRUB_CMDLINE_LINUX_DEFAULT) in /etc/default/grub, return 1 if found.
 =cut
 sub grep_grub_cmdline_settings {
-    my ($pattern, $search) = @_;
-    $search //= get_cmdline_var();
-    return grep_grub_settings($search . ".*${pattern}");
+    my $pattern = shift;
+    return grep_grub_settings(get_cmdline_var() . ".*${pattern}");
 }
 
 =head2 change_grub_config
@@ -1043,90 +1042,37 @@ sub change_grub_config {
 
 =head2 add_grub_cmdline_settings
 
-    add_grub_cmdline_settings($add [, update_grub => $update_grub] [, search => $search]);
+    add_grub_cmdline_settings($add [, $update_grub ]);
 
 Add C<$add> into /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
-C<$search> if set, bypass default grub cmdline variable.
 =cut
 sub add_grub_cmdline_settings {
-    my $add  = shift;
-    my %args = compat_args(
-        {
-            add         => $add,
-            update_grub => 0,
-            search      => get_cmdline_var(),
-        }, ['add', 'update_grub', 'search'], @_);
-
-    change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
-}
-
-=head2 add_grub_xen_cmdline_settings
-
-    add_grub_xen_cmdline_settings($add [, $update_grub ]);
-
-Add C<$add> into /etc/default/grub, using sed.
-C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
-=cut
-sub add_grub_xen_cmdline_settings {
     my ($add, $update_grub) = @_;
-    add_grub_cmdline_settings($add, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
+    change_grub_config('"$', " $add\"", get_cmdline_var(), "g", $update_grub);
 }
 
 =head2 replace_grub_cmdline_settings
 
-    replace_grub_cmdline_settings($old, $new [, update_grub => $update_grub] [, search => $search]);
+    replace_grub_cmdline_settings($old, $new [, $update_grub ]);
 
 Replace C<$old> with C<$new> in /etc/default/grub, using sed.
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
-C<$search> if set, bypass default grub cmdline variable.
 =cut
 sub replace_grub_cmdline_settings {
-    my $old  = shift;
-    my $new  = shift;
-    my %args = compat_args(
-        {
-            old         => $old,
-            new         => $new,
-            update_grub => 0,
-            search      => get_cmdline_var(),
-        }, ['old', 'new', 'update_grub', 'search'], @_);
-    change_grub_config($old, $new, $args{search}, "g", $args{update_grub});
-}
-
-=head2 replace_grub_xen_cmdline_settings
-
-    replace_grub_xen_cmdline_settings($old, $new [, $update_grub ]);
-
-Replace C<$old> with C<$new> in /etc/default/grub, using sed.
-C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
-=cut
-sub replace_grub_xen_cmdline_settings {
     my ($old, $new, $update_grub) = @_;
-    replace_grub_cmdline_settings($old, $new, $update_grub, "GRUB_CMDLINE_XEN_DEFAULT");
+    change_grub_config($old, $new, get_cmdline_var(), "g", $update_grub);
 }
 
 =head2 remove_grub_cmdline_settings
 
-    remove_grub_cmdline_settings($remove [, $search]);
+    remove_grub_cmdline_settings($remove);
 
 Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
-Search line C<$search> from /etc/default/grub (use for sed).
 =cut
 sub remove_grub_cmdline_settings {
-    my ($remove, $search) = @_;
-    replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', " ", "g", $search);
-}
-
-=head2 remove_grub_xen_cmdline_settings
-
-    remove_grub_xen_cmdline_settings($remove);
-
-Remove C<$remove> from /etc/default/grub (using sed) and regenerate /boot/grub2/grub.cfg.
-=cut
-sub remove_grub_xen_cmdline_settings {
     my $remove = shift;
-    remove_grub_cmdline_settings($remove, "GRUB_CMDLINE_XEN_DEFAULT");
+    replace_grub_cmdline_settings('[[:blank:]]*' . $remove . '[[:blank:]]*', " ", "g");
 }
 
 =head2 grub_mkconfig
