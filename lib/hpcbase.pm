@@ -116,6 +116,7 @@ sub check_nodes_availability {
 
 sub mount_nfs {
     my ($self) = @_;
+    zypper_call('in nfs-client rpcbind');
     ## TODO: get rid of hardcoded name for the NFS-dir
     systemctl("start nfs");
     systemctl("start rpcbind");

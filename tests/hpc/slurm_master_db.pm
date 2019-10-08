@@ -222,16 +222,9 @@ sub run {
     # provision HPC cluster, so the proper rpms are installed,
     # munge key is distributed to all nodes, so is slurm.conf
     # and proper services are enabled and started
-    zypper_call('in slurm slurm-munge slurm-torque');
+    zypper_call('in slurm slurm-munge slurm-torque mariadb');
 
-    zypper_call('in nfs-client rpcbind mariadb');
-    systemctl 'start nfs';
-    systemctl 'start rpcbind';
-    record_info('show mounts aviable on the supportserver', script_output('showmount -e 10.0.2.1'));
-    assert_script_run("mkdir -p /shared/slurm");
-    assert_script_run("chown -Rcv slurm:slurm /shared/slurm");
-    assert_script_run("mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm");
-
+    $self->mount_nfs();
     $self->prepare_slurm_conf();
     record_info('slurmctl conf', script_output('cat /etc/slurm/slurm.conf'));
     barrier_wait("SLURM_SETUP_DONE");
