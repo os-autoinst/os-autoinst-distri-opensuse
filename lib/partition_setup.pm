@@ -40,7 +40,22 @@ our %partition_roles = qw(
   raw alt-a
 );
 
-# We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
+=head1 PARTITION_SETUP
+
+=head2 SYNOPSIS
+
+This module contains functions for the partitioning part of the installation
+
+=cut
+
+=head2 is_storage_ng_newui
+
+ is_storage_ng_newui();
+
+Returns true if running on a scenario that expects storage-ng.
+We got changes to the storage-ng UI in SLE 15 SP1, Leap 15.1 and TW
+
+=cut
 sub is_storage_ng_newui {
     return is_storage_ng && (
         is_sle('15-SP1+')
@@ -49,6 +64,15 @@ sub is_storage_ng_newui {
     );
 }
 
+=head2 wipe_existing_pastitions_storage_ng
+
+ wipe_existing_pastitions_storage_ng();
+
+Deletes all existing partitions in the expert partitioner
+Despite the name it does not check if it is run on a storage ng system
+so be careful here
+
+=cut
 sub wipe_existing_partitions_storage_ng {
     send_key_until_needlematch "expert-partitioner-hard-disks", 'right';
     wait_still_screen 2;
@@ -63,6 +87,14 @@ sub wipe_existing_partitions_storage_ng {
 }
 
 
+=head2 create_new_partition_table
+
+ create_new_partition_table($table_type);
+
+$table_type can be 'GPT' or 'MSDOS' and is optional
+This function creates a new partitioning setup from scratch
+
+=cut
 sub create_new_partition_table {
     my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
     my %table_type_hotkey = (
@@ -119,7 +151,13 @@ sub create_new_partition_table {
     }
 }
 
-# Set mount point and volume label
+=head2 mount_device
+
+ mount_device();
+
+Set mount point and volume label
+
+=cut
 sub mount_device {
     my ($mount) = shift;
     send_key 'alt-o';
@@ -139,7 +177,17 @@ sub mount_device {
     }
 }
 
-# Set size when adding or resizing partition
+=head2 set_partition_size
+
+ set_partition_size([size => $size]);
+  
+The function can be executed when the SUT is on the yast partitioner panel `Add partition on /dev/xxx -> New Partition Size` to set the C<$args{size}> in megabytes.
+
+Example:
+
+ set_patition_size(size => '100')
+
+=cut
 sub set_partition_size {
     my (%args) = @_;
     assert_screen 'partition-size';
@@ -157,8 +205,14 @@ sub set_partition_size {
     type_string $args{size} . 'mb';
 }
 
-# Method assumes that correct disk is already selected
-# Sleect Maximum size by default
+=head2 resize_partition
+
+ resize_partition();
+
+Method assumes that correct disk is already selected
+Select Maximum size by default
+
+=cut
 sub resize_partition {
     my (%args) = @_;
     if (is_storage_ng_newui) {
@@ -176,6 +230,13 @@ sub resize_partition {
     send_key((is_storage_ng) ? "$cmd{next}" : "$cmd{ok}");
 }
 
+=head2 addpart
+
+ addpart(size => $size, role => $role [, format => $format] [, enable_snapshots => $enable_snapshots] [, fsid => $fsid] [, mount => $mount] [, encrypt => $encrypt]);
+
+Adds a partition with the given parameters to the partitioning table
+
+=cut
 sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
@@ -235,6 +296,13 @@ sub addpart {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
+=head2 addvg
+
+ addvg(name => $name [, add_all_pvs => $add_all_pvs]);
+
+Adds an LVM volume group
+
+=cut
 sub addvg {
     my (%args) = @_;
 
@@ -264,6 +332,13 @@ sub addvg {
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
 }
 
+=head2 addlv
+
+ addlv(vg => $vg, name => $name, role => $role [, size => $size] [, mount => $mount] [, [thinpool => $thinpool] | [thinvolume => $thinvolume]]);
+
+Adds an LVM logical volume
+
+=cut
 sub addlv {
     my (%args) = @_;
 
@@ -319,6 +394,13 @@ sub addlv {
     assert_screen 'expert-partitioner';
 }
 
+=head2 addboot
+
+ addboot();
+
+Adds a boot partition, calls C<addpart> for this
+
+=cut
 sub addboot {
     my $part_size          = shift;
     my %default_boot_sizes = (
@@ -349,6 +431,13 @@ sub addboot {
     }
 }
 
+=head2 skip_select_first_hard_disk
+
+ skip_select_first_hard_disk();
+
+Skips the selection of the first hard disk
+
+=cut
 sub skip_select_first_hard_disk {
     return 1 if match_has_tag 'existing-partitions';          # no selection of hard-disk is required
     if (match_has_tag('select-hard-disks-one-selected')) {    # first hd is already pre-selected
@@ -358,6 +447,13 @@ sub skip_select_first_hard_disk {
     return 0;
 }
 
+=head2 select_first_hard_disk
+
+ select_first_hard_disk();
+
+Selects the first hard disk
+
+=cut
 sub select_first_hard_disk {
     my @tags           = qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-non-sda-selected select-hard-disks-one-selected);
     my $matched_needle = assert_screen \@tags;
@@ -385,7 +481,13 @@ sub select_first_hard_disk {
     send_key $cmd{next};
 }
 
-# Enables encryption in guided setup during installation
+=head2 enable_encryption_guided_setup
+
+ enable_encryption_guided_setup();
+
+Enables encryption in guided setup during installation
+
+=cut
 sub enable_encryption_guided_setup {
     my $self = shift;
     send_key $cmd{encryptdisk};
@@ -402,6 +504,13 @@ sub enable_encryption_guided_setup {
     installation_user_settings::await_password_check;
 }
 
+=head2 take_first_disk_storage_ng
+
+ take_first_disk_storage_ng();
+
+Only works on storage-ng and is being called by C<take_first_disk>
+
+=cut
 sub take_first_disk_storage_ng {
     my (%args) = @_;
     return unless is_storage_ng;
@@ -457,6 +566,13 @@ sub take_first_disk_storage_ng {
     }
 }
 
+=head2 take_first_disk
+
+ take_first_disk([iscsi => $iscsi]);
+
+Selects the first disk in the list to be partitioned
+
+=cut
 sub take_first_disk {
     my (%args) = @_;
     # Flow is different for the storage-ng and previous storage stack
