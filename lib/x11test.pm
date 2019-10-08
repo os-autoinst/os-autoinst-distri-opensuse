@@ -13,6 +13,9 @@ use POSIX 'strftime';
 
 sub post_fail_hook {
     my ($self) = shift;
+
+    return if (get_var('NOLOGS'));
+
     $self->export_logs;
     $self->SUPER::post_fail_hook;
 
