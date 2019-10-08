@@ -28,7 +28,7 @@ sub run {
 
     # html
     $self->firefox_open_url('/usr/share/w3m/w3mhelp.html');
-    assert_screen('firefox-local_files-html');
+    assert_screen('firefox-urls_protocols-local');
 
     # wav
     $self->firefox_open_url('/usr/share/sounds/alsa/test.wav');
