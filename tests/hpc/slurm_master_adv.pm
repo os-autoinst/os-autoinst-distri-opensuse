@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,14 +27,8 @@ sub run {
     $self->prepare_user_and_group();
 
     zypper_call('in slurm slurm-munge');
-    zypper_call('in nfs-client rpcbind');
 
-    systemctl 'start nfs';
-    systemctl 'start rpcbind';
-    assert_script_run("showmount -e 10.0.2.1");
-    assert_script_run("mkdir -p /shared/slurm");
-    assert_script_run("chown -Rcv slurm:slurm /shared/slurm");
-    assert_script_run("mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm");
+    $self->mount_nfs();
     $self->prepare_slurm_conf();
     barrier_wait("SLURM_SETUP_DONE");
     record_info('slurmctl conf', script_output('cat /etc/slurm/slurm.conf'));

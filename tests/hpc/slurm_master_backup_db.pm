@@ -23,21 +23,13 @@ sub run {
     my $self  = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
+    zypper_call('in slurm slurm-munge');
 
     # mount NFS shared directory specific
     # for this test /shared/slurm and provided by the
     # supportserver
-    zypper_call('in nfs-client rpcbind');
-    systemctl 'start nfs';
-    systemctl 'start rpcbind';
-    record_info('show mounts aviable on the supportserver', script_output('showmount -e 10.0.2.1'));
-    assert_script_run("mkdir -p /shared/slurm");
-    assert_script_run("chown -Rcv slurm:slurm /shared/slurm");
-    assert_script_run("mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm");
+    $self->mount_nfs();
 
-    # provision HPC cluster, so the proper rpms are installed
-    # and proper services are enabled and started
-    zypper_call('in slurm slurm-munge');
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
     record_info('slurm conf', script_output('cat /etc/slurm/slurm.conf'));
