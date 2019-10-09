@@ -40,9 +40,9 @@ sub run() {
     my $build   = get_required_var('BUILD');
 
     my %boxes = (
-        # openSUSE-Tumbleweed-Vagrant.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
-        libvirt    => "openSUSE-$version-Vagrant.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box",
-        virtualbox => "openSUSE-$version-Vagrant.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box"
+        # Tumbleweed.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
+        libvirt    => "$version.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box",
+        virtualbox => "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box"
     );
 
     my @providers = keys %boxes;
