@@ -21,7 +21,7 @@ sub run {
     select_console("root-console");
 
     record_info 'Test #1', 'Test: Initialize kubeadm';
-    assert_script_run("kubeadm init --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 --kubernetes-version=$(kublet --version|sed -e 's/Kubernetes v//g') | tee /dev/$serialdev", 180);
+    assert_script_run("kubeadm init --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 --kubernetes-version=\$(kubelet --version|sed -e 's/Kubernetes v//g') | tee /dev/$serialdev", 180);
 
     record_info 'Test #2', 'Test: Configure kubectl';
     assert_script_run('mkdir -p ~/.kube');
