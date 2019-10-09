@@ -1139,7 +1139,9 @@ sub ensure_serialdev_permissions {
         assert_script_run "chown $username /dev/$serialdev";
     }
     else {
-        assert_script_run "chown $testapi::username /dev/$testapi::serialdev && gpasswd -a $testapi::username \$(stat -c %G /dev/$testapi::serialdev)";
+        # when serial getty is started, it changes the group of serialdev from dialout to tty (but doesn't change it back when stopped)
+        # let's make sure that both will work
+        assert_script_run "chown $testapi::username /dev/$testapi::serialdev && usermod -a -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) $testapi::username";
     }
 }
 
