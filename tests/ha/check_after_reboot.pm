@@ -68,11 +68,11 @@ sub run {
         send_key 'alt-c';
         wait_still_screen 3;
         wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
-        assert_screen 'root-console',                    $default_timeout;
-        assert_script_run 'systemctl restart pacemaker', $default_timeout;
+        assert_screen 'root-console', $default_timeout;
+        systemctl 'restart pacemaker', timeout => $default_timeout;
     }
-    assert_script_run 'systemctl list-units | grep iscsi',     $default_timeout;
-    assert_script_run 'systemctl --no-pager status pacemaker', $default_timeout;
+    systemctl 'list-units | grep iscsi', timeout => $default_timeout;
+    systemctl 'status pacemaker',        timeout => $default_timeout;
 
     # Wait for resources to be started
     if (is_sles4sap) {
