@@ -35,8 +35,6 @@ use version_utils qw(is_opensuse is_sle is_jeos);
 use power_action_utils 'power_action';
 
 ## Define test data
-# C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
-# sle15+ does not enable locale change during firstboot
 my $suse_lang_conf = '/etc/sysconfig/language';
 my %lc_data        = (en_US => 'en_US.UTF-8', de_DE => 'de_DE.UTF-8');
 my %test_lang_data = (en_US => 'For bug reporting', de_DE => 'Eine Anleitung zum Melden');
@@ -99,6 +97,8 @@ sub test_users_locale {
 
 sub run {
     my ($self) = @_;
+    # C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
+    # sle15+ does not enable locale change during firstboot
     my $lang_ref = (is_sle('15+')) ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
     my $lang_new = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
     my $rc_expected_data = {
@@ -133,8 +133,9 @@ sub run {
     # 1) RC_LC_* options are expected to be empty
     # 2) ROOT_USES_LANG="ctype"
     select_console('root-console');
+    # it is expected that SLE12 has glibc preinstalled
+    zypper_call('in glibc-locale') if (is_sle('15+'));
 
-    zypper_call('in glibc-locale');
     my $output = script_output("localectl list-locales | grep $lang_new.utf8");
     die "Test locale not found in the available ones" unless ($output =~ $lang_new);
 
@@ -182,15 +183,13 @@ sub run {
     select_console('root-console');
     (test_users_locale($rc_lc_changed, $original_glibc_string) eq $updated_glibc_string) or die "Locale has changed after reboot!\n";
 
-    ## Final check, is english locale set ?
-    if (is_sle('15+')) {
-        # Revert changes back to english, the left part of the expression should produce original string again
-        (test_users_locale(change_locale($lang_booted, $rc_lc_changed), $updated_glibc_string) eq $original_glibc_string)
-          or die "Original locale settings have not been restored!\n";
-    } else {
-        (/$updated_glibc_string/ eq /$test_lang_data{$lang_new}/) or die "Exit locale settings have not been changed to english!\n";
+    if ($lang_new eq 'de_DE') {
+        # Revert changes back to english
+        $updated_glibc_string = test_users_locale(change_locale($lang_booted, $rc_lc_changed), $updated_glibc_string);
     }
+
     reset_consoles;
+    ($updated_glibc_string =~ /$test_lang_data{en_US}/) or die "Exit locale settings have not been changed to english!\n";
 }
 
 1;
