@@ -80,6 +80,7 @@ sub post_fail_hook {
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');
+    upload_logs('/var/log/slurmctld.log');
 }
 
 1;
