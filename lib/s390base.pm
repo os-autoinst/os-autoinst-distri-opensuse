@@ -76,8 +76,10 @@ See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/8634
 
 =cut
 sub cleanup_testsuite {
-    return 1;
-    # FIXME assert_script_run 'cd / && rm -rf ./tmp';
+    my ($self, $tc) = @_;
+
+    assert_script_run('cd /root/');
+    assert_script_run("rm -rf /root/$tc/");
 }
 
 
