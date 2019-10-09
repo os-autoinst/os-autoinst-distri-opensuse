@@ -23,7 +23,7 @@ sub run {
     my $self = shift;
     $self->copy_testsuite('TOOL_s390_vmcp');
     $self->execute_script('vmcp_main.sh');
-    $self->cleanup_testsuite('vmcp');
+    $self->cleanup_testsuite('TOOL_s390_vmcp');
 }
 
 sub post_fail_hook {

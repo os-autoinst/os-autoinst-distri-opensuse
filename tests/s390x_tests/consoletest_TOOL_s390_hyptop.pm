@@ -23,7 +23,7 @@ sub run {
     my $self = shift;
     $self->copy_testsuite('TOOL_s390_hyptop');
     $self->execute_script('hyptop.sh');
-    $self->cleanup_testsuite('hyptop');
+    $self->cleanup_testsuite('TOOL_s390_hyptop');
 }
 
 sub post_fail_hook {

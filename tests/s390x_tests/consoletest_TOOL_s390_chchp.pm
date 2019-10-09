@@ -24,7 +24,7 @@ sub run {
     $self->copy_testsuite('TOOL_s390_chchp');
     $self->execute_script('lschp-main.sh');
     $self->execute_script('chchpmain.sh', '0.36', 1000);
-    $self->cleanup_testsuite('chchp');
+    $self->cleanup_testsuite('TOOL_s390_chchp');
 }
 
 sub post_fail_hook {
