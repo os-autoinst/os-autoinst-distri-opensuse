@@ -11,10 +11,16 @@ ask on our mailing list opensuse-factory@opensuse.org
 It can be beneficial to learn how an openQA job is executed. To setup your own
 openQA instance, please refer to the documentation of the [openQA project](https://github.com/os-autoinst/openQA).
 
-Please, find up-to-date documentation references on the official [openQA project web-page](http://open.qa/documentation/).
+Please, find up-to-date documentation references on the official [openQA project web-page](https://open.qa/documentation/).
 
 If you are looking for a task to start with, check out the [openQA Tests](https://progress.opensuse.org/projects/openqatests/issues/)
 Redmine project. Look for tickets with [easy] or [easy-hack] tags.
+
+#### Relevant documentation
+
+* All openQA documentation in a single [html page](https://open.qa/docs/)
+* openQA [testapi](http://open.qa/api/testapi/) documentation
+* (wip) Available test library documentation http://os-autoinst.github.io/openQA/
 
 ### Reporting an issue
 
@@ -30,8 +36,7 @@ The project follows the rules of the parent project
 [os-autoinst](https://github.com/os-autoinst/os-autoinst#how-to-contribute).
 and additionally the following rules:
 
-* Take
-  [example boot.pm](https://github.com/os-autoinst/os-autoinst-distri-example/blob/master/tests/boot.pm)
+* Take [example boot.pm](https://github.com/os-autoinst/os-autoinst-distri-example/blob/master/tests/boot.pm)
   as a template for new files
 * The test code should use simple perl statements, not overly hacky
   approaches, to encourage contributions by newcomers and test writers which
@@ -42,12 +47,18 @@ and additionally the following rules:
 * Use `my ($self) = @_;` for parameter parsing in methods when accessing the
   `$self` object. Do not parse any parameter if you do not need any.
 * [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)
-* Every pull request is tested by the travis CI by calling the equivalent of
-  `make test` on the tests. It is recommended to call `tools/tidy` or
-  `make tidy` locally to fix the style of your changes before providing a
-  pull request. Call `make test` to conduct all tests.
 
+### Preparing a new Pull Request
+* All code needs to be tidy, for this use `make prepare` the first time you
+  set up your local environment, use `make tidy` or `tools/tidy` locally to
+  ensure your new code adheres to our coding style.
+* Every pull request is tested by the travis CI for different perl versions,
+  if something fails, run `make test` (don't forget to `make prepare` if your setup is new)
+  but the travis results are available too, in case they need to be investigated further
+* Whenever possible, [provide a verification run][1] of a job that runs the code [provided in the pull request][2]
 
-Also see the
-[DoD/DoR](https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY)
-as a helpful (but not mandatory) guideline for new contributions.
+Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new contributions.
+
+[1]: https://open.qa/docs/#_cloning_existing_jobs_openqa_clone_job
+[2]: https://open.qa/docs/#_triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request
+[3]: https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY
