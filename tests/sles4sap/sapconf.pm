@@ -140,12 +140,14 @@ sub run {
     foreach my $p (@tuned_profiles) {
         assert_script_run "tuned-adm profile_info $p" if is_sle('>=15');
         assert_script_run "tuned-adm profile $p";
+        sleep 4;    # add a small sleep to ensure that tuned-adm has correctly switched profile
         check_profile($p);
     }
 
     unless (is_sle('>=15')) {
         foreach my $cmd ('start', keys %sapconf_profiles) {
             $output = script_output "sapconf $cmd";
+            sleep 4;    # add a small sleep to ensure that tuned-adm has correctly switched profile
             die "Command 'sapconf $cmd' output is not recognized"
               unless ($output =~ /Forwarding action to tuned\-adm\./);
             next if ($cmd eq 'start');
