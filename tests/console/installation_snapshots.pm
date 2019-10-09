@@ -18,7 +18,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use version_utils "is_jeos";
+use version_utils qw(is_jeos is_sle);
 
 sub run {
     select_console 'root-console';
@@ -26,7 +26,7 @@ sub run {
     # Check if the corresponding snapshot is there
     my ($snapshot_desc, $snapshot_type);
     if (is_jeos) {
-        $snapshot_desc = 'Initial Status';
+        $snapshot_desc = (is_sle('<=15-sp1')) ? 'Initial Status' : 'After jeos-firstboot configuration';
         $snapshot_type = 'single';
     }
     elsif (get_var('AUTOUPGRADE')) {
@@ -41,7 +41,7 @@ sub run {
         $snapshot_desc = 'after installation';
         $snapshot_type = 'single';
     }
-    assert_script_run("snapper list --type $snapshot_type | grep '$snapshot_desc.*important=yes'");
+    assert_script_run("snapper list --type $snapshot_type | tee -a /dev/$serialdev | grep '$snapshot_desc.*important=yes'");
 }
 
 1;
