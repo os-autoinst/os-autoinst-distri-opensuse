@@ -61,7 +61,7 @@ class RegProxy(socketserver.StreamRequestHandler):
 			with context.wrap_socket(sock, server_hostname="hydra.opensuse.org") as ssock:
 				self.relayHttp(ssock, requestline)
 
-class TcpServer(socketserver.TCPServer):
+class TcpServer(socketserver.ThreadingTCPServer):
 	allow_reuse_address = True # Makes testing quicker
 
 try:
