@@ -22,7 +22,7 @@ sub setup {
 
     my $tarball = get_var('MR_TEST_TARBALL', 'https://gitlab.suse.de/rbranco/mr_test/-/archive/master/mr_test-master.tar.gz');
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
     # Disable packagekit
     pkcon_quit;
     # saptune is not installed by default on SLES4SAP 12 on ppc64le
