@@ -24,6 +24,9 @@ class RegProxy(socketserver.StreamRequestHandler):
 		# Send request line
 		sock.write(requestline)
 
+		# No keepalive
+		sock.write(b"Connection: close\r\n")
+
 		# Send all headers from client to server
 		while True:
 			line = self.rfile.readline(65537)
