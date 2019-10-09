@@ -71,8 +71,8 @@ sub run {
         assert_screen 'root-console',                    $default_timeout;
         assert_script_run 'systemctl restart pacemaker', $default_timeout;
     }
-    assert_script_run 'systemctl list-units | grep iscsi', $default_timeout;
-    assert_script_run 'systemctl status pacemaker',        $default_timeout;
+    assert_script_run 'systemctl list-units | grep iscsi',     $default_timeout;
+    assert_script_run 'systemctl --no-pager status pacemaker', $default_timeout;
 
     # Wait for resources to be started
     if (is_sles4sap) {
