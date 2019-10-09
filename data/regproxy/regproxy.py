@@ -6,19 +6,37 @@ import re
 import requests
 import _thread
 
+def availableRepos(prefix):
+	resp = requests.get("https://hydra.opensuse.org/v2/_catalog",
+	                    headers={"Host": "registry.opensuse.org"})
+	all_repos = resp.json()["repositories"]
+	return [repo[len(prefix):] for repo in all_repos if repo.startswith(prefix)]
+
+prefix = sys.argv[1]
+if prefix[-1] != '/':
+	prefix += '/' # Make sure prefix ends with /
+
+proxied_repos = availableRepos(prefix)
+print("Proxying repos: %s\n" % (", ".join(proxied_repos)))
+sys.stdout.flush()
+
 class RegProxy(socketserver.StreamRequestHandler):
 	"""A proxy which rewrites /v2/ Docker Registry API requests to prepend
-	   a given prefix (sys.argv[1]) to the namespace, if the result exists."""
+	   a given prefix to the namespace, if the repo exists in the prefix."""
 	def rewritePath(self, path):
 		"""Try to HEAD path with prefix prepended to the namespace
 		on the real registry and if it works, return the rewritten path."""
 		if path[:4] != "/v2/":
 			return path
 
-		newpath = "/v2/" + sys.argv[1] + path[4:]
-		resp = requests.head("https://hydra.opensuse.org/" + newpath,
-					   headers={"Host": "registry.opensuse.org"})
-		return newpath if resp.status_code == 200 else path
+		proxy = False
+		for repo in proxied_repos:
+			if path[4:5+len(repo)] == repo + "/":
+				proxy = True
+				break
+
+		newpath = "/v2/" + prefix + path[4:]
+		return newpath if proxy else path
 
 	def relayHttp(self, sock, requestline):
 		# Send request line
