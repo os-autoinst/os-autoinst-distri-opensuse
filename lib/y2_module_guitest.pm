@@ -1,3 +1,8 @@
+=head1 y2_module_guitest.pm
+
+This module provides subroutine to launch YaST2 module in GUI test.
+
+=cut
 package y2_module_guitest;
 use base "y2_module_basetest";
 use strict;
@@ -22,13 +27,15 @@ our %setup_nis_nfs_x11 = (
 
 =head2 launch_yast2_module_x11
 
-  launch_yast2_module_x11([$module] [, target_match => $target_match] [, match_timeout => $match_timeout]);
+ launch_yast2_module_x11([$module] [, target_match => $target_match] [, match_timeout => $match_timeout]);
 
-Launch a yast configuration module C<$module> or the yast control center if
-C<$module> is empty. Calls C<assert_screen> on C<$target_match>, defaults to
-C<yast2-$module-ui>. Optional C<$match_timeout> can be specified as a timeout
-on the C<assert_screen> call on C<$target_match>. C<$maximize_window> option
-allows to maximize application window using shortcut.
+Launch a yast configuration module C<$module> or the yast control center if C<$module> is empty. 
+
+Calls C<assert_screen> on C<$target_match>, defaults to C<yast2-$module-ui>.
+
+Optional C<$match_timeout> can be specified as a timeout on the C<assert_screen> call on C<$target_match>. 
+C<$maximize_window> option allows to maximize application window using shortcut.
+
 =cut
 sub launch_yast2_module_x11 {
     my ($self, $module, %args) = @_;
