@@ -26,6 +26,7 @@ sub run {
 
     $self->mount_nfs();
     barrier_wait("SLURM_SETUP_DONE");
+    barrier_wait('SLURM_SETUP_DBD');
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
     # enable and start munge

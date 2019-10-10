@@ -237,10 +237,14 @@ sub run {
 
     $self->prepare_slurm_conf();
     record_info('slurmctl conf', script_output('cat /etc/slurm/slurm.conf'));
-    barrier_wait('SLURM_SETUP_DONE');
     $self->distribute_munge_key();
     $self->distribute_slurm_conf();
+    barrier_wait('SLURM_SETUP_DONE');
+
     $self->enable_and_start('munge');
+    systemctl('is-active munge');
+    barrier_wait('SLURM_SETUP_DBD');
+
     $self->enable_and_start('slurmctld');
     systemctl('is-active slurmctld');
     $self->enable_and_start('slurmd');
@@ -270,6 +274,9 @@ sub run {
     pars_results(%test);
 
     if ($slurm_conf =~ /nfs_db/) {
+        %test = accounting_test_01();
+        pars_results(%test);
+    } elsif ($slurm_conf =~ /accounting/) {
         %test = accounting_test_01();
         pars_results(%test);
     }
