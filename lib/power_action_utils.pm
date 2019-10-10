@@ -206,15 +206,6 @@ sub poweroff_x11 {
         assert_screen 'logout-confirm-dialog', 10;
         send_key "alt-o";              # _o_k
     }
-
-    if (check_var('BACKEND', 's390x')) {
-        # make sure SUT shut down correctly
-        console('x3270')->expect_3270(
-            output_delim => qr/.*SIGP stop.*/,
-            timeout      => 30
-        );
-
-    }
 }
 
 =head2 handle_livecd_reboot_failure
