@@ -35,7 +35,7 @@ sub run {
     send_key "f11";
     assert_screen('firefox-fullscreen-enter', 90);
 
-    sleep 1;
+    wait_still_screen 2, 4;
     send_key "f11";
     assert_screen('firefox-fullscreen-page', 90);
 
