@@ -22,19 +22,9 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
 
     $self->prepare_user_and_group();
-    zypper_call('in nfs-client rpcbind');
-
-    systemctl 'start nfs';
-    systemctl 'start rpcbind';
-
-    assert_script_run("showmount -e 10.0.2.1");
-
-    assert_script_run("mkdir -p /shared/slurm");
-    assert_script_run("chown -Rcv slurm:slurm /shared/slurm");
-    assert_script_run("mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm");
-
     zypper_call('in slurm slurm-munge');
 
+    $self->mount_nfs();
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
