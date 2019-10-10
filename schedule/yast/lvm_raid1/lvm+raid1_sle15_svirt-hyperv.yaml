@@ -28,7 +28,6 @@ schedule :
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
-  - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
