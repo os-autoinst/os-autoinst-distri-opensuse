@@ -100,7 +100,7 @@ sub run {
 
     dl_location_switch("ask");
     dl_save($self, $dl_link_01);
-    assert_and_click('firefox-downloading-saving_dialog', timeout => 90);
+    send_key 'ctrl-shift-y';
     assert_screen('firefox-downloading-library', 90);
 
     # Pause
