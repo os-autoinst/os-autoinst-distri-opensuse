@@ -28,7 +28,7 @@ sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Socke
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "nfs") {
+    } elsif ($slurm_conf eq "ha") {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
 sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
@@ -39,7 +39,7 @@ sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
 sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "db") {
+    } elsif ($slurm_conf eq "nfs_db") {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
 sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
