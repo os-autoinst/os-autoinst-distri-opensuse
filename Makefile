@@ -53,7 +53,7 @@ test-compile-changed: os-autoinst/
 
 .PHONY: test-yaml-valid
 test-yaml-valid:
-	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid
+	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid `git --no-pager diff --name-only master | grep 'schedule.*\.yaml'`
 
 .PHONY: test-metadata
 test-metadata:
