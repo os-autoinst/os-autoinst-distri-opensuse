@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.11] - 2019-10-10
+### Changed
+slurm master modules are merged into one module (slurm_master.pm), so
+that the tests could be easily reused. Tests are provided as sub and
+loaded depending on slurm configuration
+### Removed
+slurm_master_adv/db.pm are removed as slurm_master.pm is handling all
+slurm configurations
+
 ## [1.0.10] - 2019-10-04
 ### Changed
 hpcbase lib is splitted into smaller chunks, so that subs could be
