@@ -55,21 +55,22 @@ EOF
     systemctl("restart mariadb");
     systemctl("is-active mariadb");
 
+    barrier_wait("SLURM_SETUP_DONE");
+
+    ## munge must start before other slurm daemons
+    $self->enable_and_start('munge');
+    systemctl('is-active munge');
     $self->prepare_slurmdb_conf();
     record_info("slurmdbd conf", script_output("cat /etc/slurm/slurmdbd.conf"));
     $self->enable_and_start("slurmdbd");
-    systemctl "status slurmdbd";
-
-    barrier_wait("SLURM_SETUP_DONE");
+    systemctl('is-active slurmdbd');
+    barrier_wait('SLURM_SETUP_DBD');
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
-    # enable and start munge
-    $self->enable_and_start("munge");
-    record_info("munge is enabled as desired by slurmdbd");
-
-    # enable and start slurmd
+    systemctl('restart slurmdbd');
+    systemctl('is-active slurmdbd');
     $self->enable_and_start('slurmd');
-    systemctl 'status slurmd';
+    systemctl('is-active slurmd');
 
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
     barrier_wait("SLURM_MASTER_RUN_TESTS");

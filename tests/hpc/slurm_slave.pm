@@ -30,6 +30,7 @@ sub run {
     zypper_call('in slurm-node') if is_sle '15+';
 
     barrier_wait("SLURM_SETUP_DONE");
+    barrier_wait('SLURM_SETUP_DBD');
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
     # enable and start munge
