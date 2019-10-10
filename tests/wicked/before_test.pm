@@ -18,6 +18,7 @@ use utils qw(zypper_call systemctl file_content_replace);
 use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
 use serial_terminal;
+use main_common 'is_updates_tests';
 
 sub run {
     my ($self, $ctx) = @_;
@@ -31,7 +32,9 @@ sub run {
     my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");
     assert_script_run($enable_command_logging);
-    unless (is_sle('15+')) {    # image which we using for sle15 don't have firewall running
+    # image which we using for sle15 don't have firewall running.
+    # QAM need another way to figure out firewall state due to wider set of images
+    if (is_sle('<15') || (is_updates_tests() && systemctl("is-active" . opensusebasetest::firewall))) {
         systemctl("stop " . opensusebasetest::firewall);
         systemctl("disable " . opensusebasetest::firewall);
     }
