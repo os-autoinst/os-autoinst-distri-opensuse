@@ -30,6 +30,7 @@ our @EXPORT = qw(
   boot_local_disk
   boot_into_snapshot
   compare_bootparams
+  create_encrypted_part
   parse_bootparams_in_serial
   pre_bootmenu_setup
   select_bootmenu_more
@@ -1136,6 +1137,25 @@ sub compare_bootparams {
     } else {
         record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$expected_boot_params}");
     }
+}
+
+=head2 create_encrypted_part
+
+    create_encrypted_part($disk);
+
+Creates gpt partition table on a given disk and creates encrypted partition on it.
+It is usefull to test encrypted partitions activation in the installer.
+
+=cut
+
+sub create_encrypted_part {
+    my $disk = shift;
+    # create partition table
+    assert_script_run "parted -s /dev/$disk mklabel gpt";
+    # create single partition
+    assert_script_run "parted -s /dev/$disk mkpart 1 512 100%";
+    # encrypt created partition
+    assert_script_run "echo nots3cr3t | cryptsetup luksFormat -q --force-password /dev/${disk}1";
 }
 
 1;
