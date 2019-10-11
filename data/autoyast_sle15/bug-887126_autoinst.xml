@@ -446,6 +446,8 @@
       <package>ucode-intel</package>
       <package>xf86-input-evdev</package>
       <package>xf86-input-wacom</package>
+      <package>yast2-nis-client</package>
+      <package>yast2-printer</package>
       <package>yast2-snapper</package>
       <package>yast2-trans-en_US</package>
       <package>yast2-x11</package>
