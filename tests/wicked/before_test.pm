@@ -34,7 +34,7 @@ sub run {
     assert_script_run($enable_command_logging);
     # image which we using for sle15 don't have firewall running.
     # QAM need another way to figure out firewall state due to wider set of images
-    if (is_sle('<15') || (is_updates_tests() && systemctl("is-active" . opensusebasetest::firewall))) {
+    if (is_sle('<15') || (is_updates_tests() && systemctl("is-active " . opensusebasetest::firewall))) {
         systemctl("stop " . opensusebasetest::firewall);
         systemctl("disable " . opensusebasetest::firewall);
     }
