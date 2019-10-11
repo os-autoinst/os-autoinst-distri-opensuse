@@ -16,7 +16,7 @@ use base "x11test";
 use testapi;
 
 sub upload_autoinst_log {
-    assert_script_run 'openqa-client jobs/1/cancel post';
+    script_run 'openqa-client jobs/1/cancel post';
     for my $i (1 .. 10) {
         # wait for test to finish and upload
         last if (script_run('openqa-client jobs/1 | grep state | grep done', 40) == 0);
