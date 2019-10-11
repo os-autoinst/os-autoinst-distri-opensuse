@@ -84,5 +84,11 @@ sub run {
     assert_script_run("firewall-cmd --remove-service=http{,s}");
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    select_console 'log-console';
+    $self->export_logs_basic;
+    $self->SUPER::post_fail_hook;
+}
 
 1;
