@@ -1052,6 +1052,18 @@ else {
             loadtest 'console/rsync_client';
         }
     }
+    elsif (get_var('QAM_CURL')) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        if (check_var('HOSTNAME', 'server')) {
+            loadtest 'network/config_services';
+            loadtest 'network/curl_server';
+        }
+        else {
+            loadtest 'network/curl_client';
+        }
+    }
     elsif (get_var('AUTOFS')) {
         load_mm_autofs_tests;
     }
