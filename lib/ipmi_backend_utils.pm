@@ -108,7 +108,7 @@ sub setup_console_in_grub {
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ dom0_mem=1024M,max:1024M console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/;}; "
+              . "/multiboot/ s/\$/ dom0_mem=4096M,max:4096M console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
