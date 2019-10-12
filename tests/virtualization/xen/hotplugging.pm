@@ -10,15 +10,15 @@
 # Summary: Virtual network and virtual block device hotplugging
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use xen;
 use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use virt_utils;
 
-sub run {
+sub run_test {
     my ($self) = @_;
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
@@ -102,4 +102,3 @@ sub run {
 }
 
 1;
-
