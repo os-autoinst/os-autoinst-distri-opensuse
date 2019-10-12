@@ -74,7 +74,12 @@ sub prepare_for_kdump {
 
     # disable packagekitd
     pkcon_quit;
-    zypper_call('in yast2-kdump kdump crash');
+    if ($test_type eq 'before') {
+        zypper_call('in yast2-kdump kdump');
+    }
+    else {
+        zypper_call('in yast2-kdump kdump crash');
+    }
 
     return if ($test_type eq 'before');
 
