@@ -102,10 +102,12 @@ sub run {
 
     foreach my $test (@tests) {
         # Run test and wait for it to finish
+        my $begin  = time();
         my $status = test_run($test);
+        my $delta  = time() - $begin;
 
         # Add test status to STATUS_LOG file
-        log_add(STATUS_LOG, CATEGORY . "-$test", $status, "10");
+        log_add(STATUS_LOG, CATEGORY . "-$test", $status, $delta);
     }
 }
 
