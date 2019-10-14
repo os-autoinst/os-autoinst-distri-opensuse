@@ -605,8 +605,15 @@ the second run will update the system.
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
     zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
-    # second run, full system update
-    zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+    if (is_sle('12-SP1+', get_var('HDDVERSION')) and is_sle('<12-SP5', get_var('HDDVERSION'))) {
+        record_soft_failure 'workaound: bsc#1153423';
+        # second run, full system update
+        zypper_call('patch --force-resolution -l', exitcode => [0, 102], timeout => 6000);
+    }
+    else {
+        # second run, full system update
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+    }
 }
 
 =head2 ssh_fully_patch_system
