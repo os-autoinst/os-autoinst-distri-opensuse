@@ -18,6 +18,7 @@ use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tu
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends qw(set_sshserial_dev use_ssh_serial_console is_remote_backend);
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
+use publiccloud::ssh_interactive 'ssh_interactive_join';
 use Cwd;
 
 =head1 SUSEDISTRIBUTION
@@ -767,15 +768,15 @@ sub activate_console {
     # Both consoles and shells should be prevented from blanking
     if ((($type eq 'console') or ($type =~ /shell/)) and (get_var('BACKEND', '') =~ /qemu|svirt/)) {
         # On s390x 'setterm' binary is not present as there's no linux console
-        if (!check_var('ARCH', 's390x')) {
+        unless (check_var('ARCH', 's390x') || get_var('PUBLIC_CLOUD')) {
             # Disable console screensaver
             $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }
     }
     if (get_var('TUNNELED') && $name !~ /tunnel/) {
         die "Console '$console' activated in TUNNEL mode activated but tunnel(s) are not yet initialized, use the 'tunnel' console and call 'setup_ssh_tunnels' first" unless get_var('_SSH_TUNNELS_INITIALIZED');
-        $self->script_run('ssh -t sut', 0);
-        ensure_user($user);
+        (get_var('PUBLIC_CLOUD')) ? ssh_interactive_join() : $self->script_run('ssh -t sut', 0);
+        ensure_user($user) unless (get_var('PUBLIC_CLOUD'));
     }
     set_var('CONSOLE_JUST_ACTIVATED', 1);
 }

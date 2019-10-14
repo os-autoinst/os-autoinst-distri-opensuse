@@ -27,4 +27,5 @@ sub run {
     services::ntpd::check_service();
     services::ntpd::check_function();
 }
+
 1;

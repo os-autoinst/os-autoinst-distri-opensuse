@@ -37,11 +37,13 @@ our @EXPORT = qw(is_network_manager_default
 
  is_network_manager_default();
 
-openSUSE has network manager as default except for older leap versions. The function returns 'is_opensuse' unless is_leap('<=15.0').
+openSUSE desktop roles have network manager as default except for older Leap versions.
 
 =cut
 sub is_network_manager_default {
-    return is_opensuse unless is_leap('<=15.0');
+    return 0 if !is_opensuse;
+    return 0 if is_leap('<=15.0');
+    return get_var('DESKTOP', '') =~ /gnome|kde|xfce/;
 }
 
 =head2 continue_info_network_manager_default
