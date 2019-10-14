@@ -48,6 +48,8 @@ sub install_packages {
                 'kernel-rt-base'       => 'kernel-rt',
                 'kernel-xen'           => 'kernel-xen-base',
                 'kernel-xen-base'      => 'kernel-xen',
+                'xen-tools'            => 'xen-tools-domU',
+                'xen-tools-domU'       => 'xen-tools'
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
             # install package
