@@ -29,7 +29,7 @@ sub run {
 
     record_info 'Test #3', 'Test: Configure CNI';
     if (check_var('CNI', 'cilium')) {
-        assert_script_run('kubectl apply -f /usr/share/k8s-yaml/cilium/cilium.yaml');
+        assert_script_run('kubectl apply -f /usr/share/k8s-yaml/cilium/*.yaml');
     } elsif (check_var('CNI', 'flannel')) {
         assert_script_run('kubectl apply -f /usr/share/k8s-yaml/flannel/kube-flannel.yaml');
     } else {
