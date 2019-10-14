@@ -263,7 +263,14 @@ sub power_action {
                 reboot_x11;
             }
             elsif ($action eq 'poweroff') {
-                poweroff_x11;
+                if (check_var('BACKEND', 's390x')) {
+                    record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
+                    select_console 'root-console';
+                    type_string "$action\n";
+                }
+                else {
+                    poweroff_x11;
+                }
             }
         }
     }
