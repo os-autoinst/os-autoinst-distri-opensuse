@@ -11,12 +11,11 @@
 # Tags: poo#9576
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "opensusebasetest";
+use base "y2_installbase";
 use strict;
 use warnings;
 use testapi;
 use lockapi;
-use mmapi;
 use mm_network;
 
 # poo#9576
@@ -25,11 +24,9 @@ sub run {
     assert_screen("remote_slave_ready", 350);
     mutex_create("installation_ready");
     # wait while whole installation process finishes
-    $self->wait_boot(bootloader_time => 1800);
+    mutex_wait("installation_done");
+    $self->wait_boot(bootloader_time => 120);
 }
 
-sub test_flags {
-    return {fatal => 1};
-}
 1;
 
