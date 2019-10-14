@@ -24,6 +24,7 @@ use strict;
 use warnings;
 use base 'basetest';
 use testapi;
+use lockapi;
 use mmapi;
 
 sub run {
@@ -33,6 +34,9 @@ sub run {
     # We don't need any logs from support server when running on REMOTE_CONTROLLER for remote SLE installation tests
     type_string("journalctl -f |tee /dev/$serialdev\n") unless (get_var('REMOTE_CONTROLLER'));
 
+    if (check_var("REMOTE_CONTROLLER", "ssh") || check_var("REMOTE_CONTROLLER", "vnc")) {
+        mutex_create("installation_done");
+    }
     wait_for_children;
 
     unless (get_var('REMOTE_CONTROLLER')) {
