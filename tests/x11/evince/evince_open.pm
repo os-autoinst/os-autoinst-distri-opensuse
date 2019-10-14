@@ -29,4 +29,9 @@ sub run {
     send_key "ctrl-w";     # close evince
 }
 
+# add milestone flag to open in maximized window mode by default
+sub test_flags {
+    return {milestone => 1};
+}
+
 1;
