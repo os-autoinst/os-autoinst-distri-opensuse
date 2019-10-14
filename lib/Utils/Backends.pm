@@ -44,6 +44,7 @@ use constant {
     CONSOLES => [
         qw(
           set_sshserial_dev
+          unset_sshserial_dev
           use_ssh_serial_console
           )
     ]
@@ -58,6 +59,12 @@ our %EXPORT_TAGS = (
 
 sub set_sshserial_dev {
     $serialdev = 'sshserial';
+    set_var('SERIALDEV', $serialdev);
+    bmwqemu::save_vars();
+}
+
+sub unset_sshserial_dev {
+    $serialdev = get_var('SERIALDEV_');
     set_var('SERIALDEV', $serialdev);
     bmwqemu::save_vars();
 }
