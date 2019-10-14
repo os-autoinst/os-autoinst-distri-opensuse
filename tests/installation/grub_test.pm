@@ -11,7 +11,7 @@
 # Summary: Handle grub menu after reboot
 # - Handle grub2 to boot from hard disk (opposed to installation)
 # - Handle passphrase for encrypted disks
-# - Handle booting of snapshot or XEN, acconding to BOOT_TO_SNAPSHOT or XEN
+# - Handle booting of XEN, acconding to XEN
 # - Enable plymouth debug if product if GRUB_KERNEL_OPTION_APPEND is set,
 # or product is sle, aarch64 and PLYMOUTH_DEBUG is set
 # Tags: poo#9716, poo#10286, poo#10164
@@ -77,12 +77,11 @@ sub run {
     # 90 as a workaround due to the qemu backend fallout
     assert_screen_with_soft_timeout('grub2', timeout => 2 * $timeout, soft_timeout => $timeout, bugref => 'boo#1120256');
     stop_grub_timeout;
-    boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
     if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
-        $self->bug_workaround_bsc1005313 unless get_var("BOOT_TO_SNAPSHOT");
+        $self->bug_workaround_bsc1005313;
     }
     else {
         # avoid timeout for booting to HDD

@@ -4,6 +4,5 @@ description:    >
 vars:
     BOOT_TO_SNAPSHOT: 1
 schedule:
-    - installation/grub_test
     - installation/boot_into_snapshot
     - installation/first_boot

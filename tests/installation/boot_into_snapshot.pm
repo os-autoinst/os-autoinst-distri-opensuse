@@ -20,9 +20,12 @@ use strict;
 use warnings;
 use testapi;
 use base "opensusebasetest";
+use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run {
     my ($self) = @_;
+    stop_grub_timeout;
+    boot_into_snapshot;
     assert_screen 'linux-login', 200;
     select_console 'root-console';
     # 1)
