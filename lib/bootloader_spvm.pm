@@ -144,6 +144,8 @@ sub boot_spvm {
     select_console('install-shell');
     foreach my $disk (split(',', get_var('DISK_DEVICES', 'sda'))) {
         script_run("wipefs -a /dev/$disk");
+        # For cryptlvm+activate existing scenario, create empty enrypted partition
+        create_encrypted_part("$disk") if get_var('ENCRYPT_ACTIVATE_EXISTING');
     }
     # Switch to installation console (ssh or vnc)
     select_console('installation');
