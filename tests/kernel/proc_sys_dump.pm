@@ -24,6 +24,7 @@ use File::Basename 'basename';
 use JSON;
 use serial_terminal;
 require bmwqemu;
+use Utils::Architectures 'is_aarch64';
 
 sub run {
     my ($self)     = @_;
@@ -35,6 +36,8 @@ sub run {
     my $wl_opt  = $use_white_list ? 'u' : 'w';
     my $timeout = $use_white_list ? 120 : 300;
     my $script_url = "https://raw.githubusercontent.com/richiejp/ltp/dump/scripts/$ps_dump";
+
+    $timeout *= 2 if is_aarch64;
 
     assert_script_run("curl -sS -o /tmp/$ps_dump $script_url");
     assert_script_run("chmod u+x /tmp/$ps_dump", timeout => 300);
