@@ -36,12 +36,34 @@ our @EXPORT = qw(
   turn_off_gnome_suspend
 );
 
+=head1 X11_UTILS
 
+=head1 SYNOPSIS
+
+ use lib::x11utils;
+
+=cut
+
+=head2 desktop_runner_hotkey
+
+ desktop_runner_hotkey();
+
+Returns the hotkey for the desktop runner according to the used
+desktop
+
+=cut
 sub desktop_runner_hotkey { check_var('DESKTOP', 'minimalx') ? 'super-spc' : 'alt-f2' }
 
-# if stay under tty console for long time, then check
-# screen lock is necessary when switch back to x11
-# all possible options should be handled within loop to get unlocked desktop
+
+=head2
+
+ ensure_unlocked_desktop();
+
+if stay under tty console for long time, then check
+screen lock is necessary when switch back to x11
+all possible options should be handled within loop to get unlocked desktop
+
+=cut
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
@@ -101,6 +123,13 @@ sub ensure_unlocked_desktop {
     }
 }
 
+=head2 ensure_fullscreen
+
+ ensure_fullscreen($tag);
+
+C<tag> can contain a needle name and is optional, it defaults to yast2-windowborder
+
+=cut
 sub ensure_fullscreen {
     my (%args) = @_;
     $args{tag} //= 'yast2-windowborder';
@@ -114,7 +143,7 @@ sub ensure_fullscreen {
 
 =head2 handle_login
 
-  handle_login($myuser, $user_selected);
+ handle_login($myuser, $user_selected);
 
 Log the user in using the displaymanager.
 When C<$myuser> is set, this user will be used for login.
@@ -166,6 +195,13 @@ sub handle_login {
     send_key "ret";
 }
 
+=head2 handle_logout
+
+ handle_logout();
+
+Handles the logout from the desktop
+
+=cut
 sub handle_logout {
     # hide mouse for clean logout needles
     mouse_hide();
@@ -182,12 +218,27 @@ sub handle_logout {
     assert_and_click 'logout-button';                                  # press logout
 }
 
+=head2 handle_relogin
+
+ handle_relogin();
+
+First logs out and the log in via C<handle_logout()> and C<handle_login()>
+
+=cut
 sub handle_relogin {
     handle_logout;
     handle_login;
 }
 
-# Handle the case when user is not selected, on gnome
+=head2 select_user_gnome
+
+ select_user_gnome([$myuser]);
+
+Handle the case when user is not selected in login screen, on gnome.
+C<$myuser> specifies the username to switch to.
+If not set, it will default to C<$username>.
+
+=cut
 sub select_user_gnome {
     my ($myuser) = @_;
     $myuser //= $username;
@@ -205,6 +256,13 @@ sub select_user_gnome {
     }
 }
 
+=head2 turn_off_kde_screensaver
+
+ turn_off_kde_screensaver();
+
+Turns off the screensaver on KDE
+
+=cut
 sub turn_off_kde_screensaver {
     x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
     if (match_has_tag('kde-screenlock-enabled')) {
