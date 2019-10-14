@@ -9,6 +9,8 @@ use network_utils;
 use version_utils qw(is_caasp is_sle);
 use y2_logs_helper 'get_available_compression';
 use utils 'zypper_call';
+use lockapi;
+use mmapi;
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
@@ -286,19 +288,10 @@ sub save_strace_gdb_output {
 
 sub post_fail_hook {
     my $self = shift;
-    if (check_var("REMOTE_CONTROLLER", "vnc")) {
-        wait_screen_change { send_key 'ctrl-alt-shift-x' };
-        $self->save_remote_upload_y2logs unless get_var('ASSERT_Y2LOGS');
-    }
-    elsif (check_var("REMOTE_CONTROLLER", "ssh")) {
-        my $remote_ip = get_var('TARGET_IP');
-        my $passwd    = get_var('PASSWD');
-        select_console 'root-console';
-        script_run("ssh -o StrictHostKeyChecking=no -l root $remote_ip");
-        assert_screen 'password-prompt';
-        type_string "$passwd\n";
-        assert_screen "remote-ssh-login-ok";
-        $self->save_remote_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+
+    if (check_var("REMOTE_CONTROLLER", "ssh") || check_var("REMOTE_CONTROLLER", "vnc")) {
+        mutex_create("installation_done");
+        wait_for_children;
     }
     else {
         $self->SUPER::post_fail_hook;
