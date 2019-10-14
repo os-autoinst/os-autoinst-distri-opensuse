@@ -378,6 +378,9 @@ sub upload_wicked_logs {
     my ($self, $prefix) = @_;
     my $dir_name = $self->{name} . '_' . $prefix;
     my $logs_dir = "/tmp/$dir_name";
+    # because all later commands ignoring any error we need to prove
+    # that there is sense to do something at all
+    assert_script_run('echo "CHECK CONSOLE"', fail_message => 'Console not usable. Failed to collect logs');
     record_info('Logs', "Collecting logs in $logs_dir");
     script_run("mkdir -p $logs_dir");
     script_run("date +'%Y-%m-%d %T.%6N' > $logs_dir/date");
