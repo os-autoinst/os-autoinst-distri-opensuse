@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -84,12 +84,14 @@ sub login {
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
     type_string("\n");
-    wait_serial(qr/login:\s*$/i);
+    die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
     type_string("$user\n");
-    wait_serial(qr/Password:\s*$/i);
-    type_password;
-    type_string("\n");
-    wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
+    if (length $testapi::password) {
+        die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i);
+        type_password;
+        type_string("\n");
+        die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
+    }
     type_string(qq/PS1="$serial_term_prompt"\n/);
     wait_serial(qr/PS1="$serial_term_prompt"/);
     # TODO: Send 'tput rmam' instead/also
