@@ -1,8 +1,7 @@
 ---
 name: qam-minimal-base
 schedule:
-- installation/isosize
-- installation/bootloader
+- {{boot}}
 - installation/welcome
 - installation/accept_license
 - installation/scc_registration
@@ -22,7 +21,7 @@ schedule:
 - installation/await_install
 - installation/logs_from_installation_system
 - installation/reboot_after_installation
-- installation/grub_test
+- {{grub}}
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - locale/keymap_or_locale
@@ -62,4 +61,18 @@ schedule:
 - console/postgresql_server
 - console/orphaned_packages_check
 - console/coredump_collect
+conditional_schedule:
+  boot:
+    MACHINE:
+      zkvm:
+        - installation/bootloader_zkvm
+      64bit:
+        - installation/isosize
+        - installation/bootloader
+  grub:
+    MACHINE:
+      zkvm:
+        - boot/reconnect_mgmt_console
+      64bit:
+        - installation/grub_test
 ...
