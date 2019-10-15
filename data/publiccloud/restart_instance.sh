@@ -41,6 +41,7 @@ fi
 PROVIDER=$1
 INSTANCE_ID=$2
 HOST=$3
+ZONE=$4
 CNT=120;
 
 case $PROVIDER in
@@ -49,6 +50,9 @@ case $PROVIDER in
         ;;
     AZURE)
         az vm restart -g $INSTANCE_ID -n $INSTANCE_ID --no-wait
+        ;;
+    GCE)
+        gcloud compute instances reset $INSTANCE_ID --zone $ZONE
         ;;
     *)
         echo "Unknown provider $PROVIDER given";
