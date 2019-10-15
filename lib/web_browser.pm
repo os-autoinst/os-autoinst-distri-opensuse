@@ -32,7 +32,21 @@ our @EXPORT = qw(
   run_web_browser_text_based
 );
 
-# Setup test envs: register PackageHub and check FIPS pattern installed
+=head1 WEB_BROWSER
+
+=head1 SYNOPSIS
+
+ use lib::web_browser;
+
+=cut
+
+=head2 setup_web_brwoser_env
+
+ setup_web_browser_env();
+
+Setup test envs: register PackageHub and check FIPS pattern installed
+
+=cut
 sub setup_web_browser_env {
     my $ret = 0;
 
@@ -53,9 +67,15 @@ sub setup_web_browser_env {
     zypper_call("--no-refresh --no-gpg-checks search -it pattern fips") if get_var('FIPS_ENABLED');
 }
 
-# Run text based web browser with options
-# $browser: The name of text based web browser: w3m/links/lynx
-# $options: command line options
+=head2 run_web_browser_text_based
+
+ run_web_browser_text_based($browser, $options);
+
+Run text based web browser with options
+$browser: The name of text based web browser: w3m/links/lynx
+$options: command line options
+
+=cut
 sub run_web_browser_text_based {
     my ($browser, $options) = @_;
 
