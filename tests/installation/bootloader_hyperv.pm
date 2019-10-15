@@ -211,8 +211,6 @@ sub run {
 
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
 
-    # Set ram for the VM
-    hyperv_cmd("$ps Set-VMMemory $name -DynamicMemoryEnabled \$true -MinimumBytes 256MB -StartupBytes 512MB -MaximumBytes ${ramsize}MB");
     if (get_var('UEFI')) {
         hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off")                                                        if $winserver eq '2012';
         hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot On -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'") if $winserver eq '2016';
