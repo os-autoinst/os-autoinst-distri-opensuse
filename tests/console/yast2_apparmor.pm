@@ -21,7 +21,7 @@ sub install_extra_packages_requested {
     if (check_screen 'yast2_apparmor_extra_packages_requested', 15) {
         send_key 'alt-i';
         save_screenshot;
-        wait_still_screen 5;
+        wait_still_screen 15;
     }
 }
 
