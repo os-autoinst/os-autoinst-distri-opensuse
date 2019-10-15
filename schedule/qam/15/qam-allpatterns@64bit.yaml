@@ -31,7 +31,7 @@ schedule:
 - console/ncurses
 - console/yast2_lan
 - console/curl_https
-- console/salt
+- {{salt}}
 - console/glibc_sanity
 - console/zypper_in
 - console/yast2_i
@@ -62,4 +62,9 @@ schedule:
 - x11/reboot_gnome
 - shutdown/cleanup_before_shutdown
 - shutdown/shutdown
+conditional_schedule:
+  salt:
+    SLE_PRODUCT:
+      sles:
+        - console/salt
 ...
