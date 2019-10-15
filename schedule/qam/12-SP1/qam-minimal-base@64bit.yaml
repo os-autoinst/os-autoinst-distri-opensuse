@@ -35,7 +35,6 @@ schedule:
 - console/hostname
 - console/installation_snapshots
 - console/zypper_in
-- console/zypper_lifecycle
 - console/zypper_lr
 - console/zypper_ref
 - console/firewall_enabled
