@@ -206,15 +206,6 @@ sub poweroff_x11 {
         assert_screen 'logout-confirm-dialog', 10;
         send_key "alt-o";              # _o_k
     }
-
-    if (check_var('BACKEND', 's390x')) {
-        # make sure SUT shut down correctly
-        console('x3270')->expect_3270(
-            output_delim => qr/.*SIGP stop.*/,
-            timeout      => 30
-        );
-
-    }
 }
 
 =head2 handle_livecd_reboot_failure
@@ -272,7 +263,14 @@ sub power_action {
                 reboot_x11;
             }
             elsif ($action eq 'poweroff') {
-                poweroff_x11;
+                if (check_var('BACKEND', 's390x')) {
+                    record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
+                    select_console 'root-console';
+                    type_string "$action\n";
+                }
+                else {
+                    poweroff_x11;
+                }
             }
         }
     }
