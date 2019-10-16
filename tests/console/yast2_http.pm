@@ -34,7 +34,7 @@ sub run {
     }
 
     send_key 'alt-i';    # Confirm apache2 and apache2-prefork installation
-    wait_still_screen 5;
+    wait_still_screen 15;
 
     # check http server wizard (1/5) -- Network Device Selection
     assert_screen 'http_server_wizard';
