@@ -4,6 +4,14 @@ use warnings;
 use testapi;
 use utils;
 
+## For SLE12 HPC exists as module and product
+sub switch_to_sle_hpc {
+    my $suseconnect_str = ' -e testing@suse.com -r ';
+
+    zypper_call('in switch_sles_sle-hpc');
+    assert_script_run('switch_to_sle-hpc' . $suseconnect_str . get_required_var('SCC_REGCODE_HPC_PRODUCT'), 600);
+}
+
 sub register_products {
     my $register = "register_installed_products.pl";
     my $reg_code = get_required_var('SCC_REGCODE');
