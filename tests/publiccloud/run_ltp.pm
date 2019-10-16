@@ -59,8 +59,8 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh', timeout => 300);
 
-    my $reset_cmd = '~/restart_instance.sh ' . get_required_var('PUBLIC_CLOUD_PROVIDER') . ' ';
-    $reset_cmd .= $instance->instance_id . ' ' . $instance->public_ip;
+    my $reset_cmd = sprintf('~/restart_instance.sh %s %s %s %s', get_required_var('PUBLIC_CLOUD_PROVIDER'), $instance->instance_id, $instance->public_ip,
+        $provider->region);
 
     my $cmd = 'perl -I ltp/tools/runltp-ng ltp/tools/runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log ';
