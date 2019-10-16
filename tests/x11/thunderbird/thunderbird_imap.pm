@@ -30,7 +30,7 @@ sub run {
     mouse_hide(1);
     # clean up and start thunderbird
     x11_start_program("xterm -e \"killall -9 thunderbird; find ~ -name *thunderbird | xargs rm -rf;\"", valid => 0);
-    my $success = eval { x11_start_program("thunderbird", match_timeout => 120); 1 };
+    my $success = eval { x11_start_program("thunderbird", match_timeout => 300); 1 };
     unless ($success) {
         force_soft_failure "bsc#1131306";
     } else {

@@ -55,43 +55,27 @@ sub tb_setup_account {
 
     send_key "alt-c";
 
-    assert_and_click "thunderbird_wizard-set-pop" if ($proto eq 'pop');
-    assert_screen "thunderbird_wizard-$proto-selected";
-    # done
-    send_key "alt-d";
-    # workaround: for some reasons, when using self signed cert thunderbird doesn't accept the password during setup
-    # but does accept it later on. So, we have to click 'done', delete the password, click 'done' again and we are good to go.
-    # Of course, we will have to input the password later on (eg when clicking on 'Inbox')
-    send_key "alt-p";
-    send_key "delete";
-    wait_screen_change { send_key "alt-d" };
-    if (is_sle) {
-        wait_still_screen 5;
-        # sometimes "alt-d" doesn't work, so we have to fallback to
-        if (check_screen "thunderbird_wizard-send-button") {
-            assert_and_click "thunderbird_wizard-send-button";
-            wait_still_screen 3;
-        }
+    if ($proto eq 'pop') {
+        assert_and_click 'thunderbird_wizard-imap-selected';
+        assert_screen 'thunderbird_wizard-imap-pop-open';
+        send_key 'down';
+        send_key 'ret';
     }
+    assert_screen "thunderbird_wizard-$proto-selected";
+
+    assert_and_click 'thunderbird_startssl-selected-for-imap';
+    assert_and_click 'thunderbird_security-select-none';
+    assert_and_click 'thunderbird_startssl-selected-for-smtp';
+    assert_and_click 'thunderbird_security-select-none';
+    assert_and_click 'thunderbird_wizard-retest';
+    assert_and_click 'thunderbird_wizard-done';
+    assert_and_click 'thunderbird_I-understand-the-risks';
+    assert_and_click 'thunderbird_risks-done';
+
     # skip additional integrations
     assert_and_click "thunderbird_skip-system-integration";
-    wait_still_screen 3;
 
-    # confirm that we accept the self signed cert
-    wait_screen_change { send_key "alt-c" };
-
-    assert_and_click "thunderbird_account-inbox";
-
-    if ($proto eq 'pop') {
-        # when using POP simply clicking on inbox doesn't show the dialog password, so we have to click on 'Get Messages'
-        assert_and_click "thunderbird_get-messages";
-    }
-
-    # we now have to input and store the imap password
-    assert_and_click "thunderbird_passwd-diag-use-password-manager";
-    assert_and_click "thunderbird_passwd-diag-entry";
-    wait_screen_change { type_string "$mail_passwd" };
-    send_key "ret";
+    assert_and_click "thunderbird_get-messages";
 }
 
 =head2 tb_send_message
@@ -124,55 +108,7 @@ sub tb_send_message {
     # we can't use "ret" because it doesn't always work
     assert_and_click "thunderbird_really-send-message";
 
-    # it may happen that the 'send error' dialog is shown before the 'confirm certificate' dialog
-    assert_screen([qw(thunderbird_send-message-error thunderbird_incoming-self-signed-cert)]);
-    if (match_has_tag("thunderbird_send-message-error")) {
-        # in this case the 'compose message' window is in background
-        wait_screen_change { send_key "ret" };
-        # it may happen that the main window goes in background, therefore we have to make sure that
-        # we are dealing with the correct one
-        assert_screen([qw(thunderbird_window-is-compose thunderbird_incoming-self-signed-cert)]);
-        if (match_has_tag("thunderbird_window-is-compose")) {
-            wait_screen_change { send_key "alt-`" };
-            wait_screen_change { send_key "alt-c" };
-            wait_screen_change { send_key "alt-`" };
-        } elsif (match_has_tag("thunderbird_incoming-self-signed-cert")) {
-            wait_screen_change { send_key "alt-c" };
-        }
-        wait_screen_change { send_key "super" };
-        assert_and_click "thunderbird_select-compose-window";
-    } elsif (match_has_tag("thunderbird_incoming-self-signed-cert")) {
-        # in this case the 'compose message' window is in foreground
-        wait_screen_change { send_key "alt-c" };
-        unless (check_screen("thunderbird_send-message-error")) {
-            wait_screen_change { send_key "alt-`" };
-        }
-        # buggy part, retrying window switch up to 3 times
-        if (check_screen("thunderbird-main-window", 5)) {
-            wait_screen_change { send_key "alt-`" };
-        }
-        if (check_screen("thunderbird-main-window", 5)) {
-            sleep 5;
-            wait_screen_change { send_key "alt-`" };
-        }
-        if (check_screen("thunderbird-main-window", 5)) {
-            sleep 5;
-            wait_screen_change { send_key "super" };
-            assert_and_click "thunderbird_select-compose-window";
-        }
-        wait_screen_change { assert_and_click "thunderbird_send-message-error-ok-button" };
-    }
-
-    # now the message can be really sent (ctrl-m doesn't always work, so it's more reliable to use assert_and_click)
-    wait_screen_change { assert_and_click "thunderbird_compose-send-button" };
-    assert_screen "thunderbird_prompt-password";
-    wait_screen_change { type_password "$mail_passwd" };
-    send_key "ret";
-
-    # if the "sent message can't be saved" dialog shows up, then we agree not to save a copy of the sent message
-    if (check_screen("thunderbird_save-message-error", 5)) {
-        send_key "alt-n";
-    }
+    assert_screen 'thunderbird_sent-folder-appeared';
 
     return $mail_subject;
 }
