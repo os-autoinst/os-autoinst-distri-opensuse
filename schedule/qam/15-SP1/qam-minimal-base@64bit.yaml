@@ -39,7 +39,7 @@ schedule:
 - console/zypper_lr
 - console/zypper_ref
 - console/firewall_enabled
-- console/glibc_sanity
+- {{glibc_sanity}}
 - console/salt
 - console/sshd
 - console/ssh_cleanup
@@ -70,9 +70,13 @@ conditional_schedule:
         - installation/isosize
         - installation/bootloader
   grub:
-    MACHINE:
-      zkvm:
+    ARCH:
+      s390x:
         - boot/reconnect_mgmt_console
-      64bit:
+      x86_64:
         - installation/grub_test
+  glibc_sanity:
+    ARCH:
+      x86_64:
+        - console/glibc_sanity
 ...
