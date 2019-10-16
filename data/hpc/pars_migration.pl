@@ -5,7 +5,7 @@ use warnings;
 
 my @migration_targets;
 my $targets = '/tmp/migration_targets';
-my $pattern = "SUSE Linux Enterprise Server";
+my $pattern = "SUSE Linux Enterprise";
 
 open my $fd, '<', $targets or die "Could not open '$targets' $!\n";
 
