@@ -12,7 +12,7 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 package publiccloud::ssh_interactive;
-use base opensusebasetest;
+use base "opensusebasetest";
 use testapi;
 use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use strict;
