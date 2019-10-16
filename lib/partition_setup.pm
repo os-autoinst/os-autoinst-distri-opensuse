@@ -68,8 +68,8 @@ sub is_storage_ng_newui {
 
  wipe_existing_pastitions_storage_ng();
 
-Deletes all existing partitions in the expert partitioner
-Despite the name it does not check if it is run on a storage ng system
+Deletes all existing partitions in the expert partitioner.
+Despite the name it does not check if it is run on a storage ng system,
 so be careful here
 
 =cut
@@ -91,8 +91,8 @@ sub wipe_existing_partitions_storage_ng {
 
  create_new_partition_table($table_type);
 
-$table_type can be 'GPT' or 'MSDOS' and is optional
-This function creates a new partitioning setup from scratch
+C<$table_type> can be 'GPT' or 'MSDOS' and is optional.
+This function creates a new partitioning setup from scratch.
 
 =cut
 sub create_new_partition_table {
@@ -153,9 +153,9 @@ sub create_new_partition_table {
 
 =head2 mount_device
 
- mount_device();
+ mount_device($mount);
 
-Set mount point and volume label
+Set mount point and volume label. C<$mount> is mount point.
 
 =cut
 sub mount_device {
@@ -181,7 +181,8 @@ sub mount_device {
 
  set_partition_size([size => $size]);
   
-The function can be executed when the SUT is on the yast partitioner panel `Add partition on /dev/xxx -> New Partition Size` to set the C<$args{size}> in megabytes.
+The function can be executed when the SUT is on the yast partitioner panel 
+`Add partition on /dev/xxx -> New Partition Size` to set the C<$args{size}> in megabytes.
 
 Example:
 
@@ -209,7 +210,7 @@ sub set_partition_size {
 
  resize_partition();
 
-Method assumes that correct disk is already selected
+Method assumes that correct disk is already selected.
 Select Maximum size by default
 
 =cut
@@ -234,7 +235,7 @@ sub resize_partition {
 
  addpart(size => $size, role => $role [, format => $format] [, enable_snapshots => $enable_snapshots] [, fsid => $fsid] [, mount => $mount] [, encrypt => $encrypt]);
 
-Adds a partition with the given parameters to the partitioning table
+Adds a partition with the given parameters to the partitioning table.
 
 =cut
 sub addpart {
@@ -300,7 +301,10 @@ sub addpart {
 
  addvg(name => $name [, add_all_pvs => $add_all_pvs]);
 
-Adds an LVM volume group
+Add a LVM volume group.
+Example: 
+
+ addvg(name => 'vg-system', add_all_pvs => 1);
 
 =cut
 sub addvg {
@@ -336,7 +340,7 @@ sub addvg {
 
  addlv(vg => $vg, name => $name, role => $role [, size => $size] [, mount => $mount] [, [thinpool => $thinpool] | [thinvolume => $thinvolume]]);
 
-Adds an LVM logical volume
+Add a LVM logical volume.
 
 =cut
 sub addlv {
@@ -396,9 +400,11 @@ sub addlv {
 
 =head2 addboot
 
- addboot();
+ addboot($part_size);
 
-Adds a boot partition, calls C<addpart> for this
+Add a boot partition based on architecture.
+
+C<$part_size> is the size of partition. 
 
 =cut
 sub addboot {
@@ -435,7 +441,8 @@ sub addboot {
 
  skip_select_first_hard_disk();
 
-Skips the selection of the first hard disk
+Skip selecting first hard disk and return 0.
+Return 1 if no selection of hard disk is required or the first hard disk is already pre-selected.
 
 =cut
 sub skip_select_first_hard_disk {
@@ -451,7 +458,7 @@ sub skip_select_first_hard_disk {
 
  select_first_hard_disk();
 
-Selects the first hard disk
+Select the first hard disk.
 
 =cut
 sub select_first_hard_disk {
@@ -485,7 +492,7 @@ sub select_first_hard_disk {
 
  enable_encryption_guided_setup();
 
-Enables encryption in guided setup during installation
+Enable encryption in guided setup during installation.
 
 =cut
 sub enable_encryption_guided_setup {
@@ -508,7 +515,7 @@ sub enable_encryption_guided_setup {
 
  take_first_disk_storage_ng();
 
-Only works on storage-ng and is being called by C<take_first_disk>
+Only works on storage-ng and is being called by C<take_first_disk>.
 
 =cut
 sub take_first_disk_storage_ng {
@@ -568,9 +575,14 @@ sub take_first_disk_storage_ng {
 
 =head2 take_first_disk
 
- take_first_disk([iscsi => $iscsi]);
+ take_first_disk([%args]);
 
-Selects the first disk in the list to be partitioned
+Take the first disk to be partitioned. Take first partition as storage ng if it is C<is_storage_ng>.
+C<[%args]> is device type.
+
+Example:
+ 
+ take_first_disk(iscsi => 1);
 
 =cut
 sub take_first_disk {
