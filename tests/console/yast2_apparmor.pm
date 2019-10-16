@@ -108,6 +108,7 @@ sub run {
             wait_screen_change { send_key 'tab' };
             wait_screen_change { send_key 'end' };    # we need to search for recent toggled element at the of the list
         }
+        wait_still_screen(stilltime => 2);
         assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';
     }
     wait_screen_change { send_key 'alt-b' } if is_pre_15();
