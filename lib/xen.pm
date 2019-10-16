@@ -1,3 +1,8 @@
+=head1 xen.pm
+
+Helper package for common xen operations.
+
+=cut
 # XEN regression tests
 #
 # Copyright © 2018 SUSE LLC
@@ -165,6 +170,15 @@ if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-cl
     %guests = ();
 }
 
+=head2 create_guest
+
+ create_guest($guest->{method});
+
+Create a defined guest.
+
+C<%guest> contains a list of defined guest to install. C<$method> can be 'virt-install', 'cdrom', 'pxe', 'net', 'image'.
+
+=cut
 sub create_guest {
     my $self = shift;
     my ($guest, $method) = @_;
