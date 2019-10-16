@@ -29,7 +29,12 @@ sub run {
     assert_script_run("virsh save $_ /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %xen::guests);
 
     record_info "Check", "Check saved states";
-    assert_script_run "virsh list --all | grep $_ | grep shut" foreach (keys %xen::guests);
+    foreach my $guest (keys %xen::guests) {
+        if (script_run("virsh list --all | grep $guest | grep shut") != 0) {
+            record_soft_failure "Guest $guest should be shut down now";
+            script_run "virsh destroy $guest", 90;
+        }
+    }
 
     record_info "Restore", "Restore guests";
     assert_script_run("virsh restore /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %xen::guests);
