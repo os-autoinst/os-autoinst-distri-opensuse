@@ -52,6 +52,8 @@ sub run {
     assert_screen('Server-setting', 30);
     send_key "alt-t";
     send_key "alt-u";
+    # use "ctrl-a" to select existing text, then use "type_string" to overwrite
+    send_key "ctrl-a";
     type_string "$mail_user";
     send_key "alt-p";
     type_string "$mail_passwd";
