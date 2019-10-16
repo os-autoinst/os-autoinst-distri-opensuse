@@ -26,8 +26,14 @@ sub hostname_via_dhcp {
     $cmd{home}             = 'home';
     $cmd{spc}              = 'spc';
     y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
-    y2_module_basetest::accept_warning_network_manager_default;
-    assert_screen 'yast2_lan';
+    # 'Global Options' tab is opened after accepting the warning on the systems
+    # with Network Manager.
+    if (y2_module_basetest::is_network_manager_default) {
+        y2_module_basetest::accept_warning_network_manager_default;
+    }
+    else {
+        assert_screen 'yast2_lan';
+    }
 
     # Hostname/DNS tab
     send_key $cmd{hostname_dns_tab};
