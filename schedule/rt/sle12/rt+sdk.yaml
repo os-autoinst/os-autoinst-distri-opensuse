@@ -39,7 +39,7 @@ schedule:
   - console/textinfo
   - console/hostname
   - console/installation_snapshots
-  - console/xorg_vt
+  - console/x_vt
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses
