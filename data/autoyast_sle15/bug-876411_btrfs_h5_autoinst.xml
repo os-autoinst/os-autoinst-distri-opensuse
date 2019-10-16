@@ -774,6 +774,8 @@ find / -name YaST2-Second-Stage.service
       <package>snapper-zypp-plugin</package>
       <package>ucode-amd</package>
       <package>xbitmaps</package>
+      <package>yast2-nis-client</package>
+      <package>yast2-printer</package>
       <package>yast2-snapper</package>
       <package>yast2-trans-en_US</package>
     </packages>
