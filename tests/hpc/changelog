@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.12] - 2019-10-16
+### Changed
+hpc migration tests account for SLE Server to SLE HPC migration targets
+now for SLE12
+
 ## [1.0.11] - 2019-10-10
 ### Changed
 slurm master modules are merged into one module (slurm_master.pm), so
