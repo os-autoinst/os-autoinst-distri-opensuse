@@ -68,13 +68,9 @@ Click on OK when appears a warning indicating that network interfaces are contro
 
 =cut
 sub accept_warning_network_manager_default {
-    if (is_network_manager_default) {
-        $cmd{overview_tab} = 'alt-v';
-        assert_screen 'yast2-lan-warning-network-manager';
-        send_key $cmd{ok};
-        assert_screen 'yast2_lan-global-tab';
-        send_key $cmd{overview_tab};
-    }
+    assert_screen 'yast2-lan-warning-network-manager';
+    send_key $cmd{ok};
+    assert_screen 'yast2_lan-global-tab';
 }
 
 =head2 workaround_suppress_lvm_warnings
