@@ -1,6 +1,7 @@
 name:           yast2_cmd
 description:    >
     Yast2 cmd interface tests.
+
 conditional_schedule:
   bootloader_zkvm:
     ARCH:
@@ -10,5 +11,13 @@ schedule:
      # Called on ARCH: s390x
      - {{bootloader_zkvm}}
      - boot/boot_to_desktop
+     - yast2_cmd/yast_lan
      - yast2_cmd/yast_rdp
      - yast2_cmd/yast_timezone
+     - yast2_cmd/yast_tftp_server
+     - yast2_cmd/yast_ftp_server
+     - yast2_cmd/yast_users
+     - yast2_cmd/yast_sysconfig
+     - yast2_cmd/yast_keyboard
+     - yast2_cmd/yast_nfs_server
+     - yast2_cmd/yast_nfs_client
