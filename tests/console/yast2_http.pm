@@ -37,7 +37,7 @@ sub run {
     wait_still_screen 5;
 
     # check http server wizard (1/5) -- Network Device Selection
-    assert_screen 'http_server_wizard';
+    assert_screen 'http_server_wizard', 60;
     wait_still_screen(3);
     send_key 'alt-n';                       # go to http server wizard (1/5) -- Network Device Selection
     assert_screen 'http_server_modules';    # check modules and enable php, perl, python before go to next step
