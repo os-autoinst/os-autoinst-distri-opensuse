@@ -38,6 +38,9 @@ sub run {
         zypper_call 'up';
     }
 
+    my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);
+    assert_script_run('SUSEConnect --cleanup', 200) if $out =~ /Error: Invalid system credentials/s;
+
     # list registration status for ease of investigating in case the test fails
     record_info('INFO', script_output("SUSEConnect --status-text"));
 }

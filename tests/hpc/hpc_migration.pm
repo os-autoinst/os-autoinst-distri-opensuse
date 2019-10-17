@@ -35,6 +35,12 @@ sub run {
     my @migration_targets;
     my $migration_target;
 
+    if (get_var('HPC_PRODUCT_MIGRATION')) {
+        # run register_products() as preprepared images might require that
+        $self->register_products();
+        $self->switch_to_sle_hpc();
+    }
+
     $self->register_products();
     assert_script_run("SUSEConnect --status-text");
     zypper_call('in zypper-migration-plugin');
@@ -69,11 +75,17 @@ sub run {
 
     record_info('INFO: migrate-to version', "$version");
 
-    # new migration targets added: SLE12 Server SPX can migrate to:
-    # SLE12 Server SPX+ AND SLE12 HPC SPX+. Thus if $diff = 1, there should be 2
-    # migration targets
-    if ((2 * $diff) != $num_of_migration_targets) {
-        die("Wrong number of migration targets!");
+    if (get_var('HPC_PRODUCT_MIGRATION')) {
+        if ($diff != $num_of_migration_targets) {
+            die("Wrong number of migration targets!");
+        }
+    } else {
+        # new migration targets added: SLE12 Server SPX can migrate to:
+        # SLE12 Server SPX+ AND SLE12 HPC SPX+. Thus if $diff = 1, there should be 2
+        # migration targets
+        if ((2 * $diff) != $num_of_migration_targets) {
+            die("Wrong number of migration targets!");
+        }
     }
 
     ## iterate over the array containing all available migration targets
@@ -96,7 +108,7 @@ sub run {
     $version =~ s/-/ /;
 
     ##TODO: make it work for sle15
-    if (get_var('MIGRATE_TO_HPC_PRODUCT')) {
+    if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')) {
         foreach (@migration_targets) {
             if ($_ =~ "High Performance Computing $version") {
                 $migration_target = $migration_targets[$index - 1];
