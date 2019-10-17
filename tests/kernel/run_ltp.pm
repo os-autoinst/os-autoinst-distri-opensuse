@@ -200,6 +200,7 @@ sub record_ltp_result {
         close $fh;
         push @{$self->{details}}, $details;
 
+        $self->{result} = 'fail';
         $export_details->{test}->{result} = 'timeout';
         return (1, $export_details);
     }
@@ -308,7 +309,8 @@ sub run {
     }
     my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
-    my %env = %{$test_result_export->{environment}};
+    my %env      = %{$test_result_export->{environment}};
+    my $softfail = 0;
 
     if ($test_log =~ qr/$fin_msg(\d+)$/) {
         $env{retval} = $1;
@@ -318,14 +320,23 @@ sub run {
     }
 
     $env{backend} = get_var('BACKEND');
-    override_known_failures($self, \%env, $runfile, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
+    $softfail = override_known_failures($self, \%env, $runfile, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
 
     push(@{$test_result_export->{results}}, $result_export);
     if ($timed_out) {
         if (get_var('LTP_DUMP_MEMORY_ON_TIMEOUT')) {
             save_memory_dump(filename => $test->{name});
         }
-        die "Timed out waiting for LTP test case which may still be running or the OS may have crashed!";
+
+        my $msg = "Timed out waiting for LTP test case which may still be running or the OS may have crashed!";
+
+        if ($softfail) {
+            record_soft_failure $msg;
+            return;
+        }
+        else {
+            die $msg;
+        }
     }
 
     if ($set_rhost) {
