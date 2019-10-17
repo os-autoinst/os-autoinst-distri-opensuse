@@ -1,3 +1,8 @@
+=head1 y2snapper_common.pm
+
+Library for creating snapshot by using YaST2 snapper.
+
+=cut
 package y2snapper_common;
 
 use strict;
@@ -6,7 +11,13 @@ use testapi;
 use utils;
 use version_utils;
 
-# Helper for letting y2-snapper to create a snapper snapshot
+=head2 y2snapper_create_snapshot
+
+ y2snapper_create_snapshot($name);
+
+Helper to create a snapper snapshot. C<$name> is the name of snapshot.
+
+=cut
 sub y2snapper_create_snapshot {
     my $self = shift;
     my $name = shift || "Awesome Snapshot";
@@ -21,6 +32,15 @@ sub y2snapper_create_snapshot {
     send_key "alt-o";
 }
 
+=head2 y2snapper_new_snapshot
+
+ y2snapper_new_snapshot($ncurses);
+
+Create a new snapshot.
+
+C<$ncurses> is used to check if it is ncurses. In ncurses it needs to focus to snapshots list manually.
+
+=cut
 sub y2snapper_new_snapshot {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
@@ -44,6 +64,14 @@ sub y2snapper_new_snapshot {
     send_key "alt-l";
 }
 
+=head2 y2snapper_untar_testfile
+
+ y2snapper_untar_testfile($args);
+
+Untar test file. 
+Use C<$args> to check product and handle the directory path for untar files.
+
+=cut
 sub y2snapper_untar_testfile {
     # Due to the product change for bsc#1085266 /root is not included in
     # snapshots anymore
@@ -51,6 +79,15 @@ sub y2snapper_untar_testfile {
     assert_script_run "tar $args -xzf /home/$username/data/yast2_snapper.tgz";
 }
 
+=head2 y2snapper_show_changes_and_delete
+
+ y2snapper_show_changes_and_delete($ncurses);
+
+Show changes of snapshot and delete it.
+
+Use C<$ncurses> to check if it is ncurses. Select in ncurses the first subvolume (root) in the tree and expand it.
+
+=cut
 sub y2snapper_show_changes_and_delete {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
@@ -102,7 +139,14 @@ sub y2snapper_show_changes_and_delete {
     }
 }
 
-# Quit yast2-snapper and cleanup
+=head2 y2snapper_clean_and_quit
+
+ y2snapper_clean_and_quit($module_name);
+
+C<$module_name> is YaST2 module yast2-snapper.
+Quit yast2-snapper and clean up the test data.
+
+=cut
 sub y2snapper_clean_and_quit {
     my ($self, $module_name) = @_;
 
@@ -128,6 +172,13 @@ sub y2snapper_clean_and_quit {
     }
 }
 
+=head2 y2snapper_failure_analysis
+
+ y2snapper_failure_analysis();
+
+Analyse failure and upload logs.
+
+=cut
 sub y2snapper_failure_analysis {
     my ($self) = @_;
     # snapper actions can put the system under quite some load so we want to
