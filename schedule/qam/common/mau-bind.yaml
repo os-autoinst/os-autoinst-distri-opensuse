@@ -1,0 +1,8 @@
+---
+name: mau-bind
+description: upstream bind testsuite
+schedule:
+- boot/boot_to_desktop
+- console/bind
+- console/coredump_collect
+...
