@@ -24,7 +24,7 @@ use Exporter 'import';
 use testapi;
 use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
-use y2_module_basetest 'accept_warning_network_manager_default';
+use y2_module_basetest qw(accept_warning_network_manager_default is_network_manager_default);
 use y2_module_consoletest;
 
 our @EXPORT = qw(
@@ -78,10 +78,18 @@ Accept warning for Networkmanager controls network device.
 =cut
 sub open_network_settings {
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
-    accept_warning_network_manager_default;
-    assert_screen 'yast2_lan', 180;    # yast2 lan overview tab
-    send_key 'home';                   # select first device
-    wait_still_screen 1, 1;
+    # 'Global Options' tab is opened after accepting the warning on the systems
+    # with Network Manager.
+    # Thus, there is no way to select device in Overview tab on such systems, so
+    # just skipping the selection.
+    if (is_network_manager_default()) {
+        accept_warning_network_manager_default();
+    }
+    else {
+        assert_screen 'yast2_lan', 180;    # yast2 lan overview tab
+        send_key 'home';                   # select first device
+        wait_still_screen 1, 1;
+    }
 }
 
 =head2 close_network_settings
