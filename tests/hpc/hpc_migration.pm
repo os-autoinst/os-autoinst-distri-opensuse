@@ -80,10 +80,11 @@ sub run {
             die("Wrong number of migration targets!");
         }
     } else {
+        ## warning: temporary change until things are decided
         # new migration targets added: SLE12 Server SPX can migrate to:
         # SLE12 Server SPX+ AND SLE12 HPC SPX+. Thus if $diff = 1, there should be 2
         # migration targets
-        if ((2 * $diff) != $num_of_migration_targets) {
+        if ($diff != $num_of_migration_targets) {
             die("Wrong number of migration targets!");
         }
     }
