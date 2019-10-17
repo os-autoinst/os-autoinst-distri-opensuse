@@ -133,8 +133,32 @@ sub run {
     assert_script_run("SUSEConnect --status-text");
 
     power_action('reboot', keepconsole => 1, textmode => 0);
-    #reboot and check the status again
-    assert_script_run("SUSEConnect --status-text", 180);
+
+    my $status = script_output('SUSEConnect --status-text', 180);
+    ## it is expected that all items shall be registered, since
+    ## the migration starts when all items are registered
+    if ($status =~ "Not Registered") {
+        record_info('INFO', "$status");
+        die('One of the modules or product is not registered!');
+    }
+    ## correct High Performance Computing or SUSE Linux Enterprise Server should
+    ## be there
+    if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')) {
+        # expected is to have High Performance Computing $version
+        if ($status !~ "High Performance Computing $version") {
+            die('Expected product is not there!');
+        }
+    } else {
+        # expected it to have SUSE Linux Enterprise Server 12 $version
+        if ($status !~ "SUSE Linux Enterprise Server $version") {
+            die('Expected product is not there!');
+        }
+    }
+    ## check for modules, if they are there as expected
+    if (($status !~ 'HPC Module') or ($status !~ 'Web and Scripting Module')) {
+        die('One of the expected modules is not there!');
+    }
+
     if (get_var("HPC_MIGRATION")) {
         barrier_wait('HPC_MIGRATION_TESTS');
     }
