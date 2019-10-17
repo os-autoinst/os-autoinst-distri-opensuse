@@ -23,14 +23,17 @@ use constant {
     SELECTED_HARD_DISK         => 'partitioning_raid-disk_%s-selected',
     SELECTED_RAID              => 'partitioning_raid-raid-selected',
     SELECTED_VOLUME_MANAGEMENT => 'volume_management_feature',
-    SELECTED_HARD_DISKS        => 'partitioning_raid-hard_disks-selected'
+    SELECTED_HARD_DISKS        => 'partitioning_raid-hard_disks-selected',
+    SELECTED_EXISTING_PART     => 'partitioning_existing_part_%s-selected'
 };
 
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        add_raid_shortcut      => $args->{add_raid_shortcut},
-        add_partition_shortcut => $args->{add_partition_shortcut}
+        add_raid_shortcut         => $args->{add_raid_shortcut},
+        add_partition_shortcut    => $args->{add_partition_shortcut},
+        edit_partition_shortcut   => $args->{edit_partition_shortcut},
+        resize_partition_shortcut => $args->{resize_partition_shortcut}
     }, $class;
 }
 
@@ -52,6 +55,9 @@ sub select_item_in_system_view_table {
     elsif ($item eq 'hard-disks') {
         send_key_until_needlematch(SELECTED_HARD_DISKS, 'down');
     }
+    elsif ($item eq 'existing-partition') {
+        send_key_until_needlematch((sprintf SELECTED_EXISTING_PART, $item), "down");
+    }
     else {
         send_key_until_needlematch((sprintf SELECTED_HARD_DISK, $item), "down");
     }
@@ -61,6 +67,11 @@ sub expand_item_in_system_view_table {
     my ($self, $item) = @_;
     assert_screen(EXPERT_PARTITIONER_PAGE);
     send_key('right');
+}
+
+sub go_top_in_system_view_table {
+    _select_system_view_section();
+    send_key('home');
 }
 
 sub select_partitions_tab {
@@ -78,6 +89,18 @@ sub press_add_partition_button {
     my ($self) = @_;
     assert_screen(EXPERT_PARTITIONER_PAGE);
     send_key($self->{add_partition_shortcut});
+}
+
+sub press_edit_partition_button {
+    my ($self) = @_;
+    assert_screen(EXPERT_PARTITIONER_PAGE);
+    send_key($self->{edit_partition_shortcut});
+}
+
+sub press_resize_partition_button {
+    my ($self) = @_;
+    assert_screen(EXPERT_PARTITIONER_PAGE);
+    send_key($self->{resize_partition_shortcut});
 }
 
 sub press_accept_button {
