@@ -40,6 +40,10 @@ sub run {
     }
     assert_screen 'yast2_console-finished', $timeout;
     wait_serial("$module_name-0") || die "'yast2 bootloader' didn't finish";
+
+    assert_script_run 'tput smcup'; # switch to alternative screen
+    assert_script_run 'clear'; # clear alt screen
+    assert_script_run 'tput rmcup'; # switch back to main screen
 }
 
 1;
