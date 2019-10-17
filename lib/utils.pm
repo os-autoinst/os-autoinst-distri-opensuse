@@ -1322,8 +1322,7 @@ sub reconnect_mgmt_console {
     }
     elsif (check_var('ARCH', 'ppc64le')) {
         if (check_var('BACKEND', 'spvm')) {
-            select_console 'novalink-ssh';
-            type_string " mkvterm --id " . get_required_var('NOVALINK_LPAR_ID') . "\n";
+            select_console 'novalink-ssh', await_console => 0;
         }
     }
     elsif (check_var('ARCH', 'x86_64')) {
