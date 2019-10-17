@@ -38,5 +38,9 @@ sub run {
     $self->ping_with_timeout(type => 'host', interface => 'team0', count_success => 5, timeout => 4);
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 
 1;

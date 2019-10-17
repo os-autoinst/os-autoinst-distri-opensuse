@@ -516,8 +516,8 @@ sub validate_interfaces {
         record_info('ip addr', script_output('ip addr'));
         die("Interface $interface does not exist or is not UP");
     }
-    validate_script_output('ip a s dev ' . $iface0, sub { /master $interface/ });
-    validate_script_output('ip a s dev ' . $iface1, sub { /master $interface/ });
+    validate_script_output('ip a s dev ' . $iface0, sub { /master $interface/ }) if $iface0;
+    validate_script_output('ip a s dev ' . $iface1, sub { /master $interface/ }) if $iface1;
     $self->ping_with_timeout(type => 'host', interface => $interface, count_success => 30, timeout => 4) if ($ping);
 }
 
