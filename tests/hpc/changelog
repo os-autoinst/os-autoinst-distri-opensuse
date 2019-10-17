@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.13] - 2019-10-17
+### Added
+Add some simple checks for HPC migration tests
+
 ## [1.0.12] - 2019-10-16
 ### Changed
 hpc migration tests account for SLE Server to SLE HPC migration targets
