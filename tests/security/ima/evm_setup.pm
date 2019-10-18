@@ -48,7 +48,7 @@ sub run {
     assert_script_run "echo -e \"MASTERKEYTYPE='user'\\nMASTERKEY='$userkey_blob'\" > $masterkey_conf";
     assert_script_run "echo -e \"EVMKEY='$evmkey_blob'\" > $evm_conf";
 
-    add_grub_cmdline_settings("evm=fix ima_appraise=fix ima_appraise_tcb", 1);
+    add_grub_cmdline_settings("evm=fix ima_appraise=fix ima_appraise_tcb", update_grub => 1);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);

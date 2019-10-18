@@ -50,7 +50,7 @@ sub run {
     assert_script_run "setfattr -x security.ima $sample_app";
     validate_script_output "getfattr -m security.evm -d $sample_app", sub { m/^$/ };
 
-    replace_grub_cmdline_settings('evm=fix ima_appraise=fix', '', 1);
+    replace_grub_cmdline_settings('evm=fix ima_appraise=fix', update_grub => 1);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);

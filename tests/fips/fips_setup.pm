@@ -65,7 +65,7 @@ sub run {
     }
     else {
         zypper_call('in -t pattern fips');
-        add_grub_cmdline_settings('fips=1', 1);
+        add_grub_cmdline_settings('fips=1', update_grub => 1);
         record_info 'Kernel Mode', 'FIPS kernel mode configured!';
     }
 

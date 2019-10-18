@@ -54,7 +54,7 @@ sub run {
     record_info('OK', 'No symlinks created for partitions with label "primary" and warning appeared');
 
     # Check that no symlinks are created at all with udev.no-partlabel-links kernel parameter
-    add_grub_cmdline_settings('udev.no-partlabel-links=1', 1);
+    add_grub_cmdline_settings('udev.no-partlabel-links=1', update_grub => 1);
     power_action('reboot');
     $self->wait_boot;
     $self->select_serial_terminal;

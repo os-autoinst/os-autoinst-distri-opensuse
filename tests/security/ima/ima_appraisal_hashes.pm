@@ -37,7 +37,7 @@ sub run {
     assert_script_run "echo $kver";
     my $tcb_cmdline = ($kver lt 4.13) ? 'ima_appraise_tcb' : 'ima_policy=appraise_tcb';
 
-    add_grub_cmdline_settings("ima_appraise=fix $tcb_cmdline", 1);
+    add_grub_cmdline_settings("ima_appraise=fix $tcb_cmdline", update_grub => 1);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);
@@ -59,7 +59,7 @@ sub run {
     assert_script_run "setfattr -x security.ima $sample_app";
     validate_script_output "getfattr -m security.ima -d $sample_app", sub { m/^$/ };
 
-    replace_grub_cmdline_settings('ima_appraise=fix', '', 1);
+    replace_grub_cmdline_settings('ima_appraise=fix', update_grub => 1);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);

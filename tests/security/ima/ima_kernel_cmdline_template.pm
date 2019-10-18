@@ -60,7 +60,7 @@ sub run {
     my $last_cmdline = "ima_template";
 
     for my $k (@cmdline_list) {
-        replace_grub_cmdline_settings($last_cmdline, @$k{cmdline}, 1);
+        replace_grub_cmdline_settings($last_cmdline, @$k{cmdline}, update_grub => 1);
         $last_cmdline = @$k{cmdline};
 
         # Grep and output grub settings to the terminal for debugging
