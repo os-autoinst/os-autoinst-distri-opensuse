@@ -36,8 +36,8 @@ tidy-check: check-links
 	tools/tidy --check
 
 .PHONY: tidy
-tidy:
-	tools/tidy
+tidy: tools/tidy
+	$<
 
 .PHONY: unit-test
 unit-test:
