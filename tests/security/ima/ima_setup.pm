@@ -34,7 +34,7 @@ sub run {
     assert_script_run "awk -i inplace '{if(\$3 == \"ext4\") \$4=\$4\",iversion\"; print}' /etc/fstab";
 
     # Add 'rootflags=iversion' to grub2 boot menu
-    add_grub_cmdline_settings('rootflags=iversion', 1);
+    add_grub_cmdline_settings('rootflags=iversion', update_grub => 1);
 
     # Some necessary packages
     zypper_call('in evmctl dracut-ima');

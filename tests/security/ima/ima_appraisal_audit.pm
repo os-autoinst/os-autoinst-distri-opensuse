@@ -52,7 +52,7 @@ sub run {
     validate_script_output "ausearch -m INTEGRITY_DATA", sub { m/\Q$sample_app\E/ };
 
     # Test both default(no ima_apprais=) and ima_appraise=log situation
-    add_grub_cmdline_settings("ima_appraise=log", 1);
+    add_grub_cmdline_settings("ima_appraise=log", update_grub => 1);
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);
     $self->select_serial_terminal;
