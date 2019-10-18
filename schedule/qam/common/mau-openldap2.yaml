@@ -1,0 +1,8 @@
+---
+name: mau-openldap2
+description: modified upstream openldap2 testsuite
+schedule:
+- boot/boot_to_desktop
+- console/openldap2
+- console/coredump_collect
+...
