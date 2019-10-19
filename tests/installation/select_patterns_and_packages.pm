@@ -46,7 +46,7 @@ sub check12qtbug {
 
 sub move_down {
     my $ret = wait_screen_change { send_key 'down' };
-    last if (!$ret);    # down didn't change the screen, so exit here
+    last if (!$ret);                              # down didn't change the screen, so exit here
     check12qtbug if check_var('VERSION', '12');
 }
 

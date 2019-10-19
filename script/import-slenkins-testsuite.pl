@@ -104,8 +104,8 @@ sub parse_node_file {
         $line =~ s/\$\{PROJECT_NAME\}/$project_name/g;
 
         if ($line =~ /^node\s+([^\s]+)$/) {
-            $node    = $1;
-            $network = undef;
+            $node         = $1;
+            $network      = undef;
             $nodes{$node} = {install => [], repos => [], disks => []};
         }
         elsif ($line =~ /^network\s+([^\s]+)$/) {

@@ -1301,7 +1301,7 @@ sub load_x11tests {
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
-    loadtest "x11/thunar"   if xfcestep_is_applicable();
+    loadtest "x11/thunar" if xfcestep_is_applicable();
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
     if (gnomestep_is_applicable()) {
         loadtest "x11/nautilus" unless get_var("LIVECD");
@@ -1651,7 +1651,7 @@ sub load_extra_tests_console {
     loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/kmod';
     loadtest 'console/suse_module_tools';
-    loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
+    loadtest 'console/zziplib' if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
@@ -1773,9 +1773,9 @@ sub load_extra_tests_filesystem {
 }
 
 sub get_wicked_tests {
-    my (%args)  = @_;
-    my $basedir = $bmwqemu::vars{CASEDIR} . '/tests/';
-    my $suite   = get_required_var('WICKED');
+    my (%args)    = @_;
+    my $basedir   = $bmwqemu::vars{CASEDIR} . '/tests/';
+    my $suite     = get_required_var('WICKED');
     my $exclude   = get_var('WICKED_EXCLUDE', '$a');
     my $suite_dir = $basedir . 'wicked/' . $suite . '/';
     my $tests_dir = $suite_dir . 'sut/';

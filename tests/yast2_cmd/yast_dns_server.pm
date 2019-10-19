@@ -69,7 +69,7 @@ sub run {
     my $self = shift;
     select_console 'root-console';
     zypper_call("in yast2-dns-server bind", exitcode => [0, 102, 103, 106]);
-    zypper_call("in bind-libs",             exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
+    zypper_call("in bind-libs", exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
 
     #Forward server and test lookup
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");

@@ -31,7 +31,7 @@ sub get_ltp_rpm
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self)   = @_;
     my $ltp_repo = get_var('LTP_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version("-") . '/x86_64/');
     my $REG_CODE = get_required_var('SCC_REGCODE');
 

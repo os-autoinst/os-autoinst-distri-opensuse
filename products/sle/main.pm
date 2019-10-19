@@ -373,11 +373,11 @@ if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
     else {
         if (check_var('ARCH', 'aarch64')) {
             set_var('SCC_ADDONS', 'tcm');
-            set_var('PATTERNS',   'default') if !get_var('PATTERNS');
+            set_var('PATTERNS', 'default') if !get_var('PATTERNS');
         }
         else {
             set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,tcm,wsm');
-            set_var('PATTERNS',   'default,asmm') if !get_var('PATTERNS');
+            set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
         }
     }
 }
@@ -447,7 +447,7 @@ sub load_online_migration_tests {
     # stop packagekit service and more
     loadtest "migration/sle12_online_migration/online_migration_setup";
     # switch VERSION to ensure migrate to expected target for online migration
-    set_var('ORIGIN_SYSTEM_VERSION',  get_var('HDDVERSION'));
+    set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
     set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
     loadtest "migration/version_switch_origin_system";
 
@@ -1057,7 +1057,7 @@ else {
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set origin and target version
-        set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
+        set_var('ORIGIN_SYSTEM_VERSION', get_var('BASE_VERSION'));
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
         loadtest "migration/version_switch_origin_system";
         # Use autoyast to perform origin system installation

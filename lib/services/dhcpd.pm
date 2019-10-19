@@ -27,8 +27,8 @@ sub install_service {
 # Assume that we are using a 24 bit netmask.
 sub get_subnet_3 {
     my ($iface) = @_;
-    my $ip  = script_output("ip -br -4 addr | grep $iface | sed 's/\\s\\+/:/g' | cut -d ':' -f 3 | cut -d '/' -f 1", type_command => 1);
-    my @arr = split(/\./, $ip);
+    my $ip      = script_output("ip -br -4 addr | grep $iface | sed 's/\\s\\+/:/g' | cut -d ':' -f 3 | cut -d '/' -f 1", type_command => 1);
+    my @arr     = split(/\./, $ip);
     return join(".", @arr[0 .. 2]);
 }
 

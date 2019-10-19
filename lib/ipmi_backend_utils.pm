@@ -314,8 +314,8 @@ sub set_serial_console_on_vh {
 
     #set up xen serial console
     my $ipmi_console = get_dom0_serialdev("$root_dir");
-    if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
-    else                                                { die "Host Hypervisor is not xen or kvm"; }
+    if   (${virt_type} eq "xen" || ${virt_type} eq "kvm") { setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
+    else                                                  { die "Host Hypervisor is not xen or kvm"; }
 
     #cleanup mount
     if ($mount_point ne "") {
