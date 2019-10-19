@@ -22,7 +22,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
     assert_script_run('hostname | grep -q suse1', fail_message => 'It seems we are not on the right remote SUT host');
-    assert_script_run('supportconfig',            600);
+    assert_script_run('supportconfig', 600);
     assert_script_run('mv $(ls -t /var/log/*.tbz | head -1) supportconfig.tbz');
     upload_logs('supportconfig.tbz');
 }

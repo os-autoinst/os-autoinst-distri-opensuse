@@ -205,7 +205,7 @@ sub save_remote_upload_y2logs {
     my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
     type_string "save_y2logs $filename\n";
     my $uploadname = +(split('/', $filename))[2];
-    my $upname     = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
+    my $upname = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
     type_string "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "\n";
     save_screenshot();
     $self->investigate_yast2_failure();

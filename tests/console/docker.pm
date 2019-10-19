@@ -96,7 +96,7 @@ sub run {
     my $output_containers = script_output('docker container ls -a');
     die('error: missing container test_1') unless ($output_containers =~ m/test_1/);
     die('error: missing container test_2') unless ($output_containers =~ m/test_2/);
-    die('error: ephemeral container was not removed') if ($output_containers =~ m/test_ephemeral/);
+    die('error: ephemeral container was not removed') if ($output_containers   =~ m/test_ephemeral/);
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # containers state can be saved to a docker image

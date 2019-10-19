@@ -50,7 +50,7 @@ sub parse_openposix_runfile {
     while (my $line = <$rfile>) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
-            my $test  = {name => basename($line, '.run-test'), command => $line};
+            my $test = {name => basename($line, '.run-test'), command => $line};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);
         }
