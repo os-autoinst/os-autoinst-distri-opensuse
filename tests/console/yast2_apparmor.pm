@@ -102,15 +102,13 @@ sub run {
         # try out with second element in the list
         wait_screen_change { send_key 'tab' };
         wait_screen_change { send_key 'down' };
-        save_screenshot;
         send_key(is_pre_15() ? 'alt-t' : 'alt-c');
+        # toggle takes some seconds:
         wait_still_screen(stilltime => 5);
         if (is_pre_15()) {
-            send_key 'tab';
-            wait_still_screen(stilltime => 5);
+            wait_screen_change { send_key 'tab' };
             send_key 'end';
         }
-        wait_still_screen(stilltime => 5);
         assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';
     }
     wait_screen_change { send_key 'alt-b' } if is_pre_15();
