@@ -292,7 +292,8 @@ sub replace_opensuse_repos_tests {
 }
 
 sub is_updates_tests {
-    my $flavor = get_required_var('FLAVOR');
+    my $flavor = get_var('FLAVOR');
+    return 0 unless $flavor;
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
     return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
 }
