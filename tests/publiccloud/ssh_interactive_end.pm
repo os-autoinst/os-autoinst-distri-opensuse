@@ -29,6 +29,7 @@ sub run {
     # Destroy the public cloud instance
     select_console 'tunnel-console', await_console => 0;
     send_key "ctrl-c";
+    send_key "ret";
     $args->{my_provider}->cleanup();
 }
 

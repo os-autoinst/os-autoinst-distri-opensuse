@@ -22,10 +22,12 @@ sub run {
     my ($self, $args) = @_;
     select_console 'tunnel-console';
 
-    my $domain = '';
-    my @repos  = split(/,/, get_var('INCIDENT_REPO'));
     assert_script_run("mkdir ~/repos");
     assert_script_run("cd ~/repos");
+
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+
     for my $maintrepo (@repos) {
         my ($parent) = $maintrepo =~ 'https?://(.*)$';
         my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
@@ -33,6 +35,7 @@ sub run {
         assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
         assert_script_run("find $parent >> /tmp/repos.list.txt");
     }
+
     upload_logs('/tmp/repos.list.txt');
     assert_script_run("cd ~/");
 }

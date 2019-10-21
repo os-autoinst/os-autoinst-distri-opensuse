@@ -1582,7 +1582,7 @@ sub load_extra_tests_console {
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
     # dependency of git test
-    loadtest "console/sshd" unless get_var('PUBLIC_CLOUD');
+    loadtest "console/sshd";
     loadtest "console/update_alternatives";
     loadtest 'console/rpm';
     loadtest 'console/slp';
@@ -1595,9 +1595,9 @@ sub load_extra_tests_console {
             loadtest "console/wavpack";
         }
     }
-    loadtest "console/libvorbis"         unless get_var('PUBLIC_CLOUD');
-    loadtest "console/command_not_found" unless get_var('PUBLIC_CLOUD');
-    if (is_sle('12-sp2+') && !get_var('PUBLIC_CLOUD')) {
+    loadtest "console/libvorbis";
+    loadtest "console/command_not_found";
+    if (is_sle('12-sp2+')) {
         loadtest 'console/openssl_alpn';
         loadtest 'console/autoyast_removed';
     }
@@ -1612,9 +1612,9 @@ sub load_extra_tests_console {
     loadtest "console/git";
     loadtest "console/cups";
     loadtest "console/java";
-    loadtest "console/sqlite3" unless get_var('PUBLIC_CLOUD');
+    loadtest "console/sqlite3";
     loadtest "console/ant" if is_sle('<15-sp1');
-    loadtest "console/gdb" unless get_var('PUBLIC_CLOUD');
+    loadtest "console/gdb";
     loadtest "console/perf" if is_sle('<15-sp1');
     loadtest "console/sysctl";
     loadtest "console/sysstat";
@@ -1628,7 +1628,7 @@ sub load_extra_tests_console {
     loadtest "console/rsync";
     loadtest "console/clamav";
     loadtest "console/shells";
-    loadtest 'console/sudo' unless get_var('PUBLIC_CLOUD');
+    loadtest 'console/sudo';
     loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
@@ -1638,21 +1638,21 @@ sub load_extra_tests_console {
     }
     # bind need source package and legacy and development module on SLE15+
     loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
-    unless (is_sle('<12-SP3') || get_var('PUBLIC_CLOUD')) {
+    unless (is_sle('<12-SP3')) {
         loadtest 'x11/evolution/evolution_prepare_servers';
         loadtest 'console/mutt';
     }
     loadtest 'console/supportutils' if (is_sle && !is_jeos);
     loadtest 'console/mdadm' unless (is_jeos || get_var('PUBLIC_CLOUD'));
     loadtest 'console/journalctl';
-    loadtest 'console/quota'   unless (is_jeos || get_var('PUBLIC_CLOUD'));
+    loadtest 'console/quota'   unless (is_jeos);
     loadtest 'console/vhostmd' unless get_var('PUBLIC_CLOUD');
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
-    loadtest "sysauth/sssd" if (!get_var('PUBLIC_CLOUD') && (get_var('SYSAUTHTEST') || is_sle('12-SP5+')));
+    loadtest "sysauth/sssd" if (get_var('SYSAUTHTEST') || is_sle('12-SP5+'));
     loadtest 'console/timezone';
     loadtest 'console/ntp' if is_sle('<15');
-    loadtest 'console/procps' unless get_var('PUBLIC_CLOUD');
+    loadtest 'console/procps';
     loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/kmod';
     loadtest 'console/suse_module_tools';

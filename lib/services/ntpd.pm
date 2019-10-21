@@ -56,10 +56,9 @@ sub check_service {
 
 sub check_function {
     assert_script_run("date -s 'Tue Jul 03 10:42:42 2018'");
-    validate_script_output("date", sub { m/2018/ });
+    assert_script_run("date | grep 2018");
     systemctl("restart ntpd.service");
-    sleep(120);
-    validate_script_output("date", sub { not m/2018/ });
+    script_retry("date | grep -v 2018", delay => 30, retry => 6);
 }
 
 # Check ntp service before and after migration.
