@@ -66,7 +66,7 @@ sub verify_installation_and_repo {
               . " Expected to be installed: @{ [ $software{$name}->{installed} ? 'true' : 'false' ] }\n";
         }
         else {
-            $error .= " '$name' found in @{ [ $software{$name}->{repo} ] } repo, expected to be not available\n";
+            $error .= " '$name' found in @{ [ $software{$name}->{repo} ] } repo, this package should not be present.\n";
         }
         return $error;
     }
