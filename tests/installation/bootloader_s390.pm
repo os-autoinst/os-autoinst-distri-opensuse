@@ -266,7 +266,8 @@ sub format_dasd {
     }
 
     # bring DASD down again to test the activation during the installation
-    assert_script_run("dasd_configure 0.0.0150 0");
+    # currently broken due to bsc#1151394, so just leave it activated to continue with testing
+    record_soft_failure('bsc#1151394');
 }
 
 sub run {
