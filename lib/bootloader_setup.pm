@@ -211,7 +211,7 @@ sub boot_local_disk {
         }
         if (match_has_tag 'inst-slof') {
             diag 'specifying local disk for boot from slof';
-            my $slof = 5;
+            my $slof = 6;
             $slof += 1 if get_var('VIRTIO_CONSOLE');
             type_string_very_slow "boot /pci\t/sc\t$slof";
             save_screenshot;
