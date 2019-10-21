@@ -66,7 +66,7 @@ sub run {
     if (is_serial_terminal()) {
         # Make interactive SSH connection as the new user
         type_string "ssh -v -l $ssh_testman localhost -t\n";
-        wait_serial('Are you sure you want to continue connecting (yes/no)?', undef, 0, no_regex => 1);
+        wait_serial('Are you sure you want to continue connecting \(yes/no(/\[fingerprint\])?\)\?', undef, 0, no_regex => 0);
         type_string "yes\n";
         wait_serial('Password:', undef, 0, no_regex => 1);
         type_string "$ssh_testman_passwd\n";
