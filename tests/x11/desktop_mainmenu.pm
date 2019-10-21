@@ -28,9 +28,8 @@ sub run {
     elsif (check_var("DESKTOP", "xfce")) {
         mouse_set(0, 0);
         sleep 1;
-        send_key "ctrl-esc";    # open menu
-        sleep 1;
-        send_key "up";          # go into Applications submenu
+        assert_screen_change { send_key "ctrl-esc" };    # open menu
+        send_key "up";                                   # go into Applications submenu
         mouse_hide(1);
     }
     else {
