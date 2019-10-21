@@ -47,7 +47,7 @@ sub run {
     send_key "tab";
     type_string $static_ip;
     send_key "alt-n";    # next
-    assert_screen 'static-ip-address-set';
+    wait_screen_change { assert_screen 'static-ip-address-set' };
     close_yast2_lan();
 
     # verify that static IP has been set
@@ -60,7 +60,7 @@ sub run {
     assert_screen 'edit-network-card';
     send_key "alt-y";                  # select dynamic address option
     send_key "alt-n";                  # next
-    assert_screen 'dynamic-ip-address-set';
+    wait_screen_change { assert_screen 'dynamic-ip-address-set' };
     close_yast2_lan();
 
     # verify that dynamic IP address has been set
