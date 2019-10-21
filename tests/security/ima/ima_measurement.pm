@@ -33,7 +33,7 @@ sub run {
     my $meas_tmpfile = "/tmp/ascii_runtime_measurements";
     my $sample_file  = "/tmp/sample.txt";
 
-    add_grub_cmdline_settings('ima_policy=tcb', 1);
+    add_grub_cmdline_settings('ima_policy=tcb', update_grub => 1);
 
     # Reboot to make settings work
     power_action('reboot', textmode => 1);

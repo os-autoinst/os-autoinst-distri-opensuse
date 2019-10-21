@@ -33,7 +33,7 @@ sub run {
     validate_script_output("sestatus", sub { m/SELinux status: .*disabled/ });
 
     # enable SELinux in grub
-    add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 1);
+    add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', update_grub => 1);
 
     # control (enable) the status of SELinux on the system
     assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");

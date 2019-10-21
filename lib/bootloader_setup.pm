@@ -1022,6 +1022,7 @@ sub grep_grub_cmdline_settings {
     change_grub_config($old, $new [, $search ] [, $modifiers ], [, $update_grub ]);
 
 Replace C<$old> with C<$new> in /etc/default/grub, using sed.
+C<$new>, default empty string
 C<$search> meant to be for changing only particular line for sed,
 C<$modifiers> for sed replacement, e.g. "g".
 C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and upload configuration.
@@ -1031,6 +1032,7 @@ sub change_grub_config {
     my ($old, $new, $search, $modifiers, $update_grub) = @_;
     $modifiers   //= '';
     $update_grub //= 0;
+    $new         //= '';
     $search = "/$search/" if defined $search;
 
     assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);

@@ -54,7 +54,7 @@ sub run {
     my $last_algo = "none";
 
     for my $i (@algo_list) {
-        replace_grub_cmdline_settings("ima_hash=$last_algo", "ima_hash=@$i{algo}", 1);
+        replace_grub_cmdline_settings("ima_hash=$last_algo", "ima_hash=@$i{algo}", update_grub => 1);
         $last_algo = @$i{algo};
 
         # Grep and output grub settings to the terminal for debugging
