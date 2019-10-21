@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 SUSE LLC
+# Copyright (C) 2017-2019 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # Summary: Prepare system for actual desktop specific updates
 # - Disable delta rpms if system is not sle
 # - Unmask packagekit service
-# - Run "pkcon refresh"
+# - Run "pkcon refresh" if PackageKit is installed
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
 use base "consoletest";
@@ -31,9 +31,11 @@ sub run {
     ensure_serialdev_permissions;
     # default is true, for legacy reasons we were running this on openSUSE only
     assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf" if !is_sle;
-    systemctl 'unmask packagekit';
 
-    assert_script_run "pkcon refresh", 300;
+    if (script_run('rpm -q PackageKit') == 0) {
+        systemctl 'unmask packagekit';
+        assert_script_run "pkcon refresh", 300;
+    }
 }
 
 sub test_flags {

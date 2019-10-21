@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,7 +29,9 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    pkcon_quit;
+    if (script_run('rpm -q PackageKit') == 0) {
+        pkcon_quit;
+    }
 
     capture_state('between-after');
 
