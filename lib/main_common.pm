@@ -403,7 +403,12 @@ sub load_boot_tests {
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
-        loadtest "installation/bootloader_uefi";
+        if (is_jeos() && is_x86_64) {
+            loadtest "jeos/grub2";
+        }
+        else {
+            loadtest "installation/bootloader_uefi";
+        }
     }
     elsif (is_svirt_except_s390x()) {
         load_svirt_vm_setup_tests;
