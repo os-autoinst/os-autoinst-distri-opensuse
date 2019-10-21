@@ -37,9 +37,9 @@ sub run {
     # verify dns server responds to anything
     my $e = script_run "host localhost localhost";
     if ($e) {
-        record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost' if check_var('ARCH', 's390x');
+        record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost'         if check_var('ARCH', 's390x');
         record_info 'Skip the entire test on bridged networks (e.g. Xen, Hyper-V)' if (is_bridged_networking);
-        return if (is_bridged_networking || check_var('ARCH', 's390x'));
+        return                                                                     if (is_bridged_networking || check_var('ARCH', 's390x'));
         die "Command 'host localhost localhost' failed, cannot resolv localhost";
     }
 }

@@ -26,8 +26,8 @@ sub post_fail_hook {
 
 sub verify_user_info {
     my (%args) = @_;
-    my $user = $args{user_is_root};
-    my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
+    my $user   = $args{user_is_root};
+    my $lang   = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
     my %tz_data = ('en_US' => 'UTC', 'de_DE' => 'Europe/Berlin');
     assert_script_run("timedatectl | awk '\$1 ~ /Time/ { print \$3 }' | grep ^" . $tz_data{$lang} . "\$");

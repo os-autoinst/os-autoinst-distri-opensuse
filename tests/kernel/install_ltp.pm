@@ -190,7 +190,7 @@ curl --form upload=\@/root/openposix-test-list-$tag --form target=assets_public 
 }
 
 sub install_from_git {
-    my ($tag) = @_;
+    my ($tag)       = @_;
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
     my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
