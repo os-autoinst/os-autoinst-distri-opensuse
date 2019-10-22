@@ -57,13 +57,15 @@ sub add_logical_volume {
 sub encrypt_partition {
     wait_still_screen 1;
     send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-y");
-    wait_screen_change { send_key "alt-n" };
-    wait_still_screen 3;
+    wait_still_screen 2;
+    send_key "alt-n";
+    wait_still_screen 2;
     send_key "alt-t";
     wait_screen_change { type_string "susetesting" };
     send_key "alt-v";
     wait_screen_change { type_string "susetesting" };
-    wait_screen_change { send_key(is_sle('<=12-sp4') ? "alt-f" : "alt-n") };
+    send_key(is_sle('<=12-sp4') ? "alt-f" : "alt-n");
+    wait_still_screen 2;
 }
 
 sub select_vdb {
@@ -117,17 +119,19 @@ sub run {
     # XFS is the default filesystem, so we have to move up
     send_key_until_needlematch("yast2_storage_ng-ext4", "up");
     send_key "ret";
-    # encrypt the partition
-    wait_still_screen 1;
+    wait_still_screen 2;
     # on SLE 12.x it's not possible to resize an ext4 encrypted filesystem,
     if (is_sle("<=12-sp4")) {
-        wait_screen_change { send_key "alt-f" };
+        send_key "alt-f";
+        wait_still_screen 2;
     } else {
         encrypt_partition;
     }
     assert_screen "yast2_storage_ng-partition-created";
-    wait_screen_change { send_key "alt-n" };
-    wait_screen_change { send_key "alt-f" };
+    send_key "alt-n";
+    wait_still_screen 2;
+    send_key "alt-f";
+    wait_still_screen 2;
 
     x11_start_program('xterm');
     become_root;
