@@ -86,9 +86,10 @@ unset vm_hash_forward_ipaddr
 unset vm_hash_reverse_ipaddr
 declare -a vm_hash_forward_ipaddr=""
 declare -a vm_hash_reverse_ipaddr=""
-get_vm_guestnames_inactive=`virsh list --inactive | grep sles | awk '{print $2}'`
+vm_guestnames_types="sles|win"
+get_vm_guestnames_inactive=`virsh list --inactive | grep -E "${vm_guestnames_types}" | awk '{print $2}'`
 vm_guestnames_inactive_array=$(echo -e ${get_vm_guestnames_inactive})
-get_vm_guestnames=`virsh list  --all | grep sles | awk '{print $2}'`
+get_vm_guestnames=`virsh list  --all | grep -E "${vm_guestnames_types}" | awk '{print $2}'`
 vm_guestnames_array=$(echo -e ${get_vm_guestnames})
 get_vm_macaddress=""
 vm_macaddresses_array=""
