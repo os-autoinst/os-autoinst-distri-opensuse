@@ -12,7 +12,7 @@
 # - Check if bootloader is isolinux or grub and set different commands for each
 # - Create a array containing all the actions for bootloader phase
 # bootmenu_default_params,bootmenu_network_source, specific_bootmenu_params
-# specific_caasp_params, registration_bootloader_params
+# registration_bootloader_params
 # - If bootloader is grub, try to set graphics mode to 1024x768
 #   - If is NETBOOT, type "install=" in bootloader command line
 #   - If product is Jeos and VIDEOMODE is "text", type videomode=1 on bootloader
@@ -58,7 +58,6 @@ sub run {
     push @params, bootmenu_network_source;
     push @params, bootmenu_remote_target;
     push @params, specific_bootmenu_params;
-    specific_caasp_params;
     push @params, registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
     # on ppc64le boot have to be confirmed with ctrl-x or F10

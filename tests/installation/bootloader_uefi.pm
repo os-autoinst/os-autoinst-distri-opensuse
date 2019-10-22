@@ -28,7 +28,6 @@
 # - Call specific_bootmenu_params (Autoyast options, network options, debug
 # options, installer specific options, fips enablement, kexec parameters, addon
 # products, DUD loading, external ISO) unless it is is_caasp or is_jeos
-# - Call specific_caasp_params (STACK_ROLE)
 # - Save bootloader parameters in a screenshot
 # - if "USE_SUPPORT_SERVER" is defined, wait for mutex to unlock before sending
 # "F10"
@@ -113,7 +112,6 @@ sub run {
     uefi_bootmenu_params;
     bootmenu_default_params;
     specific_bootmenu_params unless is_caasp || is_jeos;
-    specific_caasp_params;
 
     # JeOS and CaaSP are never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.

@@ -14,7 +14,6 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
-use caasp;
 use utils "systemctl";
 
 sub run {
