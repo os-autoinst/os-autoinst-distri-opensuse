@@ -35,11 +35,11 @@ sub load_boot_from_disk_tests {
 
 sub load_feature_tests {
     # Feature tests for Micro OS operating system
-    loadtest 'caasp/libzypp_config';
-    loadtest 'caasp/one_line_checks';
-    loadtest 'caasp/services_enabled';
+    loadtest 'microos/libzypp_config';
+    loadtest 'microos/one_line_checks';
+    loadtest 'microos/services_enabled';
     load_transactional_role_tests;
-    loadtest 'caasp/journal_check';
+    loadtest 'microos/journal_check';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
     }
@@ -50,9 +50,9 @@ sub load_feature_tests {
 
 sub load_rcshell_tests {
     # Tests before the YaST installation
-    loadtest 'caasp/rcshell_start';
-    loadtest 'caasp/libzypp_config';
-    loadtest 'caasp/one_line_checks';
+    loadtest 'microos/rcshell_start';
+    loadtest 'microos/libzypp_config';
+    loadtest 'microos/one_line_checks';
 }
 
 sub load_installation_tests {
