@@ -60,7 +60,8 @@ sub post_fail_hook {
         script_run("service named stop");
     }
 
-    my $get_vm_hostnames   = "virsh list  --all | grep sles | awk \'{print \$2}\'";
+    my $vm_types           = "sles|win";
+    my $get_vm_hostnames   = "virsh list  --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
     my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
