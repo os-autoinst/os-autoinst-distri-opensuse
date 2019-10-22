@@ -18,7 +18,6 @@ use Time::HiRes 'sleep';
 use testapi;
 use utils;
 use version_utils qw(is_caasp is_jeos is_leap is_sle);
-use caasp 'pause_until';
 use mm_network;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT);
@@ -42,7 +41,6 @@ our @EXPORT = qw(
   bootmenu_remote_target
   specific_bootmenu_params
   remote_install_bootmenu_params
-  specific_caasp_params
   select_bootmenu_video_mode
   select_bootmenu_language
   tianocore_enter_menu
@@ -811,22 +809,6 @@ sub select_bootmenu_language {
             }
             send_key "ret";
         }
-    }
-}
-
-sub specific_caasp_params {
-    return unless is_caasp && get_var('STACK_ROLE');
-
-    # Wait for supportserver (controller node)
-    if (!check_var 'STACK_ROLE', 'controller') {
-        pause_until 'support_server_ready';
-    }
-
-    if (check_var('STACK_ROLE', 'worker')) {
-        # Wait until admin node genarates autoyast profile
-        pause_until 'VELUM_CONFIGURED' if get_var('AUTOYAST');
-        # Wait until first round of nodes are processed
-        pause_until 'NODES_ACCEPTED' if get_var('DELAYED');
     }
 }
 
