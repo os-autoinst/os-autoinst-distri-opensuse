@@ -119,9 +119,8 @@ sub run {
     open_yast2_lan();
 
     for (1 .. 2) { send_key "tab" }    # move to device list
-    send_key "down";                   # move to vlan
-    assert_screen 'vlan-selected';
-    send_key "alt-t";                  # remove vlan
+    send_key_until_needlematch 'vlan-selected', 'down', 5, 5;    # move to vlan
+    send_key "alt-t";                                            # remove vlan
     assert_screen 'vlan-deleted';
     close_yast2_lan();
     wait_still_screen;
