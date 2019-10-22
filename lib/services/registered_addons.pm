@@ -64,12 +64,18 @@ sub check_upgraded_addons {
 }
 
 sub check_suseconnect {
-    my $output = script_output("SUSEConnect -s");
-    my $json   = Mojo::JSON::decode_json($output);
-    foreach (@$json) {
-        my $iden   = $_->{identifier};
-        my $status = $_->{status};
-        die "$iden register status is: $status" if ($status ne 'Registered');
+    my $output = script_output("SUSEConnect -s", 120);
+    my @out = grep { $_ =~ /identifier/ } split(/\n/, $output);
+    if (@out) {
+        my $json = Mojo::JSON::decode_json($out[0]);
+        foreach (@$json) {
+            my $iden   = $_->{identifier};
+            my $status = $_->{status};
+            die "$iden register status is: $status" if ($status ne 'Registered');
+        }
+    }
+    else {
+        die "Cannot get register status: $output";
     }
 }
 
