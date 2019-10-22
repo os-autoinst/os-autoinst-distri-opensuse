@@ -800,14 +800,17 @@ sub handle_livecd_reboot_failure {
 
 =head2 assert_screen_with_soft_timeout
 
- assert_screen_with_soft_timeout($mustmatch [,timeout => $timeout] [, bugref => $bugref] [,soft_timeout => $soft_timeout] [,soft_failure_reason => $soft_failure_reason]);
+ assert_screen_with_soft_timeout($mustmatch, bugref => $bugref [,timeout => $timeout] [,soft_timeout => $soft_timeout] [,soft_failure_reason => $soft_failure_reason]);
 
 Extending assert_screen with a soft timeout. When C<$soft_timeout> is hit, a
 soft failure is recorded with the message C<$soft_failure_reason> but
-assert_screen continues until the (hard) timeout C<$timeout> is hit. This
+C<assert_screen> continues until the (hard) timeout C<$timeout> is hit. This
 makes sense when an assert screen should find a screen within a lower time but
 still should not fail and continue until the hard timeout, e.g. to discover
 performance issues.
+
+There MUST be a C<$bugref> set for the softfail.
+If it is not set this function will die.
 
 Example:
 
@@ -820,6 +823,7 @@ sub assert_screen_with_soft_timeout {
     $args{timeout}      //= 30;
     $args{soft_timeout} //= 0;
     my $needle_info = ref($mustmatch) eq "ARRAY" ? join(',', @$mustmatch) : $mustmatch;
+    die("\$args{bugref} is not set in assert_screen_with_soft_timeout") unless ($args{bugref});
     $args{soft_failure_reason} //= "$args{bugref}: needle(s) $needle_info not found within $args{soft_timeout}";
     if ($args{soft_timeout}) {
         die "soft timeout has to be smaller than timeout" unless ($args{soft_timeout} < $args{timeout});
