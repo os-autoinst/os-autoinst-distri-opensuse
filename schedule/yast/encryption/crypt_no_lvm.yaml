@@ -1,0 +1,32 @@
+---
+name: crypt_no_lvm
+description: >
+  Test installation with encrypted partitions but without lvm enabled. 
+  This is supported only by storage-ng, hence, do NOT enable test suite on distris without storage-ng.
+  (crypt-)LVM installations can take longer, especially on non-x86_64 architectures. 
+vars:
+  ENCRYPT: 1
+  LVM: 0
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/encrypt_no_lvm
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_encrypt
