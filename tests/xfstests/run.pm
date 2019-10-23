@@ -326,7 +326,9 @@ sub run {
 
     # Get test list
     my @tests = tests_from_ranges($TEST_RANGES, $INST_DIR);
-    @tests = shuffle(@tests);
+    unless (get_var('NO_SHUFFLE')) {
+        @tests = shuffle(@tests);
+    }
 
     test_prepare;
     heartbeat_start;
