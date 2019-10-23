@@ -38,8 +38,8 @@ sub run {
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], $timeout);
     if (match_has_tag('yast2_bootloader-missing_package')) {
         wait_screen_change { send_key 'alt-i'; };
+        assert_screen 'yast2_console-finished', $timeout;
     }
-    assert_screen 'yast2_console-finished', $timeout;
     wait_serial("$module_name-0") || die "'yast2 bootloader' didn't finish";
 }
 
