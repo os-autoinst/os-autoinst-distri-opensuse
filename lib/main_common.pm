@@ -1129,7 +1129,7 @@ sub load_consoletests {
         }
     }
     if (get_var("DESKTOP") !~ /textmode/ && !is_s390x) {
-        loadtest "console/xorg_vt";
+        loadtest "console/x_vt";
     }
     loadtest "console/zypper_lr";
     loadtest "console/check_system_info" if (is_sle && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
