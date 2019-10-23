@@ -16,6 +16,7 @@
 # - Add test repositories from system variables (PATCH_TEST_REPO,
 # MAINT_TEST_REPO)
 # - Install system patches
+# - Upload kernel changelog
 # - Reboot system and wait for bootloader
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
@@ -44,6 +45,9 @@ sub run {
     add_test_repositories;
 
     fully_patch_system;
+
+    assert_script_run('rpm -ql --changelog kernel-default >/tmp/kernel_changelog.log');
+    upload_logs('/tmp/kernel_changelog.log');
 
     console('root-ssh')->kill_ssh if check_var('BACKEND', 'ipmi');
     type_string "reboot\n";
