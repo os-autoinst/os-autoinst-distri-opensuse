@@ -38,7 +38,7 @@ sub run {
     # testing modsign-verify command
     if (is_sle('<15-sp1')) {
         # Run command and grep correct output
-        assert_script_run("modsign-verify $pth | grep 'good signature\\|bad signature\\|certificate not found\\|module not signed\\|other error'");
+        assert_script_run("modsign-verify $pth 2>&1 | grep 'good signature\\|bad signature\\|certificate not found\\|module not signed\\|other error\\|Invalid signature format'");
     }
 }
 

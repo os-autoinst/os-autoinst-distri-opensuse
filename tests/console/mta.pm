@@ -22,11 +22,17 @@ sub run {
 
     assert_script_run '! rpm -q exim';
 
-    # check if postfix is installed, enabled and running
-    assert_script_run 'rpm -q postfix';
-    systemctl 'is-enabled postfix';
-    systemctl 'is-active postfix';
-    systemctl 'status postfix';
+    unless (get_var('PUBLIC_CLOUD')) {
+        # check if postfix is installed, enabled and running
+        assert_script_run 'rpm -q postfix';
+        systemctl 'is-enabled postfix';
+        systemctl 'is-active postfix';
+        systemctl 'status postfix';
+    } else {
+        # Install and start postfix on Public Cloud
+        zypper_call 'in postfix mailx';
+        systemctl 'start postfix';
+    }
 
     # test email transmission
     assert_script_run 'echo "FOOBAR123" | mail root';
