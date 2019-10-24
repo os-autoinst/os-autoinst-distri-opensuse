@@ -10,6 +10,7 @@
 # Summary: prepare test data
 # - As user, get "test.data" from local autoinst service
 # - Run "cpio -id < test.data"
+# - Delete the downloaded CPIO archive again
 # - Run "ls -al data"
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
@@ -26,6 +27,7 @@ sub run {
     select_console 'user-console';
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " > test.data";
     assert_script_run " cpio -id < test.data";
+    assert_script_run "rm test.data";
     script_run "ls -al data";
 }
 
