@@ -63,10 +63,10 @@ schedule:
 - console/coredump_collect
 conditional_schedule:
   boot:
-    MACHINE:
-      zkvm:
+    ARCH:
+      s390x:
         - installation/bootloader_zkvm
-      64bit:
+      x86_64:
         - installation/isosize
         - installation/bootloader
   grub:
