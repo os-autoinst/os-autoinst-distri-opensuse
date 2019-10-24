@@ -22,7 +22,7 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
-use Utils::Backends qw(is_hyperv is_hyperv_in_gui);
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_spvm);
 use Utils::Architectures;
 use DistributionProvider;
 
@@ -726,19 +726,27 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/install_test_suite";
     loadtest "qa_automation/execute_test_run";
 }
-elsif (get_var("XFSTESTS")) {
+elsif (get_var('XFSTESTS')) {
     prepare_target;
-    if (check_var('XFSTESTS', 'installation')) {
-        loadtest "xfstests/install";
-        unless (get_var('NO_KDUMP')) {
-            loadtest "xfstests/enable_kdump";
-        }
-        loadtest "shutdown/shutdown";
+    if (is_spvm) {
+        loadtest 'xfstests/install';
+        loadtest 'xfstests/partition';
+        loadtest 'xfstests/run';
+        loadtest 'xfstests/generate_report';
     }
     else {
-        loadtest "xfstests/partition";
-        loadtest "xfstests/run";
-        loadtest "xfstests/generate_report";
+        if (check_var('XFSTESTS', 'installation')) {
+            loadtest 'xfstests/install';
+            unless (get_var('NO_KDUMP')) {
+                loadtest 'xfstests/enable_kdump';
+            }
+            loadtest 'shutdown/shutdown';
+        }
+        else {
+            loadtest 'xfstests/partition';
+            loadtest 'xfstests/run';
+            loadtest 'xfstests/generate_report';
+        }
     }
 }
 elsif (get_var("BTRFS_PROGS")) {
