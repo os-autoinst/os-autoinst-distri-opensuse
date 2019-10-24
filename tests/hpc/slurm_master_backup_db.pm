@@ -31,6 +31,7 @@ sub run {
     $self->mount_nfs();
 
     barrier_wait("SLURM_SETUP_DONE");
+    barrier_wait('SLURM_SETUP_DBD');
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
     record_info('slurm conf', script_output('cat /etc/slurm/slurm.conf'));
     $self->enable_and_start('munge');
