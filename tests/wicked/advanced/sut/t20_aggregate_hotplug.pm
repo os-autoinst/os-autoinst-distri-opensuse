@@ -27,6 +27,7 @@ sub run {
     assert_script_run('./ifbind.sh unbind ' . $ctx->iface());
     $self->validate_interfaces('bond0', undef, $ctx->iface2());
     assert_script_run('./ifbind.sh bind ' . $ctx->iface());
+    sleep 30;
     $self->validate_interfaces('bond0', $ctx->iface(), $ctx->iface2());
 }
 
