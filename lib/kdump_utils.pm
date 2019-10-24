@@ -16,7 +16,7 @@ use utils;
 use registration;
 use Utils::Backends 'is_spvm';
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_jeos is_opensuse);
+use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 
 
 our @ISA    = qw(Exporter);
@@ -27,10 +27,21 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
-    # JeOS uses kernel-default-base, except on aarch64 openSUSE
     my $kernel    = script_output('rpm -qf --qf %{name} /boot/initrd-$(uname -r)');
     my $debuginfo = script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel . '| sort --version-sort | tail -n 1');
     $debuginfo =~ s/$kernel/$kernel-debuginfo/g;
+    # Since SLE15-SP2+/Leap 15.2+ (standard and JeOS) there is 'kernel-default-base' but no 'kernel-default-base-debuginfo'
+    # use 'kernel-default-debuginfo' instead.
+    if ((is_sle('>=15-sp2') || is_leap('>=15.2') || is_tumbleweed) && $kernel eq 'kernel-default-base') {
+        $debuginfo =~ s/-base//g;
+        # kernel-default-base repackages kernel-default as an independent package now. They both work with kernel-default-debuginfo package.
+        # kernel-default-base has extra numbers added to the release version. e.g.
+        # - kernel-default           5.3.7-1.2
+        # - kernel-default-base      5.3.7-1.2.7.14
+        # - kernel-default-debuginfo 5.3.7-1.2
+        # Ignore the extra numbers added to the release version.
+        $debuginfo =~ s/(.*?)(\.lp\d+)*(\.\d+){2}$/$1/;
+    }
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
 
@@ -110,7 +121,7 @@ sub activate_kdump {
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
-    my @tags        = qw(yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
+    my @tags = qw(yast2-kdump-unexpected-issue yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
         # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
@@ -132,6 +143,8 @@ sub activate_kdump {
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
         wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
         wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
+        # problem with e2fsprogs requirement on JeOS
+        die('Missing e2fsprogs requirement, bsc#1140040') if (match_has_tag('yast2-kdump-unexpected-issue'));
     } until (match_has_tag('yast2_console-finished'));
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
