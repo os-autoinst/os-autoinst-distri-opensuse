@@ -104,19 +104,13 @@ sub y2snapper_show_changes_and_delete {
         # Select 1. subvolume (root) in the tree and expand it
         wait_screen_change { send_key "ret" };
         wait_screen_change { send_key "end" };
-        # Make sure it shows the new files from the unpacked tarball
-        send_key_until_needlematch 'yast2_snapper-show_testdata', 'up';
     }
     else {
         wait_screen_change { send_key "tab" };
         wait_screen_change { send_key "spc" };
-        save_screenshot;    # sporadically last item ticked on the tree is not refreshed in the right pane
-        wait_screen_change { send_key "home" };
-        wait_screen_change { send_key "end" };
-        # Make sure it shows the new files from the unpacked tarball
-        assert_screen 'yast2_snapper-show_testdata';
     }
-
+    # Make sure it shows the new files from the unpacked tarball
+    send_key_until_needlematch 'yast2_snapper-show_testdata', 'up';
     # Close the dialog and make sure it is closed
     send_key 'alt-c';
     # If snapshot list very long cannot show at one page, the 'yast2_snapper-new_snapshot' will never show up
