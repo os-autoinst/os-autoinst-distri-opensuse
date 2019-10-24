@@ -1507,6 +1507,9 @@ sub load_extra_tests_desktop {
     if (gnomestep_is_applicable()) {
         loadtest "x11/remote_desktop/vino_screensharing_available";
     }
+    if (get_var("DESKTOP") =~ /kde|gnome/) {
+        loadtest "x11/libqt5_qtbase" if (is_sle("12-SP3+") || is_opensuse);
+    }
     # the following tests care about network and need some DE specific
     # needles. For now we only have them for gnome and do not want to
     # support more than just this DE. Probably for later at least the wifi
