@@ -63,16 +63,19 @@ sub nfs_shares_tab {
     send_key 'alt-n';          # nfs shares tab
     assert_screen 'nis-client-nfs-client-shares-conf';
     send_key 'alt-a';          # add
-    wait_still_screen 4;
+    assert_screen 'nis-client-add-nfs-share';
     send_key 'alt-v';          # NFSV4 share checkbox (selectable box for newer products)
-    wait_still_screen 2;       # Requires refresh for newer products
+    assert_screen 'nis-client-nfsv4-share';
     send_key 'alt-s';          # choose NFS server button
     assert_screen 'nis-client-nfs-server';
     send_key 'alt-o';          # OK
+    assert_screen 'nis-client-add-nfs-share-filled';
     send_key 'alt-r';          # remote directory text field
     type_string $setup_nis_nfs_x11{nfs_dir};
+    assert_screen 'nis-client-add-nfs-share-remotedir';
     send_key 'alt-m';          # mount point text field
     type_string $setup_nis_nfs_x11{nfs_dir};
+    assert_screen 'nis-client-add-nfs-share-mountpoint';
     send_key 'alt-o';          # OK
     assert_screen 'nis-client-nfs-client-configuration';
     send_key 'alt-o';          # OK
