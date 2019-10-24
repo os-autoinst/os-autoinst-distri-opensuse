@@ -656,11 +656,11 @@ sub get_addon_fullname {
     my %product_list = (
         ha        => 'sle-ha',
         geo       => 'sle-ha-geo',
-        we        => is_sle('15-sp2+') ? 'product-we' : 'sle-we',
+        we        => is_sle('15+') ? 'product-we' : 'sle-we',
         sdk       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
         ses       => 'ses',
         live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
-        asmm      => is_sle('15-sp2+') ? 'sle-module-basesystem' : 'sle-module-adv-systems-management',
+        asmm      => is_sle('15+') ? 'sle-module-basesystem' : 'sle-module-adv-systems-management',
         base      => 'sle-module-basesystem',
         contm     => 'sle-module-containers',
         desktop   => 'sle-module-desktop-applications',
@@ -672,7 +672,7 @@ sub get_addon_fullname {
         rt        => 'SUSE-Linux-Enterprise-RT',
         script    => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
-        tcm       => is_sle('15-sp2+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
+        tcm       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
         wsm       => 'sle-module-web-scripting',
         python2   => 'sle-module-python2',
         phub      => 'PackageHub'
