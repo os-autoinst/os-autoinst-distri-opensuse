@@ -25,9 +25,11 @@ sub run {
     if (check_var('PARTITION_EDIT', 'ext4_btrfs')) {
         send_key "alt-d";
         send_key "alt-f";
-        send_key "e";
+        send_key "down";
+        send_key "alt-r";
         send_key "alt-i";
-        send_key "b";
+        send_key "up";
+        send_key "up";
         assert_screen 'partitioning-ext4_root-btrfs_home';
         send_key "alt-o";
     }
