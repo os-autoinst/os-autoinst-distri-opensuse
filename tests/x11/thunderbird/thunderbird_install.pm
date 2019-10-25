@@ -27,6 +27,7 @@ sub run {
 
     pkcon_quit;
     zypper_call("in MozillaThunderbird", exitcode => [0, 102, 103]);
+    systemctl 'restart dovecot postfix';
 
     select_console 'x11';
 }
