@@ -35,7 +35,7 @@ sub init {
 
     $self->create_credentials_file();
     assert_script_run('source ~/.bashrc');
-    assert_script_run('ntpdate -s time.google.com');
+    #assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run('gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
 }

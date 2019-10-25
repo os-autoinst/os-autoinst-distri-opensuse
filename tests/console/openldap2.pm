@@ -24,7 +24,7 @@ my @tests_sle = '';
 
 sub install_openldap2 {
     record_info 'Install OpenLDAP 2';
-    zypper_call('in openldap2-*');
+    zypper_call('in bzip2 openldap2-*');
 }
 
 sub prepare_test_suite {

@@ -40,9 +40,9 @@ sub run {
     #Setup console for text feedback.
     my ($self) = @_;
     $self->select_serial_terminal();
-    if (is_sle('=12-SP5') && is_aarch64()) {
+    if ((is_sle('=12-SP5') && is_aarch64()) || get_var('PUBLIC_CLOUD')) {
         register_product;
-        add_suseconnect_product 'sle-sdk';
+        add_suseconnect_product(get_addon_fullname('sdk'));
     }
     zypper_call('in gcc glibc-devel gdb');    #Install test depedencies.
 

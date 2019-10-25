@@ -31,8 +31,6 @@ sub run {
 
     assert_script_run("ps aux | nl");
 
-    register_product();
-
     assert_script_run("ip a s");
     assert_script_run("ip -6 a s");
     assert_script_run("ip r s");

@@ -1116,7 +1116,7 @@ else {
         if (get_var("ADDONS")) {
             loadtest "installation/addon_products_yast2";
         }
-        if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE')) {
+        if (get_var('SCC_ADDONS') && !get_var('SLENKINS_NODE') && !get_var('PUBLIC_CLOUD')) {
             loadtest "installation/addon_products_via_SCC_yast2";
         }
         if (get_var("ISCSI_SERVER")) {

@@ -50,15 +50,14 @@ sub ssh_interactive_join {
 
     # Open SSH interactive session and check the serial console works
     type_string("ssh -t sut\n");
-    wait_serial("ssh_serial_ready", 10);
+    wait_serial("ssh_serial_ready", 90);
 
     $testapi::distri->set_standard_prompt('root');
 }
 
 sub ssh_interactive_leave {
     # Check if the SSH tunnel is still up and leave the SSH interactive session
-    assert_script_run("if [[ -p /dev/$serialdev ]]; then true; else false; fi");
-    type_string("exit\n");
+    script_run("if [[ -p /dev/sshserial ]]; then exit; fi", timeout => 0);
 
     # Restore the environment to not use the SSH tunnel for upload/download from the worker
     #set_var('SUT_HOSTNAME',          testapi::host_ip());

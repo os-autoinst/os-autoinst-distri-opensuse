@@ -20,7 +20,7 @@ use base "consoletest";
 use testapi;
 use strict;
 use warnings;
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl script_retry);
 use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
@@ -29,7 +29,9 @@ sub run {
 
     zypper_call 'in openslp openslp-server';
 
-    disable_and_stop_service($self->firewall);
+    disable_and_stop_service($self->firewall) if (script_run("which " . $self->firewall) == 0);
+
+    assert_script_run 'useradd -d /var/lib/empty/ -s /sbin/nologin openslp || true';
 
     systemctl 'enable slpd';
     systemctl 'start slpd';
@@ -53,11 +55,15 @@ sub run {
     # Register and find two NTP services
     assert_script_run 'slptool register ntp://tik.cesnet.cz:123,en,65535';
     assert_script_run 'slptool register ntp://tak.cesnet.cz:123,en,65535';
-    assert_script_run 'if [[ $(slptool findsrvs ntp | grep "tik\|tak" | wc -l) = "2" ]]; then echo "Both NTP announcements were found"; else false; fi';
+    script_retry('slptool findsrvs ntp | grep -A9 -B9 "tik" | grep -A9 -B9 "tak"', delay => 15, retry => 5);
 
     # Deregister one NTP service and find the other one
     assert_script_run 'slptool deregister ntp://tik.cesnet.cz:123,en,65535';
     assert_script_run 'if [[ $(slptool findsrvs ntp | grep "tik\|tak" | wc -l) = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
+}
+
+sub post_fail_hook {
+    upload_logs '/var/log/slpd.log';
 }
 
 1;
