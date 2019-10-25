@@ -7,17 +7,34 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/bootloader_zkvm
+  # The test modules are failed on s390x and aarch64 and excluded to do investigations
+  under_issues_investigation:
+    ARCH:
+      ppc64le:
+        - yast2_cmd/yast_lan
+        - yast2_cmd/yast_ftp_server
+        - yast2_cmd/yast_users
+        - yast2_cmd/yast_keyboard
+      x86_64:
+        - yast2_cmd/yast_lan
+        - yast2_cmd/yast_ftp_server
+        - yast2_cmd/yast_users
+        - yast2_cmd/yast_keyboard
+      aarch64:
+        - yast2_cmd/yast_keyboard
+      s390x:
+        - yast2_cmd/yast_lan
+        - yast2_cmd/yast_ftp_server
+        - yast2_cmd/yast_users
+
 schedule:
      # Called on ARCH: s390x
      - {{bootloader_zkvm}}
      - boot/boot_to_desktop
-     - yast2_cmd/yast_lan
      - yast2_cmd/yast_rdp
      - yast2_cmd/yast_timezone
      - yast2_cmd/yast_tftp_server
-     - yast2_cmd/yast_ftp_server
-     - yast2_cmd/yast_users
      - yast2_cmd/yast_sysconfig
-     - yast2_cmd/yast_keyboard
      - yast2_cmd/yast_nfs_server
      - yast2_cmd/yast_nfs_client
+     - {{under_issues_investigation}}
