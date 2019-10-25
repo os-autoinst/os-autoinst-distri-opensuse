@@ -12,23 +12,44 @@
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
+use Mojo::Util 'trim';
 use testapi;
 use db_utils;
 
-sub extract_startup_timings {
+sub systemd_time_to_sec
+{
+    my $str = trim(shift);
+    if ($str !~ /^(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
+        die("Unable to parse systemd time '$str'");
+    }
+    my $sec = $+{sec} // $+{ms} / 1000;
+    $sec += $+{min} * 60 if (defined($+{check_min}));
+    return $sec;
+}
+
+sub extract_analyze {
     my $string = shift;
     my $res    = {};
     $string =~ s/Startup finished in\s*//;
     $string =~ s/=(.+)$/+$1 (overall)/;
     for my $time (split(/\s*\+\s*/, $string)) {
-        if ($time =~ /(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)\s*\((?<type>\w+)\)/) {
-            my $sec = $+{sec} // $+{ms} / 1000;
-            $sec += $+{min} * 60 if (defined($+{check_min}));
-            $res->{$+{type}} = $sec;
-        }
+        $time = trim($time);
+        my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
+        $res->{$type} = systemd_time_to_sec($time);
     }
     map { die("Fail to detect $_ timing") unless exists($res->{$_}) } qw(kernel initrd userspace overall);
     return $res;
+}
+
+sub extract_blame {
+    my $string = shift;
+    my $ret    = {};
+    for my $line (split(/\r?\n/, $string)) {
+        $line = trim($line);
+        my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
+        $ret->{$service} = systemd_time_to_sec($time);
+    }
+    return $ret;
 }
 
 sub do_systemd_analyze {
@@ -36,6 +57,7 @@ sub do_systemd_analyze {
     $args{timeout} = 120;
     my $start_time = time();
     my $output     = "";
+    my @ret;
 
     # Wait for guest register, before calling syastemd-analyze
     $instance->wait_for_guestregister();
@@ -45,7 +67,12 @@ sub do_systemd_analyze {
     }
 
     die("Unable to get system-analyze in $args{timeout} seconds") unless (time() - $start_time < $args{timeout});
-    return extract_startup_timings($output);
+    push @ret, extract_analyze($output);
+
+    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', quiet => 1);
+    push @ret, extract_blame($output);
+
+    return @ret;
 }
 
 sub run {
@@ -65,6 +92,7 @@ sub run {
         os_kernel_version => undef,
     };
     my $startup_timings = {};
+    my $blame_timings   = {};
 
     # Is used to specify thresholds per measurement. If one value is exceeded
     # the test is set to fail.
@@ -97,8 +125,9 @@ sub run {
     my $instance = $provider->create_instance(check_connectivity => 0);
     $startup_timings->{ssh_access} = $instance->check_ssh_port(timeout => 300);
 
-    my $systemd_analyze = do_systemd_analyze($instance);
+    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
     $startup_timings->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $blame_timings->{first} = $systemd_blame;
 
     # Collect kernel version
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
@@ -108,15 +137,17 @@ sub run {
     my ($shutdown_time, $startup_time) = $instance->softreboot();
     $startup_timings->{ssh_access_soft} = $startup_time;
 
-    $systemd_analyze = do_systemd_analyze($instance);
+    ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
     $startup_timings->{$_ . '_soft'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $blame_timings->{soft} = $systemd_blame;
 
     # Do hard reboot
     $instance->stop();
     $startup_timings->{ssh_access_hard} = $instance->start();
 
-    $systemd_analyze = do_systemd_analyze($instance);
+    ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
     $startup_timings->{$_ . '_hard'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $blame_timings->{hard} = $systemd_blame;
 
     # Do logging to openqa UI
     my $msg = "Bootup timeings:$/";
@@ -133,7 +164,17 @@ sub run {
             tags   => $tags,
             values => $startup_timings
         };
-        $data = influxdb_push_data($url, 'publiccloud', $data);
+        influxdb_push_data($url, 'publiccloud', $data);
+
+        for my $type (qw(first soft hard)) {
+            $tags->{boottype} = $type;
+            $data = {
+                table  => 'bootup_blame',
+                tags   => $tags,
+                values => $blame_timings->{$type}
+            };
+            influxdb_push_data($url, 'publiccloud', $data);
+        }
     }
 
     # Validate bootup timing against hard limits
