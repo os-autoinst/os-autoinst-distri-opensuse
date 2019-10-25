@@ -656,7 +656,7 @@ sub get_addon_fullname {
     my %product_list = (
         ha        => 'sle-ha',
         geo       => 'sle-ha-geo',
-        we        => is_sle('15+') ? 'product-we' : 'sle-we',
+        we        => 'sle-we',
         sdk       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
         ses       => 'ses',
         live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
