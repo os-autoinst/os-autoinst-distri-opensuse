@@ -1,0 +1,38 @@
+name:           modify_existing_partition_opensuse
+description:    >
+  Installation where we modify some pre-existing partitions. Must depend on some create_hdd test suite.
+
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/modify_existing_partition
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/select_patterns_and_packages
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_modify_existing_partition
+
+test_data:
+    disk: 'vda'
+    existing_partition: 'vda2'
+    mount_point: '/'
+    fs_type: 'ext4'
+    # Sizes should be preferably expressed in human readable binary units (eg GiB) for this test suite:
+    # we use lsblk in validation modules, wich uses human readable binary unit (*ibits).
+    # part_size is the size we input in partitioner, lsblk_expected_size_output is what we'll use for validation.
+    part_size: '10GiB'
+    lsblk_expected_size_output: '10G'
