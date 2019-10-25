@@ -47,11 +47,21 @@ sub build_influx_query {
     return $req;
 }
 
-=head2 influxdb_query
-    influxdb_query(data)
+=head2 influxdb_push_data
 
-    builds an influx-db query and posts it to the given database by C<url>.
-    C<data> should contain a hash containing the table name in Influx DB, the tags and the values to plot.
+    influxdb_push_data($url, $db, $data [, quiet => 1])
+
+Builds an influx-db query and write it to the given database specified with
+C<url> and C<db> for the Influx DB name.
+C<data> is a hash containing the table name in Influx DB, the tags
+and the values to plot.
+
+Example of data:
+    $data = {
+        table  => 'my_db_table_name',
+        tags   => { BUILD => '42', KERNEL => '4.12.14-lp151.28.20-default'},
+        values => { io_reads' => 1337, io_writes => 1338 }
+    }
 =cut
 sub influxdb_push_data {
     my ($url, $db, $data, %args) = @_;
