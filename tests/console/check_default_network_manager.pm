@@ -22,6 +22,8 @@ use version_utils;
 sub run {
     select_console 'root-console';
 
+    zypper_call('in systemd-network', exitcode => [0, 104]);
+
     assert_script_run 'ip a';
 
     if (is_opensuse) {
