@@ -16,7 +16,6 @@ conditional_schedule:
         - yast2_cmd/yast_users
         - yast2_cmd/yast_keyboard
       x86_64:
-        - yast2_cmd/yast_lan
         - yast2_cmd/yast_ftp_server
         - yast2_cmd/yast_users
         - yast2_cmd/yast_keyboard
