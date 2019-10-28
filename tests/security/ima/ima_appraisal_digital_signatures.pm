@@ -70,7 +70,7 @@ sub run {
 
     assert_script_run "wget --quiet " . data_url("ima/ima_appraisal_ds_policy" . " -O /etc/sysconfig/ima-policy");
 
-    replace_grub_cmdline_settings('ima_appraise=fix', update_grub => 1);
+    replace_grub_cmdline_settings('ima_appraise=fix', '', update_grub => 1);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);
