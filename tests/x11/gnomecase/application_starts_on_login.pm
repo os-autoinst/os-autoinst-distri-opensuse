@@ -40,7 +40,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle is_tumbleweed);
+use Utils::Architectures 'is_aarch64';
+use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
 use x11utils qw(handle_relogin turn_off_gnome_screensaver);
 
 sub tweak_startupapp_menu {
@@ -100,7 +101,12 @@ sub alter_status_auto_save_session {
     else {
         send_key 'ctrl-f';
         assert_screen 'dconf-search-bar';
-        type_string "auto-save-session\n", max_interval => 200;
+        my $autosavesession = "auto-save-session";
+        if (!is_opensuse || !is_aarch64) {
+            # the first occurence is pre-selected on aarch64 openSUSE and '\n' would open the pop-up
+            $autosavesession .= "\n";
+        }
+        type_string "$autosavesession", max_interval => 200;
     }
     assert_and_click "auto-save-session";
     if (check_screen("changing-scheme-popup", 5)) {
