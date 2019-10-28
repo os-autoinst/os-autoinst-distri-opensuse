@@ -70,6 +70,7 @@ sub setup_nspawn_container {
     my $path = "/var/lib/machines/$machine";
     assert_script_run("mkdir $path");
     zypper_call("--root $path --gpg-auto-import-keys addrepo $repo defaultrepo");
+    zypper_call("--root $path --gpg-auto-import-keys refresh");
     zypper_call("--root $path install --no-recommends -ly $packages", exitcode => [0, 107]);
 }
 
