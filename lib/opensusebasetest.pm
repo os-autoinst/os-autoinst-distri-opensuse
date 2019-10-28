@@ -322,7 +322,7 @@ sub investigate_yast2_failure {
         @detected_errors = (keys %y2log_known_errors);
     }
     # Test if zgrep is available
-    my $is_zgrep_available = (script_output('type zgrep') == 0);
+    my $is_zgrep_available = (script_run('type zgrep') == 0);
     my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
