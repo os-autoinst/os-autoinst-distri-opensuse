@@ -1735,7 +1735,7 @@ sub load_extra_tests_toolkits {
     loadtest "x11/toolkits/motif";
     loadtest "x11/toolkits/gtk2";
     loadtest "x11/toolkits/gtk3";
-    loadtest "x11/toolkits/qt4" if is_opensuse;
+    loadtest "x11/toolkits/qt4" if is_opensuse && !is_tumbleweed;
     loadtest "x11/toolkits/qt5";
     loadtest "x11/toolkits/swing";
     return 1;
