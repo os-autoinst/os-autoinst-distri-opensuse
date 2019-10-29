@@ -23,6 +23,9 @@ use warnings;
 sub provider_factory {
     my ($self) = @_;
     my $provider;
+
+    die("Provider already initialized") if ($self->{provider});
+
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
         $provider = publiccloud::ec2->new(
             key_id     => get_var('PUBLIC_CLOUD_KEY_ID'),
@@ -60,8 +63,7 @@ sub provider_factory {
     }
 
     $provider->init();
-    $self->{provider} //= [];
-    push(@{$self->{provider}}, $provider);
+    $self->{provider} = $provider;
     return $provider;
 }
 
@@ -77,14 +79,13 @@ sub _cleanup {
 
     eval { $self->cleanup(); } or bmwqemu::fctwarn($@);
 
-    $self->{provider} //= [];
     my $flags = $self->test_flags();
     if ($flags->{publiccloud_multi_module} &&
         !($self->{result} eq 'fail' && $flags->{fatal})) {
         return;    # skip cleanup
     }
-    for my $provider (@{$self->{provider}}) {
-        eval { $provider->cleanup(); } or bmwqemu::fctwarn($@);
+    if ($self->{provider}) {
+        eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn($@);
     }
 }
 

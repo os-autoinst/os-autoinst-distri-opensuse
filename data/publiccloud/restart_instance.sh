@@ -43,16 +43,19 @@ INSTANCE_ID=$2
 HOST=$3
 ZONE=$4
 CNT=120;
+LOG_SCRIPT="./log_instance.sh"
+
+test -x $LOG_SCRIPT && $LOG_SCRIPT stop "$PROVIDER" "$INSTANCE_ID" "$HOST" "$ZONE"
 
 case $PROVIDER in
     EC2)
-        aws ec2 reboot-instances  --instance-ids $INSTANCE_ID
+        aws ec2 reboot-instances  --instance-ids "$INSTANCE_ID"
         ;;
     AZURE)
-        az vm restart -g $INSTANCE_ID -n $INSTANCE_ID --no-wait
+        az vm restart -g "$INSTANCE_ID" -n "$INSTANCE_ID" --no-wait
         ;;
     GCE)
-        gcloud compute instances reset $INSTANCE_ID --zone $ZONE
+        gcloud compute instances reset "$INSTANCE_ID" --zone "$ZONE"
         ;;
     *)
         echo "Unknown provider $PROVIDER given";
@@ -60,7 +63,8 @@ case $PROVIDER in
         ;;
 esac
 
-wait_for_power_off $HOST $CNT
-wait_for_power_on $HOST $CNT
+wait_for_power_off "$HOST" "$CNT"
+wait_for_power_on "$HOST" "$CNT"
 echo "Instance $INSTANCE_ID restarted";
+test -x $LOG_SCRIPT && $LOG_SCRIPT start "$PROVIDER" "$INSTANCE_ID" "$HOST" "$ZONE"
 
