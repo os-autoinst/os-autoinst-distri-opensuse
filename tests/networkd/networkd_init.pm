@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils;
 
 sub run {
     my ($self) = @_;
@@ -34,8 +35,10 @@ sub run {
 
     $self->setup_nspawn_unit();
 
-    my $pkg_repo        = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
-    my $pkgs_to_install = "systemd systemd-network shadow zypper openSUSE-release vim iproute2 iputils";
+    my $pkg_repo            = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
+    my $release_pkg         = (is_leap '>=15.2') ? 'Leap-release' : 'openSUSE-release';
+    my $systemd_network_pkg = (is_tumbleweed) ? 'systemd-network' : '';
+    my $pkgs_to_install     = "systemd $systemd_network_pkg shadow zypper $release_pkg vim iproute2 iputils";
 
     $self->setup_nspawn_container("node1", $pkg_repo, $pkgs_to_install);
     $self->setup_nspawn_container("node2", $pkg_repo, $pkgs_to_install);
