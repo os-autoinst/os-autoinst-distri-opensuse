@@ -33,34 +33,36 @@ sub run {
     establish_connection();
 
     foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "VM $guest will loose it's aditional HV";
+        unless ($guest =~ m/hvm/i) {
+            record_info "$guest", "VM $guest will loose it's aditional HV";
 
-        select_guest($guest);
-        detect_login_screen();
+            select_guest($guest);
+            detect_login_screen();
 
-        mouse_set(0, 0);
-        assert_and_click 'virt-manager_details';
+            mouse_set(0, 0);
+            assert_and_click 'virt-manager_details';
 
-        assert_and_click 'virt-manager_disk2';
-        assert_screen 'virt-manager_disk2_name';
-        assert_and_click 'virt-manager_remove';
-        if (check_screen 'virt-manager_remove_disk2', 5) {
-            assert_and_dclick 'virt-manager_remove_disk2_yes';
+            assert_and_click 'virt-manager_disk2';
+            assert_screen 'virt-manager_disk2_name';
+            assert_and_click 'virt-manager_remove';
+            if (check_screen 'virt-manager_remove_disk2', 5) {
+                assert_and_dclick 'virt-manager_remove_disk2_yes';
+            }
+            wait_still_screen 3;
+
+            assert_and_click 'virt-manager_nic2';
+            assert_and_click 'virt-manager_remove';
+            if (check_screen 'virt-manager_remove_nic2', 5) {
+                assert_and_dclick 'virt-manager_remove_nic2_yes';
+            }
+            wait_still_screen 2;
+
+            mouse_set(0, 0);
+            assert_and_click 'virt-manager_graphical-console';
+
+            detect_login_screen();
+            close_guest();
         }
-        wait_still_screen 3;
-
-        assert_and_click 'virt-manager_nic2';
-        assert_and_click 'virt-manager_remove';
-        if (check_screen 'virt-manager_remove_nic2', 5) {
-            assert_and_dclick 'virt-manager_remove_nic2_yes';
-        }
-        wait_still_screen 2;
-
-        mouse_set(0, 0);
-        assert_and_click 'virt-manager_graphical-console';
-
-        detect_login_screen();
-        close_guest();
     }
 
     wait_screen_change { send_key 'ctrl-q'; };

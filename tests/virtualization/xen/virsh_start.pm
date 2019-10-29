@@ -27,7 +27,11 @@ sub run {
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
-    assert_script_run "virsh autostart $_" foreach (keys %xen::guests);
+    foreach my $guest (keys %xen::guests) {
+        if (script_run("virsh autostart $guest", 30) != 0) {
+            record_soft_failure "Cannot enable autostart on $guest guest";
+        }
+    }
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to boot up";
     systemctl 'restart libvirtd';

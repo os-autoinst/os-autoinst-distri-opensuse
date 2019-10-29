@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use virt_utils;
+use version_utils;
 
 sub run_test {
     my ($self) = @_;
