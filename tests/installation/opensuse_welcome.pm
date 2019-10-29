@@ -30,8 +30,8 @@ sub run {
     }
 
     for my $retry (1 .. 5) {
-        wait_screen_change { send_key 'alt-f4' };
-        last unless check_screen("opensuse-welcome", timeout => 2);
+        send_key 'alt-f4';
+        last if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
 }
