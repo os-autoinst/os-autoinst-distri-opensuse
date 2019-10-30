@@ -76,8 +76,9 @@ sub file2name {
     my ($self, $file) = @_;
     my $name = $file;
     $name = lc $file;    # lower case
-    $name =~ s/[^a-z0-9]//g;    # only allowed characteres from Google Cloud
-    $name =~ s/targz$//;        # removes targz
+    $name =~ s/\.tar\.gz$//;     # removes tar.gz
+    $name =~ s/\./-/g;
+    $name =~ s/[^-a-z0-9]//g;    # only allowed characteres from Google Cloud
     return $name;
 }
 
