@@ -120,6 +120,12 @@ sub img_proof {
     return $self->run_img_proof(%args);
 }
 
+sub terraform_apply {
+    my ($self, %args) = @_;
+    $args{project} //= $self->project_id;
+    return $self->SUPER::terraform_apply(%args);
+}
+
 sub describe_instance
 {
     my ($self, $instance) = @_;
