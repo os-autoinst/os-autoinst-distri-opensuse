@@ -282,6 +282,7 @@ sub terraform_apply {
     $cmd .= "-var 'type=" . $instance_type . "' ";
     $cmd .= "-var 'region=" . $self->region . "' ";
     $cmd .= "-var 'name=" . $name . "' ";
+    $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
     if ($args{use_extra_disk}) {
         $cmd .= "-var 'create-extra-disk=true' ";
         $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
