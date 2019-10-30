@@ -91,13 +91,15 @@ sub boot_spvm {
     type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
     assert_screen 'pvm-bootmode-set-normal';
 
-    # we assume the lpar is configured to boot normally - boot to SMS this time only
-    # pvmctl lpar update -i id=<LPARID> --set-fields LogicalPartition.bootmode=Normal
-    type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode sms\n";
+    # proceed with normal boot if is system already installed, use sms boot for installation
+    my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
+    type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}\n";
     assert_screen "pvm-poweron-successful";
 
     # don't wait for it, otherwise we miss the menu
     type_string " mkvterm --id $lpar_id\n";
+    # skip installation if is system already installed
+    return if get_var('BOOT_HDD_IMAGE');
     get_into_net_boot;
 
     # the grub on powerVM has a rather strange feature that it will boot

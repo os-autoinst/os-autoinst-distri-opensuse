@@ -795,6 +795,7 @@ sub boot_hdd_image {
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest 'boot/uefi_bootmenu';
     }
+    loadtest 'installation/bootloader' if is_spvm;
     loadtest 'boot/boot_to_desktop';
 }
 
