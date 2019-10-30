@@ -30,7 +30,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call clear_console);
+use utils qw(zypper_call clear_console ensure_serialdev_permissions);
 use version_utils qw(is_opensuse is_sle is_jeos);
 use power_action_utils 'power_action';
 
@@ -108,7 +108,7 @@ sub run {
     };
 
     ## Retrieve user's $LANG env variable after JeOS firstboot
-    select_console('user-console');
+    select_console('user-console', skip_set_standard_prompt => 1, skip_setterm => 1);
     clear_console;
 
     my $lang_booted       = script_output('echo $LANG');
@@ -142,8 +142,9 @@ sub run {
     # Parse and evaluate /etc/sysconfig/language
     die 'SUSE language config file is missing!' if (script_run("test -f $suse_lang_conf") != 0);
     my %rc_lc_setup = map {
+        s/["']//g;
+        s/\s+//g;
         my ($k, $v) = split(/=/, $_, 2);
-        $v =~ s/"//g;
         ($k => $v);
     } grep { /^\w+(_\w+)+/ } split(/\n/, script_output("cat $suse_lang_conf"));
 
@@ -153,24 +154,28 @@ sub run {
         "Expected to be empty\nRC_LC_ALL = $rc_lc_setup{RC_LC_ALL}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
+
     $record_info_result = ($rc_lc_setup{RC_LANG} =~ $rc_expected_data->{RC_LANG});
     $total_result += $record_info_result;
     record_info('LANG',
         "Expected to be $rc_expected_data->{RC_LANG}\nRC_LANG = $rc_lc_setup{RC_LANG}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
+
     $record_info_result = ($rc_lc_setup{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
     $total_result += $record_info_result;
     record_info('ROOT_USES_LANG',
         "Expected to be \'ctype\'\nROOT_USES_LANG = $rc_lc_setup{ROOT_USES_LANG}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
+
     $record_info_result = ($rc_lc_setup{RC_LC_MESSAGES} =~ $rc_expected_data->{RC_LANG});
     $total_result += $record_info_result;
     record_info('LANG == LC_MESSAGES',
         "Expected to be the same\nRC_LANG=$rc_lc_setup{RC_LANG}\nLC_MESSAGES=$rc_lc_setup{RC_LC_MESSAGES}\n",
         result => $record_info_result ? 'ok' : 'fail'
     );
+
     $self->result('fail') unless ($total_result);
 
     my $rc_lc_changed        = change_locale($lc_data{$lang_new}, \%rc_lc_setup);
@@ -180,7 +185,8 @@ sub run {
     power_action('reboot', textmode => 1);
     record_info('Rebooting', "Expected locale set=$rc_lc_changed->{RC_LANG}");
     $self->wait_boot;
-    select_console('root-console');
+    select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
+    ensure_serialdev_permissions;
     (test_users_locale($rc_lc_changed, $original_glibc_string) eq $updated_glibc_string) or die "Locale has changed after reboot!\n";
 
     if ($lang_new eq 'de_DE') {
