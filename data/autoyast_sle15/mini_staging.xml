@@ -7,18 +7,20 @@
             <timeout config:type="integer">-1</timeout>
         </global>
     </bootloader>
-    <add-on>
-        <add_on_products config:type="list">
-             <listentry>
-                <media_url>{{ADDONURL_BASE}}</media_url>
-                <product>sle-module-basesystem</product>
-             </listentry>
-             <listentry>
-                <media_url>{{ADDONURL_SERVERAPP}}</media_url>
-                <product>sle-module-serverapplications</product>
-             </listentry>
-        </add_on_products>
-    </add-on>
+    <suse_register>
+      <do_registration config:type="boolean">true</do_registration>
+      <email/>
+      <reg_code>{{SCC_REGCODE}}</reg_code>
+      <install_updates config:type="boolean">true</install_updates>
+      <reg_server>{{SCC_URL}}</reg_server>
+      <addons config:type="list">
+        <addon>
+          <name>sle-module-basesystem</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+      </addons>
+    </suse_register>
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
