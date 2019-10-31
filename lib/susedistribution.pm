@@ -257,34 +257,41 @@ sub x11_start_program {
     $args{match_no_wait} //= 0;
     $args{match_timeout} //= 90 if check_var('DESKTOP', 'kde');
 
-    # Start desktop runner and type command there
-    init_desktop_runner($program, $timeout);
-    # With match_typed we check typed text and if doesn't match - retrying
-    # Is required by firefox test on kde, as typing fails on KDE desktop runnner sometimes
-    if ($args{match_typed} && !check_screen($args{match_typed}, 30)) {
-        send_key 'esc';
+    my @runner_tags = qw(desktop-runner-border desktop-runner-suggestions);
+    push (@runner_tags, 'desktop-runner-plasma-suggestions') if  check_var('DESKTOP', 'KDE');
+
+    for my $retry (0 .. 2) {
+        # Start desktop runner and type command there
         init_desktop_runner($program, $timeout);
+        wait_still_screen(3);
+        save_screenshot;
+        send_key 'ret';
+        # As above especially krunner seems to take some time before disappearing
+        # after 'ret' press we should wait in this case nevertheless
+        # we wait for still screen unless we have $no_wait or the program is up and running in a non KDE desktop
+        wait_still_screen(3, similarity_level => 45) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
+        return unless $args{valid};
+
+        set_var('IN_X11_START_PROGRAM', $program);
+        my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
+        for (1 .. 3) {
+            push @target, @runner_tags;
+            push @target, 'command-not-found' if !check_var('DESKTOP', 'KDE');
+            assert_screen(@target, $args{match_timeout}, no_wait => $args{match_no_wait});
+            last unless match_has_tag @runner_tags;
+            last if match_has_tag 'command-not-found';
+            # resending return in case it was missed
+            wait_screen_change {
+                send_key 'ret';
+            };
+        }
+        set_var('IN_X11_START_PROGRAM', undef);
+        # asserting program came up properly
+        record_info "Command not found" && next       if match_has_tag 'command-not-found';
+        return                                        if match_has_tag $program;
+        next                                          if match_has_tag @runner_tags;
     }
-    wait_still_screen(3);
-    save_screenshot;
-    send_key 'ret';
-    # As above especially krunner seems to take some time before disappearing
-    # after 'ret' press we should wait in this case nevertheless
-    wait_still_screen(3, similarity_level => 45) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
-    return unless $args{valid};
-    set_var('IN_X11_START_PROGRAM', $program);
-    my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
-    for (1 .. 3) {
-        push @target, check_var('DESKTOP', 'kde') ? 'desktop-runner-plasma-suggestions' : 'desktop-runner-border';
-        assert_screen([@target], $args{match_timeout}, no_wait => $args{match_no_wait});
-        last unless match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
-        wait_screen_change {
-            send_key 'ret';
-        };
-    }
-    set_var('IN_X11_START_PROGRAM', undef);
-    # asserting program came up properly
-    die "Did not find target needle for tag(s) '@target'" if match_has_tag('desktop-runner-border') || match_has_tag('desktop-runner-plasma-suggestions');
+    die "Max amount of retries reached: "; #.  join (",", @target);
 }
 
 sub _ensure_installed_zypper_fallback {
