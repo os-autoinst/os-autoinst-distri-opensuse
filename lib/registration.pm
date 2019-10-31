@@ -47,7 +47,9 @@ our @EXPORT = qw(
   register_addons_cmd
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
+  %ADDONS_REGCODE
   @SLE15_ADDONS_WITHOUT_LICENSE
+  @SLE12_MODULES
 );
 
 # We already have needles with names which are different we would use here
@@ -75,8 +77,28 @@ our %SLE15_DEFAULT_MODULES = (
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
+our %ADDONS_REGCODE = (
+    'sle-ha'                   => get_var('SCC_REGCODE_HA'),
+    'sle-ha-geo'               => get_var('SCC_REGCODE_GEO'),
+    'sle-we'                   => get_var('SCC_REGCODE_WE'),
+    'sle-module-live-patching' => get_var('SCC_REGCODE_LIVE'),
+    'sle-live-patching'        => get_var('SCC_REGCODE_LIVE'),
+    'SLES-LTSS'                => get_var('SCC_REGCODE_LTSS'),
+    'SUSE-Linux-Enterprise-RT' => get_var('SCC_REGCODE_RT'),
+);
+
 our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm live);
 our @SLE15_ADDONS_WITH_LICENSE_NOINSTALL = qw(ha we);
+
+# Those modules' version is 12 for all of 12 sp products
+our @SLE12_MODULES = qw(
+  sle-module-adv-systems-management
+  sle-module-containers
+  sle-module-legacy
+  sle-module-toolchain
+  sle-module-web-scripting
+  sle-module-public-cloud
+);
 
 # Method to determine if a short name references a module based on what's defined
 # on %SLE15_MODULES
@@ -206,26 +228,29 @@ sub register_addons_cmd {
     my ($addonlist) = @_;
     $addonlist //= get_var('SCC_ADDONS');
     my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
+    if (check_var('DESKTOP', 'gnome') && is_sle('15+')) {
+        my $desk = "sle-module-desktop-applications";
+        record_info($desk, "Register $desk");
+        add_suseconnect_product($desk, undef, undef, undef, 300, 1);
+    }
     foreach my $addon (@addons) {
         my $name = get_addon_fullname($addon);
-        if ($name =~ /adv|containers|legacy|toolchain|web-scripting|public-cloud/) {
-            my @ver = split(/\./, scc_version());
-            add_suseconnect_product($name, $ver[0]);
-        }
-        elsif ($name =~ /live/) {
-            add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_LIVE'));
-        }
-        elsif ($name =~ /we/) {
-            add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_WE'));
-        }
-        elsif ($name =~ /LTSS/) {
-            add_suseconnect_product($name, undef, undef, "-r " . get_var('SCC_REGCODE_LTSS'));
-        }
-        elsif ($name =~ /sdk/) {
-            add_suseconnect_product($name);
-        }
-        else {
-            next;
+        if (length $name) {
+            record_info($name, "Register $name");
+            if (grep(/$name/, @SLE12_MODULES) and is_sle('<15')) {
+                my @ver = split(/\./, scc_version());
+                add_suseconnect_product($name, $ver[0], undef, undef, 300, 1);
+            }
+            elsif (grep(/$name/, keys %ADDONS_REGCODE)) {
+                add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, 1);
+                if ($name =~ /we/) {
+                    zypper_call("--gpg-auto-import-keys ref");
+                    add_suseconnect_product($name, undef, undef, "-r " . $ADDONS_REGCODE{$name}, 300, 1);
+                }
+            }
+            else {
+                add_suseconnect_product($name, undef, undef, undef, 300, 1);
+            }
         }
     }
 }
@@ -658,6 +683,7 @@ sub get_addon_fullname {
         geo       => 'sle-ha-geo',
         we        => 'sle-we',
         sdk       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
+        dev       => 'sle-module-development-tools',
         ses       => 'ses',
         live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
         asmm      => is_sle('15+') ? 'sle-module-basesystem' : 'sle-module-adv-systems-management',
@@ -675,7 +701,8 @@ sub get_addon_fullname {
         tcm       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
         wsm       => 'sle-module-web-scripting',
         python2   => 'sle-module-python2',
-        phub      => 'PackageHub'
+        phub      => 'PackageHub',
+        tsm       => 'sle-module-transactional-server'
     );
     return $product_list{"$addon"};
 }

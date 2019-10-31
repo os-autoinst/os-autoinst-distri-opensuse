@@ -235,7 +235,14 @@ sub sle_register {
             # that do not show license agreement during installation but do when registering
             # after install
             set_var('IN_PATCH_SLE', 1);
-            yast_scc_registration();
+            # To register the product and addons via commands, only for sle 12+
+            if (get_var('ADDON_REGBYCMD') && is_sle('12+')) {
+                register_product();
+                register_addons_cmd();
+            }
+            else {
+                yast_scc_registration();
+            }
             # Once SCC registration is done, disable IN_PATCH_SLE so it does not interfere
             # with further calls to accept_addons_license (in upgrade for example)
             set_var('IN_PATCH_SLE', 0);
