@@ -35,6 +35,7 @@ sub update_kernel {
     my ($repo, $incident_id) = @_;
 
     fully_patch_system;
+    zypper_call('in kernel-devel');
 
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
@@ -134,6 +135,8 @@ sub install_lock_kernel {
     if ($wk_ker == 1) {
         @packages = grep { $_ ne 'kernel-source-4.12.14-25.13.1' } @packages;
     }
+
+    push @packages, "kernel-devel=$version";
 
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
@@ -257,7 +260,7 @@ sub install_kotd {
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    zypper_call("in -l kernel-default");
+    zypper_call("in -l kernel-default kernel-devel");
 }
 
 sub boot_to_console {

@@ -35,7 +35,7 @@ sub run {
 
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
 
-    zypper_call('in -l git gcc kernel-devel make');
+    zypper_call('in -l git gcc make');
 
     assert_script_run('git clone ' . $git_repo);
 
