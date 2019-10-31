@@ -6,7 +6,7 @@ vars:
   UNENCRYPTED_BOOT: 1
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
-  DESKTOP: gnome
+  DESKTOP: textmode
 schedule:
   - installation/isosize
   - installation/bootloader_start
