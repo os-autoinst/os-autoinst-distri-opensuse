@@ -268,7 +268,7 @@ sub power_action {
 #                     select_console 'root-console';
 #                     type_string "$action\n";
                             # make sure SUT shut down correctly
-                            poweroff_x11;
+                         #   poweroff_x11;
                             console('x3270')->expect_3270(
                             output_delim => qr/.*SIGP stop.*/,
                             timeout      => 30
