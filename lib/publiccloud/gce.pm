@@ -85,10 +85,11 @@ sub file2name {
 sub find_img {
     my ($self, $name) = @_;
     my $img_name = $self->file2name($name);
-    my $out      = script_output("gcloud compute images list --filter='name~$img_name'|grep -v NAME", 10, proceed_on_failure => 1);
-    return if (!$out || $out =~ m/0 items/);
-    my ($image) = $out =~ /(\w+)/;
-    return $image;
+    my $out      = script_output("gcloud --format json compute images list --filter='name~$img_name'", 10, proceed_on_failure => 1);
+    return unless ($out);
+    my $json = decode_json($out);
+    return if (@{$json} == 0);
+    return $json->[0]->{name};
 }
 
 sub upload_img {
