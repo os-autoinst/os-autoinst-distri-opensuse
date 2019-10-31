@@ -21,6 +21,7 @@ use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
+use main_ltp 'loadtest_from_runtest_file';
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
@@ -343,7 +344,14 @@ sub run {
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     setup_network;
     upload_runtest_files('/opt/ltp/runtest', $tag);
-    power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT');
+
+    if (get_var('LTP_COMMAND_FILE')) {
+        # This assumes that current working directory is the worker's pool dir
+        loadtest_from_runtest_file('assets_public');
+    }
+
+    power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT') ||
+      get_var('LTP_COMMAND_FILE');
 }
 
 sub post_fail_hook {

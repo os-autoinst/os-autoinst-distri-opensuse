@@ -554,3 +554,6 @@ file (e.g. main.pm)
  loadtest 'installation/create_new_user';
  ...
 ```
+
+You can also call `loadtest` inside a running test to schedule additional
+test modules, e.g. to install and run an external test suite in the same job.
