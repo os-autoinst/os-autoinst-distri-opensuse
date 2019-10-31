@@ -272,7 +272,7 @@ sub power_action {
                          #   console('x3270')->expect_3270(
                          #   output_delim => qr/.*SIGP stop.*/,
                          #   timeout      => 30
-                            );
+                         #   );
                 }
                 else {
                     poweroff_x11;
