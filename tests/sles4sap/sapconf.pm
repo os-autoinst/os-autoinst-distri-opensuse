@@ -119,10 +119,8 @@ sub run {
       powersave throughput-performance virtual-guest);
     # Testing 'virtual-host' on a VM isn't very useful and can lead to sporadic timeout issues
     push @tuned_profiles, 'virtual-host' unless (check_var('BACKEND', 'qemu'));
-    # Add some profiles depending of the OS version
+    # Add SAP profiles depending of the OS version
     push @tuned_profiles, is_sle('15+') ? qw(sapconf saptune) : qw(sap-ase sap-bobj sap-hana sap-netweaver);
-    # Sort the array for the next regexp check
-    @tuned_profiles = sort @tuned_profiles;
 
     $self->select_serial_terminal;
 
@@ -139,7 +137,7 @@ sub run {
     verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
       if is_sle('15+');
 
-    my $statusregex = join('.+', @tuned_profiles);
+    my $statusregex = join('.+', sort(@tuned_profiles));
     $output = script_output "tuned-adm list";
     die "Command 'tuned-adm list' output is not recognized" unless ($output =~ m|$statusregex|s);
 
@@ -154,12 +152,7 @@ sub run {
 
     # We should test SAP profiles at the end - bsc#1146298
     foreach my $p (@tuned_profiles) {
-        test_profile($p) if $p !~ /sap[a-z\-]+/;
-    }
-
-    # So now test SAP profiles - bsc#1146298
-    foreach my $p (@tuned_profiles) {
-        test_profile($p) if $p =~ /sap[a-z\-]+/;
+        test_profile($p);
     }
 
     unless (is_sle('15+')) {
