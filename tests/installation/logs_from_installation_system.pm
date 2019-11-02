@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Summary: Collect logs from the installation system just before we try to
 #   reboot into the installed system
-# - If BACKEND is s390x or S390_DISK is not ZFCP, run "lsreipl | grep 0.0.0150"
+# - If BACKEND is s390x or S390_DISK is not ZFCP, run "lsreipl | grep $dasd_path"
 # to check IPL device
 # - If BACKEND is ipmi or spvm, set serial console type depending, HYPERVISOR TYPE (xen,
 # kvm) or ARCH (aarch64)
@@ -31,11 +31,12 @@ use ipmi_backend_utils;
 
 sub run {
     my ($self) = @_;
+    my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     select_console 'install-shell';
 
     # check for right boot-device on s390x (zVM, DASD ONLY)
     if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {
-        if (script_run('lsreipl | grep 0.0.0150')) {
+        if (script_run("lsreipl | grep $dasd_path")) {
             die "IPL device was not set correctly";
         }
     }
