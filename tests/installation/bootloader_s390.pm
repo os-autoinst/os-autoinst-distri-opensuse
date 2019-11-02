@@ -90,7 +90,7 @@ sub prepare_parmfile {
     if (check_var('INSTALL_SOURCE', 'ftp')) {
       $repo_host = 'ftp:ftp@' . $repo_host;
     }
-    my $instsrc = get_var('INSTALL_SOURCE', 'ftp') .  $repo_host . '/';
+    my $instsrc = get_var('INSTALL_SOURCE', 'ftp') . '://' .  $repo_host . '/';
     if (check_var('INSTALL_SOURCE', 'smb')) {
         $instsrc .= "inst/" . $repo;
         $params  .= " info=" . create_infofile("install: $instsrc");
