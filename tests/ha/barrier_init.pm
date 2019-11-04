@@ -19,7 +19,7 @@ use mmapi;
 
 # This tells the module whether the test is running in a supportserver or in node1
 sub is_not_supportserver_scenario {
-    return (get_var('HA_CLUSTER_INIT') and !get_var('USE_SUPPORT_SERVER'));
+    return (get_var('HOSTNAME') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
 }
 
 sub run {
