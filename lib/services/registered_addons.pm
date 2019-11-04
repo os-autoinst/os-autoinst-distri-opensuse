@@ -48,9 +48,14 @@ sub check_registered_addons {
         $addon =~ s/(^\s+|\s+$)//g;
         my $name = get_addon_fullname($addon);
         $name = 'LTSS' if ($name =~ /LTSS/);
+        # If has WE addon, zypper lr will list product-we when sle is 15+
+        # Need check nvidia repo
+        if ($name =~ /sle-we/) {
+            is_sle('15+') ? zypper_lr('product-we') : zypper_lr('sle-we');
+            zypper_lr('NVIDIA');
+            next;
+        }
         zypper_lr($name);
-        # If has WE addon, need check nvidia repo
-        zypper_lr('NVIDIA') if ($name =~ /sle-we/);
     }
 }
 
