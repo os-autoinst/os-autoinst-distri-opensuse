@@ -26,7 +26,35 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data);
+
+sub enable_debug_logging {
+
+    # turn on debug for libvirtd
+    my $libvirtd_conf_file = "/etc/libvirt/libvirtd.conf";
+    if (!script_run "ls $libvirtd_conf_file") {
+        script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
+        script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
+        script_run "grep -e log_level -e log_outputs $libvirtd_conf_file";
+        if (is_sle('<12')) {
+            script_run 'rclibvirtd restart';
+        }
+        else {
+            script_run 'systemctl restart libvirtd';
+        }
+    }
+    save_screenshot;
+
+    # enable journal log with prvious reboot
+    my $journald_conf_file = "/etc/systemd/journald.conf";
+    if (!script_run "ls $journald_conf_file") {
+        script_run "sed -i '/Storage *=/{h;s/^[# ]*Storage *=.*\$/Storage=persistent/};\${x;/^\$/{s//Storage=persistent/;H};x}' $journald_conf_file";
+        script_run "grep Storage $journald_conf_file";
+        script_run 'systemctl restart systemd-journald';
+    }
+    save_screenshot;
+
+}
 
 sub get_version_for_daily_build_guest {
     my $version = '';

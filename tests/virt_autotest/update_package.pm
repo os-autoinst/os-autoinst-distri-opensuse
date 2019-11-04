@@ -18,6 +18,7 @@ use base "virt_autotest_base";
 use virt_utils;
 use ipmi_backend_utils;
 use Utils::Backends 'is_remote_backend';
+use Utils::Architectures;
 
 sub update_package {
     my $self           = shift;
@@ -59,6 +60,10 @@ sub run {
         my $ipmi_console = get_var('LINUX_CONSOLE_OVERRIDE', 'ttyAMA0');
         assert_script_run("sed -irn \"s/console=ttyAMA0/console=$ipmi_console/g\" /usr/share/qa/virtautolib/lib/vh-update-lib.sh");
     }
+
+    # turn on debug for libvirtd & enable journal with previous reboot
+    enable_debug_logging if is_x86_64;
+
 }
 
 sub test_flags {
