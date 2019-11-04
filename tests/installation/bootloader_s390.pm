@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -218,22 +218,24 @@ sub show_debug {
 }
 
 sub create_encrypted_part_dasd {
-    my $self = shift;
+    my $self      = shift;
+    my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     # activate install-shell to do pre-install dasd-format
     select_console('install-shell');
 
     # bring dasd online
     # exit status 0 -> everything ok
     # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
-    my $r = script_run("dasd_configure 0.0.0150 1");
+    my $r = script_run("dasd_configure $dasd_path 1");
     die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
     create_encrypted_part('dasda');
-    assert_script_run("dasd_configure 0.0.0150 0");
+    assert_script_run("dasd_configure $dasd_path 0");
 }
 
 sub format_dasd {
     my $self = shift;
     my $r;
+    my $dasd_path = get_var('DASD_PATH', '0.0.0150');
 
     # activate install-shell to do pre-install dasd-format
     select_console('install-shell');
@@ -241,7 +243,7 @@ sub format_dasd {
     # bring dasd online
     # exit status 0 -> everything ok
     # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
-    $r = script_run("dasd_configure 0.0.0150 1");
+    $r = script_run("dasd_configure $dasd_path 1");
     die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
 
     # make sure that there is a dasda device

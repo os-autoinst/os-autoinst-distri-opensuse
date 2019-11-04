@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,6 +39,8 @@ sub add_zfcp_disk {
 }
 
 sub run {
+    my $dasd_path = get_var('DASD_PATH', '0.0.0150');
+
     # use zfcp as install disk
     if (check_var('S390_DISK', 'ZFCP')) {
         assert_screen 'disk-activation-zfcp';
@@ -60,10 +62,10 @@ sub run {
         if (check_var("VIDEOMODE", "text")) {
             send_key 'alt-m';    # minimum channel ID
             for (1 .. 9) { send_key "backspace"; }
-            type_string '0.0.0150';
+            type_string "$dasd_path";
             send_key 'alt-x';    # maximum channel ID
             for (1 .. 9) { send_key "backspace"; }
-            type_string '0.0.0150';
+            type_string "$dasd_path";
             send_key 'alt-f';    # filter button
             assert_screen 'dasd-unselected';
             send_key 'alt-s';    # select all
@@ -74,9 +76,9 @@ sub run {
         }
         else {
             send_key 'alt-m';    # minimum channel ID
-            type_string '0.0.0150';
+            type_string "$dasd_path";
             send_key 'alt-x';    # maximum channel ID
-            type_string '0.0.0150';
+            type_string "$dasd_path";
             send_key 'alt-f';    # filter button
             assert_screen 'dasd-unselected';
             send_key 'alt-s';    # select all
