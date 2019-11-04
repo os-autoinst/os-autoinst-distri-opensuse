@@ -2743,7 +2743,7 @@ sub load_ha_cluster_tests {
     set_var('USE_LVMLOCKD', 0) if (get_var('USE_LVMLOCKD') and is_sle('<15'));
 
     # When not using a support server, node 1 setups barriers and mutex
-    loadtest 'ha/barrier_init' if (get_var('HA_CLUSTER_INIT') and !get_var('USE_SUPPORT_SERVER'));
+    loadtest 'ha/barrier_init' if (get_var('HOSTNAME') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
 
     # Wait for barriers to be initialized except when testing HAWK as a client
     # or Pacemaker CTS regression tests
