@@ -47,7 +47,7 @@ true';
 
     assert_script_run 'echo "test42:424242" > /etc/rsyncd.secrets';
 
-    if (is_sle('<15')) {    #using xinetd on sle 12
+    if (is_sle('<12-sp5')) {    #using xinetd on sle 12
         assert_script_run(q{sed -i 's/\(\s*disable\s*=\).*/\1 no/' /etc/xinetd.d/rsync});
         assert_script_run 'rcxinetd restart';
         assert_script_run 'rcxinetd status';
