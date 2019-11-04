@@ -16,6 +16,7 @@
 # Test 5: List the network interfaces with wicked
 # Test 6: Bring an interface down with wicked
 # Test 7: Bring an interface up with wicked
+# Test 8: Stop several cards at once
 
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
@@ -64,6 +65,12 @@ sub run {
     $self->ping_with_timeout(type => 'host', interface => $ctx->iface());
     validate_script_output('ip address show dev ' . $ctx->iface(), sub { m/inet/g; });
     validate_script_output('wicked show dev ' . $ctx->iface(),     sub { m/\[dhcp\]/g; });
+    record_info('Test 8', 'Stop several cards at once');
+    $self->get_from_data("wicked/static_address/ifcfg-eth0_second_card", '/etc/sysconfig/network/ifcfg-' . $ctx->iface2());
+    $self->wicked_command('ifup',   $ctx->iface2());
+    $self->wicked_command('ifdown', 'all');
+    validate_script_output('wicked show dev ' . $ctx->iface(),  sub { m/state down/g; });
+    validate_script_output('wicked show dev ' . $ctx->iface2(), sub { m/state down/g; });
 }
 
 sub test_flags {
