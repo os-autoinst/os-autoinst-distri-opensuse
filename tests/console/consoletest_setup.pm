@@ -20,7 +20,7 @@
 
 use base "consoletest";
 use testapi;
-use utils qw(check_console_font disable_serial_getty);
+use utils qw(check_console_font disable_serial_getty zypper_call);
 use Utils::Backends qw(has_ttys use_ssh_serial_console);
 use Utils::Systemd 'disable_and_stop_service';
 use strict;
@@ -47,6 +47,9 @@ sub run {
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
+
+    # install coredumpctl for post_fail_hook consoletest.pm
+    zypper_call('in systemd-coredump');
 
     $self->clear_and_verify_console;
     select_console 'user-console';

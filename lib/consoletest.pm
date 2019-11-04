@@ -56,6 +56,8 @@ sub post_fail_hook {
     $self->export_logs_basic;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     $self->export_logs_desktop;
+    # Export coredump data if present
+    $self->upload_coredumps;
 }
 
 sub test_flags {
