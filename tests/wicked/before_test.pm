@@ -50,10 +50,13 @@ sub run {
 
     $self->download_data_dir();
 
+    my $package_list = 'openvpn';
+    $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
     if (check_var('IS_WICKED_REF', '1')) {
         # Common REF Configuration
         record_info('INFO', 'Setup DHCP server');
-        zypper_call('--quiet in dhcp-server openvpn', timeout => 200);
+        $package_list .= ' dhcp-server';
+        zypper_call("-q in $package_list", timeout => 400);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
         systemctl 'enable dhcpd.service';
@@ -75,10 +78,9 @@ sub run {
             assert_script_run('cd ./wicked ; ./autogen.sh ', timeout => 600);
             assert_script_run('make ; make install',         timeout => 600);
         }
-        my $package_list = 'openvswitch openvpn iputils';
+        $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 python-libteam' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
-        $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
     }
