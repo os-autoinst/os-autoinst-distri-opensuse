@@ -337,8 +337,11 @@ sub process_scc_register_addons {
     #   wsm - Web and Scripting Module
     if (get_var('SCC_ADDONS')) {
         if (check_screen('scc-beta-filter-checkbox', 5)) {
-            if (get_var('SP3ORLATER')) {
-                send_key 'alt-i';    # uncheck 'Hide Beta Versions'
+            if (is_sle('12-SP3+')) {
+                # Uncheck 'Hide Beta Versions'
+                # The workaround with send_key_until_needlematch is added,
+                # because on ppc64le the shortcut key does not reach VM sporadically.
+                send_key_until_needlematch('scc-beta-filter-unchecked', 'alt-i', 3, 5);
             }
             else {
                 send_key 'alt-f';    # uncheck 'Filter Out Beta Version'
