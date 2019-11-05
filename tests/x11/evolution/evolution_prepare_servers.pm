@@ -116,7 +116,7 @@ sub run() {
 }
 
 sub test_flags() {
-    return {milestone => 1, fatal => 1};
+    return get_var('PUBLIC_CLOUD') ? {milestone => 0, fatal => 1, no_rollback => 1} : {milestone => 1, fatal => 1};
 }
 
 sub post_fail_hook {
