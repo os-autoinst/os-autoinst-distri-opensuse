@@ -197,6 +197,10 @@ sub setup_env {
         set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION'));
         set_var('VERSION',                 get_var('UPGRADE_TARGET_VERSION'));
     }
+    # Set correct VERSION for the base system setup on z/VM
+    if (get_var('BASE_VERSION') && !is_upgrade() && check_var('ARCH', 's390x')) {
+        set_var('VERSION', get_var('BASE_VERSION'));
+    }
 }
 
 sub data_integrity_is_applicable {
