@@ -22,8 +22,13 @@ sub run {
     my $nfs_share    = get_required_var('NFS_SUPPORT_SHARE');
     my $mountpt      = '/support_fs';
     my $cluster_name = get_cluster_name;
-    my $dir_id       = $cluster_name . '_' . get_required_var('ARCH');
+    my $dir_id       = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'));
+    my $hddversion   = get_var('HDDVERSION', '');
     my $time_to_wait;
+
+    # If dealing with upgrades, specify that in the directory name as to avoid overwriting info
+    # from other running tests
+    $dir_id .= "_from_$hddversion" if $hddversion;
 
     set_var('NFS_SUPPORT_DIR', "$mountpt/$dir_id");
     assert_script_run "mkdir -p $mountpt";
@@ -46,6 +51,9 @@ sub run {
     assert_script_run "sed -i '/$cluster_name/d' /etc/hosts";
     assert_script_run "cat $mountpt/$dir_id/*.hosts >> /etc/hosts";
     assert_script_run 'cat /etc/hosts';
+
+    # Skip LUN setup in upgrades
+    return if $hddversion;
 
     # prepare LUN files. only node 1 does this
     if (is_node(1)) {

@@ -2752,6 +2752,7 @@ sub load_ha_cluster_tests {
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
+        loadtest 'ha/setup_hosts_and_luns' unless get_var('USE_SUPPORT_SERVER');
         loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
         loadtest 'ha/check_after_reboot';
         loadtest 'ha/check_hawk';
