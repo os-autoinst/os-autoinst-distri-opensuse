@@ -163,7 +163,7 @@ sub y2snapper_clean_and_quit {
 
     # After deletion of snapshot sometimes the UI gets busy, delete button is even disabled
     # but the UI is unresponsive for a time
-    wait_still_screen 10;
+    wait_still_screen 30;
     # C'l'ose the snapper module
     wait_screen_change { send_key "alt-l"; };
 
