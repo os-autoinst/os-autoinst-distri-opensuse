@@ -33,4 +33,8 @@ sub run {
     die("Create mutex failed") unless mutex_create('t08_dhcpd_setup_complete');
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
+
 1;
