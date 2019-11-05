@@ -47,13 +47,13 @@ resource "aws_key_pair" "openqa-keypair" {
 
 resource "aws_security_group" "basic_sg" {
     name        = "openqa-${element(random_id.service.*.hex, 0)}"
-    description = "Allow all inbound traffic"
+    description = "Allow all inbound traffic from SUSE IP ranges"
 
     ingress {
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["213.151.95.130/32", "195.135.220.0/22"]
     }
 
     egress {
