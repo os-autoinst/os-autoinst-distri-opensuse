@@ -1111,7 +1111,6 @@ else {
         }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
-        load_bootloader_s390x();
         boot_hdd_image;
         if (get_var("ADDONS")) {
             loadtest "installation/addon_products_yast2";
