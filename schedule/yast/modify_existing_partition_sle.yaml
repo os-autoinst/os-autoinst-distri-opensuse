@@ -42,7 +42,7 @@ test_data:
 
 conditional_schedule:
   reconnect_mgmt_console:
-    BACKEND:
+    ARCH:
       s390x:
         - boot/reconnect_mgmt_console
   grub_test:
