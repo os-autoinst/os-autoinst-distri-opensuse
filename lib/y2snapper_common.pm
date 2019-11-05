@@ -11,43 +11,6 @@ use testapi;
 use utils;
 use version_utils;
 
-=head2 y2snapper_select_current_conf
-
- y2snapper_select_current_conf($ncurses);
-
-Select Current Configuration on Snapshots screen
-C<$ncurses> is used to check if it is ncurses.
-
-=cut
-sub y2snapper_select_current_conf {
-    my ($self, $ncurses) = @_;
-    $ncurses //= 0;
-    if ($ncurses) {
-        send_key 'alt-tab';    # Focus Current Configuration selection box
-        send_key 'down';       # Expand test configuration selection box
-        send_key 'down';       # Select test configuration
-        send_key 'ret';        # Apply selection
-        send_key 'tab';
-    }
-    else {
-        send_key 'shift-tab';    # Focus Current Configuration selection box
-        send_key 'down';         # Select test configuration
-    }
-}
-
-=head2 y2snapper_adding_new_snapper_conf
-
- y2snapper_adding_new_snapper_conf();
-
-Setup another snapper config for /test (creating previously a subvolume for it)
-It allows to have more control over diffs amongs snapshots.
-
-=cut
-sub y2snapper_adding_new_snapper_conf {
-    assert_script_run("btrfs subvolume create /test");
-    assert_script_run("snapper -c test create-config /test");
-}
-
 =head2 y2snapper_create_snapshot
 
  y2snapper_create_snapshot($name);
@@ -83,8 +46,11 @@ sub y2snapper_new_snapshot {
     $ncurses //= 0;
 
     assert_screen 'yast2_snapper-snapshots', 100;
-    $self->y2snapper_select_current_conf($ncurses);
-    assert_screen 'yast2_snapper-empty-list';
+    # ensure the last screenshots are visible
+    send_key 'pgdn';
+    # Make sure the test snapshot is not there
+    die("Unexpected snapshot found")
+      if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 1));
 
     # Create a new snapshot
     $self->y2snapper_create_snapshot;
@@ -94,22 +60,23 @@ sub y2snapper_new_snapshot {
     }
     # Make sure the snapshot is listed in the main window
     send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
-    wait_still_screen 10;
-    # C'l'ose the snapper module
+    # C'l'ose  the snapper module
     send_key "alt-l";
 }
 
-=head2 y2snapper_apply_filesystem_changes
+=head2 y2snapper_untar_testfile
 
- y2snapper_apply_filesystem_changes();
+ y2snapper_untar_testfile($args);
 
-Performs any modification in filesystem and at least include some change
-under /test, which is the subvolume for testing.
+Untar test file. 
+Use C<$args> to check product and handle the directory path for untar files.
 
 =cut
-sub y2snapper_apply_filesystem_changes {
-    assert_script_run('echo "hello world in snapper conf /root" > /hello_root.txt');
-    assert_script_run('echo "hello world in snapper conf /test" > /test/hello_test.txt');
+sub y2snapper_untar_testfile {
+    # Due to the product change for bsc#1085266 /root is not included in
+    # snapshots anymore
+    my $args = is_sle('<15') || is_leap('<15.0') ? '' : '-C /etc';
+    assert_script_run "tar $args -xzf /home/$username/data/yast2_snapper.tgz";
 }
 
 =head2 y2snapper_show_changes_and_delete
@@ -126,12 +93,13 @@ sub y2snapper_show_changes_and_delete {
     $ncurses //= 0;
 
     assert_screen 'yast2_snapper-snapshots', 100;
-    $self->y2snapper_select_current_conf($ncurses);
-
-    assert_screen 'yast2_snapper-new_snapshot_selected';
-    # Press Show Changes
+    send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
+    wait_screen_change { send_key 'end' };
+    send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
+    # Press 'S'how changes button and select both directories that have been
+    # extracted from the tarball
     send_key "alt-s";
-    assert_screen 'yast2_snapper-unselected_testdata';
+    assert_screen 'yast2_snapper-collapsed_testdata', 200;
     if ($ncurses) {
         # Select 1. subvolume (root) in the tree and expand it
         wait_screen_change { send_key "ret" };
@@ -141,13 +109,34 @@ sub y2snapper_show_changes_and_delete {
         wait_screen_change { send_key "tab" };
         wait_screen_change { send_key "spc" };
     }
-    assert_screen 'yast2_snapper-selected_testdata';
+    # Make sure it shows the new files from the unpacked tarball
+    send_key_until_needlematch 'yast2_snapper-show_testdata', 'up';
     # Close the dialog and make sure it is closed
     send_key 'alt-c';
+    # If snapshot list very long cannot show at one page, the 'yast2_snapper-new_snapshot' will never show up
+    # Added 'yast2_snapper-snapshots' needle to confirm the 'alt-c' closed the window
+    # Refer ticket: https://progress.opensuse.org/issues/45107
+    die '"Selected Snapshot Overview" window is not closed after sending alt-c' unless check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-snapshots)], 100);
+    wait_screen_change { send_key 'end' };
+    send_key_until_needlematch('yast2_snapper-new_snapshot_selected', 'up');
     # Dele't'e the snapshot
     send_key "alt-t";
-    assert_screen 'yast2_snapper-confirm_delete';
+    assert_screen 'yast2_snapper-confirm_delete', 100;
     send_key "alt-y";
+    # Make sure the snapshot is not longer there
+    assert_screen [qw(yast2_snapper-snapshots yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 100;
+    if (match_has_tag('yast2_snapper-new_snapshot') or match_has_tag('yast2_snapper-new_snapshot_selected')) {
+        diag 'new snapshot found despite requested for deletion, waiting a bit more';
+        # In old versions the test was so slow that the issue has never
+        # been seen: Deleting a snapshot on at least SP1 does not happen
+        # immediately but takes 1-2 seconds. That's why after deletion
+        # it's still there which is detected now in the new faster version
+        # of the test. On a second look it should really be gone
+        wait_still_screen 30;
+        if (check_screen([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 0)) {
+            die("The snapshot is still visible after trying to delete it and waiting a bit");
+        }
+    }
 }
 
 =head2 y2snapper_clean_and_quit
@@ -161,9 +150,9 @@ Quit yast2-snapper and clean up the test data.
 sub y2snapper_clean_and_quit {
     my ($self, $module_name) = @_;
 
-    # After deletion of snapshot sometimes the UI gets busy, delete button is even disabled
-    # but the UI is unresponsive for a time
-    wait_still_screen 30;
+    # Ensure yast2-snapper is not busy anymore
+    wait_still_screen;
+
     # C'l'ose the snapper module
     wait_screen_change { send_key "alt-l"; };
 
@@ -175,9 +164,7 @@ sub y2snapper_clean_and_quit {
         assert_screen('root-gnome-terminal', timeout => 180);
     }
 
-    script_run 'rm /hello_root.txt';
-    script_run 'snapper -c test delete-config';
-    script_run 'rm -rf /test/*';
+    script_run 'rm -rf testdata';
     script_run "ls";
     unless (defined($module_name)) {
         type_string "exit\n";
