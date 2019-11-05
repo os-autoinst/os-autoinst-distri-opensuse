@@ -66,8 +66,8 @@ sub run {
         # bring dasd online
         # exit status 0 -> everything ok
         # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
-        my $r =  script_run("dasd_configure 0.0.0200 1");
-        die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
+        my $r = script_run("dasd_configure 0.0.0200 1");
+        die "DASD in undefined state (exit code $r)" unless (defined($r) && ($r == 0 || $r == 8));
     }
 
     $self->set_playground_disk;
