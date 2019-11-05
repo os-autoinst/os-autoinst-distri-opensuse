@@ -49,17 +49,13 @@ Method executed when run() finishes and the module has result => 'fail'
 
 =cut
 sub post_fail_hook {
-    # On Public Cloud everything is done via SSH so the code below doesn't work
-    # TODO: Make some reasonable base post_fail_hook for Public Cloud
-    unless (get_var('PUBLIC_CLOUD')) {
-        my ($self) = shift;
-        select_console('log-console');
-        $self->SUPER::post_fail_hook;
-        $self->remount_tmp_if_ro;
-        $self->export_logs_basic;
-        # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
-        $self->export_logs_desktop;
-    }
+    my ($self) = shift;
+    select_console('log-console');
+    $self->SUPER::post_fail_hook;
+    $self->remount_tmp_if_ro;
+    $self->export_logs_basic;
+    # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
+    $self->export_logs_desktop;
 }
 
 sub test_flags {
