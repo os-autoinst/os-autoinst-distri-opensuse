@@ -18,6 +18,7 @@ use Exporter;
 use testapi;
 use utils;
 use List::Util 'max';
+use version_utils 'is_sle';
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
@@ -28,8 +29,9 @@ use constant ZYPPER_STATUS_COL  => 5;
 sub capture_state {
     my ($state, $y2logs) = @_;
     if ($y2logs) {    #save y2logs if needed
-        assert_script_run "save_y2logs /tmp/y2logs_$state.tar.bz2";
-        upload_logs "/tmp/y2logs_$state.tar.bz2";
+        my $compression = is_sle('=12-sp1') ? 'bz2' : 'xz';
+        assert_script_run "save_y2logs /tmp/y2logs_$state.tar.$compression";
+        upload_logs "/tmp/y2logs_$state.tar.$compression";
         save_screenshot();
     }
     #upload ip status
