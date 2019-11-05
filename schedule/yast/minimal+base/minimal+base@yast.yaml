@@ -3,8 +3,6 @@ name:           minimal+base@yast
 description:    >
   Select a minimal textmode installation by starting with the default and unselecting all patterns
   except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
-vars:
-  PATTERNS: base,minimal
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -27,3 +25,13 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/system_prepare
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/validate_selected_patterns
+  - console/consoletest_finish
