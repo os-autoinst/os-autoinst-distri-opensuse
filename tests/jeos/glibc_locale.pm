@@ -49,6 +49,7 @@ sub change_locale {
     my %rc_lc_modified;
 
     select_console('root-console', await_console => 0, ensure_tty_selected => 0, skip_set_standard_prompt => 1, skip_setterm => 1);
+    ensure_serialdev_permissions;
 
     if (is_sle('<15')) {
         ## suitable for sles12 family only
@@ -77,7 +78,7 @@ sub test_users_locale {
     record_info('Check', "Verifying $rc_lc_udpated->{RC_LANG}");
     ## Let's repeat the whole user login process again
     reset_consoles;
-    select_console('user-console');
+    select_console('user-console', ensure_tty_selected => 0, skip_setterm => 1);
 
     foreach my $line (split(/\n/, script_output("locale"))) {
         next if ($line =~ /^LC_ALL= *$/);
@@ -108,7 +109,7 @@ sub run {
     };
 
     ## Retrieve user's $LANG env variable after JeOS firstboot
-    select_console('user-console', skip_set_standard_prompt => 1, skip_setterm => 1);
+    select_console('user-console');
     clear_console;
 
     my $lang_booted       = script_output('echo $LANG');
