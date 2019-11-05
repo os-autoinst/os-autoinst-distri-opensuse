@@ -20,26 +20,30 @@ use lockapi;
 
 sub run {
     my ($self, $ctx) = @_;
-    my $cfg_ifc1 = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
-    my $cfg_ifc2 = '/etc/sysconfig/network/ifcfg-' . $ctx->iface2();
+    my $cfg_ifc1      = '/etc/sysconfig/network/ifcfg-' . $ctx->iface();
+    my $cfg_ifc2      = '/etc/sysconfig/network/ifcfg-' . $ctx->iface2();
+    my $dhcp_ip_sut   = $self->get_ip(type => 'dhcp_2nic');
+    my $dhcp_ip_ref   = $self->get_ip(type => 'dhcp_2nic', is_wicked_ref => 1);
+    my $static_ip_sut = $self->get_ip(type => 'second_card');
+    my $static_ip_ref = $self->get_ip(type => 'second_card', is_wicked_ref => 1);
+
     record_info('Info', 'Set up a second card');
-    $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $cfg_ifc1);
-    $self->get_from_data('wicked/static_address/ifcfg-eth0',  $cfg_ifc2);
+    $self->get_from_data('wicked/dynamic_address/ifcfg-eth0',            $cfg_ifc1);
+    $self->get_from_data('wicked/static_address/ifcfg-eth0_second_card', $cfg_ifc2);
+    assert_script_run('echo "default ' . $static_ip_ref . ' - -" > /etc/sysconfig/network/routes');
     mutex_wait('t08_dhcpd_setup_complete');
+
     $self->wicked_command('ifup', $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface2());
-    my $iface_ip  = $self->get_ip(type => 'dhcp_2nic');
-    my $iface_ip2 = $self->get_ip(type => 'host');
-    validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /$iface_ip/ });
-    validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /$iface_ip2/ });
-    $self->ping_with_timeout(type => 'second_card', interface => $ctx->iface());
-    $self->ping_with_timeout(type => 'host',        interface => $ctx->iface2());
-    my $static_gw = '10.0.2.2';
-    if (script_output('ip r s | grep default | awk \'{print $3}\'') ne $static_gw) {
-        record_soft_failure("Default gw not $static_gw");
-    } else {
-        validate_script_output('tracepath -n -m 5 8.8.8.8', sub { index($_, $static_gw) != -1 });
-    }
+
+    my $ip_iface1 = $self->get_current_ip($ctx->iface());
+    my $ip_iface2 = $self->get_current_ip($ctx->iface2());
+    die("Unexpected IP $ip_iface1 on " . $ctx->iface()) unless ($ip_iface1 =~ /$dhcp_ip_sut/);
+    die("Unexpected IP $ip_iface2 on " . $ctx->iface2()) unless ($ip_iface2 eq $static_ip_sut);
+
+    $self->ping_with_timeout(type => 'dhcp_2nic', interface => $ctx->iface());
+
+    validate_script_output('tracepath -n ' . $self->get_ip(type => 'gateway'), sub { index($_, $static_ip_ref) != -1 });
 }
 
 sub test_flags {
