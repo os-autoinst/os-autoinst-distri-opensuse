@@ -25,7 +25,7 @@ use power_action_utils 'power_action';
 use utils;
 
 sub run {
-    power_action('poweroff');
+    power_action('poweroff', keepconsole => 1, textmode => 1);
 }
 
 sub test_flags {
