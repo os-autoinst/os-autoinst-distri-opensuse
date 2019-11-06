@@ -34,6 +34,10 @@ variable "create-extra-disk" {
     default=false
 }
 
+variable "storage-account" {
+    default="openqa"
+}
+
 resource "random_id" "service" {
     count = "${var.instance_count}"
     keepers = {
@@ -158,6 +162,11 @@ resource "azurerm_virtual_machine" "openqa-vm" {
         openqa_created_by = "${var.name}"
         openqa_created_date = "${timestamp()}"
         openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+    }
+
+    boot_diagnostics {
+        enabled = true
+        storage_uri = "https://${var.storage-account}.blob.core.windows.net/"
     }
 }
 

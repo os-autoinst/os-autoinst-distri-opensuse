@@ -19,6 +19,8 @@ use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
 
+our $root_dir = '/root';
+
 sub get_ltp_rpm
 {
     my ($url) = @_;
@@ -30,6 +32,16 @@ sub get_ltp_rpm
     die('Could not find LTP package in ' . $url);
 }
 
+sub instance_log_args
+{
+    my $self = shift;
+    return sprintf('"%s" "%s" "%s" "%s"',
+        get_required_var('PUBLIC_CLOUD_PROVIDER'),
+        $self->{my_instance}->instance_id,
+        $self->{my_instance}->public_ip,
+        $self->{provider}->region);
+}
+
 sub run {
     my ($self)   = @_;
     my $ltp_repo = get_var('LTP_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version("-") . '/x86_64/');
@@ -38,19 +50,22 @@ sub run {
     $self->select_serial_terminal;
 
     my $ltp_rpm         = get_ltp_rpm($ltp_repo);
-    my $source_rpm_path = '/root/' . $ltp_rpm;
+    my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
     my $remote_rpm_path = '/tmp/' . $ltp_rpm;
     record_info('LTP RPM', $ltp_repo . $ltp_rpm);
     assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
 
     my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance();
+    my $instance = $self->{my_instance} = $provider->create_instance();
     $instance->wait_for_guestregister();
 
     $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path);
 
-    assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o ~/restart_instance.sh');
-    assert_script_run('chmod +x ~/restart_instance.sh');
+    assert_script_run("cd $root_dir");
+    assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
+    assert_script_run('curl ' . data_url('publiccloud/log_instance.sh') . ' -o log_instance.sh');
+    assert_script_run('chmod +x restart_instance.sh');
+    assert_script_run('chmod +x log_instance.sh');
 
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
@@ -59,8 +74,10 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh', timeout => 300);
 
-    my $reset_cmd = sprintf('~/restart_instance.sh %s %s %s %s', get_required_var('PUBLIC_CLOUD_PROVIDER'), $instance->instance_id, $instance->public_ip,
-        $provider->region);
+    my $reset_cmd     = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
+    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
+
+    assert_script_run($log_start_cmd);
 
     my $cmd = 'perl -I ltp/tools/runltp-ng ltp/tools/runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log ';
@@ -85,7 +102,13 @@ sub cleanup {
     type_string('', terminate_with => 'ETX');
 
     upload_logs('ltp_log.raw', failok => 1);
-    parse_extra_log(LTP => 'ltp_log.json') if (script_run('test -f ltp_log.json') == 0);
+    parse_extra_log(LTP => "$root_dir/ltp_log.json") if (script_run("test -f $root_dir/ltp_log.json") == 0);
+
+    if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
+        assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
+        assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
+        upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
+    }
 }
 
 1;
