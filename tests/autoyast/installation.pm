@@ -41,6 +41,7 @@ use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 use version_utils qw(is_sle is_caasp is_released);
+use main_common 'opensuse_welcome_applicable';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -144,6 +145,8 @@ sub run {
     push(@needles, 'ERROR-removing-package') if get_var("AUTOUPGRADE");
     # resolve conflicts and this is a workaround during the update
     push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
+    # match openSUSE Welcome dialog on matching distros
+    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
@@ -304,6 +307,8 @@ sub run {
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
+    # match openSUSE Welcome dialog on matching distros
+    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     until (match_has_tag 'reboot-after-installation') {
@@ -335,6 +340,9 @@ sub run {
             $self->wait_grub_to_boot_on_local_disk;
         }
         elsif (match_has_tag('lang_and_keyboard')) {
+            return;
+        }
+        elsif (match_has_tag('opensuse-welcome')) {
             return;
         }
     }
