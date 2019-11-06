@@ -31,8 +31,6 @@ sub run {
 
     assert_script_run("ps aux | nl");
 
-    register_product();
-
     assert_script_run("ip a s");
     assert_script_run("ip -6 a s");
     assert_script_run("ip r s");
@@ -41,7 +39,7 @@ sub run {
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");
 
-    zypper_call("in traceroute");
+    zypper_call("in traceroute bzip2");
     assert_script_run("traceroute -I gate.suse.cz", 90);
 }
 

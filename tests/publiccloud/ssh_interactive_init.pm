@@ -45,10 +45,13 @@ sub run {
 
     # configure ssh server, allow root and password login
     $instance->run_ssh_command(cmd => 'hostname -f');
+    $instance->run_ssh_command(cmd => 'sudo sed -i "s/PasswordAuthentication/#PasswordAuthentication/" /etc/ssh/sshd_config; echo "PasswordAuthentication no" >> /etc/ssh/sshd_config');
+    $instance->run_ssh_command(cmd => 'sudo sed -i "s/ChallengeResponseAuthentication/#ChallengeResponseAuthentication/" /etc/ssh/sshd_config; echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config');
     $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd root');
     $instance->run_ssh_command(cmd => 'sudo sed -i "s/PermitRootLogin no/PermitRootLogin yes/g" /etc/ssh/sshd_config');
-    $instance->run_ssh_command(cmd => 'sudo sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" /etc/ssh/sshd_config');
-    $instance->run_ssh_command(cmd => 'sudo cp /home/ec2-user/.ssh/authorized_keys /root/.ssh/');
+    $instance->run_ssh_command(cmd => "sudo mkdir -p /root/.ssh");
+    $instance->run_ssh_command(cmd => "sudo chmod -R 700 /root/.ssh");
+    $instance->run_ssh_command(cmd => 'sudo cp /home/' . $instance->username() . '/.ssh/authorized_keys /root/.ssh/');
     $instance->run_ssh_command(cmd => 'sudo chmod 644 /root/.ssh/authorized_keys');
     $instance->run_ssh_command(cmd => 'sudo chown root /root/.ssh/authorized_keys');
     $instance->run_ssh_command(cmd => 'sudo systemctl reload sshd');
@@ -60,7 +63,7 @@ sub run {
     $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd ' . $testapi::username);
     $instance->run_ssh_command(cmd => "sudo mkdir /home/" . $testapi::username . "/.ssh");
     $instance->run_ssh_command(cmd => "sudo chmod -R 700 /home/" . $testapi::username . "/.ssh");
-    $instance->run_ssh_command(cmd => 'sudo cp /home/ec2-user/.ssh/authorized_keys /home/' . $testapi::username . '/.ssh/');
+    $instance->run_ssh_command(cmd => 'sudo cp /home/' . $instance->username() . '/.ssh/authorized_keys /home/' . $testapi::username . '/.ssh/');
     $instance->run_ssh_command(cmd => "sudo chmod 644 /home/" . $testapi::username . "/.ssh/authorized_keys");
     $instance->run_ssh_command(cmd => "sudo chown -R " . $testapi::username . " /home/" . $testapi::username . "/.ssh/");
 
