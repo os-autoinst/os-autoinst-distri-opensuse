@@ -23,7 +23,9 @@ sub run {
 
     # Check various output formats, -sanitize is used to not spill test machine serial numbers into public
     # On some architectures fields like "product" or "vendor" or section "*-pci" might not exist, so trying a common base.
-    validate_script_output("lshw -sanitize", sub { m/description.*\*-memory\n.*\*-network/s });
+    assert_script_run("lshw -sanitize | grep -A5 'description'");
+    assert_script_run("lshw -sanitize | grep -A5 '\\*-memory\$'");
+    assert_script_run("lshw -sanitize | grep -A5 '\\*-network'");
     assert_script_run("lshw -html -sanitize");
     assert_script_run("lshw -xml -sanitize");
     assert_script_run("lshw -json -sanitize");

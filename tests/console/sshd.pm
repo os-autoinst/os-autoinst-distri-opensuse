@@ -26,7 +26,7 @@ use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(systemctl exec_and_insert_password zypper_call);
-use version_utils qw(is_virtualization_server is_upgrade is_sle is_tumbleweed is_leap);
+use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap);
 
 sub run {
     my $self = shift;
@@ -46,7 +46,7 @@ sub run {
         record_info("SuSEfirewall2 not available", "bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15");
     }
     else {
-        systemctl 'stop ' . $self->firewall if !is_virtualization_server;
+        systemctl('stop ' . $self->firewall) if (script_run("which " . $self->firewall) == 0);
     }
 
     # Restart sshd and check it's status
@@ -129,7 +129,7 @@ sub run {
 }
 
 sub test_flags {
-    return {milestone => 1};
+    return get_var('PUBLIC_CLOUD') ? {milestone => 0, no_rollback => 1} : {milestone => 1};
 }
 
 1;
