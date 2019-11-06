@@ -538,6 +538,7 @@ sub load_baremetal_tests {
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
     if (get_var('IPXE')) {
         loadtest 'installation/ipxe_install';
+        load_inst_tests() if !get_var('AUTOYAST');
         loadtest "console/suseconnect_scc";
     } else {
         load_boot_tests();

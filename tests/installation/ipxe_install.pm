@@ -74,8 +74,14 @@ sub set_bootscript {
     my $ip          = inet_ntoa(inet_aton($host));
     my $http_server = get_required_var('IPXE_HTTPSERVER');
     my $url         = "$http_server/$ip/script.ipxe";
+    my $instparm;
 
-    my $autoyast = get_required_var('AUTOYAST');
+    if (get_var('AUTOYAST')) {
+        my $autoyast = get_var('AUTOYAST');
+        $instparm = "autoyast=$autoyast";
+    } else {
+        $instparm = "sshd=1 vnc=1 VNCPassword=$testapi::password sshpassword=$testapi::password";
+    }
 
     my $kernel  = get_required_var('MIRROR_HTTP') . '/boot/x86_64/loader/linux';
     my $initrd  = get_required_var('MIRROR_HTTP') . '/boot/x86_64/loader/initrd';
@@ -88,7 +94,7 @@ echo ++++++++++++ openQA ipxe boot ++++++++++++
 echo +    Host: $host
 echo ++++++++++++++++++++++++++++++++++++++++++
 
-kernel $kernel install=$install autoyast=$autoyast console=tty0 console=ttyS1,115200
+kernel $kernel install=$install console=tty0 console=ttyS1,115200 $instparm
 initrd $initrd
 boot
 END_BOOTSCRIPT
