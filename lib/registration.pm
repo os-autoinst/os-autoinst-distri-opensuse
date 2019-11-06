@@ -248,7 +248,7 @@ sub register_addons {
             # skip addons which doesn't need to input scc code
             next unless grep { $addon eq $_ } @addons_with_code;
             if (check_var('VIDEOMODE', 'text')) {
-                send_key_until_needlematch "scc-code-field-$addon", 'tab';
+                send_key_until_needlematch("scc-code-field-$addon", 'tab', 60, 3);
             }
             else {
                 assert_and_click("scc-code-field-$addon", timeout => 240);
