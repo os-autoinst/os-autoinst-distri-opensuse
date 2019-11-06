@@ -32,8 +32,10 @@ schedule:
      - boot/boot_to_desktop
      - yast2_cmd/yast_rdp
      - yast2_cmd/yast_timezone
-     - yast2_cmd/yast_tftp_server
      - yast2_cmd/yast_sysconfig
      - yast2_cmd/yast_nfs_server
      - yast2_cmd/yast_nfs_client
      - {{under_issues_investigation}}
+     - yast2_cmd/yast_tftp_server
+     - yast2_cmd/yast_timezone
+
