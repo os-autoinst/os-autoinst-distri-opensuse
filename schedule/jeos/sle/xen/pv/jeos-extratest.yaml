@@ -1,6 +1,13 @@
 ---
 description: 'Extratest JeOS test suite. Maintainer: ccret.'
 name: 'jeos-extratest@svirt-xen-pv ( svirt )'
+conditional_schedule:
+    ntp_test_module:
+        VERSION:
+            15-SP2:
+                - console/ntp_client
+            12-SP5:
+                - console/ntp
 schedule:
   - installation/bootloader_svirt
   - jeos/firstrun
@@ -19,7 +26,7 @@ schedule:
   - console/zypper_extend
   - console/check_os_release
   - console/timezone
-  - console/ntp
+  - {{ntp_test_module}}
   - console/sshd
   - console/update_alternatives
   - console/rpm
