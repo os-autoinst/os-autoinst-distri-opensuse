@@ -31,10 +31,12 @@ sub handle_all_packages_medium {
     my @addons   = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
 
     # According to installation guide, select a sle product is mandatory
+    # (from sle15-SP2 this is not true)
     # when install with the all-packages media, so add the base product
-    # (sles/sled/etc) as a fake addon
-    push @addons, $sle_prod if !grep(/^$sle_prod$/, @addons);
-
+    # (sles/sled/etc) as a fake addon.
+    unless (is_sle('15-SP2+')) {
+        push @addons, $sle_prod if !grep(/^$sle_prod$/, @addons);
+    }
     # Select Desktop-Applications module if gnome is wanted
     push @addons, 'desktop' if check_var('DESKTOP', 'gnome') && !grep(/^desktop$/, @addons);
 
@@ -149,12 +151,16 @@ sub run {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
-    if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
-        assert_screen_with_soft_timeout(
-            [qw(inst-addon addon-products)],
-            timeout      => 60,
-            soft_timeout => 30,
-            bugref       => 'bsc#1123963');
+    # Full_installer jumps to the Select extension and modules dialog and this
+    # makes the tests fail as it doesnt find anything to match
+    unless (check_var('FLAVOR', 'Full')) {
+        if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
+            assert_screen_with_soft_timeout(
+                [qw(inst-addon addon-products)],
+                timeout      => 60,
+                soft_timeout => 30,
+                bugref       => 'bsc#1123963');
+        }
     }
     if (get_var("ADDONS")) {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
@@ -162,35 +168,39 @@ sub run {
         my $sr_number = 0;
         for my $addon (split(/,/, get_var('ADDONS'))) {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
-            assert_screen 'addon-menu-active';
-            wait_screen_change { send_key 'alt-d' };    # DVD
-            send_key $cmd{next};
-            assert_screen 'dvd-selector';
-            send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
-            send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
-            send_key 'alt-o';                                                   # continue
+            # in full_installer the dialog to choose the installation media
+            # doesnt appear, thus we have to skip it
+            unless (check_var('FLAVOR', 'Full')) {
+                assert_screen 'addon-menu-active';
+                wait_screen_change { send_key 'alt-d' };    # DVD
+                send_key $cmd{next};
+                assert_screen 'dvd-selector';
+                send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
+                send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
+                send_key 'alt-o';                                                   # continue
+            }
             handle_addon($addon);
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                               # add another add-on
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                    # if $addon is not first from all ADDONS
+                send_key 'alt-a';                                                   # add another add-on
             }
         }
     }
     test_addonurl if is_sle('>=15') && get_var('ADDONURL');
     if (get_var("ADDONURL")) {
         if (match_has_tag('inst-addon')) {
-            send_key 'alt-k';                                                   # install with addons
+            send_key 'alt-k';                                                       # install with addons
         }
         else {
             send_key 'alt-a';
         }
         for my $addon (split(/,/, get_var('ADDONURL'))) {
             assert_screen 'addon-menu-active';
-            my $uc_addon = uc $addon;                                           # varibale name is upper case
-            send_key 'alt-u';                                                   # specify url
+            my $uc_addon = uc $addon;                                               # varibale name is upper case
+            send_key 'alt-u';                                                       # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';                                                   # select URL field
-            type_string get_required_var("ADDONURL_$uc_addon");                 # repo URL
+            send_key 'alt-u';                                                       # select URL field
+            type_string get_required_var("ADDONURL_$uc_addon");                     # repo URL
             send_key $cmd{next};
             wait_still_screen;    # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
             my @tags = ('addon-products', "addon-betawarning-$addon", "addon-license-$addon", 'import-untrusted-gpg-key');
