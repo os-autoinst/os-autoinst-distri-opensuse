@@ -41,7 +41,6 @@ sub run {
         upload_logs($ver_linux_log, failok => 1);
     }
 
-    script_run('[ "$ENABLE_WICKED" ] && systemctl enable wicked');
     upload_system_logs();
 
     power_action('poweroff');
