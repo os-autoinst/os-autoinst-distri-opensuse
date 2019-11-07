@@ -37,7 +37,11 @@ sub run {
     assert_script_run "mkdir $dest";
     $self->set_playground_disk;
     my $disk = get_required_var('PLAYGROUNDDISK');
-    assert_script_run "mkfs.btrfs -f $disk && mount $disk $dest && cd $dest";
+
+    # forcing mkfs.btrfs yields no warning in case we are creating fs over drive with partitions
+    $self->cleanup_partition_table if (script_run "mkfs.btrfs $disk && mount $disk $dest && cd $dest");
+
+    assert_script_run "mkfs.btrfs $disk && mount $disk $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
 
     # Create subvolumes, qgroups, assigns and limits
