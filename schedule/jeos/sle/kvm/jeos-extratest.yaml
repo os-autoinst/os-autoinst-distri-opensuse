@@ -1,6 +1,13 @@
 ---
 description: 'Extratest JeOS test suite. Maintainer: ccret.'
 name: 'jeos-extratest@uefi-virtio-vga ( qemu )'
+conditional_schedule:
+    ntp_test_module:
+        VERSION:
+            15-SP2:
+                - console/ntp_client
+            12-SP5:
+                - console/ntp
 schedule:
   - jeos/grub2
   - jeos/firstrun
@@ -18,7 +25,7 @@ schedule:
   - console/zypper_extend
   - console/check_os_release
   - console/timezone
-  - console/ntp
+  - {{ntp_test_module}}
   - console/sshd
   - console/update_alternatives
   - console/rpm
