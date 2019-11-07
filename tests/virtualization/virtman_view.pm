@@ -50,8 +50,13 @@ sub run {
     assert_screen 'virt-manager';
 
     # go to view now
-    wait_screen_change { send_key 'alt-v' };
-    wait_screen_change { send_key 'right' };
+    # decompose alt-v - poo#54056
+    hold_key 'alt';
+    send_key 'v';
+    sleep(1);
+    release_key 'alt';
+    send_key 'right';
+    assert_screen 'virtman-viewmenu-graph';
     # activate everything
     for (1 .. 4) {
         send_key 'down';
