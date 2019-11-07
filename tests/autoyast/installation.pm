@@ -42,6 +42,7 @@ use utils;
 use power_action_utils 'prepare_system_shutdown';
 use version_utils qw(is_sle is_caasp is_released);
 use main_common 'opensuse_welcome_applicable';
+use x11utils 'untick_welcome_on_next_startup';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -343,7 +344,7 @@ sub run {
             return;
         }
         elsif (match_has_tag('opensuse-welcome')) {
-            return;
+            untick_welcome_on_next_startup;
         }
     }
 
