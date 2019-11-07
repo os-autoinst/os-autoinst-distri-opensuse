@@ -44,7 +44,7 @@ sub run {
     # install dependencies
     zypper_call('--quiet in pciutils mstflint', timeout => 200);
 
-    my @devices = split(' ', script_output("lspci | grep -i mellanox |cut  -d ' ' -f 1"));
+    my @devices = split(' ', script_output("lspci | grep -i infiniband.*mellanox |cut  -d ' ' -f 1"));
 
     die "There is no Mellanox card here" if !@devices;
 
