@@ -434,11 +434,17 @@ sub setup_iscsi_tgt_server {
     tgt_new_target(1, $iqn);
     # Add device lun 1 to target with id 1
     tgt_new_lun(1, 1, "$device");
-    # Export same device twice with same scsi_id for multipath test
+    # Export same device three times with same scsi_id for multipath test
     if (get_var('ISCSI_MULTIPATH')) {
         tgt_new_lun(1, 2, "$device");
+        tgt_new_lun(1, 3, "$device");
         tgt_update_lun_params(1, 1, "scsi_id=\"mpatha\"");
         tgt_update_lun_params(1, 2, "scsi_id=\"mpatha\"");
+        tgt_update_lun_params(1, 3, "scsi_id=\"mpatha\"");
+        # Download and prepare LUN disturber for later use (flaky_mp_iscsi.pm)
+        $setup_script .= "curl -f -v " . autoinst_url
+          . "/data/supportserver/iscsi/multipath_flaky_luns.sh >/usr/local/bin/multipath_flaky_luns.sh \n"
+          . "chmod +x /usr/local/bin/multipath_flaky_luns.sh";
     }
     # Authorize all clients
     tgt_auth_all(1);
