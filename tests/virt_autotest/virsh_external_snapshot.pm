@@ -33,8 +33,20 @@ sub run_test {
     #Snapshots are supported on KVM VM Host Servers only
     return unless check_var("REGRESSION", "qemu-hypervisor") || check_var("SYSTEM_ROLE", "kvm");
 
-    my $wait_script                 = "30";
-    my $get_vm_hostnames_inactive   = "virsh list --inactive | grep sles | awk \'{print \$2}\'";
+    my $vm_types           = "sles|win";
+    my $wait_script        = "30";
+    my $get_vm_hostnames   = "virsh list --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
+    my $vm_hostnames       = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    foreach (@vm_hostnames_array) {
+        if (script_run("virsh list --all | grep $_ | grep shut") != 0) { script_run "virsh destroy $_", 90;
+        }
+    }
+
+    #Wait for forceful shutdown of active guests
+    sleep 60;
+
+    my $get_vm_hostnames_inactive   = "virsh list --inactive | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
     my $vm_hostnames_inactive       = script_output($get_vm_hostnames_inactive, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_inactive_array = split(/\n+/, $vm_hostnames_inactive);
 
