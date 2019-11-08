@@ -802,7 +802,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64) {
             loadtest "virt_autotest/setup_dns_service";
             loadtest "virt_autotest/set_config_as_glue";
-            loadtest "virtualization/xen/hotplugging";
+            loadtest "virtualization/xen/hotplugging" if get_var("ENABLE_HOTPLUGGING");
             loadtest "virt_autotest/virsh_internal_snapshot";
             loadtest "virt_autotest/virsh_external_snapshot";
         }
