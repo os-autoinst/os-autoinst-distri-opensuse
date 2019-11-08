@@ -14,13 +14,18 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed is_leap);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
+
+sub expect_mount_by_uuid {
+    return (is_sle('>=15-sp2') || is_tumbleweed || is_leap('>=15.2'));
+}
 
 sub post_fail_hook {
     assert_script_run('timedatectl');
     assert_script_run('locale');
     assert_script_run('cat /etc/vconsole.conf');
+    assert_script_run('cat /etc/fstab');
     assert_script_run('ldd --help');
 }
 
@@ -42,6 +47,20 @@ sub verify_user_info {
     # User has locale defined in firstboot, root always defaults to POSIX (i.e. English)
     my $proglang = $args{user_is_root} ? 'en_US' : $lang;
     assert_script_run("ldd --help | grep '^" . $lang_data{$proglang} . "'");
+}
+
+sub verify_mounts {
+    my $expected_type = {mount_type => (expect_mount_by_uuid) ? 'UUID' : 'LABEL'};
+
+    my @findmnt_entries = grep { /\s$expected_type->{mount_type}.*\stranslated\sto\s/ }
+      split(/\n/, script_output('findmnt --verbose --verify'));
+    (scalar(@findmnt_entries) > 0) or die "Expected mounts by $expected_type->{mount_type} have not been found\n";
+
+    @findmnt_entries = grep { !/^$expected_type->{mount_type}/ }
+      split(/\n/, script_output('findmnt --fstab --raw --noheadings --df'));
+    (scalar(@findmnt_entries) == 0) or die "Not all mounts are mounted by $expected_type->{mount_type}\nUnexpected mount(s) ( @findmnt_entries )\n";
+
+    assert_script_run('mount -fva');
 }
 
 sub run {
@@ -135,6 +154,8 @@ sub run {
     if ($lang ne 'en_US') {
         assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
     }
+
+    verify_mounts;
 }
 
 sub test_flags {
