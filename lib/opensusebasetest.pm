@@ -12,7 +12,6 @@ use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbl
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
-use y2_logs_helper 'get_available_compression';
 
 # Base class for all openSUSE tests
 
@@ -418,8 +417,9 @@ sub export_logs {
     $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
 
-    script_run "save_y2logs /tmp/y2logs_clone.tar" . get_available_compression;
-    upload_logs "/tmp/y2logs_clone.tar" . get_available_compression;
+    my $compression = is_sle('=12-sp1') ? 'bz2' : 'xz';
+    script_run "save_y2logs /tmp/y2logs_clone.tar.$compression";
+    upload_logs "/tmp/y2logs_clone.tar.$compression";
     $self->investigate_yast2_failure();
 }
 
