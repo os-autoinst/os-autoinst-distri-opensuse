@@ -22,7 +22,7 @@
 # testsuite", "junit success", "junit endsuite", otherwise record as failure
 # Maintainer: HouzuoGuo <guohouzuo@gmail.com>
 
-use base "opensusebasetest";
+use base "consoletest";
 
 use strict;
 use warnings;
