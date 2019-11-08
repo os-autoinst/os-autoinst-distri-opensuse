@@ -24,4 +24,3 @@ schedule:
   - console/btrfs_send_receive
   - console/snapper_undochange
   - console/snapper_create
-  - console/coredump_collect

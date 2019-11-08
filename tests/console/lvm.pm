@@ -39,23 +39,7 @@ use warnings;
 use testapi;
 use version_utils;
 use utils 'zypper_call';
-
-sub set_playground_disk {
-    # TODO check which vda is unpartitioned and use that one
-    unless (get_var('PLAYGROUNDDISK')) {
-        my $vd = 'vd';    # KVM
-        if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-            $vd = 'xvd';
-        }
-        elsif (check_var('VIRSH_VMM_FAMILY', 'hyperv') or check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-            $vd = 'sd';
-        }
-        assert_script_run 'parted --script --machine -l';
-        my $unpartitioned_device = script_output("parted --script --machine -l 2>/dev/null | grep unknown | cut -f1 -d':' | grep /dev/$vd");
-        validate_script_output("echo $unpartitioned_device", sub { /\/dev\/$vd[ab]/ });
-        set_var('PLAYGROUNDDISK', $unpartitioned_device);
-    }
-}
+use btrfs_test 'set_playground_disk';
 
 sub run {
     my ($self) = @_;
