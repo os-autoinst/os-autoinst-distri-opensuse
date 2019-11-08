@@ -12,10 +12,10 @@
 # - Disable gnome-screensaver
 # - Install yast2-snapper
 # - Launch a xterm as root and run yast2 snapper
+# - Setup another snapper config for /test
 # - In yast2 snapper, create a new snapshot, named "awesome snapshot"
-# - Decompress /home/$username/data/yast2_snapper.tgz
+# - Apply some modification to filesystem
 # - Launch yast2 snapper again, select created snapshot, display the differences
-# after tarball was uncompressed
 # - Delete "awesome snapshot"
 # - Close yast2 snapper, delete testadata
 # Maintainer: Richard Brown <rbrown@suse.de>
@@ -34,6 +34,7 @@ use y2_module_consoletest;
 
 sub run {
     my $self = shift;
+
     # Turn off screensaver
     x11_start_program('xterm');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
@@ -46,12 +47,10 @@ sub run {
     x11_start_program('xterm');
     become_root;
     script_run "cd";
+    $self->y2snapper_adding_new_snapper_conf;
     y2_module_consoletest::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_new_snapshot;
-
-    wait_still_screen;
-    $self->y2snapper_untar_testfile;
-
+    $self->y2snapper_apply_filesystem_changes;
     y2_module_consoletest::yast2_console_exec(yast2_module => 'snapper');
     $self->y2snapper_show_changes_and_delete;
     $self->y2snapper_clean_and_quit;
