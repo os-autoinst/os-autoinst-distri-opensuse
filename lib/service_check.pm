@@ -39,11 +39,17 @@ use kdump_utils;
 our @EXPORT = qw(
   $hdd_base_version
   $default_services
+  %srv_check_results
   install_services
   check_services
 );
 
 our $hdd_base_version;
+our %srv_check_results = (
+    before_migration => 'PASS',
+    after_migration  => 'PASS',
+);
+
 our $default_services = {
     registered_addons => {
         srv_pkg_name       => 'registered_addons',
@@ -173,17 +179,23 @@ sub install_services {
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
         record_info($srv_pkg_name, "service check before migration");
-        if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
-            if (exists $service->{$s}->{service_check_func}) {
-                $service->{$s}->{service_check_func}->('before');
-                next;
+        eval {
+            if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
+                if (exists $service->{$s}->{service_check_func}) {
+                    $service->{$s}->{service_check_func}->('before');
+                    next;
+                }
+                zypper_call "in $srv_pkg_name";
+                systemctl 'enable ' . $srv_proc_name;
+                systemctl 'start ' . $srv_proc_name;
+                systemctl 'is-active ' . $srv_proc_name;
             }
-
-            zypper_call "in $srv_pkg_name";
-            systemctl 'enable ' . $srv_proc_name;
-            systemctl 'start ' . $srv_proc_name;
-            systemctl 'is-active ' . $srv_proc_name;
+        };
+        if ($@) {
+            record_info($srv_pkg_name, "failed reason: $@", result => 'fail');
+            $srv_check_results{'before_migration'} = 'FAIL' if $srv_check_results{'before_migration'} eq 'PASS';
         }
+
     }
 }
 
@@ -201,15 +213,21 @@ sub check_services {
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
         record_info($srv_pkg_name, "service check after migration");
-        if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
-            # service check after migration. if we've set up service check
-            # function, we don't need following actions to check the service.
-            if (exists $service->{$s}->{service_check_func}) {
-                $service->{$s}->{service_check_func}->();
-                next;
-            }
+        eval {
+            if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
+                # service check after migration. if we've set up service check
+                # function, we don't need following actions to check the service.
+                if (exists $service->{$s}->{service_check_func}) {
+                    $service->{$s}->{service_check_func}->();
+                    next;
+                }
 
-            systemctl 'is-active ' . $srv_proc_name;
+                systemctl 'is-active ' . $srv_proc_name;
+            }
+        };
+        if ($@) {
+            record_info($srv_pkg_name, "failed reason: $@", result => 'fail');
+            $srv_check_results{'after_migration'} = 'FAIL' if $srv_check_results{'after_migration'} eq 'PASS';
         }
     }
 }

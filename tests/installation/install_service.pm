@@ -38,6 +38,8 @@ sub run {
       && !get_var('MEDIA_UPGRADE')
       && !get_var('ZDUP')
       && !get_var('INSTALLONLY');
+
+    die "Service check before migration failed!" if $srv_check_results{'before_migration'} eq 'FAIL';
 }
 
 sub test_flags {
