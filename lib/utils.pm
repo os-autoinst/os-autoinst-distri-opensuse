@@ -1080,7 +1080,7 @@ sub get_x11_console_tty {
       = $new_gdm
       && !is_sle('<=15-SP1')
       && !is_leap('<=15.2')
-      && get_var('HDD_1') !~ /opensuse-42/;
+      && get_var('HDD_1', '') !~ /opensuse-42/;
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
 }
 
