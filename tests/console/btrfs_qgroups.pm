@@ -39,9 +39,11 @@ sub run {
     my $disk = get_required_var('PLAYGROUNDDISK');
 
     # forcing mkfs.btrfs yields no warning in case we are creating fs over drive with partitions
-    $self->cleanup_partition_table if (script_run "mkfs.btrfs $disk && mount $disk $dest && cd $dest");
+    if (script_run "mkfs.btrfs $disk && mount $disk $dest && cd $dest") {
+        $self->cleanup_partition_table;
+        assert_script_run "mkfs.btrfs $disk && mount $disk $dest && cd $dest", fail_message => 'Failed to create FS on the second attempt!';
+    }
 
-    assert_script_run "mkfs.btrfs $disk && mount $disk $dest && cd $dest";
     assert_script_run "btrfs quota enable .";
 
     # Create subvolumes, qgroups, assigns and limits
