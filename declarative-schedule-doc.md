@@ -115,7 +115,7 @@ to indicate that the module or modules executed at this position is conditional 
 #### test_data
 As vars.json has quite limited capabilities due to the design, in the yaml files
 it's possible to define any structure, which can be described using plain yaml
-format. This data will be parsed and available when calling `get_test_data()`
+format. This data can be accessed when calling `get_test_data()`
 method from `lib/scheduler.pm`. This feature is designed to store test related
 date for data driven tests and provide better structure for the test suite settings.
 
@@ -177,8 +177,9 @@ test_data:
 ```
 ...
 test_data:
-  - !include: path/to/first_test_data.yaml
-  - !include: path/to/second_test_data.yaml
+  - !include: 
+    - path/to/first_test_data.yaml
+    - path/to/second_test_data.yaml
 ```
 
 - `!include` tag can be mixed with the test data that is defined in
@@ -186,7 +187,7 @@ test_data:
 
 > **_IMPORTANT:_** Test data in scheduling file has priority over the
 > same data from the imported file (i.e. it allows to override imported
-> data).
+> data). Latest included data has priority over previous included data.
 ```
 ...
 test_data:
@@ -196,6 +197,50 @@ test_data:
         - size: 3mb
   !include: path/to/test_data.yaml
 ```
+Test data sometimes are more related to a particular schedule, sometimes to other test data shared with other test suites and sometimes it is a mix. In those cases, `YAML_TEST_DATA` setting can be used to give us the flexibility to avoid duplicate schedule files just because they have different data and due to it will be pointing to a test data file and at the moment recursive inclusion is not implemented (to reduce complexity),only for this particular case, is allowed the possibility to use `!include` functionality in test data file, not cutting any path for the tester. For instance:
+
+In your yaml for your Job Group configuration for one product you could have:
+```
+- test_suite_name:
+        machine: 64bit
+        priority: 30
+        settings:
+          YAML_SCHEDULE: schedule/path/to/schedule.yaml
+          YAML_TEST_DATA=path/to/test_data_product_A.yaml
+
+```
+And for the other product and the same test suite:
+```
+- test_suite_name:
+        machine: 64bit
+        priority: 30
+        settings:
+          YAML_SCHEDULE: schedule/path/to/schedule.yaml
+          YAML_TEST_DATA=path/to/test_data_product_B.yaml
+```
+In one of those data file we could find:
+```
+disks:
+  - name: vda
+    partitions:
+      - size: 2mb
+!include: path/to/test_data/shared/among/test_suites.yaml
+  ...
+```
+In the other data file we could have:
+```
+disks:
+  - name: vdb
+    partitions:
+      - size: 5mb
+!include: path/to/test_data/shared/among/test_suites.yaml
+  ...
+```
+
+> **_IMPORTANT:_** Test data from data file only when `YAML_TEST_DATA` is used has priority over `test_data` from
+> schedule file. Test data in data file has priority over the same data from the imported file (i.e. it
+> allows to override imported data). Latest included data has priority over previous included data in test
+> data file.
 
 ### 2. Enable scheduler in settings
 

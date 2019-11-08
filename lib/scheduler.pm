@@ -22,9 +22,10 @@ use strict;
 use warnings;
 
 use File::Basename;
-use testapi qw(get_var set_var);
+use testapi qw(get_var set_var diag);
 use main_common 'loadtest';
 use YAML::Tiny;
+use Data::Dumper;
 
 our @EXPORT = qw(load_yaml_schedule get_test_data);
 
@@ -79,22 +80,22 @@ in the same file than the schedule or in a dedicated file only for data.
 sub parse_test_data {
     my ($schedule) = shift;
     $test_data = {};
-    # return if section is not defined
-    return unless exists $schedule->{test_data};
 
-    if (defined(my $import = $schedule->{test_data}->{$include_tag})) {
-        # Allow both lists and scalar value for import "!include" key
-        if (ref $import eq 'ARRAY') {
-            for my $include (@{$import}) {
-                _import_test_data_from_yaml($include);
-            }
-        }
-        else {
-            _import_test_data_from_yaml($import);
-        }
+    # if test_data section is defined in schedule file
+    if (exists $schedule->{test_data}) {
+        # import test data using !include from test_data section in schedule file
+        _import_test_data_included($schedule->{test_data});
+
+        # test_data from schedule file has priority over included data
+        $test_data = {%$test_data, %{$schedule->{test_data}}};
     }
-    # test_data from schedule file has priority over imported one
-    $test_data = {%$test_data, %{$schedule->{test_data}}};
+
+    # import test data directly from data file
+    if (my $yamlfile = get_var('YAML_TEST_DATA')) {
+        # test data from data file has priority over test_data from schedule
+        _import_test_data_from_yaml(path => $yamlfile, allow_included => 1);
+    }
+    diag(Dumper($test_data));
 }
 
 =head2 load_yaml_schedule
@@ -116,12 +117,41 @@ sub load_yaml_schedule {
     return 0;
 }
 
-sub _import_test_data_from_yaml {
-    my ($yaml_file) = @_;
-    my $include_yaml = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $yaml_file);
-    if (exists $include_yaml->{$include_tag}) {
-        die "Error: test_data can only be defined in a dedicated file for data\n";
+sub _import_test_data_included {
+    my ($test_data) = shift;
+
+    if (defined(my $import = $test_data->{$include_tag})) {
+        # Allow both lists and scalar value for import "!include" key
+        if (ref $import eq 'ARRAY') {
+            for my $include (@{$import}) {
+                _import_test_data_from_yaml(path => $include);
+            }
+        }
+        else {
+            _import_test_data_from_yaml(path => $import);
+        }
+        delete $test_data->{$include_tag};
     }
+}
+
+sub _ensure_include_not_present {
+    my ($include_yaml) = shift;
+    if (exists $include_yaml->{$include_tag}) {
+        die "Error: please define in the file only the content of your test_data," .
+          " without including tag $include_tag\n";
+    }
+}
+
+sub _import_test_data_from_yaml {
+    my (%args) = @_;
+
+    my $include_yaml = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $args{path});
+    if ($args{allow_included}) {
+        # import test data using !include from test data file
+        _import_test_data_included($include_yaml);
+    }
+    _ensure_include_not_present($include_yaml);
+    # latest included data has priority over previous included data
     $test_data = {%$test_data, %{$include_yaml}};
 }
 

@@ -41,4 +41,17 @@ subtest 'do_not_allow_nested_imports' => sub {
     dies_ok { scheduler::parse_test_data($schedule) } "Error: test_data can only be defined in a dedicated file for data\n";
 };
 
+subtest 'parse_yaml_test_data_using_yaml_data_setting' => sub {
+    use scheduler;
+    use testapi 'set_var';
+
+    set_var('YAML_TEST_DATA', 't/data/test_data_yaml_data_setting.yaml');
+    # compare versions if possible
+    my $schedule = YAML::Tiny::LoadFile(dirname(__FILE__) . '/data/test_schedule_yaml_data_setting.yaml');
+    scheduler::parse_test_data($schedule);
+    my $testdata = scheduler::get_test_data();
+    ok $testdata->{test_in_yaml_data} eq 'test_in_yaml_data',               "Value from data file was overwritten by value from schedule or other imports";
+    ok $testdata->{test_in_yaml_import_3} eq 'test_in_yaml_import_value_3', "Value in data file was overwritten by value in schedule file";
+};
+
 done_testing;
