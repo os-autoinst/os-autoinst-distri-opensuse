@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my $arch       = get_required_var('ARCH');
     my $ttest      = 'minimalx';
-    my $openqa_url = get_var('OPENQA_HOST_URL', 'https://openqa.opensuse.org');
+    my $openqa_url = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
     # aarch64 does not support nested virt, huge pages are not configured and 'gic_version=host' and host cpu options are only usable with KVM
     my $clone_options = ($arch =~ /aarch64/) ? "QEMU_NO_KVM=1 QEMU_HUGE_PAGES_PATH='' QEMUMACHINE=virt QEMUCPU='cortex-a72'" : "";
     my $cmd           = <<"EOF";
