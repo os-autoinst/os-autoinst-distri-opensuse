@@ -23,8 +23,9 @@ use version_utils 'is_sle';
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
 
-use constant ZYPPER_PACKAGE_COL => 1;
-use constant ZYPPER_STATUS_COL  => 5;
+use constant ZYPPER_PACKAGE_COL    => 1;
+use constant OLD_ZYPPER_STATUS_COL => 4;
+use constant ZYPPER_STATUS_COL     => 5;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -144,13 +145,18 @@ sub get_patches {
     # Search for patches by incident, exclude not needed
     my $patches = script_output("zypper patches -r $repo");
     my @patch_list;
+    my $status_col = ZYPPER_STATUS_COL;
+
+    if (is_sle('<12-SP2')) {
+        $status_col = OLD_ZYPPER_STATUS_COL;
+    }
 
     for my $line (split /\n/, $patches) {
         my @tokens = split /\s*\|\s*/, $line;
-        next if $#tokens < max(ZYPPER_PACKAGE_COL, ZYPPER_STATUS_COL);
+        next if $#tokens < max(ZYPPER_PACKAGE_COL, $status_col);
         my $packname = $tokens[ZYPPER_PACKAGE_COL];
         push @patch_list, $packname if $packname =~ m/$incident_id/ &&
-          'needed' eq lc $tokens[ZYPPER_STATUS_COL];
+          'needed' eq lc $tokens[$status_col];
     }
 
     return join(' ', @patch_list);
