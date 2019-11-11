@@ -15,10 +15,11 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap);
+use Utils::Backends 'is_hyperv';
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 
 sub expect_mount_by_uuid {
-    return (is_sle('>=15-sp2') || is_tumbleweed || is_leap('>=15.2'));
+    return (is_hyperv || is_sle('>=15-sp2') || is_tumbleweed || is_leap('>=15.2'));
 }
 
 sub post_fail_hook {
