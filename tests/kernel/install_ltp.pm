@@ -362,8 +362,10 @@ sub post_fail_hook {
     upload_system_logs();
 
     # bsc#1024050
-    script_run('pkill pidstat');
-    upload_logs('/tmp/pidstat.txt', failok => 1);
+    if (get_var('INSTALL_LTP') =~ /git/i) {
+        script_run('pkill pidstat');
+        upload_logs('/tmp/pidstat.txt', failok => 1);
+    }
 }
 
 sub test_flags {
