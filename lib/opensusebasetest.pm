@@ -910,7 +910,45 @@ sub wait_boot {
     # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
     unlock_if_encrypted unless get_var('S390_ZKVM');
 
+<<<<<<< HEAD
     $self->wait_boot_past_bootloader(%args);
+=======
+    mouse_hide();
+
+    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $forcenologin) {
+        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
+        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+
+        if (!$nologin) {
+            # SLE11 SP4 kde desktop do not need type username
+            if (get_var('DM_NEEDS_USERNAME')) {
+                type_string "$username\n";
+            }
+            # log in
+            #assert_screen "dm-password-input", 10;
+            elsif (check_var('DESKTOP', 'gnome')) {
+                # In GNOME/gdm, we do not have to enter a username, but we have to select it
+                if (is_tumbleweed) {
+                    send_key 'tab';
+                }
+                send_key 'ret';
+            }
+
+            assert_screen 'displaymanager-password-prompt', no_wait => 1;
+            type_password $password. "\n";
+        }
+        else {
+            mouse_hide(1);
+            $self->{in_wait_boot} = 0;
+            return;
+        }
+    }
+
+    my @tags = qw(generic-desktop emergency-shell emergency-mode);
+    push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
+    assert_screen \@tags, $ready_time + 180;
+    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+    mouse_hide(1);
     $self->{in_wait_boot} = 0;
 }
 
