@@ -72,7 +72,7 @@ sub yast_handle_firewall {
 }
 
 sub add_shares {
-    my ($rw, $ro) = @_;
+    my ($rw, $ro, $version) = @_;
 
     # Add rw share
     send_key 'alt-d';
@@ -84,11 +84,13 @@ sub add_shares {
     assert_screen 'nfs-share-host';
     send_key 'tab';
     # Change 'ro,root_squash' to 'rw,no_root_squash,...'
+    # For nfs4 also add fsid=0
     send_key 'home';
     send_key 'delete';
     send_key 'delete';
     send_key 'delete';
-    type_string "rw,no_";
+    my $options = "rw," . ($version eq '4' ? "fsid=0," : '') . 'no_';
+    type_string $options;
     send_key 'alt-o';
 
     # Saved
