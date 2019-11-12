@@ -221,7 +221,7 @@ sub cleanup_registration {
 Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
 =cut
 sub register_product {
-    assert_script_run 'SUSEConnect -r ' . get_required_var('SCC_REGCODE');
+    assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
 }
 
 sub register_addons_cmd {
