@@ -30,7 +30,7 @@ use version_utils 'is_sle';
 #   * extra parameters for virsh create / xl create
 
 our %guests = ();
-if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-client")) {
+if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles12sp3PV => {
             autoyast     => 'autoyast_xen/sles12sp3PV.xml',
@@ -131,7 +131,7 @@ if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "xen-cl
     );
 
     delete($guests{sles11sp4PVx32}) if (is_sle('<=12-SP1'));
-} elsif (check_var("REGRESSION", "qemu-hypervisor") || check_var("REGRESSION", "qemu-client")) {
+} elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
             autoyast     => 'autoyast_kvm/sles12sp3.xml',

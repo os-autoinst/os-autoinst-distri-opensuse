@@ -84,7 +84,15 @@ sub login_to_console {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;
-            send_key_until_needlematch("virttest-bootmenu-xen-kernel", 'down', 10, 5);
+
+            for (1 .. 20) {
+                if ($_ == 10) {
+                    reset_consoles;
+                    select_console 'sol', await_console => 0;
+                }
+                send_key 'down';
+                last if check_screen 'virttest-bootmenu-xen-kernel', 5;
+            }
         }
     }
     else {
