@@ -24,6 +24,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use utils 'type_string_slow';
 
 sub accept3rdparty {
     #Third party licenses sometimes appear
@@ -116,11 +117,10 @@ sub gotodetails {
             assert_and_click 'packages-search-field-selected';
             wait_screen_change { send_key 'ctrl-a' };
             wait_screen_change { send_key 'delete' };
-            type_string "$p";
+            type_string_slow "$p";
             send_key 'alt-s';    # search button
         }
-        send_key_until_needlematch "packages-$p-selected", 'down', 60;
-        wait_screen_change { send_key "$operation" };
+        assert_and_click "packages-$p-selected";
         wait_still_screen 2;
         save_screenshot;
     }
