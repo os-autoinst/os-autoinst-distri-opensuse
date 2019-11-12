@@ -195,11 +195,15 @@ sub run {
         type_string "/usr/bin/top\n";
     } else {
         type_string "top\n";
+        wait_still_screen 1;
         send_key 'alt-o';
         assert_screen 'yast2_apparmor_profile_for_top_generated';
         send_key 'alt-f';
+
         #cleaning the console
         type_string "reset\n";
+        wait_still_screen 1;
+
         return;
     }
 
