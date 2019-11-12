@@ -218,17 +218,17 @@ sub investigate_yast2_failure {
     }
     # Hash with critical errors in YaST2 and bug reference if any
     my %y2log_errors = (
-        "<3>.*Cannot parse the data from server"     => 'bsc#1126045',
-        "No textdomain configured"                   => 'bsc#1127756',    # Detecting missing translations
-                                                                          # Detecting specifi errors proposed by the YaST dev team
-        "nothing provides"                           => undef,            # Detecting missing required packages
-        "but this requirement cannot be provided"    => undef,            # Detecting package conflicts
-        "Could not load icon|Couldn't load pixmap"   => undef,            # Detecting missing icons
-        "Internal error. Please report a bug report" => undef,            # Detecting internal errors
+        "No textdomain configured"                   => undef,    # Detecting missing translations
+                                                                  # Detecting specifi errors proposed by the YaST dev team
+        "nothing provides"                           => undef,    # Detecting missing required packages
+        "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
+        "Could not load icon|Couldn't load pixmap"   => undef,    # Detecting missing icons
+        "Internal error. Please report a bug report" => undef,    # Detecting internal errors
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
-        "<3>.*no[t]? mount" => 'bsc#1092088',                             # Detect not mounted partition
+        "<3>.*no[t]? mount"   => 'bsc#1092088',                   # Detect not mounted partition
+        "<3>.*lib/cheetah.rb" => 'bsc#1153749',
 
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
         # Adding reference to trello, detect those in single scenario
