@@ -37,7 +37,7 @@ sub run {
         assert_script_run qq{systemctl is-enabled $service | grep disabled};
 
         record_info('INFO', 'Verify networking');
-        assert_script_run "ip link show | grep -E \"(ens|eth)[0-9]\" | grep UP";
+        assert_script_run "ip link show | grep -E \"(ens|enp|eth)[0-9]\" | grep UP";
     }
     else {
         record_info('INFO', 'Check firewall is enabled and running');
