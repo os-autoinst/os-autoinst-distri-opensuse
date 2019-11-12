@@ -46,6 +46,7 @@ sub run {
     zypper_call('in zypper-migration-plugin');
 
     #list available migration targets
+    script_run('zypper  --no-refresh patch --updatestack-only -y');
     my $migration_query = script_run('zypper migration --query');
     if ($migration_query != 0) {
         $self->migration_err();
