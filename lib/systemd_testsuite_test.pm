@@ -24,10 +24,10 @@ use version_utils qw(is_opensuse is_sle is_tumbleweed);
 
 
 sub testsuiteinstall {
-    # The isotovideo setting QA_HEAD_REPO is not mandatory.
-    # QA_HEAD_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
-    my $qa_head_repo = get_var('QA_HEAD_REPO', '');
-    if (!$qa_head_repo) {
+    # The isotovideo setting QA_TESTSUITE_REPO is not mandatory.
+    # QA_TESTSUITE_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
+    my $qa_testsuite_repo = get_var('QA_TESTSUITE_REPO', '');
+    if (!$qa_testsuite_repo) {
         if (is_opensuse()) {
             my $sub_project;
             if (is_tumbleweed()) {
@@ -37,13 +37,14 @@ sub testsuiteinstall {
                 (my $version, my $service_pack) = split('\.', get_required_var('VERSION'));
                 $sub_project = "Leap:/$version/openSUSE_Leap_$version.$service_pack/";
             }
-            $qa_head_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/' . $sub_project;
+            $qa_testsuite_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/' . $sub_project;
         }
         else {
-            (my $version, my $service_pack) = split('-', get_required_var('VERSION'));
-            $qa_head_repo = "http://download.suse.de/ibs/QA:/$version$service_pack/standard/";
+            my $version_with_service_pack    = get_required_var('VERSION');
+            my $version_without_service_pack = substr($version_with_service_pack, 0, index($version_with_service_pack, '-'));
+            $qa_testsuite_repo = "http://download.suse.de/ibs/QA:/Head:/SLE$version_without_service_pack/SLE-$version_with_service_pack/";
         }
-        die '$qa_head_repo is not set' unless ($qa_head_repo);
+        die '$qa_testsuite_repo is not set' unless ($qa_testsuite_repo);
     }
 
     select_console 'root-console';
@@ -57,7 +58,7 @@ sub testsuiteinstall {
     zypper_call 'in strace';
 
     # install systemd testsuite
-    zypper_call "ar $qa_head_repo systemd-testrepo";
+    zypper_call "ar $qa_testsuite_repo systemd-testrepo";
     zypper_call '--gpg-auto-import-keys ref';
     zypper_call 'in systemd-qa-testsuite';
 }
