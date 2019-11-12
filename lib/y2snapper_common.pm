@@ -23,15 +23,35 @@ sub y2snapper_select_current_conf {
     my ($self, $ncurses) = @_;
     $ncurses //= 0;
     if ($ncurses) {
-        send_key 'alt-tab';    # Focus Current Configuration selection box
-        send_key 'down';       # Expand test configuration selection box
-        send_key 'down';       # Select test configuration
-        send_key 'ret';        # Apply selection
+        send_key_until_needlematch 'yast2_snapper-current_configuration_root', 'tab';
+        send_key 'down';    # Expand test configuration selection box
+        send_key 'down';    # Select test configuration
+        send_key 'ret';     # Apply selection
         send_key 'tab';
     }
     else {
         send_key 'shift-tab';    # Focus Current Configuration selection box
         send_key 'down';         # Select test configuration
+    }
+}
+
+=head2 y2snapper_close_snapper_module
+
+ y2snapper_close_snapper_module($ncurses);
+
+Close snapper module
+C<$ncurses> is used to check if it is ncurses.
+
+=cut
+sub y2snapper_close_snapper_module {
+    my ($self, $ncurses) = @_;
+    $ncurses //= 0;
+    if ($ncurses) {
+        send_key_until_needlematch 'yast2_snapper-close', 'tab';
+        send_key 'ret';
+    }
+    else {
+        assert_and_click 'yast2_snapper-close';
     }
 }
 
@@ -94,8 +114,7 @@ sub y2snapper_new_snapshot {
     }
     # Make sure the snapshot is listed in the main window
     send_key_until_needlematch([qw(yast2_snapper-new_snapshot yast2_snapper-new_snapshot_selected)], 'pgdn');
-    # C'l'ose the snapper module
-    send_key "alt-l";
+    $self->y2snapper_close_snapper_module($ncurses);
 }
 
 =head2 y2snapper_apply_filesystem_changes
@@ -127,7 +146,7 @@ sub y2snapper_show_changes_and_delete {
     assert_screen 'yast2_snapper-snapshots', 100;
     $self->y2snapper_select_current_conf($ncurses);
 
-    assert_screen 'yast2_snapper-new_snapshot_selected';
+    send_key_until_needlematch 'yast2_snapper-new_snapshot_selected', 'tab';
     # Press Show Changes
     send_key "alt-s";
     assert_screen 'yast2_snapper-unselected_testdata';
@@ -144,7 +163,13 @@ sub y2snapper_show_changes_and_delete {
     # Close the dialog and make sure it is closed
     send_key 'alt-c';
     # Dele't'e the snapshot
-    send_key "alt-t";
+    if ($ncurses) {
+        send_key_until_needlematch 'yast2_snapper-delete', 'tab';
+        send_key 'ret';
+    }
+    else {
+        send_key "alt-t";
+    }
     assert_screen 'yast2_snapper-confirm_delete';
     send_key "alt-y";
     assert_screen 'yast2_snapper-empty-list';
@@ -164,13 +189,7 @@ sub y2snapper_clean_and_quit {
     # Ensure yast2-snapper is not busy anymore
     wait_still_screen 30;
 
-    # C'l'ose the snapper module
-    if ($ncurses) {
-        wait_screen_change { send_key "alt-l"; };
-    }
-    else {
-        assert_and_click 'yast2_snapper-close';
-    }
+    $self->y2snapper_close_snapper_module($ncurses);
 
     if (defined($module_name)) {
         wait_serial("$module_name-0", 240) || die "yast2 snapper failed";
