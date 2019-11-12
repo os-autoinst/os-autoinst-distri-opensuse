@@ -61,8 +61,8 @@ sub run {
     send_key 'alt-n';
 
     assert_screen 'nfs-overview';
-
-    add_shares($rw, $ro);
+    # Add nfs v4 share
+    add_shares($rw, $ro, '4');
 
     send_key 'alt-f';
     wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
