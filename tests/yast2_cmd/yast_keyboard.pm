@@ -40,7 +40,7 @@ sub run {
     zypper_call("in yast2-country", timeout => 480);
     assert_script_run("yast keyboard list");
     assert_script_run("yast keyboard set layout=korean");
-    validate_script_output("yast keyboard summary 2>&1", sub { m/korean/ });
+    validate_script_output("yast keyboard summary 2>&1", sub { m/korean/ }, timeout => 90);
 
     # Set keyboard layout to german.
     assert_script_run("yast keyboard set layout=german");
