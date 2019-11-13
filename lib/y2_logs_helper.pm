@@ -101,7 +101,7 @@ sub accept_license {
 }
 
 sub verify_license_translations {
-    return if (is_sle && get_var("BETA"));
+    #return if (is_sle && get_var("BETA"));
     my $current_lang = 'english-us';
     for my $lang (split(/,/, get_var('EULA_LANGUAGES')), 'english-us') {
         wait_screen_change { send_key 'alt-l' };

@@ -221,7 +221,7 @@ sub save_system_logs {
         assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
         upload_logs '/tmp/btrfs-filesystem-df-mnt.txt';
         upload_logs '/tmp/btrfs-filesystem-usage-mnt.txt';
-    }
+   }
     assert_script_run 'df -h';
     assert_script_run 'df > /tmp/df.txt';
     upload_logs '/tmp/df.txt';
@@ -294,18 +294,18 @@ sub post_fail_hook {
         wait_for_children;
     }
     else {
-        $self->SUPER::post_fail_hook;
-        get_to_console;
-        $self->detect_bsc_1063638;
-        $self->get_ip_address;
-        $self->remount_tmp_if_ro;
-        # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
-        $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
-        return if is_caasp;
-        $self->save_system_logs;
+        # $self->SUPER::post_fail_hook;
+        # get_to_console;
+        # $self->detect_bsc_1063638;
+        # $self->get_ip_address;
+        # $self->remount_tmp_if_ro;
+        # # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+        # $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+        # return if is_caasp;
+        # $self->save_system_logs;
 
-        # Collect yast2 installer  strace and gbd debug output if is still running
-        $self->save_strace_gdb_output;
+        # # Collect yast2 installer  strace and gbd debug output if is still running
+        # $self->save_strace_gdb_output;
     }
 }
 
