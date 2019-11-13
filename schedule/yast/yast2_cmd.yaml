@@ -15,12 +15,15 @@ conditional_schedule:
         - yast2_cmd/yast_ftp_server
         - yast2_cmd/yast_users
         - yast2_cmd/yast_keyboard
+        - yast2_cmd/yast_sysconfig
       x86_64:
         - yast2_cmd/yast_ftp_server
         - yast2_cmd/yast_users
         - yast2_cmd/yast_keyboard
+        - yast2_cmd/yast_sysconfig
       aarch64:
         - yast2_cmd/yast_keyboard
+        - yast2_cmd/yast_sysconfig
       s390x:
         - yast2_cmd/yast_lan
         - yast2_cmd/yast_ftp_server
@@ -33,7 +36,6 @@ schedule:
      - yast2_cmd/yast_rdp
      - yast2_cmd/yast_timezone
      - yast2_cmd/yast_tftp_server
-     - yast2_cmd/yast_sysconfig
      - yast2_cmd/yast_nfs_server
      - yast2_cmd/yast_nfs_client
      - {{under_issues_investigation}}
