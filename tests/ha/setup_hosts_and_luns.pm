@@ -16,7 +16,18 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster qw(get_cluster_name get_hostname get_my_ip is_node);
+use utils qw(systemctl file_content_replace);
+use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
+
+sub replace_text_in_ha_files {
+    my %changes      = @_;
+    my @files_to_fix = qw(/etc/corosync/corosync.conf /etc/drbd.d/drbd_passive.res);
+
+    foreach my $file (@files_to_fix) {
+        file_content_replace($file, %changes);
+        assert_script_run "cat $file";
+    }
+}
 
 sub run {
     my $nfs_share    = get_required_var('NFS_SUPPORT_SHARE');
@@ -28,6 +39,7 @@ sub run {
 
     # If dealing with upgrades, specify that in the directory name as to avoid overwriting info
     # from other running tests
+    $testname =~ s/@.+$//;
     $testname =~ s/_node\d+$//;
     $dir_id .= "_$testname" if get_var('HDDVERSION', '');
 
@@ -53,8 +65,52 @@ sub run {
     assert_script_run "cat $mountpt/$dir_id/*.hosts >> /etc/hosts";
     assert_script_run 'cat /etc/hosts';
 
-    # Skip LUN setup in upgrades
-    return if get_var('HDDVERSION', '');
+    # Special tasks to do in upgrades
+    if (get_var('HDDVERSION', '')) {
+        # Ensure cluster is not running
+        systemctl 'stop pacemaker';
+
+        # Get IP adresses configured in /etc/corosync.conf
+        my %addr_changes = ();
+        my $old_addr     = script_output q(grep ring0 /etc/corosync/corosync.conf | awk '{print "ip:"$2}' | uniq | tr '\n' ',');
+        my $count        = 0;
+
+        foreach my $addr (split(/,/, $old_addr)) {
+            ++$count;
+            $addr =~ /ip:([\d\.]+)/;
+            $addr_changes{$1} = "%NODE$count%";
+        }
+
+        # Finish early if no ring0 addresses were found in corosync.conf.
+        if ($count == 0) {
+            systemctl 'start pacemaker';
+            return;
+        }
+
+        # Apply workaround only in node 1 and then sync files
+        if (is_node(1)) {
+            # Remove old addresses from HA conf files
+            replace_text_in_ha_files(%addr_changes);
+
+            # Get current IP address for the nodes. $ipaddr already has the info for the current node,
+            # and $count has the number of old IP address in corosync.conf
+            %addr_changes = (q(%NODE1%) => $ipaddr);
+            my $total_nodes = $count;
+            for ($count = 2; $count <= $total_nodes; $count++) {
+                my $partnerip = get_ip choose_node($count);
+                $addr_changes{"%NODE$count%"} = $partnerip;
+            }
+
+            # Replace new IP addresses in HA conf files and sync files to other node
+            replace_text_in_ha_files(%addr_changes);
+            exec_csync;
+        }
+
+        # Restart cluster
+        barrier_wait("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name");
+        systemctl 'start pacemaker';
+        return;    # Skip LUN setup in upgrades
+    }
 
     # prepare LUN files. only node 1 does this
     if (is_node(1)) {
