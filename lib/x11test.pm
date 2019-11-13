@@ -10,6 +10,7 @@ use Config::Tiny;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use POSIX 'strftime';
+use mm_network;
 
 sub post_fail_hook {
     my ($self) = shift;
@@ -926,9 +927,15 @@ sub configure_static_ip_nm {
 
     x11_start_program('xterm');
     become_root;
-    assert_script_run "nmcli connection add type ethernet con-name wired ifname eth0 ip4 '$ip' gw4 10.0.2.2";
-    assert_script_run 'nmcli device disconnect eth0';
-    assert_script_run 'nmcli connection up wired ifname eth0', 60;
+
+    # Dynamic get network interface names
+    my $niName = script_output("ls /sys/class/net | grep ^e", type_command => 1);
+    chomp $niName;
+    configure_default_gateway;
+    assert_script_run "nmcli connection add type ethernet con-name wired ifname '$niName' ip4 '$ip' gw4 10.0.2.2";
+    assert_script_run "nmcli device disconnect '$niName'";
+    assert_script_run "nmcli connection up wired ifname '$niName'";
+    configure_static_dns(get_host_resolv_conf());
     type_string "exit\n";
     wait_screen_change { send_key 'alt-f4' };
 }
