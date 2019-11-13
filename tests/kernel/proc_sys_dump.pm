@@ -35,7 +35,7 @@ sub run {
     my $use_white_list = check_var('PROC_SYS_USE_WHITELIST', 1);
     my $wl_opt  = $use_white_list ? 'u' : 'w';
     my $timeout = $use_white_list ? 120 : 300;
-    my $script_url = "https://raw.githubusercontent.com/richiejp/ltp/dump/scripts/$ps_dump";
+    my $script_url = data_url("ltp/$ps_dump");
 
     $timeout *= 2 if is_aarch64;
 
