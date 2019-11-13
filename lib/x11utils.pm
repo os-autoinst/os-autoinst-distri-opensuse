@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap);
+use utils 'assert_and_click_until_screen_change';
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -34,6 +35,7 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
+  untick_welcome_on_next_startup
 );
 
 =head1 X11_UTILS
@@ -294,6 +296,29 @@ Disable suspend in gnome. To be called from a command prompt, for example an xte
 =cut
 sub turn_off_gnome_suspend {
     script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
+}
+
+=head2 untick_welcome_on_next_startup
+
+ untick_welcome_on_next_startup();
+
+untick welcome page on next startup.
+
+=cut
+sub untick_welcome_on_next_startup {
+    # Untick box - (Retries may be needed: poo#56024)
+    for my $retry (1 .. 5) {
+        assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
+        # Moving the cursor already causes screen changes - do not fail the check
+        # immediately but allow some time to reach the final state
+        last if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
+        die "Unable to untick 'Show on next startup'" if $retry == 5;
+    }
+    for my $retry (1 .. 5) {
+        send_key 'alt-f4';
+        last if check_screen("generic-desktop", timeout => 5);
+        die "Unable to close openSUSE Welcome screen" if $retry == 5;
+    }
 }
 
 1;
