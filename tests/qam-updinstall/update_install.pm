@@ -52,6 +52,8 @@ sub install_packages {
                 'xen-tools-domU'       => 'xen-tools'
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
+            # go to next package if it's not provided by repos
+            record_info('Not present', "$package is added in patch") && next if (script_run("zypper -n se -x $package") == 104);
             # install package
             zypper_call("in -l $package", exitcode => [0, 102, 103]);
             save_screenshot;
