@@ -153,7 +153,7 @@ sub run {
     if (is_sle('15+')) {
         assert_script_run 'yast ftp-server startup socket';
     }
-    if (is_sle('<=12-sp4')) {
+    if (is_sle('<15')) {
         assert_script_run 'yast ftp-server startup xinetd';
     }
     assert_script_run 'echo "hello world" > /srv/ftp/tmp.txt';
