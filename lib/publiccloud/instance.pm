@@ -13,7 +13,7 @@
 
 package publiccloud::instance;
 use testapi;
-use Carp croak;
+use Carp 'croak';
 use Mojo::Base -base;
 use Mojo::Util 'trim';
 use File::Basename;
