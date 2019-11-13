@@ -54,6 +54,7 @@ sub install_runtime_dependencies {
         zypper_call('in --force-resolution gettext-runtime');
     }
 
+    # sysstat is also a dependency for build from git (pidstat)
     my @deps = qw(
       sysstat
       iputils
@@ -322,11 +323,12 @@ sub run {
 
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
+        install_runtime_dependencies;    # install pidstat (sysstat)
+
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
         install_from_git($tag);
 
-        install_runtime_dependencies;
         install_runtime_dependencies_network;
         install_debugging_tools;
     }
@@ -360,8 +362,10 @@ sub post_fail_hook {
     upload_system_logs();
 
     # bsc#1024050
-    script_run('pkill pidstat');
-    upload_logs('/tmp/pidstat.txt', failok => 1);
+    if (get_var('INSTALL_LTP') =~ /git/i) {
+        script_run('pkill pidstat');
+        upload_logs('/tmp/pidstat.txt', failok => 1);
+    }
 }
 
 sub test_flags {
