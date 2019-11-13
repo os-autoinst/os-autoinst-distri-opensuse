@@ -103,38 +103,43 @@ sub run {
     systemctl 'stop apache2';
 
     if (is_sle('12-SP2+')) {
-        # Create directory for the new instance and prepare config
-        assert_script_run 'mkdir -p /tmp/prefork';
-        assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
+        if (check_var('SYSTEM_ROLE', 'kvm')) {
+            record_info('prefork skipped', "The apache prefork tests were skipped due to SYSTEM_ROLE=kvm (see bsc#1156171).");
+        }
+        else {
+            # Create directory for the new instance and prepare config
+            assert_script_run 'mkdir -p /tmp/prefork';
+            assert_script_run 'sed "s_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/" /usr/share/doc/packages/apache2/httpd.conf.default > /tmp/prefork/httpd.conf';
 
-        # httpd.default.conf contains wrong service userid and groupid
-        assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
-        assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
+            # httpd.default.conf contains wrong service userid and groupid
+            assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
+            assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
 
-        # Run and test this new environment
-        assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
-        assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
+            # Run and test this new environment
+            assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
+            assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
 
-        # Run and test the old environment too
-        assert_script_run 'rm /var/run/httpd.pid';
-        systemctl 'start apache2';
-        assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
+            # Run and test the old environment too
+            assert_script_run 'rm /var/run/httpd.pid';
+            systemctl 'start apache2';
+            assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
 
-        # Test both instances
-        assert_script_run 'curl -v http://localhost:80/';
-        assert_script_run 'curl -v http://localhost:8080/';
+            # Test both instances
+            assert_script_run 'curl -v http://localhost:80/';
+            assert_script_run 'curl -v http://localhost:8080/';
 
-        # Stop both instances
-        # binary killall is not present in JeOS
-        assert_script_run('kill -TERM $(ps aux| grep [h]ttpd2-prefork| awk \'{print $2}\')');
-        systemctl 'stop apache2';
+            # Stop both instances
+            # binary killall is not present in JeOS
+            assert_script_run('kill -TERM $(ps aux| grep [h]ttpd2-prefork| awk \'{print $2}\')');
+            systemctl 'stop apache2';
 
-        # Test everything is stopped properly
-        assert_script_run '! curl -v http://localhost:80/';
-        assert_script_run '! curl -v http://localhost:8080/';
+            # Test everything is stopped properly
+            assert_script_run '! curl -v http://localhost:80/';
+            assert_script_run '! curl -v http://localhost:8080/';
 
-        # Clean up
-        assert_script_run 'rm -r /tmp/prefork';
+            # Clean up
+            assert_script_run 'rm -r /tmp/prefork';
+        }
     }
 
     # Create a new directory with the index file
