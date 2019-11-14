@@ -27,7 +27,7 @@ use warnings;
  copy_testsuite($tc);
 
 Fetch the testcase and common libraries from openQA server.
-The parameter C<$tc> is the name of testcase and common library. 
+The parameter C<$tc> is the name of testcase and common library.
 It is the part of script path '$script_path'.
 
 =cut
@@ -39,7 +39,11 @@ sub copy_testsuite {
     # fetch the testcase and common libraries from openQA server
     my $path        = data_url("s390x");
     my $script_path = "$path/$tc/$tc.tgz";
-    assert_script_run "mkdir -p ./$tc/ && cd ./$tc/ && rm -f $tc.tgz";
+    # remove previous files from SUT
+    assert_script_run("rm -rf /root/$tc/");
+    # get new version of test scripts
+    assert_script_run("mkdir -p ./$tc/");
+    assert_script_run("cd ./$tc/");
     assert_script_run "wget $script_path";
     assert_script_run "tar -xf $tc.tgz";
     my $commonsh_path = "$path/lib/common.tgz";
@@ -69,7 +73,7 @@ sub execute_script {
 
  cleanup_testsuite();
 
-Currently it just returns value 1. 
+Currently it just returns value 1.
 It should be able to remove files saved at ./tmp
 
 See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/8634
