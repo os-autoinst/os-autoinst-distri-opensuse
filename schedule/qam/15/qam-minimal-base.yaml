@@ -39,7 +39,7 @@ schedule:
 - console/zypper_lr
 - console/zypper_ref
 - console/firewall_enabled
-- console/glibc_sanity
+- {{glibc_sanity}}
 - console/salt
 - console/sshd
 - console/ssh_cleanup
@@ -47,7 +47,7 @@ schedule:
 - console/yast2_bootloader
 - console/yast2_i
 - console/yast2_lan
-- console/yast2_nfs_server
+- {{yast2_nfs_server}}
 - console/mtab
 - console/mysql_srv
 - console/rsync
@@ -63,16 +63,24 @@ schedule:
 - console/coredump_collect
 conditional_schedule:
   boot:
-    MACHINE:
-      zkvm:
+    ARCH:
+      s390x:
         - installation/bootloader_zkvm
-      64bit:
+      x86_64:
         - installation/isosize
         - installation/bootloader
   grub:
-    MACHINE:
-      zkvm:
+    ARCH:
+      s390x:
         - boot/reconnect_mgmt_console
-      64bit:
+      x86_64:
         - installation/grub_test
+  glibc_sanity:
+    ARCH:
+      x86_64:
+        - console/glibc_sanity
+  yast2_nfs_server:
+    BACKEND:
+      qemu:
+        - console/yast2_nfs_server
 ...
