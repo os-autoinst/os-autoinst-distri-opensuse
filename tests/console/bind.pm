@@ -35,7 +35,7 @@ sub run {
 
     # script to add missing dependency repos and in second run remove only added products/repos
     assert_script_run 'curl -v -o /tmp/script.sh ' . data_url('qam/handle_bind_source_dependencies.sh');
-    assert_script_run 'bash /tmp/script.sh';
+    assert_script_run 'bash /tmp/script.sh', 200;
     if (is_sle('<=12-SP5')) {
         # preinstall libopenssl-devel & libmysqlclient-devel because on 12* are multiple versions and zypper can't decide,
         # perl-IO-Socket-INET6 for reclimit test
