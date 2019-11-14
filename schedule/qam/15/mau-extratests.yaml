@@ -1,6 +1,7 @@
 ---
 name: mau-extratests
 schedule:
+- {{zkvm_boot}}
 - boot/boot_to_desktop
 - console/prepare_test_data
 - console/consoletest_setup
@@ -10,8 +11,7 @@ schedule:
 - console/update_alternatives
 - console/rpm
 - console/slp
-- console/aplay
-- console/wavpack
+- {{sound}}
 - console/libvorbis
 - console/command_not_found
 - console/openssl_alpn
@@ -19,14 +19,14 @@ schedule:
 - console/cron
 - console/syslog
 - console/mta
-- console/yast2_lan_device_settings
+- {{yast2_lan_device_settings}}
 - console/check_default_network_manager
 - console/git
 - console/cups
 - console/java
 - console/sqlite3
 - console/ant
-- console/gdb
+- {{gdb}}
 - console/perf
 - console/sysctl
 - console/sysstat
@@ -51,7 +51,7 @@ schedule:
 - sysauth/sssd
 - console/timezone
 - console/procps
-- console/lshw
+- {{lshw}}
 - console/kmod
 - console/suse_module_tools
 - console/zziplib
@@ -60,4 +60,26 @@ schedule:
 - console/osinfo_db
 - console/libgcrypt
 - console/coredump_collect
+conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+  sound:
+    ARCH:
+      x86_64:
+        - console/aplay
+        - console/wavpack
+  gdb:
+    ARCH:
+      x86_64:
+        - console/gdb
+  yast2_lan_device_settings:
+    ARCH:
+      x86_64:
+        - console/yast2_lan_device_settings
+  lshw:
+    ARCH:
+      x86_64:
+        - console/lshw
 ...
