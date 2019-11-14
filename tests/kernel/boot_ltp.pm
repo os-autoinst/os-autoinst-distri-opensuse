@@ -126,11 +126,6 @@ done
 EOF
         script_output($conf_nic_script);
 
-        # dhclient requires no wicked service not only running but also disabled
-        script_run(
-            'systemctl --no-pager -p Id show network.service | grep -q Id=wicked.service && { export ENABLE_WICKED=1; systemctl disable wicked; }'
-        );
-
         # emulate $LTPROOT/testscripts/network.sh
         assert_script_run('curl ' . data_url("ltp/net.sh") . ' -o net.sh', 60);
         assert_script_run('chmod 755 net.sh');
