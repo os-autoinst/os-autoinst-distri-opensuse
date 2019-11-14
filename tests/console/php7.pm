@@ -23,6 +23,7 @@ use apachetest;
 sub run {
     select_console 'root-console';
     setup_apache2(mode => 'PHP7');
-    validate_script_output('curl http://localhost/index.php', sub { /PHP Version 7/ });
+    assert_script_run('curl http://localhost/index.php | tee /tmp/tests-console-php7.txt');
+    assert_script_run('grep "PHP Version 7" /tmp/tests-console-php7.txt');
 }
 1;
