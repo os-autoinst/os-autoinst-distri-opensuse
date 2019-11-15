@@ -141,7 +141,7 @@ sub run {
     select_console 'root-console';
 
     # increase entropy for key generation for s390x on svirt backend
-    if (check_var('ARCH', 's390x') && (is_sle('>15') && (check_var('BACKEND', 'svirt')))) {
+    if (check_var('ARCH', 's390x') && (is_sle('15+') && (check_var('BACKEND', 'svirt')))) {
         zypper_call('in haveged');
         systemctl('start haveged');
     }
