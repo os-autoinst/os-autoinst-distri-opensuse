@@ -500,7 +500,13 @@ sub check_warnings {
 sub enter_partitioning {
     # create partitioning
     if (is_storage_ng) {
-        send_key $cmd{expertpartitioner};
+        if (check_screen 'expert_partitioner_x_shortcut', 2) {
+            # pas per poo#59876
+            send_key 'alt-x';
+        }
+        else {
+            send_key $cmd{expertpartitioner};
+        }
         save_screenshot;
         rescan_devices;
     }
