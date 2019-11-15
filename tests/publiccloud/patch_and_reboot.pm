@@ -22,7 +22,7 @@ sub run {
     my ($self, $args) = @_;
     select_console 'tunnel-console';
 
-    $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ref");
+    $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ref", timeout => 360);
     ssh_fully_patch_system($args->{my_instance}->public_ip);
     $args->{my_instance}->softreboot();
 }

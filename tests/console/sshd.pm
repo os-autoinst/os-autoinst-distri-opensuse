@@ -25,16 +25,17 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
-use utils qw(systemctl exec_and_insert_password zypper_call);
+use utils qw(systemctl exec_and_insert_password zypper_call random_string);
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap);
 
 sub run {
     my $self = shift;
+    select_console 'root-console';
+
     # new user to test sshd
     my $ssh_testman        = "sshboy";
-    my $ssh_testman_passwd = "let3me2in1";
-
-    select_console 'root-console';
+    my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in1';
+    assert_script_run('echo -e "Match User ' . $ssh_testman . '\n\tPasswordAuthentication yes" >> /etc/ssh/sshd_config') if (get_var('PUBLIC_CLOUD'));
 
     # 'nc' is not installed by default on JeOS
     if (script_run("which nc")) {
