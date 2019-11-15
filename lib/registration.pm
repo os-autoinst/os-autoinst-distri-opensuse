@@ -429,7 +429,7 @@ sub process_scc_register_addons {
         }
         # start addons/modules registration, it needs longer time if select multiple or all addons/modules
         my $counter = ADDONS_COUNT;
-        my @needles = qw(import-untrusted-gpg-key nvidia-validation-failed yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository);
+        my @needles = qw(import-untrusted-gpg-key nvidia-validation-failed yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository system-probing);
         # In SLE 15 SP2 multipath detection happens directly after registration, so using it to detect that all pop-up are processed
         push @needles, 'enable-multipath' if is_sle('15-SP2+') && get_var('MULTIPATH');
         while ($counter--) {
@@ -469,12 +469,10 @@ sub process_scc_register_addons {
                     record_soft_failure 'bsc#1040758';
                     next;    # Yast may popup dependencies or software install dialog, enter determine statement again.
                 }
-            }
-            elsif (match_has_tag('contacting-registration-server')) {
-                sleep 5;
-                next;
-            }
-            elsif (match_has_tag('refreshing-repository')) {
+            }    # detecting if need to wait as registration is still on-going
+            elsif (match_has_tag('contacting-registration-server') ||
+                match_has_tag('system-probing') ||
+                match_has_tag('refreshing-repository')) {
                 sleep 5;
                 next;
             }
