@@ -46,13 +46,13 @@ sub run() {
 #tcsh specializated test for bsc#1154877 && poo#59354:
 sub tcsh_extra_tests {
     select_console 'root-console';
-    script_run 'useradd -s /usr/bin/tcsh -d /home/tux -m tux';
-    script_run 'su - tux', 0;
+    script_run 'useradd -s /usr/bin/tcsh -d /home/tcsh_user -m tcsh_user';
+    script_run 'su - tcsh_user', 0;
 
     #Generate some outputs for the new created user:
     type_string "echo \"echo Sourced!\" >> ~/.tcsh\n";
 
-    type_string "grep tux /etc/passwd > /tmp/tcsh\n";
+    type_string "grep tcsh_user /etc/passwd > /tmp/tcsh\n";
     type_string "echo \$SHELL >> /tmp/tcsh\n";
     type_string "echo ~ >> /tmp/tcsh\n";
     type_string "source ~/.tcsh >> /tmp/tcsh\n";
@@ -61,15 +61,15 @@ sub tcsh_extra_tests {
     #Go back to root/openqa and do the validations:
     script_run 'logout', 0;
 
-    validate_script_output 'grep -c tux:x:1001:100::/home/tux:/usr/bin/tcsh /tmp/tcsh', sub { /1/ };
-    validate_script_output 'grep -c ^/usr/bin/tcsh /tmp/tcsh',                          sub { /1/ };
-    validate_script_output 'grep -c ^/home/tux /tmp/tcsh',                              sub { /1/ };
-    validate_script_output 'grep -c Sourced! /tmp/tcsh',                                sub { /1/ };
-    validate_script_output 'grep 12 /tmp/tcsh',                                         sub { /12/ };
+    validate_script_output 'grep -c /home/tcsh_user:/usr/bin/tcsh /tmp/tcsh', sub { /1/ };
+    validate_script_output 'grep -c ^/usr/bin/tcsh /tmp/tcsh',                sub { /1/ };
+    validate_script_output 'grep -c ^/home/tcsh_user /tmp/tcsh',              sub { /1/ };
+    validate_script_output 'grep -c Sourced! /tmp/tcsh',                      sub { /1/ };
+    validate_script_output 'grep 12 /tmp/tcsh',                               sub { /12/ };
 
     #cleanup:
     script_run 'rm /tmp/tcsh ~/.tcsh';
-    script_run 'userdel tux';
+    script_run 'userdel tcsh_user';
 }
 
 1;
