@@ -103,7 +103,7 @@ EOF
         return;
     }
 
-    wait_serial("gpg: key.*accepted as trusted key", 180) || die "Key generating failed!";
+    wait_serial("gpg: key.*accepted as trusted key", 90) || die "Key generating failed!";
 
     assert_script_run("gpg --list-keys | grep '\\[ultimate\\] $username <$email>'");
 
