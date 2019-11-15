@@ -323,6 +323,10 @@ sub run {
             # if we matched bios-boot tag during stage1 we may get grub menu, legacy behavior
             # keep it as a fallback if grub timeout is disabled
             send_key 'ret';
+            # Finish the current module execution if encrypted disks are used.
+            # Delegate entering the encryption passphrase and boot validation to the
+            # next test modules.
+            return if (get_var('ENCRYPT'));
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
             last;    # we missed reboot-after-installation, wait for boot is in autoyast/console

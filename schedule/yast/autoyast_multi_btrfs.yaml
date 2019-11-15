@@ -1,0 +1,29 @@
+name:           autoyast_multi_btrfs
+description:    >
+  Test autoyast installation, while using multi-device Btrfs filesystem
+vars:
+  ENCRYPT: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_multi_btrfs_partitioning
+  - console/validate_encrypt
+test_data:
+  multi_devices:
+    - mount_point: /
+      label: root_multi_btrfs
+      devices:
+        - /dev/vda2
+        - /dev/vdb1
+    - mount_point: /test
+      label: test_multi_btrfs
+      devices:
+        - /dev/vdc
+        - /dev/mapper/cr_vdd1
+  crypttab:
+    num_devices_encrypted: 1
+  !include: test_data/yast/encryption/default_enc.yaml
