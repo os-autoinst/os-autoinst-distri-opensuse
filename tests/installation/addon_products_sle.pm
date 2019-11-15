@@ -151,6 +151,9 @@ sub run {
         advance_installer_window('inst-addon');
         set_var('SKIP_INSTALLER_SCREEN', 0);
     }
+    # Trap the 'missing license file on media' issue
+    # Needle is configured as a workaround, so a soft-fail will be shown
+    send_key 'alt-s' if check_screen('license-insert-disc-issue', 30);
     # Full_installer jumps to the Select extension and modules dialog and this
     # makes the tests fail as it doesnt find anything to match
     unless (check_var('FLAVOR', 'Full')) {
