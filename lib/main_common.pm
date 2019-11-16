@@ -1295,7 +1295,9 @@ sub load_x11tests {
         }
     }
     if (kdestep_is_applicable()) {
-        loadtest "x11/plasma_browser_integration" if (is_tumbleweed || is_leap("15.1+"));
+        if((is_tumbleweed || is_leap("15.1+")) && !get_var('LIVECD')) {
+            loadtest "x11/plasma_browser_integration";
+        }
         loadtest "x11/khelpcenter";
         if (get_var("PLASMA5")) {
             loadtest "x11/systemsettings5";
