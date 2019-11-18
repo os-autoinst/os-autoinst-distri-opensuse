@@ -28,8 +28,6 @@ sub run {
     $self->get_from_data('wicked/dhcp/dhcpd_2nics.conf', '/etc/dhcpd.conf');
     systemctl 'start dhcpd.service';
     $self->wait_for_dhcpd();
-    # Enable forwarding to reach the gateway from SUT
-    assert_script_run('sysctl -w net.ipv4.ip_forward=1');
     die("Create mutex failed") unless mutex_create('t08_dhcpd_setup_complete');
 }
 

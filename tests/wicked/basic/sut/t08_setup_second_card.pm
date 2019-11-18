@@ -41,9 +41,8 @@ sub run {
     die("Unexpected IP $ip_iface1 on " . $ctx->iface()) unless ($ip_iface1 =~ /$dhcp_ip_sut/);
     die("Unexpected IP $ip_iface2 on " . $ctx->iface2()) unless ($ip_iface2 eq $static_ip_sut);
 
-    $self->ping_with_timeout(type => 'dhcp_2nic', interface => $ctx->iface());
-
-    validate_script_output('tracepath -n ' . $self->get_ip(type => 'gateway'), sub { index($_, $static_ip_ref) != -1 });
+    $self->ping_with_timeout(type => 'dhcp_2nic',   interface => $ctx->iface());
+    $self->ping_with_timeout(type => 'second_card', interface => $ctx->iface2());
 }
 
 sub test_flags {
