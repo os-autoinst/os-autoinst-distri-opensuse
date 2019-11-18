@@ -43,8 +43,6 @@ sub run {
     if (is_sle('=12-SP5') && is_aarch64()) {
         register_product;
         add_suseconnect_product 'sle-sdk';
-    } elsif (get_var('PUBLIC_CLOUD')) {
-        add_suseconnect_product(get_addon_fullname('sdk'));
     }
     zypper_call('in gcc glibc-devel gdb');    #Install test depedencies.
 

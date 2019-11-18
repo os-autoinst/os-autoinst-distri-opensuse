@@ -27,6 +27,7 @@ use y2_module_consoletest;
 
 our @EXPORT = qw(
   add_suseconnect_product
+  ssh_add_suseconnect_product
   remove_suseconnect_product
   cleanup_registration
   register_product
@@ -186,6 +187,30 @@ sub add_suseconnect_product {
             record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
         }
         assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+    }
+}
+
+=head2 ssh_add_suseconnect_product
+
+    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params]]]);
+
+Wrapper for SUSEConnect -p $name  over ssh.
+=cut
+sub ssh_add_suseconnect_product {
+    my ($remote, $name, $version, $arch, $params, $timeout, $retry) = @_;
+    assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
+    assert_script_run 'source /tmp/os-release';
+    $version //= '${VERSION_ID}';
+    $arch    //= '${CPU}';
+    $params  //= '';
+    $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+
+    my $result = script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
+    if ($result != 0 && $retry) {
+        if ($name =~ /PackageHub/) {
+            record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
+        }
+        assert_script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
     }
 }
 
