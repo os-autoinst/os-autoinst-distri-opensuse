@@ -45,7 +45,7 @@ sub handle_all_packages_medium {
     push @addons, 'we' if check_var('SLE_PRODUCT', 'sled') && !grep(/^we$/, @addons);
 
     # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
-    push @addons, 'python2' if get_var('MEDIA_UPGRADE') && is_sle('<=15', get_var('HDDVERSION')) && !check_var('SLE_PRODUCT', 'rt');
+    push @addons, 'python2' if get_var('MEDIA_UPGRADE') && is_sle('<=15', get_var('HDDVERSION')) && is_sle('>15') && !check_var('SLE_PRODUCT', 'rt');
 
     # For SLES12SPx and SLES11SPx to SLES15 migration, need add the demand module at least for media migration manually
     # Refer to https://fate.suse.com/325293
