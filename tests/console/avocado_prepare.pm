@@ -76,9 +76,9 @@ if ! echo $EXT_STATUS|grep sle-module-public-cloud; then
 fi
 
 if [[ $VERSION_ID =~ '12' ]]; then
-    zypper -n in --allow-vendor-change --replacefiles python-avocado-plugins-vt
+    zypper -n in --force-resolution --replacefiles python-avocado-plugins-vt
 else
-    zypper -n in --allow-vendor-change --replacefiles python3-avocado-plugins-vt
+    zypper -n in --force-resolution --replacefiles python3-avocado-plugins-vt
 fi
 mkdir -p /var/lib/avocado/data/avocado-vt/images/
 curl -O ftp://10.100.12.155/jeos-27-x86_64.qcow2.xz
