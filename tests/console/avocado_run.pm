@@ -27,7 +27,7 @@ sub run {
     my $test_group = $self->{name};
     my $tests;
     if ($test_group eq 'block_device_hotplug') {
-        $tests = 'block_hotplug.data_plane.block_{scsi,virtio}.fmt_{qcow2,raw}.with_plug.with_system_reset block_hotplug.default.block_{scsi,virtio}.fmt_{qcow2,raw}.{{with,without}_plug.default,with_plug.with_{block_resize,reboot,shutdown.after_plug,shutdown.after_unplug},without_plug.with_{reboot,shutdown.after_unplug}}';
+        $tests = 'block_hotplug.data_plane.block_{scsi,virtio}.fmt_{qcow2,raw}.default.with_plug.with_system_reset block_hotplug.default.block_{scsi,virtio}.fmt_{qcow2,raw}.default.{{with,without}_plug,with_plug.with_{block_resize,reboot,shutdown.after_plug,shutdown.after_unplug},without_plug.with_{reboot,shutdown.after_unplug}}';
     }
     elsif ($test_group eq 'cpu') {
         $tests = 'boot_cpu_model.cpu_host qemu_cpu.cpuid.custom.{{family,model}.{NaN,out_of_range},level.NaN,stepping.{Nan,out_of_range},vendor.{empty,normal,tooshort},xlevel.Nan}.kvm.cpu_model_unset.host_cpu_vendor_unknown';
