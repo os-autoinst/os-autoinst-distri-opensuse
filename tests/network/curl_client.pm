@@ -29,7 +29,7 @@ sub run {
     #start curl tests
     assert_script_run('curl -f -v http://10.0.2.101/get 2>&1');
     assert_script_run('curl -f -v https://httpbin.org/get 2>&1');
-    assert_script_run('curl "ldap://10.0.2.101/dc=example,dc=com??sub?(uid=bjensen)"');
+    assert_script_run('curl "ldap://10.0.2.101/dc=green,dc=com??sub?(uid=julius)"');
     assert_script_run('curl ftp://10.0.2.101');
 
     #Tests dones. Curl server stop.
