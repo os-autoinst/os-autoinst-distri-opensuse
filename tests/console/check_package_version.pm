@@ -25,15 +25,15 @@ use utils qw(systemctl zypper_call);
 use Mojo::Util 'trim';
 
 my %package = (
-    autofs              => ['5.1.3',  'jsc#5754'],
-    openscap            => ['1.3.0',  'jsc#5699'],
-    augeas              => ['1.0.0',  'jsc#5739'],
-    'freeradius-server' => ['3.0.18', 'jsc#5892'],
-    gpgme               => ['1.5.1',  'jsc#5953'],
-    'libgpg-error'      => ['1.17',   'jsc#5953'],
-    rsync               => ['3.1.3',  'jsc#5584'],
-    python36            => ['3.6.0',  'jsc#7100'],
-    'python-daemon'     => ['1.6',    'jsc#5708']
+    autofs                 => ['5.1.3',  'jsc#5754'],
+    openscap               => ['1.3.0',  'jsc#5699'],
+    augeas                 => ['1.0.0',  'jsc#5739'],
+    'freeradius-server'    => ['3.0.18', 'jsc#5892'],
+    gpgme                  => ['1.5.1',  'jsc#5953'],
+    'libgpg-error0'        => ['1.17',   'jsc#5953'],
+    rsync                  => ['3.1.3',  'jsc#5584'],
+    python36               => ['3.6.0',  'jsc#7100'],
+    'python-python-daemon' => ['1.6',    'jsc#5708']
 );
 
 my %package_s390x = (
@@ -51,7 +51,7 @@ sub cmp_version {
 sub cmp_packages {
     my ($pcks, $pckv, $jsc) = @_;
     record_info($pcks, "$pcks version check after migration");
-    my $output = script_output("zypper se -s $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", proceed_on_failure => 1, 100);
+    my $output = script_output("zypper se -xs $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", proceed_on_failure => 1, 100);
     my $out    = '';
     for my $line (split(/\r?\n/, $output)) {
         if (trim($line) =~ m/^\d+\.\d+(\.\d+)?(-\d+\.\d+)?$/) {
