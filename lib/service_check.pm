@@ -160,6 +160,33 @@ our $default_services = {
     },
 };
 
+=head2 check_services
+
+_is_applicable($srv_pkg_name);
+Return false if the service test should be skipped.
+
+By default it checks the service package name against a comma-separated
+blacklist in C<EXCLUDE_SERVICES> variable and returns false if it is found there.
+
+If C<INCLUDE_SERVICES> is set it will only return true for modules matching the
+whitelist specified in a comma-separated list in C<INCLUDE_SERVICES> matching
+service package name.
+
+=cut
+
+sub _is_applicable {
+    my ($srv_pkg_name) = @_;
+    if (get_var('EXCLUDE_SERVICES')) {
+        my %excluded = map { $_ => 1 } split(/\s*,\s*/, get_var('EXCLUDE_SERVICES'));
+        return 0 if $excluded{$srv_pkg_name};
+    }
+    if (get_var('INCLUDE_SERVICES')) {
+        my %included = map { $_ => 1 } split(/\s*,\s*/, get_var('INCLUDE_SERVICES'));
+        return 0 unless ($included{$srv_pkg_name});
+    }
+    return 1;
+}
+
 =head2 instal_services
 
  install_services($service);
@@ -178,6 +205,7 @@ sub install_services {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
+        next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check before migration");
         eval {
             if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
@@ -212,6 +240,7 @@ sub check_services {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
+        next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check after migration");
         eval {
             if (grep { $_ eq $hdd_base_version } split(',', $support_ver)) {
