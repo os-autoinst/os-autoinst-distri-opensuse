@@ -286,7 +286,14 @@ sub setup_network {
         }
     }
 
-    disable_and_stop_service(opensusebasetest::firewall);
+    if (is_sle('<12')) {
+        script_run('chkconfig -d SuSEfirewall2_init');
+        script_run('chkconfig -d SuSEfirewall2_setup');
+        script_run('/etc/init.d/SuSEfirewall2_setup stop');
+    }
+    else {
+        disable_and_stop_service(opensusebasetest::firewall);
+    }
 }
 
 sub run {
