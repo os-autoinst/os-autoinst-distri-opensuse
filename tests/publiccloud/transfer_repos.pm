@@ -20,9 +20,16 @@ use utils;
 
 sub run {
     my ($self, $args) = @_;
+
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+
     select_console 'tunnel-console';
 
     $args->{my_instance}->run_ssh_command(cmd => "sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 180) unless (get_var('FLAVOR') =~ 'On-Demand');
+
+    for my $addon (@addons) {
+        ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon)) unless ($addon eq '');
+    }
 
     assert_script_run("rsync -va -e ssh ~/repos root@" . $args->{my_instance}->public_ip . ":'/tmp/repos'", timeout => 900);
     $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
