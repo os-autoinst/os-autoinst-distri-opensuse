@@ -714,6 +714,25 @@ sub handle_displaymanager_login {
     handle_login unless $args{nologin};
 }
 
+=head2 handle_pxeboot
+
+ handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => $pxemenu, pxeselect => $pxeselect);
+
+Handle a textmode PXE bootloader menu by means of two needle tags:
+C<$pxemenu> to match the initial menu, C<$pxeselect> to match the
+menu with the desired entry selected.
+=cut
+sub handle_pxeboot {
+    my ($self, %args) = @_;
+    my $bootloader_time = $args{bootloader_time};
+
+    assert_screen($args{pxemenu}, $bootloader_time);
+    unless (match_has_tag($args{pxeselect})) {
+        send_key_until_needlematch($args{pxeselect}, 'down');
+    }
+    send_key 'ret';
+}
+
 sub handle_grub {
     my ($self, %args) = @_;
     my $bootloader_time  = $args{bootloader_time};
@@ -903,6 +922,16 @@ sub wait_boot {
     reset_consoles;
     select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
     if (reconnect_s390(textmode => $textmode, ready_time => $ready_time)) {
+    }
+    elsif (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        # A supportserver client to reboot via PXE after an initial installation.
+        # No GRUB menu. Instead, the mandatory parallel supportserver job is
+        # supposedly ready to provide the desired customized PXE boot menu.
+
+        # Expected: three menu entries, one of them being "Custom kernel"
+        # (the boot configuration from the just-finished initial installation)
+        #
+        $self->handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => 'pxe-custom-kernel', pxeselect => 'pxe-custom-kernel-selected');
     }
     else {
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);

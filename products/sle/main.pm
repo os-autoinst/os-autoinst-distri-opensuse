@@ -679,6 +679,7 @@ elsif (get_var("SUPPORT_SERVER")) {
     }
     loadtest "ha/barrier_init"               if get_var("HA_CLUSTER");
     loadtest "hpc/barrier_init"              if get_var("HPC");
+    loadtest "support_server/custom_pxeboot" if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
     loadtest "support_server/flaky_mp_iscsi" if (get_var("ISCSI_MULTIPATH_FLAKY"));
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait_children";
