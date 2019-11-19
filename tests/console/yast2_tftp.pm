@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2017 SUSE LLC
+# Copyright (c) 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,6 +8,14 @@
 # without any warranty.
 
 # Summary: configure and test tftp server
+# FTP Server Wizard
+# Step 1: Install package and dependencies;
+# Step 2: Set TFTP root directory;
+# Step 3: Check firewall with needles, open ports if needed;
+# Step 4: Check for error logs;
+# Step 5: tFTP server is created, new file created inside it;
+# Step 6: get the created file from the new tFTP server;
+# Step 7: Send finish command exits the app.
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
