@@ -118,25 +118,11 @@ sub stress_snapshots {
     }
 }
 
-sub prepare_target {
-    if (get_var("BOOT_HDD_IMAGE")) {
-        boot_hdd_image;
-    }
-    elsif (check_var('IPXE', '1')) {
-        return;
-    }
-    else {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
-    }
-}
-
 sub load_kernel_tests {
     load_bootloader_s390x();
+    loadtest "../installation/bootloader" if is_spvm;
 
     if (get_var('INSTALL_LTP')) {
-        loadtest "../installation/bootloader" if is_spvm;
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
         }
@@ -159,7 +145,6 @@ sub load_kernel_tests {
         }
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
-        loadtest "../installation/bootloader" if is_spvm;
         if (get_var('INSTALL_KOTD')) {
             loadtest 'install_kotd';
         }
@@ -201,10 +186,6 @@ sub load_kernel_tests {
     } elsif (get_var('NUMA_IRQBALANCE')) {
         boot_hdd_image();
         loadtest 'numa_irqbalance';
-    }
-    elsif (get_var('TUNED')) {
-        prepare_target;
-        loadtest "tuned";
     }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
