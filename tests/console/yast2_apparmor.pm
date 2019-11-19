@@ -7,8 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: check configuration of apparmor, add and delete apparmor profiles
-# Maintainer: Sergio R Lemke <slemke@suse.com>
+# Summary: Check configuration of apparmor, add and delete apparmor profiles;
+# Toggle Enable/Disable Apparmor;
+# List active/loaded profile;
+# Toggle 'Show all available profiles';
+# Close interface and confirm systemd unit is still running;
+# Reopen application and edit existing profile: Change permissions && save;
+# Create a new profile for 'top' binary;
+# Maintainer: Sergio R Lemke <slemke@suse.com>;
 
 use strict;
 use warnings;
