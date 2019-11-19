@@ -364,19 +364,15 @@ sub evolution_add_self_signed_ca {
     my ($self, $account) = @_;
     # add self-signed CA with internal account
     if ($account =~ m/internal/) {
-        assert_and_click "evolution_wizard-receiving-checkauthtype";
-        assert_screen "evolution_mail_meeting_trust_ca";
-        send_key "alt-a";
-        wait_screen_change {
-            send_key $self->{next};
-            send_key "ret";
-        }
+        assert_and_click 'evolution_wizard-receiving-checkauthtype';
+        assert_screen 'evolution_mail_meeting_trust_ca';
+        send_key 'alt-a';
+        assert_screen 'evolution_wizard-receiving';
+        wait_screen_change { send_key $self->{next} };    # select "Next" key
+        send_key 'ret';                                   # Go to next page (previous key just selected the key)
     }
     else {
         send_key $self->{next};
-    }
-    if (is_sle('12-SP2+')) {
-        send_key "ret";    #only need in SP2 or later
     }
 }
 
@@ -436,7 +432,6 @@ sub setup_mail_account {
         send_key "ret";
     };
     $self->evolution_add_self_signed_ca($account);
-    save_screenshot;
     assert_screen [qw(evolution_wizard-receiving-opts evolution_wizard-receiving-not-focused)];
     if (match_has_tag 'evolution_wizard-receiving-not-focused') {
         record_info('workaround', "evolution window not focused, sending key");
