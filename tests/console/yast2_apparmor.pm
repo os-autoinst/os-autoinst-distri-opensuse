@@ -202,6 +202,11 @@ sub run {
         send_key 'alt-o';
         assert_screen 'yast2_apparmor_profile_for_top_generated';
         send_key 'alt-f';
+        #confirm profile generation
+        assert_screen 'yast2_apparmor_profile_generated';
+        send_key 'alt-o';
+        #wait till app is closed
+        wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
         #cleaning the console
         type_string "reset\n";
         return;
