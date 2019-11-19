@@ -91,8 +91,10 @@ sub setup_ftp_server {
 
 sub setup_tftp_server {
     return if $tftp_server_set;
-
-    $setup_script .= "systemctl restart atftpd\n";
+    # atftpd is available only on older products (e.g.: present on SLE-12, gone on SLE-15)
+    # FIXME: other options besides RPMs atftp, tftp not considered. For SLE-15 this is enough.
+    my $tftp_service = script_output("rpm --quiet -q atftp && echo atftpd || echo tftp", type_command => 1);
+    $setup_script .= "systemctl restart $tftp_service\n";
 
     $tftp_server_set = 1;
 }
@@ -208,7 +210,15 @@ sub dhcpd_conf_generation {
             }
         }
         if ($pxe) {
-            $setup_script .= "  filename \"/boot/pxelinux.0\";\n";
+            # Only atftpd can handle subdirs, tftp (>= SLE-15) cannot. 
+            # setup_pxe.sh (see sub setup_pxe_server() above) will take care
+            # to actually install pxelinux.0 correctly.
+            #
+            # FIXME: again, other TFTP servers besides atftpd, tftp not considered.
+            my $pxe_loader = script_output(
+                             "rpm --quiet -q atftp && echo '/boot/pxelinux.0' || echo 'pxelinux.0'",
+                             type_command => 1);
+            $setup_script .= "  filename \"$pxe_loader\";\n";
             $setup_script .= "  next-server $server_ip;\n";
         }
         $setup_script .= "}\n";
