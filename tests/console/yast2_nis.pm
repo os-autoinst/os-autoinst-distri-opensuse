@@ -8,6 +8,17 @@
 # without any warranty.
 
 # Summary: create and delete nis client configuration and functionality
+# Application starts and extra dependencies are needled and installed;
+# NIS Server Wizard
+# Step 1: Checks for firewall and configures ypbind service (bsc#1083487);
+# Step 2: Starts yast2 NIS service, install extra dependencies if needed;
+# Step 3: Verify firewall status on the interface (with a neddle);
+# Step 4: Check if NIS and automounter got really enabled;
+# Step 5: Enters NIS domain for "suse.de";
+# Step 6: Needle expert setting;
+# Step 7: Add NFS share and configure;
+# Step 8: Return to NFS configuration and delete configuration created before;
+# Step 9: Finish
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
