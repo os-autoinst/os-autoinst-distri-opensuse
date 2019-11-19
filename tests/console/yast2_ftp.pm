@@ -8,6 +8,14 @@
 # without any warranty.
 
 # Summary: Check yast ftp-server options and ability to start vsftpd with ssl support
+# FTP Server Wizard
+# Step 1: Installs the package and dependencies;
+# Step 2: Create certificate;
+# Step 3: Run yast2 ftp configuration, set it to start on boot - confirm with a needle;
+# Step 4: Full file integrity check of /etc/vsftpd.conf;
+# Step 5: All yast2 ftp sub-menu-screens are opened and checked with a needle;
+# Step 6: A FTP server is created;
+# Step 7: Send finish command exits the app.
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
