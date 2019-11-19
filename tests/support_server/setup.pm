@@ -68,7 +68,20 @@ sub setup_pxe_server {
     return if $pxe_server_set;
 
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/pxe/setup_pxe.sh  > setup_pxe.sh\n";
-    $setup_script .= "/bin/bash -ex setup_pxe.sh\n";
+    my $ckrnl;
+    if ($ckrnl = get_var('SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        # -C option value: normalize possible default settings "1" "yes" "YES"
+        $ckrnl = "" if ($ckrnl =~ /^(yes|1)$/i);
+        # other settings constitute explicit command line parts (device, kernel etc.)
+        $setup_script .= "/bin/bash -ex setup_pxe.sh -C $ckrnl\n";
+
+        # For later. pxe_customkrnl.sh to be executed only when the custom kernel
+        # actually becomes available. See custom_pxeboot.pm
+        $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/pxe/pxe_customkrnl.sh > pxe_customkrnl.sh\n";
+    }
+    else {
+        $setup_script .= "/bin/bash -ex setup_pxe.sh\n";
+    }
 
     $pxe_server_set = 1;
 }
@@ -210,14 +223,14 @@ sub dhcpd_conf_generation {
             }
         }
         if ($pxe) {
-            # Only atftpd can handle subdirs, tftp (>= SLE-15) cannot. 
+            # Only atftpd can handle subdirs, tftp (>= SLE-15) cannot.
             # setup_pxe.sh (see sub setup_pxe_server() above) will take care
             # to actually install pxelinux.0 correctly.
             #
             # FIXME: again, other TFTP servers besides atftpd, tftp not considered.
             my $pxe_loader = script_output(
-                             "rpm --quiet -q atftp && echo '/boot/pxelinux.0' || echo 'pxelinux.0'",
-                             type_command => 1);
+                "rpm --quiet -q atftp && echo '/boot/pxelinux.0' || echo 'pxelinux.0'",
+                type_command => 1);
             $setup_script .= "  filename \"$pxe_loader\";\n";
             $setup_script .= "  next-server $server_ip;\n";
         }

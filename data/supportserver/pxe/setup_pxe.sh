@@ -1,6 +1,9 @@
 #!/bin/sh
 
 myname="$(basename "$0")"
+kernel_dflt="client/vmlinuz"
+kernelargs_dflt=\
+"initrd=client/initrd splash=off video=1024x768-16 plymouth.ignore-serial-consoles console=ttyS0 console=tty quiet mitigations=auto"
 
 if ! [ -f /usr/share/syslinux/pxelinux.0 ] ; then
 	# On a properly generated supportserver this should never happen, of course.
@@ -29,7 +32,7 @@ fi
 
 function usage() {
 	echo "
-Usage:  $myname
+Usage:  $myname [-C [-k kernel [-a kernelargs]]]
         $myname -h
 
         to set up a PXE boot server on the supportserver which includes
@@ -38,18 +41,60 @@ Usage:  $myname
 
 Options:
         -h   Print this help and exit successfully
+
+        -C   Add a further boot entry to pxelinux.cfg/default intended for
+             providing a future custom kernel to the PXE client.
+             Specified paths for kernel and initrd are meant relative to
+
+             $pxe_d
+
+             WARNING: This boot entry is meant \"for later\". No corresponding
+             kernel/initrd are actually installed there. They may even not be
+             available yet -- this script doesn't care.
+
+        -k   specify the kernel for option -C (default: \"$kernel_dflt\")
+        -a   specify the kernel command line arguments for option -C
+             (to appear after the append keyword). Default:
+
+\"$kernelargs_dflt\"
+
+             WARNING: kernel command lines missing an initrd=... spec
+             will be considered faulty and be rejected.
 "
 }
 
 
 # Cmdline evaluation: Defaults and options
 #
-while getopts h optchar ; do
+custom=""
+kernel="$kernel_dflt"
+kernelargs="$kernelargs_dflt"
+
+while getopts hCk:a: optchar ; do
     case "$optchar" in
         h)      usage ; exit 0            ;;
+        C)      custom="yes"              ;;
+        k)      kernel="$OPTARG"          ;;
+        a)      kernelargs="$OPTARG"      ;;
         *)      usage ; exit 1            ;;
     esac
 done
+
+# FIXME: no real sanity checks possible yet, as this kernel and initrd
+# need not even exist at this stage.
+#
+if [ -n "$custom" ] ; then
+	if [ -z "$kernel" -o "$kernelargs" == "${kernelargs#*initrd=}" ]; then
+		echo "\
+$myname: WARNING: custom PXE entry: empty kernel or kernel _without initrd_ specified:
+
+Kernel:      $kernel
+Kernel args: $kernelargs
+
+_Not_ adding a custom kernel PXE entry..."
+		custom=""
+	fi	# if [ -z "$kernel" -o ...
+fi	# if [ -n "$custom" ]
 
 if ! grep -q '/dev/cdrom' /etc/fstab ; then
   mkdir -p /srv/www/htdocs/iso
@@ -90,5 +135,16 @@ LABEL netboot
         append initrd=initrd install=http://10.0.2.1/iso
 
 EOT
+
+if [ -n "$custom" ] ; then
+	cat >>"$pxe_d/pxelinux.cfg/default" <<EOT
+LABEL custom
+        MENU LABEL Custom kernel
+        kernel $kernel
+        append $kernelargs
+
+EOT
+
+fi	# if [ -n "$custom" ]
 
 echo "PXE OK"
