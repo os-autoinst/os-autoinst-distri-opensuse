@@ -7,7 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Add test for yast2_http
+# Summary: Dependency install, create server, start/stop, enable extra modules.
+# HTTP Server Wizard:
+# Step 1: Needle main window: used port and used adress/IP;
+# Step 2: Enable Perl, PHP and Python scripting support;
+# Step 3: Confirm Default Host configurations and set for usage /src/www/htdocs/new_dir;
+# Step 4: Virtualhost: Create localhost/susetest, when asked, confirm creation of /src/www/htdocs/new_dir. Enable CGI, confirm CGI dir, Confirm directory index, confirm 'Enable Public HTML';
+# Step 5: Server start: change from manual to 'on boot'. Due to the changes extra packages are requested, confirm its installation;
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
 use strict;
