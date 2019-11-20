@@ -28,8 +28,8 @@ sub run {
 
     # Install required packages
     # designer-qt5 is in package libqt5-qttools, yast release notes in yast2-installation
-    # SDK needs to be added for 12-SP3
-    if (is_sle('<12-SP4')) {
+    # SDK needs to be added for 12
+    if (is_sle('<=12-SP5')) {
         select_console 'root-console';
         cleanup_registration;
         register_product;
