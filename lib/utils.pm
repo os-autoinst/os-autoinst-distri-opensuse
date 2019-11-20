@@ -503,7 +503,7 @@ sub zypper_call {
                 last;
             }
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
-                record_soft_failure 'Retrying because of error 502 - bsc#1070851';
+                die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
             }
             next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
