@@ -103,7 +103,7 @@ sub run {
     systemctl 'stop apache2';
 
     if (is_sle('12-SP2+')) {
-        if (check_var('SYSTEM_ROLE', 'kvm')) {
+        if (check_var('SYSTEM_ROLE', 'kvm') || check_var('SYSTEM_ROLE', 'xen')) {
             record_info('prefork skipped', "The apache prefork tests were skipped due to SYSTEM_ROLE=kvm (see bsc#1156171).");
         }
         else {
