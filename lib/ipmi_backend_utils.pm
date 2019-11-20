@@ -151,7 +151,7 @@ sub setup_console_in_grub {
     elsif ($grub_ver eq "grub1") {
         $grub_cfg_file = "${root_dir}/boot/grub/menu.lst";
         $cmd
-          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}' $grub_cfg_file";
+          = "cp $grub_cfg_file ${grub_cfg_file}.org \&\&  sed -i 's/timeout=-{0,1}[0-9]{1,}/timeout=30/g; /module \\\/boot\\\/vmlinuz/{s/console=.*,115200/console=$ipmi_console,115200/g;}; /kernel .*xen/{s/\$/ dom0_mem=2048M,max:2048M/;}' $grub_cfg_file";
         assert_script_run($cmd);
         save_screenshot;
         $cmd = "sed -rn '/module \\\/boot\\\/vmlinuz/p' $grub_cfg_file";
