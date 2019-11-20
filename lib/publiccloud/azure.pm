@@ -183,7 +183,7 @@ sub img_proof {
     return $self->run_img_proof(%args);
 }
 
-sub on_terraform_timeout {
+sub on_terraform_apply_timeout {
     my ($self) = @_;
     my $out = script_output('terraform state show azurerm_resource_group.openqa-group');
     if ($out !~ /name\s+=\s+(openqa-[a-z0-9]+)/m) {
@@ -209,6 +209,17 @@ sub on_terraform_timeout {
         }
     }
 
+    assert_script_run("az group delete --yes --no-wait --name $resgroup");
+}
+
+sub on_terraform_destroy_timeout {
+    my ($self) = @_;
+    my $out = script_output('terraform state show azurerm_resource_group.openqa-group');
+    if ($out !~ /name\s+=\s+(openqa-[a-z0-9]+)/m) {
+        record_info('ERROR', 'Unable to get resource-group:' . $/ . $out, result => 'fail');
+        return;
+    }
+    my $resgroup = $1;
     assert_script_run("az group delete --yes --no-wait --name $resgroup");
 }
 

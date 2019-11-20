@@ -108,14 +108,12 @@ Upload a file from this instance to openqa using L<upload_logs()>.
 If the file doesn't exists on the instance, B<no> error is thrown.
 =cut
 sub upload_log {
-    my ($self, $remote_file) = @_;
+    my ($self, $remote_file, %args) = @_;
 
     my $tmpdir = script_output('mktemp -d');
     my $dest   = $tmpdir . '/' . basename($remote_file);
     my $ret    = $self->scp('remote:' . $remote_file, $dest);
-    if (defined($ret) && $ret == 0) {
-        upload_logs($dest);
-    }
+    upload_logs($dest, %args) if (defined($ret) && $ret == 0);
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 

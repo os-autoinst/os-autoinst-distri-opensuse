@@ -43,7 +43,6 @@ sub test_flags {
     return {fatal => 1};
 }
 
-
 1;
 
 =head1 Discussion

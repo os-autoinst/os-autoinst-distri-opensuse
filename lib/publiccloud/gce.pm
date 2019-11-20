@@ -194,5 +194,4 @@ sub start_instance
     $instance->public_ip($self->get_ip_from_instance($instance));
 }
 
-
 1;

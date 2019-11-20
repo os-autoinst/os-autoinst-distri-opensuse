@@ -17,6 +17,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use Data::Dumper;
 use Mojo::JSON 'decode_json';
+use utils 'file_content_replace';
 
 use constant TERRAFORM_DIR     => '/root/terraform';
 use constant TERRAFORM_TIMEOUT => 17 * 60;
@@ -41,8 +42,33 @@ sub init {
     my ($self) = @_;
     my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
     assert_script_run('mkdir -p ' . TERRAFORM_DIR);
-    assert_script_run('curl ' . data_url('publiccloud/terraform/' . $file . '.tf') . ' -o ' . TERRAFORM_DIR . '/plan.tf');
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        my $git_repo   = get_var('ha-sap-terraform-deployments');
+        my $cloud_name = $self->conv_openqa_tf_name;
+        assert_script_run('cd ' . TERRAFORM_DIR);
+        assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
+        assert_script_run('cp pillar_examples/automatic/{cluster.sls,hana.sls,top.sls} salt/hana_node/files/pillar/');
+        assert_script_run('cd');    # We need to ensure to be in the home directory
+        assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
+        $self->create_ssh_key(ssh_private_key_file => TERRAFORM_DIR . '/salt/hana_node/files/sshkeys/cluster.id_rsa');
+    }
+    else {
+        assert_script_run('curl ' . data_url("publiccloud/terraform/$file.tf") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
+    }
     $self->create_ssh_key();
+}
+
+=head2 conv_openqa_tf_name
+
+Does the conversion between C<PUBLIC_CLOUD_PROVIDER> and Terraform providers name.
+
+=cut
+sub conv_openqa_tf_name {
+    # Check https://github.com/SUSE/ha-sap-terraform-deployments/issues/177 for more information
+    my $cloud_provider = lc get_var('PUBLIC_CLOUD_PROVIDER');
+    return 'aws' if $cloud_provider eq 'ec2';
+    return 'gcp' if $cloud_provider eq 'gce';
+    return $cloud_provider;
 }
 
 =head2 find_img
@@ -227,30 +253,55 @@ C<instance_type> defines the flavor of the instance. If not specified, it will l
 
 =cut
 sub create_instance {
+    return (shift->create_instances(@_))[0];
+}
+
+=head2 create_instances
+
+Creates multiple instances on the public cloud provider. Retrieves an array of
+publiccloud::instance objects.
+
+C<image>         defines the image_id to create the instance.
+C<instance_type> defines the flavor of the instance. If not specified, it will load it
+                     from PUBLIC_CLOUD_INSTANCE_TYPE.
+
+=cut
+sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
 
-    my @vms      = $self->terraform_apply(%args);
-    my $instance = $vms[0];
-    record_info('INSTANCE', Dumper($instance));
-
-    if ($args{check_connectivity}) {
-        $instance->check_ssh_port();
+    my @vms = $self->terraform_apply(%args);
+    foreach my $instance (@vms) {
+        record_info("INSTANCE $instance->{instance_id}", Dumper($instance));
+        $instance->check_ssh_port() if ($args{check_connectivity});
     }
-    return $instance;
+    return @vms;
 }
 
-=head2 on_terraform_timeout
+=head2 on_terraform_apply_timeout
 
-This method can be overwritten but child classes to do some special
-cleanup task.
+This method can be overwritten by child classes to do some special
+cleanup task if 'apply' fails.
 Terraform was already terminated using the QUIT signal and openqa has a
 valid shell.
 The working directory is always the terraform directory, where the statefile
 and the *.tf is placed.
 
 =cut
-sub on_terraform_timeout {
+sub on_terraform_apply_timeout {
+}
+
+=head2 on_terraform_destroy_timeout
+
+This method can be overwritten by child classes to do some special
+cleanup task if 'destroy' fails.
+Terraform was already terminated using the QUIT signal and openqa has a
+valid shell.
+The working directory is always the terraform directory, where the statefile
+and the *.tf is placed.
+
+=cut
+sub on_terraform_destroy_timeout {
 }
 
 =head2 terraform_apply
@@ -269,24 +320,46 @@ sub terraform_apply {
     my $image                = $self->get_image_id();
     my $ssh_private_key_file = '/root/.ssh/id_rsa';
     my $name                 = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
+    my $cloud_name           = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
-    assert_script_run('cd ' . TERRAFORM_DIR);
     record_info('INFO', "Creating instance $instance_type from $image ...");
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
+        my $sap_media   = get_required_var('HANA');
+        my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
+        my $sle_version = get_required_var('VERSION');
+        $sle_version =~ s/-/_/g;
+        file_content_replace('terraform.tfvars',
+            q(%MACHINE_TYPE%)         => $instance_type,
+            q(%REGION%)               => $self->region,
+            q(%HANA_BUCKET%)          => $sap_media,
+            q(%SLE_IMAGE%)            => $image,
+            q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
+            q(%SLE_VERSION%)          => $sle_version
+        );
+        upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
+        assert_script_run('terraform workspace new qashapopenqa -no-color', TERRAFORM_TIMEOUT);
+    }
+    else {
+        assert_script_run('cd ' . TERRAFORM_DIR);
+    }
     assert_script_run('terraform init -no-color', TERRAFORM_TIMEOUT);
 
     my $cmd = 'terraform plan -no-color ';
-    $cmd .= "-var 'image_id=" . $image . "' ";
-    $cmd .= "-var 'instance_count=" . $args{count} . "' ";
-    $cmd .= "-var 'type=" . $instance_type . "' ";
-    $cmd .= "-var 'region=" . $self->region . "' ";
-    $cmd .= "-var 'name=" . $name . "' ";
-    $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-    if ($args{use_extra_disk}) {
-        $cmd .= "-var 'create-extra-disk=true' ";
-        $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
-        $cmd .= "-var 'extra-disk-type=" . $args{use_extra_disk}->{type} . "' " if $args{use_extra_disk}->{type};
+    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        $cmd .= "-var 'image_id=" . $image . "' ";
+        $cmd .= "-var 'instance_count=" . $args{count} . "' ";
+        $cmd .= "-var 'type=" . $instance_type . "' ";
+        $cmd .= "-var 'region=" . $self->region . "' ";
+        $cmd .= "-var 'name=" . $name . "' ";
+        $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
+        if ($args{use_extra_disk}) {
+            $cmd .= "-var 'create-extra-disk=true' ";
+            $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
+            $cmd .= "-var 'extra-disk-type=" . $args{use_extra_disk}->{type} . "' " if $args{use_extra_disk}->{type};
+        }
     }
     if (get_var('FLAVOR') =~ 'UEFI') {
         $cmd .= "-var 'uefi=true' ";
@@ -295,14 +368,14 @@ sub terraform_apply {
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
-    assert_script_run($cmd);
-    my $ret = script_run('terraform apply -no-color myplan', TERRAFORM_TIMEOUT);
+    assert_script_run($cmd, TERRAFORM_TIMEOUT);
+    my $ret = script_run('terraform apply -no-color -input=false myplan', TERRAFORM_TIMEOUT);
     unless (defined $ret) {
         type_string(qq(\c\\));        # Send QUIT signal
         assert_script_run('true');    # make sure we have a prompt
         record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
         assert_script_run('cd ' . TERRAFORM_DIR);
-        $self->on_terraform_timeout();
+        $self->on_terraform_apply_timeout();
         die('Terraform apply failed with timeout');
     }
     die('Terraform exit with ' . $ret) if ($ret != 0);
@@ -310,8 +383,20 @@ sub terraform_apply {
     $self->terraform_applied(1);
 
     my $output = decode_json(script_output("terraform output -json"));
-    my $vms    = $output->{vm_name}->{value};
-    my $ips    = $output->{public_ip}->{value};
+    my $vms;
+    my $ips;
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        $vms = $output->{cluster_nodes_name}->{value};
+        $ips = $output->{cluster_nodes_public_ip}->{value};
+        my $iscsi_vms = $output->{iscsisrv_name}->{value};
+        my $iscsi_ips = $output->{iscsisrv_public_ip}->{value};
+        push @{$vms}, @{$iscsi_vms};
+        push @{$ips}, @{$iscsi_ips};
+    }
+    else {
+        $vms = $output->{vm_name}->{value};
+        $ips = $output->{public_ip}->{value};
+    }
 
     foreach my $i (0 .. $#{$vms}) {
         my $instance = publiccloud::instance->new(
@@ -326,6 +411,7 @@ sub terraform_apply {
         );
         push @instances, $instance;
     }
+
     # Return an ARRAY of objects 'instance'
     return @instances;
 }
@@ -338,8 +424,21 @@ Destroys the current terraform deployment
 sub terraform_destroy {
     my ($self) = @_;
     record_info('INFO', 'Removing terraform plan...');
-    assert_script_run('cd ' . TERRAFORM_DIR);
-    script_run('terraform destroy -no-color -auto-approve', TERRAFORM_TIMEOUT);
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
+    }
+    else {
+        assert_script_run('cd ' . TERRAFORM_DIR);
+    }
+    my $ret = script_run('terraform destroy -no-color -auto-approve', TERRAFORM_TIMEOUT);
+    unless (defined $ret) {
+        type_string(qq(\c\\));        # Send QUIT signal
+        assert_script_run('true');    # make sure we have a prompt
+        record_info('ERROR', 'Terraform destroy failed with timeout', result => 'fail');
+        assert_script_run('cd ' . TERRAFORM_DIR);
+        $self->on_terraform_destroy_timeout();
+    }
+    record_info('ERROR', 'Terraform exited with' . $ret, result => 'fail') if ($ret != 0);
 }
 
 =head2 vault_login
@@ -435,7 +534,7 @@ This method is called called after each test on failure or success.
 =cut
 sub cleanup {
     my ($self) = @_;
-    $self->terraform_destroy() if ($self->terraform_applied);
+    $self->terraform_destroy();
     $self->vault_revoke();
 }
 
@@ -458,6 +557,5 @@ sub start_instance
 {
     die('start_instance() isn\'t implemented');
 }
-
 
 1;
