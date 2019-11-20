@@ -51,6 +51,7 @@ sub copy_testsuite {
     assert_script_run "wget $commonsh_path";
     assert_script_run "tar -xf common.tgz";
     assert_script_run "cd ..";
+    assert_script_run 'mkdir logs';
     assert_script_run "chmod +x ./*.sh";
     save_screenshot;
 }
@@ -64,9 +65,8 @@ The maximum execution time of the script is defined by C<$timeout>.
 =cut
 sub execute_script {
     my ($self, $script, $scriptargs, $timeout) = @_;
-    assert_script_run("./$script $scriptargs  >> $script.log 2>&1", timeout => $timeout);
+    assert_script_run("./$script $scriptargs 2>&1 | tee --append logs/$script.log", timeout => $timeout);
     save_screenshot;
-    upload_logs "$script.log";
 }
 
 =head2 cleanup_testsuite
@@ -86,6 +86,20 @@ sub cleanup_testsuite {
     assert_script_run("rm -rf /root/$tc/");
 }
 
+=head2 post_fail_hook
+
+  post_fail_hook();
+
+Executed when a module fails to gather useful logs for debugging.
+
+=cut
+sub post_fail_hook {
+    my $self = shift;
+    $self->export_logs();
+
+    my $test_name = get_var('IBM_TESTSET') . get_var('IBM_TESTS');
+    $self->tar_and_upload_log("/root/$test_name/logs/", "/tmp/$test_name.tar.bz2");
+}
 
 1;
 # vim: set sw=4 et:

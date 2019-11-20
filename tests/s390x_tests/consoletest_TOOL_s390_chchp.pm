@@ -1,8 +1,6 @@
 # SUSE’s openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
-# Copyright (C) 2018 IBM Corp.
+# Copyright © 2018-2019 IBM Corp.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,11 +23,6 @@ sub run {
     $self->execute_script('lschp-main.sh');
     $self->execute_script('chchpmain.sh', '0.36', 1000);
     $self->cleanup_testsuite('TOOL_s390_chchp');
-}
-
-sub post_fail_hook {
-    my $self = shift;
-    $self->export_logs();
 }
 
 sub test_flags {

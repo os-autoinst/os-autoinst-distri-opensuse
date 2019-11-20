@@ -28,11 +28,6 @@ sub run {
     $self->cleanup_testsuite('TOOL_s390_ziomon');
 }
 
-sub post_fail_hook {
-    my $self = shift;
-    $self->export_logs();
-}
-
 sub test_flags {
     return {milestone => 1, fatal => 0};
 }
