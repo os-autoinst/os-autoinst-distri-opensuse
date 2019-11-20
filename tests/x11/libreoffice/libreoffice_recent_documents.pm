@@ -1,6 +1,6 @@
 # LibreOffice tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -45,15 +45,17 @@ sub run {
     # Check Recent Documents
     wait_still_screen;
     x11_start_program('oowriter');
-    # Because of bsc#1074057 alt-f is not working in libreoffice under wayland
-    # use another way to replace alt-f in SLED15
-    if (is_sle '15+') {
+
+    send_key "alt-f";
+    # The menu may disappear due to boo#1156745, so we wait here
+    wait_still_screen(2);
+    assert_screen [qw(oowriter-menus-file oowriter)];
+    if (match_has_tag 'oowriter') {
+        record_soft_failure('workaround for boo#1156745');
         assert_and_click('ooffice-writing-file', timeout => 10);
+        assert_screen 'oowriter-menus-file';
     }
-    else {
-        send_key "alt-f";    # is_sle('<15') and openSUSE all need to send key
-    }
-    assert_screen 'oowriter-menus-file';
+
     if (is_tumbleweed || is_sle('15+')) {
         send_key 'down';
         wait_still_screen 3;
