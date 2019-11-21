@@ -31,7 +31,6 @@ our @EXPORT = qw(
   compare_bootparams
   create_encrypted_part
   parse_bootparams_in_serial
-  pre_bootmenu_setup
   select_bootmenu_more
   select_bootmenu_option
   uefi_bootmenu_params
@@ -240,15 +239,6 @@ sub boot_into_snapshot {
     # avoid timeout for booting to HDD
     save_screenshot;
     send_key 'ret';
-}
-
-sub pre_bootmenu_setup {
-    if (get_var("IPXE")) {
-        sleep 60;
-        return 3;
-    }
-    return 3 if get_var('BOOT_HDD_IMAGE');
-    return 0;
 }
 
 sub select_bootmenu_option {
