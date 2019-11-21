@@ -874,8 +874,8 @@ sub load_inst_tests {
         loadtest 'installation/releasenotes_origin' if get_var('CHECK_RELEASENOTES_ORIGIN');
     }
     if (noupdatestep_is_applicable()) {
-        # Krypton/Argon disable the network configuration stage
-        if (get_var("LIVECD") && !is_krypton_argon) {
+        # On TW Lives and Argon there is no network configuration stage
+        if (get_var("LIVECD") && is_leap && !is_krypton_argon) {
             loadtest "installation/livecd_network_settings";
         }
         # See https://github.com/yast/yast-packager/pull/385
