@@ -97,7 +97,7 @@ sub run {
     }
     # write some more times to the same file to be sure
     if (script_run("for c in {1..38}; do $write_chunk; done")) {
-        record_soft_failure 'bsc#1019614';
+        record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
     }
     assert_script_run 'sync';
     assert_script_run 'rm e/file', fail_message => 'bsc#993841';
@@ -108,7 +108,7 @@ sub run {
         record_soft_failure 'File removal test: bsc#1113042 - btrfs is not informed to commit transaction';
         assert_script_run 'sync';
         assert_script_run $files_creation;
-        assert_script_run 'rm e/file_*';
+        assert_script_run 'rm -f e/file_*';
     }
 
     assert_script_run "cd; umount $dest";
