@@ -31,7 +31,7 @@ sub run {
     (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');
 
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
-    zypper_call('in -l git gcc make');
+    zypper_call('in -l autoconf automake gcc git make');
 
     assert_script_run('git clone ' . $git_repo);
     assert_script_run("cd qa_test_$test_type; ./run.sh", 2760);
