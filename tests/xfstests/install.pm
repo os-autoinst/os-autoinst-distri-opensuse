@@ -42,7 +42,8 @@ sub collect_version {
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    # Use root-console for installation on svirt instead of root-sut-serial
+    check_var('BACKEND', 'svirt') ? select_console('root-console') : $self->select_serial_terminal;
 
     # Disable PackageKit
     # This is done by the previous module (enable_kdump) only if NO_KDUMP is not set
