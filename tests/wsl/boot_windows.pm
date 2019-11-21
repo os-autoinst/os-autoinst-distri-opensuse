@@ -8,23 +8,19 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Boot into MS Windows from grub
+# Summary: Boot installed MS Windows from image
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'y2_installbase';
+use base 'windowsbasetest';
 use strict;
 use warnings;
 use testapi;
-use windows_utils;
 
 sub run {
-    assert_screen "grub-reboot-windows", 125;
+    my ($self) = @_;
 
-    send_key "down";
-    send_key "down";
-    send_key "ret";
-
-    wait_boot_windows;
+    $self->select_windows_in_grub2;
+    $self->wait_boot_windows;
 }
 
 1;

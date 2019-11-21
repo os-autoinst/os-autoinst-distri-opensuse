@@ -351,12 +351,6 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "support_server/wait_children";
     }
 }
-elsif (get_var("WINDOWS")) {
-    loadtest "installation/win10_installation";
-    loadtest "installation/win10_firstboot";
-    loadtest "installation/win10_reboot";
-    loadtest "installation/win10_shutdown";
-}
 elsif (ssh_key_import) {
     load_ssh_key_import_tests;
 }

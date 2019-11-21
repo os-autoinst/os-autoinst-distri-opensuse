@@ -455,7 +455,7 @@ sub load_reboot_tests {
     }
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd";
-        loadtest "installation/boot_windows";
+        loadtest "wsl/boot_windows";
     }
 }
 

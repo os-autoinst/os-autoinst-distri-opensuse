@@ -12,7 +12,7 @@
 #    Works only with CDMODEL=ide-cd and QEMUCPU=host or core2duo (maybe other but not qemu64)
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "installbasetest";
+use base "windowsbasetest";
 use strict;
 use warnings;
 
@@ -50,17 +50,12 @@ sub run {
     send_key 'right';      # ok
     sleep 0.5;
     send_key 'ret';
-    send_key_until_needlematch 'windows-all-drivers-selected', 'shift-down', 5;    # select all drivers
-    sleep 0.5;
-    send_key 'alt-n';                                                              # next
-    wait_still_screen;
-    send_key 'alt-n';                                                              # next ->Installing windows!
+    wait_still_screen stilltime => 3, timeout => 10;
+    send_key_until_needlematch 'windows-all-drivers-selected', 'shift-down';    # select all drivers
+    send_key 'alt-n';
+    assert_and_click 'windows-partitions';
     assert_screen 'windows-restart', 600;
-    send_key 'alt-r';                                                              # restart
-}
-
-sub test_flags {
-    return {fatal => 1};
+    send_key 'alt-r';
 }
 
 1;
