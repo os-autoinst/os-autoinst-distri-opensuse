@@ -140,7 +140,7 @@ sub boot_spvm {
     save_screenshot;
 
     assert_screen("novalink-successful-first-boot", 120);
-    assert_screen("run-yast-ssh",                   60);
+    assert_screen("run-yast-ssh",                   120);
 
     # Delete partition table before starting installation
     select_console('install-shell');
