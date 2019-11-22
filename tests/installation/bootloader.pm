@@ -43,7 +43,7 @@ use Utils::Backends 'is_spvm';
 # hint: press shift-f10 trice for highest debug level
 sub run {
     return boot_spvm if is_spvm;
-    return           if pre_bootmenu_setup == 3;
+    return           if get_var('BOOT_HDD_IMAGE');
     return           if select_bootmenu_option == 3;
     # the default loader is isolinux on openSUSE/SLE products with product-builder
     my $boot_cmd = 'ret';

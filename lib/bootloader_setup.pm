@@ -31,7 +31,6 @@ our @EXPORT = qw(
   compare_bootparams
   create_encrypted_part
   parse_bootparams_in_serial
-  pre_bootmenu_setup
   select_bootmenu_more
   select_bootmenu_option
   uefi_bootmenu_params
@@ -240,27 +239,6 @@ sub boot_into_snapshot {
     # avoid timeout for booting to HDD
     save_screenshot;
     send_key 'ret';
-}
-
-sub pre_bootmenu_setup {
-    if (get_var("IPXE")) {
-        sleep 60;
-        return 3;
-    }
-
-    # After version 12 the USB storage is set as the default boot device using
-    # bootindex. Before 12 it needs to be selected in the BIOS.
-    if (isotovideo::get_version() < 12 && get_var("USBBOOT")) {
-        assert_screen "boot-menu", 5;
-        # support multiple versions of seabios, does not harm to press
-        # multiple keys here: seabios<1.9: f12, seabios=>1.9: esc
-        send_key((match_has_tag 'boot-menu-esc') ? 'esc' : 'f12');
-        assert_screen "boot-menu-usb", 4;
-        send_key(2 + get_var("NUMDISKS"));
-    }
-
-    return 3 if get_var('BOOT_HDD_IMAGE');
-    return 0;
 }
 
 sub select_bootmenu_option {
