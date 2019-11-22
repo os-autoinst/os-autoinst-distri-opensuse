@@ -19,7 +19,6 @@ use strict;
 
 sub run {
     my $self = shift;
-    $self->copy_testsuite("DASD_LVM_Regression");
     assert_script_run("sed -i '/^\\s*filter/ s/filter/#filter/' /etc/lvm/lvm.conf");
     assert_script_run("rm -rf /root/log && mkdir /root/log && rm -rf /mnt/*");
 
