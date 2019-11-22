@@ -2415,6 +2415,10 @@ sub load_mitigation_tests {
     if (get_var('KVM_GUEST_MIGRATION')) {
         loadtest "cpu_bugs/kvm_guest_migration";
     }
+    if (get_var('XEN_MITIGATIONS')) {
+        loadtest "cpu_bugs/xen_mitigations";
+    }
+
 }
 
 sub load_security_tests {
