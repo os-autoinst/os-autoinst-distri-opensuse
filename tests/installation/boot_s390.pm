@@ -20,7 +20,7 @@ use backend::console_proxy;
 
 sub get_to_system {
     my ($ipl_from) = @_;
-    my $s3270    = console('x3270');
+    my $s3270 = console('x3270');
 
     $s3270->sequence_3270('ENTER',);
     $s3270->sequence_3270('String("cp i cms")',);
