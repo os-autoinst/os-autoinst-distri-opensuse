@@ -20,6 +20,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use utils;
 
 sub run {
     ensure_installed('vlc');
@@ -31,7 +32,7 @@ sub run {
     send_key "ctrl-n";
     assert_screen "vlc-network-window";
     send_key "backspace";
-    type_string autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
+    type_string_slow autoinst_url . "/data/Big_Buck_Bunny_8_seconds_bird_clip.ogv";
     assert_screen "url_check", 90;
     assert_and_click "vlc-play_button";
     # The video is actually 23 seconds long so give a bit of headroom for
