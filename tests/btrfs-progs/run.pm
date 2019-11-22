@@ -19,27 +19,27 @@ use power_action_utils 'power_action';
 
 # btrfs-progs variables
 my @blacklist = split(/,/, get_var('TESTS_BLACKLIST'));
+my @category  = split(/,/, get_required_var('CATEGORY'));
 
-use constant CATEGORY   => get_var('CATEGORY', 'no_var');
 use constant STATUS_LOG => '/opt/status.log';
 use constant LOG_DIR    => '/opt/logs/';
 
-if (CATEGORY eq 'no_var') { die "Could not retrieve required variable CATEGORY"; }
-
 # Return a test list of a specific btrfs-progs category
-# blacklist (e.g. 001-010,100)
+# blacklist (e.g. cli/001,cli/003-005,fuzz/003)
 sub get_test_list {
-    my $cmd    = 'find ' . CATEGORY . '-tests -maxdepth 1 -type d -regex .*/[0-9]+.+';
-    my $output = script_output($cmd, 30);
-    my @tests  = split(/\n/, $output);
+    my $category = shift;
+    my $cmd      = "find $category-tests -maxdepth 1 -type d -regex .*/[0-9]+.+";
+    my $output   = script_output($cmd, 30);
+    my @tests    = split(/\n/, $output);
     foreach my $test (@tests) {
         $test = basename($test);
         $test = substr("$test", 0, 3);
     }
 
     # Genarate blacklist
+    my @blacklist_cat = map(substr($_, length("$category/")), grep(/$category\//, @blacklist));
     my @blacklist_copy;
-    foreach my $list (@blacklist) {
+    for my $list (@blacklist_cat) {
         $list =~ s/\s+//g;
         if ($list =~ /^(\d{3})-(\d{3})$/) {
             push(@blacklist_copy, ($1 .. $2));
@@ -60,14 +60,15 @@ sub get_test_list {
 }
 
 # Run a single test, return test result and copy log to file
-# test - test to run(e.g. 001)
+# category - category of test set(e.g. cli)
+# num - test to run(e.g. 001)
 sub test_run {
-    my $num     = shift;
+    my ($category, $num) = @_;
     my $status  = 'PASSED';
-    my $logfile = CATEGORY . '-tests-results.txt';
+    my $logfile = "$category-tests-results.txt";
 
     script_run("./clean-tests.sh");
-    my $ret = script_output("TEST=$num\\* ./" . CATEGORY . '-tests.sh | tee output.log;', 600, proceed_on_failure => 1);
+    my $ret = script_output("TEST=$num\\* ./$category-tests.sh | tee output.log", 600, proceed_on_failure => 1);
 
     if ($ret =~ /test\s+failed\s+for\s+case/i) {
         $status = 'FAILED';
@@ -76,7 +77,7 @@ sub test_run {
         $status  = 'SKIPPED';
         $logfile = 'output.log';
     }
-    script_run("cp $logfile " . LOG_DIR . CATEGORY . "/$num.txt");
+    script_run("cp $logfile " . LOG_DIR . "$category/$num.txt");
     return $status;
 }
 
@@ -95,19 +96,22 @@ sub log_add {
 sub run {
     my $self = shift;
     select_console('root-console');
-    assert_script_run('mkdir -p ' . LOG_DIR . CATEGORY);
 
-    # Get test list
-    my @tests = get_test_list;
+    for my $category (@category) {
+        assert_script_run('mkdir -p ' . LOG_DIR . $category);
 
-    foreach my $test (@tests) {
-        # Run test and wait for it to finish
-        my $begin  = time();
-        my $status = test_run($test);
-        my $delta  = time() - $begin;
+        # Get test list
+        my @tests = get_test_list($category);
 
-        # Add test status to STATUS_LOG file
-        log_add(STATUS_LOG, CATEGORY . "-$test", $status, $delta);
+        for my $test (@tests) {
+            # Run test and wait for it to finish
+            my $begin  = time();
+            my $status = test_run($category, $test);
+            my $delta  = time() - $begin;
+
+            # Add test status to STATUS_LOG file
+            log_add(STATUS_LOG, "$category-$test", $status, $delta);
+        }
     }
 }
 
