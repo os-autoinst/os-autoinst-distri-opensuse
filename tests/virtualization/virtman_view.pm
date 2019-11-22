@@ -26,9 +26,8 @@ sub run {
     # enable all view options
     launch_virtmanager();
     # go to preferences
-    wait_screen_change { send_key 'alt-e' };
-    send_key 'p';
-    assert_screen 'virtman-preferences';
+    assert_and_click 'virtman-edit-menu';
+    assert_and_click 'virtman-preferences';
     # go to polling
     wait_screen_change { send_key 'right' };
     for (1 .. 3) { send_key 'tab' }
@@ -50,9 +49,9 @@ sub run {
     assert_screen 'virt-manager';
 
     # go to view now
-    send_key 'alt-v';
-    assert_screen 'virtman-viewmenu';
-    send_key 'right';
+    assert_and_click 'virtman-viewmenu';
+    wait_screen_change { send_key 'down' };
+    wait_screen_change { send_key 'right' };
     assert_screen 'virtman-viewmenu-graph';
     # activate everything
     for (1 .. 4) {
@@ -61,10 +60,7 @@ sub run {
     }
     assert_screen 'virtman-viewcheck';
     # close every open windows
-    wait_screen_change { send_key 'esc' };
-    wait_screen_change { send_key 'alt-f' };
-    wait_still_screen(1);
-    wait_screen_change { send_key 'q' };
+    assert_and_click 'virtman-close';
     # close the xterm
     send_key 'alt-f4';
 }
