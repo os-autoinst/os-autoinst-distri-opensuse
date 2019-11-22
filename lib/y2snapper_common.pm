@@ -53,6 +53,7 @@ sub y2snapper_close_snapper_module {
     else {
         assert_and_click 'yast2_snapper-close';
     }
+    wait_still_screen 3;
 }
 
 =head2 y2snapper_adding_new_snapper_conf
