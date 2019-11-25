@@ -35,36 +35,43 @@ sub execute_script {
     save_screenshot;
 }
 
-=head2 cleanup_testsuite
+=head2 upload_logs_and_cleanup
 
- cleanup_testsuite();
+  upload_logs_and_cleanup
 
-Currently it just returns value 1.
-It should be able to remove files saved at ./tmp
-
-See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/8634
+Collect and upload logs for investigation. cleanup test suite files.
 
 =cut
-sub cleanup_testsuite {
-    my ($self, $tc) = @_;
+sub upload_logs_and_cleanup {
+    my ($self) = @_;
+    $self->export_logs();
 
-    assert_script_run('cd /root/');
-    assert_script_run("rm -rf /root/$tc/");
+    my $test_name = get_var('IBM_TESTSET') . get_var('IBM_TESTS');
+    $self->tar_and_upload_log("/root/$test_name/logs/", "/tmp/$test_name.tar.bz2");
 }
 
 =head2 post_fail_hook
 
   post_fail_hook();
 
-Executed when a module fails to gather useful logs for debugging.
+Executed when a module fails.
 
 =cut
 sub post_fail_hook {
     my ($self) = @_;
-    $self->export_logs();
+    $self->upload_logs_and_cleanup();
+}
 
-    my $test_name = get_var('IBM_TESTSET') . get_var('IBM_TESTS');
-    $self->tar_and_upload_log("/root/$test_name/logs/", "/tmp/$test_name.tar.bz2");
+=head2 post_run_hook
+
+ post_run_hook();
+
+Executed when a module finishes.
+
+=cut
+sub post_run_hook {
+    my ($self) = @_;
+    $self->upload_logs_and_cleanup();
 }
 
 =head2 pre_run_hook
