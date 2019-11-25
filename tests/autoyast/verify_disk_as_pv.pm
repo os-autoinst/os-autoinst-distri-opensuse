@@ -43,8 +43,9 @@ sub validate_vg_partitions {
     if ($lmv_disk_scan !~ '1 LVM physical volume whole disk') {
         $errors .= "Disk is not detected as physical volume, but expected to be LVM PV\n";
     }
+    my $lvm_lvscan = script_output('lvm lvscan');
     for my $partition (qw(swap home)) {
-        if ($lmv_disk_scan !~ "/dev/system/$partition") {
+        if ($lvm_lvscan !~ "/dev/system/$partition") {
             $errors .= "$partition partition is not created as expected, expected /dev/system/$partition LV\n";
         }
     }
