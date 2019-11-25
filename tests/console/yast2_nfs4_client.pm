@@ -24,7 +24,7 @@ use base "y2_module_consoletest";
 
 use strict;
 use warnings;
-use utils qw(clear_console zypper_call systemctl script_retry);
+use utils qw(zypper_call systemctl script_retry);
 use version_utils;
 use testapi;
 use lockapi;
@@ -37,10 +37,7 @@ sub run {
     #
     select_console 'root-console';
 
-    # Configure static IP for client/server test
-    configure_default_gateway;
-    configure_static_ip('10.0.2.102/24');
-    configure_static_dns(get_host_resolv_conf());
+    setup_static_mm_network('10.0.2.102/24');
 
     zypper_call('in yast2-nfs-client nfs-client nfs4-acl-tools', timeout => 480, exitcode => [0, 106, 107]);
 
@@ -61,7 +58,7 @@ sub run {
     assert_screen 'yast2-nfs-client-add';
     # Enable NFSv4
     send_key 'alt-v';
-    if (is_sle('15+')) {
+    if (is_sle('15+') || is_opensuse) {
         send_key 'down';
         send_key 'down';
         send_key 'ret';
@@ -71,6 +68,7 @@ sub run {
     type_string '10.0.2.101';
     # Explore the available shares and select the only available one
     send_key 'alt-e';
+    if (check_screen("console-messages-over-tty", 10)) { record_soft_failure 'bsc#1011815, Console over tty' }
     assert_screen 'yast2-nfs-client-exported';
     send_key 'alt-o';
     # Set the local mount point
@@ -82,11 +80,7 @@ sub run {
     wait_screen_change { send_key 'alt-o' };
     sleep 1;
     save_screenshot;
-    # Exit YaST
-    wait_screen_change { send_key 'alt-o' };
-
-    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
-    clear_console;
+    yast2_client_exit($module_name);
 
     mount_export();
 
@@ -101,6 +95,7 @@ sub run {
 
     # Test NFSv4 ACL
     assert_script_run "nfs4_getfacl /tmp/nfs/client/secret.txt";
+    # Below, we are trying to set recursive attributes to a file. Does not make sense, but may trigger bsc#967251 or bsc#1157915
     assert_script_run "nfs4_setfacl -R -a A:df:$testapi::username\@localdomain:RX /tmp/nfs/client/secret.txt";
     assert_script_run "nfs4_getfacl /tmp/nfs/client/secret.txt | grep \"A::`id -u $testapi::username`:rxtcy\"";
     assert_script_run "sudo -u $testapi::username cat /tmp/nfs/client/secret.txt";

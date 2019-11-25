@@ -25,8 +25,8 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use utils qw(clear_console zypper_call systemctl script_retry);
-use mm_network;
+use utils qw(zypper_call systemctl script_retry);
+use mm_network 'setup_static_mm_network';
 use nfs_common;
 
 sub run {
@@ -38,10 +38,8 @@ sub run {
     # NFSCLIENT defines if the test should be run on multi-machine setup.
     # Otherwise, configure server and client on the single machine.
     if (get_var('NFSCLIENT')) {
-        # Configure static IP for client/server test
-        configure_default_gateway;
-        configure_static_ip('10.0.2.102/24');
-        configure_static_dns(get_host_resolv_conf());
+
+        setup_static_mm_network('10.0.2.102/24');
 
         zypper_call('in yast2-nfs-client nfs-client', timeout => 480, exitcode => [0, 106, 107]);
 
@@ -91,11 +89,7 @@ sub run {
     wait_screen_change { send_key 'alt-o' };
     sleep 1;
     save_screenshot;
-    # Exit YaST
-    wait_screen_change { send_key 'alt-o' };
-
-    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
-    clear_console;
+    yast2_client_exit($module_name);
 
     #
     # Check the result
