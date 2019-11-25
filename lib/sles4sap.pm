@@ -393,16 +393,17 @@ sub check_instance_state {
 }
 
 sub reboot {
-    my ($self) = @_;
+    my ($self, %args) = @_;
+    my $ready_time = $args{ready_time} // 500;
 
     if (check_var('BACKEND', 'ipmi')) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console;
-        $self->wait_boot(textmode => 1);
+        $self->wait_boot(textmode => 1, ready_time => $ready_time);
     }
     else {
         power_action('reboot', textmode => 1);
-        $self->wait_boot;
+        $self->wait_boot(ready_time => $ready_time);
     }
     $self->select_serial_terminal;
 }
