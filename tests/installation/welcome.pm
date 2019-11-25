@@ -69,9 +69,11 @@ sub get_product_shortcuts {
             : is_aarch64() ? 's'
             : 'i',
             sled     => 'x',
-            sles4sap => get_var('OFW') ? 'i' : 'p',
-            hpc      => is_x86_64() ? 'g' : 'u',
-            rt       => is_x86_64() ? 't' : undef
+            sles4sap => get_var('OFW') ? 'i'
+            : (is_sle('=15-SP2') && is_x86_64()) ? 't'
+            : 'p',
+            hpc => is_x86_64() ? 'g' : 'u',
+            rt  => is_x86_64() ? 't' : undef
         );
     }
     # Else return old shortcuts
