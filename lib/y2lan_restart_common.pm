@@ -221,7 +221,7 @@ sub set_network {
             type_string $args{mask};
         }
         send_key 'tab';
-        send_key_until_needlematch('hostname_textfield_empty', 'backspace');
+        send_key_until_needlematch('hostname_textfield_empty', 'backspace', 30, 1);
         type_string $args{fqdn};
         assert_screen 'yast2_lan_static_ip_set';
     }
@@ -326,7 +326,7 @@ sub handle_dhcp_popup {
 Open yast2 lan, run handle_dhcp_popup() and install and check firewalld
 
 If network is controlled by Networkmanager, don't change any network settings.
- 
+
 =cut
 sub open_yast2_lan {
     my $is_nm = !script_run('systemctl is-active NetworkManager');    # Revert boolean because of bash vs perl's return code.
