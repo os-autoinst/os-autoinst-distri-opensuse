@@ -77,14 +77,28 @@ sub check_cpu_flags {
         }
     }
 }
-
 sub run {
+    my ($self) = shift;
     select_console 'root-console';
     my $obj = meltdown->new($mitigations_list);
     #run base function testing
     $obj->do_test();
+    #extra testing for nopti
+    add_grub_cmdline_settings("nopti");
+    update_grub_and_reboot($self, 150);
+    assert_script_run('cat /proc/cmdline | grep "nopti" ');
+    assert_script_run('cat /proc/cpuinfo | grep -L "pti"');
+    assert_script_run('cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep -q "Vulnerable" ');
+    assert_script_run('dmesg | grep "Kernel/User page tables isolation: disabled on command line" ');
+    remove_grub_cmdline_settings("nopti");
+    grub_mkconfig;
 }
 
+sub update_grub_and_reboot {
+    my ($self, $timeout) = @_;
+    grub_mkconfig;
+    Mitigation::reboot_and_wait($self, $timeout);
+}
 
 sub post_fail_hook {
     my ($self) = @_;
@@ -93,6 +107,7 @@ sub post_fail_hook {
 "md /tmp/upload_mitigations; cp " . $Mitigation::syspath . "* /tmp/upload_mitigations; cp /proc/cmdline /tmp/upload_mitigations; lscpu >/tmp/upload_mitigations/cpuinfo; tar -jcvf /tmp/upload_mitigations.tar.bz2 /tmp/upload_mitigations"
     );
     remove_grub_cmdline_settings('pti=[a-z,]*');
+    remove_grub_cmdline_settings("nopti");
     grub_mkconfig;
     upload_logs '/tmp/upload_mitigations.tar.bz2';
 }
