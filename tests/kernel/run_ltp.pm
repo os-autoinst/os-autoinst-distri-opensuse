@@ -428,7 +428,7 @@ E.g.: key=value,key2="value with spaces",key3='another value with spaces'
 
 The runtest asset files are appended with git or pkg depending on how LTP was
 installed. By default the runtest files from the git installation will be
-uesd, but setting this variable to pkg allows that behavior to be overridden.
+used, but setting this variable to pkg allows that behavior to be overridden.
 
 =cut
 

@@ -264,12 +264,15 @@ sub is_kernel_test {
 
 sub get_ltp_tag {
     my $tag = get_var('LTP_RUNTEST_TAG');
-    if (!defined $tag && defined get_var('HDD_1')) {
-        $tag = get_var('PUBLISH_HDD_1');
-        $tag = get_var('HDD_1') if (!defined $tag);
-        $tag = basename($tag);
-    } else {
-        $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
+
+    if (!defined $tag) {
+        if (defined get_var('HDD_1')) {
+            $tag = get_var('PUBLISH_HDD_1');
+            $tag = get_var('HDD_1') if (!defined $tag);
+            $tag = basename($tag);
+        } else {
+            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
+        }
     }
     $tag =~ s/[^a-zA-Z0-9_@]+/-/g;
     return $tag . '.txt';
