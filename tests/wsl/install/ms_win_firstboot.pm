@@ -106,6 +106,11 @@ sub run {
     assert_and_click 'lock-screen-background';
     assert_and_click 'select-picture';
 
+    # turn off hibernation and fast startup
+    $self->open_powershell_as_admin;
+    $self->run_in_powershell(q{REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d "0" /f});
+    $self->run_in_powershell('powercfg /hibernate off');
+
     # poweroff
     $self->reboot_or_shutdown();
 }
