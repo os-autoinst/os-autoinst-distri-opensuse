@@ -1588,6 +1588,14 @@ sub load_extra_tests_qemu {
     loadtest "qemu/user" if is_opensuse;
 }
 
+sub load_extra_tests_geo_console {
+    loadtest "appgeo/gdal" if is_tumbleweed;
+}
+
+sub load_extra_tests_geo_desktop {
+    loadtest "appgeo/qgis" if is_tumbleweed;
+}
+
 sub load_extra_tests_console {
     loadtest "console/check_os_release";
     # JeOS kernel is missing 'openvswitch' kernel module
