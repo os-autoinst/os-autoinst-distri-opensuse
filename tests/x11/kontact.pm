@@ -55,4 +55,8 @@ sub run {
     x11_start_program('killall kontact', valid => 0);
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook();
+}
 1;
