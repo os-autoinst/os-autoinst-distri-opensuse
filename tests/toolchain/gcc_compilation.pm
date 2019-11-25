@@ -14,19 +14,17 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use utils 'clear_console';
 
 sub run {
-    assert_script_run('wget ' . data_url('toolchain/gawk-src.tar.gz'));
+    assert_script_run('curl --output ./gawk-src.tar.gz ' . data_url('toolchain/gawk-src.tar.gz'));
     assert_script_run('tar xf gawk-src.tar.gz');
     assert_script_run('cd ./gawk-4.1.4');
     assert_script_run('./configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                    600);
     assert_script_run('make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 3600);
     assert_script_run('./gawk \'{ print }\' /etc/hostname');
     save_screenshot;
-
-    # poo#33376: added to investigate OOM
-    assert_script_run 'free -m';
-    save_screenshot;
+    clear_console;
 }
 
 sub post_fail_hook {

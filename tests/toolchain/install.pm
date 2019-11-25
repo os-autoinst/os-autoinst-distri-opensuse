@@ -55,7 +55,7 @@ sub run {
             add_suseconnect_product("sle-module-development-tools");
         }
         zypper_call 'in -t pattern devel_basis';
-        zypper_call 'in gcc-fortran';    # from Base System Module
+        zypper_call 'in gcc-fortran bzip2';    # from Base System Module
         script_run 'export CC=/usr/bin/gcc';
         script_run 'export CXX=/usr/bin/g++';
     }

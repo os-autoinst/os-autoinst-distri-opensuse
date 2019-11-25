@@ -1,0 +1,25 @@
+description: 'Test suite verifies functionality and integration of Development-Tools (sdk) and Desktop-Applications (desktop) patterns'
+name: 'jeos_base+sdk+desktop_patterns'
+schedule:  
+  - installation/bootloader_svirt
+  - jeos/firstrun
+  - jeos/record_machine_id
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - jeos/grub2_gfxmode
+  - jeos/diskusage
+  - jeos/build_key
+  - console/suseconnect_scc
+  - console/consoletest_setup
+  - console/zypper_ref
+  - console/command_not_found
+  - console/libvorbis
+  - console/git
+  - console/java
+  - console/ant
+  - console/gdb
+  - console/perf
+  - console/update_alternatives
+  - toolchain/install
+  - toolchain/gcc_compilation
+  - toolchain/gcc_fortran_compilation
