@@ -64,8 +64,14 @@ sub nfs_shares_tab {
     assert_screen 'nis-client-nfs-client-shares-conf';
     send_key 'alt-a';          # add
     assert_screen 'nis-client-add-nfs-share';
-    send_key 'alt-v';          # NFSV4 share checkbox (selectable box for newer products)
-    assert_screen 'nis-client-nfsv4-share';
+    # On 15-SP2 "Any (Highest Available)" is selected by default, just keep it.
+    if (is_sle('>=15-SP2')) {
+        assert_screen 'nis-client-default-nfs-version';
+    }
+    else {
+        send_key 'alt-v';      # NFSV4 share checkbox (selectable box for newer products)
+        assert_screen 'nis-client-nfsv4-share';
+    }
     send_key 'alt-s';          # choose NFS server button
     assert_screen 'nis-client-nfs-server';
     send_key 'alt-o';          # OK
