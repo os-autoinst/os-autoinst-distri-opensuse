@@ -178,6 +178,7 @@ sub init_desktop_runner {
         send_key 'esc';    # To avoid failing needle on missing 'alt' key - poo#20608
         send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
     }
+    wait_still_screen(2);
     for (my $retries = 10; $retries > 0; $retries--) {
         # krunner may use auto-completion which sometimes gets confused by
         # too fast typing or looses characters because of the load caused (also
@@ -186,7 +187,6 @@ sub init_desktop_runner {
         # https://progress.opensuse.org/issues/35589
         if (check_var('DESKTOP', 'kde')) {
             if (get_var('WAYLAND')) {
-                wait_still_screen(3);
                 type_string_very_slow substr $program, 0, 2;
                 wait_still_screen(3);
                 type_string_very_slow substr $program, 2;
