@@ -456,8 +456,12 @@ sub process_scc_register_addons {
         # start addons/modules registration, it needs longer time if select multiple or all addons/modules
         my $counter = ADDONS_COUNT;
         my @needles = qw(import-untrusted-gpg-key nvidia-validation-failed yast_scc-pkgtoinstall yast-scc-emptypkg inst-addon contacting-registration-server refreshing-repository system-probing);
-        # In SLE 15 SP2 multipath detection happens directly after registration, so using it to detect that all pop-up are processed
-        push @needles, 'enable-multipath' if is_sle('15-SP2+') && get_var('MULTIPATH');
+        if (is_sle('15-SP2+')) {
+            # In SLE 15 SP2 multipath detection happens directly after registration, so using it to detect that all pop-up are processed
+            push @needles, 'enable-multipath' if get_var('MULTIPATH');
+            # Similarly for encrypted partitions activation
+            push @needles, 'encrypted_volume_activation_prompt' if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'));
+        }
         while ($counter--) {
             die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen [@needles];
@@ -502,7 +506,9 @@ sub process_scc_register_addons {
                 sleep 5;
                 next;
             }
-            elsif (match_has_tag('inst-addon') || match_has_tag('enable-multipath')) {
+            elsif (match_has_tag('inst-addon') ||
+                match_has_tag('enable-multipath') ||
+                match_has_tag('encrypted_volume_activation_prompt')) {
                 # it would show Add On Product screen if scc registration correctly during installation
                 # it would show software install dialog if scc registration correctly by yast2 scc
                 last;
