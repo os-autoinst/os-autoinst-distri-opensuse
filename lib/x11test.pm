@@ -654,7 +654,7 @@ sub firefox_open_url {
     while (1) {
         # make sure firefox window is focused
         wait_screen_change { assert_and_click 'firefox_titlebar' };
-        send_key 'alt-d';
+        send_key 'ctrl-l';
         send_key 'delete';
         last if check_screen('firefox-empty-bar', 3);
         if ($counter++ > 5) {
