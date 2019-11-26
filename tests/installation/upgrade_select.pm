@@ -52,8 +52,11 @@ sub run {
     # Select migration target in sle15 upgrade
     if (is_sle '15+') {
         if (get_var('MEDIA_UPGRADE')) {
-            assert_screen 'upgrade-unregistered-system';
-            send_key $cmd{ok};
+            # No 'unregistered system' warning message shown when using Full installation image on SLE15SP2
+            if (is_sle('<15-SP2')) {
+                assert_screen 'upgrade-unregistered-system';
+                send_key $cmd{ok};
+            }
         }
         else {
             # Ensure we are in 'Select the Migration Target' page
