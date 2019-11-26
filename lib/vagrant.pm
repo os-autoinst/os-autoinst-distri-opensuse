@@ -13,7 +13,7 @@ sub setup_vagrant_libvirt {
     select_console('root-console');
 
     zypper_call("in vagrant vagrant-libvirt");
-    assert_script_run("systemctl start libvirtd");
+    systemctl("start libvirtd");
     assert_script_run("usermod -a -G libvirt bernhard");
 }
 
@@ -23,7 +23,7 @@ sub setup_vagrant_virtualbox {
     select_console('root-console');
 
     zypper_call("in vagrant virtualbox");
-    assert_script_run("systemctl start vboxdrv");
-    assert_script_run("systemctl start vboxautostart");
+    systemctl("start vboxdrv");
+    systemctl("start vboxautostart");
     assert_script_run("usermod -a -G vboxusers bernhard");
 }

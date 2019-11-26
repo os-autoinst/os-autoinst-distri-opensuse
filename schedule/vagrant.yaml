@@ -1,0 +1,10 @@
+name:           vagrant
+description:    >
+    Tests for vagrant, vagrant plugins and the official vagrant boxes
+vars:
+    QEMUCPU: host
+schedule:
+  - boot/boot_to_desktop
+  - virtualization/vagrant/add_box_virtualbox
+  - virtualization/vagrant/add_box_libvirt
+  - virtualization/vagrant/boxes/tumbleweed

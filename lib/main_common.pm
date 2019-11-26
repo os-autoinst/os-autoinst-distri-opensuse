@@ -2507,15 +2507,6 @@ sub load_virtualization_tests {
     loadtest "virtualization/virtman_install";
     loadtest "virtualization/virtman_view";
 
-    # reboot the machine to kill the previously started virtual machines
-    loadtest "console/console_reboot";
-
-    # the tests currently require x86 & Tumbleweed
-    if (is_x86_64 && is_tumbleweed) {
-        loadtest "virtualization/vagrant/add_box_virtualbox";
-        loadtest "virtualization/vagrant/add_box_libvirt";
-        loadtest "virtualization/vagrant/boxes/tumbleweed";
-    }
     return 1;
 }
 
