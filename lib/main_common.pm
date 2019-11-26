@@ -1637,6 +1637,7 @@ sub load_extra_tests_console {
     loadtest "console/perf" if is_sle('<15-sp1');
     loadtest "console/sysctl";
     loadtest "console/sysstat";
+    loadtest "console/krb5";
     loadtest "console/curl_ipv6" unless get_var('PUBLIC_CLOUD');
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";
