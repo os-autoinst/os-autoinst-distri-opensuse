@@ -45,11 +45,11 @@ sub setup {
 }
 
 sub get_notes {
-    if (is_sle('>=15')) {
-        return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 2578899 2684254 941735 SAP_BOBJ);
-    } else {
-        return qw(1410736 1557506 1680803 1771258 1805750 1980196 1984787 2161991 2205917 2382421 2534844 941735 SAP_BOBJ);
-    }
+    my @notes_list            = qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 941735 SAP_BOBJ);
+    my @version_related_notes = is_sle('15+') ? qw(2578899 2684254) : qw(1557506 1984787 2205917);
+    push(@notes_list, @version_related_notes);
+
+    return sort(@notes_list);
 }
 
 sub get_solutions {
