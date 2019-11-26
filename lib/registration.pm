@@ -204,6 +204,7 @@ sub ssh_add_suseconnect_product {
     $arch    //= '${CPU}';
     $params  //= '';
     $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+    $timeout //= 180;
 
     my $result = script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
     if ($result != 0 && $retry) {
