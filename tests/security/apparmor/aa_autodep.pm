@@ -57,7 +57,7 @@ sub run {
                 key    => 'c',
             },
         ],
-        30
+        60
     );
 
     # Output generated profiles list to serial console
