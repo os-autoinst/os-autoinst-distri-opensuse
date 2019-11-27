@@ -1,0 +1,36 @@
+---
+name:           allmodules+allpatterns
+description:    >
+  Perform an installation enabling all modules and selecting all patterns.
+  This test suite always registers to have access to all modules.
+  On spvm we can test in textmode only.
+  For spvm we have to disable plymouth, so edit_optional_kernel_cmd_parameters
+  module is scheduled and OPT_KERNEL_PARAMS variable is set.
+vars:
+  DESKTOP: textmode
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  PATTERNS: all
+  ENABLE_ALL_SCC_MODULES: 1
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/select_patterns_and_packages
+  - installation/installation_overview
+  - installation/edit_optional_kernel_cmd_parameters
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
