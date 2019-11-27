@@ -21,7 +21,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my ($proto, $path) = split m|://|, get_required_var('MEDIA');
+    my ($proto, $path) = split m|://|, get_required_var('HANA');
     die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
 
     my $timeout  = 3600 * get_var('TIMEOUT_SCALE', 1);

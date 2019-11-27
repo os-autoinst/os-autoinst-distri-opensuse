@@ -287,6 +287,9 @@ sub ha_export_logs {
     upload_logs("$bootstrap_log",  failok => 1);
     upload_logs("$hb_log.tar.bz2", failok => 1);
 
+    script_run "crm configure show > /tmp/crm.txt";
+    upload_logs('/tmp/crm.txt');
+
     # Extract YaST logs and upload them
     script_run 'save_y2logs /tmp/y2logs.tar.bz2', 120;
     upload_logs('/tmp/y2logs.tar.bz2', failok => 1);

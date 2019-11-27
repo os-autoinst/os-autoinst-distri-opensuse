@@ -242,6 +242,8 @@ sub copy_media {
     type_string "cd $target\n";
     assert_script_run "umount $mnt_path";
 
+    return 1 if get_var('DISABLE_CHECKSUM');
+
     # Then verify everything was copied correctly
     # NOTE: checksum is generated with this command: "find . -type f -exec md5sum {} \; > checksums.md5sum"
     my $chksum_file = 'checksum.md5sum';
