@@ -27,7 +27,7 @@ use version_utils 'is_storage_ng';
 my $after_cancel_tags = [
     qw(
       enable-multipath scc-registration
-      inst-instmode
+      inst-instmode addon-products
       )];
 
 sub run {

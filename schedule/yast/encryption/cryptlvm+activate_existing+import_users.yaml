@@ -1,37 +1,32 @@
 ---
 description: >
-  Conduct installation trying to reuse encryoted partitions (bsc#993247). Using
-  pre-partitioned disk image to validate encrypted partitions activation.
-  For spvm we have to disable plymouth, so edit_optional_kernel_cmd_parameters
-  module is scheduled and OPT_KERNEL_PARAMS variable is set.
-name: cryptlvm+activate_existing
+  Conduct installation activating encrypted partitions and importing users created
+  in that installation. Using pre-partitioned disk image to validate encrypted
+  partitions activation and that we can re-ecnrypt the disk.
+name: cryptlvm+activate_existing+import_users
 vars:
-    OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
-    DESKTOP: textmode
     ENCRYPT_ACTIVATE_EXISTING: 1
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
-  - installation/encrypted_volume_activation
   - installation/scc_registration
+  - installation/encrypted_volume_activation
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/encrypt_lvm_reuse_existing
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/user_settings
+  - installation/hostname_inst
+  - installation/user_import
   - installation/user_settings_root
-  - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot

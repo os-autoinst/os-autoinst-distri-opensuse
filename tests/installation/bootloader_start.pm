@@ -70,6 +70,11 @@ sub run {
             return;
         }
     }
+    # Wrapped call for powerVM
+    if (check_var('BACKEND', 'spvm')) {
+        $self->bootloader::run();
+        return;
+    }
 }
 
 1;
