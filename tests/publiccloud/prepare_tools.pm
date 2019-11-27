@@ -54,9 +54,12 @@ sub run {
         }
         assert_script_run('aws --version');
     }
-    zypper_call('-q in python-ec2uploadimg');
-    assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
     record_info('EC2', script_output('aws --version'));
+
+    # Install ec2imgutils
+    assert_script_run('pip3 install ec2imgutils');
+    assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
+    record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
     assert_script_run("pip3 install -q --ignore-installed azure-cli", 240);
