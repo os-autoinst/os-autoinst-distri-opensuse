@@ -1338,6 +1338,8 @@ sub reconnect_mgmt_console {
     elsif (check_var('ARCH', 'ppc64le')) {
         if (check_var('BACKEND', 'spvm')) {
             select_console 'novalink-ssh', await_console => 0;
+        } elsif (check_var('BACKEND', 'pvm_hmc')) {
+            select_console 'powerhmc-ssh', await_console => 0;
         }
     }
     elsif (check_var('ARCH', 'x86_64')) {

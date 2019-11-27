@@ -158,7 +158,7 @@ Returns true if the current instance is running as PowerVM backend 'spvm'
 =cut
 
 sub is_spvm {
-    return check_var('BACKEND', 'spvm');
+    return check_var('BACKEND', 'spvm') || check_var('BACKEND', 'pvm_hmc');
 }
 
 1;

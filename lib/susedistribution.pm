@@ -476,7 +476,7 @@ sub init_consoles {
                 password => get_var('VIRSH_GUEST_PASSWORD')});
     }
 
-    if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/) {
+    if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/) {
         $self->add_console(
             'root-ssh',
             'ssh-xterm',
@@ -529,11 +529,11 @@ sub init_consoles {
             });
     }
 
-    if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm/ || get_var('S390_ZKVM')) {
+    if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/ || get_var('S390_ZKVM')) {
         my $hostname;
 
         $hostname = get_var('VIRSH_GUEST')     if get_var('S390_ZKVM');
-        $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm/;
+        $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
         if (check_var('BACKEND', 's390x')) {
 
@@ -708,7 +708,7 @@ sub activate_console {
     my ($self, $console, %args) = @_;
 
     # Select configure serial and redirect to root-ssh instead
-    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm/ && $console =~ m/root-console$|install-shell|log-console/);
+    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/root-console$|install-shell|log-console/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
@@ -739,8 +739,8 @@ sub activate_console {
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
-        if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm/ || get_var('S390_ZKVM')) {
-            diag 'backend ipmi || spvm || s390x || zkvm';
+        if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm |pvm_hmc/ || get_var('S390_ZKVM')) {
+            diag 'backend ipmi || spvm || pvm_hmc || s390x || zkvm';
             $user ||= 'root';
             handle_password_prompt;
             ensure_user($user);
@@ -784,6 +784,13 @@ sub activate_console {
         assert_screen("text-logged-in-$user", 60);
         $self->set_standard_prompt($user);
     }
+    elsif ($console eq 'powerhmc-ssh') {
+        assert_screen "password-prompt-hmc";
+        type_password get_required_var('HMC_PASSWORD');
+        send_key('ret');
+        my $user = get_var('HMC_USERNAME', 'hscroot');
+        assert_screen("text-logged-in-$user", 60);
+    }
     elsif ($type eq 'ssh') {
         $user ||= 'root';
         handle_password_prompt;
@@ -800,7 +807,7 @@ sub activate_console {
     }
     elsif (
         $console eq 'installation'
-        && ((get_var('BACKEND', '') =~ /ipmi|s390x|spvm/) || get_var('S390_ZKVM'))
+        && ((get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/) || get_var('S390_ZKVM'))
         && (get_var('VIDEOMODE', '') =~ /text|ssh-x/))
     {
         diag 'activate_console called with installation for ssh based consoles';
