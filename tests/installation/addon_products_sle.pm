@@ -84,7 +84,7 @@ sub handle_all_packages_medium {
     send_key 'down';
     send_key 'end';
     for my $i (@addons) {
-        skip_package_hub_if_necessary($i);
+        next if (skip_package_hub_if_necessary($i));
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
         send_key 'home';
         send_key_until_needlematch "addon-products-all_packages-$i-highlighted", 'down', 30;
@@ -118,7 +118,7 @@ sub handle_all_packages_medium {
     assert_screen "addon-products-nonempty";
     # Confirm all required addons are properly added
     foreach (@addons) {
-        skip_package_hub_if_necessary($_);
+        next if (skip_package_hub_if_necessary($_));
         send_key 'home';
         send_key_until_needlematch "addon-products-$_", 'down';
     }
