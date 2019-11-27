@@ -25,7 +25,7 @@ use base 'bootbasetest';
 use testapi;
 use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
-use x11utils 'handle_login';
+use x11utils qw(handle_login ensure_unlocked_desktop);
 use main_common 'opensuse_welcome_applicable';
 
 sub run {
@@ -62,6 +62,15 @@ sub run {
         assert_screen [qw(displaymanager emergency-shell emergency-mode)], $boot_timeout;
         handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
         handle_login;
+    }
+
+    if (is_sle('>=15-SP2') && get_var("STAGING")) {
+        # quick workaround for poo#60332
+        record_soft_failure 'poo#60332 - deal with additional polkit windows';
+        wait_still_screen;
+        ensure_unlocked_desktop;
+        sleep(20);
+        ensure_unlocked_desktop;
     }
 
     my @tags = qw(generic-desktop);
