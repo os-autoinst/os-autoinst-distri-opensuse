@@ -20,7 +20,8 @@ use utils;
 sub run {
     # Eject the DVD
     send_key "ctrl-alt-f3";
-    assert_screen('text-login');
+    my $tty = get_root_console_tty;
+    assert_screen "tty$tty-selected";
     send_key "ctrl-alt-delete";
 
     # Bug in 13.1?
