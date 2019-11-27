@@ -100,7 +100,7 @@ sub verify_cryptsetup_luks {
 
 sub run {
     select_console 'root-console' unless is_spvm;
-    my $test_data = get_test_data();
+    my $test_data = scheduler::get_test_data();
     my $crypttab  = parse_crypttab();
     verify_crypttab(num_devices => $test_data->{crypttab}->{num_devices_encrypted},
         crypttab => $crypttab);
