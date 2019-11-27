@@ -18,7 +18,7 @@ use testapi;
 use utils qw(addon_license handle_untrusted_gpg_key assert_screen_with_soft_timeout);
 use version_utils 'is_sle';
 use qam 'advance_installer_window';
-use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE);
+use registration qw(%SLE15_DEFAULT_MODULES rename_scc_addons @SLE15_ADDONS_WITHOUT_LICENSE skip_package_hub_if_necessary);
 use LWP::Simple 'head';
 
 sub handle_all_packages_medium {
@@ -78,6 +78,7 @@ sub handle_all_packages_medium {
     my @addons_with_license = qw(ha we);
     my @addons_license_tags = ();
     for my $i (@addons) {
+        skip_package_hub_if_necessary($i);
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
         send_key 'home';
         send_key_until_needlematch "addon-products-all_packages-$i-highlighted", 'down', 30;
@@ -111,6 +112,7 @@ sub handle_all_packages_medium {
     assert_screen "addon-products-nonempty";
     # Confirm all required addons are properly added
     foreach (@addons) {
+        skip_package_hub_if_necessary($_);
         send_key 'home';
         send_key_until_needlematch "addon-products-$_", 'down';
     }

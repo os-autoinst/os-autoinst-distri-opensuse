@@ -37,6 +37,7 @@ our @EXPORT = qw(
   registration_bootloader_params
   yast_scc_registration
   skip_registration
+  skip_package_hub_if_necessary
   scc_deregistration
   scc_version
   get_addon_fullname
@@ -366,6 +367,18 @@ sub _yast_scc_addons_handler {
     }
 }
 
+sub skip_package_hub_if_necessary {
+    my ($addon) = @_;
+    if (is_sle('15-SP2+') && $addon eq 'phub') {
+        if (check_var('FLAVOR', 'Online')) {
+            record_soft_failure('bsc#1151373 - Missing or broken repository after registering module PackageHub');
+        } elsif (check_var('FLAVOR', 'Full')) {
+            record_info('Full media: no PHUB', 'Skipping Package Hub, it is not available on offline scenarios - bsc#1157659');
+        }
+        next;
+    }
+}
+
 sub process_scc_register_addons {
     # The value of SCC_ADDONS is a list of abbreviation of addons/modules
     # Following are abbreviations defined for modules and some addons
@@ -407,6 +420,7 @@ sub process_scc_register_addons {
         @scc_addons = grep { $_ ne '' } @scc_addons;
 
         for my $addon (@scc_addons) {
+            skip_package_hub_if_necessary($addon);
             if (check_var('VIDEOMODE', 'text') || check_var('SCC_REGISTER', 'console')) {
                 # The actions of selecting scc addons have been changed on SP2 or later in textmode
                 # For online migration, we have to do registration on pre-created HDD, set a flag
