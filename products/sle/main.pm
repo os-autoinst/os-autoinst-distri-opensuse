@@ -547,6 +547,11 @@ sub load_baremetal_tests {
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
 
+sub baremetal_cleanup {
+    return unless check_var('IPXE', '1');
+    loadtest 'baremetal/baremetal_cleanup';
+}
+
 sub load_infiniband_tests {
     # The barriers below must be created
     # here to ensure they are a) only created once and b) early enough
@@ -631,14 +636,17 @@ if (is_kernel_test()) {
         load_baremetal_tests();
     }
     load_kernel_tests();
+    baremetal_cleanup();
 }
 elsif (get_var('IBTESTS')) {
     load_baremetal_tests();
     load_infiniband_tests();
+    baremetal_cleanup();
 }
 elsif (get_var("NFV")) {
     load_baremetal_tests();
     load_nfv_tests();
+    baremetal_cleanup();
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;

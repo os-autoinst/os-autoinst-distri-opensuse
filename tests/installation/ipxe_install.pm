@@ -10,7 +10,7 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
 
-use base 'y2_installbase';
+use base 'baremetalbasetest';
 use strict;
 use warnings;
 
@@ -22,54 +22,8 @@ use IPC::Run;
 use Socket;
 use Time::HiRes 'sleep';
 
-sub ipmitool {
-    my ($cmd) = @_;
 
-    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
-    push(@cmd, split(/ /, $cmd));
-
-    my ($stdin, $stdout, $stderr, $ret);
-    print @cmd;
-    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
-    chomp $stdout;
-    chomp $stderr;
-
-    die join(' ', @cmd) . ": $stderr" unless ($ret);
-    bmwqemu::diag("IPMI: $stdout");
-    return $stdout;
-}
-
-sub poweroff_host {
-    ipmitool("chassis power off");
-    while (1) {
-        sleep(3);
-        my $stdout = ipmitool('chassis power status');
-        last if $stdout =~ m/is off/;
-        ipmitool('chassis power off');
-    }
-}
-
-sub poweron_host {
-    ipmitool("chassis power on");
-    while (1) {
-        sleep(3);
-        my $stdout = ipmitool('chassis power status');
-        last if $stdout =~ m/is on/;
-        ipmitool('chassis power on');
-    }
-}
-
-sub set_pxe_boot {
-    while (1) {
-        my $stdout = ipmitool('chassis bootparam get 5');
-        last if $stdout =~ m/Force PXE/;
-        diag "setting boot device to pxe";
-        ipmitool("chassis bootdev pxe");
-        sleep(3);
-    }
-}
-
-sub set_bootscript {
+sub set_ipxe_bootscript {
     my $host        = get_required_var('SUT_IP');
     my $ip          = inet_ntoa(inet_aton($host));
     my $http_server = get_required_var('IPXE_HTTPSERVER');
@@ -98,23 +52,25 @@ END_BOOTSCRIPT
     diag "$response->{status} $response->{reason}\n";
 }
 
-
 sub run {
     my $self = shift;
 
-    poweroff_host;
+    if !($self->host_is_locked()) {
+        die("Host has to be locked before installing!")
+    }
 
-    set_bootscript;
+    $self->poweroff();
 
-    set_pxe_boot;
-    poweron_host;
+    if (check_var('BACKEND', 'ipmi')) { }
+    set_ipxe_bootscript();
+} else {
+    die("Backend " . get_var('BACKEND') . ' is not supported.');
+}
 
-    select_console 'sol', await_console => 0;
+self->set_net_boot();
+self->poweron();
 
-    # make sure to wait for a while befor changing the boot device again, in order to not change it too early
-    sleep 120;
-
-    assert_screen('linux-login', 1800);
+$self->wait_boot();
 }
 
 1;
