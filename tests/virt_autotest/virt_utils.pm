@@ -89,6 +89,8 @@ sub repl_repo_in_sourcefile {
         }
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
         my $newrepo   = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
+        # for sles15sp2, install host with Online installer, while install guest with Full installer
+        $newrepo =~ s/-Online-/-Full-/ if is_sle("15-sp2+");
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         if (check_var('ARCH', 's390x')) {
