@@ -400,11 +400,11 @@ sub reboot {
     if (check_var('BACKEND', 'ipmi')) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console;
-        $self->wait_boot(textmode => 1);
+        $self->wait_boot(textmode => 1, nologin => 1);
     }
     else {
         power_action('reboot', textmode => 1);
-        $self->wait_boot;
+        $self->wait_boot(nologin => 1);
     }
     $self->select_serial_terminal;
 }

@@ -25,8 +25,8 @@ sub setup {
     $self->select_serial_terminal;
     # Disable packagekit
     pkcon_quit;
-    # saptune is not installed by default on SLES4SAP 12 on ppc64le
-    zypper_call "-n in saptune" if (get_var('OFW') and is_sle('<15'));
+    # saptune is not installed by default on SLES4SAP 12 on ppc64le and in textmode profile
+    zypper_call "-n in saptune" if ((get_var('OFW') and is_sle('<15')) or check_var('DESKTOP', 'textmode'));
     # Install mr_test dependencies
     zypper_call "-n in python3-rpm";
     # Download mr_test and extract it to $HOME
@@ -35,7 +35,7 @@ sub setup {
     assert_script_run "echo 'export PATH=\$PATH:\$HOME' >> /root/.bashrc";
     # Remove any configuration set by sapconf
     assert_script_run "sed -i.bak '/^@/,\$d' /etc/security/limits.conf";
-    assert_script_run 'mv /etc/systemd/logind.conf.d/sap.conf{,.bak}';
+    assert_script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
     assert_script_run 'saptune daemon start';
     if (check_var('BACKEND', 'qemu')) {
         # Ignore disk_elevator on VM's
