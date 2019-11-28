@@ -628,7 +628,7 @@ if (is_jeos) {
 
 # load the tests in the right order
 if (is_kernel_test()) {
-    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
+    if ((get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) || get_var('LTP_RUNLTP_SUPPORT')) {
         load_baremetal_tests();
     }
     load_kernel_tests();

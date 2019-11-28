@@ -188,6 +188,9 @@ sub load_kernel_tests {
         boot_hdd_image();
         loadtest 'numa_irqbalance';
     }
+    elsif (get_var('LTP_RUNLTP_SUPPORT')) {
+        loadtest 'runltp_support';
+    }
 
     if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
         loadtest '../shutdown/svirt_upload_assets';

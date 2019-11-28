@@ -248,7 +248,8 @@ sub packagekit_available {
 
 sub is_ltp_test {
     return (get_var('INSTALL_LTP')
-          || get_var('LTP_COMMAND_FILE'));
+          || get_var('LTP_COMMAND_FILE')
+          || get_var('LTP_RUNLTP_SUPPORT'));
 }
 
 sub is_kernel_test {
