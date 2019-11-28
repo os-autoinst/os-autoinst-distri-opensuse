@@ -25,7 +25,7 @@ use base 'bootbasetest';
 use testapi;
 use utils 'handle_emergency';
 use version_utils qw(is_sle is_leap is_desktop_installed is_upgrade is_sles4sap);
-use x11utils 'handle_login';
+use x11utils qw(ensure_unlocked_desktop handle_login);
 use main_common 'opensuse_welcome_applicable';
 
 sub run {
@@ -70,6 +70,11 @@ sub run {
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
     }
+    # bsc#1157928 - deal with additional polkit windows
+    if (is_sle && !is_sle('<=15-SP1')) {
+        push(@tags, 'authentication-required-user-settings');
+    }
+
     # GNOME and KDE get into screenlock after 5 minutes without activities.
     # using multiple check intervals here then we can get the wrong desktop
     # screenshot at least in case desktop screenshot changed, otherwise we get
@@ -93,6 +98,16 @@ sub run {
         wait_still_screen;
         script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
         wait_screen_change { send_key 'alt-f4' };
+    }
+    if (match_has_tag('authentication-required-user-settings')) {
+        record_soft_failure 'bsc#1157928 - deal with additional polkit windows';
+        wait_still_screen(3);
+        ensure_unlocked_desktop;
+        # deal with potential followup authentication window which is not
+        # actually a login screen but polkit asking for modification to system
+        # repositories
+        wait_still_screen(3);
+        ensure_unlocked_desktop;
     }
 }
 
