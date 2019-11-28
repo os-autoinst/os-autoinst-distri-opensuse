@@ -788,7 +788,7 @@ sub wait_boot {
             #assert_screen "dm-password-input", 10;
             elsif (check_var('DESKTOP', 'gnome')) {
                 # In GNOME/gdm, we do not have to enter a username, but we have to select it
-                if (is_tumbleweed) {
+                unless (is_sle('<=15-sp1') || is_leap('<=15.1')) {
                     send_key 'tab';
                 }
                 send_key 'ret';
