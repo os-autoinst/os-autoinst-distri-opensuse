@@ -28,12 +28,12 @@ use lockapi qw(mutex_create mutex_wait);
 use version_utils qw(is_sle is_leap);
 use yast2_widget_utils 'change_service_configuration';
 use utils qw(systemctl type_string_slow_extended);
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 use y2_mm_common 'prepare_xterm_and_setup_static_network';
 
 # load expected test data from yaml
 # common for both iscsi MM modules
-my $test_data = get_test_data();
+my $test_data = get_test_suite_data();
 
 sub initiator_service_tab {
     unless (is_sle('<15') || is_leap('<15.1')) {

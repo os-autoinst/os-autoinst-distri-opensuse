@@ -115,9 +115,9 @@ to indicate that the module or modules executed at this position is conditional 
 #### test_data
 As vars.json has quite limited capabilities due to the design, in the yaml files
 it's possible to define any structure, which can be described using plain yaml
-format. This data can be accessed when calling `get_test_data()`
+format. This data can be accessed when calling `get_test_suite_data()`
 method from `lib/scheduler.pm`. This feature is designed to store test related
-date for data driven tests and provide better structure for the test suite settings.
+data for data driven tests and provide better structure for the test suite settings.
 
 The whole section is parsed with perl structures, so in case you have following
 settings:
@@ -135,7 +135,7 @@ test_data:
 Your test code will look like:
 ```
 sub run {
-    my $test_data = get_test_data();
+    my $test_data = get_test_suite_data();
     foreach my $item (@{$test_data->{list}}) {
         diag $item;
     }

@@ -16,7 +16,7 @@ use base "y2_module_consoletest";
 use testapi;
 use utils;
 use Test::Assert ':all';
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 use version_utils "is_sle";
 use power_action_utils 'power_action';
 
@@ -25,7 +25,7 @@ sub run {
 
     select_console 'root-console';
 
-    my $config = get_test_data();
+    my $config = get_test_suite_data();
     $config->{expected_num_devs} = scalar @{$config->{disks}};
     # actual_num_devs is used to get the number of the disks in raid
     # as we move in and out a disk during the test. This is because

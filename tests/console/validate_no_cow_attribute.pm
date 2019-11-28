@@ -23,11 +23,11 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub run {
-    my $test_data = get_test_data();
+    my $test_data = get_test_suite_data();
 
     select_console('root-console');
 

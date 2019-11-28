@@ -15,10 +15,10 @@ use warnings;
 use parent 'installbasetest';
 use testapi;
 use version_utils ':VERSION';
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data   = get_test_data();
+    my $test_data   = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
     $partitioner->resize_partition_on_gpt_disk($test_data);

@@ -20,7 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use base 'basetest';
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub collect_disk_data {
@@ -29,7 +29,7 @@ sub collect_disk_data {
 }
 
 sub run {
-    my $test_data = get_test_data();
+    my $test_data = get_test_suite_data();
     my $disk_data = collect_disk_data($test_data->{disk});
 
     my @partitions = ($disk_data =~ /$test_data->{type_part}/g);
