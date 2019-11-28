@@ -114,8 +114,8 @@ sub edit_partition_on_gpt_disk {
     $self->get_expert_partitioner_page()->expand_item_in_system_view_table();
     $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{existing_partition});
     $self->get_expert_partitioner_page()->press_edit_partition_button();
-    $self->get_edit_formatting_options_page()->select_format_device_radiobutton();
-    $self->get_edit_formatting_options_page()->select_filesystem($args->{fs_type});
+    $self->get_edit_formatting_options_page()->select_format_device_radiobutton($args->{skip});
+    $self->get_edit_formatting_options_page()->select_filesystem($args->{fs_type}, $args->{skip});
     $self->get_edit_formatting_options_page()->select_mount_device_radiobutton();
     $self->get_edit_formatting_options_page()->fill_in_mount_point_field($args->{mount_point});
     $self->get_edit_formatting_options_page()->press_next();
