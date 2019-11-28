@@ -26,7 +26,7 @@ use version_utils 'is_sle';
 sub reboot {
     type_string "reboot\n";
     reset_consoles;
-    assert_screen 'grub2', 90;
+    assert_screen 'grub2', 120;
     stop_grub_timeout;
 }
 
