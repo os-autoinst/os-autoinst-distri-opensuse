@@ -3,6 +3,24 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
     <add_on_products config:type="list">
+      % if ($get_var->('VERSION') =~ m/12-SP3|12-SP2|12-SP1/ and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
+      <listentry>
+        <name>SLES-LTSS:12::update</name>
+        <alias>SLES-LTSS:12::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % unless ($get_var->('VERSION') =~ m/12-SP3|12-SP2|12-SP1/ and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
+      <listentry>
+        <name>sle-sdk:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-sdk:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-SDK/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-sdk:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-sdk:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SDK/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
       % unless ($check_var->('ARCH', 'aarch64')) {
       <listentry>
         <name>sle-module-adv-systems-management:12::pool</name>
@@ -79,25 +97,6 @@
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % if ($check_var->('VERSION', '12-SP3') and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
-<!--12-SP3 is LTSS-->
-      <listentry>
-        <name>SLES-LTSS:12::update</name>
-        <alias>SLES-LTSS:12::update</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
-      % unless ($check_var->('VERSION', '12-SP3')) {
-      <listentry>
-        <name>sle-sdk:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-sdk:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-SDK/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-sdk:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-sdk:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SDK/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
       % if ($check_var->('ARCH', 'x86_64')) {
       <listentry>
         <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
@@ -262,10 +261,7 @@ sed -i 's/keeppackages=0/keppackages=1/' /etc/zypp/repos.d/*
 # delete uselless path=
 sed -i '/^path*/d' /etc/zypp/repos.d/*
 
-# delete default ISO repo
-rm -f /etc/zypp/repos.d/SLE[SD]<%= $get_var->('VERSION') %>*
 % if ($check_var->('ARCH', 's390x')) {
-
 # don't know the service which would work on s390x ...
 systemctl start SuSEfirewall2.service
 systemctl enable SuSEfirewall2.service
@@ -286,6 +282,7 @@ exit 0
     </services>
   </services-manager>
   <software>
+    <do_online_update config:type="boolean">true</do_online_update>
     <patterns config:type="list">
       % if ($get_var->('FLAVOR') =~ m/Desktop/) {
       <pattern>desktop-base</pattern>
