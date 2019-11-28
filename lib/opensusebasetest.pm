@@ -12,6 +12,7 @@ use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbl
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
+use x11utils qw(handle_login ensure_unlocked_desktop);
 
 # Base class for all openSUSE tests
 
@@ -698,7 +699,7 @@ sub handle_emergency_if_needed {
 
 sub handle_displaymanager_login {
     my ($self, %args) = @_;
-    return unless (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $args{forcenologin});
+    diag("handle_displaymanager_login: \$ready_time: $args{ready_time}, \$nologin: $args{nologin}");
     assert_screen [qw(displaymanager emergency-shell emergency-mode)], $args{ready_time};
     handle_emergency_if_needed;
     return if $args{nologin};
@@ -775,6 +776,104 @@ sub wait_boot_textmode {
 
 }
 
+sub handle_broken_autologin_boo1102563 {
+    record_soft_failure 'boo#1102563 - GNOME autologin broken. Handle login and disable Wayland for login page to make it work next time';
+    handle_login;
+    assert_screen 'generic-desktop';
+    # Force the login screen to use Xorg to get autologin working
+    # (needed for additional tests using boot_to_desktop)
+    x11_start_program('xterm');
+    wait_still_screen;
+    script_sudo('sed -i s/#WaylandEnable=false/WaylandEnable=false/ /etc/gdm/custom.conf');
+    wait_screen_change { send_key 'alt-f4' };
+}
+
+sub handle_additional_polkit_windows_bsc1157928 {
+    record_soft_failure 'bsc#1157928 - deal with additional polkit windows';
+    wait_still_screen(3);
+    ensure_unlocked_desktop;
+    # deal with potential followup authentication window which is not
+    # actually a login screen but polkit asking for modification to system
+    # repositories
+    wait_still_screen(3);
+    ensure_unlocked_desktop;
+}
+
+=head2 wait_boot_past_bootloader
+
+ wait_boot_past_bootloader([, textmode => $textmode] [,ready_time => $ready_time] [, nologin => $nologin] [, forcenologin => $forcenologin]);
+
+Waits until the system is booted, every step after the bootloader or
+bootloader menu. Returns successfully when the system is ready on a login
+prompt or logged in desktop. Set C<$textmode> to 1 when the text mode login
+prompt should be expected rather than a desktop or display manager.  Expects
+already unlocked encrypted disks, see C<wait_boot> for handling these in
+before.  The time waiting for the system to be fully booted can be configured
+with with C<$ready_time> in seconds. C<$forcenologin> makes this function
+behave as if the env var NOAUTOLOGIN was set.
+=cut
+sub wait_boot_past_bootloader {
+    my ($self, %args) = @_;
+    my $textmode     = $args{textmode};
+    my $ready_time   = $args{ready_time} // (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300;
+    my $nologin      = $args{nologin};
+    my $forcenologin = $args{forcenologin};
+    diag("wait_boot_past_bootloader: \$textmode: $textmode, \$ready_time: $ready_time, \$nologin: $nologin, \$forcenologin: $forcenologin");
+
+    # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
+    # select_console('x11'); also performs a login, so we should be at generic-desktop.
+    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
+    if ($gnome_ipmi) {
+        # first boot takes sometimes quite long time, ensure that it reaches login prompt
+        $self->wait_boot_textmode(ready_time => $ready_time);
+        select_console('x11');
+    }
+    else {
+        return $self->wait_boot_textmode(ready_time => $ready_time) if ($textmode || check_var('DESKTOP', 'textmode'));
+    }
+
+    # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
+    # Administrator user listed but do not attempt to login
+    if (get_var('HDDVERSION') and is_desktop_installed() and is_upgrade() and is_sles4sap()) {
+        assert_screen 'displaymanager-sapadm', $$ready_time;
+        return;
+    }
+
+    $self->handle_displaymanager_login(ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin);
+    return if $args{nologin};
+
+    my @tags = qw(generic-desktop emergency-shell emergency-mode);
+    push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
+
+    # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
+    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
+        push(@tags, 'displaymanager');
+    }
+    # bsc#1157928 - deal with additional polkit windows
+    if (is_sle && !is_sle('<=15-SP1')) {
+        push(@tags, 'authentication-required-user-settings');
+    }
+
+    # GNOME and KDE get into screenlock after 5 minutes without activities.
+    # using multiple check intervals here then we can get the wrong desktop
+    # screenshot at least in case desktop screenshot changed, otherwise we get
+    # the screenlock screenshot.
+    my $timeout        = $ready_time;
+    my $check_interval = 30;
+    while ($timeout > $check_interval) {
+        my $ret = check_screen \@tags, $check_interval;
+        last if $ret;
+        $timeout -= $check_interval;
+    }
+    # the last check after previous intervals must be fatal
+    assert_screen \@tags, $check_interval;
+    handle_emergency_if_needed;
+
+    handle_broken_autologin_boo1102563()          if match_has_tag('displaymanager');
+    handle_additional_polkit_windows_bsc1157928() if match_has_tag('authentication-required-user-settings');
+    mouse_hide(1);
+}
+
 =head2 wait_boot
 
  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
@@ -799,8 +898,6 @@ sub wait_boot {
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300;
     my $in_grub         = $args{in_grub} // 0;
-    my $nologin         = $args{nologin};
-    my $forcenologin    = $args{forcenologin};
 
     die "wait_boot: got undefined class" unless $self;
     # used to register a post fail hook being active while we are waiting for
@@ -821,15 +918,7 @@ sub wait_boot {
     # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
     unlock_if_encrypted unless get_var('S390_ZKVM');
 
-    return $self->wait_boot_textmode(ready_time => $ready_time) if ($textmode || check_var('DESKTOP', 'textmode'));
-    mouse_hide();
-    $self->handle_displaymanager_login(forcenologin => $forcenologin, ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $forcenologin);
-
-    my @tags = qw(generic-desktop emergency-shell emergency-mode);
-    push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
-    assert_screen \@tags, $ready_time + 100;
-    handle_emergency_if_needed;
-    mouse_hide(1);
+    $self->wait_boot_past_bootloader(%args);
     $self->{in_wait_boot} = 0;
 }
 
