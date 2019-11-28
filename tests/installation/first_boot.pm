@@ -39,14 +39,6 @@ sub run {
         select_console('x11');
     }
     my $boot_timeout = (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 450 : 200;
-    if (check_var('WORKER_CLASS', 'hornet')) {
-        # hornet does not show the console output
-        diag "waiting $boot_timeout seconds to let hornet boot and finish initial script";
-        sleep $boot_timeout;
-        reset_consoles;
-        select_console 'root-ssh';
-        return;
-    }
     elsif ((get_var('DESKTOP', '') =~ /textmode|serverro/) || get_var('BOOT_TO_SNAPSHOT')) {
         assert_screen('linux-login', $boot_timeout) unless check_var('ARCH', 's390x');
         return;
