@@ -625,6 +625,156 @@ sub wait_grub_to_boot_on_local_disk {
     }
 }
 
+sub reconnect_s390 {
+    my (%args)     = @_;
+    my $ready_time = $args{ready_time};
+    my $textmode   = $args{textmode};
+    return undef unless check_var('ARCH', 's390x');
+    my $login_ready = get_login_message();
+    if (check_var('BACKEND', 's390x')) {
+        my $console = console('x3270');
+        handle_grub_zvm($console);
+        $console->expect_3270(
+            output_delim => $login_ready,
+            timeout      => $ready_time + 100
+        );
+
+        # give the system time to have routes up
+        # and start serial grab again
+        sleep 30;
+        select_console('iucvconn');
+    }
+    else {
+        my $worker_hostname = get_required_var('WORKER_HOSTNAME');
+        my $virsh_guest     = get_required_var('VIRSH_GUEST');
+        workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
+        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        select_console('svirt');
+        save_svirt_pty;
+        type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
+        type_line_svirt "root", expect => 'Password';
+        type_line_svirt "$testapi::password";
+        type_line_svirt "systemctl is-active network", expect => 'active';
+        type_line_svirt 'systemctl is-active sshd',    expect => 'active';
+
+        # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
+        my $retries = 12;
+        my $port    = 22;
+        for my $i (0 .. $retries) {
+            die "The SSH Port in the SUT could not be reached within 1 minute, considering a product issue" if $i == $retries;
+            if (IO::Socket::INET->new(PeerAddr => "$virsh_guest", PeerPort => $port)) {
+                record_info("ssh port open", "check for port $port on $virsh_guest successful");
+                last;
+            }
+            else {
+                record_info("ssh port closed", "check for port $port on $virsh_guest failed", result => 'fail');
+            }
+            sleep 5;
+        }
+        save_screenshot;
+    }
+
+    # on z/(K)VM we need to re-select a console
+    if ($textmode || check_var('DESKTOP', 'textmode')) {
+        select_console('root-console');
+    }
+    else {
+        select_console('x11', await_console => 0);
+    }
+    return 1;
+}
+
+# On Xen we have to re-connect to serial line as Xen closed it after restart
+sub reconnect_xen {
+    return unless check_var('VIRSH_VMM_FAMILY', 'xen');
+    wait_serial("reboot: (Restarting system|System halted)") if check_var('VIRSH_VMM_TYPE', 'linux');
+    console('svirt')->attach_to_running;
+    select_console('sut');
+}
+
+sub handle_emergency_if_needed {
+    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+}
+
+sub handle_displaymanager_login {
+    my ($self, %args) = @_;
+    return unless (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $args{forcenologin});
+    assert_screen [qw(displaymanager emergency-shell emergency-mode)], $args{ready_time};
+    handle_emergency_if_needed;
+    return if $args{nologin};
+    # SLE11 SP4 kde desktop do not need type username
+    if (get_var('DM_NEEDS_USERNAME')) {
+        type_string "$username\n";
+    }
+    # log in
+    elsif (check_var('DESKTOP', 'gnome')) {
+        # In GNOME/gdm, we do not have to enter a username, but we have to select it
+        unless (is_sle('<=15-sp1') || is_leap('<=15.1')) {
+            send_key 'tab';
+        }
+        send_key 'ret';
+    }
+
+    assert_screen 'displaymanager-password-prompt', no_wait => 1;
+    type_password $password. "\n";
+}
+
+sub handle_grub {
+    my ($self, %args) = @_;
+    my $bootloader_time  = $args{bootloader_time};
+    my $in_grub          = $args{in_grub};
+    my $linux_boot_entry = $args{linux_boot_entry} // 14;
+
+    # On Xen PV and svirt we don't see a Grub menu
+    # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
+    return if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt') || check_var('KEEP_GRUB_TIMEOUT', '1'));
+    $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+    if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
+        wait_screen_change { send_key 'e' };
+        for (1 .. $linux_boot_entry) { send_key 'down' }
+        wait_screen_change { send_key 'end' };
+        send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
+        for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
+        type_string_very_slow "$boot_params ";
+        save_screenshot;
+        send_key 'ctrl-x';
+    }
+    else {
+        # confirm default choice
+        send_key 'ret';
+    }
+}
+
+sub wait_boot_textmode {
+    my ($self, %args) = @_;
+    my $ready_time       = $args{ready_time};
+    my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
+    # 2nd stage of autoyast can be considered as linux-login
+    push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
+    # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
+    # if not able to boot from snapshot
+    if (get_var('EXTRATEST', '') !~ /desktop/) {
+        assert_screen $textmode_needles, $ready_time;
+    }
+    elsif (is_sle('<15') && !check_screen $textmode_needles, $ready_time / 2) {
+        # We are not able to boot due to bsc#980337
+        record_soft_failure 'bsc#980337';
+        # Switch to root console and continue
+        select_console 'root-console';
+    }
+    elsif (check_screen 'displaymanager', 90) {
+        # due to workaround on sle15+ is test user_defined_snapshot expecting to boot textmode despite snapshot booted properly
+        select_console 'root-console';
+    }
+
+    handle_emergency_if_needed;
+
+    reset_consoles;
+    $self->{in_wait_boot} = 0;
+    return;
+
+}
+
 =head2 wait_boot
 
  wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
@@ -647,11 +797,10 @@ sub wait_boot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // 300;
+    my $ready_time      = $args{ready_time} // (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300;
     my $in_grub         = $args{in_grub} // 0;
     my $nologin         = $args{nologin};
     my $forcenologin    = $args{forcenologin};
-    my $linux_boot_entry //= 14;
 
     die "wait_boot: got undefined class" unless $self;
     # used to register a post fail hook being active while we are waiting for
@@ -662,152 +811,24 @@ sub wait_boot {
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
     select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
-    # reconnect s390
-    if (check_var('ARCH', 's390x')) {
-        my $login_ready = get_login_message();
-        if (check_var('BACKEND', 's390x')) {
-            my $console = console('x3270');
-            handle_grub_zvm($console);
-            $console->expect_3270(
-                output_delim => $login_ready,
-                timeout      => $ready_time + 100
-            );
-
-            # give the system time to have routes up
-            # and start serial grab again
-            sleep 30;
-            select_console('iucvconn');
-        }
-        else {
-            my $worker_hostname = get_required_var('WORKER_HOSTNAME');
-            my $virsh_guest     = get_required_var('VIRSH_GUEST');
-            workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
-            wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
-            select_console('svirt');
-            save_svirt_pty;
-            type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
-            type_line_svirt "root", expect => 'Password';
-            type_line_svirt "$testapi::password";
-            type_line_svirt "systemctl is-active network", expect => 'active';
-            type_line_svirt 'systemctl is-active sshd',    expect => 'active';
-
-            # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
-            my $retries = 12;
-            my $port    = 22;
-            for my $i (0 .. $retries) {
-                die "The SSH Port in the SUT could not be reached within 1 minute, considering a product issue" if $i == $retries;
-                if (IO::Socket::INET->new(PeerAddr => "$virsh_guest", PeerPort => $port)) {
-                    record_info("ssh port open", "check for port $port on $virsh_guest successful");
-                    last;
-                }
-                else {
-                    record_info("ssh port closed", "check for port $port on $virsh_guest failed", result => 'fail');
-                }
-                sleep 5;
-            }
-            save_screenshot;
-        }
-
-        # on z/(K)VM we need to re-select a console
-        if ($textmode || check_var('DESKTOP', 'textmode')) {
-            select_console('root-console');
-        }
-        else {
-            select_console('x11', await_console => 0);
-        }
+    if (reconnect_s390(textmode => $textmode, ready_time => $ready_time)) {
     }
-    # On Xen PV and svirt we don't see a Grub menu
-    # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
-    elsif (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt') || check_var('KEEP_GRUB_TIMEOUT', '1'))) {
-        $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
-        if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
-            wait_screen_change { send_key 'e' };
-            for (1 .. $linux_boot_entry) { send_key 'down' }
-            wait_screen_change { send_key 'end' };
-            send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
-            for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
-            type_string_very_slow "$boot_params ";
-            save_screenshot;
-            send_key 'ctrl-x';
-        }
-        else {
-            # confirm default choice
-            send_key 'ret';
-        }
+    else {
+        $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
     }
-
-    # On Xen we have to re-connect to serial line as Xen closed it after restart
-    if (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        wait_serial("reboot: (Restarting system|System halted)") if check_var('VIRSH_VMM_TYPE', 'linux');
-        console('svirt')->attach_to_running;
-        select_console('sut');
-    }
+    reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
 
     # on s390x svirt encryption is unlocked with workaround_type_encrypted_passphrase before here
-    unlock_if_encrypted if !get_var('S390_ZKVM');
+    unlock_if_encrypted unless get_var('S390_ZKVM');
 
-    if ($textmode || check_var('DESKTOP', 'textmode')) {
-        my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
-        # 2nd stage of autoyast can be considered as linux-login
-        push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
-        # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
-        # if not able to boot from snapshot
-        if (get_var('EXTRATEST', '') !~ /desktop/) {
-            assert_screen $textmode_needles, $ready_time;
-        }
-        elsif (is_sle('<15') && !check_screen $textmode_needles, $ready_time / 2) {
-            # We are not able to boot due to bsc#980337
-            record_soft_failure 'bsc#980337';
-            # Switch to root console and continue
-            select_console 'root-console';
-        }
-        elsif (check_screen 'displaymanager', 90) {
-            # due to workaround on sle15+ is test user_defined_snapshot expecting to boot textmode despite snapshot booted properly
-            select_console 'root-console';
-        }
-
-        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
-
-        reset_consoles;
-        $self->{in_wait_boot} = 0;
-        return;
-    }
-
+    return $self->wait_boot_textmode(ready_time => $ready_time) if ($textmode || check_var('DESKTOP', 'textmode'));
     mouse_hide();
-
-    if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $forcenologin) {
-        assert_screen [qw(displaymanager emergency-shell emergency-mode)], $ready_time;
-        handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
-
-        if (!$nologin) {
-            # SLE11 SP4 kde desktop do not need type username
-            if (get_var('DM_NEEDS_USERNAME')) {
-                type_string "$username\n";
-            }
-            # log in
-            #assert_screen "dm-password-input", 10;
-            elsif (check_var('DESKTOP', 'gnome')) {
-                # In GNOME/gdm, we do not have to enter a username, but we have to select it
-                unless (is_sle('<=15-sp1') || is_leap('<=15.1')) {
-                    send_key 'tab';
-                }
-                send_key 'ret';
-            }
-
-            assert_screen 'displaymanager-password-prompt', no_wait => 1;
-            type_password $password. "\n";
-        }
-        else {
-            mouse_hide(1);
-            $self->{in_wait_boot} = 0;
-            return;
-        }
-    }
+    $self->handle_displaymanager_login(forcenologin => $forcenologin, ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $forcenologin);
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
     assert_screen \@tags, $ready_time + 100;
-    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+    handle_emergency_if_needed;
     mouse_hide(1);
     $self->{in_wait_boot} = 0;
 }
