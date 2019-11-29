@@ -1,4 +1,3 @@
-# SUSE's openQA tests
 #
 # Copyright © 2012-2019 SUSE LLC
 #
@@ -89,7 +88,7 @@ sub run {
         }
 
         #IPMI Backend
-        $image_path .= "?device=$interface " if check_var('BACKEND', 'ipmi');
+        $image_path .= "?device=$interface " if (check_var('BACKEND', 'ipmi') && !get_var('SUT_NETDEVICE_SKIPPED'));
     }
     elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
@@ -99,7 +98,7 @@ sub run {
             send_key 'tab';
         }
         else {
-            my $device = check_var('BACKEND', 'ipmi') ? "?device=$interface" : '';
+            my $device = (check_var('BACKEND', 'ipmi') && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
             my $release = get_var('BETA') ? 'LATEST' : 'GM';
             $image_name = get_var('ISO') =~ s/.*\/(.*)-DVD-${arch}-.*\.iso/$1-$release/r;
             $image_name = get_var('PXE_PRODUCT_NAME') if get_var('PXE_PRODUCT_NAME');
@@ -114,8 +113,8 @@ sub run {
         send_key "tab";
     }
     if (check_var('BACKEND', 'ipmi')) {
-        $image_path .= "ipv6.disable=1 " if get_var('LINUX_BOOT_IPV6_DISABLE');
-        $image_path .= "ifcfg=$interface=dhcp4 " unless get_var('NETWORK_INIT_PARAM');
+        $image_path .= " ipv6.disable=1 "        if get_var('LINUX_BOOT_IPV6_DISABLE');
+        $image_path .= "ifcfg=$interface=dhcp4 " if (!get_var('NETWORK_INIT_PARAM') && !get_var('SUT_NETDEVICE_SKIPPED'));
         $image_path .= 'plymouth.enable=0 ';
     }
     # Execute installation command on pxe management cmd console
