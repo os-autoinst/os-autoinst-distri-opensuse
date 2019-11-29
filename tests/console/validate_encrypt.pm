@@ -20,7 +20,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use Test::Assert ':all';
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 use Data::Dumper;
 use Utils::Backends 'is_spvm';
 
@@ -100,7 +100,7 @@ sub verify_cryptsetup_luks {
 
 sub run {
     select_console 'root-console' unless is_spvm;
-    my $test_data = get_test_data();
+    my $test_data = get_test_suite_data();
     my $crypttab  = parse_crypttab();
     verify_crypttab(num_devices => $test_data->{crypttab}->{num_devices_encrypted},
         crypttab => $crypttab);

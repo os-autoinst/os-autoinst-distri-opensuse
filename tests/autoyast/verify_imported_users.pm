@@ -15,10 +15,10 @@ use strict;
 use warnings;
 use base 'consoletest';
 use testapi;
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data = get_test_data();
+    my $test_data = get_test_suite_data();
     my $errors;
     foreach my $path (@{$test_data->{paths}}) {
         if (!script_run("test -f $path")) {

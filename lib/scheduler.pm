@@ -27,9 +27,9 @@ use main_common 'loadtest';
 use YAML::Tiny;
 use Data::Dumper;
 
-our @EXPORT = qw(load_yaml_schedule get_test_data);
+our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
-my $test_data;
+my $test_suite_data;
 my $include_tag = "!include";
 
 sub parse_vars {
@@ -60,26 +60,26 @@ sub parse_schedule {
     return @scheduled;
 }
 
-=head2 get_test_data
+=head2 get_test_suite_data
 
 Returns test data parsed from the yaml file.
 
 =cut
 
-sub get_test_data {
-    return $test_data;
+sub get_test_suite_data {
+    return $test_suite_data;
 }
 
-=head2 parse_test_data
+=head2 parse_test_suite_data
 
 Parse test data from the yaml file which contains data used in the tests which could be located
 in the same file than the schedule or in a dedicated file only for data.
 
 =cut
 
-sub parse_test_data {
+sub parse_test_suite_data {
     my ($schedule) = shift;
-    $test_data = {};
+    $test_suite_data = {};
 
     # if test_data section is defined in schedule file
     if (exists $schedule->{test_data}) {
@@ -87,7 +87,7 @@ sub parse_test_data {
         _import_test_data_included($schedule->{test_data});
 
         # test_data from schedule file has priority over included data
-        $test_data = {%$test_data, %{$schedule->{test_data}}};
+        $test_suite_data = {%$test_suite_data, %{$schedule->{test_data}}};
     }
 
     # import test data directly from data file
@@ -95,7 +95,7 @@ sub parse_test_data {
         # test data from data file has priority over test_data from schedule
         _import_test_data_from_yaml(path => $yamlfile, allow_included => 1);
     }
-    diag(Dumper($test_data));
+    diag(Dumper($test_suite_data));
 }
 
 =head2 load_yaml_schedule
@@ -110,7 +110,7 @@ sub load_yaml_schedule {
         my %schedule_vars = parse_vars($schedule);
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
         my @schedule_modules = parse_schedule($schedule);
-        parse_test_data($schedule);
+        parse_test_suite_data($schedule);
         loadtest($_) for (@schedule_modules);
         return 1;
     }
@@ -152,7 +152,7 @@ sub _import_test_data_from_yaml {
     }
     _ensure_include_not_present($include_yaml);
     # latest included data has priority over previous included data
-    $test_data = {%$test_data, %{$include_yaml}};
+    $test_suite_data = {%$test_suite_data, %{$include_yaml}};
 }
 
 1;

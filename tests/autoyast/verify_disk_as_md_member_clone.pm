@@ -16,12 +16,12 @@ use warnings;
 use base 'basetest';
 use testapi;
 use xml_utils;
-use scheduler 'get_test_data';
+use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 use autoyast 'init_autoyast_profile';
 
 sub run {
-    my $test_data = get_test_data();                     # get test data from scheduling yaml file
+    my $test_data = get_test_suite_data();               # get test data from scheduling yaml file
     my $xpc       = get_xpc(init_autoyast_profile());    # get XPathContext
 
     record_info('RAID level', 'Verify that raid level in the generated autoyast profile corresponds to the expected one.');

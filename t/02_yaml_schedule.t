@@ -17,8 +17,8 @@ subtest 'parse_yaml_test_data_single_import' => sub {
     use scheduler;
     # compare versions if possible
     my $schedule = YAML::Tiny::LoadFile(dirname(__FILE__) . '/data/test_schedule_single_import.yaml');
-    scheduler::parse_test_data($schedule);
-    my $testdata = scheduler::get_test_data();
+    scheduler::parse_test_suite_data($schedule);
+    my $testdata = scheduler::get_test_suite_data();
     ok $testdata->{test_in_yaml_schedule} eq 'test_in_yaml_schedule_value', "Value from schedule file was overwritten by yaml import";
     ok $testdata->{test_in_yaml_import_1} eq 'test_in_yaml_import_value_1', "Value from single imported yaml were not parsed properly";
 
@@ -28,8 +28,8 @@ subtest 'parse_yaml_test_data_multiple_imports' => sub {
     use scheduler;
     # compare versions if possible
     my $schedule = YAML::Tiny::LoadFile(dirname(__FILE__) . '/data/test_schedule_multi_imports.yaml');
-    scheduler::parse_test_data($schedule);
-    my $testdata = scheduler::get_test_data();
+    scheduler::parse_test_suite_data($schedule);
+    my $testdata = scheduler::get_test_suite_data();
     ok $testdata->{test_in_yaml_schedule} eq 'test_in_yaml_schedule_value', "Value from schedule file was overwritten by yaml import";
     ok $testdata->{test_in_yaml_import_1} eq 'test_in_yaml_import_value_1', "Value from the first imported yaml were not parsed properly";
     ok $testdata->{test_in_yaml_import_2} eq 'test_in_yaml_import_value_2', "Value from the second imported yaml were not parsed properly";
@@ -38,7 +38,7 @@ subtest 'parse_yaml_test_data_multiple_imports' => sub {
 
 subtest 'do_not_allow_nested_imports' => sub {
     my $schedule = YAML::Tiny::LoadFile(dirname(__FILE__) . '/data/test_schedule_nested_import.yaml');
-    dies_ok { scheduler::parse_test_data($schedule) } "Error: test_data can only be defined in a dedicated file for data\n";
+    dies_ok { scheduler::parse_test_suite_data($schedule) } "Error: test_data can only be defined in a dedicated file for data\n";
 };
 
 subtest 'parse_yaml_test_data_using_yaml_data_setting' => sub {
@@ -48,8 +48,8 @@ subtest 'parse_yaml_test_data_using_yaml_data_setting' => sub {
     set_var('YAML_TEST_DATA', 't/data/test_data_yaml_data_setting.yaml');
     # compare versions if possible
     my $schedule = YAML::Tiny::LoadFile(dirname(__FILE__) . '/data/test_schedule_yaml_data_setting.yaml');
-    scheduler::parse_test_data($schedule);
-    my $testdata = scheduler::get_test_data();
+    scheduler::parse_test_suite_data($schedule);
+    my $testdata = scheduler::get_test_suite_data();
     ok $testdata->{test_in_yaml_data} eq 'test_in_yaml_data',               "Value from data file was overwritten by value from schedule or other imports";
     ok $testdata->{test_in_yaml_import_3} eq 'test_in_yaml_import_value_3', "Value in data file was overwritten by value in schedule file";
 };
