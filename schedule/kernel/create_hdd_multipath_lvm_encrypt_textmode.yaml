@@ -33,6 +33,7 @@ schedule:
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
     - installation/grub_test
+    - installation/boot_encrypt
     - installation/first_boot
     - console/sle15_workarounds
     - console/hostname
