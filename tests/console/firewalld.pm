@@ -116,20 +116,19 @@ sub test3 {
 # Test #4 - Test Rules using Masquerading
 sub test4 {
     record_info 'Test #4', 'Test Rules using Masquerading';
-    script_run("iptables -t mangle -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_mangle.txt");
-    script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat.txt");
-
+    script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
+    script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
 
     assert_script_run("firewall-cmd --zone=public --add-masquerade");
     assert_script_run("firewall-cmd --zone=public --add-forward-port=port=2222:proto=tcp:toport=22");
-    assert_script_run("iptables -t mangle -C PRE_public_allow -p tcp --dport 2222 -j MARK --set-mark `iptables -t mangle -L PRE_public_allow | grep -i MARK | sed 's/set /\$ /' | cut -f 2 -d \"\$\"`");
-    assert_script_run("iptables -t nat -C PRE_public_allow -p tcp -m mark --mark `iptables -t mangle -L PRE_public_allow | grep -i MARK | sed 's/set /\$ /' | cut -f 2 -d \"\$\"` -j DNAT --to :22");
+    assert_script_run("iptables -t nat -L PRE_public_allow | grep 'to::22'");
+    assert_script_run("iptables -t nat -L POST_public_allow | grep MASQUERADE");
 
     # Reload default configuration
     record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
-    assert_script_run("if [ `iptables -t mangle -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_mangle.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
-    assert_script_run("if [ `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
+    assert_script_run("if [ `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
+    assert_script_run("if [ `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
 }
 
 # Test #5 - Test ipv4 family addresses with rich rules
