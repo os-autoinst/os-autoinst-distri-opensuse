@@ -449,7 +449,6 @@ sub load_online_migration_tests {
     # switch VERSION to ensure migrate to expected target for online migration
     set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
     set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
-    loadtest "migration/version_switch_origin_system";
 
     loadtest "migration/sle12_online_migration/register_system";
     # do full/minimal update before migration
@@ -1107,6 +1106,7 @@ else {
         load_zdup_tests();
     }
     elsif (get_var("ONLINE_MIGRATION")) {
+        loadtest "migration/version_switch_origin_system";
         load_boot_tests();
         load_online_migration_tests();
     }
