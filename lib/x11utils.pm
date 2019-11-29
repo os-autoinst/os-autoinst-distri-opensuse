@@ -167,7 +167,6 @@ sub handle_login {
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
     send_key_until_needlematch('displaymanager', 'esc', 30, 3);
-    wait_still_screen;
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
             record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
@@ -194,7 +193,7 @@ sub handle_login {
         wait_screen_change { assert_and_click 'displaymanager-password-prompt' };
     }
     type_password;
-    send_key "ret";
+    send_key 'ret';
 }
 
 =head2 handle_logout

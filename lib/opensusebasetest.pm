@@ -699,25 +699,9 @@ sub handle_emergency_if_needed {
 
 sub handle_displaymanager_login {
     my ($self, %args) = @_;
-    diag("handle_displaymanager_login: \$ready_time: $args{ready_time}, \$nologin: $args{nologin}");
     assert_screen [qw(displaymanager emergency-shell emergency-mode)], $args{ready_time};
     handle_emergency_if_needed;
-    return if $args{nologin};
-    # SLE11 SP4 kde desktop do not need type username
-    if (get_var('DM_NEEDS_USERNAME')) {
-        type_string "$username\n";
-    }
-    # log in
-    elsif (check_var('DESKTOP', 'gnome')) {
-        # In GNOME/gdm, we do not have to enter a username, but we have to select it
-        unless (is_sle('<=15-sp1') || is_leap('<=15.1')) {
-            send_key 'tab';
-        }
-        send_key 'ret';
-    }
-
-    assert_screen 'displaymanager-password-prompt', no_wait => 1;
-    type_password $password. "\n";
+    handle_login unless $args{nologin};
 }
 
 sub handle_grub {
@@ -818,7 +802,6 @@ sub wait_boot_past_bootloader {
     my $ready_time   = $args{ready_time} // (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300;
     my $nologin      = $args{nologin};
     my $forcenologin = $args{forcenologin};
-    diag("wait_boot_past_bootloader: \$textmode: $textmode, \$ready_time: $ready_time, \$nologin: $nologin, \$forcenologin: $forcenologin");
 
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
