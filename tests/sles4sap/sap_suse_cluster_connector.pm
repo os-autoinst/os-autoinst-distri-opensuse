@@ -58,7 +58,8 @@ sub run {
     record_soft_failure('bsc#1156661 - Version number mismatch') unless ($output =~ /\($binary $package_version\)/);
 
     # Check HA config and list resources
-    exec_conn_cmd(binary => $binary, cmd => "$_ --sid $instance_sid --ino $instance_id", log_file => $log_file) foreach qw(hcc lsr);
+    my @commands = get_var('NW') ? qw(hcc lsr) : qw(hcc);
+    exec_conn_cmd(binary => $binary, cmd => "$_ --sid $instance_sid --ino $instance_id", log_file => $log_file) foreach (@commands);
 
     # Test Maintenance Mode
     foreach my $mod (1, 0) {
@@ -68,20 +69,21 @@ sub run {
     }
 
     # List nodes
-    foreach my $rsc_type ('ip', 'fs', 'sap') {
+    my @resources = get_var('NW') ? ('ip', 'fs', 'sap') : ('ip', 'SAPHanaTopology', 'SAPHana');
+    foreach my $rsc_type (@resources) {
         my $rsc = "rsc_${rsc_type}_${instance_sid}_${instance_type}${instance_id}";
         exec_conn_cmd(binary => $binary, cmd => "lsn --res $rsc", log_file => $log_file);
     }
 
     # Test Stop/Start of SAP resource
-    my $rsc = "rsc_sap_${instance_sid}_${instance_type}${instance_id}";
+    my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHana_${instance_sid}_${instance_type}${instance_id}";
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
     sleep 10;      # wait to let enough time for the HA stack to stop the resource
     save_state;    # do a check of the cluster with a screenshot
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act start", timeout => 120) foreach qw(fra cpa);
 
     # Wait for the resources to be restarted
-    wait_until_resources_started(timeout => 300);
+    wait_until_resources_started(timeout => 1200);
 
     # Check for the state of the whole cluster
     check_cluster_state;
