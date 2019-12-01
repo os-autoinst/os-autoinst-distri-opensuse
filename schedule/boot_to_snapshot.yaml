@@ -6,4 +6,3 @@ vars:
 schedule:
     - installation/grub_test
     - installation/boot_into_snapshot
-    - installation/first_boot
