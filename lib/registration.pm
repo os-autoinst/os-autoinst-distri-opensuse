@@ -547,6 +547,24 @@ sub process_scc_register {
     elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
         send_key $cmd{next};
     }
+
+    # Some licenses (like HA) can be shown on sle 15 after registration
+    if (check_screen('scc-downloading-license', timeout => 5) && is_sle('15+')) {
+        my @tags = qw(license-agreement yast_scc-automatic-changes yast_scc-installation-summary yast_scc-pkgtoinstall);
+        while (1) {
+            assert_screen(\@tags, timeout => 240);
+            send_key $cmd{ok}     if match_has_tag('yast_scc-automatic-changes');
+            send_key $cmd{accept} if match_has_tag('yast_scc-pkgtoinstall');
+            if (match_has_tag('yast_scc-installation-summary')) {
+                send_key $cmd{finish};
+                last;
+            }
+            if (match_has_tag('license-agreement')) {
+                y2_logs_helper::accept_license;
+                send_key $cmd{next};
+            }
+        }
+    }
 }
 
 sub show_development_versions {
