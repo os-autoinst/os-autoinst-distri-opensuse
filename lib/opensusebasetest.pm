@@ -8,7 +8,7 @@ use warnings;
 use utils;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos);
+use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
