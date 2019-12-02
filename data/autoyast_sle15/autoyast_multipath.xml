@@ -144,8 +144,7 @@ pre init scripts feature. See poo#20818.
       <hostname>vtest3</hostname>
       <domain>suse.de</domain>
       <nameservers config:type="list">
-        <nameserver>8.8.8.8</nameserver>
-        <nameserver></nameserver>
+        <nameserver>10.0.2.3</nameserver>
       </nameservers>
       <searchlist config:type="list">
       </searchlist>
