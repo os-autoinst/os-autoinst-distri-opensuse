@@ -276,6 +276,9 @@ sub power_action {
     }
     my $soft_fail_data;
     my $shutdown_timeout = 60;
+    if (is_sle('15-sp1+') && check_var('DESKTOP', 'textmode') && ($action eq 'poweroff')) {
+        $soft_fail_data = {bugref => 'bsc#1158145', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
+    }
     # Shutdown takes longer than 60 seconds on SLE12 SP4 and SLE 15
     if (is_sle('12+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         $soft_fail_data = {bugref => 'bsc#1055462', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
@@ -392,7 +395,7 @@ Example:
 =cut
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : 60;
+    $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
     $args->{soft_timeout} //= 0;
     $args->{bugref}       //= "No bugref specified";
     if ($args->{soft_timeout}) {
