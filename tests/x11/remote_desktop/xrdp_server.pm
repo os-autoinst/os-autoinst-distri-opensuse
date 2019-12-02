@@ -21,7 +21,7 @@ use mm_tests;
 use base 'opensusebasetest';
 use utils qw(systemctl zypper_call);
 use x11utils qw(handle_login turn_off_gnome_screensaver);
-use version_utils qw(is_sle is_sles4sap);
+use version_utils qw(is_sle is_sles4sap is_tumbleweed);
 
 sub run {
     my ($self) = @_;
@@ -33,7 +33,12 @@ sub run {
     become_root;
 
     # Setup static NETWORK
-    configure_static_network('10.0.2.17/24');
+    if (is_tumbleweed) {
+        $self->configure_static_ip_nm('10.0.2.17/24');
+    }
+    else {
+        configure_static_network('10.0.2.17/24');
+    }
 
     if (is_sles4sap) {
         # xrdp should already be installed in SLES4SAP
@@ -78,10 +83,12 @@ sub run {
     mouse_click if get_var('OFW');
     send_key_until_needlematch 'displaymanager', 'esc';
 
-    if (is_sles4sap) {
-        # We don't have to test the reconnection and reboot part in SLES4SAP
+    if (is_sles4sap || is_tumbleweed) {
+        # We don't have to test the reconnection and reboot part in SLES4SAP and TW
+        send_key "tab" if is_tumbleweed;
         handle_login;
     }
+
     else {
         send_key 'ret';
         assert_screen "displaymanager-password-prompt";
@@ -98,6 +105,7 @@ sub run {
         if (match_has_tag('other-users-logged-in-2users')) {
             record_soft_failure 'bsc#1116281 GDM didnt behave correctly when the error message Multiple logins are not supported. is triggered';
         }
+
         assert_and_click "force-restart";
         type_password;
         send_key "ret";
