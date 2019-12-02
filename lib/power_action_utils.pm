@@ -276,6 +276,9 @@ sub power_action {
     }
     my $soft_fail_data;
     my $shutdown_timeout = 60;
+    if (is_sle('15-sp1+') && check_var('DESKTOP', 'textmode') && ($action eq 'poweroff')) {
+        $soft_fail_data = {bugref => 'bsc#1158145', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
+    }
     # Shutdown takes longer than 60 seconds on SLE12 SP4 and SLE 15
     if (is_sle('12+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         $soft_fail_data = {bugref => 'bsc#1055462', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
