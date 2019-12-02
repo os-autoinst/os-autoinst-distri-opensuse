@@ -20,7 +20,7 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - autoyast/verify_disk_as_md_member
-  - autoyast/verify_disk_as_md_member_clone
+  - autoyast/verify_cloned_profile
 test_data:
   disk: '/dev/md0'
   partitions_count: 2
@@ -29,6 +29,10 @@ test_data:
   mount_point:
     root: '/'
     data: '/data'
-  xpath:
-    mount: '//ns:partitioning/ns:drive[ns:device="/dev/md/0"]/ns:partitions/ns:partition/ns:mount'
-    raid_type: '//ns:partitioning/ns:drive[ns:device="/dev/md/0"]/ns:raid_options/ns:raid_type'
+  cloned_profile:
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/md/0"]/ns:raid_options/ns:raid_type'
+      value: 'raid1'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/md/0"]/ns:partitions/ns:partition/ns:mount)'
+      search_by_value: true
+      value: '2'
+    

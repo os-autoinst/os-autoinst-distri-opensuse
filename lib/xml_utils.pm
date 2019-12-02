@@ -51,7 +51,9 @@ Verifies that node by given XPath is unique and has expected value. C<%args> is 
 
 =item * C<xpath> - XPath to the node which value we want to check
 
-=item * C<expected_val> - expected value for the node
+=item * C<expected_value> - expected value for the node`
+
+=item * C<search_by_value> - search is performed by value instead of by node, which is default`
 
 =back
 
@@ -59,18 +61,27 @@ Verifies that node by given XPath is unique and has expected value. C<%args> is 
 
 sub verify_option {
     my (%args) = @_;
-
-    my @nodes = find_nodes(%args);
-    ## Verify that there is node found by xpath and it's single one
-    if (scalar @nodes != 1) {
-        return "Generated autoinst.xml contains unexpected number of nodes for xpath: $args{xpath}. Found: " . scalar @nodes . ", expected: 1.";
+    if ($args{search_by_value}) {
+        my $value = $args{xpc}->findvalue($args{xpath});
+        diag $value;
+        if ($value ne $args{expected_value}) {
+            return "Unexpected value for xpath $args{xpath}. Expected: '$args{expected_value}', got: '$value'";
+        }
     }
-    if ($nodes[0]->to_literal ne $args{expected_val}) {
-        return "Unexpected value for xpath $args{xpath}. Expected: '$args{expected_val}', got: '$nodes[0]'";
+    else {
+        my @nodes = find_nodes(%args);
+        if (scalar @nodes == 0) {
+            return "Expected xpath $args{xpath} didn't return any node";
+        }
+        # Verify that there is node found by xpath and it's single one
+        if (scalar @nodes != 1) {
+            return "Generated autoinst.xml contains unexpected number of nodes for xpath: $args{xpath}. Found: " . scalar @nodes . ", expected: 1.";
+        }
+        if ($nodes[0]->to_literal ne $args{expected_value}) {
+            return "Unexpected value for xpath $args{xpath}. Expected: '$args{expected_value}', got: '$nodes[0]'";
+        }
     }
-
     return '';
-
 }
 
 =head2 find_nodes
@@ -87,7 +98,7 @@ sub find_nodes {
     my (%args) = @_;
     my $nodeset = $args{xpc}->findnodes($args{xpath});
     for my $node ($nodeset->get_nodelist) {
-        print $node->to_literal;
+        diag $node->to_literal;
     }
     return $nodeset->get_nodelist;
 }

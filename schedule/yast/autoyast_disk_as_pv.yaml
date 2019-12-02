@@ -1,0 +1,40 @@
+name:           autoyast_disk_as_pv
+description:    >
+  Installation using one disk for booting, second as / partition and third one as volume group. 
+  Partitioning is validated after installation is finished, 
+  then SUT is cloned and generated profile is validated.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_disk_as_pv.xml
+  AUTOYAST_CONFIRM: 1
+  AUTOYAST_PREPARE_PROFILE: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - autoyast/verify_disk_as_pv
+  - autoyast/verify_cloned_profile
+test_data:
+  cloned_profile:
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/sdb"]/ns:disklabel'
+      value: 'none'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/sdc"]/ns:disklabel'
+      value: 'none'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/sdc"]/ns:partitions/ns:partition/ns:lvm_group'
+      value: 'system'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/system"]/ns:partitions/ns:partition[ns:lv_name="swap"]/ns:mount'
+      value: 'swap'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/system"]/ns:partitions/ns:partition[ns:lv_name="home"]/ns:mount'
+      value: '/home'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/sdb"]/ns:partitions/ns:partition/ns:mount'
+      value: '/'

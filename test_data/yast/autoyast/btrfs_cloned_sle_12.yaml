@@ -1,0 +1,21 @@
+cloned_profile:
+  - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:enable_snapshots'
+    value: 'true'
+  - xpath: '//ns:btrfs_set_default_subvolume_name'
+    value: 'false'
+  - xpath: '//ns:partition[ns:mount="/"]/ns:fstopt'
+    value: 'rw,relatime,space_cache'
+  - xpath: '//ns:partition[ns:mount="/var/log"]/ns:fstopt'
+    value: 'rw,relatime,nobarrier,nodatacow'
+  - xpath: 'count(//ns:partition[ns:mount="/var/log"]/ns:subvolumes/ns:subvolume)'
+    search_by_value: true
+    value: '0'
+  - xpath: 'count(//ns:partition[ns:mount="/"]/ns:subvolumes/ns:listentry)'
+    search_by_value: true
+    value: '3'
+  - xpath: '//ns:partition[ns:mount="/"]/ns:subvolumes/ns:listentry[ns:path="opt"]/ns:copy_on_write'
+    value: 'true'
+  - xpath: '//ns:partition[ns:mount="/"]/ns:subvolumes/ns:listentry[ns:path="tmp"]/ns:copy_on_write'
+    value: 'false'
+  - xpath: 'count(//ns:partition[ns:mount="/"]/ns:subvolumes/ns:listentry[ns:path="usr/local"]/ns:copy_on_write)'
+    value: 'true'

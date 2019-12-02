@@ -10,8 +10,11 @@ schedule:
   - autoyast/installation
   - installation/boot_encrypt
   - installation/first_boot
+  - autoyast/console 
+  - autoyast/clone
   - console/validate_multi_btrfs_partitioning
   - console/validate_encrypt
+  - autoyast/verify_cloned_profile
 test_data:
   multi_devices:
     - mount_point: /
@@ -27,3 +30,72 @@ test_data:
   crypttab:
     num_devices_encrypted: 1
   !include: test_data/yast/encryption/default_enc.yaml
+  cloned_profile:
+    # number of drives
+    - xpath: 'count(//ns:partitioning/ns:drive)'
+      search_by_value: true
+      value: '6'
+    # /dev/vda
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:disklabel'
+      value: 'gpt'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:type'
+      value: 'CT_DISK'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:partitions/ns:partition/ns:btrfs_name)'
+      search_by_value: true
+      value: '1'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vda"]/ns:partitions/ns:partition[ns:filesystem="swap"]/ns:mount'
+      value: 'swap'
+    # /dev/vdb
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdb"]/ns:disklabel'
+      value: 'gpt'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdb"]/ns:type'
+      value: 'CT_DISK'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vdb"]/ns:partitions/ns:partition)'
+      search_by_value: true
+      value: '1'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vdb"]/ns:partitions/ns:partition/ns:btrfs_name)'
+      search_by_value: true
+      value: '1'
+    # /dev/vdc
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdc"]/ns:disklabel'
+      value: 'none'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdc"]/ns:type'
+      value: 'CT_DISK'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vdc"]/ns:partitions/ns:partition)'
+      search_by_value: true
+      value: '1'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vdc"]/ns:partitions/ns:partition/ns:btrfs_name)'
+      search_by_value: true
+      value: '1'
+    # /dev/vdd
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdd"]/ns:disklabel'
+      value: 'gpt'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdd"]/ns:type'
+      value: 'CT_DISK'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vdd"]/ns:partitions/ns:partition)'
+      search_by_value: true
+      value: '1'
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:device="/dev/vdd"]/ns:partitions/ns:partition/ns:btrfs_name)'
+      search_by_value: true
+      value: '1'
+    - xpath: '//ns:partitioning/ns:drive[ns:device="/dev/vdd"]/ns:partitions/ns:partition/ns:crypt_method'
+      value: 'luks1'
+    # num btrfs multidevice drives  
+    - xpath: 'count(//ns:partitioning/ns:drive[ns:type="CT_BTRFS"])'
+      search_by_value: true
+      value: '2'
+    # multidevice drive /
+    - xpath: '//ns:partitioning/ns:drive/ns:partitions/ns:partition[ns:mount="/"]/ns:label'
+      value: 'root_multi_btrfs'
+    - xpath: '//ns:partitioning/ns:drive/ns:partitions/ns:partition[ns:mount="/"]/ns:filesystem'
+      value: 'btrfs'
+    - xpath: 'count(//ns:partitioning/ns:drive/ns:partitions/ns:partition[ns:mount="/"]/ns:subvolumes/ns:subvolume)'
+      search_by_value: true
+      value: '7'
+    # multidevice drive /test
+    - xpath: '//ns:partitioning/ns:drive/ns:partitions/ns:partition[ns:mount="/test"]/ns:label'
+      value: 'test_multi_btrfs'
+    - xpath: '//ns:partitioning/ns:drive/ns:partitions/ns:partition[ns:mount="/test"]/ns:filesystem'
+      value: 'btrfs'
+    - xpath: '//ns:partitioning/ns:drive/ns:partitions/ns:partition[ns:mount="/test"]/ns:label'
+      value: 'test_multi_btrfs'
