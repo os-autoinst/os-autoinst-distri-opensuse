@@ -322,7 +322,8 @@ sub check_cluster_state {
     assert_script_run "$crm_mon_cmd";
     assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
-    assert_script_run q/crm_mon -s | grep "$(crm node list | grep -c ': member') nodes online"/;
+    assert_script_run q/crm_mon -s | grep "$(crm node list | grep -c ': member').*nodes online"/;
+    record_soft_failure 'bsc#1158180, regression in crm_mon -s output' if is_sle('>=15-sp2');
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
         script_run 'crm_verify -LV';
