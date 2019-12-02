@@ -64,7 +64,6 @@ sub run {
     assert_script_run 'qmake-qt5';
     assert_script_run 'make';
     assert_script_run './libqt5-qtbase';
-    wait_screen_change { send_key 'alt-f4' };
     type_string "exit\n";
 }
 
