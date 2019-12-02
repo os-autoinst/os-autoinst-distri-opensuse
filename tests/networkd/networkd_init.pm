@@ -36,7 +36,7 @@ sub run {
     $self->setup_nspawn_unit();
 
     my $pkg_repo            = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
-    my $release_pkg         = (is_leap '>=15.2') ? 'Leap-release' : 'openSUSE-release';
+    my $release_pkg         = 'openSUSE-release';
     my $systemd_network_pkg = (is_tumbleweed) ? 'systemd-network' : '';
     my $pkgs_to_install     = "systemd $systemd_network_pkg shadow zypper $release_pkg vim iproute2 iputils";
 
