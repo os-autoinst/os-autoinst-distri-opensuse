@@ -47,7 +47,7 @@
 #   - Type "writer", send <ENTER> and check
 #   - Click on writing area
 #   - Quit libreoffice
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use base "x11test";
 use strict;

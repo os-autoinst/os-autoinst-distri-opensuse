@@ -16,7 +16,7 @@
 # - On the map, select Shanghai timezone
 # - Select OK
 # - Close Evolution
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use strict;
 use warnings;

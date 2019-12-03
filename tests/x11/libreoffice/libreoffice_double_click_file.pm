@@ -13,7 +13,7 @@
 # - Open each file from the following formats: doc docx fodg fodp fods fodt odf
 #   odg odp ods odt pptx xlsx and check
 # - Quit libreoffice
-# Maintainer: dehai <dhkong@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use base "x11test";
 use strict;

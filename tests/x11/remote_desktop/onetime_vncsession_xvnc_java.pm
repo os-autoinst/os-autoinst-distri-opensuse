@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Remote Login: One-time VNC Session with Jave applet and xvnc
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586207
 
 use strict;

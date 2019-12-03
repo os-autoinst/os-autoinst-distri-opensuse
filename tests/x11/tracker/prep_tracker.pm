@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: First commit for tracker cases. Still need to modify main.pm to make it work.
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
 use strict;

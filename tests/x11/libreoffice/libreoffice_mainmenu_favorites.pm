@@ -12,7 +12,7 @@
 # - Open favorite documents list
 # - Click libreoffice
 # - Quit libreoffice
-# Maintainer: dehai <dhkong@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 # Tags: tc#1503906
 
 use base "x11test";

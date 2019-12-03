@@ -14,7 +14,7 @@
 # - Check for test email and check result
 # - Save a screenshot
 # - Exit evolution
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use strict;
 use warnings;

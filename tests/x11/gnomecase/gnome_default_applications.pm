@@ -9,7 +9,7 @@
 
 # Summary: Case 1503753: Gnome - Some types of files should
 #  be opened by corresponding applications
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
 use strict;

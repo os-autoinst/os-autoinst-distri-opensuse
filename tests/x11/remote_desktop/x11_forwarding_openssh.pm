@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Remote Login: X11 forwarding over OpenSSH
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586202
 
 use strict;

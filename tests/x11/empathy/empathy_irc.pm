@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Empathy irc regression test
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 # Tags: tc#1478813
 
 use base "x11test";
