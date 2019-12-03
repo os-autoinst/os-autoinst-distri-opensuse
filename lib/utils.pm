@@ -740,13 +740,13 @@ sub set_hostname {
     my ($hostname) = @_;
     assert_script_run "hostnamectl set-hostname $hostname";
     assert_script_run "hostnamectl status|grep $hostname";
-    assert_script_run "hostname|grep $hostname";
+    assert_script_run "uname -n|grep $hostname";
     systemctl 'status network.service';
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
 
     # Workaround for HA MM test (hostname bug? in 15SP1/SP2)
-    if (script_run "hostname | grep $hostname") {
+    if (script_run "uname -n | grep $hostname") {
         record_soft_failure('bsc#1153402 hostname not properly configured');
         assert_script_run "hostnamectl set-hostname $hostname";
     }
