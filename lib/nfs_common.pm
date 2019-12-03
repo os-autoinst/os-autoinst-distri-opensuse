@@ -3,7 +3,7 @@ use mmapi;
 use testapi;
 use strict;
 use warnings;
-use utils qw(systemctl file_content_replace clear_console zypper_call);
+use utils qw(systemctl file_content_replace clear_console zypper_call clear_console);
 use Utils::Systemd 'disable_and_stop_service';
 use mm_network;
 use version_utils;
@@ -11,18 +11,16 @@ use version_utils;
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(server_configure_network try_nfsv2 prepare_exports yast_handle_firewall add_shares
-  mount_export client_common_tests check_nfs_ready yast2_server_initial check_y2_nfs_func install_service config_service start_service check_service $rw $ro);
+  mount_export client_common_tests check_nfs_ready yast2_server_initial yast2_client_exit check_y2_nfs_func install_service config_service start_service check_service $rw $ro);
 
 our $rw = '/srv/nfs';
 our $ro = '/srv/ro';
 
 sub server_configure_network {
-    # Configure static IP for client/server test
-    configure_default_gateway;
-    configure_static_ip('10.0.2.101/24');
-    configure_static_dns(get_host_resolv_conf());
 
-    if (is_sle('15+')) {
+    setup_static_mm_network('10.0.2.101/24');
+
+    if (is_sle('15+') || is_opensuse) {
         record_soft_failure 'boo#1130093 No firewalld service for nfs-kernel-server';
         disable_and_stop_service('firewalld');
     }
@@ -186,6 +184,17 @@ sub yast2_server_initial {
             send_key 'alt-i';
         }
     } while (not match_has_tag('nfs-config'));
+}
+
+sub yast2_client_exit {
+    my $module_name = shift;
+    wait_screen_change { send_key 'alt-o' };
+    if (check_screen("cannot-mount-nfs-from-fstab", 10)) {
+        send_key 'alt-o';
+        record_soft_failure 'bsc#1157892';
+    }
+    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
+    clear_console;
 }
 
 sub install_service {
