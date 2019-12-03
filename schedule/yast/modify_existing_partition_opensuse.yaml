@@ -27,6 +27,7 @@ schedule:
   - console/validate_modify_existing_partition
 
 test_data:
+  root:
     disk: 'vda'
     existing_partition: 'vda2'
     mount_point: '/'
@@ -36,3 +37,4 @@ test_data:
     # part_size is the size we input in partitioner, lsblk_expected_size_output is what we'll use for validation.
     part_size: '10GiB'
     lsblk_expected_size_output: '10G'
+
