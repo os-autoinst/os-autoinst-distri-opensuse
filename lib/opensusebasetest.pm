@@ -818,7 +818,7 @@ sub wait_boot_past_bootloader {
     # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
     # Administrator user listed but do not attempt to login
     if (get_var('HDDVERSION') and is_desktop_installed() and is_upgrade() and is_sles4sap()) {
-        assert_screen 'displaymanager-sapadm', $$ready_time;
+        assert_screen 'displaymanager-sapadm', $ready_time;
         return;
     }
 
