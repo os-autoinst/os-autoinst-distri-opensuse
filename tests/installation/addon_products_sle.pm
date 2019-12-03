@@ -83,6 +83,7 @@ sub handle_all_packages_medium {
     "Basesystem Module" is selected for the first time');
     send_key 'down';
     send_key 'end';
+    send_key 'tab' if (check_var('VIDEOMODE', 'text'));
     for my $i (@addons) {
         next if (skip_package_hub_if_necessary($i));
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
@@ -117,6 +118,7 @@ sub handle_all_packages_medium {
       if @addons_license_tags && ($addon_license_num != scalar @addons_license_tags);
     assert_screen "addon-products-nonempty";
     # Confirm all required addons are properly added
+    send_key 'tab' if (check_var('VIDEOMODE', 'text'));
     foreach (@addons) {
         next if (skip_package_hub_if_necessary($_));
         send_key 'home';
