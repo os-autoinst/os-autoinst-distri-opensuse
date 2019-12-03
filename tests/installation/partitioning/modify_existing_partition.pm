@@ -12,7 +12,7 @@
 
 use strict;
 use warnings;
-use parent 'installbasetest';
+use parent 'y2_installbase';
 use testapi;
 use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';
@@ -21,8 +21,11 @@ sub run {
     my $test_data   = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
-    $partitioner->resize_partition_on_gpt_disk($test_data);
-    $partitioner->edit_partition_on_gpt_disk($test_data);
+    $partitioner->resize_partition_on_gpt_disk($test_data->{root});
+    for my $part (keys %$test_data) {
+        record_info("modify $part", "$$test_data{$part}->{existing_partition}");
+        $partitioner->edit_partition_on_gpt_disk($$test_data{$part});
+    }
     $partitioner->accept_changes();
 }
 

@@ -22,13 +22,15 @@ sub run {
 
     select_console "root-console";
 
-    record_info("Check $test_data->{fs_type}", "Verify that the partition filesystem is $test_data->{fs_type}");
-    my $fstype = script_output("df -PT $test_data->{mount_point} | grep -v \"Filesystem\" | awk '{print \$2}'");
-    assert_equals($test_data->{fs_type}, $fstype);
+    foreach my $part (keys %$test_data) {
+        record_info("Check $test_data->{fs_type}", "Verify that the partition filesystem is $test_data->{$part}->{fs_type}");
+        my $fstype = script_output("df -PT $test_data->{$part}->{mount_point} | grep -v \"Filesystem\" | awk '{print \$2}'");
+        assert_matches(qr/$test_data->{$part}->{fs_type}/, $fstype, "$test_data->{$part}->{fs_type} does not match with $fstype");
 
-    record_info("Check size", "Verify that the partition size is $test_data->{part_size}");
-    my $partsize = script_output("lsblk | grep $test_data->{existing_partition} | awk '{print \$4}'");
-    assert_equals($test_data->{lsblk_expected_size_output}, $partsize);
+        record_info("Check size", "Verify that the partition size is $test_data->{$part}->{part_size}");
+        my $partsize = script_output("lsblk | grep $test_data->{$part}->{existing_partition} | awk '{print \$4}'");
+        assert_equals($test_data->{$part}->{lsblk_expected_size_output}, $partsize);
+    }
 }
 
 1;

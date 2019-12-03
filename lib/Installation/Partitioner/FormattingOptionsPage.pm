@@ -48,7 +48,8 @@ sub select_do_not_format_device_radiobutton {
 }
 
 sub select_format_device_radiobutton {
-    my ($self) = @_;
+    my ($self, $skip) = @_;
+    return if $skip;
     assert_screen(FORMATTING_OPTIONS_PAGE);
     send_key($self->{format_shortcut});
 }
@@ -82,10 +83,13 @@ sub select_partition_id {
 }
 
 sub select_filesystem {
-    my ($self, $filesystem) = @_;
+    my ($self, $filesystem, $skip) = @_;
+    return if $skip;
     assert_screen(FORMATTING_OPTIONS_PAGE);
     send_key($self->{filesystem_shortcut});
-    send_key 'end';
+    wait_screen_change(sub {
+            send_key 'end';
+    }, 20);
     if ($filesystem eq 'swap') {
         send_key_until_needlematch(FILESYSTEM_SWAP, 'up');
     }

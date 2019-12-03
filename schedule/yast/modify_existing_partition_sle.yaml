@@ -28,6 +28,7 @@ schedule:
   - console/validate_modify_existing_partition
 
 test_data:
+  root:
     disk: 'vda'
     existing_partition: 'vda2'
     mount_point: '/'
@@ -37,7 +38,14 @@ test_data:
     # part_size is the size we input in partitioner, lsblk_expected_size_output is what we'll use for validation.
     part_size: '11GiB'
     lsblk_expected_size_output: '11G'
-
+  boot-uefi:
+    disk: 'vda'
+    existing_partition: 'vda1'
+    mount_point: '/boot/efi'
+    fs_type: 'fat'
+    skip: 1
+    part_size: '256MiB'
+    lsblk_expected_size_output: '256M'
 conditional_schedule:
   reconnect_mgmt_console:
     ARCH:
