@@ -170,7 +170,7 @@ sub run {
     send_key 'alt-s' if check_screen('license-insert-disc-issue', 30);
     # Full_installer jumps to the Select extension and modules dialog and this
     # makes the tests fail as it doesnt find anything to match
-    unless (check_var('FLAVOR', 'Full')) {
+    unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
@@ -187,7 +187,7 @@ sub run {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             # in full_installer the dialog to choose the installation media
             # doesnt appear, thus we have to skip it
-            unless (check_var('FLAVOR', 'Full')) {
+            unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
                 assert_screen 'addon-menu-active';
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};
