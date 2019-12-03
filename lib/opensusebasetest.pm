@@ -6,6 +6,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use Utils::Backends 'has_serial_over_ssh';
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
@@ -1014,11 +1015,13 @@ sub select_serial_terminal {
         } else {
             $console = $root ? 'root-sut-serial' : 'sut-serial';
         }
-    } elsif ($backend =~ /^(ikvm|ipmi|spvm)$/) {
+    } elsif (has_serial_over_ssh) {
         $console = 'root-ssh';
+    } elsif ($backend eq 'generalhw' && !has_serial_over_ssh) {
+        $console = $root ? 'root-console' : 'user-console';
     }
 
-    die "No support for backend '$backend', add it" if ($console eq '');
+    die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
     select_console($console);
 }
 
