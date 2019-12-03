@@ -134,7 +134,6 @@
         <bootproto>dhcp</bootproto>
         <device>eth0</device>
         <dhclient_set_default_route>yes</dhclient_set_default_route>
-        <name>Ethernet Card 0</name>
         <startmode>auto</startmode>
       </interface>
       <interface>
