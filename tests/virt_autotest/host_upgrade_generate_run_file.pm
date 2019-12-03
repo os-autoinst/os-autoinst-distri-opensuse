@@ -29,7 +29,9 @@ sub get_script_run {
     my $base         = get_var("BASE_PRODUCT",    "");    #EXAMPLE, sles-11-sp3
     my $upgrade      = get_var("UPGRADE_PRODUCT", "");    #EXAMPLE, sles-12-sp2
     my $upgrade_repo = get_var("UPGRADE_REPO",    "");
-    my $guest_list   = get_var("GUEST_LIST",      "");
+    #Prefer to use offline media for upgrade to avoid registration via autoyast
+    $upgrade_repo =~ s/-Online-/-Full-/ if ($upgrade_repo =~ /15-sp[2-9]/i);
+    my $guest_list = get_var("GUEST_LIST", "");
 
     $pre_test_cmd = "/usr/share/qa/tools/_generate_vh-update_tests.sh";
     $pre_test_cmd .= " -m $mode";

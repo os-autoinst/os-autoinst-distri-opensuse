@@ -23,8 +23,10 @@ use Utils::Architectures;
 sub get_script_run {
     my $pre_test_cmd         = "/usr/share/qa/tools/test_virtualization-guest-upgrade-run";
     my $product_upgrade_repo = get_var("PRODUCT_UPGRADE_REPO", "");
-    my $max_test_time        = get_var("MAX_TEST_TIME", "36000");
-    my $vm_xml_dir           = "/tmp/download_vm_xml";
+    #Prefer to use offline media for upgrade to avoid guest registration
+    $product_upgrade_repo =~ s/-Online-/-Full-/ if ($product_upgrade_repo =~ /15-sp[2-9]/i);
+    my $max_test_time = get_var("MAX_TEST_TIME", "36000");
+    my $vm_xml_dir    = "/tmp/download_vm_xml";
 
     handle_sp_in_settings_with_sp0("PRODUCT_UPGRADE");
     my $product_upgrade = get_required_var("PRODUCT_UPGRADE");
