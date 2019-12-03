@@ -26,7 +26,10 @@ sub run {
     my $package_patch1 = data_url('toolchain/adapt-FM406-to-fortran-95.patch');
     my $package_patch2 = data_url('toolchain/FM509-remove-TEST-016.patch');
 
-    assert_script_run "wget $package_main $package_fix $package_patch1 $package_patch2";
+    foreach my $pkg ($package_main, $package_fix, $package_patch1, $package_patch2) {
+        my $file_name = (split(/\//, $pkg))[-1];
+        assert_script_run "curl $pkg --output $file_name";
+    }
 
     assert_script_run 'tar jxf fcvs21_f95.tar.bz2';
     assert_script_run 'cp FM923.DAT fcvs21_f95/';
