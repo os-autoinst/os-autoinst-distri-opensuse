@@ -66,6 +66,7 @@ sub run {
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
     power_action('reboot', keepconsole => 1, textmode => 1);
+    record_info 'Snapshot created, booting the system into said snapshot';
     $self->wait_grub(bootloader_time => 250);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
@@ -76,10 +77,12 @@ sub run {
     send_key_until_needlematch("snap-bootloader-comment", 'down', 10, 5);
     save_screenshot;
     wait_screen_change { send_key 'ret' };
+    record_info 'Snapshot found, waiting to boot the system';
     # boot into the snapshot
     # do not try to search for the grub menu again as we are already here
     $self->wait_boot(textmode => 1, in_grub => 1);
     # request reboot again to ensure we will end up in the original system
+    record_info 'Desktop reached, now return system to original state with a reboot';
     send_key 'ctrl-alt-delete';
     power_action('reboot', keepconsole => 1, textmode => 1, observe => 1);
     $self->wait_boot(bootloader_time => 250);
