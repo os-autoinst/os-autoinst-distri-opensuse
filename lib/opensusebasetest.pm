@@ -312,6 +312,15 @@ sub investigate_yast2_failure {
         "<5>.*Path.*on medium"                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<5>.*Aborting requested by user"       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<5>.*Exception.cc"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        # (build97.1) regressions
+        # found https://openqa.suse.de/tests/3646274#step/logs_from_installation_system/412
+        "<3>.*SCR::Dir() failed"                  => 'bsc#1158186',
+        "<3>.*Unknown desktop file: installation" => 'bsc#1158186',
+        "<3>.*Bad options for module: virtio_net" => 'bsc#1158186',
+        "<3>.*Wrong value for path ."             => 'bsc#1158186',
+        "<3>.*setOptions:Empty map"               => 'bsc#1158186',
+        "<3>.*Unmounting media failed"            => 'bsc#1158186',
+        "<3>.*No base product has been found"     => 'bsc#1158186'
     );
 
     my $delimiter = '=========================================';
