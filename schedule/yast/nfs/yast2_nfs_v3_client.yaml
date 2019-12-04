@@ -6,3 +6,11 @@ schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
   - console/yast2_nfs_client
+<<<<<<< HEAD
+conditional_schedule:
+  bootloader_start:
+    ARCH:
+      s390x:
+        - installation/bootloader_start
+=======
+>>>>>>> parent of fc9689342... Disable bootloader_start for aarch64
