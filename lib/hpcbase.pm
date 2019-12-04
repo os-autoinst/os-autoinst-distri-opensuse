@@ -85,7 +85,7 @@ sub distribute_munge_key {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
-        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$_:/etc/munge/munge.key");
+        script_run("scp -o StrictHostKeyChecking=no /etc/munge/munge.key root\@$_:/etc/munge/munge.key");
     }
 }
 
@@ -93,7 +93,7 @@ sub distribute_slurm_conf {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
     foreach (@cluster_nodes) {
-        exec_and_insert_password("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$_:/etc/slurm/slurm.conf");
+        script_run("scp -o StrictHostKeyChecking=no /etc/slurm/slurm.conf root\@$_:/etc/slurm/slurm.conf");
     }
 }
 
