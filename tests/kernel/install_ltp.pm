@@ -22,6 +22,7 @@ use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_common 'get_ltp_tag';
 use main_ltp 'loadtest_from_runtest_file';
+use network_utils 'fix_missing_nic_config';
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
@@ -313,6 +314,7 @@ sub run {
     }
 
     $self->select_serial_terminal;
+    fix_missing_nic_config;
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');

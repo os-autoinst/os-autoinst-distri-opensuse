@@ -24,7 +24,7 @@ use warnings;
 use testapi;
 use mm_network;
 
-our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up);
+our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up fix_missing_nic_config);
 
 =head2 setup_static_network
 
@@ -79,8 +79,8 @@ sub can_upload_logs {
 
  recover_network([ip => $ip] [, gw => $gw]);
 
-Recover network with static config if is feasible, returns if can ping GW. 
-Main use case is post_fail_hook, to be able to upload logs. 
+Recover network with static config if is feasible, returns if can ping GW.
+Main use case is post_fail_hook, to be able to upload logs.
 
 Accepts following parameters :
 
@@ -133,6 +133,36 @@ Return only if network status is UP.
 sub ifc_is_up {
     my ($ifc) = @_;
     return !script_run("ip link show dev $ifc | grep 'state UP'");
+}
+
+sub fix_missing_nic_config {
+    # poo#60245, bsc#1157896 (originally poo#18762): workaround for missing NIC configuration.
+    my $conf_nic_script = << 'EOF';
+dir=/sys/class/net
+ifaces="`basename -a $dir/* | grep -v -e ^lo -e ^tun -e ^virbr -e ^vnet`"
+CREATED_NIC=
+ip link; ip addr
+for iface in $ifaces; do
+    config=/etc/sysconfig/network/ifcfg-$iface
+    if [ "`cat $dir/$iface/operstate`" = "down" ] && [ ! -e $config ]; then
+        echo "WARNING: create config '$config'" >&2
+        printf "BOOTPROTO='dhcp'\nSTARTMODE='auto'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'\n" > $config
+        CREATED_NIC="$CREATED_NIC $iface"
+        systemctl restart network
+        sleep 1
+    fi
+done
+export CREATED_NIC
+echo "created NIC: '$CREATED_NIC'"
+ip link; ip addr
+EOF
+    script_output($conf_nic_script, proceed_on_failure => 1);
+
+    my $created_nic = script_output('echo $CREATED_NIC');
+    bmwqemu::fctinfo("created NIC: '$created_nic'");
+    if ($created_nic) {
+        record_soft_failure("bsc#1157896, poo#60245: Added missing config for NIC: '$created_nic', restarted network");
+    }
 }
 
 1;
