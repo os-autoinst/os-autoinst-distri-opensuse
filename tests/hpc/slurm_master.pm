@@ -219,6 +219,7 @@ sub run {
     my $nodes      = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     $self->prepare_user_and_group();
+    $self->generate_and_distribute_ssh();
 
     # provision HPC cluster, so the proper rpms are installed,
     # munge key is distributed to all nodes, so is slurm.conf
