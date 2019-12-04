@@ -37,7 +37,6 @@ sub ipmitool {
 }
 
 sub poweroff_host {
-    ipmitool("chassis power off");
     while (1) {
         sleep(3);
         my $stdout = ipmitool('chassis power status');
@@ -47,7 +46,6 @@ sub poweroff_host {
 }
 
 sub poweron_host {
-    ipmitool("chassis power on");
     while (1) {
         sleep(3);
         my $stdout = ipmitool('chassis power status');
