@@ -68,7 +68,7 @@ sub run {
     # Special tasks to do in upgrades
     if (get_var('HDDVERSION', '')) {
         # Ensure cluster is not running
-        systemctl 'stop pacemaker';
+        systemctl 'stop pacemaker corosync';
 
         # Get IP adresses configured in /etc/corosync.conf
         my %addr_changes = ();
@@ -83,7 +83,7 @@ sub run {
 
         # Finish early if no ring0 addresses were found in corosync.conf.
         if ($count == 0) {
-            systemctl 'start pacemaker';
+            systemctl 'start corosync pacemaker';
             return;
         }
 
@@ -108,7 +108,7 @@ sub run {
 
         # Restart cluster
         barrier_wait("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name");
-        systemctl 'start pacemaker';
+        systemctl 'start corosync pacemaker';
         return;    # Skip LUN setup in upgrades
     }
 
