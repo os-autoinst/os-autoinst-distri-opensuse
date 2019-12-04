@@ -26,6 +26,7 @@ sub prepare_slurm_conf {
 sed -i "/^ControlMachine.*/c\\ControlMachine=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
 sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
+sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
     } elsif ($slurm_conf eq "accounting") {
@@ -38,6 +39,7 @@ sed -i "/^#JobAcctGatherFrequency.*/c\\JobAcctGatherFrequency=12" /etc/slurm/slu
 sed -i "/^#AccountingStorageType.*/c\\AccountingStorageType=accounting_storage/slurmdbd" /etc/slurm/slurm.conf
 sed -i "/^#AccountingStorageHost.*/c\\AccountingStorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurm.conf
 sed -i "/^#AccountingStorageUser.*/c\\AccountingStoragePort=20088" /etc/slurm/slurm.conf
+sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
     } elsif ($slurm_conf eq "ha") {
@@ -49,6 +51,7 @@ sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Socke
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
 sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
 sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
+sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
     } elsif ($slurm_conf eq "nfs_db") {
@@ -65,6 +68,7 @@ sed -i "/^#JobAcctGatherFrequency.*/c\\JobAcctGatherFrequency=12" /etc/slurm/slu
 sed -i "/^#AccountingStorageType.*/c\\AccountingStorageType=accounting_storage/slurmdbd" /etc/slurm/slurm.conf
 sed -i "/^#AccountingStorageHost.*/c\\AccountingStorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurm.conf
 sed -i "/^#AccountingStorageUser.*/c\\AccountingStoragePort=20088" /etc/slurm/slurm.conf
+sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
     } else {
