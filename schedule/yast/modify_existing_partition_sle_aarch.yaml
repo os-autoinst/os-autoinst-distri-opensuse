@@ -1,9 +1,9 @@
 ---
-name:           modify_existing_partition
+name:           modify_existing_partition@aarch64
 description:    >
   Installation where we modify some pre-existing partitions. Must depend on some create_hdd test suite.
 test_data:
-  !include: yast/modify_existing_partition_sle.yaml
+  !include: test_data/yast/modify_existing_partition_sle_aarch.yaml
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -24,18 +24,8 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - {{reconnect_mgmt_console}}
-  - {{grub_test}}
+  - installation/grub_test
   - installation/first_boot
   - console/validate_modify_existing_partition
 
-conditional_schedule:
-  reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
-
+        
