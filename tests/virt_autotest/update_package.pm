@@ -19,6 +19,7 @@ use virt_utils;
 use ipmi_backend_utils;
 use Utils::Backends 'is_remote_backend';
 use Utils::Architectures;
+use version_utils 'is_sle';
 
 sub update_package {
     my $self           = shift;
@@ -50,7 +51,7 @@ sub update_package {
 
 sub run {
     my $self = shift;
-    $self->update_package();
+    $self->update_package() unless (is_sle('=15-SP2') && (check_var("HOST_HYPERVISOR", "xen") || check_var("SYSTEM_ROLE", "xen")));
     if (!check_var('ARCH', 's390x')) {
         set_serial_console_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
         set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm"));
