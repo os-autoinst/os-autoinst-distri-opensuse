@@ -356,7 +356,7 @@ sub is_staging {
 Returns true if storage_ng is used
 =cut
 sub is_storage_ng {
-    return get_var('STORAGE_NG');
+    return get_var('STORAGE_NG') || is_sle('15+');
 }
 
 =head2 is_upgrade
