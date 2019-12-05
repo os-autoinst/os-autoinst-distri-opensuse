@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Case 1503978 - LibreOffice: pyuno bridge
-# Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use base "x11test";
 use strict;

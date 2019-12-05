@@ -12,7 +12,7 @@
 # - Launch gnote and check
 # - Select all notes
 # - Send CTRL-F, type "here", check and close gnote
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 # Tags: tc#1503894
 
 use base "x11test";

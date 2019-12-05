@@ -13,7 +13,7 @@
 # - Launch totem and minimize
 # - Switch windows using ALT-TAB and check
 # - Switch windows using ALT-TAB and close applications using ALT-F4
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
 use strict;

@@ -13,7 +13,7 @@
 # - Open test files of different formats and check
 # - Quit libreoffice
 # - Cleanup
-# Maintainer: dehai <dhkong@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use base "x11test";
 use strict;

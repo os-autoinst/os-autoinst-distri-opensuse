@@ -16,7 +16,7 @@
 # Summary: Remote Login: vino server for VNC connections
 #          server: vino_server.pm
 #          client: vino_client.pm
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586210
 
 use strict;

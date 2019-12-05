@@ -15,7 +15,7 @@
 # - Open help and then go to about
 # - Send esc to close help
 # - Exit evolution
-# Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use strict;
 use warnings;

@@ -17,7 +17,7 @@
 # - Setup an imap account with credentials from internal_account_B
 # - Check for email with invitation and check results
 # - Exit evolution
-# Maintainer: Jiawei Sun <JiaWei.Sun@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 
 use base "x11test";
 use strict;

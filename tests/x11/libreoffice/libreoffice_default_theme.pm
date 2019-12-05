@@ -17,7 +17,7 @@
 # - Open options menu and check
 # - Quit ooffice
 # - Launch xterm, unset OOO_FORCE_DESKTOP and close xterm
-# Maintainer: Chingkai <qkzhu@suse.com>
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
 # Tags: tc#1503789
 
 use base "x11test";
