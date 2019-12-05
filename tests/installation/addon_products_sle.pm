@@ -172,7 +172,15 @@ sub run {
     send_key 'alt-s' if check_screen('license-insert-disc-issue', 30);
     # Full_installer jumps to the Select extension and modules dialog and this
     # makes the tests fail as it doesnt find anything to match
+    #lemon
+    my $media_up = get_var('MEDIA_UPGRADE');
+    diag "media_up=$media_up";
+    my $sle = is_sle('15-SP2+');
+    diag "sle=$sle";
+    my $condition = ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE'))));
+    diag "condition=$condition";
     unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
+        diag 'enter unless';
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
@@ -181,6 +189,7 @@ sub run {
                 bugref       => 'bsc#1123963');
         }
     }
+    diag 'after unless';
     if (get_var("ADDONS")) {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
         # the ISO_X variables must match the ADDONS list
