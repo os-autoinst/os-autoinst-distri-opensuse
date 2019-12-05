@@ -113,12 +113,21 @@ sub install_lock_kernel {
             '4.4.126-94.22.1'  => '4.4.126-94.22.2',
             '4.4.178-94.91.2'  => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
+        },
+        'kernel-devel' => {
+            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
+            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
+            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
+            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.12.14-150.14.2' => '4.12.14-150.14.1',
         }};
 
     # remove all kernel related packages from system
     my @packages = remove_kernel_packages();
 
     my @lpackages = @packages;
+
+    push @packages, "kernel-devel";
 
     # extend list of packages with $version + workaround exceptions
     foreach my $package (@packages) {
@@ -135,8 +144,6 @@ sub install_lock_kernel {
     if ($wk_ker == 1) {
         @packages = grep { $_ ne 'kernel-source-4.12.14-25.13.1' } @packages;
     }
-
-    push @packages, "kernel-devel=$version";
 
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
