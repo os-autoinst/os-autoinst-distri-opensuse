@@ -605,7 +605,7 @@ sub wait_grub {
     elsif (match_has_tag('encrypted-disk-password-prompt')) {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
-        assert_screen "grub2", 15;
+        assert_screen "grub2", 90;
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }

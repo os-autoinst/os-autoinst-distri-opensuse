@@ -27,8 +27,10 @@ sub run {
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
     my $timeout = get_var('UEFI') ? 140 : 80;
     # Add additional 60 seconds if the test suite is migration as reboot from
-    # pre-migration system may take an additional time.
+    # pre-migration system may take an additional time. Booting of encrypted disk
+    # needs additional time too.
     $timeout += 60 if get_var('PATCH') || get_var('ONLINE_MIGRATION');
+    $timeout += 60 if get_var('ENCRYPT');
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test
     # with other than the SAP Administrator
