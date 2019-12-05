@@ -2613,6 +2613,13 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
     }
 
+    if (check_var('VIRT_PART', 'storage')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+
+        loadtest 'virtualization/xen/storage';                        # Storage pool / volume test
+    }
+
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
         loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
