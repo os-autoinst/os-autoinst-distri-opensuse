@@ -16,8 +16,6 @@ use utils;
 use testapi;
 
 use constant STATUS_LOG => '/opt/status.log';
-use constant INST_DIR   => '/opt/btrfs-progs-tests';
-use constant GIT_URL    => get_var('BTRFS_PROGS_GIT_URL', 'https://github.com/kdave/btrfs-progs.git');
 
 # Create log file used to generate junit xml report
 sub log_create {
@@ -45,11 +43,25 @@ sub run {
     $self->select_serial_terminal;
 
     # Install btrfs-progs
-    install_dependencies;
-    assert_script_run 'wget ' . autoinst_url('/data/btrfs-progs/install.sh');
-    assert_script_run 'chmod a+x install.sh';
-    assert_script_run './install.sh ' . GIT_URL . " " . INST_DIR, timeout => 1200;
-    assert_script_run 'cd ' . INST_DIR;
+    if (get_var('BTRFS_PROGS_REPO')) {
+        # Add filesystems repository and install btrfs-progs package
+        zypper_call 'rm btrfsprogs';
+        zypper_call '--no-gpg-check ar -f ' . get_var('BTRFS_PROGS_REPO') . ' filesystems';
+        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call 'in -r filesystems btrfs-progs';
+        zypper_call 'rr filesystems';
+        assert_script_run 'cd /opt/btrfs-progs-tests';
+    }
+    else {
+        # Build test suite of btrfs-progs from git
+        use constant INST_DIR => '/opt/btrfs-progs-tests';
+        use constant GIT_URL  => get_var('BTRFS_PROGS_GIT_URL', 'https://github.com/kdave/btrfs-progs.git');
+        install_dependencies;
+        assert_script_run 'wget ' . autoinst_url('/data/btrfs-progs/install.sh');
+        assert_script_run 'chmod a+x install.sh';
+        assert_script_run './install.sh ' . GIT_URL . " " . INST_DIR, timeout => 1200;
+        assert_script_run 'cd ' . INST_DIR;
+    }
 
     # Create log file
     log_create STATUS_LOG;
