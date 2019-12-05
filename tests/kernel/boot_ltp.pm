@@ -106,26 +106,6 @@ sub run {
     script_run('aa-enabled; aa-status');
 
     if ($is_network) {
-        # poo#18762: Sometimes there is physical NIC which is not configured.
-        # One of the reasons can be renaming by udev rule in
-        # /etc/udev/rules.d/70-persistent-net.rules. This breaks some tests
-        # (even net namespace based ones).
-        # Workaround: configure physical NIS (if needed).
-        my $conf_nic_script = << 'EOF';
-dir=/sys/class/net
-ifaces="`basename -a $dir/* | grep -v -e ^lo -e ^tun -e ^virbr -e ^vnet`"
-for iface in $ifaces; do
-    config=/etc/sysconfig/network/ifcfg-$iface
-    if [ "`cat $dir/$iface/operstate`" = "down" ] && [ ! -e $config ]; then
-        echo "WARNING: create config '$config'"
-        printf "BOOTPROTO='dhcp'\nSTARTMODE='auto'\nDHCLIENT_SET_DEFAULT_ROUTE='yes'\n" > $config
-        systemctl restart network
-        sleep 1
-    fi
-done
-EOF
-        script_output($conf_nic_script);
-
         # emulate $LTPROOT/testscripts/network.sh
         assert_script_run('curl ' . data_url("ltp/net.sh") . ' -o net.sh', 60);
         assert_script_run('chmod 755 net.sh');
