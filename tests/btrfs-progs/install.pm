@@ -48,7 +48,7 @@ sub run {
     install_dependencies;
     assert_script_run 'wget ' . autoinst_url('/data/btrfs-progs/install.sh');
     assert_script_run 'chmod a+x install.sh';
-    assert_script_run './install.sh ' . GIT_URL . " " . INST_DIR . " " . get_var('CATEGORY'), timeout => 1200;
+    assert_script_run './install.sh ' . GIT_URL . " " . INST_DIR, timeout => 1200;
     assert_script_run 'cd ' . INST_DIR;
 
     # Create log file
