@@ -1,6 +1,7 @@
 ---
 name: mau-extratests
 schedule:
+- {{zkvm_boot}}
 - boot/boot_to_desktop
 - console/prepare_test_data
 - console/consoletest_setup
@@ -60,4 +61,9 @@ schedule:
 - console/osinfo_db
 - console/libgcrypt
 - console/coredump_collect
+conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
 ...
