@@ -184,42 +184,47 @@ sub run {
     if (get_var("ADDONS")) {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
         # the ISO_X variables must match the ADDONS list
-        my $sr_number = 0;
+        my $sr_number       = 0;
+        my $first_iteration = 1;
         for my $addon (split(/,/, get_var('ADDONS'))) {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             # in full_installer the dialog to choose the installation media
-            # doesnt appear, thus we have to skip it
-            unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
+            # does not appear at first, thus we have to skip it. It does appear
+            # when cycling to add more ADDONS
+            unless (((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) && $first_iteration) {
                 assert_screen 'addon-menu-active';
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};
                 assert_screen 'dvd-selector';
-                send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
-                send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
-                send_key 'alt-o';                                                   # continue
+                if (get_var('ISO_1') or get_var('ISO_2')) {    # Skip DVD selection if only Full medium is attached
+                    send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
+                    send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
+                }
+                send_key 'alt-o';                                                       # continue
             }
+            $first_iteration = 0;
             handle_addon($addon);
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                    # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                                   # add another add-on
+            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                        # if $addon is not first from all ADDONS
+                send_key 'alt-a';                                                       # add another add-on
             }
         }
     }
     test_addonurl if is_sle('>=15') && get_var('ADDONURL');
     if (get_var("ADDONURL")) {
         if (match_has_tag('inst-addon')) {
-            send_key 'alt-k';                                                       # install with addons
+            send_key 'alt-k';                                                           # install with addons
         }
         else {
             send_key 'alt-a';
         }
         for my $addon (split(/,/, get_var('ADDONURL'))) {
             assert_screen 'addon-menu-active';
-            my $uc_addon = uc $addon;                                               # varibale name is upper case
-            send_key 'alt-u';                                                       # specify url
+            my $uc_addon = uc $addon;                                                   # varibale name is upper case
+            send_key 'alt-u';                                                           # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';                                                       # select URL field
-            type_string get_required_var("ADDONURL_$uc_addon");                     # repo URL
+            send_key 'alt-u';                                                           # select URL field
+            type_string get_required_var("ADDONURL_$uc_addon");                         # repo URL
             send_key $cmd{next};
             wait_still_screen;    # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
             my @tags = ('addon-products', "addon-betawarning-$addon", "addon-license-$addon", 'import-untrusted-gpg-key');
