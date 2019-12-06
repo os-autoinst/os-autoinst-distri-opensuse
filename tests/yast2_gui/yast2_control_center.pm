@@ -203,10 +203,7 @@ sub start_partitioner {
     }
     assert_screen 'yast2_control-center-partitioner_expert', timeout => 60;
     send_key 'alt-f';
-    if (is_storage_ng) {
-        assert_screen 'expert-partitioner-modify-confirmation';
-        wait_screen_change { send_key 'alt-o' };    #Continue
-    }
+
     assert_screen 'yast2-control-center-ui', timeout => 60;
 }
 
