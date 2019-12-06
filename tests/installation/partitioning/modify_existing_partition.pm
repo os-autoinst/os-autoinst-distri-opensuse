@@ -21,9 +21,10 @@ sub run {
     my $test_data   = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
+    record_info("Resize root");
     $partitioner->resize_partition_on_gpt_disk($test_data->{root});
     for my $part (keys %$test_data) {
-        record_info("modify $part", "$$test_data{$part}->{existing_partition}");
+        record_info("Edit $part", "$$test_data{$part}->{existing_partition}");
         $partitioner->edit_partition_on_gpt_disk($$test_data{$part});
     }
     $partitioner->accept_changes();
