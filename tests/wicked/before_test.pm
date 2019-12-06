@@ -64,8 +64,7 @@ sub run {
     } else {
         # Common SUT Configuration
         if (get_var('WICKED_SOURCES')) {
-            zypper_call('--quiet in -t pattern Basis-Devel');
-            zypper_call('--quiet in automake autoconf libtool libnl-devel libnl3-devel libiw-devel dbus-1-devel pkg-config libgcrypt-devel systemd-devel git');
+            zypper_call('--quiet in automake autoconf libtool libnl-devel libnl3-devel libiw-devel dbus-1-devel pkg-config libgcrypt-devel systemd-devel git make gcc');
             my $repo_url = get_var('WICKED_SOURCES');
             my ($folderName) = $repo_url =~ /.*\/(.*)\.git/;
             if ($repo_url =~ /\#/) {
