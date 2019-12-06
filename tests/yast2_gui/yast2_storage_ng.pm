@@ -45,7 +45,7 @@ sub add_logical_volume {
     wait_screen_change { type_string "$lvname" };
     wait_screen_change { send_key "alt-n" };
     # custom size
-    send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-t");
+    send_key(is_sle('<=12-sp5') ? "alt-c" : "alt-t");
     wait_still_screen 1;
     send_key "alt-s";
     wait_screen_change { type_string "400MiB" };
@@ -56,7 +56,7 @@ sub add_logical_volume {
 
 sub encrypt_partition {
     wait_still_screen 1;
-    send_key(is_sle('<=12-sp4') ? "alt-c" : "alt-y");
+    send_key(is_sle('<=12-sp5') ? "alt-c" : "alt-y");
     wait_still_screen 2;
     send_key "alt-n";
     wait_still_screen 2;
@@ -64,12 +64,12 @@ sub encrypt_partition {
     wait_screen_change { type_string "susetesting" };
     send_key "alt-v";
     wait_screen_change { type_string "susetesting" };
-    send_key(is_sle('<=12-sp4') ? "alt-f" : "alt-n");
+    send_key(is_sle('<=12-sp5') ? "alt-f" : "alt-n");
     wait_still_screen 2;
 }
 
 sub select_vdb {
-    if (is_sle('<=12-sp4')) {
+    if (is_sle('<=12-sp5')) {
         assert_and_dclick "yast2_storage_ng-select-vdb";
     } else {
         assert_and_click "yast2_storage_ng-select-vdb";
@@ -97,7 +97,7 @@ sub run {
     ### ADD PARTITION ###
     # /dev/vdb is unpartitioned, now we have to add a new partition
     wait_screen_change { send_key "alt-a" };
-    if (is_sle('<=12-sp4')) {
+    if (is_sle('<=12-sp5')) {
         wait_screen_change { send_key "alt-n" };
         # custom size
         send_key "alt-c";
@@ -121,7 +121,7 @@ sub run {
     send_key "ret";
     wait_still_screen 2;
     # on SLE 12.x it's not possible to resize an ext4 encrypted filesystem,
-    if (is_sle("<=12-sp4")) {
+    if (is_sle("<=12-sp5")) {
         send_key "alt-f";
         wait_still_screen 2;
     } else {
@@ -164,7 +164,7 @@ sub run {
     # select entry and type partition size
     send_key "alt-s";
     wait_screen_change { type_string "170MiB" };
-    wait_screen_change { send_key(is_sle('<=12-sp4') ? "alt-o" : "alt-n") };
+    wait_screen_change { send_key(is_sle('<=12-sp5') ? "alt-o" : "alt-n") };
 
     assert_screen "yast2_storage_ng-partition-resized";
     wait_screen_change { send_key "alt-n" };
@@ -201,13 +201,13 @@ sub run {
     wait_screen_change { type_string "vgtest" };
     assert_and_click "yast2_storage_ng-vg-select-device";
     send_key "alt-a";
-    wait_screen_change { send_key(is_sle('<=12-sp4') ? "alt-f" : "alt-n") };
+    wait_screen_change { send_key(is_sle('<=12-sp5') ? "alt-f" : "alt-n") };
 
     #  go to system view
     send_key "alt-s";
     assert_and_dclick "yast2_storage_ng-select-vgtest";
 
-    my $fs_page_shortcut = is_sle("<=12-sp4") ? "alt-f" : "alt-n";
+    my $fs_page_shortcut = is_sle("<=12-sp5") ? "alt-f" : "alt-n";
     wait_screen_change { send_key "alt-i" } if is_opensuse || is_sle("15-sp1+");
 
     # XFS, non encrypted
@@ -227,17 +227,17 @@ sub run {
     send_key_until_needlematch("yast2_storage_ng-btrfs", "up");
     send_key "ret";
     # BtrFS encryption fails on SLE 12.x, therefore we skip it
-    if (is_sle("<=12-sp4")) {
+    if (is_sle("<=12-sp5")) {
         wait_screen_change { send_key $fs_page_shortcut };
     } else {
         encrypt_partition;
     }
 
     # Raw, non encrypted
-    my $raw_shortcut = is_sle("<=12-sp4") ? "alt-a" : "alt-r";
+    my $raw_shortcut = is_sle("<=12-sp5") ? "alt-a" : "alt-r";
     add_logical_volume "lv4", $raw_shortcut;
     # on SLE 12.x the alt-a shortcut doesn't seem to work reliably, so here we 'force' the raw format
-    send_key "alt-d" if is_sle("<=12-sp4");
+    send_key "alt-d" if is_sle("<=12-sp5");
     wait_still_screen 1;
     wait_screen_change { send_key $fs_page_shortcut };
 
