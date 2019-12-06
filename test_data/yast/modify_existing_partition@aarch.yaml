@@ -1,0 +1,9 @@
+---
+boot-uefi:
+  disk: 'vda'
+  existing_partition: 'vda1'
+  mount_point: '/boot/efi'
+  fs_type: 'fat'
+  skip: 1
+  part_size: '256MiB'
+  lsblk_expected_size_output: '256M'
