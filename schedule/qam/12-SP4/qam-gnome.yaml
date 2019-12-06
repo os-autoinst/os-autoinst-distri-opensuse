@@ -2,8 +2,7 @@
 name: qam-gnome
 schedule:
 - autoyast/prepare_profile
-- installation/isosize
-- installation/bootloader
+- {{boot}}
 - autoyast/installation
 - autoyast/console
 - autoyast/login
@@ -12,7 +11,7 @@ schedule:
 - autoyast/clone
 - autoyast/logs
 - autoyast/autoyast_reboot
-- installation/grub_test
+- {{grub}}
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - console/system_prepare
@@ -62,6 +61,19 @@ schedule:
 - shutdown/cleanup_before_shutdown
 - shutdown/shutdown
 conditional_schedule:
+  boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+      x86_64:
+        - installation/isosize
+        - installation/bootloader
+  grub:
+    ARCH:
+      s390x:
+        - boot/reconnect_mgmt_console
+      x86_64:
+        - installation/grub_test
   sled_tests:
     SLE_PRODUCT:
       sled:

@@ -1,8 +1,7 @@
 ---
 name: qam-minimal-base
 schedule:
-- installation/isosize
-- installation/bootloader
+- {{boot}}
 - installation/welcome
 - installation/accept_license
 - installation/scc_registration
@@ -22,7 +21,7 @@ schedule:
 - installation/await_install
 - installation/logs_from_installation_system
 - installation/reboot_after_installation
-- installation/grub_test
+- {{grub}}
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - locale/keymap_or_locale
@@ -61,4 +60,18 @@ schedule:
 - console/postgresql_server
 - console/orphaned_packages_check
 - console/coredump_collect
+conditional_schedule:
+  boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+      x86_64:
+        - installation/isosize
+        - installation/bootloader
+  grub:
+    ARCH:
+      s390x:
+        - boot/reconnect_mgmt_console
+      x86_64:
+        - installation/grub_test
 ...
