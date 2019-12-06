@@ -1035,7 +1035,7 @@ sub add_grub_cmdline_settings {
             add         => $add,
             update_grub => 0,
             search      => get_cmdline_var(),
-        }, ['add', 'update_grub', 'search'], @_);
+        }, ['update_grub', 'search'], @_);
 
     change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
 }
@@ -1069,7 +1069,7 @@ sub replace_grub_cmdline_settings {
             new         => $new,
             update_grub => 0,
             search      => get_cmdline_var(),
-        }, ['old', 'new', 'update_grub', 'search'], @_);
+        }, ['update_grub', 'search'], @_);
     change_grub_config($old, $new, $args{search}, "g", $args{update_grub});
 }
 
