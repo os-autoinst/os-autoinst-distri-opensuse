@@ -25,6 +25,11 @@ sub run {
         record_info("Azure don't have kGraft/LP infrastructure");
         return;
     }
+
+    if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
+        zypper_call('in -l kernel-devel');
+    }
+
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
     my ($test_type) = $git_repo =~ /qa_test_(\w+).git/;
 
