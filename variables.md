@@ -107,7 +107,7 @@ SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk f
 SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.
 SES5_CEPH_QA_HEALTH_OK | string | | URL for repo containing ceph-qa-health-ok package.
 SKIP_CERT_VALIDATION | boolean | false | Enables linuxrc parameter to skip certificate validation of the remote source, e.g. when using self-signed https url.
-SKIP_SET_STANDARD_PROMPT | boolean | false | Skips setting the standard prompt in shells. Can save time.
+SET_CUSTOM_PROMPT | boolean | false | Set a custom, shorter prompt in shells. Saves screen space but can take time to set repeatedly in all shell sessions.
 SLE_PRODUCT | string | | Defines SLE product. Possible values: `sles`, `sled`, `sles4sap`. Is mainly used for SLE 15 installation flow.
 SOFTFAIL_BSC1063638 | boolean | false | Enable bsc#1063638 detection.
 STAGING | boolean | false | Indicates staging environment.
