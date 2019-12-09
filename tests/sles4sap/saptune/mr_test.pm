@@ -17,6 +17,20 @@ use version_utils 'is_sle';
 use strict;
 use warnings;
 
+sub reboot_wait {
+    my ($self) = @_;
+
+    $self->reboot;
+
+    # Wait for tuned to tune everything
+    my $timeout = 60;
+    if (is_sle('>=15')) {
+        assert_script_run "timeout $timeout bash -c 'until tuned-adm verify >/dev/null ; do sleep 1 ; done'", $timeout;
+    } else {
+        sleep bmwqemu::scale_timeout($timeout);
+    }
+}
+
 sub setup {
     my ($self) = @_;
 
@@ -41,7 +55,7 @@ sub setup {
         # Ignore disk_elevator on VM's
         assert_script_run "sed -ri '/:scripts\\/disk_elevator/s/^/#/' \$(fgrep -rl :scripts/disk_elevator Pattern/)";
     }
-    $self->reboot;
+    $self->reboot_wait;
 }
 
 sub get_notes {
@@ -77,13 +91,13 @@ sub test_sapconf {
     } else {
         assert_script_run "sapconf netweaver";
     }
-    $self->reboot;
+    $self->reboot_wait;
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Upd#2_2";
 
     # Scenario 2: sapconf has been disabled (only the service), but the package is still there.
     assert_script_run "cp /etc/security/limits.conf{.bak,}";
     systemctl "disable --now sapconf";
-    $self->reboot;
+    $self->reboot_wait;
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Upd#3_2";
 }
 
@@ -99,11 +113,11 @@ sub test_note {
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_note_${note}${extra}_a";
     assert_script_run "mr_test verify baseline_testpattern_note_${note}${extra}_b";
     tune_baseline("baseline_testpattern_note_${note}${extra}_b");
-    $self->reboot;
+    $self->reboot_wait;
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_note_${note}${extra}_a";
     assert_script_run "mr_test verify baseline_testpattern_note_${note}${extra}_b";
     assert_script_run "saptune note revert $note";
-    $self->reboot;
+    $self->reboot_wait;
 }
 
 sub test_override {
@@ -130,12 +144,12 @@ sub test_override {
         assert_script_run "mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override";
         assert_script_run "mr_test verify baseline_testpattern_note_${override}_b";
         tune_baseline("baseline_testpattern_note_${override}_b");
-        $self->reboot;
+        $self->reboot_wait;
         assert_script_run "mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override";
         assert_script_run "mr_test verify baseline_testpattern_note_${override}_b";
         assert_script_run "saptune note revert $note";
         assert_script_run "rm -f /etc/saptune/override/$note";
-        $self->reboot;
+        $self->reboot_wait;
     }
 }
 
@@ -150,11 +164,11 @@ sub test_solution {
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_solution_${solution}_a";
     assert_script_run "mr_test verify baseline_testpattern_solution_${solution}_b";
     tune_baseline("baseline_testpattern_solution_${solution}_b");
-    $self->reboot;
+    $self->reboot_wait;
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_solution_${solution}_a";
     assert_script_run "mr_test verify baseline_testpattern_solution_${solution}_b";
     assert_script_run "saptune solution revert $solution";
-    $self->reboot;
+    $self->reboot_wait;
 }
 
 sub test_notes {
@@ -222,7 +236,7 @@ sub test_x86_64 {
     assert_script_run 'cpupower frequency-set -g powersave';
     # force_latency=max
     assert_script_run 'cpupower idle-set -E';
-    $self->reboot;
+    $self->reboot_wait;
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
     assert_script_run "saptune apply note $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_2";
