@@ -145,11 +145,9 @@ sub handle_addon {
     wait_still_screen 2;
     send_key_until_needlematch "addon-products-$addon", 'down', 30;
     # modules like SES or RT that are not part of Packages ISO don't have this step
-    if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
-        send_key 'spc';
-        wait_screen_change { send_key $cmd{next} };
-        assert_screen 'addon-product-installation';
-    }
+    send_key 'spc' if (is_sle('15+') && $addon !~ /^ses$|^rt$/);
+    # Return to top of the page
+    for (1 .. 15) { send_key 'pgup' }
 }
 
 sub test_addonurl {
@@ -188,7 +186,7 @@ sub run {
         for my $addon (split(/,/, get_var('ADDONS'))) {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             # in full_installer the dialog to choose the installation media
-            # doesnt appear, thus we have to skip it
+            # does not appear, thus we have to skip it
             unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
                 assert_screen 'addon-menu-active';
                 wait_screen_change { send_key 'alt-d' };    # DVD
@@ -199,10 +197,9 @@ sub run {
                 send_key 'alt-o';                                                   # continue
             }
             handle_addon($addon);
-            if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {                    # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                                   # add another add-on
-            }
         }
+        wait_screen_change { send_key $cmd{next} };
+        assert_screen 'addon-product-installation';
     }
     test_addonurl if is_sle('>=15') && get_var('ADDONURL');
     if (get_var("ADDONURL")) {
