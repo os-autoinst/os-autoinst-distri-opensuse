@@ -3,13 +3,17 @@ import socketserver
 import ssl
 import sys
 import re
-import requests
+import http.client
+import json
 import _thread
 
 def availableRepos(prefix):
-	resp = requests.get("https://hydra.opensuse.org/v2/_catalog",
-	                    headers={"Host": "registry.opensuse.org"})
-	all_repos = resp.json()["repositories"]
+	conn = http.client.HTTPSConnection("hydra.opensuse.org")
+	headers={"Host": "registry.opensuse.org"}
+	conn.request("GET", "/v2/_catalog", None, headers)
+	resp = conn.getresponse()
+	data = json.loads(resp.read())
+	all_repos = data["repositories"]
 	return [repo[len(prefix):] for repo in all_repos if repo.startswith(prefix)]
 
 prefix = sys.argv[1]
