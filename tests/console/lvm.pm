@@ -46,6 +46,14 @@ sub run {
 
     select_console 'root-console';
 
+    if (check_var('ARCH', 's390x')) {
+        # bring dasd online
+        # exit status 0 -> everything ok
+        # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
+        my $r = script_run("dasd_configure 0.0.0200 1");
+        die "DASD in undefined state (exit code $r)" unless (defined($r) && ($r == 0 || $r == 8));
+    }
+
     $self->set_playground_disk;
     my $disk = get_required_var('PLAYGROUNDDISK');
     record_info("Information", "The playground disk used by this test is: $disk");

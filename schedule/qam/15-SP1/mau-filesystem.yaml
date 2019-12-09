@@ -11,7 +11,7 @@ schedule:
 - console/system_prepare
 - console/lsof
 - console/autofs
-- {{lvm}}
+- console/lvm
 - console/btrfs_autocompletion
 - console/btrfs_qgroups
 - console/snapper_cleanup
@@ -26,8 +26,4 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/bootloader_zkvm
-  lvm:
-    ARCH:
-      x86_64:
-        - console/lvm
 ...
