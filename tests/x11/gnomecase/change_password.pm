@@ -58,9 +58,9 @@ sub logout_and_login {
 sub reboot_system {
     my ($self) = @_;
     reboot_x11;
-    $self->{await_reboot} = 1;
-    $self->wait_boot(nologin => 1);
     if (check_var('NOAUTOLOGIN', 1)) {
+        $self->{await_reboot} = 1;
+        $self->wait_boot(nologin => 1);
         assert_screen "displaymanager", 200;
         $self->{await_reboot} = 0;
         # The keyboard focus is different between SLE15 and SLE12
@@ -68,6 +68,8 @@ sub reboot_system {
         send_key "ret";
         wait_still_screen;
         type_string "$newpwd\n";
+    } else {
+        $self->wait_boot();
     }
     assert_screen "generic-desktop";
 }
