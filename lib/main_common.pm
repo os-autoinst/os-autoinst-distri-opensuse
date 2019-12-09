@@ -1276,12 +1276,17 @@ sub load_x11tests {
     }
     if (gnomestep_is_applicable()) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-        if (is_sle && (!is_server || we_is_applicable)) {
-            loadtest "x11/eog";
-            loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
-            loadtest "x11/wireshark";
-            loadtest "x11/ImageMagick";
-            loadtest "x11/ghostscript";
+        if (is_sle) {
+            if (!is_server || we_is_applicable) {
+                loadtest "x11/eog";
+                loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
+                loadtest "x11/wireshark";
+                loadtest "x11/ImageMagick";
+                loadtest "x11/ghostscript";
+            }
+        }
+        else {
+            loadtest "x11/graphicsMagick";
         }
     }
     if (libreoffice_is_applicable()) {
