@@ -40,6 +40,9 @@ sub run {
         set_var('HDDVERSION', get_var('BASE_VERSION'));
     }
 
+    # Only 11-SP4 need set username, 11-SP4+ don't need set username
+    set_var('DM_NEEDS_USERNAME', '0') if (check_var('MEDIA_UPGRADE', '1') && is_sle('=11-SP4', get_var('HDDVERSION')) && check_var('DM_NEEDS_USERNAME', '1'));
+
     # Setup DM_NEEDS_USERNAME for SLE15 KDE migration case
     # In SLES15 KDE has been drop, after migration the default desktop is XDM
     # KDE has moved to Package Hub, it will stay install with SLES15 if added PackageHub
