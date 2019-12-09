@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Test audit function for IMA measurement
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#48926
 
 use base "opensusebasetest";

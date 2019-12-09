@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Test mutt mail agent with SSL enabled
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use strict;

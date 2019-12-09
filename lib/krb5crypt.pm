@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Public variables and functions for krb5 cryptographic testing
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 package krb5crypt;
 

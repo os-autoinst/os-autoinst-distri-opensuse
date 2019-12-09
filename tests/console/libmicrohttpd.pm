@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Case 1525263 - Verify libmicrohttpd via Greenbone Security Assistant
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use strict;

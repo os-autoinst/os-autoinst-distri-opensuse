@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Setup server machine for krb5 cryptographic testing
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Ticket: poo#51560, poo#51566
 
 use base "consoletest";

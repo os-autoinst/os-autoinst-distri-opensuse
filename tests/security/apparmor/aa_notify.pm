@@ -26,7 +26,7 @@
 # - Check the errors from "aa-notify -l -v"
 # - Disable temporary profile, put nscd back in enforce mode, restart nscd
 # - Cleanup temporary profiles
-# Maintainer: Wes <whdu@suse.com>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#36883, tc#1621139
 
 use strict;

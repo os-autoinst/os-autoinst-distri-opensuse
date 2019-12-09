@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: The test to connect openvswitch to openflow with SSL enabled
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: TC1595181
 
 use base "consoletest";

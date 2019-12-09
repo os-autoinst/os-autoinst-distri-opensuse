@@ -14,7 +14,7 @@
 #    It is only needed to test journald's key generation and verification function
 #    Verify key should be generated,as well as a QR code
 #    No failed messages output
-# Maintainer: dehai <dhkong@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use strict;

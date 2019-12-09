@@ -18,7 +18,7 @@
 # - Check if apparmor is active
 # - Run aa-status, check the output for strings about modules/profiles/processes
 # and strings enforced, complain, unconfined and loaded.
-# Maintainer: Wes <whdu@suse.com>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#36874, poo#44912
 
 use base "consoletest";

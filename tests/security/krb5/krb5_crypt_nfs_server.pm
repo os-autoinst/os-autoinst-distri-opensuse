@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Test NFS with krb5 authentication and GSS API - server
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Ticket: poo#51560, poo#52388
 
 use base "consoletest";

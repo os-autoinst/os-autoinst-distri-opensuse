@@ -11,7 +11,7 @@
 # Note: The test case can be run separately for dovecot sanity test,
 #       or run as stand-alone mail server (together with postfix)
 #       in multi-machine test scenario if MAIL_SERVER var set.
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use strict;

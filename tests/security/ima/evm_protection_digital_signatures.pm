@@ -15,7 +15,7 @@
 #
 # Summary: Test EVM protection using digital signatures
 # Note: This case should come after 'evm_protection_hmacs'
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#53582
 
 use base "opensusebasetest";

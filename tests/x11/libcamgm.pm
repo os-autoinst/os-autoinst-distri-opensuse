@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test libcamgm via Yast2 CA management module(yast2 ca_mgm)
-# Maintainer: Dehai Kong <dhkong@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "x11test";
 use strict;

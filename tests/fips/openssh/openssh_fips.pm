@@ -16,7 +16,7 @@
 #    openssh will refuse to work with any non-approved
 #    algorithm in fips mode, just like blowfish cipher
 #    or MD5 hash.
-# Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: tc#1525228
 
 use base "consoletest";

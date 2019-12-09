@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Base module for openSCAP test cases
-# Maintainer: Wes <whdu@suse.com>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#37006
 
 package openscaptest;

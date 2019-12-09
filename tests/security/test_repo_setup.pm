@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Setup online repos or dvd images for further testing
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#52808
 
 use strict;

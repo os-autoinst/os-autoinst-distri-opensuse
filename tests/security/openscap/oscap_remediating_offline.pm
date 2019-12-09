@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Post-scan remediation test - offline
-# Maintainer: Wes <whdu@suse.com>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#36919, tc#1621175
 
 use base "consoletest";

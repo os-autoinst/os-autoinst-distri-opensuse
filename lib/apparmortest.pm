@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Base module for AppArmor test cases
-# Maintainer: Wes <whdu@suse.com>
+# Maintainer: llzhao <llzhao@suse.com>
 
 =head1 Apparmor Tests
 

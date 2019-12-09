@@ -14,8 +14,7 @@
 # - check that clamscan is able to recognize a fake vim virus
 # - check that clamscan is able to recognize an EICAR virus pdf, txt and zip format
 # - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
-# Author: Wei Jiang <wjiang@suse.com>
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: TC1595169, poo#46880
 
 use base "consoletest";
