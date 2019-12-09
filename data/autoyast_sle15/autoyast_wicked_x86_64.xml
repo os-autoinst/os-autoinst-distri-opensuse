@@ -14,6 +14,11 @@
         <arch>{{ARCH}}</arch>
       </addon>
       <addon>
+        <name>sle-module-development-tools</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
         <name>sle-module-server-applications</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
@@ -73,6 +78,18 @@
     <products config:type="list">
       <product>SLES</product>
     </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <packages config:type="list">
+      <package>iputils</package>
+      <package>sles-release</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-development-tools-release</package>
+      <package>sle-module-basesystem-release</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>minimal_base</pattern>
+    </patterns>
   </software>
   <users config:type="list">
     <user>
