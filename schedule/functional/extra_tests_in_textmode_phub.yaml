@@ -1,0 +1,9 @@
+name:           extra_tests_in_textmode_phub
+description:    >
+    Maintainer: slindomansilla.
+    Extra tests about software in package hub
+schedule:
+    - boot/boot_to_desktop
+    - console/machinery
+    - sysauth/sssd
+    - console/coredump_collect
