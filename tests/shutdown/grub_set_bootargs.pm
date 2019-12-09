@@ -14,6 +14,7 @@
 #   - Remove "quiet" from $GRUB_CMDLINE_LINUX_DEFAULT
 #   - If FIPS_ENABLED is set, add fips=1 to new grub command line
 #   - If encryption is enabled, add "boot=<boot device>" to grub command line
+#   - If encryption is enabled, remove plymouth.ignore-serial-consoles from grub command line
 #   - Apply all changes by running: "grub2-mkconfig -o /boot/grub2/grub.cfg"
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
@@ -33,6 +34,8 @@ sub run {
             push @cmds, 'new_cmdline="$new_cmdline boot=$(df /boot | tail -1 | cut -d" " -f1)"';
         }
     }
+    push @cmds, 'new_cmdline=`echo $new_cmdline | sed \'s/\(^\| \)plymouth\.ignore-serial-consoles\(^\| \)/ /\'`' if get_var("ENCRYPT");
+    push @cmds, 'new_cmdline=`echo $new_cmdline | sed \'s/\(^\| \)splash=silent\(^\| \)/ /\'`' if get_var("ENCRYPT");
     push @cmds, 'sed -i "s#GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*\"#GRUB_CMDLINE_LINUX_DEFAULT=\"$new_cmdline\"#" /etc/default/grub';
     push @cmds, 'grub2-mkconfig -o /boot/grub2/grub.cfg';
 
