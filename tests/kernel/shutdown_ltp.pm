@@ -35,6 +35,8 @@ sub run {
         export_to_json($tinfo->test_result_export);
     }
 
+    script_run('df -h');
+
     if (get_var('LTP_COMMAND_FILE')) {
         my $ver_linux_log = '/tmp/ver_linux_after.txt';
         script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
