@@ -224,6 +224,7 @@ sub investigate_yast2_failure {
         "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
         "Could not load icon|Couldn't load pixmap"   => undef,    # Detecting missing icons
         "Internal error. Please report a bug report" => undef,    # Detecting internal errors
+        "error.*@.*is not allowed"                   => undef,    # Detecting incompatible type classes, see bsc#1158589
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
