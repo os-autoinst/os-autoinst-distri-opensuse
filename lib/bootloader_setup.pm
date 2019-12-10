@@ -696,7 +696,12 @@ sub remote_install_bootmenu_params {
         $params .= " ssh=1 ";    # trigger ssh-text installation
     }
     else {
-        $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+        if (is_sle('=11-sp4')) {
+            #11-SP4 only support ssh=1
+            $params .= " ssh=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+        } else {
+            $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
+        }
     }
 
     $params .= "sshpassword=$testapi::password ";
