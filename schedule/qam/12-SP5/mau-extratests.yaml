@@ -6,6 +6,7 @@ schedule:
 - console/consoletest_setup
 - console/check_os_release
 - console/openvswitch
+- console/pam
 - console/sshd
 - console/update_alternatives
 - console/rpm
