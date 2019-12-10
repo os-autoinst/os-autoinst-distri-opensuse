@@ -956,8 +956,9 @@ sub check_desktop_runner {
 # Start one of the libreoffice components, close any first-run dialogs
 sub libreoffice_start_program {
     my ($self, $program) = @_;
-
-    x11_start_program($program);
+    my %start_program_args;
+    $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
+    x11_start_program($program, %start_program_args);
     if (match_has_tag('ooffice-tip-of-the-day')) {
         # Unselect "_S_how tips on startup", select "_O_k"
         send_key "alt-s";
