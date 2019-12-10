@@ -183,8 +183,8 @@ sub run {
         send_key match_has_tag('inst-addon') ? 'alt-k' : 'alt-a';
         # the ISO_X variables must match the ADDONS list
         my $sr_number = 0;
-        my $addon;
-        for $addon (split(/,/, get_var('ADDONS'))) {
+        my $last_addon;
+        for my $addon (split(/,/, get_var('ADDONS'))) {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             # in full_installer the dialog to choose the installation media
             # does not appear, thus we have to skip it
@@ -200,9 +200,14 @@ sub run {
             handle_addon($addon);
             # add another add-on if $addon is not first from all ADDONS and not in SLE 15+
             send_key 'alt-a' if (is_sle('<15') && ((split(/,/, get_var('ADDONS')))[-1] ne $addon));
+            $last_addon = $addon;
         }
-        if (is_sle('15+') && $addon !~ /^ses$|^rt$/) {
-            wait_screen_change { send_key $cmd{next} };
+        if (is_sle('15+') && $last_addon !~ /^ses$|^rt$/) {
+            if (get_var('ADDONS') !~ /all-packages/) {
+                # handle_all_packages_medium() leaves the installer one step further
+                # so click on Next if it was not called
+                wait_screen_change { send_key $cmd{next} };
+            }
             assert_screen 'addon-product-installation';
         }
     }
