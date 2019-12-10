@@ -48,7 +48,7 @@ END_SCRIPT
     # Configure serial consoles for virtio support
     # poo#18860 Enable console on hvc0 on SLES < 12-SP2
     # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
-    if (!check_var('VIRTIO_CONSOLE', 0)) {
+    if (check_var('VIRTIO_CONSOLE', 1)) {
         if (is_sle('<12-SP2') && !check_var('ARCH', 's390x')) {
             add_serial_console('hvc0');
         }
@@ -59,7 +59,7 @@ END_SCRIPT
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
     # on several nodes, the dhcp clients use same id and cause conflicts on dhcpd server.
-    if (check_var('BACKEND', 'qemu')) {
+    if (check_var('BACKEND', 'qemu') && !check_var('EXTRATEST','wicked')) {
         my $network_status = script_output('systemctl status network');
         # Do dhcp cleanup for wicked
         if ($network_status =~ /wicked/) {
