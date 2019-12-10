@@ -69,7 +69,7 @@ sub run {
     assert_script_run('mount /dev/nvme0n1p2 /mnt && cd /mnt/var/tmp');
     script_run('git clone --recurse-submodules https://gitlab.suse.de/kernel-qa/runltp-support.git');
     assert_script_run('cd runltp-support && git pull --recurse-submodules && ./host-install.sh');
-    assert_script_run("./install-setup-run-syzkaller.sh $scc $iso", timeout => 3600);
+    assert_script_run("./install-setup-run-syzkaller.sh $scc $iso", timeout => 10800);
     assert_script_run('./tar-up-results.sh');
     upload_logs('runltp-ng/results.tar.xz');
 
