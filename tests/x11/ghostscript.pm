@@ -77,6 +77,10 @@ sub run {
     if (!$gv_missing) {
         script_run "gv $reference", 0;
         assert_screen "ghostview_alphabet";
+        if (match_has_tag('bsc1158907')) {
+            send_key 'alt-f4';
+            wait_still_screen 1;
+        }
 
         # close gv
         send_key "alt-f4";
