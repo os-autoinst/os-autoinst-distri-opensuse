@@ -642,7 +642,7 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_hypervisor_tests if (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"));
+    load_hypervisor_tests if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
     load_suseconnect_tests        if check_var("REGRESSION", "suseconnect");
     load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }

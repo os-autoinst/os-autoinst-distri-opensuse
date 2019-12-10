@@ -598,19 +598,43 @@ sub detect_login_screen {
     release_key "ctrl-alt";      # Now the mouse pointer is free
     mouse_set(300, 70);
 
+    # esc, backspace
     return if check_screen 'virt-manager_login-screen', 5;
     send_key 'esc';
     send_key 'backspace';
+    send_key 'backspace';
 
+    # ctrl+alt+f2
     return if check_screen 'virt-manager_login-screen', 5;
     assert_and_click 'virt-manager_send-key';
     assert_and_click 'virt-manager_ctrl-alt-f2';
     send_key 'ret';
     send_key 'ret';
 
+    # esc, backspace
+    return if check_screen 'virt-manager_login-screen', 5;
+    send_key 'esc';
+    send_key 'backspace';
+    send_key 'backspace';
+
+    # ctrl+alt+f3
     return if check_screen 'virt-manager_login-screen', 5;
     assert_and_click 'virt-manager_send-key';
     assert_and_click 'virt-manager_ctrl-alt-f3';
+    send_key 'ret';
+    send_key 'ret';
+
+    # Reopen the guest window
+    mouse_set(0, 0);
+    assert_and_click 'virt-manager_file';
+    mouse_set(0, 0);
+    assert_and_click 'virt-manager_close';
+    send_key 'ret';
+
+    # ctrl+alt+f2
+    return if check_screen 'virt-manager_login-screen', 5;
+    assert_and_click 'virt-manager_send-key';
+    assert_and_click 'virt-manager_ctrl-alt-f2';
     send_key 'ret';
     send_key 'ret';
 

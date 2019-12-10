@@ -155,23 +155,27 @@ sub run {
         my $ssh_vnc_wait_time = 300;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags              = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
-        assert_screen \@tags, $ssh_vnc_wait_time;
-        save_screenshot;
-        sleep 2;
 
-        if (match_has_tag("orthos-grub-boot-linux")) {
-            my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
-            my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
-            wait_still_screen 5;
-            type_string $args;
-            send_key 'ret';
-            assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
-            $args = "boot";
-            type_string $args;
-            send_key "ret";
-            assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
+        # Proceed if the 'installation' console is ready
+        # otherwise the 'sol' console may be just freezed
+        if (check_screen(\@tags, $ssh_vnc_wait_time)) {
+            save_screenshot;
+            sleep 2;
+
+            if (match_has_tag("orthos-grub-boot-linux")) {
+                my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
+                my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+                wait_still_screen 5;
+                type_string $args;
+                send_key 'ret';
+                assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
+                $args = "boot";
+                type_string $args;
+                send_key "ret";
+                assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
+            }
         }
-
+        save_screenshot;
         select_console 'installation';
         save_screenshot;
         # We have textmode installation via ssh and the default vnc installation so far
