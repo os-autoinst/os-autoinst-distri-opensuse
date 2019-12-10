@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_leap is_tumbleweed);
+use version_utils 'is_leap';
 use utils 'systemctl';
 
 sub run() {
@@ -24,12 +24,15 @@ sub run() {
     systemctl 'start postgresql';
     wait_screen_change { script_run 'su postgres', 0 };
     script_run 'sed -i -e \'s/\(\(local\|host\).*all.*all.*\)\(md5\|ident\)/\1trust/g\' /var/lib/pgsql/data/pg_hba.conf', 0;
-    script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',                                                             0;
-    script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton',                                                   0;
-    script_run 'exit',                                                                                                    0;
+
+    script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',           0;
+    script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton', 0;
+    script_run 'exit',                                                  0;
     systemctl 'restart postgresql';
     assert_script_run 'echo susetesting > /tmp/pw';
-    assert_script_run 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password', 600;
+    my $cmd = 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password';
+    $cmd .= ' --email root' unless is_leap('<=15.2');
+    assert_script_run $cmd, 600;
     systemctl 'start gnuhealth';
     # exit from root session
     send_key 'ctrl-d';

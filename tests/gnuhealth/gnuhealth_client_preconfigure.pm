@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_leap is_tumbleweed);
+use version_utils 'is_leap';
 
 sub run {
     my $gnuhealth = get_var('GNUHEALTH_CLIENT', 'gnuhealth-client');
@@ -27,28 +27,8 @@ sub run {
     send_key_until_needlematch "$gnuhealth-manage_profiles-host_textfield_selected", 'tab';
     type_string 'localhost';
     send_key 'tab';
-    if (is_tumbleweed || is_leap('42.3+')) {
-        assert_screen "$gnuhealth-manage_profiles-database_selected";
-        type_string 'admin';
-    }
-    else {
-        # button 'create' should appear, weird GUI behaviour
-        assert_and_click "$gnuhealth-manage_profiles-create_database";
-        # tryton server password
-        type_string 'susetesting';
-        send_key 'tab';
-        # database name
-        type_string 'gnuhealth_demo';
-        send_key 'tab';
-        send_key 'tab';
-        # admin password
-        type_string 'susetesting';
-        send_key 'tab';
-        type_string 'susetesting';
-        # wait for create button to be active
-        assert_and_click "$gnuhealth-manage_profiles-create_database-create";
-
-    }
+    assert_screen "$gnuhealth-manage_profiles-database_selected";
+    type_string 'admin';
     # back to profiles menue
     assert_screen "$gnuhealth-manage_profiles-add", 300;
     send_key 'ret';
