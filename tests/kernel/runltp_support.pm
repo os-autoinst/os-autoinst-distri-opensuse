@@ -56,8 +56,8 @@ sub poweron_host {
 
 sub run {
     my $self = shift;
-    my $iso = basename(get_var('ISO'));
-    my $scc = get_var('SCC_REGCODE');
+    my $iso  = basename(get_var('ISO'));
+    my $scc  = get_var('SCC_REGCODE');
 
     poweron_host;
     select_console 'sol', await_console => 0;
