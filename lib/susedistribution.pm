@@ -711,11 +711,14 @@ sub activate_console {
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
+            # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
+            # or premature typing of credentials on sle15+
+            my $stilltime = is_sle('15+') ? 5 : 1;
+            wait_still_screen $stilltime;
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
-            wait_still_screen 1;    # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet
             assert_screen \@tags, 60;
             if (match_has_tag("tty$nr-selected")) {
                 type_string "$user\n";
