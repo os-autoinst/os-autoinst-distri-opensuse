@@ -43,9 +43,9 @@ service and start it. It requires selecting root console before.
 =cut
 sub add_serial_console {
     my ($console) = @_;
-    my $service   = 'serial-getty@' . $console;
-    my $config    = '/etc/securetty';
-    script_run(qq{grep -q "^$console\$" $config || echo '$console' >> $config; systemctl enable $service; systemctl start $service});
+    my $service = 'serial-getty@' . $console;
+    script_run(qq{grep -q "^$console\$" /etc/securetty || echo '$console' >> /etc/securetty;}) if (is_sle('<12-sp2'));
+    script_run("systemctl enable $service; systemctl start $service");
 }
 
 =head2 get_login_message
