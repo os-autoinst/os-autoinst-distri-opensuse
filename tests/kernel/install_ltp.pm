@@ -314,9 +314,12 @@ sub run {
 
     $self->select_serial_terminal;
 
+    # jsc#SLE-9743
+    $grub_param = 'debug_pagealloc=on';
+
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');
-        $grub_param = 'printk.time=1';
+        $grub_param .= ' printk.time=1';
     }
 
     # check kGraft if KGRAFT=1
