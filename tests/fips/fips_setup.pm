@@ -70,7 +70,7 @@ sub run {
     }
 
     power_action('reboot', textmode => 1);
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 200);
 
     # Workaround to resolve console switch issue
     select_console 'root-console';
