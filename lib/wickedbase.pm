@@ -583,7 +583,10 @@ sub pre_run_hook {
     type_string($coninfo);
     wait_serial($coninfo, undef, 0, no_regex => 1);
     type_string("\n");
-    add_serial_console('hvc1') if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+    if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1) {
+        my $serial_terminal = check_var('ARCH', 'ppc64le') ? 'hvc2' : 'hvc1';
+        add_serial_console($serial_terminal);
+    }
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
         script_run('tcpdump -s0 -U -w /tmp/tcpdump' . $self->{name} . '.pcap >& /dev/null & export CHECK_TCPDUMP_PID=$!');
         set_var('WICKED_TCPDUMP_PID', script_output('echo $CHECK_TCPDUMP_PID'));
