@@ -10,7 +10,6 @@
 # Summary: FIPS: In fips mode, openssl only works with the FIPS
 #          approved Cihper algorithms: AES and DES3
 #
-# Original Author: Qingming Su <qingming.su@suse.com>
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#44837
 

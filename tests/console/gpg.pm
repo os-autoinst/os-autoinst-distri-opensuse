@@ -18,8 +18,7 @@
 # - Sign test file
 # - Check test file signature
 # - Cleanup
-# Maintainer: Petr Cervinka <pcervinka@suse.com>, Dehai Kong <dhkong@suse.com>
-#             wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use strict;

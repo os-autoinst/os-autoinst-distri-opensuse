@@ -17,7 +17,7 @@
 #
 #    For DSA public key, test 1024/2048/3072 bits key pair generation,
 #    and message signing/verification.
-# Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use base "consoletest";
 use testapi;

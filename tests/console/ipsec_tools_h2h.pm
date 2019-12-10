@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Test Racoon host-to-host scenario
-# Maintainer: Jiawei Sun <jiawei.sun@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use strict;
 use warnings;

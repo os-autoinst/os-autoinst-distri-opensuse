@@ -10,7 +10,6 @@
 # Summary: FIPS : openssl should only list FIPS approved cryptographic functions
 #                 while system is working in fips mode
 #
-# Original Author: Qingming Su <qingming.su@suse.com>
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#44831
 

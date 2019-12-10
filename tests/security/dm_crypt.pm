@@ -15,7 +15,7 @@
 #
 # Summary: Test dm-crypt cipher support with cryptsetup tool. Make sure
 #          unsafe algorithms are not applicable in FIPS or non-FIPS mode.
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#39071
 
 use strict;

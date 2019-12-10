@@ -17,7 +17,7 @@
 #          Installation check - verify the setup of FIPS installation
 #          ENV mode - selected by FIPS_ENV_MODE
 #          Global mode - setup fips=1 in kernel command line
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#39071
 
 use strict;

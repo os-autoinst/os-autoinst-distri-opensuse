@@ -21,7 +21,6 @@
 #
 #          According to openssl wiki, "dss1" digest method is not available in openssl-1.1-x any more
 #
-# Original Author: Qingming Su <qingming.su@suse.com>
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#47471, poo#48020
 

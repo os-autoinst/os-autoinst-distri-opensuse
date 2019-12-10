@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Enable NSS module for Apache2 server with NSSFips on
-# Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 
 use strict;
 use warnings;

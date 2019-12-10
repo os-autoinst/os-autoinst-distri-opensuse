@@ -15,7 +15,7 @@
 #
 # Summary: Setup environment for EVM protection testing
 # Note: This case should come after 'ima_setup'
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#53579
 
 use base "opensusebasetest";

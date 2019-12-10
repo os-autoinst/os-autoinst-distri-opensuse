@@ -15,7 +15,6 @@
 #          test cases for fips verificaton when FIPS_ENABLED is set, like
 #          the cases to verify opessl hash, cipher, or public key algorithms
 #
-# Original Author: Qingming Su <qingming.su@suse.com>
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#44834
 

@@ -15,7 +15,7 @@
 #
 # Summary: Test EVM protection using HMACs
 # Note: This case should come after 'evm_setup'
-# Maintainer: wnereiz <wnereiz@member.fsf.org>
+# Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#53579
 
 use base "opensusebasetest";

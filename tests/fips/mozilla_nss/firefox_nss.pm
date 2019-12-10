@@ -10,8 +10,7 @@
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 
 # Summary: FIPS mozilla-nss test for firefox
-# Maintainer: mitiao <mitiao@gmail.com>,
-#             wnereiz <wnereiz@fsf.member.org>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tag: poo#47018
 
 use base "x11test";

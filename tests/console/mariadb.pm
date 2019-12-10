@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: client part of mariadb ssl connection test
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Ben Chou <bchou@suse.com>
 # Tags: TC1595192
 
 use base "consoletest";
