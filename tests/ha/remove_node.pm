@@ -16,11 +16,12 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils 'is_sle';
 
 sub remove_state_join {
     my ($method, $cluster_name, $node_01, $node_02) = @_;
-    my $remove_cmd = 'crm cluster remove -y -c';
-    my $join_cmd   = 'crm cluster join -y -w /dev/watchdog -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
+    my $remove_cmd = 'ha-cluster-remove -y -c';
+    my $join_cmd   = 'ha-cluster-join -y -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
     my $timer      = bmwqemu::scale_timeout(5);
 
     # Waiting for the other nodes to be ready
@@ -61,7 +62,7 @@ sub run {
     remove_state_join('HOST', $cluster_name, $node_01_host, $node_02_host);
 
     # Both remove and join the second node by its IP address
-    remove_state_join('IP', $cluster_name, $node_01_ip, $node_02_ip);
+    remove_state_join('IP', $cluster_name, $node_01_ip, $node_02_ip) unless is_sle('=12-sp2');
 
     # Synchronize all the nodes and save cluster status
     barrier_wait("REMOVE_NODE_FINAL_JOIN_$cluster_name");
