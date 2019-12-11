@@ -289,7 +289,7 @@ sub setup_network {
         }
     }
 
-    disable_and_stop_service(opensusebasetest::firewall);
+    disable_and_stop_service(opensusebasetest::firewall, ignore_failure => 1);
 }
 
 sub run {
