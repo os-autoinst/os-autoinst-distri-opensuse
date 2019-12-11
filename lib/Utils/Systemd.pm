@@ -21,7 +21,6 @@ use Carp 'croak';
 use strict;
 use warnings;
 use testapi qw(script_run assert_script_run);
-use version_utils 'is_sle';
 
 our @EXPORT = qw(
   disable_and_stop_service
@@ -36,24 +35,22 @@ C<Utils::Systemd> - Library for systemd related functionality
 
 =head2 disable_and_stop_service
 
-    disable_and_stop_service($service_name[, mask_service => $mask_service][, %args]);
+    disable_and_stop_service($service_name[, mask_service => $mask_service][, ignore_failure => $ignore_failure]);
 
 Disable and stop the service C<$service_name>.
 Mask it if I<$mask_service> evaluates to true. Default: false
-Pass additional arguments to the internal C<systemctl> call.
+Raise a failure if I<$ignore_failure> evaluates to true. Default: false
 
 =cut
 sub disable_and_stop_service {
     my ($service_name, %args) = @_;
     die "disable_and_stop_service(): no service name given" if ($service_name =~ /^ *$/);
-    $args{mask_service} //= 0;
+    $args{mask_service}   //= 0;
+    $args{ignore_failure} //= 0;
 
-    my $cmd = $args{mask_service} ? 'mask' : 'disable';
-    if (is_sle('<12-sp3')) {
-        map { systemctl("$_ $service_name") } ($cmd, 'stop');
-    } else {
-        systemctl("$cmd --now $service_name");
-    }
+    systemctl("mask $service_name",    ignore_failure => $args{ignore_failure}) if ($args{mask_service});
+    systemctl("disable $service_name", ignore_failure => $args{ignore_failure}) unless ($args{mask_service});
+    systemctl("stop $service_name",    ignore_failure => $args{ignore_failure});
 }
 
 =head2 systemctl
@@ -62,7 +59,6 @@ Wrapper around systemctl call to be able to add some useful options.
 
 Please note that return code of this function is handle by 'script_run' or
 'assert_script_run' function, and as such, can be different.
-Ignore any failure if I<$ignore_failure> evaluates to true. Default: false
 =cut
 sub systemctl {
     my ($command, %args) = @_;
