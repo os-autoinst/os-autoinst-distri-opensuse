@@ -113,9 +113,9 @@ sub run {
         send_key "tab";
     }
     if (check_var('BACKEND', 'ipmi')) {
-        $image_path .= " ipv6.disable=1 "        if get_var('LINUX_BOOT_IPV6_DISABLE');
-        $image_path .= "ifcfg=$interface=dhcp4 " if (!get_var('NETWORK_INIT_PARAM') && !get_var('SUT_NETDEVICE_SKIPPED'));
-        $image_path .= 'plymouth.enable=0 ';
+        $image_path .= " ipv6.disable=1 "         if get_var('LINUX_BOOT_IPV6_DISABLE');
+        $image_path .= " ifcfg=$interface=dhcp4 " if (!get_var('NETWORK_INIT_PARAM') && !get_var('SUT_NETDEVICE_SKIPPED'));
+        $image_path .= ' plymouth.enable=0 ';
     }
     # Execute installation command on pxe management cmd console
     type_string_slow ${image_path} . " ";
