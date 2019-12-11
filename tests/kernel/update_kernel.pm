@@ -26,6 +26,24 @@ use Utils::Backends 'use_ssh_serial_console';
 
 my $wk_ker = 0;
 
+# kernel-azure is never released in pool, first release is in updates.
+# Fix the chicken & egg problem manually.
+sub first_azure_release {
+    my $repo = shift;
+
+    remove_kernel_packages();
+    fully_patch_system;
+
+    my @repos = split(",", $repo);
+    while (my ($i, $val) = each(@repos)) {
+        zypper_call("ar $val kernel-update-$i");
+    }
+
+    zypper_call("ref");
+    zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    zypper_call('in kernel-devel');
+}
+
 sub prepare_azure {
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
@@ -315,8 +333,13 @@ sub run {
         kgraft_state;
     }
     elsif (get_var('AZURE')) {
-        prepare_azure;
-        update_kernel($repo, $incident_id);
+        if (get_var('AZURE_FIRST_RELEASE')) {
+            first_azure_release($repo);
+        }
+        else {
+            prepare_azure;
+            update_kernel($repo, $incident_id);
+        }
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
@@ -333,3 +356,34 @@ sub test_flags {
     return {fatal => 1};
 }
 1;
+
+=head1 Configuration
+
+=head2 INCIDENT_REPO
+
+Comma-separated repository URL list with packages to be tested. Used together
+with KGRAFT, AZURE or in the default case. Mutually exclusive with KOTD_REPO.
+INCIDENT_ID variable must be set to maintenance incident number.
+
+=head2 KGRAFT
+
+When KGRAFT variable evaluates to true, the incident is a kgraft/livepatch
+test. Install one of the older released kernels and apply kgraft/livepatch
+from incident repository to it.
+
+=head2 AZURE
+
+When AZURE variable evaluates to true, the incident is a public cloud kernel
+test. Uninstall kernel-default and install kernel-azure instead. Then update
+kernel as in the default case.
+
+=head3 AZURE_FIRST_RELEASE
+
+When AZURE_FIRST_RELEASE evaluates to true, install kernel-azure directly
+from incident repository and update system. This is a chicken&egg workaround
+because there is never any kernel-azure package in the pool repository.
+
+=head2 KOTD_REPO
+
+Repository URL for installing kernel of the day packages. Update system and
+install new kernel using the simplified installation method.
