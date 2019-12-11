@@ -9,6 +9,7 @@ schedule:
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
+  - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -32,4 +33,3 @@ schedule:
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
   - shutdown/hyperv_upload_assets
-  

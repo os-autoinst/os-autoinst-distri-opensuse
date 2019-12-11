@@ -866,7 +866,7 @@ sub load_inst_tests {
     }
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
-        loadtest "installation/scc_registration" unless check_var('FLAVOR', 'Full');
+        loadtest "installation/scc_registration";
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
