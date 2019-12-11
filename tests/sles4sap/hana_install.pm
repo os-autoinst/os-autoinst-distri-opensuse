@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';
+use POSIX 'ceil';
 
 sub upload_install_log {
     script_run "tar -zcvf /tmp/hana_install.log.tgz /var/tmp/hdb*";
@@ -41,6 +42,9 @@ sub run {
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
 
+    # Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
+    $self->install_libopenssl_legacy($path);
+
     # This installs HANA. Start by configuring the appropiate SAP profile
     $self->prepare_profile('HANA');
 
@@ -48,11 +52,13 @@ sub run {
     my $tout = get_var('HANA_INSTALLATION_TIMEOUT', 2700);    # Timeout for HANA installation commands. Defaults to NW's timeout times 2
     $self->copy_media($proto, $path, $tout, '/sapinst');
 
-    # Mount points information: use the same paths and minimum sizes as the wizard
-    my %mountpts = (
-        hanadata   => {mountpt => '/hana/data',         size => '24g'},
-        hanalog    => {mountpt => '/hana/log',          size => '12g'},
-        hanashared => {mountpt => '/hana/shared',       size => '24g'},
+    # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
+    my $full_size = ceil($RAM / 1024);                        # Use the ceil value of RAM in GB
+    my $half_size = ceil($full_size / 2);
+    my %mountpts  = (
+        hanadata   => {mountpt => '/hana/data',         size => "${full_size}g"},
+        hanalog    => {mountpt => '/hana/log',          size => "${half_size}g"},
+        hanashared => {mountpt => '/hana/shared',       size => "${full_size}g"},
         usr_sap    => {mountpt => "/usr/sap/$sid/home", size => '50g'}
     );
 

@@ -12,6 +12,9 @@ use ipmi_backend_utils;
 use x11utils 'ensure_unlocked_desktop';
 use power_action_utils 'power_action';
 use Utils::Backends 'use_ssh_serial_console';
+use registration 'add_suseconnect_product';
+use version_utils 'is_sle';
+use utils 'zypper_call';
 
 our @EXPORT = qw(
   ensure_serialdev_permissions_for_sap
@@ -31,6 +34,7 @@ our @EXPORT = qw(
   test_stop
   test_start
   reboot
+  install_libopenssl_legacy
 );
 
 our $prev_console;
@@ -409,6 +413,27 @@ sub reboot {
     $self->select_serial_terminal;
 }
 
+=head2 install_libopenssl_legacy
+
+ install_libopenssl_legacy($hana_path);
+
+Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
+
+Set C<$hana_path> to the HANA installation media.
+=cut
+sub install_libopenssl_legacy {
+    my ($self, $hana_path) = @_;
+
+    if ($hana_path =~ s/.*\/SPS([0-9]+)rev[0-9]\/.*/$1/r) {
+        my $hana_version = $1;
+        if (is_sle('15+') && ($hana_version <= 2)) {
+            # The old libopenssl is in Legacy Module
+            add_suseconnect_product('sle-module-legacy');
+            zypper_call('in libopenssl1_0_0');
+        }
+    }
+}
+
 sub post_run_hook {
     my ($self) = @_;
 
@@ -419,7 +444,8 @@ sub post_run_hook {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->select_serial_terminal;
+
+    $self->export_logs;
     $self->SUPER::post_fail_hook;
 }
 

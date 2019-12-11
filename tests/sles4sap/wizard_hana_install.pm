@@ -17,12 +17,10 @@ use warnings;
 use testapi;
 use utils;
 use x11utils 'turn_off_gnome_screensaver';
-use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my ($proto, $path) = split m|://|, get_required_var('HANA');
-    die "Currently supported protocols are nfs and smb" unless $proto =~ /^(nfs|smb)$/;
+    my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
 
     my $timeout  = 3600 * get_var('TIMEOUT_SCALE', 1);
     my $sid      = get_required_var('INSTANCE_SID');
@@ -42,6 +40,9 @@ sub run {
 
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
+
+    # Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
+    $self->install_libopenssl_legacy($path);
 
     select_console 'x11';
     # Hide the mouse so no needle will fail because of the mouse pointer appearing
