@@ -45,7 +45,7 @@ EOF
     } elsif ($slurm_conf eq "ha") {
         my $config = << "EOF";
 sed -i "/^SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
+sed -i "/^#SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
 sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
 sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
@@ -57,7 +57,7 @@ EOF
     } elsif ($slurm_conf eq "nfs_db") {
         my $config = << "EOF";
 sed -i "/^SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^#BackupController.*/c\\BackupController=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
+sed -i "/^#SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
 sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
 sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
 sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
