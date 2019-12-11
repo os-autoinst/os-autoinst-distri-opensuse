@@ -1,6 +1,6 @@
 =head1 bootloader_spvm
 
-Library for spvm backend to boot and install SLES
+Library for spvm and pvm_hmc backend to boot and install SLES
 
 =cut
 # SUSE's openQA tests

@@ -381,7 +381,7 @@ that.
 =cut
 sub check_console_font {
     # Does not make sense on ssh-based consoles
-    return if get_var('BACKEND', '') =~ /ipmi|spvm/;
+    return if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match
     select_console('root-console', await_console => 0);
