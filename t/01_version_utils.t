@@ -3,13 +3,6 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
-use FindBin;
-
-# This is required to be able to read
-# packages in distri's lib/ folder.
-# Alternatively it can be supplied as -I option
-# while running prove.
-use lib ("$FindBin::Bin/lib", "$FindBin::Bin/../lib");
 
 use testapi qw(check_var get_var set_var);
 

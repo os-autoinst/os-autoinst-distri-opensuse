@@ -3,15 +3,8 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
-use FindBin;
 use YAML::Tiny;
 use File::Basename;
-
-# This is required to be able to read
-# packages in distri's lib/ folder.
-# Alternatively it can be supplied as -I option
-# while running prove.
-use lib ("$FindBin::Bin/lib", "$FindBin::Bin/../lib");
 
 subtest 'parse_yaml_test_data_single_import' => sub {
     use scheduler;
