@@ -15,10 +15,18 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_tumbleweed';
 
 sub run {
-    assert_script_run('ps -ef | grep bin/X');
-    assert_screen('xorg-tty');
+    if (script_run("ps -ef | grep bin/X | egrep 'tty7|wayland'") == 1) {
+        if (is_tumbleweed && script_run('ps -ef | grep bin/X | grep tty2') == 0) {
+            record_soft_failure('boo#1138327');
+        }
+        else {
+            script_run('ps -ef | grep bin/X');
+            die 'Expected tty7 used by X or wayland not found';
+        }
+    }
 }
 
 1;
