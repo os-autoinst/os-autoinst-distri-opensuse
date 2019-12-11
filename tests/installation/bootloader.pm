@@ -38,11 +38,11 @@ use bootloader_spvm;
 use registration;
 use version_utils qw(:VERSION :SCENARIO);
 use utils;
-use Utils::Backends 'is_spvm';
+use Utils::Backends 'is_pvm';
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
-    return boot_pvm if is_spvm;
+    return boot_pvm if is_pvm;
     return           if get_var('BOOT_HDD_IMAGE');
     return           if select_bootmenu_option == 3;
     # the default loader is isolinux on openSUSE/SLE products with product-builder

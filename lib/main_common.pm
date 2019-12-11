@@ -22,7 +22,7 @@ use utils;
 use wicked::TestContext;
 use Utils::Architectures ':ARCH';
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
-use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x is_spvm);
+use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x is_pvm);
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';
@@ -440,7 +440,7 @@ sub load_reboot_tests {
         return;
     }
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
-    if ((is_s390x && !get_var('ENCRYPT')) || uses_qa_net_hardware() || is_spvm) {
+    if ((is_s390x && !get_var('ENCRYPT')) || uses_qa_net_hardware() || is_pvm) {
         loadtest "boot/reconnect_mgmt_console";
     }
     if (installyaststep_is_applicable()) {
@@ -570,7 +570,7 @@ sub load_system_role_tests {
             loadtest "installation/setup_online_repos";
         }
         # Do not run on REMOTE_CONTROLLER, IPMI and on Hyper-V in GUI mode
-        if ((!get_var('BACKEND', 'ipmi') || !is_spvm) && !is_hyperv_in_gui && !get_var("LIVECD")) {
+        if ((!get_var('BACKEND', 'ipmi') || !is_pvm) && !is_hyperv_in_gui && !get_var("LIVECD")) {
             loadtest "installation/logpackages";
         }
     }
@@ -809,7 +809,7 @@ sub boot_hdd_image {
     if (get_var('UEFI') && (get_var('BOOTFROM') || get_var('BOOT_HDD_IMAGE'))) {
         loadtest 'boot/uefi_bootmenu';
     }
-    loadtest 'installation/bootloader' if is_spvm;
+    loadtest 'installation/bootloader' if is_pvm;
     loadtest 'boot/boot_to_desktop';
 }
 
@@ -983,7 +983,7 @@ sub load_inst_tests {
             and !is_hyperv_in_gui
             and !is_bridged_networking
             and (get_var('BACKEND', '') !~ /ipmi|s390x/)
-            and !is_spvm
+            and !is_pvm
             and is_sle('12-SP2+'))
         {
             loadtest "installation/hostname_inst";

@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 use utils;
 use registration;
-use Utils::Backends 'is_spvm';
+use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 
@@ -209,8 +209,8 @@ sub configure_service {
     activate_kdump;
 
     # restart to activate kdump
-    power_action('reboot', keepconsole => is_spvm);
-    reconnect_mgmt_console if is_spvm;
+    power_action('reboot', keepconsole => is_pvm);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot;
 
     select_console 'root-console';
@@ -247,7 +247,7 @@ sub check_function {
         assert_screen 'grub2', 180;
         wait_screen_change { send_key 'ret' };
     }
-    elsif (is_spvm) {
+    elsif (is_pvm) {
         reconnect_mgmt_console;
     }
     else {
