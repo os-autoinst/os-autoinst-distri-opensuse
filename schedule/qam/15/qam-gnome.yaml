@@ -24,7 +24,7 @@ schedule:
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
-- console/x_vt
+- {{x_vt}}
 - console/zypper_lr
 - console/zypper_ref
 - console/ncurses
@@ -75,6 +75,10 @@ conditional_schedule:
         - boot/reconnect_mgmt_console
       x86_64:
         - installation/grub_test
+  x_vt:
+    ARCH:
+      x86_64:
+        - console/x_vt
   salt:
     SLE_PRODUCT:
       sles:
