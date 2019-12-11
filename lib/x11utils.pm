@@ -35,6 +35,7 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
+  turn_off_gnome_lockscreen
   untick_welcome_on_next_startup
 );
 
@@ -295,6 +296,17 @@ Disable suspend in gnome. To be called from a command prompt, for example an xte
 =cut
 sub turn_off_gnome_suspend {
     script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
+}
+
+=head2 turn_off_gnome_lockscreen
+
+  turn_off_gnome_lockscreen()
+
+Disable lock screen in gnome. To be called from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_lockscreen {
+    script_run 'gsettings set org.gnome.desktop.lockdown disable-lock-screen true';
 }
 
 =head2 untick_welcome_on_next_startup

@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use x11utils 'turn_off_gnome_screensaver';
+use x11utils qw(turn_off_gnome_screensaver turn_off_gnome_lockscreen turn_off_gnome_suspend);
 
 sub run {
     my ($self) = @_;
@@ -50,6 +50,8 @@ sub run {
 
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
+    turn_off_gnome_lockscreen;
+    turn_off_gnome_suspend;
     type_string "killall xterm\n";
     assert_screen 'generic-desktop';
     x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
