@@ -25,7 +25,7 @@ use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
-use Utils::Systemd 'systemctl';
+use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -1153,7 +1153,7 @@ sub ensure_serialdev_permissions {
 
  disable_serial_getty();
 
-Serial getty service pollutes serial output with login propmt, which
+Serial getty service pollutes serial output with login prompt, which
 interferes with the output, e.g. when calling C<script_output>.
 Login prompt messages on serial are used on some remote backend to
 identify that system has been booted, so do not mask on non-qemu backends.
@@ -1166,14 +1166,11 @@ sub disable_serial_getty {
     return if check_var('BACKEND', 's390x');
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
-    # Return if already disabled
-    return if script_run "systemctl is-enabled $service_name";
-    systemctl "stop $service_name",    ignore_failure => 1;
-    systemctl "disable $service_name", ignore_failure => 1;
-    record_info 'serial-getty',        "Serial getty disabled for $testapi::serialdev";
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
-    systemctl "mask $service_name", ignore_failure => 1 if check_var('BACKEND', 'qemu');
-    record_info 'serial-getty', "Serial getty mask for $testapi::serialdev";
+    my $mask = check_var('BACKEND', 'qemu');
+    my $cmd = $mask ? 'mask' : 'disable';
+    disable_and_stop_service($service_name, mask_service => $mask, ignore_failure => 1);
+    record_info 'serial-getty', "Serial getty $cmd for $testapi::serialdev";
 }
 
 =head2 exec_and_insert_password
