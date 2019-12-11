@@ -1,4 +1,4 @@
-=head1 bootloader_spvm
+=head1 bootloader_pvm
 
 Library for spvm and pvm_hmc backend to boot and install SLES
 
@@ -12,7 +12,7 @@ Library for spvm and pvm_hmc backend to boot and install SLES
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-package bootloader_spvm;
+package bootloader_pvm;
 
 use base Exporter;
 use Exporter;
@@ -77,8 +77,8 @@ sub boot_pvm {
 
 sub boot_hmc_pvm {
     my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
-    my $lpar_id  = get_required_var('LPAR_ID');
-    my $hmc = select_console 'powerhmc-ssh';
+    my $lpar_id          = get_required_var('LPAR_ID');
+    my $hmc              = select_console 'powerhmc-ssh';
 
     # detach possibly attached terminals - might be left over
     type_string "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'\n";
