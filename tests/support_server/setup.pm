@@ -527,7 +527,6 @@ sub setup_nfs_server {
         $nfs_permissions = get_required_var("NFS_PERMISSIONS");
     }
 
-    zypper_call('in rpcbind nfs-kernel-server');
     systemctl("start rpcbind");
     systemctl("start nfs-server");
     assert_script_run("nfsstat –s");
