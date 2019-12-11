@@ -70,6 +70,7 @@ sub run {
     assert_script_run('git -c http.sslVerify=false clone --recurse-submodules https://gitlab.suse.de/kernel-qa/runltp-support.git || git -C runltp-support -c http.sslVerify=false pull --recurse-submodules');
     assert_script_run('cd runltp-support && ./host-install.sh');
     assert_script_run("./install-setup-run-syzkaller.sh $scc $iso", timeout => 10800);
+    type_string("\n"); # Clear any characters which were somehow passed to the shell
     assert_script_run('./tar-up-results.sh');
     upload_logs('runltp-ng/results.tar.xz');
 
