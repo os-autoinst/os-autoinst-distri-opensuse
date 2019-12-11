@@ -50,9 +50,9 @@ sub disable_and_stop_service {
 
     my $cmd = $args{mask_service} ? 'mask' : 'disable';
     if (is_sle('<12-sp3')) {
-        map { systemctl("$_ $service_name", %args) } ($cmd, 'stop');
+        map { systemctl("$_ $service_name") } ($cmd, 'stop');
     } else {
-        systemctl("$cmd --now $service_name", %args);
+        systemctl("$cmd --now $service_name");
     }
 }
 
