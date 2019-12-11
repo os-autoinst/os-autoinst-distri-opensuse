@@ -1,9 +1,7 @@
 ---
-name:           ext4@yast-xen-pv
+name:           ext4@yast
 description:    >
-  Test for ext4 filesystem in svirt-xen-pv.
-  Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
-  due to grub2 doesnt support xfb console.
+  Test for ext4 filesystem.
 vars:
   FILESYSTEM: ext4
   FORMAT_DASD: install
@@ -22,10 +20,12 @@ schedule:
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/grub_test
   - installation/first_boot
   - console/validate_ext4_fs
 test_data:
