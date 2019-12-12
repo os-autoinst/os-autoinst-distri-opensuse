@@ -12,7 +12,7 @@
 # - Define the timeout value conditioned to some system variables
 # - If VIRSH_VMM_TYPE is defined as "linux", check serial for 'Welcome to SUSE Linux'
 # - Otherwise, wait for boot with determined timeout
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: yutao <yuwang@suse.com>
 
 use base 'bootbasetest';
 use strict;

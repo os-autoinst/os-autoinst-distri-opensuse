@@ -16,7 +16,7 @@
 # - Push update via ssh
 # - Git clone via https protocol
 # - Clean up
-# Maintainer: Dehai Kong <dhkong@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 use base "consoletest";
 use strict;

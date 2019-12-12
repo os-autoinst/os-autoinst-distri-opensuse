@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Record the disk usage before migration
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Wei Gao <wegao@suse.com>
 
 use base "opensusebasetest";
 use strict;

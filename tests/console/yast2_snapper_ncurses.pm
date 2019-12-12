@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: yast2 snapper test for ncurses
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 use base qw(y2snapper_common y2_module_consoletest);
 

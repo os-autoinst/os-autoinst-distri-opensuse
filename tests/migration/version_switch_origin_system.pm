@@ -11,7 +11,7 @@
 #       reload needles.
 #       At the beginning of upgrade, we need patch the original
 #       system on hdd, which is still old version at the moment.
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Wei Gao <wegao@suse.com>
 
 use base "opensusebasetest";
 use strict;

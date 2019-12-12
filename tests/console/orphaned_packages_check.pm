@@ -10,7 +10,7 @@
 # Summary: Check and output orphaned packages
 # - Run "zypper packages --orphaned"
 # - Save screenshot
-# Maintainer: Wes <whdu@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 # Tags: poo#19606
 
 use base "consoletest";

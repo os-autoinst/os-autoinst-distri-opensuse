@@ -14,7 +14,7 @@
 # - Check credits
 # - Close about
 # - Exit gedit
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436120
 
 use base "x11test";

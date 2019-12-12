@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: lock package test mainly used for migration testsuite - poo#17206
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 package lock_package;
 use base "consoletest";

@@ -17,7 +17,7 @@
 # - Send CTRL-MINUS (zoom out) and check
 # - Send CTRL-+ (zoom in)
 # - Exit evince
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436024
 
 use base "x11test";

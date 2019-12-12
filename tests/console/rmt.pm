@@ -10,7 +10,7 @@
 # Summary: Add rmt configuration test
 #    test installation and upgrade with rmt pattern, basic configuration via
 #    rmt-wizard and validation with rmt-cli repos rmt-cli scc sync return value
-# Maintainer: Jiawei Sun <jwsun@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 use base "consoletest";
 use strict;

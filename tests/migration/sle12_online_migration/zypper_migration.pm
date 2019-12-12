@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: SLE 12 online migration using zypper migration
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: yutao <yuwang@suse.com>
 
 use base "installbasetest";
 use strict;

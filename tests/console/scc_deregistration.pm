@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Deregister from the SUSE Customer Center
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 use strict;
 use warnings;

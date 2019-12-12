@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Online migration setup
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: yutao <yuwang@suse.com>
 
 use base "consoletest";
 use strict;

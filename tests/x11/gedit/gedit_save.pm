@@ -18,7 +18,7 @@
 # - Save and quit gedit
 # - Launch gedit, open text test file and check
 # - Exit gedit, erase test file
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436121
 
 use base "x11test";
