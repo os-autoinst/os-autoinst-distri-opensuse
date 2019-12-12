@@ -21,7 +21,7 @@ use x11utils;
 use version_utils 'is_desktop_installed';
 
 sub install_docker {
-    my $docker_url = "https://download.docker.com/linux/static/stable/x86_64/docker-19.03.2.tgz";
+    my $docker_url = "https://download.docker.com/linux/static/stable/x86_64/docker-19.03.5.tgz";
 
     assert_script_run "curl -s $docker_url | tar zxf - --strip-components 1 -C /usr/bin", 120;
     # Allow the user to run docker. We can't add him to the docker group without restarting X.
