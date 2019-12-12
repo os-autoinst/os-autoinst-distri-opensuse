@@ -24,14 +24,13 @@ schedule:
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
-- {{x_vt}}
+- {{x86_64_tests}}
 - console/zypper_lr
 - console/zypper_ref
 - console/ncurses
 - console/yast2_lan
 - console/curl_https
 - {{salt}}
-- console/glibc_sanity
 - console/zypper_in
 - console/yast2_i
 - console/yast2_bootloader
@@ -75,9 +74,10 @@ conditional_schedule:
         - boot/reconnect_mgmt_console
       x86_64:
         - installation/grub_test
-  x_vt:
+  x86_64_tests:
     ARCH:
       x86_64:
+        - console/glibc_sanity
         - console/x_vt
   salt:
     SLE_PRODUCT:
