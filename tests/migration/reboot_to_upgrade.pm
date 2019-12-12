@@ -11,7 +11,7 @@
 #       Just trigger reboot action, afterwards tests will be
 #       incepted by later test modules, such as tests in
 #       load_boot_tests or wait_boot in setup_zdup.pm
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Wei Gao <wegao@suse.com>
 
 use base "opensusebasetest";
 use strict;

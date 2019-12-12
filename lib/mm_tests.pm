@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: functions are commonly used for multi-machine tests
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 package mm_tests;
 

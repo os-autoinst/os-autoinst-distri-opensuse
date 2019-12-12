@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: common parts on SMT and RMT
-# Maintainer: Dehai Kong <dhkong@suse.com> Jaiwei Sun <jwsun@suse.com> Lemon Li <leli@suse.com>
+# Maintainer: Lemon Li <leli@suse.com>
 
 =head1 repo_tools
 

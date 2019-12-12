@@ -11,7 +11,7 @@
 #       reload needles.
 #       After original system being patched, we need switch
 #       VERSION to the target version of upgrade.
-# Maintainer: Qingming Su <qmsu@suse.com>
+# Maintainer: Wei Gao <wegao@suse.com>
 
 use base "opensusebasetest";
 use strict;

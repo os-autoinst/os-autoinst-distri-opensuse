@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: sle12 online migration testsuite
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Wei Gao <wegao@suse.com>
 
 use base "y2_module_consoletest";
 use strict;

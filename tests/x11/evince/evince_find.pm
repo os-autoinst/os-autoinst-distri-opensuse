@@ -16,7 +16,7 @@
 # - Type CTRL-SHIFT-G 2 times and check
 # - Exit search with ESC
 # - Close evince
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436022
 
 use base "x11test";

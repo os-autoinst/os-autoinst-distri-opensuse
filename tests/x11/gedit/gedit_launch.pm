@@ -13,7 +13,7 @@
 # - Close gedit by "close" button
 # - Launch gedit again
 # - Close gedit by CTRL-Q
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436122
 
 use base "x11test";

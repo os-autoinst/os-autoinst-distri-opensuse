@@ -12,7 +12,7 @@
 # - Launch evince and open test.pdf from datadir
 # - Send ALT-F10 (maximize) and check
 # - Close evince
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436023
 
 use base "x11test";

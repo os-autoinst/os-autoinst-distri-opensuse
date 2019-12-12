@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Register base product & extensions with SUSEConnect
-# Maintainer: Jiawei Sun <jwsun@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 =head1 suseconnect_register
 

@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Conduct a rollback after migration back to previous system
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: yutao <yuwang@suse.com>
 
 use base "consoletest";
 use strict;

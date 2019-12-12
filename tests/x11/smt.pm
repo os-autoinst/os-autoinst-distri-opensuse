@@ -10,7 +10,7 @@
 # Summary: Add smt configuration test
 #    test installation and upgrade with smt pattern, basic configuration via
 #    smt-wizard and validation with smt-repos smt-sync return value
-# Maintainer: Jozef Pupava <jpupava@suse.com>, Jiawei Sun <jwsun@suse.com>, Dehai Kong <dhkong@suse.com>
+# Maintainer: Jozef Pupava <jpupava@suse.com>, Wei Gao <wegao@suse.com>
 
 use base 'x11test';
 use strict;

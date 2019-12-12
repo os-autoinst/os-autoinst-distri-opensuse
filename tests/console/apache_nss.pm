@@ -9,7 +9,7 @@
 
 # Summary: Enable NSS module for Apache2 server
 # - calls setup_apache2 with mode = NSS (lib/apachetest.pm)
-# Maintainer: Qingming Su <qingming.su@suse.com>
+# Maintainer: Ben Chou <BChou@suse.com>
 
 use strict;
 use warnings;

@@ -15,7 +15,7 @@
 # - Send F5 (presentation mode) and check
 # - Send ESC to exit presentation mode
 # - Close evince
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: Huajian Luo <hluo@suse.com>
 # Tags: tc#1436026
 
 use base "x11test";

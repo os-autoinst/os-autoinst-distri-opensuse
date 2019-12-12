@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: check locked package after lock package test applied
-# Maintainer: Wei Jiang <wjiang@suse.com>
+# Maintainer: Lemon <leli@suse.com>
 
 use base "consoletest";
 use strict;

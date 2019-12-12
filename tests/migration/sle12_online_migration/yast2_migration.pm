@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: sle12 online migration testsuite
-# Maintainer: mitiao <mitiao@gmail.com>
+# Maintainer: yutao <yuwang@suse.com>
 
 use base 'y2_installbase';
 use strict;
