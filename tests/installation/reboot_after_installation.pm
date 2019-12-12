@@ -37,6 +37,12 @@ sub run {
         # to reboot from this disk after downloading the bootconfig via PXE.
 
         my $jobid_server = (get_parents())->[0] or die "Unexpectedly no parent job found";
+        if (get_var('USE_SUPPORT_SERVER_TEST_INSTDISK_MULTIPATH')) {
+            # A multipath robustness test was in progress during package installation:
+            # wait until the supportserver reports the tidy-up of all multipaths
+            # (reference: meddle_multipaths.pm)
+            mutex_wait("multipathed_iscsi_export_clean", $jobid_server);
+        }
         # "supportserver: you have my system disk; please prepare a PXE menu entry with my new bootconfig"
         mutex_create("custom_pxe_client_ready", $jobid_server);
         # Await server's response "OK, done" (custom_pxeboot.pm)

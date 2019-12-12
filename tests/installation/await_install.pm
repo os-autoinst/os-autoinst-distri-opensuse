@@ -50,6 +50,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use lockapi;
+use mmapi;
 use utils;
 use version_utils qw(:VERSION :BACKEND);
 use ipmi_backend_utils;
@@ -182,6 +183,13 @@ sub run {
             next;
         }
         last;
+    }
+
+    if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_REPORT_PKGINSTALL')) {
+        my $jobid_server = (get_parents())->[0] or die "USE_SUPPORT_SERVER_REPORT_PKGINSTALL set, but no parent supportserver job found";
+        # notify the supportserver about current status (e.g.: meddle_multipaths.pm)
+        mutex_create("client_pkginstall_done", $jobid_server);
+        record_info("Disk I/O", "Mutex \"client_pkginstall_done\" created");
     }
 
     # Stop reboot countdown where necessary for e.g. uploading logs
