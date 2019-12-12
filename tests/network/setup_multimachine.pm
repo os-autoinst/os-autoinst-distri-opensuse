@@ -28,9 +28,8 @@ sub run {
     assert_script_run('echo "10.0.2.101 server master" >> /etc/hosts');
     assert_script_run('echo "10.0.2.102 client minion" >> /etc/hosts');
 
-    # Configure static network, disable firewall, ignore failure which can
-    # happen for SuSEfirewall2
-    disable_and_stop_service($self->firewall, ignore_failure => 1);
+    # Configure static network, disable firewall
+    disable_and_stop_service($self->firewall);
 
     # Configure the internal network an  try it
     if ($hostname =~ /server|master/) {
