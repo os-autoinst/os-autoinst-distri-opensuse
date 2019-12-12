@@ -16,11 +16,81 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use version_utils 'is_desktop_installed';
+use version_utils qw(is_desktop_installed is_sle);
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
 
 sub yast2_migration_gnome_remote {
     return check_var('MIGRATION_METHOD', 'yast') && check_var('DESKTOP', 'gnome') && get_var('REMOTE_CONNECTION');
+}
+
+sub yast2_migration_gnome_x11 {
+    # just use this workaround for sles15+
+    return check_var('MIGRATION_METHOD', 'yast') && check_var('DESKTOP', 'gnome') && is_sle('15+');
+}
+
+# deal with yast2 online migration conflicts in gnome x11 with yast2
+sub yast2_migration_handle_conflicts_x11 {
+    my $self = shift;
+
+    # give a little time to check package
+    assert_screen 'yast2-migration-summary', 120;
+    if (check_screen("yast2-migration-conflicts", 30)) {
+        if (check_screen('manual-intervention', 0)) {
+            # In function deal_with_dependency_issues we handle different actions by VIDEOMODE,
+            # here we need change VIDEOMODE to something not text.
+            my $orig_videomode = get_var('VIDEOMODE', '');
+            set_var("VIDEOMODE", 'ssh-x');
+            $self->deal_with_dependency_issues;
+            set_var("VIDEOMODE", $orig_videomode);
+        }
+    }
+}
+
+# deal with yast2 online migration conflicts in text with yast
+sub yast2_migration_handle_conflicts_text {
+    # give a little time to check package conflicts
+    if (check_screen("yast2-migration-conflicts", 15)) {
+        if (!is_desktop_installed()) {
+            send_key "alt-c";
+            send_key "alt-p";    # show package dependencies
+        }
+        else {
+            assert_and_click 'migration-proposal-packages';
+        }
+        wait_still_screen(5);    # package dependencies need a few second to open in x11
+        save_screenshot;
+        if (get_var('RESOLVE_PACKAGE_CONFLICTS')) {
+            while (1) {
+                assert_screen ['package-conflict-resolution', 'addon-yast2-patterns'], 90;
+                last if match_has_tag 'addon-yast2-patterns';
+                if (match_has_tag 'package-conflict-resolution') {
+                    wait_screen_change { send_key 'alt-1' };
+                    if (!check_screen 'radio-button-selected', 0) {    ## no critic (ProhibitDeepNests)
+                        wait_screen_change { send_key 'spc' };
+                    }
+                    wait_screen_change { send_key 'alt-o' };
+                }
+                # wait for next screen, wait_screen_change is sometimes too fast
+                wait_still_screen 3;
+            }
+            wait_screen_change { send_key 'alt-a' };
+            while (1) {
+                assert_screen ['automatic-changes', '3rdpartylicense'];
+                if (match_has_tag '3rdpartylicense') {
+                    wait_screen_change { send_key 'alt-a' };
+                }
+                elsif (match_has_tag 'automatic-changes') {
+                    wait_screen_change { send_key 'alt-o' };
+                    last;
+                }
+            }
+            assert_screen 'yast2-migration-proposal';
+            wait_screen_change { send_key 'alt-n' };
+        }
+        else {
+            die "package conflicts";
+        }
+    }
 }
 
 sub run {
@@ -139,48 +209,11 @@ sub run {
     if (match_has_tag 'yast2-migration-installupdate') {
         send_key 'alt-y';
     }
-    # giva a little time to check package conflicts
-    if (check_screen("yast2-migration-conflicts", 15)) {
-        if (!is_desktop_installed()) {
-            send_key "alt-c";
-            send_key "alt-p";                               # show package dependencies
-        }
-        else {
-            assert_and_click 'migration-proposal-packages';
-        }
-        wait_still_screen(5);                               # package dependencies need a few second to open in x11
-        save_screenshot;
-        if (get_var('RESOLVE_PACKAGE_CONFLICTS')) {
-            while (1) {
-                assert_screen ['package-conflict-resolution', 'addon-yast2-patterns'], 90;
-                last if match_has_tag 'addon-yast2-patterns';
-                if (match_has_tag 'package-conflict-resolution') {
-                    wait_screen_change { send_key 'alt-1' };
-                    if (!check_screen 'radio-button-selected', 0) {    ## no critic (ProhibitDeepNests)
-                        wait_screen_change { send_key 'spc' };
-                    }
-                    wait_screen_change { send_key 'alt-o' };
-                }
-                # wait for next screen, wait_screen_change is sometimes too fast
-                wait_still_screen 3;
-            }
-            wait_screen_change { send_key 'alt-a' };
-            while (1) {
-                assert_screen ['automatic-changes', '3rdpartylicense'];
-                if (match_has_tag '3rdpartylicense') {
-                    wait_screen_change { send_key 'alt-a' };
-                }
-                elsif (match_has_tag 'automatic-changes') {
-                    wait_screen_change { send_key 'alt-o' };
-                    last;
-                }
-            }
-            assert_screen 'yast2-migration-proposal';
-            wait_screen_change { send_key 'alt-n' };
-        }
-        else {
-            die "package conflicts";
-        }
+    if (yast2_migration_gnome_x11) {
+        yast2_migration_handle_conflicts_x11($self);
+    }
+    else {
+        yast2_migration_handle_conflicts_text;
     }
 
     send_key "alt-n";
