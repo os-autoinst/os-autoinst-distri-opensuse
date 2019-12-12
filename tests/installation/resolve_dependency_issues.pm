@@ -26,6 +26,12 @@ sub run {
 
     if (check_screen('manual-intervention', 0)) {
         $self->deal_with_dependency_issues;
+    } elsif (check_screen('installation-settings-overview-loaded-scrollbar')) {
+        # We still need further check if we find scrollbar
+        assert_and_click "installation-settings-overview-loaded-scrollbar-down";
+        if (check_screen('manual-intervention', 0)) {
+            $self->deal_with_dependency_issues;
+        }
     }
 }
 
