@@ -56,6 +56,11 @@ sub run {
         barrier_wait("HAWK_GUI_INIT_$cluster_name");
         barrier_wait("HAWK_GUI_CHECKED_$cluster_name");
     }
+
+    # This module is the last one scheduled in cluster verification migration tests. Since node one
+    # handles the barriers when not using support server, we need to give it more time for the other
+    # nodes to finish
+    sleep bmwqemu::scale_timeout(10) if (is_node(1) and get_var('TEST') =~ /verify/ and !get_var('USE_SUPPORT_SERVER'));
 }
 
 # Specific test_flags for this test module
