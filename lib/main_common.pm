@@ -488,6 +488,7 @@ sub load_zdup_tests {
     loadtest 'boot/boot_to_desktop';
     loadtest "installation/opensuse_welcome"  if opensuse_welcome_applicable();
     loadtest 'console/check_upgraded_service' if !is_desktop;
+    loadtest 'console/orphaned_packages_check';
 }
 
 sub load_autoyast_tests {
@@ -1227,7 +1228,7 @@ sub load_consoletests {
     if (check_var_array('SCC_ADDONS', 'tcm') && get_var('PATTERNS') && is_sle('<15') && !get_var("MEDIA_UPGRADE")) {
         loadtest "feature/feature_console/deregister";
     }
-    loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || is_sle('>=12-SP4');
+    loadtest 'console/orphaned_packages_check' if is_jeos || get_var('UPGRADE') || get_var('ZDUP') || !is_sle('<12-SP4');
     loadtest "console/consoletest_finish";
 }
 
@@ -1683,6 +1684,7 @@ sub load_extra_tests_console {
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
+    loadtest "console/orphaned_packages_check";
 }
 
 sub load_extra_tests_phub {
