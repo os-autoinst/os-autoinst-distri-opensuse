@@ -25,7 +25,7 @@ sub reboot_wait {
     # Wait for tuned to tune everything
     my $timeout = 60;
     if (is_sle('>=15')) {
-        assert_script_run "timeout $timeout bash -c 'until tuned-adm verify >/dev/null ; do sleep 1 ; done'", $timeout;
+        assert_script_run "bash -c 'until tuned-adm verify >/dev/null ; do sleep 1 ; done'", $timeout;
     } else {
         sleep bmwqemu::scale_timeout($timeout);
     }
