@@ -22,7 +22,9 @@ sub run {
     my $self = shift;
 
     assert_and_click "start";
-    type_string "remote access\n";
+    type_string "remote access";
+    assert_screen "start_menu-remote_access-controlpanel";
+    send_key "ret";
 
     assert_and_click "allow-remote-connections";
     assert_screen "allow-connections-with-nla-enabled";
