@@ -7,7 +7,7 @@ schedule:
 - installation/scc_registration
 - installation/add_update_test_repo
 - installation/addon_products_sle
-- installation/system_role
+- {{system_role}}
 - installation/partitioning
 - installation/partitioning_finish
 - installation/installer_timezone
@@ -39,7 +39,7 @@ schedule:
 - console/zypper_lr
 - console/zypper_ref
 - console/firewall_enabled
-- console/glibc_sanity
+- {{glibc_sanity}}
 - console/sshd
 - console/ssh_cleanup
 - console/ncurses
@@ -68,10 +68,18 @@ conditional_schedule:
       x86_64:
         - installation/isosize
         - installation/bootloader
+  system_role:
+    ARCH:
+      x86_64:
+        - installation/system_role
   grub:
     ARCH:
       s390x:
         - boot/reconnect_mgmt_console
       x86_64:
         - installation/grub_test
+  glibc_sanity:
+    ARCH:
+      x86_64:
+        - console/glibc_sanity
 ...
