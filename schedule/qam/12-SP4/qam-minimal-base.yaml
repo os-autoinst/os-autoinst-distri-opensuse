@@ -7,7 +7,7 @@ schedule:
 - installation/scc_registration
 - installation/add_update_test_repo
 - installation/addon_products_sle
-- installation/system_role
+- {{system_role}}
 - installation/partitioning
 - installation/partitioning_finish
 - installation/installer_timezone
@@ -68,6 +68,10 @@ conditional_schedule:
       x86_64:
         - installation/isosize
         - installation/bootloader
+  system_role:
+    ARCH:
+      x86_64:
+        - installation/system_role
   grub:
     ARCH:
       s390x:
