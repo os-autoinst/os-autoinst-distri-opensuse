@@ -15,9 +15,16 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product remove_suseconnect_product);
 
 sub run {
     select_console 'root-console';
+    # on SLE 15+ we need to add Development Module
+    if (is_sle('15+')) { 
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product('sle-module-development-tools');
+    }
     # test 1
     # Installing and testing options -a -d -p
     zypper_call 'in perf';

@@ -1635,7 +1635,7 @@ sub load_extra_tests_console {
     loadtest "console/sqlite3";
     loadtest "console/ant" if is_sle('<15-sp1');
     loadtest "console/gdb";
-    loadtest "console/perf" if is_sle('<15-sp1');
+    loadtest "console/perf";
     loadtest "console/sysctl";
     loadtest "console/sysstat";
     loadtest "console/curl_ipv6" unless get_var('PUBLIC_CLOUD');
