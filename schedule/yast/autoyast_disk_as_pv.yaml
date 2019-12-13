@@ -1,0 +1,60 @@
+name:           autoyast_disk_as_pv
+description:    >
+  Installation using one disk for booting, second as / partition and third one as volume group. 
+  Partitioning is validated after installation is finished, 
+  then SUT is cloned and generated profile is validated.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_disk_as_pv.xml
+  AUTOYAST_CONFIRM: 1
+  AUTOYAST_PREPARE_PROFILE: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - autoyast/verify_disk_as_pv
+  - autoyast/verify_cloned_profile
+test_data:
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/sda
+      - drive:
+          unique_key: device
+          device: /dev/system
+          partitions:
+            - partition:
+                unique_key: lv_name
+                lv_name: swap
+                mount: swap
+            - partition:
+                unique_key: lv_name
+                lv_name: home
+                mount: /home
+      - drive:
+          unique_key: device
+          device: /dev/sdb
+          disklabel: none
+          partitions:
+            - partition:
+                unique_key: mount
+                mount: /
+      - drive:
+          unique_key: device
+          device: /dev/sdc
+          disklabel: none
+          partitions:
+            - partition:
+                unique_key: lvm_group
+                lvm_group: system

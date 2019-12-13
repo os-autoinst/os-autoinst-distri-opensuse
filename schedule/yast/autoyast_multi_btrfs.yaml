@@ -10,8 +10,11 @@ schedule:
   - autoyast/installation
   - installation/boot_encrypt
   - installation/first_boot
+  - autoyast/console 
+  - autoyast/clone
   - console/validate_multi_btrfs_partitioning
   - console/validate_encrypt
+  - autoyast/verify_cloned_profile
 test_data:
   multi_devices:
     - mount_point: /
@@ -27,3 +30,110 @@ test_data:
   crypttab:
     num_devices_encrypted: 1
   !include: test_data/yast/encryption/default_enc.yaml
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/vda
+          disklabel: gpt
+          partitions:
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 1
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 2
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 3
+                filesystem: swap
+                mount: swap
+          type: CT_DISK
+      - drive:
+          unique_key: device
+          device: /dev/vdb
+          disklabel: gpt
+          partitions:
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 1
+          type: CT_DISK
+      - drive:
+          unique_key: device
+          device: /dev/vdc
+          disklabel: none
+          partitions:
+            - partition:
+                unique_key: create
+                create: false
+          type: CT_DISK
+      - drive:
+          unique_key: device
+          device: /dev/vdd
+          disklabel: gpt
+          partitions:
+            - partition: 
+                unique_key: partition_nr
+                partition_nr: 1
+                crypt_method: luks1
+          type: CT_DISK
+      - drive:
+          unique_key: mount
+          unique_value: /
+          btrfs_options:
+            data_raid_level: raid0
+            metadata_raid_level: raid1
+          disklabel: none
+          enable_snapshots: false
+          partitions:
+            - partition:
+                unique_key: label
+                filesystem: btrfs
+                label: root_multi_btrfs
+                mount: /
+                subvolumes:
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: true
+                      path: tmp
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: true
+                      path: usr/local
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: true
+                      path: home
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: true
+                      path: root
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: true
+                      path: srv
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: false
+                      path: var
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: true
+                      path: opt
+                subvolumes_prefix: '@'
+          type: CT_BTRFS
+      - drive:
+          unique_key: mount
+          unique_value: /test
+          btrfs_options:
+            data_raid_level: raid0
+            metadata_raid_level: raid1
+          disklabel: none
+          partitions:
+            - partition:
+                unique_key: label
+                filesystem: btrfs
+                label: test_multi_btrfs
+                mount: /test
+                subvolumes_prefix: ''
+          type: CT_BTRFS

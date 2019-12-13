@@ -26,7 +26,9 @@ use testapi;
 use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 
-our @EXPORT = qw(expand_template init_autoyast_profile);
+use xml_utils;
+
+our @EXPORT = qw(expand_template init_autoyast_profile validate_autoyast_profile);
 
 =head2 expand_patterns
 
@@ -183,6 +185,157 @@ sub init_autoyast_profile {
         wait_serial("$module_name-0", 60) || die "'yast2 clone_system' exited with non-zero code";
     }
     return script_output("cat $profile_path");
+}
+
+=head2 validate_autoyast_profile
+
+  validate_autoyast_profile($profile);
+
+Validate AutoYaST profile traversing yaml test data
+$profile is the root node in the test data
+
+Expected yaml data should mimic structure of xml file for AutoYaST profile,
+so hashes and arrays in the yaml should represent nodes in the xml file.
+
+In case of list in xml, yaml structure should be represented as an array,
+so it would be able to generate expression to check that element on the list met expectations.
+If a hash is used instead, it will validate its inner value but it will not check size of the list.
+
+To identify an element in a list (as they are not ordered) on xml via xpath it has been added
+an special field in yaml named 'unique_key' which value is the name of the selected property 
+to search the element on the list. When that property is not a direct child 
+(in other words, it is not at the same level in the yaml)
+it should be specify in yaml 'unique_value' to specify the value expected for that inner/nested property
+(it is verbose but avoid to search every time in the whole yaml tree).
+For instance:
+
+- drive:
+    unique_key: mount
+    unique_value: /
+    ...
+        partitions:
+            - partition:
+                unique_key: label
+                ...
+                label: root_multi_btrfs
+                mount: /
+
+In the example, the tester chose 'mount' node/value to distinguish this 'drive'
+from other 'drive' nodes in the xml. In order to distinguish that particular 'partition' node
+only 'unique_key' was required because label is a direct child of 'partition' node in the xml.
+
+Finally, creates a report at the end with errors (both yaml and execution errors)
+and overall expressions executed.
+
+=cut
+sub validate_autoyast_profile {
+    my $profile = shift;
+
+    my $xpc         = get_xpc(init_autoyast_profile());    # get XPathContext
+    my $expressions = [];
+    my $errors      = [];
+    generate_expressions(node => $profile, exp => "/ns:profile",
+        expressions => $expressions, errors => $errors);
+    run_expressions(xpc => $xpc, expressions => $expressions, errors => $errors);
+    my $report = create_report(errors => $errors, expressions => $expressions);
+    record_info('Summary', $report);
+    die "Found errors on validation of AutoYaST profile, please check Summary report" if @{$errors};
+}
+
+sub generate_expressions {
+    my (%args) = @_;
+
+    my $node        = $args{node};
+    my $exp         = $args{exp};
+    my $expressions = $args{expressions};
+    my $errors      = $args{errors};
+
+    if (ref $node eq 'HASH') {
+        for my $k (keys %{$node}) {
+            next if $k =~ /unique_key|unique_value/;
+            if (!ref $node->{$k}) {
+                push @{$expressions}, "$exp" . "/ns:$k" . "[text() = '$node->{$k}']";
+            }
+            else {
+                generate_expressions(node => $node->{$k}, exp => "$exp/ns:$k",
+                    expressions => $expressions, errors => $errors);
+            }
+        }
+    }
+    elsif (ref $node eq 'ARRAY') {
+        my ($list_name) = keys %{$node->[0]};
+        my $list_size = scalar @{$node};
+
+        # add expression to check expected list size
+        push @{$expressions}, "$exp" . "[count(ns:$list_name)=$list_size]";
+
+        for my $item (@{$node}) {
+            if (my $unique_exp = get_unique_exp(list_name => $list_name, item => $item,
+                    exp => $exp, errors => $errors)) {
+                push @{$expressions}, $unique_exp;
+                generate_expressions(node => $item->{$list_name}, exp => $unique_exp,
+                    expressions => $expressions, errors => $errors);
+            }
+        }
+    }
+}
+
+# get unique expression for a list item
+sub get_unique_exp {
+    my (%args) = @_;
+
+    my $list_name = $args{list_name};
+    my $item      = $args{item};
+    my $exp       = $args{exp};
+    my $errors    = $args{errors};
+
+    if (my $search_key = $item->{$list_name}->{unique_key}) {
+        my $value = '';
+        my $sep   = '';
+        if ($value = $item->{$list_name}->{unique_value}) {
+            $sep = './/'    # separator for any descendant
+        }
+        elsif ($value = $item->{$list_name}->{$search_key}) {
+            $sep = './'     # separator for direct child
+        }
+        else {
+            push @{$errors}, "YAML error: 'unique_key: $search_key' does not point to existing key in: '$item->{$list_name}'";
+        }
+        return "$exp/ns:$list_name" . "[$sep" . "ns:$search_key" . "[text()='$value']]";
+    }
+    else {
+        push @{$errors}, "YAML error: 'unique_key' key not found on yaml list for '$list_name'";
+    }
+    return;
+}
+
+sub run_expressions {
+    my (%args) = @_;
+
+    my $xpc         = $args{xpc};
+    my $expressions = $args{expressions};
+    my $errors      = $args{errors};
+
+    my @nodes = ();
+    for my $exp (@{$expressions}) {
+        @nodes = $xpc->findnodes($exp);
+        if (scalar @nodes == 0) {
+            push @{$errors}, "XPATH error: no node found as a result of expression: $exp";
+        }
+        elsif (scalar @nodes > 1) {
+            push @{$errors}, "XPATH error: more than one node found as a result of expression: $exp";
+        }
+    }
+}
+
+sub create_report {
+    my %args = @_;
+
+    my $expressions         = $args{expressions};
+    my $errors              = $args{errors};
+    my $error_summary       = @{$errors} ? "Errors found:\n" . join("\n", @{$errors}) : "Errors found:\nnone";
+    my $expressions_summary = "Expressions executed:\n" . join("\n", @{$expressions});
+    return "$error_summary\n\n$expressions_summary\n";
 }
 
 1;
