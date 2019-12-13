@@ -79,7 +79,7 @@ sub run {
     }
 
     # Install needed modules and Apache packages
-    if (is_sle) {
+    if (is_sle && get_var('FLAVOR') !~ /Updates|Incidents/) {
         register_product();
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '15') {
