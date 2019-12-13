@@ -19,11 +19,9 @@ use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 
 
-our @ISA    = qw(Exporter);
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   activate_kdump activate_kdump_without_yast kdump_is_active
-  do_kdump install_service configure_service
-  check_function full_kdump_check);
+  do_kdump configure_service check_function full_kdump_check);
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
