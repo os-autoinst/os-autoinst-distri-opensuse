@@ -280,7 +280,7 @@ sub setup_network {
     assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
 
     foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
-        if (is_sle('12+') || is_opensuse || is_jeos) {
+        if (!is_jeos && is_sle('12+') || is_opensuse) {
             systemctl("reenable $service");
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
         }
@@ -361,8 +361,8 @@ sub run {
         loadtest_from_runtest_file('assets_public');
     }
 
-    power_action('reboot', textmode => 1) if get_var('LTP_INSTALL_REBOOT') ||
-      get_var('LTP_COMMAND_FILE');
+    power_action('reboot', textmode => 1) if (get_var('LTP_INSTALL_REBOOT') ||
+        get_var('LTP_COMMAND_FILE')) && !is_jeos;
 }
 
 sub post_fail_hook {

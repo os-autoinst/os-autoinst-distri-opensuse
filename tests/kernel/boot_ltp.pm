@@ -17,6 +17,7 @@ use testapi;
 use bootloader_setup 'boot_grub_item';
 use LTP::WhiteList 'download_whitelist';
 use serial_terminal 'get_login_message';
+use version_utils 'is_jeos';
 
 sub run {
     my ($self, $tinfo) = @_;
@@ -35,6 +36,9 @@ sub run {
         record_info('INFO', 'IPMI boot');
         select_console 'sol', await_console => 0;
         assert_screen('linux-login', 1800);
+    }
+    elsif (is_jeos) {
+        record_info('Loaded JeOS image', 'nothing to do...');
     }
     else {
         record_info('INFO', 'normal boot');
@@ -69,7 +73,7 @@ sub run {
     upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
-    script_run("rpm -qi kernel-default > $kernel_pkg_log 2>&1");
+    script_run('rpm -qi ' . ((is_jeos) ? 'kernel-default-base' : 'kernel-default') . " > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
 
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
