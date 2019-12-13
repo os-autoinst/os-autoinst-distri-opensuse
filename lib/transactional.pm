@@ -64,7 +64,7 @@ sub check_reboot_changes {
     my $change_happened = script_run "diff $mounted $default";
 
     # If changes are expected check that default subvolume changed
-    die "Error during diff" if $change_happened > 1;
+    die "Error during diff"                                            if $change_happened > 1;
     die "Change expected: $change_expected, happeed: $change_happened" if $change_expected != $change_happened;
 
     # Reboot into new snapshot

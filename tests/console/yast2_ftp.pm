@@ -119,7 +119,7 @@ sub run {
         send_key 'up';             #selects 'Start on boot'
         send_key 'ret';            #confirm
     } else {
-        send_key 'alt-w';          # make sure ftp start-up when booting
+        send_key 'alt-w';                     # make sure ftp start-up when booting
         send_key 'alt-d' if is_sle('=15');    # only sle 15 has this specific combination
     }
 

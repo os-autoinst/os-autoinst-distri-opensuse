@@ -125,7 +125,7 @@ sub parse_node_file {
         }
         elsif ($line =~ /^subnet\s/ || $line =~ /^dhcp\s/ || $line =~ /^gateway\s/) {
             my ($param, $value) = split(/\s+/, $line);
-            $value = 0 if $value eq 'no';
+            $value                        = 0      if $value eq 'no';
             $networks{$network}->{$param} = $value if defined $network;
         }
         elsif ($line =~ /(^repository|^repo)\s+\$\{CHANNEL_(.*)_.*\}$/) {

@@ -37,8 +37,8 @@ sub run {
     }
 
     #Query and save the ip addres
-    my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 3);
-    my $name_out = $self->execute_script_run('hostname', 3);
+    my $ip_out   = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 3);
+    my $name_out = $self->execute_script_run('hostname',                                         3);
 
     $self->set_ip_and_hostname_to_var;
 }

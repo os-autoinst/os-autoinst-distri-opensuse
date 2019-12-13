@@ -208,8 +208,8 @@ sub handle_logout {
     mouse_hide();
     # logout
     if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
-        my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-        my $target_match = check_var('DESKTOP', 'gnome') ? undef : 'logoutdialog';
+        my $command      = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
+        my $target_match = check_var('DESKTOP', 'gnome') ? undef                : 'logoutdialog';
         x11_start_program($command, target_match => $target_match);    # opens logout dialog
     }
     else {
@@ -310,12 +310,12 @@ sub untick_welcome_on_next_startup {
         assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
         # Moving the cursor already causes screen changes - do not fail the check
         # immediately but allow some time to reach the final state
-        last if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
+        last                                          if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
         die "Unable to untick 'Show on next startup'" if $retry == 5;
     }
     for my $retry (1 .. 5) {
         send_key 'alt-f4';
-        last if check_screen("generic-desktop", timeout => 5);
+        last                                          if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
 }

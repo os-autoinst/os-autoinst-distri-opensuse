@@ -28,7 +28,7 @@ sub switch_power {
     script_run($ipmitool . 'chassis power ' . $ipmi_status, 20);
     while (1) {
         my $stdout = script_output($ipmitool . 'chassis power status', 20);
-        last if $stdout =~ m/is $ipmi_status/;
+        last                                         if $stdout =~ m/is $ipmi_status/;
         die "Failure on running IPMITOOL:" . $stdout if $stdout =~ m/Error/;
         script_run($ipmitool . 'chassis power ' . $ipmi_status, 20);
         sleep(2);

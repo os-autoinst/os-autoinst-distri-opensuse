@@ -38,7 +38,7 @@ sub run {
 
     my $ip_iface1 = $self->get_current_ip($ctx->iface());
     my $ip_iface2 = $self->get_current_ip($ctx->iface2());
-    die("Unexpected IP $ip_iface1 on " . $ctx->iface()) unless ($ip_iface1 =~ /$dhcp_ip_sut/);
+    die("Unexpected IP $ip_iface1 on " . $ctx->iface())  unless ($ip_iface1 =~ /$dhcp_ip_sut/);
     die("Unexpected IP $ip_iface2 on " . $ctx->iface2()) unless ($ip_iface2 eq $static_ip_sut);
 
     $self->ping_with_timeout(type => 'dhcp_2nic',   interface => $ctx->iface());

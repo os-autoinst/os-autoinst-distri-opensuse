@@ -100,7 +100,7 @@ sub run {
     my ($self) = @_;
     # C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
     # sle15+ does not enable locale change during firstboot
-    my $lang_ref = (is_sle('15+')) ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
+    my $lang_ref = (is_sle('15+'))                                            ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
     my $lang_new = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',

@@ -35,7 +35,7 @@ sub run {
     remove_kernel_packages;
     # Enable kotd/kmp repositories
     zypper_ar($kotd_repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    zypper_ar($kmp_repo, name => 'KMP', priority => 90, no_gpg_check => 1) if $kmp_repo;
+    zypper_ar($kmp_repo,  name => 'KMP',  priority => 90, no_gpg_check => 1) if $kmp_repo;
     # Install latest kernel
     zypper_call("in -l kernel-default");
     # Check for multiple kernel installation

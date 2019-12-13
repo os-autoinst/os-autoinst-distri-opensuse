@@ -346,7 +346,7 @@ sub wait_until_resources_started {
     my $ret     = undef;
 
     # Some CRM options can only been added on recent versions
-    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'" if is_sle '12-sp3+';
+    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'"                           if is_sle '12-sp3+';
     push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')" if is_sle '12-sp3+';
 
     # Execute each comnmand to validate that the cluster is running
@@ -436,7 +436,7 @@ sub check_device_available {
         --$tries;
         sleep 2;
     }
-    die "Test timed out while checking $dev" unless (defined $ret);
+    die "Test timed out while checking $dev"   unless (defined $ret);
     die "Nonexistent $dev after $tout seconds" unless ($tries > 0 or $ret == 0);
     return $ret;
 }

@@ -56,7 +56,7 @@ Example:
 
 sub is_checked {
     my ($self, %args) = @_;
-    my $checked_needle     = $args{checked_needle},
+    my $checked_needle = $args{checked_needle},
       my $unchecked_needle = $args{unchecked_needle};
 
     # If assert_screen do not fail, it means one of the needles matched.

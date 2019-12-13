@@ -73,7 +73,7 @@ sub load_installation_tests {
         load_inst_tests;
         load_boot_from_disk_tests;
         loadtest 'console/regproxy' if is_regproxy_required;
-        load_feature_tests if (check_var 'EXTRA', 'FEATURES');
+        load_feature_tests          if (check_var 'EXTRA', 'FEATURES');
         loadtest 'shutdown/shutdown';
     }
 }

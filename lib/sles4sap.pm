@@ -61,7 +61,7 @@ sub ensure_serialdev_permissions_for_sap {
 }
 
 sub fix_path {
-    my ($self, $var) = @_;
+    my ($self,  $var)  = @_;
     my ($proto, $path) = split m|://|, $var;
     my @aux = split '/', $path;
 
@@ -385,7 +385,7 @@ sub check_instance_state {
 
             my $failing_services = 0;
             for my $line (split(/\n/, $output)) {
-                next if ($line =~ /GetProcessList|OK|^name/);
+                next                if ($line =~ /GetProcessList|OK|^name/);
                 $failing_services++ if ($line !~ /GREEN/);
             }
             last unless $failing_services;

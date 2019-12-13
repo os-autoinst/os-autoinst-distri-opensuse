@@ -77,7 +77,7 @@ sub run {
     # 90 as a workaround due to the qemu backend fallout
     assert_screen_with_soft_timeout('grub2', timeout => 2 * $timeout, soft_timeout => $timeout, bugref => 'boo#1120256');
     stop_grub_timeout;
-    boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
+    boot_into_snapshot                                               if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
     if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))

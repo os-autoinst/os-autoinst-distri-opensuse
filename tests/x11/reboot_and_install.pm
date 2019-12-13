@@ -29,7 +29,7 @@ sub run {
 
     # on s390 zKVM we handle the boot of the patched system differently
     set_var('PATCHED_SYSTEM', 1) if get_var('PATCH');
-    return if get_var('S390_ZKVM');
+    return                       if get_var('S390_ZKVM');
 
     # give some time to shutdown+reboot from gnome. Also, because mainly we
     # are coming from old systems here it is unlikely the reboot time

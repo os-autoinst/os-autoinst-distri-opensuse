@@ -181,7 +181,7 @@ sub tests_from_ranges {
     my %cache;
     my @tests;
     foreach my $range (split(/,/, $ranges)) {
-        my ($min, $max) = (0, 99999);
+        my ($min,      $max)     = (0, 99999);
         my ($category, $min_max) = split(/\//, $range);
         unless (defined($min_max)) {
             next;

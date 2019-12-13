@@ -45,7 +45,7 @@ sub check_service {
 # check cups function
 sub check_function {
     # Add printers
-    record_info "lpadmin", "Try to add printers and enable them";
+    record_info "lpadmin",                                          "Try to add printers and enable them";
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ };
     assert_script_run 'lpadmin -p printer_tmp -v file:/tmp/test_cups -m raw -E';
     assert_script_run 'lpadmin -p printer_null -v file:/dev/null -m raw -E';

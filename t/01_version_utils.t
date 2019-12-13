@@ -15,7 +15,7 @@ use testapi qw(check_var get_var set_var);
 
 subtest 'check_version' => sub {
     # compare versions if possible
-    ok version_utils::check_version($_, '15.5'), "check $_, 15.5" for qw(>15.0 <15.10);
+    ok version_utils::check_version($_, '15.5'),  "check $_, 15.5" for qw(>15.0 <15.10);
     ok !version_utils::check_version($_, '15.5'), "check $_, 15.5" for qw(=15.50 >=15.10);
 
     # compare strings if not

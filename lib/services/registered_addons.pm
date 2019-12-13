@@ -70,7 +70,7 @@ sub check_upgraded_addons {
 
 sub check_suseconnect {
     my $output = script_output("SUSEConnect -s", 120);
-    my @out = grep { $_ =~ /identifier/ } split(/\n/, $output);
+    my @out    = grep { $_ =~ /identifier/ } split(/\n/, $output);
     if (@out) {
         my $json = Mojo::JSON::decode_json($out[0]);
         foreach (@$json) {

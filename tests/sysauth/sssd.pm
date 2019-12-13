@@ -53,7 +53,7 @@ sub run {
     );
 
     # for sle 12 we still use and support python2
-    push @test_subjects, 'python-pam' if is_sle('<15');
+    push @test_subjects, 'python-pam'         if is_sle('<15');
     push @test_subjects, 'python3-python-pam' if is_sle('15+') || is_opensuse;
 
     if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)

@@ -498,7 +498,7 @@ sub load_autoyast_tests {
     loadtest("autoyast/console");
     loadtest("autoyast/login");
     loadtest("autoyast/wicked");
-    loadtest("autoyast/autoyast_verify") if get_var("AUTOYAST_VERIFY");
+    loadtest("autoyast/autoyast_verify")                      if get_var("AUTOYAST_VERIFY");
     loadtest('autoyast/' . get_var("AUTOYAST_VERIFY_MODULE")) if get_var("AUTOYAST_VERIFY_MODULE");
     if (get_var("SUPPORT_SERVER_GENERATOR")) {
         loadtest("support_server/configure");
@@ -1314,7 +1314,7 @@ sub load_x11tests {
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
-    loadtest "x11/thunar" if xfcestep_is_applicable();
+    loadtest "x11/thunar"   if xfcestep_is_applicable();
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
     if (gnomestep_is_applicable()) {
         loadtest "x11/nautilus" unless get_var("LIVECD");
@@ -1676,7 +1676,7 @@ sub load_extra_tests_console {
     loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/kmod';
     loadtest 'console/suse_module_tools';
-    loadtest 'console/zziplib' if (is_sle('12-SP4+') && !is_jeos);
+    loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
@@ -2013,7 +2013,7 @@ sub load_x11_webbrowser {
 
 sub load_x11_message {
     if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11/empathy/empathy_irc" if is_sle("<15");
+        loadtest "x11/empathy/empathy_irc"       if is_sle("<15");
         loadtest "x11/evolution/evolution_smoke" if is_sle || is_tumbleweed;
         loadtest "x11/evolution/evolution_prepare_servers";
         if (is_sle || is_tumbleweed) {
@@ -2149,7 +2149,7 @@ sub load_applicationstests {
 sub load_security_console_prepare {
     loadtest "console/consoletest_setup";
     loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/);
-    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
+    loadtest "fips/fips_setup"          if (get_var("FIPS_ENABLED"));
 }
 
 # The function name load_security_tests_crypt_* is to avoid confusing
@@ -2466,16 +2466,16 @@ sub load_systemd_patches_tests {
 }
 
 sub load_system_prepare_tests {
-    loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
+    loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     # temporary adding test modules which applies hacks for missing parts in sle15
-    loadtest 'console/sle15_workarounds' if is_sle('15+');
+    loadtest 'console/sle15_workarounds'    if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/system_prepare';
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-    replace_opensuse_repos_tests if is_repo_replacement_required;
+    replace_opensuse_repos_tests          if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
 }
@@ -2516,7 +2516,7 @@ sub load_hypervisor_tests {
 
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_boot_tests if check_var('VIRT_PART', 'install');
+    load_boot_tests                     if check_var('VIRT_PART', 'install');
 
     if (get_var("AUTOYAST")) {
         loadtest "autoyast/installation";
@@ -2855,7 +2855,7 @@ sub load_ha_cluster_tests {
                 loadtest 'ha/check_after_reboot';
             }
             # Test Haproxy
-            loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
+            loadtest 'ha/haproxy'    if (get_var('HA_CLUSTER_HAPROXY'));
             loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
             return 1;
         }

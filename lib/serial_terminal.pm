@@ -178,7 +178,7 @@ sub upload_file {
     $dst = "ulogs/" . $dst;
     my ($fh, $tmpfilename) = tempfile(UNLINK => 1, SUFFIX => '.openqa.upload');
 
-    die("File $src does not exist on SUT") if (script_run("test -f $src", quiet => 1, timeout => $opts{timeout}) != 0);
+    die("File $src does not exist on SUT")    if (script_run("test -f $src", quiet => 1, timeout => $opts{timeout}) != 0);
     die("File $dst already exists on worker") if (-f $dst);
 
     my $filesize = script_output("stat --printf='%s' $src", quiet => 1, timeout => $opts{timeout});

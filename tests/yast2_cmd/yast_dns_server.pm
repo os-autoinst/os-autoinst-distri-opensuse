@@ -69,7 +69,7 @@ sub run {
     my $self = shift;
     select_console 'root-console';
     zypper_call("in yast2-dns-server bind", exitcode => [0, 102, 103, 106]);
-    zypper_call("in bind-libs", exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
+    zypper_call("in bind-libs",             exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
 
     #Forward server and test lookup
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");
@@ -79,7 +79,7 @@ sub run {
     record_soft_failure("bsc#1151138") if (systemctl("is-active named.service", ignore_failure => 1));
 
     # create zone and reverse zone
-    $self->cmd_handle("zones", "add", name => "example.org", zonetype => "master");
+    $self->cmd_handle("zones", "add", name => "example.org",              zonetype => "master");
     $self->cmd_handle("zones", "add", name => "100.168.192.in-addr.arpa", zonetype => "master");
 
     # Create host and test lookup
@@ -97,9 +97,9 @@ sub run {
 
     # dns record
     #i.e. dnsrecord add zone=example.org query=example.org. type=MX value='10 mail01'
-    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");      #delegated domain
+    $self->cmd_handle("dnsrecord", "add",    zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");    #delegated domain
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");
-    $self->cmd_handle("dnsrecord", "add",    zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");           #host adress
+    $self->cmd_handle("dnsrecord", "add",    zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");            #host adress
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");
 
     $self->cmd_handle("dnsrecord", "add",    zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR",   value => "host1");                    ##PTR
@@ -120,7 +120,7 @@ sub run {
     assert_script_run("yast2 dns-server startup manual");
 
     #remove zone, stop service
-    $self->cmd_handle("zones", "remove", name => "example.org", zonetype => "master");
+    $self->cmd_handle("zones", "remove", name => "example.org",              zonetype => "master");
     $self->cmd_handle("zones", "remove", name => "100.168.192.in-addr.arpa", zonetype => "master");
     disable_and_stop_service('named.service');
 }
