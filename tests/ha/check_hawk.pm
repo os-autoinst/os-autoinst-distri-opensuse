@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use hacluster 'get_cluster_name';
+use hacluster qw(get_cluster_name is_node);
 use utils 'systemctl';
 use version_utils 'is_sle';
 
