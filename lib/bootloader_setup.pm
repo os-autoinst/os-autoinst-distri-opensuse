@@ -124,7 +124,14 @@ sub add_custom_grub_entries {
     grub_mkconfig();
     upload_logs(GRUB_CFG_FILE, failok => 1);
 
-    my $distro      = (is_sle() ? "SLES" : "openSUSE") . ' \\?' . get_required_var('VERSION');
+    my $distro;
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
+    }
+    elsif (is_sle()) {
+        $distro = "SLES" . ' \\?' . get_required_var('VERSION'); }
+    else {
+        $distro = "openSUSE" . ' \\?' . get_required_var('VERSION'); }
     my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
     my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' " . GRUB_CFG_FILE;
     my $cnt_old     = script_output("$section_old | grep -c 'menuentry .$distro'");

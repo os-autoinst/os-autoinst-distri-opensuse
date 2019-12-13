@@ -131,7 +131,7 @@ sub load_kernel_tests {
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel$/) {
+        if (get_var('FLAVOR', '') =~ /Incidents-Kernel/) {
             loadtest 'update_kernel';
         }
         loadtest 'install_ltp';
