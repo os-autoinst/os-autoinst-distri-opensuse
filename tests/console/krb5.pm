@@ -71,7 +71,7 @@ sub run {
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;
     type_string "klist 2> /tmp/krb5\n";
-    script_run 'logout', 0;
+    script_run 'logout',                                                       0;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #create kinit tickets cache for the user:
@@ -82,7 +82,7 @@ sub run {
 
     #confirm the users tickets cache is created, also confirm its on the FQDN:
     type_string "klist > /tmp/krb5-klist-cache 2> /dev/null\n";
-    script_run 'logout', 0;
+    script_run 'logout',                                                                                         0;
     validate_script_output "grep -c \"krbtgt\/openqa.kerberus.org\@openqa.kerberus.org\" /tmp/krb5-klist-cache", sub { /1/ };
 
     #validate tickets cache output integrity:
@@ -92,7 +92,7 @@ sub run {
     script_run 'su - tester', 0;
     type_string "kdestroy\n";
     type_string "klist 2> /tmp/krb5\n";
-    script_run 'logout', 0;
+    script_run 'logout',                                                       0;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #test the service management script:

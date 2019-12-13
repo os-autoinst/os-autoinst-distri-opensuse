@@ -45,8 +45,8 @@ sub run {
     if (get_var('BACKEND', '') =~ /ipmi|spvm/) {
         use_ssh_serial_console;
         # set serial console for xen
-        set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
-        set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE', 'kvm'));
+        set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN')                      || check_var('HOST_HYPERVISOR', 'xen'));
+        set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE',     'kvm'));
         set_pxe_efiboot('/mnt') if check_var('ARCH', 'aarch64');
     }
     else {

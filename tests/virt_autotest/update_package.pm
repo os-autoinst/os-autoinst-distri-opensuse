@@ -53,8 +53,8 @@ sub run {
     my $self = shift;
     $self->update_package() unless (is_sle('=15-SP2') && (check_var("HOST_HYPERVISOR", "xen") || check_var("SYSTEM_ROLE", "xen")));
     if (!check_var('ARCH', 's390x')) {
-        set_serial_console_on_vh('', '', 'xen') if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen"));
-        set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm"));
+        set_serial_console_on_vh('', '', 'xen') if (get_var("XEN")                      || check_var("HOST_HYPERVISOR", "xen"));
+        set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE",     "kvm"));
     }
     update_guest_configurations_with_daily_build();
     if (is_remote_backend && check_var('ARCH', 'aarch64') && !check_var('LINUX_CONSOLE_OVERRIDE', 'ttyAMA0') && (get_var('VIRT_PRJ2_HOST_UPGRADE') || get_var('VIRT_PRJ4_GUEST_UPGRADE'))) {

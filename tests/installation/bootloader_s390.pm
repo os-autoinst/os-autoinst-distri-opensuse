@@ -302,7 +302,7 @@ sub run {
     my $c = select_console('iucvconn', await_console => 0);
 
     # format DASD before installation by default
-    format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
+    format_dasd                if (check_var('FORMAT_DASD', 'pre_install'));
     create_encrypted_part_dasd if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
     select_console("installation");

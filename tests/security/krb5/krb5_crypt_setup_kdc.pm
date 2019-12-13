@@ -51,7 +51,7 @@ sub run {
     script_run("kinit $adm |& tee /dev/$serialdev", 0);
     wait_serial(qr/Password.*\Q$adm\E/) || die "Matching output failed";
     type_string "$pass_a\n";
-    script_output "echo \$?", sub { m/^0$/ };
+    script_output "echo \$?",       sub { m/^0$/ };
     validate_script_output "klist", sub {
         m/
             Ticket\scache.*\/root\/kcache.*

@@ -645,7 +645,7 @@ sub select_guest {
     my $guest = shift;
     send_key 'home';    # Go to top of the list
     assert_and_click "virt-manager_connected";
-    wait_still_screen 3;    # Guests may be still loading
+    wait_still_screen 3;                               # Guests may be still loading
     if (!check_screen "virt-manager_list-$guest") {    # If the guest is hidden down in the list
         if (is_sle('12-SP2+') || check_var("REGRESSION", "qemu-hypervisor")) {
             send_key 'end';                            # Go down so we will see every guest unselected on the way up

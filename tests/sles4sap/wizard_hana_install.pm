@@ -80,7 +80,7 @@ sub run {
     while (1) {
         assert_screen [qw(sap-wizard-disk-selection-warning sap-wizard-disk-selection sap-wizard-partition-issues sap-wizard-continue-installation sap-product-installation)], no_wait => 1;
 
-        last if match_has_tag 'sap-product-installation';
+        last                if match_has_tag 'sap-product-installation';
         send_key $cmd{next} if match_has_tag 'sap-wizard-disk-selection-warning';    # A warning can be shown
         if (match_has_tag 'sap-wizard-disk-selection') {
             # Install in sda

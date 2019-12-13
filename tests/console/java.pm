@@ -38,7 +38,7 @@ sub run {
 
     if (check_var("DISTRI", "opensuse")) {
         # Capture the return code value of the following scenarios
-        my $bootstrap_pkg_rt = zypper_call("se java-*bootstrap", exitcode => [0, 104]);
+        my $bootstrap_pkg_rt       = zypper_call("se java-*bootstrap",                             exitcode => [0, 104]);
         my $bootstrap_conflicts_rt = zypper_call("in --auto-agree-with-licenses --dry-run java-*", exitcode => [0, 4]);
 
         # logs / debugging purposes

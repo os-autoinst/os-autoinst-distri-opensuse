@@ -47,10 +47,10 @@ sub expand_patterns {
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
             my @sle12;
-            push @sle12, qw(Minimal apparmor base documentation 32bit) if check_var('DESKTOP', 'textmode');
+            push @sle12, qw(Minimal apparmor base documentation 32bit)                 if check_var('DESKTOP', 'textmode');
             push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic 32bit) if check_var('DESKTOP', 'gnome');
             push @sle12, qw(desktop-base desktop-gnome) if get_var('SCC_ADDONS') =~ m/we/;
-            push @sle12, qw(yast2) if is_sle('>=12-sp3');
+            push @sle12, qw(yast2)                      if is_sle('>=12-sp3');
             return [@sle12];
         }
         # SLED12 has different patterns
@@ -74,13 +74,13 @@ sub expand_patterns {
                   lamp_server gateway_server dhcp_dns_server directory_server
                   kvm_server fips sap_server ofed);
                 push @all, qw(xen_server xen_tools) unless check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64');
-                push @all, qw(oracle_server) unless check_var('ARCH', 'aarch64');
+                push @all, qw(oracle_server)        unless check_var('ARCH', 'aarch64');
             }
             push @all, qw(devel_basis devel_kernel devel_yast) if
               get_var('SCC_ADDONS') =~ m/sdk/;
             push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
               technical_writing books) if get_var('SCC_ADDONS') =~ m/we/;
-            push @all, qw(gnome_basic) if get_var('SCC_ADDONS') =~ m/desktop/;
+            push @all, qw(gnome_basic)               if get_var('SCC_ADDONS') =~ m/desktop/;
             push @all, qw(multimedia laptop imaging) if get_var('SCC_ADDONS') =~ m/desktop/ && check_var('SLE_PRODUCT', 'sled');
         }
         elsif (is_sle('12+')) {

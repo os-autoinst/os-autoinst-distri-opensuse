@@ -25,7 +25,7 @@ sub run {
     }
     else {
         set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE", "kvm"));
-        set_pxe_efiboot('') if check_var('ARCH', 'aarch64');
+        set_pxe_efiboot('')                     if check_var('ARCH', 'aarch64');
     }
 }
 

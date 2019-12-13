@@ -59,7 +59,7 @@ sub run {
     record_info('Test 6', 'Bring an interface down with wicked');
     $self->wicked_command('ifdown', $ctx->iface());
     die('IP should not be reachable') if ($self->ping_with_timeout(ip => '10.0.2.2', timeout => '2', proceed_on_failure => 1));
-    die if ($self->get_current_ip($ctx->iface()));
+    die                               if ($self->get_current_ip($ctx->iface()));
     record_info('Test 7', 'Bring an interface up with wicked');
     $self->wicked_command('ifup', $ctx->iface());
     $self->ping_with_timeout(type => 'host', interface => $ctx->iface());
