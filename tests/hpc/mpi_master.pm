@@ -61,7 +61,7 @@ sub run {
     }
     barrier_wait("MPI_BINARIES_READY");
 
-    record_info('Run MPI over single machine');
+    record_info('INFO', 'Run MPI over single machine');
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
     if ($mpi =~ m/openmpi/) {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --allow-run-as-root /tmp/simple_mpi");
@@ -69,7 +69,7 @@ sub run {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun /tmp/simple_mpi | tee /tmp/mpirun.out");
     }
 
-    record_info('Run MPI over several nodes');
+    record_info('INFO', 'Run MPI over several nodes');
     if ($mpi =~ m/openmpi/) {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --allow-run-as-root --host $cluster_nodes  /tmp/simple_mpi");
     } elsif ($mpi eq 'mvapich2') {
