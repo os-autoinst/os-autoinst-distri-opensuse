@@ -165,7 +165,7 @@ sub run {
     $self->open_overview();
     type_string "calc";                                                             #open calc
     assert_and_click 'overview-office-calc';
-    assert_screen 'test-oocalc-1';
+    assert_screen 'test-oocalc-1', 60;
     if (!match_has_tag('ooffice-tip-of-the-day')) {
         # Sometimes the dialog does not appear immediately but after a short delay,
         # or is fading in slowly - poo#56510
