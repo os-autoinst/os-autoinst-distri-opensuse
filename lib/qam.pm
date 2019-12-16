@@ -93,7 +93,7 @@ sub add_test_repositories {
     }
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
-    zypper_call('ref', exitcode => [0, 106]);
+    zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
 }
 
 # Function that will add all test repos to SSH guest
