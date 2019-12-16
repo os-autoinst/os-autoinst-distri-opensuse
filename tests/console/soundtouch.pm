@@ -51,7 +51,7 @@ sub run {
 
     start_audiocapture;
     assert_script_run 'aplay soundtouch/1d5d9dD_rate.wav soundtouch/1d5d9dD_tempo-and-pitch.wav soundtouch/bar_bpm.wav';
-    assert_recorded_sound 'soundtouch';
+    record_soft_failure 'bsc#1048271' unless assert_recorded_sound 'soundtouch';
     assert_script_run 'rm -rf soundtouch';
     # unregister SDK
     if (is_sle) {
