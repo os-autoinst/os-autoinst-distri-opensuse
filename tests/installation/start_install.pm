@@ -24,12 +24,6 @@ use warnings;
 use testapi;
 use version_utils 'is_upgrade';
 
-sub check_bsc982138 {
-    if (check_screen('installation-details-view-remaining-time-gt2h', 5)) {
-        record_soft_failure 'bsc#982138: Remaining time estimation during installation shows >2h most of the time';
-    }
-}
-
 sub run {
     # start install
     # we need to wait a bit for the disks to be formatted, live cd
@@ -81,7 +75,6 @@ sub run {
 
         # view installation details
         send_key $cmd{instdetails};
-        check_bsc982138;
     }
     elsif (get_var("AUTOYAST")) {
         assert_screen("inst-packageinstallationstarted", $started_timeout);
@@ -120,7 +113,6 @@ sub run {
             last if check_screen 'installation-details-view', 10;
         }
         assert_screen 'installation-details-view';
-        check_bsc982138;
 
         if (get_var("USEIMAGES")) {
             if (check_var('DESKTOP', 'kde')) {
