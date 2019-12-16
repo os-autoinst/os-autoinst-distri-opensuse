@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console set_pxe_efiboot boot_local_disk_arm_huawei);
+our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console set_dom0_mem set_pxe_efiboot boot_local_disk_arm_huawei);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -211,6 +211,45 @@ sub get_installation_partition {
     save_screenshot;
 
     return $partition;
+}
+
+
+# This works only on SLES 12+
+sub set_dom0_mem {
+    my ($root_prefix) = @_;
+    $root_prefix = "/" if (!defined $root_prefix) || ($root_prefix eq "");
+    my $installation_disk = "";
+
+    if ($root_prefix ne "/") {
+        $installation_disk = get_installation_partition;
+        assert_script_run("cd /");
+        mount_installation_disk("$installation_disk", "$root_prefix");
+    }
+
+    assert_script_run('mount --rbind /proc /mnt/proc');
+    assert_script_run('mount --rbind /sys /mnt/sys');
+    assert_script_run('mount --rbind /dev /mnt/dev');
+    type_string("chroot /mnt\n");
+    wait_still_screen;
+
+    # Mount Btrfs sub-volumes
+    assert_script_run('mount -a');
+
+    assert_script_run ". /etc/default/grub";
+    my $xen_dom0_mem = get_var('XEN_DOM0_MEM', '4096M');
+    assert_script_run "sed -i '/GRUB_CMDLINE_XEN_DEFAULT/c\\GRUB_CMDLINE_XEN_DEFAULT=\"\$GRUB_CMDLINE_XEN_DEFAULT dom0_mem=$xen_dom0_mem\"' /etc/default/grub";
+    assert_script_run "cat /etc/default/grub";
+    assert_script_run "grub2-mkconfig -o /boot/grub2/grub.cfg";
+
+    # Exit chroot
+    type_string "exit\n";
+    wait_still_screen;
+
+    #cleanup mount
+    if ($root_prefix ne "/") {
+        assert_script_run("cd /");
+        umount_installation_disk("$root_prefix");
+    }
 }
 
 sub set_pxe_efiboot {

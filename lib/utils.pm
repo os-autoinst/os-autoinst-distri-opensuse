@@ -1475,8 +1475,6 @@ sub script_retry {
 
     my $ret;
     for (1 .. $retry) {
-        type_string "# Trying $_ of $retry:\n";
-
         $ret = script_run "timeout " . ($timeout - 3) . " $cmd", $timeout;
         last if defined($ret) && $ret == $ecode;
 

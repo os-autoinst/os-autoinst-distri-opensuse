@@ -43,7 +43,9 @@ sub run {
             record_soft_failure "Guest $guest is not running after the reboot";
             assert_script_run "virsh start $guest", 60;
         }
-        assert_script_run "virsh shutdown $guest";
+        if (script_run("virsh shutdown $guest") != 0) {
+            record_soft_failure "Guest $guest seems to be already down";
+        }
         if (script_retry("virsh list --all | grep $guest | grep \"shut off\"", delay => 15, retry => 6, die => 0)) {
             record_soft_failure "Shutdown on $guest failed";
             assert_script_run "virsh destroy $guest";

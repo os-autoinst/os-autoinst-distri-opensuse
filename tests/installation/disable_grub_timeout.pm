@@ -65,6 +65,7 @@ sub run {
     my $timeout = "-1";
     # SLE-12 GA only accepts positive integers in range [0,300]
     $timeout = "60" if is_sle('<12-SP1');
+    $timeout = "90" if (get_var("REGRESSION", '') =~ /xen|kvm|qemu/);
     type_string $timeout;
 
     # ncurses uses blocking modal dialog, so press return is needed

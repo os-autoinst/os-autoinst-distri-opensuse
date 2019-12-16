@@ -27,6 +27,7 @@ use testapi;
 use lockapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
+use version_utils 'is_sle';
 use ipmi_backend_utils;
 
 sub run {
@@ -47,12 +48,14 @@ sub run {
         # set serial console for xen
         set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN')                      || check_var('HOST_HYPERVISOR', 'xen'));
         set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE',     'kvm'));
+        set_dom0_mem('/mnt')    if (get_required_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
         set_pxe_efiboot('/mnt') if check_var('ARCH', 'aarch64');
     }
     else {
         # avoid known issue in FIPS mode: bsc#985969
         $self->get_ip_address();
     }
+
     # We don't change network setup here, so should work
     # We don't parse logs unless it's detect_yast2_failures scenario
     $self->save_upload_y2logs(no_ntwrk_recovery => 1, skip_logs_investigation => !get_var('ASSERT_Y2LOGS'));

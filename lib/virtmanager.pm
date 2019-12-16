@@ -656,7 +656,7 @@ sub select_guest {
     }
     assert_and_click "virt-manager_list-$guest";
     send_key 'ret';
-    sleep 3;
+    sleep 5;
     if (check_screen 'virt-manager_notrunning') {
         record_info("The Guest was powered off and that should not happen");
         assert_and_click 'virt-manager_poweron', 'left', 90;
