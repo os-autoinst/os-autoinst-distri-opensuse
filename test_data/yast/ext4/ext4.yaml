@@ -1,4 +1,3 @@
-  device: /dev/vda
   allowed_unpartitioned: 0.00GB
   partitions:
     - mnt_point: /

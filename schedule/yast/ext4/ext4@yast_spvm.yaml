@@ -31,3 +31,7 @@ schedule:
   - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/first_boot
+  - console/validate_ext4_fs
+test_data:
+  device: /dev/sda
+  !include: test_data/yast/ext4/ext4.yaml
