@@ -1430,6 +1430,7 @@ sub load_extra_tests_y2uitest_gui {
         loadtest "yast2_gui/yast2_storage_ng" if is_sle("15+");
         loadtest "yast2_gui/yast2_security"   if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_keyboard"   if is_sle("12-SP2+");
+        loadtest "yast2_gui/yast2_instserver" unless (is_sle('<12-SP3') || is_leap('<15.0'));
     }
 }
 
