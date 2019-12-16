@@ -419,6 +419,8 @@ sub bootmenu_default_params {
         push @params, get_extra_boot_params();
     }
 
+    push @params, 'reboot_timeout=' . get_var('REBOOT_TIMEOUT', 0) unless (is_leap('<15.2') || is_sle('<15-SP2'));
+
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
     # we have to use something else.
