@@ -28,10 +28,14 @@ sub run {
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
 
+    my $ret = 0;
     for my $maintrepo (@repos) {
         my ($parent) = $maintrepo =~ 'https?://(.*)$';
         my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
-        assert_script_run("wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600);
+        $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
+        if ($ret !~ /0|8/) {
+            die "wget error: The $maintrepo download failed with $ret return code.";
+        }
         assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
         assert_script_run("find $parent >> /tmp/repos.list.txt");
     }
