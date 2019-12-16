@@ -98,7 +98,7 @@ sub handle_all_packages_medium {
     my $counter           = 2 + (scalar @addons_license_tags);
     my $addon_license_num = 0;
     while ($counter--) {
-        assert_screen([qw(addon-products-nonempty sle-product-license-agreement inst-betawarning)], 180);
+        assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 180);
         last if (match_has_tag 'addon-products-nonempty');
         if (match_has_tag 'sle-product-license-agreement') {
             if (@addons_license_tags && check_screen(\@addons_license_tags, 30)) {
@@ -106,12 +106,6 @@ sub handle_all_packages_medium {
             }
             wait_screen_change { send_key 'alt-a' };
             wait_screen_change { send_key 'alt-n' };
-        }
-        elsif (match_has_tag('inst-betawarning')) {
-            record_soft_failure('bsc#1156629 - beta warning appears twice during the installation');
-            foreach (@addons) {
-                wait_screen_change { send_key 'alt-o' };
-            }
         }
     }
     record_info "Error", "License agreement not shown for some addons", result => 'fail'
