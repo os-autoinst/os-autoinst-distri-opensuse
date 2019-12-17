@@ -35,6 +35,7 @@ use services::rpcbind;
 use autofs_utils;
 use services::postfix;
 use kdump_utils;
+use services::orphaned_packages_check;
 
 our @EXPORT = qw(
   $hdd_base_version
@@ -157,6 +158,12 @@ our $default_services = {
         srv_proc_name      => 'kdump',
         support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
         service_check_func => \&full_kdump_check
+    },
+    orphaned_packages_check => {
+        srv_pkg_name       => 'orphaned_package',
+        srv_proc_name      => 'orphaned_package',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        service_check_func => \&services::orphaned_packages_check::orphaned_packages_list
     },
 };
 
