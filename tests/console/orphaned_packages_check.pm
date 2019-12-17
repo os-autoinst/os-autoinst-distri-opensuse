@@ -21,7 +21,7 @@ use version_utils 'is_upgrade';
 
 sub run {
     select_console 'root-console';
-    my $cmd = 'zypper pa --orphaned | grep -v "\(release-DVD\|release-dvd\)" | (! grep "@System")';
+    my $cmd = 'zypper pa --orphaned | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" | (! grep "@System")';
     # there are orphans on older, unsupported openSUSE versions which we
     # upgrade from. They will most likely never be fixed
     my $expect_failure = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
