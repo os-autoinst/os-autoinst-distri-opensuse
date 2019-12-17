@@ -23,7 +23,7 @@ sub run {
     my $instance_id  = get_required_var('INSTANCE_ID');
     my $sid          = get_required_var('INSTANCE_SID');
     my $cluster_name = get_cluster_name;
-    my ($virtual_ip, $virtual_netmask) = split '/', get_required_var('VIRTUAL_IP_CIDR');
+    my ($virtual_ip, $virtual_netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
 
     # Set SAP variables
     my $pscmd  = $self->set_ps_cmd("HDB");

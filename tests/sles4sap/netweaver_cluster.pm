@@ -26,7 +26,7 @@ sub run {
     my $alias        = get_required_var('INSTANCE_ALIAS');
     my $lun          = get_required_var('INSTANCE_LUN');
     my $cluster_name = get_cluster_name;
-    my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP');
+    my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
 
     # Set SAP variables
     my $pscmd  = $self->set_ps_cmd("$type");
