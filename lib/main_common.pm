@@ -1687,11 +1687,6 @@ sub load_extra_tests_console {
     loadtest "console/orphaned_packages_check";
 }
 
-sub load_extra_tests_phub {
-    loadtest 'console/machinery';
-    loadtest 'sysauth/sssd';
-}
-
 sub load_extra_tests_sdk {
     loadtest 'console/gdb';
 }
