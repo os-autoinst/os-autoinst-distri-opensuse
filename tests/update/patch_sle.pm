@@ -259,6 +259,14 @@ sub sle_register {
                 assert_script_run("echo y | ./$setup_script $smt_url/center/regsvc");
                 assert_script_run("suse_register -n");
             }
+            # NCC can be replaced by SCC even for SLE 11
+            # Needed to workaround a bug with NCC and LTSS module in some cases, see bsc#1158950
+            elsif (get_var('SLE11_USE_SCC')) {
+                my $reg_code = get_required_var('NCC_REGCODE');
+                my $reg_mail = get_var('NCC_MAIL');               # email address is not mandatory for SCC
+                assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf");
+                assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+            }
             # Otherwise, register SLE 11 to NCC server
             else {
                 my $reg_code = get_required_var("NCC_REGCODE");
