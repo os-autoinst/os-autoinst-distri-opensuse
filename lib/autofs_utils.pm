@@ -11,7 +11,6 @@ use testapi;
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_sle is_jeos);
 
-our @ISA    = qw(Exporter);
 our @EXPORT = qw(setup_autofs_server check_autofs_service
   install_service enable_service start_service
   check_service configure_service full_autofs_check);
