@@ -10,7 +10,7 @@
 # Summary: Execute SUT changes which should be permanent
 # - Grant permissions on serial device
 # - Add hvc0/hvc1 to /etc/securetty
-# - Register modules if SLE<15 and SCC_ADDONS, MEDIA_UPGRADE and KEEP_REGISTERED
+# - Register modules if SCC_ADDONS, MEDIA_UPGRADE and KEEP_REGISTERED
 # are defined
 # - If system is vmware, set resolution to 1024x768 (and write to grub)
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
@@ -43,11 +43,13 @@ sub run {
         }
     }
 
-    # Register the modules after media migration, only for sle<15
-    # poo#54131 [SLE][Migration][SLE12SP5]test fails in system_prepare -
-    # media upgrade need add modules after migration
-    if (get_var('SCC_ADDONS') && is_sle('<15') && get_var('MEDIA_UPGRADE') && get_var('KEEP_REGISTERED')) {
-        assert_script_run 'SUSEConnect --url ' . get_required_var('SCC_URL') . ' -r ' . get_required_var('SCC_REGCODE');
+    # Register the modules after media migration, so it can do regession
+    if (get_var('SCC_ADDONS') && get_var('MEDIA_UPGRADE') && get_var('KEEP_REGISTERED')) {
+        add_suseconnect_product(uc get_var('SLE_PRODUCT'), undef, undef, "-r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 300, 1);
+        if (is_sle('15+')) {
+            add_suseconnect_product(get_addon_fullname('base'),      undef, undef, undef, 300, 1);
+            add_suseconnect_product(get_addon_fullname('serverapp'), undef, undef, undef, 300, 1);
+        }
         my $myaddons = get_var('SCC_ADDONS');
         # After media upgrade, system don't include ltss extension
         $myaddons =~ s/ltss,?//g;
