@@ -294,7 +294,9 @@ sub post_fail_hook {
         wait_for_children;
     }
     else {
-        $self->SUPER::post_fail_hook;
+        # In case of autoyast, actions in parent post fail hook might close
+        # error pop-up and system will reboot, so log collection will fail (see poo#61052)
+        $self->SUPER::post_fail_hook unless get_var('AUTOYAST');
         get_to_console;
         $self->detect_bsc_1063638;
         $self->get_ip_address;
