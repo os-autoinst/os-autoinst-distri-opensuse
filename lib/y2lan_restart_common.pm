@@ -39,7 +39,9 @@ our @EXPORT = qw(
   handle_dhcp_popup
   open_yast2_lan
   close_yast2_lan
-
+  wait_for_xterm_to_be_visible
+  clear_journal_log
+  close_xterm
 );
 my $module_name;
 
@@ -131,7 +133,7 @@ Check network status for device, test connection and DNS. Print journal.log on s
 sub check_network_status {
     my ($expected_status, $device) = @_;
     $expected_status //= 'no_restart';
-    assert_screen 'yast2_closed_xterm_visible';
+    assert_screen 'yast2_closed_xterm_visible', 120;
     assert_script_run 'ip a';
     if ($device eq 'bond') {
         record_soft_failure 'bsc#992113';
@@ -359,6 +361,47 @@ Close yast2 lan configuration and check that it is closed successfully
 sub close_yast2_lan {
     send_key "alt-o";    # OK=>Save&Exit
     wait_serial("$module_name-0", 180) || die "'yast2 lan' didn't finish";
+}
+
+=head2 clear_journal_log
+
+ clear_journal_log();
+
+Makes space for better readability of the console and clears journal.log,
+so that the existing logs will not interfere with the new ones.
+
+=cut
+sub clear_journal_log {
+    type_string "\n\n";
+    assert_script_run '> journal.log';
+}
+
+=head2 wait_for_xterm_to_be_visible
+
+ wait_for_xterm_to_be_visible();
+
+The function waits for the already opened xterm to be visible.
+
+Raises failure in case it is not visible after timeout exceeded.
+
+It is used to be sure, that all the yast2 lan windows are closed, so that all
+further actions in xterm can be made.
+
+=cut
+sub wait_for_xterm_to_be_visible {
+    assert_screen 'yast2_closed_xterm_visible', 120;
+}
+
+=head2 close_xterm
+
+ close_xterm();
+
+The function kills all the instances of xterm terminal to clear desktop for
+further tests.
+
+=cut
+sub close_xterm {
+    type_string "killall xterm\n";
 }
 
 1;

@@ -18,6 +18,7 @@ package Distribution::Sle::15sp0;
 use strict;
 use warnings;
 use Installation::Partitioner::LibstorageNG::v3::ExpertPartitionerController;
+use YaST::NetworkSettings::v3::NetworkSettingsController;
 use parent 'Distribution::Sle::15_current';
 
 # override
@@ -25,5 +26,9 @@ sub get_expert_partitioner {
     return Installation::Partitioner::LibstorageNG::v3::ExpertPartitionerController->new();
 }
 
+# override
+sub get_network_settings {
+    return YaST::NetworkSettings::v3::NetworkSettingsController->new();
+}
 
 1;
