@@ -66,6 +66,8 @@ sub verify_mounts {
 }
 
 sub run {
+    my ($self) = @_;
+
     my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
     my %keylayout_key = ('en_US' => 'e', 'de_DE' => 'd');
@@ -120,9 +122,16 @@ sub run {
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
     # Meltdown/Spectre mitigations makes this even worse.
-    assert_screen [qw(linux-login reached-power-off)], 1000;
-    if (match_has_tag 'reached-power-off') {
-        die "At least it reaches power off, but booting up failed, see boo#1143051. A workaround is not possible";
+    if (check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'))) {
+        # Wait jeos-firstboot is done and clear screen, as we are already logged-in via ssh
+        wait_still_screen;
+        $self->clear_and_verify_console;
+    }
+    else {
+        assert_screen [qw(linux-login reached-power-off)], 1000;
+        if (match_has_tag 'reached-power-off') {
+            die "At least it reaches power off, but booting up failed, see boo#1143051. A workaround is not possible";
+        }
     }
 
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
