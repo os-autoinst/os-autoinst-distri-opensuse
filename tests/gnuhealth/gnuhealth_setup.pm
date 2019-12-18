@@ -31,7 +31,7 @@ sub run() {
     systemctl 'restart postgresql';
     assert_script_run 'echo susetesting > /tmp/pw';
     my $cmd = 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password';
-    $cmd .= ' --email root' unless is_leap('<=15.2');
+    $cmd .= ' --email root' unless is_leap('<15.2');
     assert_script_run $cmd, 600;
     systemctl 'start gnuhealth';
     # exit from root session
