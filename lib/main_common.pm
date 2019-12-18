@@ -2415,6 +2415,9 @@ sub load_mitigation_tests {
     if (get_var('KVM_GUEST_MIGRATION')) {
         loadtest "cpu_bugs/kvm_guest_migration";
     }
+    if (get_var('SPECTRE_V1')) {
+        loadtest "cpu_bugs/spectre_v1";
+    }
 }
 
 sub load_security_tests {
