@@ -23,11 +23,14 @@ use testapi;
 use utils;
 use vagrant;
 use File::Basename;
+use Utils::Architectures 'is_x86_64';
 
 
 sub run() {
+    my $is_virtualbox_applicable = is_x86_64();
+
     setup_vagrant_libvirt();
-    setup_vagrant_virtualbox();
+    setup_vagrant_virtualbox() if $is_virtualbox_applicable;
 
     select_console('root-console');
     zypper_call('in ansible');
@@ -41,9 +44,10 @@ sub run() {
 
     my %boxes = (
         # Tumbleweed.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
-        libvirt    => "$version.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box",
-        virtualbox => "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box"
+        libvirt => "$version.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box",
     );
+    # virtualbox is supported only on x86_64
+    %boxes = (%boxes, virtualbox => "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box") if $is_virtualbox_applicable;
 
     my @providers = keys %boxes;
 
