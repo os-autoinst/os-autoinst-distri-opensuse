@@ -2415,6 +2415,9 @@ sub load_mitigation_tests {
     if (get_var('KVM_GUEST_MIGRATION')) {
         loadtest "cpu_bugs/kvm_guest_migration";
     }
+    if (get_var('TAA')) {
+        loadtest "cpu_bugs/taa";
+    }
 }
 
 sub load_security_tests {
