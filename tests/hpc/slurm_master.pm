@@ -214,6 +214,20 @@ sub accounting_test_01 {
     return %results;
 }
 
+sub slurm_mpi_test_01 {
+    my $name        = 'PMIx Support in SLURM and the MPI Libraries';
+    my $description = 'Slurm and MPI test for PMIx. https://jira.suse.com/browse/SLE-10802
+    Basic check if pmix is present.';
+    my $result      = 0;
+
+    my $pmi_versions = script_output("srun --mpi=list");
+    $result = 1 unless ($pmi_versions =~ m/'pmix'/);
+    record_info('INFO', script_output("srun --mpi=list"));
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
 sub run {
     my $self       = shift;
     my $nodes      = get_required_var('CLUSTER_NODES');
@@ -263,6 +277,9 @@ sub run {
 
     my %test;
     %test = basic_test_01();
+    pars_results(%test);
+
+    %test = slurm_mpi_test_01();
     pars_results(%test);
 
     %test = basic_test_02();
