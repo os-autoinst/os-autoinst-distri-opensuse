@@ -68,6 +68,9 @@ sub run {
     systemctl 'enable sbd';
     systemctl 'enable pacemaker';
 
+    # Start iscsi service if it is not started yet
+    systemctl 'start iscsi' if (systemctl 'status iscsi', ignore_failure => 1);
+
     # Wait for all nodes to finish
     barrier_wait("SLE11_UPGRADE_INIT_$cluster_name");
 
