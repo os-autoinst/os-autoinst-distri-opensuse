@@ -5,6 +5,7 @@ C<autofs_utils> - Functions for setup autofs server and check autofs service
 =cut
 package autofs_utils;
 
+use Exporter 'import';
 use strict;
 use warnings;
 use testapi;
