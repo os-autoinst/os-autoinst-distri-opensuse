@@ -24,16 +24,22 @@ use constant {
     SELECTED_RAID              => 'partitioning_raid-raid-selected',
     SELECTED_VOLUME_MANAGEMENT => 'volume_management_feature',
     SELECTED_HARD_DISKS        => 'partitioning_raid-hard_disks-selected',
-    SELECTED_EXISTING_PART     => 'partitioning_existing_part_%s-selected'
+    SELECTED_EXISTING_PART     => 'partitioning_existing_part_%s-selected',
+    CLONE_PARTITION            => 'clone_partition',
+    ALL_DISKS_SELECTED         => 'all_disks_selected'
 };
 
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        add_raid_shortcut         => $args->{add_raid_shortcut},
-        add_partition_shortcut    => $args->{add_partition_shortcut},
-        edit_partition_shortcut   => $args->{edit_partition_shortcut},
-        resize_partition_shortcut => $args->{resize_partition_shortcut}
+        add_raid_shortcut               => $args->{add_raid_shortcut},
+        add_partition_shortcut          => $args->{add_partition_shortcut},
+        edit_partition_shortcut         => $args->{edit_partition_shortcut},
+        resize_partition_shortcut       => $args->{resize_partition_shortcut},
+        partition_table_shortcut        => $args->{partition_table_shortcut},
+        clone_partition_chortcut        => $args->{clone_partition_chortcut},
+        ok_clone_shortcut               => $args->{ok_clone_shortcut},
+        available_target_disks_shortcut => $args->{avail_tgt_disks_shortcut}
     }, $class;
 }
 
@@ -107,6 +113,32 @@ sub press_accept_button {
     wait_still_screen;
     assert_screen(EXPERT_PARTITIONER_PAGE);
     send_key('alt-a');
+}
+
+sub open_clone_partition_dialog {
+    my ($self) = @_;
+    assert_screen(EXPERT_PARTITIONER_PAGE);
+    send_key($self->{partition_table_shortcut});
+    for (1 .. 2) { wait_screen_change { send_key "down" } }
+    save_screenshot;
+    send_key "ret";
+}
+
+sub select_all_disks_to_clone {
+    my ($self, $numdisks) = @_;
+    assert_screen(CLONE_PARTITION);
+    send_key($self->{available_target_disks_shortcut});
+    send_key "spc";           # Select first disk before going down,
+    for (2 .. $numdisks) {    # then start from 2nd.
+        send_key "down";
+        send_key "spc";
+    }
+}
+
+sub press_ok_clone {
+    my ($self) = @_;
+    assert_screen(ALL_DISKS_SELECTED);
+    send_key($self->{ok_clone_shortcut});
 }
 
 1;

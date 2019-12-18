@@ -35,7 +35,10 @@ sub new {
                 add_partition_shortcut    => 'alt-r',
                 resize_partition_shortcut => 'alt-r',
                 edit_partition_shortcut   => 'alt-e',
-                add_raid_shortcut         => 'alt-d'
+                add_raid_shortcut         => 'alt-d',
+                partition_table_shortcut  => 'alt-r',
+                avail_tgt_disks_shortcut  => 'alt-a',
+                ok_clone_shortcut         => 'alt-o'
         }),
         NewPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({
                 custom_size_shortcut => 'alt-o'
@@ -120,5 +123,16 @@ sub edit_partition_on_gpt_disk {
     $self->get_edit_formatting_options_page()->fill_in_mount_point_field($args->{mount_point});
     $self->get_edit_formatting_options_page()->press_next();
 }
+
+sub clone_partition_table {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->go_top_in_system_view_table();
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{disk});
+    $self->get_expert_partitioner_page()->open_clone_partition_dialog();
+    $self->get_expert_partitioner_page()->select_all_disks_to_clone($args->{numdisks});
+    $self->get_expert_partitioner_page()->press_ok_clone();
+}
+
+
 
 1;
