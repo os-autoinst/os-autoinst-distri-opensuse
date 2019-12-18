@@ -829,6 +829,7 @@ sub wait_boot_past_bootloader {
     # Administrator user listed but do not attempt to login
     if (get_var('HDDVERSION') and is_desktop_installed() and is_upgrade() and is_sles4sap()) {
         assert_screen 'displaymanager-sapadm', $ready_time;
+        wait_still_screen;    # We need to ensure that we are in a stable state
         return;
     }
 
