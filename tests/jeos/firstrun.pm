@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap);
+use Utils::Architectures 'is_aarch64';
 use Utils::Backends 'is_hyperv';
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 
@@ -156,7 +157,8 @@ sub run {
         assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
     }
 
-    verify_mounts;
+    # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0
+    verify_mounts unless is_leap && is_aarch64;
 }
 
 sub test_flags {
