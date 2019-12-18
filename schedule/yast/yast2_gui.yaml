@@ -25,3 +25,6 @@ schedule:
     - yast2_gui/yast2_software_management
     - yast2_gui/yast2_users
     - yast2_gui/yast2_security
+    - yast2_gui/yast2_lan_restart_bridge
+    - yast2_gui/yast2_lan_restart_vlan
+    - yast2_gui/yast2_lan_restart_bond
