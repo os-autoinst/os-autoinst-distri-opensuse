@@ -2438,6 +2438,9 @@ sub load_mitigation_tests {
     if (get_var('TAA')) {
         loadtest "cpu_bugs/taa";
     }
+    if (get_var('ITLB')) {
+        loadtest "cpu_bugs/itlb";
+    }
 }
 
 sub load_security_tests {
