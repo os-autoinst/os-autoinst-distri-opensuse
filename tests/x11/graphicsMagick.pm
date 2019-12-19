@@ -10,7 +10,7 @@
 # Summary: GraphicMagick testsuite
 # Maintainer: Ivan Lausuch <ilausuch@suse.com>
 
-use base 'consoletest';
+use base 'x11test';
 use testapi;
 use strict;
 use warnings;
@@ -56,6 +56,7 @@ sub run {
     send_key 'alt-f4';
 
     type_string "exit\n";
+    send_key 'alt-f4';
 }
 
 1;
