@@ -33,7 +33,7 @@ sub handle_installer_medium_bootup {
     my ($self) = @_;
 
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
-    assert_screen 'inst-bootmenu';
+    assert_screen 'inst-bootmenu', 60;
 
     if (check_var("BOOTFROM", "d") && check_var("AUTOUPGRADE") && check_var("PATCH")) {
         assert_screen 'grub2';
