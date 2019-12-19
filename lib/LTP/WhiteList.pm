@@ -63,7 +63,7 @@ sub override_known_failures {
 
   ISSUE:
     foreach my $cond (@issues) {
-        foreach my $filter (qw(product ltp_version revision arch kernel backend retval)) {
+        foreach my $filter (qw(product ltp_version revision arch kernel backend retval flavor)) {
             next ISSUE if exists $cond->{$filter} and $env->{$filter} !~ m/$cond->{$filter}/;
         }
 

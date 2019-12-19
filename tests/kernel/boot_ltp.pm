@@ -85,6 +85,7 @@ sub run {
         my $environment = {
             product     => get_var('DISTRI') . ':' . get_var('VERSION'),
             revision    => get_var('BUILD'),
+            flavor      => get_var('FLAVOR'),
             arch        => get_var('ARCH'),
             kernel      => '',
             libc        => '',
