@@ -185,7 +185,7 @@ sub run {
     }
 
     # Stop reboot countdown where necessary for e.g. uploading logs
-    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_caasp) {
+    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_caasp || (is_sle('=11-sp4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x'))) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.
