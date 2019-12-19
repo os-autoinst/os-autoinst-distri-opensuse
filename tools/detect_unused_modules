@@ -3,7 +3,7 @@
 for test in $(git ls-files "*tests/*.pm") ; do
     t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
     t_dir=$(echo $test | sed -e 's@tests/\(.*\)/.*$@\1@')
-    git grep -E "(loadtest.*$t|load_testdir.*$t_dir)" | grep -qv ".pm:\s*#" || echo $test
+    git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir)" | grep -qv ".(pm|yaml):\s*#" || echo $test
 done | \
     # fetchmail_ssl, mailx_ssl, mutt_ssl, postfix_tls: https://progress.opensuse.org/issues/31750
     # qa_automation, hpc, caasp/stack_admin, wicked: Tests are loaded dynamically
