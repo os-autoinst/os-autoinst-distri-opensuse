@@ -48,30 +48,20 @@ sub run {
     # Configure LVM for HA cluster
     lvm_add_filter('r', '/dev/.\*/by-partuuid/.\*');
     if ($lock_mgr eq 'lvmlockd') {
-        assert_script_run "sed -ie 's/^\\([[:blank:]]*use_lvmetad[[:blank:]]*=\\).*/\\1 1/' $lvm_conf";     # Set use_lvmetad=1, lvmlockd supports lvmetad
-        assert_script_run "sed -ie 's/^\\([[:blank:]]*locking_type[[:blank:]]*=\\).*/\\1 1/' $lvm_conf";    # Set locking_type=1 for lvmlockd
-        assert_script_run "sed -ie 's/^\\([[:blank:]]*use_lvmlockd[[:blank:]]*=\\).*/\\1 1/' $lvm_conf";    # Enable lvmlockd
+        # Set use_lvmetad=1, lvmlockd supports lvmetad. Set locking_type=1 for lvmlockd. Enable lvmlockd
+        set_lvm_config($lvm_conf, use_lvmetad => 1, locking_type => 1, use_lvmlockd => 1);
     }
     else {
-        assert_script_run "sed -ie 's/^\\([[:blank:]]*use_lvmetad[[:blank:]]*=\\).*/\\1 0/' $lvm_conf";     # Set use_lvmetad=0, clvmd doesn't support lvmetad
-        assert_script_run "sed -ie 's/^\\([[:blank:]]*locking_type[[:blank:]]*=\\).*/\\1 3/' $lvm_conf";    # Set locking_type=3 for clvmd
-        systemctl 'stop lvm2-lvmetad.socket';                                                               # Stop lvmetad
-        systemctl 'disable lvm2-lvmetad.socket';                                                            # Disable lvmetad
+        # Set use_lvmetad=0, clvmd doesn't support lvmetad. Set locking_type=3 for clvmd
+        set_lvm_config($lvm_conf, use_lvmetad => 0, locking_type => 3);
+        systemctl 'stop lvm2-lvmetad.socket';       # Stop lvmetad
+        systemctl 'disable lvm2-lvmetad.socket';    # Disable lvmetad
     }
-
-    # Show important configuration options in case of debugging
-    script_run "grep -E '^[[:blank:]]*use_lvmetad|^[[:blank:]]*locking_type|^[[:blank:]]*use_lvmlockd' $lvm_conf";
 
     # Add clvmd/lvmlockd into the cluster configuration
     if (is_node(1)) {
         # Add clvmd/lvmlockd to base-group if it's not already done
-        if (script_run "crm resource status $lock_mgr") {
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $lock_mgr ocf:heartbeat:$lock_mgr'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $lock_mgr/'\" crm configure edit";
-
-            # Wait to get clvmd/lvmlockd running on all nodes
-            sleep 5;
-        }
+        add_lock_mgr($lock_mgr) if (script_run "crm resource status $lock_mgr");
     }
     else {
         diag 'Wait until clvmd/lvmlockd resource is created...';

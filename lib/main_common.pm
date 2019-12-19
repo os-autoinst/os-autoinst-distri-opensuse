@@ -2765,6 +2765,7 @@ sub load_ha_cluster_tests {
     if (get_var('HDDVERSION')) {
         loadtest 'ha/setup_hosts_and_luns' unless get_var('USE_SUPPORT_SERVER');
         loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
+        loadtest 'ha/migrate_clvmd_to_lvmlockd'         if (is_sle('15-SP2+') and get_var('HDDVERSION') =~ /1[12]-SP/);
         loadtest 'ha/check_after_reboot';
         loadtest 'ha/check_hawk';
         return 1;
