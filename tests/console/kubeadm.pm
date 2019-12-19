@@ -37,7 +37,7 @@ sub run {
 
     record_info 'Test #4', 'Test: Record cluster info';
     # Cluster isn't ready immediately
-    sleep 60;
+    sleep 240;
     script_run("kubectl config view --flatten=true | tee /dev/$serialdev");
     script_run("kubectl get pods --all-namespaces | tee /dev/$serialdev");
 
