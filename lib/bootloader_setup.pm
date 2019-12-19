@@ -139,7 +139,7 @@ sub add_custom_grub_entries {
     die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
     $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
     die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
-    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' " . GRUB_CFG_FILE);
+    $cnt_new = script_output("grep -c -E 'linux.*(/boot|/vmlinu[xz]-).* $grub_param ' " . GRUB_CFG_FILE);
     die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
 }
 
