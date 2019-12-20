@@ -51,7 +51,7 @@ FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DV
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
 FULL_LVM_ENCRYPT | boolean | false | Enables/indicates encryption using lvm. boot partition may or not be encrypted, depending on the product default behavior.
 FUNCTION | string | | Specifies SUT's role for MM test suites. E.g. Used to determine which SUT acts as target/server and initiator/client for iscsi test suite
-GRUB_PARAM | string | | Adds special grub menu entry (3rd and 4th entry in main grub, where 4th entry is the "Advanced options ..." submenu) with kernel parameters specified in this variable. See `add_custom_grub_entries()`.
+GRUB_PARAM | string | | A semicolon-separated list of extra boot options. Adds 2 grub meny entries per each item in main grub (2nd entry is the "Advanced options ..." submenu). See `add_custom_grub_entries()`.
 GRUB_BOOT_NONDEFAULT | boolean | false | Boot grub menu entry added by `add_custom_grub_entries`. NOTE: s390x not supported. See `boot_grub_item()`, `handle_grub()`.
 GRUB_SELECT_FIRST_MENU | integer | | Select grub menu entry in main grub menu, used together with GRUB_SELECT_SECOND_MENU. NOTE: s390x not supported. See `boot_grub_item()`, `handle_grub()`.
 GRUB_SELECT_SECOND_MENU | integer | | Select grub menu entry in secondary grub menu (the "Advanced options ..." submenu), used together with GRUB_SELECT_FIRST_MENU. NOTE: s390x not supported. See `boot_grub_item()`, `handle_grub()`.
