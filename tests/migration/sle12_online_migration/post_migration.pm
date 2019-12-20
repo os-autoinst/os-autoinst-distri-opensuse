@@ -27,7 +27,8 @@ sub run {
 
     add_maintenance_repos() if (get_var('MAINT_TEST_REPO'));
 
-    if (is_desktop_installed && (!is_sles4sap || is_sle('15+'))) {
+    # we need to ensure that desktop is unlocked on SLE15+ but not on any SLES4SAP
+    if (is_desktop_installed && !is_sles4sap && is_sle('15+')) {
         select_console 'x11', await_console => 0;
         ensure_unlocked_desktop;
         mouse_hide(1);
