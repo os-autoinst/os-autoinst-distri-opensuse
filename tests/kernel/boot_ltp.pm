@@ -16,7 +16,6 @@ use base 'opensusebasetest';
 use testapi;
 use bootloader_setup 'boot_grub_item';
 use LTP::WhiteList 'download_whitelist';
-use serial_terminal 'get_login_message';
 use version_utils 'is_jeos';
 
 sub run {
@@ -30,7 +29,7 @@ sub run {
         record_info('INFO', 'IMA boot');
         # boot kernel with IMA parameters
         boot_grub_item();
-        wait_serial(get_login_message(), 500);
+        $self->wait_boot_past_bootloader;
     }
     elsif (check_var('BACKEND', 'ipmi')) {
         record_info('INFO', 'IPMI boot');
