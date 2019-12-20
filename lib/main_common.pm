@@ -1287,7 +1287,7 @@ sub load_x11tests {
             }
         }
         else {
-            loadtest "x11/graphicsMagick";
+            loadtest "x11/graphicsMagick" unless (is_staging || is_livesystem);
         }
     }
     if (libreoffice_is_applicable()) {
