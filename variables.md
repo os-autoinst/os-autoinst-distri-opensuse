@@ -51,6 +51,7 @@ FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DV
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
 FULL_LVM_ENCRYPT | boolean | false | Enables/indicates encryption using lvm. boot partition may or not be encrypted, depending on the product default behavior.
 FUNCTION | string | | Specifies SUT's role for MM test suites. E.g. Used to determine which SUT acts as target/server and initiator/client for iscsi test suite
+GRUB_PARAM | string | | Adds special grub menu entry (3rd and 4th entry in main grub, where 4th entry is the "Advanced options ..." submenu) with kernel parameters specified in this variable. See `add_custom_grub_entries()`.
 HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and validation of the license agreements.
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
