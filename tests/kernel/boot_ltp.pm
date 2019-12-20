@@ -14,7 +14,6 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use bootloader_setup 'boot_grub_item';
 use LTP::WhiteList 'download_whitelist';
 use version_utils 'is_jeos';
 
@@ -25,13 +24,7 @@ sub run {
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $is_ima     = $cmd_file =~ m/^ima$/i;
 
-    if ($is_ima) {
-        record_info('INFO', 'IMA boot');
-        # boot kernel with IMA parameters
-        boot_grub_item();
-        $self->wait_boot_past_bootloader;
-    }
-    elsif (check_var('BACKEND', 'ipmi')) {
+    if (check_var('BACKEND', 'ipmi')) {
         record_info('INFO', 'IPMI boot');
         select_console 'sol', await_console => 0;
         assert_screen('linux-login', 1800);
@@ -40,7 +33,7 @@ sub run {
         record_info('Loaded JeOS image', 'nothing to do...');
     }
     else {
-        record_info('INFO', 'normal boot');
+        record_info('INFO', 'normal boot or boot with params');
         # during install_ltp, the second boot may take longer than usual
         $self->wait_boot(ready_time => 500);
     }

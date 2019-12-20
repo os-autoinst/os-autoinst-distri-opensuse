@@ -170,6 +170,8 @@ sub unlock_zvm_disk {
 Make sure that grub was started and send four enter keys to boot the system.
 C<$console> should be set to C<console('x3270')>.
 
+TODO: Add support for GRUB_BOOT_NONDEFAULT, GRUB_SELECT_FIRST_MENU, GRUB_SELECT_SECOND_MENU,
+see boot_grub_item()
 =cut
 sub handle_grub_zvm {
     my ($console) = @_;

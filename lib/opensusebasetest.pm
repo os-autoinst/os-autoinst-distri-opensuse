@@ -1,7 +1,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
+use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
 use testapi;
 use strict;
 use warnings;
@@ -719,6 +719,9 @@ sub handle_grub {
     my $bootloader_time  = $args{bootloader_time};
     my $in_grub          = $args{in_grub};
     my $linux_boot_entry = $args{linux_boot_entry} // 14;
+    my $grub_nondefault  = get_var('GRUB_BOOT_NONDEFAULT');
+    my $first_menu       = get_var('GRUB_SELECT_FIRST_MENU');
+    my $second_menu      = get_var('GRUB_SELECT_SECOND_MENU');
 
     # On Xen PV and svirt we don't see a Grub menu
     # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
@@ -730,9 +733,22 @@ sub handle_grub {
         wait_screen_change { send_key 'end' };
         send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
         for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
+        bmwqemu::fctinfo("Adding boot params '$boot_params'");
         type_string_very_slow "$boot_params ";
         save_screenshot;
         send_key 'ctrl-x';
+    }
+    elsif (my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT')) {
+        bmwqemu::fctinfo("Boot non-default grub option");
+        boot_grub_item();
+    } elsif (my $first_menu = get_var('GRUB_SELECT_FIRST_MENU')) {
+        if (my $second_menu = get_var('GRUB_SELECT_SECOND_MENU')) {
+            bmwqemu::fctinfo("Boot $first_menu > $second_menu");
+            boot_grub_item($first_menu, $second_menu);
+        } else {
+            bmwqemu::fctinfo("Boot $first_menu");
+            boot_grub_item($first_menu);
+        }
     }
     else {
         # confirm default choice
