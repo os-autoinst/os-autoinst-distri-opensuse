@@ -42,10 +42,7 @@
 #     - Send 'alt-i'
 #   - If needle matches 'package-update-found'
 #     - Send 'alt-n'
-#   - Unless REMOTE_CONTROLLER is set or is_caasp
-#     - Start a countdown, send 'alt-s' and print 'workaround', "While trying to stop countdown
-#     we saw a screen change, retrying up to $counter times more" on each
-#     iteration, while trying to match screens with 55% similarity.
+#   - Stop reboot timeout where necessary
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
@@ -187,8 +184,8 @@ sub run {
         last;
     }
 
-    # Stop reboot countdown for e.g. uploading logs
-    unless (get_var("REMOTE_CONTROLLER") || is_caasp) {
+    # Stop reboot countdown where necessary for e.g. uploading logs
+    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_caasp) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.
