@@ -730,7 +730,7 @@ elsif (get_var("QA_TESTSUITE")) {
 }
 elsif (get_var('XFSTESTS')) {
     prepare_target;
-    if (is_spvm) {
+    if (is_spvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
