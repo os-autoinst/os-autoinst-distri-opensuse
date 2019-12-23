@@ -22,6 +22,7 @@ use testapi;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
+use List::Util 'first';
 use proxymode;
 use version_utils 'is_sle';
 
@@ -405,69 +406,105 @@ sub is_installed_equal_upgrade_major_release {
 #Generate XML to be consumed by junit log utilities
 sub generateXML_from_data {
     my ($tc_data, $data) = @_;
-    my %my_hash  = %$tc_data;
-    my %xmldata  = %$data;
-    my $case_num = scalar(keys %my_hash);
-    my $case_status;
-    my $writer = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
 
-    my $count = $xmldata{"pass_nums"} + $xmldata{"fail_nums"} + $xmldata{"skip_nums"};
+    my %my_hash = %$tc_data;
+    my %xmldata = %$data;
+    my $writer  = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
+    #Initialize undefined counters to zero
+    my @tc_status_counters = ('pass', 'fail', 'skip', 'softfail', 'timeout', 'unknown');
+    foreach (@tc_status_counters) {
+        $xmldata{"$_" . "_nums"} = 0 if (!defined $xmldata{"$_" . "_nums"});
+    }
+    my $count = $xmldata{"pass_nums"} + $xmldata{"fail_nums"} + $xmldata{"skip_nums"} + $xmldata{"softfail_nums"} + $xmldata{"timeout_nums"} + $xmldata{"unknown_nums"};
+    my $timestamp = localtime(time);
     $writer->startTag(
         'testsuites',
-        error    => "0",
+        id       => "0",
+        error    => "n/a",
         failures => $xmldata{"fail_nums"},
         name     => $xmldata{"product_name"},
-        skipped  => "0",
+        skipped  => $xmldata{"skip_nums"},
         tests    => "$count",
-        time     => ""
+        time     => $xmldata{"test_time"}
     );
     $writer->startTag(
         'testsuite',
-        error     => "0",
+        id        => "0",
+        error     => "n/a",
         failures  => $xmldata{"fail_nums"},
         hostname  => hostname(),
-        id        => "0",
         name      => $xmldata{"product_tested_on"},
         package   => $xmldata{"package_name"},
-        skipped   => "0",
-        tests     => $case_num,
-        time      => "",
-        timestamp => "2016-02-16T02:50:00"
+        skipped   => $xmldata{"skip_nums"},
+        tests     => $count,
+        time      => $xmldata{"test_time"},
+        timestamp => $timestamp
     );
 
-    foreach my $item (keys(%my_hash)) {
-        if ($my_hash{$item}->{status} =~ m/PASSED/) {
-            $case_status = "success";
+    #Generate testcase xml by calling subroutine generate_testcase_xml
+    foreach my $item (keys %my_hash) {
+        #Testsuite in JUnit XML uses completely different set of status representation, which are success, failure, skipped and etc.
+        #So we need to do mapping here to convert testcase status to JUnit language
+        my $case_status = "";
+        my %item_status_hash = (passed => "success", failed => "failure", skipped => "skipped", softfailed => "softfail", timeout => "timeout_exceeded", unknown => "unknown");
+        #The legacy test scenarios like guest_installation_run takes this 'if' branch path
+        if (defined $my_hash{$item}->{status}) {
+            my $item_status     = $my_hash{$item}->{status};
+            my $item_status_key = first { /^$item_status/i } (keys %item_status_hash);
+            if ($item_status_hash{$item_status_key} =~ /SKIPPED/im && $item =~ m/iso/) {
+                $case_status = 'skipped';
+            }
+            else {
+                $case_status = $item_status_hash{$item_status_key};
+                $case_status = 'failure' if $case_status eq 'skipped';
+            }
+            $my_hash{$item}->{status} = $case_status;
+            $my_hash{$item}->{guest}  = $item;
+            generate_testcase_xml($writer, $item, $my_hash{$item});
         }
-        elsif ($my_hash{$item}->{status} =~ m/SKIPPED/ && $item =~ m/iso/) {
-            $case_status = "skipped";
-        }
+        #The newly developed feature test takes this 'else' branch path
         else {
-            $case_status = "failure";
+            foreach my $subitem (keys %{$my_hash{$item}}) {
+                my $subitem_status     = $my_hash{$item}->{$subitem}->{status};
+                my $subitem_status_key = first { /^$subitem_status/i } (keys %item_status_hash);
+                my $case_status        = $item_status_hash{$subitem_status_key};
+                $my_hash{$item}->{$subitem}->{status} = $case_status;
+                $my_hash{$item}->{$subitem}->{guest}  = $item;
+                generate_testcase_xml($writer, $subitem, $my_hash{$item}->{$subitem});
+            }
         }
-        $writer->startTag(
-            'testcase',
-            classname => $item,
-            name      => $item,
-            status    => $case_status,
-            time      => $my_hash{$item}->{time});
-        $writer->startTag('system-err');
-        my $system_err = ($my_hash{$item}->{error} ? $my_hash{$item}->{error} : 'None');
-        $writer->characters("$system_err");
-        $writer->endTag('system-err');
-        $writer->startTag('system-out');
-        $writer->characters($my_hash{$item}->{time});
-        $writer->endTag('system-out');
-        $writer->dataElement(vmguest => $item);
-        $writer->endTag('testcase');
     }
-
     $writer->endTag('testsuite');
     $writer->endTag('testsuites');
     $writer->end();
     $writer->to_string();
 
     return $writer;
+}
+
+#Generate individual testcase xml to be the part of entire JUnit log
+sub generate_testcase_xml {
+    my ($xml_writer, $testcase, $testinfo) = @_;
+
+    my $testcase_time = eval { $testinfo->{test_time} ? $testinfo->{test_time} : 'n/a' };
+    my $testerror     = eval { $testinfo->{error}     ? $testinfo->{error}     : 'n/a' };
+    my $testoutput    = eval { $testinfo->{output}    ? $testinfo->{output}    : 'n/a' };
+    my $testcase_status = $testinfo->{status};
+    my $testguest       = $testinfo->{guest};
+    $xml_writer->startTag(
+        'testcase',
+        classname => $testcase,
+        name      => $testcase,
+        status    => $testcase_status,
+        time      => $testcase_time);
+    $xml_writer->startTag('system-err');
+    $xml_writer->characters($testerror);
+    $xml_writer->endTag('system-err');
+    $xml_writer->startTag('system-out');
+    $xml_writer->characters("$testoutput" . " time cost: $testcase_time");
+    $xml_writer->endTag('system-out');
+    $xml_writer->dataElement(failure => "affected subject: $testguest") unless $testcase_status eq 'success';
+    $xml_writer->endTag('testcase');
 }
 
 1;
