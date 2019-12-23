@@ -290,10 +290,10 @@ tests=(
   # Test 4. Special effects and modifications
 
   # a. Sharp the image and compare with an previously prepossessed image
-  "convert_and_compare suse_tail.jpg __1.png 0 -sharpen_5 suse_tail_sharpen5.png"
+  "convert_and_compare suse_tail.jpg __1.png 0.01 -sharpen_5 suse_tail_sharpen5.png"
 
   # b. Convert to monochrome and compare with an previously prepossessed image
-  "convert_and_compare degradation.png __1.png 0 -monochrome degradation_monochrome.png"
+  "convert_and_compare degradation.png __1.png 0.01 -monochrome degradation_monochrome.png"
 
   # c. Decorate an image with a border or frame
   "gm convert degradation.png -bordercolor black -border 10 __1.png;gm convert -crop 10x10+0+0 __1.png __2.png;compare PAE __2.png black10x10.png"
@@ -302,7 +302,7 @@ tests=(
   "gm convert -size 250x250 -type TrueColor xc:red __1.png;compare PAE __1.png red.png"
 
   # e. Flatten an image
-  "convert_and_compare quadrants500x500.xcf __1.png 0 -flatten quadrants500x500.png"
+  "convert_and_compare quadrants500x500.xcf __1.png 0.01 -flatten quadrants500x500.png"
 
   # f. Composite image on background color canvas image
   "convert_and_compare suse_tail.jpg __1.png 0 -thumbnail_120x80_-background_red_-gravity_center_-extent_140x100-10-5 suse_tail_composite.png"
@@ -325,8 +325,8 @@ tests=(
   "gm convert -channel blue blue.png __1.png; compare PAE red.png __1.png 0 1 Blue"
 
   # k. Blur
-  "convert_and_compare noise.gif __1.png 0 -blur_10 noise_blur_10.png"
-  "convert_and_compare noise.gif __1.png 0 -emboss_10 noise_emboss_10.png"
+  "convert_and_compare noise.gif __1.png 0.01 -blur_10 noise_blur_10.png"
+  "convert_and_compare noise.gif __1.png 0.01 -emboss_10 noise_emboss_10.png"
 
   # l. Virtual pixels
   "gm convert degradation.png -virtual-pixel Constant -background red -wave 10 __1.png;compare MAE __1.png test_virtual_pixel_constant.png 0.01"
