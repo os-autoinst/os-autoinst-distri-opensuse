@@ -22,7 +22,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_upgrade';
+use version_utils qw(is_sle is_upgrade);
 
 sub run {
     # start install
@@ -105,7 +105,8 @@ sub run {
     if (!get_var("LIVECD")
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
-        && !check_var('VIDEOMODE', 'text'))
+        && !check_var('VIDEOMODE', 'text')
+        && (!is_sle('=11-sp4') || !check_var('ARCH', 's390x') || !check_var('BACKEND', 's390x')))
     {
         my $counter = 20;
         while ($counter--) {
