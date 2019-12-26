@@ -20,42 +20,34 @@ use warnings;
 use version_utils 'is_sle';
 use registration 'get_addon_fullname';
 use Mojo::JSON;
+use List::MoreUtils 'uniq';
 
-sub zypper_lr {
+our @addons;
+
+sub suseconnect_ls {
     my ($search) = @_;
     $search //= '';
-    my $output;
-    if ($search ne '') {
-        $output = script_output("zypper lr --uri | grep -i " . $search);
-    }
-    else {
-        $output = script_output("zypper lr --uri");
-    }
-    diag("zypper lr output: " . $output);
+    die "$search is not registered" unless (grep(/^$search$/, @addons));
 }
 
 sub check_registered_system {
     my ($system) = @_;
-    my $version = get_var('SLE_PRODUCT') . $system;
-    zypper_lr($version);
+    my $pro = uc get_var('SLE_PRODUCT');
+    suseconnect_ls($pro);
+    my $ver = $system =~ s/\-SP/./r;
+    script_run("SUSEConnect -s | grep " . $ver);
 }
 
 sub check_registered_addons {
     my ($addonlist) = @_;
     $addonlist //= get_var('SCC_ADDONS');
-    my @addons = grep { defined $_ && $_ } split(/,/, $addonlist);
-    foreach my $addon (@addons) {
+    my @addons        = grep { defined $_ && $_ } split(/,/, $addonlist);
+    my @unique_addons = uniq @addons;
+    foreach my $addon (@unique_addons) {
         $addon =~ s/(^\s+|\s+$)//g;
         my $name = get_addon_fullname($addon);
         $name = 'LTSS' if ($name =~ /LTSS/);
-        # If has WE addon, zypper lr will list product-we when sle is 15+
-        # Need check nvidia repo
-        if ($name =~ /sle-we/) {
-            is_sle('15+') ? zypper_lr('product-we') : zypper_lr('sle-we');
-            zypper_lr('NVIDIA');
-            next;
-        }
-        zypper_lr($name);
+        suseconnect_ls($name);
     }
 }
 
@@ -63,8 +55,8 @@ sub check_upgraded_addons {
     my ($addonls) = @_;
     $addonls //= get_var('SCC_ADDONS');
     $addonls =~ s/ltss,?//g;
-    # Check auto-select modules after migration only for sle15-sp1
-    $addonls = $addonls . ",base,desktop,sdk,lgm,python2,serverapp,wsm" if (is_sle('=15-sp1'));
+    # Check auto-select modules after migration base is <15 and upgrade system is 15+
+    $addonls = $addonls . ",base,desktop,sdk,lgm,python2,serverapp,wsm" if (is_sle('<15', get_var('HDDVERSION')) and is_sle('15+', get_var('VERSION')));
     check_registered_addons($addonls);
 }
 
@@ -76,19 +68,20 @@ sub check_suseconnect {
         foreach (@$json) {
             my $iden   = $_->{identifier};
             my $status = $_->{status};
+            push(@addons, $iden);
             die "$iden register status is: $status" if ($status ne 'Registered');
         }
     }
     else {
         die "Cannot get register status: $output";
     }
+    diag "@addons";
 }
 
 sub full_registered_check {
     my ($stage) = @_;
     $stage //= '';
     check_suseconnect();
-    zypper_lr();
     if ($stage eq 'before') {
         check_registered_system(get_var('ORIGIN_SYSTEM_VERSION'));
         check_registered_addons();
