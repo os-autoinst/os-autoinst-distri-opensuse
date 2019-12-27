@@ -38,9 +38,10 @@ Set DNS server defined via required variable C<STATIC_DNS_SERVER>
 sub setup_static_network {
     my (%args) = @_;
     # Set default values
-    $args{ip} ||= '10.0.2.15';
-    $args{gw} ||= testapi::host_ip();
-    configure_static_dns(get_host_resolv_conf());
+    $args{ip}     //= '10.0.2.15';
+    $args{gw}     //= testapi::host_ip();
+    $args{silent} //= 0;
+    configure_static_dns(get_host_resolv_conf(), $args{silent});
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);

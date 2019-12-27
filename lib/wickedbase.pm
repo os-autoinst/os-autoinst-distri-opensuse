@@ -83,6 +83,9 @@ sub reset_wicked {
     script_run('ip r flush all');
     script_run("ip link set dev $iface down");
 
+    file_content_replace("/etc/sysconfig/network/config", "^NETCONFIG_DNS_STATIC_SERVERS=.*" => " ");
+    assert_script_run("netconfig -f update");
+
     # Restart services
     script_run('rcwickedd restart');
     script_run('rcwicked restart');
@@ -141,6 +144,8 @@ sub get_ip {
         dhcp_2nic    => ['10.20.30.',                '10.20.30.12'],                # dhcp_2nic in SUT, we don't know the last octect
         second_card  => ['10.0.3.11',                '10.0.3.12'],
         gateway      => ['10.0.2.2',                 '10.0.2.2'],
+        ipv6         => ['fd00:dead:beef::',         'fd00:dead:beef::'],
+        dns_advice   => ['fc00:a79:817:1::1',        'fc00:a79:817:1::1'],
       };
     my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
     die "$args{type} not exists" unless $ip;

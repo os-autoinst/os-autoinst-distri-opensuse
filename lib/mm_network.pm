@@ -78,11 +78,12 @@ sub configure_default_gateway {
 }
 
 sub configure_static_dns {
-    my ($conf) = @_;
+    my ($conf, $silent) = @_;
+    $silent //= 0;
     my $servers = join(" ", @{$conf->{nameserver}});
     assert_script_run("sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config");
     assert_script_run("netconfig -f update");
-    assert_script_run("cat /etc/resolv.conf");
+    assert_script_run("cat /etc/resolv.conf") unless $silent;
 }
 
 sub parse_network_configuration {
