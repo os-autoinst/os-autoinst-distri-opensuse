@@ -37,7 +37,7 @@ sub run {
         $product_id = 'NW_ERS';
     }
 
-    my @sapoptions = qw(SAPINST_START_GUISERVER=false SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
+    my @sapoptions = qw(SAPINST_START_GUISERVER=false SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false IS_HOST_LOCAL_USING_STRING_COMPARE=true);
     push @sapoptions, "SAPINST_USE_HOSTNAME=$hostname";
     push @sapoptions, "SAPINST_INPUT_PARAMETERS_URL=$params_file";
     push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.HDB.ABAPHA";
