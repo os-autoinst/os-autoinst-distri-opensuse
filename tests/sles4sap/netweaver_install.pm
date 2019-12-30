@@ -37,7 +37,7 @@ sub run {
         $product_id = 'NW_ERS';
     }
 
-    my @sapoptions = qw(SAPINST_START_GUISERVER=false SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false);
+    my @sapoptions = qw(SAPINST_START_GUISERVER=false SAPINST_SKIP_DIALOGS=true SAPINST_SLP_MODE=false IS_HOST_LOCAL_USING_STRING_COMPARE=true);
     push @sapoptions, "SAPINST_USE_HOSTNAME=$hostname";
     push @sapoptions, "SAPINST_INPUT_PARAMETERS_URL=$params_file";
     push @sapoptions, "SAPINST_EXECUTE_PRODUCT_ID=$product_id:NW750.HDB.ABAPHA";
@@ -106,19 +106,16 @@ sub run {
     $self->ensure_serialdev_permissions_for_sap;
 }
 
-{
-    no warnings 'redefine';
-    sub post_fail_hook {
-        my $self = shift;
-
-        $self->export_logs();
-        upload_logs "/tmp/check-nw-media";
-        $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
-        $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
-        upload_logs "/sapinst/unattended/sapinst.log";
-        upload_logs "/sapinst/unattended/sapinst_dev.log";
-        upload_logs "/sapinst/unattended/start_dir.cd";
-    }
+no warnings 'redefine';
+sub post_fail_hook {
+    my $self = shift;
+    upload_logs "/tmp/check-nw-media";
+    $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
+    $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
+    upload_logs "/sapinst/unattended/sapinst.log";
+    upload_logs "/sapinst/unattended/sapinst_dev.log";
+    upload_logs "/sapinst/unattended/start_dir.cd";
+    $self->SUPER::post_fail_hook;
 }
 
 1;
