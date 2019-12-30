@@ -106,19 +106,16 @@ sub run {
     $self->ensure_serialdev_permissions_for_sap;
 }
 
-{
-    no warnings 'redefine';
-    sub post_fail_hook {
-        my $self = shift;
-
-        $self->export_logs();
-        upload_logs "/tmp/check-nw-media";
-        $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
-        $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
-        upload_logs "/sapinst/unattended/sapinst.log";
-        upload_logs "/sapinst/unattended/sapinst_dev.log";
-        upload_logs "/sapinst/unattended/start_dir.cd";
-    }
+no warnings 'redefine';
+sub post_fail_hook {
+    my $self = shift;
+    upload_logs "/tmp/check-nw-media";
+    $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
+    $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
+    upload_logs "/sapinst/unattended/sapinst.log";
+    upload_logs "/sapinst/unattended/sapinst_dev.log";
+    upload_logs "/sapinst/unattended/start_dir.cd";
+    $self->SUPER::post_fail_hook;
 }
 
 1;
