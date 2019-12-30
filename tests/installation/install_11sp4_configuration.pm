@@ -32,7 +32,7 @@ sub run {
 
     # reconnect console after reboot
     my $login_ready = qr/starting VNC server/;
-    my $timeout = 300;
+    my $timeout     = 300;
     console('installation')->disable_vnc_stalls;
     console('x3270')->expect_3270(output_delim => $login_ready, timeout => $timeout);
     reset_consoles;
