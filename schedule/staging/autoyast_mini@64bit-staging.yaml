@@ -8,6 +8,7 @@ schedule:
     - autoyast/installation
     - autoyast/console
     - autoyast/login
+    - console/yast2_clone_system
     - autoyast/wicked
     - autoyast/repos
     - autoyast/clone
