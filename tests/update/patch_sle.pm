@@ -220,6 +220,11 @@ sub install_patterns {
             $pt .= '*';
             $pcm = 1;
         }
+        # workround for bsc#1034541
+        if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
+            record_soft_failure 'bsc#1034541';
+            next;
+        }
         zypper_call "in -t pattern $pt";
     }
 }
@@ -265,7 +270,12 @@ sub sle_register {
                 my $reg_code = get_required_var('NCC_REGCODE');
                 my $reg_mail = get_var('NCC_MAIL');               # email address is not mandatory for SCC
                 assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf");
-                assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+                if (get_var('NCC_REGCODE_SDK')) {
+                    my $reg_code_sdk = get_required_var('NCC_REGCODE_SDK');
+                    assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code -a regcode-sles=$reg_code_sdk", 300);
+                } else {
+                    assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code", 300);
+                }
             }
             # Otherwise, register SLE 11 to NCC server
             else {

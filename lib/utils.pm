@@ -44,6 +44,7 @@ our @EXPORT = qw(
   zypper_enable_install_dvd
   zypper_ar
   fully_patch_system
+  handle_patch_11sp4_zvm
   ssh_fully_patch_system
   minimal_patch_system
   workaround_type_encrypted_passphrase
@@ -605,8 +606,14 @@ the second run will update the system.
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
     zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
-    # second run, full system update
-    zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+    # workround for 11-SP4 s390 bsc#1155544
+    if (is_sle('=11-SP4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x')) {
+        record_soft_failure 'bsc#1155544';
+        handle_patch_11sp4_zvm();
+    } else {
+        # second run, full system update
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+    }
 }
 
 =head2 ssh_fully_patch_system
@@ -1573,6 +1580,46 @@ sub file_content_replace {
         assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
     }
     script_run("cat $filename") if $debug;
+}
+
+sub handle_patch_11sp4_zvm {
+    my $zypper_patch_conflict     = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
+    my $zypper_continue           = qr/^Continue\? \[y/m;
+    my $zypper_patch_done         = qr/^ZYPPER-DONE/m;
+    my $zypper_patch_notification = qr/^View the notifications now\? \[y/m;
+    my $zypper_error              = qr/^Abort, retry, ignore\? \[a/m;
+    my $timeout                   = 6000;
+    my $patch_checks              = [
+        $zypper_patch_conflict, $zypper_continue, $zypper_patch_done, $zypper_patch_notification, $zypper_error
+    ];
+    script_run("(zypper patch --with-interactive -l;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
+    my $out = wait_serial($patch_checks, $timeout);
+    while ($out) {
+        if ($out =~ $zypper_patch_conflict) {
+            save_screenshot;
+            send_key "3";
+            send_key "ret";
+        }
+        elsif ($out =~ $zypper_continue) {
+            save_screenshot;
+            send_key "y";
+            send_key "ret";
+        }
+        elsif ($out =~ $zypper_patch_notification) {
+            save_screenshot;
+            send_key "n";
+            send_key "ret";
+        }
+        elsif ($out =~ $zypper_patch_done) {
+            save_screenshot;
+            last;
+        }
+        elsif ($out =~ $zypper_error) {
+            die "zypper patch error";
+            save_screenshot;
+        }
+        $out = wait_serial($patch_checks, $timeout);
+    }
 }
 
 1;

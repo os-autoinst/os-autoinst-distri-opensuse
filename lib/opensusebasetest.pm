@@ -644,7 +644,10 @@ sub reconnect_s390 {
     my $login_ready = get_login_message();
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
-        handle_grub_zvm($console);
+        # skip grub handle for 11sp4
+        if (!is_sle('=11-SP4')) {
+            handle_grub_zvm($console);
+        }
         $console->expect_3270(
             output_delim => $login_ready,
             timeout      => $ready_time + 100
