@@ -54,7 +54,7 @@ our $default_services = {
     registered_addons => {
         srv_pkg_name       => 'registered_addons',
         srv_proc_name      => 'registered_addons',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::registered_addons::full_registered_check
     },
     susefirewall => {
@@ -65,7 +65,7 @@ our $default_services = {
     firewall => {
         srv_pkg_name  => 'firewalld',
         srv_proc_name => 'firewalld.service',
-        support_ver   => '15,15-SP1'
+        support_ver   => '15,15-SP1,15-SP2'
     },
     ntp => {
         srv_pkg_name       => 'ntp',
@@ -76,86 +76,86 @@ our $default_services = {
     chrony => {
         srv_pkg_name  => 'chrony',
         srv_proc_name => 'chronyd',
-        support_ver   => '15,15-SP1'
+        support_ver   => '15,15-SP1,15-SP2'
     },
     postfix => {
         srv_pkg_name       => 'postfix',
         srv_proc_name      => 'postfix',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::postfix::full_postfix_check
     },
     # Quick hack for poo 50576, we need this workround before full solution
     apache => {
         srv_pkg_name       => 'apache2',
         srv_proc_name      => 'apache2',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::apache::full_apache_check
     },
     dhcpd => {
         srv_pkg_name       => 'dhcp-server',
         srv_proc_name      => 'dhcpd',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::dhcpd::full_dhcpd_check
     },
     bind => {
         srv_pkg_name  => 'bind',
         srv_proc_name => 'named',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2'
     },
     snmp => {
         srv_pkg_name  => 'net-snmp',
         srv_proc_name => 'snmpd',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2'
     },
     nfs => {
         srv_pkg_name       => 'yast2-nfs-server',
         srv_proc_name      => 'nfs',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&check_y2_nfs_func
     },
     rpcbind => {
         srv_pkg_name       => 'rpcbind',
         srv_proc_name      => 'rpcbind',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::rpcbind::full_rpcbind_check
     },
     autofs => {
         srv_pkg_name       => 'autofs',
         srv_proc_name      => 'autofs',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&full_autofs_check
     },
     cups => {
         srv_pkg_name       => 'cups',
         srv_proc_name      => 'cups',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::cups::full_cups_check
     },
     radvd => {
         srv_pkg_name  => 'radvd',
         srv_proc_name => 'radvd',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2'
     },
     cron => {
         srv_pkg_name  => 'cron',
         srv_proc_name => 'cron',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2'
     },
     apparmor => {
         srv_pkg_name       => 'apparmor',
         srv_proc_name      => 'apparmor',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&services::apparmor::full_apparmor_check
     },
     vsftp => {
         srv_pkg_name  => 'vsftpd',
         srv_proc_name => 'vsftpd',
-        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1'
+        support_ver   => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2'
     },
     kdump => {
         srv_pkg_name       => 'kdump',
         srv_proc_name      => 'kdump',
-        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1',
+        support_ver        => '12-SP2,12-SP3,12-SP4,12-SP5,15,15-SP1,15-SP2',
         service_check_func => \&full_kdump_check
     },
 };
