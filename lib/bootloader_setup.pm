@@ -168,7 +168,7 @@ Boot the default kernel:
 
     boot_grub_item(1);
 
-Boot the default kernel recovery mode (goes through "Advanced options"):
+Boot the default kernel recovery mode (selected in the "Advanced options ..."):
 
     boot_grub_item(2, 2);
 
