@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ sub run {
     };
 
     # Remove security.evm attribute manually, and verify it is empty
-    assert_script_run "setfattr -x security.ima $sample_app";
+    assert_script_run "setfattr -x security.evm $sample_app";
     validate_script_output "getfattr -m security.evm -d $sample_app", sub { m/^$/ };
 
     replace_grub_cmdline_settings('evm=fix ima_appraise=fix', '', update_grub => 1);
@@ -55,7 +55,6 @@ sub run {
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);
     $self->select_serial_terminal;
-
     my $ret = script_output($sample_cmd, 30, proceed_on_failure => 1);
     die "$sample_app should not have permission to run" if ($ret !~ "\Q$sample_app\E: *Permission denied");
 }
