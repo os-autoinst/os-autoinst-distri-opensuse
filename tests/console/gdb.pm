@@ -1,3 +1,4 @@
+
 # SUSE's openQA tests
 #
 # Copyright (C) 2019 SUSE LLC
@@ -23,8 +24,9 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 use registration;
+
 
 sub wait_serial_or_die {
     my $feedback = shift;
@@ -38,19 +40,20 @@ sub wait_serial_or_die {
 
 sub run {
     #Setup console for text feedback.
-    my ($self) = @_;
-    $self->select_serial_terminal();
+    select_console("root-console");
     if (is_sle('=12-SP5') && is_aarch64()) {
         register_product;
         add_suseconnect_product 'sle-sdk';
     }
-    zypper_call('in gcc glibc-devel gdb');    #Install test depedencies.
+    zypper_call('in gcc glibc-devel gdb');    #Install test dependencies.
 
     #Test Case 1
     assert_script_run("curl -O " . data_url('gdb/test1.c'));
     assert_script_run("gcc -g -std=c99 test1.c -o test1");
-    type_string("gdb test1\n");
+    type_string("gdb test1 >/dev/$serialdev\n");
     wait_serial_or_die("GNU gdb");
+    #Needed because colour codes mess up the output on $serialdev
+    type_string("set style enabled 0\n");
     type_string("break main\n");
     type_string("run\n");
     wait_serial_or_die("Breakpoint 1, main");
@@ -61,8 +64,9 @@ sub run {
     #Test Case 2
     assert_script_run("curl -O " . data_url('gdb/test2.c'));
     assert_script_run("gcc -g -std=c99  test2.c -o test2");
-    type_string("gdb test2\n");
+    type_string("gdb test2 > /dev/$serialdev\n");
     wait_serial_or_die(qr/GNU gdb/);
+    type_string("set style enabled 0\n");
     type_string("run\n");
     wait_serial_or_die("Program received signal SIGSEGV");
     type_string("backtrace\n");
@@ -76,23 +80,25 @@ sub run {
     wait_serial_or_die("Inferior");
     type_string("y\n");
 
+
     #Test 3
     assert_script_run("curl -O " . data_url('gdb/test3.c'));
     assert_script_run("gcc -g -std=c99 test3.c -o test3");
     script_run("./test3 & echo 'this is a workaround'");
     assert_script_run("pidof test3");    #Make sure the process was launched.
-    type_string('gdb -p $(pidof test3)');
+    type_string('gdb -p $(pidof test3)' . " > /dev/$serialdev");
     type_string("\n");
     wait_serial_or_die("Attaching to process", 10);
+    type_string("set style enabled 0\n");
     type_string("break test3.c:9\n");
     wait_serial_or_die("Breakpoint 1 at");
     type_string("continue\n");
     wait_serial_or_die(s.Breakpoint 1, main () at test3.c:9.);
     type_string("quit\n");
-    wait_serial_or_die("Quit anyway?");
+    wait_serial("Quit anyway?");
     type_string("y\n");
+    type_string("y\n");                  #Workaround to handle sshserial behavior
     assert_script_run("pkill -9 test3");
-    select_console("root-console");
     if (is_sle('=12-SP5') && is_aarch64()) {
         cleanup_registration;
     }
