@@ -2441,6 +2441,9 @@ sub load_mitigation_tests {
     if (get_var('ITLB')) {
         loadtest "cpu_bugs/itlb";
     }
+    if (get_var('XEN_PV')) {
+        loadtest "cpu_bugs/xen_pv";
+    }
 }
 
 sub load_security_tests {
