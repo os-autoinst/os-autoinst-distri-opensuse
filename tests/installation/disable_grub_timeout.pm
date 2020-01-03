@@ -31,7 +31,7 @@ sub run {
         # Select section booting on Installation Settings overview on text mode
         send_key $cmd{change};
         assert_screen 'inst-overview-options';
-        send_key 'alt-b';
+        is_upgrade() ? send_key 'alt-t' : send_key 'alt-b';
     }
     else {
         # Select section booting on Installation Settings overview (video mode)
