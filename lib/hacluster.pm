@@ -123,7 +123,8 @@ sub get_my_ip {
 }
 
 sub get_node_number {
-    return script_output 'crm_mon -1 | awk \'/ nodes configured/ { print $1 }\'';
+    my $index = is_sle('15-sp2+') ? 2 : 1;
+    return script_output "crm_mon -1 | awk '/ nodes configured/ { print \$$index }'";
 }
 
 sub is_node {
