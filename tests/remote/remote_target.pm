@@ -25,6 +25,7 @@ sub run {
     mutex_create("installation_ready");
     # wait while whole installation process finishes
     mutex_wait("installation_done");
+    send_key('ctrl-alt-delete') if check_var('DISTRI', 'opensuse');
     $self->wait_boot(bootloader_time => 120);
 }
 
