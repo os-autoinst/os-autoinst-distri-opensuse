@@ -2762,10 +2762,11 @@ sub load_ha_cluster_tests {
     # When not using a support server, node 1 setups barriers and mutex
     loadtest 'ha/barrier_init' if (get_var('HOSTNAME') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
 
-    # Wait for barriers to be initialized except when testing HAWK as a client
-    # or Pacemaker CTS regression tests
+    # Wait for barriers to be initialized except when testing with a client
+    # HAWK, Pacemaker CTS regression tests or CTDB
     loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client') or
-        (get_var('PACEMAKER_CTS_REG')) or (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')));
+        (get_var('PACEMAKER_CTS_REG')) or (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) or
+        (check_var('CTDB_TEST_ROLE', 'client')));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
@@ -2785,6 +2786,12 @@ sub load_ha_cluster_tests {
     # If HAWKGUI_TEST_ROLE is set to client, only load client side test
     if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
         loadtest 'ha/hawk_gui';
+        return 1;
+    }
+
+    # If CTDB_TEST_ROLE is set to client, only load client side test
+    if (check_var('CTDB_TEST_ROLE', 'client')) {
+        loadtest 'ha/ctdb';
         return 1;
     }
 
@@ -2877,6 +2884,11 @@ sub load_ha_cluster_tests {
         loadtest 'ha/cluster_md';
         loadtest 'ha/vg';
         loadtest 'ha/filesystem';
+
+        # Test ctdb feature
+        if (check_var('CTDB_TEST_ROLE', 'server')) {
+            loadtest 'ha/ctdb';
+        }
 
         # Test DRBD feature
         if (get_var('HA_CLUSTER_DRBD')) {

@@ -111,6 +111,10 @@ sub run {
         barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
         barrier_create("HAWK_FENCE_$cluster_name",       $num_nodes + 1);
 
+        # CTDB barriers
+        barrier_create("CTDB_INIT_$cluster_name", $num_nodes + 1);
+        barrier_create("CTDB_DONE_$cluster_name", $num_nodes + 1);
+
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
             barrier_create("VG_INIT_${fs_tag}_$cluster_name",             $num_nodes);
