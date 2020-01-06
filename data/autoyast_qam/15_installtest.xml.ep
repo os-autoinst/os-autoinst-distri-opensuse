@@ -4,6 +4,13 @@
   <add-on>
     <add_on_products config:type="list">
       % unless ($check_var->('SLE_PRODUCT', 'sled')) {
+      % if ($get_var->('VERSION') =~ m/15/) {
+      <listentry>
+        <name>SLES-LTSS:15::update</name>
+        <alias>SLES-LTSS:15::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
       % if (!$check_var->('VERSION', '15') and $check_var->('ARCH', 'x86_64')) {
       <listentry>
         <name>sle-module-containers:<%= $get_var->('VERSION') %>::pool</name>
