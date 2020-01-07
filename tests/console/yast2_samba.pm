@@ -20,14 +20,13 @@ use version_utils qw(is_sle is_leap is_tumbleweed is_opensuse);
 use yast2_widget_utils 'change_service_configuration';
 
 my %ldap_directives = (
-    fqdn                => 'openqa.ldaptest.org',
-    dir_instance        => 'openqatest',
-    dir_suffix          => 'dc=ldaptest,dc=org',
-    dn_container        => 'dc=ldaptest,dc=org',
-    dir_manager_dn      => 'cn=root',
-    dir_manager_passwd  => 'openqatest',
-    ca_cert_pem         => '/root/samba_ca_cert.pem',
-    srv_cert_key_pkcs12 => '/root/samba_server_cert.p12'
+ fqdn => "openqa.ldaptest.org",
+ instance_name => "openqatest",
+ suffix => "dc=ldaptest,dc=org",
+ dm_pass => "openqatest",
+ dm_pass_repeat => "openqatest",
+ tls_ca => "/root/samba_ca_cert.pem",
+ tls_p12 => "/root/samba_server_cert.p12"
 );
 
 my %samba_directives = (
