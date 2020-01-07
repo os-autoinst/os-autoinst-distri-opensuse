@@ -300,9 +300,9 @@ sub setup_network {
 }
 
 sub run {
-    my $self     = shift;
-    my $inst_ltp = get_var 'INSTALL_LTP';
-    my $tag      = get_ltp_tag();
+    my $self       = shift;
+    my $inst_ltp   = get_var 'INSTALL_LTP';
+    my $tag        = get_ltp_tag();
     my $grub_param = 'ignore_loglevel';
 
     if ($inst_ltp !~ /(repo|git)/i) {
