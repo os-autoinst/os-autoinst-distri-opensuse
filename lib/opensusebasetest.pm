@@ -741,9 +741,6 @@ sub handle_grub {
     my $bootloader_time  = $args{bootloader_time};
     my $in_grub          = $args{in_grub};
     my $linux_boot_entry = $args{linux_boot_entry} // (is_sle('15+') ? 15 : 14);
-    my $grub_nondefault  = get_var('GRUB_BOOT_NONDEFAULT');
-    my $first_menu       = get_var('GRUB_SELECT_FIRST_MENU');
-    my $second_menu      = get_var('GRUB_SELECT_SECOND_MENU');
 
     # On Xen PV and svirt we don't see a Grub menu
     # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
@@ -760,9 +757,10 @@ sub handle_grub {
         save_screenshot;
         send_key 'ctrl-x';
     }
-    elsif (my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT')) {
-        bmwqemu::fctinfo("Boot non-default grub option");
-        boot_grub_item();
+    elsif ((my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT', 0)) gt 0) {
+        my $menu = $grub_nondefault * 2 + 1;
+        bmwqemu::fctinfo("Boot non-default grub option $grub_nondefault (menu item $menu)");
+        boot_grub_item($menu);
     } elsif (my $first_menu = get_var('GRUB_SELECT_FIRST_MENU')) {
         if (my $second_menu = get_var('GRUB_SELECT_SECOND_MENU')) {
             bmwqemu::fctinfo("Boot $first_menu > $second_menu");
