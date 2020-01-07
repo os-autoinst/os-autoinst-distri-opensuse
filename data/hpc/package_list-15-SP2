@@ -1,0 +1,8 @@
+# The HPC project often talks about features like: 'update rpm x
+# to new ver. y'.
+# This file contains list of such rpms bumps requested as the features
+# with expected minimal versions. It should enable basic integration
+# tests
+
+rpm: cpuid, version: 20180519
+rpm: papi, version: 5.7.0
