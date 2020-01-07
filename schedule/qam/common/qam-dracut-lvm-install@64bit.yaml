@@ -1,0 +1,20 @@
+---
+name: qam-dracut-lvm-install
+schedule:
+- autoyast/prepare_profile
+- installation/isosize
+- installation/bootloader
+- autoyast/installation
+- autoyast/console
+- autoyast/login
+- autoyast/autoyast_reboot
+- installation/grub_test
+- installation/first_boot
+- qa_automation/patch_and_reboot
+- console/system_prepare
+- console/check_network
+- console/system_state
+- shutdown/grub_set_bootargs
+- shutdown/cleanup_before_shutdown
+- shutdown/shutdown
+...
