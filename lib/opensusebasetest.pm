@@ -737,7 +737,7 @@ sub handle_grub {
     my ($self, %args) = @_;
     my $bootloader_time  = $args{bootloader_time};
     my $in_grub          = $args{in_grub};
-    my $linux_boot_entry = $args{linux_boot_entry} // 14;
+    my $linux_boot_entry = $args{linux_boot_entry} // (is_sle('15+') ? 15 : 14);
     my $grub_nondefault  = get_var('GRUB_BOOT_NONDEFAULT');
     my $first_menu       = get_var('GRUB_SELECT_FIRST_MENU');
     my $second_menu      = get_var('GRUB_SELECT_SECOND_MENU');
@@ -753,7 +753,7 @@ sub handle_grub {
         send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
         for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
         bmwqemu::fctinfo("Adding boot params '$boot_params'");
-        type_string_very_slow "$boot_params ";
+        type_string_very_slow " $boot_params ";
         save_screenshot;
         send_key 'ctrl-x';
     }
