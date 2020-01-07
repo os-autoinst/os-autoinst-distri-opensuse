@@ -33,6 +33,12 @@ sub run {
     # Remove current root password
     assert_script_run("sed -i 's/^root:[^:]*:/root:*:/' /etc/shadow", 600);
 
+    # aarch64 JeOS is/was missing snapper configuration - boo#1160314
+    if (script_run('snapper get-config')) {
+        record_soft_failure('boo#1160314 - snapper is not configured properly, create config now.');
+        assert_script_run("snapper create-config /");
+    }
+
     type_string("reboot\n");
 }
 
