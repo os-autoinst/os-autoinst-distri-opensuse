@@ -17,6 +17,7 @@
 use base "consoletest";
 use strict;
 use warnings;
+use utils;
 use testapi;
 use apachetest;
 
@@ -27,6 +28,7 @@ sub run {
     assert_script_run('grep "PHP Version 7" /tmp/tests-console-php7.txt');
 
     # test function provided by external module (php7-json RPM)
+    zypper_call 'in php-json';
     assert_script_run('php -r \'echo json_encode(array("foo" => true))."\n";\' | grep :true');
 
     # test reading file
