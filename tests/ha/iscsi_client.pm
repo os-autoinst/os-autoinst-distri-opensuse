@@ -13,7 +13,7 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use utils 'zypper_call';
+use utils qw(zypper_call systemctl);
 use testapi;
 use hacluster;
 
@@ -61,6 +61,11 @@ sub run {
     send_key 'alt-o';    # Ok
     wait_still_screen 3;
     wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
+
+    if (systemctl('-q is-active iscsi', ignore_failure => 1)) {
+        record_soft_failure('iscsi issue: bug bsc#1160374');
+        systemctl('start iscsi');
+    }
 
     # iSCSI LUN must be present
     assert_script_run 'ls -1 /dev/disk/by-path/ip-*-lun-*';
