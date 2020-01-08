@@ -44,7 +44,6 @@ schedule:
   - console/gpg
   - console/rsync
   - console/shells
-  - console/repo_orphaned_packages_check
   - console/dstat
   - console/journalctl
   - console/procps
