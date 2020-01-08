@@ -122,15 +122,6 @@ sub activate_kdump {
     my @tags = qw(yast2-kdump-unexpected-issue yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
-        # for ppc64le and aarch64 we need increase kdump memory, see bsc#957053 and bsc#1120566
-        if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'aarch64')) {
-            if (check_screen 'current-kdmup-mem-size') {
-                send_key 'alt-y';
-                type_string '640';
-                send_key 'ret';
-                record_soft_failure 'default kdump memory size is too small, kdumptool gets killed by OOM, bsc#1120566';
-            }
-        }
         # enable and verify fadump settings
         if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
             send_key 'alt-f';
