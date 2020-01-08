@@ -273,6 +273,22 @@ sub thetime {
     return clock_gettime(CLOCK_MONOTONIC);
 }
 
+sub pre_run_hook {
+    my ($self) = @_;
+    my @pattern_list;
+
+    # Kernel error messages should be treated as soft-fail in boot_ltp,
+    # install_ltp and shutdown_ltp so that at least some testing can be done.
+    # But change them to hard fail in this test module.
+    for my $pattern (@{$self->{serial_failures}}) {
+        my %tmp = %$pattern;
+        $tmp{type} = 'hard' if $tmp{message} =~ m/kernel/i;
+        push @pattern_list, \%tmp;
+    }
+
+    $self->{serial_failures} = \@pattern_list;
+}
+
 sub run {
     my ($self, $tinfo) = @_;
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
