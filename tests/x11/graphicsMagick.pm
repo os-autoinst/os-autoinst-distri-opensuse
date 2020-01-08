@@ -29,7 +29,7 @@ sub run {
     record_info("INFO", "Step 1. Runs command line tests");
     assert_script_run "wget --quiet " . data_url('graphicsmagick/test.sh') . " -O test.sh";
     assert_script_run "chmod +x test.sh";
-    assert_script_run "./test.sh " . data_url('graphicsmagick');
+    assert_script_run("./test.sh " . data_url('graphicsmagick'), 3 * 60);
 
     record_info("INFO", "Step 2. Runs visual tests");
 
