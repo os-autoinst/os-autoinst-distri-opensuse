@@ -23,7 +23,7 @@ test_data:
       label: test_multi_btrfs
       devices:
         - /dev/vdc
-        - /dev/mapper/cr_vdd1
+        - /dev/mapper/cr_test
   crypttab:
     num_devices_encrypted: 1
   !include: test_data/yast/encryption/default_enc.yaml
