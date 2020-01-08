@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,6 +10,7 @@
 # Summary: Grub2 test
 #           - boot another menu entry
 #           - command & menu edit
+#           - boot into emergency shell
 #           - fips
 #           - password
 #           - with UEFI (secureboot enabled by default)
@@ -30,9 +31,26 @@ sub reboot {
     stop_grub_timeout;
 }
 
+sub edit_cmdline {
+    send_key 'e';
+    for (1 .. 13) { send_key 'down'; }
+    send_key_until_needlematch 'grub2-edit-linux-line', 'down';
+    send_key 'end';
+}
+
+sub grub2_boot {
+    sleep 1;
+    save_screenshot;
+    send_key 'f10';
+}
+
 sub run {
-    record_info 'grub2 menu entry', 'install another kernel, another kernel will the previous one';
     select_console 'root-console';
+    # remove splash and quiet parameters from cmdline, grub config will be updated with following kernel installation
+    assert_script_run 'sed -i \'/CMDLINE/s/ quiet//\' /etc/default/grub';
+    assert_script_run 'sed -i \'/CMDLINE/s/splash=silent //\' /etc/default/grub';
+    assert_script_run 'grep CMDLINE /etc/default/grub';
+    record_info 'grub2 menu entry', 'install another kernel, boot the previous one';
     zypper_call 'in -t pattern yast2_basis' if is_sle('15+');
     zypper_ar 'http://download.suse.de/ibs/Devel:/Kernel:/master/standard/', name => 'KERNEL_DEVEL';
     zypper_call 'in kernel-vanilla';
@@ -59,11 +77,9 @@ sub run {
     sleep 1;
 
     record_info 'grub2 boot single user mode', 'add \'single\' boot parameter';
-    send_key 'e';
-    send_key_until_needlematch 'grub2-edit-linux-line', 'down';
-    send_key 'end';
+    edit_cmdline;
     type_string ' single';
-    send_key 'f10';
+    grub2_boot;
     assert_screen 'emergency-shell', 200;
     type_password;
     send_key 'ret';
@@ -72,11 +88,9 @@ sub run {
 
     if (get_var('HDD_1') !~ /lvm/) {    # fips on lvm is not supported
         record_info 'grub2 edit boot entry', 'boot with fips mode';
-        send_key 'e';
-        send_key_until_needlematch 'grub2-edit-linux-line', 'down';
-        send_key 'end';
+        edit_cmdline;
         type_string ' fips=1';
-        send_key 'f10';
+        grub2_boot;
         assert_screen 'linux-login', 300;
         select_console 'root-console';
         assert_script_run 'grep \'fips=1\' /proc/cmdline';
