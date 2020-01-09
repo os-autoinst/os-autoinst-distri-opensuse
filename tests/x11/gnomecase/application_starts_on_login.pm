@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -46,7 +46,7 @@ use x11utils qw(handle_relogin turn_off_gnome_screensaver);
 
 sub tweak_startupapp_menu {
     my ($self) = @_;
-    if (is_tumbleweed) {
+    if (!is_sle('<15-sp2') && !is_leap('<15.2')) {
         x11_start_program 'gnome-tweaks';
     }
     elsif (is_sle('15+')) {
