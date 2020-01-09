@@ -18,7 +18,7 @@
 
 use base 'consoletest';
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_leap is_opensuse);
 use strict;
 use warnings;
 use testapi;
@@ -66,10 +66,14 @@ sub run {
     validate_script_output "mpstat",     sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
     validate_script_output "sar -u",     sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
     validate_script_output "sar -n DEV", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
-    validate_script_output "sar -b",     sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
-    validate_script_output "sar -B",     sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
-    validate_script_output "sar -H",     sub { /kbhugfree kbhugused  %hugused/ };
-    validate_script_output "sar -S",     sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
+    if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
+        validate_script_output "sar -b", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
+    } else {
+        validate_script_output "sar -b", sub { /tps      rtps      wtps      dtps   bread\/s   bwrtn\/s   bdscd\/s/ };
+    }
+    validate_script_output "sar -B", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
+    validate_script_output "sar -H", sub { /kbhugfree kbhugused  %hugused/ };
+    validate_script_output "sar -S", sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
 }
 
 1;
