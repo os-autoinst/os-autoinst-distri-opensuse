@@ -17,6 +17,8 @@ use x11utils qw(handle_login ensure_unlocked_desktop);
 
 # Base class for all openSUSE tests
 
+sub grub_select;
+
 sub new {
     my ($class, $args) = @_;
     my $self = $class->SUPER::new($args);
@@ -663,9 +665,13 @@ sub reconnect_s390 {
         my $worker_hostname = get_required_var('WORKER_HOSTNAME');
         my $virsh_guest     = get_required_var('VIRSH_GUEST');
         workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
-        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+
         select_console('svirt');
         save_svirt_pty;
+
+        wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        grub_select;
+
         type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
         type_line_svirt "root", expect => 'Password';
         type_line_svirt "$testapi::password";
@@ -737,6 +743,26 @@ sub handle_pxeboot {
     send_key 'ret';
 }
 
+sub grub_select {
+    if ((my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT', 0)) gt 0) {
+        my $menu = $grub_nondefault * 2 + 1;
+        bmwqemu::fctinfo("Boot non-default grub option $grub_nondefault (menu item $menu)");
+        boot_grub_item($menu);
+    } elsif (my $first_menu = get_var('GRUB_SELECT_FIRST_MENU')) {
+        if (my $second_menu = get_var('GRUB_SELECT_SECOND_MENU')) {
+            bmwqemu::fctinfo("Boot $first_menu > $second_menu");
+            boot_grub_item($first_menu, $second_menu);
+        } else {
+            bmwqemu::fctinfo("Boot $first_menu");
+            boot_grub_item($first_menu);
+        }
+    }
+    elsif (!get_var('S390_ZKVM')) {
+        # confirm default choice
+        send_key 'ret';
+    }
+}
+
 sub handle_grub {
     my ($self, %args) = @_;
     my $bootloader_time  = $args{bootloader_time};
@@ -758,22 +784,8 @@ sub handle_grub {
         save_screenshot;
         send_key 'ctrl-x';
     }
-    elsif ((my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT', 0)) gt 0) {
-        my $menu = $grub_nondefault * 2 + 1;
-        bmwqemu::fctinfo("Boot non-default grub option $grub_nondefault (menu item $menu)");
-        boot_grub_item($menu);
-    } elsif (my $first_menu = get_var('GRUB_SELECT_FIRST_MENU')) {
-        if (my $second_menu = get_var('GRUB_SELECT_SECOND_MENU')) {
-            bmwqemu::fctinfo("Boot $first_menu > $second_menu");
-            boot_grub_item($first_menu, $second_menu);
-        } else {
-            bmwqemu::fctinfo("Boot $first_menu");
-            boot_grub_item($first_menu);
-        }
-    }
     else {
-        # confirm default choice
-        send_key 'ret';
+        grub_select;
     }
 }
 
