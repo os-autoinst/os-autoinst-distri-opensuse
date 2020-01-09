@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -473,8 +473,8 @@ sub load_online_migration_tests {
     if (check_var("MIGRATION_METHOD", 'zypper')) {
         loadtest "migration/sle12_online_migration/zypper_migration";
     }
-    loadtest 'console/orphaned_packages_check';
     loadtest "migration/sle12_online_migration/post_migration";
+    loadtest 'console/orphaned_packages_check';
 }
 
 sub load_patching_tests {
