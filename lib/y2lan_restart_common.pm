@@ -305,7 +305,7 @@ sub handle_Networkmanager_controlled {
         # SLED11...
         send_key 'alt-y';
     }
-    wait_serial("$module_name-0", 60) || die "'yast2 lan' didn't finish";
+    wait_serial("$module_name-{0,16}", 60) || die "'yast2 lan' didn't finish";
 }
 
 =head2 handle_dhcp_popup
