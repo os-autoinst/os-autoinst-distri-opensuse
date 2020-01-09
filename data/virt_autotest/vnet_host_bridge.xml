@@ -1,0 +1,5 @@
+<network>
+ <name>vnet_host_bridge</name>
+ <forward mode="bridge"/>
+ <bridge name="BRI"/>
+</network>
