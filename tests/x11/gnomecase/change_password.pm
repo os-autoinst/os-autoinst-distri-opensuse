@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -63,9 +63,7 @@ sub reboot_system {
         $self->wait_boot(nologin => 1);
         assert_screen "displaymanager", 200;
         $self->{await_reboot} = 0;
-        # The keyboard focus is different between SLE15 and SLE12
-        send_key 'up' if is_sle('15+');
-        send_key "ret";
+        assert_and_click "displaymanager-$username";
         wait_still_screen;
         type_string "$newpwd\n";
     } else {
