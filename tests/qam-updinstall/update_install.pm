@@ -70,7 +70,7 @@ sub get_patch {
 }
 sub get_patchinfos {
     my ($patches) = @_;
-    my $patches_status = script_output("zypper -n info -t patch $patches");
+    my $patches_status = script_output("zypper -n info -t patch $patches", 200);
     return $patches_status;
 }
 
