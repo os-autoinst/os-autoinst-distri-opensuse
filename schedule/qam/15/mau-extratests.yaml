@@ -47,6 +47,7 @@ schedule:
 - console/supportutils
 - console/mdadm
 - console/journalctl
+- console/journalctlLevels
 - console/quota
 - console/vhostmd
 - console/rpcbind
