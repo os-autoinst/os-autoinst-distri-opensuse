@@ -49,7 +49,7 @@ sub testsuiteinstall {
 
     select_console 'root-console';
 
-    if (is_sle('15+')) {
+    if (is_sle('15+') && !main_common::is_updates_tests) {
         # add devel tools repo for SLE15 to install strace
         my $devel_repo = get_required_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS');
         zypper_call "ar -c $utils::OPENQA_FTP_URL/" . $devel_repo . " devel-repo";
