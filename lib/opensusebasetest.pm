@@ -786,7 +786,11 @@ sub wait_boot_textmode {
     push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
     # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
     # if not able to boot from snapshot
-    if (get_var('EXTRATEST', '') !~ /desktop/) {
+    if (check_var('BACKEND', 's390x')) {
+        die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
+        select_console 'root-console';
+    }
+    elsif (get_var('EXTRATEST', '') !~ /desktop/) {
         assert_screen $textmode_needles, $ready_time;
     }
     elsif (is_sle('<15') && !check_screen $textmode_needles, $ready_time / 2) {
