@@ -72,7 +72,7 @@ sub run {
 
     prepare_system_shutdown;
     type_string "reboot\n";
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 200);
 }
 
 sub test_flags {
