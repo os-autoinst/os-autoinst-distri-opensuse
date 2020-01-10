@@ -2,6 +2,7 @@ name:           btrfs_libstorage-ng
 description:    >
   Validate default installation with btrfs and Libstorage NG.
 vars:
+  DESKTOP: gnome
   FILESYSTEM: btrfs
 schedule:
   # Called on BACKEND: qemu

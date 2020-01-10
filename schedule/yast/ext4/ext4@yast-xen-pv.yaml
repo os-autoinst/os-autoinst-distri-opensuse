@@ -5,8 +5,8 @@ description:    >
   Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
   due to grub2 doesnt support xfb console.
 vars:
+  DESKTOP: gnome
   FILESYSTEM: ext4
-  FORMAT_DASD: install
 schedule:
   - installation/bootloader_start
   - installation/welcome
