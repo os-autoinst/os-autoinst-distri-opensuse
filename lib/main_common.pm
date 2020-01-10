@@ -1595,6 +1595,7 @@ sub load_extra_tests_opensuse {
     loadtest "console/weechat";
     loadtest "console/nano";
     loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || is_x86_64);
+    loadtest "console/libqca2";
 }
 
 sub load_extra_tests_qemu {
