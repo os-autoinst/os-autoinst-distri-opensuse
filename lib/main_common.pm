@@ -1172,6 +1172,7 @@ sub load_consoletests {
         loadtest "console/zypper_ref";
     }
     loadtest "console/ncurses";
+    loadtest "console/ncurses_extended";
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
     if (!is_krypton_argon) {

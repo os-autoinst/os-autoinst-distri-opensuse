@@ -29,6 +29,7 @@ schedule:
 - console/zypper_lr
 - console/zypper_ref
 - console/ncurses
+- console/ncurses_extended
 - console/yast2_lan
 - console/curl_https
 - {{salt}}
