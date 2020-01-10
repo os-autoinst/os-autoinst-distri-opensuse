@@ -407,8 +407,8 @@ tests=(
 
   # Test 10. Big images
 
-  # a. Scale a image to huge image
-  "resize_and_check degradation.png __1.png - 10000 10000"
+  # a. Scale a image to big image
+  "resize_and_check degradation.png __1.png - 5000 1000"
 
   # b. Downgrade a huge image
   "resize_and_check _-_1.png __1.png - 500 500"
