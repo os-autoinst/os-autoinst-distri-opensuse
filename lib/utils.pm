@@ -107,8 +107,6 @@ use constant VERY_SLOW_TYPING_SPEED => 4;
 # openQA internal ftp server url
 our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
 
-my $svirt_pty_saved = 0;
-
 =head2 save_svirt_pty
 
  save_svirt_pty();
