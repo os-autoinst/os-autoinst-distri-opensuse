@@ -780,6 +780,10 @@ sub handle_grub {
 
 sub wait_boot_textmode {
     my ($self, %args) = @_;
+    # For s390x we validate system boot in reconnect_mgmt_console test module
+    # and use ssh connection to operate on the SUT, so do early return
+    return if check_var('ARCH', 's390x');
+
     my $ready_time       = $args{ready_time};
     my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
     # 2nd stage of autoyast can be considered as linux-login
@@ -859,8 +863,8 @@ sub wait_boot_past_bootloader {
         $self->wait_boot_textmode(ready_time => $ready_time);
         select_console('x11');
     }
-    else {
-        return $self->wait_boot_textmode(ready_time => $ready_time) if ($textmode || check_var('DESKTOP', 'textmode'));
+    elsif ($textmode || check_var('DESKTOP', 'textmode')) {
+        return $self->wait_boot_textmode(ready_time => $ready_time);
     }
 
     # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
