@@ -1,0 +1,28 @@
+---
+name: mau-systemd
+schedule:
+- {{zkvm_boot}}
+- boot/boot_to_desktop
+- systemd_testsuite/binary_tests
+- systemd_testsuite/test_01_basic
+- systemd_testsuite/test_02_cryptsetup
+- systemd_testsuite/test_03_jobs
+- systemd_testsuite/test_04_journal
+- systemd_testsuite/test_05_rlimits
+#- systemd_testsuite/test_06_selinux
+- systemd_testsuite/test_07_issue_1981
+- systemd_testsuite/test_08_issue_2730
+- systemd_testsuite/test_09_issue_2691
+- systemd_testsuite/test_10_issue_2467
+- systemd_testsuite/test_11_issue_3166
+- systemd_testsuite/test_12_issue_3171
+- systemd_testsuite/test_13_nspawn_smoke
+- systemd_testsuite/test_14_machine_id
+- systemd_testsuite/test_15_dropin
+- systemd_testsuite/test_22_tmpfiles
+conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+...
