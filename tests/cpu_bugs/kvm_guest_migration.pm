@@ -80,6 +80,7 @@ sub create_new_vm {
 }
 
 sub run {
+    systemctl("stop apparmor");
     script_run("aa-teardown");
     zypper_call("in libvirt-client");
     zypper_call("in qemu-kvm");
@@ -112,15 +113,21 @@ sub run {
     }
     elsif (get_var("MIGRATION_DEST")) {
 
-        #access this machine without password
-        assert_script_run("cp /etc/libvirt/libvirtd.conf{,.bak}");
-        assert_script_run(
-            "sed -i 's/#listen_tcp = 1/listen_tcp = 1/g' /etc/libvirt/libvirtd.conf"
-        );
-        assert_script_run(
-            "sed -i 's/#auth_tcp = .*/auth_tcp = \"none\"/g' /etc/libvirt/libvirtd.conf"
-        );
-        systemctl("restart libvirtd");
+        if (is_sle('>=15-sp2')) {
+            systemctl("start libvirtd-tcp.socket");
+        } else {
+            #access this machine without password
+
+            assert_script_run("cp /etc/libvirt/libvirtd.conf{,.bak}");
+            assert_script_run(
+                "sed -i 's/#listen_tcp = 1/listen_tcp = 1/g' /etc/libvirt/libvirtd.conf"
+            );
+            assert_script_run(
+                "sed -i 's/#auth_tcp = .*/auth_tcp = \"none\"/g' /etc/libvirt/libvirtd.conf"
+            );
+            systemctl("restart libvirtd");
+            systemctl("status libvirtd");
+        }
 
         #wait server side is ready
         mutex_lock 'nfs_server_ready';
@@ -164,6 +171,7 @@ sub run {
                 }
                 else {
                     mutex_unlock "flag_lock";
+                    assert_script_run("echo DEST side wait HOST side.");
                     next;
                 }
             }
