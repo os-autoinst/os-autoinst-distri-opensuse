@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_opensuse);
 
 sub run {
     if (get_var('ENCRYPT')) {
@@ -42,7 +42,7 @@ sub run {
         send_key $cmd{next};
     }
     # The SLE15-SP2 license page moved after registration.
-    if (get_var('MEDIA_UPGRADE') || is_sle('<15-SP2')) {
+    if (get_var('MEDIA_UPGRADE') || is_sle('<15-SP2') || is_opensuse) {
         assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
         if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
             send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
