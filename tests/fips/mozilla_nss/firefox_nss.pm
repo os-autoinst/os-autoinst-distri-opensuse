@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,9 +9,9 @@
 
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 
-# Summary: FIPS mozilla-nss test for firefox
+# Summary: FIPS mozilla-nss test for firefox : firefox_nss
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018
+# Tag: poo#47018, poo#58079
 
 use base "x11test";
 use strict;
@@ -44,10 +44,10 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    type_string "Forms";    # Search "Forms & Passwords" section
-    send_key "tab";         # Hide blinking cursor in the search box
+    type_string "Passwords";    # Search "Passwords" section
+    send_key "tab";             # Hide blinking cursor in the search box
     wait_still_screen 2;
-    send_key "alt-shift-u";    # Use a master password
+    send_key "alt-shift-u";     # Use a master password
     assert_screen('firefox-passwd-master_setting');
 
     type_string $fips_password;
@@ -59,6 +59,7 @@ sub run {
     wait_still_screen 3;
 
     send_key "ctrl-f";
+    send_key "ctrl-a";
     type_string "certificates";    # Search "Certificates" section
     send_key "tab";
     wait_still_screen 2;
