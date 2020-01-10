@@ -70,15 +70,17 @@ sub testsuiteprepare {
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run "./run-tests.sh $testname --setup 2>&1 | tee /tmp/testsuite.log", 600;
     assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
-    #reboot
-    power_action('reboot', textmode => 1);
-    wait_still_screen 90;
-    assert_screen('linux-login', 300);
-    type_string "root\n";
-    wait_still_screen 3;
-    type_password;
-    wait_still_screen 3;
-    send_key 'ret';
+    unless (check_var('BACKEND', 'qemu')) {
+        #reboot
+        power_action('reboot', textmode => 1);
+        wait_still_screen 90;
+        assert_screen('linux-login', 300);
+        type_string "root\n";
+        wait_still_screen 3;
+        type_password;
+        wait_still_screen 3;
+        send_key 'ret';
+    }
 }
 
 sub post_fail_hook {
