@@ -4,6 +4,7 @@ description:    >
   Test for ext4 filesystem.
   Grub is not displayed due to console reconnection.
 vars:
+  DESKTOP: gnome
   FILESYSTEM: ext4
   FORMAT_DASD: install
 schedule:
