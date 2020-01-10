@@ -79,19 +79,20 @@ sub check_cpu_flags {
 }
 sub run {
     my ($self) = shift;
-    select_console 'root-console';
     my $obj = meltdown->new($mitigations_list);
     #run base function testing
-    $obj->do_test();
-    #extra testing for nopti
-    add_grub_cmdline_settings("nopti");
-    update_grub_and_reboot($self, 150);
-    assert_script_run('cat /proc/cmdline | grep "nopti" ');
-    assert_script_run('cat /proc/cpuinfo | grep -L "pti"');
-    assert_script_run('cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep -q "Vulnerable" ');
-    assert_script_run('dmesg | grep "Kernel/User page tables isolation: disabled on command line" ');
-    remove_grub_cmdline_settings("nopti");
-    grub_mkconfig;
+    my $ret = $obj->do_test();
+    if ($ret ne 2) {
+        #extra testing for nopti
+        add_grub_cmdline_settings("nopti");
+        update_grub_and_reboot($self, 150);
+        assert_script_run('cat /proc/cmdline | grep "nopti" ');
+        assert_script_run('cat /proc/cpuinfo | grep -L "pti"');
+        assert_script_run('cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep -q "Vulnerable" ');
+        assert_script_run('dmesg | grep "Kernel/User page tables isolation: disabled on command line" ');
+        remove_grub_cmdline_settings("nopti");
+        grub_mkconfig;
+    }
 }
 
 sub update_grub_and_reboot {
