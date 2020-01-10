@@ -81,6 +81,10 @@ sub login {
 
     bmwqemu::log_call;
 
+    # Eat stale buffer contents, otherwise the code below may get confused
+    # after reboot and start typing the username before the console is actually
+    # ready to accept it
+    wait_serial(qr/login:\s*$/i, timeout => 5, quiet => 1);
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
     type_string("\n");
