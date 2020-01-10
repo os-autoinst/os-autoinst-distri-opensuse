@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -41,14 +41,17 @@ sub run {
     if (match_has_tag("select-for-update")) {
         send_key $cmd{next};
     }
-    assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
-    if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
-        send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
-        record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
+    # The SLE15-SP2 license page moved after registration.
+    if (get_var('MEDIA_UPGRADE') || is_sle('<15-SP2')) {
+        assert_screen [qw(remove-repository license-agreement license-agreement-accepted)], 240;
+        if (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
+            send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
+            record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
+            send_key $cmd{next};
+            assert_screen "remove-repository";
+        }
         send_key $cmd{next};
-        assert_screen "remove-repository";
     }
-    send_key $cmd{next};
     # Select migration target in sle15 upgrade
     if (is_sle '15+') {
         if (get_var('MEDIA_UPGRADE')) {
