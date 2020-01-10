@@ -530,7 +530,6 @@ point the firmware boot manager to the right file.
 =cut
 sub handle_uefi_boot_disk_workaround {
     my ($self) = @_;
-    die "Need BOOT_MENU to select boot device" unless get_var('BOOT_MENU');
     record_info 'workaround', 'Manually selecting boot entry, see bsc#1022064 for details';
     tianocore_enter_menu;
     send_key_until_needlematch 'tianocore-boot_maintenance_manager', 'down', 5, 5;
