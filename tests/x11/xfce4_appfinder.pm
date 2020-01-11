@@ -24,7 +24,7 @@ sub run {
     send_key "down";
     # In XFCE 4.14+, a dynamic search is performed - poo#56111
     if (is_tumbleweed || is_leap(">=15.2")) {
-        type_string "about";
+        type_string "about xfce";
     } else {
         type_string "about\n";
     }
