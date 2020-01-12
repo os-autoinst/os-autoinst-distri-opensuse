@@ -238,6 +238,10 @@ sub is_livesystem {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
+sub is_gnome_live {
+    return get_var('FLAVOR', '') =~ /GNOME-Live/;
+}
+
 sub is_kde_live {
     return get_var('FLAVOR', '') =~ /KDE-Live/;
 }
@@ -1299,7 +1303,7 @@ sub load_x11tests {
     if (libreoffice_is_applicable()) {
         if (get_var("DESKTOP") =~ /kde|gnome/
             && (!is_server || we_is_applicable)
-            && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
+            && !is_kde_live && !is_gnome_live && !is_krypton_argon && !is_gnome_next) {
             loadtest "x11/ooffice";
         }
         if (get_var("DESKTOP") =~ /kde|gnome/
