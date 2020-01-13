@@ -20,7 +20,7 @@ use Mojo::JSON 'decode_json';
 use utils 'file_content_replace';
 
 use constant TERRAFORM_DIR     => '/root/terraform';
-use constant TERRAFORM_TIMEOUT => 17 * 60;
+use constant TERRAFORM_TIMEOUT => 18 * 60;
 
 has key_id            => undef;
 has key_secret        => undef;
@@ -316,6 +316,7 @@ sub terraform_apply {
     my $extra_disk_size   = 0;
 
     $args{count} //= '1';
+    $args{timeout} //= TERRAFORM_TIMEOUT;
     my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image                = $self->get_image_id();
     my $ssh_private_key_file = '/root/.ssh/id_rsa';
@@ -369,7 +370,7 @@ sub terraform_apply {
     record_info('TFM cmd', $cmd);
 
     assert_script_run($cmd, TERRAFORM_TIMEOUT);
-    my $ret = script_run('terraform apply -no-color -input=false myplan', TERRAFORM_TIMEOUT);
+    my $ret = script_run('terraform apply -no-color -input=false myplan', $args{timeout});
     unless (defined $ret) {
         type_string(qq(\c\\));        # Send QUIT signal
         assert_script_run('true');    # make sure we have a prompt

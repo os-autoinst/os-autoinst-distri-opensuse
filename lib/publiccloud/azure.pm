@@ -101,10 +101,8 @@ sub find_img {
     $name =~ s/\.vhdfixed$/.vhd/;
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('INFO KK', $json);
-    eval {
-        my $image = decode_azure_json($json);
-        return $image->{name};
-    };
+    my $image = decode_azure_json($json);
+    return defined($image) ? $image->{name} : undef;
 }
 
 sub get_storage_account_keys {
@@ -279,4 +277,11 @@ sub start_instance
     $instance->public_ip($self->get_ip_from_instance($instance));
 }
 
+
+
+sub create_instances {
+    my ($self, %args) = @_;
+    $args{timeout} //= 60 * 30;
+    return $self->SUPER::create_instances(%args);
+}
 1;
