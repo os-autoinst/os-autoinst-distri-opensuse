@@ -130,10 +130,9 @@
         <selected config:type="boolean">true</selected>
       </listentry>
       <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE/Backports/SLE-15-SP1_x86_64/standard/standard</media_url>
-        <!-- NFS: /mounts/mirror/SuSE/build.suse.de/SUSE/Backports/SLE-15-SP1_x86_64/standard/standard
-             NOTE: *four* RPM subdirs: noarch{,_GA}, x86_64{,_GA}. Looks like both GA pool and updates.
-             CAVEAT: there is  also the .../SLE-15-SP1_x86_64/standard repo which looks alike but is just a bit older... -->
+        <media_url>http://download.suse.de/ibs/SUSE/Backports/SLE-15-SP1_x86_64/standard</media_url>
+        <!-- NFS: /mounts/mirror/SuSE/build.suse.de/SUSE/Backports/SLE-15-SP1_x86_64/standard
+             NOTE: *four* RPM subdirs: noarch{,_GA}, x86_64{,_GA}. Looks like both GA pool and updates.  -->
         <alias>PackageHub:15.1::pool</alias>
         <name>PackageHub:15.1::pool</name>
         <priority config:type="integer">20</priority>
