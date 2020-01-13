@@ -108,7 +108,7 @@ sub run {
     assert_script_run("$cmd_podman_rm");
     $output_containers = script_output('podman container ls -a');
     die("error: container was not removed: $cmd_podman_rm") if ($output_containers =~ m/test_1/);
-    my $cmd_podman_container_prune = 'podman container prune';
+    my $cmd_podman_container_prune = 'podman container prune -f';
     assert_script_run("$cmd_podman_container_prune");
     $output_containers = script_output('podman container ls -a');
     die("error: container was not removed: $cmd_podman_container_prune") if ($output_containers =~ m/test_2/);
