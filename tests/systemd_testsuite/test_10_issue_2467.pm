@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,7 +25,7 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-10-ISSUE-2467 --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_screen("systemd-testsuite-test-10-issue-2467");
+    assert_script_run 'grep PASS: /tmp/testsuite.log';
 }
 
 sub test_flags {
