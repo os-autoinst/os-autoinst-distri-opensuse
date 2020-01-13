@@ -30,8 +30,6 @@ sub language_and_keyboard {
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
         assert_screen $shortcuts->{$_} . '_selected';
-        send_key_until_needlematch 'expanded_list', 'spc', 5, 7;
-        wait_screen_change(sub { send_key 'ret'; }, 5);
     }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
