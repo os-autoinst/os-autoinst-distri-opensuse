@@ -1,0 +1,7 @@
+  allowed_unpartitioned: 0.00GB
+  partitions:
+    - mnt_point: /
+      fs_type: ext4
+    - mnt_point: [SWAP]
+      fs_type: swap
+
