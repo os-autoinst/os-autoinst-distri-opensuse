@@ -65,8 +65,8 @@ sub run {
     systemctl 'start krb5kdc';
     systemctl 'status krb5kdc';
 
-    script_run 'mkdir -p /run/user/1001/krb5cc';
-    script_run 'chown tester:users /run/user/1001/krb5cc';
+    script_run "mkdir -p /run/user/`id -u tester`/krb5cc";
+    script_run "chown tester:users /run/user/`id -u tester`/krb5cc";
 
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;

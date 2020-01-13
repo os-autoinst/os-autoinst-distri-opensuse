@@ -14,6 +14,7 @@ use Exporter;
 use strict;
 use warnings;
 use File::Basename 'basename';
+use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
 use utils;
@@ -79,7 +80,8 @@ sub stop_grub_timeout {
 
 Add custom grub entries with extra kernel parameters.
 It adds 3rd line with default options + 4th line with advanced options.
-Extra kernel parameters are taken in C<GRUB_PARAM> variable.
+Extra kernel parameters are taken in C<GRUB_PARAM> variable
+(a semicolon-separated list).
 
 e.g.  grub entries before:
 
@@ -99,13 +101,20 @@ And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 
 =cut
 sub add_custom_grub_entries {
-    my $grub_param = get_var('GRUB_PARAM');
-    return unless defined($grub_param);
+    my @grub_params = split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
+    return unless $#grub_params >= 0;
+
     my $script_old     = "/etc/grub.d/10_linux";
-    my $script_new     = "/etc/grub.d/11_linux_openqa";
     my $script_old_esc = $script_old =~ s~/~\\/~rg;
-    my $script_new_esc = $script_new =~ s~/~\\/~rg;
     my $cfg_old        = 'grub.cfg.old';
+    my $distro         = "openSUSE" . ' \\?' . get_required_var('VERSION');
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
+    }
+    elsif (is_sle()) {
+        $distro = "SLES" . ' \\?' . get_required_var('VERSION');
+    }
 
     bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu");
     assert_script_run('[ -x /sbin/purge-kernels ] && /sbin/purge-kernels');
@@ -113,34 +122,33 @@ sub add_custom_grub_entries {
     assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old");
     upload_logs($cfg_old, failok => 1);
 
-    assert_script_run("cp $script_old $script_new");
-
-    my $cmd = "sed -i -e 's/\\(args=.\\)\\(\\\$4\\)/\\1$grub_param \\2/'";
-    $cmd .= " -e 's/\\(Advanced options for %s\\)/\\1 ($grub_param)/'";
-    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$title\\)/\\1 ($grub_param)/'";
-    $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' $script_new";
-    assert_script_run($cmd);
-    upload_logs($script_new, failok => 1);
-    grub_mkconfig();
-    upload_logs(GRUB_CFG_FILE, failok => 1);
-
-    my $distro;
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
-    }
-    elsif (is_sle()) {
-        $distro = "SLES" . ' \\?' . get_required_var('VERSION'); }
-    else {
-        $distro = "openSUSE" . ' \\?' . get_required_var('VERSION'); }
     my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
-    my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' " . GRUB_CFG_FILE;
     my $cnt_old     = script_output("$section_old | grep -c 'menuentry .$distro'");
-    my $cnt_new     = script_output("$section_new | grep -c 'menuentry .$distro'");
-    die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
-    $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
-    die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
-    $cnt_new = script_output("grep -c 'linux.*/boot/.* $grub_param ' " . GRUB_CFG_FILE);
-    die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
+
+    my $i = 10;
+    foreach my $grub_param (@grub_params) {
+        $i++;
+        my $script_new     = "/etc/grub.d/${i}_linux_openqa";
+        my $script_new_esc = $script_new =~ s~/~\\/~rg;
+        assert_script_run("cp -v $script_old $script_new");
+
+        my $cmd = "sed -i -e 's/\\(args=.\\)\\(\\\$4\\)/\\1$grub_param \\2/'";
+        $cmd .= " -e 's/\\(Advanced options for %s\\)/\\1 ($grub_param)/'";
+        $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$title\\)/\\1 ($grub_param)/'";
+        $cmd .= " -e 's/\\(menuentry .\\\$(echo .\\\$os\\)/\\1 ($grub_param)/' $script_new";
+        assert_script_run($cmd);
+        upload_logs($script_new, failok => 1);
+        grub_mkconfig();
+        upload_logs(GRUB_CFG_FILE, failok => 1);
+
+        my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' " . GRUB_CFG_FILE;
+        my $cnt_new     = script_output("$section_new | grep -c 'menuentry .$distro'");
+        die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
+        $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
+        die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
+        $cnt_new = script_output("grep -c -E 'linux.*(/boot|/vmlinu[xz]-).* $grub_param ' " . GRUB_CFG_FILE);
+        die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
+    }
 }
 
 =head2 boot_grub_item
@@ -168,7 +176,7 @@ Boot the default kernel:
 
     boot_grub_item(1);
 
-Boot the default kernel recovery mode (goes through "Advanced options"):
+Boot the default kernel recovery mode (selected in the "Advanced options ..."):
 
     boot_grub_item(2, 2);
 
@@ -425,6 +433,8 @@ sub bootmenu_default_params {
         }
         push @params, get_extra_boot_params();
     }
+
+    push @params, 'reboot_timeout=' . get_var('REBOOT_TIMEOUT', 0) unless (is_leap('<15.2') || is_sle('<15-SP2'));
 
     # https://wiki.archlinux.org/index.php/Kernel_Mode_Setting#Forcing_modes_and_EDID
     # Default namescheme 'by-id' for devices is broken on Hyper-V (bsc#1029303),
@@ -820,7 +830,8 @@ sub select_bootmenu_language {
 
 sub tianocore_enter_menu {
     # we need to reduce this waiting time as much as possible
-    while (!check_screen('tianocore-mainmenu', 0, no_wait => 1)) {
+    my $counter = 300;
+    while (!check_screen('tianocore-mainmenu', 0, no_wait => 1) && $counter--) {
         send_key 'f2';
         sleep 0.1;
     }

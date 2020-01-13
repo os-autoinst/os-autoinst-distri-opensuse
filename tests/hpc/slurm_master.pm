@@ -47,25 +47,91 @@ sub generate_results {
 }
 
 sub pars_results {
-    my (%test) = @_;
+    my (@test) = @_;
     my $file = 'tmpresults.xml';
 
-    my $test_name   = $test{test};
-    my $description = $test{description};
-    my $result      = $test{result};
-
-    if ($result eq 'FAIL') {
-        script_run("echo \"<testcase name='$test_name' errors='1'>\" >>  $file");
-    } else {
-        script_run("echo \"<testcase name='$test_name'>\" >> $file");
+    # check if there are some single test failing
+    # and if so, make sure the whole testsuite will fail
+    my $fail_check = 0;
+    for my $i (@test) {
+        if ($i->{result} eq 'FAIL') {
+            $fail_check++;
+        }
     }
-    script_run("echo \"<system-out>\" >> $file");
-    script_run("echo $description >>  $file");
-    script_run("echo \"</system-out>\" >> $file");
-    script_run("echo \"</testcase>\" >> $file");
+
+    if ($fail_check > 0) {
+        script_run("echo \"<testsuite name='HPC single tests' errors='1'>\" >> $file");
+    } else {
+        script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
+    }
+
+    # pars all results and provide expected xml file
+    for my $i (@test) {
+        if ($i->{result} eq 'FAIL') {
+            script_run("echo \"<testcase name='$i->{test}' errors='1'>\" >>  $file");
+        } else {
+            script_run("echo \"<testcase name='$i->{test}'>\" >> $file");
+        }
+        script_run("echo \"<system-out>\" >> $file");
+        script_run("echo $i->{description} >>  $file");
+        script_run("echo \"</system-out>\" >> $file");
+        script_run("echo \"</testcase>\" >> $file");
+    }
 }
 
-sub basic_test_01 {
+sub run_tests {
+    my ($slurm_conf) = @_;
+
+    my $file = 'tmpresults.xml';
+    assert_script_run("touch $file");
+
+    my @all_tests_results;
+
+    # always run basic tests
+    push(@all_tests_results, run_basic_tests());
+
+    if ($slurm_conf =~ /ha/) {
+        push(@all_tests_results, run_ha_tests());
+    } elsif ($slurm_conf =~ /accounting/) {
+        push(@all_tests_results, run_accounting_tests());
+    } elsif ($slurm_conf =~ /nfs_db/) {
+        # this set-up allows both, ha and accounting tests
+        push(@all_tests_results, run_accounting_tests());
+        push(@all_tests_results, run_ha_tests());
+    }
+
+    pars_results(@all_tests_results);
+
+    script_run("echo \"</testsuite>\" >> $file");
+    parse_extra_log('XUnit', 'tmpresults.xml');
+}
+
+########################################
+## Basic tests: for HPC/slurm cluster ##
+## 1 master node, 2+ slave nodes      ##
+########################################
+sub run_basic_tests {
+    my @all_results;
+
+    my %test01 = t01_basic();
+    push(@all_results, \%test01);
+
+    my %test02 = t02_basic();
+    push(@all_results, \%test02);
+
+    my %test03 = t03_basic();
+    push(@all_results, \%test03);
+
+    my %test04 = t04_basic();
+    push(@all_results, \%test04);
+
+    my %test05 = t05_basic();
+    push(@all_results, \%test05);
+
+    return @all_results;
+}
+
+sub t01_basic {
     my $name        = 'Srun check';
     my $description = 'Basic SRUN test';
 
@@ -75,7 +141,7 @@ sub basic_test_01 {
     return %results;
 }
 
-sub basic_test_02 {
+sub t02_basic {
     my $name        = 'Sinfo check';
     my $description = 'Simple SINFO test';
 
@@ -87,14 +153,7 @@ sub basic_test_02 {
     return %results;
 }
 
-sub basic_test_03 {
-    my $name        = 'Stress tests with srun';
-    my $description = 'SRUN stress test';
-
-    ##TODO: implement srun stress test; run 100+ srun jobs
-}
-
-sub basic_test_04 {
+sub t03_basic {
     my $name        = 'Sbatch test';
     my $description = 'Basic SBATCH test';
     my $sbatch      = 'slurm_sbatch.sh';
@@ -113,7 +172,7 @@ sub basic_test_04 {
     return %results;
 }
 
-sub basic_test_05 {
+sub t04_basic {
     my $name        = 'Slurm-torque test';
     my $description = 'Basic slurm-torque test. https://fate.suse.com/323998';
     my $pbs         = 'slurm_pbs.sh';
@@ -133,11 +192,33 @@ sub basic_test_05 {
     return %results;
 }
 
-sub ha_test_01 {
-    ##TODO: Add fail-over test
+sub t05_basic {
+    my $name        = 'PMIx Support in SLURM and the MPI Libraries';
+    my $description = 'Basic check if pmix is present. https://jira.suse.com/browse/SLE-10802';
+    my $result      = 0;
+
+    my $pmi_versions = script_output("srun --mpi=list");
+    $result = 1 unless ($pmi_versions =~ m/'pmix'/);
+    record_info('INFO', script_output("srun --mpi=list"));
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
-sub accounting_test_01 {
+#############################################
+## Accounting tests: for HPC/slurm cluster ##
+#############################################
+
+sub run_accounting_tests {
+    my @all_results;
+
+    my %test01 = t01_accounting();
+    push(@all_results, \%test01);
+
+    return @all_results;
+}
+
+sub t01_accounting {
     my $name        = 'Slurm accounting';
     my $description = 'Basic check for slurm accounting cmd';
     my $result      = 0;
@@ -191,6 +272,10 @@ sub accounting_test_01 {
     script_run("srun --uid=$users{user_3} --account=UNI_Y_Biology -N 3 date");
     script_run("srun --uid=$users{user_4} --account=UNI_Y_Physics -N 3 hostname");
 
+    # this is required; see: bugzilla#1150565?
+    systemctl('restart slurmctld');
+    systemctl('is-active slurmctld');
+
     #Yet another sleep. Slurm.conf::JobAcctGatherFrequency=12
     #In order to allow information to be dumped to the DB, we need to wait some time
     sleep(30);
@@ -214,6 +299,30 @@ sub accounting_test_01 {
     return %results;
 }
 
+#####################################
+## HA tests: for HPC/slurm cluster ##
+#####################################
+
+sub run_ha_tests {
+    my @all_results;
+
+    ##TODO
+
+    return @all_results;
+}
+
+################################################
+## Accounting and HA: for HPC/slurm cluster ####
+################################################
+
+sub run_accounting_ha_tests {
+    my @all_results;
+
+    ##TODO
+
+    return @all_results;
+}
+
 sub run {
     my $self       = shift;
     my $nodes      = get_required_var('CLUSTER_NODES');
@@ -226,7 +335,6 @@ sub run {
     # and proper services are enabled and started
     zypper_call('in slurm slurm-munge slurm-torque');
 
-    #types of slurm set-ups: basic, accounting, ha, nfs_db
     if ($slurm_conf =~ /ha/) {
         $self->mount_nfs();
     } elsif ($slurm_conf =~ /accounting/) {
@@ -257,33 +365,15 @@ sub run {
 
     $self->check_nodes_availability();
 
-    my $file = 'tmpresults.xml';
-    assert_script_run("touch $file");
-    script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
+    ## TEST RUN ##
+    ## Prepared HPC cluster should run tests based on its capabilities
+    # slurm supported configurations:
+    # BASIC: 1 slurm ctl and 2+ compute nodes
+    # HA: 2 slurm ctl and 2+ compute nodes
+    # ACCOUNTING: 1 slurm ctl, 1 slurmdbd, 2+ compute nodes
+    # ACCOUNTING and HA (nfs_db): 2 slurm ctl, 1 slurmdbd, 2+ compute nodes
 
-    my %test;
-    %test = basic_test_01();
-    pars_results(%test);
-
-    %test = basic_test_02();
-    pars_results(%test);
-
-    %test = basic_test_04();
-    pars_results(%test);
-
-    %test = basic_test_05();
-    pars_results(%test);
-
-    if ($slurm_conf =~ /nfs_db/) {
-        %test = accounting_test_01();
-        pars_results(%test);
-    } elsif ($slurm_conf =~ /accounting/) {
-        %test = accounting_test_01();
-        pars_results(%test);
-    }
-
-    script_run("echo \"</testsuite>\" >> $file");
-    parse_extra_log('XUnit', 'tmpresults.xml');
+    run_tests($slurm_conf);
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }

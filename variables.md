@@ -51,6 +51,10 @@ FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DV
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
 FULL_LVM_ENCRYPT | boolean | false | Enables/indicates encryption using lvm. boot partition may or not be encrypted, depending on the product default behavior.
 FUNCTION | string | | Specifies SUT's role for MM test suites. E.g. Used to determine which SUT acts as target/server and initiator/client for iscsi test suite
+GRUB_PARAM | string | | A semicolon-separated list of extra boot options. Adds 2 grub meny entries per each item in main grub (2nd entry is the "Advanced options ..." submenu). See `add_custom_grub_entries()`.
+GRUB_BOOT_NONDEFAULT | boolean | false | Boot grub menu entry added by `add_custom_grub_entries` (having setup `GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU`, `GRUB_BOOT_NONDEFAULT=1` selects 3rd entry, which contains `debug_pagealloc=on`, `GRUB_BOOT_NONDEFAULT=2` selects 5th entry, which contains `ima_policy=tcb`). NOTE: s390x not supported. See `boot_grub_item()`, `handle_grub()`.
+GRUB_SELECT_FIRST_MENU | integer | | Select grub menu entry in main grub menu, used together with GRUB_SELECT_SECOND_MENU. GRUB_BOOT_NONDEFAULT has higher preference when both set. NOTE: s390x not supported. See `boot_grub_item()`, `handle_grub()`.
+GRUB_SELECT_SECOND_MENU | integer | | Select grub menu entry in secondary grub menu (the "Advanced options ..." submenu), used together with GRUB_SELECT_FIRST_MENU. GRUB_BOOT_NONDEFAULT has higher preference when both set. NOTE: s390x not supported. See `boot_grub_item()`, `handle_grub()`.
 HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and validation of the license agreements.
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
@@ -96,6 +100,7 @@ PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package ma
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
 QA_TESTSUITE | string | | Comma or semicolon separated a list of the automation cases' name, and these cases will be installed and triggered if you call "start_testrun" function from qa_run.pm
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
+REBOOT_TIMEOUT | integer | Set and handle reboot timeout available in YaST installer. 0 disables the timeout and needs explicit reboot confirmation.
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.

@@ -26,7 +26,7 @@ sub analyzeResult {
                 my ($case_name, $case_result) = ($1, $2);
                 $result->{$case_name}{status} = "PASSED" if ($case_result =~ /pass/);
                 $result->{$case_name}{status} = "FAILED" if ($case_result =~ /fail/);
-                $result->{$case_name}{time}   = 1;
+                $result->{$case_name}{test_time} = 1;
             }
         }
     }

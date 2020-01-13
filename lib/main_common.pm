@@ -238,6 +238,10 @@ sub is_livesystem {
     return (check_var("FLAVOR", 'Rescue-CD') || get_var("LIVETEST"));
 }
 
+sub is_gnome_live {
+    return get_var('FLAVOR', '') =~ /GNOME-Live/;
+}
+
 sub is_kde_live {
     return get_var('FLAVOR', '') =~ /KDE-Live/;
 }
@@ -429,6 +433,12 @@ sub load_boot_tests {
 sub load_reboot_tests {
     return if check_var("IPXE", "1");
 
+    # Special case: our disk and boot config is on the supportserver
+    # PXE reboot to be handled by module boot_to_desktop
+    if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        loadtest "boot/boot_to_desktop";
+        return;
+    }
     # there is encryption passphrase prompt which is handled in installation/boot_encrypt
     if ((is_s390x && !get_var('ENCRYPT')) || uses_qa_net_hardware() || is_spvm) {
         loadtest "boot/reconnect_mgmt_console";
@@ -1277,18 +1287,23 @@ sub load_x11tests {
     }
     if (gnomestep_is_applicable()) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-        if (is_sle && (!is_server || we_is_applicable)) {
-            loadtest "x11/eog";
-            loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
-            loadtest "x11/wireshark";
-            loadtest "x11/ImageMagick";
-            loadtest "x11/ghostscript";
+        if (is_sle) {
+            if (!is_server || we_is_applicable) {
+                loadtest "x11/eog";
+                loadtest(is_sle('<15') ? "x11/rhythmbox" : "x11/gnome_music");
+                loadtest "x11/wireshark";
+                loadtest "x11/ImageMagick";
+                loadtest "x11/ghostscript";
+            }
+        }
+        else {
+            loadtest "x11/graphicsMagick" unless (is_staging || is_livesystem);
         }
     }
     if (libreoffice_is_applicable()) {
         if (get_var("DESKTOP") =~ /kde|gnome/
             && (!is_server || we_is_applicable)
-            && !is_kde_live && !is_krypton_argon && !is_gnome_next) {
+            && !is_kde_live && !is_gnome_live && !is_krypton_argon && !is_gnome_next) {
             loadtest "x11/ooffice";
         }
         if (get_var("DESKTOP") =~ /kde|gnome/
@@ -1428,7 +1443,7 @@ sub load_extra_tests_y2uitest_gui {
     # On openSUSE, the scheduling happens in schedule/yast2_gui.yaml
     if (get_var("QAM_YAST2UI")) {
         loadtest "yast2_gui/yast2_bootloader" if is_sle("12-SP2+");
-        loadtest "yast2_gui/yast2_storage_ng" if is_sle("15+");
+        loadtest "yast2_gui/yast2_storage_ng" if is_sle("15+") || is_leap("15.0+") || is_tumbleweed;
         loadtest "yast2_gui/yast2_security"   if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_keyboard"   if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_instserver" unless (is_sle('<12-SP3') || is_leap('<15.0'));
@@ -1528,7 +1543,6 @@ sub load_extra_tests_desktop {
     if (check_var('DESKTOP', 'gnome')) {
         loadtest "x11/rrdtool_x11";
         loadtest 'x11/yast2_lan_restart';
-        loadtest 'x11/yast2_lan_restart_devices' if (!is_opensuse || is_leap('<=15.0'));
         # we only have the test dependencies, e.g. hostapd available in
         # openSUSE
         if (check_var('DISTRI', 'opensuse')) {
@@ -2418,6 +2432,9 @@ sub load_mitigation_tests {
     if (get_var('SPECTRE_V1')) {
         loadtest "cpu_bugs/spectre_v1";
     }
+    if (get_var('TAA')) {
+        loadtest "cpu_bugs/taa";
+    }
 }
 
 sub load_security_tests {
@@ -2755,15 +2772,17 @@ sub load_ha_cluster_tests {
     # When not using a support server, node 1 setups barriers and mutex
     loadtest 'ha/barrier_init' if (get_var('HOSTNAME') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
 
-    # Wait for barriers to be initialized except when testing HAWK as a client
-    # or Pacemaker CTS regression tests
+    # Wait for barriers to be initialized except when testing with a client
+    # HAWK, Pacemaker CTS regression tests or CTDB
     loadtest 'ha/wait_barriers' unless (check_var('HAWKGUI_TEST_ROLE', 'client') or
-        (get_var('PACEMAKER_CTS_REG')) or (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')));
+        (get_var('PACEMAKER_CTS_REG')) or (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) or
+        (check_var('CTDB_TEST_ROLE', 'client')));
 
     # Test HA after an upgrade, so no need to configure the HA stack
     if (get_var('HDDVERSION')) {
         loadtest 'ha/setup_hosts_and_luns' unless get_var('USE_SUPPORT_SERVER');
         loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
+        loadtest 'ha/migrate_clvmd_to_lvmlockd'         if (is_sle('15-SP2+') and get_var('HDDVERSION') =~ /1[12]-SP/);
         loadtest 'ha/check_after_reboot';
         loadtest 'ha/check_hawk';
         return 1;
@@ -2777,6 +2796,12 @@ sub load_ha_cluster_tests {
     # If HAWKGUI_TEST_ROLE is set to client, only load client side test
     if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
         loadtest 'ha/hawk_gui';
+        return 1;
+    }
+
+    # If CTDB_TEST_ROLE is set to client, only load client side test
+    if (check_var('CTDB_TEST_ROLE', 'client')) {
+        loadtest 'ha/ctdb';
         return 1;
     }
 
@@ -2869,6 +2894,11 @@ sub load_ha_cluster_tests {
         loadtest 'ha/cluster_md';
         loadtest 'ha/vg';
         loadtest 'ha/filesystem';
+
+        # Test ctdb feature
+        if (check_var('CTDB_TEST_ROLE', 'server')) {
+            loadtest 'ha/ctdb';
+        }
 
         # Test DRBD feature
         if (get_var('HA_CLUSTER_DRBD')) {

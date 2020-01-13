@@ -1,11 +1,12 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(stop_grub_timeout boot_local_disk tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
+use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
 use testapi;
 use strict;
 use warnings;
 use utils;
+use Utils::Backends 'has_serial_over_ssh';
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
@@ -644,7 +645,10 @@ sub reconnect_s390 {
     my $login_ready = get_login_message();
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
-        handle_grub_zvm($console);
+        # skip grub handle for 11sp4
+        if (!is_sle('=11-SP4')) {
+            handle_grub_zvm($console);
+        }
         $console->expect_3270(
             output_delim => $login_ready,
             timeout      => $ready_time + 100
@@ -714,11 +718,30 @@ sub handle_displaymanager_login {
     handle_login unless $args{nologin};
 }
 
+=head2 handle_pxeboot
+
+ handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => $pxemenu, pxeselect => $pxeselect);
+
+Handle a textmode PXE bootloader menu by means of two needle tags:
+C<$pxemenu> to match the initial menu, C<$pxeselect> to match the
+menu with the desired entry selected.
+=cut
+sub handle_pxeboot {
+    my ($self, %args) = @_;
+    my $bootloader_time = $args{bootloader_time};
+
+    assert_screen($args{pxemenu}, $bootloader_time);
+    unless (match_has_tag($args{pxeselect})) {
+        send_key_until_needlematch($args{pxeselect}, 'down');
+    }
+    send_key 'ret';
+}
+
 sub handle_grub {
     my ($self, %args) = @_;
     my $bootloader_time  = $args{bootloader_time};
     my $in_grub          = $args{in_grub};
-    my $linux_boot_entry = $args{linux_boot_entry} // 14;
+    my $linux_boot_entry = $args{linux_boot_entry} // (is_sle('15+') ? 15 : 14);
 
     # On Xen PV and svirt we don't see a Grub menu
     # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
@@ -730,9 +753,23 @@ sub handle_grub {
         wait_screen_change { send_key 'end' };
         send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
         for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
-        type_string_very_slow "$boot_params ";
+        bmwqemu::fctinfo("Adding boot params '$boot_params'");
+        type_string_very_slow " $boot_params ";
         save_screenshot;
         send_key 'ctrl-x';
+    }
+    elsif ((my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT', 0)) gt 0) {
+        my $menu = $grub_nondefault * 2 + 1;
+        bmwqemu::fctinfo("Boot non-default grub option $grub_nondefault (menu item $menu)");
+        boot_grub_item($menu);
+    } elsif (my $first_menu = get_var('GRUB_SELECT_FIRST_MENU')) {
+        if (my $second_menu = get_var('GRUB_SELECT_SECOND_MENU')) {
+            bmwqemu::fctinfo("Boot $first_menu > $second_menu");
+            boot_grub_item($first_menu, $second_menu);
+        } else {
+            bmwqemu::fctinfo("Boot $first_menu");
+            boot_grub_item($first_menu);
+        }
     }
     else {
         # confirm default choice
@@ -742,6 +779,10 @@ sub handle_grub {
 
 sub wait_boot_textmode {
     my ($self, %args) = @_;
+    # For s390x we validate system boot in reconnect_mgmt_console test module
+    # and use ssh connection to operate on the SUT, so do early return
+    return if check_var('ARCH', 's390x');
+
     my $ready_time       = $args{ready_time};
     my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
     # 2nd stage of autoyast can be considered as linux-login
@@ -821,14 +862,15 @@ sub wait_boot_past_bootloader {
         $self->wait_boot_textmode(ready_time => $ready_time);
         select_console('x11');
     }
-    else {
-        return $self->wait_boot_textmode(ready_time => $ready_time) if ($textmode || check_var('DESKTOP', 'textmode'));
+    elsif ($textmode || check_var('DESKTOP', 'textmode')) {
+        return $self->wait_boot_textmode(ready_time => $ready_time);
     }
 
     # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
     # Administrator user listed but do not attempt to login
     if (!is_sle('<=11-SP4') && get_var('HDDVERSION') && is_desktop_installed && is_upgrade && is_sles4sap) {
         assert_screen 'displaymanager-sapadm', $ready_time;
+        wait_still_screen;    # We need to ensure that we are in a stable state
         return;
     }
 
@@ -902,6 +944,16 @@ sub wait_boot {
     reset_consoles;
     select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
     if (reconnect_s390(textmode => $textmode, ready_time => $ready_time)) {
+    }
+    elsif (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
+        # A supportserver client to reboot via PXE after an initial installation.
+        # No GRUB menu. Instead, the mandatory parallel supportserver job is
+        # supposedly ready to provide the desired customized PXE boot menu.
+
+        # Expected: three menu entries, one of them being "Custom kernel"
+        # (the boot configuration from the just-finished initial installation)
+        #
+        $self->handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => 'pxe-custom-kernel', pxeselect => 'pxe-custom-kernel-selected');
     }
     else {
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
@@ -1014,11 +1066,13 @@ sub select_serial_terminal {
         } else {
             $console = $root ? 'root-sut-serial' : 'sut-serial';
         }
-    } elsif ($backend =~ /^(ikvm|ipmi|spvm)$/) {
+    } elsif (has_serial_over_ssh) {
         $console = 'root-ssh';
+    } elsif ($backend eq 'generalhw' && !has_serial_over_ssh) {
+        $console = $root ? 'root-console' : 'user-console';
     }
 
-    die "No support for backend '$backend', add it" if ($console eq '');
+    die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
     select_console($console);
 }
 

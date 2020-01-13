@@ -25,13 +25,16 @@ sub run {
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
 
-    # Create partitions with the data from yaml scheduling file
+    # Create partitions with the data from yaml scheduling file on first disk
     # (see YAML_SCHEDULE openQA variable value).
-    foreach my $disk (@{$test_data->{disks}}) {
-        foreach my $partition (@{$disk->{partitions}}) {
-            $partitioner->add_partition_on_gpt_disk({disk => $disk->{name}, partition => $partition});
-        }
+    my $first_disk = $test_data->{disks}[0];
+    foreach my $partition (@{$first_disk->{partitions}}) {
+        $partitioner->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
     }
+
+    # Clone partition table from first disk to all other disks
+    my $numdisks = scalar(@{$test_data->{disks}}) - 1;
+    $partitioner->clone_partition_table({disk => $first_disk->{name}, numdisks => $numdisks});
 
     # Create RAID partitions with the data from yaml scheduling file
     # (see YAML_SCHEDULE openQA variable value).

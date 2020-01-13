@@ -42,10 +42,7 @@
 #     - Send 'alt-i'
 #   - If needle matches 'package-update-found'
 #     - Send 'alt-n'
-#   - Unless REMOTE_CONTROLLER is set or is_caasp
-#     - Start a countdown, send 'alt-s' and print 'workaround', "While trying to stop countdown
-#     we saw a screen change, retrying up to $counter times more" on each
-#     iteration, while trying to match screens with 55% similarity.
+#   - Stop reboot timeout where necessary
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use strict;
@@ -53,6 +50,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use lockapi;
+use mmapi;
 use utils;
 use version_utils qw(:VERSION :BACKEND);
 use ipmi_backend_utils;
@@ -187,8 +185,15 @@ sub run {
         last;
     }
 
-    # Stop reboot countdown for e.g. uploading logs
-    unless (get_var("REMOTE_CONTROLLER") || is_caasp) {
+    if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_REPORT_PKGINSTALL')) {
+        my $jobid_server = (get_parents())->[0] or die "USE_SUPPORT_SERVER_REPORT_PKGINSTALL set, but no parent supportserver job found";
+        # notify the supportserver about current status (e.g.: meddle_multipaths.pm)
+        mutex_create("client_pkginstall_done", $jobid_server);
+        record_info("Disk I/O", "Mutex \"client_pkginstall_done\" created");
+    }
+
+    # Stop reboot countdown where necessary for e.g. uploading logs
+    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_caasp || (is_sle('=11-sp4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x'))) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.

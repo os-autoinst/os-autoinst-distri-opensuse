@@ -478,13 +478,14 @@ sub select_first_hard_disk {
     else {
         assert_and_click 'hard-disk-dev-sdb-selected' if match_has_tag('hard-disk-dev-sdb-selected');
         if (match_has_tag('hard-disk-dev-non-sda-selected')) {
-            foreach my $tag (grep { $_ =~ /hard-disk-dev-(sd[a-z]|pmem[0-9])/ } @{$matched_needle->{needle}->{tags}}) {
+            foreach my $tag (grep { $_ =~ /hard-disk-dev-([sv]d[a-z]|pmem[0-9])/ } @{$matched_needle->{needle}->{tags}}) {
                 assert_and_click "$tag-selected";
             }
         }
     }
     assert_screen [qw(select-hard-disks-one-selected hard-disk-dev-sda-not-selected)];
     assert_and_click 'hard-disk-dev-sda-not-selected' if match_has_tag('hard-disk-dev-sda-not-selected');
+    save_screenshot;
     send_key $cmd{next};
 }
 
@@ -615,6 +616,7 @@ sub take_first_disk {
         }
         send_key $cmd{next};
     }
+    save_screenshot;
 }
 
 1;

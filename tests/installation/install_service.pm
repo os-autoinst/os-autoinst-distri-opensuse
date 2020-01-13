@@ -39,7 +39,10 @@ sub run {
       && !get_var('ZDUP')
       && !get_var('INSTALLONLY');
 
-    die "Service check before migration failed!" if $srv_check_results{'before_migration'} eq 'FAIL';
+    if ($srv_check_results{'before_migration'} eq 'FAIL') {
+        record_info("Summary", "failed", result => 'fail');
+        die "Service check before migration failed!";
+    }
 }
 
 sub test_flags {

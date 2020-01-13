@@ -53,6 +53,8 @@ our @EXPORT = qw(
   wait_until_resources_started
   get_lun
   check_device_available
+  set_lvm_config
+  add_lock_mgr
   pre_run_hook
   post_run_hook
   post_fail_hook
@@ -121,7 +123,8 @@ sub get_my_ip {
 }
 
 sub get_node_number {
-    return script_output 'crm_mon -1 | awk \'/ nodes configured/ { print $1 }\'';
+    my $index = is_sle('15-sp2+') ? 2 : 1;
+    return script_output "crm_mon -1 | awk '/ nodes configured/ { print \$$index }'";
 }
 
 sub is_node {
@@ -439,6 +442,28 @@ sub check_device_available {
     die "Test timed out while checking $dev"   unless (defined $ret);
     die "Nonexistent $dev after $tout seconds" unless ($tries > 0 or $ret == 0);
     return $ret;
+}
+
+sub set_lvm_config {
+    my ($lvm_conf, %args) = @_;
+    my $cmd;
+
+    foreach my $param (keys %args) {
+        $cmd = sprintf("sed -ie 's/^\\([[:blank:]]*%s[[:blank:]]*=\\).*/\\1 %s/' %s", $param, $args{$param}, $lvm_conf);
+        assert_script_run $cmd;
+    }
+
+    script_run "grep -E '^[[:blank:]]*use_lvmetad|^[[:blank:]]*locking_type|^[[:blank:]]*use_lvmlockd' $lvm_conf";
+}
+
+sub add_lock_mgr {
+    my ($lock_mgr) = @_;
+
+    assert_script_run "EDITOR=\"sed -ie '\$ a primitive $lock_mgr ocf:heartbeat:$lock_mgr'\" crm configure edit";
+    assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $lock_mgr/'\" crm configure edit";
+
+    # Wait to get clvmd/lvmlockd running on all nodes
+    sleep 5;
 }
 
 sub pre_run_hook {

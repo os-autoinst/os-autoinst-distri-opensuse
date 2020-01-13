@@ -21,7 +21,8 @@ use version_utils 'is_upgrade';
 
 sub run {
     select_console 'root-console';
-    my $cmd = 'zypper pa --orphaned | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" | (! grep "@System")';
+    # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
+    my $cmd = 'zypper pa --orphaned | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" | (! grep "@System") > /tmp/orphaned.log';
     # there are orphans on older, unsupported openSUSE versions which we
     # upgrade from. They will most likely never be fixed
     my $expect_failure = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
@@ -32,6 +33,13 @@ sub run {
     else {
         assert_script_run($cmd, fail_message => "Orphaned packages found, set 'ZYPPER_ORPHANED_CHECK_ONLY' to only check and not fail the test");
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    $self->export_logs();
+    upload_logs '/tmp/orphaned.log';
 }
 
 1;

@@ -26,6 +26,7 @@ use English;
 use bootloader_setup;
 use registration;
 use utils 'shorten_url';
+use version_utils 'is_sle';
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -299,7 +300,10 @@ sub run {
     die join("\n", '#' x 67, $exception, '#' x 67) if $exception;
 
     # activate console so we can call wait_serial later
-    my $c = select_console('iucvconn', await_console => 0);
+    # skip activate serial console since 11sp4 has issue bsc#1159521: iucvconn command not exist
+    if (!is_sle('=11-sp4')) {
+        select_console('iucvconn', await_console => 0);
+    }
 
     # format DASD before installation by default
     format_dasd                if (check_var('FORMAT_DASD', 'pre_install'));

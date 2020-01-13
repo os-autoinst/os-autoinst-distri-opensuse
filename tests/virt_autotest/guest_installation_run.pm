@@ -46,8 +46,8 @@ sub analyzeResult {
     my $rough_result = $1;
     foreach (split("\n", $rough_result)) {
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED|TIMEOUT)\s+\((\S+)\)/g) {
-            $result->{$1}{status} = $2;
-            $result->{$1}{time}   = $3;
+            $result->{$1}{status}    = $2;
+            $result->{$1}{test_time} = $3;
         }
     }
     return $result;

@@ -49,7 +49,6 @@ my %mitigations_list =
     ],
   );
 sub run {
-    select_console 'root-console';
     my $obj = Mitigation->new(\%mitigations_list);
     if (check_var('BACKEND', 'qemu')) {
         if (get_var('MACHINE', '') =~ /NO-IBRS$/) {

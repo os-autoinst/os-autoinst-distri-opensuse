@@ -677,9 +677,11 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "remote/remote_controller";
         load_inst_tests();
     }
-    loadtest "ha/barrier_init"               if get_var("HA_CLUSTER");
-    loadtest "hpc/barrier_init"              if get_var("HPC");
-    loadtest "support_server/flaky_mp_iscsi" if (get_var("ISCSI_MULTIPATH_FLAKY"));
+    loadtest "ha/barrier_init"                  if get_var("HA_CLUSTER");
+    loadtest "hpc/barrier_init"                 if get_var("HPC");
+    loadtest "support_server/meddle_multipaths" if (get_var("SUPPORT_SERVER_TEST_INSTDISK_MULTIPATH"));
+    loadtest "support_server/custom_pxeboot"    if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
+    loadtest "support_server/flaky_mp_iscsi"    if (get_var("ISCSI_MULTIPATH_FLAKY"));
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait_children";
     }
@@ -730,7 +732,7 @@ elsif (get_var("QA_TESTSUITE")) {
 }
 elsif (get_var('XFSTESTS')) {
     prepare_target;
-    if (is_spvm) {
+    if (is_spvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
@@ -799,8 +801,15 @@ elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
         if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64) {
-            loadtest "virt_autotest/setup_dns_service";
             loadtest "virt_autotest/set_config_as_glue";
+            if (get_var("ENABLE_VIR_NET")) {
+                loadtest "virt_autotest/libvirt_virtual_network_init";
+                loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+                loadtest "virt_autotest/libvirt_nated_virtual_network";
+                loadtest "virt_autotest/libvirt_routed_virtual_network";
+                loadtest "virt_autotest/libvirt_isolated_virtual_network";
+            }
+            loadtest "virt_autotest/setup_dns_service";
             loadtest "virtualization/xen/hotplugging" if get_var("ENABLE_HOTPLUGGING");
             loadtest "virt_autotest/virsh_internal_snapshot";
             loadtest "virt_autotest/virsh_external_snapshot";

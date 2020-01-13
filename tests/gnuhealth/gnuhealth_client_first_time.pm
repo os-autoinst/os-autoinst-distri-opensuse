@@ -18,7 +18,7 @@ use version_utils 'is_leap';
 
 sub run {
     my $gnuhealth    = get_var('GNUHEALTH_CLIENT', 'gnuhealth-client');
-    my $gnuhealth_34 = is_leap('<=15.2');
+    my $gnuhealth_34 = is_leap('<15.2');
     wait_screen_change { send_key 'tab' };
     send_key 'ret';
     assert_screen "$gnuhealth-login_password";

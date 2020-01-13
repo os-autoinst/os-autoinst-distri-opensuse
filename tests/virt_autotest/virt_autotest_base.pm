@@ -32,11 +32,12 @@ sub get_script_run {
 sub generateXML {
     my ($self, $data) = @_;
     print Dumper($data);
-    my %my_hash   = %$data;
-    my $pass_nums = 0;
-    my $fail_nums = 0;
-    my $skip_nums = 0;
-
+    my %my_hash         = %$data;
+    my $pass_nums       = 0;
+    my $fail_nums       = 0;
+    my $skip_nums       = 0;
+    my $test_time_hours = 0;
+    my $test_time_mins  = 0;
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
@@ -48,7 +49,19 @@ sub generateXML {
         else {
             $fail_nums += 1;
         }
+        my $test_time = eval { $my_hash{$item}->{test_time} ? $my_hash{$item}->{test_time} : '' };
+        if ($test_time ne '') {
+            my ($time_hours) = $test_time =~ /^(\d+)m.*s$/i;
+            my ($time_mins)  = $test_time =~ /^.*m(\d+)s$/i;
+            $test_time_hours += $time_hours;
+            $test_time_mins  += $time_mins;
+        }
     }
+    $self->{pass_nums} = $pass_nums;
+    $self->{fail_nums} = $fail_nums;
+    $self->{skip_nums} = $skip_nums;
+    $self->{test_time} = $test_time_hours . 'm' . $test_time_mins . 's';
+
     diag '@{$self->{success_guest_list}} content is: ' . Dumper(@{$self->{success_guest_list}});
     ###Load instance attributes into %xmldata
     my %xmldata;

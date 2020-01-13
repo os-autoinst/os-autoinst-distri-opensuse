@@ -24,18 +24,11 @@ use version_utils 'is_sle';
 sub run {
     select_console 'root-console';
     # development module needed for dependencies, released products are tested with sdk module
-    if (is_sle) {
-        if (get_var('BETA')) {
-            my $sdk_repo = is_sle('15+') ? get_var('REPO_SLE_MODULE_DEVELOPMENT_TOOLS') : get_var('REPO_SLE_SDK');
-            zypper_ar 'http://' . get_var('OPENQA_URL') . "/assets/repo/$sdk_repo", name => 'SDK';
-        }
-        # maintenance updates are registered with sdk module
-        elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
-            cleanup_registration;
-            register_product;
-            add_suseconnect_product('sle-module-desktop-applications') if is_sle('15+');
-            add_suseconnect_product(get_addon_fullname('sdk'));
-        }
+    if (is_sle() && !main_common::is_updates_tests()) {
+        cleanup_registration;
+        register_product;
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product(get_addon_fullname('sdk'));
     }
     zypper_call "in soundtouch";
     zypper_call "in alsa-utils";
@@ -54,14 +47,9 @@ sub run {
     assert_recorded_sound 'soundtouch';
     assert_script_run 'rm -rf soundtouch';
     # unregister SDK
-    if (is_sle) {
+    if (is_sle() && !main_common::is_updates_tests()) {
         select_console 'root-console';
-        if (get_var('BETA')) {
-            zypper_call "rr SDK";
-        }
-        elsif (get_var('FLAVOR') !~ /Updates|Incidents/) {
-            remove_suseconnect_product(get_addon_fullname('sdk'));
-        }
+        remove_suseconnect_product(get_addon_fullname('sdk'));
     }
 }
 1;
