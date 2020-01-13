@@ -25,7 +25,7 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-23-TYPE-EXEC --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_screen("systemd-testsuite-test-23-type-exec");
+    assert_script_run 'grep "PASS: ...TEST-23-TYPE-EXEC" /tmp/testsuite.log';
 }
 
 sub test_flags {

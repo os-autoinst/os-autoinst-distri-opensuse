@@ -25,7 +25,7 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-19-DELEGATE --run 2>&1 | tee /tmp/testsuite.log', 120;
-    assert_screen("systemd-testsuite-test-19-delegate");
+    assert_script_run 'grep "PASS: ...TEST-19-DELEGATE" /tmp/testsuite.log';
     assert_script_run './run-tests.sh TEST-19-DELEGATE --cleanup', 120;
 }
 

@@ -25,7 +25,7 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-15-DROPIN --run 2>&1 | tee /tmp/testsuite.log', 120;
-    assert_screen("systemd-testsuite-test-15-dropin");
+    assert_script_run 'grep "PASS: ...TEST-15-DROPIN" /tmp/testsuite.log';
 }
 
 sub test_flags {

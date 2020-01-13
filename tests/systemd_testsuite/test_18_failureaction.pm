@@ -25,7 +25,7 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-18-FAILUREACTION --run 2>&1 | tee /tmp/testsuite.log', 600;
-    assert_screen("systemd-testsuite-test-18-failureaction");
+    assert_script_run 'grep "PASS: ...TEST-18-FAILUREACTION" /tmp/testsuite.log';
 }
 
 sub test_flags {
