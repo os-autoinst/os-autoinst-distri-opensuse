@@ -26,6 +26,10 @@ sub test_setup {
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
     become_root;
+    # We use image which is registered, so remove previous registration first
+    if (is_sle('>=15')) {
+        cleanup_registration();
+    }
 
     my @addon_proxy = ('url: http://' . (is_sle('<15') ? 'server-' : 'all-') . get_var('BUILD_SLE'));
     # Add every used addon to regurl for proxy SCC, sle12 addons can have different build numbers
