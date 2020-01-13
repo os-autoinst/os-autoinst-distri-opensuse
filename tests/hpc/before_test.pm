@@ -11,6 +11,7 @@
 # Maintainer: Sebastian Chlad <schlad@suse.de>
 
 use base 'hpcbase';
+use base 'hpc::cluster';
 use strict;
 use warnings;
 use testapi;
@@ -26,6 +27,9 @@ sub run {
 
     # Stop firewall
     systemctl 'stop ' . $self->firewall;
+
+    $self->provision_cluster();
+
     set_hostname(get_var('HOSTNAME', 'susetest'));
 
     if (get_var('HPC_REPO')) {
