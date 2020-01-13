@@ -370,6 +370,7 @@ sub terraform_apply {
     record_info('TFM cmd', $cmd);
 
     assert_script_run($cmd, TERRAFORM_TIMEOUT);
+    sleep;
     my $ret = script_run('terraform apply -no-color -input=false myplan', $args{timeout});
     unless (defined $ret) {
         type_string(qq(\c\\));        # Send QUIT signal
