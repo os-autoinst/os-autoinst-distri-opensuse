@@ -13,7 +13,6 @@
 package meltdown;
 use strict;
 use warnings;
-use base "consoletest";
 use base "Mitigation";
 use bootloader_setup;
 use ipmi_backend_utils;

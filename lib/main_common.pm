@@ -2432,6 +2432,9 @@ sub load_mitigation_tests {
     if (get_var('XEN_MITIGATIONS')) {
         loadtest "cpu_bugs/xen_mitigations";
     }
+    if (get_var('SPECTRE_V1')) {
+        loadtest "cpu_bugs/spectre_v1";
+    }
     if (get_var('TAA')) {
         loadtest "cpu_bugs/taa";
     }
