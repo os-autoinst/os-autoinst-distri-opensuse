@@ -14,7 +14,7 @@
 package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
-use Term::ANSIColor;
+use Term::ANSIColor 2.01 qw(colorstrip);
 use Data::Dumper;
 use testapi;
 
@@ -27,8 +27,17 @@ has lease_id        => undef;
 
 # due to https://github.com/Azure/azure-cli/issues/9903 we need to trim 4 last chars in az output
 sub decode_azure_json {
-    my $json = shift;
-    return decode_json(colorstrip($json));
+    my $str = shift;
+    my $json;
+    eval {
+        record_info('DECODE', colorstrip($str));
+        $json = decode_json(colorstrip($str));
+    };
+    if($@){
+        record_info('ERROR', "Decode json failed\n$@\n\n$str");
+        $json=undef;
+    }
+    return $json;
 }
 
 sub init {
@@ -91,7 +100,7 @@ sub find_img {
     $name =~ s/\.xz$//;
     $name =~ s/\.vhdfixed$/.vhd/;
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
-    record_info('INFO', $json);
+    record_info('INFO KK', $json);
     eval {
         my $image = decode_azure_json($json);
         return $image->{name};
