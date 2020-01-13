@@ -26,7 +26,7 @@ use testapi;
 use utils;
 use power_action_utils 'reboot_x11';
 use version_utils;
-use x11utils 'handle_logout';
+use x11utils;
 use main_common 'opensuse_welcome_applicable';
 
 #testcase 5255-1503803: Gnome:Change Password
@@ -151,7 +151,7 @@ sub run {
     if (opensuse_welcome_applicable) {
         assert_screen 'opensuse-welcome', 120;
         # Close welcome screen
-        wait_screen_change { send_key 'alt-f4' };
+        untick_welcome_on_next_startup;
     }
     assert_screen "generic-desktop", 120;
     switch_user;
