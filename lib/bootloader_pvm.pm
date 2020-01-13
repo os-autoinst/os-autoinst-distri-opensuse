@@ -95,6 +95,7 @@ sub boot_hmc_pvm {
 
     # don't wait for it, otherwise we miss the menu
     type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
+    return if get_var('BOOT_HDD_IMAGE');
     get_into_net_boot;
 
     # the grub on powerVM has a rather strange feature that it will boot
