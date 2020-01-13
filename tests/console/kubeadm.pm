@@ -40,6 +40,8 @@ sub run {
     sleep 60;
     script_run("kubectl config view --flatten=true | tee /dev/$serialdev");
     script_run("kubectl get pods --all-namespaces | tee /dev/$serialdev");
+    script_run("kubectl describe nodes | tee /dev/$serialdev");
+    script_run("cat /etc/cni/net.d/* | tee /dev/$serialdev");
 
     record_info 'Test #5', 'Test: Confirm node is ready';
     assert_script_run('kubectl get nodes | grep "Ready" | grep -v "NotReady"');
