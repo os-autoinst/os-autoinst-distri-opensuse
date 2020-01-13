@@ -13,4 +13,5 @@ schedule:
     - autoyast/autoyast_reboot
     - installation/grub_test
     - installation/yast2_firstboot
+    - installation/first_boot
     - console/validate_yast2_firstboot_configuration

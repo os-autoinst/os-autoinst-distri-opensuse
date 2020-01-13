@@ -92,7 +92,6 @@ sub run {
     root_setup;
     assert_screen 'installation_completed';
     send_key $cmd{finish};
-    assert_screen([qw(displaymanager generic-desktop)], 120);
 }
 
 sub post_fail_hook {
