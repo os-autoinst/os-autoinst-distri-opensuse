@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE LLC
+# Copyright (C) 2015-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -567,6 +567,9 @@ sub fill_in_registration_data {
         if (get_var('SCC_URL') || get_var('SMT_URL')) {
             push @tags, 'untrusted-ca-cert';
         }
+        # The SLE15-SP2 license page moved after registration.
+        push @tags, 'license-agreement'          if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement-accepted' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
@@ -618,6 +621,12 @@ sub fill_in_registration_data {
             }
             elsif (match_has_tag('inst-addon')) {
                 return;
+            }
+            elsif (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
+                send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
+                record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
+                send_key $cmd{next};
+                assert_screen "remove-repository";
             }
         }
     }

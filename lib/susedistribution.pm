@@ -16,7 +16,7 @@ use utils qw(
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
-use Utils::Backends qw(set_sshserial_dev use_ssh_serial_console is_remote_backend);
+use Utils::Backends qw(has_serial_over_ssh set_sshserial_dev use_ssh_serial_console is_remote_backend);
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 use publiccloud::ssh_interactive 'ssh_interactive_join';
 use Cwd;
@@ -451,8 +451,9 @@ sub init_consoles {
                 target_port => SERIAL_TERMINAL_DEFAULT_PORT});
     }
 
-    if (get_var('BACKEND', '') =~ /qemu|ikvm|generalhw/
-        || is_svirt_except_s390x)
+    if ((get_var('BACKEND', '') =~ /qemu|ikvm/
+            || (get_var('BACKEND', '') =~ /generalhw/ && get_var('GENERAL_HW_VNC_IP'))
+            || is_svirt_except_s390x))
     {
         $self->add_console('install-shell',  'tty-console', {tty => 2});
         $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
@@ -485,6 +486,46 @@ sub init_consoles {
                 user     => 'root',
                 serial   => 'mkfifo /dev/sshserial; tail -fn +1 /dev/sshserial',
                 gui      => 1
+            });
+    }
+
+    # Use ssh consoles on generalhw, without VNC connection
+    if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP'))) {
+        my $hostname = get_required_var('SUT_IP');
+        # 'root-ssh' is only needed to set a serial over ssh
+        $self->add_console(
+            'root-ssh',
+            'ssh-xterm',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => 'root',
+                serial   => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
+            }) if (has_serial_over_ssh);
+
+        $self->add_console(
+            'root-console',
+            'ssh-xterm',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => 'root',
+            });
+        $self->add_console(
+            'log-console',
+            'ssh-xterm',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => 'root',
+            });
+        $self->add_console(
+            'user-console',
+            'ssh-xterm',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => $testapi::username
             });
     }
 
@@ -692,6 +733,8 @@ sub activate_console {
     elsif ($name =~ /log|tunnel/) {
         $user = 'root';
     }
+    # Use ssh for generalhw(ssh/no VNC) for given consoles
+    $type = 'ssh' if (get_var('BACKEND', '') =~ /generalhw/ && !defined(get_var('GENERAL_HW_VNC_IP')) && $console =~ /root-console|install-shell|user-console|log-console/);
 
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
@@ -747,7 +790,7 @@ sub activate_console {
         ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        set_sshserial_dev;
+        set_sshserial_dev if has_serial_over_ssh;    # We can use ssh console with a real serial already grabbed
     }
     elsif ($console eq 'svirt' || $console eq 'hyperv-intermediary') {
         my $os_type = (check_var('VIRSH_VMM_FAMILY', 'hyperv') && $console eq 'svirt') ? 'windows' : 'linux';

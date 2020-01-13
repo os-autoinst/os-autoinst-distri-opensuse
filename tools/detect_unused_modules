@@ -3,15 +3,31 @@
 for test in $(git ls-files "*tests/*.pm") ; do
     t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
     t_dir=$(echo $test | sed -e 's@tests/\(.*\)/.*$@\1@')
-    git grep -qE "($t|load_testdir.*$t_dir)" || echo $test
+    git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir|^use (base )?\"?$t\"?)" | grep -qv ".(pm|yaml):\s*#" || echo $test
 done | \
-    # fetchmail_ssl, mailx_ssl, mutt_ssl, postfix_tls: https://progress.opensuse.org/issues/31750
-    # qa_automation, hpc, caasp/stack_admin, wicked: Tests are loaded dynamically
+    # Whitelist
+
+    # https://progress.opensuse.org/issues/31750
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls)' |\
+
+    # Tests are loaded dynamically
+    grep -vE '(qa_automation|hpc|caasp/stack_admin|wicked)' |\
+
     # based on test variable content
-    # slepos: Requested by nadvornik, used in sle11 tests
-    # verify_firewalld: Loaded dynamically by AUTOYAST_VERIFY_MODULE
-    # zypper_moo: https://progress.opensuse.org/issues/32302
-    # sles4sap: Most tests are loaded via APPTESTS
-    # s390x_tests: Scheduled with s390x_tests/consoletest_${testset}${tc}
+    # Requested by nadvornik, used in sle11 tests
+    grep -v 'slepos' |\
+
+    # Loaded dynamically by AUTOYAST_VERIFY_MODULE
+    grep -v 'verify_firewalld' |\
+
+    # https://progress.opensuse.org/issues/32302
+    grep -v 'zypper_moo' |\
+
+    # Most tests are loaded via APPTESTS
+    grep -v 'sles4sap' |\
+
+    # Scheduled with s390x_tests/consoletest_${testset}${tc}
+    grep -v 's390x_tests' |\
+
     grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/|s390x_tests/)' \
     && { exit 1; } || { exit 0; }

@@ -99,6 +99,8 @@ sub run {
         barrier_create("CSYNC2_SYNC_$cluster_name",                 $num_nodes);
         barrier_create("SBD_DONE_$cluster_name",                    $num_nodes);
         barrier_create("SSH_KEY_CONFIGURED_$cluster_name",          $num_nodes);
+        barrier_create("CLVM_TO_LVMLOCKD_START_$cluster_name",      $num_nodes);
+        barrier_create("CLVM_TO_LVMLOCKD_DONE_$cluster_name",       $num_nodes);
 
         # PACEMAKER_TEST_ barriers also have to wait in the client
         barrier_create("PACEMAKER_CTS_INIT_$cluster_name",    $num_nodes + 1);
@@ -108,6 +110,10 @@ sub run {
         barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);
         barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
         barrier_create("HAWK_FENCE_$cluster_name",       $num_nodes + 1);
+
+        # CTDB barriers
+        barrier_create("CTDB_INIT_$cluster_name", $num_nodes + 1);
+        barrier_create("CTDB_DONE_$cluster_name", $num_nodes + 1);
 
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {

@@ -43,9 +43,9 @@ service and start it. It requires selecting root console before.
 =cut
 sub add_serial_console {
     my ($console) = @_;
-    my $service   = 'serial-getty@' . $console;
-    my $config    = '/etc/securetty';
-    script_run(qq{grep -q "^$console\$" $config || echo '$console' >> $config; systemctl enable $service; systemctl start $service});
+    my $service = 'serial-getty@' . $console;
+    script_run(qq{grep -q "^$console\$" /etc/securetty || echo '$console' >> /etc/securetty}) if (is_sle('<12-sp2'));
+    script_run("systemctl enable $service; systemctl start $service");
 }
 
 =head2 get_login_message
@@ -81,6 +81,10 @@ sub login {
 
     bmwqemu::log_call;
 
+    # Eat stale buffer contents, otherwise the code below may get confused
+    # after reboot and start typing the username before the console is actually
+    # ready to accept it
+    wait_serial(qr/login:\s*$/i, timeout => 5, quiet => 1);
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
     type_string("\n");

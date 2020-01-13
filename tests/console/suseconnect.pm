@@ -38,7 +38,7 @@ sub run {
     zypper_call 'services';
     zypper_call 'products';
 
-    assert_script_run "SUSEConnect -r $reg_code";
+    assert_script_run "SUSEConnect -r $reg_code", 180;
     assert_script_run "SUSEConnect --status-text| grep -v 'Not Registered'";
     zypper_call 'ref';
     assert_script_run "SUSEConnect --list-extensions";

@@ -29,6 +29,7 @@ schedule:
 - console/perf
 - console/sysctl
 - console/sysstat
+- console/krb5
 - console/curl_ipv6
 - console/wget_ipv6
 - console/ca_certificates_mozilla
@@ -45,6 +46,7 @@ schedule:
 - console/supportutils
 - console/mdadm
 - console/journalctl
+- console/journalctlLevels
 - console/quota
 - console/vhostmd
 - console/rpcbind

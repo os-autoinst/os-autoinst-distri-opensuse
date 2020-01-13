@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap);
+use Utils::Architectures 'is_aarch64';
 use Utils::Backends 'is_hyperv';
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 
@@ -65,6 +66,8 @@ sub verify_mounts {
 }
 
 sub run {
+    my ($self) = @_;
+
     my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
     my %keylayout_key = ('en_US' => 'e', 'de_DE' => 'd');
@@ -119,9 +122,16 @@ sub run {
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
     # Meltdown/Spectre mitigations makes this even worse.
-    assert_screen [qw(linux-login reached-power-off)], 1000;
-    if (match_has_tag 'reached-power-off') {
-        die "At least it reaches power off, but booting up failed, see boo#1143051. A workaround is not possible";
+    if (check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'))) {
+        # Wait jeos-firstboot is done and clear screen, as we are already logged-in via ssh
+        wait_still_screen;
+        $self->clear_and_verify_console;
+    }
+    else {
+        assert_screen [qw(linux-login reached-power-off)], 1000;
+        if (match_has_tag 'reached-power-off') {
+            die "At least it reaches power off, but booting up failed, see boo#1143051. A workaround is not possible";
+        }
     }
 
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
@@ -156,7 +166,8 @@ sub run {
         assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
     }
 
-    verify_mounts;
+    # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0
+    verify_mounts unless is_leap && is_aarch64;
 }
 
 sub test_flags {

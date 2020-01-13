@@ -75,6 +75,7 @@ sub run {
             send_key 'alt-a';    # activate
         }
         else {
+            wait_still_screen 2;
             send_key 'alt-m';    # minimum channel ID
             type_string "$dasd_path";
             send_key 'alt-x';    # maximum channel ID
@@ -97,14 +98,20 @@ sub run {
 
         # format DASD if the variable is that, because we format it as pre-installation step by default
         elsif (check_var('FORMAT_DASD', 'install')) {
-            send_key 'alt-s';                           # select all
+            send_key 'alt-s' unless (is_sle('=11-sp4'));    # select all
             assert_screen 'dasd-selected';
-            send_key 'alt-a';                           # perform action button
+            send_key 'alt-a';                               # perform action button
             if (check_screen 'dasd-device-formatted', 30) {
                 assert_screen 'action-list';
                 # shortcut changed for sle 15
-                send_key 'o';
-                assert_screen 'confirm-dasd-format';    # confirmation popup
+                if (is_sle('=11-sp4')) {
+                    # workround for 11 sp4, since 'f' shortcut key can map two buttons
+                    assert_and_click '11sp4-s390-format-button';
+                    assert_and_click '11sp4-s390-parallel-format-button';
+                } else {
+                    send_key 'o';
+                }
+                assert_screen 'confirm-dasd-format';        # confirmation popup
                 send_key 'alt-y';
                 format_dasd;
             }

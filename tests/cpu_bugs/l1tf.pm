@@ -60,7 +60,6 @@ sub run {
     #run base function testing
     $obj->do_test();
 
-    assert_script_run('lscpu | grep "0-19"');
     assert_script_run('cat /sys/devices/system/cpu/smt/active | grep "1"');
     assert_script_run('echo off>/sys/devices/system/cpu/smt/control');
     assert_script_run('lscpu | grep "Off-line CPU(s) list"');

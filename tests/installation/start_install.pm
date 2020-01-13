@@ -21,8 +21,10 @@
 use base 'y2_installbase';
 use strict;
 use warnings;
+use lockapi;
 use testapi;
-use version_utils 'is_upgrade';
+use mmapi;
+use version_utils qw(is_sle is_upgrade);
 
 sub run {
     # start install
@@ -105,7 +107,8 @@ sub run {
     if (!get_var("LIVECD")
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
-        && !check_var('VIDEOMODE', 'text'))
+        && !check_var('VIDEOMODE', 'text')
+        && (!is_sle('=11-sp4') || !check_var('ARCH', 's390x') || !check_var('BACKEND', 's390x')))
     {
         my $counter = 20;
         while ($counter--) {
@@ -125,6 +128,12 @@ sub run {
                 assert_screen 'x11-imagesused', 500;
             }
         }
+    }
+    if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_REPORT_PKGINSTALL')) {
+        my $jobid_server = (get_parents())->[0] or die "USE_SUPPORT_SERVER_REPORT_PKGINSTALL set, but no parent supportserver job found";
+        # notify the supportserver about current status (e.g.: meddle_multipaths.pm)
+        mutex_create("client_pkginstall_start", $jobid_server);
+        record_info("Disk I/O", "Mutex \"client_pkginstall_start\" created");
     }
 }
 

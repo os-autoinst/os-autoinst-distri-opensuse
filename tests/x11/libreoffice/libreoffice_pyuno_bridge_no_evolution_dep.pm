@@ -22,9 +22,13 @@ use warnings;
 use testapi;
 
 sub run {
-    # Open LibreOffice
-    x11_start_program('oowriter');
+    my $self = shift;
 
+    # Open LibreOffice
+    $self->libreoffice_start_program('oowriter');
+
+    # Make sure the tip of the day window disappear
+    wait_still_screen;
     # Open the tools and navigate to macro selector
     assert_and_click 'ooffice-writer-tools';
     assert_and_click 'ooffice-tools-macros';
@@ -38,7 +42,9 @@ sub run {
     send_key_until_needlematch 'ooffice-python-samples', 'down';
 
     # expand python samples and navigate to table sample
-    send_key 'right';
+    # In Libreoffice 6.3 send_key 'right'; doesn't work
+    # So use assert_and_dclick instead
+    assert_and_dclick 'ooffice-python-samples';
     send_key_until_needlematch 'ooffice-table-sample', 'down';
 
     # run create table

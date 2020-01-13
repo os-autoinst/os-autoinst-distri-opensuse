@@ -70,7 +70,7 @@ sub get_patch {
 }
 sub get_patchinfos {
     my ($patches) = @_;
-    my $patches_status = script_output("zypper -n info -t patch $patches");
+    my $patches_status = script_output("zypper -n info -t patch $patches", 200);
     return $patches_status;
 }
 
@@ -108,7 +108,7 @@ sub run {
 
     prepare_system_shutdown;
     power_action("reboot");
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 200);
 }
 
 sub test_flags {

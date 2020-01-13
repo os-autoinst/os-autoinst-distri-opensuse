@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -162,9 +162,8 @@ sub run {
     # Trap the 'missing license file on media' issue
     # Needle is configured as a workaround, so a soft-fail will be shown
     send_key 'alt-s' if check_screen('license-insert-disc-issue', 30);
-    # Full_installer jumps to the Select extension and modules dialog and this
-    # makes the tests fail as it doesnt find anything to match
-    unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
+    # Wait for the addon products screen if needed
+    unless (is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')) {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],

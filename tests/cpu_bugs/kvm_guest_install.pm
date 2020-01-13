@@ -20,13 +20,12 @@ use power_action_utils 'power_action';
 use testapi;
 use utils;
 
-my $syspath      = '/sys/devices/system/cpu/vulnerabilities/';
-my $name         = get_var('VM_NAME');
-my $install_url  = get_var('INSTALL_REPO');
-my $logfile_path = get_var('VM_INST_LOG');
-my $vm_shares    = get_var('VM_SHARES');
-my $autoyast     = get_var('AUTOYAST');
-my $netdevice    = get_var('SUT_NETDEVICE');
+my $name         = get_required_var('VM_NAME');
+my $install_url  = get_required_var('INSTALL_REPO');
+my $logfile_path = get_required_var('VM_INST_LOG');
+my $vm_shares    = get_required_var('VM_SHARES');
+my $autoyast     = get_required_var('AUTOYAST');
+my $netdevice    = get_required_var('SUT_NETDEVICE');
 sub run {
     script_run("aa-teardown");
     zypper_call('in -t pattern kvm_server kvm_tools');

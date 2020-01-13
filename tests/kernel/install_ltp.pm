@@ -300,10 +300,10 @@ sub setup_network {
 }
 
 sub run {
-    my $self     = shift;
-    my $inst_ltp = get_var 'INSTALL_LTP';
-    my $tag      = get_ltp_tag();
-    my $grub_param;
+    my $self       = shift;
+    my $inst_ltp   = get_var 'INSTALL_LTP';
+    my $tag        = get_ltp_tag();
+    my $grub_param = 'ignore_loglevel';
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
@@ -320,9 +320,6 @@ sub run {
     }
 
     $self->select_serial_terminal;
-
-    # jsc#SLE-9743
-    $grub_param = 'debug_pagealloc=on';
 
     if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
         script_run('echo 1 > /sys/module/printk/parameters/time');
@@ -356,7 +353,7 @@ sub run {
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
     if (defined $grub_param) {
-        add_grub_cmdline_settings($grub_param);
+        add_grub_cmdline_settings($grub_param, update_grub => 1);
     }
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;

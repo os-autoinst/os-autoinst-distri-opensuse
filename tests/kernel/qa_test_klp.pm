@@ -12,6 +12,8 @@
 
 use strict;
 use warnings;
+use File::Basename 'basename';
+
 use base 'opensusebasetest';
 use testapi;
 use utils;
@@ -31,7 +33,8 @@ sub run {
     }
 
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
-    my ($test_type) = $git_repo =~ /qa_test_(\w+).git/;
+    my $dir      = basename($git_repo);
+    $dir =~ s/\.git$//;
 
     (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');
 
@@ -39,7 +42,7 @@ sub run {
     zypper_call('in -l autoconf automake gcc git make');
 
     assert_script_run('git clone ' . $git_repo);
-    assert_script_run("cd qa_test_$test_type; ./run.sh", 2760);
+    assert_script_run("cd $dir && ./run.sh", 2760);
 }
 
 1;

@@ -3,8 +3,8 @@ name:           ext4@yast
 description:    >
   Test for ext4 filesystem.
 vars:
+  DESKTOP: gnome
   FILESYSTEM: ext4
-  FORMAT_DASD: install
 schedule:
   - installation/bootloader_start
   - installation/welcome

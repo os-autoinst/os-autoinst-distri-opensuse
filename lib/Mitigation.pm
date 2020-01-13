@@ -311,7 +311,7 @@ sub do_test {
     my $ret = $self->vulnerabilities();
     if ($ret == 0) {
         record_info('INFO', "This CPU is not affected by $self->{name}.");
-        return 0;
+        return 2;
     } else {
         record_info('INFO', "Mitigation $self->{name} testing start.");
     }

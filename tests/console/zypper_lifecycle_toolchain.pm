@@ -33,6 +33,10 @@ sub run {
         'sle-module-toolchain-release-cd' => '2024-10-31',
     );
 
+    my %timezone_workaround = (
+        '2024-10-31' => '2024-10-30',
+    );
+
     select_console 'root-console';
     # Get gcc packages, ignore conflicting gcc6-ada and libada6 and cross-nvptx-newlib7 packages
     # Ignore gcc8 due to bsc#1141474 (missing gcc8 dependencies)
@@ -49,7 +53,14 @@ sub run {
     for my $package (split(/ /, $gcc_packages)) {
         while (my ($package_regexp, $expected_date) = each %expiration) {
             if ($package =~ m/.*$package_regexp.*/ && $output !~ m/.*\Q$package\E\s*$expected_date.*/) {
-                die("For toolchain module $package expected $expected_date as expiration date, lifecycle output:\n $output");
+                my $error_msg         = "For toolchain module $package expected $expected_date as expiration date, lifecycle output:\n $output";
+                my $new_expected_date = (exists($timezone_workaround{$expected_date})) ? $timezone_workaround{$expected_date} : undef;
+                if (defined $new_expected_date && $package =~ m/.*$package_regexp.*/ && $output =~ m/.*\Q$package\E\s*$new_expected_date.*/) {
+                    record_soft_failure "bsc#1143453 - zypper lifecycle shows expiration date in wrong timezone - using workaround checking for $new_expected_date:\n$error_msg";
+                }
+                else {
+                    die($error_msg);
+                }
             }
         }
     }
