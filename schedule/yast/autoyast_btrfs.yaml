@@ -1,0 +1,57 @@
+name:           autoyast_btrfs
+description:    >
+  Non-default btrfs subvolume structure test for autoyast installation.
+  Verify btrfs in new installation and generation of autoinst.xml.
+  Same as autoyast_btrfs, but with product and and addons defined for SLE15.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_btrfs.xml
+  AUTOYAST_PREPARE_PROFILE: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - autoyast/verify_btrfs
+  - autoyast/verify_cloned_profile
+test_data:   
+  profile:
+    partitioning:
+      - drive:
+          unique_key: enable_snapshots
+          enable_snapshots: true
+          partitions:
+            - partition:
+                unique_key: mount
+                mount: swap
+            - partition:
+                unique_key: mount
+                mount: /
+                subvolumes_prefix: ''
+                fstopt: rw,relatime,space_cache
+                subvolumes:
+                  - subvolume:
+                      unique_key: path
+                      path: usr/local
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: opt
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: tmp
+                      copy_on_write: false
+            - partition:
+                unique_key: mount
+                mount: /var/log
+                fstopt: rw,relatime,nobarrier,nodatacow
