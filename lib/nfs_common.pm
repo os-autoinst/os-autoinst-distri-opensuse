@@ -189,11 +189,13 @@ sub yast2_server_initial {
 sub yast2_client_exit {
     my $module_name = shift;
     wait_screen_change { send_key 'alt-o' };
+    my $expret = "0";
     if (check_screen("cannot-mount-nfs-from-fstab", 10)) {
         send_key 'alt-o';
         record_soft_failure 'bsc#1157892';
+        $expret = "{0,16}";
     }
-    wait_serial("$module_name-0") or die "'yast2 $module_name' didn't finish";
+    wait_serial("$module_name-$expret") or die "'yast2 $module_name' didn't finish";
     clear_console;
 }
 
