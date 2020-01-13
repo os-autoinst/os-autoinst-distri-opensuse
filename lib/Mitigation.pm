@@ -56,7 +56,7 @@
 package Mitigation;
 use strict;
 use warnings;
-use base "opensusebasetest";
+use base "consoletest";
 use testapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
