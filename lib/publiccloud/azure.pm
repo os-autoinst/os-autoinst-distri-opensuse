@@ -14,6 +14,7 @@
 package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
+use Term::ANSIColor 2.01 'colorstrip';
 use Data::Dumper;
 use testapi;
 
@@ -24,11 +25,17 @@ has storage_account => 'openqa';
 has container       => 'sle-images';
 has lease_id        => undef;
 
-# due to https://github.com/Azure/azure-cli/issues/9903 we need to trim 4 last chars in az output
+=head2 decode_azure_json
+
+    my $json_obj = decode_azure_json($str);
+
+Helper function to decode json string, retrieved from C<az>, into a json
+object.
+Due to https://github.com/Azure/azure-cli/issues/9903 we need to strip all
+color codes from that string first.
+=cut
 sub decode_azure_json {
-    my $json = shift;
-    $json =~ s/.{4}$//;
-    return decode_json($json);
+    return decode_json(colorstrip(shift));
 }
 
 sub init {
@@ -92,10 +99,9 @@ sub find_img {
     $name =~ s/\.vhdfixed$/.vhd/;
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('INFO', $json);
-    eval {
-        my $image = decode_azure_json($json);
-        return $image->{name};
-    };
+    my $image = decode_azure_json($json);
+    return unless ($image);
+    return $image->{name};
 }
 
 sub get_storage_account_keys {
