@@ -14,6 +14,7 @@
 package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
+use Term::ANSIColor;
 use Data::Dumper;
 use testapi;
 
@@ -27,8 +28,7 @@ has lease_id        => undef;
 # due to https://github.com/Azure/azure-cli/issues/9903 we need to trim 4 last chars in az output
 sub decode_azure_json {
     my $json = shift;
-    $json =~ s/.{4}$//;
-    return decode_json($json);
+    return decode_json(colorstrip($json));
 }
 
 sub init {
