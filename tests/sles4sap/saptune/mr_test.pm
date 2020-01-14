@@ -81,16 +81,14 @@ sub test_bsc1152598 {
     my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
 
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
-    assert_script_run 'echo -e "[version]\n#\n[block]\nIO_SCHEDULER=none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
-    # Kernels older than 5.0 use noop
-    script_run '[[ $(uname -r | sed "s/\..*//") -lt 5 ]] && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run 'grep -q noop /sys/block/[sv]da/queue/scheduler 2>/dev/null && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
     assert_script_run "saptune note apply scheduler-test";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
-    assert_script_run 'echo -e "[version]\n#\n[block]\nIO_SCHEDULER=foobar, none\n" > /etc/saptune/extra/scheduler-test.conf';
-    # Kernels older than 5.0 use noop
-    script_run '[[ $(uname -r | sed "s/\..*//") -lt 5 ]] && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, none\n" > /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run 'grep -q noop /sys/block/[sv]da/queue/scheduler 2>/dev/null && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
     assert_script_run 'saptune note apply scheduler-test';
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
@@ -300,7 +298,8 @@ sub run {
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
         $self->test_x86_64  if (check_var('BACKEND', 'ipmi'));
         $self->test_ppc64le if (get_var('OFW'));
-        $self->test_bsc1152598;
+        # DISABLED for now until newest saptune with fix is released
+        #$self->test_bsc1152598;
     } else {
         die "Invalid value for MR_TEST";
     }
