@@ -337,9 +337,69 @@ sub t01_accounting {
 sub run_ha_tests {
     my @all_results;
 
-    ##TODO
+    my %test01 = t01_ha();
+    push(@all_results, \%test01);
+
+    my %test02 = t02_ha();
+    push(@all_results, \%test02);
 
     return @all_results;
+}
+
+sub t01_ha {
+    my $name          = 'scontrol: slurm ctl fail-over';
+    my $description   = 'HPC cluster with 2 slurm ctls where one is taking over gracefully';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+    my $result        = 1;
+    my @all_results;
+
+    for (my $i = 0; $i <= 100; $i++) {
+        if ($i == 50) {
+            assert_script_run('scontrol takeover');
+        }
+        $result = script_run("srun -N $cluster_nodes date");
+        push(@all_results, $result);
+    }
+
+    foreach (@all_results) {
+        if ($_ == 0) {
+            $result = 0;
+            last;
+        }
+    }
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t02_ha {
+    my $name          = 'kill: Slurm ctl fail-over';
+    my $description   = 'HPC cluster with 2 slurm ctls where one is killed';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+    my $result        = 1;
+    my @all_results;
+
+    systemctl('start slurmctld');
+    systemctl('is-active slurmctld');
+
+    for (my $i = 0; $i <= 100; $i++) {
+        if ($i == 50) {
+            my $pidofslurmctld = script_output('pidof slurmctld');
+            script_run("kill $pidofslurmctld");
+        }
+        $result = script_run("srun -N $cluster_nodes date -R");
+        push(@all_results, $result);
+    }
+
+    foreach (@all_results) {
+        if ($_ == 0) {
+            $result = 0;
+            last;
+        }
+    }
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 ################################################
