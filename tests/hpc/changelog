@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file
 
+## [1.0.15] - 2020-01-14
+### Added
+Some more slurm tests are added; mostly basic checks
+### Changed
+Configuration for slurm adjusted to the latest version
+Check for openmpi allows diffrent versions
+Changes in the way the external tests results are prepared
+DHCP hostnames assignment aren't happening
+Some quick fixes for slurm tests are introduced, to allow tests
+of maintainance updates
+
 ## [1.0.14] - 2019-10-24
 ### Added
 New slurm configuration for the cluster with only accounting in the db
