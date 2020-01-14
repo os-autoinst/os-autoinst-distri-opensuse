@@ -30,7 +30,6 @@ sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'microos/disk_boot';
     loadtest 'microos/networking';
-    loadtest 'microos/repositories';
 }
 
 sub load_feature_tests {

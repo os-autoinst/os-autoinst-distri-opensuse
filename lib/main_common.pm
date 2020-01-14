@@ -2704,6 +2704,8 @@ sub load_installation_validation_tests {
 
 sub load_transactional_role_tests {
     replace_opensuse_repos_tests if is_repo_replacement_required;
+    # ^ runs only outside of stagings, clear repos otherwise
+    loadtest "update/zypper_clear_repos" if is_staging;
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/transactional_update';
     loadtest 'transactional/rebootmgr';
