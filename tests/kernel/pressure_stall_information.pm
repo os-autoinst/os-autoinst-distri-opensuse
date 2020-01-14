@@ -16,20 +16,30 @@ use warnings;
 use testapi;
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
+use Utils::Architectures 'is_s390x';
+
+sub boot {
+    my $self = shift;
+
+    $self->wait_boot;
+    # workaround for poo#54578
+    if (is_s390x()) {
+        select_console('root-console');
+    } else {
+        $self->select_serial_terminal;
+    }
+}
 
 sub run {
     my $self = shift;
 
-    $self->wait_boot;
-    $self->select_serial_terminal;
-
+    $self->boot;
     assert_script_run('! cat /proc/pressure/cpu');
 
     add_grub_cmdline_settings('psi=1', update_grub => 1);
 
     power_action('reboot', textmode => 1);
-    $self->wait_boot;
-    $self->select_serial_terminal;
+    $self->boot;
 
     assert_script_run('cd /proc/pressure');
     assert_script_run('cat cpu memory io');
