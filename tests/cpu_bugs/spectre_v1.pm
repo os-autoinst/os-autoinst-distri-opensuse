@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,16 +10,15 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
 
-package spectre_v1;
 use strict;
 use warnings;
 use base "consoletest";
-use base "Mitigation";
 use bootloader_setup;
 use ipmi_backend_utils;
-use power_action_utils 'power_action';
 use testapi;
 use utils;
+
+use Mitigation;
 
 
 
