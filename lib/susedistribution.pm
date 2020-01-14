@@ -825,6 +825,11 @@ sub activate_console {
         (get_var('PUBLIC_CLOUD')) ? ssh_interactive_join() : $self->script_run('ssh -t sut', 0);
         ensure_user($user) unless (get_var('PUBLIC_CLOUD'));
     }
+    # workaround workqueue lockup message bsc#1126782
+    if (check_screen('workqueue-lockup-message')) {
+        record_soft_failure "boo#1126782 - Spurious kernel message on console";
+        send_key 'ret';
+    }
     set_var('CONSOLE_JUST_ACTIVATED', 1);
 }
 
