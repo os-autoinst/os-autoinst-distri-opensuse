@@ -191,12 +191,20 @@ sub img_proof {
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
-    my $out = script_output('terraform state show azurerm_resource_group.openqa-group');
-    if ($out !~ /name\s+=\s+(openqa-[a-z0-9]+)/m) {
-        record_info('ERROR', 'Unable to get resource-group:' . $/ . $out, result => 'fail');
+    my $resgroup;
+    my $out = script_output('terraform show -json');
+    eval {
+        my $json = decode_azure_json($out);
+        for my $resource (@{$json->{values}->{root_module}->{resources}}) {
+            next unless ($resource->{type} eq 'azurerm_resource_group');
+            $resgroup = $resource->{values}->{name};
+            last;
+        }
+    };
+    if ($@ || !defined($resgroup)) {
+        record_info('ERROR', "Unable to get resource-group:\n$out", result => 'fail');
         return;
     }
-    my $resgroup = $1;
 
     my $tries = 3;
     while ($tries gt 0) {
