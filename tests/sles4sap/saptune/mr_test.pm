@@ -75,6 +75,27 @@ sub tune_baseline {
     assert_script_run "sed -ri -e '/fs\\/file-max/s/:([0-9]*)\$/:~~\\1/' -e '/:scripts\\/shm_size/s/:([0-9]*)\$/:~~\\1/' $filename";
 }
 
+sub test_bsc1152598 {
+    my ($self) = @_;
+
+    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
+
+    assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
+    assert_script_run 'echo -e "[version]\n#\n[block]\nIO_SCHEDULER=none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
+    # Kernels older than 5.0 use noop
+    script_run '[[ $(uname -r | sed "s/\..*//") -lt 5 ]] && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run "saptune note apply scheduler-test";
+    assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
+    assert_script_run "saptune revert all";
+    assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
+    assert_script_run 'echo -e "[version]\n#\n[block]\nIO_SCHEDULER=foobar, none\n" > /etc/saptune/extra/scheduler-test.conf';
+    # Kernels older than 5.0 use noop
+    script_run '[[ $(uname -r | sed "s/\..*//") -lt 5 ]] && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
+    assert_script_run 'saptune note apply scheduler-test';
+    assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
+    assert_script_run "saptune revert all";
+}
+
 sub test_sapconf {
     my ($self) = @_;
 
@@ -277,7 +298,9 @@ sub run {
         $self->test_note($test) if ($test ne "1805750");
         $self->test_override($test);
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
-        $self->test_x86_64 if (check_var('BACKEND', 'ipmi'));
+        $self->test_x86_64  if (check_var('BACKEND', 'ipmi'));
+        $self->test_ppc64le if (get_var('OFW'));
+        $self->test_bsc1152598;
     } else {
         die "Invalid value for MR_TEST";
     }
