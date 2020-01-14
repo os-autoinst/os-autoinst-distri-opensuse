@@ -1629,4 +1629,15 @@ sub handle_patch_11sp4_zvm {
     }
 }
 
+=head2 assert_file_content
+    assert_file_content( "path", value );
+
+It could check a file be point to 'path' whether include 'value'.
+
+=cut
+
+sub assert_file_content {
+    my ($param, $value) = @_;
+    assert_script_run("cat $param | grep $value");
+}
 1;
