@@ -117,7 +117,7 @@ if [[ ${vmguest_failed} -ne 0 ]];then
 	exit 1
 fi
 #Wait for vm guests get assigned ip addresses
-sleep 30s
+sleep 60s
 echo -e "Virtual machines ${vm_guestnames_array[@]} have already been refreshed\n" | tee -a ${setup_log_file}
 
 #Write vm_hash_forward_ipaddr and vm_hash_reverse_ipaddr arrays
@@ -263,6 +263,8 @@ echo -e "#$0" >> ${dns_resolv_file}
 dns_service_name="named"
 get_os_installed_release=`lsb_release -r | grep -oE "[[:digit:]]{2}"`
 os_installed_release=$(echo ${get_os_installed_release})
+get_os_installed_sp=`cat /etc/os-release | grep "SUSE Linux Enterprise Server" | grep -oE "SP[0-9]{1,}" | grep -oE "[0-9]{1,}"`
+os_installed_sp=$(echo ${get_os_installed_sp})
 if [[ ${os_installed_release} -gt '11' ]];then
         systemctl enable ${dns_service_name}
         systemctl restart ${dns_service_name}
@@ -306,14 +308,21 @@ mv ${ssh_config_temp} ${ssh_config_file}
 #Insert script signature to the end of ${ssh_config_file}
 echo -e "#$0" >> ${ssh_config_file}
 
+#Wait another 120s before start attempting ping vm guest
+#in order to avoid unnecessary failure
+for i in `seq 12`;do
+	echo -e "Please be patient. Will attempt ping shortly.\n"
+	sleep 10s
+	echo -e "$((120 - $i * 10)) seconds remaining.\n"
+done
 #Try to ping all vm guests by using their dns names. Quit if any failure. 
-sleep_time=60
+sleep_time=180
 sleep_count=0
 failed_count=0
 unset vmguest_ping_failed
 declare -a vmguest_ping_failed=""
 while [ ${sleep_count} -le ${sleep_time} ];do
-	echo -e "Try $((${sleep_count}/5 + 1)) time(s) ping\n" | tee -a ${setup_log_file}
+	echo -e "Try $((${sleep_count}/10 + 1)) time(s) ping\n" | tee -a ${setup_log_file}
 	vmguest_index=0
 	#Ping each vm guest by using its dns name and store result.
 	for vmguest in ${vm_guestnames_array[@]};do
@@ -338,12 +347,12 @@ while [ ${sleep_count} -le ${sleep_time} ];do
         	echo -e "Connection to all virtual machines by using DNS names is working now.\n" | tee -a ${setup_log_file}
         	break
 	fi
-	sleep_count=$((${sleep_count} + 5))
-        sleep 5s
+	sleep_count=$((${sleep_count} + 10))
+	sleep 10s
 done
 
 #Copy host ssh public key to all vm guests. Quit if any failure.
-sleep_time=30
+sleep_time=180
 sleep_count=0
 failed_count=0
 unset vmguest_sshcopyid_failed
@@ -354,11 +363,15 @@ if [[ ${failed_count} -gt 0 ]];then
 else
 	echo -e "DNS service works for al vm guests !\n" | tee -a ${setup_log_file}
 	while [ ${sleep_count} -le ${sleep_time} ];do
-		echo -e "Try $((${sleep_count}/5 + 1)) time(s) ssh-copy-id\n" | tee -a ${setup_log_file}
+		echo -e "Try $((${sleep_count}/10 + 1)) time(s) ssh-copy-id\n" | tee -a ${setup_log_file}
         	vmguest_index=0
 		#Use sshpass to copy public key into vm guest for the first time and store results
 		for vmguest in ${vm_guestnames_array[@]};do
-			sshpass -p ${ssh_key_pass} ssh-copy-id -i ${ssh_key_path}/id_rsa.pub -f root@${vmguest}
+			if [[ ${os_installed_release} -ge '15' ]] || [[ ${os_installed_release} -ge '12' && ${os_installed_sp} -ge '2' ]];then
+				sshpass -p ${ssh_key_pass} ssh-copy-id -i ${ssh_key_path}/id_rsa.pub -f root@${vmguest}
+			else
+				sshpass -p ${ssh_key_pass} ssh-copy-id -i ${ssh_key_path}/id_rsa.pub root@${vmguest}
+			fi
 			vmguest_sshcopyid_failed[${vmguest_index}]=`echo $?`
                 	vmguest_index=$((${vmguest_index} + 1))
 		done
@@ -379,8 +392,8 @@ else
                 	echo -e "SSH COPY ID to all virtual machines by using DNS names is working now.\n" | tee -a ${setup_log_file}
                 	break
         	fi
-	        sleep_count=$((${sleep_count} + 5))
-        	sleep 5s
+	        sleep_count=$((${sleep_count} + 10))
+		sleep 10s
 	done
 fi
 
