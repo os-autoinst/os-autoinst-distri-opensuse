@@ -30,8 +30,6 @@ sub language_and_keyboard {
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
         assert_screen $shortcuts->{$_} . '_selected';
-        send_key_until_needlematch 'expanded_list', 'spc', 5, 7;
-        wait_screen_change(sub { send_key 'ret'; }, 5);
     }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
@@ -94,7 +92,6 @@ sub run {
     root_setup;
     assert_screen 'installation_completed';
     send_key $cmd{finish};
-    assert_screen([qw(displaymanager generic-desktop)], 120);
 }
 
 sub post_fail_hook {

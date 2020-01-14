@@ -9,4 +9,5 @@ schedule:
     - installation/bootloader_start
     - autoyast/installation
     - installation/yast2_firstboot
+    - installation/first_boot
     - console/validate_yast2_firstboot_configuration
