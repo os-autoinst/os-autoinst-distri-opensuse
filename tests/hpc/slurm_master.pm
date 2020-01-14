@@ -377,7 +377,7 @@ sub run {
     }
 
     $self->prepare_slurm_conf();
-    if ($version =~ /15-SP2/) {
+    if ($version =~ /15-SP1/) {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=master-node00" /etc/slurm/slurm.conf
 EOF
