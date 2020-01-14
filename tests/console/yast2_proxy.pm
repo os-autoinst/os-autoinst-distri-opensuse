@@ -135,8 +135,6 @@ sub run {
 
     # check dialog "edit current http port"
     assert_screen 'yast2_proxy_http_ports_current';
-    send_key 'alt-h';
-    type_string 'localhost';
     # On leap it happens that field losses it's focus and backspace doesn't remove symbols
     empty_field 'alt-p', 'yast2_proxy_http_port_empty', 10;
     type_string '80';
@@ -211,6 +209,14 @@ sub run {
     send_key 'backspace';
     type_string '8';
     wait_screen_change { send_key 'alt-o'; };
+
+    # Verify the subnet is changed to to 192.168.0.0/18 and shown in list
+    # (Scroll may be required to see the IP address. So, select "Access Control"
+    #  item in the sidebar menu and then press "down" until the IP is found).
+    send_key_until_needlematch 'yast2_proxy_http_access_control_selected', 'tab';
+    wait_still_screen 1;
+    wait_screen_change { send_key 'tab'; };
+    send_key_until_needlematch 'yast2_proxy_acl_group_localnet_changed_selected', 'down';
 
     # move to Access Control and change something
     send_key_until_needlematch 'yast2_proxy_safe_ports_selected', 'tab';
