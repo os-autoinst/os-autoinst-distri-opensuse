@@ -125,15 +125,23 @@ sub run_basic_tests {
     my %test04 = t04_basic();
     push(@all_results, \%test04);
 
-    my %test05 = t05_basic();
-    push(@all_results, \%test05);
+    if (get_var('VERSION' =~ m/15-SP2/)) {
+        my %test05 = t05_basic();
+        push(@all_results, \%test05);
+    }
+
+    my %test06 = t06_basic();
+    push(@all_results, \%test06);
+
+    my %test07 = t07_basic();
+    push(@all_results, \%test07);
 
     return @all_results;
 }
 
 sub t01_basic {
-    my $name        = 'Srun check';
-    my $description = 'Basic SRUN test';
+    my $name        = 'Srun check: -w';
+    my $description = 'Basic SRUN test with -w option';
 
     my $result = script_run("srun -w slave-node00 date");
 
@@ -200,6 +208,29 @@ sub t05_basic {
     my $pmi_versions = script_output("srun --mpi=list");
     $result = 1 unless ($pmi_versions =~ m/'pmix'/);
     record_info('INFO', script_output("srun --mpi=list"));
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t06_basic {
+    my $name          = 'Srun check: -N -n';
+    my $description   = 'Basic SRUN test with -N and -n option';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+
+    my $result = script_run("srun -N $cluster_nodes -n $cluster_nodes date");
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t07_basic {
+    my $name          = 'Srun check: -w';
+    my $description   = 'Basic SRUN test with -w option on multiple nodes';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+
+    ##TODO: remove hardcoded slaves
+    my $result = script_run("srun -w slave-node00,slave-node01 date");
 
     my %results = generate_results($name, $description, $result);
     return %results;
