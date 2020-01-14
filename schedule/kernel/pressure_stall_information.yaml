@@ -11,5 +11,11 @@ vars:
   # HDD_1: SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
   # START_AFTER_TEST: create_hdd_minimal_base+sdk
   # UEFI_PFLASH_VARS: SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
+conditional_schedule:
+  bootloader_zkvm:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
 schedule:
+  - {{bootloader_zkvm}}
   - kernel/pressure_stall_information
