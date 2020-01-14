@@ -1,3 +1,13 @@
+# SUSE's openQA tests
+#
+# Copyright © 2009-2013 Bernhard M. Wiedemann
+# Copyright © 2012-2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
 ## no critic (RequireFilenameMatchesPackage);
 package x11test;
 use base "opensusebasetest";
@@ -11,17 +21,6 @@ use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use POSIX 'strftime';
 use mm_network;
-
-sub post_fail_hook {
-    my ($self) = shift;
-
-    return if (get_var('NOLOGS'));
-
-    $self->export_logs;
-    $self->SUPER::post_fail_hook;
-
-    save_screenshot;
-}
 
 sub post_run_hook {
     my ($self) = @_;
