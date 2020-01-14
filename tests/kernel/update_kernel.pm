@@ -94,18 +94,26 @@ sub kgraft_state {
     if (is_sle('<=12-SP1')) {
         script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
         save_screenshot;
-        script_run("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
-        ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
+        $module = script_output("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev");
 
-        mod_rpm_info($module);
+        if (check_var('REMOVE_KGRAFT', '1')) {
+            die 'Kgraft module exists when it should have been removed' if $module;
+        }
+        else {
+            mod_rpm_info($module);
+        }
     }
 
     script_run("lsinitrd /boot/initrd-$kver-default | grep patch");
     save_screenshot;
-    script_run("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev", 0);
-    ($module) = wait_serial(qr/lib*/) =~ /(^.*ko)\s+/;
+    $module = script_output("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev");
 
-    mod_rpm_info($module);
+    if (check_var('REMOVE_KGRAFT', '1')) {
+        die 'Kgraft module exists when it should have been removed' if $module;
+    }
+    else {
+        mod_rpm_info($module);
+    }
 
     script_run("uname -a");
     save_screenshot;
@@ -203,8 +211,9 @@ sub prepare_kgraft {
     while (my ($i, $val) = each(@repos)) {
         zypper_call("ar $val kgraft-test-repo-$i");
 
-        my $kversion = script_output(q(zypper -n se -s kernel-default));
-        my $pversion = script_output("zypper -n se -s -r kgraft-test-repo-$i");
+        my $kversion = zypper_search(q(-s -x kernel-default));
+        my $pversion = zypper_search("-s -t package -r kgraft-test-repo-$i");
+        $pversion = join(' ', map { $$_{name} } @$pversion);
 
         #disable kgraf-test-repo for while
         zypper_call("mr -d kgraft-test-repo-$i");
@@ -212,7 +221,12 @@ sub prepare_kgraft {
         my $wanted_version = right_kversion($kversion, $pversion);
         fully_patch_system;
         install_lock_kernel($wanted_version);
+
+        if (check_var('REMOVE_KGRAFT', '1')) {
+            zypper_call("rm " . $pversion);
+        }
     }
+
     power_action('reboot', textmode => 1);
 }
 
@@ -220,9 +234,12 @@ sub right_kversion {
     my ($kversion, $pversion) = @_;
     my ($kver_fragment) = $pversion =~ qr/(?:kgraft-|kernel-live)patch-(\d+_\d+_\d+-\d+_*\d*_*\d*)-default/;
     $kver_fragment =~ s/_/\\\./g;
-    my ($real_version) = $kversion =~ qr/($kver_fragment\.+\d+)/;
 
-    return $real_version;
+    for my $item (@$kversion) {
+        return $$item{version} if $$item{version} =~ qr/^$kver_fragment\./;
+    }
+
+    die "Kernel $kver_fragment not found in repositories.";
 }
 
 sub update_kgraft {
@@ -314,21 +331,24 @@ sub run {
         prepare_kgraft($repo, $incident_id);
         boot_to_console($self);
 
-        # dependencies for heavy load script
-        if (!$wk_ker) {
-            add_qa_head_repo;
-            zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-        }
-        # update kgraft patch under heavy load
-        update_kgraft($repo, $incident_id);
+        if (!check_var('REMOVE_KGRAFT', '1')) {
+            # dependencies for heavy load script
+            if (!$wk_ker) {
+                add_qa_head_repo;
+                zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+            }
 
-        if (!$wk_ker) {
-            zypper_call("rr qa-head");
-            zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-        }
-        power_action('reboot', textmode => 1);
+            # update kgraft patch under heavy load
+            update_kgraft($repo, $incident_id);
 
-        boot_to_console($self);
+            if (!$wk_ker) {
+                zypper_call("rr qa-head");
+                zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
+            }
+            power_action('reboot', textmode => 1);
+
+            boot_to_console($self);
+        }
 
         kgraft_state;
     }

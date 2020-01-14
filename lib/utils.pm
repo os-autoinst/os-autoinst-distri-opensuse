@@ -47,6 +47,7 @@ our @EXPORT = qw(
   handle_patch_11sp4_zvm
   ssh_fully_patch_system
   minimal_patch_system
+  zypper_search
   workaround_type_encrypted_passphrase
   is_boot_encrypted
   is_bridged_networking
@@ -652,6 +653,39 @@ sub minimal_patch_system {
     else {
         zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000, log => 'minimal_patch.log');
     }
+}
+
+=head2 zypper_search
+
+ zypper_search($search_params);
+
+Run zypper search with given command line arguments and parse the output into
+an array of hashes.
+
+=cut
+
+sub zypper_search {
+    my $params = shift;
+    my @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
+    my @ret;
+
+    my $output = script_output("zypper -n se $params");
+
+    for my $line (split /\n/, $output) {
+        my @tokens = split /\s*\|\s*/, $line;
+        next if $#tokens < $#fields;
+        my %tmp;
+
+        for (my $i = 0; $i < scalar @fields; $i++) {
+            $tmp{$fields[$i]} = $tokens[$i];
+        }
+
+        push @ret, \%tmp;
+    }
+
+    # Remove header from package list
+    shift @ret;
+    return \@ret;
 }
 
 =head2 workaround_type_encrypted_passphrase
