@@ -17,7 +17,7 @@
 #       - restores all configs
 # Maintainer: Jun Wang <jgwang@suse.com>
 
-use base 'consoletest';
+use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;

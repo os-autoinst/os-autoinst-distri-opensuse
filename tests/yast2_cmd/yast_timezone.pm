@@ -16,7 +16,7 @@
 # - Return to previous timezone
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
-use base 'consoletest';
+use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;

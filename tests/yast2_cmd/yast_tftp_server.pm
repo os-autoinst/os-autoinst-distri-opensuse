@@ -18,7 +18,7 @@
 # - Cleanup
 # Maintainer: Shukui Liu <skliu@suse.com>
 
-use base 'consoletest';
+use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
