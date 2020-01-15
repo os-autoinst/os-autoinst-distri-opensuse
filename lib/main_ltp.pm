@@ -25,7 +25,7 @@ use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
 use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag load_boot_tests load_inst_tests load_reboot_tests);
 use 5.018;
-use Utils::Backends 'is_spvm';
+use Utils::Backends 'is_pvm';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
 # use warnings;
 
@@ -120,7 +120,7 @@ sub stress_snapshots {
 
 sub load_kernel_tests {
     load_bootloader_s390x();
-    loadtest "../installation/bootloader" if is_spvm;
+    loadtest "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
         if (get_var('INSTALL_KOTD')) {

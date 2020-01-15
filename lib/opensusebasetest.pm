@@ -1065,7 +1065,7 @@ of the default {root-,}virtio-terminal)
 C<SERIAL_CONSOLE>=0 disables serial console (use {root,user}-console instead
 of the default {root-,}sut-serial)
 
-On ikvm|ipmi|spvm it's expected, that use_ssh_serial_console() has been called
+On ikvm|ipmi|spvm|pvm_hmc it's expected, that use_ssh_serial_console() has been called
 (done via activate_console()) therefore SERIALDEV has been set and we can
 use root-ssh console directly.
 =cut

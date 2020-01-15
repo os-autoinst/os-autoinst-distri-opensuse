@@ -43,7 +43,7 @@ use power_action_utils 'prepare_system_shutdown';
 use version_utils qw(is_sle is_caasp is_released);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
-use Utils::Backends 'is_spvm';
+use Utils::Backends 'is_pvm';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -138,7 +138,7 @@ sub run {
     push @needles, 'linux-login-casp' if is_caasp;
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || is_spvm;
+    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || is_pvm;
     # Similar situation over IPMI backend, we can check against PXE menu
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     # Import untrusted certification for SMT
@@ -293,7 +293,7 @@ sub run {
         return;
     }
     # For powerVM need to switch to mgmt console to handle the reboot properly
-    if (is_spvm()) {
+    if (is_pvm()) {
         prepare_system_shutdown;
         reconnect_mgmt_console(timeout => 500);
     }
@@ -357,7 +357,7 @@ sub run {
         }
     }
     # ssh console was activated at this point of time, so need to reset
-    reset_consoles if is_spvm;
+    reset_consoles if is_pvm;
     my $expect_errors = get_var('AUTOYAST_EXPECT_ERRORS') // 0;
     die 'exceeded expected autoyast errors' if $num_errors != $expect_errors;
 }

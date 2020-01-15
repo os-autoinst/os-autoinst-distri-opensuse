@@ -1,6 +1,6 @@
-=head1 bootloader_spvm
+=head1 bootloader_pvm
 
-Library for spvm backend to boot and install SLES
+Library for spvm and pvm_hmc backend to boot and install SLES
 
 =cut
 # SUSE's openQA tests
@@ -12,7 +12,7 @@ Library for spvm backend to boot and install SLES
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-package bootloader_spvm;
+package bootloader_pvm;
 
 use base Exporter;
 use Exporter;
@@ -26,7 +26,7 @@ use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow);
 
 our @EXPORT = qw(
-  boot_spvm
+  boot_pvm
 );
 
 =head2 get_into_net_boot
@@ -67,41 +67,14 @@ sub get_into_net_boot {
     assert_screen ["pvm-grub", "novalink-failed-first-boot"];
 }
 
-=head2 boot_spvm
+=head2 prepare_pvm_installation
 
- boot_spvm();
+ prepare_pvm_installation();
 
-Boot from spvm backend via novalink and switch to installation console (ssh or vnc).
+Handle the boot and installation preperation process of PVM LPARs after the hypervisor specific actions to power them on is done
 
 =cut
-sub boot_spvm {
-    my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
-    my $novalink = select_console 'novalink-ssh';
-
-    # detach possibly attached terminals - might be left over
-    type_string "rmvterm --id $lpar_id && echo 'DONE'\n";
-    assert_screen 'pvm-vterm-closed';
-
-    # power off the machine if it's still running - and don't give it a 2nd chance
-    type_string " pvmctl lpar power-off -i id=$lpar_id --hard\n";
-    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
-
-    # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
-    # see https://progress.opensuse.org/issues/39785#note-14
-    type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
-    assert_screen 'pvm-bootmode-set-normal';
-
-    # proceed with normal boot if is system already installed, use sms boot for installation
-    my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
-    type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}\n";
-    assert_screen "pvm-poweron-successful";
-
-    # don't wait for it, otherwise we miss the menu
-    type_string " mkvterm --id $lpar_id\n";
-    # skip installation if is system already installed
-    return if get_var('BOOT_HDD_IMAGE');
-    get_into_net_boot;
-
+sub prepare_pvm_installation {
     # the grub on powerVM has a rather strange feature that it will boot
     # into the firmware if the lpar was reconfigured in between and the
     # first menu entry was used to enter the command line. So we need to
@@ -154,6 +127,77 @@ sub boot_spvm {
     # We need to start installer only if it's pure ssh installation
     type_string("yast.ssh\n") if get_var('VIDEOMODE', '') =~ /ssh-x|text/;
     wait_still_screen;
+}
+
+sub boot_pvm {
+    if (check_var('BACKEND', 'spvm')) {
+        boot_spvm();
+    } elsif (check_var('BACKEND', 'pvm_hmc')) {
+        boot_hmc_pvm();
+    }
+}
+
+sub boot_hmc_pvm {
+    my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
+    my $lpar_id          = get_required_var('LPAR_ID');
+    my $hmc              = select_console 'powerhmc-ssh';
+
+    # detach possibly attached terminals - might be left over
+    type_string "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'\n";
+    assert_screen 'pvm-vterm-closed';
+
+    # power off the machine if it's still running - and don't give it a 2nd chance
+    type_string "chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id && echo 'LPAR SUCCESSFULLY SHUT DOWN'\n";
+    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
+
+    # proceed with normal boot if is system already installed, use sms boot for installation
+    my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
+    type_string "chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id && echo 'LPAR SUCCESSFULLY BOOTED'\n";
+    assert_screen "pvm-poweron-successful";
+
+    # don't wait for it, otherwise we miss the menu
+    type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
+    # skip further preperations if system is already installed
+    return if get_var('BOOT_HDD_IMAGE');
+    get_into_net_boot;
+    prepare_pvm_installation;
+}
+
+=head2 boot_spvm
+
+ boot_spvm();
+
+Boot from spvm backend via novalink and switch to installation console (ssh or vnc).
+
+=cut
+sub boot_spvm {
+    my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
+    my $novalink = select_console 'novalink-ssh';
+
+    # detach possibly attached terminals - might be left over
+    type_string "rmvterm --id $lpar_id && echo 'DONE'\n";
+    assert_screen 'pvm-vterm-closed';
+
+    # power off the machine if it's still running - and don't give it a 2nd chance
+    type_string " pvmctl lpar power-off -i id=$lpar_id --hard\n";
+    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
+
+    # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
+    # see https://progress.opensuse.org/issues/39785#note-14
+    type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
+    assert_screen 'pvm-bootmode-set-normal';
+
+    # proceed with normal boot if is system already installed, use sms boot for installation
+    my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
+    type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}\n";
+    assert_screen "pvm-poweron-successful";
+
+    # don't wait for it, otherwise we miss the menu
+    type_string " mkvterm --id $lpar_id\n";
+    # skip further preperations if system is already installed
+    return if get_var('BOOT_HDD_IMAGE');
+    get_into_net_boot;
+    prepare_pvm_installation;
 }
 
 1;

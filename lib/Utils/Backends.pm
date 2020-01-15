@@ -39,7 +39,7 @@ use constant {
           is_hyperv
           is_hyperv_in_gui
           is_svirt_except_s390x
-          is_spvm
+          is_pvm
           )
     ],
     CONSOLES => [
@@ -92,7 +92,7 @@ Returns true if the current instance is running as remote backend
 
 sub is_remote_backend {
     # s390x uses only remote repos
-    return check_var('ARCH', 's390x') || (get_var('BACKEND', '') =~ /ipmi|svirt/) || is_spvm();
+    return check_var('ARCH', 's390x') || (get_var('BACKEND', '') =~ /ipmi|svirt/) || is_pvm();
 }
 
 # In some cases we are using a VNC connection provided by the hypervisor that
@@ -101,12 +101,12 @@ sub is_remote_backend {
 
 =head2 has_ttys
 
-Returns true if the current instance is using ttys for: ipmi, s390x, spvm, except S390_ZKVM
+Returns true if the current instance is using ttys for: ipmi, s390x, spvm, pvm_hmc, except S390_ZKVM
 
 =cut
 
 sub has_ttys {
-    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm/) && !get_var('S390_ZKVM'));
+    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm|pvm_hmc/) && !get_var('S390_ZKVM'));
 }
 
 =head2 has_serial_over_ssh
@@ -116,7 +116,7 @@ Returns true if the current instance is using a serial through ssh
 =cut
 
 sub has_serial_over_ssh {
-    return ((get_var('BACKEND', '') =~ /^(ikvm|ipmi|spvm|generalhw)/) && !defined(get_var('GENERAL_HW_VNC_IP')) && !defined(get_var('GENERAL_HW_SOL_CMD')));
+    return ((get_var('BACKEND', '') =~ /^(ikvm|ipmi|spvm|pvm_hmc|generalhw)/) && !defined(get_var('GENERAL_HW_VNC_IP')) && !defined(get_var('GENERAL_HW_SOL_CMD')));
 }
 
 =head2 is_hyperv
@@ -151,14 +151,14 @@ sub is_svirt_except_s390x {
     return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
 }
 
-=head2 is_spvm
+=head2 is_pvm
 
-Returns true if the current instance is running as PowerVM backend 'spvm'
+Returns true if the current instance is running as PowerVM backend 'spvm' or 'hmc_pvm'
 
 =cut
 
-sub is_spvm {
-    return check_var('BACKEND', 'spvm');
+sub is_pvm {
+    return check_var('BACKEND', 'spvm') || check_var('BACKEND', 'pvm_hmc');
 }
 
 1;

@@ -22,7 +22,7 @@ use testapi;
 use Test::Assert ':all';
 use scheduler 'get_test_suite_data';
 use Data::Dumper;
-use Utils::Backends 'is_spvm';
+use Utils::Backends 'is_pvm';
 
 # Check https://www.freedesktop.org/software/systemd/man/crypttab.html for more info about parsing
 sub parse_crypttab {
@@ -99,7 +99,7 @@ sub verify_cryptsetup_luks {
 }
 
 sub run {
-    select_console 'root-console' unless is_spvm;
+    select_console 'root-console' unless is_pvm;
     my $test_data = get_test_suite_data();
     my $crypttab  = parse_crypttab();
     verify_crypttab(num_devices => $test_data->{crypttab}->{num_devices_encrypted},

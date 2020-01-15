@@ -39,7 +39,7 @@ our @EXPORT = qw(
 
  prepare_system_shutdown();
 
-Need to kill ssh connection with backends like ipmi, spvm, s390x.
+Need to kill ssh connection with backends like ipmi, spvm, pvm_hmc, s390x.
 
 For s390_zkvm or xen, assign console($vnc_console) with C<disable_vnc_stalls> 
 and assign console('svirt') with C<stop_serial_grab>. 
@@ -49,7 +49,7 @@ $vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
 =cut
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm/;
+    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {

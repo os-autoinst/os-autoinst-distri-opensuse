@@ -22,7 +22,7 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
-use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_spvm);
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm);
 use Utils::Architectures;
 use DistributionProvider;
 
@@ -731,7 +731,7 @@ elsif (get_var("QA_TESTSUITE")) {
 }
 elsif (get_var('XFSTESTS')) {
     prepare_target;
-    if (is_spvm || check_var('ARCH', 's390x')) {
+    if (is_pvm || check_var('ARCH', 's390x')) {
         loadtest 'xfstests/install';
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
