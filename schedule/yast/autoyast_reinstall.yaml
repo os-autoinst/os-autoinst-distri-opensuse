@@ -3,6 +3,7 @@ description:    >
     Parent job produces autoyast profile after successful completion. 
     This test uses generated profile to do autoyast installation.
 schedule:
+  - autoyast/prepare_cloned_profile
   # Called on BACKEND: qemu
   - {{isosize}}
   - installation/bootloader_start
