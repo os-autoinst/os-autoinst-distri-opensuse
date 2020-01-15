@@ -25,6 +25,7 @@ use utils;
 sub run {
     my $name = ref($_[0]);
     ensure_installed($name);
+    select_console "x11";
     x11_start_program($name, target_match => "$name-network-select");
     type_string "freenode\n";
     assert_and_click "hexchat-nick-$username";
