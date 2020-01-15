@@ -1,3 +1,13 @@
+# SUSE's openQA tests
+#
+# Copyright © 2009-2013 Bernhard M. Wiedemann
+# Copyright © 2012-2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
 package opensusebasetest;
 use base 'basetest';
 
@@ -1135,6 +1145,7 @@ sub post_fail_hook {
     return if testapi::is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
 
     show_tasks_in_blocked_state;
+    return if (get_var('NOLOGS'));
 
     # just output error if selected program doesn't exist instead of collecting all logs
     # set current variables in x11_start_program
@@ -1183,6 +1194,8 @@ sub post_fail_hook {
     # the space prevents the esc from eating up the next alphanumerical
     # character typed into the console
     send_key 'spc';
+
+    $self->export_logs;
 }
 
 sub test_flags {
