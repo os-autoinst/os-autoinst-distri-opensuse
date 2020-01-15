@@ -26,7 +26,7 @@ use English;
 use bootloader_setup;
 use registration;
 use utils 'shorten_url';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 # try to find the 2 longest lines that are below beyond the limit
 # collapsing the lines - we have a limit of 10 lines
@@ -82,6 +82,10 @@ sub prepare_parmfile {
     my $params = '';
     $params .= " " . get_var('S390_NETWORK_PARAMS');
     $params .= " " . get_var('EXTRABOOTPARAMS');
+    if ((is_sle('>=15-SP2') || is_tumbleweed()) && get_var('WORKAROUND_BUGS') =~ 'bsc1156047') {
+        $params .= ' hardened_usercopy=off';
+        record_soft_failure('bsc#1156047 - /dev/hvc0: cannot get controlling tty: Operation not permitted');
+    }
 
     $params .= remote_install_bootmenu_params;
 
@@ -265,8 +269,7 @@ sub format_dasd {
     }
 
     # bring DASD down again to test the activation during the installation
-    # currently broken due to bsc#1151394, so just leave it activated to continue with testing
-    record_soft_failure('bsc#1151394');
+    assert_script_run("dasd_configure 0.0.0150 0");
 }
 
 sub run {
