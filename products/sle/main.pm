@@ -461,9 +461,9 @@ sub load_online_migration_tests {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         loadtest "migration/sle12_online_migration/register_without_ltss";
     }
+    loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "migration/version_switch_upgrade_target";
     loadtest "migration/sle12_online_migration/pre_migration";
-    loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
