@@ -22,7 +22,7 @@
 # - Relogin by calling "handle_relogin" again
 # - Check for generic desktop
 # - Call dconf; on sle<15, navigate until "gnome-session" is found, press down
-# - On sle15+ or tumbleweed, look for auto-save-session option and toggle it
+# - On sle<15sp2, look for auto-save-session option and toggle it
 # - Check for options "auto-save-session-alter-use-default", "auto-save-session-true";
 # "auto-save-session-apply", if available, click it
 # - Close dconf
@@ -181,22 +181,24 @@ sub run {
     handle_relogin;
     assert_screen "generic-desktop";
 
-    # save session
-    $self->alter_status_auto_save_session;
-    x11_start_program('xterm');
-    assert_screen 'xterm';
-    handle_relogin;
-    wait_still_screen;
-    send_key 'alt-tab';    # select xterm if unselected
-    assert_screen 'xterm';
-    send_key 'alt-f4';
-    wait_still_screen 2, 4;
-
-    if (is_sle('12-SP2+')) {
-        $self->restore_status_auto_save_session;
-    }
-    else {
+    # save session, available only for GNOME<3.34.2, see bsc#1158851
+    if (is_sle('<15-sp2') || is_leap('<15.2')) {
         $self->alter_status_auto_save_session;
+        x11_start_program('xterm');
+        assert_screen 'xterm';
+        handle_relogin;
+        wait_still_screen;
+        send_key 'alt-tab';    # select xterm if unselected
+        assert_screen 'xterm';
+        send_key 'alt-f4';
+        wait_still_screen 2, 4;
+
+        if (is_sle('12-SP2+')) {
+            $self->restore_status_auto_save_session;
+        }
+        else {
+            $self->alter_status_auto_save_session;
+        }
     }
 }
 
