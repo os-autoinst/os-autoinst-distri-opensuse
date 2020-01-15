@@ -16,12 +16,15 @@ use base "opensusebasetest";
 use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
+use partitions_validator_utils 'validate_partition_table';
 
 sub run {
 
     select_console "root-console";
     my $test_data  = get_test_suite_data();
     my @partitions = @{$test_data->{partitions}};
+
+    validate_partition_table({root_disk => $test_data->{device}, table_type => $test_data->{table_type}});
 
     foreach (@partitions) {
         if ($_->{mnt_point} eq '[SWAP]') {

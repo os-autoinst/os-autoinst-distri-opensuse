@@ -1,4 +1,4 @@
-name:           btrfs_libstorage-ng
+name:           btrfs_libstorage-ng@hmc+ipmi
 description:    >
   Validate default installation with btrfs and Libstorage NG.
 vars:
@@ -79,7 +79,7 @@ conditional_schedule:
       s390x:
         - console/verify_no_separate_home
 test_data:
-  device: /dev/vda
+  device: /dev/sda
   expected_table_type: gpt
   subvolume:
     cow:

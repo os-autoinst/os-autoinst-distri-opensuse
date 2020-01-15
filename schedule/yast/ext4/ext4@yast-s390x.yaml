@@ -32,4 +32,5 @@ schedule:
   - console/validate_ext4_fs
 test_data:
   device: /dev/vda
+  table_type: gpt
   !include: test_data/yast/ext4/ext4.yaml
