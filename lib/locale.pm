@@ -6,6 +6,7 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'has_ttys';
+use x11utils 'turn_off_gnome_suspend';
 
 sub verify_default_keymap_textmode_non_us {
     my ($self, $test_string, $tag) = @_;
@@ -54,6 +55,7 @@ sub notification_handler {
 sub verify_default_keymap_x11 {
     my ($self, $test_string, $tag, $program) = @_;
     notification_handler('org.gnome.DejaDup periodic', 'false') if (check_var('DESKTOP', 'gnome'));
+    turn_off_gnome_suspend                                      if (check_var('DESKTOP', 'gnome'));
     select_console('x11');
     x11_start_program($program);
     type_string($test_string);
