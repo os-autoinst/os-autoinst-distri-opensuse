@@ -17,7 +17,7 @@
 # - List all available network interfaces
 # Maintainer: Vit Pelcak <vpelcak@suse.cz>
 
-use base 'consoletest';
+use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;

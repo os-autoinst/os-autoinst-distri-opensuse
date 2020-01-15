@@ -26,7 +26,7 @@ https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_ad
 
 =cut
 
-use base 'consoletest';
+use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
