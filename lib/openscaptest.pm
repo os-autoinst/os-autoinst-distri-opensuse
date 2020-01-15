@@ -82,10 +82,11 @@ sub ensure_generated_file {
 }
 
 sub prepare_remediate_validation {
-    validate_script_output "cat /etc/securetty",         sub { m/tty[1-6]/ };
-    validate_script_output "cat /proc/sys/kernel/sysrq", sub { m/[1-9]+$/ };
+    validate_script_output "[ -f /usr/etc/securetty ] && cat /usr/etc/securetty || cat /etc/securetty", sub { m/tty[1-6]/ };
+    validate_script_output "cat /proc/sys/kernel/sysrq",                                                sub { m/[1-9]+$/ };
 
-    assert_script_run "cp /etc/securetty /tmp/";
+    assert_script_run "[ -f /usr/etc/securetty ] && cp /usr/etc/securetty /tmp/ || true";
+    assert_script_run "[ -f /etc/securetty ] && cp /etc/securetty /tmp/ || true";
     assert_script_run "cp /proc/sys/kernel/sysrq /tmp/";
 }
 
