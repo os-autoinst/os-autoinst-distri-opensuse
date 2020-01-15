@@ -125,7 +125,7 @@ sub run_basic_tests {
     my %test04 = t04_basic();
     push(@all_results, \%test04);
 
-    if (get_var('VERSION' =~ m/15-SP2/)) {
+    if (get_required_var('VERSION') =~ m/15-SP2/) {
         my %test05 = t05_basic();
         push(@all_results, \%test05);
     }
