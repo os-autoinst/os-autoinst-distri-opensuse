@@ -1,0 +1,11 @@
+name:           extra_tests_in_textmode_cont
+description:    >
+    Maintainer: slindomansilla.
+    Extra tests about software in container module
+schedule:
+    - boot/boot_to_desktop
+    - console/docker
+    - console/docker_runc
+    - console/docker_image
+    - console/zypper_docker
+    - console/coredump_collect
