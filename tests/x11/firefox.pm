@@ -23,6 +23,9 @@ use testapi;
 sub run() {
     my ($self) = shift;
 
+    # bypass poo#62069, starting with login screen, not desktop.
+    select_console "x11";
+
     $self->start_firefox;
     wait_still_screen;
     send_key "alt-h";
