@@ -36,7 +36,6 @@ sub run {
     }
     send_key "ret";
     $self->{in_boot_desktop} = 1;
-    assert_screen([qw(linux-login displaymanager generic-desktop)], 180);
 }
 
 
