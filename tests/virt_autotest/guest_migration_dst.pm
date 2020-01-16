@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use lockapi;
 use mmapi;
+use virt_utils 'upload_supportconfig_log';
 
 sub run {
     my ($self) = @_;
@@ -52,9 +53,16 @@ sub run {
     #wait for src host core test finish to upload dst log
     my $src_test_timeout = $self->get_var_from_child("MAX_MIGRATE_TIME") || 10800;
     $self->workaround_for_reverse_lock("SRC_TEST_DONE", $src_test_timeout);
+
+    #upload logs
     script_run("xl dmesg > /tmp/xl-dmesg.log");
-    my $logs = "/var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log";
+    my $logs = "/var/log/libvirt /var/log/messages /var/lib/xen/dump /tmp/xl-dmesg.log";
     virt_autotest_base::upload_virt_logs($logs, "guest-migration-dst-logs");
+    #separate the xen logs from other virt logs because it needs to be remained or xen service will fail to start
+    script_run "tar -czf var_log_xen.tar.gz /var/log/xen";
+    upload_logs "var_log_xen.tar.gz";
+    virt_utils::upload_supportconfig_log;
+    save_screenshot;
 
     #mark dst upload log done
     mutex_create('DST_UPLOAD_LOG_DONE');
