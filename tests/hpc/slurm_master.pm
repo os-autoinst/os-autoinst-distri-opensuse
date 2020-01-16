@@ -113,6 +113,9 @@ sub run_tests {
 sub run_basic_tests {
     my @all_results;
 
+    my %test00 = t00_version_check();
+    push(@all_results, \%test00);
+
     my %test01 = t01_basic();
     push(@all_results, \%test01);
 
@@ -137,6 +140,16 @@ sub run_basic_tests {
     push(@all_results, \%test07);
 
     return @all_results;
+}
+
+sub t00_version_check {
+    my $description = 'Simple SINFO version print for ease of checking';
+
+    my $result = script_output('sinfo --version');
+    my $name   = "Sinfo: slurm version check: $result";
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 sub t01_basic {
