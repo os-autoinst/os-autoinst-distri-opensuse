@@ -47,5 +47,5 @@ schedule:
   - console/rsync
   - console/zypper_lifecycle
   - console/orphaned_packages_check
+  - console/repo_orphaned_packages_check
   - console/consoletest_finish
-  

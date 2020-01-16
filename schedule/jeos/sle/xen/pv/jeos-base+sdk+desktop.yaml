@@ -23,3 +23,5 @@ schedule:
   - toolchain/install
   - toolchain/gcc_compilation
   - toolchain/gcc_fortran_compilation
+  - console/orphaned_packages_check
+  - console/consoletest_finish
