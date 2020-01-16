@@ -25,7 +25,7 @@ sub language_and_keyboard {
         l => 'lang',
         k => 'keyboard'
     };
-    assert_screen('lang_and_keyboard', 45);
+    assert_screen('lang_and_keyboard', 60);
     mouse_hide(1);
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
