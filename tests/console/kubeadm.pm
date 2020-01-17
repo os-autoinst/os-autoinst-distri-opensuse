@@ -47,6 +47,27 @@ sub run {
 
     record_info 'Test #5', 'Test: Confirm node is ready';
     assert_script_run('kubectl get nodes | grep "Ready" | grep -v "NotReady"');
+
+    # If SONOBUOY_URL is set, this is a certification run, download upstream certification tool and run the process
+    if (get_var 'SONOBUOY_URL') {
+        assert_script_run('mkdir ~/sonobuoy && cd ~/sonobuoy');
+        assert_script_run('curl -L -O ' . get_var('SONOBUOY_URL'));
+        assert_script_run('tar xvf *.tar.gz && rm *.tar.gz');
+        assert_script_run('kubectl taint nodes --all node-role.kubernetes.io/master-');
+        assert_script_run('./sonobuoy run --mode=certified-conformance');
+        # Sonobuoy runs really long, wait for upto 2 hours checking every 10 minutes if its finished or not
+        my $counter = 0;
+        while ((!assert_script_run('./sonobuoy status|grep "e2e   complete"')) && ($counter < 12)) {
+            sleep 600;
+            $counter++;
+        }
+        assert_script_run('outfile=\$(./sonobuoy retrieve)');
+        assert_script_run('mkdir ./results; tar xzf \$outfile -C ./results');
+        upload_logs '~/sonobuoy/results/plugins/e2e/results/global/e2e.log';
+        upload_logs '~/sonobuoy/results/plugins/e2e/results/global/junit_01.xml';
+        upload_logs '\$outfile';
+        assert_script_run('tail ~/sonobuoy/results/plugins/e2e/results/global/e2e.log|grep "Test Suite Passed"');
+    }
 }
 
 1;
