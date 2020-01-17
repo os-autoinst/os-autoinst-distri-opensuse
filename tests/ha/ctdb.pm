@@ -17,7 +17,7 @@ use testapi;
 use lockapi;
 use hacluster;
 use version_utils 'is_sle';
-use utils 'systemctl';
+use utils qw(systemctl file_content_replace);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -26,11 +26,12 @@ sub run {
 
     # CTDB configuration must be done only in cluster nodes
     if (check_var('CTDB_TEST_ROLE', 'server')) {
-        my $ctdb_cfg = '/etc/samba/smb.conf';
-        my $ctdb_rsc = 'ctdb';
-        my $nmb_rsc  = 'nmb';
-        my $smb_rsc  = 'smb';
-        my $ip_rsc   = 'vip';
+        my $ctdb_cfg    = '/etc/samba/smb.conf';
+        my $ctdb_socket = is_sle('15-SP2+') ? '/var/run/ctdb/ctdbd.socket' : '/var/lib/ctdb/ctdb.socket';
+        my $ctdb_rsc    = 'ctdb';
+        my $nmb_rsc     = 'nmb';
+        my $smb_rsc     = 'smb';
+        my $ip_rsc      = 'vip';
         my @node_list;
 
         foreach my $node (1 .. get_node_number) {
@@ -53,6 +54,7 @@ sub run {
 
         # Get smb conf file from the openQA server
         assert_script_run "curl -f -v " . autoinst_url . "/data/ha/smb.conf -o $ctdb_cfg";
+        file_content_replace("$ctdb_cfg", "%CTDB_SOCKET%" => "$ctdb_socket");
 
         if (is_node(1)) {
             # Set maintenance mode before adding resources
@@ -62,7 +64,7 @@ sub run {
             assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='eth0' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
             # Add ctdb, nmb, smb, group, clone and order resources
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='/var/lib/ctdb/ctdb.socket''\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='$ctdb_socket''\" crm configure edit";
             assert_script_run "EDITOR=\"sed -ie '\$ a primitive $nmb_rsc systemd:nmb'\" crm configure edit";
             assert_script_run "EDITOR=\"sed -ie '\$ a primitive $smb_rsc systemd:smb'\" crm configure edit";
             assert_script_run "EDITOR=\"sed -ie '\$ a group ctdb-group $ctdb_rsc $nmb_rsc $smb_rsc'\" crm configure edit";
