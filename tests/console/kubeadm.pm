@@ -55,11 +55,14 @@ sub run {
         assert_script_run('tar xvf *.tar.gz && rm *.tar.gz');
         assert_script_run('kubectl taint nodes --all node-role.kubernetes.io/master-');
         assert_script_run('./sonobuoy run --mode=certified-conformance');
+        # Wait a minute for the process to start
+        sleep 60;
         # Sonobuoy runs really long, wait for upto 2 hours checking every 10 minutes if its finished or not
         my $counter = 0;
-        while ((!assert_script_run('./sonobuoy status|grep "e2e   complete"')) && ($counter < 12)) {
+        while ((wait_serial('running')) && ($counter < 12)) {
             sleep 600;
             $counter++;
+            script_run("./sonobuoy status | tee /dev/$serialdev");
         }
         assert_script_run('outfile=\$(./sonobuoy retrieve)');
         assert_script_run('mkdir ./results; tar xzf \$outfile -C ./results');
