@@ -583,7 +583,7 @@ sub load_system_role_tests {
 }
 sub load_jeos_tests {
     unless (get_var('LTP_COMMAND_FILE')) {
-        if (is_aarch64 && is_opensuse()) {
+        if ((is_arm || is_aarch64) && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
             load_boot_tests();
             loadtest "jeos/prepare_firstboot";
