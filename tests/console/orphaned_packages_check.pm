@@ -59,7 +59,10 @@ sub run {
 
     # Orphans are also expected on JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
-    my @orphans = split('\n', script_output q[zypper -qs 11 pa --orphaned | tee -a /tmp/orphaned.log | awk 'NR>2 {print $3}']);
+    my @orphans = split('\n',
+        script_output q[zypper -qs 11 pa --orphaned | 
+                            grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
+                            tee -a /tmp/orphaned.log | awk 'NR>2 {print $3}'], proceed_on_failure => 1);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade) {
         compare_orphans_lists(zypper_orphans => \@orphans,
@@ -72,7 +75,8 @@ sub post_fail_hook {
     my $self = shift;
 
     select_console 'log-console';
-    upload_logs '/tmp/orphaned.log';
+    (script_run q{test -s /tmp/orphaned.log}) ? $self->export_logs() : upload_logs '/tmp/orphaned.log';
+
 }
 
 1;
