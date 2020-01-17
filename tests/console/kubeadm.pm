@@ -31,6 +31,8 @@ sub run {
         assert_script_run('kubectl apply -f /usr/share/k8s-yaml/cilium/*.yaml');
     } elsif (check_var('CNI', 'flannel')) {
         assert_script_run('kubectl apply -f /usr/share/k8s-yaml/flannel/kube-flannel.yaml');
+    } elsif (check_var('CNI', 'weave')) {
+        assert_script_run('kubectl apply -f /usr/share/k8s-yaml/weave/weave.yaml');
     } else {
         die('CNI variable not set, or set to unknown value');
     }
