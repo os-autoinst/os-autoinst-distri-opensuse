@@ -2,6 +2,8 @@
 name:           remote_vnc_controller
 description:    >
   Install remote server (parallel job) with vnc.
+vars:
+  HDD_1: opensuse-15.1-x86_64-GM-gnome@64bit.qcow2
 schedule:
  - support_server/login
  - support_server/setup
