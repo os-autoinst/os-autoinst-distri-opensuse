@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -2349,6 +2349,8 @@ sub load_security_tests_selinux {
 
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
+    loadtest "security/selinux/print_se_context";
+    loadtest "security/selinux/audit2allow";
 }
 
 sub load_security_tests_mok_enroll {
