@@ -57,6 +57,7 @@ sub run {
         assert_script_run('./sonobuoy run --mode=certified-conformance');
         # Wait a minute for the process to start
         sleep 60;
+        script_run("./sonobuoy status | tee /dev/$serialdev");
         # Sonobuoy runs really long, wait for upto 2 hours checking every 10 minutes if its finished or not
         my $counter = 0;
         while ((wait_serial('running')) && ($counter < 12)) {
@@ -64,11 +65,11 @@ sub run {
             $counter++;
             script_run("./sonobuoy status | tee /dev/$serialdev");
         }
-        assert_script_run('outfile=\$(./sonobuoy retrieve)');
-        assert_script_run('mkdir ./results; tar xzf \$outfile -C ./results');
+        assert_script_run('outfile=$(./sonobuoy retrieve)');
+        assert_script_run('mkdir ./results; tar xzf $outfile -C ./results');
         upload_logs '~/sonobuoy/results/plugins/e2e/results/global/e2e.log';
         upload_logs '~/sonobuoy/results/plugins/e2e/results/global/junit_01.xml';
-        upload_logs '\$outfile';
+        upload_logs '$outfile';
         assert_script_run('tail ~/sonobuoy/results/plugins/e2e/results/global/e2e.log|grep "Test Suite Passed"');
     }
 }
