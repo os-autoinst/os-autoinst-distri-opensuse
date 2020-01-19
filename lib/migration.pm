@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 SUSE LLC
+# Copyright (C) 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -106,8 +106,12 @@ sub remove_ltss {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         my $scc_addons = get_var_array('SCC_ADDONS');
         record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
-        zypper_call 'rm -t product SLES-LTSS';
-        zypper_call 'rm sles-ltss-release-POOL';
+        if (is_sle('15+')) {
+            remove_suseconnect_product('SLES-LTSS');
+        } else {
+            zypper_call 'rm -t product SLES-LTSS';
+            zypper_call 'rm sles-ltss-release-POOL';
+        }
         set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
     }
 }
