@@ -60,7 +60,7 @@ sub run {
         script_run("./sonobuoy status | grep 'running' | tee /dev/$serialdev");
         # Sonobuoy runs really long, wait for upto 2 hours checking every 10 minutes if its finished or not
         my $counter = 0;
-        while ((wait_serial('running')) && ($counter < 12)) {
+        while ((wait_serial('Sonobuoy is still running')) && ($counter < 12)) {
             sleep 600;
             $counter++;
             script_run("./sonobuoy status | grep 'running' | tee /dev/$serialdev");
