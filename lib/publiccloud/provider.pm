@@ -423,6 +423,7 @@ Destroys the current terraform deployment
 =cut
 sub terraform_destroy {
     my ($self) = @_;
+    return if get_required_var('TEST') eq 'publiccloud_upload_img';
     record_info('INFO', 'Removing terraform plan...');
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
