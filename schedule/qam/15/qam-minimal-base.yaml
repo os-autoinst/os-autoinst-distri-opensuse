@@ -31,7 +31,6 @@ schedule:
 - console/prepare_test_data
 - console/consoletest_setup
 - console/force_scheduled_tasks
-- console/orphaned_packages_check
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
@@ -60,6 +59,7 @@ schedule:
 - console/apache_ssl
 - console/apache_nss
 - console/postgresql_server
+- console/orphaned_packages_check
 - console/coredump_collect
 conditional_schedule:
   boot:
