@@ -21,6 +21,7 @@ schedule:
 - console/consoletest_setup
 - locale/keymap_or_locale
 - console/force_scheduled_tasks
+- console/orphaned_packages_check
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
@@ -40,7 +41,6 @@ schedule:
 - console/ssh_cleanup
 - console/mtab
 - console/zypper_lifecycle
-- console/orphaned_packages_check
 - console/consoletest_finish
 - update/prepare_system_for_update_tests
 - update/updates_packagekit_gpk
