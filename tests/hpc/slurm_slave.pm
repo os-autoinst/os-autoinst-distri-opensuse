@@ -29,6 +29,7 @@ sub run {
     # install slurm-node if sle15, not available yet for sle12
     zypper_call('in slurm-node') if is_sle '15+';
 
+    barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait('SLURM_SETUP_DBD');
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");

@@ -23,6 +23,7 @@ sub run {
 
     # Initialize barriers
     if (check_var('HPC', 'slurm')) {
+        barrier_create('CLUSTER_PROVISIONED',          $nodes);
         barrier_create('SLURM_MASTER_SERVICE_ENABLED', $nodes);
         barrier_create('SLURM_SLAVE_SERVICE_ENABLED',  $nodes);
         barrier_create('SLURM_SETUP_DONE',             $nodes);
