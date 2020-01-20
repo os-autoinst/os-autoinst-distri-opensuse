@@ -432,6 +432,8 @@ sub run {
     my $nodes      = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     my $version    = get_required_var('VERSION');
+
+    barrier_wait('CLUSTER_PROVISIONED');
     $self->prepare_user_and_group();
     $self->generate_and_distribute_ssh();
 

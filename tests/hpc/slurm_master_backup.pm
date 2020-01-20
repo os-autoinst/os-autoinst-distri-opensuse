@@ -21,6 +21,8 @@ sub run {
     my $self  = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
 
+    barrier_wait('CLUSTER_PROVISIONED');
+
     $self->prepare_user_and_group();
     zypper_call('in slurm slurm-munge');
 
