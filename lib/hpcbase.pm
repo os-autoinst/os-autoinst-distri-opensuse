@@ -27,6 +27,22 @@ sub post_fail_hook {
     upload_service_log('wickedd-dhcp4.service');
 }
 
+sub get_remote_logs {
+    my ($self) = @_;
+    my @cluster_slaves_nodes = cluster_names();
+    foreach (@cluster_slaves_nodes) {
+        script_run("scp -o StrictHostKeyChecking=no root\@$_:/var/log/slurmd.log /tmp/$_\@slurmd.log");
+        upload_logs("/tmp/$_\@slurmd.log");
+    }
+
+    my @cluster_master_nodes = master_node_names();
+    foreach (@cluster_master_nodes) {
+        script_run("scp -o StrictHostKeyChecking=no root\@$_:/var/log/slurmctld.log /tmp/$_\@slurmctld.log");
+        upload_logs("/tmp/$_\@slurmctld.log");
+    }
+
+}
+
 sub switch_user {
     my ($self, $username) = @_;
     type_string("su - $username\n");

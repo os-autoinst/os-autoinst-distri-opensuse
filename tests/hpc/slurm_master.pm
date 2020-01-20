@@ -47,7 +47,7 @@ sub generate_results {
 }
 
 sub pars_results {
-    my (@test) = @_;
+    my ($self, @test) = @_;
     my $file = 'tmpresults.xml';
 
     # check if there are some single test failing
@@ -61,6 +61,7 @@ sub pars_results {
 
     if ($fail_check > 0) {
         script_run("echo \"<testsuite name='HPC single tests' errors='1'>\" >> $file");
+	$self->post_fail_hook();
     } else {
         script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
     }
@@ -80,7 +81,7 @@ sub pars_results {
 }
 
 sub run_tests {
-    my ($slurm_conf) = @_;
+    my ($self, $slurm_conf) = @_;
 
     my $file = 'tmpresults.xml';
     assert_script_run("touch $file");
@@ -100,7 +101,7 @@ sub run_tests {
         push(@all_tests_results, run_ha_tests());
     }
 
-    pars_results(@all_tests_results);
+    pars_results($self, @all_tests_results);
 
     script_run("echo \"</testsuite>\" >> $file");
     parse_extra_log('XUnit', 'tmpresults.xml');
@@ -119,14 +120,14 @@ sub run_basic_tests {
     my %test01 = t01_basic();
     push(@all_results, \%test01);
 
-    my %test02 = t02_basic();
-    push(@all_results, \%test02);
+    #    my %test02 = t02_basic();
+    #push(@all_results, \%test02);
 
-    my %test03 = t03_basic();
-    push(@all_results, \%test03);
+    #my %test03 = t03_basic();
+    #push(@all_results, \%test03);
 
-    my %test04 = t04_basic();
-    push(@all_results, \%test04);
+    #my %test04 = t04_basic();
+    #push(@all_results, \%test04);
 
     if (get_required_var('VERSION') =~ m/15-SP2/) {
         my %test05 = t05_basic();
@@ -486,7 +487,7 @@ EOF
     # ACCOUNTING: 1 slurm ctl, 1 slurmdbd, 2+ compute nodes
     # ACCOUNTING and HA (nfs_db): 2 slurm ctl, 1 slurmdbd, 2+ compute nodes
 
-    run_tests($slurm_conf);
+    run_tests($self, $slurm_conf);
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
@@ -501,8 +502,7 @@ sub post_fail_hook {
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');
-    $self->upload_service_log('slurmdbd');
-    upload_logs('/var/log/slurmctld.log');
+    $self->get_remote_logs();
 }
 
 1;
