@@ -43,10 +43,9 @@ sub run {
     upload_asset $ay_profile_path;
 
     unless (is_opensuse) {
-        my $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
         # As developement_tools are not build for staging, we will attempt to get the package from the factory repo
         # otherwise MODULE_DEVELOPMENT_TOOLS should be used
-        my $uri = (is_staging) ? "http://download.opensuse.org/tumbleweed/repo/oss/" : "$utils::OPENQA_FTP_URL/" . $devel_repo;
+        my $uri = (is_staging) ? "http://download.opensuse.org/tumbleweed/repo/oss/" : get_ftp_uri();
         zypper_call "ar -c $uri devel-repo";
     }
     zypper_call '--gpg-auto-import-keys ref';
@@ -68,6 +67,11 @@ sub run {
     assert_script_run "rm $ay_profile_path";
     # Return from VirtIO console
     select_console 'root-console';
+}
+
+sub get_ftp_uri {
+    my $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
+    return "$utils::OPENQA_FTP_URL/" . $devel_repo;
 }
 
 sub post_fail_hook {
