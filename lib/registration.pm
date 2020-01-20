@@ -464,6 +464,9 @@ sub process_scc_register_addons {
         wait_still_screen 2;
         # Process addons licenses
         accept_addons_license @scc_addons;
+        if (get_var('SCC_ADDONS') =~ /phub/ && check_screen('import-untrusted-gpg-key')) {
+            handle_untrusted_gpg_key;
+        }
         # Press next only if entered reg code for any addon
         if (register_addons @scc_addons) {
             assert_screen 'ext-modules-reg-codes';
