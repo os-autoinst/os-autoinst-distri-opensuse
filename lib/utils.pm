@@ -787,12 +787,6 @@ sub set_hostname {
     systemctl 'status network.service';
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
-
-    # Workaround for HA MM test (hostname bug? in 15SP1/SP2)
-    if (script_run "uname -n | grep $hostname") {
-        record_soft_failure('bsc#1153402 hostname not properly configured');
-        assert_script_run "hostnamectl set-hostname $hostname";
-    }
 }
 
 =head2 assert_and_click_until_screen_change
