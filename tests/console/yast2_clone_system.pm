@@ -15,7 +15,7 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_opensuse is_staging);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
 
@@ -44,21 +44,23 @@ sub run {
 
     unless (is_opensuse) {
         my $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
-        zypper_call "ar -c $utils::OPENQA_FTP_URL/" . $devel_repo . " devel-repo";
+        # As developement_tools are not build for staging, we will attempt to get the package from the factory repo
+        # otherwise MODULE_DEVELOPMENT_TOOLS should be used
+        my $uri = (is_staging) ? "http://download.opensuse.org/tumbleweed/repo/oss/" : "$utils::OPENQA_FTP_URL/" . $devel_repo;
+        zypper_call "ar -c $uri devel-repo";
     }
-
     zypper_call '--gpg-auto-import-keys ref';
+
     zypper_call 'install jing';
+    zypper_call "rr devel-repo" if (is_staging);
+    my $rc_jing = script_run "jing $xml_schema_path $ay_profile_path";
 
-    my $rc_jing    = script_run "jing $xml_schema_path $ay_profile_path";
-    my $rc_xmllint = script_run "xmllint --noout --relaxng $xml_schema_path $ay_profile_path";
-
-    if (($rc_jing) || ($rc_xmllint)) {
+    if ($rc_jing) {
         if (is_sle('<15')) {
             record_soft_failure 'bsc#1103712';
         }
         else {
-            die "autoinst.xml does not validate for unknown reason";
+            die "$ay_profile_path does not validate";
         }
     }
 
