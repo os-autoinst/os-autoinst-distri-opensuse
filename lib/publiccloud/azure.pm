@@ -99,14 +99,12 @@ sub find_img {
     $name =~ s/\.vhdfixed$/.vhd/;
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('INFO', $json);
+    my $image;
     eval {
-        my $image = decode_azure_json($json);
-        return $image->{name};
+        $image = decode_azure_json($json)->{name};
     };
-    if ($@) {
-        record_info('INFO', "Cannot find image $name. Need to upload it.\n$@");
-        return;
-    }
+    record_info('INFO', "Cannot find image $name. Need to upload it.\n$@") if ($@);
+    return $image;
 }
 
 sub get_storage_account_keys {
