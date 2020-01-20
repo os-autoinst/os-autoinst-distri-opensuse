@@ -14,7 +14,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call systemctl file_content_replace);
+use utils qw(zypper_call systemctl file_content_replace zypper_ar);
 use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
 use serial_terminal;
@@ -40,10 +40,10 @@ sub run {
     }
     assert_script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]');
     record_info('INFO', 'Setting debug level for wicked logs');
-    file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug"');
+    file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
-    setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1));
+    setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1);
     record_info('INFO', 'Checking that network service is up');
     systemctl('is-active network');
     systemctl('is-active wicked');
@@ -53,14 +53,21 @@ sub run {
     my $package_list = 'openvpn';
     $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
     if (check_var('IS_WICKED_REF', '1')) {
+        if (check_var('WICKED', 'ipv6')) {
+            record_info('INFO', 'Setup radvd service');
+            zypper_call("-q in radvd", timeout => 100);
+            $self->get_from_data('wicked/radvd/radvd-2.conf', '/etc/radvd.conf');
+            my $ipv6_dns = $self->get_ip(type => 'dns_advice');
+            file_content_replace('/etc/radvd.conf', xxx => $ctx->iface(), dns_advice => $ipv6_dns);
+            systemctl 'enable --now radvd.service';
+        }
         # Common REF Configuration
         record_info('INFO', 'Setup DHCP server');
         $package_list .= ' dhcp-server';
         zypper_call("-q in $package_list", timeout => 400);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
-        systemctl 'enable dhcpd.service';
-        systemctl 'start dhcpd.service';
+        systemctl 'enable --now dhcpd.service';
     } else {
         # Common SUT Configuration
         if (get_var('WICKED_SOURCES')) {
@@ -79,6 +86,10 @@ sub run {
             }
             assert_script_run('./autogen.sh ',       timeout => 600);
             assert_script_run('make ; make install', timeout => 600);
+        }
+        if (check_var('WICKED', 'ipv6')) {
+            zypper_ar('http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/SLE_15_SP2/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
+            $package_list .= ' ndisc6';
         }
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 python-libteam' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
