@@ -24,8 +24,8 @@ use version_utils 'is_upgrade';
 # A subsequent 'zypper dup' is necessary to ensure
 # all packages available in the repo are up-to-date
 # poo#61829
-sub is_offline_upgrade {
-    return !get_var('ONLINE_MIGRATION') && is_upgrade;
+sub is_offline_upgrade_or_livecd {
+    return (!get_var('ONLINE_MIGRATION') && is_upgrade) || get_var('LIVECD');
 }
 
 # Compare detected orphans with whitelisted if any
@@ -54,8 +54,8 @@ sub run {
     select_console 'root-console';
 
     record_info('Upgraded?',
-        'Has the SUT been upgraded? Offline upgrades can possibly cause orphans',
-        result => (is_offline_upgrade) ? 'ok' : 'fail');
+        'Has the SUT been upgraded or installed from LIVECD? Both can possibly cause orphans',
+        result => (is_offline_upgrade_or_livecd) ? 'ok' : 'fail');
 
     # Orphans are also expected on JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
@@ -64,7 +64,7 @@ sub run {
                             grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
                             tee -a /tmp/orphaned.log | awk 'NR>2 {print $3}'], proceed_on_failure => 1);
 
-    if (((scalar @orphans) > 0) && !is_offline_upgrade) {
+    if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
         compare_orphans_lists(zypper_orphans => \@orphans,
             whitelist => get_var('ZYPPER_WHITELISTED_ORPHANS')) or
           die "There have been unexpected orphans detected!";
