@@ -815,8 +815,6 @@ sub wait_boot_textmode {
         assert_screen $textmode_needles, $ready_time;
     }
     elsif (is_sle('<15') && !check_screen $textmode_needles, $ready_time / 2) {
-        # We are not able to boot due to bsc#980337
-        record_soft_failure 'bsc#980337';
         # Switch to root console and continue
         select_console 'root-console';
     }
