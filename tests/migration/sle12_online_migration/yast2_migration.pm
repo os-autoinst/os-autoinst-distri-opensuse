@@ -204,6 +204,7 @@ sub run {
     assert_screen 'yast2-migration-target';
     send_key "alt-p";                                       # focus on the item of possible migration targets
     send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 5;
+    wait_still_screen 5;
     send_key "alt-n";
     assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 500;
     if (match_has_tag 'yast2-migration-installupdate') {
