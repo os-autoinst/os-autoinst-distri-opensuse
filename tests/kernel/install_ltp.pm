@@ -352,7 +352,7 @@ sub run {
 
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
-    if (defined $grub_param) {
+    if (!is_sle('<12') && defined $grub_param) {
         add_grub_cmdline_settings($grub_param, update_grub => 1);
     }
 

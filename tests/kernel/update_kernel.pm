@@ -53,7 +53,7 @@ sub update_kernel {
     my ($repo, $incident_id) = @_;
 
     fully_patch_system;
-    zypper_call('in kernel-devel');
+    zypper_call('in kernel-devel') if is_sle('12+');
 
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
@@ -153,7 +153,7 @@ sub install_lock_kernel {
 
     my @lpackages = @packages;
 
-    push @packages, "kernel-devel";
+    push @packages, "kernel-devel" if is_sle('12+');
 
     # extend list of packages with $version + workaround exceptions
     foreach my $package (@packages) {
