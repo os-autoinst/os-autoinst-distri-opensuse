@@ -17,7 +17,6 @@ use base "installbasetest";
 
 use strict;
 use warnings;
-
 use bootloader_setup;
 use registration;
 use testapi;
@@ -75,6 +74,10 @@ sub run {
     zkvm_add_disk $svirt;
     zkvm_add_pty $svirt;
     zkvm_add_interface $svirt;
+
+    # upload used xml definition
+    my $name    = $svirt->name;
+    upload_logs("$zkvm_img_path/$name.xml", failok => 1, timeout => 10);
 
     $svirt->define_and_start;
 
