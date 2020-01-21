@@ -150,6 +150,19 @@ sub check_network_status {
     type_string "\n\n";                                               # make space for better readability of the console
 }
 
+=head2 check_device_state
+
+ check_device_state($args);
+
+Checks state of the device using ip command, receives keys C<device> which contains
+device name and C<state> which contains expected state of the device.
+
+=cut
+sub check_device_state {
+    my ($args) = @_;
+    assert_script_run "ip -s link show @{ [ $args->{device} ] } | grep -i 'state @{ [ $args->{state} ] }'";    # check if provided device is up and running
+}
+
 =head2 verify_network_configuration
 
  verify_network_configuration([$fn], [$dev_name], [$expected_status], [$workaround], [$no_network_check]);
@@ -176,6 +189,7 @@ sub verify_network_configuration {
     $fn->($dev_name) if $fn;    # verify specific action
 
     close_network_settings;
+    check_device_state({device => $dev_name, state => 'UP'}) if $dev_name;
     check_network_status($expected_status, $workaround) unless defined $no_network_check;
 }
 

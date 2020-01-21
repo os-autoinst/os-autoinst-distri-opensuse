@@ -92,7 +92,7 @@ sub run {
         check_etc_hosts_update() if get_var('VALIDATE_ETC_HOSTS');
         verify_network_configuration(\&check_network_card_setup_tabs);
         verify_network_configuration(\&check_default_gateway);
-        verify_network_configuration(\&change_hw_device_name, 'dyn0', 'restart');
+        verify_network_configuration(\&change_hw_device_name, 'dyn0');
     }
     type_string "killall xterm\n";
 }
