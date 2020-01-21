@@ -67,12 +67,8 @@ END_SCRIPT
             systemctl 'stop wickedd.service';
             assert_script_run('ls /var/lib/wicked/');
             save_screenshot;
-            script_run('rm -f /var/lib/wicked/*.xml');
-            script_run('rm -f /var/run/wicked/extension/hostname');
-            script_run('rm -f /var/run/wicked/extension/hostname');
-            script_run('rm -f /var/run/wicked/*');
+            assert_script_run('rm -f /var/lib/wicked/*.xml');
         }
-        script_run('rm -f /etc/hostname');
     }
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {

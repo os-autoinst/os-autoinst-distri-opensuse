@@ -63,6 +63,7 @@
             sed -i 's/splash=silent\ quiet//' /etc/default/grub
             sed -i '/GRUB_DISABLE_LINUX_UUID/s/^# //' /etc/default/grub
             grub2-mkconfig -o /boot/grub2/grub.cfg
+            systemctl enable serial-getty@hvc1
             ]]>
         </source>
       </script>
