@@ -902,10 +902,6 @@ sub wait_boot_past_bootloader {
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
 
-    # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
-    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
-        push(@tags, 'displaymanager');
-    }
     # bsc#1157928 - deal with additional polkit windows
     if (is_sle && !is_sle('<=15-SP1')) {
         push(@tags, 'authentication-required-user-settings');
@@ -926,7 +922,6 @@ sub wait_boot_past_bootloader {
     assert_screen \@tags, $check_interval;
     handle_emergency_if_needed;
 
-    handle_broken_autologin_boo1102563()          if match_has_tag('displaymanager');
     handle_additional_polkit_windows_bsc1157928() if match_has_tag('authentication-required-user-settings');
     mouse_hide(1);
 }
