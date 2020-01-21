@@ -69,7 +69,7 @@ END_SCRIPT
             save_screenshot;
             script_run('rm -f /var/lib/wicked/*.xml');
         }
-        script_run('rm -f /etc/hostname') if check_var('YAML_SCHEDULE', 'schedule/create_hdd_autoyast_wicked.yaml');
+        script_run("echo -n '' > /etc/hostname") if get_var('RESET_HOSTNAME');
     }
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
