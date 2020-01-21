@@ -22,7 +22,7 @@ sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
 
-    my $timeout  = 3600 * get_var('TIMEOUT_SCALE', 1);
+    my $timeout  = bmwqemu::scale_timeout(3600);
     my $sid      = get_required_var('INSTANCE_SID');
     my $password = 'Qwerty_123';
     set_var('PASSWORD', $password);
@@ -44,63 +44,70 @@ sub run {
     # Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
     $self->install_libopenssl_legacy($path);
 
-    select_console 'x11';
-    # Hide the mouse so no needle will fail because of the mouse pointer appearing
-    mouse_hide;
+    if (check_var('DESKTOP', 'textmode')) {
+        script_run "yast2 sap-installation-wizard; echo yast2-sap-installation-wizard-status-\$? > /dev/$serialdev", 0;
+        assert_screen 'sap-installation-wizard';
+    } else {
+        select_console 'x11';
+        mouse_hide;    # Hide the mouse so no needle will fail because of the mouse pointer appearing
+        x11_start_program('xterm');
+        turn_off_gnome_screensaver;    # Disable screensaver
+        type_string "killall xterm\n";
+        assert_screen 'generic-desktop';
+        x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
+    }
 
-    x11_start_program('xterm');
-    turn_off_gnome_screensaver;
-    type_string "killall xterm\n";
-    assert_screen 'generic-desktop';
-    x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
+    # The following commands are identical in text or graphical mode
     send_key 'tab';
     send_key_until_needlematch 'sap-wizard-proto-' . $proto . '-selected', 'down';
+    send_key 'ret' if check_var('DESKTOP', 'textmode');
     send_key 'alt-p';
+    send_key_until_needlematch 'sap-wizard-inst-master-empty', 'backspace', 30 if check_var('DESKTOP', 'textmode');
     type_string_slow "$path", wait_still_screen => 1;
     save_screenshot;
-    send_key 'tab';
     send_key $cmd{next};
     assert_screen 'sap-wizard-copying-media',     120;
-    assert_screen 'sap-wizard-supplement-medium', $timeout;
+    assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
     send_key $cmd{next};
     assert_screen 'sap-wizard-additional-repos';
     send_key $cmd{next};
     assert_screen 'sap-wizard-hana-system-parameters';
-    # SAP SID / Password
-    send_key 'alt-s';
+    send_key 'alt-s';                                          # SAP SID
+    send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');
     type_string $sid;
-    wait_screen_change { send_key 'alt-a' };
+    wait_screen_change { send_key 'alt-a' };                   # SAP Password
     type_password $password;
     wait_screen_change { send_key 'tab' };
     type_password $password;
     wait_screen_change { send_key $cmd{ok} };
-    assert_screen 'sap-wizard-performing-installation', 120;
-    assert_screen 'sap-wizard-profile-ready',           300;
+    assert_screen 'sap-wizard-profile-ready', 300;
     send_key $cmd{next};
+
     while (1) {
         assert_screen [qw(sap-wizard-disk-selection-warning sap-wizard-disk-selection sap-wizard-partition-issues sap-wizard-continue-installation sap-product-installation)], no_wait => 1;
-
         last                if match_has_tag 'sap-product-installation';
         send_key $cmd{next} if match_has_tag 'sap-wizard-disk-selection-warning';    # A warning can be shown
         if (match_has_tag 'sap-wizard-disk-selection') {
-            # Install in sda
-            assert_and_click 'sap-wizard-disk-selection';
+            assert_and_click 'sap-wizard-disk-selection';                            # Install in sda
             send_key 'alt-o';
         }
         send_key 'alt-o' if match_has_tag 'sap-wizard-partition-issues';
         send_key 'alt-y' if match_has_tag 'sap-wizard-continue-installation';
-
-        # Slow down the loop
-        wait_still_screen 1;
+        wait_still_screen 1;                                                         # Slow down the loop
     }
-    assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], $timeout;
-    send_key $cmd{ok};
-    if (match_has_tag 'sap-wizard-installation-summary') {
-        assert_screen 'generic-desktop', 600;
+
+    if (check_var('DESKTOP', 'textmode')) {
+        wait_serial('yast2-sap-installation-wizard-status-0', $timeout) || die "'yast2 sap-installation-wizard' didn't finish";
     } else {
-        # Wait for SAP wizard to finish writing logs
-        check_screen 'generic-desktop', 90;
-        die "Failed";
+        assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error)], $timeout;
+        send_key $cmd{ok};
+        if (match_has_tag 'sap-wizard-installation-summary') {
+            assert_screen 'generic-desktop', 600;
+        } else {
+            # Wait for SAP wizard to finish writing logs
+            check_screen 'generic-desktop', 90;
+            die "Failed";
+        }
     }
 }
 
