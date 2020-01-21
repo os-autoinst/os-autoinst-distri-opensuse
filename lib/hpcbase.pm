@@ -1,3 +1,15 @@
+# SUSE's openQA tests
+#
+# Copyright © 2016-2019 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved. This file is offered as-is,
+# without any warranty.
+
+# Summary: Base module for HPC tests
+# Maintainer: Sebastian Chlad <schlad@suse.de>
+
 package hpcbase;
 use base 'opensusebasetest';
 use strict;
@@ -5,10 +17,15 @@ use warnings;
 use testapi;
 use utils;
 
+=head2 enable_and_start
+
+Enables and starts given systemd service
+
+=cut
 sub enable_and_start {
     my ($self, $arg) = @_;
-    systemctl "enable $arg";
-    systemctl "start $arg";
+    systemctl("enable $arg");
+    systemctl("start $arg");
 }
 
 sub upload_service_log {
@@ -33,9 +50,13 @@ sub switch_user {
     assert_screen 'user-nobody';
 }
 
-## Prepare master node names, so those names could be reused, for instance
-## in config preparation, munge key distribution, etc.
-## The naming follows general pattern of master-slave
+=head2 master_node_names
+
+Prepare master node names, so those names could be reused, for instance
+in config preparation, munge key distribution, etc.
+The naming follows general pattern of master-slave
+
+=cut
 sub master_node_names {
     my ($self) = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
@@ -49,9 +70,13 @@ sub master_node_names {
     return @master_node_names;
 }
 
-## Prepare compute node names, so those names could be reused, for
-## instance in config preparation, munge key distribution, etc.
-## The naming follows general pattern of master-slave
+=head2 slave_node_names
+
+Prepare compute node names, so those names could be reused, for
+instance in config preparation, munge key distribution, etc.
+The naming follows general pattern of master-slave
+
+=cut
 sub slave_node_names {
     my ($self)       = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
@@ -67,7 +92,11 @@ sub slave_node_names {
     return @slave_node_names;
 }
 
-## Prepare all node names, so those names could be reused
+=head2 cluster_names
+
+Prepare all node names, so those names could be reused
+
+=cut
 sub cluster_names {
     my ($self) = @_;
     my @cluster_names;
@@ -126,10 +155,10 @@ sub mount_nfs {
     assert_script_run('mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm');
 }
 
-=head2
-    prepare_user_and_group()
-  creating slurm user and group with some pre-defined ID
- needed due to https://bugzilla.suse.com/show_bug.cgi?id=1124587
+=head2 prepare_user_and_group
+
+Creating slurm user and group with some pre-defined ID
+
 =cut
 sub prepare_user_and_group {
     my ($self) = @_;
