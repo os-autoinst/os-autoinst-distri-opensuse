@@ -68,11 +68,8 @@ END_SCRIPT
             assert_script_run('ls /var/lib/wicked/');
             save_screenshot;
             script_run('rm -f /var/lib/wicked/*.xml');
-            script_run('rm -f /var/run/wicked/extension/hostname');
-            script_run('rm -f /var/run/wicked/extension/hostname');
-            script_run('rm -f /var/run/wicked/*');
         }
-        script_run('rm -f /etc/hostname');
+        script_run('rm -f /etc/hostname') if check_var('YAML_SCHEDULE', 'schedule/create_hdd_autoyast_wicked.yaml');
     }
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
