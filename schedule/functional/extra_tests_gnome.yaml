@@ -1,0 +1,17 @@
+name:   extra_tests_gnome
+description:    >
+    Maintainer: asmorodskyi, okurz.
+    Extra tests for software in desktop applications which were designed to run on gnome
+    VNC_STALL_THRESHOLD is needed for xen svirt to don't turn off the scrreen after default 4 sec
+schedule:
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - x11/vnc_two_passwords
+    - x11/user_defined_snapshot
+    - x11/remote_desktop/vino_screensharing_available
+    - x11/rrdtool_x11
+    - x11/yast2_lan_restart
+    - console/yast2_lan_device_settings
+    - console/check_default_network_manager
+    - console/coredump_collect

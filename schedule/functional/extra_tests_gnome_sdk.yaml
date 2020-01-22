@@ -1,0 +1,10 @@
+name:   extra_test_gnome_sdk
+description:    >
+    Maintainer: jrauch
+    Extra tests about software in sdk on gnome
+schedule:
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - x11/libqt5_qtbase
+    - console/coredump_collect
