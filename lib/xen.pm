@@ -33,7 +33,7 @@ our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles12sp3PV => {
-            autoyast     => 'autoyast_xen/sles12sp3PV.xml',
+            autoyast     => 'autoyast_xen/sles12sp3PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt',
             macaddress   => '52:54:00:78:73:a1',
             ip           => '192.168.122.106',
@@ -41,7 +41,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
         },
         sles12sp3HVM => {
-            autoyast     => 'autoyast_xen/sles12sp3HVM.xml',
+            autoyast     => 'autoyast_xen/sles12sp3HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm',
             macaddress   => '52:54:00:78:73:a2',
             ip           => '192.168.122.105',
@@ -49,7 +49,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
         },
         sles15PV => {
-            autoyast     => 'autoyast_xen/sles15PV.xml',
+            autoyast     => 'autoyast_xen/sles15PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt',
             macaddress   => '52:54:00:78:73:a3',
             ip           => '192.168.122.102',
@@ -57,7 +57,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
         },
         sles15HVM => {
-            autoyast     => 'autoyast_xen/sles15HVM.xml',
+            autoyast     => 'autoyast_xen/sles15HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm',
             macaddress   => '52:54:00:78:73:a4',
             ip           => '192.168.122.101',
@@ -65,7 +65,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
         },
         sles11sp4PVx32 => {
-            autoyast     => 'autoyast_xen/sles11sp4PVx32.xml',
+            autoyast     => 'autoyast_xen/sles11sp4PVx32_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt --arch i686',
             macaddress   => '52:54:00:78:73:a5',
             ip           => '192.168.122.110',
@@ -73,7 +73,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
         },
         sles11sp4HVMx32 => {
-            autoyast     => 'autoyast_xen/sles11sp4HVMx32.xml',
+            autoyast     => 'autoyast_xen/sles11sp4HVMx32_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm --arch i686',
             macaddress   => '52:54:00:78:73:a6',
             ip           => '192.168.122.108',
@@ -81,7 +81,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
         },
         sles11sp4PVx64 => {
-            autoyast     => 'autoyast_xen/sles11sp4PVx64.xml',
+            autoyast     => 'autoyast_xen/sles11sp4PVx64_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt',
             macaddress   => '52:54:00:78:73:a7',
             ip           => '192.168.122.109',
@@ -89,7 +89,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
         },
         sles11sp4HVMx64 => {
-            autoyast     => 'autoyast_xen/sles11sp4HVMx64.xml',
+            autoyast     => 'autoyast_xen/sles11sp4HVMx64_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm',
             macaddress   => '52:54:00:78:73:a8',
             ip           => '192.168.122.107',
@@ -97,7 +97,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
         },
         sles12sp4PV => {
-            autoyast     => 'autoyast_xen/sles12sp4PV.xml',
+            autoyast     => 'autoyast_xen/sles12sp4PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt',
             macaddress   => '52:54:00:78:73:a9',
             ip           => '192.168.122.104',
@@ -105,7 +105,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
         },
         sles12sp4HVM => {
-            autoyast     => 'autoyast_xen/sles12sp4HVM.xml',
+            autoyast     => 'autoyast_xen/sles12sp4HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm',
             macaddress   => '52:54:00:78:73:aa',
             ip           => '192.168.122.103',
@@ -113,7 +113,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
         },
         sles15sp1HVM => {
-            autoyast     => 'autoyast_xen/sles15sp1HVM.xml',
+            autoyast     => 'autoyast_xen/sles15sp1HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm',
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',
@@ -121,7 +121,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
         },
         sles15sp1PV => {
-            autoyast     => 'autoyast_xen/sles15sp1PV.xml',
+            autoyast     => 'autoyast_xen/sles15sp1PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt',
             macaddress   => '52:54:00:78:73:ac',
             ip           => '192.168.122.112',
@@ -134,7 +134,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
-            autoyast     => 'autoyast_kvm/sles12sp3.xml',
+            autoyast     => 'autoyast_kvm/sles12sp3_PRG.xml',
             extra_params => '',
             macaddress   => '52:54:00:78:73:a2',
             ip           => '192.168.122.102',
@@ -142,7 +142,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
         },
         sles12sp4 => {
-            autoyast     => 'autoyast_kvm/sles12sp4.xml',
+            autoyast     => 'autoyast_kvm/sles12sp4_PRG.xml',
             extra_params => '',
             macaddress   => '52:54:00:78:73:aa',
             ip           => '192.168.122.103',
@@ -150,7 +150,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
         },
         sles15 => {
-            autoyast     => 'autoyast_kvm/sles15.xml',
+            autoyast     => 'autoyast_kvm/sles15_PRG.xml',
             extra_params => '',
             macaddress   => '52:54:00:78:73:a4',
             ip           => '192.168.122.101',
@@ -158,7 +158,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
         },
         sles15sp1 => {
-            autoyast     => 'autoyast_kvm/sles15sp1.xml',
+            autoyast     => 'autoyast_kvm/sles15sp1_PRG.xml',
             extra_params => '',
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',

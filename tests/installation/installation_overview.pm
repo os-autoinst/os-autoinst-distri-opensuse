@@ -73,7 +73,12 @@ sub run {
     else {
         # Refer to: https://progress.opensuse.org/issues/47369
         assert_screen "installation-settings-overview-loaded", 420;
-        assert_screen "inst-xen-pattern" if get_var('XEN');
+        if (get_var('XEN')) {
+            if (!check_screen('inst-xen-pattern')) {
+                assert_and_click 'installation-settings-overview-loaded-scrollbar-up';
+                assert_screen 'inst-xen-pattern';
+            }
+        }
         ensure_ssh_unblocked;
         # Check the systemd target, see poo#45020
         # We need to exclude some scenarios where it doesn't work well
