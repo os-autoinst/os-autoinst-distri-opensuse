@@ -67,9 +67,9 @@ sub run {
         }
         assert_script_run('outfile=$(./sonobuoy retrieve)');
         assert_script_run('mkdir ./results; tar xzf $outfile -C ./results');
-        upload_logs '~/sonobuoy/results/plugins/e2e/results/global/e2e.log';
-        upload_logs '~/sonobuoy/results/plugins/e2e/results/global/junit_01.xml';
         upload_logs '$outfile';
+        upload_logs './results/plugins/e2e/results/global/e2e.log';
+        upload_logs './results/plugins/e2e/results/global/junit_01.xml';
         assert_script_run('tail ~/sonobuoy/results/plugins/e2e/results/global/e2e.log|grep "Test Suite Passed"');
     }
 }
