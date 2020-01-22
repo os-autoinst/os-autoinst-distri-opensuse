@@ -35,8 +35,7 @@ sub run {
     systemctl 'show -p SubState named.service|grep SubState=running';
 
     # verify dns server responds to anything
-    my $e = script_run "host localhost localhost";
-    if ($e) {
+    if (script_run 'host localhost. localhost') {
         record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost'         if check_var('ARCH', 's390x');
         record_info 'Skip the entire test on bridged networks (e.g. Xen, Hyper-V)' if (is_bridged_networking);
         return                                                                     if (is_bridged_networking || check_var('ARCH', 's390x'));
