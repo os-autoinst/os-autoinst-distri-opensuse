@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -110,6 +110,11 @@ sub cluster_names {
     return @cluster_names;
 }
 
+=head2
+
+Distributes munge kyes across all cluster nodes
+
+=cut
 sub distribute_munge_key {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
@@ -118,6 +123,11 @@ sub distribute_munge_key {
     }
 }
 
+=head2
+
+Distributes slurm config across all cluster nodes
+
+=cut
 sub distribute_slurm_conf {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
@@ -126,6 +136,11 @@ sub distribute_slurm_conf {
     }
 }
 
+=head2
+
+Generates and distributes ssh keys across all cluster nodes
+
+=cut
 sub generate_and_distribute_ssh {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
@@ -135,6 +150,11 @@ sub generate_and_distribute_ssh {
     }
 }
 
+=head2
+
+Checks if all listed HPC cluster nodes are available (ping)
+
+=cut
 sub check_nodes_availability {
     my ($self) = @_;
     my @cluster_nodes = cluster_names();
@@ -143,12 +163,16 @@ sub check_nodes_availability {
     }
 }
 
+=head2
+
+Ensure correct dir is created, and correct NFS dir is mounted on SUT
+
+=cut
 sub mount_nfs {
     my ($self) = @_;
     zypper_call('in nfs-client rpcbind');
-    ## TODO: get rid of hardcoded name for the NFS-dir
-    systemctl("start nfs");
-    systemctl("start rpcbind");
+    systemctl('start nfs');
+    systemctl('start rpcbind');
     record_info('show mounts aviable on the supportserver', script_output('showmount -e 10.0.2.1'));
     assert_script_run('mkdir -p /shared/slurm');
     assert_script_run('chown -Rcv slurm:slurm /shared/slurm');
