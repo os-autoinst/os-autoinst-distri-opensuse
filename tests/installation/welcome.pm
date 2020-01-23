@@ -69,7 +69,7 @@ sub get_product_shortcuts {
             : is_aarch64() ? 's'
             : 'i',
             sled     => 'x',
-            sles4sap => get_var('OFW') ? 'i'
+            sles4sap => is_ppc64le() ? 'i'
             : (is_sle('=15-SP2') && is_x86_64()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
@@ -80,7 +80,7 @@ sub get_product_shortcuts {
     return (
         sles     => 's',
         sled     => 'u',
-        sles4sap => get_var('OFW') ? 'u' : 'x',
+        sles4sap => is_ppc64le() ? 'u' : 'x',
         hpc      => is_x86_64() ? 'x' : 'u',
         rt       => is_x86_64() ? 'u' : undef
     );
