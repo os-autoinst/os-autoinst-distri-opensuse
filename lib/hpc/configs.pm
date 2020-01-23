@@ -16,78 +16,202 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Data::Dumper;
+use Storable;
+use Tie::IxHash;
 
 our @EXPORT = qw(
   prepare_slurm_conf
   prepare_slurmdb_conf
 );
 
-## TODO: improve this ever-growing sub, so that it will be easier to
-## maintain and expand if needed as well as there will be less duplications
+my (%slurm_config);
+tie %slurm_config, 'Tie::IxHash';
+
+my (%slurm_config_NODES);
+tie %slurm_config_NODES, 'Tie::IxHash';
+
+my (%slurm_config_PARTITION);
+tie %slurm_config_PARTITION, 'Tie::IxHash';
+
+=head2
+
+Default slurm.conf always set to the latest supported version
+
+=cut
+%slurm_config = (
+    ClusterName                        => 'linux',
+    SlurmctldHost                      => 'masterctl',
+    "\#SlurmctldHost"                  => '',
+    SlurmUser                          => 'slurm',
+    "\#SlurmdUser"                     => '',
+    SlurmctldPort                      => '6817',
+    SlurmdPort                         => '6818',
+    AuthType                           => 'auth/munge',
+    "\#JobCredentialPrivateKey"        => '',
+    "\#JobCredentialPublicCertificate" => '',
+    StateSaveLocation                  => '/var/lib/slurm',
+    SlurmdSpoolDir                     => '/var/spool/slurm',
+    SwitchType                         => 'switch/none',
+    MpiDefault                         => 'none',
+    SlurmctldPidFile                   => '/var/run/slurm/slurmctld.pid',
+    SlurmdPidFile                      => '/var/run/slurm/slurmd.pid',
+    ProctrackType                      => 'proctrack/pgid',
+    "\#PluginDir"                      => '',
+    "\#FirstJobId"                     => '',
+    "\#MaxJobCount"                    => '',
+    "\#PlugStackConfig"                => '',
+    "\#PropagatePrioProcess"           => '',
+    "\#PropagateResourceLimits"        => '',
+    "\#PropagateResourceLimitsExcept"  => '',
+    "\#Prolog"                         => '',
+    "\#Epilog"                         => '',
+    "\#SrunProlog"                     => '',
+    "\#SrunEpilog"                     => '',
+    "\#TaskProlog"                     => '',
+    "\#TaskEpilog"                     => '',
+    "\#TaskPlugin"                     => '',
+    "\#TrackWCKey"                     => '',
+    "\#TreeWidth"                      => '',
+    "\#TmpFS"                          => '',
+    "\#UsePAM"                         => '',
+    SlurmctldTimeout                   => '300',
+    SlurmdTimeout                      => '300',
+    InactiveLimit                      => '0',
+    MinJobAge                          => '300',
+    KillWait                           => '30',
+    Waittime                           => '0',
+    SchedulerType                      => 'sched/backfill',
+    "\#SchedulerAuth"                  => '',
+    "\#SelectType"                     => '',
+    FastSchedule                       => '1',
+    "\#PriorityType"                   => '',
+    "\#PriorityDecayHalfLife"          => '',
+    "\#PriorityUsageResetPeriod"       => '',
+    "\#PriorityWeightFairshare"        => '',
+    "\#PriorityWeightAge"              => '',
+    "\#PriorityWeightPartition"        => '',
+    "\#PriorityWeightJobSize"          => '',
+    "\#PriorityMaxAge"                 => '',
+    SlurmctldDebug                     => 'debug5',
+    SlurmctldLogFile                   => '/var/log/slurmctld.log',
+    SlurmdDebug                        => '3',
+    SlurmdLogFile                      => '/var/log/slurmd.log',
+    JobCompType                        => 'jobcomp/none',
+    "\#JobCompLoc"                     => '',
+    "\#JobAcctGatherType"              => '',
+    "\#JobAcctGatherFrequency"         => '',
+    "\#AccountingStorageType"          => '',
+    "\#AccountingStorageHost"          => '',
+    "\#AccountingStorageLoc"           => '',
+    "\#AccountingStoragePass"          => '',
+    "\#AccountingStorageUser"          => '',
+    PropagateResourceLimitsExcept      => 'MEMLOCK',
+    NODES                              => undef,
+    PARTITION                          => undef
+);
+
+%slurm_config_NODES = (
+    NodeName       => '',
+    Sockets        => '1',
+    CoresPerSocket => '1',
+    ThreadsPerCore => '1',
+    State          => 'unknown'
+);
+
+%slurm_config_PARTITION = (
+    PartitionName => 'normal',
+    Nodes         => '',
+    Default       => 'YES',
+    MaxTime       => '24:00:00',
+    State         => 'UP',
+);
+
+$slurm_config{NODES}     = \%slurm_config_NODES;
+$slurm_config{PARTITION} = \%slurm_config_PARTITION;
+
+my %slurmdb_config;
+tie %slurmdb_config, 'Tie::IxHash';
+
+=head2
+
+Default slurmdb.conf always set to the latest supported version
+#TODO
+
+=cut
+
+=head2
+
+Prepare slurm.conf based on test requirements and settings
+
+=cut
 sub prepare_slurm_conf {
     my ($self) = @_;
-    my $slurm_conf = get_required_var("SLURM_CONF");
+    my $slurm_conf = get_required_var('SLURM_CONF');
 
     my @cluster_ctl_nodes     = $self->master_node_names();
     my @cluster_compute_nodes = $self->slave_node_names();
     my $cluster_ctl_nodes     = join(',', @cluster_ctl_nodes);
     my $cluster_compute_nodes = join(',', @cluster_compute_nodes);
 
-    if ($slurm_conf eq "basic") {
-        my $config = << "EOF";
-sed -i "/^SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "accounting") {
-        my $config = << "EOF";
-sed -i "/^SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-sed -i "/^#JobAcctGatherType.*/c\\JobAcctGatherType=jobacct_gather/linux" /etc/slurm/slurm.conf
-sed -i "/^#JobAcctGatherFrequency.*/c\\JobAcctGatherFrequency=12" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageType.*/c\\AccountingStorageType=accounting_storage/slurmdbd" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageHost.*/c\\AccountingStorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageUser.*/c\\AccountingStoragePort=20088" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "ha") {
-        my $config = << "EOF";
-sed -i "/^SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^#SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
-sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
-sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } elsif ($slurm_conf eq "nfs_db") {
-        my $config = << "EOF";
-sed -i "/^SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[0]" /etc/slurm/slurm.conf
-sed -i "/^#SlurmctldHost.*/c\\SlurmctldHost=$cluster_ctl_nodes[1]" /etc/slurm/slurm.conf
-sed -i "/^StateSaveLocation.*/c\\StateSaveLocation=/shared/slurm/" /etc/slurm/slurm.conf
-sed -i "/^NodeName.*/c\\NodeName=$cluster_ctl_nodes,$cluster_compute_nodes Sockets=1 CoresPerSocket=1 ThreadsPerCore=1 State=unknown" /etc/slurm/slurm.conf
-sed -i "/^PartitionName.*/c\\PartitionName=normal Nodes=$cluster_ctl_nodes,$cluster_compute_nodes Default=YES MaxTime=24:00:00 State=UP" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldTimeout.*/c\\SlurmctldTimeout=15" /etc/slurm/slurm.conf
-sed -i "/^SlurmdTimeout.*/c\\SlurmdTimeout=60" /etc/slurm/slurm.conf
-sed -i "/^#JobAcctGatherType.*/c\\JobAcctGatherType=jobacct_gather/linux" /etc/slurm/slurm.conf
-sed -i "/^#JobAcctGatherFrequency.*/c\\JobAcctGatherFrequency=12" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageType.*/c\\AccountingStorageType=accounting_storage/slurmdbd" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageHost.*/c\\AccountingStorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurm.conf
-sed -i "/^#AccountingStorageUser.*/c\\AccountingStoragePort=20088" /etc/slurm/slurm.conf
-sed -i "/^SlurmctldDebug.*/c\\SlurmctldDebug=debug5" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    } else {
-        die "Unsupported value of SLURM_CONF test setting!";
+    $slurm_config{NODES}{NodeName}  = "$cluster_ctl_nodes,$cluster_compute_nodes";
+    $slurm_config{PARTITION}{Nodes} = "$cluster_ctl_nodes,$cluster_compute_nodes";
+    $slurm_config{SlurmctldHost}    = "$cluster_ctl_nodes[0]";
+    $slurm_config{SlurmctldDebug}   = 'debug5';
+
+    if (($slurm_conf eq 'accounting') or ($slurm_conf eq 'nfs_db')) {
+        $slurm_config{JobAcctGatherType}      = 'jobacct_gather/linux';
+        $slurm_config{JobAcctGatherFrequency} = '12';
+        $slurm_config{AccountingStorageType}  = 'accounting_storage/slurmdbd';
+        $slurm_config{AccountingStorageHost}  = "$cluster_compute_nodes[-1]";
+        $slurm_config{AccountingStoragePort}  = '20088';
     }
+    if (($slurm_conf eq 'ha') or ($slurm_conf eq 'nfs_db')) {
+        $slurm_config{SlurmctldHost_tmp} = "$cluster_ctl_nodes[1]";
+        $slurm_config{StateSaveLocation} = '/shared/slurm/';
+        $slurm_config{SlurmctldTimeout}  = '15';
+        $slurm_config{SlurmdTimeout}     = '60';
+    }
+
+    script_run("echo '#slurm.conf generated by the tests' > /etc/slurm/slurm.conf");
+    my @pairs     = ();
+    my $NODES     = '';
+    my $PARTITION = '';
+    while (my ($key, $value) = each %slurm_config) {
+        push(@pairs, $key . '=' . $value) unless ($key eq 'NODES') or ($key eq 'PARTITION')
+          or ($key eq 'SlurmctldHost_tmp');
+        if ($key eq 'SlurmctldHost_tmp') {
+            my $tmp_key = 'SlurmctldHost';
+            push(@pairs, $tmp_key . '=' . $value);
+        }
+        if ($key eq 'NODES') {
+            my @pairs = ();
+            while (my ($key, $value) = each %{$slurm_config{NODES}}) {
+                push(@pairs, $key . '=' . $value);
+            }
+            $NODES = join(' ', @pairs);
+        }
+        if ($key eq 'PARTITION') {
+            my @pairs = ();
+            while (my ($key, $value) = each %{$slurm_config{PARTITION}}) {
+                push(@pairs, $key . '=' . $value);
+            }
+            $PARTITION = join(' ', @pairs);
+        }
+    }
+    my $slurm_config_tmp = join('+', @pairs);
+    script_run("echo $slurm_config_tmp | tee -a /etc/slurm/slurm.conf");
+    script_run("echo $NODES | tee -a /etc/slurm/slurm.conf");
+    script_run("echo $PARTITION | tee -a /etc/slurm/slurm.conf");
+    script_run("tr '+' '\\n' < /etc/slurm/slurm.conf > /etc/slurm/slurm.conf_tmp");
+    script_run("mv /etc/slurm/slurm.conf_tmp /etc/slurm/slurm.conf");
 }
 
+=head2
+
+Prepare slurmdbd.conf based on test requirements and settings
+
+=cut
 sub prepare_slurmdb_conf {
     my ($self) = @_;
     my @cluster_compute_nodes = $self->slave_node_names();
