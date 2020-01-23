@@ -136,6 +136,7 @@ sub run {
             next;
         }
         if (match_has_tag 'linuxrc-dhcp-question') {
+            send_key_until_needlematch('linuxrc-dhcp-question', 'tab', 2, 1);
             send_key 'ret';
         }
     }
