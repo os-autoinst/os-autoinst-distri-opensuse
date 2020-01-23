@@ -57,8 +57,6 @@ sub run {
         send_key 'ret';
         assert_script_run "cd /usr/src/packages/BUILD/dracut-*/test/$dracut_test";
         assert_script_run './test.sh --clean';
-        wait_still_screen(3);
-        assert_script_run "\nclear";
     }
 }
 
