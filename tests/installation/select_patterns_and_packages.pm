@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,19 +26,6 @@ use warnings;
 use testapi;
 use utils 'type_string_slow';
 
-sub accept3rdparty {
-    #Third party licenses sometimes appear
-    while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
-        if (match_has_tag("automatic-changes")) {
-            send_key 'alt-o';
-            last;
-        }
-
-        last if match_has_tag("inst-overview");
-        wait_screen_change { send_key $cmd{acceptlicense} };
-    }
-}
-
 sub check12qtbug {
     if (check_screen('pattern-too-low', 5)) {
         assert_and_click('pattern-too-low', timeout => 1);
@@ -54,100 +41,6 @@ sub move_down {
 sub move_end_and_top {
     wait_screen_change { send_key 'end' };
     wait_screen_change { send_key 'home' };
-}
-
-sub gotopatterns {
-    my ($self) = @_;
-    $self->deal_with_dependency_issues;
-    if (check_var('VIDEOMODE', 'text')) {
-        wait_still_screen;
-        send_key 'alt-c';
-        assert_screen 'inst-overview-options';
-        send_key 'alt-s';
-    }
-    else {
-        send_key_until_needlematch 'packages-section-selected', 'tab';
-        send_key 'ret';
-    }
-    assert_screen 'pattern_selector';
-    if (check_var('VIDEOMODE', 'text')) {
-        wait_screen_change { send_key 'alt-f' };
-        for (1 .. 4) { send_key 'up'; }
-        send_key 'ret';
-    }
-    else {
-        send_key 'tab';
-    }
-    # pressing end and home to have selection more visible, and the scrollbar length is re-caculated
-    move_end_and_top;
-    assert_screen 'patterns-list-selected';
-}
-
-sub gotodetails {
-    my ($unblock, $secondrun) = @_;
-    my $operation;
-    my $packages = $unblock ? get_var('INSTALLATION_BLOCKED') : get_var('PACKAGES');
-    if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-f';
-        for (1 .. 4) { send_key 'down'; }
-        send_key 'ret';
-        assert_screen 'search-list-selected';
-    }
-    else {
-        send_key 'alt-d';    # details button
-        assert_screen 'packages-manager-detail';
-        assert_and_click 'packages-search-tab';
-    }
-    for my $p (split(/,/, $packages)) {
-        if ($p =~ /^-/) {
-            $operation = 'minus';
-        }
-        else {
-            $operation = '+';
-        }
-        $p =~ s/^-//;        # remove first -
-        if (check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-p';
-            assert_screen 'packages-search-field-selected';
-            send_key_until_needlematch 'search-field-empty', 'backspace';
-            type_string "$p";
-            send_key 'ret';    # search package
-        }
-        else {
-            assert_and_click 'packages-search-field-selected';
-            wait_screen_change { send_key 'ctrl-a' };
-            wait_screen_change { send_key 'delete' };
-            type_string_slow "$p";
-            send_key 'alt-s';    # search button
-        }
-        assert_and_click "packages-$p-selected";
-        wait_still_screen 2;
-        save_screenshot;
-    }
-    wait_screen_change { send_key 'alt-a' };    # accept
-    sleep 2;                                    # wait_screen_change is too fast
-
-    if (check_var('VIDEOMODE', 'text')) {
-        send_key 'alt-a';                       # accept
-        accept3rdparty;
-        assert_screen 'automatic-changes';
-        send_key 'alt-o';                       # Continue
-    }
-    else {
-        send_key 'alt-o';
-        accept3rdparty;
-    }
-    if (get_var('INSTALLATION_BLOCKED') && $secondrun) {
-        record_info 'low prio bug', 'bsc#1029660';
-        assert_screen 'inst-overview-blocked';
-        send_key 'alt-i';
-        assert_screen 'startinstall-blocked';
-        send_key 'alt-o';
-        assert_screen 'inst-overview-blocked';
-    }
-    else {
-        assert_screen 'inst-overview';
-    }
 }
 
 sub select_all_patterns_by_menu {
@@ -258,18 +151,6 @@ sub process_patterns {
         select_specific_patterns_by_iteration;
     }
     return 0;
-}
-
-sub process_packages {
-    my $self      = shift;
-    my $secondrun = 0;       # bsc#1029660
-    gotodetails;
-    $secondrun++;
-    $self->gotopatterns;
-    gotodetails;
-    $secondrun--;
-    $self->gotopatterns;
-    gotodetails('unblock', $secondrun);
 }
 
 sub run {

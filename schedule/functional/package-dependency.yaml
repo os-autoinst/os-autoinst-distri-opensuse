@@ -1,0 +1,30 @@
+name:           package-dependency
+description:    >
+    Maintainer: slindomansilla.
+    Packages are installed by default and removed when starting with - (minus).
+    Installation gets blocked by removed grub2 package.
+    Packages in INSTALLATION_BLOCKED will be selected back to resolve conflict and continue with installation https://progress.opensuse.org/issues/9476
+schedule:
+    - installation/isosize
+    - installation/bootloader
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/hostname_inst
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/select_packages
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
