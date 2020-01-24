@@ -14,6 +14,7 @@ use base "sles4sap";
 use testapi;
 use utils "zypper_call";
 use version_utils qw(is_sle is_upgrade);
+use Utils::Architectures;
 use strict;
 use warnings;
 
@@ -31,7 +32,7 @@ sub run {
     $self->select_serial_terminal;
 
     # saptune is not installed by default on SLES4SAP 12 on ppc64le
-    zypper_call "-n in saptune" if (get_var('OFW') and is_sle('<15'));
+    zypper_call "-n in saptune" if (is_ppc64le() and is_sle('<15'));
 
     unless (tuned_is 'running') {
         assert_script_run "saptune daemon start";
