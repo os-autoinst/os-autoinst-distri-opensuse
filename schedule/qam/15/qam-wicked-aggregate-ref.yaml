@@ -1,0 +1,25 @@
+---
+name: qam-wicked-aggregate-ref
+schedule:
+- boot/boot_to_desktop
+- wicked/locks_init
+- wicked/before_test
+- wicked/t01_bonding_balance_rr
+- wicked/t02_bonding_ab
+- wicked/t03_bonding_balance_xor
+- wicked/t04_bonding_broadcast
+- wicked/t05_bonding_802_3ad
+- wicked/t06_bonding_balance_tlb
+- wicked/t07_bonding_balance_alb
+- wicked/t08_bonding_ab_miimon
+- wicked/t09_bonding_ab_arp_ping
+- wicked/aggregate/ref/t10_bonding_ab_ping_2_ips
+- wicked/t11_teaming_roundrobin
+- wicked/t12_teaming_random
+- wicked/t13_teaming_activebackup
+- wicked/t14_teaming_broadcast
+- wicked/t15_teaming_loadbalance
+- wicked/t16_teaming_lacp
+- wicked/t17_teaming_ab_ethtool
+- wicked/t18_teaming_ab_arp_ping
+...

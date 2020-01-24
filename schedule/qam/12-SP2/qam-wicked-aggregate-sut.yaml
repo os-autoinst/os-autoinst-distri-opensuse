@@ -1,0 +1,27 @@
+---
+name: qam-wicked-aggregate-sut
+schedule:
+- boot/boot_to_desktop
+- wicked/locks_init
+- wicked/before_test
+- wicked/aggregate/sut/t01_bonding_balance_rr
+- wicked/aggregate/sut/t02_bonding_ab
+- wicked/aggregate/sut/t03_bonding_balance_xor
+- wicked/aggregate/sut/t04_bonding_broadcast
+- wicked/aggregate/sut/t05_bonding_802_3ad
+- wicked/aggregate/sut/t06_bonding_balance_tlb
+- wicked/aggregate/sut/t07_bonding_balance_alb
+- wicked/aggregate/sut/t08_bonding_ab_miimon
+- wicked/aggregate/sut/t09_bonding_ab_arp_ping
+- wicked/aggregate/sut/t10_bonding_ab_ping_2_ips
+- wicked/aggregate/sut/t11_teaming_roundrobin
+- wicked/aggregate/sut/t12_teaming_random
+- wicked/aggregate/sut/t13_teaming_activebackup
+- wicked/aggregate/sut/t14_teaming_broadcast
+- wicked/aggregate/sut/t15_teaming_loadbalance
+- wicked/aggregate/sut/t16_teaming_lacp
+- wicked/aggregate/sut/t17_teaming_ab_ethtool
+- wicked/aggregate/sut/t18_teaming_ab_arp_ping
+- wicked/aggregate/sut/t19_teaming_ab_nsna_ping
+- wicked/aggregate/sut/t20_teaming_ab_all_link
+...
