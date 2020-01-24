@@ -31,7 +31,22 @@ our @EXPORT = qw(is_network_manager_default
   continue_info_network_manager_default
   accept_warning_network_manager_default
   workaround_suppress_lvm_warnings
+  with_yast_env_variables
 );
+
+=head2 with_yast_env_variables
+
+ with_yast_env_variables([extra_vars]);
+
+Set environment variables for yast application.
+C<extra_vars> extends the variables that can be used. C<extra_vars> expects a string.
+ex: with_yast_env_variables("foo=bar");
+
+=cut
+sub with_yast_env_variables {
+    my ($extra_vars) = shift // '';
+    return "Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 Y2STRICTTEXTDOMAIN=1 $extra_vars";
+}
 
 =head2 is_network_manager_default
 
