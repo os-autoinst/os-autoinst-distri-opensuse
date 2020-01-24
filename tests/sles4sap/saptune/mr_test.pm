@@ -14,6 +14,7 @@ use base "sles4sap";
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use Utils::Architectures;
 use strict;
 use warnings;
 
@@ -40,7 +41,7 @@ sub setup {
     # Disable packagekit
     pkcon_quit;
     # saptune is not installed by default on SLES4SAP 12 on ppc64le and in textmode profile
-    zypper_call "-n in saptune" if ((get_var('OFW') and is_sle('<15')) or check_var('DESKTOP', 'textmode'));
+    zypper_call "-n in saptune" if ((is_ppc64le() and is_sle('<15')) or check_var('DESKTOP', 'textmode'));
     # Install mr_test dependencies
     zypper_call "-n in python3-rpm";
     # Download mr_test and extract it to $HOME
@@ -297,7 +298,7 @@ sub run {
         $self->test_override($test);
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
         $self->test_x86_64  if (check_var('BACKEND', 'ipmi'));
-        $self->test_ppc64le if (get_var('OFW'));
+        $self->test_ppc64le if is_ppc64le();
         # DISABLED for now until newest saptune with fix is released
         #$self->test_bsc1152598;
     } else {
