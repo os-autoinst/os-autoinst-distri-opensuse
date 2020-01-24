@@ -60,6 +60,10 @@ test-compile-changed: os-autoinst/
 test-yaml-valid:
 	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid `git --no-pager diff --diff-filter=d --name-only master | grep 'schedule.*\.yaml'`
 
+.PHONY: test-modules-in-yaml-schedule
+test-modules-in-yaml-schedule:
+	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --name-only --exit-code $$(git merge-base master HEAD) | grep '^schedule/*'`
+
 .PHONY: test-metadata
 test-metadata:
 	tools/check_metadata $$(git ls-files "tests/**.pm")
@@ -94,7 +98,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
