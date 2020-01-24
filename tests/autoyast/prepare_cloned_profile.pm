@@ -20,15 +20,25 @@ use testapi;
 use autoyast qw(inject_registration expand_variables upload_profile);
 
 sub run {
-    my $path = get_required_var('AUTOYAST');
-    # Get file from data directory
-    my $profile = get_test_data($path);
+    # Get path in the worker
+    my $path = get_var('ASSETDIR') . '/other/' . get_var('ASSET_1');
+    record_info('path', $path);
+
+    # Read content of file
+    my $fh;
+    open($fh, '<:encoding(UTF-8)', $path) or die "Could not open file '$path'";
+    read $fh, my $profile, -s $fh;
+    close $fh;
+    record_info('profile before:', $profile);
+
     # Inject registration block with template variables
     $profile = inject_registration($profile);
+
     # Expand injected template variables
     $profile = expand_variables($profile);
-    # Upload asset
-    upload_profile(profile => $profile, path => $path);
+    record_info('profile after:', $profile);
+
+    upload_profile(profile => $profile, path => get_var('AUTOYAST'));
 }
 
 sub test_flags {
