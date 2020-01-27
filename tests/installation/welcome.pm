@@ -136,6 +136,7 @@ sub run {
             next;
         }
         if (match_has_tag 'linuxrc-dhcp-question') {
+            send_key 'tab' if (match_has_tag 'linuxrc-dhcp-question-no');
             send_key 'ret';
         }
     }
