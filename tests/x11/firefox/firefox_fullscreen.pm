@@ -29,15 +29,14 @@ sub run {
 
     $self->start_firefox_with_profile;
 
-    $self->firefox_open_url('file:///usr/share/w3m/w3mhelp.html');
-    assert_screen('firefox-fullscreen-page');
+    assert_screen('firefox-url-loaded');
 
     send_key "f11";
-    assert_screen('firefox-fullscreen-enter', 90);
+    assert_screen('firefox-fullscreen');
 
     wait_still_screen 2, 4;
     send_key "f11";
-    assert_screen('firefox-fullscreen-page', 90);
+    assert_screen('firefox-url-loaded');
 
     $self->exit_firefox;
 }
