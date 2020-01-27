@@ -37,14 +37,20 @@ sub compare_orphans_lists {
         $args{whitelist} // 'No orphans whitelisted within the test suite',
         result => $args{whitelist} ? 'ok' : 'fail');
 
-    return 0 unless ($args{whitelist});
+    # Packages do not have a whistespace in their labels
+    # A trailing or leading whitespace introduced along the path has to be removed
+    # Usually it can happen on ssh like consoles (e.g. tunnel-console)
+    my @not_handled_orphans = ();
+    if ($args{whitelist}) {
+        # Remove duplicate packages from the whitelist
+        my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
+        @not_handled_orphans = grep {
+            my $p = $_;
+            $p =~ s/\s+//g;
+            !$wl{$p};
+        } @{$args{zypper_orphans}};
+    } else { @not_handled_orphans = @{$args{zypper_orphans}}; }
 
-    # Remove duplicate packages from the list
-    my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
-
-    return 0 if ((scalar @{$args{zypper_orphans}}) > (scalar(keys %wl)));
-
-    my @not_handled_orphans = grep { !$wl{$_} } @{$args{zypper_orphans}};
     record_info('Missing', (@not_handled_orphans) ? ("@not_handled_orphans", result => 'fail') : 'None');
 
     return ((scalar @not_handled_orphans) == 0);
