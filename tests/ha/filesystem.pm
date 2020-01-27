@@ -19,6 +19,9 @@ use lockapi;
 use hacluster;
 
 sub run {
+    # Exit of this module if 'tag=drbd_passive' and if we are in a maintenance update not related to drbd
+    return 1 if (read_tag eq 'drbd_passive' and is_not_maintenance_update('drbd'));
+
     my $cluster_name = get_cluster_name;
     my $node         = get_hostname;
     my $fs_lun       = undef;
