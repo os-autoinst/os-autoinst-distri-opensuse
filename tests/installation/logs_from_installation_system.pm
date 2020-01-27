@@ -48,7 +48,7 @@ sub run {
         # set serial console for xen
         set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN')                      || check_var('HOST_HYPERVISOR', 'xen'));
         set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE',     'kvm'));
-        set_dom0_mem('/mnt')    if (get_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
+        set_dom0_mem('/mnt')    if ((get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')) && get_var('REGRESSION'));
         set_pxe_efiboot('/mnt') if check_var('ARCH', 'aarch64');
     }
     else {
