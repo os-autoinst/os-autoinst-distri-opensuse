@@ -131,7 +131,8 @@ sub advance_installer_window {
     send_key $cmd{next};
     die 'Unable to create repository' if check_screen('unable-to-create-repo', 5);
     unless (check_screen "$screenName", 60) {
-        send_key_until_needlematch $screenName, $cmd{next}, 3, 90;
+        my $key = check_screen('cannot-access-installation-media') ? "alt-y" : "$cmd{next}";
+        send_key_until_needlematch $screenName, $key, 5, 60;
         record_soft_failure 'Retry most probably due to network problems poo#52319 or failed next click';
     }
 }
