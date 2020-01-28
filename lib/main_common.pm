@@ -1014,7 +1014,8 @@ sub load_inst_tests {
         }
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/resolve_dependency_issues";
-            loadtest "installation/select_patterns_and_packages";
+            loadtest "installation/select_patterns" if (get_var('PATTERNS'));
+            loadtest "installation/select_packages" if (get_var('PACKAGES'));
         }
         elsif (
             is_sle
