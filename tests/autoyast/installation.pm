@@ -353,7 +353,7 @@ sub run {
             return;
         }
         elsif (match_has_tag('opensuse-welcome')) {
-            untick_welcome_on_next_startup;
+            return;             # Popup itself is processed in opensuse_welcome module
         }
     }
     # ssh console was activated at this point of time, so need to reset
