@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use registration;
 use Utils::Backends 'is_pvm';
+use Utils::Architectures 'is_ppc64le';
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 
@@ -118,10 +119,22 @@ sub activate_kdump {
     # activate kdump
     type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
+    # get kdump memory size bsc#1161421
+    my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
+    my $memory_kdump = $memory_total >= 2048 ? 1024 : 640;
+    my $memory_kdump_set;
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
     my @tags = qw(yast2-kdump-unexpected-issue yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
+        # ppcl64e needs increased kdump memory bsc#1161421
+        if (is_ppc64le && !$memory_kdump_set) {
+            send_key 'alt-y';
+            type_string $memory_kdump;
+            send_key 'ret';
+            record_soft_failure 'default kdump memory size is too small for ppc64le bsc#1161421';
+            $memory_kdump_set = 1;
+        }
         # enable and verify fadump settings
         if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
             send_key 'alt-f';
