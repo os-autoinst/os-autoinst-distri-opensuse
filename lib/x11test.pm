@@ -28,6 +28,15 @@ sub post_run_hook {
     assert_screen('generic-desktop');
 }
 
+sub dm_login {
+    assert_screen('displaymanager', 60);
+    # The keyboard focus was losing in gdm of SLE15 bgo#657996
+    mouse_set(520, 350) if is_sle('15+');
+    send_key('ret');
+    assert_screen('originUser-login-dm');
+    type_password;
+}
+
 # logout and switch window-manager
 sub switch_wm {
     mouse_set(1000, 30);
@@ -37,12 +46,7 @@ sub switch_wm {
     assert_screen "logout-dialogue";
     send_key 'tab' if is_sle('15+');
     send_key "ret";
-    assert_screen "displaymanager";
-    # The keyboard focus was losing in gdm of SLE15 bgo#657996
-    mouse_set(520, 350) if is_sle('15+');
-    send_key "ret";
-    assert_screen "originUser-login-dm";
-    type_password;
+    dm_login;
 }
 
 # shared between gnome_class_switch and gdm_session_switch
@@ -55,7 +59,7 @@ sub prepare_sle_classic {
     assert_and_click "displaymanager-settings";
     assert_and_click "dm-gnome-classic";
     send_key "ret";
-    assert_screen "desktop-gnome-classic", 120;
+    assert_screen "desktop-gnome-classic", 350;
     $self->application_test;
 
     # Log out and switch back to default session
@@ -64,12 +68,12 @@ sub prepare_sle_classic {
     if (is_sle('15+')) {
         assert_and_click 'dm-gnome-shell';
         send_key 'ret';
-        assert_screen 'desktop-gnome-shell', 120;
+        assert_screen 'desktop-gnome-shell', 350;
     }
     else {
         assert_and_click 'dm-sle-classic';
         send_key 'ret';
-        assert_screen 'desktop-sle-classic', 120;
+        assert_screen 'desktop-sle-classic', 350;
     }
 }
 
