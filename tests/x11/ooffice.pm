@@ -18,7 +18,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use utils 'type_string_slow';
+use utils 'type_string_very_slow';
 
 sub run {
     my ($self) = shift;
@@ -27,7 +27,7 @@ sub run {
     # clicking the writing area to make sure the cursor addressed there
     wait_screen_change { assert_and_click('ooffice-writing-area', timeout => 10) };
     # auto-correction does not handle super-fast typing well
-    type_string_slow 'Hello World!';
+    type_string_very_slow 'Hello World!';
     assert_screen 'test-ooffice-2';
     send_key "alt-f4";
     assert_screen "ooffice-save-prompt";
