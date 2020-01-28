@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,7 +31,7 @@ sub run {
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0',            $cfg_ifc1);
     $self->get_from_data('wicked/static_address/ifcfg-eth0_second_card', $cfg_ifc2);
     assert_script_run('echo "default ' . $static_ip_ref . ' - -" > /etc/sysconfig/network/routes');
-    mutex_wait('t08_dhcpd_setup_complete');
+    mutex_wait('dhcpdbasict08');
 
     $self->wicked_command('ifup', $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface2());

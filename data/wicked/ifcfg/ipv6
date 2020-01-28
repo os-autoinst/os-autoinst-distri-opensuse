@@ -1,0 +1,5 @@
+BOOTPROTO='dhcp6'
+NAME='Ethernet Card 0'
+
+STARTMODE='auto'
+USERCONTROL='no'

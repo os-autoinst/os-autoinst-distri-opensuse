@@ -48,6 +48,9 @@ sub setup_static_network {
     assert_script_run 'rcnetwork restart';
     assert_script_run 'ip addr';
     assert_script_run 'ping -c 1 ' . $args{gw} . '|| journalctl -b --no-pager > /dev/' . $serialdev;
+    if (exists($args{ipv6})) {
+        assert_script_run('ip -6 addr add ' . $args{ipv6} . ' dev ' . $iface);
+    }
 }
 
 =head2 iface
@@ -80,8 +83,8 @@ sub can_upload_logs {
 
  recover_network([ip => $ip] [, gw => $gw]);
 
-Recover network with static config if is feasible, returns if can ping GW. 
-Main use case is post_fail_hook, to be able to upload logs. 
+Recover network with static config if is feasible, returns if can ping GW.
+Main use case is post_fail_hook, to be able to upload logs.
 
 Accepts following parameters :
 

@@ -17,7 +17,6 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use mmapi;
 
 sub run {
     my ($self, $args) = @_;

@@ -43,7 +43,12 @@ sub run {
     file_content_replace('/etc/sysconfig/network/config', '--sed-modifier' => 'g', '^WICKED_DEBUG=.*' => 'WICKED_DEBUG="all"', '^WICKED_LOG_LEVEL=.*' => 'WICKED_LOG_LEVEL="debug2"');
     #preparing directories for holding config files
     assert_script_run('mkdir -p /data/{static_address,dynamic_address}');
-    setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1);
+    if (check_var('WICKED', 'ipv6')) {
+        setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1, ipv6 =>
+              $self->get_ip(type => 'dhcp6', netmask => 1));
+    } else {
+        setup_static_network(ip => $self->get_ip(type => 'host', netmask => 1), silent => 1);
+    }
     record_info('INFO', 'Checking that network service is up');
     systemctl('is-active network');
     systemctl('is-active wicked');
@@ -53,14 +58,7 @@ sub run {
     my $package_list = 'openvpn';
     $package_list .= ' tcpdump' if get_var('WICKED_TCPDUMP');
     if (check_var('IS_WICKED_REF', '1')) {
-        if (check_var('WICKED', 'ipv6')) {
-            record_info('INFO', 'Setup radvd service');
-            zypper_call("-q in radvd", timeout => 100);
-            $self->get_from_data('wicked/radvd/radvd-2.conf', '/etc/radvd.conf');
-            my $ipv6_dns = $self->get_ip(type => 'dns_advice');
-            file_content_replace('/etc/radvd.conf', xxx => $ctx->iface(), dns_advice => $ipv6_dns);
-            systemctl 'enable --now radvd.service';
-        }
+        $package_list .= ' radvd' if (check_var('WICKED', 'ipv6'));
         # Common REF Configuration
         record_info('INFO', 'Setup DHCP server');
         $package_list .= ' dhcp-server';
@@ -68,6 +66,12 @@ sub run {
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
         systemctl 'enable --now dhcpd.service';
+        if (check_var('WICKED', 'ipv6')) {
+            assert_script_run('sysctl -w net.ipv6.conf.all.forwarding=1');
+            $self->get_from_data('wicked/dhcp/dhcpd6.conf', '/etc/dhcpd6.conf');
+            file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD6_INTERFACE=.*' => 'DHCPD6_INTERFACE="' . $ctx->iface() . '"');
+            systemctl 'enable --now dhcpd6.service';
+        }
     } else {
         # Common SUT Configuration
         if (get_var('WICKED_SOURCES')) {
