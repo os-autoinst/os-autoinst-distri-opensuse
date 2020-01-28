@@ -20,6 +20,9 @@ use version_utils 'is_sle';
 use utils qw(systemctl file_content_replace);
 
 sub run {
+    # Exit of this module if we are in a maintenance update not related to samba
+    return 1 if is_not_maintenance_update('samba');
+
     my $cluster_name = get_cluster_name;
     my $vip_ip       = '10.0.2.20';
     my $ctdb_folder  = '/srv/fs_cluster_md/ctdb';
