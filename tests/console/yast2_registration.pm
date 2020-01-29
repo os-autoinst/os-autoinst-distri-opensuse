@@ -41,7 +41,7 @@ sub register_system_and_add_extension {
     }
     wait_screen_change { send_key "spc" };
     send_key "alt-n";
-    wait_still_screen(stilltime => 7, timeout => 60);
+    wait_still_screen(stilltime => 15, timeout => 60);
     if (check_screen "yast2_registration-license-agreement") {
         wait_screen_change { send_key "alt-a" };
         send_key "alt-n";
