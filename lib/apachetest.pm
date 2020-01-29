@@ -256,9 +256,13 @@ elif [[ $(echo $PG_VER|grep 10) ]]; then
     export PG_OLDEST='postgresql10'
 elif [[ $(echo $PG_VER|grep 11) ]]; then
     export PG_OLDEST='postgresql11'
+elif [[ $(echo $PG_VER|grep 12) ]]; then
+    export PG_OLDEST='postgresql12'
 fi
 echo PG_OLDEST=/usr/lib/$PG_OLDEST >/tmp/pg_versions
-if [[ $(echo $PG_VER|grep 11) ]]; then
+if [[ $(echo $PG_VER|grep 12) ]]; then
+    export PG_LATEST='postgresql12'
+elif [[ $(echo $PG_VER|grep 11) ]]; then
     export PG_LATEST='postgresql11'
 elif [[ $(echo $PG_VER|grep 10) ]]; then
     export PG_LATEST='postgresql10'
