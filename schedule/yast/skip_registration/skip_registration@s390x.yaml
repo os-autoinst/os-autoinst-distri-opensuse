@@ -27,6 +27,7 @@ schedule:
   - installation/reboot_after_installation
   - boot/reconnect_mgmt_console
   - installation/first_boot
+  - console/check_resume
   - console/sle15_workarounds
   - console/hostname
   - console/system_prepare

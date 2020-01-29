@@ -35,6 +35,7 @@ schedule:
   # Called on BACKEND: qemu
   - {{grub_test}}
   - installation/first_boot
+  - {{check_resume}}
   - console/validate_no_cow_attribute
   # On all the backends except s390x, /home is located on a separate partition
   - {{validate_home_partition}}
@@ -55,6 +56,10 @@ conditional_schedule:
         - boot/reconnect_mgmt_console
       ipmi:
         - boot/reconnect_mgmt_console
+  check_resume:
+    ARCH:
+      s390x:
+        - console/check_resume
   grub_test:
     BACKEND:
       qemu:
