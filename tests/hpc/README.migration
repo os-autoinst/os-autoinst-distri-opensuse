@@ -2,8 +2,8 @@ HPC Migration
 
 The tests rely on the fact that openQA fixed directory contains ready
 qcow2 images. Those should be registered against SCC for base products,
-as well as relevant parts: HPC and Web & Scripting. For multimachine set-up
-there should be separate qcow2 registered.
+as well as relevant parts: HPC and all other needed modules, patterns
+etc. For multimachine set-up there should be separate qcow2 registered.
 
 The overall idea is to run some functional tests on system before the
 actual migration. Then the system should be patched and eventually
@@ -13,22 +13,25 @@ Upon successful migration the HPC cluster of VMs should be re-booted,
 and all sanity checks should be performed, so that one can check if
 all relevant parts of the HPC cluster still work as expected.
 
-The overall concept differs from existing migration tests, as instead
-of using openQA modules with run() functions, the tests are calling
-relevant functions which take care of migration logic.
-This approach allows for creating barriers without complicating existing
-openQA migration modules.
+This means that the migration testing is focused here on checking
+certain HPC functionalities and how do they behave upon migration and
+not on the migration process per-se.
+
+Overall, in terms of programatical approach, the concept differs from
+existing migration tests, as instead of using openQA modules with run()
+functions, the tests are calling relevant functions which take care of
+migration logic. This approach allows - for instance - to create
+barriers without complicating existing openQA migration modules.
 
 Test organization
 -----------------
 
 MIGRATION_A - single machine tests checking basics
 -- checking for both supported arches
--- checking for zypper online (next: yast and offline migrations)
+-- checking for zypper online
 -- checking for correct migration targets
 -- basic migration of a single machine
--- migration from SLE 12 Server SPX with HPC Module, to SLE 12 Serever SPX+n with
-   HPC module
+-- migration from SPX, SPX+1
 
 MIGRATION_B - cluster tests checking HPC functionality upon migration
 -- focused on zypper online migration as relevant for multimachine set-ups
@@ -37,13 +40,12 @@ MIGRATION_B - cluster tests checking HPC functionality upon migration
 -- running online zypper migration
 -- restarting the cluster
 -- conducting HPC functional tests
--- migration from SLE 12 Server SPX with HPC Module, to SLE 12 Serever SPX+n with
-   HPC module
+-- migration from SPX, SPX+1
 
 MIGRATION_C - single machine tests checking basics
 -- the same as MIGRATION_A but:
--- migration from SLE 12 HPC SPX to SLE 12 HPC SPX+n
+-- migration from SPX to SPX+2
 
 MIGRATION_D - cluster tests checking HPC functionality upon migration
 -- the same as MIGRATION_B but:
--- migration from SLE 12 HPC SPX to SLE 12 HPC SPX+n
+-- migration from SPX to SPX+2
