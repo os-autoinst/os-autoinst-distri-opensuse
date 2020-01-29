@@ -54,6 +54,23 @@ sub accept3rdparty {
     }
 }
 
+=head2 accept_changes
+
+    accept_changes();
+
+After making changes in the "pattern selection" screen, accepts changes.
+=cut
+sub accept_changes {
+    my ($self) = @_;
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-a';
+    } else {
+        send_key 'alt-o';
+    }
+    $self->accept3rdparty();
+    assert_screen 'inst-overview';
+}
+
 =head2 back_to_overview_from_packages
 
     back_to_overview_from_packages();
@@ -68,6 +85,18 @@ sub back_to_overview_from_packages {
     send_key 'alt-o';
     $self->accept3rdparty();
     assert_screen('installation-settings-overview-loaded');
+}
+
+=head2 check12qtbug
+
+    check12qtbug();
+
+Being in the "select pattern" screen, workaround a known bug of Yast using QT.
+=cut
+sub check12qtbug {
+    if (check_screen('pattern-too-low', 5)) {
+        assert_and_click('pattern-too-low', timeout => 1);
+    }
 }
 
 =head2 go_to_patterns
@@ -121,6 +150,41 @@ sub go_to_search_packages {
     assert_and_click 'packages-search-field-selected';
 }
 
+=head2 move_down
+
+    move_down();
+
+Being in the "select pattern" screen, performs steps needed to move the
+highlight cursor one item down.
+=cut
+sub move_down {
+    my $ret = wait_screen_change { send_key 'down' };
+    last         if (!$ret);                      # down didn't change the screen, so exit here
+    check12qtbug if check_var('VERSION', '12');
+}
+
+=head2 process_patterns
+
+    process_patterns();
+
+Decides to select all patterns or specific patterns based on setting PATTERNS
+Possible values for PATTERNS
+  PATTERNS=minimal,base
+  PATTERNS=all (to select all of them)
+  PATTERNS=default,web,-x11,-gnome (to keep the default but add web and remove x11 and gnome)
+=cut
+sub process_patterns {
+    my ($self) = @_;
+    if (get_required_var('PATTERNS')) {
+        if (check_var('PATTERNS', 'all') && !check_var('VIDEOMODE', 'text')) {
+            $self->select_all_patterns_by_menu();
+        }
+        else {
+            $self->select_specific_patterns_by_iteration();
+        }
+    }
+}
+
 =head2 search_package
 
     search_package($package_name);
@@ -135,6 +199,124 @@ sub search_package {
     wait_screen_change { send_key 'delete' };
     type_string_slow "$package_name";
     send_key 'alt-s';    # search button
+}
+
+=head2 select_all_patterns_by_menu
+
+    select_all_patterns_by_menu();
+
+Being in the "select pattern" screen, performs steps needed to select all
+available patterns.
+=cut
+sub select_all_patterns_by_menu {
+    my ($self) = @_;
+    # move mouse on patterns and open menu
+    mouse_set 100, 400;
+    mouse_click 'right';
+    wait_still_screen 3;
+    # select action on all patterns
+    wait_screen_change { send_key 'a'; };
+    # confirm install
+    wait_screen_change { send_key 'ret'; };
+    mouse_hide;
+    save_screenshot;
+    send_key 'alt-o';
+    $self->accept3rdparty();
+    assert_screen 'inst-overview';
+}
+
+=head2 select_specific_patterns_by_iteration
+
+    select_specific_patterns_by_iteration();
+
+Being in the "select pattern" screen, performs steps needed to select given
+patterns.
+You can pass
+  PATTERNS=minimal,base or
+  PATTERNS=all to select all of them
+  PATTERNS=default,web,-x11,-gnome to keep the default but add web and remove
+  x11 and gnome
+=cut
+sub select_specific_patterns_by_iteration {
+    my %patterns;    # set of patterns to be processed
+                     # fill with variable values
+    @patterns{split(/,/, get_var('PATTERNS'))} = ();
+
+    my $counter = 80;
+    # delete special 'all' and 'default' keys from the check
+    delete $patterns{default};
+    delete $patterns{all};
+    while (1) {
+        die "looping for too long" unless ($counter--);
+        my $needs_to_be_selected;
+        my $ret = check_screen('on-pattern', 1);
+        # this variable will only be updated when the pattern list entry is under the cursor
+        # and the pattern is in the PATTERNS variable and there is a needle for that entry
+        my $current_pattern = 'UNKNOWN_PATTERN';
+
+        if ($ret) {    # unneedled pattern
+            for my $p (keys %patterns) {
+                my $sel     = 1;
+                my $pattern = $p;    # store pattern untouched
+                if ($p =~ /^-/) {
+                    # this pattern shall be deselected as indicated by '-' prefix
+                    $sel = 0;
+                    $p =~ s/^-//;
+                }
+                if (match_has_tag("pattern-$p")) {
+                    $needs_to_be_selected = $sel;
+                    $current_pattern      = $p;
+                    delete $patterns{$pattern};    # mark this pattern as processed
+                    record_info($current_pattern, $needs_to_be_selected);
+                }
+            }
+        }
+        $needs_to_be_selected = 1 if get_var('PATTERNS', '') =~ /all/;
+
+        my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
+        if ($selected && $selected->{needle}->has_tag('on-category')) {
+            move_down;
+            next;
+        }
+        if ($needs_to_be_selected && !$selected) {
+            switch_selection(action => 'select', needles => ['current-pattern-selected']);
+        }
+        if (get_var('PATTERNS', '') =~ /default/ && !(get_var('PATTERNS', '') =~ /$current_pattern/)) {
+            $needs_to_be_selected = $selected;
+            record_info("keep default", "");
+        }
+        if (!$needs_to_be_selected && $selected) {
+            switch_selection(action => 'unselect', needles => [qw(current-pattern-unselected current-pattern-autoselected)]);
+        }
+
+        # exit earlier if default and all patterns were processed
+        last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
+
+        move_down;
+    }
+    # check if we have processed all patterns mentioned in the test suite settings
+    my @unseen = keys %patterns;
+    die "Not all patterns given in the job settings were processed:" . join(", ", @unseen) if @unseen;
+}
+
+=head2 switch_selection
+
+    switch_selection(action => $action, needles => ARRAY($needles));
+
+Being in the "select pattern" screen, performs steps needed to switch the
+checkbox (C<$action>) of the pattern matching one of the given C<$needles>.
+Example
+  switch_selection(action => 'select', needles => ['current-pattern-selected']);
+=cut
+sub switch_selection {
+    my (%args)  = @_;
+    my $action  = $args{action};
+    my $needles = $args{needles};
+    wait_screen_change {
+        send_key ' ';
+        record_info($action, "");
+    };
+    assert_screen $needles, 8;
 }
 
 =head2 toogle_package
