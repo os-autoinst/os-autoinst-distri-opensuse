@@ -1,0 +1,30 @@
+name:           qam-cluster_2nodes
+description:    >
+  Create a 2 nodes cluster
+  Further info about the test suite
+schedule:
+  - boot/boot_to_desktop
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - ha/ha_cluster_join
+  - ha/check_hawk
+  - ha/dlm
+  - ha/clvmd_lvmlockd
+  - ha/cluster_md
+  - ha/vg
+  - ha/filesystem
+  - ha/drbd_passive
+  - ha/filesystem
+  - ha/ctdb
+  - ha/haproxy
+  - ha/fencing
+  - ha/check_after_reboot
+  - ha/remove_node
+  - ha/check_logs
