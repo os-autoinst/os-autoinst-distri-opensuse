@@ -806,7 +806,7 @@ sub wait_boot_textmode {
     return if check_var('ARCH', 's390x');
 
     my $ready_time       = $args{ready_time};
-    my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
+    my $textmode_needles = [qw(tty1-selected emergency-shell emergency-mode)];
     # 2nd stage of autoyast can be considered as linux-login
     push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
     # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
