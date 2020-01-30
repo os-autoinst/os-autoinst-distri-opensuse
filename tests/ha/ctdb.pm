@@ -31,7 +31,7 @@ sub run {
     # CTDB configuration must be done only in cluster nodes
     if (check_var('CTDB_TEST_ROLE', 'server')) {
         my $ctdb_cfg    = '/etc/samba/smb.conf';
-        my $ctdb_socket = is_sle('15-SP2+') ? '/var/run/ctdb/ctdbd.socket' : '/var/lib/ctdb/ctdb.socket';
+        my $ctdb_socket = '/var/run/ctdb/ctdbd.socket';
         my $ctdb_rsc    = 'ctdb';
         my $nmb_rsc     = 'nmb';
         my $smb_rsc     = 'smb';
@@ -46,6 +46,10 @@ sub run {
 
         # Make sure samba is installed
         zypper_call 'in samba';
+
+        # We need to check samba version because ctdb socket has changed for samba >= 4.10
+        my $samba_version = script_output('rpm -q samba --qf \'%{VERSION}\'|awk -F "+" \'{print "v"$1}\'');
+        $ctdb_socket = '/var/lib/ctdb/ctdb.socket' if (version->parse($samba_version) < version->parse(v4.10.0));
 
         # Make sure the services ctdb , smb , and nmb are disabled
         if (is_sle('15+')) {
