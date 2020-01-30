@@ -48,6 +48,7 @@ sub run {
     }
     # enable source repositories to get latest source packages
     assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
+    assert_script_run 'zypper lr -d';
     # install bind sources to build and run testsuite
     zypper_call 'si bind';
     assert_script_run 'rpm -q bind';
