@@ -2667,6 +2667,7 @@ sub load_publiccloud_tests {
         loadtest "publiccloud/download_repos";
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/ssh_interactive_init",  run_args => $args;
+        loadtest "publiccloud/register_system",       run_args => $args;
         loadtest "publiccloud/transfer_repos",        run_args => $args;
         loadtest "publiccloud/patch_and_reboot",      run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
