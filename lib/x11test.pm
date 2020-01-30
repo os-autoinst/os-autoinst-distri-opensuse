@@ -212,6 +212,26 @@ imapport =993
 recvServer = localhost
 sendServer = localhost
 sendport =25
+
+[internal_account_C]
+user =admin
+mailbox =admin@server
+passwd =password123
+recvport =995
+imapport =993
+recvServer =10.0.2.101
+sendServer =10.0.2.101
+sendport =25
+
+[internal_account_D]
+user =nimda
+mailbox =nimda@server
+passwd =password123
+recvport =995
+imapport =993
+recvServer =10.0.2.101
+sendServer =10.0.2.101
+sendport =25
 END_LOCAL_CONFIG
 
     my $config = Config::Tiny->new;
@@ -442,7 +462,12 @@ sub setup_mail_account {
     if (match_has_tag 'evolution_wizard-receiving-not-focused') {
         record_info('workaround', "evolution window not focused, sending key");
         assert_and_click "evolution_wizard-receiving-not-focused";
-        send_key "ret";
+        if (is_tumbleweed) {
+            assert_and_click "evolution_wizard-receiving-not-focused-next";
+        }
+        else {
+            send_key "ret";
+        }
         assert_screen "evolution_wizard-receiving-opts";
     }
     send_key "ret";    #only need in SP2 or later, or tumbleweed
@@ -472,20 +497,20 @@ sub setup_mail_account {
         send_key "alt-m";
     };
     send_key "ret";
-    send_key_until_needlematch "evolution_wizard-sending-starttls", "down", 5, 3;
-    send_key "ret";
 
-    #Known issue: hot key 'alt-y' doesn't work
-    #wait_screen_change {
-    #   send_key "alt-y";
-    #};
-    #send_key "ret";
-    #send_key_until_needlematch "evolution_wizard-sending-authtype", "down", 5, 3;
-    #send_key "ret";
-    #Workaround of above issue: click the 'Check' button
+    #change to use mail-server and SSL
+    assert_and_click "evolution_SSL_wizard-sending-starttls";
+
+    #On TW, need change port manually:
+    if (is_tumbleweed) {
+        wait_screen_change {
+            send_key "alt-p";
+        };
+        type_string "465";
+    }
+
     assert_and_click "evolution_wizard-sending-setauthtype";
-    send_key_until_needlematch "evolution_wizard-sending-authtype", "down", 5, 3;
-    send_key "ret";
+    assert_and_click "evolution_wizard-sending-setauthtype_login";
     wait_screen_change { send_key 'alt-n' };
     type_string "$mail_user";
     assert_and_click("evolution_wizard-sending_username_filled");
@@ -496,7 +521,12 @@ sub setup_mail_account {
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
     if (check_screen "evolution_mail-auth", 30) {
-        send_key "alt-a";    #disable keyring option
+        if (is_sle('15+')) {
+            send_key "alt-a";    #disable keyring option
+        }
+        else {
+            assert_and_click("disable_keyring_option");
+        }
         send_key "alt-p";
         type_password $mail_passwd;
         send_key "ret";
@@ -505,6 +535,12 @@ sub setup_mail_account {
         send_key "super-up";
     }
     if (check_screen "evolution_mail-auth", 30) {
+        if (is_sle('15+')) {
+            send_key "alt-a";    #disable keyring option
+        }
+        else {
+            assert_and_click("disable_keyring_option");
+        }
         send_key "alt-p";
         type_password $mail_passwd;
         send_key "ret";

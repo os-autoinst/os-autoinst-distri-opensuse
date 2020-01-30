@@ -23,8 +23,16 @@ use testapi;
 use utils;
 
 sub run {
-    my $self    = shift;
-    my $account = "internal_account_A";
+    my $self = shift;
+    # Select correct account to use with multimachine.
+    my $account  = "internal_account";
+    my $hostname = get_var('HOSTNAME');
+    if ($hostname eq 'client') {
+        $account = "internal_account_C";
+    }
+    else {
+        $account = "internal_account_A";
+    }
     $self->setup_pop($account);
 
     my $mail_subject = $self->evolution_send_message($account);
