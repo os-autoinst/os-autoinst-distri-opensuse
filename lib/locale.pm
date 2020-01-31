@@ -38,6 +38,7 @@ sub verify_default_keymap_textmode {
         assert_screen(has_ttys() ? 'linux-login' : 'cleared_console');
     }
 
+    wait_still_screen;
     type_string($test_string);
     assert_screen($tag);
     # clear line in order to add user bernhard to tty group
