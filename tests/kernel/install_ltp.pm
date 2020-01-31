@@ -28,6 +28,7 @@ use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
+use LTP::utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -355,6 +356,8 @@ sub run {
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     setup_network;
+    prepare_ltp_env();
+    assert_script_run('generate_lvm_runfile.sh');
     upload_runtest_files('/opt/ltp/runtest', $tag);
 
     if (get_var('LTP_COMMAND_FILE')) {

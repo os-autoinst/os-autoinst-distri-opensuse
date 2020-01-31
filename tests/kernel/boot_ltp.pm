@@ -15,11 +15,11 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use LTP::WhiteList 'download_whitelist';
+use LTP::utils;
 use version_utils 'is_jeos';
 
 sub run {
     my ($self, $tinfo) = @_;
-    my $ltp_env    = get_var('LTP_ENV');
     my $cmd_file   = get_var('LTP_COMMAND_FILE') || '';
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $is_ima     = $cmd_file =~ m/^ima$/i;
@@ -42,25 +42,12 @@ sub run {
 
     download_whitelist if get_var('LTP_KNOWN_ISSUES');
 
-    assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
-
-    # setup for LTP networking tests
-    assert_script_run("export PASSWD='$testapi::password'");
-
-    my $block_dev = get_var('LTP_BIG_DEV');
-    if ($block_dev && get_var('NUMDISKS') > 1) {
-        assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
-    }
-
     # check kGraft patch if KGRAFT=1
     if (check_var('KGRAFT', '1') && !check_var('REMOVE_KGRAFT', '1')) {
         assert_script_run("uname -v| grep -E '(/kGraft-|/lp-)'");
     }
 
-    if ($ltp_env) {
-        $ltp_env =~ s/,/ /g;
-        script_run("export $ltp_env");
-    }
+    prepare_ltp_env();
     script_run('env');
     upload_logs('/boot/config-$(uname -r)', failok => 1);
 
@@ -166,8 +153,6 @@ EOF
     script_run 'grep -e Huge -e PageTables /proc/meminfo';
     script_run 'echo 1 > /proc/sys/vm/nr_hugepages';
     script_run 'grep -e Huge -e PageTables /proc/meminfo';
-
-    assert_script_run('cd $LTPROOT/testcases/bin');
 }
 
 sub test_flags {
