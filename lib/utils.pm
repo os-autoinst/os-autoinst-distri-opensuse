@@ -450,7 +450,7 @@ sub type_string_very_slow {
         sleep 3;
     }
     else {
-        wait_still_screen 1;
+        wait_still_screen(1, 3);
     }
 }
 
