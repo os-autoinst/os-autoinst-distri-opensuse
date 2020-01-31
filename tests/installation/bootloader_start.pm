@@ -71,7 +71,7 @@ sub run {
         }
     }
     # Wrapped call for powerVM
-    if (check_var('BACKEND', 'spvm')) {
+    if (get_var('BACKEND', '') =~ /spvm|pvm_hmc/) {
         $self->bootloader::run();
         return;
     }
