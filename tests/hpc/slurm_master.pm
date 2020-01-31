@@ -219,7 +219,7 @@ sub t05_basic {
     my $result      = 0;
 
     my $pmi_versions = script_output("srun --mpi=list");
-    $result = 1 unless ($pmi_versions =~ m/'pmix'/);
+    $result = 1 unless ($pmi_versions =~ m/pmix/);
     record_info('INFO', script_output("srun --mpi=list"));
 
     my %results = generate_results($name, $description, $result);
