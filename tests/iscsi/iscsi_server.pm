@@ -245,10 +245,10 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    my $self            = shift;
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
     my $target_label    = $test_data->{target_conf}->{name} . '\\:' . $test_data->{target_conf}->{id};
     my $initiator_label = $test_data->{initiator_conf}->{name} . '\\:' . $test_data->{initiator_conf}->{id};
-    select_console 'root-console';
     display_targets;
     unless (script_run('ls -la /sys/kernel/config/iscsi')) {
         # show amount of normal logouts
@@ -264,7 +264,6 @@ sub post_fail_hook {
         # show auth credentials and acls configuration
         script_run 'cat /sys/kernel/config/target/iscsi/' . $target_label . '/tpgt_1/acls/' . $initiator_label . '/tpgt_1/acls/auth/*';
     }
-    $self->SUPER::post_fail_hook;
 }
 
 1;
