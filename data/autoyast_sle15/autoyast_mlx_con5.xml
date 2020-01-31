@@ -25,6 +25,7 @@
     <global>
       <append>console=ttyS1,115200 noquiet crashkernel=172M,high crashkernel=72M,low</append>
       <gfxmode>auto</gfxmode>
+      <boot_mbr>true</boot_mbr>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <serial>serial --unit=1 --speed=115200 --parity=no</serial>
