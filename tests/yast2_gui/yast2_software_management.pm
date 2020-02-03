@@ -22,7 +22,8 @@ sub run {
     $self->launch_yast2_module_x11('sw_single', match_timeout => 25);
     # Accept => Exit, or get to the installation report
     send_key 'alt-a';
-    assert_screen [qw(sw_single_ui_installation_report generic-desktop)];
+    # Installation may take some time
+    assert_screen [qw(sw_single_ui_installation_report generic-desktop)], timeout => 60;
     if (match_has_tag('sw_single_ui_installation_report')) {
         # Press finish
         send_key 'alt-f';
