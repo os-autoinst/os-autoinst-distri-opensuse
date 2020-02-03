@@ -110,7 +110,7 @@ sub cluster_names {
     return @cluster_names;
 }
 
-=head2
+=head2 distribute_munge_key
 
 Distributes munge kyes across all cluster nodes
 
@@ -123,7 +123,7 @@ sub distribute_munge_key {
     }
 }
 
-=head2
+=head2 distribute_slurm_conf
 
 Distributes slurm config across all cluster nodes
 
@@ -136,7 +136,7 @@ sub distribute_slurm_conf {
     }
 }
 
-=head2
+=head2 generate_and_distribute_ssh
 
 Generates and distributes ssh keys across all cluster nodes
 
@@ -150,7 +150,7 @@ sub generate_and_distribute_ssh {
     }
 }
 
-=head2
+=head2 check_nodes_availability
 
 Checks if all listed HPC cluster nodes are available (ping)
 
@@ -163,7 +163,7 @@ sub check_nodes_availability {
     }
 }
 
-=head2
+=head2 mount_nfs
 
 Ensure correct dir is created, and correct NFS dir is mounted on SUT
 
