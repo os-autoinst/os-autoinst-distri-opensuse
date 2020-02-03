@@ -630,6 +630,7 @@ sub fill_in_registration_data {
                 record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
                 send_key $cmd{next};
                 assert_screen "remove-repository";
+                send_key $cmd{next};
             }
         }
     }
