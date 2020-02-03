@@ -13,6 +13,7 @@
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
 use base 'hpcbase';
+use base 'hpc::test_runner';
 use strict;
 use warnings;
 use testapi;
@@ -20,6 +21,59 @@ use lockapi;
 use utils;
 use registration;
 use version_utils 'is_sle';
+
+sub run_tests {
+    my ($slurm_conf) = @_;
+
+    my @all_tests_results;
+
+    # always run basic tests
+    push(@all_tests_results, run_basic_tests());
+
+    if ($slurm_conf =~ /ha/) {
+        push(@all_tests_results, run_ha_tests());
+    } elsif ($slurm_conf =~ /accounting/) {
+        push(@all_tests_results, run_accounting_tests());
+    } elsif ($slurm_conf =~ /nfs_db/) {
+        # this set-up allows both, ha and accounting tests
+        push(@all_tests_results, run_accounting_tests());
+        push(@all_tests_results, run_ha_tests());
+    }
+
+    pars_results(@all_tests_results);
+}
+
+sub run_basic_tests {
+    my @all_results;
+
+    my %test00 = t00_version_check();
+    push(@all_results, \%test00);
+
+    my %test01 = t01_basic();
+    push(@all_results, \%test01);
+
+    return @all_results;
+}
+
+sub t00_basic {
+    my $description = 'Simple check of mpi compiler';
+
+    my $result = script_output('mpirun --version');
+    my $name   = "MPI version check: $result";
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t00_version_check {
+    my $description = 'Simple version print for ease of checking';
+
+    my $result = script_output('mpirun --version');
+    my $name   = "MPI version check: $result";
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
 
 sub run {
     my $self          = shift;
@@ -81,6 +135,8 @@ sub run {
     } else {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi");
     }
+
+    run_tests();
 
     barrier_wait('MPI_RUN_TEST');
 }
