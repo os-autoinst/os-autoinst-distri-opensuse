@@ -19,13 +19,13 @@ use utils;
 
 sub run {
     my $self = shift;
-    my $mpi  = get_required_var("MPI");
+    my $mpi  = get_required_var('MPI');
 
     zypper_call("in $mpi");
 
-    barrier_wait("MPI_SETUP_READY");
-    barrier_wait("MPI_BINARIES_READY");
-    barrier_wait("MPI_RUN_TEST");
+    barrier_wait('MPI_SETUP_READY');
+    barrier_wait('MPI_BINARIES_READY');
+    barrier_wait('MPI_RUN_TEST');
 }
 
 sub test_flags {
