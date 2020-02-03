@@ -98,7 +98,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-unused-modules test-deleted-renamed-referenced-modules test-soft_failure-no-reference test-spec test-invalid-syntax
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
@@ -119,6 +119,10 @@ perlcritic: tools/lib/
 .PHONY: test-unused-modules
 test-unused-modules:
 	tools/detect_unused_modules
+
+.PHONY: test-deleted-renamed-referenced-modules
+test-deleted-renamed-referenced-modules:
+	tools/test_deleted_renamed_referenced_modules `git diff --name-only --exit-code --diff-filter=DR $$(git merge-base master HEAD) | grep '^tests/*'`
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
