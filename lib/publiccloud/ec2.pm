@@ -26,10 +26,9 @@ sub vault_create_credentials {
     my ($self) = @_;
 
     record_info('INFO', 'Get credentials from VAULT server.');
-    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/aws/creds/openqa-role', method => 'get');
-    $self->vault_lease_id($res->{lease_id});
-    $self->key_id($res->{data}->{access_key});
-    $self->key_secret($res->{data}->{secret_key});
+    my $data = $self->vault_get_secrets('/aws/creds/openqa-role');
+    $self->key_id($data->{access_key});
+    $self->key_secret($data->{secret_key});
     die('Failed to retrieve key') unless (defined($self->key_id) && defined($self->key_secret));
 }
 
