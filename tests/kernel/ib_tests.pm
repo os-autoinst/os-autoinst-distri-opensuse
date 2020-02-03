@@ -108,15 +108,6 @@ sub run {
 
     $self->select_serial_terminal;
 
-    ## adding required sdk
-    ##TODO: consider better ways of handling addons/modules etc
-    ## https://progress.opensuse.org/issues/54773
-    if (is_sle '<15') {
-        zypper_call("ar -f ftp://openqa.suse.de/SLE-$version-SDK-POOL-$arch-Build$sdk_version-Media1/ SDK");
-    } else {
-        add_suseconnect_product("sle-module-development-tools");
-    }
-
     # unload firewall. MPI- and libfabric-tests require too many open ports
     systemctl("stop " . opensusebasetest::firewall);
     barrier_wait('IBTEST_SETUP');
