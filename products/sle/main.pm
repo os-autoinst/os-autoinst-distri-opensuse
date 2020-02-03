@@ -542,6 +542,8 @@ sub load_baremetal_tests {
         get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
         load_reboot_tests();
     }
+    # make sure we always have the toolchain installed
+    loadtest "toolchain/install";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
