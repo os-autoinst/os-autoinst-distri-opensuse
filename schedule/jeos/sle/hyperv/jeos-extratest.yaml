@@ -47,7 +47,6 @@ schedule:
   - console/shells
   - console/dstat
   - console/journalctl
-  - console/procps
   - console/docker
   - console/docker_runc
   - console/docker_image
