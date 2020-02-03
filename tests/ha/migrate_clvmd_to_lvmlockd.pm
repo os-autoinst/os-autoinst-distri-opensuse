@@ -26,7 +26,8 @@ sub run {
     # We may execute this test after a reboot, so we need to log in
     select_console 'root-console';
 
-    # Only perform clvm to lvmlockd migration if the cluster has clvm resources
+    # Only perform clvm to lvmlockd migration if the cluster is up and has clvm resources
+    assert_script_run $crm_mon_cmd;
     my $clvm_rsc = script_run "$crm_mon_cmd | grep -wq clvm";
     return unless (defined $clvm_rsc and $clvm_rsc == 0);
 
@@ -40,11 +41,13 @@ sub run {
     }
 
     if (is_node(1)) {
+        # Keep track of which resources are defined in the cluster
+        my %rsc_not_exists = ();
         # Stop all affected resources, and remove clvm resource from cluster
-        for my $rsc (qw(fs_cluster_md vg_cluster_md cluster_md clvm)) {
-            assert_script_run "crm resource stop $rsc";
+        for my $rsc (qw(fs_cluster_md vg_cluster_md cluster_md clvm clvmd)) {
+            $rsc_not_exists{$rsc} = script_run "crm resource stop $rsc";
+            assert_script_run "crm configure delete $rsc" if ($rsc =~ /clvm/ && !$rsc_not_exists{$rsc});
         }
-        assert_script_run 'crm configure delete clvm';
 
         # With clvm resource removed from the cluster, configure lvmlockd
         # Set use_lvmetad=1, lvmlockd supports lvmetad. Set locking_type=1 for lvmlockd. Enable lvmlockd
@@ -58,16 +61,18 @@ sub run {
         save_state;
 
         # Restart cluster_md
-        assert_script_run 'crm resource start cluster_md';
+        assert_script_run 'crm resource start cluster_md' unless $rsc_not_exists{cluster_md};
         sleep 5;
 
         # Migrate volume group to lvmlockd
-        assert_script_run 'vgchange --lock-type none --lock-opt force -y vg_cluster_md';
-        assert_script_run 'vgchange --lock-type dlm vg_cluster_md';
+        if (!$rsc_not_exists{vg_cluster_md}) {
+            assert_script_run 'vgchange --lock-type none --lock-opt force -y vg_cluster_md';
+            assert_script_run 'vgchange --lock-type dlm vg_cluster_md';
+        }
 
         # Start volume group and filesystem resources
-        assert_script_run 'crm resource start vg_cluster_md';
-        assert_script_run 'crm resource start fs_cluster_md';
+        assert_script_run 'crm resource start vg_cluster_md' unless $rsc_not_exists{vg_cluster_md};
+        assert_script_run 'crm resource start fs_cluster_md' unless $rsc_not_exists{fs_cluster_md};
         sleep 5;
         save_state;
     }
