@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,6 +14,7 @@
 
 use base 'hpcbase';
 use base 'hpc::configs';
+use base 'hpc::test_runner';
 use strict;
 use warnings;
 use testapi;
@@ -22,68 +23,8 @@ use utils;
 use Data::Dumper;
 use Mojo::JSON;
 
-## TODO: provide better parser for HPC specific tests
-sub validate_result {
-    my ($result) = @_;
-
-    if ($result == 0) {
-        return 'PASS';
-    } elsif ($result == 1) {
-        return 'FAIL';
-    } else {
-        return undef;
-    }
-}
-
-sub generate_results {
-    my ($name, $description, $result) = @_;
-
-    my %results = (
-        test        => $name,
-        description => $description,
-        result      => validate_result($result)
-    );
-    return %results;
-}
-
-sub pars_results {
-    my (@test) = @_;
-    my $file = 'tmpresults.xml';
-
-    # check if there are some single test failing
-    # and if so, make sure the whole testsuite will fail
-    my $fail_check = 0;
-    for my $i (@test) {
-        if ($i->{result} eq 'FAIL') {
-            $fail_check++;
-        }
-    }
-
-    if ($fail_check > 0) {
-        script_run("echo \"<testsuite name='HPC single tests' errors='1'>\" >> $file");
-    } else {
-        script_run("echo \"<testsuite name='HPC single tests'>\" >> $file");
-    }
-
-    # pars all results and provide expected xml file
-    for my $i (@test) {
-        if ($i->{result} eq 'FAIL') {
-            script_run("echo \"<testcase name='$i->{test}' errors='1'>\" >>  $file");
-        } else {
-            script_run("echo \"<testcase name='$i->{test}'>\" >> $file");
-        }
-        script_run("echo \"<system-out>\" >> $file");
-        script_run("echo $i->{description} >>  $file");
-        script_run("echo \"</system-out>\" >> $file");
-        script_run("echo \"</testcase>\" >> $file");
-    }
-}
-
 sub run_tests {
     my ($slurm_conf) = @_;
-
-    my $file = 'tmpresults.xml';
-    assert_script_run("touch $file");
 
     my @all_tests_results;
 
@@ -101,9 +42,6 @@ sub run_tests {
     }
 
     pars_results(@all_tests_results);
-
-    script_run("echo \"</testsuite>\" >> $file");
-    parse_extra_log('XUnit', 'tmpresults.xml');
 }
 
 ########################################
