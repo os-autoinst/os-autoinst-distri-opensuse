@@ -32,6 +32,8 @@ sub run {
 
     # Test modhash command
     if (!is_sle('=12-sp1') && !is_sle('=12-sp5') && !is_sle('>=15-sp1') && !is_tumbleweed()) {
+        # poo#59903 need to install mokutil if modhash not present
+        script_run("modhashfq=/usr/bin/modhash; [ -e \$modhashfq ] || zypper in -y mokutil");
         # Get the output and test it against correct output
         assert_script_run("modhash $pth | grep -E \"$pth: [0-9a-fA-F]+\"");
     }
