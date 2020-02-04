@@ -40,7 +40,6 @@ schedule:
   - console/ca_certificates_mozilla
   - console/unzip
   - console/salt
-  - console/machinery
   - console/gpg
   - console/rsync
   - console/shells
@@ -50,5 +49,4 @@ schedule:
   - console/docker
   - console/docker_runc
   - console/docker_image
-  - sysauth/sssd
   - console/zypper_docker
