@@ -1,0 +1,39 @@
+---
+description: >
+  Conduct installation with encrypted LVM without separate boot partition,
+  only prep boot is created. Partitioning is validated after the installation.
+  For powerVM we have to disable plymouth, so edit_optional_kernel_cmd_parameters
+  module is scheduled and OPT_KERNEL_PARAMS variable is set.
+name: lvm-full-encrypt
+vars:
+  DESKTOP: textmode
+  ENCRYPT: 1
+  FULL_LVM_ENCRYPT: 1
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_full_lvm
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/edit_optional_kernel_cmd_parameters
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
