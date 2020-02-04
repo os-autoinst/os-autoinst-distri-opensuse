@@ -25,7 +25,7 @@ sub run {
     my $test_data  = get_test_suite_data();
     my %partitions = %{$test_data->{file_system}};
 
-    select_console('root-console') unless (current_console() eq "root_console");
+    # select_console('root-console');
     validate_partition_table({device => $test_data->{device}, table_type => $test_data->{table_type}});
 
     foreach (keys %partitions) {
