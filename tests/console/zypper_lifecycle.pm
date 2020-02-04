@@ -81,9 +81,9 @@ sub run {
     }
     die "No suitable package found. Script output:\nOutput: '$output'" unless $package;
 
-    my $testdate        = '2020-02-03';
-    my $testdate_after  = '2020-02-04';
-    my $testdate_before = '2020-02-02';
+    my $testdate        = '2620-02-03';
+    my $testdate_after  = '2620-02-04';
+    my $testdate_before = '2620-02-02';
     # backup and create our lifecycle data with known content
     select_console 'root-console';
     assert_script_run "
