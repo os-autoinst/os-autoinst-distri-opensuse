@@ -1,0 +1,21 @@
+#!/bin/sh -e
+
+FILES="${@}"
+success=1
+for FILE in $FILES; do
+    if [ -f "$FILE" ]; then
+        # if file exists it means it was renamed, and then original file name is retrieved by git log
+        FILE=$(git log --follow -p $FILE | grep 'rename from tests/')
+    fi
+    # module name as appears in scheduling files excluding 'tests/' and file extension
+    module=$(echo $FILE | cut -f 2- -d '/' | cut -f 1 -d '.')
+    target_paths='schedule/ products/*/main.pm lib/main_common.pm'
+    MATCHED_SCHEDULE_FILES=$(grep --recursive --ignore-case --files-with-matches $module $target_paths)
+    if [ "$MATCHED_SCHEDULE_FILES" ]; then
+        echo -e "\"$module\" test module was removed or renamed, but it is still used in: \
+        \n$MATCHED_SCHEDULE_FILES\n"
+        success=0
+    fi
+done
+[ $success = 1 ] && echo "SUCCESS" && exit 0
+exit 1
