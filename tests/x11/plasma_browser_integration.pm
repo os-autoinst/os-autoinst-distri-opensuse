@@ -35,7 +35,7 @@ sub run {
     # Click on the reminder, it might take a while to appear
     assert_and_click('plasma-browser-integration-reminder', 30);
     # Click "Add to Firefox". Longer timeout as loading can take a while
-    assert_and_click('plasma-browser-integration-install', 120);
+    assert_and_click('plasma-browser-integration-install', 180);
     # Confirm installation
     assert_and_click('plasma-browser-integration-install-confirm');
     # Ack the "has been added" popup
