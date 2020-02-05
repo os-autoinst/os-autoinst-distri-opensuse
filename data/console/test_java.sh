@@ -61,6 +61,9 @@ find_all_installed_java() {
     # File that contains all the OpenJDK Java installed in the system
     grep "^java-" $RPM_QUERY_JAVA | grep "openjdk" | awk -F 'openjdk' '{print $1 "openjdk"}' | sort -r | uniq > $LIST_INSTALLED_JDK_VERSIONS
 
+    # File that contains all the OpenJ9 Java installed in the system
+    grep "^java-" $RPM_QUERY_JAVA | grep "openj9" | awk -F 'openj9' '{print $1 "openj9"}' | sort -r | uniq >> $LIST_INSTALLED_JDK_VERSIONS
+
     # File that contains all the GCC Java installed in the system
     grep "^java-" $RPM_QUERY_JAVA | grep "gcj" | awk -F 'gcj' '{print $1 "gcj-compat"}' | sort -r | uniq > $LIST_INSTALLED_GCJ_VERSIONS
 
