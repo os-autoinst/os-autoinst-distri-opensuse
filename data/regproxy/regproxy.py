@@ -8,7 +8,7 @@ import json
 import _thread
 
 def availableRepos(prefix):
-	conn = http.client.HTTPSConnection("hydra.opensuse.org")
+	conn = http.client.HTTPSConnection("obs-login.opensuse.org")
 	headers={"Host": "registry.opensuse.org"}
 	conn.request("GET", "/v2/_catalog", None, headers)
 	resp = conn.getresponse()
