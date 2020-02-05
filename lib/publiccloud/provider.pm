@@ -329,7 +329,7 @@ sub terraform_apply {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media   = get_required_var('HANA');
         my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
-        my $sle_version = get_required_var('VERSION');
+        my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%)         => $instance_type,
