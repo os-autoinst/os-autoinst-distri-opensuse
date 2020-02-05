@@ -62,14 +62,12 @@ sub run {
     wait_still_screen stilltime => 1, timeout => 5;
     assert_and_click 'browse';
     assert_and_click 'select-store-trusted-roots';
-    # confirm selected certificate store
-    wait_screen_change(sub { send_key 'ret' }, 10);
+    # confirm selected certificate store and then
     # hit next
-    wait_screen_change(sub { send_key 'ret' }, 10);
-    for (1 .. 2) {
-        assert_screen 'successful-certificate-import';
-        wait_screen_change(sub { send_key 'ret' }, 10);
-    }
+    wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
+    assert_screen 'completing-cert-import';
+    assert_and_click 'finish-button-in-win10';
+    assert_screen 'successful-certificate-import';
 
     # close all opened windows, including powershell
     send_key_until_needlematch 'powershell-ready-prompt', 'alt-f4', 25, 2;
