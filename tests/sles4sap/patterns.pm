@@ -66,6 +66,9 @@ sub run {
 
     # Some specific package may be needed in HA mode
     zypper_call 'in sap-suse-cluster-connector' if get_var('HA_CLUSTER');
+
+    # Workaround for textmode based test, as there is no SAP profiles with textmode yet
+    zypper_call 'in libgomp1' if check_var('SYSTEM_ROLE', 'textmode');
 }
 
 sub test_flags {

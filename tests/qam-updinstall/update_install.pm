@@ -49,11 +49,13 @@ sub install_packages {
                 'kernel-xen'           => 'kernel-xen-base',
                 'kernel-xen-base'      => 'kernel-xen',
                 'xen-tools'            => 'xen-tools-domU',
-                'xen-tools-domU'       => 'xen-tools'
+                'xen-tools-domU'       => 'xen-tools',
+                'p11-kit-nss-trust'    => 'mozilla-nss-certs',
+                'rmt-server-config'    => 'rmt-server-pubcloud'
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
             # go to next package if it's not provided by repos
-            record_info('Not present', "$package is added in patch") && next if (script_run("zypper -n se -x $package") == 104);
+            record_info('Not present', "$package is added in patch") && next if (script_run("zypper -n se -t package -x $package") == 104);
             # install package
             zypper_call("in -l $package", exitcode => [0, 102, 103]);
             save_screenshot;

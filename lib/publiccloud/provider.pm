@@ -423,6 +423,7 @@ Destroys the current terraform deployment
 =cut
 sub terraform_destroy {
     my ($self) = @_;
+    return if get_required_var('TEST') eq 'publiccloud_upload_img';
     record_info('INFO', 'Removing terraform plan...');
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
@@ -489,6 +490,7 @@ sub vault_api {
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
     $url = $url . $path;
+    bmwqemu::diag("Request Vault REST API: $url");
     if ($method eq 'get') {
         $res = $ua->get($url =>
               {'X-Vault-Token' => $self->vault_token()})->result;
@@ -511,6 +513,23 @@ sub vault_api {
     }
 
     return $res->json;
+}
+
+=head2 vault_get_secrets
+
+  my $data = $csp->vault_get_secrets('/azure/creds/openqa-role')
+
+This is a wrapper around C<vault_api()> to retrieve secrets from aws, gce or
+azure secret engine.
+It prepend C<'/v1/' + $NAMESPACE> to the given path before sending the request.
+It stores lease_id and also adjust the token-live-time.
+=cut
+sub vault_get_secrets {
+    my ($self, $path) = @_;
+    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . $path, method => 'get');
+    $self->vault_lease_id($res->{lease_id});
+    $self->vault_api('/v1/auth/token/renew-self', method => 'post', data => {increment => $res->{lease_duration} . 's'});
+    return $res->{data};
 }
 
 =head2 vault_revoke

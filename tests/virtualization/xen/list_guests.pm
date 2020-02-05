@@ -16,18 +16,26 @@ use testapi;
 use utils;
 
 sub run {
-    assert_script_run "virsh list --all", 180;
-    script_run "virsh net-start default";
+    if (script_run("virsh net-list --all | grep default | grep ' active'", 30) != 0) {
+        assert_script_run "virsh net-start default";
+    }
 
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Listing $guest";
-        if (script_run("virsh list --all | grep $guest | grep \"shut off\"", 90) == 0) {
-            record_soft_failure "Guest $guest should be on but is not";
-            assert_script_run "virsh start $guest";
+    assert_script_run "virsh list --all", 90;
+
+    # Check for powered off guests
+    if (script_run("virsh list --all | grep \"shut off\"", 90) == 0) {
+        foreach my $guest (keys %xen::guests) {
+            if (script_run("virsh list --all | grep \"$guest\" | grep \"shut off\"", 90) == 0) {
+                record_soft_failure "$guest should be on but is not";
+                assert_script_run "virsh start $guest";
+            }
         }
+    }
 
-        record_info "$guest", "Establishing SSH connection to $guest";
-        assert_script_run "ping -c3 -W1 $guest";
+    # Check for SSH not ready guests
+    foreach my $guest (keys %xen::guests) {
+        record_info "$guest", "Establishing connection to $guest";
+        script_retry "ping -c3 -W1 $guest", delay => 15, retry => 12;
         assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
     }
 }

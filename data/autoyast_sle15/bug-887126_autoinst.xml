@@ -164,7 +164,7 @@
     </general>
   </kdump>
   <keyboard>
-    <keymap>en</keymap>
+    <keymap>english-us</keymap>
   </keyboard>
   <language>
     <language>en_US</language>

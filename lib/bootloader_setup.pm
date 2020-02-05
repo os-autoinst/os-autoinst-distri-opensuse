@@ -117,7 +117,7 @@ sub add_custom_grub_entries {
     }
 
     bmwqemu::diag("Trying to trigger purging old kernels before changing grub menu");
-    assert_script_run('[ -x /sbin/purge-kernels ] && /sbin/purge-kernels');
+    script_run('/sbin/purge-kernels');
 
     assert_script_run("cp " . GRUB_CFG_FILE . " $cfg_old");
     upload_logs($cfg_old, failok => 1);
@@ -309,7 +309,7 @@ sub select_bootmenu_option {
 }
 
 sub get_extra_boot_params {
-    my @params = split ' ', get_var('EXTRABOOTPARAMS');
+    my @params = split ' ', get_var('EXTRABOOTPARAMS', '');
     return @params;
 }
 

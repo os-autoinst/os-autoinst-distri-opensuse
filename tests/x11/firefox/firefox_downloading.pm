@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 # firefox
 # - Open firefox preferences, change download to "Always ask you where to save
 # files"
-# - Open url "http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso"
+# - Open url "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso"
 # - Show download window
 # - Pause download
 # - Resume download and check
@@ -22,7 +22,7 @@
 # - Cancel download and remove from history
 # - Open firefox preferences, change download to save files by default
 # - Open
-# url"http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso"
+# url"http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso"
 # and "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso"
 # - Open download library and check both downloads running
 # - Cancel both downloads
@@ -36,8 +36,8 @@ use base "x11test";
 use testapi;
 use version_utils 'is_sle';
 
-my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.2/iso/openSUSE-Leap-42.2-DVD-x86_64.iso";
-my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/42.3/iso/openSUSE-Leap-42.3-DVD-x86_64.iso";
+my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso";
+my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.0/iso/openSUSE-Leap-15.0-DVD-x86_64.iso";
 
 sub dl_location_switch {
     my ($tg) = @_;

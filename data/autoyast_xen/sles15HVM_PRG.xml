@@ -4,161 +4,63 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://smt-scc.nue.suse.com/repo/SUSE/Products/SLE-Module-Server-Applications/15-SP1/x86_64/product?credentials=SMT-http_smt-scc_nue_suse_com]]></media_url>
-        <product>sle-module-server-applications</product>
-        <product_dir/>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Public-Cloud/15/x86_64/product/]]></media_url>
+        <product>sle-module-public-cloud</product>
+        <product_dir>/</product_dir>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://smt-scc.nue.suse.com/repo/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/product?credentials=SMT-http_smt-scc_nue_suse_com]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Web-Scripting/15/x86_64/product/]]></media_url>
+        <product>sle-module-web-scripting</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Containers/15/x86_64/product/]]></media_url>
+        <product>sle-module-containers</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Desktop-Applications/15/x86_64/product/]]></media_url>
+        <product>sle-module-desktop-applications</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Server-Applications/15/x86_64/product/]]></media_url>
+        <product>sle-module-server-applications</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Live-Patching/15/x86_64/product/]]></media_url>
+        <product>sle-module-live-patching</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Updates/SLE-Module-Legacy/15/x86_64/update/]]></media_url>
+        <product>sle-module-legacy</product>
+        <product_dir>/</product_dir>
+      </listentry>
+      <listentry>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Basesystem/15/x86_64/product/]]></media_url>
         <product>sle-module-basesystem</product>
-        <product_dir/>
+        <product_dir>/</product_dir>
       </listentry>
     </add_on_products>
   </add-on>
   <bootloader>
     <global>
-      <append>resume=/dev/xvda3 quiet crashkernel=164M,high crashkernel=72M,low</append>
+      <append>splash=silent quiet showopts splash=silent quiet showopts console=ttyS0</append>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
-      <smt>true</smt>
       <terminal>gfxterm</terminal>
       <timeout config:type="integer">8</timeout>
       <trusted_grub>false</trusted_grub>
-      <xen_kernel_append>vga=gfx-1024x768x16 crashkernel=236M\&lt;4G</xen_kernel_append>
+      <xen_kernel_append>vga=gfx-1024x768x16 vga=gfx-1024x768x16 vga=gfx-1024x768x16</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
-  <firewall>
-    <default_zone>public</default_zone>
-    <enable_firewall config:type="boolean">true</enable_firewall>
-    <log_denied_packets>off</log_denied_packets>
-    <start_firewall config:type="boolean">true</start_firewall>
-    <zones config:type="list">
-      <zone>
-        <description>Unsolicited incoming network packets are rejected. Incoming packets that are related to outgoing network connections are accepted. Outgoing network connections are allowed.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>block</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list"/>
-        <short>Block</short>
-        <target>%%REJECT%%</target>
-      </zone>
-      <zone>
-        <description>For computers in your demilitarized zone that are publicly-accessible with limited access to your internal network. Only selected incoming connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>dmz</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list">
-          <service>ssh</service>
-        </services>
-        <short>DMZ</short>
-        <target>default</target>
-      </zone>
-      <zone>
-        <description>Unsolicited incoming network packets are dropped. Incoming packets that are related to outgoing network connections are accepted. Outgoing network connections are allowed.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>drop</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list"/>
-        <short>Drop</short>
-        <target>DROP</target>
-      </zone>
-      <zone>
-        <description>For use on external networks. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">true</masquerade>
-        <name>external</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list">
-          <service>ssh</service>
-        </services>
-        <short>External</short>
-        <target>default</target>
-      </zone>
-      <zone>
-        <description>For use in home areas. You mostly trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>home</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list">
-          <service>ssh</service>
-          <service>mdns</service>
-          <service>samba-client</service>
-          <service>dhcpv6-client</service>
-        </services>
-        <short>Home</short>
-        <target>default</target>
-      </zone>
-      <zone>
-        <description>For use on internal networks. You mostly trust the other computers on the networks to not harm your computer. Only selected incoming connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>internal</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list">
-          <service>ssh</service>
-          <service>mdns</service>
-          <service>samba-client</service>
-          <service>dhcpv6-client</service>
-        </services>
-        <short>Internal</short>
-        <target>default</target>
-      </zone>
-      <zone>
-        <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>public</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list">
-          <service>ssh</service>
-          <service>dhcpv6-client</service>
-        </services>
-        <short>Public</short>
-        <target>default</target>
-      </zone>
-      <zone>
-        <description>All network connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>trusted</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list"/>
-        <short>Trusted</short>
-        <target>ACCEPT</target>
-      </zone>
-      <zone>
-        <description>For use in work areas. You mostly trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
-        <interfaces config:type="list"/>
-        <masquerade config:type="boolean">false</masquerade>
-        <name>work</name>
-        <ports config:type="list"/>
-        <protocols config:type="list"/>
-        <services config:type="list">
-          <service>ssh</service>
-          <service>dhcpv6-client</service>
-        </services>
-        <short>Work</short>
-        <target>default</target>
-      </zone>
-    </zones>
-  </firewall>
   <general>
     <ask-list config:type="list"/>
     <mode>
@@ -187,7 +89,7 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>491</gid>
+      <gid>490</gid>
       <group_password>x</group_password>
       <groupname>disk</groupname>
       <userlist/>
@@ -196,7 +98,28 @@
       <encrypted config:type="boolean">true</encrypted>
       <gid>485</gid>
       <group_password>x</group_password>
-      <groupname>systemd-journal</groupname>
+      <groupname>video</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>489</gid>
+      <group_password>x</group_password>
+      <groupname>input</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>59</gid>
+      <group_password>x</group_password>
+      <groupname>maildrop</groupname>
+      <userlist>postfix</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>495</gid>
+      <group_password>x</group_password>
+      <groupname>lock</groupname>
       <userlist/>
     </group>
     <group>
@@ -208,30 +131,16 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>492</gid>
+      <gid>0</gid>
       <group_password>x</group_password>
-      <groupname>dialout</groupname>
+      <groupname>root</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>489</gid>
+      <gid>484</gid>
       <group_password>x</group_password>
-      <groupname>kvm</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>65533</gid>
-      <group_password>x</group_password>
-      <groupname>nogroup</groupname>
-      <userlist>nobody</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>5</gid>
-      <group_password>x</group_password>
-      <groupname>tty</groupname>
+      <groupname>systemd-journal</groupname>
       <userlist/>
     </group>
     <group>
@@ -243,9 +152,23 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>483</gid>
+      <gid>494</gid>
       <group_password>x</group_password>
-      <groupname>systemd-coredump</groupname>
+      <groupname>utmp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>65533</gid>
+      <group_password>x</group_password>
+      <groupname>nogroup</groupname>
+      <userlist>nobody</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>479</gid>
+      <group_password>x</group_password>
+      <groupname>sshd</groupname>
       <userlist/>
     </group>
     <group>
@@ -257,58 +180,16 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>481</gid>
+      <gid>51</gid>
       <group_password>x</group_password>
-      <groupname>chrony</groupname>
+      <groupname>postfix</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>480</gid>
+      <gid>492</gid>
       <group_password>x</group_password>
-      <groupname>polkitd</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>484</gid>
-      <group_password>x</group_password>
-      <groupname>systemd-timesync</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>497</gid>
-      <group_password>x</group_password>
-      <groupname>kmem</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>15</gid>
-      <group_password>x</group_password>
-      <groupname>shadow</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>495</gid>
-      <group_password>x</group_password>
-      <groupname>utmp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>490</gid>
-      <group_password>x</group_password>
-      <groupname>input</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>496</gid>
-      <group_password>x</group_password>
-      <groupname>lock</groupname>
+      <groupname>cdrom</groupname>
       <userlist/>
     </group>
     <group>
@@ -320,58 +201,9 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>498</gid>
+      <gid>5</gid>
       <group_password>x</group_password>
-      <groupname>wheel</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>493</gid>
-      <group_password>x</group_password>
-      <groupname>cdrom</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>486</gid>
-      <group_password>x</group_password>
-      <groupname>video</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>482</gid>
-      <group_password>x</group_password>
-      <groupname>sshd</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>494</gid>
-      <group_password>x</group_password>
-      <groupname>audio</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>0</gid>
-      <group_password>x</group_password>
-      <groupname>root</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>488</gid>
-      <group_password>x</group_password>
-      <groupname>lp</groupname>
-      <userlist/>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>487</gid>
-      <group_password>x</group_password>
-      <groupname>tape</groupname>
+      <groupname>tty</groupname>
       <userlist/>
     </group>
     <group>
@@ -381,6 +213,97 @@
       <groupname>daemon</groupname>
       <userlist/>
     </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>481</gid>
+      <group_password>x</group_password>
+      <groupname>chrony</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>498</gid>
+      <group_password>!</group_password>
+      <groupname>mail</groupname>
+      <userlist>postfix</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>483</gid>
+      <group_password>x</group_password>
+      <groupname>systemd-timesync</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>480</gid>
+      <group_password>x</group_password>
+      <groupname>polkitd</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>496</gid>
+      <group_password>x</group_password>
+      <groupname>kmem</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>493</gid>
+      <group_password>x</group_password>
+      <groupname>audio</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>482</gid>
+      <group_password>x</group_password>
+      <groupname>systemd-coredump</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>486</gid>
+      <group_password>x</group_password>
+      <groupname>tape</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>488</gid>
+      <group_password>x</group_password>
+      <groupname>kvm</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>491</gid>
+      <group_password>x</group_password>
+      <groupname>dialout</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>487</gid>
+      <group_password>x</group_password>
+      <groupname>lp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>15</gid>
+      <group_password>x</group_password>
+      <groupname>shadow</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>497</gid>
+      <group_password>x</group_password>
+      <groupname>wheel</groupname>
+      <userlist/>
+    </group>
   </groups>
   <host>
     <hosts config:type="list">
@@ -388,6 +311,12 @@
         <host_address>127.0.0.1</host_address>
         <names config:type="list">
           <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>127.0.0.2</host_address>
+        <names config:type="list">
+          <name>sles15HVM sles15HVM</name>
         </names>
       </hosts_entry>
       <hosts_entry>
@@ -428,71 +357,36 @@
       </hosts_entry>
     </hosts>
   </host>
-  <kdump>
-    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
-    <crash_kernel config:type="list">
-      <listentry>164M,high</listentry>
-      <listentry>72M,low</listentry>
-    </crash_kernel>
-    <crash_xen_kernel>236M\&lt;4G</crash_xen_kernel>
-    <general>
-      <KDUMPTOOL_FLAGS/>
-      <KDUMP_COMMANDLINE/>
-      <KDUMP_COMMANDLINE_APPEND/>
-      <KDUMP_CONTINUE_ON_ERROR>true</KDUMP_CONTINUE_ON_ERROR>
-      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
-      <KDUMP_CPUS/>
-      <KDUMP_DUMPFORMAT>lzo</KDUMP_DUMPFORMAT>
-      <KDUMP_DUMPLEVEL>31</KDUMP_DUMPLEVEL>
-      <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
-      <KDUMP_HOST_KEY/>
-      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
-      <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
-      <KDUMP_KERNELVER/>
-      <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
-      <KDUMP_NET_TIMEOUT>30</KDUMP_NET_TIMEOUT>
-      <KDUMP_NOTIFICATION_CC/>
-      <KDUMP_NOTIFICATION_TO/>
-      <KDUMP_POSTSCRIPT/>
-      <KDUMP_PRESCRIPT/>
-      <KDUMP_REQUIRED_PROGRAMS/>
-      <KDUMP_SAVEDIR>/var/crash</KDUMP_SAVEDIR>
-      <KDUMP_SMTP_PASSWORD/>
-      <KDUMP_SMTP_SERVER/>
-      <KDUMP_SMTP_USER/>
-      <KDUMP_TRANSFER/>
-      <KDUMP_VERBOSE>3</KDUMP_VERBOSE>
-      <KEXEC_OPTIONS/>
-    </general>
-  </kdump>
   <keyboard>
     <keymap>english-us</keymap>
   </keyboard>
   <language>
     <language>en_US</language>
-    <languages/>
+    <languages>en_US</languages>
   </language>
   <login_settings/>
   <networking>
     <dhcp_options>
-      <dhclient_client_id/>
+      <dhclient_client_id>sles15HVM</dhclient_client_id>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns>
       <dhcp_hostname config:type="boolean">false</dhcp_hostname>
-      <hostname>sles15sp1hvm</hostname>
+      <hostname>sles15HVM</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">true</write_hostname>
       <nameservers config:type="list">
         <nameserver>192.168.122.1</nameserver>
       </nameservers>
-      <resolv_conf_policy>auto</resolv_conf_policy>
-      <write_hostname config:type="boolean">false</write_hostname>
     </dns>
     <interfaces config:type="list">
       <interface>
         <bootproto>static</bootproto>
         <device>eth0</device>
-        <ipaddr>192.168.122.111</ipaddr>
+        <ipaddr>192.168.122.101</ipaddr>
         <netmask>255.255.255.0</netmask>
+        <network>192.168.122.0</network>
+        <gateway>192.168.122.1</gateway>
         <prefixlen>24</prefixlen>
         <startmode>auto</startmode>
       </interface>
@@ -515,7 +409,7 @@
       <rule>
         <name>eth0</name>
         <rule>ATTR{address}</rule>
-        <value>00:16:3e:02:a0:af</value>
+        <value>52:54:00:78:73:a4</value>
       </rule>
     </net-udev>
     <routing>
@@ -540,7 +434,7 @@
     <drive>
       <device>/dev/xvda</device>
       <disklabel>gpt</disklabel>
-      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">false</initialize>
       <partitions config:type="list">
         <partition>
@@ -548,6 +442,7 @@
           <format config:type="boolean">false</format>
           <partition_id config:type="integer">263</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
           <size>8388608</size>
         </partition>
@@ -560,16 +455,21 @@
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
-          <size>14129561600</size>
+          <size>13727964160</size>
           <subvolumes config:type="list">
             <subvolume>
-              <copy_on_write config:type="boolean">false</copy_on_write>
-              <path>var</path>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>home</path>
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>usr/local</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
@@ -577,7 +477,7 @@
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>srv</path>
+              <path>boot/grub2/i386-pc</path>
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
@@ -585,33 +485,18 @@
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>opt</path>
+              <path>srv</path>
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>home</path>
+              <path>opt</path>
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/x86_64-efi</path>
             </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>boot/grub2/i386-pc</path>
-            </subvolume>
           </subvolumes>
           <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
-          <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">3</partition_nr>
-          <resize config:type="boolean">false</resize>
-          <size>4111449600</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
@@ -654,27 +539,28 @@
     <services>
       <disable config:type="list"/>
       <enable config:type="list">
-        <service>YaST2-Firstboot</service>
-        <service>YaST2-Second-Stage</service>
+        <service>auditd</service>
         <service>btrfsmaintenance-refresh</service>
+        <service>ca-certificates</service>
         <service>cron</service>
-        <service>firewalld</service>
+        <service>irqbalance</service>
+        <service>issue-generator</service>
+        <service>kbdsettings</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>sshd</service>
+        <service>wicked</service>
         <service>wickedd-auto4</service>
         <service>wickedd-dhcp4</service>
         <service>wickedd-dhcp6</service>
         <service>wickedd-nanny</service>
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
         <service>getty@tty1</service>
-        <service>issue-generator</service>
-        <service>kbdsettings</service>
-        <service>kdump</service>
-        <service>kdump-early</service>
-        <service>wicked</service>
-        <service>purge-kernels</service>
-        <service>rollback</service>
         <service>serial-getty@hvc0</service>
-        <service>sshd</service>
+        <service>serial-getty@ttyS0</service>
       </enable>
-      <on_demand config:type="list"/>
     </services>
   </services-manager>
   <software>
@@ -682,20 +568,29 @@
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
-      <package>wicked</package>
-      <package>wget</package>
-      <package>vim</package>
-      <package>snapper</package>
+      <package>yast2-users</package>
+      <package>yast2-services-manager</package>
+      <package>yast2-proxy</package>
+      <package>yast2-ntp-client</package>
+      <package>yast2-network</package>
+      <package>yast2-country</package>
+      <package>yast2-bootloader</package>
+      <package>yast2-add-on</package>
       <package>sles-release</package>
+      <package>sle-module-web-scripting-release</package>
       <package>sle-module-server-applications-release</package>
+      <package>sle-module-public-cloud-release</package>
+      <package>sle-module-live-patching-release</package>
+      <package>sle-module-legacy-release</package>
+      <package>sle-module-desktop-applications-release</package>
+      <package>sle-module-containers-release</package>
       <package>sle-module-basesystem-release</package>
       <package>openssh</package>
-      <package>less</package>
+      <package>numactl</package>
       <package>kexec-tools</package>
-      <package>kdump</package>
+      <package>irqbalance</package>
       <package>grub2</package>
       <package>glibc</package>
-      <package>firewalld</package>
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
       <package>autoyast2-installation</package>
@@ -703,6 +598,7 @@
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
+      <pattern>lp_sles</pattern>
       <pattern>minimal_base</pattern>
     </patterns>
     <products config:type="list">
@@ -730,12 +626,10 @@
   </user_defaults>
   <users config:type="list">
     <user>
-      <authorized_keys config:type="list"/>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Pavel Dostal</fullname>
+      <fullname>slemke</fullname>
       <gid>100</gid>
-      <home>/home/pdostal</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <home>/home/slemke</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -746,149 +640,14 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>1000</uid>
-      <user_password>$6$l4JUibkaCykc$7xjW8ciVwYvu2rOdrPeduX1jaNe1W8RqLQh9g95rVhePB9M7bNtwkMfzCrqAea0oUHmqx.rIpnd.N3O2tGqQH0</user_password>
-      <username>pdostal</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>User for polkitd</fullname>
-      <gid>480</gid>
-      <home>/var/lib/polkit</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>478</uid>
-      <user_password>!</user_password>
-      <username>polkitd</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>systemd Time Synchronization</fullname>
-      <gid>484</gid>
-      <home>/</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>484</uid>
-      <user_password>!!</user_password>
-      <username>systemd-timesync</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Chrony Daemon</fullname>
-      <gid>481</gid>
-      <home>/var/lib/chrony</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/false</shell>
-      <uid>479</uid>
-      <user_password>!</user_password>
-      <username>chrony</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Daemon</fullname>
-      <gid>2</gid>
-      <home>/sbin</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>2</uid>
-      <user_password>!</user_password>
-      <username>daemon</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>user for rpcbind</fullname>
-      <gid>65534</gid>
-      <home>/var/lib/empty</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>482</uid>
-      <user_password>!</user_password>
-      <username>rpc</username>
-    </user>
-    <user>
-      <authorized_keys config:type="list"/>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>root</fullname>
-      <gid>0</gid>
-      <home>/root</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>0</uid>
-      <user_password>$6$KWin51BvhV1B$exr2edNRIUEUrcD7x88u4dWgKm4hMvc5zTpmudn2NWTOPjEE0nhHzGbLzujJfp/SSgAfngmZXlynrDHrcAkL20</user_password>
-      <username>root</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>systemd Core Dumper</fullname>
-      <gid>483</gid>
-      <home>/</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
-      <password_settings>
-        <expire/>
-        <flag/>
-        <inact/>
-        <max/>
-        <min/>
-        <warn/>
-      </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>483</uid>
-      <user_password>!!</user_password>
-      <username>systemd-coredump</username>
+      <user_password>$6$UK3FwARRPlZo$gW4L4ZolhihfaQboN6gu8GFFCwtgVi7ZnsoSDobHNlDEjuD6QZS.1NpQJ7ARMWIHF5mnl4h9nDkbZz1qLVchP/</user_password>
+      <username>slemke</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>User for D-Bus</fullname>
       <gid>499</gid>
       <home>/run/dbus</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
       <password_settings>
         <expire/>
         <flag/>
@@ -903,11 +662,69 @@
       <username>messagebus</username>
     </user>
     <user>
+      <authorized_keys config:type="list">
+        <authorized_key>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqQ+zJeaCMN3F83/2sYUeG0CTqLRLw3jLtTNunfm2nP4hidH9Kg4ZhT4s+gXYGOKkAsIc6YbqG5nfq11LpwMY8GBglFHWGo8dkHrb9GqdcEfXJBAM6neEHtNu8aQ7eJT8ePvAqpgi7/6RTD+aIw1PQ09aiqgjn6wZDXengm2Ug93evd6PoyvIa3jFCnJr9jD5GhMz+QnY09U3Is5mDHQNH7C23zDiuBm5dWQ82UN2bRkhbIzFRl/09HWQHYlCwAlKu8vj9fSjwH9MCIRu4CoCF6CgKiC9MrH8l+VUMswhWhjp7uJYr0zGK1N3YGPIXYccPJn98ya5kXKfC236U9USZ /home/slemke/.ssh/id_rsa</authorized_key>
+        <authorized_key>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDEfz0lP5oO03Rw8vSyzqwt06VIEFA4x478DERaSWHPTD5ULqqdZQS1vsFpTtAm1eT4Ix4njXvSh4T2d2aXYyCgB+ElJI1h0tpbtX7OtenJ7c3rUows61jqmXLFrnIfWbZL2uhomTsOziQwxKoXS3PRxFgoRaZGzHGD4J4HOEfiP8YHQ53igUKbmmDY8yVZya/dyEtKe8bukcbZbGIosKgMoaLsdpbNkln7bU1oLqMuogHGtqRdZ9gQLz2mz5I7Ml/lSeCEdbkqVbOjydVhF2Qm4bvbVjyER+n0VqhXOmeKcauEOQbEafYrJjWvDetMY4j8NwWCeJq0QA7gYRd7967 /home/bhavel/.ssh/id_rsa</authorized_key>
+        <authorized_key>ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2beiZY6ugIsKQwP075ds/IxqR65vluwzD/fCjjMNCaiXQJap8WhSRAOv8BMfqzSQbuRFIRr+a8YLbQqMw/kEieVSATfhx9DM4GUVDTMvDho81No4nqe7aC+3U48wyeGy9LZGTGNEzt2zoPhxqAho8g4+9rc8VaYH01O21xW2Ep02vYystCc8/bAFbB7XsYo8YTlHGxtIHoLCGEEtqO4qkd9rYLHs8Hc0y7GGGMGhbDEskooGaMJeEzkUzzNf8qFCjGF6jZmaZgQsd7CMwAeIRZTcdhPHkviBCvQ/sNFtEH+Oo7PMTr4wtySt4z75otfsJkFUdNLOgiEaceZYsJ7VD /home/pdostal/.ssh/id_rsa</authorized_key>
+      </authorized_keys>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>NFS statd daemon</fullname>
-      <gid>65533</gid>
-      <home>/var/lib/nfs</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$qNRD776zQR5GZWwA$bqcr7tjA9KOsfPXCkOpxWrZSbEuLayT0ze9RTb3IIvYf04PnBtiAAW50gNfVEk1NPmxS6EqkMoMYJssa3SUZR.</user_password>
+      <username>root</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>systemd Core Dumper</fullname>
+      <gid>482</gid>
+      <home>/</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>482</uid>
+      <user_password>!!</user_password>
+      <username>systemd-coredump</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>bin</fullname>
+      <gid>1</gid>
+      <home>/bin</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>1</uid>
+      <user_password>!</user_password>
+      <username>bin</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for polkitd</fullname>
+      <gid>480</gid>
+      <home>/var/lib/polkit</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -919,14 +736,67 @@
       <shell>/sbin/nologin</shell>
       <uid>480</uid>
       <user_password>!</user_password>
-      <username>statd</username>
+      <username>polkitd</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>SSH daemon</fullname>
-      <gid>482</gid>
-      <home>/var/lib/sshd</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <fullname>systemd Time Synchronization</fullname>
+      <gid>483</gid>
+      <home>/</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>483</uid>
+      <user_password>!!</user_password>
+      <username>systemd-timesync</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Daemon</fullname>
+      <gid>2</gid>
+      <home>/sbin</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>2</uid>
+      <user_password>!</user_password>
+      <username>daemon</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Mailer daemon</fullname>
+      <gid>498</gid>
+      <home>/var/spool/clientmqueue</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>498</uid>
+      <user_password>!</user_password>
+      <username>mail</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Chrony Daemon</fullname>
+      <gid>481</gid>
+      <home>/var/lib/chrony</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -938,21 +808,20 @@
       <shell>/bin/false</shell>
       <uid>481</uid>
       <user_password>!</user_password>
-      <username>sshd</username>
+      <username>chrony</username>
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>nobody</fullname>
       <gid>65534</gid>
       <home>/var/lib/nobody</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
       <password_settings>
         <expire/>
         <flag/>
         <inact/>
-        <max/>
-        <min/>
-        <warn/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>65534</uid>
@@ -961,10 +830,27 @@
     </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>bin</fullname>
-      <gid>1</gid>
-      <home>/bin</home>
-      <home_btrfs_subvolume config:type="boolean">false</home_btrfs_subvolume>
+      <fullname>Postfix Daemon</fullname>
+      <gid>51</gid>
+      <home>/var/spool/postfix</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>51</uid>
+      <user_password>!</user_password>
+      <username>postfix</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>SSH daemon</fullname>
+      <gid>479</gid>
+      <home>/var/lib/sshd</home>
       <password_settings>
         <expire/>
         <flag/>
@@ -973,10 +859,10 @@
         <min/>
         <warn/>
       </password_settings>
-      <shell>/sbin/nologin</shell>
-      <uid>1</uid>
+      <shell>/bin/false</shell>
+      <uid>479</uid>
       <user_password>!</user_password>
-      <username>bin</username>
+      <username>sshd</username>
     </user>
   </users>
 </profile>

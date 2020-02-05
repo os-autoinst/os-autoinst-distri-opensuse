@@ -113,6 +113,9 @@ sub run_tests {
 sub run_basic_tests {
     my @all_results;
 
+    my %test00 = t00_version_check();
+    push(@all_results, \%test00);
+
     my %test01 = t01_basic();
     push(@all_results, \%test01);
 
@@ -137,6 +140,16 @@ sub run_basic_tests {
     push(@all_results, \%test07);
 
     return @all_results;
+}
+
+sub t00_version_check {
+    my $description = 'Simple SINFO version print for ease of checking';
+
+    my $result = script_output('sinfo --version');
+    my $name   = "Sinfo: slurm version check: $result";
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 sub t01_basic {
@@ -206,7 +219,7 @@ sub t05_basic {
     my $result      = 0;
 
     my $pmi_versions = script_output("srun --mpi=list");
-    $result = 1 unless ($pmi_versions =~ m/'pmix'/);
+    $result = 1 unless ($pmi_versions =~ m/pmix/);
     record_info('INFO', script_output("srun --mpi=list"));
 
     my %results = generate_results($name, $description, $result);
@@ -337,9 +350,69 @@ sub t01_accounting {
 sub run_ha_tests {
     my @all_results;
 
-    ##TODO
+    my %test01 = t01_ha();
+    push(@all_results, \%test01);
+
+    my %test02 = t02_ha();
+    push(@all_results, \%test02);
 
     return @all_results;
+}
+
+sub t01_ha {
+    my $name          = 'scontrol: slurm ctl fail-over';
+    my $description   = 'HPC cluster with 2 slurm ctls where one is taking over gracefully';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+    my $result        = 1;
+    my @all_results;
+
+    for (my $i = 0; $i <= 100; $i++) {
+        if ($i == 50) {
+            assert_script_run('scontrol takeover');
+        }
+        $result = script_run("srun -N $cluster_nodes date");
+        push(@all_results, $result);
+    }
+
+    foreach (@all_results) {
+        if ($_ == 0) {
+            $result = 0;
+            last;
+        }
+    }
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t02_ha {
+    my $name          = 'kill: Slurm ctl fail-over';
+    my $description   = 'HPC cluster with 2 slurm ctls where one is killed';
+    my $cluster_nodes = get_required_var('CLUSTER_NODES');
+    my $result        = 1;
+    my @all_results;
+
+    systemctl('start slurmctld');
+    systemctl('is-active slurmctld');
+
+    for (my $i = 0; $i <= 100; $i++) {
+        if ($i == 50) {
+            my $pidofslurmctld = script_output('pidof slurmctld');
+            script_run("kill $pidofslurmctld");
+        }
+        $result = script_run("srun -N $cluster_nodes date -R");
+        push(@all_results, $result);
+    }
+
+    foreach (@all_results) {
+        if ($_ == 0) {
+            $result = 0;
+            last;
+        }
+    }
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 ################################################
@@ -359,6 +432,8 @@ sub run {
     my $nodes      = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
     my $version    = get_required_var('VERSION');
+
+    barrier_wait('CLUSTER_PROVISIONED');
     $self->prepare_user_and_group();
     $self->generate_and_distribute_ssh();
 
@@ -377,9 +452,14 @@ sub run {
     }
 
     $self->prepare_slurm_conf();
-    if ($version =~ /15-SP1/) {
+    if ($version !~ /15-SP2/) {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=master-node00" /etc/slurm/slurm.conf
+EOF
+        assert_script_run($_) foreach (split /\n/, $config);
+    } else {
+        my $config = << "EOF";
+sed -i "/^ControlMachine.*/c\\#ControlMachine" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
     }

@@ -450,7 +450,7 @@ sub type_string_very_slow {
         sleep 3;
     }
     else {
-        wait_still_screen 1;
+        wait_still_screen(1, 3);
     }
 }
 
@@ -787,12 +787,6 @@ sub set_hostname {
     systemctl 'status network.service';
     save_screenshot;
     assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
-
-    # Workaround for HA MM test (hostname bug? in 15SP1/SP2)
-    if (script_run "uname -n | grep $hostname") {
-        record_soft_failure('bsc#1153402 hostname not properly configured');
-        assert_script_run "hostnamectl set-hostname $hostname";
-    }
 }
 
 =head2 assert_and_click_until_screen_change
@@ -1121,7 +1115,7 @@ sub get_x11_console_tty {
     # older versions in HDD
     my $newer_gdm
       = $new_gdm
-      && !is_sle('<=15-SP1')
+      && !is_sle('<=15-SP2')
       && !is_leap('<=15.2')
       && get_var('HDD_1', '') !~ /opensuse-42/;
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
@@ -1481,8 +1475,6 @@ sub script_retry {
 
     my $ret;
     for (1 .. $retry) {
-        type_string "# Trying $_ of $retry:\n";
-
         $ret = script_run "timeout " . ($timeout - 3) . " $cmd", $timeout;
         last if defined($ret) && $ret == $ecode;
 

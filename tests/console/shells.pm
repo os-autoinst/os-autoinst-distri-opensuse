@@ -60,6 +60,7 @@ sub tcsh_extra_tests {
 
     #Go back to root/openqa and do the validations:
     script_run 'logout', 0;
+    wait_still_screen(3);
 
     validate_script_output 'grep -c /home/tcsh_user:/usr/bin/tcsh /tmp/tcsh', sub { /1/ };
     validate_script_output 'grep -c ^/usr/bin/tcsh /tmp/tcsh',                sub { /1/ };

@@ -12,7 +12,7 @@ schedule:
 #- systemd_testsuite/test_06_selinux
 - systemd_testsuite/test_07_issue_1981
 - systemd_testsuite/test_08_issue_2730
-- systemd_testsuite/test_09_issue_2691
+#- systemd_testsuite/test_09_issue_2691
 - systemd_testsuite/test_10_issue_2467
 - systemd_testsuite/test_11_issue_3166
 - systemd_testsuite/test_12_issue_3171

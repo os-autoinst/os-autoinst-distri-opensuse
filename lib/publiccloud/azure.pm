@@ -69,12 +69,11 @@ sub vault_create_credentials {
     my ($self) = @_;
 
     record_info('INFO', 'Get credentials from VAULT server.');
-    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/azure/creds/openqa-role', method => 'get');
-    $self->vault_lease_id($res->{lease_id});
-    $self->key_id($res->{data}->{client_id});
-    $self->key_secret($res->{data}->{client_secret});
+    my $data = $self->vault_get_secrets('/azure/creds/openqa-role');
+    $self->key_id($data->{client_id});
+    $self->key_secret($data->{client_secret});
 
-    $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/secret/azure/openqa-role', method => 'get');
+    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/secret/azure/openqa-role', method => 'get');
     $self->tenantid($res->{data}->{tenant_id});
     $self->subscription($res->{data}->{subscription_id});
 
@@ -99,9 +98,12 @@ sub find_img {
     $name =~ s/\.vhdfixed$/.vhd/;
     my $json = script_output("az image show --resource-group " . $self->resource_group . " --name $name", 60, proceed_on_failure => 1);
     record_info('INFO', $json);
-    my $image = decode_azure_json($json);
-    return unless ($image);
-    return $image->{name};
+    my $image;
+    eval {
+        $image = decode_azure_json($json)->{name};
+    };
+    record_info('INFO', "Cannot find image $name. Need to upload it.\n$@") if ($@);
+    return $image;
 }
 
 sub get_storage_account_keys {

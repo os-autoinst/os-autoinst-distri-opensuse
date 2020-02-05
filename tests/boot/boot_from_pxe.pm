@@ -152,7 +152,7 @@ sub run {
     save_screenshot;
 
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
-        my $ssh_vnc_wait_time = 300;
+        my $ssh_vnc_wait_time = 420;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags              = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
 

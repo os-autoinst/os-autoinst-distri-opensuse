@@ -26,7 +26,7 @@ my %software = ();
 
 # Define test data
 
-$software{salt} = {
+$software{'salt-minion'} = {
     repo      => 'Basesystem',
     installed => is_jeos() ? 1 : 0,       # On JeOS Salt is present in the default image
     condition => sub { is_sle('15+') },

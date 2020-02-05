@@ -23,7 +23,6 @@ use utils;
 use strict;
 use warnings;
 use registration;
-use version_utils 'is_sle';
 
 sub run {
     select_console("root-console");
@@ -48,11 +47,7 @@ sub run {
     assert_script_run("zypper-docker list-updates-container tmp_container", timeout => 600);
     assert_script_run("zypper-docker list-patches-container tmp_container", timeout => 600);
     # apply all the updates to a new_image
-    if (is_sle('>=15')) {
-        record_soft_failure 'bsc#1123173';
-    } else {
-        assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
-    }
+    assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
 }
 
 1;

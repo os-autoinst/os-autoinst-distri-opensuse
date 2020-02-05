@@ -47,7 +47,7 @@ sub run {
     assert_script_run('snapper --iso list | grep \'number.*after installation\'.*important=yes');
     assert_script_run('snapper --iso list | grep \'number.*rollback\'.*important=yes',
         fail_message => 'rollback backup should be marked for cleanup fate#321773');
-    assert_script_run('snapper --iso list | tail -n 1 | grep \'|\s*|\s*|\s*$\'', fail_message => 'last snapshot should not be cleaned up but is not-important');
+    assert_script_run('snapper --iso list | tail -n 1 | grep \'|\s*| [^|]\+ |\s*$\'', fail_message => 'last snapshot should not be cleaned up but is not-important');
     script_run("systemctl reboot", 0);
     reset_consoles;
     $self->wait_boot;

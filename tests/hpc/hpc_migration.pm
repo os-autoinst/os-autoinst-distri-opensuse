@@ -35,6 +35,10 @@ sub run {
     my @migration_targets;
     my $migration_target;
 
+    if (get_var('MIGRATE_TO_HPC_PRODUCT') and get_var('HPC_PRODUCT_MIGRATION')) {
+        die('Test setting MIGRATE_TO_HPC_PRODUCT and HPC_PRODUCT_MIGRATION are exclusive!');
+    }
+
     if (get_var('HPC_PRODUCT_MIGRATION')) {
         # run register_products() as preprepared images might require that
         $self->register_products();

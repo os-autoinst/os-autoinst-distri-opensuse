@@ -82,7 +82,7 @@ sub run {
     # request reboot again to ensure we will end up in the original system
     send_key 'ctrl-alt-delete';
     power_action('reboot', keepconsole => 1, textmode => 1, observe => 1);
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 250);
 }
 
 1;

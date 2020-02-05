@@ -1,12 +1,16 @@
 name:           autoyast_reinstall
 description:    >
-    Parent job produces autoyast profile after successful completion. 
+    Parent job produces autoyast profile after successful completion.
     This test uses generated profile to do autoyast installation.
 schedule:
+  # Registration section is required for SLES only
+  - {{inject_registration}}
   # Called on BACKEND: qemu
   - {{isosize}}
   - installation/bootloader_start
   - autoyast/installation
+  # On Tumbleweed process Welcome pop-up screen
+  - {{opensuse_welcome}}
   - autoyast/console
   - autoyast/login
   - autoyast/verify_imported_users
@@ -33,6 +37,14 @@ conditional_schedule:
     BACKEND:
       qemu:
         - installation/grub_test
+  opensuse_welcome:
+      VERSION:
+        Tumbleweed:
+          - installation/opensuse_welcome
+  inject_registration:
+      DISTRI:
+        sle:
+          - autoyast/prepare_cloned_profile
 test_data:
   paths:
     - /var/lib/gdm/.bashrc

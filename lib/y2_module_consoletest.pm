@@ -10,7 +10,7 @@ use Utils::Backends 'is_hyperv';
 sub yast2_console_exec {
     my %args = @_;
     die "Yast2 module has not been found among function arguments!\n" unless (defined($args{yast2_module}));
-    my $y2_start    = 'Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 yast2 ';
+    my $y2_start    = y2_module_basetest::with_yast_env_variables() . ' yast2 ';
     my $module_name = 'yast2-' . $args{yast2_module} . '-status';
     $y2_start .= (defined($args{yast2_opts})) ?
       $args{yast2_opts} . ' ' . $args{yast2_module} . ';' :

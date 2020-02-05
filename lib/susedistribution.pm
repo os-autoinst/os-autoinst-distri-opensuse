@@ -712,7 +712,7 @@ sub activate_console {
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
-            assert_screen "text-login", 10;
+            assert_screen "tty2-selected", 10;
             # login as root, who does not have a password on Live-CDs
             wait_screen_change { type_string "root\n" };
         }

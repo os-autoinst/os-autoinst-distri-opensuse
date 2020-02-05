@@ -50,8 +50,8 @@ sub run {
         </network>" > ~/default.xml);
         assert_script_run "virsh net-define --file ~/default.xml";
     }
-    assert_script_run "virsh net-start default || true";
-    assert_script_run "virsh net-autostart default";
+    assert_script_run "virsh net-start default || true", 90;
+    assert_script_run "virsh net-autostart default",     90;
 
     # Show all guests
     assert_script_run 'virsh list --all';

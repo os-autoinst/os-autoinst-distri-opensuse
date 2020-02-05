@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use version_utils ':VERSION';
 use installation_user_settings 'await_password_check';
+use Utils::Architectures;
 
 our @EXPORT = qw(
   addboot
@@ -180,8 +181,8 @@ sub mount_device {
 =head2 set_partition_size
 
  set_partition_size([size => $size]);
-  
-The function can be executed when the SUT is on the yast partitioner panel 
+
+The function can be executed when the SUT is on the yast partitioner panel
 `Add partition on /dev/xxx -> New Partition Size` to set the C<$args{size}> in megabytes.
 
 Example:
@@ -302,7 +303,7 @@ sub addpart {
  addvg(name => $name [, add_all_pvs => $add_all_pvs]);
 
 Add a LVM volume group.
-Example: 
+Example:
 
  addvg(name => 'vg-system', add_all_pvs => 1);
 
@@ -404,7 +405,7 @@ sub addlv {
 
 Add a boot partition based on architecture.
 
-C<$part_size> is the size of partition. 
+C<$part_size> is the size of partition.
 
 =cut
 sub addboot {
@@ -417,7 +418,7 @@ sub addboot {
         unenc_boot => 500
     );
 
-    if (get_var('OFW')) {    # ppc64le always needs PReP boot
+    if (is_ppc64le()) {    # ppc64le always needs PReP boot
         addpart(role => 'raw', size => $part_size // $default_boot_sizes{ofw}, fsid => 'PReP');
     }
     elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
@@ -582,7 +583,7 @@ Take the first disk to be partitioned. Take first partition as storage ng if it 
 C<[%args]> is device type.
 
 Example:
- 
+
  take_first_disk(iscsi => 1);
 
 =cut

@@ -25,10 +25,22 @@ use warnings;
 use testapi;
 use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
+use File::Copy 'copy';
+use File::Path 'make_path';
 
 use xml_utils;
 
-our @EXPORT = qw(expand_template init_autoyast_profile validate_autoyast_profile);
+our @EXPORT = qw(
+  detect_profile_directory
+  expand_template
+  expand_version
+  adjust_network_conf
+  expand_variables
+  upload_profile
+  inject_registration
+  init_autoyast_profile
+  validate_autoyast_profile
+);
 
 =head2 expand_patterns
 
@@ -337,5 +349,161 @@ sub create_report {
     my $expressions_summary = "Expressions executed:\n" . join("\n", @{$expressions});
     return "$error_summary\n\n$expressions_summary\n";
 }
+
+=head2 detect_profile_directory
+
+ detect_profile_directory(profile => $profile, path => $path)
+
+ Try to detect profile directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
+ and returns its path.
+ TODO: autoyast_{caasp,kvm,qam,xen}
+
+ $profile is the autoyast profile 'autoinst.xml'.
+ $path is AutoYaST profile path
+
+=cut
+sub detect_profile_directory {
+    my (%args)  = @_;
+    my $profile = $args{profile};
+    my $path    = $args{path};
+
+    my $dir    = "autoyast_";
+    my $regexp = $dir . '\E[^/]+\/';
+
+    if (!$profile && $path !~ /\Q$regexp/) {
+        my $distri = get_required_var('DISTRI');
+        if (is_sle) {
+            $distri .= "s" if is_sle('<12');    # sles11
+            my $major_version = get_required_var('VERSION');
+            $major_version =~ s/-SP.*//;
+            $distri .= $major_version;
+        }
+        $path = "$dir${distri}/$path";
+        record_info('INFO', "Trying to use path with detected folder: '$path'");
+    }
+    return $path;
+}
+
+=head2 expand_version
+
+ expand_version($profile);
+
+ Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
+
+ $profile is the autoyast profile 'autoinst.xml'.
+
+=cut
+sub expand_version {
+    my ($profile) = @_;
+    if (my $version = scc_version(get_var('VERSION', ''))) {
+        $profile =~ s/\{\{VERSION\}\}/$version/g;
+    }
+    return $profile;
+}
+
+=head2 adjust_network_conf
+
+ adjust_network_conf($profile);
+
+ For s390x and svirt backends need to adjust network configuration
+
+ $profile is the autoyast profile 'autoinst.xml'.
+
+=cut
+sub adjust_network_conf {
+    my ($profile) = @_;
+    my $hostip;
+    if (check_var('BACKEND', 's390x')) {
+        ($hostip) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
+    }
+    elsif (check_var('BACKEND', 'svirt')) {
+        $hostip = get_var('VIRSH_GUEST');
+    }
+    $profile =~ s/\{\{HostIP\}\}/$hostip/g if $hostip;
+    return $profile;
+}
+
+
+=head2 expand_variables
+
+ expand_variables($profile);
+
+ Expand variables from job settings which do not require further processing
+
+ $profile is the autoyast profile 'autoinst.xml'.
+
+=cut
+sub expand_variables {
+    my ($profile) = @_;
+    # Expand other variables
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_URL ARCH LOADER_TYPE);
+    # Push more variables to expand from the job setting
+    my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
+
+    for my $var (@vars) {
+        # Skip if value is not defined
+        next unless my ($value) = get_var($var);
+        $profile =~ s/\{\{$var\}\}/$value/g;
+    }
+    return $profile;
+}
+
+=head2 upload_profile
+
+ upload_profile(profile => $profile, path => $path)
+
+ Upload modified profile
+ Update url
+ Update path
+ Make available profile in job logs
+
+ $profile is the AutoYaST profile 'autoinst.xml'.
+ $path is AutoYaST profile path
+
+=cut
+sub upload_profile {
+    my (%args)  = @_;
+    my $profile = $args{profile};
+    my $path    = $args{path};
+
+    if (check_var('IPXE', '1')) {
+        $path = get_required_var('SUT_IP') . $path;
+    }
+    save_tmp_file($path, $profile);
+    # Copy profile to ulogs directory, so profile is available in job logs
+    make_path('ulogs');
+    copy(hashed_string($path), 'ulogs/autoyast_profile.xml');
+    # Set AUTOYAST variable with new url
+    my $url = autoinst_url . "/files/$path";
+    set_var('AUTOYAST', $url);
+}
+
+=head2 inject_registration
+
+ inject_registration($profile);
+
+ $profile is the autoyast profile 'autoinst.xml'.
+
+=cut
+sub inject_registration {
+    my ($profile) = @_;
+
+    # Create registration block
+    my $suse_register = <<"EOF";
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+  </suse_register>
+EOF
+    # Inject registration block
+    $profile =~ s/(?<profile><profile.*>\s)/$+{profile}$suse_register/g;
+    record_info('inject reg', "Registration block was added to AutoYaST profile");
+    return $profile;
+}
+
+
 
 1;

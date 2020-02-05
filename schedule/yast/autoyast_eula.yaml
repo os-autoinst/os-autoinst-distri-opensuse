@@ -1,0 +1,21 @@
+name:           autoyast_eula
+description:    >
+  User agreement test, same as autoyast_eula but with modules adjusted for sle15.
+  Now expect single license, as content of all licenses is the same and we don't show it.
+  Packages DVD is vanished, using "Full" installer instead. 
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_eula.xml
+  AUTOYAST_LICENSE: 1
+  DESKTOP: textmode
+schedule:
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot

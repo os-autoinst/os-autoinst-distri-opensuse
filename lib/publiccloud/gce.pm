@@ -59,12 +59,11 @@ sub create_credentials_file {
           . '}';
     } else {
         record_info('INFO', 'Get credentials from VAULT server.');
-        my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/gcp/key/openqa-role', method => 'get');
-        $credentials_file = b64_decode($res->{data}->{private_key_data});
+        my $data = $self->vault_get_secrets('/gcp/key/openqa-role');
+        $credentials_file = b64_decode($data->{private_key_data});
         my $cf_json = decode_json($credentials_file);
         $self->account($cf_json->{client_email});
         $self->project_id($cf_json->{'project_id'});
-        $self->vault_lease_id($res->{lease_id});
     }
 
     save_tmp_file(CREDENTIALS_FILE, $credentials_file);

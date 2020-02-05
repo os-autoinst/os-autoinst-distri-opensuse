@@ -46,6 +46,7 @@ schedule:
   - console/mysql_srv
   - console/rsync
   - console/zypper_lifecycle
+  - console/repo_orphaned_packages_check
   - console/orphaned_packages_check
   - console/consoletest_finish
   

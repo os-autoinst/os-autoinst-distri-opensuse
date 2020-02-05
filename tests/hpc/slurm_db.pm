@@ -24,6 +24,9 @@ use version_utils 'is_sle';
 sub run {
     my $self     = shift;
     my $hostname = get_required_var("HOSTNAME");
+
+    barrier_wait('CLUSTER_PROVISIONED');
+
     $self->prepare_user_and_group();
 
     # Install slurm

@@ -3,3 +3,4 @@ description:    >
     Test booting from cd to existing linux with linuxrc.
 schedule:
      - boot/boot_linuxrc
+     - installation/first_boot

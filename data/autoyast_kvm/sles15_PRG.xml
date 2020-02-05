@@ -4,42 +4,42 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Public-Cloud/15/x86_64/product/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Public-Cloud/15/x86_64/product/]]></media_url>
         <product>sle-module-public-cloud</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Web-Scripting/15/x86_64/product/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Web-Scripting/15/x86_64/product/]]></media_url>
         <product>sle-module-web-scripting</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Containers/15/x86_64/product/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Containers/15/x86_64/product/]]></media_url>
         <product>sle-module-containers</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/15/x86_64/product/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Desktop-Applications/15/x86_64/product/]]></media_url>
         <product>sle-module-desktop-applications</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://smt-scc.nue.suse.com/repo/SUSE/Products/SLE-Module-Server-Applications/15/x86_64/product?credentials=SMT-http_smt-scc_nue_suse_com]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Server-Applications/15/x86_64/product/]]></media_url>
         <product>sle-module-server-applications</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-Live-Patching/15/x86_64/product/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Live-Patching/15/x86_64/product/]]></media_url>
         <product>sle-module-live-patching</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Legacy/15/x86_64/update/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Updates/SLE-Module-Legacy/15/x86_64/update/]]></media_url>
         <product>sle-module-legacy</product>
         <product_dir/>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://smt-scc.nue.suse.com/repo/SUSE/Products/SLE-Module-Basesystem/15/x86_64/product?credentials=SMT-http_smt-scc_nue_suse_com]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/ibs/SUSE/Products/SLE-Module-Basesystem/15/x86_64/product/]]></media_url>
         <product>sle-module-basesystem</product>
         <product_dir/>
       </listentry>

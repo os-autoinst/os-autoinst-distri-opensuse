@@ -25,7 +25,7 @@ use warnings;
 
 use base 'Exporter';
 use Exporter;
-use testapi 'check_var';
+use testapi qw(check_var get_var);
 
 use constant {
     ARCH => [
@@ -35,6 +35,7 @@ use constant {
           is_i686
           is_x86_64
           is_aarch64
+          is_arm
           is_ppc64le
           )
     ]
@@ -101,6 +102,17 @@ Returns C<check_var('aarch64')>.
 =cut
 sub is_aarch64 {
     return check_var('ARCH', 'aarch64');
+}
+
+=head2 is_arm
+
+ is_arm();
+
+Returns C<get_var('ARCH') =~ /arm/>.
+
+=cut
+sub is_arm {
+    return (get_var('ARCH') =~ /arm/);    # Can match arm, armv7, armv7l, armv7hl, ...
 }
 
 =head2 is_ppc64le

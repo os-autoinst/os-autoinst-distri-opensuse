@@ -15,6 +15,7 @@ use warnings;
 use strict;
 use testapi;
 use power_action_utils 'power_action';
+use utils 'get_root_console_tty';
 
 sub pre_run_hook {
     my ($self) = @_;
@@ -32,7 +33,8 @@ sub run {
     power_action('reboot', keepconsole => 1, textmode => 1);
     wait_still_screen 20;
     #login
-    send_key_until_needlematch('text-login', 'ret', 360, 5);
+    my $tty = get_root_console_tty;
+    send_key_until_needlematch('tty$tty-selected', 'ret', 360, 5);
     type_string "root\n";
     assert_screen("password-prompt");
     type_password;

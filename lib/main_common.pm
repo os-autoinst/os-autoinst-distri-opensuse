@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -583,7 +583,7 @@ sub load_system_role_tests {
 }
 sub load_jeos_tests {
     unless (get_var('LTP_COMMAND_FILE')) {
-        if (is_aarch64 && is_opensuse()) {
+        if ((is_arm || is_aarch64) && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
             load_boot_tests();
             loadtest "jeos/prepare_firstboot";
@@ -2349,6 +2349,8 @@ sub load_security_tests_selinux {
 
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
+    loadtest "security/selinux/print_se_context";
+    loadtest "security/selinux/audit2allow";
 }
 
 sub load_security_tests_mok_enroll {
@@ -2440,6 +2442,9 @@ sub load_mitigation_tests {
     }
     if (get_var('ITLB')) {
         loadtest "cpu_bugs/itlb";
+    }
+    if (get_var('XEN_PV')) {
+        loadtest "cpu_bugs/xen_pv";
     }
 }
 
@@ -2665,6 +2670,7 @@ sub load_publiccloud_tests {
         loadtest "publiccloud/download_repos";
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/ssh_interactive_init",  run_args => $args;
+        loadtest "publiccloud/register_system",       run_args => $args;
         loadtest "publiccloud/transfer_repos",        run_args => $args;
         loadtest "publiccloud/patch_and_reboot",      run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;

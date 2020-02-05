@@ -48,8 +48,9 @@ sub launch_yast2_module_x11 {
         script_run('pkill -TERM -e yast2');
         select_console('x11');
     }
+    my $yast_env_variables = y2_module_basetest::with_yast_env_variables();
     # the command started with 'sh -c' to be able to execute 'echo' in Desktop Runner on Gnome
-    x11_start_program("sh -c 'xdg-su -c \"env Y2DEBUG=1 ZYPP_MEDIA_CURL_DEBUG=1 /sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
+    x11_start_program("sh -c 'xdg-su -c \"env $yast_env_variables /sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }
