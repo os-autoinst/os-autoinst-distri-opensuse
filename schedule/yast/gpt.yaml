@@ -25,6 +25,7 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/hostname
   - console/validate_file_system
 test_data:
   device: /dev/vda
