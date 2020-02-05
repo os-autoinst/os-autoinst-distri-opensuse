@@ -769,7 +769,7 @@ sub activate_console {
                 ensure_user($user);
             }
         }
-        assert_screen "text-logged-in-$user";
+        assert_screen "text-logged-in-$user", 60;
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
         assert_screen $console;
     }
