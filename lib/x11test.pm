@@ -286,8 +286,7 @@ sub send_meeting_request {
     wait_screen_change { send_key 'alt-a' };
     wait_still_screen;
     type_string "$mail_box";
-    send_key "alt-s";
-    send_key "alt-s";
+    assert_and_click "evolution_meeting-Summary";
     type_string "$mail_subject this is a evolution test meeting";
     send_key "alt-l";
     type_string "the location of this meetinng is conference room";
@@ -343,6 +342,9 @@ sub start_evolution {
     elsif (match_has_tag "evolution-welcome-not_focused") {
         assert_and_click "evolution-welcome-not_focused";
     }
+    # make sure the welcome window is maximized
+    send_key "super-up";
+    assert_screen "evolution_welcome-max-window";
     send_key $self->{next};
     assert_screen "evolution_wizard-restore-backup";
     send_key $self->{next};
@@ -370,7 +372,7 @@ sub evolution_add_self_signed_ca {
         assert_and_click 'evolution_wizard-receiving-checkauthtype';
         assert_screen 'evolution_mail_meeting_trust_ca';
         send_key 'alt-a';
-        assert_screen 'evolution_wizard-receiving';
+        assert_and_click 'evolution_wizard-receiving';
         wait_screen_change { send_key $self->{next} };    # select "Next" key
         send_key 'ret';                                   # Go to next page (previous key just selected the key)
     }
