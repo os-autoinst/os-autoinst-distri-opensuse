@@ -22,10 +22,10 @@ use testapi;
 sub run {
     assert_screen "before-package-selection";
     select_console 'install-shell';
-    if (my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME')) {
-        # EXPECTED_INSTALL_HOSTNAME contains expected hostname YaST installer
-        # got from environment (DHCP, 'hostname=' as a kernel cmd line argument
-        assert_script_run "test \"\$(hostname)\" == \"$expected_install_hostname\"";
+    # In network configuration, YaST-Installer has now 'Set hostname via DHCP: No'
+    # NICTYPE_USER_OPTIONS hostname=myguest is used as well.
+    if (get_var('NICTYPE_USER_OPTIONS', 'hostname=myguest')) {
+        assert_script_run "test \"\$(hostname)\" == \"myguest\"";
     }
     else {
         # 'install' is the default hostname if no hostname is get from environment
