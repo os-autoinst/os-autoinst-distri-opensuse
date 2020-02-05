@@ -64,6 +64,7 @@ sub run {
 
     script_run 'history -a';
     script_run('cat ~/virt-install* | grep ERROR', 30);
+    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (get_var("REGRESSION", '') =~ /xen/);
 }
 
 1;

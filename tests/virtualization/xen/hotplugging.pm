@@ -29,7 +29,7 @@ sub run_test {
     assert_script_run "mkdir -p /var/lib/libvirt/images/add/";
     assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/add/$_.raw 10G" foreach (keys %xen::guests);
     if (check_var('XEN', '1')) {
-        script_run "virsh detach-disk $_ xvdz", 120 foreach (keys %xen::guests);
+        script_run "virsh detach-disk $_ xvdz", 240 foreach (keys %xen::guests);
         assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target xvdz" foreach (keys %xen::guests);
         assert_script_run "virsh domblklist $_ | grep xvdz"                                                         foreach (keys %xen::guests);
         foreach my $guest (keys %xen::guests) {
@@ -37,9 +37,9 @@ sub run_test {
             record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
         }
         assert_script_run "ssh root\@$_ lsblk" foreach (keys %xen::guests);
-        assert_script_run "virsh detach-disk $_ xvdz", 120 foreach (keys %xen::guests);
+        assert_script_run "virsh detach-disk $_ xvdz", 240 foreach (keys %xen::guests);
     } else {
-        script_run "virsh detach-disk $_ vdz", 120 foreach (keys %xen::guests);
+        script_run "virsh detach-disk $_ vdz", 240 foreach (keys %xen::guests);
         assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target vdz" foreach (keys %xen::guests);
         assert_script_run "virsh domblklist $_ | grep vdz"                                                         foreach (keys %xen::guests);
         foreach my $guest (keys %xen::guests) {
@@ -47,7 +47,7 @@ sub run_test {
             record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
         }
         assert_script_run "ssh root\@$_ lsblk" foreach (keys %xen::guests);
-        assert_script_run "virsh detach-disk $_ vdz", 120 foreach (keys %xen::guests);
+        assert_script_run "virsh detach-disk $_ vdz", 240 foreach (keys %xen::guests);
     }
 
     # TODO:
@@ -55,8 +55,8 @@ sub run_test {
     foreach my $guest (keys %xen::guests) {
         unless ($guest =~ m/hvm/i) {
             # The guest should have 2 CPUs after the installation
-            assert_script_run "virsh vcpucount $guest | grep current | grep live";
-            assert_script_run "ssh root\@$guest nproc", 60;
+            assert_script_run "virsh vcpucount $guest | grep current | grep live", 90;
+            assert_script_run "ssh root\@$guest nproc",                            60;
             # Add 1 CPU for everu guest
             assert_script_run "virsh setvcpus --domain $guest --count 3 --live";
             sleep 5;

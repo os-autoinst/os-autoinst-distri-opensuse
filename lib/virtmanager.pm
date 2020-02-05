@@ -6,7 +6,7 @@ use version_utils 'is_sle';
 
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
-  create_new_volume create_netinterface delete_netinterface create_guest
+  create_new_volume create_netinterface delete_netinterface create_guest powercycle
   detect_login_screen select_guest close_guest establish_connection);
 
 
@@ -650,7 +650,7 @@ sub select_guest {
         if (is_sle('12-SP2+') || check_var("REGRESSION", "qemu-hypervisor")) {
             send_key 'end';                            # Go down so we will see every guest unselected on the way up
         } else {
-            assert_and_click "virt-manager_list-arrowdown", clicktime => 10    # Go down so we will see every guest unselected on the way up
+            assert_and_click("virt-manager_list-arrowdown", clicktime => 10) for (1 .. 5);    # Go down so we will see every guest unselected on the way up
         }
         send_key_until_needlematch("virt-manager_list-$guest", 'up', 20, 3);
     }
@@ -660,7 +660,7 @@ sub select_guest {
     if (check_screen 'virt-manager_notrunning') {
         record_info("The Guest was powered off and that should not happen");
         assert_and_click 'virt-manager_poweron', 'left', 90;
-        sleep 30;                                                              # The boot would not be faster
+        sleep 30;                                                                             # The boot would not be faster
     }
     if (check_screen('virt-manager_no-graphical-device')) {
         wait_screen_change { send_key 'ctrl-q'; };
@@ -673,6 +673,20 @@ sub close_guest {
     assert_and_click 'virt-manager_file';
     mouse_set(0, 0);
     assert_and_click 'virt-manager_close';
+}
+
+sub powercycle {
+    mouse_set(0, 0);
+    assert_and_click 'virt-manager_shutdown';
+    if (!check_screen 'virt-manager_notrunning', 120) {
+        assert_and_click 'virt-manager_shutdown_menu';
+        assert_and_click 'virt-manager_shutdown_item';
+        # There migh me 'Are you sure' dialog window
+        if (check_screen "virt-manager_shutdown_sure", 2) {
+            assert_and_click "virt-manager_shutdown_sure";
+        }
+    }
+    assert_and_click 'virt-manager_poweron', 'left', 90;
 }
 
 sub establish_connection {

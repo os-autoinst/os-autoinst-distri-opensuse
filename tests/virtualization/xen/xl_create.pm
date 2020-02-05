@@ -43,7 +43,7 @@ sub run {
     assert_script_run "xl list xl-$_"        foreach (keys %xen::guests);
 
     record_info "SSH", "Test that the new VM listens on SSH";
-    script_retry "nmap $_ -PN -p ssh | grep open", delay => 30, retry => 6 foreach (keys %xen::guests);
+    script_retry "nmap $_ -PN -p ssh | grep open", delay => 30, retry => 12 foreach (keys %xen::guests);
 
 }
 
