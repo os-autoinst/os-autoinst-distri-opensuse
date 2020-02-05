@@ -25,7 +25,6 @@ sub run {
     my $test_data  = get_test_suite_data();
     my %partitions = %{$test_data->{file_system}};
 
-    select_console('root-console') unless (current_console() eq "root_console");
     validate_partition_table({device => $test_data->{device}, table_type => $test_data->{table_type}});
 
     foreach (keys %partitions) {
@@ -34,7 +33,6 @@ sub run {
         assert_equals($partitions{$_}, $fstype,
             "File system on '$_' partition does not correspond to the expected one");
     }
-
 }
 
 1;
