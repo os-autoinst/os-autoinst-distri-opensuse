@@ -29,7 +29,7 @@ sub run {
     my $account = "internal_account_A";
     $self->setup_pop($account);
 
-    # Set up timezone via: Edit->Preference->calendor and task->uncheck "use
+    # Set up timezone via: Edit->Preference->calendar and task->uncheck "use
     # sYstem timezone", then select
     send_key "alt-e";
     send_key_until_needlematch "evolution-preference-highlight", "down";
@@ -40,24 +40,20 @@ sub run {
     assert_and_click "timezone-select";
     assert_screen "evolution-selectA-timezone";
     assert_and_click "mercator-projection";
-    assert_screen "mercator-zoomed-in";
+    assert_and_click("mercator-zoomed-in-clicked");
     # Change timezone to Shanghai
-    send_key "alt-s";
-    wait_still_screen 3;
-    send_key "ret";
-    if (check_screen "timezone-asia", 30) {
-        send_key "right";
-        send_key_until_needlematch("timezone-shanghai", "up");
+    if (check_screen("timezone-asia")) {
+        send_key("right");
+        send_key_until_needlematch("timezone-yerevan", "end");
+        assert_and_click("timezone-yerevan");
     }
     else {
         send_key_until_needlematch("timezone-asia", "down");
         send_key "right";
         send_key_until_needlematch("timezone-asia-shanghai", "up");
+        send_key "ret";
     }
-    send_key "ret";
-    assert_screen "asia-shanghai-timezone-setup";
-    send_key "alt-o";
-    wait_still_screen;
+    assert_and_click("asia-shanghai-timezone-setup-click");
     send_key "alt-f4";
     wait_still_screen;
     send_key "alt-f4";
