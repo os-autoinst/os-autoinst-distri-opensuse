@@ -111,13 +111,13 @@ sub test_sapconf {
     } else {
         assert_script_run "sapconf netweaver";
     }
-    $self->reboot_wait;
+    $self->reboot;
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Upd#2_2";
 
     # Scenario 2: sapconf has been disabled (only the service), but the package is still there.
     assert_script_run "cp /etc/security/limits.conf{.bak,}";
     systemctl "disable --now sapconf";
-    $self->reboot_wait;
+    $self->reboot;
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Upd#3_2";
 }
 
