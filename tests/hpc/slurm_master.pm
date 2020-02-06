@@ -452,12 +452,6 @@ sub run {
     }
 
     $self->prepare_slurm_conf();
-    if ($version !~ /15-SP2/) {
-        my $config = << "EOF";
-sed -i "/^ControlMachine.*/c\\ControlMachine=master-node00" /etc/slurm/slurm.conf
-EOF
-        assert_script_run($_) foreach (split /\n/, $config);
-    }
     record_info('slurmctl conf', script_output('cat /etc/slurm/slurm.conf'));
     $self->distribute_munge_key();
     $self->distribute_slurm_conf();
