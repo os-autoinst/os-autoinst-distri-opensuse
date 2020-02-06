@@ -82,9 +82,9 @@ sub run {
             assert_script_run 'mokutil --list-enrolled';
         }
 
-        if (check_var('BACKEND', 's390x') && is_sle('=15-sp1')) {
+        if (is_sle('=15-sp1')) {
             record_soft_failure('disable lvm2-monitor service due to bsc#1158145');
-            disable_and_stop_service('lvm2-monitor');
+            disable_and_stop_service('lvm2-monitor', ignore_failure => 1);
         }
         prepare_system_shutdown;
         type_string "reboot\n";
