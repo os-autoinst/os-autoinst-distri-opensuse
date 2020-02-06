@@ -41,7 +41,6 @@ sub reboot_and_wait_up {
         switch_from_ssh_to_sol_console(reset_console_flag => 'off');
         #login
         #The timeout can't be too small since autoyast installation
-        #need to wait 2nd phase install to finish
         assert_screen "text-login", 600;
         type_string "root\n";
         assert_screen "password-prompt";
