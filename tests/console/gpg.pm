@@ -55,7 +55,7 @@ EOF
         );
         assert_script_run("cat $egg_file");
 
-        script_run("gpg2 -vv --batch --full-generate-key $egg_file |& tee /dev/$serialdev", 0);
+        script_run("gpg2 -vv --batch --full-generate-key $egg_file &> /dev/$serialdev", 0);
     }
     else {
         # Batch mode does not work in gpg version < 2.1. Workaround like using
@@ -65,7 +65,7 @@ EOF
         # appeared at the bottom for needles matching
         assert_script_run "gpg -h";
 
-        script_run("gpg2 -vv --gen-key |& tee /dev/$serialdev", 0);
+        script_run("gpg2 -vv --gen-key &> /dev/$serialdev", 0);
         assert_screen 'gpg-set-keytype';    # Your Selection?
         type_string "1\n";
         assert_screen 'gpg-set-keysize';    # What keysize do you want?
@@ -116,7 +116,7 @@ EOF
     assert_script_run("echo 'foo test content' > $tfile");
     assert_script_run("gpg2 -r $email -e $tfile");
     assert_script_run("test -e $tfile_gpg");
-    script_run("gpg2 -u $email -d $tfile_gpg |& tee /dev/$serialdev", 0);
+    script_run("gpg2 -u $email -d $tfile_gpg &> /dev/$serialdev", 0);
     assert_screen("gpg-passphrase-unlock", 10);
     type_string "$passwd\n";
     wait_serial("foo test content", 90) || die "File decryption failed!";
@@ -125,7 +125,7 @@ EOF
     assert_script_run("pgrep gpg-agent && echo RELOADAGENT | gpg-connect-agent ; true");
 
     # Signing function
-    script_run("gpg2 -u $email --clearsign $tfile |& tee /dev/$serialdev", 0);
+    script_run("gpg2 -u $email --clearsign $tfile &> /dev/$serialdev", 0);
     assert_screen("gpg-passphrase-unlock", 10);
     type_string "$passwd\n";
     assert_script_run("test -e $tfile_asc");

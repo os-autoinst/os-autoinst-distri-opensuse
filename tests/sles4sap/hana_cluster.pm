@@ -76,10 +76,10 @@ sub run {
         barrier_wait "HANA_INIT_CONF_$cluster_name";
 
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem HDB'";
-        sleep 10;
+        assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
         assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --remoteHost=$node1 -remoteInstance=$instance_id --replicationMode=sync --name=NODE2 --operationMode=logreplay'";
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
-        sleep 10;
+        assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
 
         # Synchronize the nodes
         barrier_wait "HANA_CREATED_CONF_$cluster_name";

@@ -8,7 +8,7 @@ import json
 import _thread
 
 def availableRepos(prefix):
-	conn = http.client.HTTPSConnection("hydra.opensuse.org")
+	conn = http.client.HTTPSConnection("obs-login.opensuse.org")
 	headers={"Host": "registry.opensuse.org"}
 	conn.request("GET", "/v2/_catalog", None, headers)
 	resp = conn.getresponse()
@@ -76,11 +76,11 @@ class RegProxy(socketserver.StreamRequestHandler):
 
 		# Create a connection to the real registry
 		context = ssl.create_default_context()
-		# registry.opensuse.org points to localhost, so use hydra
-		with socket.create_connection(("hydra.opensuse.org", 443)) as sock:
+		# registry.opensuse.org points to localhost, so use obs-login
+		with socket.create_connection(("obs-login.opensuse.org", 443)) as sock:
 			# Not sure which name to use for SNI.
 			# HTTP Host: one should take precendence though and we need the right cert
-			with context.wrap_socket(sock, server_hostname="hydra.opensuse.org") as ssock:
+			with context.wrap_socket(sock, server_hostname="obs-login.opensuse.org") as ssock:
 				self.relayHttp(ssock, requestline)
 
 class TcpServer(socketserver.ThreadingTCPServer):

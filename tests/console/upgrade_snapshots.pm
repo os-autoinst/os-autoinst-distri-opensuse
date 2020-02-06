@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,7 +22,7 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    my $waittime = 80 * get_var('TIMEOUT_SCALE', 1);
+    my $waittime = 200 * get_var('TIMEOUT_SCALE', 1);
     script_run("snapper list | tee /dev/$serialdev", 0);
     # Check if the snapshot called 'before update' is there
     wait_serial('pre\s*(\|[^|]*){4,}\s*\|\s*number\s*\|\s*before (update|online migration)\s*\|\s*important=yes', $waittime)

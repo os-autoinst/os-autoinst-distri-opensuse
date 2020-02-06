@@ -50,7 +50,8 @@ sub install_packages {
                 'kernel-xen-base'      => 'kernel-xen',
                 'xen-tools'            => 'xen-tools-domU',
                 'xen-tools-domU'       => 'xen-tools',
-                'p11-kit-nss-trust'    => 'mozilla-nss-certs'
+                'p11-kit-nss-trust'    => 'mozilla-nss-certs',
+                'rmt-server-config'    => 'rmt-server-pubcloud'
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
             # go to next package if it's not provided by repos

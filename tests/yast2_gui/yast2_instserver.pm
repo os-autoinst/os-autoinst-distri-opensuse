@@ -135,6 +135,7 @@ sub test_http_instserver {
 sub start_yast2_instserver {
     my $self = shift;
     $self->launch_yast2_module_x11("instserver", match_timeout => 120);
+    wait_still_screen;
 }
 
 sub run {
@@ -146,20 +147,16 @@ sub run {
     select_console "x11";
 
     start_yast2_instserver $self;
-    wait_still_screen 2;
     test_http_instserver;
 
     start_yast2_instserver $self;
-    wait_still_screen 2;
     test_ftp_instserver;
 
     start_yast2_instserver $self;
-    wait_still_screen 2;
     test_nfs_instserver;
 
     # clean existing config
     start_yast2_instserver $self;
-    wait_still_screen 2;
     clean_env;
 }
 

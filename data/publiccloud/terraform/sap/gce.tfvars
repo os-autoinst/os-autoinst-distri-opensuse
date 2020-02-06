@@ -14,6 +14,7 @@ iscsi_ip = "10.0.0.253"
 
 # Type of VM (vCPUs and RAM)
 machine_type = "%MACHINE_TYPE%"
+machine_type_iscsi_server = "custom-1-2048"
 
 # Disk type for HANA
 hana_data_disk_type = "pd-ssd"

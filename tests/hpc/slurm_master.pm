@@ -219,7 +219,7 @@ sub t05_basic {
     my $result      = 0;
 
     my $pmi_versions = script_output("srun --mpi=list");
-    $result = 1 unless ($pmi_versions =~ m/'pmix'/);
+    $result = 1 unless ($pmi_versions =~ m/pmix/);
     record_info('INFO', script_output("srun --mpi=list"));
 
     my %results = generate_results($name, $description, $result);
@@ -455,6 +455,11 @@ sub run {
     if ($version !~ /15-SP2/) {
         my $config = << "EOF";
 sed -i "/^ControlMachine.*/c\\ControlMachine=master-node00" /etc/slurm/slurm.conf
+EOF
+        assert_script_run($_) foreach (split /\n/, $config);
+    } else {
+        my $config = << "EOF";
+sed -i "/^ControlMachine.*/c\\#ControlMachine" /etc/slurm/slurm.conf
 EOF
         assert_script_run($_) foreach (split /\n/, $config);
     }

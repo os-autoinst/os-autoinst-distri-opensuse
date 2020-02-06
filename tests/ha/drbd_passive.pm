@@ -29,6 +29,10 @@ sub assert_standalone {
 }
 
 sub run {
+    # Exit of this module if we are in a maintenance update not related to drbd
+    # write_tag is mandatory for next filesystem module
+    write_tag('drbd_passive') and return 1 if is_not_maintenance_update('drbd');
+
     my $cluster_name  = get_cluster_name;
     my $drbd_rsc      = 'drbd_passive';
     my $drbd_rsc_file = "/etc/drbd.d/$drbd_rsc.res";

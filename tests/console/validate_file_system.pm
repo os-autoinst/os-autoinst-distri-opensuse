@@ -19,10 +19,13 @@ use base "opensusebasetest";
 use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
+use partitions_validator_utils 'validate_partition_table';
 
 sub run {
     my $test_data  = get_test_suite_data();
     my %partitions = %{$test_data->{file_system}};
+
+    validate_partition_table({device => $test_data->{device}, table_type => $test_data->{table_type}});
 
     foreach (keys %partitions) {
         record_info("Check fs $_", "Verify the '$_' partition filesystem is '$partitions{$_}'");
@@ -30,7 +33,6 @@ sub run {
         assert_equals($partitions{$_}, $fstype,
             "File system on '$_' partition does not correspond to the expected one");
     }
-
 }
 
 1;

@@ -96,13 +96,17 @@ sub run {
     # Testcase according to https://progress.opensuse.org/issues/44864
     if (!check_var('VERSION', '12')) {
         send_key 'alt-d';
+        wait_still_screen(2);
         assert_screen [qw(yast2-sw_install_recommended_packages_enabled yast2-sw_install_recommended_packages_disabled)];
         if (match_has_tag('yast2-sw_install_recommended_packages_disabled')) {
-            wait_screen_change { send_key 'alt-r' };
+            send_key 'alt-r';
+            wait_still_screen(2);
         } else {
-            wait_screen_change { send_key 'esc' };
+            send_key 'esc';
+            wait_still_screen(2);
         }
-        wait_screen_change { send_key 'alt-p' };
+        send_key 'alt-p';
+        wait_still_screen(2);
     }
 
     # Testcase according to https://fate.suse.com/318099

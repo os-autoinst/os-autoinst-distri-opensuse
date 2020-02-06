@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,6 +27,7 @@ use power_action_utils 'prepare_system_shutdown';
 use version_utils 'is_sle';
 use qam;
 use testapi;
+use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
     my ($self) = @_;
@@ -81,6 +82,10 @@ sub run {
             assert_script_run 'mokutil --list-enrolled';
         }
 
+        if (check_var('BACKEND', 's390x') && is_sle('=15-sp1')) {
+            record_soft_failure('disable lvm2-monitor service due to bsc#1158145');
+            disable_and_stop_service('lvm2-monitor');
+        }
         prepare_system_shutdown;
         type_string "reboot\n";
         $self->wait_boot;

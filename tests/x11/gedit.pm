@@ -22,7 +22,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     x11_start_program('gedit');
-    $self->enter_test_text('gedit');
+    $self->enter_test_text('gedit', slow => 1);
     assert_screen 'test-gedit-1';
     send_key 'alt-f4';
     assert_screen 'gedit-save-changes';

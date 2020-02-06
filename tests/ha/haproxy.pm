@@ -19,6 +19,9 @@ use utils qw(zypper_call systemctl);
 use hacluster;
 
 sub run {
+    # Exit of this module if we are in a maintenance update not related to haproxy
+    return 1 if is_not_maintenance_update('haproxy');
+
     my $cluster_name = get_cluster_name;
     my $haproxy_rsc  = 'haproxy';
     my $haproxy_cfg  = '/etc/haproxy/haproxy.cfg';

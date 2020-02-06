@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+
+# The script verifies if modules used in yaml schedule do not exist in the repo.
+
+use strict;
+use warnings;
+use YAML::Tiny;
+use File::Basename;
+use Data::Dumper;
+
+=head2 parse_modules_in_schedule
+
+   parse_modules_in_schedule($schedule_file_path);
+
+Get test modules list from 'schedule' and 'conditional_schedule' sections of
+YAML schedule file.
+
+=cut
+sub parse_modules_in_schedule {
+    my ($schedule_file_path) = @_;
+    my $schedule = YAML::Tiny::LoadFile($schedule_file_path);
+    my @scheduled;
+    for my $module (@{$schedule->{schedule}}) {
+        push(@scheduled, $module) && next unless ($module =~ s/\{\{(.*)\}\}/$1/);
+        # Module is scheduled conditionally. Need to be parsed. Get condition hash
+        my $condition = $schedule->{conditional_schedule}->{$module};
+        # Iterate over variables in the condition
+        foreach my $var (keys %{$condition}) {
+            foreach my $val (keys %{$condition->{$var}}){
+                # Iterate over the list of the modules to be loaded
+                push(@scheduled, $_) for (@{$condition->{$var}->{$val}});
+            }
+        }
+    }
+    return @scheduled;
+}
+
+=head2 is_test_module_exist
+
+   is_test_module_exist($test_module);
+
+Returns true if test module with C<$relative_file_path> path exists in project
+C<$test_module> is file path relative to 'tests' directory, without file
+extension (as specified in YAML schedule file, e.g. 'boot/boot_to_desktop').
+
+=cut
+sub is_test_module_exist {
+    my ($test_module) = @_;
+    return (-f "tests/$test_module.pm") ? 1 : 0;
+}
+
+# Find test modules that specified in scheduling YAML files but do not exist in
+# the project. Put them to @nonexistent_modules array.
+my @nonexistent_modules = ();
+# Process the schedule files list got from command line arguments (@ARGV).
+foreach my $schedule_file (@ARGV) {
+    foreach my $test_module (parse_modules_in_schedule($schedule_file)) {
+        unless (is_test_module_exist($test_module)) {
+            push @nonexistent_modules, { test_module => $test_module, schedule_file => $schedule_file };
+        }
+    }
+}
+
+# Show the nonexistent test modules in logs output and fail the test.
+if (@nonexistent_modules) {
+    print "Fail! YAML schedule files contain test modules that do not exist in the project. Please, see the list below:\n\n";
+    foreach my $file (@nonexistent_modules){
+        print "\'$file->{test_module}\' test module in \'$file->{schedule_file}\' schedule file.\n";
+    }
+    exit 1;
+}
+
+exit 0;

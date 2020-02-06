@@ -132,7 +132,7 @@ if (is_sle('15+')) {
     # depending on registration only limited system roles are available
     set_var('SYSTEM_ROLE', get_var('SYSTEM_ROLE', is_desktop_module_available() ? 'default' : 'minimal'));
     # set SYSTEM_ROLE to textmode for SLE15 if DESKTOP = textmode instead of triggering change_desktop (see poo#29589)
-    if (is_sles4sap && check_var('SYSTEM_ROLE', 'default') && check_var('DESKTOP', 'textmode')) {
+    if (is_sles4sap && check_var('SYSTEM_ROLE', 'default') && check_var('DESKTOP', 'textmode') && check_var('BACKEND', 'qemu')) {
         set_var('SYSTEM_ROLE', 'textmode');
     }
     # in the 'minimal' system role we can not execute many test modules
@@ -542,6 +542,8 @@ sub load_baremetal_tests {
         get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
         load_reboot_tests();
     }
+    # make sure we always have the toolchain installed
+    loadtest "toolchain/install";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }

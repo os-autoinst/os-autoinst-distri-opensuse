@@ -8,8 +8,8 @@
 # without any warranty.
 
 # Summary: Basic MPI integration test. Checking for installability and
-# usability of mpirun and mpicc. Using mpirun locally and across
-# available nodes. Test meant to be run in VMs, so thus using ethernet
+#     usability of mpirun and mpicc. Using mpirun locally and across
+#     available nodes. Test meant to be run in VMs, so thus using ethernet
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
 use base 'hpcbase';
@@ -23,33 +23,30 @@ use version_utils 'is_sle';
 
 sub run {
     my $self          = shift;
-    my $version       = get_required_var("VERSION");
-    my $arch          = get_required_var("ARCH");
-    my $sdk_version   = get_required_var("BUILD_SDK");
-    my $mpi           = get_required_var("MPI");
-    my $mpi_c         = "simple_mpi.c";
+    my $version       = get_required_var('VERSION');
+    my $arch          = get_required_var('ARCH');
+    my $sdk_version   = get_required_var('BUILD_SDK');
+    my $mpi           = get_required_var('MPI');
+    my $mpi_c         = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
 
     ## adding required sdk and gcc
-    ##TODO: consider better ways of handling addons/modules etc
-    ## https://progress.opensuse.org/issues/54773
     if (is_sle '<15') {
         zypper_call("ar -f ftp://openqa.suse.de/SLE-$version-SDK-POOL-$arch-Build$sdk_version-Media1/ SDK");
         zypper_call("ar -f http://download.suse.de/ibs/SUSE/Products/SLE-Module-Toolchain/12/$arch/product/ SLE-Module-Toolchain12-Pool");
         zypper_call("ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/$arch/update/ SLE-Module-Toolchain12-Updates");
     } else {
-        add_suseconnect_product("sle-module-development-tools");
+        add_suseconnect_product('sle-module-development-tools');
     }
 
-    zypper_call("in gcc");
-    zypper_call("in $mpi $mpi-devel");
+    zypper_call("in $mpi $mpi-devel gcc");
     assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
 
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh();
 
-    barrier_wait("MPI_SETUP_READY");
+    barrier_wait('MPI_SETUP_READY');
     $self->check_nodes_availability();
 
     assert_script_run("wget --quiet " . data_url("hpc/$mpi_c") . " -O /tmp/$mpi_c");
@@ -59,7 +56,7 @@ sub run {
     foreach (@cluster_nodes) {
         assert_script_run("scp -o StrictHostKeyChecking=no /tmp/simple_mpi root\@$_\:/tmp/simple_mpi");
     }
-    barrier_wait("MPI_BINARIES_READY");
+    barrier_wait('MPI_BINARIES_READY');
 
     record_info('INFO', 'Run MPI over single machine');
     ## openmpi requires non-root usr to run program or special flag '--allow-run-as-root'
@@ -70,7 +67,7 @@ sub run {
     }
 
     record_info('INFO', 'Run MPI over several nodes');
-    if ($mpi =~ m/openmpi/) {
+    if ($mpi eq 'openmpi') {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --allow-run-as-root --host $cluster_nodes  /tmp/simple_mpi");
     } elsif ($mpi eq 'mvapich2') {
         # we do not support ethernet with mvapich2
@@ -85,7 +82,7 @@ sub run {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi");
     }
 
-    barrier_wait("MPI_RUN_TEST");
+    barrier_wait('MPI_RUN_TEST');
 }
 
 sub test_flags {

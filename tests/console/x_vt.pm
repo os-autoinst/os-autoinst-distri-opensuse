@@ -15,11 +15,11 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_tumbleweed is_leap);
 
 sub run {
     if (script_run("ps -ef | grep bin/X | egrep 'tty7|wayland'") == 1) {
-        if (is_tumbleweed && script_run('ps -ef | grep bin/X | grep tty2') == 0) {
+        if ((is_tumbleweed || is_leap('>=15.2')) && script_run('ps -ef | grep bin/X | grep tty2') == 0) {
             record_soft_failure('boo#1138327');
         }
         else {

@@ -26,10 +26,9 @@ sub vault_create_credentials {
     my ($self) = @_;
 
     record_info('INFO', 'Get credentials from VAULT server.');
-    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/aws/creds/openqa-role', method => 'get');
-    $self->vault_lease_id($res->{lease_id});
-    $self->key_id($res->{data}->{access_key});
-    $self->key_secret($res->{data}->{secret_key});
+    my $data = $self->vault_get_secrets('/aws/creds/openqa-role');
+    $self->key_id($data->{access_key});
+    $self->key_secret($data->{secret_key});
     die('Failed to retrieve key') unless (defined($self->key_id) && defined($self->key_secret));
 }
 
@@ -116,23 +115,22 @@ sub upload_img {
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
     my ($img_name) = $file =~ /([^\/]+)$/;
+    my $img_arch   = get_var('PUBLIC_CLOUD_EC2_UPLOAD_ARCH', 'x86_64');
     my $sec_group  = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
     my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
-    my $ami_id     = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');         # Used for helper VM to create/build the image on CSP
-                                                                     # When uploading a on-demand image, this ID should point
-                                                                     # to and on-demand image.
-                                                                     # If not specified, the id gets read from ec2utils.conf file.
+    # Used for helper VM to create/build the image on CSP. When uploading a on-demand image, this ID should point
+    # to and on-demand image. If not specified, the id gets read from ec2utils.conf file.
+    my $ami_id = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');
 
-    assert_script_run("ec2uploadimg --access-id '"
-          . $self->key_id
-          . "' -s '"
-          . $self->key_secret . "' "
+    assert_script_run("ec2uploadimg --access-id '" . $self->key_id
+          . "' -s '" . $self->key_secret . "' "
           . "--backing-store ssd "
           . "--grub2 "
-          . "--machine 'x86_64' "
+          . "--machine '" . $img_arch . "' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
-          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '--ena-support ')
+          . ($img_name !~ /byos/i && $img_arch eq 'arm64' ? '' : '--use-root-swap ')
+          . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "

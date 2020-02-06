@@ -59,6 +59,7 @@ our @EXPORT = qw(
   post_run_hook
   post_fail_hook
   test_flags
+  is_not_maintenance_update
 );
 
 # Global variables
@@ -504,6 +505,16 @@ sub post_fail_hook {
 
 sub test_flags {
     return {milestone => 1, fatal => 1};
+}
+
+sub is_not_maintenance_update {
+    my $package = shift;
+    # Allow to skip an openQA module if package is not targeted by maintenance update
+    if (get_var('MAINTENANCE') && get_var('BUILD') !~ /$package/) {
+        record_info('Skipped - MU', "$package test not needed here");
+        return 1;
+    }
+    return 0;
 }
 
 1;

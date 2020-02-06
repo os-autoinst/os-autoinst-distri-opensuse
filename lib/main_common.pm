@@ -2443,6 +2443,9 @@ sub load_mitigation_tests {
     if (get_var('ITLB')) {
         loadtest "cpu_bugs/itlb";
     }
+    if (get_var('XEN_PV')) {
+        loadtest "cpu_bugs/xen_pv";
+    }
 }
 
 sub load_security_tests {
@@ -2610,6 +2613,13 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
     }
 
+    if (check_var('VIRT_PART', 'storage')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+
+        loadtest 'virtualization/xen/storage';                        # Storage pool / volume test
+    }
+
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
         loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
@@ -2667,6 +2677,7 @@ sub load_publiccloud_tests {
         loadtest "publiccloud/download_repos";
         my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/ssh_interactive_init",  run_args => $args;
+        loadtest "publiccloud/register_system",       run_args => $args;
         loadtest "publiccloud/transfer_repos",        run_args => $args;
         loadtest "publiccloud/patch_and_reboot",      run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;

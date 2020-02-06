@@ -12,7 +12,9 @@ schedule:
   - jeos/build_key
   - console/suseconnect_scc
   - console/consoletest_setup
+  - jeos/kiwi_templates
   - console/zypper_ref
+  - console/zypper_lr
   - console/command_not_found
   - console/libvorbis
   - console/git

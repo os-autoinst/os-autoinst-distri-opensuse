@@ -1,0 +1,19 @@
+---
+description: 'Test suite verifies functionality of packages present in Package Hub (phub) module'
+name: 'jeos-base+phub'
+schedule:
+  - installation/bootloader_hyperv
+  - jeos/grub2
+  - jeos/firstrun
+  - jeos/record_machine_id
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - jeos/grub2_gfxmode
+  - jeos/diskusage
+  - jeos/build_key
+  - console/suseconnect_scc
+  - console/machinery
+  - sysauth/sssd
+  - console/orphaned_packages_check
+  - console/repo_orphaned_packages_check
+  - console/coredump_collect
