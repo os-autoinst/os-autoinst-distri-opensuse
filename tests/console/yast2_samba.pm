@@ -388,8 +388,6 @@ sub run {
         setup_yast2_auth_server;
     }
     else {
-        # dirsrv@openqa cannot be restarted due to dependency issues
-        record_soft_failure "bsc#1088152";
         setup_yast2_ldap_server;
     }
     setup_samba;
