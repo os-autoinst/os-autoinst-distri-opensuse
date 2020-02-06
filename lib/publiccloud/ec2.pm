@@ -115,23 +115,22 @@ sub upload_img {
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
     my ($img_name) = $file =~ /([^\/]+)$/;
+    my $img_arch   = get_var('PUBLIC_CLOUD_EC2_UPLOAD_ARCH', 'x86_64');
     my $sec_group  = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
     my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
-    my $ami_id     = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');         # Used for helper VM to create/build the image on CSP
-                                                                     # When uploading a on-demand image, this ID should point
-                                                                     # to and on-demand image.
-                                                                     # If not specified, the id gets read from ec2utils.conf file.
+    # Used for helper VM to create/build the image on CSP. When uploading a on-demand image, this ID should point
+    # to and on-demand image. If not specified, the id gets read from ec2utils.conf file.
+    my $ami_id = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');
 
-    assert_script_run("ec2uploadimg --access-id '"
-          . $self->key_id
-          . "' -s '"
-          . $self->key_secret . "' "
+    assert_script_run("ec2uploadimg --access-id '" . $self->key_id
+          . "' -s '" . $self->key_secret . "' "
           . "--backing-store ssd "
           . "--grub2 "
-          . "--machine 'x86_64' "
+          . "--machine '" . $img_arch . "' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
-          . (($img_name !~ /byos/i) ? '--use-root-swap ' : '--ena-support ')
+          . ($img_name !~ /byos/i && $img_arch eq 'arm64' ? '' : '--use-root-swap ')
+          . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
