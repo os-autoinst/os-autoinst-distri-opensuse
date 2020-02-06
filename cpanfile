@@ -25,7 +25,7 @@ requires 'Digest::file';
 requires 'YAML::Tiny';
 requires 'Test::Assert';
 requires 'Perl::Critic::Freenode';
-
+requires 'Tie::IxHash';
 
 on 'test' => sub {
   requires 'Code::DRY';
