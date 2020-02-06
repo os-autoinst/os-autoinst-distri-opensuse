@@ -104,7 +104,8 @@ sub run {
     # select 'data and isv applications'
     send_key "alt-d";
     # next
-    wait_screen_change { send_key "alt-n" };
+    send_key "alt-n";
+    wait_still_screen(2);
     assert_and_click "yast2_storage_ng-filesystem-dropdown";
     # XFS is the default filesystem, so we have to move up
     send_key_until_needlematch("yast2_storage_ng-ext4", "up");
@@ -200,6 +201,7 @@ sub run {
 
     # EXT4, encrypted
     add_logical_volume "lv2", "alt-d";
+    wait_still_screen(2);
     assert_and_click "yast2_storage_ng-filesystem-dropdown";
     send_key_until_needlematch("yast2_storage_ng-ext4", "up");
     send_key "ret";
@@ -207,6 +209,7 @@ sub run {
 
     # BtrFS, encrypted
     add_logical_volume "lv3", "alt-d";
+    wait_still_screen(2);
     assert_and_click "yast2_storage_ng-filesystem-dropdown";
     send_key_until_needlematch("yast2_storage_ng-btrfs", "up");
     send_key "ret";
