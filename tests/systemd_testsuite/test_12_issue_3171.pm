@@ -18,14 +18,14 @@ use testapi;
 sub pre_run_hook {
     my ($self) = @_;
     #prepare test
-    $self->testsuiteprepare('TEST-12-ISSUE-3171');
+    $self->testsuiteprepare('TEST-12-ISSUE-3171', 'nspawn');
 }
 
 sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-12-ISSUE-3171 --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_script_run 'grep PASS: /tmp/testsuite.log';
+    assert_script_run 'grep "PASS: ...TEST-12-ISSUE-3171" /tmp/testsuite.log';
 }
 
 sub test_flags {

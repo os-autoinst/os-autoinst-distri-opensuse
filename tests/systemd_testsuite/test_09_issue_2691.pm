@@ -20,7 +20,7 @@ use utils 'get_root_console_tty';
 sub pre_run_hook {
     my ($self) = @_;
     #prepare test
-    $self->testsuiteprepare('TEST-09-ISSUE-2691');
+    $self->testsuiteprepare('TEST-09-ISSUE-2691', 'needreboot');
 }
 
 sub run {
@@ -43,7 +43,7 @@ sub run {
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run 'ls -l /shutdown-log.txt';
     assert_script_run './run-tests.sh TEST-09-ISSUE-2691 --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_script_run 'grep PASS: /tmp/testsuite.log';
+    assert_script_run 'grep "PASS: ...TEST-09-ISSUE-2691" /tmp/testsuite.log';
 }
 
 sub test_flags {

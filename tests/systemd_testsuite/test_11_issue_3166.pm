@@ -25,7 +25,7 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-11-ISSUE-3166 --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_script_run 'grep PASS: /tmp/testsuite.log';
+    assert_script_run 'grep "PASS: ...TEST-11-ISSUE-3166" /tmp/testsuite.log';
 }
 
 sub test_flags {

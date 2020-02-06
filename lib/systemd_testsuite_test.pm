@@ -24,6 +24,7 @@ use version_utils qw(is_opensuse is_sle is_tumbleweed);
 
 
 sub testsuiteinstall {
+    my ($self) = @_;
     # The isotovideo setting QA_TESTSUITE_REPO is not mandatory.
     # QA_TESTSUITE_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
     my $qa_testsuite_repo = get_var('QA_TESTSUITE_REPO', '');
@@ -47,6 +48,13 @@ sub testsuiteinstall {
         die '$qa_testsuite_repo is not set' unless ($qa_testsuite_repo);
     }
 
+    if (get_var('BOOT_HDD_IMAGE')) {
+        if (check_var('ARCH', 'aarch64')) {
+            wait_still_screen 10;
+            send_key 'ret';
+        }
+        wait_serial('Welcome to', 300) || die "System did not boot in 300 seconds.";
+    }
     select_console 'root-console';
 
     if (is_sle('15+') && !main_common::is_updates_tests) {
@@ -60,33 +68,71 @@ sub testsuiteinstall {
     # install systemd testsuite
     zypper_call "ar $qa_testsuite_repo systemd-testrepo";
     zypper_call '--gpg-auto-import-keys ref';
+    # use systemd from the repo of the qa package
+    if (get_var('SYSTEMD_FROM_TESTREPO')) {
+        zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0';
+        wait_screen_change { type_string "shutdown -r now\n" };
+        if (check_var('ARCH', 's390x')) {
+            $self->wait_boot(bootloader_time => 180);
+        } else {
+            $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64'));
+            wait_still_screen 10;
+            send_key 'ret';
+            wait_serial('Welcome to', 300) || die "System did not boot in 300 seconds.";
+        }
+        assert_screen('linux-login', 30);
+        reset_consoles;
+        select_console('root-console');
+    }
     zypper_call 'in systemd-qa-testsuite';
 }
 
 sub testsuiteprepare {
-    my ($self, $testname) = @_;
-    #prepare test
-    select_console 'root-console';
-    assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run "./run-tests.sh $testname --setup 2>&1 | tee /tmp/testsuite.log", 600;
-    assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
-    unless (check_var('BACKEND', 'qemu')) {
-        #reboot
-        power_action('reboot', textmode => 1);
-        wait_still_screen 90;
-        assert_screen('linux-login', 300);
-        type_string "root\n";
-        wait_still_screen 3;
-        type_password;
-        wait_still_screen 3;
-        send_key 'ret';
+    my ($self, $testname, $option) = @_;
+    #cleanup and prepare next test
+    assert_script_run "find / -maxdepth 1 -type f -print0 | xargs -0 /bin/rm -f";
+    assert_script_run 'find /etc/systemd/system/ -name "schedule.conf" -prune -o \( \! -name *~ -type f -print0 \) | xargs -0 /bin/rm -f';
+    assert_script_run "find /etc/systemd/system/ -name 'end.service' -delete";
+    assert_script_run "rm -rf /var/tmp/systemd-test*";
+    assert_script_run "clear";
+    assert_script_run "cd /var/opt/systemd-tests";
+    assert_script_run "./run-tests.sh $testname --setup 2>&1 | tee /tmp/testsuite.log", 300;
+
+    if ($option eq 'nspawn') {
+        my $testservicepath = script_output "sed -n '/testservice=/s/root/nspawn-root/p' logs/$testname-setup.log";
+        assert_script_run "ls -l \$\{testservicepath#testservice=\}";
     }
+    else {
+        #some tests don't create the testsuite.service file
+        return if ($testname eq 'TEST-18-FAILUREACTION' || $testname eq 'TEST-21-SYSUSERS');
+
+        assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
+        #virtual machines do a vm reset instead of reboot
+        if (!check_var('BACKEND', 'qemu') || ($option eq 'needreboot')) {
+            wait_screen_change { type_string "shutdown -r now\n" };
+            if (check_var('ARCH', 's390x')) {
+                $self->wait_boot(bootloader_time => 180);
+            }
+            else {
+                $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64'));
+                wait_serial('Welcome to', 300) || die "System did not boot in 300 seconds.";
+            }
+            wait_still_screen 10;
+            assert_screen('linux-login', 30);
+            reset_consoles;
+            select_console('root-console');
+        }
+    }
+
+    script_run "clear";
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     #upload logs from given testname
     $self->tar_and_upload_log('/var/opt/systemd-tests/logs', '/tmp/systemd_testsuite-logs.tar.bz2');
+    $self->save_and_upload_log('journalctl --no-pager -axb', 'journal.log');
+    upload_logs('/shutdown-log.txt', failok => 1);
 }
 
 

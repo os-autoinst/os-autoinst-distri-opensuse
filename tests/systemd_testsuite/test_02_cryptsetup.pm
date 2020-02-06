@@ -25,7 +25,8 @@ sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run './run-tests.sh TEST-02-CRYPTSETUP --run 2>&1 | tee /tmp/testsuite.log', 60;
-    assert_script_run 'grep PASS: /tmp/testsuite.log';
+    assert_script_run 'grep "PASS: ...TEST-02-CRYPTSETUP" /tmp/testsuite.log';
+    script_run './run-tests.sh TEST-02-CRYPTSETUP --clean';
 }
 
 sub test_flags {
