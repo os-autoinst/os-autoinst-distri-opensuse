@@ -1186,9 +1186,9 @@ sub load_consoletests {
     if (is_opensuse || !is_staging && (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && !is_desktop)) {
         loadtest "console/salt";
     }
-    if (is_x86_64
-        || check_var('ARCH', 'i686')
-        || check_var('ARCH', 'i586'))
+    if (!is_staging && (is_x86_64
+            || check_var('ARCH', 'i686')
+            || check_var('ARCH', 'i586')))
     {
         loadtest "console/glibc_sanity";
     }
