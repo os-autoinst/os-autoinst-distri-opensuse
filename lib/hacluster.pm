@@ -330,8 +330,7 @@ sub check_cluster_state {
         assert_script_run q/crm_mon -s | grep "$(crm node list | wc -l).*nodes online"/;
     }
     else {
-        assert_script_run q/crm_mon -s | grep "$(crm node list | grep -c ': member').*nodes online"/;
-        record_soft_failure 'bsc#1158180, regression in crm_mon -s output' if is_sle('>=15-sp2');
+        assert_script_run q/crm_mon -s | grep "$(crm node list | grep -c ': member') nodes online"/;
     }
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
