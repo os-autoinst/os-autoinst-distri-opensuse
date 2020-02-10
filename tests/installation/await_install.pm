@@ -122,16 +122,11 @@ sub run {
     my $screenlock_previously_detected = 0;
     my $mouse_x                        = 1;
     while (1) {
+        die 'timeout hit on during await_install' if $timeout <= 0;
         my $ret = check_screen \@tags, 30;
-
+        $timeout -= 30;
+        diag("left total await_install timeout: $timeout");
         if (!$ret) {
-            $timeout -= 30;
-            diag("left total await_install timeout: $timeout");
-            if ($timeout <= 0) {
-                assert_screen \@tags;
-                die "timeout hit on during await_install";
-            }
-
             if (get_var('LIVECD') && $screenlock_previously_detected) {
                 diag('installation not finished, move mouse around a bit to keep screen unlocked');
                 $mouse_x = ($mouse_x + 10) % 1024;
