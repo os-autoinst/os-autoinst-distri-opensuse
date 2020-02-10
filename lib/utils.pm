@@ -1194,6 +1194,7 @@ Serial getty service pollutes serial output with login prompt, which
 interferes with the output, e.g. when calling C<script_output>.
 Login prompt messages on serial are used on some remote backend to
 identify that system has been booted, so do not mask on non-qemu backends.
+This is only necessary for Linux < 4.20.4 so skipped on more recent versions.
 
 =cut
 sub disable_serial_getty {
@@ -1201,6 +1202,8 @@ sub disable_serial_getty {
     my $service_name = "serial-getty\@$testapi::serialdev";
     # Do not run on zVM as running agetty is required by iucvconn in order to work
     return if check_var('BACKEND', 's390x');
+    # No need to apply on more recent kernels
+    return unless is_sle('<=15-SP2') || is_leap('<=15.2');
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
