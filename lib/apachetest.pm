@@ -24,8 +24,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 
-our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql);
-
+our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
 # Example: setup_apache2(mode => 'SSL');
 
@@ -336,6 +335,21 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
     assert_script_run "mysql -u root -e 'USE openQAdb; SELECT * FROM test;' | grep 'can php write this?'";
 
     assert_script_run qq{mysql -u root -e "DROP DATABASE openQAdb;"};
+}
+
+# poo#62000
+sub postgresql_cleanup {
+    select_console 'root-console';
+    # Display current state of btrfs
+    assert_script_run 'btrfs fi show';
+    # Clean up
+    systemctl 'stop postgresql';
+    systemctl 'disable postgresql';
+    systemctl 'is-active postgresql', expect_false => 1;
+    assert_script_run q{kill -s KILL $(ps -u postgres -o pid=)};
+    zypper_call "rm postgresql";
+    script_run q[snapper delete --sync $(snapper --quiet --machine-readable csv list | awk -F ',' 'NR>3 {print $3+0}')];
+    assert_script_run 'userdel --remove postgres';
 }
 
 1;

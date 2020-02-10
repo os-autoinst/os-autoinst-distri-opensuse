@@ -20,8 +20,9 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils;
-use apachetest;
+use utils 'zypper_call';
+use apachetest qw(setup_pgsqldb destroy_pgsqldb test_pgsql postgresql_cleanup);
+use Utils::Systemd 'systemctl';
 
 sub run {
     select_console 'root-console';

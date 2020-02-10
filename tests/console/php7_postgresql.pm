@@ -36,8 +36,9 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils;
-use apachetest;
+use utils 'zypper_call';
+use apachetest qw(setup_apache2 setup_pgsqldb test_pgsql destroy_pgsqldb postgresql_cleanup);
+use Utils::Systemd 'systemctl';
 
 sub run {
     select_console 'root-console';
@@ -59,5 +60,9 @@ sub run {
 
     # destroy database
     destroy_pgsqldb;
+
+    # poo#62000
+    postgresql_cleanup;
 }
+
 1;
