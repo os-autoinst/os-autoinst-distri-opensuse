@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,9 +34,17 @@ sub run {
     assert_and_click "enlightenment_assistant_next";
     assert_screen "enlightenment_keybindings";
     assert_and_click "enlightenment_assistant_next";
-    assert_screen "enlightenment_compositing";
+    assert_screen [qw(enlightenment_compositing enlightenment_bluez_not_found)];
+    if (match_has_tag 'enlightenment_bluez_not_found') {
+        assert_and_click 'enlightenment_assistant_next';
+        assert_screen 'enlightenment_compositing';
+    }
     assert_and_click "enlightenment_assistant_next";
-    assert_screen "enlightenment_generic_desktop";
+    assert_screen [qw(enlightenment_generic_desktop enlightenment_acpid_missing)];
+    if (match_has_tag 'enlightenment_acpid_missing') {
+        assert_and_click 'enlightenment_acpid_missing';
+        assert_screen 'enlightenment_generic_desktop';
+    }
 }
 
 sub test_flags {
