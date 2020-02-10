@@ -15,10 +15,12 @@
 use parent 'y2_installbase';
 use strict;
 use warnings FATAL => 'all';
+use testapi;
 
 sub run {
     my $partitioner = $testapi::distri->get_partitioner();
-    $partitioner->edit_proposal(has_separate_home => 0);
+    my $has_separate_home = check_var('SYSTEM_ROLE', 'default') ? 0 : 1; 
+    $partitioner->edit_proposal(has_separate_home => $has_separate_home);
 }
 
 1;
