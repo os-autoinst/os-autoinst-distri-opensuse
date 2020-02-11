@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,10 +31,9 @@ sub run {
 
     # Disable Remmina news before launch Remmina
     x11_start_program('xterm');
-    my $pref_dir  = '/home/bernhard/.config/remmina';
-    my $timestamp = script_output('date "+%s"', type_command => 1);
+    my $pref_dir = '~/.config/remmina';
     assert_script_run "mkdir $pref_dir";
-    assert_script_run "echo -e \'[remmina_news]\\nperiodic_rmnews_last_get='$timestamp'\' >> '$pref_dir'/remmina.pref";
+    assert_script_run 'echo -e "[remmina_news]\\nperiodic_rmnews_last_get=$(date +%s)" >> ' . $pref_dir . '/remmina.pref';
     type_string "exit\n";
 
     # Start Remmina and login the remote server
