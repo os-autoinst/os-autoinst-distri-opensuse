@@ -1330,7 +1330,8 @@ sub reconnect_mgmt_console {
     $args{timeout} //= 300;
 
     if (check_var('ARCH', 's390x')) {
-        my $login_ready = qr/Welcome to SUSE Linux Enterprise Server.*\(s390x\)/;
+        my $login_ready = qr/Welcome to /;
+        $login_ready .= is_sle() ? qr/SUSE Linux Enterprise Server.*\(s390x\)/ : qr/openSUSE Tumbleweed/;
         console('installation')->disable_vnc_stalls;
 
         # different behaviour for z/VM and z/KVM
