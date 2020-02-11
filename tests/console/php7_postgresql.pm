@@ -47,7 +47,7 @@ sub run {
     setup_apache2(mode => 'PHP7');
 
     # install requirements, all postgresql versions to test db upgrade if there are multiple versions
-    zypper_call 'in php7-pgsql postgresql*-contrib sudo';
+    zypper_call 'in php7-pgsql postgresql*-contrib sudo unzip';
 
     # start postgresql service
     systemctl 'start postgresql';
