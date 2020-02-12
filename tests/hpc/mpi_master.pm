@@ -67,7 +67,7 @@ sub run {
     }
 
     record_info('INFO', 'Run MPI over several nodes');
-    if ($mpi eq 'openmpi') {
+    if ($mpi =~ m/openmpi/) {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --allow-run-as-root --host $cluster_nodes  /tmp/simple_mpi");
     } elsif ($mpi eq 'mvapich2') {
         # we do not support ethernet with mvapich2
