@@ -346,7 +346,7 @@ sub uefi_bootmenu_params {
         for (1 .. 10) { send_key "down"; }
     }
     else {
-        for (1 .. 2) { send_key "down"; }
+        for (1 .. ((is_jeos) ? 3 : 2)) { send_key "down"; }
         send_key "end";
         # delete "keep" word
         for (1 .. 4) { send_key "backspace"; }
