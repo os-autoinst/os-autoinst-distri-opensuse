@@ -69,7 +69,7 @@ all possible options should be handled within loop to get unlocked desktop
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings)], no_wait => 1;
+        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system)], no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -84,7 +84,7 @@ sub ensure_unlocked_desktop {
                 select_user_gnome($username);
             }
         }
-        if (match_has_tag 'authentication-required-user-settings') {
+        if (match_has_tag('authentication-required-user-settings') || match_has_tag('authentication-required-modify-system')) {
             type_password;
             assert_and_click "authenticate";
         }
