@@ -33,7 +33,13 @@ use utils;
 use main_common;
 use known_bugs;
 
+use SchedulerFactory;
+
 init_main();
+
+my $schedulerFactory = SchedulerFactory->new(get_required_var("TEST_SUITE_NAME"));
+my $scheduler        = $schedulerFactory->createScheduler();
+return 1 if $scheduler->loadtests();
 
 sub is_new_installation {
     return !get_var('UPGRADE') && !get_var('ONLINE_MIGRATION') && !get_var('ZDUP') && !get_var('AUTOUPGRADE');
