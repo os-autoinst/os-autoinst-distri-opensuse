@@ -140,6 +140,18 @@
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Product-HA/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      % if ($check_var->('SAP_QAM', '1')) {
+      <listentry>
+        <name>sle-module-sap-applications:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-sap-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-Module-SAP-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-sap-applications:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-sap-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-SAP-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
     </add_on_products>
   </add-on>
   <bootloader>
