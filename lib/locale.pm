@@ -35,7 +35,7 @@ sub verify_default_keymap_textmode {
         send_key('alt-f3');
         # remote backends can not provide a "not logged in console" so we use
         # a cleared remote terminal instead
-        assert_screen(has_ttys() ? 'linux-login' : 'cleared_console');
+        assert_screen(has_ttys() ? 'linux-login' : 'cleared-console');
     }
 
     wait_still_screen;
