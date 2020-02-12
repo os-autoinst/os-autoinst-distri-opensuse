@@ -16,38 +16,116 @@ use warnings;
 use testapi;
 use version_utils 'is_sle';
 
+sub set_scc_url {
+    my $proxyscc = shift;
+    return unless ($proxyscc);
+
+    assert_screen 'yast2-wsl-firstboot-welcome';
+    # Exit YaST2 Firstboot
+    # Pop up warning should appear
+    wait_screen_change(sub { send_key 'alt-r' }, 5);
+    # Workaround
+    assert_screen [qw(wsl-installing-prompt wsl-firsboot-exit-warning-pop-up)];
+    if (match_has_tag 'wsl-installing-prompt') {
+        record_soft_failure 'bsc#1163347 YaST2 firstboot does not warn the user before abort in welcome';
+    } else {
+        # Cancel pop up and continue
+        wait_screen_change(sub { send_key 'alt-c' }, 5);
+        assert_screen 'yast2-wsl-firstboot-welcome';
+    }
+
+    wait_screen_change(sub {
+            type_string qq{echo "url: $proxyscc" > /etc/SUSEConnect}, max_interval => 125, wait_screen_change => 2;
+    }, 5);
+    send_key 'ret';
+    save_screenshot;
+    # Start YaST2 Firstboot with changed SCC url
+    wait_screen_change(sub {
+            type_string q{/usr/lib/YaST2/startup/YaST2.call firstboot firstboot}, max_interval => 125, wait_screen_change => 2;
+    }, 5);
+    send_key 'ret';
+
+    assert_screen 'yast2-wsl-firstboot-welcome';
+}
+
 sub enter_user_details {
     my $creds = shift;
+
     foreach (@{$creds}) {
         if (defined($_)) {
             wait_still_screen stilltime => 1, timeout => 5;
             wait_screen_change { type_string "$_", max_interval => 125, wait_screen_change => 2 };
-            wait_screen_change { send_key((is_sle) ? 'ret' : 'tab') };
+            wait_screen_change(sub { send_key 'tab' }, 10);
             wait_still_screen stilltime => 3, timeout => 10;
         } else {
-            wait_screen_change { send_key((is_sle) ? 'ret' : 'tab') };
+            wait_screen_change(sub { send_key 'tab' }, 10);
             next;
         }
     }
 }
 
+sub license {
+    # license agreement
+    assert_screen 'wsl-license';
+    send_key 'alt-n';
+
+    if (is_sle) {
+        # license warning
+        assert_screen 'wsl-license-not-accepted';
+        wait_screen_change(sub { send_key 'ret' }, 10);
+        # Accept license
+        wait_screen_change(sub { send_key 'alt-a' }, 10);
+        assert_screen 'license-accepted';
+        send_key 'alt-n';
+    }
+}
+
+sub register_via_scc {
+    my $skip = shift;
+    assert_screen 'wsl-registration';
+
+    unless (!!$skip) {
+        wait_screen_change(sub { send_key 'alt-s' }, 10);
+        assert_screen 'wsl-skip-registration-warning';
+        send_key 'ret';
+        assert_screen 'wsl-skip-registration-checked';
+        send_key 'alt-n';
+        return;
+    }
+
+    my $reg_code = get_required_var('SCC_REGCODE');
+
+    wait_screen_change(sub { send_key 'alt-c' }, 10);
+    wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
+    send_key 'alt-n';
+    assert_screen 'wsl-registration-repository-offer';
+    send_key 'alt-y';
+    assert_screen 'wsl-extension-module-selection';
+    send_key 'alt-n';
+}
+
 sub run {
-    #0) WSL installation is in progress
+    # WSL installation is in progress
     assert_and_click 'install-linux-in-wsl', timeout => 120;
     assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 240;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         assert_and_click 'window-max';
         wait_still_screen stilltime => 3, timeout => 10;
+        set_scc_url(get_var('SCC_URL'));
         send_key 'alt-n';
-        # license agreement
-        assert_screen 'wsl-license';
-        send_key 'alt-n';
+        # License handling
+        license;
+        # User credentials
         assert_screen 'local-user-credentials';
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'alt-n';
+        # Registration
+        is_sle && register_via_scc(get_var('SCC_REGISTER', 0));
+        # And done!
         assert_screen 'wsl-installation-completed', 60;
         send_key 'alt-f';
+        # Back to CLI
         assert_screen 'wsl-linux-prompt';
         wait_screen_change { type_string 'exit' };
         send_key 'ret';
