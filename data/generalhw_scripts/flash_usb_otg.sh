@@ -47,7 +47,7 @@ ssh $username@$flasher_ip rm -f $destination_folder/*.{raw,xz,iso}
 scp $image_to_flash $username@$destination
 # Extract compressed image, if needed
 if [[ "$image_to_flash_extension" == "xz" ]]; then
-	ssh $username@$flasher_ip unxz $image_to_flash_full_path
+	ssh $username@$flasher_ip unxz --threads=0 $image_to_flash_full_path
 	echo "**** xz image uncompressed"
 	# Resize *.raw image
 	ssh $username@$flasher_ip qemu-img resize $destination_folder/$uncompressed_filename $size
