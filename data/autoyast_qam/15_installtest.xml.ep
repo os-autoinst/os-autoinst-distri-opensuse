@@ -4,7 +4,7 @@
   <add-on>
     <add_on_products config:type="list">
       % unless ($check_var->('SLE_PRODUCT', 'sled')) {
-      % if ($get_var->('VERSION') =~ m/15/) {
+      % if ($get_var->('VERSION') =~ m/15$/) {
       <listentry>
         <name>SLES-LTSS:15::update</name>
         <alias>SLES-LTSS:15::update</alias>
