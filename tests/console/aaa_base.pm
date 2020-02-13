@@ -21,7 +21,6 @@
 # - run /usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1;
 # grep CONSOLE_ENCODING /etc/sysconfig/console
 # - run service --status-all, checks for "loaded"
-# - run chkconfig --list
 # - remove /tmp/aa_base_test directory
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
@@ -44,10 +43,6 @@ sub run {
     assert_script_run "/usr/sbin/sysconf_addword /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1 ; grep CONSOLE_ENCODING /etc/sysconfig/console";
     assert_script_run "/usr/sbin/sysconf_addword -r /etc/sysconfig/console CONSOLE_ENCODING ISO-8859-1; grep CONSOLE_ENCODING /etc/sysconfig/console";
     validate_script_output "service --status-all", sub { /loaded/ };
-
-    # On SLES 15+ command returns empty. chkconfig only list SysV services only and does not include native
-    # systemd services.
-    assert_script_run "chkconfig --list";
 
     #Clean files used:
     assert_script_run "cd ; rm -rf /tmp/aa_base_test";
