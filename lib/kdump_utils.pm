@@ -271,12 +271,10 @@ sub check_function {
     $self->wait_boot(bootloader_time => check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 200 : undef);
     select_console 'root-console';
 
-    # all but PPC64LE arch's vmlinux images are gzipped
-    my $suffix = check_var('ARCH', 'ppc64le') ? '' : '.gz';
     assert_script_run 'find /var/crash/';
 
     if ($test_type eq 'function') {
-        my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`$suffix";
+        my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`*";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
     else {
