@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,6 +28,7 @@ use testapi;
 use lockapi;
 use utils;
 use power_action_utils 'power_action';
+use version_utils 'is_sle';
 
 sub run {
     my $self    = shift;
@@ -114,7 +115,8 @@ sub run {
     $version =~ s/-/ /;
 
     ##TODO: make it work for sle15
-    if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')) {
+    if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')
+        xor is_sle('>15')) {
         foreach (@migration_targets) {
             if ($_ =~ "High Performance Computing $version") {
                 $migration_target = $migration_targets[$index - 1];
@@ -149,7 +151,8 @@ sub run {
     }
     ## correct High Performance Computing or SUSE Linux Enterprise Server should
     ## be there
-    if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')) {
+    if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')
+        xor is_sle('>15')) {
         # expected is to have High Performance Computing $version
         if ($status !~ "High Performance Computing $version") {
             die('Expected product is not there!');

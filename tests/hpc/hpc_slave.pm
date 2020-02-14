@@ -22,7 +22,8 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
+    my $self  = shift;
+    my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
 
     # make sure products are registered; it might happen that the older SPs aren't
@@ -34,7 +35,7 @@ sub run {
 
     zypper_call('in slurm-munge ganglia-gmond');
     # install slurm-node if sle15, not available yet for sle12
-    zypper_call('in slurm-node') if is_sle '15+';
+    zypper_call('in slurm-node slurm') if is_sle '15+';
 
     barrier_wait("HPC_SETUPS_DONE");
     barrier_wait("HPC_MASTER_SERVICES_ENABLED");
@@ -46,6 +47,8 @@ sub run {
     $self->enable_and_start("slurmd");
     systemctl("is-active slurmd");
     barrier_wait("HPC_SLAVE_SERVICES_ENABLED");
+    assert_script_run("srun -N ${nodes} /bin/ls");
+    assert_script_run("sinfo -N -l");
     barrier_wait("HPC_MASTER_RUN_TESTS");
 }
 

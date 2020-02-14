@@ -25,27 +25,33 @@ barriers without complicating existing openQA migration modules.
 
 Test organization
 -----------------
+-----------------
 
-MIGRATION_A - single machine tests checking basics
+
+N1: FROM SPX to SPX+1
+-----------------
+MIGRATION_N1_A - single machine tests checking basics
+-- migration from SPX to SPX+1
 -- checking for both supported arches
 -- checking for zypper online
 -- checking for correct migration targets
 -- basic migration of a single machine
--- migration from SPX, SPX+1
 
-MIGRATION_B - cluster tests checking HPC functionality upon migration
+MIGRATION_N1_B - cluster tests checking HPC functionality upon migration
+-- migration from SPX to SPX+1
 -- focused on zypper online migration as relevant for multimachine set-ups
 -- starting the cluster on older SP
 -- conducting HPC functional tests
 -- running online zypper migration
 -- restarting the cluster
 -- conducting HPC functional tests
--- migration from SPX, SPX+1
 
-MIGRATION_C - single machine tests checking basics
+N2: FROM SPX to SPX+2
+-----------------
+MIGRATION_N2_A - single machine tests checking basics
+-- migration from SPX to SPX+2
 -- the same as MIGRATION_A but:
--- migration from SPX to SPX+2
 
-MIGRATION_D - cluster tests checking HPC functionality upon migration
--- the same as MIGRATION_B but:
+MIGRATION_N2B - cluster tests checking HPC functionality upon migration
 -- migration from SPX to SPX+2
+-- the same as MIGRATION_B but:
