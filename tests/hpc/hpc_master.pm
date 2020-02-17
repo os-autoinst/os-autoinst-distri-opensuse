@@ -54,6 +54,7 @@ sub run {
     barrier_wait("HPC_SETUPS_DONE");
 
     record_info('System set-up: enable & start services');
+    $self->generate_and_distribute_ssh();
     $self->distribute_munge_key();
     $self->distribute_slurm_conf();
     $self->enable_and_start("munge");
