@@ -31,7 +31,7 @@ sub run {
     my $pth = (split '\n', $mds)[0];
 
     # Test modhash command
-    if (!is_sle('=12-sp1') && !is_sle('=12-sp5') && !is_sle('>=15-sp1') && !is_tumbleweed()) {
+    if (is_sle && !is_sle('=12-sp1') && !is_sle('=12-sp5') && is_sle('<15-sp1')) {
         # Get the output and test it against correct output
         assert_script_run("modhash $pth | grep -E \"$pth: [0-9a-fA-F]+\"");
     }
