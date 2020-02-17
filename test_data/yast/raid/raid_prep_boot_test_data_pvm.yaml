@@ -1,0 +1,50 @@
+# This is test data for powerVM, as we have sda as disk name
+# Partitioning itself remains same as on qemu setup.
+disks:
+  - name: sda
+    partitions:
+      - size: 8mb
+        role: raw-volume
+        id: prep-boot
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: sdb
+    partitions:
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: sdc
+    partitions:
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: sdd
+    partitions:
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
