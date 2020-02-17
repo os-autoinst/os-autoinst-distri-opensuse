@@ -327,9 +327,9 @@ sub get_bootmenu_console_params {
 }
 
 sub uefi_bootmenu_params {
+    # Enter GRUB2 menu
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
-    #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5);
     (is_jeos) ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
       :         send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
