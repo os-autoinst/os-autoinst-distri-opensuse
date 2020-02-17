@@ -77,9 +77,15 @@ sub run {
     $current_version =~ s/..-SP//;
     $version         =~ s/..-SP//;
 
+    #for sle12/15 SP0 returned value for $current_version is major code version (12/15)
+    if ($current_version > 12) {
+        $current_version = 0;
+    }
+
     my $diff = $version - $current_version;
 
     record_info('INFO: migrate-to version', "$version");
+    record_info('DEBUG: diff',              "$diff");
 
     if (get_var('HPC_PRODUCT_MIGRATION')) {
         if ($diff != $num_of_migration_targets) {
