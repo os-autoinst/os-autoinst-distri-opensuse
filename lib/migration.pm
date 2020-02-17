@@ -106,7 +106,9 @@ sub remove_ltss {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         my $scc_addons = get_var_array('SCC_ADDONS');
         record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
-        if (is_sle('15+')) {
+        if (check_var('SLE_PRODUCT', 'hpc')) {
+            remove_suseconnect_product('SLE_HPC-LTSS');
+        } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
             remove_suseconnect_product('SLES-LTSS');
         } else {
             zypper_call 'rm -t product SLES-LTSS';
