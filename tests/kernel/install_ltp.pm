@@ -365,6 +365,8 @@ sub run {
         loadtest_from_runtest_file('assets_public');
     }
 
+    is_jeos && zypper_call 'in system-user-bin system-user-daemon';
+
     power_action('reboot', textmode => 1) if (get_var('LTP_INSTALL_REBOOT') ||
         get_var('LTP_COMMAND_FILE')) && !is_jeos;
 }
