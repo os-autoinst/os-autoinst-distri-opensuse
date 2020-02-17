@@ -358,9 +358,11 @@ sub uefi_bootmenu_params {
         for (1 .. 2) { send_key "up"; }
         if (is_jeos) {
             send_key "up";
+            send_key_until_needlematch('linux-keyword-in-grub2-menu', 'down', 15, 0.5);
+        } else {
+            sleep 5;
+            for (1 .. 4) { send_key "down"; }
         }
-        sleep 5;
-        for (1 .. 4) { send_key "down"; }
     }
 
     send_key "end";
