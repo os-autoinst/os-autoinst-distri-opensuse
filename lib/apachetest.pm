@@ -346,7 +346,7 @@ sub postgresql_cleanup {
     systemctl 'stop postgresql';
     systemctl 'disable postgresql';
     systemctl 'is-active postgresql', expect_false => 1;
-    assert_script_run q{kill -s KILL $(ps -u postgres -o pid=)};
+    assert_script_run('kill -s KILL $(ps -u postgres -o pid=)') unless script_run('ps -u postgres -o pid=');
     zypper_call "rm postgresql";
     script_run q[snapper delete --sync $(snapper --quiet --machine-readable csv list | awk -F ',' 'NR>3 {print $3+0}')];
     assert_script_run 'userdel --remove postgres';
