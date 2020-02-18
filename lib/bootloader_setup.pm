@@ -333,7 +333,8 @@ sub uefi_bootmenu_params {
     (is_jeos) ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
       :         send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
-    if (is_jeos && is_tumbleweed) {
+    # Locate gfxpayload parameter and update it
+    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp2') || is_leap('>=15.2'))) {
         for (1 .. 3) { send_key "down"; }
         send_key "end";
         # delete "keep" word
@@ -346,7 +347,7 @@ sub uefi_bootmenu_params {
         for (1 .. 10) { send_key "down"; }
     }
     else {
-        for (1 .. ((is_jeos) ? 3 : 2)) { send_key "down"; }
+        for (1 .. 2) { send_key "down"; }
         send_key "end";
         # delete "keep" word
         for (1 .. 4) { send_key "backspace"; }
@@ -358,11 +359,9 @@ sub uefi_bootmenu_params {
         for (1 .. 2) { send_key "up"; }
         if (is_jeos) {
             send_key "up";
-            send_key_until_needlematch('linux-keyword-in-grub2-menu', 'down', 15, 0.5);
-        } else {
-            sleep 5;
-            for (1 .. 4) { send_key "down"; }
         }
+        sleep 5;
+        for (1 .. 4) { send_key "down"; }
     }
 
     send_key "end";
@@ -381,7 +380,9 @@ sub uefi_bootmenu_params {
         type_string_slow "textmode=1 ";
     }
 
-    type_string " \\\n";    # changed the line before typing video params
+    # changed the line before typing video params
+    wait_screen_change(sub { type_string " \\\n"; }, 3);
+    save_screenshot;
 }
 
 # Returns kernel framebuffer configuration we have to
