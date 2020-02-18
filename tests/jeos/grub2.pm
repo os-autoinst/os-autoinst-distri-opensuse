@@ -35,6 +35,7 @@ sub run {
     } while ((!check_screen('grub2', 1)) && ($counter < 10));
     $self->wait_grub(in_grub => 1, bootloader_time => 10);
     uefi_bootmenu_params;
+    type_string_very_slow(get_var('EXTRABOOTPARAMS', '') . ' ');
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         type_string_very_slow(get_hyperv_fb_video_resolution);
         assert_screen('set-hyperv-framebuffer');
