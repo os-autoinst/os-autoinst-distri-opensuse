@@ -272,42 +272,49 @@ my $mitigations_list =
     },
   };
 
+sub check_expected_string {
+    foreach my $expected_string (@{$_}) {
+        if ($expected_string ne "") {
+            my $ret = script_run("$cmd | grep \"$expected_string\"");
+            if ($ret ne 0) {
+                record_info("ERROR", "Can't found a expected string.", result => 'fail');
+                assert_script_run("$cmd | grep -A 10 \"Speculative\"");
+            } else {
+                #Debug what output be report.
+                assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
+                print "This unexpection is empty string, skip";
+
+            }
+
+        }
+    }
+}
+sub check_unexpected_string {
+    foreach my $unexpected_string (@{$_}) {
+        if ($unexpected_string ne "") {
+            my $ret = script_run("$cmd | grep \"$unexpected_string\"");
+            record_info("ERROR", "found a unexpected string.", result => 'fail') unless $ret ne 0;
+            assert_script_run("$cmd | grep -A 10 \"Speculative\"");
+        } else {
+            #Debug what output be report.
+            assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
+            print "This unexpection is empty string, skip";
+        }
+
+    }
+
+}
 sub do_check {
     my $secnario = shift;
     my $foo      = $secnario->{default};
     if ($foo->{expected}) {
         while (my ($cmd, $lines) = each %{$foo->{expected}}) {
-            foreach my $expected_string (@{$lines}) {
-                if ($expected_string ne "") {
-                    my $ret = script_run("$cmd | grep \"$expected_string\"");
-                    if ($ret ne 0) {
-                        record_info("ERROR", "Can't found a expected string.", result => 'fail');
-                        assert_script_run("$cmd | grep -A 10 \"Speculative\"");
-                    } else {
-                        #Debug what output be report.
-                        assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
-                        print "This unexpection is empty string, skip";
-
-                    }
-
-                }
-            }
+            check_expected_string($lines);
         }
     }
     if ($foo->{unexpected}) {
         while (my ($cmd, $lines) = each %{$foo->{unexpected}}) {
-            foreach my $unexpected_string (@{$lines}) {
-                if ($unexpected_string ne "") {
-                    my $ret = script_run("$cmd | grep \"$unexpected_string\"");
-                    record_info("ERROR", "found a unexpected string.", result => 'fail') unless $ret ne 0;
-                    assert_script_run("$cmd | grep -A 10 \"Speculative\"");
-                } else {
-                    #Debug what output be report.
-                    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
-                    print "This unexpection is empty string, skip";
-                }
-
-            }
+            check_unexpected_string($lines);
         }
     }
 }
