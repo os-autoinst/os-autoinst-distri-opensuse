@@ -273,7 +273,8 @@ my $mitigations_list =
   };
 
 sub check_expected_string {
-    foreach my $expected_string (@{$_}) {
+    my ($cmd, $lines) = @_;
+    foreach my $expected_string (@{$lines}) {
         if ($expected_string ne "") {
             my $ret = script_run("$cmd | grep \"$expected_string\"");
             if ($ret ne 0) {
@@ -290,7 +291,8 @@ sub check_expected_string {
     }
 }
 sub check_unexpected_string {
-    foreach my $unexpected_string (@{$_}) {
+    my ($cmd, $lines) = @_;
+    foreach my $unexpected_string (@{$lines}) {
         if ($unexpected_string ne "") {
             my $ret = script_run("$cmd | grep \"$unexpected_string\"");
             record_info("ERROR", "found a unexpected string.", result => 'fail') unless $ret ne 0;
@@ -309,12 +311,12 @@ sub do_check {
     my $foo      = $secnario->{default};
     if ($foo->{expected}) {
         while (my ($cmd, $lines) = each %{$foo->{expected}}) {
-            check_expected_string($lines);
+            check_expected_string($cmd, $lines);
         }
     }
     if ($foo->{unexpected}) {
         while (my ($cmd, $lines) = each %{$foo->{unexpected}}) {
-            check_unexpected_string($lines);
+            check_unexpected_string($cmd, $lines);
         }
     }
 }
