@@ -65,12 +65,6 @@ sub run {
     # turn on debug for libvirtd & enable journal with previous reboot
     enable_debug_logging if is_x86_64;
 
-    # work around missing hostname issue for guest migration tests on sles15sp2
-    if (is_sle('=15-SP2') && (get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE') || get_var('VIRT_NEW_GUEST_MIGRATION_DESTINATION'))) {
-        assert_script_run 'echo "suse$RANDOM" > /etc/hostname';    # need reboot to take effect
-        script_run 'cat /etc/hostname';
-        script_run 'echo "change the hostname to `cat /etc/hostname` and it need reboot to take effect!"';
-    }
 }
 
 sub test_flags {
