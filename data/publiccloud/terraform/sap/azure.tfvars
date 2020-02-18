@@ -22,7 +22,7 @@ init_type = "all"
 # SLES4SAP image information
 # If custom uris are enabled public information will be omitted
 # Custom sles4sap image
-sles4sap_uri = "%SLE_IMAGE%"
+sles4sap_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Custom iscsi server image
 # iscsi_srv_uri = "/path/to/your/iscsi/image"

@@ -331,13 +331,17 @@ sub terraform_apply {
         my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
         my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
+        my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
+        my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%)         => $instance_type,
             q(%REGION%)               => $self->region,
             q(%HANA_BUCKET%)          => $sap_media,
             q(%SLE_IMAGE%)            => $image,
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
-            q(%SLE_VERSION%)          => $sle_version
+            q(%SLE_VERSION%)          => $sle_version,
+            q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
+            q(%STORAGE_ACCOUNT_KEY%)  => $storage_account_key
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
         assert_script_run('terraform workspace new qashapopenqa -no-color', TERRAFORM_TIMEOUT);
