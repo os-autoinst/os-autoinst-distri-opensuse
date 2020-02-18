@@ -875,6 +875,8 @@ sub wait_boot_past_bootloader {
     my $nologin      = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
+    #workaround to create HPC qcow2
+    set_var('DESKTOP', 'gnome') if (is_sle('15+'));
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
     my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
