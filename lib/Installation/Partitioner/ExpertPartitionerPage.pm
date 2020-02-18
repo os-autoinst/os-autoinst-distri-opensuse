@@ -26,7 +26,9 @@ use constant {
     SELECTED_HARD_DISKS        => 'partitioning_raid-hard_disks-selected',
     SELECTED_EXISTING_PART     => 'partitioning_existing_part_%s-selected',
     CLONE_PARTITION            => 'clone_partition',
-    ALL_DISKS_SELECTED         => 'all_disks_selected'
+    ALL_DISKS_SELECTED         => 'all_disks_selected',
+    PARTITIONS_TAB             => 'partitions_tab_selected',
+    OVERVIEW_TAB               => 'overview_tab_selected',
 };
 
 sub new {
@@ -39,7 +41,9 @@ sub new {
         partition_table_shortcut        => $args->{partition_table_shortcut},
         clone_partition_chortcut        => $args->{clone_partition_chortcut},
         ok_clone_shortcut               => $args->{ok_clone_shortcut},
-        available_target_disks_shortcut => $args->{avail_tgt_disks_shortcut}
+        available_target_disks_shortcut => $args->{avail_tgt_disks_shortcut},
+        overview_tab                    => 'alt-o',
+        partitions_tab                  => 'alt-p',
     }, $class;
 }
 
@@ -81,8 +85,15 @@ sub go_top_in_system_view_table {
 }
 
 sub select_partitions_tab {
+    my ($self) = @_;
     assert_screen(EXPERT_PARTITIONER_PAGE);
-    send_key('alt-p');
+    send_key($self->{partitions_tab});
+}
+
+sub select_overview_tab {
+    my ($self) = @_;
+    assert_screen(EXPERT_PARTITIONER_PAGE);
+    send_key($self->{overview_tab});
 }
 
 sub press_add_raid_button {
@@ -93,7 +104,7 @@ sub press_add_raid_button {
 
 sub press_add_partition_button {
     my ($self) = @_;
-    assert_screen(EXPERT_PARTITIONER_PAGE);
+    assert_screen(PARTITIONS_TAB);
     send_key($self->{add_partition_shortcut});
 }
 
@@ -118,6 +129,8 @@ sub press_accept_button {
 sub open_clone_partition_dialog {
     my ($self) = @_;
     assert_screen(EXPERT_PARTITIONER_PAGE);
+    $self->select_overview_tab;
+    assert_screen(OVERVIEW_TAB);
     send_key($self->{partition_table_shortcut});
     for (1 .. 2) { wait_screen_change { send_key "down" } }
     save_screenshot;
