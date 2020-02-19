@@ -117,10 +117,12 @@ sub prepare_pvm_installation {
 
     # Delete partition table before starting installation
     select_console('install-shell');
-    foreach my $disk (split(',', get_var('DISK_DEVICES', 'sda'))) {
-        script_run("wipefs -a /dev/$disk");
-        # For cryptlvm+activate existing scenario, create empty enrypted partition
-        create_encrypted_part("$disk") if get_var('ENCRYPT_ACTIVATE_EXISTING');
+
+
+    my $disks = script_output('lsblk -n -p -l -o NAME -d -e 7,11');
+    for my $d (split('\n', $disks)) {
+        script_run "wipefs -a $d";
+        create_encrypted_part("$d") if get_var('ENCRYPT_ACTIVATE_EXISTING');
     }
     # Switch to installation console (ssh or vnc)
     select_console('installation');
