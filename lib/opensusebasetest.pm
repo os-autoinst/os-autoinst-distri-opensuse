@@ -12,7 +12,7 @@ package opensusebasetest;
 use base 'basetest';
 
 use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
 use utils;
@@ -49,7 +49,7 @@ sub clear_and_verify_console {
     my ($self) = @_;
 
     clear_console;
-    assert_screen('cleared-console');
+    assert_screen('cleared-console') unless is_serial_terminal();
 }
 
 =head2 post_run_hook
@@ -1141,7 +1141,7 @@ base method using C<$self-E<gt>SUPER::post_fail_hook;> at the end.
 =cut
 sub post_fail_hook {
     my ($self) = @_;
-    return if testapi::is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
+    return if is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
 
     show_tasks_in_blocked_state;
     return if (get_var('NOLOGS'));

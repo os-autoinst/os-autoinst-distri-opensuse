@@ -1,6 +1,6 @@
 # SUSE openQA tests
 #
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
