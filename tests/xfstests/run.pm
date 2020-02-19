@@ -256,6 +256,18 @@ sub shuffle {
     return @arr;
 }
 
+# Set mkfs parameter for different scenario
+sub mkfs_setting {
+    # In case to test xfs reflink feature, test name contain "reflink"
+    if (index(get_required_var('TEST'), 'reflink') != -1) {
+        my $cmd = <<END_CMD;
+mkfs.xfs -f -m reflink=1 \$TEST_DEV
+export XFS_MKFS_OPTIONS="-m reflink=1"
+END_CMD
+        script_run($cmd);
+    }
+}
+
 # Log & Must included: Copy log to ready to save
 sub copy_log {
     my ($category, $num, $log_type) = @_;
@@ -330,6 +342,7 @@ sub run {
         @tests = shuffle(@tests);
     }
 
+    mkfs_setting;
     test_prepare;
     heartbeat_start;
     my $status_log_content = "";
