@@ -126,7 +126,7 @@ my $mitigations_list =
         },
         "pv=0" => {
             default => {
-                expected   => {'xl dmesg' => ['Support for PV VMs: EAGER_FPU MD_CLEAR', 'PV L1TF shadowing: Dom0 disabled, DomU disabled']},
+                expected   => {'xl dmesg' => ['Support for PV VMs: EAGER_FPU MD_CLEAR']},
                 unexpected => {'xl dmesg' => ['']}
             }
         },
@@ -211,26 +211,26 @@ my $mitigations_list =
         },
         "ibpb=off" => {
             default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other: IBPB']}
+                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other:']},
+                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: IBPB']}
             }
         },
         "ibpb=on" => {
             default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other: IBPB']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other:']}
+                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: IBPB']},
+                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other:']}
             }
         },
         "ssbd=off" => {
             default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD+, Other:']}
+                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other:']},
+                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']}
             }
         },
         "ssbd=on" => {
             default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD+, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other:']}
+                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']},
+                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other:']}
             }
         },
         "eager-fpu=off" => {
@@ -248,25 +248,25 @@ my $mitigations_list =
         "l1d-flush=off" => {
             default => {
                 expected   => {''},
-                unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other: .*L1D_FLUSH']},
+                unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: .*L1D_FLUSH']},
             }
         },
         "l1d-flush=on" => {
             default => {
-                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-, Other: .*L1D_FLUSH']},
+                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: .*L1D_FLUSH']},
                 unexpected => {''},
             }
         },
         "branch-harden=on" => {
             default => {
-                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-, Other: .*BRANCH_HARDEN']},
+                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: .*BRANCH_HARDEN']},
                 unexpected => {''},
             }
         },
         "branch-harden=off" => {
             default => {
                 expected   => {''},
-                unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-, Other: .*BRANCH_HARDEN']},
+                unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-, Other: .*BRANCH_HARDEN']},
             }
         },
     },
