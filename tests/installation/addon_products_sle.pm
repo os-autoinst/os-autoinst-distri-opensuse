@@ -44,9 +44,6 @@ sub handle_all_packages_medium {
     # Refer to https://bugzilla.suse.com/show_bug.cgi?id=1078958#c4
     push @addons, 'we' if check_var('SLE_PRODUCT', 'sled') && !grep(/^we$/, @addons);
 
-    # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
-    push @addons, 'python2' if get_var('MEDIA_UPGRADE') && is_sle('<=15', get_var('HDDVERSION')) && is_sle('>15') && !check_var('SLE_PRODUCT', 'rt');
-
     # For SLES12SPx and SLES11SPx to SLES15 migration, need add the demand module at least for media migration manually
     # Refer to https://fate.suse.com/325293
     if (get_var('MEDIA_UPGRADE') && is_sle('<15', get_var('HDDVERSION')) && !check_var('SLE_PRODUCT', 'sled')) {
@@ -70,6 +67,9 @@ sub handle_all_packages_medium {
     for my $i (split(/,/, get_var('SCC_ADDONS', ''))) {
         push @addons, $i if !grep(/^$i$/, @addons);
     }
+
+    # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
+    push @addons, 'python2' if get_var('MEDIA_UPGRADE') && is_sle('<=15', get_var('HDDVERSION')) && is_sle('>15') && !check_var('SLE_PRODUCT', 'rt');
 
     # Record the addons to be enabled for debugging
     record_info 'Extension and Module Selection', join(' ', @addons);
