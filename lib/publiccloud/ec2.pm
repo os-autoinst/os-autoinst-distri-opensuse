@@ -129,7 +129,7 @@ sub upload_img {
           . "--machine '" . $img_arch . "' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
-          . ($img_name !~ /byos/i && $img_arch eq 'arm64' ? '' : '--use-root-swap ')
+          . ($img_name =~ /byos/i || $img_arch eq 'arm64' ? '' : '--use-root-swap ')
           . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->region . "' "
