@@ -108,7 +108,7 @@ for vmguest in ${vm_guestnames_array[@]};do
 		vmguest_failed=$((${vmguest_failed} | $(echo $?)))
         else
             	virsh destroy ${vmguest}
-            	virsh reboot ${vmguest}
+            	virsh start ${vmguest}
 	    	vmguest_failed=$((${vmguest_failed} | $(echo $?)))
         fi
 done
