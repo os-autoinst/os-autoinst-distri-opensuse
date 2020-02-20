@@ -27,6 +27,7 @@ use base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use utils;
+use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
 
 # Heartbeat variables
@@ -374,12 +375,14 @@ sub run {
         # SUT crashed. Wait for kdump to finish.
         # After that, SUT will reboot automatically
         eval {
-            power_action('reboot', keepconsole => 1);
+            power_action('reboot', keepconsole => is_pvm);
+            reconnect_mgmt_console if is_pvm;
             $self->wait_boot(in_grub => 1, bootloader_time => 60);
         };
         # If SUT didn't reboot for some reason, force reset
         if ($@) {
-            power('reset');
+            power('reset', keepconsole => is_pvm);
+            reconnect_mgmt_console if is_pvm;
             $self->wait_boot(in_grub => 1);
         }
 
