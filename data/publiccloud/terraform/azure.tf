@@ -38,6 +38,11 @@ variable "storage-account" {
     default="openqa"
 }
 
+variable "tags" {
+    type = map(string)
+    default = {}
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -51,11 +56,11 @@ resource "azurerm_resource_group" "openqa-group" {
     name     = "${var.name}-${element(random_id.service.*.hex, 0)}"
     location = var.region
 
-    tags = {
-        openqa_created_by = var.name
-        openqa_created_date = "${timestamp()}"
-        openqa_created_id = "${element(random_id.service.*.hex, 0)}"
-    }
+    tags = merge({
+            openqa_created_by = var.name
+            openqa_created_date = "${timestamp()}"
+            openqa_created_id = "${element(random_id.service.*.hex, 0)}"
+        }, var.tags)
 }
 
 resource "azurerm_virtual_network" "openqa-network" {
@@ -158,11 +163,12 @@ resource "azurerm_virtual_machine" "openqa-vm" {
         }
     }
 
-    tags = {
-        openqa_created_by = var.name
-        openqa_created_date = "${timestamp()}"
-        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
-    }
+    tags = merge({
+            openqa_created_by = var.name
+            openqa_created_date = "${timestamp()}"
+            openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+        }, var.tags)
+
 
     boot_diagnostics {
         enabled = true
