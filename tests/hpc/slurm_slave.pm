@@ -29,6 +29,10 @@ sub run {
     # install slurm-node if sle15, not available yet for sle12
     zypper_call('in slurm-node') if is_sle '15+';
 
+    if (get_required_var('EXT_HPC_TESTS')) {
+        #TODO: add compute node dep.
+    }
+
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait("SLURM_SETUP_DONE");
     barrier_wait('SLURM_SETUP_DBD');
