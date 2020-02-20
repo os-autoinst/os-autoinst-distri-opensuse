@@ -115,7 +115,7 @@ sub upload_img {
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
     my ($img_name) = $file =~ /([^\/]+)$/;
-    my $img_arch   = get_var('PUBLIC_CLOUD_EC2_UPLOAD_ARCH', 'x86_64');
+    my $img_arch   = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
     my $sec_group  = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
     my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
     # Used for helper VM to create/build the image on CSP. When uploading a on-demand image, this ID should point
