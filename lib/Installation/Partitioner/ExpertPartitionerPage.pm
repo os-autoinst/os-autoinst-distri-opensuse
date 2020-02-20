@@ -29,6 +29,10 @@ use constant {
     ALL_DISKS_SELECTED         => 'all_disks_selected',
     PARTITIONS_TAB             => 'partitions_tab_selected',
     OVERVIEW_TAB               => 'overview_tab_selected',
+    NEW_PARTITION_TABLE_TYPE   => 'new_partition_table_type',
+    SELECTED_CREATE_NEW_TABLE  => 'selected_create_new_table',
+    DELETING_CURRENT_DEVICES   => 'deleting_current_devices',
+    NEW_PARTITION_TYPE         => 'partition-type'
 };
 
 sub new {
@@ -43,7 +47,13 @@ sub new {
         ok_clone_shortcut               => $args->{ok_clone_shortcut},
         available_target_disks_shortcut => $args->{avail_tgt_disks_shortcut},
         overview_tab                    => 'alt-o',
-        partitions_tab                  => 'alt-p',
+        select_msdos_shortcut           => $args->{select_msdos_shortcut},
+        modify_hard_disks_shortcut      => $args->{modify_hard_disks_shortcut},
+        press_yes_shortcut              => $args->{press_yes_shortcut},
+        partitions_tab_shortcut         => $args->{partitions_tab_shortcut},
+        select_gpt_shortcut             => $args->{select_gpt_shortcut},
+        select_primary_shortcut         => $args->{select_primary_shortcut},
+        select_extended_shortcut        => $args->{select_extended_shortcut}
     }, $class;
 }
 
@@ -87,7 +97,7 @@ sub go_top_in_system_view_table {
 sub select_partitions_tab {
     my ($self) = @_;
     assert_screen(EXPERT_PARTITIONER_PAGE);
-    send_key($self->{partitions_tab});
+    send_key($self->{partitions_tab_shortcut});
 }
 
 sub select_overview_tab {
@@ -152,6 +162,48 @@ sub press_ok_clone {
     my ($self) = @_;
     assert_screen(ALL_DISKS_SELECTED);
     send_key($self->{ok_clone_shortcut});
+}
+
+sub modify_hard_disks {
+    my ($self, $item) = @_;
+    assert_screen(EXPERT_PARTITIONER_PAGE);
+    _select_system_view_section();
+    send_key_until_needlematch(SELECTED_HARD_DISKS, 'down');
+    send_key($self->{modify_hard_disks_shortcut});
+}
+sub open_partition_table_menu {
+    my ($self) = @_;
+    assert_screen(EXPERT_PARTITIONER_PAGE);
+    send_key($self->{partition_table_shortcut});
+}
+
+sub create_new_partition_table {
+    my ($self) = @_;
+    send_key_until_needlematch(SELECTED_CREATE_NEW_TABLE, 'down');
+    send_key "ret";
+}
+
+sub select_partition_table_type {
+    my ($self, $table_type) = @_;
+    assert_screen(NEW_PARTITION_TABLE_TYPE);
+    my $selection = "select_" . $table_type . "_shortcut";
+    send_key($self->{$selection});
+    send_key "ret";
+}
+
+sub check_confirm_deleting_current_devices {
+    my ($self) = @_;
+    if (check_screen(DELETING_CURRENT_DEVICES)) {
+        send_key($self->{press_yes_shortcut});
+    }
+}
+
+sub select_new_partition_type {
+    my ($self, $partition_type) = @_;
+    assert_screen(NEW_PARTITION_TYPE);
+    my $selection = "select_" . $partition_type . "_shortcut";
+    send_key($self->{$selection});
+    send_key "ret";
 }
 
 1;

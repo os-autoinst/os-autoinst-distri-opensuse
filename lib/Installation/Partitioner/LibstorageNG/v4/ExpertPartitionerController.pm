@@ -32,13 +32,20 @@ sub new {
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
         ExpertPartitionerPage     => Installation::Partitioner::LibstorageNG::ExpertPartitionerPage->new({
-                add_partition_shortcut    => 'alt-r',
-                resize_partition_shortcut => 'alt-r',
-                edit_partition_shortcut   => 'alt-e',
-                add_raid_shortcut         => 'alt-d',
-                partition_table_shortcut  => 'alt-r',
-                avail_tgt_disks_shortcut  => 'alt-a',
-                ok_clone_shortcut         => 'alt-o'
+                add_partition_shortcut     => 'alt-r',
+                resize_partition_shortcut  => 'alt-r',
+                edit_partition_shortcut    => 'alt-e',
+                add_raid_shortcut          => 'alt-d',
+                partition_table_shortcut   => 'alt-r',
+                avail_tgt_disks_shortcut   => 'alt-a',
+                ok_clone_shortcut          => 'alt-o',
+                select_msdos_shortcut      => 'alt-m',
+                select_gpt_shortcut        => 'alt-g',
+                modify_hard_disks_shortcut => 'alt-m',
+                press_yes_shortcut         => 'alt-y',
+                partitions_tab_shortcut    => 'alt-p',
+                select_primary_shortcut    => 'alt-p',
+                select_extended_shortcut   => 'alt-e'
         }),
         NewPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({
                 custom_size_shortcut => 'alt-o'
@@ -133,6 +140,44 @@ sub clone_partition_table {
     $self->get_expert_partitioner_page()->press_ok_clone();
 }
 
+sub create_new_partition_table {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{disk});
+    $self->get_expert_partitioner_page()->open_partition_table_menu();
+    $self->get_expert_partitioner_page()->create_new_partition_table();
+    $self->get_expert_partitioner_page()->check_confirm_deleting_current_devices();
+    $self->get_expert_partitioner_page()->select_partition_table_type($args->{table_type});
+}
 
+sub add_partition_msdos {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{disk});
+    $self->get_expert_partitioner_page()->select_partitions_tab();
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->get_expert_partitioner_page()->select_new_partition_type($args->{partition_type});
+    $self->add_new_partition($args->{partition});
+}
+
+sub add_new_partition {
+    my ($self, $args) = @_;
+    if ($args->{size} eq "max") {
+        $self->get_edit_partition_size_page()->press_next();
+    }
+    else {
+        $self->set_new_partition_size($args->{size});
+    }
+    $self->_set_partition_role($args->{role});
+    $self->_set_partition_options($args);
+    $self->_finish_partition_creation();
+}
+
+sub set_new_partition_size {
+    my ($self, $size) = @_;
+    if (defined $size) {
+        $self->get_edit_partition_size_page()->select_custom_size_radiobutton();
+        $self->get_edit_partition_size_page()->enter_size($size);
+    }
+    $self->get_edit_partition_size_page()->press_next();
+}
 
 1;

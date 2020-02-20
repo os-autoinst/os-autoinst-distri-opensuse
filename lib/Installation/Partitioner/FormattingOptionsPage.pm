@@ -20,9 +20,7 @@ use parent 'Installation::WizardPage';
 
 use constant {
     FORMATTING_OPTIONS_PAGE => 'partition-format',
-    FILESYSTEM_SWAP         => 'partitioning_raid-swap_format-selected',
-    FILESYSTEM_FAT          => 'partitioning_raid-fat_format-selected',
-    FILESYSTEM_EXT4         => 'partitioning_raid-filesystem_ext4',
+    FILESYSTEM_TYPE         => 'partitioning_%s-format-selected',
     PARTITION_ID_PREP_BOOT  => 'filesystem-prep',
     PARTITION_ID_EFI_SYSTEM => 'partition-selected-efi-type',
     PARTITION_ID_BIOS_BOOT  => 'partition-selected-bios-boot-type',
@@ -90,18 +88,7 @@ sub select_filesystem {
     wait_screen_change(sub {
             send_key 'end';
     }, 20);
-    if ($filesystem eq 'swap') {
-        send_key_until_needlematch(FILESYSTEM_SWAP, 'up');
-    }
-    elsif ($filesystem eq 'fat') {
-        send_key_until_needlematch(FILESYSTEM_FAT, 'up');
-    }
-    elsif ($filesystem eq 'ext4') {
-        send_key_until_needlematch(FILESYSTEM_EXT4, 'up');
-    }
-    else {
-        die "\"$filesystem\" Filesystem is not known.";
-    }
+    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up');
 }
 
 # Mounting Options
