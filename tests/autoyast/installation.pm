@@ -137,6 +137,9 @@ sub run {
         @expected_warnings = @{$test_data->{expected_warnings}};
         push(@needles, @expected_warnings);
     }
+    if (get_var('EXTRABOOTPARAMS') =~ m/startshell=1/) {
+        push @needles, 'linuxrc-start-shell-after-installation';
+    }
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
     # Do not try to fail early in case of autoyast_error_dialog scenario
@@ -279,6 +282,9 @@ sub run {
         }
         elsif (match_has_tag('package-notification')) {
             send_key 'alt-o';
+        }
+        elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
+            type_string "exit\n";
         }
     }
 

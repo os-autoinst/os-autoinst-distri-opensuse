@@ -1,0 +1,26 @@
+name:           autoyast_resize_luks2
+description:    >
+  Test autoyast installation, while resizing encrypted partition using luks2
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_resize_luks2.xml
+  DESKTOP: textmode
+  QEMURAM: 2048
+  NUMDISKS: 2
+  EXTRABOOTPARAMS: startshell=1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/pre_partitioning
+  - autoyast/installation
+  - installation/first_boot
+  - autoyast/console
+  - autoyast/clone
+  - console/validate_file_system
+test_data:
+  device: vdb
+  table_type: gpt
+  encrypted_filesystem:
+    - partition: vdb1
+      size: 5G
+      luks_type: 2
