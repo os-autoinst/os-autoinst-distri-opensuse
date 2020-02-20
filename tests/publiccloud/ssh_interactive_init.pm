@@ -12,7 +12,6 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use Mojo::Base 'publiccloud::basetest';
-use publiccloud::ssh_interactive;
 use testapi;
 use utils;
 
@@ -77,7 +76,7 @@ sub run {
 sub test_flags {
     return {
         fatal                    => 1,
-        milestone                => 1,
+        milestone                => 0,
         publiccloud_multi_module => 1
     };
 }

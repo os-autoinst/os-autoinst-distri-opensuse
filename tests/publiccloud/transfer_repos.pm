@@ -11,7 +11,7 @@
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'publiccloud::ssh_interactive_init';
 use registration;
 use warnings;
 use testapi;
@@ -30,14 +30,6 @@ sub run {
     $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
     $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar '{}' \\;");
     $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
-}
-
-sub test_flags {
-    return {
-        fatal                    => 1,
-        milestone                => 1,
-        publiccloud_multi_module => 1
-    };
 }
 
 1;

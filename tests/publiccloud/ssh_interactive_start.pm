@@ -11,7 +11,7 @@
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use Mojo::Base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::ssh_interactive_init';
 use publiccloud::ssh_interactive;
 use testapi;
 use utils;
@@ -28,13 +28,4 @@ sub run {
     select_console 'root-console';
 }
 
-sub test_flags {
-    return {
-        fatal                    => 1,
-        milestone                => 1,
-        publiccloud_multi_module => 1
-    };
-}
-
 1;
-

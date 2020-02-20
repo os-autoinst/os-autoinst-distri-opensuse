@@ -11,7 +11,7 @@
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'publiccloud::ssh_interactive_init';
 use version_utils;
 use registration;
 use warnings;
@@ -39,14 +39,6 @@ sub run {
     }
 
     $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr");
-}
-
-sub test_flags {
-    return {
-        fatal                    => 1,
-        milestone                => 1,
-        publiccloud_multi_module => 1
-    };
 }
 
 1;
