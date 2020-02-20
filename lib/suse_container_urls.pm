@@ -37,6 +37,9 @@ sub get_opensuse_registry_prefix {
     elsif (check_var("VERSION", "Tumbleweed") && check_var('ARCH', 'ppc64le')) {
         return "opensuse/factory/powerpc/totest/containers/";
     }
+    elsif (check_var("VERSION", "Tumbleweed") && check_var('ARCH', 's390x')) {
+        return "opensuse/factory/zsystems/totest/containers/";
+    }
     elsif (get_var("VERSION") =~ /^Staging:(?<letter>.)$/ && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
         # Tumbleweed letter staging
         my $lowercaseletter = lc $+{letter};
