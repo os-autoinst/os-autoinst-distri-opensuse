@@ -92,4 +92,9 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 }
 
+# followup modules rely on the setup conducted here
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
