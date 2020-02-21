@@ -44,6 +44,7 @@ use version_utils qw(is_sle is_caasp is_released);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
+use scheduler 'get_test_suite_data';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -127,8 +128,15 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
+    my $test_data = get_test_suite_data();
+
     my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
+    my @expected_warnings;
+    if (defined $test_data->{expected_warnings}) {
+        @expected_warnings = @{$test_data->{expected_warnings}};
+        push(@needles, @expected_warnings);
+    }
     push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
     # Do not try to fail early in case of autoyast_error_dialog scenario
@@ -205,6 +213,7 @@ sub run {
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
+            @expected_warnings = grep { !match_has_tag($_) } @expected_warnings;
             # Process warnings
             handle_warnings;
         }
@@ -360,6 +369,8 @@ sub run {
     reset_consoles if is_pvm;
     my $expect_errors = get_var('AUTOYAST_EXPECT_ERRORS') // 0;
     die 'exceeded expected autoyast errors' if $num_errors != $expect_errors;
+    die "Test Fail! Expected warnings did not appear during the installation.
+    Expected: @expected_warnings" if scalar @expected_warnings > 0;
 }
 
 sub test_flags {
