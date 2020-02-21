@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE LLC
+# Copyright (C) 2015-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1573,6 +1573,9 @@ ref:bsc#1122591
 
 =cut
 sub create_btrfs_subvolume {
+    my $fstype;
+    $fstype = script_output("df -PT /boot/grub2/arm64-efi/ | grep -v \"Filesystem\" | awk '{print \$2}'");
+    return if ('btrfs' ne chomp($fstype));
     my @sub_list = split(/\n/, script_output("btrfs subvolume list /boot/grub2/arm64-efi/", 120));
     foreach my $line (@sub_list) {
         return if ($line =~ /\/boot\/grub2\/arm64-efi/);
