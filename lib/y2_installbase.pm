@@ -1,3 +1,18 @@
+# Copyright © 2009-2013 Bernhard M. Wiedemann
+# Copyright © 2012-2020 SUSE LLC
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
 package y2_installbase;
 
 use base "installbasetest";
@@ -8,9 +23,317 @@ use testapi;
 use network_utils;
 use version_utils qw(is_caasp is_sle);
 use y2_logs_helper 'get_available_compression';
-use utils 'zypper_call';
+use utils qw(type_string_slow zypper_call);
 use lockapi;
 use mmapi;
+
+=head1 y2_installbase
+
+C<y2_installbase> - Base class for Yast installer related functionality
+
+=cut
+
+=head2 accept3rdparty
+
+    accept3rdparty();
+
+After making changes in the "software selection" screen, accepts any 3rd party
+license.
+=cut
+sub accept3rdparty {
+    my ($self) = @_;
+    #Third party licenses sometimes appear
+    while (check_screen([qw(3rdpartylicense automatic-changes inst-overview)], 15)) {
+        if (match_has_tag("automatic-changes")) {
+            send_key 'alt-o';
+            last;
+        }
+
+        last if match_has_tag("inst-overview");
+        wait_screen_change { send_key $cmd{acceptlicense} };
+    }
+}
+
+=head2 accept_changes
+
+    accept_changes();
+
+After making changes in the "pattern selection" screen, accepts changes.
+=cut
+sub accept_changes {
+    my ($self) = @_;
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-a';
+    } else {
+        send_key 'alt-o';
+    }
+    $self->accept3rdparty();
+    assert_screen 'inst-overview';
+}
+
+=head2 back_to_overview_from_packages
+
+    back_to_overview_from_packages();
+
+Being in the "search packages" screen, performs steps needed to go back to
+overview page accepting automatic changes changes and 3rd party licenses.
+=cut
+sub back_to_overview_from_packages {
+    my ($self) = @_;
+    wait_screen_change { send_key 'alt-a' };    # accept
+    assert_screen('automatic-changes');
+    send_key 'alt-o';
+    $self->accept3rdparty();
+    assert_screen('installation-settings-overview-loaded');
+}
+
+=head2 check12qtbug
+
+    check12qtbug();
+
+Being in the "select pattern" screen, workaround a known bug of Yast using QT.
+=cut
+sub check12qtbug {
+    if (check_screen('pattern-too-low', 5)) {
+        assert_and_click('pattern-too-low', timeout => 1);
+    }
+}
+
+=head2 go_to_patterns
+
+    go_to_patterns();
+
+Performs steps needed to go from the "installation overview" screen to the
+"pattern selection" screen.
+=cut
+sub go_to_patterns {
+    my ($self) = @_;
+    $self->deal_with_dependency_issues();
+    if (check_var('VIDEOMODE', 'text')) {
+        wait_still_screen;
+        send_key 'alt-c';
+        assert_screen 'inst-overview-options';
+        send_key 'alt-s';
+    }
+    else {
+        send_key_until_needlematch 'packages-section-selected', 'tab';
+        send_key 'ret';
+    }
+    assert_screen 'pattern_selector';
+    if (check_var('VIDEOMODE', 'text')) {
+        wait_screen_change { send_key 'alt-f' };
+        for (1 .. 4) { send_key 'up'; }
+        send_key 'ret';
+    }
+    else {
+        send_key 'tab';
+    }
+    # pressing end and home to have selection more visible, and the scrollbar
+    # length is re-caculated
+    wait_screen_change { send_key 'end' };
+    wait_screen_change { send_key 'home' };
+    assert_screen 'patterns-list-selected';
+}
+
+=head2 go_to_search_packages
+
+    go_to_search_packages();
+
+Performs steps needed to go from the "pattern selection" screen to
+"search packages" screen.
+=cut
+sub go_to_search_packages {
+    my ($self) = @_;
+    send_key 'alt-d';    # details button
+    assert_screen 'packages-manager-detail';
+    assert_and_click 'packages-search-tab';
+    assert_and_click 'packages-search-field-selected';
+}
+
+=head2 move_down
+
+    move_down();
+
+Being in the "select pattern" screen, performs steps needed to move the
+highlight cursor one item down.
+=cut
+sub move_down {
+    my $ret = wait_screen_change { send_key 'down' };
+    last         if (!$ret);                      # down didn't change the screen, so exit here
+    check12qtbug if check_var('VERSION', '12');
+}
+
+=head2 process_patterns
+
+    process_patterns();
+
+Decides to select all patterns or specific patterns based on setting PATTERNS
+Possible values for PATTERNS
+  PATTERNS=minimal,base
+  PATTERNS=all (to select all of them)
+  PATTERNS=default,web,-x11,-gnome (to keep the default but add web and remove x11 and gnome)
+=cut
+sub process_patterns {
+    my ($self) = @_;
+    if (get_required_var('PATTERNS')) {
+        if (check_var('PATTERNS', 'all') && !check_var('VIDEOMODE', 'text')) {
+            $self->select_all_patterns_by_menu();
+        }
+        else {
+            $self->select_specific_patterns_by_iteration();
+        }
+    }
+}
+
+=head2 search_package
+
+    search_package($package_name);
+
+Being in the "search package" screen, performs steps needed to search for
+C<$package_name>
+=cut
+sub search_package {
+    my ($self, $package_name) = @_;
+    assert_and_click 'packages-search-field-selected';
+    wait_screen_change { send_key 'ctrl-a' };
+    wait_screen_change { send_key 'delete' };
+    type_string_slow "$package_name";
+    send_key 'alt-s';    # search button
+}
+
+=head2 select_all_patterns_by_menu
+
+    select_all_patterns_by_menu();
+
+Being in the "select pattern" screen, performs steps needed to select all
+available patterns.
+=cut
+sub select_all_patterns_by_menu {
+    my ($self) = @_;
+    # move mouse on patterns and open menu
+    mouse_set 100, 400;
+    mouse_click 'right';
+    wait_still_screen 3;
+    # select action on all patterns
+    wait_screen_change { send_key 'a'; };
+    # confirm install
+    wait_screen_change { send_key 'ret'; };
+    mouse_hide;
+    save_screenshot;
+    send_key 'alt-o';
+    $self->accept3rdparty();
+    assert_screen 'inst-overview';
+}
+
+=head2 select_specific_patterns_by_iteration
+
+    select_specific_patterns_by_iteration();
+
+Being in the "select pattern" screen, performs steps needed to select given
+patterns.
+You can pass
+  PATTERNS=minimal,base or
+  PATTERNS=all to select all of them
+  PATTERNS=default,web,-x11,-gnome to keep the default but add web and remove
+  x11 and gnome
+=cut
+sub select_specific_patterns_by_iteration {
+    my %patterns;    # set of patterns to be processed
+                     # fill with variable values
+    @patterns{split(/,/, get_var('PATTERNS'))} = ();
+
+    my $counter = 80;
+    # delete special 'all' and 'default' keys from the check
+    delete $patterns{default};
+    delete $patterns{all};
+    while (1) {
+        die "looping for too long" unless ($counter--);
+        my $needs_to_be_selected;
+        my $ret = check_screen('on-pattern', 1);
+        # this variable will only be updated when the pattern list entry is under the cursor
+        # and the pattern is in the PATTERNS variable and there is a needle for that entry
+        my $current_pattern = 'UNKNOWN_PATTERN';
+
+        if ($ret) {    # unneedled pattern
+            for my $p (keys %patterns) {
+                my $sel     = 1;
+                my $pattern = $p;    # store pattern untouched
+                if ($p =~ /^-/) {
+                    # this pattern shall be deselected as indicated by '-' prefix
+                    $sel = 0;
+                    $p =~ s/^-//;
+                }
+                if (match_has_tag("pattern-$p")) {
+                    $needs_to_be_selected = $sel;
+                    $current_pattern      = $p;
+                    delete $patterns{$pattern};    # mark this pattern as processed
+                    record_info($current_pattern, $needs_to_be_selected);
+                }
+            }
+        }
+        $needs_to_be_selected = 1 if get_var('PATTERNS', '') =~ /all/;
+
+        my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
+        if ($selected && $selected->{needle}->has_tag('on-category')) {
+            move_down;
+            next;
+        }
+        if ($needs_to_be_selected && !$selected) {
+            switch_selection(action => 'select', needles => ['current-pattern-selected']);
+        }
+        if (get_var('PATTERNS', '') =~ /default/ && !(get_var('PATTERNS', '') =~ /$current_pattern/)) {
+            $needs_to_be_selected = $selected;
+            record_info("keep default", "");
+        }
+        if (!$needs_to_be_selected && $selected) {
+            switch_selection(action => 'unselect', needles => [qw(current-pattern-unselected current-pattern-autoselected)]);
+        }
+
+        # exit earlier if default and all patterns were processed
+        last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
+
+        move_down;
+    }
+    # check if we have processed all patterns mentioned in the test suite settings
+    my @unseen = keys %patterns;
+    die "Not all patterns given in the job settings were processed:" . join(", ", @unseen) if @unseen;
+}
+
+=head2 switch_selection
+
+    switch_selection(action => $action, needles => ARRAY($needles));
+
+Being in the "select pattern" screen, performs steps needed to switch the
+checkbox (C<$action>) of the pattern matching one of the given C<$needles>.
+Example
+  switch_selection(action => 'select', needles => ['current-pattern-selected']);
+=cut
+sub switch_selection {
+    my (%args)  = @_;
+    my $action  = $args{action};
+    my $needles = $args{needles};
+    wait_screen_change {
+        send_key ' ';
+        record_info($action, "");
+    };
+    assert_screen $needles, 8;
+}
+
+=head2 toogle_package
+
+    toogle_package($package_name, $operation);
+
+Being in the "search package" screen, and showing a list of found packages,
+performs steps needed to toogle the checkbox of C<$package_name>.
+The C<$operation> can be '+' or 'minus'.
+=cut
+sub toogle_package {
+    my ($self, $package_name, $operation) = @_;
+    send_key_until_needlematch "packages-$package_name-selected", 'down', 60;
+    wait_screen_change { send_key "$operation" };
+    wait_still_screen 2;
+    save_screenshot;
+}
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
@@ -163,7 +486,7 @@ sub deal_with_dependency_issues {
 
     # In text mode dependency issues may occur again after resolving them
     if (check_screen 'manual-intervention', 30) {
-        $self->deal_with_dependency_issues;
+        $self->deal_with_dependency_issues();
     }
 }
 

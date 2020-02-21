@@ -14,7 +14,6 @@ schedule:
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
-  - installation/select_patterns_and_packages
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout

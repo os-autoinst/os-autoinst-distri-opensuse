@@ -23,7 +23,7 @@ schedule:
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
-  - installation/select_patterns_and_packages
+  - installation/select_patterns
   - installation/installation_overview
   - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
