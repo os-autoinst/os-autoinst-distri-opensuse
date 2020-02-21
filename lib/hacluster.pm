@@ -320,6 +320,12 @@ sub ha_export_logs {
     # HAWK test logs if present
     upload_logs("/tmp/hawk_test.log", failok => 1);
     upload_logs("/tmp/hawk_test.ret", failok => 1);
+
+    # HANA hdbnsutil logs
+    if (check_var('CLUSTER_NAME', 'hana')) {
+        script_run 'tar -zcf /tmp/trace.tgz $(find /hana/shared -name nameserver_*.trc)';
+        upload_logs('/tmp/trace.tgz', failok => 1);
+    }
 }
 
 sub check_cluster_state {
