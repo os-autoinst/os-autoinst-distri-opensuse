@@ -58,7 +58,8 @@ use ipmi_backend_utils;
 sub handle_livecd_screenlock {
     record_soft_failure 'boo#994044: Kde-Live net installer is interrupted by screenlock';
     diag('unlocking screenlock with no password in LIVECD mode');
-    do {
+    my $retries = 7;
+    for (1 .. $retries) {
         # password and unlock button seem to be not in focus so switch to
         # the only 'window' shown, tab over the empty password field and
         # confirm unlocking
@@ -67,7 +68,9 @@ sub handle_livecd_screenlock {
             send_key 'tab';
             send_key 'ret';
         }
-    } while (check_screen('screenlock', 20));
+        last unless check_screen 'screenlock', 20;
+        die "Failed to unlock screen within multiple retries" if $_ == $retries;
+    }
     save_screenshot;
     # can take a long time until the screen unlock happens as the
     # system is busy installing.
