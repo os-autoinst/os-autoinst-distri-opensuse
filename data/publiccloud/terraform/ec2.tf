@@ -1,4 +1,10 @@
-provider "aws" {}
+variable "region" {
+    default = "eu-central-1"
+}
+
+provider "aws" {
+    region = var.region
+}
 
 variable "instance_count" {
     default = "1"
@@ -16,10 +22,6 @@ variable "image_id" {
     default = ""
 }
 
-variable "region" {
-    default = ""
-}
-
 variable "extra-disk-size" {
     default = "1000"
 }
@@ -30,6 +32,11 @@ variable "extra-disk-type" {
 
 variable "create-extra-disk" {
     default=false
+}
+
+variable "tags" {
+    type = map(string)
+    default = {}
 }
 
 resource "random_id" "service" {
@@ -63,11 +70,11 @@ resource "aws_security_group" "basic_sg" {
         cidr_blocks     = ["0.0.0.0/0"]
     }
 
-    tags = {
-        openqa_created_by = var.name
-        openqa_created_date = "${timestamp()}"
-        openqa_created_id = "${element(random_id.service.*.hex, 0)}"
-    }
+    tags = merge({
+            openqa_created_by = var.name
+            openqa_created_date = "${timestamp()}"
+            openqa_created_id = "${element(random_id.service.*.hex, 0)}"
+        }, var.tags)
 }
 
 resource "aws_instance" "openqa" {
@@ -77,11 +84,11 @@ resource "aws_instance" "openqa" {
     key_name        = aws_key_pair.openqa-keypair.key_name
     security_groups = ["${aws_security_group.basic_sg.name}"]
 
-    tags = {
-        openqa_created_by = var.name
-        openqa_created_date = "${timestamp()}"
-        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
-    }
+    tags = merge({
+            openqa_created_by = var.name
+            openqa_created_date = "${timestamp()}"
+            openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+        }, var.tags)
 }
 
 resource "aws_volume_attachment" "ebs_att" {
@@ -96,11 +103,11 @@ resource "aws_ebs_volume" "ssd_disk" {
     availability_zone = element(aws_instance.openqa.*.availability_zone, count.index)
     size              = var.extra-disk-size
     type              = var.extra-disk-type
-    tags = {
-        openqa_created_by = var.name
-        openqa_created_date = "${timestamp()}"
-        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
-    }
+    tags = merge({
+            openqa_created_by = var.name
+            openqa_created_date = "${timestamp()}"
+            openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+        }, var.tags)
 }
 
 output "public_ip" {
