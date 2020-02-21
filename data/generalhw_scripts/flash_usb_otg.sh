@@ -14,7 +14,7 @@ destination=$2
 # Size to resize (optionnal, default to 24G)
 size=${3:-24G}
 # user
-username=$(whoami)
+username=root # $(whoami)
 
 
 if [ -z "$1" ] || [ -z "$2" ]
