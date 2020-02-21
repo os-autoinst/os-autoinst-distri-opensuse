@@ -404,7 +404,10 @@ sub become_root {
     my ($self) = @_;
 
     $self->script_sudo('bash', 0);
-    disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
+    # No need to apply on more recent kernels
+    if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
+        disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
+    }
     type_string "cd /tmp\n";
     $self->set_standard_prompt('root');
     type_string "clear\n";
