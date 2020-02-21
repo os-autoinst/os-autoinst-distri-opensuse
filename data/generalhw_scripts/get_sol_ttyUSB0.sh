@@ -7,7 +7,7 @@ device=/dev/ttyUSB0
 speed=115200
 
 # Set up device
-stty -F $device $speed -echo -icrnl -onlcr
+stty -F $device $speed -echo -icrnl -onlcr -icanon
 
 # Read the device $device in the background
 # tail -f $device &
