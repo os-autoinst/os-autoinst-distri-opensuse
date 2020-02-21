@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,13 +34,16 @@ sub run {
         return;
     }
 
-    $self->enter_userinfo();
-    assert_screen 'inst-userinfostyped';
-    if (match_has_tag 'boo#1122804') {
-        diag "trying again with slow typing due to https://progress.opensuse.org/issues/46190\n";
-        $self->enter_userinfo(retry => 1);
-        assert_screen 'inst-userinfostyped';
-    }
+    # retry if not typed correctly
+    my $max_tries = 2;
+    my $retry     = 0;
+    do {
+        $self->enter_userinfo(retry => $retry);
+        assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);
+        record_soft_failure('boo#1122804 - Typing issue with fullname') unless match_has_tag('inst-userinfostyped-expected-typefaces');
+        $retry++;
+    } while (($retry < $max_tries) && !match_has_tag('inst-userinfostyped-expected-typefaces'));
+
     if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
         send_key $cmd{noautologin};
         assert_screen 'autologindisabled';
