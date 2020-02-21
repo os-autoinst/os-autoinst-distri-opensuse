@@ -77,6 +77,7 @@ END_SCRIPT
         assert_script_run(q{echo 'MaxLevelConsole=debug' >> /etc/systemd/journald.conf});
         assert_script_run(qq{echo 'TTYPath=/dev/$serialdev' >> /etc/systemd/journald.conf});
         assert_script_run(q{systemctl restart systemd-journald});
+        assert_script_run(q{systemctl is-active systemd-journald});
     }
 }
 

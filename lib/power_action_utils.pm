@@ -25,6 +25,7 @@ use utils;
 use testapi;
 use version_utils qw(is_sle is_opensuse is_vmware);
 use Carp 'croak';
+use Utils::Backends;
 
 our @EXPORT = qw(
   prepare_system_shutdown
@@ -49,20 +50,26 @@ $vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
 =cut
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
-
-    if (check_var('ARCH', 's390x')) {
+    if (get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/) {
+        console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
+        record_info('prepare_system_shutdown: ssh connection is disconnected');
+    }
+    elsif (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             # kill serial ssh connection (if it exists)
             eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
+            record_info('prepare_system_shutdown: ssh connection is disconnected on backend: ' . get_var('BACKEND', 'NONE'));
             diag('ignoring already shut down console') if ($@);
         }
         console('installation')->disable_vnc_stalls;
+        record_info('prepare_system_shutdown: VNC stall is disabled');
     }
-    if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
+    elsif (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
+        record_info('prepare_system_shutdown: VNC stall is disabled');
         console('svirt')->stop_serial_grab;
+        record_info('prepare_system_shutdown: serial grab stopped');
     }
 }
 
@@ -250,10 +257,11 @@ sub power_action {
     $args{textmode}     //= check_var('DESKTOP', 'textmode');
     $args{first_reboot} //= 0;
     die "'action' was not provided" unless $action;
-    prepare_system_shutdown;
+    #prepare_system_shutdown;
     unless ($args{keepconsole}) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
+    prepare_system_shutdown;
     unless ($args{observe}) {
         if ($args{textmode}) {
             type_string "$action\n";
