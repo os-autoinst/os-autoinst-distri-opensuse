@@ -24,24 +24,23 @@ sub run {
     # avoid async keyring popups
     x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
 
-    wait_screen_change { send_key 'esc' };       # get rid of popup (or abort loading)
-    wait_screen_change { send_key 'ctrl-l' };    # select text in address bar
+    wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
+    send_key 'ctrl-l';                        # select text in address bar
 
     # Additional waiting to prevent unready address bar
     # https://progress.opensuse.org/issues/36304
-    wait_still_screen(1);
-    assert_screen 'chromium-hightlighted-urlbar';
+    assert_screen 'chromium-highlighted-urlbar';
     type_string "chrome://version \n";
     assert_screen 'chromium-about';
 
-    wait_screen_change { send_key 'ctrl-l' };
-    assert_screen 'chromium-hightlighted-urlbar';
+    send_key 'ctrl-l';
+    assert_screen 'chromium-highlighted-urlbar';
     type_string "https://html5test.opensuse.org\n";
     assert_screen 'chromium-html-test', 90;
 
     # check a site with different ssl configuration (boo#1144625)
-    wait_screen_change { send_key 'ctrl-l' };
-    assert_screen 'chromium-hightlighted-urlbar';
+    send_key 'ctrl-l';
+    assert_screen 'chromium-highlighted-urlbar';
     type_string("https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg\n");
     assert_screen 'chromium-opensuse-logo', 90;
     send_key 'alt-f4';
