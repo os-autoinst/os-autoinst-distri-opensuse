@@ -87,7 +87,6 @@ sub run {
 
     # unload firewall. MPI- and libfabric-tests require too many open ports
     systemctl("stop " . opensusebasetest::firewall);
-    barrier_wait('IBTEST_SETUP');
 
     # remove, if present, create and distribute ssh key
     script_run('rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts');
@@ -97,6 +96,12 @@ sub run {
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
 
+    if ((is_sle && is_sle('>15-sp2')) && (script_run('zypper se mpitests-openmpi3') != 0)) {
+        record_info('mpistests-openmpi3', 'add GA Repo (mpitests-openmpi3 missing)', result => 'softfail');
+        zypper_call("ar http://download.suse.de/ibs/SUSE:/SLE-$version:/GA/standard/SUSE:SLE-$version:GA.repo");
+    }
+
+    barrier_wait('IBTEST_SETUP');
 
     if ($role eq 'IBTEST_MASTER') {
         ibtest_master;
