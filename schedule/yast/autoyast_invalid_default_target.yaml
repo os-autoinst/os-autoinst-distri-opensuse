@@ -1,0 +1,22 @@
+name:           autoyast_invalid_default_target
+description:    >
+        Test AutoYaST installation while invalid default target is specified in
+        AutoYaST control file.
+        Covered cases:
+           - Verify that warning message is shown during installation;
+           - Verify that multi-user target is set as default in the case.
+
+vars:
+        AUTOYAST: autoyast_sle15/autoyast_invalid_default_target.xml
+        AUTOYAST_PREPARE_PROFILE: 1
+schedule:
+        - autoyast/prepare_profile
+        - installation/isosize
+        - installation/bootloader_start
+        - autoyast/installation
+        - autoyast/console
+        - autoyast/verify_default_target
+test_data:
+  default_target: "multi-user.target"
+  expected_warnings:
+    - autoyast-warning-invalid-default-target

@@ -1,0 +1,23 @@
+name:           autoyast_non_existing_graphical_target
+description:    >
+  Test AutoYaST installation when graphical target is specified as default in
+  AutoYaST control file, but the system does not have graphical environment
+  installed.
+  Covered cases:
+     - Verify that graphical target is set as default even if there is no
+       graphical environment installed. When there are no graphical components
+       installed, graphical.target is equal to multi-user.target;
+     - Verify that the system loads and don't hang after installation. This is
+       done indirectly by logging in to the system after installation.
+
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_non_existing_graphical_target.xml
+  AUTOYAST_PREPARE_PROFILE: 1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/verify_default_target
+test_data:
+  default_target: "graphical.target"
