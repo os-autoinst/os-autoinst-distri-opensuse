@@ -69,7 +69,9 @@ all possible options should be handled within loop to get unlocked desktop
 sub ensure_unlocked_desktop {
     my $counter = 10;
     while ($counter--) {
-        assert_screen [qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system)], no_wait => 1;
+        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system);
+        push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx/;    # Only xscreensaver has a blackscreen as screenlock
+        assert_screen \@tags, no_wait => 1;
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
@@ -116,7 +118,7 @@ sub ensure_unlocked_desktop {
             last;            # desktop is unlocked, mission accomplished
         }
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
-        if (match_has_tag 'screenlock') {
+        if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
                 send_key 'esc';                                                                           # end screenlock
             };
