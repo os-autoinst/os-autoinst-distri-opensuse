@@ -88,8 +88,12 @@ sub handle_all_packages_medium {
         next if (skip_package_hub_if_necessary($i));
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
         send_key 'home';
-        send_key_until_needlematch "addon-products-all_packages-$i-highlighted", 'down', 30;
-        send_key 'spc';
+        send_key_until_needlematch ["addon-products-all_packages-$i-highlighted", "addon-products-all_packages-$i-selected"], "down", 30;
+        if (match_has_tag("addon-products-all_packages-$i-highlighted")) {
+            send_key 'spc';
+        } else {
+            record_info("Module preselected", "Module $i is already selected");
+        }
     }
     send_key $cmd{next};
     # Check the addon license agreement
