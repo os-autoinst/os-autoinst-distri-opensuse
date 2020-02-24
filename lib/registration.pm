@@ -484,7 +484,7 @@ sub process_scc_register_addons {
         }
         while ($counter--) {
             die 'Addon registration repeated too much. Check if SCC is down.' if ($counter eq 1);
-            assert_screen [@needles];
+            assert_screen([@needles], 90);
             if (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
                 next;
