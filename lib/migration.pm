@@ -32,6 +32,7 @@ our @EXPORT = qw(
   setup_migration
   register_system_in_textmode
   remove_ltss
+  remove_unexsited
   disable_installation_repos
   record_disk_info
   check_rollback_system
@@ -115,6 +116,22 @@ sub remove_ltss {
             zypper_call 'rm sles-ltss-release-POOL';
         }
         set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
+    }
+}
+
+# Remove unexsited modules after upgrade
+sub remove_unexsited {
+    if (check_var('SLE_PRODUCT', 'hpc') && check_var('HDDVERSION', '15')) {
+        my $scc_addons = get_var_array('SCC_ADDONS');
+        record_info 'remove unexsited modules', 'Remove unexsited moduels after upgrade';
+        if (get_var('SCC_ADDONS', '') =~ /lgm/) {
+            remove_suseconnect_product(get_addon_fullname('lgm'));
+            set_var('SCC_ADDONS', join(',', grep { $_ ne 'lgm' } @$scc_addons));
+        }
+        if (get_var('SCC_ADDONS', '') =~ /live/) {
+            remove_suseconnect_product(get_addon_fullname('live'));
+            set_var('SCC_ADDONS', join(',', grep { $_ ne 'live' } @$scc_addons));
+        }
     }
 }
 

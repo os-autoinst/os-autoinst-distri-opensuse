@@ -27,6 +27,7 @@ sub run {
     add_test_repositories;
     fully_patch_system;
     remove_ltss;
+    remove_unexsited;
     power_action('reboot', keepconsole => 1, textmode => 1);
 
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
