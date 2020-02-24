@@ -119,9 +119,9 @@ sub prepare_pvm_installation {
     select_console('install-shell');
 
 
-    my $disks = script_output('lsblk -n -p -l -o NAME -d -e 7,11');
+    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
     for my $d (split('\n', $disks)) {
-        script_run "wipefs -a $d";
+        script_run "wipefs -a /dev/$d";
         create_encrypted_part("$d") if get_var('ENCRYPT_ACTIVATE_EXISTING');
     }
     # Switch to installation console (ssh or vnc)
