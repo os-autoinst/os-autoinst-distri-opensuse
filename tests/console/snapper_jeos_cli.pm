@@ -21,6 +21,12 @@ use version_utils 'is_sle';
 sub run {
     my ($self) = @_;
 
+    my $timeout = sub {
+        my $backend         = shift;
+        my %bootloader_time = (qemu => 60, svirt => 120);
+        return (exists $bootloader_time{$backend}) ? $bootloader_time{$backend} : 100;
+    };
+
     select_console('root-console');
     my $file       = '/etc/openQA_snapper_test';
     my $openqainit = 'openqainit';
@@ -34,29 +40,33 @@ sub run {
     my $latest_snapshot     = script_output("snapper list | grep -w $openqalatest | awk $snap_id | tr -d '\\n'");
     my $init_snapshot       = script_output("snapper list | grep 'single.*$openqainit' | awk $snap_id | tr -d '\\n'");
     my $openqarollback      = 'openqarollback';
+
+    record_info('Rollback #1', "Rollback to single snapshot: $init_snapshot");
     assert_script_run("snapper rollback -d $openqarollback $init_snapshot");
     assert_script_run("snapper list");
     power_action('reboot');
-    $self->wait_boot;
-
+    $self->wait_boot(textmode => (get_var('DESKTOP') == 'textmode'), bootloader_time => $timeout->(get_required_var('BACKEND')));
     select_console('root-console');
+
+    record_info('Rollback #2', "Rollback to latest snapshot: $latest_snapshot");
     assert_script_run("snapper list");
     assert_script_run("! ls -l $file");
     assert_script_run("snapper rollback $latest_snapshot");
     assert_script_run("snapper list");
     power_action('reboot');
-    $self->wait_boot;
-
+    $self->wait_boot(textmode => (get_var('DESKTOP') == 'textmode'), bootloader_time => $timeout->(get_required_var('BACKEND')));
     select_console('root-console');
+
+    record_info('Rollback #3', "Rollback to initial snapshot: $openqainit_snapshot");
     assert_script_run("snapper list");
     assert_script_run("ls -l $file");
     assert_script_run("rm -v $file");
     assert_script_run("snapper rollback $openqainit_snapshot");
     assert_script_run("snapper list");
     power_action('reboot');
-    $self->wait_boot;
-
+    $self->wait_boot(textmode => (get_var('DESKTOP') == 'textmode'), bootloader_time => $timeout->(get_required_var('BACKEND')));
     select_console('root-console');
+
     assert_script_run("snapper list");
     assert_script_run("! ls -l $file");
 }
