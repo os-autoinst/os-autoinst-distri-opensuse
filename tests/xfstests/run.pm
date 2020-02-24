@@ -47,7 +47,7 @@ my $STATUS_LOG   = '/opt/status.log';
 my $INST_DIR     = '/opt/xfstests';
 my $LOG_DIR      = '/opt/log';
 my $KDUMP_DIR    = '/opt/kdump';
-my $MAX_TIME     = 2400;
+my $MAX_TIME     = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE       = get_required_var('XFSTESTS');
 
 # Create heartbeat script, directories(Call it only once)
