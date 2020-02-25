@@ -28,6 +28,7 @@ sub run {
     # go to preferences
     assert_and_click 'virtman-edit-menu';
     assert_and_click 'virtman-preferences';
+    assert_screen 'virtman-preferences-general';
     # go to polling
     wait_screen_change { send_key 'right' };
     for (1 .. 3) { send_key 'tab' }
@@ -35,7 +36,7 @@ sub run {
     # activate disk I/O
     wait_screen_change { send_key 'spc' };
     send_key 'tab';
-    # acrtivate net I/O
+    # activate net I/O
     wait_screen_change { send_key 'spc' };
     send_key 'tab';
     # activate Mem stat
