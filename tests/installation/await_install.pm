@@ -68,7 +68,7 @@ sub handle_livecd_screenlock {
             send_key 'tab';
             send_key 'ret';
         }
-        last unless check_screen 'screenlock', 20;
+        last unless check_screen qw(screenlock blackscreen), 20;
         die "Failed to unlock screen within multiple retries" if $_ == $retries;
     }
     save_screenshot;
@@ -94,6 +94,7 @@ sub run {
     my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error);
     if (get_var('LIVECD')) {
         push(@tags, 'screenlock');
+        push(@tags, 'blackscreen');
     }
     if (get_var('UPGRADE') || get_var('LIVE_UPGRADE')) {
         push(@tags, 'ERROR-removing-package');
@@ -166,7 +167,7 @@ sub run {
             send_key 'alt-o';    # ok
             next;
         }
-        if (get_var('LIVECD') and match_has_tag('screenlock')) {
+        if (get_var('LIVECD') and (match_has_tag('screenlock') || match_has_tag('blackscreen'))) {
             handle_livecd_screenlock;
             $screenlock_previously_detected = 1;
             next;
