@@ -427,6 +427,15 @@ sub run_accounting_ha_tests {
     return @all_results;
 }
 
+###############################################
+##        Extended tests for HPC cluster     ##
+##          Meant as fast moving tests       ##
+###############################################
+
+sub extended_hpc_tests {
+    #TODO: to be done
+}
+
 sub run {
     my $self       = shift;
     my $nodes      = get_required_var('CLUSTER_NODES');
@@ -479,8 +488,15 @@ sub run {
     # HA: 2 slurm ctl and 2+ compute nodes
     # ACCOUNTING: 1 slurm ctl, 1 slurmdbd, 2+ compute nodes
     # ACCOUNTING and HA (nfs_db): 2 slurm ctl, 1 slurmdbd, 2+ compute nodes
+    # EXT_HPC_TESTS: special variable to enable extended and external HPC tests
+    # Those EXT_HPC_TESTS are meant as fast-moving, quick tests not meant for
+    # stability; use at your own risk
 
-    run_tests($slurm_conf);
+    if (get_required_var('EXT_HPC_TESTS')) {
+        extended_hpc_tests();
+    } else {
+        run_tests($slurm_conf);
+    }
 
     barrier_wait('SLURM_MASTER_RUN_TESTS');
 }
