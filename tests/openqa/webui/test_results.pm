@@ -54,10 +54,10 @@ sub run {
     wait_still_screen;
 
     # wait for result
-    for (1 .. 5) {
+    for (1 .. 25) {
         send_key 'f5';
         wait_still_screen;
-        last if check_screen('openqa-testresult', 300);
+        last if check_screen('openqa-testresult', 60);
     }
     assert_screen 'openqa-testresult';
 }
