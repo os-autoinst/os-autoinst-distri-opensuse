@@ -531,9 +531,9 @@ sub mellanox_config {
 }
 
 sub load_baremetal_tests {
-    set_var('ADDONURL', 'sdk') if (is_sle('>=12') && is_sle('<15')) && !is_released;
-
-    loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
+    set_var('ADDONURL', 'sdk')               if (is_sle('>=12') && is_sle('<15')) && !is_released;
+    loadtest 'tests/kernel/ibtests_barriers' if get_var('IBTESTS');
+    loadtest "autoyast/prepare_profile"      if get_var "AUTOYAST_PREPARE_PROFILE";
     if (get_var('IPXE')) {
         loadtest 'installation/ipxe_install';
         loadtest "console/suseconnect_scc";
@@ -549,14 +549,6 @@ sub load_baremetal_tests {
 }
 
 sub load_infiniband_tests {
-    # The barriers below must be created
-    # here to ensure they are a) only created once and b) early enough
-    # to be available when needed.
-    if (get_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
-        barrier_create('IBTEST_SETUP', 2);
-        barrier_create('IBTEST_BEGIN', 2);
-        barrier_create('IBTEST_DONE',  2);
-    }
     mellanox_config();
     loadtest "kernel/ib_tests";
 }
