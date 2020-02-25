@@ -41,6 +41,10 @@ sub run {
 
     zypper_call("in traceroute bzip2");
     assert_script_run("traceroute -I gate.suse.cz", 90);
+
+    assert_script_run("rpm -qa > /tmp/rpm.list.txt");
+    upload_logs('/tmp/rpm.list.txt');
+    upload_logs('/var/log/zypper.log');
 }
 
 1;
