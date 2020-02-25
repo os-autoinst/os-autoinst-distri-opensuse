@@ -340,16 +340,12 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
 # poo#62000
 sub postgresql_cleanup {
     select_console 'root-console';
-    # Display current state of btrfs
-    assert_script_run 'btrfs fi show';
     # Clean up
     systemctl 'stop postgresql';
     systemctl 'disable postgresql';
     systemctl 'is-active postgresql', expect_false => 1;
     assert_script_run('kill -s KILL $(ps -u postgres -o pid=)') unless script_run('ps -u postgres -o pid=');
     zypper_call "rm postgresql";
-    script_run q[snapper delete --sync $(snapper --quiet --machine-readable csv list | awk -F ',' 'NR>3 {print $3+0}')];
-    assert_script_run 'userdel --remove postgres';
 }
 
 1;
