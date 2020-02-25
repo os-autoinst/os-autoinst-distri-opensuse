@@ -98,7 +98,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-unused-modules test-deleted-renamed-referenced-modules test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-modules test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
