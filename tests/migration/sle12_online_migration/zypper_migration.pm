@@ -103,7 +103,9 @@ sub run {
         }
         $out = wait_serial($migration_checks, $timeout);
     }
-    power_action('reboot', keepconsole => 1, textmode => 1);
+    # We can't use 'keepconsole' here, because sometimes a display-manager upgrade can lead to a screen change
+    # during restart of the X/GDM stack
+    power_action('reboot', textmode => 1);
 
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test
