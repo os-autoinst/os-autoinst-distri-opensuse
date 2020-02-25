@@ -51,7 +51,9 @@ sub run_test {
     my $gi_vnet_nated;
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
-        assert_script_run("virsh attach-interface $guest network vnet_nated --live", 60);
+        #figure out that used with virtio as the network device model during
+        #attach-interface via virsh worked for all sles guest
+        assert_script_run("virsh attach-interface $guest network vnet_nated --model virtio --live", 60);
         #Get the Guest IP Address from NAT BASED NETWORK
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             my $mac_nated = script_output("virsh domiflist $guest | grep vnet_nated | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
@@ -78,6 +80,9 @@ sub run_test {
 sub post_fail_hook {
     my ($self) = @_;
 
+    #Upload debug log
+    virt_autotest::virtual_network_utils::upload_debug_log();
+
     #Restart libvirtd service
     virt_autotest::virtual_network_utils::restart_libvirtd();
 
@@ -92,9 +97,6 @@ sub post_fail_hook {
 
     #Restore Guest systems
     virt_autotest::virtual_network_utils::restore_guests();
-
-    #Upload debug log
-    virt_autotest::virtual_network_utils::upload_debug_log();
 }
 
 1;

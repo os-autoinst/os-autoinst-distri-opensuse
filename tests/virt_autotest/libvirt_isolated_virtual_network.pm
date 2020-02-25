@@ -46,7 +46,9 @@ sub run_test {
     my $gi_vnet_isolated;
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
-        assert_script_run("virsh attach-interface $guest network vnet_isolated --live");
+        #figure out that used with virtio as the network device model during
+        #attach-interface via virsh worked for all sles guest
+        assert_script_run("virsh attach-interface $guest network vnet_isolated --model virtio --live");
         #Get the Guest IP Address from ISOLATED NETWORK
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             my $mac_isolated = script_output("virsh domiflist $guest | grep vnet_isolated | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
@@ -82,6 +84,9 @@ sub run_test {
 sub post_fail_hook {
     my ($self) = @_;
 
+    #Upload debug log
+    virt_autotest::virtual_network_utils::upload_debug_log();
+
     #Restart libvirtd service
     virt_autotest::virtual_network_utils::restart_libvirtd();
 
@@ -93,9 +98,6 @@ sub post_fail_hook {
 
     #Restore Guest systems
     virt_autotest::virtual_network_utils::restore_guests();
-
-    #Upload debug log
-    virt_autotest::virtual_network_utils::upload_debug_log();
 }
 
 1;

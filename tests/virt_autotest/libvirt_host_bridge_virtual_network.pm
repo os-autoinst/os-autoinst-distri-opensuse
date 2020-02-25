@@ -53,7 +53,9 @@ sub run_test {
     my $gi_host_bridge = '';
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
-        assert_script_run("virsh attach-interface $guest network vnet_host_bridge --live");
+        #figure out that used with virtio as the network device model during
+        #attach-interface via virsh worked for all sles guest
+        assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model virtio --live");
         #Get the Guest IP Address from HOST BRIDGE NETWORK
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
             my $mac_host_bridge = script_output("virsh domiflist $guest | grep vnet_host_bridge|grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
@@ -80,6 +82,9 @@ sub run_test {
 sub post_fail_hook {
     my ($self) = @_;
 
+    #Upload debug log
+    virt_autotest::virtual_network_utils::upload_debug_log();
+
     #Restart libvirtd service
     virt_autotest::virtual_network_utils::restart_libvirtd();
 
@@ -94,9 +99,6 @@ sub post_fail_hook {
 
     #Restore Network setting
     virt_autotest::virtual_network_utils::restore_network($virt_host_bridge);
-
-    #Upload debug log
-    virt_autotest::virtual_network_util::upload_debug_log();
 }
 
 1;
