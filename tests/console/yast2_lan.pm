@@ -42,7 +42,7 @@ sub run {
     save_screenshot;
 
     my $opened = open_yast2_lan();
-    wait_still_screen;
+    wait_still_screen(14);
     if ($opened eq "Controlled by network manager") {
         return;
     }
