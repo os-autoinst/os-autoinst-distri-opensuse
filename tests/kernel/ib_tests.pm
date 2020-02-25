@@ -98,7 +98,7 @@ sub run {
 
     if ((is_sle && is_sle('>15-sp2')) && (script_run('zypper se mpitests-openmpi3') != 0)) {
         record_info('mpistests-openmpi3', 'add GA Repo (mpitests-openmpi3 missing)', result => 'softfail');
-        zypper_call("ar http://download.suse.de/ibs/SUSE:/SLE-$version:/GA/standard/SUSE:SLE-$version:GA.repo");
+        zypper_ar("http://download.suse.de/ibs/SUSE:/SLE-$version:/GA/standard/SUSE:SLE-$version:GA.repo");
     }
 
     barrier_wait('IBTEST_SETUP');
