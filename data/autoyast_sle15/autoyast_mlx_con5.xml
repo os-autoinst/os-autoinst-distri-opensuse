@@ -23,6 +23,7 @@
 
   <bootloader>
     <global>
+      <activate config:type="boolean">true</activate>
       <append>console=ttyS1,115200 noquiet crashkernel=172M,high crashkernel=72M,low</append>
       <gfxmode>auto</gfxmode>
       <boot_mbr>true</boot_mbr>
@@ -541,15 +542,24 @@
   <partitioning config:type="list">
     <drive>
       <device>/dev/sda</device>
+      <initialize config:type="boolean">true</initialize>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <create config:type="boolean">true</create>
+      <filesystem config:type="symbol">btrfs</filesystem>
+      <partition_type>primary</partition_type>
+      <format config:type="boolean">true</format>
       <use>all</use>
     </drive>
     <drive>
       <device>/dev/sdb</device>
       <partition>
 	<filesystem  config:type="symbol">swap</filesystem>
+	<initialize config:type="boolean">true</initialize>
+	<format config:type="boolean">true</format>
+	<partition_type>primary</partition_type>
+	<use>all</use>
 	<size>auto</size>	
       </partition>
-      <use>all</use>
     </drive>
   </partitioning>
   <proxy>
