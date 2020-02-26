@@ -101,12 +101,12 @@ sub is_remote_backend {
 
 =head2 has_ttys
 
-Returns true if the current instance is using ttys for: ipmi, s390x, spvm, pvm_hmc, except S390_ZKVM
+Returns true if the current instance is using ttys
 
 =cut
 
 sub has_ttys {
-    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm|pvm_hmc/) && !get_var('S390_ZKVM'));
+    return ((get_var('BACKEND', '') !~ /ipmi|s390x|spvm|pvm_hmc/) && !get_var('S390_ZKVM') && !(check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'))));
 }
 
 =head2 has_serial_over_ssh
