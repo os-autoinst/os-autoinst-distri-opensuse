@@ -30,7 +30,7 @@ sub run {
     zypper_call('in slurm-node') if is_sle '15+';
 
     if (get_required_var('EXT_HPC_TESTS')) {
-        #TODO: add compute node dep.
+        zypper_call('in openmpi3-gnu-hpc');
     }
 
     barrier_wait('CLUSTER_PROVISIONED');
