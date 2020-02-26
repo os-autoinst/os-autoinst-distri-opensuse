@@ -22,7 +22,8 @@ use testapi;
 use utils;
 use mmapi;
 use power_action_utils 'power_action';
-use Utils::Backends 'has_ttys';
+use Utils::Backends qw(has_ttys is_remote_backend);
+use bootloader_setup 'stop_grub_timeout';
 
 sub run {
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
@@ -103,6 +104,11 @@ sub run {
     }
     else {
         power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
+        # exclude remote backend where no grub_test follows reboot_after_installation and exclude test with
+        # encrypted partition as well because encrypted bootloader is handled via grub_test and it takes long time.
+        # it requires also to exclude USBBOOT because reboot after installation will come back to
+        # bootloader of installationn medium and it breaks then grub_test or first_boot
+        stop_grub_timeout unless (is_remote_backend || get_var('ENCRYPT') || get_var('USBBOOT'));
     }
 }
 

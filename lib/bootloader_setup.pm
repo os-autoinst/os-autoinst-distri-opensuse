@@ -73,7 +73,11 @@ use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
 sub stop_grub_timeout {
-    send_key 'up';
+    if (assert_screen [qw(grub2 bootloader)], 600) {
+        send_key_until_needlematch('bootloader-timeout-disabled', 'up', 8, 1);
+        assert_screen 'bootloader-timeout-disabled';
+        save_screenshot;
+    }
 }
 
 =head2 add_custom_grub_entries
