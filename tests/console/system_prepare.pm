@@ -27,6 +27,12 @@ use warnings;
 
 sub run {
     my ($self) = @_;
+
+    # We should call reconnect_mgmt_console to handle_grub_zvm/grab serial iucvconn etc for s390 backend
+    if (check_var("BACKEND", "s390x") && check_var("UPGRADE", "1") && is_sle('15+')) {
+        reconnect_mgmt_console;
+    }
+
     select_console 'root-console';
 
     ensure_serialdev_permissions;
