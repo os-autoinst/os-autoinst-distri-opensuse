@@ -67,11 +67,15 @@ all possible options should be handled within loop to get unlocked desktop
 
 =cut
 sub ensure_unlocked_desktop {
-    my $counter = 10;
+    my $counter = 30;
     while ($counter--) {
-        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system);
+        my @tags = qw(blackscreen-with-dash displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx/;    # Only xscreensaver has a blackscreen as screenlock
         assert_screen \@tags, no_wait => 1;
+        if (match_has_tag 'blackscreen-with-dash') {
+            # This is a busy screen while switching to x11 console, wait a bit before checking again
+            wait_still_screen 10;
+        }
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
