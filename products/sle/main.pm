@@ -548,11 +548,6 @@ sub load_baremetal_tests {
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
 
-sub load_infiniband_tests {
-    mellanox_config();
-    loadtest "kernel/ib_tests";
-}
-
 sub load_nfv_tests {
     loadtest "nfv/hugepages_config" if get_var('HUGEPAGES');
     mellanox_config();
@@ -624,10 +619,6 @@ if (is_kernel_test()) {
         load_baremetal_tests();
     }
     load_kernel_tests();
-}
-elsif (get_var('IBTESTS')) {
-    load_baremetal_tests();
-    load_infiniband_tests();
 }
 elsif (get_var("NFV")) {
     load_baremetal_tests();
