@@ -84,7 +84,7 @@ sub select_base_and_cleanup {
     }
     send_key "ret";
     assert_screen 'oobase-save-database';
-    send_key "ret";
+    send_key "alt-f";    # "Finish" button
     assert_screen 'oobase-save-database-prompt';
     type_string "testdatabase";
     send_key "ret";
