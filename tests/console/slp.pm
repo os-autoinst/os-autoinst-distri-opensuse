@@ -27,18 +27,34 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    zypper_call 'in openslp openslp-server';
+    # Workaround: slpd requires its own user
+    # %pre statement in spec file of openslp-server creates dependency to daemon group provided by *system-user-daemon*
+    # /usr/sbin/useradd -r -g daemon -d /var/lib/empty -s /sbin/nologin -c "openslp daemon" openslp 2>/dev/null || :
+    # up to this point, JeOS doesn't require *system-user-daemon*
+    if (script_run 'getent group daemon') {
+        zypper_call 'in system-user-daemon';
+        assert_script_run 'useradd -d /var/lib/empty/ -s /sbin/nologin openslp';
+        record_soft_failure 'bsc#1165050 openslp-server does not create openslp user when system-user-daemon is not installed';
+    }
+
+    # Let's install slpd
+    zypper_call 'in openslp-server';
+    if (script_run 'rpm -q openslp') {
+        zypper_call 'in openslp';
+        record_soft_failure 'boo#1165121 - slpd fails to start due to missing configuration files';
+    }
 
     disable_and_stop_service($self->firewall) if (script_run("which " . $self->firewall) == 0);
 
-    assert_script_run 'useradd -d /var/lib/empty/ -s /sbin/nologin openslp || true';
-
-    systemctl 'enable slpd';
+    systemctl 'disable slpd';
+    systemctl 'is-enabled slpd', expect_false => 1;
     systemctl 'start slpd';
     systemctl 'status slpd';
 
     # Show the version
     assert_script_run 'slptool -v';
+    assert_script_run 'slptool findsrvs service:service-agent | grep service-agent';
+    assert_script_run 'slptool findsrvs service:ssh | grep "ssh://\|:22,"';
 
     # List all available services
     assert_script_run 'slptool findsrvtypes | grep -A99 -B99 "service:ssh"';
@@ -49,8 +65,13 @@ sub run {
     assert_script_run 'slptool -p findsrvs ssh | grep -A99 -B99 "ssh://\|:22,"';
     assert_script_run 'slptool findsrvs service:ssh | grep -A99 -B99 "ssh://\|:22,"';
 
+    # Register sshd with custom attribute
+    assert_script_run 'slptool register service:ssh://localhost "(test=really_a_test)"';
     # Display attributes of the SSH service
-    assert_script_run 'slptool findattrs ssh | grep -A99 -B99 "Secure Shell Daemon"';
+    assert_script_run 'slptool findattrs service:ssh://localhost | grep "(test=really_a_test)"';
+    assert_script_run 'slptool findattrs service:ssh | grep "(description=Secure Shell Daemon)"';
+    # Deregister ssh
+    assert_script_run 'slptool deregister service:ssh://localhost';
 
     # Register and find two NTP services
     assert_script_run 'slptool register ntp://tik.cesnet.cz:123,en,65535';
@@ -60,11 +81,21 @@ sub run {
     # Deregister one NTP service and find the other one
     assert_script_run 'slptool deregister ntp://tik.cesnet.cz:123,en,65535';
     assert_script_run 'if [[ $(slptool findsrvs ntp | grep "tik\|tak" | wc -l) = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
+
+    # Turn off slpd
+    systemctl 'stop slpd';
 }
 
 sub post_fail_hook {
+    my $self = shift;
     select_console('log-console');
+
     upload_logs '/var/log/slpd.log';
+    upload_logs '/var/log/zypper.log';
+    $self->save_and_upload_log('journalctl --no-pager',  '/tmp/journal.log',            {screenshot => 1});
+    $self->save_and_upload_log('rpm -ql openslp-server', '/tmp/openslp-server.content', {screenshot => 1});
+    $self->save_and_upload_log('rpm -ql openslp',        '/tmp/openslp.content',        {screenshot => 1});
+    $self->save_and_upload_log('lsmod',                  '/tmp/loaded_modules.txt',     {screenshot => 1});
 }
 
 1;
