@@ -27,8 +27,9 @@ use version_utils "is_sle";
 sub send_key_and_wait {
     my $key        = shift;
     my $still_time = shift;
+    my $timeout    = shift // 5;
     send_key $key;
-    wait_still_screen $still_time;
+    wait_still_screen $still_time, $timeout;
 }
 
 sub clean_env {
@@ -36,7 +37,7 @@ sub clean_env {
     send_key_and_wait("alt-f", 2);
 
     x11_start_program "xterm";
-    wait_still_screen 2;
+    wait_still_screen 2, 2;
     become_root;
     wait_still_screen 1;
     my $config_file = "/etc/YaST2/instserver/instserver.xml";
@@ -52,13 +53,15 @@ sub test_nfs_instserver {
     # select nfs
     send_key_and_wait("alt-f", 2);
     send_key_and_wait("alt-n", 2);
+    assert_screen('yast2-instserver-nfs');
     # use default nfs config
     send_key_and_wait("alt-n", 2);
+    assert_screen('yast2-instserver-ui');
     # finish wizard
     send_key_and_wait("alt-f", 3);
     # check that the nfs instserver is working
     x11_start_program "xterm";
-    wait_still_screen 2;
+    wait_still_screen 2, 2;
     become_root;
     wait_still_screen 1;
     my $dir_path = "/mnt/nfstest";
@@ -78,14 +81,16 @@ sub test_ftp_instserver {
     send_key_and_wait("alt-o", 2);
     send_key_and_wait("alt-n", 2);
     # select directory alias
-    send_key_and_wait(is_sle("<=12-SP5") ? "alt-i" : "alt-d", 2);
-    wait_screen_change { type_string "test" };
-    send_key_and_wait("alt-n", 2);
+    send_key_and_wait("alt-i", 2);
+    type_string "test";
+    wait_still_screen 2, 2;
+    send_key_and_wait("alt-n", 3);
+    assert_screen('yast2-instserver-ui');
     # finish wizard
     send_key_and_wait("alt-f", 3);
     # check that the ftp instserver is working
     x11_start_program "xterm";
-    wait_still_screen 2;
+    wait_still_screen 2, 2;
     if (is_sle "<=12-SP5") {
         become_root;
         wait_still_screen 1;
@@ -104,13 +109,14 @@ sub test_http_instserver {
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-i", 1);
     # directory alias
-    wait_screen_change { type_string "test" };
-    wait_still_screen 2;
+    type_string "test";
+    wait_still_screen 2, 2;
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-a", 2);
+    assert_screen('yast2-instserver-repository-conf');
     send_key_and_wait("alt-p", 2);
-    wait_screen_change { type_string "instserver" };
-    wait_still_screen 2;
+    type_string "instserver";
+    wait_still_screen 2, 2;
     send_key_and_wait("alt-n", 2);
     # select sr0
     send_key_and_wait("alt-c", 2);
@@ -118,15 +124,15 @@ sub test_http_instserver {
     send_key_until_needlematch("yast2-instserver_sr0dev", "down", 3);
     send_key_and_wait("alt-n", 2);
     send_key_and_wait("alt-o", 2);
-    # copying CD content to local directory may take some time
-    wait_still_screen(stilltime => 90, timeout => 90);
+    assert_screen([qw(yast2-instserver-ui yast2-instserver-change-media)], 200);
     # skip "insert next cd" on SLE 12.x
-    send_key_and_wait("alt-s", 2) if is_sle("<=12-SP5");
+    send_key_and_wait("alt-s", 2) if is_sle("<=12-SP5") && match_has_tag('yast2-instserver-change-media');
+    assert_screen('yast2-instserver-ui');
     # finish wizard
     send_key_and_wait("alt-f", 3);
     # check that the http instserver is working
     x11_start_program "xterm";
-    wait_still_screen 2;
+    wait_still_screen 2, 2;
     validate_script_output("curl -s http://localhost/test/instserver/CD1/ | grep title", sub { m/.*Index of \/test\/instserver\/CD1.*/ });
     # exit xterm
     send_key_and_wait("ctrl-d", 2);
