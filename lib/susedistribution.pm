@@ -20,6 +20,7 @@ use Utils::Backends qw(has_serial_over_ssh set_sshserial_dev use_ssh_serial_cons
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 use publiccloud::ssh_interactive 'ssh_interactive_join';
 use Cwd;
+use autotest 'query_isotovideo';
 
 =head1 SUSEDISTRIBUTION
 
@@ -856,6 +857,12 @@ known uncheckable consoles are already ignored.
 =cut
 sub console_selected {
     my ($self, $console, %args) = @_;
+    if ((exists $testapi::testapi_console_proxies{'root-ssh'}) && $console eq 'root-console') {
+        $console = 'root-ssh';
+        my $ret = query_isotovideo('backend_select_console', {testapi_console => $console});
+        die $ret->{error} if $ret->{error};
+        $autotest::selected_console = $console;
+    }
     $args{await_console} //= 1;
     $args{tags}          //= $console;
     $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary};
