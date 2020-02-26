@@ -7,19 +7,19 @@ set -ex
 # ssh-copy-id -i ~/.ssh/id_rsa.pub geekotest@192.168.0.35
 
 # Get parameters
-# Image: *.raw.xz or *.iso file
-image_to_flash=$1
 # Destination: <IP_or_hostname>:/storage/
-destination=$2
-# Size to resize (optionnal, default to 24G)
-size=${3:-24G}
+destination=$1
+# Image: *.raw.xz or *.iso file
+image_to_flash=$2
+# Size to resize
+size=$3
 # user
 username=root # $(whoami)
 
 
-if [ -z "$1" ] || [ -z "$2" ]
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]
   then
-    echo "Please provide <image to flash> and <destination> as arguments. Optionnaly, <size> to resize the image, if needed (default is 24G)."
+    echo "Please provide <destination>, <image to flash> and <hdd size> as arguments."
     exit 1;
 fi
 
