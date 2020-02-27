@@ -38,7 +38,7 @@ sub run {
         my $qa_test_repo = 'http://dist.nue.suse.com/ibs/QA:/Head/SLE-' . uc($upgrade_release);
         script_run("zypper rm -n -y qa_lib_virtauto", 300);
         zypper_call("rr server-repo qa-test-repo");
-        zypper_call("--no-gpg-check ar -f '$qa_test_repo' qa-test-repo");
+        zypper_call("--no-gpg-checks ar -f '$qa_test_repo' qa-test-repo");
         zypper_call("--gpg-auto-import-keys ref", 300);
         zypper_call("in qa_lib_virtauto",         300);
     }
