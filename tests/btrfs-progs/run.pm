@@ -68,7 +68,7 @@ sub test_run {
     my $logfile = "$category-tests-results.txt";
 
     script_run("./clean-tests.sh");
-    my $ret = script_output("TEST=$num\\* ./$category-tests.sh | tee output.log", 600, proceed_on_failure => 1);
+    my $ret = script_output("TEST=$num\\* ./$category-tests.sh | tee output.log", 1800, proceed_on_failure => 1);
 
     if ($ret =~ /test\s+failed\s+for\s+case/i) {
         $status = 'FAILED';
