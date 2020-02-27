@@ -1,0 +1,76 @@
+---
+name: autoyast_bcache
+description: |
+  Test installation with AY profile for bcache.
+  One contains bios boot partition, /boot and not formatted native linux partition.
+  Bcache uses not formatted native linux partition as backing device and second disk as a whole as caching device.
+vars:
+  NUMDISKS: 2
+  AUTOYAST_PREPARE_PROFILE: 1
+  AUTOYAST: autoyast_sle15/autoyast_bcache.xml
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/clone
+  - autoyast/repos
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_file_system
+  - console/verify_bcache_partitioning
+  - autoyast/verify_cloned_profile
+test_data:
+  backingdev: vda4
+  device: vdb
+  table_type: bcache
+  file_system:
+    /: btrfs
+    /boot: ext3
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/vda
+          type: CT_DISK
+          partitions:
+            - partition:
+                unique_key: mount
+                mount: /boot
+                filesystem: ext3
+            - partition:
+                unique_key: mount
+                mount: swap
+                filesystem: swap
+            - partition:
+                unique_key: bcache_backing_for
+                bcache_backing_for: /dev/bcache0
+            - partition:
+                # BIOS Boot Partition
+                unique_key: partition_nr
+                partition_nr: 1
+      - drive:
+          unique_key: device
+          device: /dev/vdb
+          disklabel: none
+          type: CT_DISK
+          partitions:
+            partition:
+              bcache_caching_for:
+                unique_key: listentry
+                listentry: /dev/bcache0
+      - drive:
+          unique_key: device
+          device: /dev/bcache0
+          bcache_options:
+            unique_key: cache_mode
+            cache_mode: writethrough
+          type: CT_BCACHE
+          partitions:
+            - partition:
+                unique_key: mount
+                mount: /
