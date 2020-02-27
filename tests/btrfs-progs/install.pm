@@ -46,7 +46,7 @@ sub run {
     if (get_var('BTRFS_PROGS_REPO')) {
         # Add filesystems repository and install btrfs-progs package
         zypper_call 'rm btrfsprogs';
-        zypper_call '--no-gpg-check ar -f ' . get_var('BTRFS_PROGS_REPO') . ' filesystems';
+        zypper_call '--no-gpg-checks ar -f ' . get_var('BTRFS_PROGS_REPO') . ' filesystems';
         zypper_call '--gpg-auto-import-keys ref';
         zypper_call 'in -r filesystems btrfs-progs';
         zypper_call 'rr filesystems';

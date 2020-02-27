@@ -67,7 +67,7 @@ sub prepare_for_kdump_sle {
             next unless $i;
             $i =~ s,/$,_debug/,;
             $counter++;
-            zypper_call("--no-gpg-check ar -f $i 'DEBUG_$counter'");
+            zypper_call("--no-gpg-checks ar -f $i 'DEBUG_$counter'");
         }
     }
     script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);

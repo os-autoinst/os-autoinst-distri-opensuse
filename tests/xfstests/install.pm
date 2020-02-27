@@ -57,7 +57,7 @@ sub run {
 
     if (get_var('XFSTESTS_REPO')) {
         # Add filesystems repository and install xfstests package
-        zypper_call '--no-gpg-check ar -f ' . get_var('XFSTESTS_REPO') . ' filesystems';
+        zypper_call '--no-gpg-checks ar -f ' . get_var('XFSTESTS_REPO') . ' filesystems';
         zypper_call '--gpg-auto-import-keys ref';
         zypper_call 'in xfstests';
         zypper_call 'rr filesystems';

@@ -88,7 +88,7 @@ sub add_test_repositories {
     @repos = split(',', $oldrepo) if ($oldrepo);
 
     for my $var (@repos) {
-        zypper_call("--no-gpg-check ar -f -n 'TEST_$counter' $var 'TEST_$counter'");
+        zypper_call("--no-gpg-checks ar -f -n 'TEST_$counter' $var 'TEST_$counter'");
         $counter++;
     }
     # refresh repositories, inf 106 is accepted because repositories with test
@@ -109,7 +109,7 @@ sub ssh_add_test_repositories {
     @repos = split(',', $oldrepo) if ($oldrepo);
 
     for my $var (@repos) {
-        assert_script_run("ssh root\@$host 'zypper -n --no-gpg-check ar -f -n TEST_$counter $var TEST_$counter'");
+        assert_script_run("ssh root\@$host 'zypper -n --no-gpg-checks ar -f -n TEST_$counter $var TEST_$counter'");
         $counter++;
     }
     # refresh repositories, inf 106 is accepted because repositories with test
