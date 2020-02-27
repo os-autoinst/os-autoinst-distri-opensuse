@@ -1,0 +1,9 @@
+---
+name:          nis_server
+description:    >
+  Multimachine nis test, server side. Configures a nis server and creates a nfs export.
+schedule:
+  - boot/boot_to_desktop
+  - x11/nis_server
+test_data:
+  maps: 8

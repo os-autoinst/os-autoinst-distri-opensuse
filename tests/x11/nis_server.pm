@@ -23,6 +23,8 @@ use y2_module_guitest '%setup_nis_nfs_x11';
 use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
 use y2_module_consoletest;
+use scheduler 'get_test_suite_data';
+
 
 sub setup_verification {
     script_run 'rpcinfo -u localhost ypserv';    # ypserv is running
@@ -35,6 +37,7 @@ sub setup_verification {
 }
 
 sub nis_server_configuration {
+    my $test_data = get_test_suite_data();
     # NIS Server Setup
     assert_screen 'nis-server-setup-status', 150;
     send_key 'alt-m';                            # NIS master server
@@ -59,7 +62,7 @@ sub nis_server_configuration {
     assert_screen 'nis-server-server-maps-setup';
     send_key 'tab';                                # jump to map list
     my $c = 1;                                     # select all maps
-    while ($c <= 11) {
+    while ($c <= $test_data->{maps}) {
         send_key 'spc';
         send_key 'down';
         $c++;
@@ -131,10 +134,10 @@ sub run {
         type_string("echo \"$firewalld_nfs_service\" > /usr/lib/firewalld/services/nfs-kernel-server.xml\n");
         assert_script_run('firewall-cmd --reload', fail_message => "Firewalld reload failed!");
     }
-    if (is_sle) {
-        systemctl 'stop ' . $self->firewall;
-        record_soft_failure('bsc#999873');
-    }
+
+    systemctl 'stop ' . $self->firewall;
+    record_soft_failure('bsc#999873');
+
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nis_server');
     nis_server_configuration();
     wait_serial("$module_name-0", 360) || die "'yast2 nis server' didn't finish";
