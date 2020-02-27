@@ -26,6 +26,7 @@ use utils 'systemctl';
 use version_utils qw(is_sle is_leap);
 use y2_module_basetest qw(accept_warning_network_manager_default is_network_manager_default);
 use y2_module_consoletest;
+use Test::Assert ':all';
 
 our @EXPORT = qw(
   check_etc_hosts_update
@@ -63,10 +64,15 @@ sub initialize_y2lan
         systemctl 'stop firewalld';
         assert_script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=inactive");
     }
-    # enable debug for detailed messages and easier detection of restart
-    assert_script_run 'sed -i \'s/DEBUG="no"/DEBUG="yes"/\' /etc/sysconfig/network/config';
-    type_string "journalctl -f|egrep -i --line-buffered 'shutting down|ifdown all' > journal.log &\n";
-    assert_script_run '> journal.log';    # clear journal.log
+    # Enable DEBUG for NetworkManager or wicked, in order to get detailed messages and easier detection of restart.
+    my $debug_conf = is_network_manager_default() ?
+      'DEBUG="no"/DEBUG="yes"' :           # DEBUG configuration for NetworkManager
+      '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
+    assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
+    assert_script_run 'systemctl restart network';
+    # Keeping "shutting down|ifdown all" for compatibility with NetworkManager and previous wicked versions.
+    type_string "journalctl -f|egrep -i --line-buffered 'shutting down|ifdown all|Stopping wicked' > journal.log &\n";
+    assert_script_run '> journal.log';     # clear journal.log
 }
 
 =head2 open_network_settings
@@ -142,10 +148,13 @@ sub check_network_status {
         assert_script_run 'dig suse.com|grep \'status: NOERROR\'';    # test if conection and DNS is working
     }
     assert_script_run 'cat journal.log';                              # print journal.log
-    if ($expected_status eq 'restart') {
-        assert_script_run '[ -s journal.log ]';                       # journal.log size is greater than zero (network restarted)
+    my $is_empty = script_run('[ -s journal.log ]');
+    if ($is_empty) {
+        assert_equals($expected_status, 'no_restart', "Network restart didn't occur, even though it was expected.");
     }
-
+    else {
+        assert_equals($expected_status, 'restart', "Network restart occurred, even though it wasn't expected.");
+    }
     assert_script_run '> journal.log';                                # clear journal.log
     type_string "\n\n";                                               # make space for better readability of the console
 }
