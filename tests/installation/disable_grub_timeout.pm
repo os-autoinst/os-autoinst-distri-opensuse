@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -45,11 +45,6 @@ sub run {
         assert_screen([qw(bootloader-config-unsupport inst-bootloader-settings inst-bootloader-settings-first_tab_highlighted)]);
         if (match_has_tag 'bootloader-config-unsupport') {
             send_key 'ret';
-            return;
-        }
-        if (!get_var('SOFTFAIL_1129504') && is_upgrade && is_sle) {
-            record_info('Bootloader conf', 'Workaround for bsc#1129504 grub2 timeout is too fast', result => 'softfail');
-            send_key 'alt-c';
             return;
         }
     }
