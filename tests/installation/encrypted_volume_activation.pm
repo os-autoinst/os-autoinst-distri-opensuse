@@ -34,7 +34,7 @@ sub run {
     assert_screen 'encrypted_volume_activation_prompt';
     if (get_var('ENCRYPT_CANCEL_EXISTING')) {
         wait_screen_change { send_key 'alt-c'; };
-        assert_screen($after_cancel_tags);
+        assert_screen($after_cancel_tags, 60);
     }
     elsif (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         # pre storage NG has an additional question dialog
