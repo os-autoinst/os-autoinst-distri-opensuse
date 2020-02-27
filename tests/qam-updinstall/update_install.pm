@@ -38,20 +38,24 @@ sub install_packages {
         if (my ($package) = $line =~ $pattern and $1 !~ /-devel$|-patch-/) {
             # uninstall conflicting packages to allow problemless install
             my %conflict = (
-                'reiserfs-kmp-default' => 'kernel-default-base',
-                'kernel-default'       => 'kernel-default-base',
-                'kernel-default-extra' => 'kernel-default-base',
-                'kernel-default-base'  => 'kernel-default',
-                'kernel-azure'         => 'kernel-azure-base',
-                'kernel-azure-base'    => 'kernel-azure',
-                'kernel-rt'            => 'kernel-rt-base',
-                'kernel-rt-base'       => 'kernel-rt',
-                'kernel-xen'           => 'kernel-xen-base',
-                'kernel-xen-base'      => 'kernel-xen',
-                'xen-tools'            => 'xen-tools-domU',
-                'xen-tools-domU'       => 'xen-tools',
-                'p11-kit-nss-trust'    => 'mozilla-nss-certs',
-                'rmt-server-config'    => 'rmt-server-pubcloud'
+                'reiserfs-kmp-default'   => 'kernel-default-base',
+                'kernel-default'         => 'kernel-default-base',
+                'kernel-default-extra'   => 'kernel-default-base',
+                'kernel-default-base'    => 'kernel-default',
+                'kernel-azure'           => 'kernel-azure-base',
+                'kernel-azure-base'      => 'kernel-azure',
+                'kernel-rt'              => 'kernel-rt-base',
+                'kernel-rt-base'         => 'kernel-rt',
+                'kernel-xen'             => 'kernel-xen-base',
+                'kernel-xen-base'        => 'kernel-xen',
+                'xen-tools'              => 'xen-tools-domU',
+                'xen-tools-domU'         => 'xen-tools',
+                'p11-kit-nss-trust'      => 'mozilla-nss-certs',
+                'rmt-server-config'      => 'rmt-server-pubcloud',
+                'cluster-md-kmp-default' => 'kernel-default-base',
+                'dlm-kmp-default'        => 'kernel-default-base',
+                'gfs2-kmp-default'       => 'kernel-default-base',
+                'ocfs2-kmp-default'      => 'kernel-default-base'
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
             # go to next package if it's not provided by repos
