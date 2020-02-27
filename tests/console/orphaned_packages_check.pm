@@ -32,26 +32,25 @@ sub is_offline_upgrade_or_livecd {
 sub compare_orphans_lists {
     my %args = @_;
 
-    record_info('Detected Orphans', "@{ $args{zypper_orphans} }");
-    record_info('Orphans whitelisted',
-        $args{whitelist} // 'No orphans whitelisted within the test suite',
-        result => $args{whitelist} ? 'ok' : 'fail');
-
     # Packages do not have a whistespace in their labels
     # A trailing or leading whitespace introduced along the path has to be removed
     # Usually it can happen on ssh like consoles (e.g. tunnel-console)
+    # Original array is going to be updated inside map
     my @not_handled_orphans = ();
     if ($args{whitelist}) {
         # Remove duplicate packages from the whitelist
         my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
         @not_handled_orphans = grep {
-            my $p = $_;
-            $p =~ s/\s+//g;
-            !$wl{$p};
+            s/\s+//g;
+            !$wl{$_};
         } @{$args{zypper_orphans}};
     } else { @not_handled_orphans = @{$args{zypper_orphans}}; }
 
-    record_info('Missing', (@not_handled_orphans) ? ("@not_handled_orphans", result => 'fail') : 'None');
+    record_info('Detected Orphans', join(',', @{$args{zypper_orphans}}));
+    record_info('Orphans whitelisted',
+        $args{whitelist} // 'No orphans whitelisted within the test suite',
+        result => $args{whitelist} ? 'ok' : 'fail');
+    record_info('Missing', (@not_handled_orphans) ? (join(',', @not_handled_orphans), result => 'fail') : 'None');
 
     return ((scalar @not_handled_orphans) == 0);
 }
@@ -66,9 +65,9 @@ sub run {
     # Orphans are also expected on JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     my @orphans = split('\n',
-        script_output q[zypper -qs 11 pa --orphaned | 
+        script_output q[zypper --quiet packages --orphaned | 
                             grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
-                            tee -a /tmp/orphaned.log | awk 'NR>2 {print $3}'], proceed_on_failure => 1);
+                            tee -a /tmp/orphaned.log | awk -F "|" 'NR>2 {print $3}'], proceed_on_failure => 1);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
         compare_orphans_lists(zypper_orphans => \@orphans,
