@@ -29,11 +29,11 @@ sub install_package {
     }
     if (check_var('ARCH', 's390x')) {
         lpar_cmd("zypper --non-interactive rr server-repo");
-        lpar_cmd("zypper --non-interactive --no-gpg-check ar -f '$qa_server_repo' server-repo");
+        lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f '$qa_server_repo' server-repo");
     }
     else {
         script_run "zypper --non-interactive rr server-repo";
-        zypper_call("--no-gpg-check ar -f '$qa_server_repo' server-repo");
+        zypper_call("--no-gpg-checks ar -f '$qa_server_repo' server-repo");
     }
 
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
@@ -56,13 +56,13 @@ sub install_package {
 
     if ($dependency_repo) {
         if (check_var('ARCH', 's390x')) {
-            lpar_cmd("zypper --non-interactive --no-gpg-check ar -f ${dependency_repo} dependency_repo");
+            lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f ${dependency_repo} dependency_repo");
             lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
             lpar_cmd("zypper --non-interactive in $dependency_rpms");
             lpar_cmd("zypper --non-interactive rr dependency_repo");
         }
         else {
-            zypper_call("--no-gpg-check ar -f ${dependency_repo} dependency_repo");
+            zypper_call("--no-gpg-checks ar -f ${dependency_repo} dependency_repo");
             zypper_call("--gpg-auto-import-keys ref", 180);
             zypper_call("in $dependency_rpms");
             zypper_call("rr dependency_repo");
