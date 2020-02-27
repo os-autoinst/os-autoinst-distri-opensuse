@@ -29,10 +29,10 @@ use registration qw(add_suseconnect_product register_product);
 sub run {
     select_console 'root-console';
     if (is_tumbleweed || is_leap) {
-        zypper_call("in libqca-qt5 libqca-qt5-devel", timeout => 300);
+        zypper_call("in libqca-qt5 libqca-qt5-devel", timeout => 600);
     } else {
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle(">=15");
-        zypper_call("in libqca2 libqca2-devel", timeout => 300);
+        zypper_call("in libqca2 libqca2-devel", timeout => 600);
     }
 
     my $qca_cmd;
