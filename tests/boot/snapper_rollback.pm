@@ -30,7 +30,7 @@ sub run {
     script_run("cat /etc/os-release", 0);
     # rollback
     script_run("snapper rollback -d rollback-before-migration");
-    assert_script_run("snapper list | tail -n 2 | grep rollback");
+    assert_script_run("snapper list | tail -n 2 | grep rollback", 180);
     power_action('reboot', textmode => 1, keepconsole => 1);
     $self->wait_boot(ready_time => 300, bootloader_time => 300);
     select_console 'root-console';
