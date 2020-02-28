@@ -29,7 +29,7 @@ sub scan_and_parse {
     my $cmd      = shift;
     my $log_file = "$cmd.log";
 
-    script_run "$cmd -i --log=$log_file eicar_test_files", 160;
+    script_run "$cmd -i --log=$log_file eicar_test_files", 300;
     validate_script_output("cat $log_file", sub { $re });
     script_run "rm -f $log_file";
 }
