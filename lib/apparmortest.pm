@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2019 SUSE LLC
+# Copyright (C) 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -460,6 +460,14 @@ sub mariadb_setup {
             {
                 prompt => qr/Enter current password for root/m,
                 string => "\n",
+            },
+            {
+                prompt => qr/Switch to unix_socket authentication \[Y\/n\]/m,
+                string => "n\n",
+            },
+            {
+                prompt => qr/Change the root password\? \[Y\/n\]/m,
+                string => "Y\n",
             },
             {
                 prompt => qr/Set root password\? \[Y\/n\]/m,
