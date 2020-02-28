@@ -407,6 +407,17 @@ else {
             set_var('INSTALLONLY', 1);
             loadtest "iscsi/iscsi_client";
         }
+        if (get_var('WIREGUARD_SERVER') || get_var("WIREGUARD_CLIENT")) {
+            set_var('INSTALLONLY', 1);
+            if (get_var('IS_MM_SERVER')) {
+                barrier_create 'SETUP_DONE',      2;
+                barrier_create 'KEY_TRANSFERED',  2;
+                barrier_create 'VPN_ESTABLISHED', 2;
+            }
+            loadtest "network/setup_multimachine";
+            loadtest "network/wireguard";
+            return 1;
+        }
         if (get_var("REMOTE_CONTROLLER")) {
             loadtest "remote/remote_controller";
             load_inst_tests();
