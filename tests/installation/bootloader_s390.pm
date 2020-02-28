@@ -211,15 +211,12 @@ EO_frickin_boot_parms
 }
 
 sub show_debug {
-    type_string "ps auxf\n";
-    save_screenshot;
-    type_string "dmesg\n";
-    save_screenshot;
+    assert_script_run('ps auxf');
+    assert_script_run('dmesg');
     # make the install-shell look like the ones on other systems where we
     # don't use a ssh session
-    type_string "cd /\n";
     # there is no "clear" in remote system (or was not at time of writing)
-    type_string "reset\n";
+    assert_script_run('cd && reset');
 }
 
 sub create_encrypted_part_dasd {
@@ -269,7 +266,12 @@ sub format_dasd {
     }
 
     # bring DASD down again to test the activation during the installation
-    assert_script_run("dasd_configure 0.0.0150 0");
+    if (script_run('timeout --preserve-status 20 bash -x /sbin/dasd_configure 0.0.0150 0') != 0) {
+        record_soft_failure('bsc#1151436');
+        script_run('dasd_reload');
+        assert_script_run('dmesg');
+        assert_script_run("bash -x /sbin/dasd_configure -f 0.0.0150 0");
+    }
 }
 
 sub run {
