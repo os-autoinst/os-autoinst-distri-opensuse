@@ -74,9 +74,9 @@ sub prepare_repos {
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
         script_run('for ((i = $(zypper lr| tail -n+5 |wc -l); i >= 1; i-- )); do zypper -n rr $i; done; unset i', 300);
-        zypper_call("--no-gpg-check ar -f '$qa_server_repo' server-repo");
+        zypper_call("--no-gpg-checks ar -f '$qa_server_repo' server-repo");
         if ($qa_sdk_repo) {
-            zypper_call("--no-gpg-check ar -f '$qa_sdk_repo' sle-sdk");
+            zypper_call("--no-gpg-checks ar -f '$qa_sdk_repo' sle-sdk");
         }
     }
 
