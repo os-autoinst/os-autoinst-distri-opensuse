@@ -161,6 +161,11 @@ EOF
         script_run('ping6 -c 2 $IPV6_RNETWORK:$RHOST_IPV6_HOST');
     }
 
+    # Check and activate hugepages before test execution
+    script_run 'grep -e Huge -e PageTables /proc/meminfo';
+    script_run 'echo 1 > /proc/sys/vm/nr_hugepages';
+    script_run 'grep -e Huge -e PageTables /proc/meminfo';
+
     assert_script_run('cd $LTPROOT/testcases/bin');
 }
 
