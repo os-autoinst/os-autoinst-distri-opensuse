@@ -166,8 +166,8 @@ sub run {
         assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
     }
 
-    # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0
-    verify_mounts unless is_leap && is_aarch64;
+    # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
+    verify_mounts unless is_leap('<15.2') && is_aarch64;
 }
 
 sub test_flags {
