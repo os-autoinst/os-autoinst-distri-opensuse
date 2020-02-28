@@ -78,7 +78,7 @@ sub reboot_and_wait {
     if (check_var('BACKEND', 'ipmi')) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
-        check_screen('login_screen', $timeout);
+        check_screen([qw('login_screen' 'linux-login')], $timeout);
         use_ssh_serial_console;
     }
     else {

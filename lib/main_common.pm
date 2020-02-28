@@ -86,6 +86,7 @@ our @EXPORT = qw(
   load_rollback_tests
   load_applicationstests
   load_mitigation_tests
+  load_vt_perf_tests
   load_security_tests
   load_shutdown_tests
   load_slepos_tests
@@ -2389,10 +2390,21 @@ sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
 }
 
+sub load_vt_perf_tests {
+    loadtest "virt_autotest/login_console";
+    if (get_var('VT_PERF_BAREMETAL')) {
+        loadtest 'vt_perf/baremetal';
+    }
+    elsif (get_var('VT_PERF_KVM_GUEST')) {
+        loadtest 'vt_perf/kvm_guest';
+    }
+    elsif (get_var('VT_PERF_XEN_GUEST')) {
+        loadtest 'vt_perf/xen_guest';
+    }
+}
 sub load_mitigation_tests {
     if (check_var('BACKEND', 'ipmi')) {
         loadtest "virt_autotest/login_console";
-
     }
     elsif (check_var('BACKEND', 'qemu')) {
         boot_hdd_image;

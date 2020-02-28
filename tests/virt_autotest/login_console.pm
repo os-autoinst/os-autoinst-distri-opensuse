@@ -40,9 +40,7 @@ sub login_to_console {
     $timeout //= 5;
     $counter //= 240;
 
-
-
-    if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1')) {
+    if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         reset_consoles;
         select_console 'sol', await_console => 0;
         send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $counter, $timeout);
