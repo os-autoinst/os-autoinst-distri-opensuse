@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,14 +15,13 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use migration qw(check_rollback_system boot_into_ro_snapshot);
+use migration 'check_rollback_system';
 use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
 
-    boot_into_ro_snapshot;
-    select_console 'root-console';
+    select_console('root-console', 300);
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
     # 1b) just debugging infos

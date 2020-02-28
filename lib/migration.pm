@@ -36,7 +36,6 @@ our @EXPORT = qw(
   record_disk_info
   check_rollback_system
   reset_consoles_tty
-  boot_into_ro_snapshot
   set_scc_proxy_url
 );
 
@@ -180,27 +179,6 @@ sub reset_consoles_tty {
     console('x11')->set_tty(get_x11_console_tty);
     console('root-console')->set_tty(get_root_console_tty);
     reset_consoles;
-}
-
-# Assert read-only snapshot before migrated
-# Assert screen 'linux-login' with 200s
-# Workaround known issue: bsc#980337
-# In this case try to select tty1 with multi-times then select root console
-sub boot_into_ro_snapshot {
-    unlock_if_encrypted(check_typed_password => 1);
-    if (!check_screen('linux-login', 200)) {
-        record_soft_failure 'bsc#980337';
-        for (1 .. 10) {
-            check_var('VIRSH_VMM_FAMILY', 'hyperv') ? send_key 'alt-f1' : send_key 'ctrl-alt-f1';
-            if (check_screen('tty1-selected', 12)) {
-                return 1;
-            }
-            else {
-                record_info('not in tty1', 'switch to tty1 failed', result => 'softfail');
-            }
-        }
-        die "Boot into read-only snapshot failed over 5 minutes, considering a product issue";
-    }
 }
 
 # Register the already installed system on a specific SCC server/proxy if needed
