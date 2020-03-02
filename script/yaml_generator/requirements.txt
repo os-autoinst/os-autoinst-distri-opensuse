@@ -1,0 +1,3 @@
+requests>=2.21.0
+PyYAML>=5.3
+openqa-client
