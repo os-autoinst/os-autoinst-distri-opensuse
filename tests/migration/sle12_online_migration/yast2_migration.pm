@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -204,9 +204,7 @@ sub run {
     assert_screen 'yast2-migration-target';
     send_key "alt-p";                                       # focus on the item of possible migration targets
     send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 5;
-    wait_still_screen 5;
-    send_key "alt-n";
-    assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 500;
+    send_key_until_needlematch ['yast2-migration-installupdate', 'yast2-migration-proposal'], 'alt-n';
     if (match_has_tag 'yast2-migration-installupdate') {
         send_key 'alt-y';
     }
