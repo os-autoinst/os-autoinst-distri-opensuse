@@ -42,9 +42,15 @@ sub register_products {
     s{^\s+|\s+$}{}g foreach @products_to_register;
 
     record_info('Some registration is ongoing');
+    my $tmp_hpc_module;
     foreach my $i (@products_to_register) {
+        if ($i =~ m/sle-module-hpc/) {
+            $tmp_hpc_module = $i;
+            next;
+        }
         script_run("SUSEConnect -p $i -r $reg_code");
     }
+    script_run("SUSEConnect -p $tmp_hpc_module -r $reg_code");
 
   NOREGISTRATION:
     record_info('All installed products are registered!');
