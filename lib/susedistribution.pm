@@ -383,7 +383,7 @@ skip the entire routine.
 =cut
 sub set_standard_prompt {
     my ($self, $user, %args) = @_;
-    return if $args{skip_set_standard_prompt} || get_var('SKIP_SET_STANDARD_PROMPT');
+    return if $args{skip_set_standard_prompt} || !get_var('SET_CUSTOM_PROMPT');
     $user ||= $testapi::username;
     my $os_type     = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
