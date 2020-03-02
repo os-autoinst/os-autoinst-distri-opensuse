@@ -332,11 +332,7 @@ sub t01_accounting {
         ($jobs =~ /$users{user_3}/) &&
         ($jobs =~ /$users{user_4}/));
 
-    ##check the content directly in the db; see: bugzilla#1150565
-    # This is only for information now
-    # TODO: consider adding sanity checks - direct checks in the db - for some tests
-    my $db_elements = script_output("mysql -h slave-node02.openqa.test -uslurm -e \"use slurm_acct_db; select * from linux_job_table;\"");
-    record_info('INFO DB', "$db_elements");
+    record_info('INFO DB', "$jobs");
 
   FAIL:
     my %results = generate_results($name, $description, $result);
