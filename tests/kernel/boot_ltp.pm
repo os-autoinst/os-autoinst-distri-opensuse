@@ -35,7 +35,7 @@ sub run {
     else {
         record_info('INFO', 'normal boot or boot with params');
         # during install_ltp, the second boot may take longer than usual
-        $self->wait_boot(ready_time => 500);
+        $self->wait_boot(ready_time => 1800);
     }
 
     $self->select_serial_terminal;
