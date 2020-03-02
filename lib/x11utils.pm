@@ -248,11 +248,7 @@ sub select_user_gnome {
     assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected dm-nousers)];
     if (match_has_tag('displaymanager-user-notselected')) {
         assert_and_click "displaymanager-$myuser";
-        # for GNOME-3.34+, user acount is not select by default by design,
-        # so do not record_soft_failure for those products, see bsc#1164856
-        if (is_sle('<15-sp2') || is_leap('<15.2')) {
-            record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
-        }
+        record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
     }
     elsif (match_has_tag('displaymanager-user-selected')) {
         send_key 'ret';
