@@ -88,14 +88,10 @@ sub run {
     send_key 'ret';
 
     # Accept license
-    if (is_sle) {
-        if (check_screen 'jeos-license', 60) {
+    unless (is_leap('<15.2')) {
+        foreach my $license_needle (qw(jeos-license jeos-doyouaccept)) {
+            assert_screen $license_needle;
             send_key 'ret';
-            assert_screen 'jeos-doyouaccept';
-            send_key 'ret';
-        }
-        else {
-            record_soft_failure 'bsc#1127166 - License moved to another location';
         }
     }
 
@@ -103,15 +99,12 @@ sub run {
     send_key_until_needlematch "jeos-timezone-$lang", $tz_key{$lang}, 10;
     send_key 'ret';
 
-    # Enter password
-    assert_screen 'jeos-root-password';
-    type_password;
-    send_key 'ret';
-
-    # Confirm password
-    assert_screen 'jeos-confirm-root-password';
-    type_password;
-    send_key 'ret';
+    # Enter password & Confirm
+    foreach my $password_needle (qw(jeos-root-password jeos-confirm-root-password)) {
+        assert_screen $password_needle;
+        type_password;
+        send_key 'ret';
+    }
 
     if (is_sle) {
         assert_screen 'jeos-please-register';
