@@ -118,11 +118,10 @@ sub prepare_pvm_installation {
     # Delete partition table before starting installation
     select_console('install-shell');
 
-
     my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
     for my $d (split('\n', $disks)) {
         script_run "wipefs -a /dev/$d";
-        create_encrypted_part("$d") if get_var('ENCRYPT_ACTIVATE_EXISTING');
+        create_encrypted_part(disk => $d) if get_var('ENCRYPT_ACTIVATE_EXISTING');
     }
     # Switch to installation console (ssh or vnc)
     select_console('installation');

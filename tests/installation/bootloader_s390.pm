@@ -233,7 +233,7 @@ sub create_encrypted_part_dasd {
     # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
     my $r = script_run("dasd_configure $dasd_path 1");
     die "DASD in undefined state" unless (defined($r) && ($r == 0 || $r == 8));
-    create_encrypted_part('dasda');
+    create_encrypted_part(disk => 'dasda');
     assert_script_run("dasd_configure $dasd_path 0");
 }
 

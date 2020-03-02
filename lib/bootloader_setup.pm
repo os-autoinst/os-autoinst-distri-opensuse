@@ -1220,21 +1220,24 @@ sub compare_bootparams {
 
 =head2 create_encrypted_part
 
-    create_encrypted_part($disk);
+    create_encrypted_part(disk => $disk, luks_type => $luks_type);
 
-Creates gpt partition table on a given disk and creates encrypted partition on it.
-It is usefull to test encrypted partitions activation in the installer.
+Creates gpt partition table on a given disk and creates encrypted partition on it
+using default luks encryption or specific encryption if provided.
+It is useful to test encrypted partitions activation in the installer.
 
 =cut
 
 sub create_encrypted_part {
-    my $disk = shift;
+    my (%args)    = @_;
+    my $disk      = $args{disk};
+    my $luks_type = exists($args{luks_type}) ? "--type $args{luks_type}" : "";
     # create partition table
     assert_script_run "parted -s /dev/$disk mklabel gpt";
     # create single partition
     assert_script_run "parted -s /dev/$disk mkpart 1 512 100%";
     # encrypt created partition
-    assert_script_run "echo nots3cr3t | cryptsetup luksFormat -q --force-password /dev/${disk}1";
+    assert_script_run "echo nots3cr3t | cryptsetup $luks_type luksFormat -q --force-password /dev/${disk}1";
 }
 
 1;
