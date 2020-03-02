@@ -22,11 +22,12 @@ use testapi;
 
 sub run {
     x11_start_program('seahorse');
-    send_key "ctrl-n";                                # New keyring
-    assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
+    send_key "ctrl-n";                            # New keyring
+    assert_screen "seahorse-keyring-selector";    # Dialog "Select type to create"
+    wait_still_screen(3);
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
     my @tags = qw(seahorse-name-new-keyring ok_on_top);
-    assert_screen \@tags;                             # "Add a password keyring; name it"
+    assert_screen \@tags, 60;                         # "Add a password keyring; name it"
                                                       # may be with ok buttom on top or bottom of popup
     if (match_has_tag "ok_on_top") {
         record_info 'alt-o ignored', 'poo#42686 so try ret key';
