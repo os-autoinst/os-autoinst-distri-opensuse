@@ -81,7 +81,7 @@ sub post_fail_hook {
 
     select_console 'log-console';
     (script_run q{test -s /tmp/orphaned.log}) ? $self->export_logs() : upload_logs '/tmp/orphaned.log';
-
+    upload_logs '/var/log/zypper.log';
 }
 
 1;
