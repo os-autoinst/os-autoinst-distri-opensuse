@@ -2390,6 +2390,12 @@ sub load_security_tests_system_check {
     loadtest "security/nproc_limits";
 }
 
+sub load_security_tests_check_kernel_config {
+    load_security_console_prepare;
+
+    loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
+}
+
 sub load_vt_perf_tests {
     loadtest "virt_autotest/login_console";
     if (get_var('VT_PERF_BAREMETAL')) {
@@ -2472,6 +2478,7 @@ sub load_security_tests {
       openscap
       mok_enroll ima_measurement ima_appraisal evm_protection
       system_check
+      check_kernel_config
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
