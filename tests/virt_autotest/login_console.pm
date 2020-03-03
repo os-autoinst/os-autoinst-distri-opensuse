@@ -74,7 +74,7 @@ sub login_to_console {
     if (match_has_tag('prague-pxe-menu')) {
         send_key 'ret';
 
-        assert_screen([qw(grub2 grub1)], 60);
+        check_screen([qw(grub2 grub1)], 60);
     }
 
     if (!get_var("reboot_for_upgrade_step")) {

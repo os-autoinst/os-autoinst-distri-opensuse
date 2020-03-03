@@ -49,17 +49,17 @@ sub change_desktop {
     }
     send_key_until_needlematch 'patterns-list-selected', 'tab', 10, 2;
 
-    if ((is_sle('<=12-SP1')) && (check_var("REGRESSION", "xen-hypervisor") || check_var("REGRESSION", "qemu-hypervisor"))) {
+    if ((is_sle('<=12-SP1')) && (check_var("REGRESSION", "xen") || check_var("REGRESSION", "qemu"))) {
         assert_and_click 'gnome_logo';
         send_key 'spc';
 
         assert_and_click 'xorg_logo';
         send_key 'spc';
 
-        if (check_var("REGRESSION", "qemu-hypervisor")) {
+        if (check_var("REGRESSION", "qemu")) {
             assert_and_click 'kvm_logo';
             send_key 'spc';
-        } elsif (check_var("REGRESSION", "xen-hypervisor")) {
+        } elsif (check_var("REGRESSION", "xen")) {
             assert_and_click 'xen_logo';
             send_key 'spc';
         }

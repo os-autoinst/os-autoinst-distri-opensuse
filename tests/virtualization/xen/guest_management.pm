@@ -53,8 +53,10 @@ sub run {
     }
 
     record_info "START", "Start all guests";
-    assert_script_run "virsh start $_" foreach (keys %xen::guests);
-    script_retry "nmap $_ -PN -p ssh | grep open", delay => 15, retry => 12 foreach (keys %xen::guests);
+    foreach my $guest (keys %xen::guests) {
+        script_retry "virsh start $guest",                 delay => 30, retry => 12;
+        script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
+    }
 
     record_info "SUSPEND", "Suspend all guests";
     assert_script_run "virsh suspend $_" foreach (keys %xen::guests);

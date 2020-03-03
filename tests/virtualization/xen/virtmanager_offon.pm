@@ -41,19 +41,7 @@ sub run {
         assert_and_click 'virt-manager_resizetovm';
 
         detect_login_screen();
-
-        mouse_set(0, 0);
-        assert_and_click 'virt-manager_shutdown';
-        if (!check_screen 'virt-manager_notrunning', 120) {
-            assert_and_click 'virt-manager_shutdown_menu';
-            assert_and_click 'virt-manager_shutdown_item';
-            # There migh me 'Are you sure' dialog window
-            if (check_screen "virt-manager_shutdown_sure", 2) {
-                assert_and_click "virt-manager_shutdown_sure";
-            }
-        }
-        assert_and_click 'virt-manager_poweron', 'left', 90;
-
+        powercycle();
         detect_login_screen(120);
         close_guest();
     }
