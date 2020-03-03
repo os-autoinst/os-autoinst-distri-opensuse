@@ -159,6 +159,9 @@ sub init_cmd {
         $testapi::cmd{sync_interval}       = "alt-i";
         $testapi::cmd{sync_without_daemon} = "alt-s";
     }
+    if (check_var('FLAVOR', 'Online')) {
+        $testapi::cmd{expertpartitioner} = "alt-x";
+    }
     ## keyboard cmd vars end
 }
 
@@ -385,7 +388,7 @@ sub set_standard_prompt {
     my ($self, $user, %args) = @_;
     return if $args{skip_set_standard_prompt} || !get_var('SET_CUSTOM_PROMPT');
     $user ||= $testapi::username;
-    my $os_type     = $args{os_type} // 'linux';
+    my $os_type = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
@@ -437,7 +440,7 @@ sub init_consoles {
     # svirt backend, except s390x ARCH
     if (is_svirt_except_s390x) {
         my $hostname = get_var('VIRSH_GUEST');
-        my $port     = get_var('VIRSH_INSTANCE', 1) + 5900;
+        my $port = get_var('VIRSH_INSTANCE', 1) + 5900;
 
         $self->add_console(
             'sut',
@@ -536,7 +539,7 @@ sub init_consoles {
     if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/ || get_var('S390_ZKVM')) {
         my $hostname;
 
-        $hostname = get_var('VIRSH_GUEST')     if get_var('S390_ZKVM');
+        $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
         $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
         if (check_var('BACKEND', 's390x')) {
