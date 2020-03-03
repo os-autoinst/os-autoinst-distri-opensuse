@@ -24,9 +24,7 @@ sub run {
         record_info('No nested virt', 'No /dev/kvm found');
     }
 
-    # install qemu tools as we want to test using qemu and the bootstrap skips
-    # the "recommends"
-    zypper_call('in openQA-bootstrap qemu-tools');
+    zypper_call('in openQA-bootstrap');
     assert_script_run('/usr/share/openqa/script/openqa-bootstrap', 4000);
 }
 
