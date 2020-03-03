@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ sub run {
         gcc6                              => 'Now',
         gcc7                              => 'Now',
         libada7                           => 'Now',
-        libada8                           => '2024-10-31',
-        cpp8                              => '2024-10-31',
+        libada9                           => '2024-10-31',
+        cpp9                              => '2024-10-31',
         'sle-module-toolchain-release-cd' => '2024-10-31',
     );
 
