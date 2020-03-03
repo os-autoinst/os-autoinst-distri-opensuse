@@ -58,4 +58,5 @@ schedule:
 - console/aaa_base
 - console/osinfo_db
 - console/coredump_collect
+- console/ncurses_extended
 ...

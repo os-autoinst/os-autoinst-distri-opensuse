@@ -60,6 +60,7 @@ schedule:
 - console/osinfo_db
 - console/libgcrypt
 - console/coredump_collect
+- console/ncurses_extended
 conditional_schedule:
   zkvm_boot:
     ARCH:

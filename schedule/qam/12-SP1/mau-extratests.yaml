@@ -52,4 +52,5 @@ schedule:
 - console/suse_module_tools
 - console/aaa_base
 - console/coredump_collect
+- console/ncurses_extended
 ...
