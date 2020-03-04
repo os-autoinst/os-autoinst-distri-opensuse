@@ -314,6 +314,7 @@ sub terraform_apply {
     my @instances;
     my $create_extra_disk = 'false';
     my $extra_disk_size   = 0;
+    my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
 
     $args{count} //= '1';
     my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
@@ -340,12 +341,12 @@ sub terraform_apply {
             q(%SLE_VERSION%)          => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
-        assert_script_run('terraform workspace new qashapopenqa -no-color', TERRAFORM_TIMEOUT);
+        assert_script_run('terraform workspace new qashapopenqa -no-color', $terraform_timeout);
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
     }
-    assert_script_run('terraform init -no-color', TERRAFORM_TIMEOUT);
+    assert_script_run('terraform init -no-color', $terraform_timeout);
 
     my $cmd = 'terraform plan -no-color ';
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
@@ -369,8 +370,8 @@ sub terraform_apply {
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
-    assert_script_run($cmd, TERRAFORM_TIMEOUT);
-    my $ret = script_run('terraform apply -no-color -input=false myplan', TERRAFORM_TIMEOUT);
+    assert_script_run($cmd, $terraform_timeout);
+    my $ret = script_run('terraform apply -no-color -input=false myplan', $terraform_timeout);
     unless (defined $ret) {
         type_string(qq(\c\\));        # Send QUIT signal
         assert_script_run('true');    # make sure we have a prompt
@@ -432,7 +433,7 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
     }
-    my $ret = script_run('terraform destroy -no-color -auto-approve', TERRAFORM_TIMEOUT);
+    my $ret = script_run('terraform destroy -no-color -auto-approve', get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT));
     unless (defined $ret) {
         type_string(qq(\c\\));        # Send QUIT signal
         assert_script_run('true');    # make sure we have a prompt
