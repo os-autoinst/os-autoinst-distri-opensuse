@@ -48,7 +48,7 @@ sub run {
         assert_script_run "./test.sh --setup |& tee /tmp/logs/$dracut_test-setup.log", 300;
         assert_script_run "grep -q dracut-root-block-created /tmp/logs/$dracut_test-setup.log";
         power_action('reboot', textmode => 1);
-        sleep 10;
+        wait_still_screen(10, 60);
         assert_screen("linux-login", 600);
         type_string "root\n";
         wait_still_screen 3;
