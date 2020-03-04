@@ -28,7 +28,7 @@ schedule:
   - console/hostname
   - console/validate_file_system
 test_data:
-  device: /dev/vda
+  device: vda
   table_type: gpt
   file_system:
     /home: xfs
