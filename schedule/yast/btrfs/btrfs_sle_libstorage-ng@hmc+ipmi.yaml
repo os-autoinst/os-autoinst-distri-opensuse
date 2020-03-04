@@ -37,7 +37,7 @@ conditional_schedule:
       ipmi:
         - boot/reconnect_mgmt_console
 test_data:
-  device: /dev/sda
+  device: sda
   table_type: gpt
   subvolume:
     cow:

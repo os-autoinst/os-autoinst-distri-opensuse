@@ -28,7 +28,7 @@ schedule:
   - console/validate_no_cow_attribute
   - console/verify_no_separate_home
 test_data:
-  device: /dev/vda
+  device: vda
   table_type: gpt
   subvolume:
     cow:
