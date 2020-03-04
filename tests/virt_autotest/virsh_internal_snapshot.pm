@@ -29,6 +29,9 @@ use xen;
 
 sub run_test {
     my ($self) = @_;
+    #defualt guest disk setting as raw on sles11sp4 vm host, which do not support snapshots test
+    #so, disable snapshots test on sles11sp4
+    return if check_var('VERSION_TO_INSTALL', '11-SP4');
     #Snapshots are supported on KVM VM Host Servers only
     return unless check_var("REGRESSION", "qemu-hypervisor") || check_var("SYSTEM_ROLE", "kvm");
 
