@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,6 +23,12 @@ use version_utils "is_gnome_next";
 sub run {
     my @tags = qw(test-evolution-1 evolution-default-client-ask);
     push(@tags, 'evolution-preview-release') if is_gnome_next;
+
+    if (is_sle('15-SP2+')) {
+        record_soft_failure('bsc#1165520 - evolution not installed by default anymore with system role GNOME and WE activated');
+        zypper_call('in evolution');
+    }
+
     x11_start_program('evolution', target_match => \@tags);
     my $times = scalar(@tags) - 1;
 

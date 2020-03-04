@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,11 @@ use testapi;
 
 sub run {
     my ($self) = shift;
+
+    if (is_sle('15-SP2+')) {
+        record_soft_failure('bsc#1165520 - oocalc not installed by default anymore with system role GNOME and WE activated');
+        zypper_call('in libreoffice-calc');
+    }
 
     $self->libreoffice_start_program('oocalc');
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,6 +22,11 @@ use utils 'type_string_very_slow';
 
 sub run {
     my ($self) = shift;
+
+    if (is_sle('15-SP2+')) {
+        record_soft_failure('bsc#1165520 - oowriter not installed by default anymore with system role GNOME and WE activated');
+        zypper_call('in libreoffice-writer');
+    }
 
     $self->libreoffice_start_program('oowriter');
     # clicking the writing area to make sure the cursor addressed there
