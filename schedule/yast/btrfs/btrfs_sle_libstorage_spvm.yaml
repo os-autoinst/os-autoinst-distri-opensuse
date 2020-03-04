@@ -33,6 +33,6 @@ schedule:
   - console/verify_separate_home
   - console/validate_file_system
 test_data:
-  device: /dev/sda
+  device: sda
   table_type: gpt
   !include: test_data/yast/btrfs/btrfs_sle_libstorage.yaml
