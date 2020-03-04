@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'type_string_very_slow';
+use version_utils;
 
 sub run {
     my ($self) = shift;

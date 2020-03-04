@@ -18,6 +18,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils;
 
 sub run {
     my ($self) = shift;

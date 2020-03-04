@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils "is_gnome_next";
+use version_utils;
 
 sub run {
     my @tags = qw(test-evolution-1 evolution-default-client-ask);
