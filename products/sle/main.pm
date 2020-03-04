@@ -799,7 +799,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "virt_autotest/setup_dns_service";
             loadtest "virtualization/xen/hotplugging" if get_var("ENABLE_HOTPLUGGING");
             loadtest "virt_autotest/virsh_internal_snapshot";
-            loadtest "virt_autotest/virsh_external_snapshot";
+            loadtest "virt_autotest/virsh_external_snapshot" if get_var("ENABLE_EXTERNAL_SNAPSHOT");
         }
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
