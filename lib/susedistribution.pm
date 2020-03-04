@@ -153,6 +153,9 @@ sub init_cmd {
     if (check_var('INSTLANG', "fr_FR")) {
         $testapi::cmd{next} = "alt-s";
     }
+    if (check_var('FLAVOR', 'Online')) {
+        $testapi::cmd{expertpartitioner} = "alt-x";
+    }
 
     if (!is_sle('<15') && !is_leap('<15.0')) {
         # SLE15/Leap15 use Chrony instead of ntp
