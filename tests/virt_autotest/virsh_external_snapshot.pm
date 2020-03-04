@@ -52,8 +52,9 @@ sub run_test {
 
     foreach my $guest (keys %xen::guests) {
         record_info "virsh-snapshot", "Creating External Snapshot of guest's disk";
+        my $vm_target_dev     = script_output("virsh domblklist $guest --details | awk '/disk/{ print \$3 }'");
         my $pre_snapshot_cmd  = "virsh snapshot-create-as $guest";
-        my $diskspec_diskonly = "vda,snapshot=external,file=/var/lib/libvirt/images/$guest.disk-only";
+        my $diskspec_diskonly = "$vm_target_dev,snapshot=external,file=/var/lib/libvirt/images/$guest.disk-only";
         $pre_snapshot_cmd = $pre_snapshot_cmd . " --disk-only ";
         $pre_snapshot_cmd = $pre_snapshot_cmd . " --diskspec " . $diskspec_diskonly;
         my $ex_snapshot_name = "external-snapshot-$guest";
@@ -68,7 +69,7 @@ sub run_test {
         my $live_es_memspec   = "snapshot=external,file=/var/lib/libvirt/images/$guest.memspec";
         $pre_esnapshot_cmd = $pre_esnapshot_cmd . " --live ";
         $pre_esnapshot_cmd = $pre_esnapshot_cmd . " --memspec " . $live_es_memspec;
-        my $live_es_diskspec = "vda,snapshot=external,file=/var/lib/libvirt/images/$guest.diskspec";
+        my $live_es_diskspec = "$vm_target_dev,snapshot=external,file=/var/lib/libvirt/images/$guest.diskspec";
         $pre_esnapshot_cmd = $pre_esnapshot_cmd . " --diskspec " . $live_es_diskspec;
         my $live_es_name = "external-snapshot-live-$guest";
         $pre_esnapshot_cmd = $pre_esnapshot_cmd . " --name " . $live_es_name;
