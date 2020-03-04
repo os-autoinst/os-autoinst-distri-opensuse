@@ -377,13 +377,13 @@ sub run {
         eval {
             power_action('reboot', keepconsole => is_pvm);
             reconnect_mgmt_console if is_pvm;
-            $self->wait_boot(in_grub => 1, bootloader_time => 60);
+            $self->wait_boot;
         };
         # If SUT didn't reboot for some reason, force reset
         if ($@) {
             power('reset', keepconsole => is_pvm);
             reconnect_mgmt_console if is_pvm;
-            $self->wait_boot(in_grub => 1);
+            $self->wait_boot;
         }
 
         sleep(1);
