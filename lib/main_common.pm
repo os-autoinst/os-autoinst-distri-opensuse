@@ -1172,7 +1172,6 @@ sub load_consoletests {
         loadtest "console/zypper_ref";
     }
     loadtest "console/ncurses";
-    loadtest "console/ncurses_extended";
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
     if (!is_krypton_argon) {
@@ -1700,6 +1699,7 @@ sub load_extra_tests_console {
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/orphaned_packages_check";
+    loadtest "console/ncurses_extended" if (is_sle('12-sp2+') || is_opensuse);
 }
 
 sub load_extra_tests_sdk {
