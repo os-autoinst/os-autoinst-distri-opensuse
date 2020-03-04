@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C)2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,26 +25,31 @@ use utils qw(systemctl zypper_call);
 use Mojo::Util 'trim';
 
 my %package = (
-    autofs                 => ['5.1.3',  'jsc#5754'],
-    openscap               => ['1.3.0',  'jsc#5699'],
-    augeas                 => ['1.0.0',  'jsc#5739'],
-    'freeradius-server'    => ['3.0.18', 'jsc#5892'],
-    gpgme                  => ['1.5.1',  'jsc#5953'],
-    'libgpg-error0'        => ['1.17',   'jsc#5953'],
-    rsync                  => ['3.1.3',  'jsc#5584'],
-    python36               => ['3.6.0',  'jsc#7100'],
-    'python-python-daemon' => ['1.6',    'jsc#5708']
-);
-
-my %package_s390x = (
-    'libnuma-devel' => ['2.0.12', 'jsc#6508'],
+    xrdp              => ['0.9.6',   'jsc#9612'],
+    xorgxrdp          => ['0.2.6',   'jsc#9612'],
+    systemtap         => ['3.2',     'jsc#9205'],
+    'multipath-tools' => ['0.7.3',   'jsc#8762'],
+    'rdma-core'       => ['16.9',    'jsc#8399'],
+    libica            => ['3.6.0',   'jsc#7481'],
+    libvirt           => ['5.8',     'jsc#7467'],
+    'virt-manager'    => ['2.2.0',   'jsc#7453'],
+    openCryptoki      => ['3.12.0',  'jsc#7444'],
+    qemu              => ['4.1.0',   'jsc#7424'],
+    libdfp1           => ['1.0.14',  'jsc#7401'],
+    'python3-kiwi'    => ['9.18.16', 'jsc#7185'],
+    iprutils          => ['2.4.15',  'jsc#7728'],
+    libservicelog     => ['1.1.18',  'jsc#7727'],
+    'nvme-cli'        => ['1.5.0',   'jsc#7726'],
+    lsvpd             => ['1.7.8',   'jsc#7705'],
+    openssl           => ['1.1.1',   'jsc#7701']
 );
 
 sub cmp_version {
     my ($old, $new) = @_;
-    my @newv = split(/-/, $new);
-    my $v1   = version->parse($old);
-    my $v2   = version->parse($newv[0]);
+    my @newv = split(qr/-|\+/, $new);
+    $newv[0] =~ s/[a-zA-Z]//g;
+    my $v1 = version->parse($old);
+    my $v2 = version->parse($newv[0]);
     return $v1 <= $v2;
 }
 
@@ -54,7 +59,7 @@ sub cmp_packages {
     my $output = script_output("zypper se -xs $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", proceed_on_failure => 1, 100);
     my $out    = '';
     for my $line (split(/\r?\n/, $output)) {
-        if (trim($line) =~ m/^\d+\.\d+(\.\d+)?(-\d+\.\d+)?$/) {
+        if (trim($line) =~ m/^\d+\.\d+(\.\d+)?/) {
             $out = $line;
             record_soft_failure("$jsc, The $pcks version is $out, but request is $pckv") if (!cmp_version($pckv, $out));
         }
@@ -72,17 +77,6 @@ sub run {
         my $pcks = cmp_packages($key, $package{$key}[0], $package{$key}[1]);
     }
 
-    # Those modules only can be installed at s390x
-    if (get_var('ARCH') =~ /s390x/) {
-        foreach my $key (keys %package_s390x) {
-            my $pcks = cmp_packages($key, $package_s390x{$key}[0], $package_s390x{$key}[1]);
-        }
-    }
-
-    # jsc#5668:Replace init script of ebtables with systemd service file
-    zypper_call('in ebtables');
-    systemctl 'start ebtables';
-    systemctl 'is-active ebtables';
 }
 
 sub test_flags {
