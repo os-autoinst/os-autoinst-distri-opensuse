@@ -15,8 +15,10 @@ schedule:
   - autoyast/installation
   - installation/first_boot
   - autoyast/console
+  - autoyast/repos
   - autoyast/clone
   - console/validate_file_system
+  - autoyast/verify_cloned_profile
 test_data:
   device: vdb
   table_type: gpt
@@ -24,3 +26,18 @@ test_data:
     - partition: vdb1
       size: 5G
       luks_type: 2
+  profile:
+      partitioning:
+        - drive:
+            unique_key: device
+            device: /dev/vda
+        - drive:
+            unique_key: device
+            device: /dev/vdb
+            disklabel: gpt
+            partitions:
+              - partition:
+                  unique_key: crypt_method
+                  # YaST is only capable of work with luks1
+                  crypt_method: luks1
+                  size: 5368709120
