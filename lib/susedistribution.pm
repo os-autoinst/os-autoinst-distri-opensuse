@@ -363,13 +363,18 @@ sub script_sudo {
 
     my $str = time;
     if ($wait > 0) {
-        $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev";
+        $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev" unless $prog eq 'bash';
     }
     type_string "clear\n";    # poo#13710
     type_string "su -c \'$prog\'\n";
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
-        return wait_serial("$str-\\d+-");
+        if ($prog eq 'bash') {
+            return wait_still_screen(2, 4);
+        }
+        else {
+            return wait_serial("$str-\\d+-");
+        }
     }
     return;
 }
@@ -404,7 +409,7 @@ Log in as root in the current console
 sub become_root {
     my ($self) = @_;
 
-    $self->script_sudo('bash', 0);
+    $self->script_sudo('bash', 1);
     # No need to apply on more recent kernels
     if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
         disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
