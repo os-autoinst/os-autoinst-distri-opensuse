@@ -284,6 +284,7 @@ sub run {
             send_key 'alt-o';
         }
         elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
+            @needles = grep { $_ ne 'linuxrc-start-shell-after-installation' } @needles;
             type_string "exit\n";
         }
     }
