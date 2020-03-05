@@ -22,6 +22,7 @@ use testapi;
 sub run {
     assert_screen "before-package-selection";
     select_console 'install-shell';
+    script_run "hostname";
     if (my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME')) {
         # EXPECTED_INSTALL_HOSTNAME contains expected hostname YaST installer
         # got from environment (DHCP, 'hostname=' as a kernel cmd line argument

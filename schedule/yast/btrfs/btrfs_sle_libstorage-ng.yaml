@@ -25,7 +25,7 @@ schedule:
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
+  #- installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
@@ -53,6 +53,8 @@ conditional_schedule:
       s390x:
         - boot/reconnect_mgmt_console
       svirt:
+        - boot/reconnect_mgmt_console
+      ipmi:
         - boot/reconnect_mgmt_console
   check_resume:
     ARCH:

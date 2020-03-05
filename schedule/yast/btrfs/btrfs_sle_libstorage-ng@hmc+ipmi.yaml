@@ -4,6 +4,7 @@ description:    >
 vars:
   DESKTOP: gnome
   FILESYSTEM: btrfs
+  EXPECTED_INSTALL_HOSTNAME: localhost
 schedule:
   - installation/bootloader_start
   - installation/welcome
