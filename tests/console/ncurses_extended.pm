@@ -24,7 +24,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use utils qw(zypper_call zypper_ar);
 use version_utils qw(is_pre_15 is_sle is_tumbleweed is_leap);
 use registration qw(add_suseconnect_product remove_suseconnect_product get_addon_fullname);
 
