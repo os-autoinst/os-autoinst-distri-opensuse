@@ -515,10 +515,6 @@ sub process_scc_register_addons {
                     send_key 'alt-a';
                     last;    # Exit yast scc register, no package need be install
                 }
-                else {
-                    record_soft_failure 'bsc#1040758';
-                    next;    # Yast may popup dependencies or software install dialog, enter determine statement again.
-                }
             }    # detecting if need to wait as registration is still on-going
             elsif (match_has_tag('contacting-registration-server') ||
                 match_has_tag('system-probing') ||
