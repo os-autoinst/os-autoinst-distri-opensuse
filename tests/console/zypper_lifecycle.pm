@@ -39,6 +39,10 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
+    # We add 'zypper ref' here to download and preparse the metadata of packages,
+    # which will make the follow 'zypper lifecycle' runs faster.
+    select_console 'root-console';
+    script_run('zypper ref');
     select_console 'user-console';
     my $overview = script_output('zypper lifecycle', 600);
     die "Missing header line:\nOutput: '$overview'" unless $overview =~ /Product end of support/;
