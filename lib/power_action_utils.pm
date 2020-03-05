@@ -64,6 +64,7 @@ sub prepare_system_shutdown {
         console($vnc_console)->disable_vnc_stalls;
         console('svirt')->stop_serial_grab;
     }
+    return undef;
 }
 
 =head2 reboot_x11
