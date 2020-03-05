@@ -24,22 +24,14 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call zypper_ar);
+use utils 'zypper_call';
+use repo_tools 'prepare_source_repo';
 use version_utils qw(is_pre_15 is_sle is_tumbleweed is_leap);
 use registration qw(add_suseconnect_product remove_suseconnect_product get_addon_fullname);
 
 sub send_key_n_times {
     my ($key, $count) = @_;
-
-    for my $i (1 .. $count) {
-        send_key $key;
-    }
-}
-
-sub send_continue {
-    my ($count) = @_;
-
-    send_key_n_times('ret', $count);
+    send_key $key for (1 .. $count);
 }
 
 sub auto_ncurses {
@@ -54,22 +46,7 @@ sub auto_ncurses {
 sub run {
     select_console 'root-console';
 
-    my ($version, $sp) = split(/-/, get_var("VERSION"));
-
-    if (is_sle()) {
-        if (is_pre_15()) {
-            add_suseconnect_product(get_addon_fullname('sdk'));
-        }
-    } else {
-        if (is_tumbleweed()) {
-            zypper_ar("https://download.opensuse.org/source/tumbleweed/repo/oss/", "sources");
-        }
-        else {
-            zypper_ar("https://download.opensuse.org/source/distribution/leap/$version/repo", "sources");
-        }
-
-        zypper_call 'ref';
-    }
+    prepare_source_repo;
 
     zypper_call 'source-install ncurses';
     zypper_call 'install ncurses-devel';
@@ -92,20 +69,20 @@ sub run {
 
     type_string "./ncurses\n";
     type_string "r\n";
-    sleep 1;
+    wait_still_screen 1;
     type_string "test\n";
-    sleep 1;
+    wait_still_screen 1;
     type_string "test";
     assert_screen "ncurses-ncurses-form";
     send_key 'esc';
-    sleep 1;
+    wait_still_screen 1;
     type_string "q\n";
 
     type_string "./background\n";
     assert_screen "ncurses-background-1";
-    send_continue 3;
+    send_key_n_times('ret', 3);
     assert_screen "ncurses-background-2";
-    send_continue 5;
+    send_key_n_times('ret', 5);
     assert_screen "ncurses-background-3";
     send_key 'ctrl-c';
 
@@ -134,9 +111,7 @@ sub run {
     assert_screen "ncurses-movewindow";
     send_key 'ctrl-c';
 
-    if (is_sle() && is_pre_15()) {
-        remove_suseconnect_product(get_addon_fullname('sdk'));
-    }
+    remove_suseconnect_product(get_addon_fullname('sdk')) if is_pre_15();
 }
 
 1;
