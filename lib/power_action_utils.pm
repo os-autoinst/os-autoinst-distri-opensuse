@@ -5,7 +5,7 @@ The module provides base and helper functions for powering off or rebooting a ma
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -41,41 +41,28 @@ our @EXPORT = qw(
 
 Need to kill ssh connection with backends like ipmi, spvm, pvm_hmc, s390x.
 
-For s390_zkvm or xen, assign console($vnc_console) with C<disable_vnc_stalls>
-and assign console('svirt') with C<stop_serial_grab>.
+For s390_zkvm or xen, assign console($vnc_console) with C<disable_vnc_stalls> 
+and assign console('svirt') with C<stop_serial_grab>. 
 
 $vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
 
 =cut
 sub prepare_system_shutdown {
-    my $msg_general_message   = 'prepare_system_shutdown: {{message}}';
-    my $msg_ssh_disconnected  = $msg_general_message =~ s/{{message}}/ssh connection ({{console}}) is disconnected/r;
-    my $msg_vnc_stall_disable = $msg_general_message =~ s/{{message}}/({{console}}) VNC stall is disabled/r;
     # kill the ssh connection before triggering reboot
-    if (get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/) {
-        console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
-        $msg_ssh_disconnected =~ s/{{console}}/root-ssh/;
-        record_info($msg_ssh_disconnected);
-    }
-    elsif (check_var('ARCH', 's390x')) {
+    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
+
+    if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             # kill serial ssh connection (if it exists)
             eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
-            $msg_ssh_disconnected =~ s/{{console}}/iucvconn/;
-            record_info($msg_ssh_disconnected);
-            diag($msg_general_message =~ s/{{message}}/(iucvconn) ignoring already shut down console/r) if ($@);
+            diag('ignoring already shut down console') if ($@);
         }
         console('installation')->disable_vnc_stalls;
-        $msg_vnc_stall_disable =~ s/{{console}}/installation/;
-        record_info($msg_vnc_stall_disable);
     }
-    elsif (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
+    if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
-        $msg_vnc_stall_disable =~ s/{{console}}/$vnc_console/;
-        record_info($msg_vnc_stall_disable);
         console('svirt')->stop_serial_grab;
-        record_info($msg_general_message =~ s/{{message}}/(svirt) serial grab stopped/r);
     }
 }
 
@@ -126,7 +113,7 @@ sub reboot_x11 {
 
 Power off desktop.
 
-Handle each desktop differently for kde, gnome, xfce, lxde, lxqt, enlightenment, awesome, mate, minimalx.
+Handle each desktop differently for kde, gnome, xfce, lxde, lxqt, enlightenment, awesome, mate, minimalx. 
 
 Work around issue with CD-ROM pop-up: bsc#1137230 and make sure that s390 SUT shutdown correctly.
 
@@ -245,14 +232,14 @@ sub handle_livecd_reboot_failure {
 
  power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
 
-Executes the selected power action (e.g. poweroff, reboot).
+Executes the selected power action (e.g. poweroff, reboot). 
 
 If C<$observe> is set, the function expects that the specified C<$action> was already executed by
-another actor and the function just makes sure the system shuts down, restarts etc. properly.
+another actor and the function just makes sure the system shuts down, restarts etc. properly. 
 
-C<$keepconsole> prevents a console change, which we do by default to make sure that a system with a GUI
-desktop which was in text console at the time of C<power_action> call, is switched to the expected
-console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell
+C<$keepconsole> prevents a console change, which we do by default to make sure that a system with a GUI 
+desktop which was in text console at the time of C<power_action> call, is switched to the expected 
+console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell 
 for textmode or with GUI commands otherwise unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 
 =cut
@@ -263,10 +250,10 @@ sub power_action {
     $args{textmode}     //= check_var('DESKTOP', 'textmode');
     $args{first_reboot} //= 0;
     die "'action' was not provided" unless $action;
+    prepare_system_shutdown;
     unless ($args{keepconsole}) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
-    prepare_system_shutdown;
     unless ($args{observe}) {
         if ($args{textmode}) {
             type_string "$action\n";
@@ -349,8 +336,8 @@ sub power_action {
 
  assert_shutdown_and_restore_system($action, $shutdown_timeout);
 
-VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt backend
-and we have to re-connect *after* the restart, otherwise we end up with stalled
+VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt backend 
+and we have to re-connect *after* the restart, otherwise we end up with stalled 
 VNC connection. The tricky part is to know *when* the system is already booting.
 
 Default $action is reboot, $shutdown_timeout is timeout for shutdown, default value is 60 seconds.
@@ -391,8 +378,8 @@ sub assert_shutdown_and_restore_system {
 
  $args = {[timeout => $timeout] [,soft_timeout => $soft_timeout] [,bugref => $bugref] [,soft_failure_reason => $soft_failure_reason]}
 
-Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached,
-a soft failure is recorded with the message C<$args->{soft_failure_reason}>.
+Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached, 
+a soft failure is recorded with the message C<$args->{soft_failure_reason}>. 
 
 After that, assert_shutdown continues until the (hard) timeout C<$args->{timeout}> is hit.
 
