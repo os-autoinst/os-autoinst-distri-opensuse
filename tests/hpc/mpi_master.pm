@@ -23,20 +23,13 @@ use version_utils 'is_sle';
 
 sub run {
     my $self          = shift;
-    my $version       = get_required_var('VERSION');
-    my $arch          = get_required_var('ARCH');
-    my $sdk_version   = get_required_var('BUILD_SDK');
     my $mpi           = get_required_var('MPI');
     my $mpi_c         = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
 
     ## adding required sdk and gcc
-    if (is_sle '<15') {
-        zypper_call("ar -f ftp://openqa.suse.de/SLE-$version-SDK-POOL-$arch-Build$sdk_version-Media1/ SDK");
-        zypper_call("ar -f http://download.suse.de/ibs/SUSE/Products/SLE-Module-Toolchain/12/$arch/product/ SLE-Module-Toolchain12-Pool");
-        zypper_call("ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Toolchain/12/$arch/update/ SLE-Module-Toolchain12-Updates");
-    } else {
+    if (is_sle '>=15') {
         add_suseconnect_product('sle-module-development-tools');
     }
 
