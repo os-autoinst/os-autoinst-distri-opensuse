@@ -448,9 +448,8 @@ sub setup_mail_account {
 
     #setup sending protocol as smtp
     assert_screen "evolution_wizard-sending";
-    wait_screen_change {
-        send_key "alt-t";
-    };
+    send_key "alt-t";
+    wait_still_screen(2);
     send_key "ret";
     save_screenshot;
     send_key_until_needlematch "evolution_wizard-sending-smtp", "down", 5, 3;
