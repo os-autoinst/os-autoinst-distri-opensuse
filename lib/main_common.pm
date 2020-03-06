@@ -888,7 +888,7 @@ sub load_inst_tests {
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        if (get_var('MAINT_TEST_REPO')) {
+        if (get_var('MAINT_TEST_REPO' and !get_var("USER_SPACE_TESTSUITES"))) {
             loadtest 'installation/add_update_test_repo';
         }
         loadtest "installation/addon_products_sle";
@@ -2570,7 +2570,7 @@ sub load_systemd_patches_tests {
 
 sub load_system_prepare_tests {
     loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds'    if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
