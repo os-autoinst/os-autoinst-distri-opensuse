@@ -28,6 +28,8 @@ sub run {
 
     select_console 'root-console';
 
+    my $partitioning = script_output "lsblk -l";
+    record_info "lsblk", "$partitioning";
     validate_partition_table({device => "/dev/$test_data->{device}", table_type => $test_data->{table_type}});
 
     if (defined $partitions) {
