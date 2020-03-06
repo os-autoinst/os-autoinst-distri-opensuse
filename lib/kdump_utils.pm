@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -224,7 +224,7 @@ sub configure_service {
     # restart to activate kdump
     power_action('reboot', keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 300);
 
     select_console 'root-console';
     if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'ppc64')) {
