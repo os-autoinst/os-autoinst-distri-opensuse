@@ -21,6 +21,7 @@ use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use POSIX 'strftime';
 use mm_network;
+use x11utils 'turn_off_gnome_screensaver';
 
 sub post_run_hook {
     my ($self) = @_;
@@ -326,15 +327,18 @@ sub setup_imap {
 }
 
 sub start_evolution {
-    my ($self, $mail_box) = @_;
+    # This function removes any previous Evolution configuration, and goes through the first-run config wizard.
 
-    $self->{next} = "alt-o";
-    $self->{next} = "alt-n";
+    # Test setup
+    my ($self, $mail_box) = @_;
     mouse_hide(1);
-    # Clean and Start Evolution
+    # The following is done to make making needles easier.
+    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+
+    # Cleanup past configs  and start Evolution.
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
     x11_start_program('evolution', target_match => [qw(evolution-default-client-ask test-evolution-1 evolution-welcome-not_focused)]);
-    # Follow the wizard to setup mail account
+    # Follow the wizard to setup mail account.
     if (match_has_tag 'evolution-default-client-ask') {
         assert_and_click "evolution-default-client-agree";
         assert_screen "test-evolution-1";
@@ -342,27 +346,28 @@ sub start_evolution {
     elsif (match_has_tag "evolution-welcome-not_focused") {
         assert_and_click "evolution-welcome-not_focused";
     }
-    # make sure the welcome window is maximized
+    # Μake sure the welcome window is maximized and click next.
     send_key "super-up";
-    assert_screen "evolution_welcome-max-window";
-    send_key $self->{next};
-    assert_screen "evolution_wizard-restore-backup";
-    send_key $self->{next};
-    assert_screen "evolution_wizard-identity";
-    wait_screen_change {
+    assert_and_click("evolution_welcome-max-window-click");
+    # Don't restore from backup and click next.
+    assert_and_click("evolution_wizard-restore-backup-click");
+
+    # Move to "Full Name" field and fill it.
+    assert_screen_change {
         send_key "alt-e";
     };
     type_string "SUSE Test";
-    wait_screen_change {
+    # Move to "Email Address" field and fill it.
+    assert_screen_change {
         send_key "alt-a";
     };
-    wait_screen_change { type_string "$mail_box" };
+    assert_screen_change {
+        type_string "$mail_box";
+    };
     save_screenshot();
-    if (is_tumbleweed) {
-        assert_and_click 'evolution_wizard-identity-next';
-    } else {
-        send_key $self->{next};
-    }
+
+    # Finish wizard.
+    assert_and_click('evolution_wizard-identity-next');
 }
 
 sub evolution_add_self_signed_ca {
@@ -399,15 +404,15 @@ sub setup_mail_account {
         send_key "alt-s";
     }
 
+    # Reach "Receiving Email" step.
     assert_screen "evolution_wizard-receiving";
+    # Open Server Type screen.
     wait_screen_change {
         send_key "alt-t";
     };
     send_key "ret";
     send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 10, 3;
-    wait_screen_change {
-        send_key "ret";
-    };
+    assert_and_click("evolution_wizard-receiving-$proto");
     wait_screen_change {
         send_key "alt-s";
     };
@@ -487,8 +492,7 @@ sub setup_mail_account {
     send_key "ret";
     wait_screen_change { send_key 'alt-n' };
     type_string "$mail_user";
-    send_key $self->{next};
-    send_key "ret";
+    assert_and_click("evolution_wizard-sending_username_filled");
     assert_screen "evolution_wizard-account-summary";
     send_key $self->{next};
     send_key "alt-n";
@@ -759,8 +763,7 @@ sub setup_evolution_for_ews {
     assert_screen "test-evolution-1";
     send_key "alt-o";
     assert_screen "evolution_wizard-restore-backup";
-    send_key "alt-o";
-    assert_screen "evolution_wizard-identity";
+    send_key_until_needlematch("evolution_wizard-identity", "alt-o", 10);
     wait_screen_change {
         send_key "alt-e";
     };
