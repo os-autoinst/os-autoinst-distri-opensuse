@@ -186,7 +186,7 @@
   % unless ($check_var->('ARCH', 's390x')) {
   <bootloader>
     <global>
-      <timeout config:type="integer">-1</timeout>
+      <timeout config:type="integer">45</timeout>
     </global>
   </bootloader>
   <general>
