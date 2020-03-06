@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -350,11 +350,15 @@ sub add_partitions {
     my @devices = qw(vda vdb vdc vdd);
     @devices = qw(xvdb xvdc xvdd xvde) if check_var('VIRSH_VMM_FAMILY', 'xen');
     @devices = qw(sda sdb sdc sdd)     if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    @devices = qw(dsada dasdb)         if check_var('backend', 's390x');
     for (@devices) {
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
         # storage-ng requires bios boot partition if not UEFI and not OFW
         if (get_var('UEFI')) {
             addpart('boot-efi');
+        }
+        elsif (get_var('backend', 's390x')) {
+            addpart('zipl');
         }
         elsif (is_storage_ng && !get_var('OFW')) {
             addpart('bios-boot');
