@@ -1,7 +1,0 @@
-Perltidy version is 20170521
-
-There is no previous '(' to match a ')' on line 114
-114: ... ddon_fullname('sdk')) if is_pre_15())
-                                             ^
-117:	To see 1 non-critical warnings rerun with -w
-117:	To save a full .LOG file rerun with -g

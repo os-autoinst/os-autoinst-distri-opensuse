@@ -26,8 +26,7 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use repo_tools 'prepare_source_repo';
-use version_utils qw(is_pre_15 is_sle is_tumbleweed is_leap);
-use registration qw(add_suseconnect_product remove_suseconnect_product get_addon_fullname);
+use version_utils 'is_sle';
 
 sub send_key_n_times {
     my ($key, $count) = @_;
@@ -110,8 +109,6 @@ sub run {
     send_key_n_times('right', 5);
     assert_screen "ncurses-movewindow";
     send_key 'ctrl-c';
-
-    remove_suseconnect_product(get_addon_fullname('sdk')) if is_pre_15();
 }
 
 1;
