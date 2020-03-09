@@ -38,8 +38,12 @@ sub run {
     }
     assert_script_run('modprobe kvm nx_huge_pages=0;lsmod | grep "kvm"');
     assert_script_run('modprobe kvm_intel; lsmod | grep "kvm_intel"');
-    assert_file_content('/sys/module/kvm/parameters/nx_huge_pages', "N");
+    check_param('/sys/module/kvm/parameters/nx_huge_pages', "N");
 }
 
+sub check_param {
+    my ($param, $value) = @_;
+    assert_script_run("cat $param | grep $value");
+}
 
 1;
