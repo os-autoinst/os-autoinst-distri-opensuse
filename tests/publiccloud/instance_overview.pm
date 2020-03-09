@@ -39,7 +39,11 @@ sub run {
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");
 
-    zypper_call("in traceroute bzip2");
+    if (script_run("zypper -n in traceroute bzip2") == 8) {
+        record_soft_failure('bsc#1165915');
+        assert_script_run('update-ca-certificates');
+        zypper_call("in traceroute bzip2");
+    }
     assert_script_run("traceroute -I gate.suse.cz", 90);
 
     assert_script_run("rpm -qa > /tmp/rpm.list.txt");
