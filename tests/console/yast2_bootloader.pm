@@ -30,7 +30,22 @@ sub run {
     zypper_call 'in yast2-bootloader';
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'bootloader');
-    assert_screen "test-yast2_bootloader-1", 300;
+
+    # YaST2 prompts user to install missing packages found during storage probing.
+    # Otherwise YaST2 shows bootloader settings options
+    assert_screen([qw(test-yast2_bootloader-1 fs-probing-failed)], 300);
+
+    if (match_has_tag('fs-probing-failed')) {
+        send_key 'alt-d';
+
+        my $keymapping = {'probing-error' => 'ret', 'fs-probing-failed' => 'alt-i'};
+        foreach (qw(probing-error fs-probing-failed)) {
+            assert_screen $_;
+            send_key $keymapping->{$_};
+        }
+        assert_screen 'test-yast2_bootloader-1';
+    }
+
     # OK => Close
     send_key "alt-o";
     # Our Hyper-V host is slow when initrd is being re-generated
