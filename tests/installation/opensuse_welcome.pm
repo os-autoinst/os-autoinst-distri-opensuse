@@ -21,6 +21,8 @@ use x11utils 'untick_welcome_on_next_startup';
 sub run {
     assert_screen("opensuse-welcome");
     untick_welcome_on_next_startup;
+    # Can I haz IP v6 localhost?
+    assert_script_run 'ping -c 1 0:0:0:0:0:0:0:1';
 }
 
 sub test_flags {
