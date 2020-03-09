@@ -45,8 +45,8 @@ sub nis_server_configuration {
     send_key 'tab';                              # jump to NIS domain name
     type_string $setup_nis_nfs_x11{nis_domain};
     assert_screen 'nis-server-master-server-setup-nis-domain';
-    wait_still_screen 4, 4;                      # wait for blinking cursor, fixes poo#64195
-    send_key 'alt-f';                            # open firewall port
+    send_key_until_needlematch('nis-master-server-tab-fw-selected', 'tab');
+    send_key 'spc';                              # open firewall port
     assert_screen 'nis-master-server-tab-opened-fw';
     wait_screen_change { send_key 'alt-a' };
     # unselect active slave NIS server exists checkbox
