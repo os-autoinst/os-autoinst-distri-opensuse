@@ -116,9 +116,14 @@ sub nfs_server_configuration {
 
 sub run {
     my ($self) = @_;
-    x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
-    become_root;
+    my ($self) = @_;
+    if (check_var("DESKTOP", "gnome")) {
+        x11_start_program('xterm -geometry 155x45+5+5', target_match => 'xterm');
+        turn_off_gnome_screensaver;
+        become_root;
+    } else {
+        select_console 'root-console';
+    }
     setup_static_mm_network($setup_nis_nfs_x11{server_address});
     zypper_call 'in yast2-nis-server yast2-nfs-server';
     # Workarounds:
