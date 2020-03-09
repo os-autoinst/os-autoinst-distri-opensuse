@@ -19,7 +19,7 @@ schedule:
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
-  # Called on all, except BACKEND: s390x
+  # Called on all, except BACKEND: s390x, ipmi
   - {{hostname_inst}}
   - installation/user_settings
   - installation/user_settings_root
@@ -30,7 +30,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  # Called on BACKEND: s390x, svirt
+  # Called on BACKEND: s390x, svirt, ipmi
   - {{reconnect_mgmt_console}}
   # Called on BACKEND: qemu
   - {{grub_test}}
@@ -53,6 +53,8 @@ conditional_schedule:
       s390x:
         - boot/reconnect_mgmt_console
       svirt:
+        - boot/reconnect_mgmt_console
+      ipmi:
         - boot/reconnect_mgmt_console
   check_resume:
     ARCH:
@@ -78,6 +80,9 @@ conditional_schedule:
         - console/validate_file_system
       s390x:
         - console/verify_no_separate_home
+      ipmi:
+        - console/verify_separate_home
+        - console/validate_file_system
 test_data:
   device: vda
   table_type: gpt
