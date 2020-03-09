@@ -27,15 +27,22 @@ sub run {
         # got from environment (DHCP, 'hostname=' as a kernel cmd line argument
         assert_script_run "test \"\$(hostname)\" == \"$expected_install_hostname\"";
     }
-    else {
-        # 'install' is the default hostname if no hostname is get from environment
-        assert_script_run 'test "$(hostname)" == "install"';
+    elsif (check_var("BACKEND", "ipmi")) {
+	my $host_name = script_output "hostname";
+	record_info "$host_name";
+	if ($host_name =~ /(?<host_found>(^openqaipmi5|^fozzie-1))/) {
+	    assert_script_run "test \"\$(hostname)\" == \"$+{host_found}\"/";
+	}
     }
-    save_screenshot;
-    # cleanup
-    type_string "cd /\n";
-    type_string "reset\n";
-    select_console 'installation';
-}
+    else {
+	# 'install' is the default hostname if no hostname is get from environment
+	assert_script_run 'test "$(hostname)" == "install"';
+    }
+        save_screenshot;
+        # cleanup
+        type_string "cd /\n";
+        type_string "reset\n";
+        select_console 'installation';
+    }
 
-1;
+    1;
