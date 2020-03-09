@@ -172,7 +172,10 @@ sub check_rollback_system {
     zypper_call("mr -d -m cd -m dvd");
     # Verify registration status matches current system version
     # system is un-registered during media based upgrade
-    assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | python') unless get_var('MEDIA_UPGRADE');
+    unless (get_var('MEDIA_UPGRADE')) {
+        my $py = (-e '/usr/bin/python3') ? 'python3' : 'python';
+        assert_script_run('curl -s ' . data_url('console/check_registration_status.py') . ' | ' . $py);
+    }
 }
 
 # Reset tty for x11 and root consoles
