@@ -83,7 +83,7 @@ sub prepare_parmfile {
     $params .= " " . get_var('S390_NETWORK_PARAMS');
     $params .= " " . get_var('EXTRABOOTPARAMS');
     if ((is_sle('>=15-SP2') || is_tumbleweed()) && get_var('WORKAROUND_BUGS') =~ 'bsc1156047') {
-        $params .= ' hardened_usercopy=off';
+        $params .= ' hardened_usercopy=off hvc_iucv=8';
         record_soft_failure('bsc#1156053 - hardened_usercopy=off to avoid "/dev/hvc0: cannot get controlling tty: Operation not permitted" (Kernel memory overwrite attempt detected to SLUB object - illegal operation)');
     }
 
