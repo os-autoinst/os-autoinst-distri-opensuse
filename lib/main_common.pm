@@ -499,7 +499,6 @@ sub load_zdup_tests {
     loadtest 'boot/boot_to_desktop';
     loadtest "installation/opensuse_welcome"  if opensuse_welcome_applicable();
     loadtest 'console/check_upgraded_service' if !is_desktop;
-    loadtest 'console/orphaned_packages_check';
 }
 
 sub load_autoyast_tests {
