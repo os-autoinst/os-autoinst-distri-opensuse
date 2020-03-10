@@ -15,7 +15,7 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use utils qw(zypper_call systemctl);
 use repo_tools 'prepare_source_repo';
 
 # Executes the command line tests from a yast repository (in master or in the
@@ -44,7 +44,7 @@ sub run_yast_cli_test {
 
 sub run {
     select_console 'root-console';
-
+    return if (systemctl("status wicked.service", ignore_failure => 1) != 0);
     prepare_source_repo;
 
     # Install test requirement
