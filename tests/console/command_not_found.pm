@@ -24,30 +24,28 @@ use registration qw(add_suseconnect_product remove_suseconnect_product);
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run {
     my ($self) = @_;
+    my $not_installed_pkg = 'iftop';
+
+    select_console 'root-console';
+    zypper_call("rm $not_installed_pkg") if (script_run("which $not_installed_pkg") == 0);
+    zypper_call('in command-not-found') if (check_var('DESKTOP', 'textmode'));    # command-not-found is part of the enhanced_base pattern, missing in textmode
+
     # select user-console; for one we want to be sure cnf works for a user, 2nd assert_script_run does not work in root-console
     select_console 'user-console';
 
-    if (check_var('DESKTOP', 'textmode')) {    # command-not-found is part of the enhanced_base pattern, missing in textmode
-        select_console 'root-console';
-        zypper_call 'in command-not-found';
-        select_console 'user-console';
-    }
-
-    my $not_installed_pkg = is_sle('15+') ? 'at' : 'xosview';    # at is in server-apps module which is already registered at this point
-    my $cnf_cmd = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
-
     save_screenshot;
-    assert_script_run($cnf_cmd);
+    assert_script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"});
     save_screenshot;
+
     select_console 'root-console';
     zypper_call "in $not_installed_pkg";
+    zypper_call "rm $not_installed_pkg";
     select_console 'user-console';
 
     if (is_sle('15+')) {
         # test for https://fate.suse.com/323424 if cnf works for non-registered modules
-        $not_installed_pkg = 'wireshark';                        # wireshark is in desktop module which is not registered here
-        $cnf_cmd = qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"};
-        if (script_run($cnf_cmd) != 0) {
+        $not_installed_pkg = 'wireshark';    # wireshark is in desktop module which is not registered here
+        if (script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"}) != 0) {
             record_soft_failure "https://fate.suse.com/323424 - cnf doesn't cover non-registered modules";
         }
     }
