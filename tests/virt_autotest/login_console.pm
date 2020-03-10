@@ -67,7 +67,7 @@ sub login_to_console {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
-        assert_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
+        check_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
     }
 
     # If a PXE menu will appear just select the default option (and save us the time)
