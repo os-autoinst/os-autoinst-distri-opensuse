@@ -32,8 +32,8 @@ my $module_name;
 
 sub run {
     my $self = shift;
-
     select_console 'root-console';
+    die "Wicked is not running" if (systemctl("status wicked.service", ignore_failure => 1) != 0);
     zypper_call "in yast2-network";    # make sure yast2 lan module installed
 
     # those two are for debugging purposes only
