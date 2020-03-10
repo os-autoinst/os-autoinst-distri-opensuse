@@ -77,12 +77,6 @@ sub handle_all_packages_medium {
     # Also record the addons which require license agreement
     my @addons_with_license = qw(ha we);
     my @addons_license_tags = ();
-    # The workaround is added, because needle containing description is the only
-    # way to ensure the certain module is selected on s390x.
-    record_soft_failure('bsc#1157780 - Module description is not appeared when
-    "Basesystem Module" is selected for the first time');
-    send_key 'down';
-    send_key 'end';
     send_key 'tab' if (check_var('VIDEOMODE', 'text'));
     for my $i (@addons) {
         next if (skip_package_hub_if_necessary($i));
