@@ -17,8 +17,8 @@ use testapi;
 use utils;
 
 sub run() {
-    # increase timeout to 15 mins, shouldn't take as long, but who knows...
-    ensure_installed('rstudio MozillaFirefox git', timeout => 900);
+    # increase timeout to 15 mins, shouldn't take as long, but it occasionally does
+    ensure_installed('rstudio MozillaFirefox', timeout => 900);
 
     # setup git for later usage
     x11_start_program('xterm');
