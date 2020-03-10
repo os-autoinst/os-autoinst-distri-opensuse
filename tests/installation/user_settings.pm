@@ -35,7 +35,7 @@ sub run {
     }
 
     # retry if not typed correctly
-    my $max_tries = 2;
+    my $max_tries = 4;
     my $retry     = 0;
     do {
         $self->enter_userinfo(retry => $retry);
