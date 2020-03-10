@@ -280,7 +280,7 @@ sub get_ltp_tag {
         }
     }
     $tag =~ s/[^a-zA-Z0-9_@]+/-/g;
-    return $tag . '.txt';
+    return $tag;
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features

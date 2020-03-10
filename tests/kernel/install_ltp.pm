@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -179,16 +179,18 @@ sub upload_runtest_files {
     my $aiurl = autoinst_url();
 
     my $up_script = qq%
-rfiles=\$(ls --file-type $dir)
-for f in \$rfiles; do
-    echo "Uploading ltp-\$f-$tag"
-    curl --form upload=\@$dir/\$f --form target=assets_public $aiurl/upload_asset/ltp-\$f-$tag
-    echo "ltp-\$f-$tag" >> /tmp/ltp-runtest-files-$tag
-done
-curl --form upload=\@/tmp/ltp-runtest-files-$tag --form target=assets_public $aiurl/upload_asset/ltp-runtest-files-$tag
-curl --form upload=\@/root/openposix-test-list-$tag --form target=assets_public $aiurl/upload_asset/openposix-test-list-$tag
+ldir='/tmp/runtest-files-$tag'
+archive="\$ldir.tar.gz"
+mkdir -p \$ldir
+cd \$ldir
+ls --file-type $dir | sed "s/\\(.*\\)/ltp-\\1-$tag/" > \$ldir/ltp-runtest-files-$tag
+cp -v $dir/* ~/openposix-test-list-$tag \$ldir
+tar czvf \$archive *
+ls -la \$archive
+file \$archive
+echo "curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\$(basename \$archive)"
+curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\$(basename \$archive)
 %;
-
     script_output($up_script, 300);
 }
 

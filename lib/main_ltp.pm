@@ -1,5 +1,5 @@
 ## no critic (Strict)
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ use base 'Exporter';
 use Exporter;
 use testapi qw(check_var get_var);
 use autotest;
+use Archive::Tar;
 use utils;
 use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
@@ -80,6 +81,7 @@ sub parse_runtest_file {
 sub loadtest_from_runtest_file {
     my $namelist           = get_var('LTP_COMMAND_FILE');
     my $path               = shift || get_var('ASSETDIR') . '/other';
+    my $unpack_path        = './runtest-files';
     my $tag                = get_ltp_tag();
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
@@ -93,12 +95,18 @@ sub loadtest_from_runtest_file {
         loadtest 'create_junkfile_ltp';
     }
 
+    mkdir($unpack_path, 0755);
+    my $tar = Archive::Tar->new();
+    $tar->read("$path/runtest-files-${tag}.tar.gz") || die "tar read failed $? $!";
+    $tar->setcwd($unpack_path);
+    $tar->extract() || die "tar extract failed $? $!";
+
     for my $name (split(/,/, $namelist)) {
         if ($name eq 'openposix') {
-            parse_openposix_runfile($path . '/openposix-test-list-' . $tag, $name, $cmd_pattern, $cmd_exclude, $test_result_export);
+            parse_openposix_runfile("$unpack_path/openposix-test-list-$tag", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
         }
         else {
-            parse_runtest_file($path . "/ltp-$name-" . $tag, $name, $cmd_pattern, $cmd_exclude, $test_result_export);
+            parse_runtest_file("$unpack_path/$name", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
         }
     }
 
