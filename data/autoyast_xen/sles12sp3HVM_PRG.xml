@@ -1113,6 +1113,7 @@ DefaultPolicy default
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
+      <package>iputils</package>
       <package>yast2-users</package>
       <package>yast2-services-manager</package>
       <package>yast2-proxy</package>

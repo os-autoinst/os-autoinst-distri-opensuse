@@ -26,9 +26,9 @@ sub run {
     foreach my $guest (keys %xen::guests) {
         my $distro = $xen::guests{$guest}->{distro};
         $distro =~ tr/_/-/;
+        $distro =~ s/SLE-//;
 
         record_info "$guest", "Adding test repositories and patching the $guest system";
-
         if ($distro =~ m/$version/) {
             ssh_add_test_repositories "$guest";
 

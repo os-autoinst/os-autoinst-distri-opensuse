@@ -64,7 +64,7 @@ sub run_test {
 
         record_info "virsh-snapshot", "Creating Live External Snapshot of guest's memory and disk state";
         #required guests as running status to create Live External Snapshot
-        assert_script_run("virsh start $_") foreach (@vm_hostnames_inactive_array);
+        script_run("virsh start $_") foreach (@vm_hostnames_inactive_array);
         my $pre_esnapshot_cmd = "virsh snapshot-create-as $guest";
         my $live_es_memspec   = "snapshot=external,file=/var/lib/libvirt/images/$guest.memspec";
         $pre_esnapshot_cmd = $pre_esnapshot_cmd . " --live ";

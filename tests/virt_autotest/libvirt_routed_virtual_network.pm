@@ -47,8 +47,11 @@ sub run_test {
     upload_logs "vnet_routed_clone.xml";
     assert_script_run("rm -rf vnet_routed.xml vnet_routed_clone.xml");
 
-    my $gi_vnet_routed;
-    my $gi_vnet_routed_clone;
+    my ($mac1, $mac2, $model1, $model2);
+    my $target1 = '192.168.130.1';
+    my $target2 = '192.168.129.1';
+    my $gate1   = '192.168.129.1';
+    my $gate2   = '192.168.130.1';
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "ROUTED NETWORK for $guest";
         #NOTE
@@ -62,32 +65,23 @@ sub run_test {
         assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone");
         assert_script_run("virsh start $guest");
         assert_script_run("virsh start $guest.clone");
+
         #figure out that used with virtio as the network device model during
         #attach-interface via virsh worked for all sles guest
-        assert_script_run("virsh attach-interface $guest network vnet_routed --model virtio --live");
-        assert_script_run("virsh attach-interface $guest.clone network vnet_routed_clone --model virtio --live");
-        #Get the Guest IP Address from ROUTED NETWORK
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            my $mac_routed = script_output("virsh domiflist $guest | grep vnet_routed | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-            script_retry "ip neigh | grep $mac_routed | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_vnet_routed = script_output("ip neigh | grep $mac_routed | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-            my $mac_routed_clone = script_output("virsh domiflist $guest.clone | grep vnet_routed_clone | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-            script_retry "ip neigh | grep $mac_routed_clone | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_vnet_routed_clone = script_output("ip neigh | grep $mac_routed_clone | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        else {
-            script_retry "virsh net-dhcp-leases vnet_routed | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_vnet_routed = script_output("virsh net-dhcp-leases vnet_routed | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-            script_retry "virsh net-dhcp-leases vnet_routed_clone | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_vnet_routed_clone = script_output("virsh net-dhcp-leases vnet_routed_clone | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        #Confirm ROUTED NETWORK
-        assert_script_run("ssh root\@$gi_vnet_routed 'traceroute $gi_vnet_routed_clone'", 60);
-        save_screenshot;
-        assert_script_run("ssh root\@$gi_vnet_routed_clone 'traceroute $gi_vnet_routed'", 60);
-        save_screenshot;
-        assert_script_run("virsh detach-interface $guest network --current");
-        assert_script_run("virsh detach-interface $guest.clone network --current");
+        $mac1   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $model1 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        assert_script_run("virsh attach-interface $guest network vnet_routed --model $model1 --mac $mac1 --live");
+
+        $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $model2 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        assert_script_run("virsh attach-interface $guest.clone network vnet_routed_clone --model $model2 --mac $mac2 --live");
+
+        test_network_interface("$guest",       mac => $mac1, gate => $gate1, target => $target1, net => "vnet_routed");
+        test_network_interface("$guest.clone", mac => $mac2, gate => $gate2, target => $target2, net => "vnet_routed_clone");
+
+        assert_script_run("virsh detach-interface $guest network --mac $mac1 --current");
+        assert_script_run("virsh detach-interface $guest.clone network --mac $mac2 --current");
+
         assert_script_run("virsh destroy $guest.clone");
         assert_script_run("virsh undefine $guest.clone");
         assert_script_run("rm -rf /var/lib/libvirt/images/$guest.clone");
