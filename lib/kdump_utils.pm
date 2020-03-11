@@ -18,6 +18,7 @@ use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_ppc64le is_aarch64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
+use utils 'ensure_serialdev_permissions';
 
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
@@ -313,6 +314,10 @@ sub full_kdump_check {
         configure_service('before');
     }
     check_function();
+
+    if ($stage ne 'before') {
+        ensure_serialdev_permissions;
+    }
 }
 
 1;
