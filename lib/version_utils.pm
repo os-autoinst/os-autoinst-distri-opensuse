@@ -1,4 +1,4 @@
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           requires_role_selection
+          check_version
           )
     ],
     BACKEND => [

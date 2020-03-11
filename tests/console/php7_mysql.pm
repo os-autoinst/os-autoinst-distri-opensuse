@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,11 +29,16 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname);
 use apachetest;
 
 sub run {
     select_console 'root-console';
-
+    if (is_sle) {
+        add_suseconnect_product(get_addon_fullname('serverapp'));
+        add_suseconnect_product(get_addon_fullname('wsm'));
+    }
     setup_apache2(mode => 'PHP7');
     # install requirements
     zypper_call "in php7-mysql mysql sudo";
