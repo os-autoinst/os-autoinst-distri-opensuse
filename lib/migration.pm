@@ -137,7 +137,7 @@ sub record_disk_info {
     if ($out =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df / | tee /tmp/btrfs-filesystem-df.txt';
         assert_script_run 'btrfs filesystem usage / | tee /tmp/btrfs-filesystem-usage.txt';
-        assert_script_run 'snapper list | tee /tmp/snapper-list.txt' unless (is_sles4sap());
+        assert_script_run('snapper list | tee /tmp/snapper-list.txt', 180) unless (is_sles4sap());
         upload_logs '/tmp/btrfs-filesystem-df.txt';
         upload_logs '/tmp/btrfs-filesystem-usage.txt';
         upload_logs '/tmp/snapper-list.txt' unless (is_sles4sap());
