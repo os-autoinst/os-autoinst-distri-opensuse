@@ -176,6 +176,8 @@ sub run {
             influxdb_push_data($url, 'publiccloud', $data);
         }
     }
+    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1, quiet => 1);
+    $instance->upload_log('/tmp/sle_cloud.tar.gz');
 
     # Validate bootup timing against hard limits
     for my $key (keys(%{$thresholds})) {
