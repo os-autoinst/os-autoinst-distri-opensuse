@@ -38,6 +38,7 @@ schedule:
   - console/firewall_enabled
   - console/gpt_ptable
   - console/kdump_disabled
+  - console/slp
   - console/sshd_running
   - console/sshd
   - console/ssh_cleanup

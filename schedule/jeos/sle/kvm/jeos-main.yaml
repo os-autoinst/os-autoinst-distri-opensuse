@@ -39,6 +39,7 @@ schedule:
   - console/firewall_enabled
   - console/gpt_ptable
   - console/kdump_disabled
+  - console/slp
   - console/sshd_running
   - console/sshd
   - console/ssh_cleanup
@@ -49,4 +50,3 @@ schedule:
   - console/repo_orphaned_packages_check
   - console/orphaned_packages_check
   - console/consoletest_finish
-  
