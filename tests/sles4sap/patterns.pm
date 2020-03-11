@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -47,21 +47,25 @@ sub run {
         systemctl 'start tuned';
     }
 
-    # Dry run of each pattern's installation before actual installation
-    foreach my $pattern (@sappatterns) {
-        zypper_call("in -D -y -t pattern $pattern");
-        $output = script_output("zypper info --requires $pattern");
-        record_info("requirements pattern: $pattern", $output);
-    }
+    # This test is also used for testing SAP products installation on plain SLE
+    # All SAP patterns are not available in SLE
+    if (check_var('SLE_PRODUCT', 'sles4sap')) {
+        # Dry run of each pattern's installation before actual installation
+        foreach my $pattern (@sappatterns) {
+            zypper_call("in -D -y -t pattern $pattern");
+            $output = script_output("zypper info --requires $pattern");
+            record_info("requirements pattern: $pattern", $output);
+        }
 
-    # Actual installation and verification
-    foreach my $pattern (@sappatterns) {
-        zypper_call("in -y -t pattern $pattern");
-        $output = script_output "zypper info -t pattern $pattern";
-        # Name of HA pattern is weird...
-        $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
-        die "SAP zypper pattern [$pattern] info check failed"
-          unless ($output =~ /i.?\s+\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
+        # Actual installation and verification
+        foreach my $pattern (@sappatterns) {
+            zypper_call("in -y -t pattern $pattern");
+            $output = script_output "zypper info -t pattern $pattern";
+            # Name of HA pattern is weird...
+            $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
+            die "SAP zypper pattern [$pattern] info check failed"
+              unless ($output =~ /i.?\s+\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
+        }
     }
 
     # Some specific package may be needed in HA mode
