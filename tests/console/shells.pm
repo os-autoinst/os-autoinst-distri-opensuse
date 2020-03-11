@@ -48,6 +48,7 @@ sub tcsh_extra_tests {
     select_console 'root-console';
     script_run 'useradd -s /usr/bin/tcsh -d /home/tcsh_user -m tcsh_user';
     script_run 'su - tcsh_user', 0;
+    wait_still_screen(3);
 
     #Generate some outputs for the new created user:
     type_string "echo \"echo Sourced!\" >> ~/.tcsh\n";
