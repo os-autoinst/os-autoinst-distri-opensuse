@@ -22,7 +22,7 @@ use warnings;
 
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle check_version);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
@@ -319,8 +319,20 @@ Create the 'openQAdb' database with table 'test' and insert one element
 =cut
 sub test_mysql {
     # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
-    assert_script_run
-qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id)); INSERT INTO test (entry) VALUE ('can you read this?');"};
+    my $setup_openQAdb = "CREATE DATABASE openQAdb; USE openQAdb;
+    CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));
+    INSERT INTO test (entry) VALUE ('can you read this?');";
+    assert_script_run qq{mysql -u root -e "$setup_openQAdb"};
+
+    my $mysql_version = script_output qq{mysql -sN -u root -e "SELECT VERSION();"};
+    if (check_version('>=10.4', $mysql_version)) {
+        # MariaDB changed the default authentication method since version 10.4
+        # https://mariadb.org/authentication-in-mariadb-10-4/
+        # https://bugzilla.suse.com/show_bug.cgi?id=1165151
+        my $mysql_root_password = "ALTER USER root\@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD(\'\');";
+        assert_script_run qq{mysql -u root -e "$mysql_root_password"};
+    }
+    record_info($mysql_version);
 
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database
@@ -328,11 +340,13 @@ qq{mysql -u root -e "CREATE DATABASE openQAdb; USE openQAdb; CREATE TABLE test (
     assert_script_run "curl " . data_url('console/test_mysql_connector.php') . " -o /srv/www/htdocs/test_mysql_connector.php";
     systemctl 'restart apache2.service';
 
-    # access the website and verify that it can read the database
-    assert_script_run "curl --no-buffer http://localhost/test_mysql_connector.php | grep 'can you read this?'";
+    # Access the website and verify that it can read the database
+    # using validate_script_output instead of script_run + grep, we get necessary logs in case of a problem with the
+    # mariadb connection (Permission denied here, means that default (empty) root password did not work
+    validate_script_output "curl --no-buffer http://localhost/test_mysql_connector.php", qr/can you read this\?/;
 
     # verify that PHP successfully wrote the element in the database
-    assert_script_run "mysql -u root -e 'USE openQAdb; SELECT * FROM test;' | grep 'can php write this?'";
+    validate_script_output "mysql -u root  -e 'USE openQAdb; SELECT * FROM test;'", qr/can php write this\?/;
 
     assert_script_run qq{mysql -u root -e "DROP DATABASE openQAdb;"};
 }
