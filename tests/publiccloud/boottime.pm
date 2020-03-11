@@ -99,9 +99,9 @@ sub run {
     my $thresholds = {
         # First boot after provisioning
         kernel     => 15,
-        userspace  => 60,
-        initrd     => 10,
-        overall    => 120,
+        userspace  => 90,
+        initrd     => 20,
+        overall    => 160,
         ssh_access => 60,
 
         # Values after soft reboot
