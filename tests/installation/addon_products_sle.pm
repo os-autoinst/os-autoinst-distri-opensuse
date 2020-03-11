@@ -165,9 +165,9 @@ sub run {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
-                timeout      => check_var('BACKEND', 'pvm_hmc') ? 240 : 60,
+                timeout      => check_var('BACKEND', 'pvm_hmc') ? 600 : 60,
                 soft_timeout => 30,
-                bugref       => 'bsc#1123963');
+                bugref       => 'bsc#1166504');
         }
     }
     if (get_var("ADDONS")) {
