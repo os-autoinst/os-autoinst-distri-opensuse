@@ -181,6 +181,11 @@ service package name.
 
 sub _is_applicable {
     my ($srv_pkg_name) = @_;
+    if ($srv_pkg_name eq 'kdump' && check_var('ARCH', 's390x')) {
+        # workaround for bsc#116300 on s390x
+        record_soft_failure 'bsc#1163000 - System does not come back after crash on s390x';
+        return 0;
+    }
     if (get_var('EXCLUDE_SERVICES')) {
         my %excluded = map { $_ => 1 } split(/\s*,\s*/, get_var('EXCLUDE_SERVICES'));
         return 0 if $excluded{$srv_pkg_name};
