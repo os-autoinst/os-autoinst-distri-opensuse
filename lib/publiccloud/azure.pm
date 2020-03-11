@@ -52,17 +52,10 @@ sub init {
 }
 
 sub az_login {
-    my ($self)    = @_;
-    my $max_tries = 3;
-    my $login_cmd = sprintf('az login --service-principal -u %s -p %s -t %s',
+    my ($self) = @_;
+    my $login_cmd = sprintf(q(while ! az login --service-principal -u '%s' -p '%s' -t '%s'; do sleep 10; done),
         $self->key_id, $self->key_secret, $self->tenantid);
-
-    for (1 .. $max_tries) {
-        my $ret = script_run($login_cmd);
-        return 1 if (defined($ret) && $ret == 0);
-        sleep 30;
-    }
-    die("Azure login failed!");
+    assert_script_run($login_cmd, timeout => 5 * 60);
 }
 
 sub vault_create_credentials {
