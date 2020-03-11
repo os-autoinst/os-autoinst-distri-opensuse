@@ -95,7 +95,13 @@ our $syspath = '/sys/devices/system/cpu/vulnerabilities/';
 #
 sub new {
     my ($class, $args) = @_;
-    return bless $args, $class;
+    if (ref($args)) {
+        return bless $args, $class;
+    }
+    else {
+        my $self = $class->SUPER::new($args);
+        return bless $self, $class;
+    }
 }
 
 sub Parameter {
