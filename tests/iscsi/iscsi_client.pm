@@ -69,7 +69,7 @@ sub initiator_discovered_targets_tab {
     # next and press connect button
     send_key "alt-n";
     assert_and_click 'iscsi-initiator-connect-button';
-    assert_screen 'iscsi-initiator-connect-manual';
+    send_key_until_needlematch 'iscsi-initiator-connect-automatic', 'down';
     send_key 'alt-o';
     assert_screen 'iscsi-initiator-discovery-enable-login-auth';
     send_key 'alt-u';
@@ -116,6 +116,7 @@ sub run {
     record_info 'Systemd', 'Verify status of iscsi services and sockets';
     systemctl("is-active iscsid.service");
     systemctl("is-active iscsid.socket");
+    systemctl("is-active iscsiuio.socket");
     if (!is_sle('=12-SP4') && !is_sle('=12-SP5')) {
         systemctl("is-active iscsi.service");
     }
