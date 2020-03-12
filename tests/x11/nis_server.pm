@@ -45,21 +45,20 @@ sub nis_server_configuration {
     send_key 'tab';                              # jump to NIS domain name
     type_string $setup_nis_nfs_x11{nis_domain};
     assert_screen 'nis-server-master-server-setup-nis-domain';
-    send_key_until_needlematch('nis-master-server-tab-fw-selected', 'tab');
-    send_key 'spc';                              # open firewall port
+    assert_and_click('nis-server-fw-selected');    # open firewall port
     assert_screen 'nis-master-server-tab-opened-fw';
     wait_screen_change { send_key 'alt-a' };
     # unselect active slave NIS server exists checkbox
     assert_screen 'nis-master-server-setup-finished';
-    send_key 'alt-o';                            # other global setting button
-                                                 # NIS Master Server Details Setup
+    send_key 'alt-o';                              # other global setting button
+                                                   # NIS Master Server Details Setup
     assert_screen 'nis-server-master-server-detail-setup';
-    send_key 'alt-o';                            # OK
+    send_key 'alt-o';                              # OK
     send_key $cmd{next};
     # NIS Server Maps Setup
     assert_screen 'nis-server-server-maps-setup';
-    send_key 'tab';                              # jump to map list
-    my $c = 1;                                   # select all maps
+    send_key 'tab';                                # jump to map list
+    my $c = 1;                                     # select all maps
     while ($c <= 11) {
         send_key 'spc';
         send_key 'down';
@@ -69,27 +68,27 @@ sub nis_server_configuration {
     send_key $cmd{next};
     # NIS Server Query Hosts
     assert_screen 'nis-server-query-hosts-setup';
-    send_key 'alt-a';                            # add
+    send_key 'alt-a';                              # add
     assert_screen 'nis-server-network-conf-popup';
     type_string $setup_nis_nfs_x11{net_mask};
     send_key 'tab';
     type_string $setup_nis_nfs_x11{net_address};
     assert_screen 'nis-server-edit-netmask-network';
-    wait_screen_change { send_key 'alt-o' };     # OK
+    wait_screen_change { send_key 'alt-o' };       # OK
     assert_screen 'nis-server-query-hosts-setup-finished';
-    send_key 'alt-f';                            # finish
+    send_key 'alt-f';                              # finish
 }
 
 sub nfs_server_configuration {
     # NFS Server Configuration
     assert_screen 'nfs-server-configuration';
-    send_key 'alt-f';                            # open port in firewall
+    send_key 'alt-f';                              # open port in firewall
     assert_screen 'nfs-server-configuration-opened-fw';
-    wait_screen_change { send_key 'alt-s' };     # start nfs server
-    send_key 'alt-m';                            # NFSv4 domain name field
+    wait_screen_change { send_key 'alt-s' };       # start nfs server
+    send_key 'alt-m';                              # NFSv4 domain name field
     type_string $setup_nis_nfs_x11{nfs_domain};
     assert_screen 'nfs-server-configuration-nfsv4-domain';
-    send_key 'alt-n';                            # next / OK
+    send_key 'alt-n';                              # next / OK
 
     # Setup Directories to Export
     assert_screen 'nfs-server-export';
@@ -97,21 +96,21 @@ sub nfs_server_configuration {
     assert_screen 'nfs-server-export-popup';
     type_string $setup_nis_nfs_x11{nfs_dir};
     assert_screen 'nfs-server-export-popup-nfs-test-dir';
-    send_key 'alt-o';                            # OK
+    send_key 'alt-o';                              # OK
     assert_screen 'nfs-server-directory-does-not-exist';
-    send_key 'alt-y';                            # yes, create it
+    send_key 'alt-y';                              # yes, create it
     assert_screen 'nfs-server-directory-mount-opts';
-    send_key 'alt-p';                            # go to options field
+    send_key 'alt-p';                              # go to options field
     assert_screen 'nfs-server-directory-mount-opts-selected';
-    send_key 'left';                             # unselect options and leave cursor at beginning
-    wait_still_screen 4, 4;                      # blinking cursor
+    send_key 'left';                               # unselect options and leave cursor at beginning
+    wait_still_screen 4, 4;                        # blinking cursor
     send_key 'delete' for (0 .. 2);
     type_string $setup_nis_nfs_x11{nfs_opts};
     assert_screen 'nfs-server-directory-check-opts';
     save_screenshot;
-    send_key 'alt-o';                            # OK
+    send_key 'alt-o';                              # OK
     assert_screen 'nfs-server-export';
-    send_key 'alt-f';                            # finish
+    send_key 'alt-f';                              # finish
 }
 
 sub run {
