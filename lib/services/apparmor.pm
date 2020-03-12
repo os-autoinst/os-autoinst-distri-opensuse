@@ -27,7 +27,7 @@ sub install_service {
 sub enable_service {
     # SLE12-SP2 doesn't support systemctl to enable apparmor
     if (is_sle('12-SP3+', get_var('HDDVERSION'))) {
-        systemctl 'enable apparmor';
+        systemctl 'enable apparmor', timeout => 180;
     }
 }
 
@@ -73,7 +73,7 @@ sub check_aa_enforce {
 
     validate_script_output "aa-disable $executable_name", sub {
         m/Disabling.*nscd/;
-    };
+    }, timeout => 180;
 
     # Recalculate profile name in case
     $named_profile = $self->get_named_profile($profile_name);
@@ -84,7 +84,7 @@ sub check_aa_enforce {
 
     validate_script_output "aa-enforce $executable_name", sub {
         m/Setting.*nscd to enforce mode/;
-    };
+    }, timeout => 180;
 
     # Check if $named_profile is in "enforce" mode
     $self->aa_status_stdout_check($named_profile, "enforce");
@@ -107,7 +107,7 @@ sub check_aa_complain {
     foreach my $cmd (@aa_complain_cmds) {
         validate_script_output $cmd, sub {
             m/Setting.*nscd to complain mode/s;
-        };
+        }, timeout => 180;
 
         # Restore to the enforce mode
         assert_script_run "aa-enforce usr.sbin.nscd";
