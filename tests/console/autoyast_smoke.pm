@@ -33,8 +33,8 @@ sub run {
         # opensuse_gnome has simpler configuration and timezone or network are not defined
         record_info('INFO', 'Check firewall is not enabled and not running');
         my $service = opensusebasetest::firewall();
-        assert_script_run qq{systemctl status $service | grep \"inactive \(dead\)\"};
-        assert_script_run qq{systemctl is-enabled $service | grep disabled};
+        assert_script_run qq{systemctl status $service | grep \"active \(running\)\"};
+        assert_script_run qq{systemctl is-enabled $service | grep enabled};
 
         record_info('INFO', 'Verify networking');
         assert_script_run "ip link show | grep -E \"(ens|enp|eth)[0-9]\" | grep UP";
