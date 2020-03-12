@@ -15,15 +15,15 @@
 # - Wait to yast2 to finish (initrd regenerated)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "y2_module_consoletest";
-
 use strict;
+use base 'y2_module_consoletest';
 use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'is_hyperv';
 
 sub run {
+    my $self = shift;
     select_console 'root-console';
 
     # make sure yast2 bootloader module is installed
@@ -33,18 +33,7 @@ sub run {
 
     # YaST2 prompts user to install missing packages found during storage probing.
     # Otherwise YaST2 shows bootloader settings options
-    assert_screen([qw(test-yast2_bootloader-1 fs-probing-failed)], 300);
-
-    if (match_has_tag('fs-probing-failed')) {
-        send_key 'alt-d';
-
-        my $keymapping = {'probing-error' => 'ret', 'fs-probing-failed' => 'alt-i'};
-        foreach (qw(probing-error fs-probing-failed)) {
-            assert_screen $_;
-            send_key $keymapping->{$_};
-        }
-        assert_screen 'test-yast2_bootloader-1';
-    }
+    $self->ncurses_filesystem_probing('test-yast2_bootloader-1');
 
     # OK => Close
     send_key "alt-o";

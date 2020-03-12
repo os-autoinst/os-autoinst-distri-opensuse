@@ -15,8 +15,8 @@
 #
 # Maintainer: Veronika Svecova <vsvecova@suse.com>
 
-use base "y2_module_consoletest";
 use strict;
+use base 'y2_module_consoletest';
 use warnings;
 use testapi;
 use utils;
@@ -105,8 +105,10 @@ sub run {
     }
 
     assert_screen 'add-vlan-selected';
-    send_key "alt-n";    # next
-    assert_screen 'edit-network-card';
+    # next
+    send_key "alt-n";
+    # YaST2 starts filesystem probing after adding VLAN device
+    $self->ncurses_filesystem_probing('edit-network-card');
     send_key "alt-y";    # set dynamic address
     assert_screen 'dynamic-address-selected';
     send_key "alt-n";    # next

@@ -29,6 +29,24 @@ sub yast2_console_exec {
     }
 }
 
+sub ncurses_filesystem_probing {
+    my $exit_needle = pop();
+
+    assert_screen([('fs-probing-failed', $exit_needle)], 300);
+    return unless (match_has_tag('fs-probing-failed'));
+
+    assert_screen 'fs-probing-details-btn';
+    send_key 'alt-d';
+
+    my $keymapping = {'probing-error' => 'ret', 'fs-probing-failed' => 'alt-i'};
+    foreach (qw(probing-error fs-probing-failed)) {
+        assert_screen $_;
+        send_key $keymapping->{$_};
+    }
+
+    assert_screen($exit_needle);
+}
+
 sub post_run_hook {
     my ($self) = @_;
 
