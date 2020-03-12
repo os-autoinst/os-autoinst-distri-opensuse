@@ -184,7 +184,7 @@ archive="\$ldir.tar.gz"
 mkdir -p \$ldir
 cd \$ldir
 ls --file-type $dir | sed "s/\\(.*\\)/ltp-\\1-$tag/" > \$ldir/ltp-runtest-files-$tag
-cp -v $dir/* ~/openposix-test-list-$tag \$ldir
+cp -v $dir/* ~/openposix-test-list \$ldir
 tar czvf \$archive *
 ls -la \$archive
 file \$archive
@@ -217,7 +217,7 @@ sub install_from_git {
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list-$tag";
+    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list";
 }
 
 sub want_stable {
@@ -255,7 +255,7 @@ sub install_from_repo {
 
     zypper_call("in --recommends $pkg");
     script_run "rpm -qi $pkg | tee /opt/ltp_version";
-    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
+    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
 }
 
 sub setup_network {

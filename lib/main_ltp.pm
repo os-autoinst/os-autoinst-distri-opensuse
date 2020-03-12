@@ -97,13 +97,13 @@ sub loadtest_from_runtest_file {
 
     mkdir($unpack_path, 0755);
     my $tar = Archive::Tar->new();
-    $tar->read("$path/runtest-files-${tag}.tar.gz") || die "tar read failed $? $!";
+    $tar->read("$path/runtest-files-$tag.tar.gz") || die "tar read failed $? $!";
     $tar->setcwd($unpack_path);
     $tar->extract() || die "tar extract failed $? $!";
 
     for my $name (split(/,/, $namelist)) {
         if ($name eq 'openposix') {
-            parse_openposix_runfile("$unpack_path/openposix-test-list-$tag", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
+            parse_openposix_runfile("$unpack_path/openposix-test-list", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
         }
         else {
             parse_runtest_file("$unpack_path/$name", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
