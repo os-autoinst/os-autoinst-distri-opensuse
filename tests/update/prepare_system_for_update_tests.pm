@@ -33,7 +33,7 @@ sub run {
     assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf" if !is_sle;
     systemctl 'unmask packagekit';
 
-    assert_script_run "pkcon refresh", 300;
+    assert_script_run "pkcon refresh", 400;
 }
 
 sub test_flags {
