@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,9 +37,10 @@ sub await_password_check {
 
 sub enter_userinfo {
     my (%args) = @_;
-    $args{username} //= $realname;
+    $args{username}     //= $realname;
+    $args{max_interval} //= undef;
     send_key 'alt-f';    # Select full name text field
-    wait_screen_change { $args{retry} ? type_string_slow $args{username} : type_string $args{username} };
+    wait_screen_change { type_string($args{username}, max_interval => $args{max_interval}); };
     send_key 'tab';      # Select password field
     send_key 'tab';
     type_password_and_verification;

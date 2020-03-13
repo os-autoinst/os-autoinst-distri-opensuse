@@ -22,6 +22,7 @@ use warnings;
 use parent qw(installation_user_settings y2_installbase);
 use testapi;
 use version_utils 'is_sle';
+use utils;
 
 sub run {
     my ($self) = @_;
@@ -38,11 +39,12 @@ sub run {
     my $max_tries = 4;
     my $retry     = 0;
     do {
-        $self->enter_userinfo(retry => $retry);
+        $self->enter_userinfo(max_interval => ($retry) ? utils::VERY_SLOW_TYPING_SPEED : undef);
         assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);
         record_soft_failure('boo#1122804 - Typing issue with fullname') unless match_has_tag('inst-userinfostyped-expected-typefaces');
         $retry++;
     } while (($retry < $max_tries) && !match_has_tag('inst-userinfostyped-expected-typefaces'));
+    assert_screen('inst-userinfostyped-expected-typefaces');    # fail if mistyped
 
     if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
         send_key $cmd{noautologin};
