@@ -48,13 +48,6 @@ sub testsuiteinstall {
         die '$qa_testsuite_repo is not set' unless ($qa_testsuite_repo);
     }
 
-    if (get_var('BOOT_HDD_IMAGE')) {
-        if (check_var('ARCH', 'aarch64')) {
-            wait_still_screen 10;
-            send_key 'ret';
-        }
-        wait_serial('Welcome to', 300) || die "System did not boot in 300 seconds.";
-    }
     select_console 'root-console';
 
     if (is_sle('15+') && !main_common::is_updates_tests) {
