@@ -38,6 +38,7 @@ sub run {
     # Install migration tool
     zypper_call 'in -y migrate-sles-to-sles4sap';
 
+    # Do the migration!
     type_string "$cmd && touch /tmp/OK\n";
     wait_serial 'Do you want to continue\?', timeout => 5;
     type_string "y\n";
@@ -49,6 +50,9 @@ sub run {
     type_string "${regcode}\n";
     assert_script_run "ls /tmp/OK";
     zypper_call "in -y -t pattern sap_server";
+
+    # We have now a SLES4SAP product, so we need to notify the test(s)
+    set_var('SLE_PRODUCT', 'sles4sap');
 }
 
 sub test_flags {
