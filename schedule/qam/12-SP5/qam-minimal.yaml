@@ -21,7 +21,7 @@ schedule:
 - installation/await_install
 - installation/logs_from_installation_system
 - installation/reboot_after_installation
-- installation/grub_test
+- {{reboot}}
 - installation/first_boot
 - qam-minimal/install_update
 - qam-minimal/update_minimal
@@ -42,6 +42,16 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/disk_activation
+  reboot:
+    ARCH:
+      x86_64:
+        - installation/grub_test
+      s390x:
+        - boot/reconnect_mgmt_console
+      ppc64le:
+        - installation/grub_test
+      aarch64:
+        - installation/grub_test
   publish:
     ARCH:
       x86_64:
