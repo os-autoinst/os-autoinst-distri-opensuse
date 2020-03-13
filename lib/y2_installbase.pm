@@ -144,10 +144,18 @@ Performs steps needed to go from the "pattern selection" screen to
 =cut
 sub go_to_search_packages {
     my ($self) = @_;
-    send_key 'alt-d';    # details button
-    assert_screen 'packages-manager-detail';
-    assert_and_click 'packages-search-tab';
-    assert_and_click 'packages-search-field-selected';
+    if (check_var('VIDEOMODE', 'text')) {
+      wait_screen_change { send_key 'alt-f' };
+      for (1 .. 3) { send_key 'down'; }
+      send_key 'ret';
+      assert_screen 'search-list-selected';
+    }
+    else {
+      send_key 'alt-d';    # details button
+      assert_screen 'packages-manager-detail';
+      assert_and_click 'packages-search-tab';
+      assert_and_click 'packages-search-field-selected';
+    }
 }
 
 =head2 move_down
@@ -194,11 +202,20 @@ C<$package_name>
 =cut
 sub search_package {
     my ($self, $package_name) = @_;
-    assert_and_click 'packages-search-field-selected';
-    wait_screen_change { send_key 'ctrl-a' };
-    wait_screen_change { send_key 'delete' };
-    type_string_slow "$package_name";
-    send_key 'alt-s';    # search button
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-p';
+        assert_screen 'packages-search-field-selected';
+        send_key_until_needlematch 'search-field-empty', 'backspace';
+        type_string_slow "$package_name";
+        send_key 'ret';    # search package
+    }
+    else {
+        assert_and_click 'packages-search-field-selected';
+        wait_screen_change { send_key 'ctrl-a' };
+        wait_screen_change { send_key 'delete' };
+        type_string_slow "$package_name";
+        send_key 'alt-s';    # search button
+    }
 }
 
 =head2 select_all_patterns_by_menu

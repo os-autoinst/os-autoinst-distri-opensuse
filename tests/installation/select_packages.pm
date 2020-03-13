@@ -51,6 +51,9 @@ sub run {
     }
     $self->back_to_overview_from_packages();
 
+    # If not $blocker_packages, return directly
+    return unless ($blocker_packages);
+
     if (is_sle('<15') && !check_screen('inst-overview-blocked', 0)) {
         record_soft_failure('bsc#1029660 - package removal, different result with same workflow');
         $self->go_to_patterns();
