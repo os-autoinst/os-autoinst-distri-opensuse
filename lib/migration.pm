@@ -161,8 +161,8 @@ sub check_rollback_system {
     # Check SUSEConnect status for SLE
     # check rollback-helper service is enabled and worked properly
     # If rollback service is activating, need wait some time
-    # Add wait in a loop, max time is 5 minute, because case with much more modules need more time
-    for (1 .. 5) {
+    # Add wait in a loop, max time is 10 minute, because case with much more modules need more time
+    for (1 .. 10) {
         last unless script_run('systemctl --no-pager status rollback') != 0;
         sleep 60;
     }
