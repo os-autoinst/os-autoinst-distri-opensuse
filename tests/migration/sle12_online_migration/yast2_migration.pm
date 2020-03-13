@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -49,6 +49,7 @@ sub yast2_migration_handle_conflicts_x11 {
 # deal with yast2 online migration conflicts in text with yast
 sub yast2_migration_handle_conflicts_text {
     # give a little time to check package conflicts
+    assert_screen 'yast2-migration-summary', 120;
     if (check_screen("yast2-migration-conflicts", 15)) {
         if (!is_desktop_installed()) {
             send_key "alt-c";
