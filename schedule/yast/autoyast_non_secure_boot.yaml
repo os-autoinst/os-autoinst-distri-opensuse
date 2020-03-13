@@ -1,0 +1,85 @@
+name:       autoyast_non_secure_boot
+description:   >
+  Test autoyast installation with non-secure boot option.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_non_secure_boot.xml
+  AUTOYAST_PREPARE_PROFILE: 1
+  EXTRABOOTPARAMS: startshell=1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/verify_secure_boot_bios
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/verify_secure_boot
+test_data:
+  secure_boot: disabled
+  profile:
+    bootloader:
+      global:
+        secure_boot: false
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/vda
+          disklabel: gpt
+          type: CT_DISK
+          partitions:
+            - partition:
+                unique_key: partition_nr 
+                mount: /boot/efi 
+                filesystem: vfat
+                partition_nr: 1
+            - partition:
+                unique_key: partition_nr
+                mount: /
+                filesystem: btrfs
+                partition_nr: 2
+                subvolumes_prefix: '@'
+                subvolumes:
+                  - subvolume:
+                      unique_key: path
+                      path: srv
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: root
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: var
+                      copy_on_write: false
+                  - subvolume:
+                      unique_key: path
+                      path: boot/grub2/x86_64-efi 
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: usr/local
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: home 
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: boot/grub2/i386-pc
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: opt
+                      copy_on_write: true
+                  - subvolume:
+                      unique_key: path
+                      path: tmp
+                      copy_on_write: true 
