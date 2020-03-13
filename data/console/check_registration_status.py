@@ -29,7 +29,7 @@ if proc.returncode != 0:
 # Return the account of missing matched product
 ret = 0
 try:
-    for prod in json.loads(stdout, encoding="utf-8"):
+    for prod in json.loads(stdout.decode(), encoding="utf-8"):
         prod['base_version'] = prod['version'].split('.')[0]
         prod['result'] = 'match'
 
