@@ -257,6 +257,7 @@ sub check_function {
 
     if (get_var('FADUMP')) {
         reconnect_mgmt_console;
+        unlock_if_encrypted;
         assert_screen 'grub2', 180;
         wait_screen_change { send_key 'ret' };
     }
