@@ -2926,7 +2926,7 @@ sub load_ha_cluster_tests {
             loadtest 'sles4sap/hana_install';
             loadtest 'sles4sap/hana_cluster';
         }
-        loadtest 'sles4sap/sap_suse_cluster_connector';
+        loadtest 'sles4sap/sap_suse_cluster_connector' if (get_var('HA_CLUSTER_INIT'));
     }
     else {
         # Test Hawk Web interface
