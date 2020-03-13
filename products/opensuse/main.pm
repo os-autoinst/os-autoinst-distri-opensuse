@@ -347,6 +347,9 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/boot";
     loadtest "support_server/login";
     loadtest "support_server/setup";
+    loadtest "support_server/meddle_multipaths" if (get_var("SUPPORT_SERVER_TEST_INSTDISK_MULTIPATH"));
+    loadtest "support_server/custom_pxeboot"    if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
+    loadtest "support_server/flaky_mp_iscsi"    if (get_var("ISCSI_MULTIPATH_FLAKY"));
     unless (load_slenkins_tests()) {    # either run the slenkins control node or just wait for connections
         loadtest "support_server/wait_children";
     }
