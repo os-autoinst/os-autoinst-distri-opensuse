@@ -145,16 +145,16 @@ Performs steps needed to go from the "pattern selection" screen to
 sub go_to_search_packages {
     my ($self) = @_;
     if (check_var('VIDEOMODE', 'text')) {
-      wait_screen_change { send_key 'alt-f' };
-      for (1 .. 3) { send_key 'down'; }
-      send_key 'ret';
-      assert_screen 'search-list-selected';
+        wait_screen_change { send_key 'alt-f' };
+        for (1 .. 3) { send_key 'down'; }
+        send_key 'ret';
+        assert_screen 'search-list-selected';
     }
     else {
-      send_key 'alt-d';    # details button
-      assert_screen 'packages-manager-detail';
-      assert_and_click 'packages-search-tab';
-      assert_and_click 'packages-search-field-selected';
+        send_key 'alt-d';    # details button
+        assert_screen 'packages-manager-detail';
+        assert_and_click 'packages-search-tab';
+        assert_and_click 'packages-search-field-selected';
     }
 }
 
