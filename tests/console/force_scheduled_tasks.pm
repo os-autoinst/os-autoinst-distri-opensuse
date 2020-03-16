@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,7 +21,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils 'assert_screen_with_soft_timeout';
+use utils qw(assert_screen_with_soft_timeout zypper_call);
 use version_utils 'is_jeos';
 
 sub settle_load {
@@ -37,6 +37,9 @@ sub settle_load {
 
 sub run {
     select_console 'root-console';
+
+    # Btrfs tool will occupy cpus and mems cause the system load high, we need remove the package of btrfsmaintenance before test
+    zypper_call('rm btrfsmaintenance');
 
     # show dmesg output in console during cron run
     assert_script_run "dmesg -n 7";
