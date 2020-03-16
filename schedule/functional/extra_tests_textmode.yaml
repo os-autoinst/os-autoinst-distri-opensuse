@@ -9,6 +9,9 @@ conditional_schedule:
                 - boot/uefi_bootmenu
             s390x:
                 - installation/bootloader_zkvm
+        BACKEND:
+            svirt:
+                - installation/bootloader_svirt
     lshw:
         ARCH:
             x86_64:
