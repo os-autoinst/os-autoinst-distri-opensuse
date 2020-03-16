@@ -25,8 +25,10 @@ q{reg add `"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppMode
 };
 
 sub run {
-    my ($self) = @_;
+    my ($self)            = @_;
     my $wsl_appx_filename = get_required_var('ASSET_1');
+    my $certs             = {opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt', sle => '/wsl/SLES-UEFI-CA-Certificate.crt'};
+
     assert_screen 'windows-desktop';
 
     # 0) Enable developer mode
@@ -37,8 +39,10 @@ sub run {
     $self->run_in_powershell($powershell_cmds->{enable_wsl_feature}->{vm_platform}) if (get_var('some_future_var') =~ m/wsl/);
     $self->run_in_powershell($powershell_cmds->{enable_wsl_feature}->{wsl});
 
-    # 2) Download the image
+    # 2) Download the image and CA cert
     $self->run_in_powershell('Invoke-WebRequest -Uri ' . data_url('ASSET_1') . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing');
+    $self->run_in_powershell('Invoke-WebRequest -Uri ' . data_url($certs->{get_required_var('DISTRI')}) . ' -O C:\Users\Public\image-ca.cert -UseBasicParsing');
+    $self->run_in_powershell('Import-Certificate -FilePath C:\Users\Public\image-ca.cert -CertStoreLocation cert:\\LocalMachine\\Root -Verbose');
 
     # 3) Open the image file in Explorer
     $self->run_in_powershell('ii C:\\');
