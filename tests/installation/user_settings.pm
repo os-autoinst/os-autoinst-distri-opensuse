@@ -36,7 +36,7 @@ sub run {
     }
 
     # retry if not typed correctly
-    my $max_tries = 4;
+    my $max_tries = 6;
     my $retry     = 0;
     do {
         $self->enter_userinfo(max_interval => ($retry) ? utils::VERY_SLOW_TYPING_SPEED : undef);
