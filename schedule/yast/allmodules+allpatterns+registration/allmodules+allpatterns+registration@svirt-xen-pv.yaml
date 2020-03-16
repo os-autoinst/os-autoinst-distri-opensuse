@@ -1,10 +1,19 @@
 ---
-name:           skip_registration
+name:           allmodules+allpatterns+registration@svirt-xen-pv
 description:    >
-  Like a standard scenario with explicit skipping of SCC registration
-  in case where we register by default, e.g. for SLE >= 15
-  See https://progress.opensuse.org/issues/25264 for details.
-
+  Full Medium installation that covers the following cases:
+     1. Additional modules enabled using SCC (Legacy, Development Tools, Web and
+        Scripting, Containers, Desktop Applications);
+     2. All patterns installed;
+     3. System registration is skipped during installation;
+     4. Installation is validated by successful boot and that YaST does not
+        report any issues;
+     5. Registration is performed on the installed system.
+vars:
+  SCC_REGISTER: ''
+  ENABLE_ALL_SCC_MODULES: 1
+  PATTERNS:	all
+  ADDONS: all-packages
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -15,22 +24,21 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
+  - installation/select_patterns
   - installation/installation_overview
-  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
   - installation/first_boot
+  - console/suseconnect_scc
   - console/sle15_workarounds
-  - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+  - shutdown/svirt_upload_assets
