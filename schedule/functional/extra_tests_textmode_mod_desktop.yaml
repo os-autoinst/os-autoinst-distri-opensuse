@@ -9,11 +9,19 @@ conditional_schedule:
                 - boot/uefi_bootmenu
             s390x:
                 - installation/bootloader_zkvm
+    aplay:
+        ARCH:
+            aarch64:
+                - console/aplay
+            ppc64le:
+                - console/aplay
+            x86_64:
+                - console/aplay
 schedule:
     - {{bootloader}}
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
-    - console/aplay
+    - {{aplay}}
     - console/wavpack
     - console/libvorbis
