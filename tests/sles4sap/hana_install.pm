@@ -69,11 +69,11 @@ sub run {
     }
     else {
         # If running on QEMU and with a second disk configured, then configure
-        # mountpoints and LVM. Otherwise leave those choices to hdblcm, but
-        # always create mountpoints.
+        # mountpoints and LVM. Otherwise leave those choices to hdblcm. If running
+        # in a different backend, assume sdb exists. Always create mountpoints.
         foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
-        if (check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) {
-            my $device = check_var('HDDMODEL', 'scsi-hd') ? '/dev/sdb' : '/dev/vdb';
+        if ((check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) or !check_var('BACKEND', 'qemu')) {
+            my $device = (check_var('HDDMODEL', 'scsi-hd') or !check_var('BACKEND', 'qemu')) ? '/dev/sdb' : '/dev/vdb';
             script_run "wipefs -f $device; wipefs -f ${device}1";
             assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
             $device .= '1';
@@ -81,7 +81,7 @@ sub run {
             assert_script_run "vgcreate -f vg_hana $device";
             foreach my $mounts (keys %mountpts) {
                 assert_script_run "lvcreate -y -W y -n lv_$mounts --size $mountpts{$mounts}->{size} vg_hana";
-                assert_script_run "mkfs.xfs /dev/vg_hana/lv_$mounts";
+                assert_script_run "mkfs.xfs -f /dev/vg_hana/lv_$mounts";
                 assert_script_run "mount /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt}";
                 assert_script_run "echo /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt} xfs defaults 0 0 >> /etc/fstab";
             }
