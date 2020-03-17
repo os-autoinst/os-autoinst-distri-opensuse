@@ -44,7 +44,7 @@ sub run {
         record_soft_failure('boo#1122804 - Typing issue with fullname') unless match_has_tag('inst-userinfostyped-expected-typefaces');
         $retry++;
     } while (($retry < $max_tries) && !match_has_tag('inst-userinfostyped-expected-typefaces'));
-    assert_screen('inst-userinfostyped-expected-typefaces');    # fail if mistyped
+    assert_screen('inst-userinfostyped-expected-typefaces') if (check_var('SLE_PRODUCT', 'sles') && is_sle('15-SP2+'));    # fail if mistyped
 
     if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
         send_key $cmd{noautologin};
