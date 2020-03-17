@@ -22,8 +22,14 @@ use registration;
 use version_utils 'is_sle';
 
 sub run {
-    my $self          = shift;
-    my $mpi           = get_required_var('MPI');
+    my $self = shift;
+    my $mpi  = get_required_var('MPI');
+    if (is_sle('<15')) {
+        $mpi = 'openmpi';
+    } elsif (is_sle('<15-SP2')) {
+        $mpi = 'openmpi2';
+    }
+
     my $mpi_c         = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
