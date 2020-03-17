@@ -38,9 +38,14 @@ sub run {
             record_soft_failure 'bsc#1054782';
         }
     }
-    select_console('root-console');
+    select_console('root-console');    
     # Stop packagekit
     pkcon_quit;
+}
+
+sub post_fail_hook {
+    check_screen 'splash-screen-problem';
+    sleep 9000;
 }
 
 1;

@@ -36,8 +36,8 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - console/suseconnect_scc
   - console/sle15_workarounds
+  - console/suseconnect_scc
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
