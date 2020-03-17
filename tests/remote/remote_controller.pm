@@ -49,9 +49,7 @@ sub run {
     ensure_serialdev_permissions;
 
     if (check_var("REMOTE_CONTROLLER", "vnc")) {
-        select_console 'root-console';
-        # wait to change tty, in case support server sle 15, use alt-f2
-        send_key('alt-f7', 10);
+        select_console 'x11';
         x11_start_program('xterm');
         type_string "vncviewer -fullscreen $lease_ip:1\n";
         # wait for password prompt
@@ -82,4 +80,3 @@ sub test_flags {
 }
 
 1;
-
