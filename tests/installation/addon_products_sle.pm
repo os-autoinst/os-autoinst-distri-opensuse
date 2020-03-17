@@ -77,7 +77,7 @@ sub handle_all_packages_medium {
     # Also record the addons which require license agreement
     my @addons_with_license = qw(ha we);
     my @addons_license_tags = ();
-    send_key 'tab' if (check_var('VIDEOMODE', 'text'));
+    send_key_until_needlematch 'addon-base-activated', 'tab' if (check_var('VIDEOMODE', 'text'));
     for my $i (@addons) {
         next if (skip_package_hub_if_necessary($i));
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
