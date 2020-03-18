@@ -24,12 +24,11 @@ sub run {
     assert_screen "before-package-selection";
     select_console 'install-shell';
     # NICTYPE_USER_OPTIONS="hostname=myguest" causes a fake DHCP hostname provided to SUT
-    my $NICTYPE_USER_OPTIONS      = get_required_var('NICTYPE_USER_OPTIONS');
+    # 'install' is the default hostname if no hostname is get from environment
+    my $NICTYPE_USER_OPTIONS      = get_var('NICTYPE_USER_OPTIONS', 'install');
     my $expected_install_hostname = ($NICTYPE_USER_OPTIONS =~ s/hostname=//r);
     # Before SLE15-SP2, yast didn't take during installation the hostname by DHCP
     # See fate#319639
-    # 'install' is the default hostname if no hostname is get from environment
-    $expected_install_hostname = 'install' if (is_sle('<15-SP2'));
     if (is_sle('<15-SP2') && (script_run(qq{test "\$(hostname)" == "linux"}) == 0)) {
         record_soft_failure('bsc#1166778 - Default hostname in SLE15-SP1 is not "install"');
     } else {
