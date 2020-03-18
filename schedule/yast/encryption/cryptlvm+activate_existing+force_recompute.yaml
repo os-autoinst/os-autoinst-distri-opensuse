@@ -33,3 +33,4 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
+  - console/validate_encrypt
