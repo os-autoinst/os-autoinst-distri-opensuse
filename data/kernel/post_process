@@ -1,0 +1,52 @@
+#!/bin/bash
+ERROR=0
+
+for file in $(find ./results -type f);
+do
+	while IFS= read -r line
+	do
+		if [[ "$line" == *"exit_status"* ]]
+		then
+			if [[ "$line" == *"1"* ]]
+			then
+				ERROR=1
+			fi
+		elif [[ "$line" == "status"* ]]
+		then
+			if [[ "$line" == *"fail"* ]]
+			then
+				ERROR=1
+			fi
+		fi
+	done < "$file"
+done
+
+echo "<testsuite errors=\"$ERROR\" name=\"_blktests\">" > ./results.xml
+
+for file in $(find ./results -type f)
+do
+	while IFS= read -r line
+	do
+		if [[ "$line" == "status"* ]]
+		then
+			if [[ "$line" == *"pass"* ]]
+			then
+				echo "<testcase name=\"$file\">" >> ./results.xml
+				echo "<system-out>" >> ./results.xml
+				echo "</system-out>" >> ./results.xml
+				echo "</testcase>" >> ./results.xml
+			elif [[ "$line" == *"fail"* ]]
+			then
+				echo "<testcase errors=\"1\" name=\"$file\">" >> ./results.xml
+				echo "<system-out>" >> ./results.xml
+				echo "</system-out>" >> ./results.xml
+				echo "</testcase>" >> ./results.xml
+			elif [[ "$line" == *"not run"* ]]
+			then
+				echo "not run: $file"
+			fi
+		fi
+	done < "$file"
+done
+
+echo "</testsuite>" >> ./results.xml
