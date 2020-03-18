@@ -57,7 +57,6 @@ GRUB_SELECT_SECOND_MENU | integer | | Select grub menu entry in secondary grub m
 HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and validation of the license agreements.
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
-EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=' as a kernel cmd line argument)
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
@@ -88,6 +87,7 @@ NETDEV | string | | Network device to be used when adding interface on zKVM.
 NFSCLIENT | boolean | false | Indicates/enables nfs client in `console/yast2_nfs_client` for multi-machine test.
 NFSSERVER | boolean | false | Indicates/enables nfs server in `console/yast2_nfs_server`.
 NICEVIDEO |||
+NICTYPE_USER_OPTIONS | string | | `hostname=myguest` causes a fake DHCP hostname 'myguest' provided to SUT
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
