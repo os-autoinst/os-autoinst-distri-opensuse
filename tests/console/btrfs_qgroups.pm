@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,8 +31,7 @@ my $dest = "/mnt/qg";
 # poo#11446
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
-
+    $self->select_serial_terminal;
     # Set up
     assert_script_run "mkdir $dest";
     $self->set_playground_disk;
@@ -92,25 +91,16 @@ sub run {
     assert_script_run 'btrfs qgroup limit 200m e .';
     my $write_chunk = 'dd if=/dev/zero bs=1M count=190 of=e/file';
     # Overwriting same file should not exceed quota
-    if (script_run("for c in {1..2}; do $write_chunk; done")) {
-        record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
-    }
+    assert_script_run("for c in {1..2}; do $write_chunk; sleep 0.5; done");
+
     # write some more times to the same file to be sure
-    if (script_run("for c in {1..38}; do $write_chunk; done")) {
-        record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
-    }
+    assert_script_run("for c in {1..38}; do $write_chunk; sleep 0.5; done");
     assert_script_run 'sync';
-    assert_script_run 'rm e/file', fail_message => 'bsc#993841';
+    assert_script_run 'rm e/file';
     # test exceeding real quota
     my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=190 of=e/file_$c; done';
     assert_script_run $files_creation;
-    if (script_run('rm e/file_*')) {
-        record_soft_failure 'File removal test: bsc#1113042 - btrfs is not informed to commit transaction';
-        assert_script_run 'sync';
-        assert_script_run $files_creation;
-        assert_script_run 'rm -f e/file_*';
-    }
-
+    assert_script_run('rm e/file_*');
     assert_script_run "cd; umount $dest";
     assert_script_run "btrfsck $disk";
     $self->cleanup_partition_table;
