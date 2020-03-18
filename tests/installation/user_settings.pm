@@ -35,22 +35,21 @@ sub run {
         return;
     }
 
-    if (check_var('SLE_PRODUCT', 'hpc')) {
-        # in case of HPC product we okay to ignore mistyped username
-        $self->enter_userinfo(max_interval => utils::VERY_SLOW_TYPING_SPEED);
-        assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);
-    }
-    else {
+    if (get_var('ASSERT_BSC1122804')) {
         # retry if not typed correctly
         my $max_tries = 4;
         my $retry     = 0;
         do {
-            $self->enter_userinfo(max_interval => ($retry) ? utils::VERY_SLOW_TYPING_SPEED : undef);
+            $self->enter_userinfo(max_interval => utils::VERY_SLOW_TYPING_SPEED);
             assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);
             record_soft_failure('boo#1122804 - Typing issue with fullname') unless match_has_tag('inst-userinfostyped-expected-typefaces');
             $retry++;
         } while (($retry < $max_tries) && !match_has_tag('inst-userinfostyped-expected-typefaces'));
         assert_screen('inst-userinfostyped-expected-typefaces');    # fail if mistyped
+    }
+    else {
+        $self->enter_userinfo(username => 'bernhard', max_interval => utils::VERY_SLOW_TYPING_SPEED);
+        assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);
     }
 
     if (get_var('NOAUTOLOGIN') && !check_screen('autologindisabled', timeout => 0)) {
