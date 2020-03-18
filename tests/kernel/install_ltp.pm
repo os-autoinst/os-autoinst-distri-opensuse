@@ -183,7 +183,6 @@ ldir='/tmp/runtest-files-$tag'
 archive="\$ldir.tar.gz"
 mkdir -p \$ldir
 cd \$ldir
-ls --file-type $dir | sed "s/\\(.*\\)/ltp-\\1-$tag/" > \$ldir/ltp-runtest-files-$tag
 cp -v $dir/* ~/openposix-test-list \$ldir
 tar czvf \$archive *
 ls -la \$archive
