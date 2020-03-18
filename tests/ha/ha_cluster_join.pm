@@ -21,6 +21,9 @@ sub run {
     my $cluster_name = get_cluster_name;
     my $node_to_join = get_node_to_join;
 
+    # Ensure that ntp service is activated/started
+    activate_ntp;
+
     # Wait until cluster is initialized
     diag 'Wait until cluster is initialized...';
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
