@@ -60,6 +60,7 @@ our @EXPORT = qw(
   post_fail_hook
   test_flags
   is_not_maintenance_update
+  activate_ntp
 );
 
 # Global variables
@@ -520,6 +521,11 @@ sub is_not_maintenance_update {
         return 1;
     }
     return 0;
+}
+
+sub activate_ntp {
+    my $ntp_service = is_sle('15+') ? 'chronyd' : 'ntpd';
+    systemctl "enable --now $ntp_service.service";
 }
 
 1;

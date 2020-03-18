@@ -27,6 +27,9 @@ sub run {
     my $quorum_policy = 'stop';
     my $fencing_opt   = "-s $sbd_device";
 
+    # Ensure that ntp service is activated/started
+    activate_ntp;
+
     # If we failed to initialize the cluster, trying again but in debug mode
     # Note: the default timeout need to be increase because it can takes time to join the cluster
     # Initialize the cluster with diskless or shared storage SBD (default)
