@@ -2360,6 +2360,8 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/selinux_smoke";
     loadtest "security/selinux/print_se_context";
     loadtest "security/selinux/audit2allow";
+    loadtest "security/selinux/semodule";
+    loadtest "security/selinux/setsebool";
 }
 
 sub load_security_tests_mok_enroll {
