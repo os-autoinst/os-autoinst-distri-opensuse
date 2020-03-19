@@ -381,7 +381,7 @@ sub is_sle12_hdd_in_upgrade {
 Returns true if a desktop is installed
 =cut
 sub is_desktop_installed {
-    return get_var("DESKTOP") !~ /textmode|minimalx/;
+    return get_var("DESKTOP") !~ /textmode/;
 }
 
 =head2 is_system_upgrading
