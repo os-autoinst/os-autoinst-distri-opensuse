@@ -81,6 +81,16 @@ sub check_function {
     record_info "access_log", "Access log should containt successful job submits";
     assert_script_run 'grep "Send-Document successful-ok" /var/log/cups/access_log';
 
+    # Check error log
+    my $error_log = "/var/log/cups/error_log";
+
+    if (script_run("test -s $error_log") == 0) {
+        record_info("error log");
+        upload_logs($error_log, failok => 1);
+
+        assert_script_run('! grep -q "Unrecoverable error" ' . "$error_log");
+    }
+
     # Remove printers
     record_info "lpadmin -x", "Removing printers";
     assert_script_run "lpadmin -x $_" foreach (qw(printer_tmp printer_null));
