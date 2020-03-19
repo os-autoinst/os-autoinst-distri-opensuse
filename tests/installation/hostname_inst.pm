@@ -23,10 +23,12 @@ use version_utils;
 sub run {
     assert_screen "before-package-selection";
     select_console 'install-shell';
-    # NICTYPE_USER_OPTIONS="hostname=myguest" causes a fake DHCP hostname provided to SUT
+    # NICTYPE_USER_OPTIONS="hostname=myguest" causes a fake DHCP hostname provided by QEMU to SUT
     # 'install' is the default hostname if no hostname is get from environment
-    my $NICTYPE_USER_OPTIONS      = get_var('NICTYPE_USER_OPTIONS', 'install');
-    my $expected_install_hostname = ($NICTYPE_USER_OPTIONS =~ s/hostname=//r);
+    # but, we may expect a different hostname (linuxrc, hostname, real DHCP server pushing a hostname)
+    # from setting EXPECTED_INSTALL_HOSTNAME
+    my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME', get_var('NICTYPE_USER_OPTIONS', 'install'));
+    $expected_install_hostname =~ s/hostname=//;
     # Before SLE15-SP2, yast didn't take during installation the hostname by DHCP
     # See fate#319639
     if (is_sle('<15-SP2') && (script_run(qq{test "\$(hostname)" == "linux"}) == 0)) {
