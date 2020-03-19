@@ -36,7 +36,7 @@ sub await_password_check {
 }
 
 sub enter_userinfo {
-    my ($self, %args) = @_;
+    my (%args) = @_;
     $args{username}     //= $realname;
     $args{max_interval} //= undef;
     send_key 'alt-f';    # Select full name text field
