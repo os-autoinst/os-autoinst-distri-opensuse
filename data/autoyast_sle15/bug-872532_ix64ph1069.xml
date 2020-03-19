@@ -685,7 +685,6 @@
       <package>yast2-nis-client</package>
       <package>yast2-printer</package>
       <package>yast2-snapper</package>
-      <package>yast2-trans-en_US</package>
     </packages>
     <patterns config:type="list">
       <pattern>minimal_base</pattern>
