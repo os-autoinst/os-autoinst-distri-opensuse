@@ -42,6 +42,7 @@ DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combine with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
 EVERGREEN |||
 EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be finished after `installation/start_install` test module. So that all the test modules after this one will not be scheduled and executed.
+EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=', as a kernel cmd line argument)
 EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the installation bootloader.
 EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot process of a local installation.
 EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot prompt.
@@ -88,7 +89,7 @@ NETDEV | string | | Network device to be used when adding interface on zKVM.
 NFSCLIENT | boolean | false | Indicates/enables nfs client in `console/yast2_nfs_client` for multi-machine test.
 NFSSERVER | boolean | false | Indicates/enables nfs server in `console/yast2_nfs_server`.
 NICEVIDEO |||
-NICTYPE_USER_OPTIONS | string | | `hostname=myguest` causes a fake DHCP hostname 'myguest' provided to SUT
+NICTYPE_USER_OPTIONS | string | | `hostname=myguest` causes a fake DHCP hostname 'myguest' provided to SUT. It is used as expected hostname if `EXPECTED_INSTALL_HOSTNAME` is not set.
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
