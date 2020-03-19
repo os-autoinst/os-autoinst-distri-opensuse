@@ -34,26 +34,23 @@ sub run {
 
     $self->select_serial_terminal;
 
-    # Create the resource configuration
-    my $cluster_conf = 'hana_cluster.conf';
-    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
-    $cluster_conf = "/tmp/" . $cluster_conf;
-
-    # Initiate the template
-    file_content_replace($cluster_conf, '--sed-modifier' => 'g',
-        '%SID%'                => $sid,
-        '%HDB_INSTANCE%'       => $instance_id,
-        '%AUTOMATED_REGISTER%' => get_required_var('AUTOMATED_REGISTER'),
-        '%VIRTUAL_IP_ADDRESS%' => $virtual_ip,
-        '%VIRTUAL_IP_NETMASK%' => $virtual_netmask);
-
-    # Avoid hostname change on reboot.  See bsc#1153402
-    file_content_replace('/etc/sysconfig/network/dhcp', 'DHCLIENT_SET_HOSTNAME="yes"' => 'DHCLIENT_SET_HOSTNAME="no"');
-
     my $node1 = choose_node(1);
     my $node2 = choose_node(2);
 
     if (is_node(1)) {
+        # Create the resource configuration
+        my $cluster_conf = 'hana_cluster.conf';
+        assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
+        $cluster_conf = "/tmp/" . $cluster_conf;
+
+        # Initiate the template
+        file_content_replace($cluster_conf, '--sed-modifier' => 'g',
+            '%SID%'                => $sid,
+            '%HDB_INSTANCE%'       => $instance_id,
+            '%AUTOMATED_REGISTER%' => get_required_var('AUTOMATED_REGISTER'),
+            '%VIRTUAL_IP_ADDRESS%' => $virtual_ip,
+            '%VIRTUAL_IP_NETMASK%' => $virtual_netmask);
+
         foreach ($node1, $node2) {
             add_to_known_hosts($_);
         }
@@ -77,11 +74,9 @@ sub run {
 
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem HDB'";
         assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
-        sleep bmwqemu::scale_timeout(60);
         assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --remoteHost=$node1 -remoteInstance=$instance_id --replicationMode=sync --name=NODE2 --operationMode=logreplay'";
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
-        sleep bmwqemu::scale_timeout(30);
 
         # Synchronize the nodes
         barrier_wait "HANA_CREATED_CONF_$cluster_name";
