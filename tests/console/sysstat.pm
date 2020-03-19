@@ -18,6 +18,7 @@
 
 use base 'consoletest';
 use utils qw(zypper_call systemctl);
+use Utils::Architectures 'is_arm';
 use version_utils qw(is_sle is_leap is_opensuse);
 use strict;
 use warnings;
@@ -39,7 +40,11 @@ sub run {
     }
 
     #Populate /var/log/sa/`date +'%Y%m%d'`, that data will be used on the next tests
-    assert_script_run '/usr/lib64/sa/sa1 5 5';
+    if (is_arm) {
+        assert_script_run '/usr/lib/sa/sa1 5 5';
+    } else {
+        assert_script_run '/usr/lib64/sa/sa1 5 5';
+    }
 
     #Set 24h clock(removes AM/PM extra column), extract a pid number, confirm its an integer
     validate_script_output "LC_TIME='C' pidstat  |awk '{print \$3}' |head |tail -n 1", sub { /^\d+$/ };
