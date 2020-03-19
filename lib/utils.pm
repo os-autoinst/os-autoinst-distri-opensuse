@@ -1362,6 +1362,13 @@ sub reconnect_mgmt_console {
         }
 
         if (!check_var('DESKTOP', 'textmode')) {
+            if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
+                select_console 'root-console';
+                if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
+                    record_soft_failure('bsc#1154156 - After upgrade from 12SP5, SuSEfirewall2 blocks xvnc.socket on s390x');
+                    script_run 'iptables -I input_ext -p tcp -m tcp --dport 5900:5999 -j ACCEPT';
+                }
+            }
             select_console('x11', await_console => 0);
         }
     }
