@@ -19,10 +19,11 @@
 
 use strict;
 use warnings;
-use parent qw(installation_user_settings y2_installbase);
+use base 'y2_installbase';
 use testapi;
 use version_utils 'is_sle';
 use utils;
+use installation_user_settings;
 
 sub run {
     my ($self) = @_;
@@ -67,7 +68,7 @@ sub run {
 
     # done user setup
     send_key $cmd{next};
-    $self->await_password_check;
+    await_password_check;
 }
 
 1;
