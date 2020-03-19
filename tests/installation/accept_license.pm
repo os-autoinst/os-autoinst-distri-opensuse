@@ -32,7 +32,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    assert_screen_with_soft_timeout('license-agreement', timeout => 60, soft_timeout => 120, bugref => 'poo#63724');
+    assert_screen('license-agreement');
     # optional checks for the extended installation
     if (get_var('INSTALLER_EXTENDED_TEST')) {
         $self->verify_license_has_to_be_accepted;
