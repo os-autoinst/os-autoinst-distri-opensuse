@@ -722,17 +722,6 @@ sub reconnect_xen {
     select_console('sut');
 }
 
-sub handle_emergency_if_needed {
-    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
-}
-
-sub handle_displaymanager_login {
-    my ($self, %args) = @_;
-    assert_screen [qw(displaymanager emergency-shell emergency-mode)], $args{ready_time};
-    handle_emergency_if_needed;
-    handle_login unless $args{nologin};
-}
-
 =head2 handle_pxeboot
 
  handle_pxeboot(bootloader_time => $bootloader_time, pxemenu => $pxemenu, pxeselect => $pxeselect);
@@ -798,40 +787,6 @@ sub handle_grub {
     }
 }
 
-sub wait_boot_textmode {
-    my ($self, %args) = @_;
-    # For s390x we validate system boot in reconnect_mgmt_console test module
-    # and use ssh connection to operate on the SUT, so do early return
-    return if check_var('ARCH', 's390x');
-
-    my $ready_time       = $args{ready_time};
-    my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
-    # 2nd stage of autoyast can be considered as linux-login
-    push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
-    # Soft-fail for user_defined_snapshot in extra_tests_on_gnome and extra_tests_on_gnome_on_ppc
-    # if not able to boot from snapshot
-    if (get_var('EXTRATEST', '') !~ /desktop/) {
-        assert_screen $textmode_needles, $ready_time;
-    }
-    elsif (is_sle('<15') && !check_screen $textmode_needles, $ready_time / 2) {
-        # We are not able to boot due to bsc#980337
-        record_soft_failure 'bsc#980337';
-        # Switch to root console and continue
-        select_console 'root-console';
-    }
-    elsif (check_screen 'displaymanager', 90) {
-        # due to workaround on sle15+ is test user_defined_snapshot expecting to boot textmode despite snapshot booted properly
-        select_console 'root-console';
-    }
-
-    handle_emergency_if_needed;
-
-    reset_consoles;
-    $self->{in_wait_boot} = 0;
-    return;
-
-}
-
 sub handle_broken_autologin_boo1102563 {
     record_soft_failure 'boo#1102563 - GNOME autologin broken. Handle login and disable Wayland for login page to make it work next time';
     handle_login;
@@ -875,17 +830,30 @@ sub wait_boot_past_bootloader {
     my $nologin      = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
-    # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
-    # select_console('x11'); also performs a login, so we should be at generic-desktop.
-    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
-    if ($gnome_ipmi) {
-        # first boot takes sometimes quite long time, ensure that it reaches login prompt
-        $self->wait_boot_textmode(ready_time => $ready_time);
-        select_console('x11');
+    # For s390x we validate system boot in reconnect_mgmt_console test module
+    # and use ssh connection to operate on the SUT, so do early return
+    return if check_var('ARCH', 's390x');
+
+    my $login_needles = [qw(emergency-shell emergency-mode)];
+    push(@{$login_needles}, 'displaymanager') if is_desktop_installed;
+    push(@{$login_needles}, 'linux-login')    if !is_desktop_installed || $textmode;
+    push(@{$login_needles}, 'generic-desktop') unless get_var('NOAUTOLOGIN') && !is_desktop_installed;
+    push(@{$login_needles}, 'opensuse-welcome') if opensuse_welcome_applicable;
+    unless (check_screen($login_needles, $ready_time)) {
+        # Switch to root console on sle12 continue when it's bsc#980337 otherwise die
+        select_console 'root-console';
+        if (is_sle('<15') && script_run('journalctl -r|grep "maximum number of X display failures reached"') == 0) {
+            record_soft_failure 'bsc#980337';
+        }
+        else {
+            die 'Investigate why did X display not start, unknown failure';
+        }
+        return;
     }
-    elsif ($textmode || check_var('DESKTOP', 'textmode')) {
-        return $self->wait_boot_textmode(ready_time => $ready_time);
-    }
+    return           if match_has_tag('linux-login');
+    handle_emergency if (match_has_tag('emergency-shell') or match_has_tag('emergency-mode'));
+    reset_consoles;
+    $self->{in_wait_boot} = 0;
 
     # On SLES4SAP upgrade tests with desktop, only check for a DM screen with the SAP System
     # Administrator user listed but do not attempt to login
@@ -895,35 +863,19 @@ sub wait_boot_past_bootloader {
         return;
     }
 
-    $self->handle_displaymanager_login(ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin);
-    return if $args{nologin};
+    return unless get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin;
+    handle_login;
 
-    my @tags = qw(generic-desktop emergency-shell emergency-mode);
-    push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
-
+    my @tags = 'generic-desktop';
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
-    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
+    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome') && !get_var("NOAUTOLOGIN")) {
         push(@tags, 'displaymanager');
     }
     # bsc#1157928 - deal with additional polkit windows
     if (is_sle && !is_sle('<=15-SP1')) {
         push(@tags, 'authentication-required-user-settings');
     }
-
-    # GNOME and KDE get into screenlock after 5 minutes without activities.
-    # using multiple check intervals here then we can get the wrong desktop
-    # screenshot at least in case desktop screenshot changed, otherwise we get
-    # the screenlock screenshot.
-    my $timeout        = $ready_time;
-    my $check_interval = 30;
-    while ($timeout > $check_interval) {
-        my $ret = check_screen \@tags, $check_interval;
-        last if $ret;
-        $timeout -= $check_interval;
-    }
-    # the last check after previous intervals must be fatal
-    assert_screen \@tags, $check_interval;
-    handle_emergency_if_needed;
+    assert_screen \@tags;
 
     handle_broken_autologin_boo1102563()          if match_has_tag('displaymanager');
     handle_additional_polkit_windows_bsc1157928() if match_has_tag('authentication-required-user-settings');
