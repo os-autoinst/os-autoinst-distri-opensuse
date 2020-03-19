@@ -15,14 +15,13 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use migration qw(check_rollback_system boot_into_ro_snapshot);
+use migration qw(check_rollback_system);
 use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
 
-    boot_into_ro_snapshot;
-    select_console 'root-console';
+    $self->wait_boot_past_bootloader(textmode => 1);
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
     # 1b) just debugging infos
