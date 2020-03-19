@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,13 +15,14 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use migration qw(check_rollback_system);
+use migration 'check_rollback_system';
 use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
 
     $self->wait_boot_past_bootloader(textmode => 1);
+    select_console 'root-console';
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
     # 1b) just debugging infos
@@ -31,7 +32,7 @@ sub run {
     script_run("snapper rollback -d rollback-before-migration");
     assert_script_run("snapper list | tail -n 2 | grep rollback", 180);
     power_action('reboot', textmode => 1, keepconsole => 1);
-    $self->wait_boot(ready_time => 300, bootloader_time => 300);
+    $self->wait_boot(ready_time => 300, bootloader_time => 300, textmode => 1);
     select_console 'root-console';
     check_rollback_system;
 }
