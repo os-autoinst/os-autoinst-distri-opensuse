@@ -25,7 +25,10 @@ sub run_one_by_one {
     my $case   = get_var("CASE_NAME");
     my $repeat = get_var("CASE_REPEAT");
     my $timeout //= 180;
-    my $i = 1;
+    my $i         = 1;
+    my $fail_path = get_var("FAIL_PATH");
+    my $fail_list = get_var("FAIL_LIST");
+
 
     # create run list
     assert_script_run("echo \'#!/bin/bash\' > /root/qaset/list");
@@ -39,12 +42,17 @@ sub run_one_by_one {
     assert_script_run("echo \"$case\" >> /root/qaset/list");
     assert_script_run("echo \')\' >> /root/qaset/list");
     for (; $i <= $repeat; $i++) {
+        # clean fail.list
+        script_run("rm $fail_path/$fail_list");
         assert_script_run("/usr/share/qa/qaset/qaset reset");
         assert_script_run("/usr/share/qa/qaset/run/performance-run.upload_Beijing");
         my $time_out = get_var("RUN_TIME_MINUTES");
         while (1) {
             #wait for case running completd with /var/log/qaset/control/DONE
             if (script_run("ls /var/log/qaset/control/ | grep DONE") == 0) {
+                if (script_run("ls $fail_path | grep $fail_list") == 0) {
+                    die "Test failed";
+                }
                 last;
             }
             if ($time_out == 0) {
