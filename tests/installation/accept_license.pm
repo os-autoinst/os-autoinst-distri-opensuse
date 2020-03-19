@@ -32,7 +32,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    assert_screen('license-agreement');
+    assert_screen('license-agreement', 120);
     # optional checks for the extended installation
     if (get_var('INSTALLER_EXTENDED_TEST')) {
         $self->verify_license_has_to_be_accepted;
