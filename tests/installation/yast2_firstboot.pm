@@ -62,9 +62,9 @@ sub clock_and_timezone {
 }
 
 sub user_setup {
-    my $is_not_shared_passwd = shift;
+    my ($self, $is_not_shared_passwd) = @_;
     assert_screen 'local_user';
-    enter_userinfo(username => get_var('YAST2_FIRSTBOOT_USERNAME'));
+    $self->enter_userinfo(username => get_var('YAST2_FIRSTBOOT_USERNAME'));
     if (defined($is_not_shared_passwd)) {
         send_key 'alt-t' if (is_opensuse);
     }
@@ -88,7 +88,7 @@ sub run {
     welcome;
     $self->license;
     clock_and_timezone;
-    user_setup(1);
+    $self->user_setup(1);
     root_setup;
     assert_screen 'installation_completed';
     send_key $cmd{finish};
