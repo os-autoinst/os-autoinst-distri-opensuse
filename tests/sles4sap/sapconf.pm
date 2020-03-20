@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: sapconf availability and basic commands to tuned-adm
+# Working both on plain SLE and SLES4SAP products
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
 use base "sles4sap";
@@ -119,8 +120,8 @@ sub run {
       powersave throughput-performance virtual-guest);
     # Testing 'virtual-host' on a VM isn't very useful and can lead to sporadic timeout issues
     push @tuned_profiles, 'virtual-host' unless (check_var('BACKEND', 'qemu'));
-    # Add SAP profiles depending of the OS version
-    push @tuned_profiles, is_sle('15+') ? qw(sapconf saptune) : qw(sap-ase sap-bobj sap-hana sap-netweaver);
+    # Add SAP profiles depending of the products and the OS version
+    push @tuned_profiles, is_sle('15+') ? (check_var('SLE_PRODUCT', 'sles4sap') ? qw(sapconf saptune) : 'sapconf') : qw(sap-ase sap-bobj sap-hana sap-netweaver);
 
     $self->select_serial_terminal;
 
