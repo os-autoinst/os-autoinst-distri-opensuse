@@ -444,13 +444,13 @@ sub terraform_destroy {
     record_info('ERROR', 'Terraform exited with' . $ret, result => 'fail') if ($ret != 0);
 }
 
-=head2 vault_login
+=head2 __vault_login
 
 Login to vault using C<_SECRET_PUBLIC_CLOUD_REST_USER> and
 C<_SECRET_PUBLIC_CLOUD_REST_PW>. The retrieved VAULT_TOKEN is stored in this
 instance and used for further C<publiccloud::provider::vault_api()> calls.
 =cut
-sub vault_login
+sub __vault_login
 {
     my ($self)   = @_;
     my $url      = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
@@ -462,25 +462,40 @@ sub vault_login
     $url = $url . '/v1/auth/userpass/login/' . $user;
     my $res = $ua->post($url => json => {password => $password})->result;
     if (!$res->is_success) {
-        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
-        if ($res->code == 400) {
-            for my $e (@{$res->json->{errors}}) {
-                bmwqemu::diag($e);
-            }
-        }
+        my $err_msg = 'Request ' . $url . ' failed with: ' . $res->message . ' (' . $res->code . ')';
+        $err_msg .= "\n" . join("\n", @{$res->json->{errors}}) if ($res->code == 400);
+        record_info('Vault login', $err_msg, result => 'fail');
         die("Vault login failed - $url");
     }
 
     return $self->vault_token($res->json('/auth/client_token'));
 }
 
-=head2 vault_api
+=head2 vault_login
+
+Wrapper arround C<<$self->vault_login()>> to have retry capability.
+=cut
+sub vault_login {
+    my $self  = shift;
+    my $tries = 3;
+    my $ret;
+    while ($tries-- > 0) {
+        eval {
+            $ret = $self->__vault_login();
+        };
+        return $ret unless $@;
+        sleep 10;
+    }
+    die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
+}
+
+=head2 __vault_api
 
 Invoke a vault API call. It use _SECRET_PUBLIC_CLOUD_REST_URL as base
 url.
 Depending on the method (get|post) you can pass additional data as json.
 =cut
-sub vault_api {
+sub __vault_api {
     my ($self, $path, %args) = @_;
     my $method = $args{method} // 'get';
     my $data   = $args{data}   // {};
@@ -491,6 +506,7 @@ sub vault_api {
     $self->vault_login() unless ($self->vault_token);
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
+    $ua->request_timeout(40);
     $url = $url . $path;
     bmwqemu::diag("Request Vault REST API: $url");
     if ($method eq 'get') {
@@ -505,16 +521,32 @@ sub vault_api {
     }
 
     if (!$res->is_success) {
-        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
-        if ($res->code == 400) {
-            for my $e (@{$res->json->{errors}}) {
-                bmwqemu::diag($e);
-            }
-        }
+        my $err_msg = 'Request ' . $url . ' failed with: ' . $res->message . ' (' . $res->code . ')';
+        $err_msg .= "\n" . join("\n", @{$res->json->{errors}}) if ($res->code == 400);
+        record_info('Vault API', $err_msg, result => 'fail');
         die("Vault REST api call failed - $url");
     }
 
     return $res->json;
+}
+
+=head2 vault_api
+
+Wrapper around C<<$self->vault_api()>> to get retry capability.
+=cut
+sub vault_api {
+    my ($self, $path, %args) = @_;
+    my $ret;
+    my $tries = 3;
+
+    while ($tries-- > 0) {
+        eval {
+            $ret = $self->__vault_api($path, %args);
+        };
+        return $ret unless ($@);
+        sleep 10;
+    }
+    die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
 }
 
 =head2 vault_get_secrets
