@@ -41,7 +41,7 @@ sub run {
         my $max_tries = 4;
         my $retry     = 0;
         do {
-            enter_userinfo(max_interval => utils::VERY_SLOW_TYPING_SPEED);
+            enter_userinfo(max_interval => 1);    # 1 is the slowest max_interval for type_string()
             assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);
             record_soft_failure('boo#1122804 - Typing issue with fullname') unless match_has_tag('inst-userinfostyped-expected-typefaces');
             $retry++;
