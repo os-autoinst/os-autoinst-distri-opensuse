@@ -32,14 +32,14 @@ sub is_offline_upgrade_or_livecd {
 sub compare_orphans_lists {
     my %args = @_;
 
-    # Packages do not have a whistespace in their labels
-    # A trailing or leading whitespace introduced along the path has to be removed
-    # Usually it can happen on ssh like consoles (e.g. tunnel-console)
-    # Original array is going to be updated inside map
     my @not_handled_orphans = ();
     if ($args{whitelist}) {
         # Remove duplicate packages from the whitelist
         my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
+        # Packages do not have a whistespace in their labels
+        # A trailing or leading whitespace introduced along the path has to be removed
+        # Usually it can happen on ssh like consoles (e.g. tunnel-console)
+        # Original array is going to be updated inside map
         @not_handled_orphans = grep {
             s/\s+//g;
             !$wl{$_};
@@ -56,7 +56,8 @@ sub compare_orphans_lists {
 }
 
 sub run {
-    select_console 'root-console';
+    my ($self) = shift;
+    $self->select_serial_terminal;
 
     record_info('Upgraded?',
         'Has the SUT been upgraded or installed from LIVECD? Both can possibly cause orphans',
@@ -64,10 +65,11 @@ sub run {
 
     # Orphans are also expected on JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
+    # Filter out zypper warning messages and release or skelcd packages
     my @orphans = split('\n',
-        script_output q[zypper --quiet packages --orphaned | 
-                            grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
-                            tee -a /tmp/orphaned.log | awk -F "|" 'NR>2 {print $3}'], proceed_on_failure => 1);
+        script_output q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log |
+         grep -v "^Warning" | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
+         awk -F \| 'NR>2 {print $3}'], proceed_on_failure => 1);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
         compare_orphans_lists(zypper_orphans => \@orphans,
