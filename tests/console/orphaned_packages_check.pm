@@ -28,42 +28,45 @@ sub is_offline_upgrade_or_livecd {
     return (!get_var('ONLINE_MIGRATION') && is_upgrade) || get_var('LIVECD');
 }
 
+sub to_string {
+    return join ',', @_;
+}
+
 # Compare detected orphans with whitelisted if any
 sub compare_orphans_lists {
     my %args = @_;
 
-    my @not_handled_orphans = ();
+    # A trailing or leading whitespace introduced along the path has to be removed
+    # Usually it can happen in ssh like consoles (e.g. tunnel-console)
+    # Input array items will be modified inside grep
+    my @missed_orphans = grep(s/\s+//g, @{$args{zypper_orphans}});
     if ($args{whitelist}) {
         # Remove duplicate packages from the whitelist
         my %wl = map { $_ => 1 } (split(',', $args{whitelist}));
-        # Packages do not have a whistespace in their labels
-        # A trailing or leading whitespace introduced along the path has to be removed
-        # Usually it can happen on ssh like consoles (e.g. tunnel-console)
-        # Original array is going to be updated inside map
-        @not_handled_orphans = grep {
-            s/\s+//g;
-            !$wl{$_};
-        } @{$args{zypper_orphans}};
-    } else { @not_handled_orphans = @{$args{zypper_orphans}}; }
-
-    record_info('Detected Orphans', join(',', @{$args{zypper_orphans}}));
+        @missed_orphans = grep { !$wl{$_} } @{$args{zypper_orphans}};
+    }
+    # Summary
+    record_info('Detected Orphans', to_string @{$args{zypper_orphans}});
     record_info('Orphans whitelisted',
         $args{whitelist} // 'No orphans whitelisted within the test suite',
-        result => $args{whitelist} ? 'ok' : 'fail');
-    record_info('Missing', (@not_handled_orphans) ? (join(',', @not_handled_orphans), result => 'fail') : 'None');
+        result => $args{whitelist} ? 'ok' : 'fail'
+    );
+    record_info('Missing',
+        @missed_orphans ? to_string @missed_orphans : 'None',
+        result => @missed_orphans ? 'fail' : 'ok'
+    );
 
-    return ((scalar @not_handled_orphans) == 0);
+    return ((scalar @missed_orphans) == 0);
 }
 
 sub run {
-    my ($self) = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
 
     record_info('Upgraded?',
         'Has the SUT been upgraded or installed from LIVECD? Both can possibly cause orphans',
         result => (is_offline_upgrade_or_livecd) ? 'ok' : 'fail');
 
-    # Orphans are also expected on JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
+    # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages
     my @orphans = split('\n',
