@@ -49,6 +49,8 @@ sub run_in_powershell {
     assert_screen($args{tags}, 400);
     if (match_has_tag 'confirm-reboot') {
         send_key 'ret';
+    } elsif (match_has_tag 'install-linux-in-wsl') {
+        return;
     } else {
         send_key 'ctrl-l';
     }
