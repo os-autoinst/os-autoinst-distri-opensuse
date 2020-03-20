@@ -29,6 +29,7 @@ sub run {
 
     zypper_call("in $mpi");
 
+    barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait('MPI_SETUP_READY');
     barrier_wait('MPI_BINARIES_READY');
     barrier_wait('MPI_RUN_TEST');
