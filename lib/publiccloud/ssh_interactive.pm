@@ -43,14 +43,13 @@ sub ssh_interactive_tunnel {
 }
 
 sub ssh_interactive_join {
-    # Prepare the environment to use the SSH tunnel for upload/download from the worker
-    #set_var('SUT_HOSTNAME',          script_output('sed -n "s/^  Hostname \([0-9.]*\)$/\1/p" ~/.ssh/config'));
-    set_var('AUTOINST_URL_HOSTNAME', 'localhost');
-    set_sshserial_dev();
-
     # Open SSH interactive session and check the serial console works
     type_string("ssh -t sut\n");
-    wait_serial("ssh_serial_ready", 90);
+    wait_serial("ssh_serial_ready", 90) if (get_var("AUTOINST_URL_HOSTNAME", '') !~ /localhost/);
+
+    # Prepare the environment to use the SSH tunnel for upload/download from the worker
+    set_var('AUTOINST_URL_HOSTNAME', 'localhost');
+    set_sshserial_dev();
 
     $testapi::distri->set_standard_prompt('root');
 }

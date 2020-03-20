@@ -69,9 +69,9 @@ sub run {
         type_string "ssh -v -l $ssh_testman localhost -t\n";
         wait_serial('Are you sure you want to continue connecting \(yes/no(/\[fingerprint\])?\)\?', undef, 0, no_regex => 0);
         type_string "yes\n";
-        wait_serial('Password:', undef, 0, no_regex => 1);
+        wait_serial('[P|p]assword:', undef, 0, no_regex => 0);
         type_string "$ssh_testman_passwd\n";
-        wait_serial('sshboy@susetest:~>', undef, 0, no_regex => 1);
+        wait_serial('sshboy@', undef, 0, no_regex => 1);
         type_string "export PS1='# '\n";
 
         # Check that we are really in the SSH session
