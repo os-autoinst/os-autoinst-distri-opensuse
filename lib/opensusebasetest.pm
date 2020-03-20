@@ -16,7 +16,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
 use utils;
-use Utils::Backends 'has_serial_over_ssh';
+use Utils::Backends qw(has_serial_over_ssh is_pvm);
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
@@ -618,7 +618,7 @@ sub wait_grub {
     elsif (match_has_tag('encrypted-disk-password-prompt')) {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
-        assert_screen "grub2", 90;
+        assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }
