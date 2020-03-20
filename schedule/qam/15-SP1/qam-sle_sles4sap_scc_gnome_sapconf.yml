@@ -4,4 +4,5 @@ description:    >
 schedule:
   - boot/boot_to_desktop
   - console/system_prepare
+  - sles4sap/patterns
   - sles4sap/sapconf
