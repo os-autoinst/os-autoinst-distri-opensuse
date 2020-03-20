@@ -29,7 +29,7 @@ my $powershell_cmds = {
     enable_developer_mode =>
 q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1},
     enable_wsl_feature => {
-        wsl         => q{Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux"},
+        wsl         => q{Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux},
         vm_platform => q{Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -NoRestart}
     }
 };
@@ -72,7 +72,7 @@ sub run {
         wait_still_screen stilltime => 3, timeout => 10;
         # b) Reach certificate installation
         assert_and_click 'open-file-properties';
-        assert_and_click 'digital-signatures';
+        assert_and_click 'digital-signatures', timeout => 60;
         assert_and_click 'build-service-cert';
         assert_and_click 'cert-details';
         assert_and_click 'view-certificate-details';
@@ -108,10 +108,11 @@ sub run {
 
     # 5) Install Linux in WSL
     $self->open_powershell_as_admin;
-    type_string "C:\\$wsl_appx_filename";
-    wait_still_screen stilltime => 3, timeout => 10;
-    send_key 'ret';
-    wait_still_screen stilltime => 3, timeout => 10;
+    $self->run_in_powershell(
+        cmd  => 'ii C:\\' . $wsl_appx_filename,
+        tags => 'install-linux-in-wsl'
+    );
+    assert_and_click 'install-linux-in-wsl', timeout => 120;
 }
 
 1;

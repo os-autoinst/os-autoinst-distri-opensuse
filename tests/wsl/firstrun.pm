@@ -101,7 +101,6 @@ sub register_via_scc {
 
 sub run {
     # WSL installation is in progress
-    assert_and_click 'install-linux-in-wsl', timeout => 120;
     assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 240;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
