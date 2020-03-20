@@ -32,7 +32,7 @@ sub run {
     # Make sure that PackageKit is not running
     pkcon_quit;
     # if !QAM test suite then register Legacy module
-    (!!is_updates_tests || is_opensuse) || add_suseconnect_product('sle-module-legacy');
+    (is_updates_tests || is_opensuse) || add_suseconnect_product('sle-module-legacy');
     # Supported Java versions for sle15sp2
     # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP2/#development-java-versions
     # java-11-openjdk                   -> Basesystem
@@ -48,7 +48,10 @@ sub run {
     assert_script_run 'chmod +x test_java.sh';
     assert_script_run './test_java.sh';
     # if !QAM test suite then cleanup test suite environment
-    (!!is_updates_tests || is_opensuse) || remove_suseconnect_product('sle-module-legacy');
+    unless (is_updates_tests || is_opensuse) {
+        remove_suseconnect_product('sle-module-legacy');
+        (script_run 'rpm -qa | grep java-1_') || zypper_call('rm java-1_*');
+    }
 }
 
 sub post_fail_hook {
