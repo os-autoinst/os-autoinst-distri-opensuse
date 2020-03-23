@@ -542,19 +542,35 @@ sub check_fail_over {
     die('Active Link is the same after interface cut');
 }
 
-sub wait_for_dhcpd {
-    my ($self) = @_;
-    my $timeout = 60;
-    while ($timeout > 0) {
-        if (!systemctl('is-active dhcpd.service', ignore_failure => 1)) {
-            record_info('DHCP', 'dhcp active');
-            return 1;
+=head2 sync_start_of
+
+  sync_start_of($service, $mutex, [,$timeout])
+
+Start C<$service> within defined $timeout ( default is 60).
+After succesfully service start will create mutex with C<$mutex>
+which can be used by parallel test to catch this event
+
+=cut
+sub sync_start_of {
+    my ($self, $service, $mutex, $tries) = @_;
+    $tries //= 12;
+    if (script_run("systemctl start $service.service") == 0) {
+        while ($tries > 0) {
+            if (script_run("systemctl is-active $service.service") == 0) {
+                record_info($service, $service . ' is active');
+                die("Create mutex failed") unless mutex_create($mutex);
+                return 0;
+            }
+            $tries -= 1;
+            sleep 5;
         }
-        $timeout -= 1;
-        sleep 1;
     }
-    systemctl('status dhcpd.service');
-    die('DHCP not comming up');
+    # if we get here means that service failed to start
+    script_run("journalctl -u $service");
+    # we creating this mutex anyway even so we know that we fail to start service
+    # to not cause dead-lock
+    die("Create mutex failed") unless mutex_create($mutex);
+    die("Failed to start $service");
 }
 
 sub ifbind {

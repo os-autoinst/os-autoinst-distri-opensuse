@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,9 +26,7 @@ sub run {
     assert_script_run(sprintf("ip a a %s/24 dev %s", $self->get_ip(type => 'second_card'), $ctx->iface()));
     systemctl 'stop dhcpd.service';
     $self->get_from_data('wicked/dhcp/dhcpd_2nics.conf', '/etc/dhcpd.conf');
-    systemctl 'start dhcpd.service';
-    $self->wait_for_dhcpd();
-    die("Create mutex failed") unless mutex_create('t08_dhcpd_setup_complete');
+    $self->sync_start_of('dhcpd', 'dhcpdbasict08');
 }
 
 sub test_flags {
