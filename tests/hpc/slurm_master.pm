@@ -433,8 +433,8 @@ sub extended_hpc_tests {
     zypper_call('in git gcc bc');
 
     #ensure HPC cluster installs needed rpms
-    zypper_call('in openmpi3-gnu-hpc openmpi3-gnu-hpc-devel bc openmpi3-devel');
-    zypper_call('in hypre_*-gnu-*-hpc* cpuid papi_*-hpc boost_*-gnu-hpc gsl_*-gnu-hpc petsc_*-gnu-*-hpc*');
+    zypper_call('in openmpi3 openmpi3-gnu-hpc openmpi3-gnu-hpc-devel bc openmpi3-devel');
+    zypper_call('in pmix hypre_*-gnu-*-hpc* cpuid papi_*-hpc boost_*-gnu-hpc gsl_*-gnu-hpc petsc_*-gnu-*-hpc*');
     script_run('export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/openmpi3/lib64/');
     script_run('wget --quiet ' . data_url('hpc/simple_mpi.c') . ' -O /tmp/simple_mpi.c');
     script_run('/usr/lib64/mpi/gcc/openmpi3/bin/mpicc /tmp/simple_mpi.c -o /tmp/simple_mpi | tee /tmp/make.out');
