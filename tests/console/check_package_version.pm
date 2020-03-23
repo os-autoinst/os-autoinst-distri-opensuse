@@ -56,7 +56,7 @@ sub cmp_version {
 sub cmp_packages {
     my ($pcks, $pckv, $jsc) = @_;
     record_info($pcks, "$pcks version check after migration");
-    my $output = script_output("zypper se -xs $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", proceed_on_failure => 1, 100);
+    my $output = script_output("zypper se -xs $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", 100, proceed_on_failure => 1);
     my $out    = '';
     for my $line (split(/\r?\n/, $output)) {
         if (trim($line) =~ m/^\d+\.\d+(\.\d+)?/) {
