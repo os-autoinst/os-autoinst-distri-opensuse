@@ -22,16 +22,22 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    assert_script_run "rm -rf nts_* ||:";
+    assert_script_run "rm -rf nts_* scc_* ||:";
     assert_script_run "supportconfig -t . -B test", 800;
-    assert_script_run "cd nts_test";
+
+    # bcc#1166774
+    if (script_run("test -d scc_test") == 0) {
+        assert_script_run "cd scc_test";
+    } else {
+        assert_script_run "cd nts_test";
+    }
 
     # Check few file whether expected content is there.
     assert_script_run "diff <(awk '/\\/proc\\/cmdline/{getline; print}' boot.txt) /proc/cmdline";
     assert_script_run "grep -q -f /etc/os-release basic-environment.txt";
 
     assert_script_run "cd ..";
-    assert_script_run "rm -rf nts_* ||:";
+    assert_script_run "rm -rf nts_* scc_* ||:";
 }
 
 1;
