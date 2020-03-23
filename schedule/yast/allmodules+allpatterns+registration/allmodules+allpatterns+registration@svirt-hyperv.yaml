@@ -35,12 +35,12 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - console/suseconnect_scc
   - console/sle15_workarounds
   - console/integration_services
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
+  - console/suseconnect_scc
   - shutdown/shutdown
   - shutdown/hyperv_upload_assets

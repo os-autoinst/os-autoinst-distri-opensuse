@@ -37,12 +37,12 @@ schedule:
   - installation/reboot_after_installation
   - boot/reconnect_mgmt_console
   - installation/first_boot
-  - console/suseconnect_scc
   - console/check_resume
   - console/sle15_workarounds
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
+  - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown

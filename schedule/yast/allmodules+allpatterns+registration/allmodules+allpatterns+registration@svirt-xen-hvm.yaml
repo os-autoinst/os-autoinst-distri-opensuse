@@ -36,11 +36,11 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - console/suseconnect_scc
   - console/sle15_workarounds
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
+  - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
   - shutdown/svirt_upload_assets
