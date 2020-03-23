@@ -16,14 +16,48 @@ use testapi;
 use Mojo::File 'path';
 use Mojo::JSON;
 
+our $azure_byos      = 'test_sles,test_sles_azure';
+our $azure_on_demand = 'test_sles_wait_on_registration,test_sles,test_sles_on_demand,test_sles_azure';
+
+our $ec2_byos       = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
+our $ec2_byos_chost = 'test_sles,test_sles_ec2';
+our $ec2_on_demand  = 'test_sles_wait_on_registration,test_sles,test_sles_ec2,test_sles,test_sles_on_demand,test_sles_ec2_on_demand';
+
+our $gce_byos      = 'test_sles_wait_on_registration,test_sles,test_sles_gce';
+our $gce_on_demand = 'test_sles_wait_on_registration,test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
+
+our $img_proof_tests = {
+    'Azure-BYOS'       => $azure_byos,
+    'Azure-Basic'      => $azure_on_demand,
+    'Azure-Standard'   => $azure_on_demand,
+    'Azure-CHOST-BYOS' => $azure_byos,
+    'Azure-HPC'        => $azure_on_demand,
+    'Azure-HPC-BYOS'   => $azure_byos,
+
+    'EC2-CHOST-BYOS'   => $ec2_byos_chost,
+    'EC2-HVM'          => $ec2_on_demand,
+    'EC2-HVM-ARM'      => $ec2_on_demand,
+    'EC2-HVM-BYOS'     => $ec2_byos,
+    'EC2-HVM-HPC-BYOS' => $ec2_byos,
+
+    GCE              => $gce_on_demand,
+    'GCE-BYOS'       => $gce_byos,
+    'GCE-CHOST-BYOS' => $gce_byos,
+};
+
 sub run {
     my ($self) = @_;
 
     $self->select_serial_terminal;
 
+    my $flavor   = get_required_var('FLAVOR');
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance();
-    my $tests    = get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS', '');
+    my $tests    = get_required_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
+    if ($tests eq "default") {
+        $tests = $img_proof_tests->{$flavor};
+        die("Missing img_proof tests for $flavor - plz change img_proof.pm") unless $tests;
+    }
 
     my $img_proof = $provider->img_proof(
         instance    => $instance,
