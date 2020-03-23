@@ -3,6 +3,9 @@ name:           offline_install+skip_registration
 description:    >
   Offline installation. Skipping registration for SLE 15, as requires network connection.
   This is default behavior for SLE 12.
+vars:
+  SCC_REGISTER: 'none'
+  ADDONS: all-packages
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -10,6 +13,7 @@ schedule:
   - installation/network_configuration
   - installation/scc_registration
   - installation/addon_products_sle
+  - installation/system_role
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
