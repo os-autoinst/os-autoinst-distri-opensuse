@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: IPv6 - Managed on, prefix length != 64, RDNSS
+# Summary: IPv6 - Managed on, prefix length != 64
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -19,9 +19,8 @@ use lockapi;
 
 sub run {
     my ($self, $ctx) = @_;
-    mutex_wait('radvdipv6t01');
+    mutex_wait('radvdipv6t02');
     $self->check_ipv6($ctx);
-
 }
 
 sub test_flags {

@@ -15,13 +15,15 @@
 use base 'wickedbase';
 use strict;
 use warnings;
-use lockapi;
+use testapi;
+use utils 'file_content_replace';
 
 sub run {
     my ($self, $ctx) = @_;
-    mutex_wait('radvdipv6t01');
-    $self->check_ipv6($ctx);
-
+    $self->get_from_data('wicked/radvd/radvd_01.conf', '/etc/radvd.conf');
+    my $ipv6_dns = $self->get_ip(type => 'dns_advice');
+    file_content_replace('/etc/radvd.conf', xxx => $ctx->iface(), dns_advice => $ipv6_dns);
+    $self->sync_start_of('radvd', 'radvdipv6t01');
 }
 
 sub test_flags {
