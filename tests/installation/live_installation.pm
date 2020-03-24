@@ -34,6 +34,13 @@ sub send_key_and_wait {
 }
 
 sub run {
+    if (get_netboot_mirror) {
+        select_console 'install-shell';
+        # Force use of the matching repo
+        assert_script_run("sed -i'' 's#ZyppRepoURL:.*\$#ZyppRepoURL: " . get_netboot_mirror . "#g' /usr/sbin/start-install.sh");
+        select_console 'x11';
+    }
+
     # stop packagekit, root password is not needed on live system
     x11_start_program('systemctl stop packagekit.service', target_match => 'generic-desktop');
     turn_off_kde_screensaver;
