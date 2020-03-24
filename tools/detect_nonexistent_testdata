@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+FILES="${@}"
+success=1
+for FILE in $FILES; do
+	if  ! [ -f "$FILE" ]; then
+		echo "Error! $FILE does not exist."
+		success=0
+	elif ! [ -s "$FILE" ]; then
+		echo "Warning! The test_data file $FILE is empty."
+	fi
+done
+[ $success = 1 ] && echo "SUCCESS" && exit 0
+exit 1
