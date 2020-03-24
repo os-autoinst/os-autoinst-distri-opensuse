@@ -44,7 +44,7 @@ sub run_yast_cli_test {
 
 sub run {
     select_console 'root-console';
-    return if (systemctl("status wicked.service", ignore_failure => 1) != 0);
+    die "wicked is not used. The yast2_network tests can run only against wicked." if (systemctl("status wicked.service", ignore_failure => 1) != 0);
     prepare_source_repo;
 
     # Install test requirement
