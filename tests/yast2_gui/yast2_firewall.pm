@@ -123,10 +123,11 @@ sub change_interface_zone {
 sub verify_zone {
     my (%args) = @_;
 
-    my $interfaces = $args{interfaces} //= 'no_interfaces';
-    my $default    = $args{default}    //= 'no_default';
+    my $interfaces    = $args{interfaces}    //= 'no_interfaces';
+    my $default       = $args{default}       //= 'no_default';
+    my $menu_selected = $args{menu_selected} //= 0;
 
-    assert_and_click 'yast2_firewall_zones';
+    assert_and_click 'yast2_firewall_zones' unless $menu_selected;
     assert_screen 'yast2_firewall_' . $args{name} . '_' . $interfaces . '_' . $default;
 }
 
@@ -168,7 +169,7 @@ sub configure_firewalld {
     verify_interface(device => $iface, zone => 'default');
     verify_zone(name => 'public', interfaces => $iface, default => 'default');
     set_default_zone 'trusted';
-    verify_zone(name => 'trusted', interfaces => $iface, default => 'default');
+    verify_zone(name => 'trusted', interfaces => $iface, default => 'default', menu_selected => 1);
 
     record_info('Interface/Zones', "Verify zone info assigning interface to different zone");
     change_interface_zone 'public';
