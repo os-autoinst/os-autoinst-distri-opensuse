@@ -57,5 +57,6 @@ schedule:
 - console/suse_module_tools
 - console/aaa_base
 - console/osinfo_db
+- console/gd
 - console/coredump_collect
 ...

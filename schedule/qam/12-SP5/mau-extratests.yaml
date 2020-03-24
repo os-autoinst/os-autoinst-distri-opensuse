@@ -59,6 +59,7 @@ schedule:
 - console/aaa_base
 - console/osinfo_db
 - console/libgcrypt
+- console/gd
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:
