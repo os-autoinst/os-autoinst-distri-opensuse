@@ -441,7 +441,7 @@ sub extended_hpc_tests {
     script_run('git clone https://github.com/schlad/havoxc_binary.git');
     script_run('cd havoxc_binary');
     script_run('wget --quiet ' . data_url('hpc/julog.sh') . ' -O julog.sh');
-    script_run('./havoxc.so');
+    script_run('./havoxc.so', 180);
     parse_extra_log('XUnit', './results/TEST-havoxc_so.xml');
 }
 
