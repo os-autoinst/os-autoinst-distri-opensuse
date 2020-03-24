@@ -280,6 +280,9 @@ sub setup_network {
     # echo/echoes, getaddrinfo_01
     assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
 
+    # nfs
+    script_run('printf "[nfsd]\nudp=y\n" > /etc/nfs.conf.local');
+
     foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
         if (!is_jeos && is_sle('12+') || is_opensuse) {
             systemctl("reenable $service");
