@@ -39,7 +39,7 @@ sub run {
         }
     }
     elsif (check_var('ARCH', 's390x')) {
-        type_string "qemu-system-s390x -nographic -enable-kvm -kernel /tmp/kernel -initrd /boot/initrd\n";
+        type_string "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd\n";
         assert_screen 'qemu-reached-target-basic-system', 60;
     }
     elsif (check_var('ARCH', 'aarch64')) {
