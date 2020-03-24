@@ -30,7 +30,7 @@ sub await_password_check {
     # PW too easy (cracklib)
     # bsc#937012 is resolved in > SLE 12, skip if VERSION=12
     return if (is_sle('=12') && check_var('ARCH', 's390x'));
-    assert_screen 'inst-userpasswdtoosimple';
+    assert_screen('inst-userpasswdtoosimple', (check_var('BACKEND', 'pvm_hmc')) ? 60 : 30);
     send_key 'ret';
 
 }
