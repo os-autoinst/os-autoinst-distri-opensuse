@@ -49,21 +49,28 @@ $vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
 =cut
 sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
-    console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
+    if (get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/) {
+        console('root-ssh')->kill_ssh;
+        record_info('root-ssh', 'prepare_system_shutdown: (root-ssh) ssh connection is disconnected');
+    }
 
     if (check_var('ARCH', 's390x')) {
         if (check_var('BACKEND', 's390x')) {
             # kill serial ssh connection (if it exists)
             eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
-            diag('ignoring already shut down console') if ($@);
+            record_info('iucvconn', 'prepare_system_shutdown: (iucvconn) ssh connection is disconnected');
+            diag('prepare_system_shutdown: (iucvconn) ignoring already shut down console') if ($@);
         }
         console('installation')->disable_vnc_stalls;
+        record_info('installation', 'prepare_system_shutdown: (installation) VNC stall is disabled');
     }
 
     if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
+        record_info("$vnc_console", "prepare_system_shutdown: ($vnc_console) VNC stall is disabled");
         console('svirt')->stop_serial_grab;
+        record_info('svirt', 'prepare_system_shutdown: (svirt) serial grab stopped');
     }
     return undef;
 }
