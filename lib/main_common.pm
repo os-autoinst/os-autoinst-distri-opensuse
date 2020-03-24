@@ -1622,6 +1622,7 @@ sub load_extra_tests_geo_desktop {
 
 sub load_extra_tests_console {
     loadtest "console/check_os_release";
+    loadtest "console/orphaned_packages_check";
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
     loadtest "console/pam"         unless is_leap;
@@ -1706,7 +1707,6 @@ sub load_extra_tests_console {
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
-    loadtest "console/orphaned_packages_check";
 }
 
 sub load_extra_tests_sdk {
