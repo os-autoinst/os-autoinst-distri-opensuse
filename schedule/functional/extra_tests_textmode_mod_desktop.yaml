@@ -9,6 +9,11 @@ conditional_schedule:
                 - boot/uefi_bootmenu
             s390x:
                 - installation/bootloader_zkvm
+        MACHINE:
+            svirt-xen-pv:
+                - installation/bootloader_svirt
+            svirt-xen-hvm:
+                - installation/bootloader_svirt
     tests_requiring_soundcard:
         ARCH:
             aarch64:
