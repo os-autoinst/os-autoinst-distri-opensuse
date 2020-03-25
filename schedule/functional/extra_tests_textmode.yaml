@@ -33,6 +33,7 @@ schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
+    - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/zypper_info
@@ -86,7 +87,6 @@ schedule:
     - console/firewalld
     - console/aaa_base
     - console/osinfo_db
-    - console/orphaned_packages_check
     - console/zypper_ref
     - console/docker
     - console/docker_runc
