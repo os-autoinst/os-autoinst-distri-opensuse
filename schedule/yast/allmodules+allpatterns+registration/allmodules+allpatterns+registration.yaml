@@ -10,7 +10,7 @@ description:    >
         report any issues;
      5. Registration is performed on the installed system.
 vars:
-  SCC_REGISTER: ''
+  SCC_REGISTER: 'console'
   ENABLE_ALL_SCC_MODULES: 1
   PATTERNS:	all
   ADDONS: all-packages
@@ -37,11 +37,11 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - console/suseconnect_scc
   - console/sle15_workarounds
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
+  - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
