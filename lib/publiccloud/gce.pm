@@ -14,7 +14,7 @@
 
 package publiccloud::gce;
 use Mojo::Base 'publiccloud::provider';
-use Mojo::Util 'b64_decode';
+use Mojo::Util qw(b64_decode trim);
 use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
@@ -93,15 +93,14 @@ sub find_img {
 
 sub upload_img {
     my ($self, $file, $type) = @_;
-    my $img_name = $self->file2name($file);
-    my $uri      = $self->storage_name . '/' . $file;
-    $type //= 'default';
-    assert_script_run("gsutil cp $file gs://$uri", timeout => 60 * 60);
+    my $img_name          = $self->file2name($file);
+    my $uri               = $self->storage_name . '/' . $file;
+    my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE');
 
-    my $cmd = "gcloud compute images create $img_name --source-uri gs://$uri";
-    if ($type eq 'uefi') {
-        $cmd .= " --guest-os-features MULTI_IP_SUBNET,SECURE_BOOT,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE";
-    }
+    assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);
+
+    my $cmd = "gcloud compute images create '$img_name' --source-uri 'gs://$uri'";
+    $cmd .= " --guest-os-features '$guest_os_features'" unless (trim($guest_os_features) eq '');
     assert_script_run($cmd, timeout => 60 * 10);
 
     if (!$self->find_img($file)) {
