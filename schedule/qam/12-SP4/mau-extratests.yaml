@@ -61,6 +61,7 @@ schedule:
 - console/libgcrypt
 - console/libqca2
 - console/gd
+- console/valgrind
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:

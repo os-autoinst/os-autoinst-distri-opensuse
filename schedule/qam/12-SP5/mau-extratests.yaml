@@ -60,6 +60,7 @@ schedule:
 - console/osinfo_db
 - console/libgcrypt
 - console/gd
+- console/valgrind
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:
