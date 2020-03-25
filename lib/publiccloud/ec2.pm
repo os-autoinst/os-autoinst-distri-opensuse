@@ -114,10 +114,11 @@ sub upload_img {
 
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
-    my ($img_name) = $file =~ /([^\/]+)$/;
-    my $img_arch   = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
-    my $sec_group  = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
-    my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
+    my ($img_name)    = $file =~ /([^\/]+)$/;
+    my $img_arch      = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
+    my $sec_group     = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
+    my $vpc_subnet    = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
+    my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE');
     # Used for helper VM to create/build the image on CSP. When uploading a on-demand image, this ID should point
     # to and on-demand image. If not specified, the id gets read from ec2utils.conf file.
     my $ami_id = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');
@@ -129,16 +130,17 @@ sub upload_img {
           . "--machine '" . $img_arch . "' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
-          . ($img_name =~ /byos/i || $img_arch eq 'arm64' ? '' : '--use-root-swap ')
+          . ($img_name =~ /byos/i ? '' : '--use-root-swap ')
           . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
           . "--private-key-file " . $self->ssh_key_file . " "
-          . "-d 'OpenQA tests' "
-          . ($sec_group  ? "--security-group-ids '" . $sec_group . "' " : '')
-          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
-          . ($ami_id     ? "--ec2-ami '" . $ami_id . "' "               : '')
+          . "-d 'OpenQA upload image' "
+          . ($sec_group     ? "--security-group-ids '" . $sec_group . "' " : '')
+          . ($vpc_subnet    ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
+          . ($ami_id        ? "--ec2-ami '" . $ami_id . "' "               : '')
+          . ($instance_type ? "--type '" . $instance_type . "' "           : '')
           . "'$file'",
         timeout => 60 * 60
     );
