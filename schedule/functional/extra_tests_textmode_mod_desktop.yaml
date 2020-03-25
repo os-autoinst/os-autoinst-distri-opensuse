@@ -19,7 +19,8 @@ conditional_schedule:
             aarch64:
                 - console/aplay
                 - console/wavpack
-            x86_64:
+        MACHINE:
+            64bit:
                 - console/aplay
                 - console/wavpack
 schedule:
