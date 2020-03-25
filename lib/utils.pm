@@ -1109,7 +1109,7 @@ sub get_x11_console_tty {
     # older versions in HDD
     my $newer_gdm
       = $new_gdm
-      && !is_sle('<15-SP2')
+      && !is_sle('<=15-SP2')
       && !is_leap('<15.2')
       && get_var('HDD_1', '') !~ /opensuse-42/;
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
