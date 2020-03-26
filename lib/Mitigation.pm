@@ -64,6 +64,8 @@ use bootloader_setup qw(grub_mkconfig change_grub_config add_grub_cmdline_settin
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 
+my $vm_ip_addr;
+my $qa_password;
 
 =head2 reboot_and_wait
 
@@ -296,7 +298,157 @@ sub remove_parameter {
     remove_grub_cmdline_settings($self->{parameter} . '=' . $value);
 }
 
+sub ssh_vm_cmd {
+    my ($cmd, $qa_password, $vm_ip_addr) = @_;
+    my $ret = script_run("sshpass -p ${qa_password} ssh -qy root\@${vm_ip_addr} $cmd");
+    return $ret;
+}
 
+sub mds_taa_check {
+    my ($qa_password, $mdstaa_domain_name, $vm_ip_addr) = @_;
+    #mds=off and taa=off need to be tested in the same time
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"mds=off\\ tsx_async_abort=off\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $mdstaa_domain_name, $vm_ip_addr);
+    my $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/mds | grep \"Vulnerable; SMT Host state unknown\"", $qa_password, $vm_ip_addr);
+    if ($ret ne 0) {
+        record_info('ERROR', "hvm_mds=off test is failed.", result => 'fail');
+    }
+    record_info('INFO', "hvm_mds=off test is finished.");
+    $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort | grep \"Vulnerable\"", $qa_password, $vm_ip_addr);
+    if ($ret ne 0) {
+        record_info('ERROR', "hvm_taa=off test is failed.", result => 'fail');
+    }
+    record_info('INFO', "hvm_taa=off test is finished.");
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"mds=off\\ tsx_async_abort=off\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $mdstaa_domain_name, $vm_ip_addr);
+}
+
+sub config_and_reboot {
+    my ($qa_password, $vm_domain_name, $vm_ip_addr) = @_;
+    my $config_ret = ssh_vm_cmd("grub2-mkconfig -o /boot/grub2/grub.cfg", $qa_password, $vm_ip_addr);
+    if ($config_ret ne 0) {
+        ssh_vm_cmd("grub2-mkconfig -o /boot/grub2/grub.cfg", $qa_password, $vm_ip_addr);
+    }
+    record_info('INFO', "Config success.");
+    ssh_vm_cmd("poweroff", $qa_password, $vm_ip_addr);
+    script_run('virsh list --all');
+    script_run("virsh start \"${vm_domain_name}\"");
+    script_run('echo Now I am waiting for the vm to reboot');
+    script_run("sleep 60");
+    ssh_vm_cmd("cat /proc/cmdline", $qa_password, $vm_ip_addr);
+}
+
+sub do_check {
+    my ($secnario, $qa_password, $dc_domain_name, $vm_ip_addr) = @_;
+    my $foo = $secnario->{default};
+    if ($foo->{expected}) {
+        while (my ($cmd, $lines) = each %{$foo->{expected}}) {
+            foreach my $expected_string (@{$lines}) {
+                if ($expected_string ne "") {
+                    ssh_vm_cmd("$cmd", $qa_password, $vm_ip_addr);
+                    my $ret = ssh_vm_cmd("$cmd | grep \"$expected_string\"", $qa_password, $vm_ip_addr);
+                    record_info("ERROR", "Can't found a expected string.", result => 'fail') unless $ret eq 0;
+                } else {
+                    print "This expection is empty string, skip";
+                }
+
+            }
+        }
+    }
+    if ($foo->{unexpected}) {
+        while (my ($cmd, $lines) = each %{$foo->{unexpected}}) {
+            foreach my $unexpected_string (@{$lines}) {
+                if ($unexpected_string ne "") {
+                    my $ret = ssh_vm_cmd("$cmd | grep \"$unexpected_string\"", $qa_password, $vm_ip_addr);
+                    record_info("ERROR", "found a unexpected string.", result => 'fail') unless $ret ne 0;
+                } else {
+                    #Debug what output be report.
+                    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
+                    print "This unexpection is empty string, skip";
+                }
+
+            }
+        }
+    }
+}
+
+sub pti_check {
+    my ($qa_password, $pti_domain_name, $vm_ip_addr) = @_;
+    #pti test need to be conducted separately
+    my $check_para;
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"pti=on\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+    if ($pti_domain_name eq 'pv_worker') {
+        $check_para = "Unknown (XEN PV detected, hypervisor mitigation required)";
+    }
+    if ($pti_domain_name eq 'hvm_worker') {
+        $check_para = "Mitigation: PTI";
+    }
+    my $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep \"$check_para\"", $qa_password, $vm_ip_addr);
+    if ($ret ne 0) {
+        record_info('ERROR', "$pti_domain_name pti=on test is failed.", result => 'fail');
+    }
+    record_info('INFO', "$pti_domain_name pti=on test is finished.");
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"pti=on\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"pti=auto\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+    $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep \"$check_para\"", $qa_password, $vm_ip_addr);
+    if ($ret ne 0) {
+        record_info('ERROR', "$pti_domain_name pti=auto test is failed.", result => 'fail');
+    }
+    record_info('INFO', "$pti_domain_name pti=auto test is finished.");
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"pti=auto\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"pti=off\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+    if ($pti_domain_name eq 'hvm_worker') {
+        $check_para = "Vulnerable";
+    }
+    $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep \"$check_para\"", $qa_password, $vm_ip_addr);
+    if ($ret ne 0) {
+        record_info('ERROR', "$pti_domain_name pti=off test is failed.", result => 'fail');
+    }
+    record_info('INFO', "$pti_domain_name pti=off test is finished.");
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"pti=off\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+}
+
+sub cycle_workflow {
+    my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $pv_hypsecnario) = @_;
+    my $parameter = $carg . '=' . $ckey;
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"$parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    my $cmd_ret = ssh_vm_cmd("cat /etc/default/grub | grep \"$parameter\"", $qa_password, $vm_ip_addr);
+    if ($cmd_ret ne 0) {
+        ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"$parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    }
+    config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
+    my $ret = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $pv_hypsecnario);
+    if ($ret ne 0) {
+        record_info('ERROR', "$parameter test is failed.", result => 'fail');
+    }
+    record_info('INFO', "$parameter test is finished.");
+    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"$parameter\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
+}
+
+sub guest_cycle {
+    my ($self, $hash, $single, $mode, $qa_password, $gcvm_domain_name, $vm_ip_addr, $pv_hypsecnario) = @_;
+    while (my ($arg, $dict) = each %$hash) {
+        if ($mode eq 'single') {
+            if ($arg eq $single) {
+                while (my ($key, $value) = each %$dict) {
+                    cycle_workflow($self, $arg, $key, $value, $qa_password, $gcvm_domain_name, $vm_ip_addr, $pv_hypsecnario);
+                }
+            }
+        }
+        if ($mode eq 'all') {
+            while (my ($key, $value) = each %$dict) {
+                cycle_workflow($self, $arg, $key, $value, $qa_password, $gcvm_domain_name, $vm_ip_addr, $pv_hypsecnario);
+            }
+        }
+    }
+}
 #This is entry for testing.
 #The instances call this function to finish all 'basic' testing.
 #This function will check if current machine has a hardware fix.

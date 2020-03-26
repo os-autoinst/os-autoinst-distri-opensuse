@@ -2474,6 +2474,9 @@ sub load_mitigation_tests {
     if (get_var('XEN_PV')) {
         loadtest "cpu_bugs/xen_pv";
     }
+    if (get_var('XEN_HVM')) {
+        loadtest "cpu_bugs/xen_hvm";
+    }
 }
 
 sub load_security_tests {
