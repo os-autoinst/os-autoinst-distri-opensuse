@@ -43,4 +43,3 @@ schedule:
   - shutdown/cleanup_before_shutdown
   - console/suseconnect_scc
   - shutdown/shutdown
-  - shutdown/hyperv_upload_assets
