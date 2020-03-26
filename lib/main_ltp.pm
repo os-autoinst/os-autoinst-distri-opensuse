@@ -175,9 +175,9 @@ sub load_kernel_tests {
         loadtest 'virtio_console';
         loadtest 'virtio_console_long_output';
     }
-    elsif (get_var('NVMFTESTS')) {
+    elsif (get_var('BLKTESTS')) {
         boot_hdd_image();
-        loadtest 'nvmftests';
+        loadtest 'blktests';
     }
     elsif (get_var('TRINITY')) {
         if (get_var('INSTALL_KOTD')) {

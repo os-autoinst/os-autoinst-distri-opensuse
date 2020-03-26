@@ -261,7 +261,7 @@ sub is_kernel_test {
       (get_var('QA_TEST_KLP_REPO')
         || get_var('INSTALL_KOTD')
         || get_var('VIRTIO_CONSOLE_TEST')
-        || get_var('NVMFTESTS')
+        || get_var('BLKTESTS')
         || get_var('TRINITY')
         || get_var('NUMA_IRQBALANCE')
         || get_var('TUNED'));
