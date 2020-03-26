@@ -122,7 +122,7 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo rt idu ids);
+    my @addons_with_license = qw(geo rt idu);
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
@@ -464,7 +464,7 @@ sub process_scc_register_addons {
         wait_still_screen 2;
         # Process addons licenses
         accept_addons_license @scc_addons;
-        if (get_var('SCC_ADDONS') =~ /phub/ && check_screen('import-untrusted-gpg-key')) {
+        while (check_screen('import-untrusted-gpg-key', 60)) {
             handle_untrusted_gpg_key;
         }
         # Press next only if entered reg code for any addon
