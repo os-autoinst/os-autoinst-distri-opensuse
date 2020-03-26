@@ -462,9 +462,9 @@ sub run {
         $self->test_note($test) if ($test ne "1805750");
         $self->test_override($test);
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
-        $self->test_x86_64  if (check_var('BACKEND', 'ipmi'));
-        $self->test_ppc64le if is_ppc64le();
-        $self->test_bsc1152598;
+        $self->test_x86_64     if (check_var('BACKEND', 'ipmi'));
+        $self->test_ppc64le    if is_ppc64le();
+        $self->test_bsc1152598 if is_sle('>12-SP3');
     } elsif ($test eq "delete_rename") {
         $self->test_delete;
         $self->test_rename;
