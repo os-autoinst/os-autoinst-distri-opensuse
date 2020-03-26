@@ -865,7 +865,7 @@ prompt or logged in desktop. Set C<$textmode> to 1 when the text mode login
 prompt should be expected rather than a desktop or display manager.  Expects
 already unlocked encrypted disks, see C<wait_boot> for handling these in
 before.  The time waiting for the system to be fully booted can be configured
-with with C<$ready_time> in seconds. C<$forcenologin> makes this function
+with C<$ready_time> in seconds. C<$forcenologin> makes this function
 behave as if the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot_past_bootloader {
