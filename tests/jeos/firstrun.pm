@@ -17,11 +17,8 @@ use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse);
 use Utils::Architectures qw(is_aarch64 is_x86_64);
 use Utils::Backends 'is_hyperv';
+use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
-
-sub expect_mount_by_uuid {
-    return (is_hyperv || is_sle('>=15-sp2') || is_tumbleweed || is_leap('>=15.2'));
-}
 
 sub post_fail_hook {
     assert_script_run('timedatectl');

@@ -65,6 +65,7 @@ our @EXPORT = qw(
   remove_grub_cmdline_settings
   replace_grub_cmdline_settings
   mimic_user_to_import
+  tianocore_disable_secureboot
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -878,6 +879,33 @@ sub tianocore_enter_menu {
         send_key 'f2';
         sleep 0.1;
     }
+}
+
+sub tianocore_disable_secureboot {
+    my $basetest = shift;
+
+    assert_screen 'grub2';
+    send_key 'c';
+    sleep 2;
+    type_string "exit\n";
+    assert_screen 'tianocore-mainmenu';
+    # Select 'Boot manager' entry
+    send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
+    send_key 'ret';
+    send_key_until_needlematch('tianocore-devicemanager-sb-conf', 'down', 5, 5);
+    send_key 'ret';
+    send_key_until_needlematch('tianocore-devicemanager-sb-conf-attempt-sb', 'down', 5, 5);
+    send_key 'spc';
+    assert_screen 'tianocore-devicemanager-sb-conf-changed';
+    send_key 'ret';
+    assert_screen 'tianocore-devicemanager-sb-conf-attempt-sb';
+    send_key 'f10';
+    assert_screen 'tianocore-bootmanager-save-changes';
+    send_key 'Y';
+    send_key_until_needlematch 'tianocore-devicemanager',  'esc';
+    send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
+    send_key 'ret';
+    $basetest->wait_grub;
 }
 
 sub tianocore_select_bootloader {

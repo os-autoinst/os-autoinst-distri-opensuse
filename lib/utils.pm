@@ -88,6 +88,7 @@ our @EXPORT = qw(
   create_btrfs_subvolume
   file_content_replace
   ensure_ca_certificates_suse_installed
+  is_efi_boot
 );
 
 =head1 SYNOPSIS
@@ -1686,6 +1687,11 @@ sub ensure_ca_certificates_suse_installed {
         zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
         zypper_call("in ca-certificates-suse");
     }
+}
+
+# non empty */sys/firmware/efi/* must exist in UEFI mode
+sub is_efi_boot {
+    return !!script_output('test -d /sys/firmware/efi/ && ls -A /sys/firmware/efi/', proceed_on_failure => 1);
 }
 
 1;

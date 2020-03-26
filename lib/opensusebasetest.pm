@@ -11,12 +11,12 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface);
+use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface tianocore_disable_secureboot);
 use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
 use utils;
-use Utils::Backends qw(has_serial_over_ssh is_pvm);
+use Utils::Backends qw(has_serial_over_ssh is_pvm is_hyperv);
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
@@ -598,8 +598,11 @@ sub wait_grub {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $in_grub         = $args{in_grub}         // 0;
-    my @tags            = ('grub2');
-    push @tags, 'bootloader-shim-import-prompt'   if get_var('UEFI');
+    my @tags;
+    push @tags, 'shim-key-management' unless get_var('DISABLE_SECUREBOOT');
+    push @tags, 'bootloader-shim-verification'  if get_var('MOK_VERBOSITY');
+    push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
+    push @tags, 'grub2';
     push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
     push @tags, 'bootloader'                      if get_var('OFW');
     push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
@@ -633,6 +636,38 @@ sub wait_grub {
             send_key 'ret';
         }
         assert_screen "grub2", 15;
+    }
+    elsif (match_has_tag('bootloader-shim-verification') || match_has_tag('shim-key-management')) {
+        if (match_has_tag('bootloader-shim-verification')) {
+            send_key 'ret';
+            assert_screen([qw(shim-key-management grub2)]);
+        }
+        if (match_has_tag 'shim-key-management') {
+            send_key 'ret';
+            assert_screen 'shim-perform-mok-management';
+            send_key 'down';
+            assert_screen([qw(shim-enroll-mok shim-delete-mok)]);
+            send_key 'ret';
+            assert_screen 'shim-view-key';
+            send_key 'ret';
+            assert_screen 'shim-imported-mock-cert';
+            send_key 'ret';
+            assert_screen 'shim-view-key';
+            send_key 'down';
+            assert_screen 'shim-enroll-mok-continue';
+            send_key 'ret';
+            assert_screen 'shim-keys-confirm-dialog';
+            send_key 'down';
+            assert_screen 'shim-keys-confirm-yes';
+            send_key 'ret';
+            assert_screen 'shim-mok-password';
+            type_password;
+            send_key 'ret';
+            assert_screen 'shim-perform-mok-reboot';
+            send_key 'ret';
+            assert_screen([qw(grub2 bootloader-shim-verification)]);
+            send_key 'ret' if (match_has_tag 'bootloader-shim-verification');
+        }
     }
     elsif (get_var("LIVETEST")) {
         # prevent if one day booting livesystem is not the first entry of the boot list
@@ -1019,6 +1054,10 @@ sub wait_boot {
     }
     else {
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+        if (get_var('UEFI') && is_hyperv && check_screen('grub2', 10)) {
+            record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
+            send_key 'ret';
+        }
     }
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
 

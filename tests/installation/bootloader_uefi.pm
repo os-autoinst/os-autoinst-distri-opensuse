@@ -80,6 +80,9 @@ sub run {
         send_key "ret";
         assert_screen "bootloader-grub2", $bootloader_timeout;
     }
+    if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
+        $self->tianocore_disable_secureboot;
+    }
     if (get_var("QEMUVGA") && get_var("QEMUVGA") ne "cirrus") {
         sleep 5;
     }
