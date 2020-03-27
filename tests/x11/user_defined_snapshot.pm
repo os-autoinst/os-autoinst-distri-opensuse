@@ -24,6 +24,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Backends 'is_remote_backend';
 use power_action_utils 'power_action';
 
 sub y2snapper_create_snapshot {
@@ -65,7 +66,8 @@ sub run {
     send_key "alt-l";
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
-    power_action('reboot', keepconsole => 1, textmode => 1);
+    record_info 'Snapshot created', 'booting the system into created snapshot';
+    power_action('reboot', keepconsole => 1, observe => is_remote_backend);
     $self->wait_grub(bootloader_time => 250);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
@@ -76,13 +78,17 @@ sub run {
     send_key_until_needlematch("snap-bootloader-comment", 'down', 10, 5);
     save_screenshot;
     wait_screen_change { send_key 'ret' };
+
+    # waitboot is not aware of the DESKTOP variable, ensure it knows
+    my $is_textmode = check_var('DESKTOP', 'textmode');
+    record_info 'Snapshot found', 'Waiting to boot the system';
     # boot into the snapshot
     # do not try to search for the grub menu again as we are already here
-    $self->wait_boot(textmode => 1, in_grub => 1);
+    $self->wait_boot(textmode => $is_textmode, in_grub => 1);
     # request reboot again to ensure we will end up in the original system
-    send_key 'ctrl-alt-delete';
-    power_action('reboot', keepconsole => 1, textmode => 1, observe => 1);
-    $self->wait_boot(bootloader_time => 250);
+    record_info 'Desktop reached', 'Now return system to original state with a reboot';
+    power_action('reboot', keepconsole => 1, observe => is_remote_backend);
+    $self->wait_boot(textmode => $is_textmode, in_grub => 1, bootloader_time => 250);
 }
 
 1;
