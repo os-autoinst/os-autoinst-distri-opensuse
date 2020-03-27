@@ -1,6 +1,6 @@
 # openssl fips test
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@
 #          the cases to verify opessl hash, cipher, or public key algorithms
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#44834
+# Tags: poo#44834, poo#64649, poo#64842
 
 use base "consoletest";
 use testapi;
@@ -38,10 +38,10 @@ sub run {
     }
 
     # With non-approved HASH algorithms, openssl will report failure
-    # Add md2 and rmd160 into invalid hash in fips mode
-    my @invalid_hash = ("md2", "md4", "md5", "mdc2", "rmd160", "ripemd160", "whirlpool", "sha");
+    # Remove md2 and sha, and add rmd160 and md5-sha1 from invalid hash check in fips mode
+    my @invalid_hash = ("md4", "md5", "mdc2", "rmd160", "ripemd160", "whirlpool", "md5-sha1");
     for my $hash (@invalid_hash) {
-        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|unknown option|Unknown digest/ };
+        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown digest|dgst: Unrecognized flag/ };
     }
 
     script_run 'rm -f $tmp_file';
