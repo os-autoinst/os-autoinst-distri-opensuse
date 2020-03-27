@@ -53,4 +53,4 @@ test_data:
           filesystem: swap
         mounting_options:
           should_mount: 1
-  !include: test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
+  $include: test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml

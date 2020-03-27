@@ -35,4 +35,4 @@ schedule:
 test_data:
   device: /dev/sda
   table_type: gpt
-  !include: test_data/yast/ext4/ext4.yaml
+  $include: test_data/yast/ext4/ext4.yaml

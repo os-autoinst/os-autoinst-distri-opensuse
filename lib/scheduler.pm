@@ -30,7 +30,7 @@ use Data::Dumper;
 our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
 my $test_suite_data;
-my $include_tag = "!include";
+my $include_tag = '$include';
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -83,7 +83,7 @@ sub parse_test_suite_data {
 
     # if test_data section is defined in schedule file
     if (exists $schedule->{test_data}) {
-        # import test data using !include from test_data section in schedule file
+        # import test data using $include from test_data section in schedule file
         _import_test_data_included($schedule->{test_data});
 
         # test_data from schedule file has priority over included data
@@ -121,7 +121,7 @@ sub _import_test_data_included {
     my ($test_data) = shift;
 
     if (defined(my $import = $test_data->{$include_tag})) {
-        # Allow both lists and scalar value for import "!include" key
+        # Allow both lists and scalar value for import "$include" key
         if (ref $import eq 'ARRAY') {
             for my $include (@{$import}) {
                 _import_test_data_from_yaml(path => $include);
@@ -147,7 +147,7 @@ sub _import_test_data_from_yaml {
 
     my $include_yaml = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $args{path});
     if ($args{allow_included}) {
-        # import test data using !include from test data file
+        # import test data using $include from test data file
         _import_test_data_included($include_yaml);
     }
     _ensure_include_not_present($include_yaml);

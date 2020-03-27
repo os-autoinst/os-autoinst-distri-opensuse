@@ -7,7 +7,7 @@ vars:
   RAIDLEVEL: 1
   LVM: 1
 test_data:
-  !include: test_data/yast/lvm_raid1/lvm+raid1_sle15.yaml
+  $include: test_data/yast/lvm_raid1/lvm+raid1_sle15.yaml
 schedule:
   - installation/isosize
   - installation/bootloader_start

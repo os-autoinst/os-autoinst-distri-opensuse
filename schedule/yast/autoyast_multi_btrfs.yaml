@@ -29,7 +29,7 @@ test_data:
         - /dev/mapper/cr_test
   crypttab:
     num_devices_encrypted: 1
-  !include: test_data/yast/encryption/default_enc.yaml
+  $include: test_data/yast/encryption/default_enc.yaml
   profile:
     partitioning:
       - drive:
