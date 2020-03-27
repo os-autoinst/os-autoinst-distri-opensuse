@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,7 +29,7 @@ sub run {
     # bumped, due to tianocore being a bit slower, this brings this module
     # in sync
     # 12/2019: Increasing from 400 to 600 since more seems to be required.
-    my $bootloader_timeout = (is_boot_encrypted || check_var('ARCH', 'aarch64')) ? 600 : 300;
+    my $bootloader_timeout = (is_boot_encrypted || check_var('ARCH', 'aarch64')) ? 600 : 500;
 
     $self->wait_boot(bootloader_time => $bootloader_timeout);
 }
