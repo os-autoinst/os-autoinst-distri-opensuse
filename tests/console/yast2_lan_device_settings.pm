@@ -24,8 +24,10 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2lan_restart_common;
 
 sub run {
-    my $self      = shift;
-    my $static_ip = "192.168.1.119";
+    my $self               = shift;
+    my $static_ip          = "192.168.1.119";
+    my $static_hostname    = 'testhost';
+    my $is_set_in_etc_host = sub { return script_run('grep ' . shift . ' /etc/hosts') == 0 };
 
     select_console 'root-console';
     assert_script_run "zypper -n in yast2-network";    # make sure yast2 lan module is installed
@@ -46,12 +48,17 @@ sub run {
     send_key "alt-t";    # select static IP address option
     send_key "tab";
     type_string $static_ip;
+    send_key 'alt-o';
+    send_key_until_needlematch 'hostname-localhost-removed', 'backspace';
+    type_string $static_hostname;
     send_key "alt-n";    # next
     assert_screen 'static-ip-address-set';
     close_yast2_lan();
 
     # verify that static IP has been set
     assert_script_run "ip a | grep $static_ip";
+    # verify that hostname for static ip is recorded in /etc/hosts
+    $is_set_in_etc_host->($static_hostname) or die qq{Static hostname "$static_hostname" was not written to /etc/hosts file!\n};
 
     open_yast2_lan();
     for (1 .. 2) { send_key "tab" }    # move to device list
@@ -65,12 +72,18 @@ sub run {
 
     # verify that dynamic IP address has been set
     assert_script_run "ip r s | grep dhcp";
+    # verify that static ip is not recorded in /etc/hosts
+    if ($is_set_in_etc_host->($static_ip)) {
+        record_soft_failure 'bsc#1115644 yast2 lan does not update /etc/hosts after shifting from static ip to dynamic';
+        assert_script_run qq{sed -i '/$static_ip/d' /etc/hosts};
+        assert_script_run q{cat /etc/hosts};
+    }
 
     # on SLE15-SP1+ / Leap 15.1+ the assign loopback checkbox has been dropped
     if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();
 
-        send_key 'alt-s';              # move to hostname/DNS tab
+        send_key 'alt-s';    # move to hostname/DNS tab
         send_key_until_needlematch 'loopback-assigned', 'alt-a';    # assign hostname to loopback IP
         close_yast2_lan();
 
