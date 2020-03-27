@@ -130,7 +130,7 @@ test-deleted-renamed-testdata:
 
 .PHONY: detect-nonexistent-testdata
 detect-nonexistent-testdata:
-	tools/detect_nonexistent_testdata `git diff --exit-code $$(git merge-base master HEAD) | grep '+  !include: test_data/' | grep 'yaml$$' | awk '{print $$3}'`
+	tools/detect_nonexistent_testdata `git diff --exit-code $$(git merge-base master HEAD) | grep '+  $include: test_data/' | grep 'yaml$$' | awk '{print $$3}'`
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
