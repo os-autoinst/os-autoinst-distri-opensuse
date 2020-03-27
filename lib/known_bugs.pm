@@ -77,6 +77,7 @@ sub create_list_of_serial_failures {
         push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
     }
 
+    push @$serial_failures, {type => 'soft', message => 'Low memory problem detected bsc#1166955', pattern => quotemeta 'kswapd0 Kdump'};
 
     # Disable CPU soft lockup detection on aarch64 until https://progress.opensuse.org/issues/46502 get resolved
     push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
