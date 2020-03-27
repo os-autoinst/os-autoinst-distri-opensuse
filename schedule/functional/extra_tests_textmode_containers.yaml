@@ -1,7 +1,7 @@
-name:           extra_tests_in_textmode_cont
+name:           extra_tests_textmode_containers
 description:    >
     Maintainer: slindomansilla.
-    Extra tests about software in container module
+    Extra tests about software in containers module
 schedule:
     - boot/boot_to_desktop
     - console/docker
