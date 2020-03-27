@@ -177,7 +177,7 @@ test_data:
 ```
 ...
 test_data:
-  - !include: 
+  !include: 
     - path/to/first_test_data.yaml
     - path/to/second_test_data.yaml
 ```
