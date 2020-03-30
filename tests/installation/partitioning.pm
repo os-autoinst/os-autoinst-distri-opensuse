@@ -36,7 +36,8 @@ sub run {
 
     if (get_var("DUALBOOT")) {
         if (is_sle('15+')) {
-            record_soft_failure('bsc#1089723 Make sure keep the existing windows partition');
+            # Based on comment from Dev in bsc#1089723, 50GB disk is not a real-world use case for dual boot
+            # We use 50GB for dual-boot openQA testing in order to save space
             assert_screen "delete-partition";
             send_key "alt-g";
             assert_and_click "resize-or-remove-ifneeded";
