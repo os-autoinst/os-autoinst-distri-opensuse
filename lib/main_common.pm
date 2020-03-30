@@ -2356,9 +2356,14 @@ sub load_security_tests_selinux {
     # ALWAYS run following tests in sequence because of the dependencies
     # Setup - install SELinux necessary packages
     loadtest "security/selinux/selinux_setup";
-
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
+
+    # Change SELinux from "permissive" mode to "enforcing" mode for testing
+    loadtest "security/selinux/enforcing_mode_setup";
+
+    # The following test modules must be run after "enforcing_mode_setup"
+    loadtest "security/selinux/semanage_boolean";
     loadtest "security/selinux/print_se_context";
     loadtest "security/selinux/audit2allow";
     loadtest "security/selinux/semodule";

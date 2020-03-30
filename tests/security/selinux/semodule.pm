@@ -25,7 +25,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    my $test_module = "apache";
+    my $test_module = "openvpn";
 
     $self->select_serial_terminal;
 
@@ -34,11 +34,10 @@ sub run {
         "semodule -lstandard",
         sub {
             m/
-            apache.*application.*auditadm.*authlogin.*base.*bootloader.*clock.*
-            dbus.*dmesg.*fstools.*getty.*hostname.*inetd.*init.*ipsec.*iptables.*
+            .*application.*auditadm.*authlogin.*base.*bootloader.*clock.*
+            dbus.*dmesg.*fstools.*getty.*hostname.*init.*ipsec.*iptables.*
             kerberos.*libraries.*locallogin.*logadm.*logging.*lvm.*
-            miscfiles.*modutils.*mount.*mta.*netlabel.*
-            netutils.*nis.*nscd.*postfix.*postgresql.*
+            miscfiles.*modutils.*mount.*netlabel.*
             secadm.*selinuxutil.*setrans.*seunshare.*ssh.*
             staff.*su.*sudo.*sysadm.*sysadm_secadm.*sysnetwork.*
             systemd.*udev.*unconfined.*unconfineduser.*unlabelednet.*
