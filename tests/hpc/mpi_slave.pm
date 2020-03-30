@@ -16,16 +16,10 @@ use warnings;
 use testapi;
 use lockapi;
 use utils;
-use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
     my $mpi  = get_required_var('MPI');
-    if (is_sle('<15')) {
-        $mpi = 'openmpi';
-    } elsif (is_sle('<15-SP2')) {
-        $mpi = 'openmpi2';
-    }
 
     zypper_call("in $mpi");
 
