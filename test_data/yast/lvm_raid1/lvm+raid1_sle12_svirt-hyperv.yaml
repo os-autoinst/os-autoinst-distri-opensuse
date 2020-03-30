@@ -11,4 +11,3 @@ raid1:
   disk_to_fail: /dev/sdd2
   level: raid1
   name: /dev/md0
-
