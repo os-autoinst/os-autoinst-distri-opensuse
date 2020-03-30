@@ -1,33 +1,33 @@
 ---
-name:           dud_development_tools
-description:    >
-    Same as dud_sdk, but due to bsc#1080292 we cannot use ISO. 
-    FTP url is used instead. Limitation is that we use x86_64 url, 
-    as cannot create DUD in the runtime, so test cannot be executed on other architectures.
+name: dud_development_tools
+description: >
+  Same as dud_sdk, but due to bsc#1080292 we cannot use ISO.  FTP url is used
+  instead. Limitation is that we use x86_64 url,  as cannot create DUD in the
+  runtime, so test cannot be executed on other architectures.
 vars:
-    DUD: dev_tools.dud
-    DUD_ADDONS: sdk
+  DUD: dev_tools.dud
+  DUD_ADDONS: sdk
 schedule:
-    - installation/isosize
-    - installation/bootloader_start
-    - installation/welcome
-    - installation/accept_license
-    - installation/scc_registration
-    - installation/dud_addon
-    - installation/addon_products_sle
-    - installation/system_role
-    - installation/partitioning
-    - installation/partitioning_finish
-    - installation/installer_timezone
-    - installation/hostname_inst
-    - installation/user_settings
-    - installation/user_settings_root
-    - installation/resolve_dependency_issues
-    - installation/installation_overview
-    - installation/disable_grub_timeout
-    - installation/start_install
-    - installation/await_install
-    - installation/logs_from_installation_system
-    - installation/reboot_after_installation
-    - installation/grub_test
-    - installation/first_boot
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/dud_addon
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot

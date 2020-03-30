@@ -1,5 +1,6 @@
-name:           autoyast_disk_as_md_member
-description:    >
+---
+name: autoyast_disk_as_md_member
+description: >
   Test autoyast installation, while using a disk as a MD RAID member
 vars:
   AUTOYAST: autoyast_sle15/autoyast_disk_as_md_member.xml
@@ -22,18 +23,18 @@ schedule:
   - autoyast/verify_disk_as_md_member
   - autoyast/verify_cloned_profile
 test_data:
-  disk: '/dev/md0'
+  disk: /dev/md0
   partitions_count: 2
-  type_part: 'part'
-  raid_level: 'raid1'
+  type_part: part
+  raid_level: raid1
   mount_point:
-    root: '/'
-    data: '/data'
+    root: /
+    data: /data
   profile:
     partitioning:
       - drive:
           unique_key: device
-          device:  /dev/sda
+          device: /dev/sda
       - drive:
           unique_key: device
           device: /dev/md/0
@@ -46,6 +47,6 @@ test_data:
             - partition:
                 unique_key: mount
                 mount: /data
-      - drive:  
+      - drive:
           unique_key: device
           device: /dev/sdb

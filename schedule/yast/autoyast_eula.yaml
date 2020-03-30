@@ -1,8 +1,9 @@
-name:           autoyast_eula
-description:    >
+---
+name: autoyast_eula
+description: >
   User agreement test, same as autoyast_eula but with modules adjusted for sle15.
   Now expect single license, as content of all licenses is the same and we don't show it.
-  Packages DVD is vanished, using "Full" installer instead. 
+  Packages DVD is vanished, using "Full" installer instead.
 vars:
   AUTOYAST: autoyast_sle15/autoyast_eula.xml
   AUTOYAST_LICENSE: 1

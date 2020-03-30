@@ -1,5 +1,5 @@
 ---
-name:           msdos@yast
+name:           msdos
 description:    >
   Test for installation on msdos partition table.
 schedule:
@@ -69,4 +69,3 @@ conditional_schedule:
         - installation/grub_test
 test_data:
   $include: test_data/yast/msdos/msdos.yaml
-

@@ -5,10 +5,10 @@ description: >
   partitions activation and that we can re-ecnrypt the disk.
 name: cryptlvm+activate_existing+force_recompute
 vars:
-    ENCRYPT: 1
-    ENCRYPT_ACTIVATE_EXISTING: 1
-    ENCRYPT_FORCE_RECOMPUTE: 1
-    LVM: 1
+  ENCRYPT: 1
+  ENCRYPT_ACTIVATE_EXISTING: 1
+  ENCRYPT_FORCE_RECOMPUTE: 1
+  LVM: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome

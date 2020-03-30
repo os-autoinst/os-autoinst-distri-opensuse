@@ -1,8 +1,9 @@
-name:           autoyast_btrfs
-description:    >
-  Non-default btrfs subvolume structure test for autoyast installation.
-  Verify btrfs in new installation and generation of autoinst.xml.
-  Same as autoyast_btrfs, but with product and and addons defined for SLE15.
+---
+name: autoyast_btrfs
+description: >
+  Non-default btrfs subvolume structure test for autoyast installation. Verify
+  btrfs in new installation and generation of autoinst.xml. Same as autoyast_btrfs,
+  but with product and and addons defined for SLE15.
 vars:
   AUTOYAST: autoyast_sle15/autoyast_btrfs.xml
   AUTOYAST_PREPARE_PROFILE: 1
@@ -23,7 +24,7 @@ schedule:
   - console/system_prepare
   - autoyast/verify_btrfs
   - autoyast/verify_cloned_profile
-test_data:   
+test_data:
   profile:
     partitioning:
       - drive:
