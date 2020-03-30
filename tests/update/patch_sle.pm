@@ -309,4 +309,10 @@ sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    type_string "power off\n";
+    $self->_cleanup() unless $self->{cleanup_called};
+}
+
 1;
