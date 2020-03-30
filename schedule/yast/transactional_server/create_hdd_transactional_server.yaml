@@ -1,0 +1,61 @@
+---
+name:           create_hdd_transactional_server
+description:    >
+    Installation of a Transactional Server which uses a read-only root filesystem to
+    provide atomic, automatic updates of a system without interfering with the running system.
+vars:
+    SCC_ADDONS: tsm
+    HDDSIZEGB: 40
+conditional_schedule:
+    kernel_cmd_parameters:
+        BACKEND:
+            pvm_hmc:
+            - installation/edit_optional_kernel_cmd_parameters
+    reconnect_mgmt_console:
+        ARCH:
+            s390x:
+            - boot/reconnect_mgmt_console
+        BACKEND:
+            pvm_hmc:
+            - boot/reconnect_mgmt_console
+    grub_test:
+        BACKEND:
+            qemu:
+            - installation/grub_test
+            pvm_hmc:
+            - installation/grub_test
+    shutdown_svirt:
+        BACKEND:
+            svirt:
+            - shutdown/svirt_upload_assets
+schedule:
+    - installation/bootloader_start
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - "{{kernel_cmd_parameters}}"
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - "{{reconnect_mgmt_console}}"
+    - "{{grub_test}}"
+    - installation/first_boot
+    - console/sle15_workarounds
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - "{{shutdown_svirt}}"

@@ -101,6 +101,9 @@ sub trup_call {
     $cmd .= " > /dev/$serialdev";
     $cmd .= " ; echo trup-\$?- > /dev/$serialdev" if $check;
 
+    # Always wait for rollback.service to be finished before triggering manually transactional-update
+    ensure_rollback_service_not_running();
+
     script_run "transactional-update --no-selfupdate $cmd", 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
@@ -157,3 +160,15 @@ sub trup_shell {
     process_reboot 1 if $args{reboot};
 }
 
+# When transactional-update is triggered manually is required to wait for rollback.service
+# to not be running. This is needed because rollback.service is triggered on first boot
+# after updates or rollbacks.
+# The transactional-update.timer waits for that service to be finished before starting itself.
+# In general automated services will make sure that they don't block each other,
+# but this does not apply when manual triggering of the script.
+sub ensure_rollback_service_not_running {
+    for (1 .. 12) {
+        my $output = script_output("systemctl show -p SubState --value rollback.service");
+        $output =~ '^(start|running)$' ? sleep 10 : last;
+    }
+}
