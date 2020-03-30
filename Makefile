@@ -58,7 +58,15 @@ test-compile-changed: os-autoinst/
 
 .PHONY: test-yaml-valid
 test-yaml-valid:
-	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid `git --no-pager diff --diff-filter=d --name-only master | grep 'schedule.*\.yaml'`
+	@# Get list of changed yaml files
+	$(eval YAMLS=$(shell sh -c "git --no-pager diff --diff-filter=dr --name-only master | grep '\(schedule\|test_data\)/.*\.y.\?ml$$'"))
+	if test -n "$(YAMLS)"; then \
+	  export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid $(YAMLS);\
+	  which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
+	  yamllint -c .yamllint $(YAMLS);\
+	else \
+	  echo "No yamls modified.";\
+	fi
 
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
