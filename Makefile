@@ -62,7 +62,7 @@ test-yaml-valid:
 
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
-	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --name-only --exit-code $$(git merge-base master HEAD) | grep '^schedule/*'`
+	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code $$(git merge-base master HEAD) | grep '^schedule/*'`
 
 .PHONY: test-metadata
 test-metadata:
