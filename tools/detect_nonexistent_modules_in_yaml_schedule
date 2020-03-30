@@ -18,6 +18,7 @@ YAML schedule file.
 =cut
 sub parse_modules_in_schedule {
     my ($schedule_file_path) = @_;
+    return () unless (-f $schedule_file_path);
     my $schedule = YAML::Tiny::LoadFile($schedule_file_path);
     my @scheduled;
     for my $module (@{$schedule->{schedule}}) {
