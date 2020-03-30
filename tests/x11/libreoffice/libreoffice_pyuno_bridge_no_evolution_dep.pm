@@ -38,17 +38,17 @@ sub run {
     # navigate to the python samples item
     assert_screen 'ooffice-writer-mymacros';
     send_key 'down';
-    assert_and_dclick 'ooffice-writer-libreofficemacros';
-    send_key_until_needlematch 'ooffice-python-samples', 'down';
+    assert_and_click 'ooffice-writer-libreofficemacros';
+    wait_still_screen(2);
+    type_string "python\n";
 
-    # expand python samples and navigate to table sample
-    # In Libreoffice 6.3 send_key 'right'; doesn't work
-    # So use assert_and_dclick instead
-    assert_and_dclick 'ooffice-python-samples';
-    send_key_until_needlematch 'ooffice-table-sample', 'down';
+    assert_and_click 'ooffice-python-samples';
+    wait_still_screen(2);
+    send_key_until_needlematch 'ooffice-table-sample', 'down', 5, 1;
+    send_key 'tab';
 
     # run create table
-    assert_and_click 'ooffice-run-create-table';
+    send_key 'ret';
     assert_screen 'ooffice-verify-table';
 
     # exit ooffice-writer without saving created table
