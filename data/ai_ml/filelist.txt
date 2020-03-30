@@ -4,6 +4,9 @@ shark.jpg: 	https://images.theconversation.com/files/207813/original/file-201802
 Cat.jpg: 	https://faqcats.com/wp-content/uploads/tabby-cats-vs-tiger-cats-300x205.jpg
 Dog.jpg: 	https://upload.wikimedia.org/wikipedia/commons/2/26/YellowLabradorLooking_new.jpg
 ## models/
-mnasnet_1.3_224_09_07_2018.tgz: 	http://download.tensorflow.org/models/tflite/mnasnet_1.3_224_09_07_2018.tgz
-mobilenet_v1_1.0_224_quant.tgz: 	http://download.tensorflow.org/models/mobilenet_v1_2018_08_02/mobilenet_v1_1.0_224_quant.tgz
-mobilenet_v2_1.0_224_quant.tgz: 	http://download.tensorflow.org/models/tflite_11_05_08/mobilenet_v2_1.0_224_quant.tgz
+mnasnet_1.3_224_09_07_2018.tgz: 		http://download.tensorflow.org/models/tflite/mnasnet_1.3_224_09_07_2018.tgz
+mobilenet_v1_1.0_224_quant.tgz: 		http://download.tensorflow.org/models/mobilenet_v1_2018_08_02/mobilenet_v1_1.0_224_quant.tgz
+mobilenet_v1_1.0_224_quant_and_labels.zip: 	http://download.tensorflow.org/models/tflite/mobilenet_v1_1.0_224_quant_and_labels.zip
+mobilenet_v2_1.0_224_quant.tgz: 		http://download.tensorflow.org/models/tflite_11_05_08/mobilenet_v2_1.0_224_quant.tgz
+## Python files
+label_image.py: 	https://github.com/tensorflow/tensorflow/raw/master/tensorflow/lite/examples/python/label_image.py
