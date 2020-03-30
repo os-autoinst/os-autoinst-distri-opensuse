@@ -107,32 +107,30 @@ sub install_debugging_tools {
 
 sub install_runtime_dependencies_network {
     my @deps;
-    # utils
-    @deps = qw(
-      ethtool
-      iptables
-      psmisc
-      tcpdump
-    );
-    zypper_call('-t in ' . join(' ', @deps));
-
-    # clients
     @deps = qw(
       dhcp-client
-      telnet
-    );
-    zypper_call('-t in ' . join(' ', @deps));
-
-    # services
-    @deps = qw(
       dhcp-server
+      diffutils
       dnsmasq
+      ethtool
+      iptables
       nfs-kernel-server
+      psmisc
       rpcbind
       rsync
+      telnet
+      tcpdump
       vsftpd
     );
     zypper_call('-t in ' . join(' ', @deps));
+
+    my @maybe_deps = qw(
+      telnet-server
+      xinetd
+    );
+    for my $dep (@maybe_deps) {
+        script_run('zypper -n -t in ' . $dep . ' | tee');
+    }
 }
 
 sub install_build_dependencies {
