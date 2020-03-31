@@ -49,10 +49,11 @@ sub armnn_tf_lite_test_run {
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self)         = @_;
+    my $armnn_backends = get_var("ARMNN_BACKENDS");          # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
 
     $self->select_serial_terminal;
-    zypper_call 'in armnn';
+    zypper_call $armnn_backends =~ /GpuAcc/ ? 'in armnn-opencl' : 'in armnn';
 
     select_console 'user-console';
 
@@ -61,7 +62,10 @@ sub run {
 
     # Test TensorFlow Lite backend
     armnn_tf_lite_test_prepare;
+    # Run with default backend
     armnn_tf_lite_test_run;
+    # Run with explicit backend, if requested
+    armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
 }
 
 1;
