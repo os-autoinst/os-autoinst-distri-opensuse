@@ -63,6 +63,7 @@ schedule:
 - console/libqca2
 - console/gd
 - console/valgrind
+- console/sssd_samba
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:
