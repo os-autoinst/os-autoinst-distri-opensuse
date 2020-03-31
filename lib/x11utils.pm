@@ -112,6 +112,9 @@ sub ensure_unlocked_desktop {
                     assert_screen 'generic-desktop';
                 }
                 else {
+                    # send key to end screenlock
+                    send_key 'esc';
+                    save_screenshot;
                     next;    # most probably screen is locked
                 }
             }
