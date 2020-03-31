@@ -70,6 +70,7 @@ our @EXPORT = qw(
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
+  IN_ZYPPER_CALL
   arrays_differ
   arrays_subset
   ensure_serialdev_permissions
@@ -106,6 +107,9 @@ use constant VERY_SLOW_TYPING_SPEED => 4;
 
 # openQA internal ftp server url
 our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
+
+# set flag IN_ZYPPER_CALL in zypper_call and unset when leaving
+our $IN_ZYPPER_CALL = 0;
 
 =head2 save_svirt_pty
 
@@ -494,6 +498,7 @@ sub zypper_call {
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
+    $IN_ZYPPER_CALL = 1;
     # Retrying workarounds
     my $ret;
     for (1 .. 5) {
@@ -522,6 +527,7 @@ sub zypper_call {
         upload_logs('/var/log/zypper.log');
         die "'zypper -n $command' failed with code $ret";
     }
+    $IN_ZYPPER_CALL = 0;
     return $ret;
 }
 
