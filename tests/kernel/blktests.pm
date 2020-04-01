@@ -32,6 +32,9 @@ sub run {
     add_qa_head_repo();
     zypper_call('in blktests');
 
+    #install test specific tools
+    zypper_call('in fio blktrace');
+
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
