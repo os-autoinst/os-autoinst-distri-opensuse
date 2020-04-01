@@ -1692,8 +1692,9 @@ sub load_extra_tests_console {
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
-    loadtest 'console/valgrind'   unless is_sle('<=12-SP3');
-    loadtest 'console/sssd_samba' unless is_sle("<15");
+    loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
+    loadtest 'console/sssd_samba'     unless is_sle("<15");
+    loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1'));
 }
 
 sub load_extra_tests_sdk {
