@@ -45,7 +45,7 @@ sub lock_screen {
 
 sub logout_and_login {
     handle_logout;
-    send_key_until_needlematch 'displaymanager', 'esc', 30, 3;
+    send_key_until_needlematch 'displaymanager', 'esc', 9, 10;
     mouse_hide();
     wait_still_screen;
     assert_and_click "displaymanager-$username";
