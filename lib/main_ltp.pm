@@ -129,9 +129,10 @@ sub stress_snapshots {
 sub load_kernel_tests {
     if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
         load_kernel_baremetal_tests();
+    } else {
+        load_bootloader_s390x();
     }
 
-    load_bootloader_s390x();
     loadtest "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
