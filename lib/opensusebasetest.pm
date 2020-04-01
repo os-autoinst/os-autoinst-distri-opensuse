@@ -1094,7 +1094,7 @@ sub select_serial_terminal {
         }
     } elsif (has_serial_over_ssh) {
         $console = 'root-ssh';
-    } elsif ($backend eq 'generalhw' && !has_serial_over_ssh) {
+    } elsif (($backend eq 'generalhw' && !has_serial_over_ssh) || $backend eq 's390x') {
         $console = $root ? 'root-console' : 'user-console';
     }
 
