@@ -38,8 +38,7 @@ my $pwd4newUser = "helloWORLD-0";
 sub lock_screen {
     assert_and_click "system-indicator";
     assert_and_click "lock-system";
-    send_key "esc";
-    assert_screen 'gnome-screenlock-password';
+    send_key_until_needlematch 'gnome-screenlock-password', 'esc', 5, 10;
     type_password "$newpwd\n";
     assert_screen "generic-desktop";
 }
