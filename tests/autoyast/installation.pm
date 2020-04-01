@@ -159,7 +159,8 @@ sub run {
     # resolve conflicts and this is a workaround during the update
     push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
     # match openSUSE Welcome dialog on matching distros
-    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
+    push(@needles, 'opensuse-welcome')        if opensuse_welcome_applicable;
+    push(@needles, 'salt-formula-motd-setup') if get_var("SALT_FORMULAS_PATH");
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
@@ -265,6 +266,16 @@ sub run {
             assert_screen 'installation-settings-overview-loaded';
             send_key 'alt-u';
             wait_screen_change { send_key 'alt-u' };
+            next;
+        }
+        elsif (match_has_tag('salt-formula-motd-setup')) {
+            @needles = grep { $_ ne 'salt-formula-motd-setup' } @needles;
+            # used for salt-formulas
+            send_key 'alt-m';
+            type_string "$test_data->{motd_text}";
+            assert_screen 'salt-formulas-motd-changed';
+            send_key $cmd{next};
+            assert_screen 'salt-formulas-running-provisioner';
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {

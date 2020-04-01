@@ -1,0 +1,17 @@
+---
+name: autoyast_salt_formulas
+description: |
+  Test installation using AutoYaST plus salt formulas.
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/validate_salt_formula
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+test_data:
+  motd_text: Happy Testing changed
