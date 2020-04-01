@@ -17,7 +17,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem is_desktop_installed is_jeos is_released is_sle is_staging is_upgrade);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -530,24 +530,6 @@ sub mellanox_config {
     load_reboot_tests() if (check_var('BACKEND', 'ipmi'));
 }
 
-sub load_baremetal_tests {
-    set_var('ADDONURL', 'sdk')               if (is_sle('>=12') && is_sle('<15')) && !is_released;
-    loadtest 'tests/kernel/ibtests_barriers' if get_var('IBTESTS');
-    loadtest "autoyast/prepare_profile"      if get_var "AUTOYAST_PREPARE_PROFILE";
-    if (get_var('IPXE')) {
-        loadtest 'installation/ipxe_install';
-        loadtest "console/suseconnect_scc";
-    } else {
-        load_boot_tests();
-        get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
-        load_reboot_tests();
-    }
-    # make sure we always have the toolchain installed
-    loadtest "toolchain/install";
-    # some tests want to build and run a custom kernel
-    loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
-}
-
 sub load_nfv_tests {
     loadtest "nfv/hugepages_config" if get_var('HUGEPAGES');
     mellanox_config();
@@ -615,9 +597,6 @@ if (is_jeos) {
 
 # load the tests in the right order
 if (is_kernel_test()) {
-    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
-        load_baremetal_tests();
-    }
     load_kernel_tests();
 }
 elsif (get_var("NFV")) {

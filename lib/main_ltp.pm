@@ -24,7 +24,7 @@ use Archive::Tar;
 use utils;
 use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
-use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag);
+use main_common qw(boot_hdd_image get_ltp_tag load_baremetal_tests load_bootloader_s390x);
 use 5.018;
 use Utils::Backends 'is_pvm';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -127,6 +127,10 @@ sub stress_snapshots {
 }
 
 sub load_kernel_tests {
+    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
+        load_baremetal_tests();
+    }
+
     load_bootloader_s390x();
     loadtest "../installation/bootloader" if is_pvm;
 
