@@ -68,7 +68,7 @@ sub run {
 
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs-client');
 
-    assert_screen 'yast2-nfs-client-shares';
+    assert_screen 'yast2-nfs-client-shares', 60;
     send_key 'alt-a';
     assert_screen 'yast2-nfs-client-add';
     type_string get_var('NFSCLIENT') ? '10.0.2.101' : 'localhost';
