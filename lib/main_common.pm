@@ -64,7 +64,6 @@ our @EXPORT = qw(
   load_autoyast_clone_tests
   load_autoyast_tests
   load_ayinst_tests
-  load_baremetal_tests
   load_bootloader_s390x
   load_boot_tests
   load_common_installation_steps_tests
@@ -76,6 +75,7 @@ our @EXPORT = qw(
   load_inst_tests
   load_iso_in_external_tests
   load_jeos_tests
+  load_kernel_baremetal_tests
   load_kernel_tests
   load_networkd_tests
   load_nfv_master_tests
@@ -3149,7 +3149,7 @@ sub load_mm_autofs_tests {
     }
 }
 
-sub load_baremetal_tests {
+sub load_kernel_baremetal_tests {
     set_var('ADDONURL', 'sdk')          if (is_sle('>=12') && is_sle('<15')) && !is_released;
     loadtest "kernel/ibtests_barriers"  if get_var("IBTESTS");
     loadtest "autoyast/prepare_profile" if get_var("AUTOYAST_PREPARE_PROFILE");
