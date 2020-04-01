@@ -64,6 +64,7 @@ our @EXPORT = qw(
   load_autoyast_clone_tests
   load_autoyast_tests
   load_ayinst_tests
+  load_baremetal_tests
   load_bootloader_s390x
   load_boot_tests
   load_common_installation_steps_tests
@@ -3146,6 +3147,24 @@ sub load_mm_autofs_tests {
             loadtest "network/autofs_client";
         }
     }
+}
+
+sub load_baremetal_tests {
+    set_var('ADDONURL', 'sdk')          if (is_sle('>=12') && is_sle('<15')) && !is_released;
+    loadtest "kernel/ibtests_barriers"  if get_var("IBTESTS");
+    loadtest "autoyast/prepare_profile" if get_var("AUTOYAST_PREPARE_PROFILE");
+    if (get_var('IPXE')) {
+        loadtest "installation/ipxe_install";
+        loadtest "console/suseconnect_scc";
+    } else {
+        load_boot_tests();
+        get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
+        load_reboot_tests();
+    }
+    # make sure we always have the toolchain installed
+    loadtest "toolchain/install";
+    # some tests want to build and run a custom kernel
+    loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
 
 1;
