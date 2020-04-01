@@ -600,7 +600,7 @@ if (is_kernel_test()) {
     load_kernel_tests();
 }
 elsif (get_var("NFV")) {
-    load_baremetal_tests();
+    load_kernel_baremetal_tests();
     load_nfv_tests();
 }
 elsif (get_var("REGRESSION")) {
