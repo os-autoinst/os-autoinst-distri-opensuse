@@ -171,7 +171,8 @@ Destroy a postgres data base
 sub destroy_pgsqldb {
     assert_script_run 'pushd /tmp';
 
-    assert_script_run "sudo -u postgres dropdb openQAdb";
+    assert_script_run "sudo -u postgres dropdb --if-exists dvdrental";
+    assert_script_run "sudo -u postgres dropdb --if-exists openQAdb";
 
     assert_script_run 'popd';    # back to previous directory
 }
@@ -199,6 +200,8 @@ Set up a postgres database and configure for:
 =item * Add sudo rights to switch postgresql version and run script to determine oldest and latest version
 
 =item * Upgrade db from oldest version to latest version
+
+=item * Verify enties from imported dvdrental db before and after dump and restore
 
 =back
 
