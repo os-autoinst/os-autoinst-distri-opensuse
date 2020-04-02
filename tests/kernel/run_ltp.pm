@@ -292,16 +292,16 @@ sub pre_run_hook {
 sub run {
     my ($self, $tinfo) = @_;
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
-    my $runfile  = $tinfo->runfile;
-    my $timeout  = get_var('LTP_TIMEOUT') || 900;
-    my $is_posix = $runfile =~ m/^\s*openposix\s*$/i;
-    $self->{force_softfail} = 0;
-
-    unless (defined $tinfo) {
-        die 'Require LTP::TestInfo object from loadtest with LTP test case name and command line';
-    }
+    my $runfile            = $tinfo->runfile;
+    my $timeout            = get_var('LTP_TIMEOUT') || 900;
+    my $is_posix           = $runfile =~ m/^\s*openposix\s*$/i;
     my $test_result_export = $tinfo->test_result_export;
     my $test               = $tinfo->test;
+    my %env                = %{$test_result_export->{environment}};
+
+    $env{retval}       = 'undefined';
+    $self->{ltp_env}   = \%env;
+    $self->{ltp_tinfo} = $tinfo;
 
     my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
     my $cmd_text   = qq($test->{command}; echo "$fin_msg\$?");
@@ -326,17 +326,10 @@ sub run {
     }
     my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
-    my %env = %{$test_result_export->{environment}};
 
     if ($test_log =~ qr/$fin_msg(\d+)$/) {
         $env{retval} = $1;
     }
-    else {
-        $env{retval} = 'undefined';
-    }
-
-    $env{backend} = get_var('BACKEND');
-    $self->{force_softfail} = override_known_failures($self, \%env, $runfile, $test->{name}) if get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail';
 
     push(@{$test_result_export->{results}}, $result_export);
     if ($timed_out) {
@@ -359,8 +352,8 @@ sub run_post_fail {
 
     $self->fail_if_running();
 
-    if ($self->{force_softfail}) {
-        $self->{result} = 'softfail';
+    if ($self->{ltp_tinfo} and get_var('LTP_KNOWN_ISSUES') and $self->{result} eq 'fail') {
+        override_known_failures($self, $self->{ltp_env}, $self->{ltp_tinfo}->runfile, $self->{ltp_tinfo}->test->{name});
     }
 
     if ($msg =~ qr/died/) {
