@@ -24,7 +24,7 @@ sub run {
     # Create public cloud instance
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(check_connectivity => 0);
-    $instance->check_ssh_port(timeout => 300);
+    $instance->wait_for_ssh(timeout => 300);
     $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
 
@@ -82,4 +82,3 @@ sub test_flags {
 }
 
 1;
-

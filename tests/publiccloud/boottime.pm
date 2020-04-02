@@ -123,7 +123,7 @@ sub run {
 
     # Provision the instance
     my $instance = $provider->create_instance(check_connectivity => 0);
-    $startup_timings->{ssh_access} = $instance->check_ssh_port(timeout => 300);
+    $startup_timings->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
 
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
     $startup_timings->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));

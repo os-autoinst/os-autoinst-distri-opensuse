@@ -72,11 +72,12 @@ sub run {
 
     my $provider = $self->provider_factory();
     my $instance = $provider->create_instance(use_extra_disk => {size => $disk_size, type => $disk_type});
+    $instance->wait_for_guestregister();
 
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
 
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code,                timeout => 600) if $reg_code;
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code,                timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
     my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk|grep ' . $disk_size . '|cut -f 1 -d " "');

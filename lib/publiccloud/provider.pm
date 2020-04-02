@@ -273,7 +273,7 @@ sub create_instances {
     my @vms = $self->terraform_apply(%args);
     foreach my $instance (@vms) {
         record_info("INSTANCE $instance->{instance_id}", Dumper($instance));
-        $instance->check_ssh_port() if ($args{check_connectivity});
+        $instance->wait_for_ssh() if ($args{check_connectivity});
     }
     return @vms;
 }
