@@ -49,7 +49,7 @@ sub run {
     $network_settings->save_changes();
     wait_for_xterm_to_be_visible();
     clear_journal_log();
-    check_network_status('no_restart', 'bond');
+    check_network_status('no_restart_or_reload', 'bond');
 }
 
 sub post_run_hook {

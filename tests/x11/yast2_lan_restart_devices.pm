@@ -150,7 +150,7 @@ sub check_device {
 
     add_device($device);
     select_special_device_tab($device);
-    check_network_status('no_restart', $device);
+    check_network_status('no_restart_or_reload', $device);
     delete_device($device);
 }
 
