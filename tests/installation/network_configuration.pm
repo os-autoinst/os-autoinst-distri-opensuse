@@ -50,10 +50,27 @@ sub get_etc_sysconfig_network_dhcp_settings {
     return %sysconfig_network_dhcp;
 }
 
+sub check_static_hostname {
+    my $exit_code = script_run('grep "^Hostname:" /etc/install.inf');
+    if ($exit_code == 1) {    # not found
+        if (script_run('test -s /etc/hostname') == 0) {    # size greater than zero
+            die '/etc/hostname is not empty, but /etc/install.inf::Hostname was not set';
+        }
+    }
+    elsif ($exit_code == 0) {                              # found
+        my $install_inf_hostname = script_output('grep "^Hostname:" /etc/install.inf') =~ s/Hostname: //r;
+        assert_script_run(qq#grep "^${install_inf_hostname}\$" /etc/hostname#);
+    }
+    else {                                                 # command failed
+        die qq{`grep "^Hostname:" /etc/install.inf failed` exit_code: $exit_code};
+    }
+}
+
 sub run {
     select_console('install-shell');
     check_install_inf_settings();
     my %sysconfig_network_dhcp = get_etc_sysconfig_network_dhcp_settings();
+    check_static_hostname(%install_inf);
     select_console 'installation';
 
     if (get_var 'OFFLINE_SUT') {
