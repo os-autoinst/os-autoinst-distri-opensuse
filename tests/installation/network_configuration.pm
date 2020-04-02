@@ -19,6 +19,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use version_utils;
 use registration 'assert_registration_screen_present';
 
 sub check_install_inf_settings {
@@ -66,11 +67,19 @@ sub check_static_hostname {
     }
 }
 
+sub check_transient_hostname {
+    my ($expected_hostname) = @_;
+    $expected_hostname //= (is_sle('<15-SP2')) ? 'linux' : 'install';
+    assert_script_run("hostname |grep $expected_hostname");
+}
+
 sub run {
+    my $NICTYPE_USER_OPTIONS = get_var('NICTYPE_USER_OPTIONS', undef) =~ s/hostname=//r;
     select_console('install-shell');
     check_install_inf_settings();
     my %sysconfig_network_dhcp = get_etc_sysconfig_network_dhcp_settings();
     check_static_hostname(%install_inf);
+    check_transient_hostname($NICTYPE_USER_OPTIONS);
     select_console 'installation';
 
     if (get_var 'OFFLINE_SUT') {
