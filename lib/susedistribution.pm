@@ -374,7 +374,7 @@ sub script_sudo {
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
         if ($prog eq 'bash') {
-            return wait_still_screen(2, 4);
+            return wait_still_screen(4, 8);
         }
         else {
             return wait_serial("$str-\\d+-");
