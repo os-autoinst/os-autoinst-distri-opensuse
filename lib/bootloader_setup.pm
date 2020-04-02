@@ -334,7 +334,7 @@ sub uefi_bootmenu_params {
       :         send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
-    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp2') || is_leap('>=15.2'))) {
+    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.2'))) {
         for (1 .. 3) { send_key "down"; }
         send_key "end";
         # delete "keep" word
