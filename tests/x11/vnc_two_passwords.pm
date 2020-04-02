@@ -26,6 +26,7 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
+use Utils::Architectures 'is_ppc64le';
 
 # Any free display
 my $display = ':37';
@@ -104,6 +105,12 @@ sub run {
 
         # Close xev
         send_key 'ctrl-c';
+        if (is_ppc64le) {
+            # repeat send_key because we have sporadic performance issue on ppc64le
+            # and wait a little more time for closing xev
+            send_key 'ctrl-c';
+            wait_still_screen 20;
+        }
 
         # Check if xev recorded events or not - RO/RW mode
         if ($opt->{change}) {
