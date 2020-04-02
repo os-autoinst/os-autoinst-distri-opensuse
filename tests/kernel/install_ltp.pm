@@ -430,6 +430,13 @@ OpenQA is configured the ISO variable may not be necessary either.
 Either should contain 'git' or 'repo'. Git is recommended for now. If you decide
 to install from the repo then also specify QA_HEAD_REPO.
 
+=head2 LTP_BAREMETAL
+
+Loads installer modules to install OS before running install_ltp.
+
+This was originally used to install LTP on baremetal, but now used also on other
+platforms which do not support QCOW2 image snapshot (PowerVM, s390x backend).
+
 =head2 LTP_REPOSITORY
 
 When installing from repository default repository URL is generated (for SLES
