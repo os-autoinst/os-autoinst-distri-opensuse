@@ -2410,6 +2410,23 @@ sub load_security_tests_check_kernel_config {
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
 }
 
+sub load_security_tests_tpm2 {
+    if (is_sle('>=15-SP2')) {
+        load_security_console_prepare;
+
+        loadtest "security/tpm2/tpm2_env_setup";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_info";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_random_data";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_rsa_operation";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_ecdsa_operation";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_self_sign";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_self_contain_tool";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_encrypt";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_sign_verify";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_auth";
+    }
+}
+
 sub load_vt_perf_tests {
     loadtest "virt_autotest/login_console";
     if (get_var('VT_PERF_BAREMETAL')) {
@@ -2496,6 +2513,7 @@ sub load_security_tests {
       mok_enroll ima_measurement ima_appraisal evm_protection
       system_check
       check_kernel_config
+      tpm2
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
