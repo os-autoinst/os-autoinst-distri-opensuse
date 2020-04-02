@@ -283,7 +283,7 @@ EOF
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
         assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
-        assert_script_run 'pg_ctl -D /var/lib/pgsql/data start';
+        assert_script_run 'pg_ctl -D /var/lib/pgsql/data2 start';
         assert_script_run './analyze_new_cluster.sh';
         assert_script_run './delete_old_cluster.sh';
     }
