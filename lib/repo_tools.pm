@@ -81,7 +81,10 @@ This repository *is* mandatory.
 
 =cut
 sub add_qa_head_repo {
-    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa-head', no_gpg_check => is_sle("<12") ? 0 : 1);
+    my (%args) = @_;
+    my $priority = $args{priority} // 0;
+
+    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa-head', priority => $priority, no_gpg_check => is_sle("<12") ? 0 : 1);
 }
 
 =head2 add_qa_web_repo
