@@ -4,8 +4,8 @@ description:    >
 vars:
     QEMUCPU: host
 schedule:
-  - {{boot_to_desktop}}
-  - {{add_box_virtualbox}}
+  - '{{boot_to_desktop}}'
+  - '{{add_box_virtualbox}}'
   - virtualization/vagrant/add_box_libvirt
   - virtualization/vagrant/sshfs
   - virtualization/vagrant/boxes/tumbleweed

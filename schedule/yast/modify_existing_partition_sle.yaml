@@ -22,8 +22,8 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - {{reconnect_mgmt_console}}
-  - {{grub_test}}
+  - '{{reconnect_mgmt_console}}'
+  - '{{grub_test}}'
   - installation/first_boot
   - console/validate_modify_existing_partition
 test_data:

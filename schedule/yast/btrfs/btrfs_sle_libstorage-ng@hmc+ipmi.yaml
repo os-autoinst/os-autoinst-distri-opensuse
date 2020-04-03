@@ -25,7 +25,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   # Called on BACKEND: ipmi
-  - {{reconnect_mgmt_console}}
+  - '{{reconnect_mgmt_console}}'
   - installation/first_boot
   - console/validate_no_cow_attribute
   - console/verify_separate_home

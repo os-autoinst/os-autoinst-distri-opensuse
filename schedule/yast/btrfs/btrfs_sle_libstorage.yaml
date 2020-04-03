@@ -5,22 +5,22 @@ vars:
   FILESYSTEM: btrfs
 schedule:
   # Called on BACKEND: qemu
-  - {{isosize}}
+  - '{{isosize}}'
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   # Called only on BACKEND: s390x
-  - {{disk_activation}}
+  - '{{disk_activation}}'
   - installation/scc_registration
   - installation/addon_products_sle
   # Called only on ARCH: x86_64
-  - {{system_role}}
+  - '{{system_role}}'
   - installation/partitioning
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
   # Called on all, except BACKEND: s390x
-  - {{hostname_inst}}
+  - '{{hostname_inst}}'
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
@@ -31,13 +31,13 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   # Called on ARCH: s390x
-  - {{reconnect_mgmt_console}}
+  - '{{reconnect_mgmt_console}}'
   # Called on BACKEND: qemu
-  - {{grub_test}}
+  - '{{grub_test}}'
   - installation/first_boot
   - console/validate_no_cow_attribute
   # On all the architectures except s390x, /home is located on a separate partition
-  - {{validate_home_partition}}
+  - '{{validate_home_partition}}'
 conditional_schedule:
   isosize:
     BACKEND:

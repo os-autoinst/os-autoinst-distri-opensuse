@@ -2,7 +2,7 @@
 name: mau-bind
 description: upstream bind testsuite
 schedule:
-- {{zkvm_boot}}
+- '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - console/bind
 - console/coredump_collect

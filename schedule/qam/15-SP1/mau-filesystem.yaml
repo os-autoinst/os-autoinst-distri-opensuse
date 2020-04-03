@@ -4,7 +4,7 @@ description: Filesystem tests on Maintenance prepared image
 vars:
   COLLECT_COREDUMPS: '1'
 schedule:
-- {{boot}}
+- '{{boot}}'
 - boot/boot_to_desktop
 - console/prepare_test_data
 - console/consoletest_setup

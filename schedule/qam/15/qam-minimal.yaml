@@ -4,7 +4,7 @@ schedule:
 - installation/bootloader_start
 - installation/welcome
 - installation/accept_license
-- {{disk_activation}}
+- '{{disk_activation}}'
 - installation/scc_registration
 - installation/addon_products_sle
 - installation/system_role
@@ -21,12 +21,12 @@ schedule:
 - installation/await_install
 - installation/logs_from_installation_system
 - installation/reboot_after_installation
-- {{reboot}}
+- '{{reboot}}'
 - installation/first_boot
 - qam-minimal/install_update
 - qam-minimal/update_minimal
 - qam-minimal/check_logs
-- {{publish}}
+- '{{publish}}'
 conditional_schedule:
   disk_activation:
     ARCH:
