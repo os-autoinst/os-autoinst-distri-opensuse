@@ -21,7 +21,7 @@ use autoyast qw(inject_registration expand_variables upload_profile);
 
 sub run {
     # Get path in the worker
-    my $path = get_var('ASSETDIR') . '/other/' . get_var('ASSET_1');
+    my $path = get_var('ASSET_1');
     record_info('path', $path);
 
     # Read content of file
