@@ -32,7 +32,7 @@ sub ssh_interactive_tunnel {
         cmd => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' | tee /dev/$serialdev ", # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
         timeout  => 0,    # This will also cause script_run instead of script_output to be used so the test will not wait for the command to end
         no_quote => 1,
-        ssh_opts => "-t -R $upload_port:$upload_host:$upload_port",    # Tunnel the worker port (for downloading from data/ and uploading assets / logs
+        ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",    # Tunnel the worker port (for downloading from data/ and uploading assets / logs
         username => 'root'
     );
     sleep 3;
@@ -44,7 +44,7 @@ sub ssh_interactive_tunnel {
 
 sub ssh_interactive_join {
     # Open SSH interactive session and check the serial console works
-    type_string("ssh -t sut\n");
+    type_string("ssh -yt sut\n");
     wait_serial("ssh_serial_ready", 90) if (get_var("AUTOINST_URL_HOSTNAME", '') !~ /localhost/);
 
     # Prepare the environment to use the SSH tunnel for upload/download from the worker
