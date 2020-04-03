@@ -82,6 +82,9 @@ sub run {
     send_key(is_storage_ng() ? 'alt-n' : 'alt-f');
     assert_screen 'expert-partitioner-finish';
     send_key 'alt-a';
+    if (check_screen("expert-partitioner-Warning_popup", 5)) {
+        send_key 'alt-y';
+    }
 }
 
 1;
