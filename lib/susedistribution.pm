@@ -160,10 +160,6 @@ sub init_cmd {
         $testapi::cmd{sync_without_daemon} = "alt-s";
     }
     ## keyboard cmd vars end
-
-    if (check_var('FLAVOR', 'Online') && check_var('DESKTOP', 'textmode')) {
-        $testapi::cmd{expertpartitioner} = "alt-x";
-    }
 }
 
 =head2 init_desktop_runner
