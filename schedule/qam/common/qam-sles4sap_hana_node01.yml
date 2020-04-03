@@ -1,0 +1,23 @@
+name:           qam-sles4sap_hana_node01
+description:    >
+  Deploy a first HANA node to set up a cluster test.
+schedule:
+  - boot/boot_to_desktop
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - sles4sap/patterns
+  - ha/ha_cluster_init
+  - sles4sap/hana_install
+  - sles4sap/hana_cluster
+  - sles4sap/sap_suse_cluster_connector
+  - ha/fencing
+  - boot/boot_to_desktop
+  - ha/check_after_reboot
+  - ha/check_logs
