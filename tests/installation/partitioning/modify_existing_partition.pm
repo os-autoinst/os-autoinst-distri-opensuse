@@ -27,7 +27,7 @@ sub run {
         record_info("Edit $part", "$$test_data{$part}->{existing_partition}");
         $partitioner->edit_partition_on_gpt_disk($$test_data{$part});
     }
-    $partitioner->accept_changes();
+    $partitioner->accept_changes_and_press_next();
 }
 
 1;

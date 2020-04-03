@@ -28,14 +28,14 @@ $args->{raid_level} defines wanted raid level.
 =cut
 sub add_raid();
 
-=head2 accept_changes
+=head2 accept_changes_and_press_next
 
-  accept_changes($self);
+  accept_changes_and_press_next($self);
 
 Accept partitioning setup and proceed to the next page.
 
 =cut
-sub accept_changes();
+sub accept_changes_and_press_next();
 
 =head2 run_expert_partitioner
 
