@@ -152,23 +152,31 @@ sub wait_for_guestregister
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
-=head2 check_ssh_port
+=head2 wait_for_ssh
 
-    check_ssh_port([timeout => 600] [, proceed_on_failure => 0])
+    wait_for_ssh([timeout => 600] [, proceed_on_failure => 0])
 
 Check if the SSH port of the instance is reachable and open.
 =cut
-sub check_ssh_port
+sub wait_for_ssh
 {
     my ($self, %args) = @_;
     $args{timeout}            //= 600;
     $args{proceed_on_failure} //= 0;
     my $start_time = time();
 
+    # Check port 22
     while ((my $duration = time() - $start_time) < $args{timeout}) {
-        return $duration if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
+        last if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
         sleep 1;
     }
+
+    # Check ssh command
+    while ((my $duration = time() - $start_time) < $args{timeout}) {
+        return $duration if ($self->run_ssh_command(cmd => 'echo test', proceed_on_failure => 1, quiet => 1) eq 'test');
+        sleep 1;
+    }
+
     croak(sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds",
             $self->{instance_id}, $self->{public_ip}, $self->{timeout}))
       unless ($args{proceed_on_failure});
@@ -197,11 +205,11 @@ sub softreboot
 
     # wait till ssh disappear
     while (($duration = time() - $start_time) < $args{timeout}) {
-        last unless (defined($self->check_ssh_port(timeout => 1, proceed_on_failure => 1)));
+        last unless (defined($self->wait_for_ssh(timeout => 1, proceed_on_failure => 1)));
     }
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
-    my $bootup_time = $self->check_ssh_port(timeout => $args{timeout} - $shutdown_time);
+    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time);
     return ($shutdown_time, $bootup_time);
 }
 
@@ -228,7 +236,7 @@ sub start
 {
     my ($self, %args) = @_;
     $self->provider->start_instance($self, @_);
-    return $self->check_ssh_port(timeout => $args{timeout});
+    return $self->wait_for_ssh(timeout => $args{timeout});
 }
 
 1;
