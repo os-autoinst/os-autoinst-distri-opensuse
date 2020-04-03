@@ -1,7 +1,7 @@
 ---
 name: qam-minimal-base
 schedule:
-- {{boot}}
+- '{{boot}}'
 - installation/welcome
 - installation/accept_license
 - installation/scc_registration
@@ -21,7 +21,7 @@ schedule:
 - installation/await_install
 - installation/logs_from_installation_system
 - installation/reboot_after_installation
-- {{grub}}
+- '{{grub}}'
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - locale/keymap_or_locale
@@ -39,7 +39,7 @@ schedule:
 - console/zypper_lr
 - console/zypper_ref
 - console/firewall_enabled
-- {{glibc_sanity}}
+- '{{glibc_sanity}}'
 - console/sshd
 - console/ssh_cleanup
 - console/ncurses

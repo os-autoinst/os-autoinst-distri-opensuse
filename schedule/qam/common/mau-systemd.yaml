@@ -1,7 +1,7 @@
 ---
 name: mau-systemd
 schedule:
-- {{zkvm_boot}}
+- '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - systemd_testsuite/binary_tests
 - systemd_testsuite/test_01_basic

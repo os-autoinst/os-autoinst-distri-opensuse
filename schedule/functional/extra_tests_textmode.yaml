@@ -29,7 +29,7 @@ conditional_schedule:
             x86_64:
                 - console/yast2_lan_device_settings
 schedule:
-    - {{bootloader}}
+    - '{{bootloader}}'
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
@@ -52,7 +52,7 @@ schedule:
     - console/cron
     - console/syslog
     - console/mta
-    - {{yast2_lan_device_settings}}
+    - '{{yast2_lan_device_settings}}'
     - console/check_default_network_manager
     - console/git
     - console/cups
@@ -80,7 +80,7 @@ schedule:
     - console/rpcbind
     - console/timezone
     - console/procps
-    - {{lshw}}
+    - '{{lshw}}'
     - console/kmod
     - console/suse_module_tools
     - console/zziplib

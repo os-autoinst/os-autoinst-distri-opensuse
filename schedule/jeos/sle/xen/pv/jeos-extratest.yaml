@@ -26,7 +26,7 @@ schedule:
   - console/zypper_extend
   - console/check_os_release
   - console/timezone
-  - {{ntp_test_module}}
+  - '{{ntp_test_module}}'
   - console/sshd
   - console/rpm
   - console/openssl_alpn

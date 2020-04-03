@@ -4,13 +4,13 @@ description:    >
     This test uses generated profile to do autoyast installation.
 schedule:
   # Registration section is required for SLES only
-  - {{inject_registration}}
+  - '{{inject_registration}}'
   # Called on BACKEND: qemu
-  - {{isosize}}
+  - '{{isosize}}'
   - installation/bootloader_start
   - autoyast/installation
   # On Tumbleweed process Welcome pop-up screen
-  - {{opensuse_welcome}}
+  - '{{opensuse_welcome}}'
   - autoyast/console
   - autoyast/login
   - autoyast/verify_imported_users
@@ -20,9 +20,9 @@ schedule:
   - autoyast/logs
   - autoyast/autoyast_reboot
   # Called on ARCH: s390x
-  - {{reconnect_mgmt_console}}
+  - '{{reconnect_mgmt_console}}'
   # Called on BACKEND: qemu
-  - {{grub_test}}
+  - '{{grub_test}}'
   - installation/first_boot
 conditional_schedule:
   isosize:

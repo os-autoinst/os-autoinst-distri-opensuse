@@ -2,7 +2,7 @@
 name: qam-gnome
 schedule:
 - autoyast/prepare_profile
-- {{boot}}
+- '{{boot}}'
 - autoyast/installation
 - autoyast/console
 - autoyast/login
@@ -11,7 +11,7 @@ schedule:
 - autoyast/clone
 - autoyast/logs
 - autoyast/autoyast_reboot
-- {{grub}}
+- '{{grub}}'
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - console/system_prepare
@@ -24,7 +24,7 @@ schedule:
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
-- {{x86_64_tests}}
+- '{{x86_64_tests}}'
 - console/zypper_lr
 - console/zypper_ref
 - console/ncurses
@@ -51,7 +51,7 @@ schedule:
 - x11/gnome_terminal
 - x11/gedit
 - x11/firefox
-- {{sled_tests}}
+- '{{sled_tests}}'
 - x11/yast2_snapper
 - x11/glxgears
 - x11/nautilus

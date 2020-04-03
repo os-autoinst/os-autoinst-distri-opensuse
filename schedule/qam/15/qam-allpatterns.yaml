@@ -31,7 +31,7 @@ schedule:
 - console/ncurses
 - console/yast2_lan
 - console/curl_https
-- {{salt}}
+- '{{salt}}'
 - console/glibc_sanity
 - console/zypper_in
 - console/yast2_i

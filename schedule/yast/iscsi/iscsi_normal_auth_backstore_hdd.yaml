@@ -25,4 +25,4 @@ conditional_schedule:
                 - iscsi/iscsi_client
 schedule:
     - boot/boot_to_desktop
-    - {{iscsi}}
+    - '{{iscsi}}'
