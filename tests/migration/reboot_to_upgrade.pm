@@ -33,7 +33,7 @@ sub run {
         set_var('BOOT_HDD_IMAGE', 0) unless check_var('ARCH', 'aarch64');
     }
     assert_script_run "sync", 300;
-    type_string "reboot -f\n";
+    type_string "reboot\n";
 }
 
 1;

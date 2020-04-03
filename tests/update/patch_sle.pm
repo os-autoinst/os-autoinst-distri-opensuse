@@ -68,7 +68,7 @@ sub patching_sle {
             script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
             # Workaround for test failed of the reboot operation need to wait some jobs done
             # Add '-f' to force the reboot to avoid the test be blocked here
-            type_string "reboot -f\n";
+            type_string "reboot\n";
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300, nologin => $nologin);
             # Setup again after reboot
             $self->setup_sle();
