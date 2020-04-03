@@ -282,6 +282,21 @@ sub check_function {
         # migration tests need remove core files before migration start
         assert_script_run 'rm -fr /var/crash/*';
     }
+
+    # Test PoverVM specific scenario with disabled fadump on encrypted filesystem
+    if (is_pvm && get_var('ENCRYPT') && get_var('FADUMP')) {
+        # Disable fadump
+        assert_script_run('yast2 kdump fadump disable', 120);
+        assert_script_run('yast2 kdump show',           120);
+        # Set print_delay to slow down kernel
+        assert_script_run('echo 1000 > /proc/sys/kernel/printk_delay');
+        # Restart system and check console
+        power_action('reboot', keepconsole => 1);
+        reconnect_mgmt_console;
+        assert_screen('system-reboot', timeout => 120, no_wait => 1);
+        $self->wait_boot(bootloader_time => 300);
+        select_console 'root-console';
+    }
 }
 
 #
