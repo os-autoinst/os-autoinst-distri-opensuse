@@ -43,7 +43,14 @@ expect \"Organization Name (eg, company) \\[Internet Widgits Pty Ltd\\]:\"; send
 expect \"Organizational Unit Name (eg, section) \\[\\]:\"; send \"QA\\r\";
 expect \"Common Name (e.g. server FQDN or YOUR name) \\[\\]:\"; send \"richard\\r\";
 expect \"Email Address \\[\\]:\"; send \"richard.fan\@suse.com\\r\";
-tpm2_engine.pm'";
+expect {
+    \"error\" {
+      exit 139
+   }
+   eof {
+       exit 0
+   }
+}'";
     assert_script_run "ls |grep $crt_file";
     assert_script_run "cd";
 }
