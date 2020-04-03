@@ -25,7 +25,7 @@ use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
-use utils qw(systemctl exec_and_insert_password zypper_call random_string);
+use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap);
 
 sub run {
@@ -40,6 +40,9 @@ sub run {
     # 'nc' is not installed by default on JeOS
     if (script_run("which nc")) {
         zypper_call("in netcat-openbsd");
+    }
+    if (script_run("which killall")) {
+        zypper_call("in psmisc");
     }
 
     # Stop the firewall if it's available
@@ -127,6 +130,10 @@ sub run {
 
     # Remove the ~/.ssh folder
     assert_script_run "rm -r ~/.ssh/";
+
+    assert_script_run "killall -u $ssh_testman || true";
+    wait_still_screen 3;
+    clear_console;
 }
 
 sub test_flags {

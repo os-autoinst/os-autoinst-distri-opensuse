@@ -43,6 +43,7 @@ sub init {
     $self->SUPER::init();
     $self->vault_create_credentials() unless ($self->key_id);
     $self->az_login();
+    assert_script_run("az account set --subscription " . $self->subscription);
     assert_script_run("export ARM_SUBSCRIPTION_ID=" . $self->subscription);
     assert_script_run("export ARM_CLIENT_ID=" . $self->key_id);
     assert_script_run("export ARM_CLIENT_SECRET=" . $self->key_secret);

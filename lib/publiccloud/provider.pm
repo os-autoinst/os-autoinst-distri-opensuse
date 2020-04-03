@@ -589,6 +589,7 @@ sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy();
     $self->vault_revoke();
+    assert_script_run "cd";
 }
 
 =head2 stop_instance
