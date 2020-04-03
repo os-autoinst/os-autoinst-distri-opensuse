@@ -6,7 +6,7 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-
+#
 # Summary: Configure windows 10 to host WSL image
 # Currently we have self signed images as sle12sp5 and leap
 # tumbleweed and sle15sp2 or higher contain a chain of certificates
@@ -36,7 +36,7 @@ q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppMod
 
 sub run {
     my ($self)            = @_;
-    my $wsl_appx_filename = get_required_var('ASSET_1');
+    my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
     my $certs             = {opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt', sle => '/wsl/SLES-UEFI-CA-Certificate.crt'};
     my $ms_cert_store     = 'cert:\\LocalMachine\\Root';
     my $cert_file_path    = 'C:\Users\Public\image-ca.cert';
@@ -45,7 +45,7 @@ sub run {
     $self->open_powershell_as_admin;
 
     $self->run_in_powershell(
-        cmd  => 'Invoke-WebRequest -Uri ' . data_url('ASSET_1') . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
+        cmd  => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
         tags => 'powershell-ready-prompt'
     );
     $self->run_in_powershell(
