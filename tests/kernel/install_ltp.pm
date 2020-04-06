@@ -20,7 +20,6 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_common 'get_ltp_tag';
 use main_ltp 'loadtest_from_runtest_file';
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
@@ -192,7 +191,6 @@ curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\
 }
 
 sub install_from_git {
-    my ($tag)       = @_;
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
     my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
@@ -247,7 +245,6 @@ sub add_ltp_repo {
 }
 
 sub install_from_repo {
-    my ($tag) = @_;
     my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
 
     zypper_call("in --recommends $pkg");
@@ -298,6 +295,22 @@ sub setup_network {
     }
 }
 
+sub get_ltp_tag {
+    my $tag = get_var('LTP_RUNTEST_TAG');
+
+    if (!defined $tag) {
+        if (defined get_var('HDD_1')) {
+            $tag = get_var('PUBLISH_HDD_1');
+            $tag = get_var('HDD_1') if (!defined $tag);
+            $tag = basename($tag);
+        } else {
+            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
+        }
+    }
+    $tag =~ s/[^a-zA-Z0-9_@.]+/-/g;
+    return $tag;
+}
+
 sub run {
     my $self       = shift;
     my $inst_ltp   = get_var 'INSTALL_LTP';
@@ -339,14 +352,14 @@ sub run {
 
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
-        install_from_git($tag);
+        install_from_git();
 
         install_runtime_dependencies_network;
         install_debugging_tools;
     }
     else {
         add_ltp_repo;
-        install_from_repo($tag);
+        install_from_repo();
     }
 
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
@@ -361,7 +374,7 @@ sub run {
 
     if (get_var('LTP_COMMAND_FILE')) {
         # This assumes that current working directory is the worker's pool dir
-        loadtest_from_runtest_file('assets_public');
+        loadtest_from_runtest_file("assets_public/runtest-files-$tag.tar.gz");
     }
 
     is_jeos && zypper_call 'in system-user-bin system-user-daemon';

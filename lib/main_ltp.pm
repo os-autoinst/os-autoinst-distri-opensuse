@@ -18,13 +18,13 @@
 package main_ltp;
 use base 'Exporter';
 use Exporter;
-use testapi qw(check_var get_var);
+use testapi qw(check_var get_required_var get_var);
 use autotest;
 use Archive::Tar;
 use utils;
 use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
-use main_common qw(boot_hdd_image get_ltp_tag load_bootloader_s390x load_kernel_baremetal_tests);
+use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
 use Utils::Backends 'is_pvm';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -80,9 +80,8 @@ sub parse_runtest_file {
 
 sub loadtest_from_runtest_file {
     my $namelist           = get_var('LTP_COMMAND_FILE');
-    my $path               = shift || get_var('ASSETDIR') . '/other';
+    my $archive            = shift || get_required_var('ASSET_1');
     my $unpack_path        = './runtest-files';
-    my $tag                = get_ltp_tag();
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $test_result_export = {
@@ -97,7 +96,7 @@ sub loadtest_from_runtest_file {
 
     mkdir($unpack_path, 0755);
     my $tar = Archive::Tar->new();
-    $tar->read("$path/runtest-files-$tag.tar.gz") || die "tar read failed $? $!";
+    $tar->read($archive) || die "tar read failed $? $!";
     $tar->setcwd($unpack_path);
     $tar->extract() || die "tar extract failed $? $!";
 
