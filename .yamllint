@@ -1,0 +1,10 @@
+extends: default
+rules:
+  line-length:
+    max: 160
+  document-start: disable
+  indentation:
+    indent-sequences: whatever
+  colons:
+    # Ignore spaces after colons
+    max-spaces-after: -1

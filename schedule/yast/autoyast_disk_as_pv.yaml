@@ -1,8 +1,9 @@
-name:           autoyast_disk_as_pv
-description:    >
-  Installation using one disk for booting, second as / partition and third one as volume group. 
-  Partitioning is validated after installation is finished, 
-  then SUT is cloned and generated profile is validated.
+---
+name: autoyast_disk_as_pv
+description: >
+  Installation using one disk for booting, second as / partition and third one
+  as volume group.  Partitioning is validated after installation is finished,  then
+  SUT is cloned and generated profile is validated.
 vars:
   AUTOYAST: autoyast_sle15/autoyast_disk_as_pv.xml
   AUTOYAST_CONFIRM: 1

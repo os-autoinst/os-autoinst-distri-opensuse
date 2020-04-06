@@ -1,3 +1,4 @@
+---
 disks:
   - name: vda
     partitions:

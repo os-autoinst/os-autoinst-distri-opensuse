@@ -1,7 +1,8 @@
 ---
-name:           modify_existing_partition
-description:    >
-  Installation where we modify some pre-existing partitions. Must depend on some create_hdd test suite.
+name: modify_existing_partition
+description: >
+  Installation where we modify some pre-existing partitions. Must depend on some
+  create_hdd test suite.
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -37,4 +38,3 @@ conditional_schedule:
     BACKEND:
       qemu:
         - installation/grub_test
-

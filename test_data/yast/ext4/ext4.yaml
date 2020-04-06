@@ -1,8 +1,9 @@
-  allowed_unpartitioned: 0.00GB
-  partitions:
-    - mnt_point: /
-      fs_type: ext4
-    - mnt_point: /home
-      fs_type: xfs 
-    - mnt_point: [SWAP]
-      fs_type: swap
+---
+allowed_unpartitioned: 0.00GB
+partitions:
+  - mnt_point: /
+    fs_type: ext4
+  - mnt_point: /home
+    fs_type: xfs
+  - mnt_point: '[SWAP]'
+    fs_type: swap

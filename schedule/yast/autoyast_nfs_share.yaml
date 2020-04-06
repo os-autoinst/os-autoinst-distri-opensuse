@@ -1,5 +1,6 @@
-name:           autoyast_multi_btrfs
-description:    >
+---
+name: autoyast_multi_btrfs
+description: >
   Test autoyast installation, while using nfs share
 schedule:
   - autoyast/prepare_profile
@@ -7,7 +8,7 @@ schedule:
   - installation/bootloader_start
   - autoyast/installation
   - installation/first_boot
-  - autoyast/console 
+  - autoyast/console
   - autoyast/clone
   - autoyast/verify_cloned_profile
   - autoyast/verify_nfs_share
@@ -21,8 +22,8 @@ test_data:
     - rpcbind
     - rpc-statd
     - nfs
-  services_status: active
   # cloned AutoYaST profile validation
+  services_status: active
   profile:
     partitioning:
       drive:

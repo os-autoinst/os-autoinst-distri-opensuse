@@ -1,13 +1,13 @@
 ---
 description: >
   Conduct installation trying to reuse encrypted partitions (bsc#993247). Using
-  pre-partitioned disk image to validate encrypted partitions activation.
-  For zVM we activate DASD disk which we format in from of the installation and
-  create encrypted partition on it, similarly to powerVM.
+  pre-partitioned disk image to validate encrypted partitions activation. For
+  zVM we activate DASD disk which we format in from of the installation and create
+  encrypted partition on it, similarly to powerVM.
 name: cryptlvm+activate_existing
 vars:
-    ENCRYPT_ACTIVATE_EXISTING: 1
-    FORMAT_DASD: pre_install
+  ENCRYPT_ACTIVATE_EXISTING: 1
+  FORMAT_DASD: pre_install
 schedule:
   - installation/bootloader_start
   - installation/welcome

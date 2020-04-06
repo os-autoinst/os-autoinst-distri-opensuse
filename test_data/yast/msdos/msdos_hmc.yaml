@@ -1,7 +1,8 @@
+---
 table_type: msdos
 partition_table_disk: sda
 disks:
-  - name: sda 
+  - name: sda
     allowed_unpartitioned: 0.00GB
     partitions:
       - size: 8Mib
@@ -18,7 +19,7 @@ disks:
           filesystem: xfs
         mounting_options:
           should_mount: 1
-          mount_point: '/'
+          mount_point: /
       - size: 12000Mib
         role: data
         partition_type: primary
@@ -28,7 +29,7 @@ disks:
           filesystem: xfs
         mounting_options:
           should_mount: 1
-          mount_point: '/home'
+          mount_point: /home
       - size: max
         role: swap
         partition_type: primary

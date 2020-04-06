@@ -1,7 +1,8 @@
-name:           lvm-encrypt-separate-boot
-description:    >
-  Same as lvm-full-encrypt, but with separate boot not encrypted partition, 
-  only installation to not repeat everything again with small risk.
+---
+name: lvm-encrypt-separate-boot
+description: >
+  Same as lvm-full-encrypt, but with separate boot not encrypted partition, only
+  installation to not repeat everything again with small risk.
 vars:
   UNENCRYPTED_BOOT: 1
   ENCRYPT: 1

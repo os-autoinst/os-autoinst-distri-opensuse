@@ -27,6 +27,7 @@ before_install:
   - echo "requires 'Code::DRY';" >> cpanfile
   - echo "requires 'Regexp::Common';" >> cpanfile
   - echo "requires 'Perl::Tidy', '== 20200110';" >> cpanfile
+  - sudo apt-get -y install yamllint
 install:
   - make prepare
 script:
@@ -42,4 +43,3 @@ deploy:
         branch: master
         condition: "$NEW_DEPLOY_NEEDED = 1 && $TESTS = unit"
     target_branch: gh-pages
-
