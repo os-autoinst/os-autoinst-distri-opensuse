@@ -20,7 +20,6 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_common 'get_ltp_tag';
 use main_ltp 'loadtest_from_runtest_file';
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
@@ -298,6 +297,22 @@ sub setup_network {
     }
 }
 
+sub get_ltp_tag {
+    my $tag = get_var('LTP_RUNTEST_TAG');
+
+    if (!defined $tag) {
+        if (defined get_var('HDD_1')) {
+            $tag = get_var('PUBLISH_HDD_1');
+            $tag = get_var('HDD_1') if (!defined $tag);
+            $tag = basename($tag);
+        } else {
+            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
+        }
+    }
+    $tag =~ s/[^a-zA-Z0-9_@.]+/-/g;
+    return $tag;
+}
+
 sub run {
     my $self       = shift;
     my $inst_ltp   = get_var 'INSTALL_LTP';
@@ -361,7 +376,7 @@ sub run {
 
     if (get_var('LTP_COMMAND_FILE')) {
         # This assumes that current working directory is the worker's pool dir
-        loadtest_from_runtest_file('assets_public');
+        loadtest_from_runtest_file("assets_public/runtest-files-$tag.tar.gz");
     }
 
     is_jeos && zypper_call 'in system-user-bin system-user-daemon';

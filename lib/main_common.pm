@@ -39,7 +39,6 @@ our @EXPORT = qw(
   chromiumstep_is_applicable
   consolestep_is_applicable
   default_desktop
-  get_ltp_tag
   gnomestep_is_applicable
   guiupdates_is_applicable
   have_scc_repos
@@ -266,22 +265,6 @@ sub is_kernel_test {
         || get_var('TRINITY')
         || get_var('NUMA_IRQBALANCE')
         || get_var('TUNED'));
-}
-
-sub get_ltp_tag {
-    my $tag = get_var('LTP_RUNTEST_TAG');
-
-    if (!defined $tag) {
-        if (defined get_var('HDD_1')) {
-            $tag = get_var('PUBLISH_HDD_1');
-            $tag = get_var('HDD_1') if (!defined $tag);
-            $tag = basename($tag);
-        } else {
-            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
-        }
-    }
-    $tag =~ s/[^a-zA-Z0-9_@.]+/-/g;
-    return $tag;
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features
