@@ -191,7 +191,6 @@ curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\
 }
 
 sub install_from_git {
-    my ($tag)       = @_;
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
     my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
@@ -246,7 +245,6 @@ sub add_ltp_repo {
 }
 
 sub install_from_repo {
-    my ($tag) = @_;
     my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
 
     zypper_call("in --recommends $pkg");
@@ -354,14 +352,14 @@ sub run {
 
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
-        install_from_git($tag);
+        install_from_git();
 
         install_runtime_dependencies_network;
         install_debugging_tools;
     }
     else {
         add_ltp_repo;
-        install_from_repo($tag);
+        install_from_repo();
     }
 
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
