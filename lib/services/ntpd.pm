@@ -58,7 +58,9 @@ sub check_function {
     assert_script_run("date -s 'Tue Jul 03 10:42:42 2018'");
     assert_script_run("date | grep 2018");
     systemctl("restart ntpd.service");
-    script_retry("date | grep -v 2018", delay => 30, retry => 6);
+    systemctl("status ntpd.service");
+    script_retry('ntpq -pn | grep "^[+\|*]"', delay => 30, retry => 24);
+    assert_script_run("date | grep -v 2018");
 }
 
 # Check ntp service before and after migration.
