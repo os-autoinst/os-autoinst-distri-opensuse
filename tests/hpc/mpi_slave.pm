@@ -11,6 +11,7 @@
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
 use base 'hpcbase';
+use base 'hpc::utils';
 use strict;
 use warnings;
 use testapi;
@@ -19,7 +20,7 @@ use utils;
 
 sub run {
     my $self = shift;
-    my $mpi  = get_required_var('MPI');
+    my $mpi  = $self->get_mpi();
 
     zypper_call("in $mpi");
 

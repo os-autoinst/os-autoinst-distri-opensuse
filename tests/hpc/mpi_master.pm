@@ -13,6 +13,7 @@
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
 use base 'hpcbase';
+use base 'hpc::utils';
 use strict;
 use warnings;
 use testapi;
@@ -23,7 +24,7 @@ use version_utils 'is_sle';
 
 sub run {
     my $self          = shift;
-    my $mpi           = get_required_var('MPI');
+    my $mpi           = $self->get_mpi();
     my $mpi_c         = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
