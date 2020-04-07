@@ -16,6 +16,90 @@ use Mojo::Util 'trim';
 use testapi;
 use db_utils;
 
+our $default_analyze_thresholds = {
+    # First boot after provisioning
+    kernel     => 15,
+    userspace  => 60,
+    initrd     => 20,
+    overall    => 120,
+    ssh_access => 60,
+
+    # Values after soft reboot
+    kernel_soft     => 15,
+    userspace_soft  => 60,
+    initrd_soft     => 10,
+    overall_soft    => 120,
+    ssh_access_soft => 70,
+
+    # Values after hard reboot
+    kernel_hard     => 15,
+    userspace_hard  => 60,
+    initrd_hard     => 10,
+    overall_hard    => 120,
+    ssh_access_hard => 60,
+};
+
+our $default_azure_analyze_thresholds = {
+    %{$default_analyze_thresholds},
+    userspace => 160,
+    overall   => 180,
+};
+
+our $default_gce_BYOS_analyze_thresholds = {
+    %{$default_analyze_thresholds},
+    userspace => 40,
+    overall   => 60,
+};
+
+
+our $thresholds_by_flavor = {
+    # Azure
+    'Azure-BYOS' => {
+        analyze => $default_analyze_thresholds,
+    },
+    'Azure-CHOST-BYOS' => {
+        analyze => $default_analyze_thresholds,
+    },
+    'Azure-Basic' => {
+        analyze => $default_azure_analyze_thresholds,
+    },
+    'Azure-Standard' => {
+        analyze => $default_azure_analyze_thresholds,
+    },
+
+    # EC2
+    'EC2-CHOST-BYOS' => {
+        analyze => $default_analyze_thresholds,
+    },
+
+    'EC2-CHOST-BYOS' => {
+        analyze => $default_analyze_thresholds,
+    },
+    'EC2-HVM' => {
+        analyze => $default_analyze_thresholds,
+    },
+
+    'EC2-HVM-ARM' => {
+        analyze => $default_analyze_thresholds,
+    },
+
+    'EC2-HVM-BYOS' => {
+        analyze => $default_analyze_thresholds,
+    },
+
+    # GCE
+    GCE => {
+        analyze => $default_analyze_thresholds,
+    },
+    'GCE-BYOS' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+    },
+    'GCE-CHOST-BYOS' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+    },
+};
+
+
 sub systemd_time_to_sec
 {
     my $str = trim(shift);
@@ -94,31 +178,6 @@ sub run {
     my $startup_timings = {};
     my $blame_timings   = {};
 
-    # Is used to specify thresholds per measurement. If one value is exceeded
-    # the test is set to fail.
-    my $thresholds = {
-        # First boot after provisioning
-        kernel     => 15,
-        userspace  => 90,
-        initrd     => 20,
-        overall    => 160,
-        ssh_access => 60,
-
-        # Values after soft reboot
-        kernel_soft     => 15,
-        userspace_soft  => 60,
-        initrd_soft     => 10,
-        overall_soft    => 120,
-        ssh_access_soft => 70,
-
-        # Values after hard reboot
-        kernel_hard     => 15,
-        userspace_hard  => 60,
-        initrd_hard     => 10,
-        overall_hard    => 120,
-        ssh_access_hard => 60,
-    };
-
     my $provider = $self->provider_factory();
 
     # Provision the instance
@@ -179,6 +238,9 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1, quiet => 1);
     $instance->upload_log('/tmp/sle_cloud.tar.gz');
 
+    my $flavor = get_required_var('FLAVOR');
+    die("Missing thresholds for flavor $flavor") unless (exists($thresholds_by_flavor->{$flavor}));
+    my $thresholds = $thresholds_by_flavor->{$flavor}->{analyze};
     # Validate bootup timing against hard limits
     for my $key (keys(%{$thresholds})) {
         my $limit = $thresholds->{$key};
