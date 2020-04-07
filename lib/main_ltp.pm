@@ -80,7 +80,7 @@ sub parse_runtest_file {
 
 sub loadtest_from_runtest_file {
     my $namelist           = get_var('LTP_COMMAND_FILE');
-    my $archive            = shift || get_required_var('ASSET_1');
+    my $archive            = shift || get_required_var('ASSET_31');
     my $unpack_path        = './runtest-files';
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
