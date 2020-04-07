@@ -45,6 +45,8 @@ sub run {
 
     # Start an xterm as root
     x11_start_program('xterm');
+    # Wait before typing to avoid typos
+    wait_still_screen(5);
     become_root;
     script_run "cd";
     $self->y2snapper_adding_new_snapper_conf;
