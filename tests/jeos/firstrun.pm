@@ -107,14 +107,8 @@ sub run {
     }
 
     if (is_sle) {
-        assert_screen(['jeos-please-register', 'linux-login']);
-        if (match_has_tag 'linux-login') {
-            record_info 'JEOS_HIDE_SUSECONNECT',
-              'https://build.suse.de/request/show/215085 Don\'t set JEOS_HIDE_SUSECONNECT by default',
-              result => 'softfail';
-        } else {
-            send_key 'ret';
-        }
+        assert_screen 'jeos-please-register';
+        send_key 'ret';
     }
 
     # Our current Hyper-V host and it's spindles are quite slow. Especially
