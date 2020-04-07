@@ -22,6 +22,14 @@ function GREP {
     fi
 }
 
+# Check for x86_64 architecture
+# Place this before set -e as it fails on other platforms
+x86_64=0
+if [[ $(uname -m) == "x86_64" ]]; then
+	x86_64=1
+	echo "[INFO] x86_64 architecture detected"
+fi
+
 # Exit on errors
 set -e
 
@@ -72,9 +80,13 @@ GREP 'Conditional jump or move depends on uninitialised value' "output_7.txt"
 GREP 'Uninitialised value was created by a heap allocation' "output_7.txt"
 GREP 'All heap blocks were freed -- no leaks are possible' "output_7.txt"
 
-valgrind --tool=exp-sgcheck --log-file="output_8.txt" ./valgrind-test --oob-stack 65
-GREP 'Invalid read of size ' "output_8.txt"
-
+# sgcheck is only available on x86_64
+if [[ $x86_64 == 1 ]]; then
+	valgrind --tool=exp-sgcheck --log-file="output_8.txt" ./valgrind-test --oob-stack 65
+	GREP 'Invalid read of size ' "output_8.txt"
+else
+	echo "    INFO: Skipping sg-check (not supported on this platform)"
+fi
 
 echo "Testing callgrind ... "
 valgrind --tool=callgrind --callgrind-out-file="callgrind.out" ./valgrind-test 2>/dev/null
