@@ -48,6 +48,32 @@ sub armnn_tf_lite_test_run {
     assert_script_run("TfLiteMobilenetV2Quantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
 }
 
+sub armnn_onnx_test_prepare {
+    zypper_call 'in arm-ml-examples-data';
+
+    assert_script_run('mkdir -p armnn/data');
+    # Copy data files from arm-ml-examples-data, used by OnnxMnist-Armnn
+    assert_script_run("cp /usr/share/armnn-mnist/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
+    assert_script_run("cp /usr/share/armnn-mnist/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
+
+    assert_script_run('mkdir -p armnn/models');
+    assert_script_run('pushd armnn/models');
+    assert_script_run("tar xzf ~/data/ai_ml/models/mnist.tar.gz");
+    assert_script_run("cp mnist/model.onnx ./mnist_onnx.onnx");
+    assert_script_run("tar xzf ~/data/ai_ml/models/mobilenetv2-1.0.tar.gz");
+    assert_script_run("cp mobilenetv2-1.0/mobilenetv2-1.0.onnx ./");
+    assert_script_run('popd');
+}
+
+sub armnn_onnx_test_run {
+    my %opts = @_;
+    my $backend_opt;
+    $backend_opt = "-c $opts{backend}" if $opts{backend};    # Can be CpuRef, CpuAcc, GpuAcc, ...
+
+    assert_script_run("OnnxMnist-Armnn --data-dir=armnn/data --model-dir=armnn/models -i 1 $backend_opt");
+    assert_script_run("OnnxMobileNet-Armnn --data-dir=armnn/data --model-dir=armnn/models -i 3 $backend_opt");
+}
+
 sub run {
     my ($self)         = @_;
     my $armnn_backends = get_var("ARMNN_BACKENDS");          # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
@@ -61,11 +87,18 @@ sub run {
     armnn_get_images;
 
     # Test TensorFlow Lite backend
+    record_info('TF Lite', "TensorFlow Lite backend");
     armnn_tf_lite_test_prepare;
     # Run with default backend
     armnn_tf_lite_test_run;
     # Run with explicit backend, if requested
     armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
+
+    # Test ONNX backend
+    record_info('ONNX', "ONNX backend");
+    armnn_onnx_test_prepare;
+    armnn_onnx_test_run;
+    armnn_onnx_test_run(backend => $_) for split(/,/, $armnn_backends);
 }
 
 1;

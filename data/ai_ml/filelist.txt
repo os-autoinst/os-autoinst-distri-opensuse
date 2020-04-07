@@ -5,6 +5,8 @@ Cat.jpg: 	https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November
 Dog.jpg: 	https://pixabay.com/static/uploads/photo/2016/02/19/15/46/dog-1210559_960_720.jpg
 ## models/
 mnasnet_1.3_224_09_07_2018.tgz: 		http://download.tensorflow.org/models/tflite/mnasnet_1.3_224_09_07_2018.tgz
+mnist.tar.gz: 					https://onnxzoo.blob.core.windows.net/models/opset_8/mnist/mnist.tar.gz
+mobilenetv2-1.0.tar.gz: 			https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.tar.gz
 mobilenet_v1_1.0_224_quant.tgz: 		http://download.tensorflow.org/models/mobilenet_v1_2018_08_02/mobilenet_v1_1.0_224_quant.tgz
 mobilenet_v1_1.0_224_quant_and_labels.zip: 	http://download.tensorflow.org/models/tflite/mobilenet_v1_1.0_224_quant_and_labels.zip
 mobilenet_v2_1.0_224_quant.tgz: 		http://download.tensorflow.org/models/tflite_11_05_08/mobilenet_v2_1.0_224_quant.tgz
