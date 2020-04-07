@@ -74,6 +74,28 @@ sub armnn_onnx_test_run {
     assert_script_run("OnnxMobileNet-Armnn --data-dir=armnn/data --model-dir=armnn/models -i 3 $backend_opt");
 }
 
+sub armnn_caffe_test_prepare {
+    zypper_call 'in arm-ml-examples-data';
+
+    assert_script_run('mkdir -p armnn/data');
+    # Copy data files from arm-ml-examples-data, used by TfMnist-Armnn
+    assert_script_run('cp /usr/share/armnn-mnist/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte');
+    assert_script_run('cp /usr/share/armnn-mnist/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte');
+
+    assert_script_run('mkdir -p armnn/models');
+    assert_script_run('pushd armnn/models');
+    assert_script_run('cp /usr/share/armnn-mnist/model/*.caffemodel ./');
+    assert_script_run('popd');
+}
+
+sub armnn_caffe_test_run {
+    my %opts = @_;
+    my $backend_opt;
+    $backend_opt = "-c $opts{backend}" if $opts{backend};    # Can be CpuRef, CpuAcc, GpuAcc, ...
+
+    assert_script_run("CaffeMnist-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
+}
+
 sub run {
     my ($self)         = @_;
     my $armnn_backends = get_var("ARMNN_BACKENDS");          # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
@@ -99,6 +121,12 @@ sub run {
     armnn_onnx_test_prepare;
     armnn_onnx_test_run;
     armnn_onnx_test_run(backend => $_) for split(/,/, $armnn_backends);
+
+    # Test Caffe backend
+    record_info('Caffe', "Caffe backend");
+    armnn_caffe_test_prepare;
+    armnn_caffe_test_run;
+    armnn_caffe_test_run(backend => $_) for split(/,/, $armnn_backends);
 }
 
 1;
