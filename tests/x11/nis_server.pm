@@ -20,7 +20,6 @@ use mmapi 'wait_for_children';
 use utils;
 use mm_network 'setup_static_mm_network';
 use y2_module_guitest '%setup_nis_nfs_x11';
-use version_utils 'is_sle';
 use x11utils 'turn_off_gnome_screensaver';
 use y2_module_consoletest;
 use scheduler 'get_test_suite_data';
