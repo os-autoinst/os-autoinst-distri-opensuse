@@ -1,0 +1,29 @@
+name:       autoyast_systemd_timesync
+description:   >
+  Test performs autoyast installation where profile dictates that ntp is configured for one time synchronization.
+  Following, checks for the use of systemd timesync instead of cron, validates configuration and functionality.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_systemd_timesync.xml
+  AUTOYAST_PREPARE_PROFILE: 1
+  NTP_SERVER_ADDRESS: cz.pool.ntp.org
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/verify_systemd_timesync
+test_data:
+  profile:
+    ntp-client:
+      ntp_servers:
+        ntp_server:
+          address: cz.pool.ntp.org
+      ntp_sync: 1
