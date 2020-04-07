@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,9 @@
 #   * Utilities ssh-keygen and ssh-copy-id are used
 #   * Local and remote port forwarding are tested
 #   * The SCP is tested by copying various files
+#
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Tags: poo#65375
 
 use warnings;
 use base "consoletest";
@@ -137,7 +139,7 @@ sub run {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {milestone => 0, no_rollback => 1} : {milestone => 1};
+    return get_var('PUBLIC_CLOUD') ? {milestone => 0, no_rollback => 1} : {milestone => 1, fatal => 0};
 }
 
 1;

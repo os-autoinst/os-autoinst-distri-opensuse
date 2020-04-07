@@ -6,12 +6,13 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-
+#
 # Case #1560076 - FIPS: Firefox Mozilla NSS
-
+#
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
+#
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079
+# Tag: poo#47018, poo#58079, poo#65375
 
 use base "x11test";
 use strict;
@@ -96,6 +97,10 @@ sub run {
 
     quit_firefox;
     assert_screen "generic-desktop";
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 0};
 }
 
 1;
