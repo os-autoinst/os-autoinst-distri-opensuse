@@ -333,12 +333,8 @@ sub check_cluster_state {
     assert_script_run "$crm_mon_cmd";
     assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
     assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
-    if (is_sle('=12-sp2')) {
-        assert_script_run q/crm_mon -s | grep "$(crm node list | wc -l).*nodes online"/;
-    }
-    else {
-        assert_script_run q/crm_mon -s | grep "$(crm node list | grep -c ': member') nodes online"/;
-    }
+    # In older versions, node names in crm node list output are followed by ": normal". In newer ones by ": member"
+    assert_script_run q/crm_mon -s | grep "$(crm node list | egrep -c ': member|: normal') nodes online"/;
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
         script_run 'crm_verify -LV';
