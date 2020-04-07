@@ -35,9 +35,12 @@ sub run {
         if (script_run("ssh -o PreferredAuthentications=publickey root\@$guest hostname -f") != 0) {
             exec_and_insert_password "ssh-copy-id root\@$guest";
         }
-        assert_script_run "ssh root\@$guest rm /etc/cron.d/qam_cron; hostname";
+        assert_script_run "ssh root\@$guest 'rm /etc/cron.d/qam_cron; hostname'";
     }
-    assert_script_run "echo 'PreferredAuthentications publickey' >> ~/.ssh/config";
+    assert_script_run "echo 'PreferredAuthentications publickey
+    ControlMaster auto
+    ControlPersist 86400
+    ControlPath ~/.ssh/ssh_%r_%h_%p' >> ~/.ssh/config";
 }
 
 sub test_flags {

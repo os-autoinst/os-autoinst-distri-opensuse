@@ -34,11 +34,8 @@ sub run {
     assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
 
     # Configure the Master socket
-    assert_script_run "echo 'ControlMaster auto
-    ControlPath ~/.ssh/ssh_%r_%h_%p
-    StrictHostKeyChecking no
-    HostKeyAlgorithms ssh-rsa
-    ControlPersist 86400' > ~/.ssh/config";
+    assert_script_run "echo 'StrictHostKeyChecking no
+    HostKeyAlgorithms ssh-rsa' > ~/.ssh/config";
 
     # Exchange SSH keys
     assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";

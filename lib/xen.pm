@@ -128,9 +128,31 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
         },
+        sles12sp5HVM => {
+            autoyast     => 'autoyast_xen/sles12sp5HVM_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            macaddress   => '52:54:00:78:73:ad',
+            ip           => '192.168.122.113',
+            distro       => 'SLE_12_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+        },
+        sles12sp5PV => {
+            autoyast     => 'autoyast_xen/sles12sp5PV_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            macaddress   => '52:54:00:78:73:ae',
+            ip           => '192.168.122.114',
+            distro       => 'SLE_12_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+        },
     );
 
-    delete($guests{sles11sp4PVx32}) if (is_sle('<=12-SP1'));
+    delete($guests{sles11sp4HVMx32});
+    delete($guests{sles11sp4PVx64});
+    delete($guests{sles12sp3HVM}) if (!is_sle('=12-SP3'));
+    delete($guests{sles12sp4PV})  if (!is_sle('=12-SP4'));
+    delete($guests{sles12sp5HVM}) if (!is_sle('=12-SP5'));
+    delete($guests{sles15PV})     if (!is_sle('=15'));
+    delete($guests{sles15sp1HVM}) if (!is_sle('=15-SP1'));
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
@@ -164,6 +186,14 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             ip           => '192.168.122.111',
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
+        },
+        sles12sp5 => {
+            autoyast     => 'autoyast_kvm/sles12sp5_PRG.xml',
+            extra_params => '',
+            macaddress   => '52:54:00:78:73:ad',
+            ip           => '192.168.122.113',
+            distro       => 'SLE_12_SP5',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
     );
 } else {
