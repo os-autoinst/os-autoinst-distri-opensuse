@@ -24,7 +24,7 @@
   <bootloader>
     <global>
       <activate config:type="boolean">true</activate>
-      <append>console=ttyS1,115200 noquiet crashkernel=172M,high crashkernel=72M,low</append>
+      <append>console=ttyS1,115200 noquiet crashkernel=172M,high crashkernel=72M,low intel_iommu=on iommu=pt pci=realloc</append>
       <gfxmode>auto</gfxmode>
       <boot_mbr>true</boot_mbr>
       <hiddenmenu>false</hiddenmenu>
