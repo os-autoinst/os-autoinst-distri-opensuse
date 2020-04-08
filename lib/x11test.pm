@@ -350,9 +350,8 @@ sub start_evolution {
     assert_and_click("evolution_wizard-restore-backup-click");
 
     # Move to "Full Name" field and fill it.
-    assert_screen_change {
-        send_key "alt-e";
-    };
+    send_key "alt-e";
+    wait_still_screen(2);
     type_string "SUSE Test";
     # Move to "Email Address" field and fill it.
     assert_screen_change {
