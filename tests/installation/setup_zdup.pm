@@ -53,7 +53,7 @@ sub run {
             type_string("/sbin/reboot\n");
 
             reset_consoles;
-            $self->wait_boot(textmode => 1);
+            $self->wait_boot(textmode => 1, bootloader_time => 200);
 
             select_console('root-console');
         }
