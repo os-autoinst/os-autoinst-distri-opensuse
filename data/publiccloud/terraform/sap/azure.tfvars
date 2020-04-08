@@ -1,16 +1,16 @@
 # Launch SLES-HAE of SLES4SAP cluster nodes
 
 # Instance type to use for the cluster nodes
-instancetype = "%MACHINE_TYPE%"
+hana_vm_size = "%MACHINE_TYPE%"
 
 # Disk type for HANA
-hana_data_disk_type = "StandardSSD_LRS"
+hana_data_disk_type = "Premium_LRS"
 
 # Caching used for HANA disk
 hana_data_disk_caching = "ReadWrite"
 
 # Number of nodes in the cluster
-ninstances = "2"
+hana_count = "2"
 
 # Region where to deploy the configuration
 az_region = "%REGION%"
@@ -22,21 +22,43 @@ init_type = "all"
 # SLES4SAP image information
 # If custom uris are enabled public information will be omitted
 # Custom sles4sap image
-sles4sap_uri = "%SLE_IMAGE%"
+sles4sap_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Custom iscsi server image
 # iscsi_srv_uri = "/path/to/your/iscsi/image"
 
+# Custom monitoring server image
+# monitoring_uri = "/path/to/your/monitoring/image"
+
+# Custom drbd nodes image
+drbd_image_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
+
 # Public SLES4SAP image
-hana_public_sku     = "15"
-hana_public_version = "latest"
+hana_public_publisher = "SUSE"
+hana_public_offer     = "SLES-SAP-BYOS"
+hana_public_sku       = "15"
+hana_public_version   = "latest"
 
 # Public iscsi server image
-iscsi_public_sku     = "15"
-iscsi_public_version = "latest"
+iscsi_public_publisher = "SUSE"
+iscsi_public_offer     = "SLES-SAP-BYOS"
+iscsi_public_sku       = "15"
+iscsi_public_version   = "latest"
+
+# Public monitoring server image
+monitoring_public_publisher = "SUSE"
+monitoring_public_offer     = "SLES-SAP-BYOS"
+monitoring_public_sku       = "15"
+monitoring_public_version   = "latest"
+
+# Public drbd nodes image
+drbd_public_publisher = "SUSE"
+drbd_public_offer     = "SLES-SAP-BYOS"
+drbd_public_sku       = "15"
+drbd_public_version   = "latest"
 
 # Admin user
-admin_user = "ldevulder"
+admin_user = "azureuser"
 
 # Private SSH Key location
 private_key_location = "~/.ssh/id_rsa"
@@ -54,13 +76,16 @@ storage_account_key = "%STORAGE_ACCOUNT_KEY%"
 hana_inst_master = "%HANA_BUCKET%"
 
 # Local folder where HANA installation master will be mounted
-hana_inst_folder = "/root/sap_inst/"
+hana_inst_folder = "/root/hana_inst_media/"
 
 # Device used by node where HANA will be installed
 hana_disk_device = "/dev/sdc"
 
 # Device used by the iSCSI server to provide LUNs
 iscsidev = "/dev/sdc"
+
+# IP address of the iSCSI server
+iscsi_srv_ip = "10.74.1.14"
 
 # Path to a custom ssh public key to upload to the nodes
 # Used for cluster communication for example
@@ -73,6 +98,10 @@ cluster_ssh_key = "salt://hana_node/files/sshkeys/cluster.id_rsa"
 # Each host IP address (sequential order).
 # example : host_ips = ["10.0.1.0", "10.0.1.1"]
 host_ips = ["10.74.1.11", "10.74.1.12"]
+
+# Each drbd cluster host IP address (sequential order).
+# example : drbd_host_ips = ["10.0.1.10", "10.0.1.11"]
+drbd_ips = ["10.74.1.21", "10.74.1.22"]
 
 # Repository url used to install HA/SAP deployment packages
 # The latest RPM packages can be found at:
@@ -105,6 +134,15 @@ monitoring_enabled = "false"
 
 # IP address of the machine where prometheus and grafana are running
 #monitoring_srv_ip = "10.74.1.13"
+
+# Netweaver variables
+
+#netweaver_enabled = true
+#netweaver_ips = ["10.74.1.30", "10.74.1.31", "10.74.1.32", "10.74.1.33"]
+#netweaver_virtual_ips = ["10.74.1.35", "10.74.1.36", "10.74.1.37", "10.74.1.38"]
+#netweaver_storage_account_key = "YOUR_STORAGE_ACCOUNT_KEY"
+#netweaver_storage_account_name = "YOUR_STORAGE_ACCOUNT_NAME"
+#netweaver_storage_account = "//YOUR_STORAGE_ACCOUNT_NAME.file.core.windows.net/path/to/your/nw/installation/master"
 
 # QA variables
 
