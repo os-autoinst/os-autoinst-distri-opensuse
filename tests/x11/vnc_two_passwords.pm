@@ -102,13 +102,19 @@ sub run {
         record_info 'Try ' . ($opt->{change} ? 'RW' : 'RO') . ' mode';
 
         # Start event watcher
-        type_string "xev -display $display -root | tee /tmp/xev_log\n";
+        # trap is needed because ctrl-c would kill the whole process group (cmd ; cmd)
+        # eg.
+        #     xev -display $display -root | tee /tmp/xev_log ; echo xev-finished >/dev/$serialdev
+        # will not work
+        # Parentheses are needed to not populate trap to following commands
+        type_string "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log) \n";
 
         # Repeat with RO/RW password
         generate_vnc_events $opt->{pw};
 
         # Close xev
         send_key 'ctrl-c';
+        wait_serial 'xev-finished';
 
         # Check if xev recorded events or not - RO/RW mode
         if ($opt->{change}) {
