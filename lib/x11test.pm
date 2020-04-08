@@ -21,7 +21,6 @@ use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use POSIX 'strftime';
 use mm_network;
-use x11utils 'turn_off_gnome_screensaver';
 
 sub post_run_hook {
     my ($self) = @_;
@@ -332,8 +331,6 @@ sub start_evolution {
     # Test setup
     my ($self, $mail_box) = @_;
     mouse_hide(1);
-    # The following is done to make making needles easier.
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
 
     # Cleanup past configs  and start Evolution.
     x11_start_program("xterm -e \"killall -9 evolution; find ~ -name evolution | xargs rm -rf;\"", valid => 0);
