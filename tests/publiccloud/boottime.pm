@@ -52,51 +52,69 @@ our $default_gce_BYOS_analyze_thresholds = {
     overall   => 60,
 };
 
+our $default_blame_thresholds = {
+    first => {'wicked.service' => 20},
+    soft  => {'wicked.service' => 20},
+    hard  => {'wicked.service' => 20},
+};
+
 
 our $thresholds_by_flavor = {
     # Azure
     'Azure-BYOS' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
     'Azure-CHOST-BYOS' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
     'Azure-Basic' => {
         analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
     'Azure-Standard' => {
         analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
 
     # EC2
     'EC2-CHOST-BYOS' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
 
     'EC2-CHOST-BYOS' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
     'EC2-HVM' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
 
     'EC2-HVM-ARM' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
 
     'EC2-HVM-BYOS' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
 
     # GCE
     GCE => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
     'GCE-BYOS' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
     'GCE-CHOST-BYOS' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
     },
 };
 
@@ -246,21 +264,33 @@ sub store_in_db {
     }
 }
 
-sub check_thresholds {
-    my ($self, $results) = @_;
+sub check_threshold_values
+{
+    my ($self, $results, $thresholds) = @_;
 
-    my $flavor = get_required_var('FLAVOR');
-    die("Missing thresholds for flavor $flavor") unless (exists($thresholds_by_flavor->{$flavor}));
-    my $thresholds = $thresholds_by_flavor->{$flavor}->{analyze};
-    # Validate bootup timing against hard limits
     for my $key (keys(%{$thresholds})) {
         my $limit = $thresholds->{$key};
-        my $value = $results->{analyze}->{$key};
+        my $value = $results->{$key};
         die("Missing measurment $key") unless (defined($value));
         if ($value > $limit) {
             record_info('ERROR', "$key:$value exceed limit of $limit", result => 'fail');
             $self->result('fail');
         }
+    }
+}
+
+sub check_thresholds {
+    my ($self, $results) = @_;
+
+    my $flavor = get_required_var('FLAVOR');
+    die("Missing thresholds for flavor $flavor") unless (exists($thresholds_by_flavor->{$flavor}));
+    my $thresholds = $thresholds_by_flavor->{$flavor};
+    $Data::Dumper::Sortkeys = 1;
+    record_info("THRESHOLDS", Dumper($thresholds));
+
+    $self->check_threshold_values($results->{analyze}, $thresholds->{analyze});
+    for my $type (qw(first soft hard)) {
+        $self->check_threshold_values($results->{blame}->{$type}, $thresholds->{blame}->{$type});
     }
 }
 
