@@ -69,19 +69,24 @@ sub generate_vnc_events {
     my $password = shift;
 
     # Login into vnc display in RO/RW mode
-    x11_start_program("vncviewer $display -SecurityTypes=VncAuth", target_match => 'vnc_password_dialog', match_timeout => 60);
+    x11_start_program 'xterm';
+    send_key 'super-left';
+    type_string "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev \n", timeout => 60;
+    assert_screen 'vnc_password_dialog';
     type_string "$password\n";
     assert_screen 'vncviewer-xev';
-    send_key "super-left";
+    send_key 'super-left';
     wait_still_screen 2;
 
     # Send some vnc events to xev
-    type_string "events";
+    type_string 'events';
     mouse_set(80, 120);
     mouse_set(85, 125);
     mouse_click;
 
     send_key 'alt-f4';
+    wait_serial 'vncviewer-finished';
+    type_string "exit \n";
 }
 
 sub run {
