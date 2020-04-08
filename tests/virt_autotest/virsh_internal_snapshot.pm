@@ -33,6 +33,8 @@ sub run_test {
     return unless check_var("REGRESSION", "qemu-hypervisor") || check_var("SYSTEM_ROLE", "kvm");
 
     foreach my $guest (keys %xen::guests) {
+        my $type = check_guest_disk_type($guest);
+        next if ($type == 1);
         record_info "virsh-snapshot", "Creating Internal Snapshot";
         assert_script_run "virsh snapshot-create-as $guest --name internal-snapshot-$guest-01";
         assert_script_run "virsh snapshot-current $guest | grep internal-snapshot-$guest-01";
