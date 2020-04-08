@@ -13,6 +13,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use Mojo::Util 'trim';
+use Data::Dumper;
 use testapi;
 use db_utils;
 
@@ -159,12 +160,62 @@ sub do_systemd_analyze {
     return @ret;
 }
 
-sub run {
+sub measure_timings {
     my ($self) = @_;
 
-    $self->select_serial_terminal;
+    my $ret = {
+        kernel_release => undef,
+        kernel_version => undef,
+        analyze        => {},
+        blame          => {
+            first => {}, soft => {}, hard => {}
+        },
+    };
+    my $provider = $self->provider_factory();
 
-    # $tags and $startup_timings are the key/values which get stored in influxdb.
+    # Provision the instance
+    my $instance = $provider->create_instance(check_connectivity => 0);
+    $ret->{analyze}->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
+
+    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
+    $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $ret->{blame}->{first} = $systemd_blame;
+
+    # Collect kernel version
+    $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
+    $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
+
+    # Do soft reboot
+    my ($shutdown_time, $startup_time) = $instance->softreboot();
+    $ret->{analyze}->{ssh_access_soft} = $startup_time;
+
+    ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
+    $ret->{analyze}->{$_ . '_soft'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $ret->{blame}->{soft} = $systemd_blame;
+
+    # Do hard reboot
+    $instance->stop();
+    $ret->{analyze}->{ssh_access_hard} = $instance->start();
+
+    ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
+    $ret->{analyze}->{$_ . '_hard'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
+    $ret->{blame}->{hard} = $systemd_blame;
+
+    # Do logging to openqa UI
+    $Data::Dumper::Sortkeys = 1;
+    record_info("RESULTS", Dumper($ret));
+
+    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1, quiet => 1);
+    $instance->upload_log('/tmp/sle_cloud.tar.gz');
+
+    return $ret;
+}
+
+sub store_in_db {
+    my ($self, $results) = @_;
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+    return unless ($url);
+
     my $tags = {
         instance_type     => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
         os_flavor         => get_required_var('FLAVOR'),
@@ -172,71 +223,31 @@ sub run {
         os_build          => get_required_var('BUILD'),
         os_pc_build       => get_required_var('PUBLIC_CLOUD_BUILD'),
         os_pc_kiwi_build  => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
-        os_kernel_release => undef,
-        os_kernel_version => undef,
+        os_kernel_release => $results->{kernel_release},
+        os_kernel_version => $results->{kernel_version},
     };
-    my $startup_timings = {};
-    my $blame_timings   = {};
-
-    my $provider = $self->provider_factory();
-
-    # Provision the instance
-    my $instance = $provider->create_instance(check_connectivity => 0);
-    $startup_timings->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
-
-    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
-    $startup_timings->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-    $blame_timings->{first} = $systemd_blame;
-
-    # Collect kernel version
-    $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
-    $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
-
-    # Do soft reboot
-    my ($shutdown_time, $startup_time) = $instance->softreboot();
-    $startup_timings->{ssh_access_soft} = $startup_time;
-
-    ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
-    $startup_timings->{$_ . '_soft'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-    $blame_timings->{soft} = $systemd_blame;
-
-    # Do hard reboot
-    $instance->stop();
-    $startup_timings->{ssh_access_hard} = $instance->start();
-
-    ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
-    $startup_timings->{$_ . '_hard'} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-    $blame_timings->{hard} = $systemd_blame;
-
-    # Do logging to openqa UI
-    my $msg = "Bootup timeings:$/";
-    for my $key (sort(keys(%{$startup_timings}))) {
-        $msg .= sprintf("%-16s => %s$/", $key, $startup_timings->{$key});
-    }
-    record_info("RESULTS", $msg);
 
     # Store values in influx-db
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
-    if ($url) {
-        my $data = {
-            table  => 'bootup',
+    my $data = {
+        table  => 'bootup',
+        tags   => $tags,
+        values => $results->{analyze}
+    };
+    influxdb_push_data($url, 'publiccloud', $data);
+
+    for my $type (qw(first soft hard)) {
+        $tags->{boottype} = $type;
+        $data = {
+            table  => 'bootup_blame',
             tags   => $tags,
-            values => $startup_timings
+            values => $results->{blame}->{$type}
         };
         influxdb_push_data($url, 'publiccloud', $data);
-
-        for my $type (qw(first soft hard)) {
-            $tags->{boottype} = $type;
-            $data = {
-                table  => 'bootup_blame',
-                tags   => $tags,
-                values => $blame_timings->{$type}
-            };
-            influxdb_push_data($url, 'publiccloud', $data);
-        }
     }
-    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1, quiet => 1);
-    $instance->upload_log('/tmp/sle_cloud.tar.gz');
+}
+
+sub check_thresholds {
+    my ($self, $results) = @_;
 
     my $flavor = get_required_var('FLAVOR');
     die("Missing thresholds for flavor $flavor") unless (exists($thresholds_by_flavor->{$flavor}));
@@ -244,13 +255,22 @@ sub run {
     # Validate bootup timing against hard limits
     for my $key (keys(%{$thresholds})) {
         my $limit = $thresholds->{$key};
-        my $value = $startup_timings->{$key};
+        my $value = $results->{analyze}->{$key};
         die("Missing measurment $key") unless (defined($value));
         if ($value > $limit) {
             record_info('ERROR', "$key:$value exceed limit of $limit", result => 'fail');
             $self->result('fail');
         }
     }
+}
+
+sub run {
+    my ($self) = @_;
+    $self->select_serial_terminal;
+
+    my $results = $self->measure_timings();
+    $self->store_in_db($results);
+    $self->check_thresholds($results);
 }
 
 1;
