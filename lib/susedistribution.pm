@@ -316,8 +316,7 @@ sub ensure_installed {
     my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
-        my $ret = check_screen(\@tags, $args{timeout});
-        last unless $ret;
+        assert_screen(\@tags, timeout => $args{timeout});
         last if (match_has_tag('pkcon-finished'));
         if (match_has_tag('Policykit')) {
             type_password;
