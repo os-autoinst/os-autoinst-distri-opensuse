@@ -630,10 +630,16 @@ sub autoyast_boot_params {
         $autoyast_args .= "$proto://10.0.2.1/";
         $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
         $autoyast_args .= $ay_var;
+    } elsif ($ay_var =~ /^ASSET_\d+$/) {
+        # In case profile is uploaded as an ASSET we need just filename
+        $ay_var = basename(get_required_var($ay_var));
+        $autoyast_args .= autoinst_url("/assets/other/$ay_var");
     } elsif ($ay_var !~ /^slp$|:\/\//) {
-        $autoyast_args .= data_url($ay_var);    # Getting profile from the worker as openQA asset
+        # Getting profile from the worker as openQA asset
+        $autoyast_args .= data_url($ay_var);
     } else {
-        $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
+        # Getting profile by direct url or slp
+        $autoyast_args .= $ay_var;
     }
     push @params, split ' ', $autoyast_args;
     return @params;
