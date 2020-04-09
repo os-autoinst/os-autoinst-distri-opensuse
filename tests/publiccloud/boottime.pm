@@ -46,10 +46,25 @@ our $default_azure_analyze_thresholds = {
     overall   => 180,
 };
 
+our $default_azure_BYOS_analyze_thresholds = {
+    %{$default_analyze_thresholds},
+    userspace => 100,
+};
+
+our $default_ec2_analyze_thresholds = {
+    %{$default_analyze_thresholds},
+    userspace => 90,
+};
+
 our $default_gce_BYOS_analyze_thresholds = {
     %{$default_analyze_thresholds},
     userspace => 40,
     overall   => 60,
+};
+
+our $default_gce_analyze_thresholds = {
+    %{$default_analyze_thresholds},
+    userspace => 80,
 };
 
 our $default_blame_thresholds = {
@@ -62,11 +77,11 @@ our $default_blame_thresholds = {
 our $thresholds_by_flavor = {
     # Azure
     'Azure-BYOS' => {
-        analyze => $default_analyze_thresholds,
+        analyze => $default_azure_BYOS_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
     'Azure-CHOST-BYOS' => {
-        analyze => $default_analyze_thresholds,
+        analyze => $default_azure_BYOS_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
     'Azure-Basic' => {
@@ -89,12 +104,12 @@ our $thresholds_by_flavor = {
         blame   => $default_blame_thresholds,
     },
     'EC2-HVM' => {
-        analyze => $default_analyze_thresholds,
+        analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
 
     'EC2-HVM-ARM' => {
-        analyze => $default_analyze_thresholds,
+        analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
 
@@ -105,7 +120,7 @@ our $thresholds_by_flavor = {
 
     # GCE
     GCE => {
-        analyze => $default_analyze_thresholds,
+        analyze => $default_gce_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
     'GCE-BYOS' => {
