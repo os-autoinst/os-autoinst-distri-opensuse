@@ -463,15 +463,15 @@ sub run {
     save_tmp_file('status.log', $status_log_content);
     my $local_file = "/tmp/opt_logs.tar.gz";
     script_run("tar zcvf $local_file --absolute-names /opt/log/");
-    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 10; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 5 ]; then break; fi; done");
+    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
     my $tar_content = script_output("cat $local_file");
     save_tmp_file('opt_logs.tar.gz', $tar_content);
+    send_key 'ctrl-c';
     script_run('clear');
 }
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->SUPER::post_fail_hook;
     # Collect executed test logs
     script_run 'tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/';
     upload_logs '/tmp/opt_logs.tar.gz';
