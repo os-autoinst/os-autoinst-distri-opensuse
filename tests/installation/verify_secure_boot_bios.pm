@@ -19,7 +19,7 @@ use scheduler 'get_test_suite_data';
 
 sub run {
     my $test_data = get_test_suite_data();
-    assert_screen 'linuxrc-start-shell-before-installation', 60;
+    assert_screen 'linuxrc-start-shell-before-installation', 90;
     assert_script_run("bootctl status | grep \"Secure Boot: $test_data->{secure_boot}\"");
     type_string "exit\n";
 }
