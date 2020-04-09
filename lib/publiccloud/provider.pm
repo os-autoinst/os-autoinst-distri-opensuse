@@ -47,7 +47,7 @@ sub init {
         my $cloud_name = $self->conv_openqa_tf_name;
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
-        assert_script_run('cp pillar_examples/automatic/{cluster.sls,hana.sls,top.sls} salt/hana_node/files/pillar/');
+        assert_script_run("cp pillar_examples/automatic/${_}/* salt/${_}_node/files/pillar/") foreach (qw(hana drbd));
         assert_script_run('cd');    # We need to ensure to be in the home directory
         assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
         $self->create_ssh_key(ssh_private_key_file => TERRAFORM_DIR . '/salt/hana_node/files/sshkeys/cluster.id_rsa');
@@ -328,9 +328,11 @@ sub terraform_apply {
     record_info('INFO', "Creating instance $instance_type from $image ...");
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
-        my $sap_media   = get_required_var('HANA');
-        my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
-        my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
+        my $sap_media            = get_required_var('HANA');
+        my $sap_regcode          = get_required_var('SCC_REGCODE_SLES4SAP');
+        my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
+        my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
+        my $sle_version          = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%)         => $instance_type,
@@ -338,6 +340,8 @@ sub terraform_apply {
             q(%HANA_BUCKET%)          => $sap_media,
             q(%SLE_IMAGE%)            => $image,
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
+            q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
+            q(%STORAGE_ACCOUNT_KEY%)  => $storage_account_key,
             q(%SLE_VERSION%)          => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
@@ -390,10 +394,14 @@ sub terraform_apply {
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         $vms = $output->{cluster_nodes_name}->{value};
         $ips = $output->{cluster_nodes_public_ip}->{value};
-        my $iscsi_vms = $output->{iscsisrv_name}->{value};
-        my $iscsi_ips = $output->{iscsisrv_public_ip}->{value};
-        push @{$vms}, @{$iscsi_vms};
-        push @{$ips}, @{$iscsi_ips};
+        foreach my $others_vms (qw(drbd iscsisrv)) {
+            my $tmp_name_var = "${others_vms}_name";
+            my $tmp_ip_var   = "${others_vms}_public_ip";
+            my $tmp_vms      = $output->{${tmp_name_var}}->{value};
+            my $tmp_ips      = $output->{${tmp_ip_var}}->{value};
+            push @{$vms}, @{$tmp_vms} if defined $tmp_vms;
+            push @{$ips}, @{$tmp_ips} if defined $tmp_ips;
+        }
     }
     else {
         $vms = $output->{vm_name}->{value};
