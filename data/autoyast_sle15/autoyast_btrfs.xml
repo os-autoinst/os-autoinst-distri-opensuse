@@ -52,22 +52,6 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
-  <keyboard>
-    <keyboard_values>
-      <delay/>
-      <discaps config:type="boolean">false</discaps>
-      <numlock>bios</numlock>
-      <rate/>
-    </keyboard_values>
-    <keymap>english-us</keymap>
-  </keyboard>
-  <language>
-    <language>en_US</language>
-    <languages/>
-  </language>
-  <ntp-client>
-    <ntp_policy>auto</ntp_policy>
-  </ntp-client>
   <partitioning config:type="list">
     <drive>
       <device>/dev/vda</device>
@@ -129,20 +113,14 @@
           <resize config:type="boolean">false</resize>
         </partition>
       </partitions>
-      <pesize/>
       <type config:type="symbol">CT_DISK</type>
       <use>all</use>
     </drive>
   </partitioning>
   <software>
     <packages config:type="list">
-      <package>glibc</package>
-      <package>grub2</package>
-      <package>snapper</package>
-      <package>syslinux</package>
-      <package>kdump</package>
+      <package>grub2</package>   
       <package>sles-release</package>
-      <package>kexec-tools</package>
     </packages>
     <patterns config:type="list">
       <pattern>apparmor</pattern>
@@ -161,23 +139,8 @@
     </products>
   </software>
   <networking>
-    <interfaces config:type="list">
-      <interface>
-        <bootproto>dhcp</bootproto>
-        <device>eth0</device>
-        <dhclient_set_default_route>yes</dhclient_set_default_route>
-        <startmode>auto</startmode>
-      </interface>
-    </interfaces>
+    <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
-  <firewall>
-    <enable_firewall config:type="boolean">true</enable_firewall>
-    <start_firewall config:type="boolean">true</start_firewall>
-  </firewall>
-  <timezone>
-    <hwclock>UTC</hwclock>
-    <timezone>Europe/Berlin</timezone>
-  </timezone>
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">false</encrypted>
