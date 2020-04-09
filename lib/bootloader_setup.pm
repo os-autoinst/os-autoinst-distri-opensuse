@@ -45,6 +45,7 @@ our @EXPORT = qw(
   select_bootmenu_language
   tianocore_enter_menu
   tianocore_select_bootloader
+  tianocore_disable_secureboot
   tianocore_http_boot
   zkvm_add_disk
   zkvm_add_interface
@@ -860,6 +861,7 @@ sub select_bootmenu_language {
 
 sub tianocore_enter_menu {
     # we need to reduce this waiting time as much as possible
+    send_key 'f2';
     my $counter = 300;
     while (!check_screen('tianocore-mainmenu', 0, no_wait => 1) && $counter--) {
         send_key 'f2';
@@ -872,6 +874,23 @@ sub tianocore_select_bootloader {
     send_key_until_needlematch('tianocore-bootmanager', 'down', 5, 5);
     send_key 'ret';
 }
+
+sub tianocore_disable_secureboot {
+    tianocore_enter_menu;
+    send_key_until_needlematch('tianocore-device-manager', 'down', 5, 5);
+    send_key 'ret';
+    assert_screen('tianocore-secure-boot-configuration');
+    send_key 'ret';
+    send_key_until_needlematch('tianocore-attempt-secure-boot', 'down', 5, 5);
+    send_key ' ';      # toggle
+    send_key 'ret';    # confirm
+    assert_screen('tianocore-secure-boot-disabled');
+    send_key 'f10';    # save
+    send_key 'y';      # confirm
+    sleep 2;
+    power('reset');
+}
+
 
 sub tianocore_http_boot {
     tianocore_enter_menu;

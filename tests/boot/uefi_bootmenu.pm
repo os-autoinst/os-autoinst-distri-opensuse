@@ -28,6 +28,8 @@ sub run {
     # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
     # selecting a workaround is handled in boot/boot_to_desktop
     return if (get_var('MACHINE') =~ /aarch64/ && get_var('BOOT_HDD_IMAGE'));
+
+    tianocore_disable_secureboot if get_var('UEFI_DISABLE_SECUREBOOT');
     tianocore_select_bootloader;
     if (check_var('BOOTFROM', 'd')) {
         send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 1);
