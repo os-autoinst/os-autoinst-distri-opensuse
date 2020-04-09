@@ -2174,6 +2174,7 @@ sub load_security_tests_crypt_core {
         loadtest "fips/openssl/dirmngr_setup";
         loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
     }
+    loadtest "fips/openssl/openssl_tlsv1_3";
     loadtest "fips/openssl/openssl_pubkey_rsa";
     loadtest "fips/openssl/openssl_pubkey_dsa";
     loadtest "console/openssl_alpn";
