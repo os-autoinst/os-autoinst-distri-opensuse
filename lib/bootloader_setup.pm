@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -465,7 +465,7 @@ sub bootmenu_default_params {
         push @params, get_hyperv_fb_video_resolution;
         push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
     }
-    type_string_very_slow(" @params ");
+    type_boot_parameters(" @params ");
     return @params;
 }
 
@@ -491,7 +491,7 @@ sub bootmenu_network_source {
                 # Ignore certificate validation
                 push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                type_string_very_slow(" @params ");
+                type_boot_parameters(" @params ");
                 return @params;
             }
 
@@ -502,14 +502,14 @@ sub bootmenu_network_source {
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
                 push @params, "instsys=disk:/boot/$arch/root";
-                type_string_very_slow(" @params ");
+                type_boot_parameters(" @params ");
                 return @params;
             }
 
             select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
         }
     }
-    type_string_very_slow(" @params ");
+    type_boot_parameters(" @params ");
     return @params;
 }
 
@@ -522,7 +522,7 @@ sub bootmenu_remote_target {
         push @params, "nameserver=" . join(",", @$dns);
         push @params, ("$remote=1", "${remote}password=$password");
     }
-    type_string_very_slow(" @params ");
+    type_boot_parameters(" @params ");
     return @params;
 }
 
@@ -605,13 +605,13 @@ sub select_bootmenu_more {
         push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_string_very_slow(" @params ");
+        type_boot_parameters(" @params ");
         save_screenshot;
         send_key 'f10';
     }
     else {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_string_very_slow(" @params ");
+        type_boot_parameters(" @params ");
         save_screenshot;
         send_key 'ret';
     }
@@ -730,7 +730,7 @@ sub specific_bootmenu_params {
         return " @params ";
     }
 
-    type_string_very_slow " @params " if @params;
+    type_boot_parameters(" @params ") if (@params);
     save_screenshot;
     return @params;
 }
@@ -1242,6 +1242,11 @@ sub create_encrypted_part {
     assert_script_run "parted -s /dev/$disk mkpart 1 512 100%";
     # encrypt created partition
     assert_script_run "echo nots3cr3t | cryptsetup $luks_type luksFormat -q --force-password /dev/${disk}1";
+}
+
+sub type_boot_parameters {
+    my (@params) = @_;
+    type_string(" @params ", max_interval => check_var('TYPE_BOOT_PARAMS_FAST', 1) ? undef : utils::VERY_SLOW_TYPING_SPEED);
 }
 
 1;
