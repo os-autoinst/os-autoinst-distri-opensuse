@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE Linux GmbH
+# Copyright (C) 2015-2020 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ use utils;
 use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
 use version_utils qw(is_sle is_caasp is_released);
 use main_common 'opensuse_welcome_applicable';
-use x11utils 'untick_welcome_on_next_startup';
+use x11utils 'untick_welcome_on_next_startup_and_close';
 use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
 
@@ -376,7 +376,7 @@ sub run {
             return;
         }
         elsif (match_has_tag('opensuse-welcome')) {
-            return;             # Popup itself is processed in opensuse_welcome module
+            untick_welcome_on_next_startup_and_close();
         }
     }
     # ssh console was activated at this point of time, so need to reset

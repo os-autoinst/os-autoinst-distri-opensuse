@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use x11utils qw(handle_login handle_logout untick_welcome_on_next_startup);
+use x11utils qw(handle_login handle_logout untick_welcome_on_next_startup_and_close);
 use main_common 'opensuse_welcome_applicable';
 
 sub ensure_multi_user_target {
@@ -84,7 +84,7 @@ sub run {
     if (opensuse_welcome_applicable) {
         assert_screen 'opensuse-welcome', 120;
         # Close welcome screen
-        untick_welcome_on_next_startup;
+        untick_welcome_on_next_startup_and_close;
     }
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in

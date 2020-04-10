@@ -148,7 +148,7 @@ sub run {
     if (opensuse_welcome_applicable) {
         assert_screen 'opensuse-welcome', 120;
         # Close welcome screen
-        untick_welcome_on_next_startup;
+        untick_welcome_on_next_startup_and_close;
     }
     assert_screen "generic-desktop", 120;
     switch_user;

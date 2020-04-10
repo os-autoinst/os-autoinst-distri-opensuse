@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
-  untick_welcome_on_next_startup
+  untick_welcome_on_next_startup_and_close
 );
 
 =head1 X11_UTILS
@@ -299,14 +299,15 @@ sub turn_off_gnome_suspend {
     script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
 }
 
-=head2 untick_welcome_on_next_startup
+=head2 untick_welcome_on_next_startup_and_close
 
- untick_welcome_on_next_startup();
+ untick_welcome_on_next_startup_and_close();
 
-untick welcome page on next startup.
+untick checkbox "welcome page on next startup" and closes the popup.
+It avoids that the popup is shown on each login.
 
 =cut
-sub untick_welcome_on_next_startup {
+sub untick_welcome_on_next_startup_and_close {
     # Untick box - (Retries may be needed: poo#56024)
     for my $retry (1 .. 5) {
         assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
