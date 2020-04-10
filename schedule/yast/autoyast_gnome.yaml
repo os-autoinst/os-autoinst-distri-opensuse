@@ -1,0 +1,35 @@
+name:           autoyast_gnome
+description:    >
+    Testing autoyast installation with given profile and expect SLES with gnome.
+    Please, see the profile for more details.
+    Profile is available in distri git repo under data subdirectory.
+    Same as autoyast_gnome but with product defined in the profile.
+    Maintainers: riafarov, okurz
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader_uefi
+      x86_64:
+        - installation/bootloader
+schedule:
+  - installation/isosize
+  - '{{bootloader}}'
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - update/zypper_clear_repos
+  - console/zypper_ar
+  - console/zypper_ref
+  - shutdown/grub_set_bootargs
+  - console/autoyast_smoke
