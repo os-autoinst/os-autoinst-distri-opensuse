@@ -10,8 +10,6 @@ schedule:
   - '{{isosize}}'
   - installation/bootloader_start
   - autoyast/installation
-  # On Tumbleweed process Welcome pop-up screen
-  - '{{opensuse_welcome}}'
   - autoyast/console
   - autoyast/login
   - autoyast/verify_imported_users
@@ -38,10 +36,6 @@ conditional_schedule:
     BACKEND:
       qemu:
         - installation/grub_test
-  opensuse_welcome:
-    VERSION:
-      Tumbleweed:
-        - installation/opensuse_welcome
   inject_registration:
     DISTRI:
       sle:

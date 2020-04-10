@@ -36,6 +36,7 @@ our @EXPORT = qw(
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
   untick_welcome_on_next_startup_and_close
+  workaround_bsc1169203
 );
 
 =head1 X11_UTILS
@@ -321,6 +322,22 @@ sub untick_welcome_on_next_startup_and_close {
         last                                          if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
+}
+
+=head2 workaround_bsc1169203
+
+ workaround_bsc1169203
+
+Bad performance on Wayland/GNOME causes opensuse-welcome popup to fail.
+
+=cut
+sub workaround_bsc1169203 {
+    if (check_screen 'opensuse-welcome-started-not-shown-bsc1169203') {
+        assert_and_click('opensuse-welcome-open-title-bar-menu');
+        assert_and_click('opensuse-welcome-quit-app');
+    }
+    x11_start_program('opensuse-welcome');
+    untick_welcome_on_next_startup_and_close();
 }
 
 1;

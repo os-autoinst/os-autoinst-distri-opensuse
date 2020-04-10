@@ -40,9 +40,9 @@ use base 'y2_installbase';
 use testapi;
 use utils;
 use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
-use version_utils qw(is_sle is_caasp is_released);
+use version_utils qw(is_caasp is_opensuse is_released is_sle);
 use main_common 'opensuse_welcome_applicable';
-use x11utils 'untick_welcome_on_next_startup_and_close';
+use x11utils qw(untick_welcome_on_next_startup_and_close workaround_bsc1169203);
 use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
 
@@ -159,7 +159,7 @@ sub run {
     # resolve conflicts and this is a workaround during the update
     push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
     # match openSUSE Welcome dialog on matching distros
-    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
+    push(@needles, 'opensuse-welcome', 'opensuse-welcome-started-not-shown-bsc1169203') if opensuse_welcome_applicable;
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
@@ -337,9 +337,10 @@ sub run {
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # match openSUSE Welcome dialog on matching distros
-    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
+    push(@needles, 'opensuse-welcome', 'opensuse-welcome-started-not-shown-bsc1169203') if opensuse_welcome_applicable;
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
+    my $opensuse_welcome_shown = 0;
     until (match_has_tag 'reboot-after-installation') {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
@@ -375,10 +376,13 @@ sub run {
         elsif (match_has_tag('lang_and_keyboard')) {
             return;
         }
-        elsif (match_has_tag('opensuse-welcome')) {
-            untick_welcome_on_next_startup_and_close();
+        elsif (match_has_tag('opensuse-welcome') || match_has_tag('opensuse-welcome-started-not-shown-bsc1169203')) {
+            untick_welcome_on_next_startup_and_close() if match_has_tag('opensuse-welcome');
+            workaround_bsc1169203()                    if match_has_tag('opensuse-welcome-started-not-shown-bsc1169203');
+            $opensuse_welcome_shown = 1;
         }
     }
+    workaround_bsc1169203() if (opensuse_welcome_applicable() && !$opensuse_welcome_shown);
     # ssh console was activated at this point of time, so need to reset
     reset_consoles if is_pvm;
     my $expect_errors = get_var('AUTOYAST_EXPECT_ERRORS') // 0;
