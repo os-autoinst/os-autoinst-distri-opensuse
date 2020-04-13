@@ -48,7 +48,9 @@ sub run {
     type_string "Passwords";    # Search "Passwords" section
     send_key "tab";             # Hide blinking cursor in the search box
     wait_still_screen 2;
-    send_key "alt-shift-u";     # Use a master password
+    # Use a master password
+    send_key_until_needlematch("firefox-use-a-master-password", "tab", 20, 1);
+    send_key "spc";
     assert_screen('firefox-passwd-master_setting');
 
     type_string $fips_password;
@@ -65,12 +67,16 @@ sub run {
     send_key "tab";
     wait_still_screen 2;
 
-    send_key "alt-shift-d";        # Device Manager
+    # Device Manager
+    send_key_until_needlematch("firefox-security-devices", "tab", 20, 1);
+    send_key "spc";
     assert_screen "firefox-device-manager";
 
-    send_key "alt-shift-f";        # Enable FIPS mode
+    # Enable FIPS mode
+    send_key_until_needlematch("firefox-enable-fips", "tab", 20, 1);
+    send_key "spc";
     assert_screen "firefox-confirm-fips_enabled";
-    send_key "esc";                # Quit device manager
+    send_key "esc";    # Quit device manager
 
     quit_firefox;
     assert_screen "generic-desktop";
@@ -91,7 +97,9 @@ sub run {
     type_string "certificates";    # Search "Certificates" section
     send_key "tab";
     wait_still_screen 2;
-    send_key "alt-shift-d";        # Device Manager
+    # Device Manager
+    send_key_until_needlematch("firefox-security-devices", "tab", 20, 1);
+    send_key "spc";
     assert_screen "firefox-device-manager";
     assert_screen "firefox-confirm-fips_enabled";
 
