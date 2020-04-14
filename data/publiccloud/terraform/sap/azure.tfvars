@@ -104,7 +104,7 @@ host_ips = ["10.74.1.11", "10.74.1.12"]
 drbd_ips = ["10.74.1.21", "10.74.1.22"]
 
 # Enable drbd cluster
-drbd_enabled = "true"
+drbd_enabled = true
 
 # Repository url used to install HA/SAP deployment packages
 # The latest RPM packages can be found at:
@@ -128,12 +128,12 @@ reg_code = "%SCC_REGCODE_SLES4SAP%"
 #provisioner = ""
 
 # Run provisioner execution in background
-#background = "true"
+#background = true
 
 # Monitoring variables
 
 # Enable the host to be monitored by exporters
-monitoring_enabled = "false"
+monitoring_enabled = false
 
 # IP address of the machine where prometheus and grafana are running
 #monitoring_srv_ip = "10.74.1.13"
@@ -153,7 +153,7 @@ monitoring_enabled = "false"
 # Disable all extra packages that do not come from the image
 # Except salt-minion (for the moment) and salt formulas
 # true or false
-qa_mode = "true"
+qa_mode = true
 
 # Execute HANA Hardware Configuration Check Tool to bench filesystems
 # qa_mode must be set to true for executing hwcct
