@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,9 @@
 # - Sign test file
 # - Check test file signature
 # - Cleanup
+#
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
+# Tags: poo#65375
 
 use base "consoletest";
 use strict;
@@ -154,6 +156,10 @@ sub run {
     foreach my $len ('1024', '2048', '3072', '4096') {
         gpg_test($len, $gpg_version);
     }
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 0};
 }
 
 1;

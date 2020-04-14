@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use lockapi 'mutex_lock';
 use utils;
-use version_utils qw(is_opensuse is_sle);
+use version_utils 'is_opensuse';
 use mm_network 'setup_static_mm_network';
 use y2_module_guitest '%setup_nis_nfs_x11';
 use x11utils 'turn_off_gnome_screensaver';
@@ -98,7 +98,10 @@ sub nfs_shares_tab {
     send_key 'alt-o';          # OK
     assert_screen 'nis-client-fw-opened';
     send_key 'alt-f';          # finish
-    if (check_screen 'disable_auto_login_popup') { send_key 'ret' }
+    if (is_opensuse) {
+        assert_screen 'disable_auto_login_popup';
+        send_key "alt-y";
+    }
 }
 
 sub setup_verification {

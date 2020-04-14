@@ -1692,7 +1692,8 @@ sub load_extra_tests_console {
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
-    loadtest 'console/valgrind' unless is_sle('<=12-SP3');
+    loadtest 'console/valgrind'   unless is_sle('<=12-SP3');
+    loadtest 'console/sssd_samba' unless is_sle("<15");
 }
 
 sub load_extra_tests_sdk {
@@ -2173,6 +2174,7 @@ sub load_security_tests_crypt_core {
         loadtest "fips/openssl/dirmngr_setup";
         loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
     }
+    loadtest "fips/openssl/openssl_tlsv1_3";
     loadtest "fips/openssl/openssl_pubkey_rsa";
     loadtest "fips/openssl/openssl_pubkey_dsa";
     loadtest "console/openssl_alpn";

@@ -630,10 +630,16 @@ sub autoyast_boot_params {
         $autoyast_args .= "$proto://10.0.2.1/";
         $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
         $autoyast_args .= $ay_var;
+    } elsif ($ay_var =~ /^ASSET_\d+$/) {
+        # In case profile is uploaded as an ASSET we need just filename
+        $ay_var = basename(get_required_var($ay_var));
+        $autoyast_args .= autoinst_url("/assets/other/$ay_var");
     } elsif ($ay_var !~ /^slp$|:\/\//) {
-        $autoyast_args .= data_url($ay_var);    # Getting profile from the worker as openQA asset
+        # Getting profile from the worker as openQA asset
+        $autoyast_args .= data_url($ay_var);
     } else {
-        $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
+        # Getting profile by direct url or slp
+        $autoyast_args .= $ay_var;
     }
     push @params, split ' ', $autoyast_args;
     return @params;
@@ -724,9 +730,7 @@ sub specific_bootmenu_params {
         return " @params ";
     }
 
-    if (@params) {
-        type_boot_parameters(" @params ");
-    }
+    type_boot_parameters(" @params ") if (@params);
     save_screenshot;
     return @params;
 }
@@ -1242,7 +1246,7 @@ sub create_encrypted_part {
 
 sub type_boot_parameters {
     my (@params) = @_;
-    type_string(" @params ", max_interval => get_var('TYPE_BOOT_PARAMS_FAST') ? $utils::VERY_SLOW_TYPING_SPEED : undef);
+    type_string(" @params ", max_interval => check_var('TYPE_BOOT_PARAMS_FAST', 1) ? undef : utils::VERY_SLOW_TYPING_SPEED);
 }
 
 1;

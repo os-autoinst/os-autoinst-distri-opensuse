@@ -1,12 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-
+#
 # Summary: check freshclam and clamscan against some fake virus samples
 # - refresh the database using freshclam
 # - change user vscan to root in clamd.conf (clamd runs as root)
@@ -14,8 +14,9 @@
 # - check that clamscan is able to recognize a fake vim virus
 # - check that clamscan is able to recognize an EICAR virus pdf, txt and zip format
 # - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
+#
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: TC1595169, poo#46880
+# Tags: TC1595169, poo#46880, poo#65375
 
 use base "consoletest";
 use strict;
@@ -95,6 +96,10 @@ sub run {
 
 sub post_run_hook {
     assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && check_var('ARCH', 'aarch64'));
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 0};
 }
 
 1;

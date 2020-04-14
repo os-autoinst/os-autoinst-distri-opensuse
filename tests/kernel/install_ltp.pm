@@ -307,7 +307,6 @@ sub get_ltp_tag {
             $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
         }
     }
-    $tag =~ s/[^a-zA-Z0-9_@.]+/-/g;
     return $tag;
 }
 
