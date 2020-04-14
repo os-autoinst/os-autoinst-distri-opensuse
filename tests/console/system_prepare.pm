@@ -43,6 +43,9 @@ sub run {
         }
     }
 
+    # Make sure packagekit is not running, or it will conflict with SUSEConnect.
+    pkcon_quit unless check_var('DESKTOP', 'textmode');
+
     # Register the modules after media migration, so it can do regession
     if (get_var('SCC_ADDONS') && get_var('MEDIA_UPGRADE') && (get_var('FLAVOR') =~ /Regression/)) {
         add_suseconnect_product(uc get_var('SLE_PRODUCT'), undef, undef, "-r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 300, 1);
