@@ -49,9 +49,6 @@ sap_hana_deployment_bucket = "%HANA_BUCKET%"
 # Custom sles4sap image
 sles4sap_boot_image = "%SLE_IMAGE%"
 
-# Device used by the iSCSI server to provide LUNs
-iscsidev = "/dev/sdb"
-
 # Path to a custom ssh public key to upload to the nodes
 # Used for cluster communication for example
 cluster_ssh_pub = "salt://hana_node/files/sshkeys/cluster.id_rsa.pub"
@@ -66,15 +63,6 @@ host_ips = ["10.0.0.2", "10.0.0.3"]
 
 # Local folder where HANA installation master will be mounted
 hana_inst_folder = "/root/hana_inst_media"
-
-# Device used by node where HANA will be installed
-hana_disk_device = "/dev/sdb"
-
-# Device used by node where HANA backup will be stored
-hana_backup_device = "/dev/sdc"
-
-# Device used by node where HANA will be downloaded
-hana_inst_disk_device = "/dev/sdd"
 
 # HA packages Repository
 ha_sap_deployment_repo = "https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/SLE_%SLE_VERSION%"

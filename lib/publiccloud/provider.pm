@@ -392,16 +392,8 @@ sub terraform_apply {
     my $vms;
     my $ips;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        $vms = $output->{cluster_nodes_name}->{value};
-        $ips = $output->{cluster_nodes_public_ip}->{value};
-        foreach my $others_vms (qw(drbd iscsisrv)) {
-            my $tmp_name_var = "${others_vms}_name";
-            my $tmp_ip_var   = "${others_vms}_public_ip";
-            my $tmp_vms      = $output->{${tmp_name_var}}->{value};
-            my $tmp_ips      = $output->{${tmp_ip_var}}->{value};
-            push @{$vms}, @{$tmp_vms} if defined $tmp_vms;
-            push @{$ips}, @{$tmp_ips} if defined $tmp_ips;
-        }
+        $vms = $output->{openqa_vms}->{value};
+        $ips = $output->{openqa_ips}->{value};
     }
     else {
         $vms = $output->{vm_name}->{value};
