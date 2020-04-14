@@ -97,12 +97,12 @@ reg_code = "%SCC_REGCODE_SLES4SAP%"
 #provisioner = ""
 
 # Run provisioner execution in background
-#background = "true"
+#background = true
 
 # Monitoring variables
 
 # Enable the host to be monitored by exporters
-monitoring_enabled = "false"
+monitoring_enabled = false
 
 # IP address of the machine where Prometheus and Grafana are running
 #monitoring_srv_ip = "10.0.0.4"
@@ -113,7 +113,7 @@ monitoring_enabled = "false"
 # Disable all extra packages that do not come from the image
 # Except salt-minion (for the moment) and salt formulas
 # true or false
-qa_mode = "true"
+qa_mode = true
 
 # Execute HANA Hardware Configuration Check Tool to bench filesystems
 # qa_mode must be set to true for executing hwcct
