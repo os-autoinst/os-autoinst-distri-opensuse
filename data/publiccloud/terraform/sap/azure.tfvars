@@ -103,6 +103,9 @@ host_ips = ["10.74.1.11", "10.74.1.12"]
 # example : drbd_host_ips = ["10.0.1.10", "10.0.1.11"]
 drbd_ips = ["10.74.1.21", "10.74.1.22"]
 
+# Enable drbd cluster
+drbd_enabled = "true"
+
 # Repository url used to install HA/SAP deployment packages
 # The latest RPM packages can be found at:
 # https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/{YOUR OS VERSION}
