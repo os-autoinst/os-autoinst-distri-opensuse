@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -36,11 +36,21 @@ sub get_utt_packages {
     assert_script_run "tar xzvf $tarball";
 }
 
-# Check that package presence & version is as expected
+=head2 check_package
+
+check_package([stage => $stage, package => $package]);
+
+Check that package presence & version are as expected
+
+Optional C<$stage> can be specified with possible values are 'no', 'in' and 'up'. default is 'no'.
+Optional C<$package> can be specified name of rpm file. default is 'update-test-security'.
+
+=cut
 sub check_package {
-    my $stage   = shift // 'no';
+    my (%args) = @_;
+    my $stage   = $args{stage}   // 'no';
+    my $package = $args{package} // 'update-test-security';
     my $in_vr   = rpmver('vr');
-    my $package = 'update-test-security';
 
     if ($stage eq 'no') {
         assert_script_run "! rpm -q $package";
@@ -65,6 +75,8 @@ sub check_package {
 }
 
 sub run {
+    select_console 'root-console';
+
     script_run "rebootmgrctl set-strategy off";
 
     if (is_leap && get_var('BETA')) {
@@ -78,7 +90,7 @@ sub run {
     record_info 'Install ptf', 'Install package - snapshot #1';
     trup_call "ptf install" . rpmver('security');
     check_reboot_changes;
-    check_package 'in';
+    check_package(stage => 'in');
 
     # Find snapshot number for rollback
     my $f    = is_caasp('<=4.0') ? 2 : 1;
@@ -91,7 +103,7 @@ sub run {
         zypper_call 'ar utt.repo' unless is_opensuse;
         trup_call 'cleanup up';
         check_reboot_changes;
-        check_package 'up';
+        check_package(stage => 'up');
 
         record_info 'Update #2', 'System should be up to date - no changes expected';
         trup_call 'cleanup up';
@@ -116,10 +128,17 @@ sub run {
     check_reboot_changes;
     check_package;
 
+    record_info 'Continue', 'Continue modifying an snapshot -snapshots #5 and #6';
+    trup_call "pkg install" . rpmver('feature');
+    trup_call "--continue pkg install" . rpmver('optional');
+    check_reboot_changes;
+    check_package(stage => 'in', package => 'update-test-feature');
+    check_package(stage => 'in', package => 'update-test-optional');
+
     record_info 'Rollback', 'Revert to snapshot with initial rpm';
     trup_call "rollback $snap";
     check_reboot_changes;
-    check_package 'in';
+    check_package(stage => 'in');
 }
 
 sub test_flags {

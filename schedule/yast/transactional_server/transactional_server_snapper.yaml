@@ -1,0 +1,38 @@
+---
+name:           transactional_server_snapper
+description:    >
+   Test snapper features in a transactional update server.
+vars:
+  BOOT_HDD_IMAGE: 1
+  HDDSIZEGB: 40
+conditional_schedule:
+  uefi_boot:
+    ARCH:
+      aarch64:
+        - boot/uefi_bootmenu
+  bootloader_zkvm:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+schedule:
+  - "{{uefi_boot}}"
+  - "{{bootloader_zkvm}}"
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/hostname
+  - console/snapper_create_from
+test_data:
+  snapshots:
+    - description: 'Snapshot with read-write'
+      read_write: 1
+      flags: '-'
+    - description: 'Parent Snapshot'
+      flags: 'readonly'
+    - description: 'Child Snapshot'
+      # 'from' indicates that it is a child created from previous snapshot in this list
+      from: 1
+      flags: 'readonly'
+    - description: 'Snapshot from non existing parent'
+      # 'from_non_existing_parent' indicates that is a child created from a non existing parent snapshot
+      from_non_existing_parent: 1
