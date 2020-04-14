@@ -39,7 +39,7 @@ sub run {
     # java-10-openjdk & java-1_8_0-ibm  -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
     $cmd .= (is_sle('15+') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
-    zypper_call($cmd);
+    zypper_call($cmd, timeout => 1500);
 
     if (script_run 'rpm -q wget') {
         zypper_call 'in wget';
