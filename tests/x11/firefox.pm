@@ -19,15 +19,24 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils 'is_tumbleweed';
 
 sub run() {
     my ($self) = shift;
 
     $self->start_firefox;
     wait_still_screen;
-    send_key "alt-h";
-    assert_screen 'firefox-help-menu';
-    send_key "a";
+    # we have poor performance on LIVETEST, use assert_and_click here
+    if (is_tumbleweed && get_var("LIVETEST")) {
+        send_key_until_needlematch('firefox-help-menu', 'alt', 4, 10);    # show menu bar
+        assert_and_click 'firefox-help-menu';
+        assert_and_click 'firefox-help-about';
+    }
+    else {
+        send_key "alt-h";
+        assert_screen 'firefox-help-menu';
+        send_key "a";
+    }
     assert_screen 'test-firefox-3';
 
     # close About
