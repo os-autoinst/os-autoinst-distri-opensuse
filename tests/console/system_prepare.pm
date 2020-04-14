@@ -72,9 +72,11 @@ sub run {
     }
 
     # Save output info to logfile
-    my $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);
-    diag "SUSEConnect --status-text: $out";
-    assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'" unless get_var('MEDIA_UPGRADE');
+    if (is_sle) {
+        my $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);
+        diag "SUSEConnect --status-text: $out";
+        assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'" unless get_var('MEDIA_UPGRADE');
+    }
 }
 
 sub test_flags {
