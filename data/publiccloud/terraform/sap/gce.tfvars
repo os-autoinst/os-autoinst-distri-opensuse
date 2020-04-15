@@ -126,7 +126,7 @@ drbd_enabled = true
 #drbd_machine_type = n1-standard-4
 
 #drbd_image = suse-byos-cloud/sles-15-sap-byos
-drbd_image = "sles15-sp2-sap-byos-x8664-0-9-8-gce-build1-6"
+drbd_image = "%SLE_IMAGE%"
 
 #drbd_data_disk_size = 15
 
