@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -41,12 +41,6 @@ sub run {
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call 'up';
     }
-
-    my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);
-    assert_script_run('SUSEConnect --cleanup', 200) if $out =~ /Error: Invalid system credentials/s;
-
-    # list registration status for ease of investigating in case the test fails
-    record_info('INFO', script_output("SUSEConnect --status-text"));
 }
 
 sub test_flags {
