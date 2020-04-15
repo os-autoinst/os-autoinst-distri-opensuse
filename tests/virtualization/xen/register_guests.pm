@@ -22,13 +22,20 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils;
 
 sub run {
     my ($self) = @_;
 
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "Registrating $guest against SMT";
-        assert_script_run("ssh root\@$guest 'zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/" . $xen::guests{$guest}->{distro} . "/SUSE:CA.repo'", 90);
+        my ($sles_running_version, $sles_running_sp) = get_sles_release("ssh root\@$guest");
+        if ($sles_running_version >= 12) {
+            assert_script_run("ssh root\@$guest SUSEConnect -r " . get_var('SCC_REGCODE') . " -e " . get_var("SCC_EMAIL"));
+        }
+        assert_script_run("ssh root\@$guest zypper -n ref");
+        # Perhaps check the return values?
+        script_run("ssh root\@$guest 'zypper ar --refresh http://download.suse.de/ibs/SUSE:/CA/" . $xen::guests{$guest}->{distro} . "/SUSE:CA.repo'", 90);
         assert_script_run("ssh root\@$guest 'zypper -n in ca-certificates-suse'", 90);
     }
 }
