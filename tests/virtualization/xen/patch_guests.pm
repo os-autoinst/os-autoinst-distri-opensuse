@@ -7,7 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: Apply patches to the all of our guests
+# Summary: Apply patches to the all of our guests and reboot them
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -26,24 +26,30 @@ sub run {
     foreach my $guest (keys %xen::guests) {
         my $distro = $xen::guests{$guest}->{distro};
         $distro =~ tr/_/-/;
+
+        record_info "$guest", "Adding test repositories and patching the $guest system";
+
         if ($distro =~ m/$version/) {
-            record_info "$guest", "Adding test repositories and patching the $guest system";
-
-            # Check the virt-related packages before
-            script_run "ssh root\@$guest zypper lr -d";
-            script_run "ssh root\@$guest rpm -qa | grep -i xen | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i irt | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i emu | nl";
-
             ssh_add_test_repositories "$guest";
-            ssh_fully_patch_system "$guest";
 
-            # Check the virt-related packages before
             script_run "ssh root\@$guest zypper lr -d";
-            script_run "ssh root\@$guest rpm -qa | grep -i xen | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i irt | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i emu | nl";
+            script_run "ssh root\@$guest rpm -qa > /tmp/patch_and_reboot-$guest-before.txt";
+            upload_logs("/tmp/patch_and_reboot-$guest-before.txt");
+
+            ssh_fully_patch_system "$guest";
         }
+
+        record_info "REBOOT", "Rebooting the $guest";
+
+        assert_script_run "ssh root\@$guest 'reboot' || true";
+        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
+            record_soft_failure "Reboot on $guest failed";
+            script_run "virsh destroy $guest",      90;
+            assert_script_run "virsh start $guest", 60;
+        }
+
+        script_run "ssh root\@$guest rpm -qa > /tmp/patch_and_reboot-$guest-after.txt";
+        upload_logs("/tmp/patch_and_reboot-$guest-after.txt");
     }
 }
 
