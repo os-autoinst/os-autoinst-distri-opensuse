@@ -1000,7 +1000,7 @@ sub load_inst_tests {
             loadtest "installation/user_settings" unless check_var('SYSTEM_ROLE', 'hpc-node');
         }
         if (is_sle || get_var("DOCRUN") || get_var("IMPORT_USER_DATA") || get_var("ROOTONLY")) {    # root user
-            loadtest "installation/user_settings_root" unless check_var('SYSTEM_ROLE', 'hpc-server');
+            loadtest "installation/user_settings_root";
         }
         if (get_var('PATTERNS') || get_var('PACKAGES')) {
             loadtest "installation/resolve_dependency_issues";
