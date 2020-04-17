@@ -2351,7 +2351,9 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/enforcing_mode_setup";
 
     # The following test modules must be run after "enforcing_mode_setup"
+    loadtest "security/selinux/semanage_fcontext";
     loadtest "security/selinux/semanage_boolean";
+    loadtest "security/selinux/fixfiles";
     loadtest "security/selinux/print_se_context";
     loadtest "security/selinux/audit2allow";
     loadtest "security/selinux/semodule";
