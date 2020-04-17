@@ -115,6 +115,11 @@ sub run {
         barrier_create("CTDB_INIT_$cluster_name", $num_nodes + 1);
         barrier_create("CTDB_DONE_$cluster_name", $num_nodes + 1);
 
+        # QNETD barriers
+        barrier_create("QNETD_SERVER_READY_$cluster_name", $num_nodes + 1);
+        barrier_create("QNETD_SERVER_DONE_$cluster_name",  $num_nodes + 1);
+        barrier_create("SPLIT_BRAIN_TEST_$cluster_name",   $num_nodes + 1);
+
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
             barrier_create("VG_INIT_${fs_tag}_$cluster_name",             $num_nodes);

@@ -16,10 +16,17 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use utils 'zypper_call';
 
 sub run {
     my $cluster_name = get_cluster_name;
     my $node_to_join = get_node_to_join;
+
+    # Qdevice configuration
+    if (get_var('QDEVICE')) {
+        zypper_call 'in corosync-qdevice';
+        barrier_wait("QNETD_SERVER_READY_$cluster_name");
+    }
 
     # Ensure that ntp service is activated/started
     activate_ntp;

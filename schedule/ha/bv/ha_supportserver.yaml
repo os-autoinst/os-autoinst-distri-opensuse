@@ -1,0 +1,8 @@
+name:           ha_supportserver
+description:    >
+    Create a supportserver for multi machines tests
+schedule:
+    - support_server/login
+    - support_server/setup
+    - ha/barrier_init
+    - support_server/wait_children

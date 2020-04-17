@@ -16,6 +16,29 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
+use utils qw(zypper_call exec_and_insert_password);
+
+sub is_qdevice {
+    if (get_var('QDEVICE')) {
+        wait_serial(qr/Password:\s*$/i);
+        type_password;
+        send_key 'ret';
+    }
+}
+
+sub cluster_init {
+    my ($init_method, $fencing_opt, $unicast_opt, $qdevice_opt) = @_;
+
+    if ($init_method eq 'ha-cluster-init') {
+        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
+        is_qdevice;
+    }
+    elsif ($init_method eq 'crm-debug-mode') {
+        type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
+        is_qdevice;
+        die "Cluster initialization failed" if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
+    }
+}
 
 sub run {
     # Validate cluster creation with ha-cluster-init tool
@@ -26,17 +49,25 @@ sub run {
     my $unicast_opt   = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
     my $fencing_opt   = "-s $sbd_device";
+    my $qdevice_opt;
+
+    # Qdevice configuration
+    if (get_var('QDEVICE')) {
+        zypper_call 'in corosync-qdevice';
+        my $qnet_node_host = choose_node(3);
+        $qdevice_opt = "--qnetd-hostname=" . get_ip($qnet_node_host);
+        barrier_wait("QNETD_SERVER_READY_$cluster_name");
+    }
 
     # Ensure that ntp service is activated/started
     activate_ntp;
 
-    # If we failed to initialize the cluster, trying again but in debug mode
-    # Note: the default timeout need to be increase because it can takes time to join the cluster
     # Initialize the cluster with diskless or shared storage SBD (default)
     $fencing_opt = '-S' if (get_var('USE_DISKLESS_SBD'));
-    if (script_run "ha-cluster-init -y $fencing_opt $unicast_opt", $join_timeout) {
-        assert_script_run "crm -dR cluster init -y $fencing_opt $unicast_opt", $join_timeout;
-    }
+    cluster_init('ha-cluster-init', $fencing_opt, $unicast_opt, $qdevice_opt);
+
+    # If we failed to initialize the cluster with 'ha-cluster-init', trying again with crm in debug mode
+    cluster_init('crm-debug-mode', $fencing_opt, $unicast_opt, $qdevice_opt) if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
 
     # Signal that the cluster stack is initialized
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
@@ -46,7 +77,7 @@ sub run {
     barrier_wait("NODE_JOINED_$cluster_name");
 
     # We need to configure the quorum policy according to the number of nodes
-    $quorum_policy = 'ignore' if (get_node_number == 2);
+    $quorum_policy = 'ignore' if (get_node_number == 2) && !get_var('QDEVICE');
     assert_script_run "crm configure property no-quorum-policy=$quorum_policy";
 
     # Execute csync2 to synchronise the configuration files
