@@ -21,7 +21,8 @@ sub run {
     select_console 'root-console';
 
     zypper_call 'in qemu-linux-user';
-    assert_script_run 'wget https://busybox.net/downloads/binaries/1.21.1/busybox-sparc';
+    # file is from https://busybox.net/downloads/binaries/1.21.1/busybox-sparc';
+    assert_script_run 'wget ' . data_url('busybox-sparc');
     assert_script_run 'chmod +x busybox-sparc';
     assert_script_run 'qemu-sparc busybox-sparc whoami';
 }
