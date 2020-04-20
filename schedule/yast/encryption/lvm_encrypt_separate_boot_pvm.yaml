@@ -1,0 +1,42 @@
+---
+name: lvm-encrypt-separate-boot
+description: >
+  Same as lvm-full-encrypt, but with separate boot not encrypted partition, only
+  installation to not repeat everything again with small risk.
+  For powerVM we have to disable plymouth, so edit_optional_kernel_cmd_parameters
+  module is scheduled and OPT_KERNEL_PARAMS variable is set.
+  Also, we don't test gnome on powerVM, so set Desktop to textmode.
+vars:
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  DESKTOP: textmode
+  UNENCRYPTED_BOOT: 1
+  ENCRYPT: 1
+  FULL_LVM_ENCRYPT: 1
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_full_lvm
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/edit_optional_kernel_cmd_parameters
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - console/validate_lvm
+  - console/validate_encrypt
