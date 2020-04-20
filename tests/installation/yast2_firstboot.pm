@@ -52,12 +52,7 @@ sub welcome {
 }
 
 sub clock_and_timezone {
-    assert_screen [qw(inst-timezone blank-screen-with-accept-button)];
-    # bsc#1152532 - On Leap15.2, blank screen is appeared sporadically after Welcome
-    if (match_has_tag 'blank-screen-with-accept-button') {
-        record_soft_failure 'bsc#1152532 - Blank Screen is appeared before Clock and Timezone';
-        assert_screen('inst-timezone', 60);
-    }
+    assert_screen 'inst-timezone';
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
