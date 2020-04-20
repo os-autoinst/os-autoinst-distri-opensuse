@@ -68,8 +68,19 @@ all possible options should be handled within loop to get unlocked desktop
 =cut
 sub ensure_unlocked_desktop {
     my $counter = 10;
+
+    # check if the screenbuffer was not updated and record a softfailure in that case
+    if (check_var('DESKTOP', 'gnome') && !check_screen('screenlock')) {
+        send_key 'shift';
+        wait_still_screen 2;    # redrawing, turning on guest display or showing animation may take some seconds
+        if (check_screen('screenlock')) {
+            record_soft_failure 'bsc#1168979 screenbuffer containing old data';
+        }
+    }
+
+
     while ($counter--) {
-        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system);
+        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         assert_screen \@tags, no_wait => 1;
         if (match_has_tag 'displaymanager') {
@@ -85,6 +96,10 @@ sub ensure_unlocked_desktop {
             else {
                 select_user_gnome($username);
             }
+        }
+        if (match_has_tag('guest-disabled-display')) {
+            send_key 'shift';
+            wait_screen_change 30;
         }
         if (match_has_tag('authentication-required-user-settings') || match_has_tag('authentication-required-modify-system')) {
             type_password;
