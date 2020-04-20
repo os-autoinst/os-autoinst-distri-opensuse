@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use Utils::Architectures 'is_s390x';
 use version_utils qw(is_sle is_opensuse is_vmware);
 use Carp 'croak';
 
@@ -299,6 +300,10 @@ sub power_action {
     # Sometimes QEMU CD-ROM pop-up is displayed on shutdown, see bsc#1137230
     if (is_opensuse && check_screen 'qemu-cd-rom-authentication-required') {
         $soft_fail_data = {bugref => 'bsc#1137230', soft_timeout => 60, timeout => $shutdown_timeout *= 5};
+    }
+    # sometimes s390x with backend svirt needs more time to shutdown or encouter kernel panic, see bsc#1169881
+    if (is_s390x && check_var('BACKEND', 'svirt')) {
+        $soft_fail_data = {bugref => '1169881', soft_timeout => 90, timeout => $shutdown_timeout *= 3};
     }
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast or s390 zKVM reboot, as did initial reboot already
