@@ -17,5 +17,5 @@ conditional_schedule:
       s390x:
         - installation/bootloader_zkvm
 schedule:
-  - {{bootloader_zkvm}}
+  - '{{bootloader_zkvm}}'
   - kernel/pressure_stall_information

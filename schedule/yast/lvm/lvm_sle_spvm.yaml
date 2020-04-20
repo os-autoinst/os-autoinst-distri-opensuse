@@ -2,14 +2,13 @@
 description: >
   Conduct installation with LVM selected during installation using guided setup.
   For spvm we have to disable plymouth, so edit_optional_kernel_cmd_parameters
-  module is scheduled and OPT_KERNEL_PARAMS variable is set.
-  Also, as of now spvm backend doesn't support x11 tests, hence use textmode.
-  In comparison to SLE 12 we register the installation and have system roles
-  wizard screen.
+  module is scheduled and OPT_KERNEL_PARAMS variable is set. Also, as of now
+  spvm backend doesn't support x11 tests, hence use textmode. In comparison to
+  SLE 12 we register the installation and have system roles wizard screen.
 name: lvm
 vars:
-    OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
-    DESKTOP: textmode
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  DESKTOP: textmode
 schedule:
   - installation/bootloader
   - installation/welcome

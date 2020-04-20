@@ -13,6 +13,7 @@
 # Maintainer: Sebastian Chlad <sebastian.chlad@suse.com>
 
 use base 'hpcbase';
+use base 'hpc::utils';
 use strict;
 use warnings;
 use testapi;
@@ -23,7 +24,7 @@ use version_utils 'is_sle';
 
 sub run {
     my $self          = shift;
-    my $mpi           = get_required_var('MPI');
+    my $mpi           = $self->get_mpi();
     my $mpi_c         = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
@@ -36,6 +37,7 @@ sub run {
     zypper_call("in $mpi $mpi-devel gcc");
     assert_script_run("export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/$mpi/lib64/");
 
+    barrier_wait('CLUSTER_PROVISIONED');
     ## all nodes should be able to ssh to each other, as MPIs requires so
     $self->generate_and_distribute_ssh();
 

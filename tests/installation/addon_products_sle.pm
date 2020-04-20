@@ -77,7 +77,7 @@ sub handle_all_packages_medium {
     # Also record the addons which require license agreement
     my @addons_with_license = qw(ha we);
     my @addons_license_tags = ();
-    send_key 'tab' if (check_var('VIDEOMODE', 'text'));
+    send_key_until_needlematch 'addon-base-activated', 'tab' if (check_var('VIDEOMODE', 'text'));
     for my $i (@addons) {
         next if (skip_package_hub_if_necessary($i));
         push @addons_license_tags, "addon-license-$i" if grep(/^$i$/, @addons_with_license);
@@ -165,9 +165,9 @@ sub run {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
-                timeout      => check_var('BACKEND', 'pvm_hmc') ? 240 : 60,
+                timeout      => check_var('BACKEND', 'pvm_hmc') ? 600 : 60,
                 soft_timeout => 30,
-                bugref       => 'bsc#1123963');
+                bugref       => 'bsc#1166504');
         }
     }
     if (get_var("ADDONS")) {

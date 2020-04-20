@@ -58,9 +58,10 @@ sub run {
         barrier_create('GANGLIA_GMOND_STARTED',  $nodes);
     }
     elsif (check_var('HPC', 'mpi')) {
-        barrier_create('MPI_SETUP_READY',    $nodes);
-        barrier_create('MPI_BINARIES_READY', $nodes);
-        barrier_create('MPI_RUN_TEST',       $nodes);
+        barrier_create('CLUSTER_PROVISIONED', $nodes);
+        barrier_create('MPI_SETUP_READY',     $nodes);
+        barrier_create('MPI_BINARIES_READY',  $nodes);
+        barrier_create('MPI_RUN_TEST',        $nodes);
     }
     elsif (check_var('HPC', 'hpc_comprehensive')) {
         if (get_var('HPC_MIGRATION')) {

@@ -43,6 +43,9 @@ sub run {
         }
     }
 
+    # Make sure packagekit is not running, or it will conflict with SUSEConnect.
+    pkcon_quit unless check_var('DESKTOP', 'textmode');
+
     # Register the modules after media migration, so it can do regession
     if (get_var('SCC_ADDONS') && get_var('MEDIA_UPGRADE') && (get_var('FLAVOR') =~ /Regression/)) {
         add_suseconnect_product(uc get_var('SLE_PRODUCT'), undef, undef, "-r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 300, 1);
@@ -69,6 +72,13 @@ sub run {
         change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
         change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
         grub_mkconfig;
+    }
+
+    # Save output info to logfile
+    if (is_sle) {
+        my $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);
+        diag "SUSEConnect --status-text: $out";
+        assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'" unless get_var('MEDIA_UPGRADE');
     }
 }
 

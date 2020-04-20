@@ -70,6 +70,7 @@ our @EXPORT = qw(
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
+  IN_ZYPPER_CALL
   arrays_differ
   arrays_subset
   ensure_serialdev_permissions
@@ -107,7 +108,8 @@ use constant VERY_SLOW_TYPING_SPEED => 4;
 # openQA internal ftp server url
 our $OPENQA_FTP_URL = "ftp://openqa.suse.de";
 
-my $svirt_pty_saved = 0;
+# set flag IN_ZYPPER_CALL in zypper_call and unset when leaving
+our $IN_ZYPPER_CALL = 0;
 
 =head2 save_svirt_pty
 
@@ -496,16 +498,13 @@ sub zypper_call {
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
+    $IN_ZYPPER_CALL = 1;
     # Retrying workarounds
     my $ret;
     for (1 .. 5) {
         $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
         if ($ret == 4) {
-            if ($command =~ /^in.*java-\*$/ && script_run('grep "do not install java-" /var/log/zypper.log') == 0) {
-                record_soft_failure 'bsc#1137466';
-                last;
-            }
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
             }
@@ -528,6 +527,7 @@ sub zypper_call {
         upload_logs('/var/log/zypper.log');
         die "'zypper -n $command' failed with code $ret";
     }
+    $IN_ZYPPER_CALL = 0;
     return $ret;
 }
 
@@ -1115,7 +1115,7 @@ sub get_x11_console_tty {
     # older versions in HDD
     my $newer_gdm
       = $new_gdm
-      && !is_sle('<=15-SP2')
+      && !is_sle('<15-SP2')
       && !is_leap('<15.2')
       && get_var('HDD_1', '') !~ /opensuse-42/;
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
@@ -1364,6 +1364,13 @@ sub reconnect_mgmt_console {
         }
 
         if (!check_var('DESKTOP', 'textmode')) {
+            if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
+                select_console 'root-console';
+                if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
+                    record_soft_failure('bsc#1154156 - After upgrade from 12SP5, SuSEfirewall2 blocks xvnc.socket on s390x');
+                    script_run 'iptables -I input_ext -p tcp -m tcp --dport 5900:5999 -j ACCEPT';
+                }
+            }
             select_console('x11', await_console => 0);
         }
     }

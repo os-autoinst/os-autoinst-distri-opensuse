@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # Summary: Test dirmngr daemon and valid/revoked certificate
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#52430, poo#52937, tc#1729313
+# Tags: poo#52430, poo#52937, tc#1729313, poo#65375
 
 use base "consoletest";
 use strict;
@@ -72,6 +72,10 @@ sub run {
 
     # Test Dirmngr daemon
     $self->dirmngr_daemon();
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 0};
 }
 
 1;

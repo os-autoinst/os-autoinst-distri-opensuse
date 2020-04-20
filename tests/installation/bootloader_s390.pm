@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -255,6 +255,7 @@ sub format_dasd {
     show_debug();
     die "dasd_configure died with exit code $r" unless (defined($r) && $r == 0);
 
+    script_run('lsmod | tee /dev/hvc0');
     # format dasda (this can take up to 20 minutes depending on disk size)
     $r = script_run("echo yes | dasdfmt -b 4096 -p /dev/dasda", 1800);
     show_debug();

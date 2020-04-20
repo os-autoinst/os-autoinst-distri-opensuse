@@ -15,6 +15,7 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils 'zypper_call';
+use version_utils 'is_leap';
 
 sub run {
     my ($self) = @_;
@@ -40,8 +41,8 @@ sub run {
         type_string("$default_password\n", wait_still_screen => 5);
     }
 
-    # Install and enable jeos-firstboot
-    zypper_call('in jeos-firstboot');
+    # Install jeos-firstboot, when needed
+    zypper_call('in jeos-firstboot') if is_leap;
 
     if ($is_generalhw_via_ssh) {
         # Do not set eth0 down as we are connected through ssh!
@@ -54,10 +55,13 @@ sub run {
     $testapi::password = $distripassword;
 
     if ($reboot_for_jeos_firstboot) {
-        # Ensure YaST2-Firstboot is disabled, as we use jeos-firstboot in openQA
-        assert_script_run("systemctl disable YaST2-Firstboot");
+        # Ensure YaST2-Firstboot is disabled, and enable jeos-firstboot in openQA
+        assert_script_run("systemctl disable YaST2-Firstboot") if is_leap;
         assert_script_run("systemctl enable jeos-firstboot");
 
+        # When YaST2-Firstboot is not installed, /var/lib/YaST2 does not exist, so create it
+        assert_script_run("mkdir -p /var/lib/YaST2") if !is_leap;
+        # Trigger *-firstboot at next boot
         assert_script_run("touch /var/lib/YaST2/reconfig_system");
 
         type_string("reboot\n");

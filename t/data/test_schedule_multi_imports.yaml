@@ -1,5 +1,5 @@
 test_data:
     test_in_yaml_schedule: test_in_yaml_schedule_value
-    !include:
+    $include:
         - t/data/test_data_1.yaml
         - t/data/test_data_2.yaml

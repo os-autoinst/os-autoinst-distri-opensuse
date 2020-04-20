@@ -18,19 +18,20 @@
 package main_ltp;
 use base 'Exporter';
 use Exporter;
-use testapi qw(check_var get_var);
+use testapi qw(check_var get_required_var get_var);
 use autotest;
 use Archive::Tar;
 use utils;
 use LTP::TestInfo 'testinfo';
 use File::Basename 'basename';
-use main_common qw(load_bootloader_s390x boot_hdd_image get_ltp_tag load_boot_tests load_inst_tests load_reboot_tests);
+use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
 use Utils::Backends 'is_pvm';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
 # use warnings;
 
 our @EXPORT = qw(
+  get_ltp_tag
   load_kernel_tests
   loadtest_from_runtest_file
 );
@@ -78,17 +79,36 @@ sub parse_runtest_file {
     }
 }
 
+sub get_ltp_tag {
+    my $tag = get_var('LTP_RUNTEST_TAG');
+
+    if (!defined $tag) {
+        if (defined get_var('HDD_1')) {
+            $tag = get_var('PUBLISH_HDD_1');
+            $tag = get_var('HDD_1') if (!defined $tag);
+            $tag = basename($tag);
+        } else {
+            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
+        }
+    }
+    return $tag;
+}
+
 sub loadtest_from_runtest_file {
     my $namelist           = get_var('LTP_COMMAND_FILE');
-    my $path               = shift || get_var('ASSETDIR') . '/other';
+    my $archive            = shift || get_var('ASSET_1');
     my $unpack_path        = './runtest-files';
-    my $tag                = get_ltp_tag();
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $test_result_export = {
         format      => 'result_array:v2',
         environment => {},
         results     => []};
+
+    if (!$archive) {
+        my $tag = get_ltp_tag();
+        $archive = get_var('ASSETDIR') . "/other/runtest-files-$tag.tar.gz";
+    }
 
     loadtest('boot_ltp', run_args => testinfo($test_result_export));
     if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {
@@ -97,13 +117,13 @@ sub loadtest_from_runtest_file {
 
     mkdir($unpack_path, 0755);
     my $tar = Archive::Tar->new();
-    $tar->read("$path/runtest-files-${tag}.tar.gz") || die "tar read failed $? $!";
+    $tar->read($archive) || die "tar read failed $? $!";
     $tar->setcwd($unpack_path);
     $tar->extract() || die "tar extract failed $? $!";
 
     for my $name (split(/,/, $namelist)) {
         if ($name eq 'openposix') {
-            parse_openposix_runfile("$unpack_path/openposix-test-list-$tag", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
+            parse_openposix_runfile("$unpack_path/openposix-test-list", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
         }
         else {
             parse_runtest_file("$unpack_path/$name", $name, $cmd_pattern, $cmd_exclude, $test_result_export);
@@ -127,7 +147,12 @@ sub stress_snapshots {
 }
 
 sub load_kernel_tests {
-    load_bootloader_s390x();
+    if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {
+        load_kernel_baremetal_tests();
+    } else {
+        load_bootloader_s390x();
+    }
+
     loadtest "../installation/bootloader" if is_pvm;
 
     if (get_var('INSTALL_LTP')) {
@@ -175,9 +200,9 @@ sub load_kernel_tests {
         loadtest 'virtio_console';
         loadtest 'virtio_console_long_output';
     }
-    elsif (get_var('NVMFTESTS')) {
+    elsif (get_var('BLKTESTS')) {
         boot_hdd_image();
-        loadtest 'nvmftests';
+        loadtest 'blktests';
     }
     elsif (get_var('TRINITY')) {
         if (get_var('INSTALL_KOTD')) {

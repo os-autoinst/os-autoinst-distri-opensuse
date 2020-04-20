@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -334,7 +334,7 @@ sub uefi_bootmenu_params {
       :         send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
-    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp2') || is_leap('>=15.2'))) {
+    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.2'))) {
         for (1 .. 3) { send_key "down"; }
         send_key "end";
         # delete "keep" word
@@ -465,7 +465,7 @@ sub bootmenu_default_params {
         push @params, get_hyperv_fb_video_resolution;
         push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
     }
-    type_string_very_slow(" @params ");
+    type_boot_parameters(" @params ");
     return @params;
 }
 
@@ -491,7 +491,7 @@ sub bootmenu_network_source {
                 # Ignore certificate validation
                 push @params, 'ssl.certs=0' if (get_var('SKIP_CERT_VALIDATION'));
                 # As we use boot options, no extra action is required
-                type_string_very_slow(" @params ");
+                type_boot_parameters(" @params ");
                 return @params;
             }
 
@@ -502,14 +502,14 @@ sub bootmenu_network_source {
                 # Specifies the installation system to use, e.g. from where to load installer
                 my $arch = get_var('ARCH');
                 push @params, "instsys=disk:/boot/$arch/root";
-                type_string_very_slow(" @params ");
+                type_boot_parameters(" @params ");
                 return @params;
             }
 
             select_installation_source({m_protocol => $m_protocol, m_mirror => $m_mirror});
         }
     }
-    type_string_very_slow(" @params ");
+    type_boot_parameters(" @params ");
     return @params;
 }
 
@@ -522,7 +522,7 @@ sub bootmenu_remote_target {
         push @params, "nameserver=" . join(",", @$dns);
         push @params, ("$remote=1", "${remote}password=$password");
     }
-    type_string_very_slow(" @params ");
+    type_boot_parameters(" @params ");
     return @params;
 }
 
@@ -605,13 +605,13 @@ sub select_bootmenu_more {
         push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_string_very_slow(" @params ");
+        type_boot_parameters(" @params ");
         save_screenshot;
         send_key 'f10';
     }
     else {
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
-        type_string_very_slow(" @params ");
+        type_boot_parameters(" @params ");
         save_screenshot;
         send_key 'ret';
     }
@@ -630,10 +630,16 @@ sub autoyast_boot_params {
         $autoyast_args .= "$proto://10.0.2.1/";
         $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
         $autoyast_args .= $ay_var;
+    } elsif ($ay_var =~ /^ASSET_\d+$/) {
+        # In case profile is uploaded as an ASSET we need just filename
+        $ay_var = basename(get_required_var($ay_var));
+        $autoyast_args .= autoinst_url("/assets/other/$ay_var");
     } elsif ($ay_var !~ /^slp$|:\/\//) {
-        $autoyast_args .= data_url($ay_var);    # Getting profile from the worker as openQA asset
+        # Getting profile from the worker as openQA asset
+        $autoyast_args .= data_url($ay_var);
     } else {
-        $autoyast_args .= $ay_var;              # Getting profile by direct url or slp
+        # Getting profile by direct url or slp
+        $autoyast_args .= $ay_var;
     }
     push @params, split ' ', $autoyast_args;
     return @params;
@@ -724,7 +730,7 @@ sub specific_bootmenu_params {
         return " @params ";
     }
 
-    type_string_very_slow " @params " if @params;
+    type_boot_parameters(" @params ") if (@params);
     save_screenshot;
     return @params;
 }
@@ -1236,6 +1242,11 @@ sub create_encrypted_part {
     assert_script_run "parted -s /dev/$disk mkpart 1 512 100%";
     # encrypt created partition
     assert_script_run "echo nots3cr3t | cryptsetup $luks_type luksFormat -q --force-password /dev/${disk}1";
+}
+
+sub type_boot_parameters {
+    my (@params) = @_;
+    type_string(" @params ", max_interval => check_var('TYPE_BOOT_PARAMS_FAST', 1) ? undef : utils::VERY_SLOW_TYPING_SPEED);
 }
 
 1;

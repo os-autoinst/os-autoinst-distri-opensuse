@@ -39,7 +39,6 @@ our @EXPORT = qw(
   chromiumstep_is_applicable
   consolestep_is_applicable
   default_desktop
-  get_ltp_tag
   gnomestep_is_applicable
   guiupdates_is_applicable
   have_scc_repos
@@ -75,6 +74,7 @@ our @EXPORT = qw(
   load_inst_tests
   load_iso_in_external_tests
   load_jeos_tests
+  load_kernel_baremetal_tests
   load_kernel_tests
   load_networkd_tests
   load_nfv_master_tests
@@ -261,26 +261,10 @@ sub is_kernel_test {
       (get_var('QA_TEST_KLP_REPO')
         || get_var('INSTALL_KOTD')
         || get_var('VIRTIO_CONSOLE_TEST')
-        || get_var('NVMFTESTS')
+        || get_var('BLKTESTS')
         || get_var('TRINITY')
         || get_var('NUMA_IRQBALANCE')
         || get_var('TUNED'));
-}
-
-sub get_ltp_tag {
-    my $tag = get_var('LTP_RUNTEST_TAG');
-
-    if (!defined $tag) {
-        if (defined get_var('HDD_1')) {
-            $tag = get_var('PUBLISH_HDD_1');
-            $tag = get_var('HDD_1') if (!defined $tag);
-            $tag = basename($tag);
-        } else {
-            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
-        }
-    }
-    $tag =~ s/[^a-zA-Z0-9_@]+/-/g;
-    return $tag;
 }
 
 # Isolate the loading of LTP tests because they often rely on newer features
@@ -499,7 +483,6 @@ sub load_zdup_tests {
     loadtest 'boot/boot_to_desktop';
     loadtest "installation/opensuse_welcome"  if opensuse_welcome_applicable();
     loadtest 'console/check_upgraded_service' if !is_desktop;
-    loadtest 'console/orphaned_packages_check';
 }
 
 sub load_autoyast_tests {
@@ -858,7 +841,8 @@ sub load_inst_tests {
     if (get_var('ENCRYPT_CANCEL_EXISTING') || get_var('ENCRYPT_ACTIVATE_EXISTING')) {
         loadtest "installation/encrypted_volume_activation";
     }
-    if (get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM')) {
+    # SLE-15 SP2 pushes the multipath activation dialog after the scc_registration dialog, see below
+    if ((get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM')) and not is_sle('15-SP2+')) {
         loadtest "installation/multipath";
     }
     if (is_opensuse && noupdatestep_is_applicable() && !is_livecd) {
@@ -879,10 +863,15 @@ sub load_inst_tests {
     if (is_sle) {
         loadtest 'installation/network_configuration' if get_var('NETWORK_CONFIGURATION');
         loadtest "installation/scc_registration";
+    }
+    if (is_sle('15-SP2+') and (get_var('MULTIPATH') or get_var('MULTIPATH_CONFIRM'))) {
+        loadtest "installation/multipath";
+    }
+    if (is_sle) {
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        if (get_var('MAINT_TEST_REPO')) {
+        if (get_var('MAINT_TEST_REPO' and !get_var("USER_SPACE_TESTSUITES"))) {
             loadtest 'installation/add_update_test_repo';
         }
         loadtest "installation/addon_products_sle";
@@ -1121,7 +1110,7 @@ sub load_consoletests {
     if (is_sle && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && is_upgrade && !is_desktop && !get_var('INSTALLONLY')) {
         loadtest "console/check_upgraded_service";
         loadtest "console/supportutils";
-        loadtest "console/check_package_version" if check_var('UPGRADE_TARGET_VERSION', '12-SP5');
+        loadtest "console/check_package_version" if check_var('UPGRADE_TARGET_VERSION', '15-SP2');
     }
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     if (get_var("LOCK_PACKAGE")) {
@@ -1617,6 +1606,7 @@ sub load_extra_tests_geo_desktop {
 
 sub load_extra_tests_console {
     loadtest "console/check_os_release";
+    loadtest "console/orphaned_packages_check";
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
     loadtest "console/pam"         unless is_leap;
@@ -1701,7 +1691,10 @@ sub load_extra_tests_console {
     loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
-    loadtest "console/orphaned_packages_check";
+    loadtest "console/gd";
+    loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
+    loadtest 'console/sssd_samba'     unless is_sle("<15");
+    loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos);
 }
 
 sub load_extra_tests_sdk {
@@ -2182,6 +2175,7 @@ sub load_security_tests_crypt_core {
         loadtest "fips/openssl/dirmngr_setup";
         loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
     }
+    loadtest "fips/openssl/openssl_tlsv1_3";
     loadtest "fips/openssl/openssl_pubkey_rsa";
     loadtest "fips/openssl/openssl_pubkey_dsa";
     loadtest "console/openssl_alpn";
@@ -2350,11 +2344,18 @@ sub load_security_tests_selinux {
     # ALWAYS run following tests in sequence because of the dependencies
     # Setup - install SELinux necessary packages
     loadtest "security/selinux/selinux_setup";
-
     loadtest "security/selinux/sestatus";
     loadtest "security/selinux/selinux_smoke";
+
+    # Change SELinux from "permissive" mode to "enforcing" mode for testing
+    loadtest "security/selinux/enforcing_mode_setup";
+
+    # The following test modules must be run after "enforcing_mode_setup"
+    loadtest "security/selinux/semanage_boolean";
     loadtest "security/selinux/print_se_context";
     loadtest "security/selinux/audit2allow";
+    loadtest "security/selinux/semodule";
+    loadtest "security/selinux/setsebool";
 }
 
 sub load_security_tests_mok_enroll {
@@ -2394,6 +2395,23 @@ sub load_security_tests_check_kernel_config {
     load_security_console_prepare;
 
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
+}
+
+sub load_security_tests_tpm2 {
+    if (is_sle('>=15-SP2')) {
+        load_security_console_prepare;
+
+        loadtest "security/tpm2/tpm2_env_setup";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_info";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_random_data";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_rsa_operation";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_ecdsa_operation";
+        loadtest "security/tpm2/tpm2_engine/tpm2_engine_self_sign";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_self_contain_tool";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_encrypt";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_sign_verify";
+        loadtest "security/tpm2/tpm2_tools/tpm2_tools_auth";
+    }
 }
 
 sub load_vt_perf_tests {
@@ -2467,6 +2485,9 @@ sub load_mitigation_tests {
     if (get_var('XEN_PV')) {
         loadtest "cpu_bugs/xen_pv";
     }
+    if (get_var('XEN_HVM')) {
+        loadtest "cpu_bugs/xen_hvm";
+    }
 }
 
 sub load_security_tests {
@@ -2479,6 +2500,7 @@ sub load_security_tests {
       mok_enroll ima_measurement ima_appraisal evm_protection
       system_check
       check_kernel_config
+      tpm2
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
@@ -2534,7 +2556,7 @@ sub load_systemd_patches_tests {
 
 sub load_system_prepare_tests {
     loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds'    if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
@@ -2920,7 +2942,7 @@ sub load_ha_cluster_tests {
             loadtest 'sles4sap/hana_install';
             loadtest 'sles4sap/hana_cluster';
         }
-        loadtest 'sles4sap/sap_suse_cluster_connector';
+        loadtest 'sles4sap/sap_suse_cluster_connector' if (get_var('HA_CLUSTER_INIT'));
     }
     else {
         # Test Hawk Web interface
@@ -3111,6 +3133,24 @@ sub load_mm_autofs_tests {
             loadtest "network/autofs_client";
         }
     }
+}
+
+sub load_kernel_baremetal_tests {
+    set_var('ADDONURL', 'sdk')          if (is_sle('>=12') && is_sle('<15')) && !is_released;
+    loadtest "kernel/ibtests_barriers"  if get_var("IBTESTS");
+    loadtest "autoyast/prepare_profile" if get_var("AUTOYAST_PREPARE_PROFILE");
+    if (get_var('IPXE')) {
+        loadtest "installation/ipxe_install";
+        loadtest "console/suseconnect_scc";
+    } else {
+        load_boot_tests();
+        get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
+        load_reboot_tests();
+    }
+    # make sure we always have the toolchain installed
+    loadtest "toolchain/install";
+    # some tests want to build and run a custom kernel
+    loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
 
 1;

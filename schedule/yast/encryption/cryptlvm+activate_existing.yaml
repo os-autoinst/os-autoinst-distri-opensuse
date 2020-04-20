@@ -4,7 +4,7 @@ description: >
   pre-partitioned disk image to validate encrypted partitions activation.
 name: cryptlvm+activate_existing
 vars:
-    ENCRYPT_ACTIVATE_EXISTING: 1
+  ENCRYPT_ACTIVATE_EXISTING: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome

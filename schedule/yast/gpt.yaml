@@ -1,5 +1,6 @@
+---
 name: gpt
-description:    > 
+description: >
   Test installation on a very large hard disk which needs GPT partition format.
 schedule:
   - installation/isosize

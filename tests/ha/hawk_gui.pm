@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
+# Copyright (c) 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -49,7 +49,13 @@ sub run {
     my $docker_image = "registry.opensuse.org/home/rbranco/branches/opensuse/templates/images/tumbleweed/containers/hawk_test";
     assert_script_run("docker pull $docker_image", 240);
 
-    select_console 'x11';
+    # Rest of the test needs to be performed on the x11 console, but with the
+    # HA_CLUSTER setting that console is not yet activated; newer versions of gdm
+    # expect the console on tty2 which can lead to false positives as there is no
+    # session there yet, so instead this goes through the displaymanager console to
+    # login into the x11 session.
+    select_console 'displaymanager';
+    $self->handle_displaymanager_login();
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
 

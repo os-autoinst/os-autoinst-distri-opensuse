@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,13 +19,15 @@
 #   * Utilities ssh-keygen and ssh-copy-id are used
 #   * Local and remote port forwarding are tested
 #   * The SCP is tested by copying various files
+#
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Tags: poo#65375
 
 use warnings;
 use base "consoletest";
 use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
-use utils qw(systemctl exec_and_insert_password zypper_call random_string);
+use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap);
 
 sub run {
@@ -40,6 +42,9 @@ sub run {
     # 'nc' is not installed by default on JeOS
     if (script_run("which nc")) {
         zypper_call("in netcat-openbsd");
+    }
+    if (script_run("which killall")) {
+        zypper_call("in psmisc");
     }
 
     # Stop the firewall if it's available
@@ -69,9 +74,9 @@ sub run {
         type_string "ssh -v -l $ssh_testman localhost -t\n";
         wait_serial('Are you sure you want to continue connecting \(yes/no(/\[fingerprint\])?\)\?', undef, 0, no_regex => 0);
         type_string "yes\n";
-        wait_serial('Password:', undef, 0, no_regex => 1);
+        wait_serial('[P|p]assword:', undef, 0, no_regex => 0);
         type_string "$ssh_testman_passwd\n";
-        wait_serial('sshboy@susetest:~>', undef, 0, no_regex => 1);
+        wait_serial('sshboy@', undef, 0, no_regex => 1);
         type_string "export PS1='# '\n";
 
         # Check that we are really in the SSH session
@@ -127,10 +132,14 @@ sub run {
 
     # Remove the ~/.ssh folder
     assert_script_run "rm -r ~/.ssh/";
+
+    assert_script_run "killall -u $ssh_testman || true";
+    wait_still_screen 3;
+    clear_console;
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {milestone => 0, no_rollback => 1} : {milestone => 1};
+    return get_var('PUBLIC_CLOUD') ? {milestone => 0, no_rollback => 1} : {milestone => 1, fatal => 0};
 }
 
 1;

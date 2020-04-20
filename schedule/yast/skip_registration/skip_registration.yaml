@@ -1,10 +1,11 @@
 ---
 name:           skip_registration
 description:    >
-  Like a standard scenario with explicit skipping of SCC registration
-  in case where we register by default, e.g. for SLE >= 15
-  See https://progress.opensuse.org/issues/25264 for details.
-
+  Skipping registration for SLE 15, as requires network connection.
+  This is default behavior for SLE 12.
+vars:
+  SCC_REGISTER: 'none'
+  ADDONS: all-packages
 schedule:
   - installation/bootloader_start
   - installation/welcome

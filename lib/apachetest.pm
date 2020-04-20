@@ -171,7 +171,8 @@ Destroy a postgres data base
 sub destroy_pgsqldb {
     assert_script_run 'pushd /tmp';
 
-    assert_script_run "sudo -u postgres dropdb openQAdb";
+    assert_script_run "sudo -u postgres dropdb --if-exists dvdrental";
+    assert_script_run "sudo -u postgres dropdb --if-exists openQAdb";
 
     assert_script_run 'popd';    # back to previous directory
 }
@@ -199,6 +200,8 @@ Set up a postgres database and configure for:
 =item * Add sudo rights to switch postgresql version and run script to determine oldest and latest version
 
 =item * Upgrade db from oldest version to latest version
+
+=item * Verify enties from imported dvdrental db before and after dump and restore
 
 =back
 
@@ -283,7 +286,7 @@ EOF
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
         assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
-        assert_script_run 'pg_ctl -D /var/lib/pgsql/data start';
+        assert_script_run 'pg_ctl -D /var/lib/pgsql/data2 start';
         assert_script_run './analyze_new_cluster.sh';
         assert_script_run './delete_old_cluster.sh';
     }

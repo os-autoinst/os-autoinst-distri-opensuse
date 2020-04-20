@@ -33,4 +33,4 @@ schedule:
 test_data:
   device: /dev/dasda
   table_type: dasd
-  !include: test_data/yast/ext4/ext4_no_separate_home.yaml
+  $include: test_data/yast/ext4/ext4_no_separate_home.yaml

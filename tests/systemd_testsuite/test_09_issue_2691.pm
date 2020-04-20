@@ -15,7 +15,6 @@ use warnings;
 use strict;
 use testapi;
 use power_action_utils 'power_action';
-use utils 'get_root_console_tty';
 
 sub pre_run_hook {
     my ($self) = @_;
@@ -24,6 +23,7 @@ sub pre_run_hook {
 }
 
 sub run {
+    my ($self) = @_;
     #run test
     type_string 'systemctl start testsuite.service';
     send_key 'ret';
@@ -31,10 +31,8 @@ sub run {
     send_key 'ret';
     #this test run needs a reboot
     power_action('reboot', keepconsole => 1, textmode => 1);
-    wait_still_screen 20;
+    $self->wait_boot(textmode => 1);
     #login
-    my $tty = get_root_console_tty;
-    send_key_until_needlematch('tty$tty-selected', 'ret', 360, 5);
     type_string "root\n";
     assert_screen("password-prompt");
     type_password;

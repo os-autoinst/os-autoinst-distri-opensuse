@@ -9,7 +9,7 @@ schedule:
 - installation/scc_registration
 - installation/add_update_test_repo
 - installation/addon_products_sle
-- {{system_role}}
+- '{{system_role}}'
 - installation/partitioning
 - installation/partitioning_finish
 - installation/installer_timezone

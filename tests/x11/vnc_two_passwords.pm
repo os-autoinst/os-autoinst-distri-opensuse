@@ -69,19 +69,24 @@ sub generate_vnc_events {
     my $password = shift;
 
     # Login into vnc display in RO/RW mode
-    x11_start_program("vncviewer $display -SecurityTypes=VncAuth", target_match => 'vnc_password_dialog', match_timeout => 60);
+    x11_start_program 'xterm';
+    send_key 'super-left';
+    type_string "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev \n", timeout => 60;
+    assert_screen 'vnc_password_dialog';
     type_string "$password\n";
     assert_screen 'vncviewer-xev';
-    send_key "super-left";
+    send_key 'super-left';
     wait_still_screen 2;
 
     # Send some vnc events to xev
-    type_string "events";
+    type_string 'events';
     mouse_set(80, 120);
     mouse_set(85, 125);
     mouse_click;
 
     send_key 'alt-f4';
+    wait_serial 'vncviewer-finished';
+    type_string "exit \n";
 }
 
 sub run {
@@ -97,13 +102,19 @@ sub run {
         record_info 'Try ' . ($opt->{change} ? 'RW' : 'RO') . ' mode';
 
         # Start event watcher
-        type_string "xev -display $display -root | tee /tmp/xev_log\n";
+        # trap is needed because ctrl-c would kill the whole process group (cmd ; cmd)
+        # eg.
+        #     xev -display $display -root | tee /tmp/xev_log ; echo xev-finished >/dev/$serialdev
+        # will not work
+        # Parentheses are needed to not populate trap to following commands
+        type_string "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log) \n";
 
         # Repeat with RO/RW password
         generate_vnc_events $opt->{pw};
 
         # Close xev
         send_key 'ctrl-c';
+        wait_serial 'xev-finished';
 
         # Check if xev recorded events or not - RO/RW mode
         if ($opt->{change}) {

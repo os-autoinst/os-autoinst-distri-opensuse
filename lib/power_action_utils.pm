@@ -41,8 +41,8 @@ our @EXPORT = qw(
 
 Need to kill ssh connection with backends like ipmi, spvm, pvm_hmc, s390x.
 
-For s390_zkvm or xen, assign console($vnc_console) with C<disable_vnc_stalls> 
-and assign console('svirt') with C<stop_serial_grab>. 
+For s390_zkvm or xen, assign console($vnc_console) with C<disable_vnc_stalls>
+and assign console('svirt') with C<stop_serial_grab>.
 
 $vnc_console get required variable 'SVIRT_VNC_CONSOLE' before assignment.
 
@@ -59,6 +59,7 @@ sub prepare_system_shutdown {
         }
         console('installation')->disable_vnc_stalls;
     }
+
     if (check_var('VIRSH_VMM_FAMILY', 'xen') || get_var('S390_ZKVM')) {
         my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
         console($vnc_console)->disable_vnc_stalls;
@@ -114,7 +115,7 @@ sub reboot_x11 {
 
 Power off desktop.
 
-Handle each desktop differently for kde, gnome, xfce, lxde, lxqt, enlightenment, awesome, mate, minimalx. 
+Handle each desktop differently for kde, gnome, xfce, lxde, lxqt, enlightenment, awesome, mate, minimalx.
 
 Work around issue with CD-ROM pop-up: bsc#1137230 and make sure that s390 SUT shutdown correctly.
 
@@ -233,14 +234,14 @@ sub handle_livecd_reboot_failure {
 
  power_action($action [,observe => $observe] [,keepconsole => $keepconsole] [,textmode => $textmode]);
 
-Executes the selected power action (e.g. poweroff, reboot). 
+Executes the selected power action (e.g. poweroff, reboot).
 
 If C<$observe> is set, the function expects that the specified C<$action> was already executed by
-another actor and the function just makes sure the system shuts down, restarts etc. properly. 
+another actor and the function just makes sure the system shuts down, restarts etc. properly.
 
-C<$keepconsole> prevents a console change, which we do by default to make sure that a system with a GUI 
-desktop which was in text console at the time of C<power_action> call, is switched to the expected 
-console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell 
+C<$keepconsole> prevents a console change, which we do by default to make sure that a system with a GUI
+desktop which was in text console at the time of C<power_action> call, is switched to the expected
+console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell
 for textmode or with GUI commands otherwise unless explicitly overridden by setting C<$textmode> to either 0 or 1.
 
 =cut
@@ -337,8 +338,8 @@ sub power_action {
 
  assert_shutdown_and_restore_system($action, $shutdown_timeout);
 
-VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt backend 
-and we have to re-connect *after* the restart, otherwise we end up with stalled 
+VNC connection to SUT (the 'sut' console) is terminated on Xen via svirt backend
+and we have to re-connect *after* the restart, otherwise we end up with stalled
 VNC connection. The tricky part is to know *when* the system is already booting.
 
 Default $action is reboot, $shutdown_timeout is timeout for shutdown, default value is 60 seconds.
@@ -379,8 +380,8 @@ sub assert_shutdown_and_restore_system {
 
  $args = {[timeout => $timeout] [,soft_timeout => $soft_timeout] [,bugref => $bugref] [,soft_failure_reason => $soft_failure_reason]}
 
-Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached, 
-a soft failure is recorded with the message C<$args->{soft_failure_reason}>. 
+Extending assert_shutdown with a soft timeout. When C<$args->{soft_timeout}> is reached,
+a soft failure is recorded with the message C<$args->{soft_failure_reason}>.
 
 After that, assert_shutdown continues until the (hard) timeout C<$args->{timeout}> is hit.
 

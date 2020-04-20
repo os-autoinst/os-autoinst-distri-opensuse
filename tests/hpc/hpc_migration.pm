@@ -148,11 +148,15 @@ sub run {
 
     power_action('reboot', keepconsole => 1, textmode => 0);
 
-    my $status = script_output('SUSEConnect --status-text', 180);
-    ## it is expected that all items shall be registered, since
+    my $status_s = script_output('SUSEConnect --status-text', 180);
+    record_info('INFO', "$status_s");
+    my $status_l = script_output('SUSEConnect -l', 180);
+    record_info('INFO', "$status_l");
+
+    ## SUSEConnect: it is expected that all items shall be registered, since
     ## the migration starts when all items are registered
-    if ($status =~ "Not Registered") {
-        record_info('INFO', "$status");
+    if ($status_s =~ "Not Registered") {
+        record_info('INFO', "$status_s");
         die('One of the modules or product is not registered!');
     }
     ## correct High Performance Computing or SUSE Linux Enterprise Server should
@@ -160,19 +164,28 @@ sub run {
     if (get_var('MIGRATE_TO_HPC_PRODUCT') xor get_var('HPC_PRODUCT_MIGRATION')
         xor is_sle('>15')) {
         # expected is to have High Performance Computing $version
-        if ($status !~ "High Performance Computing $version") {
+        if ($status_s !~ "High Performance Computing $version") {
             die('Expected product is not there!');
         }
     } else {
         # expected it to have SUSE Linux Enterprise Server 12 $version
-        if ($status !~ "SUSE Linux Enterprise Server $version") {
+        if ($status_s !~ "SUSE Linux Enterprise Server $version") {
             die('Expected product is not there!');
         }
     }
     ## check for modules, if they are there as expected
-    if (($status !~ 'HPC Module') or ($status !~ 'Web and Scripting Module')) {
+    if (($status_s !~ 'HPC Module') or ($status_s !~ 'Web and Scripting Module')) {
         die('One of the expected modules is not there!');
     }
+    if (is_sle('>15')) {
+        if ($status_s !~ 'Python 2 Module') {
+            die('Python 2 module is not listed');
+        }
+    }
+
+    ## SUSEConnect -l: sanity check in case SUSEConnect -status-text is reporting
+    ## incorrectly
+    #TODO: add such check
 
     if (get_var("HPC_MIGRATION")) {
         barrier_wait('HPC_MIGRATION_TESTS');

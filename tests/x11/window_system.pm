@@ -29,7 +29,7 @@ sub run {
     if ($session_type) {
         record_info("$session_type", "Current session type is $session_type");
     } else {
-        record_soft_fail("Session type is not defined");
+        die('Session type is not defined');
     }
 
     type_string "exit\n";    # logout

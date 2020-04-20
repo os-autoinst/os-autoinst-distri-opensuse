@@ -286,7 +286,8 @@ sub run {
         type_string "echo e > \$pty\n";                                                                   # edit
 
         if (is_jeos or is_caasp) {
-            for (1 .. 4) { type_string "echo -en '\\033[B' > \$pty\n"; }                                  # four-times key down
+            my $max = is_sle('<15-sp2') ? 4 : 13;
+            for (1 .. $max) { type_string "echo -en '\\033[B' > \$pty\n"; }                               # four-times key down
         }
         else {
             $cmdline .= 'linemode=0 ';                                                                    # workaround for bsc#1066919
@@ -296,6 +297,7 @@ sub run {
         type_string "echo -en ' $cmdline' > \$pty\n";
         if (is_sle('12-SP2+') or is_caasp) {
             type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
+            type_string "echo -en ' xen-fbfront.video=32,1024,768' > \$pty\n";
             type_string "echo -en ' console=hvc console=tty ' > \$pty\n";                                         # set consoles
         }
         else {

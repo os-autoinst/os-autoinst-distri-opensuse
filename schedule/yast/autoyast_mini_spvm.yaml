@@ -1,11 +1,12 @@
-name:           autoyast_mini
-description:    >
-    Parent job produces autoyast profile after successful completion.
-    This test uses generated profile to do autoyast installation.
+---
+name: autoyast_mini
+description: >
+  Parent job produces autoyast profile after successful completion. This test
+  uses generated profile to do autoyast installation.
 vars:
-    AUTOYAST: autoyast_sle15/mini_remote.xml
-    AUTOYAST_CONFIRM: 1
-    DESKTOP: textmode
+  AUTOYAST: autoyast_sle15/mini_remote.xml
+  AUTOYAST_CONFIRM: 1
+  DESKTOP: textmode
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start

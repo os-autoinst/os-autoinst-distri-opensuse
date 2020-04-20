@@ -1,6 +1,6 @@
 # SUSE's openssh tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,9 @@
 #    openssh will refuse to work with any non-approved
 #    algorithm in fips mode, just like blowfish cipher
 #    or MD5 hash.
+#
 # Maintainer: Ben Chou <bchou@suse.com>
+# Tags: poo#65375
 
 use base "consoletest";
 use strict;
@@ -47,6 +49,10 @@ sub run {
     # Verify ssh without password
     script_run("ssh -v $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL", 0);
     assert_screen "ssh-login-ok";
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 0};
 }
 
 1;

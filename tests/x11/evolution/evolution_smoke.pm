@@ -42,6 +42,7 @@ sub run {
     my $mail_passwd = 'opensuse';
 
     mouse_hide(1);
+    x11_start_program('xterm -e "gsettings set org.gnome.desktop.session idle-delay 0"', valid => 0);
     evolution_wizard($self, $mail_box);
 
     # init time counter

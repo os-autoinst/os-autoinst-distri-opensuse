@@ -20,6 +20,8 @@ sub run {
 
     select_console 'user-console';
     validate_script_output("gdalinfo --formats", sub { m/BMP -raster-/ });
+    # Check tif image
+    validate_script_output("gdalinfo ~/data/geo/raster_sample.tif", sub { m/Coordinate System is:/ });
 }
 
 1;

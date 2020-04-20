@@ -41,20 +41,12 @@ sub testsuiteinstall {
             $qa_testsuite_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/' . $sub_project;
         }
         else {
-            my $version_with_service_pack    = get_required_var('VERSION');
-            my $version_without_service_pack = substr($version_with_service_pack, 0, index($version_with_service_pack, '-'));
-            $qa_testsuite_repo = "http://download.suse.de/ibs/QA:/Head:/SLE$version_without_service_pack/SLE-$version_with_service_pack/";
+            my $version_with_service_pack = get_required_var('VERSION');
+            $qa_testsuite_repo = "http://download.suse.de/ibs/QA:/Head/SLE-$version_with_service_pack/";
         }
         die '$qa_testsuite_repo is not set' unless ($qa_testsuite_repo);
     }
 
-    if (get_var('BOOT_HDD_IMAGE')) {
-        if (check_var('ARCH', 'aarch64')) {
-            wait_still_screen 10;
-            send_key 'ret';
-        }
-        wait_serial('Welcome to', 300) || die "System did not boot in 300 seconds.";
-    }
     select_console 'root-console';
 
     if (is_sle('15+') && !main_common::is_updates_tests) {

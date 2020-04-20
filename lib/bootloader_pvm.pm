@@ -75,6 +75,8 @@ Handle the boot and installation preperation process of PVM LPARs after the hype
 
 =cut
 sub prepare_pvm_installation {
+    my ($boot_attempt) = @_;
+    $boot_attempt //= 1;
     # the grub on powerVM has a rather strange feature that it will boot
     # into the firmware if the lpar was reconfigured in between and the
     # first menu entry was used to enter the command line. So we need to
@@ -112,8 +114,15 @@ sub prepare_pvm_installation {
     type_string "boot\n";
     save_screenshot;
 
-    assert_screen("novalink-successful-first-boot", 120);
-    assert_screen("run-yast-ssh",                   300);
+    assert_screen(["pvm-grub-menu", "novalink-successful-first-boot"], 120);
+    if (match_has_tag "pvm-grub-menu") {
+        # During boot pvm-grub menu was seen again
+        # Will try to setup linux and initrd again up to 3 times
+        $boot_attempt++;
+        die "Boot process restarted too many times" if ($boot_attempt > 3);
+        return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
+    }
+    assert_screen("run-yast-ssh", 300);
 
     # Delete partition table before starting installation
     select_console('install-shell');

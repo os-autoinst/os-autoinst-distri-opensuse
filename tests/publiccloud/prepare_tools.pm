@@ -24,12 +24,13 @@ sub install_in_venv {
     my ($pip_packages, $binary) = @_;
     die("Missing pip packages") unless ($pip_packages);
     die("Missing binary name")  unless ($binary);
+    my $install_timeout = 15 * 60;
     $pip_packages = [$pip_packages] unless ref $pip_packages eq 'ARRAY';
 
     my $venv = '/root/.venv_' . $binary;
     assert_script_run("virtualenv '$venv'");
     assert_script_run(". '$venv/bin/activate'");
-    assert_script_run('pip install --force-reinstall ' . join(' ', map("'$_'", @$pip_packages)));
+    assert_script_run('pip install --force-reinstall ' . join(' ', map("'$_'", @$pip_packages)), timeout => $install_timeout);
     assert_script_run('deactivate');
     my $script = <<EOT;
 #!/bin/sh
@@ -77,7 +78,7 @@ sub run {
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
-    install_in_venv(['idna<2.9,>=2.5', 'azure-cli'], 'az');
+    install_in_venv('azure-cli', 'az');
     record_info('Azure', script_output('az -v'));
 
     # Install Google Cloud SDK

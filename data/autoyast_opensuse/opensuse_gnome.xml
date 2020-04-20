@@ -12,14 +12,6 @@
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
-  <services-manager>
-    <default_target>graphical</default_target>
-    <services>
-      <enable config:type="list">
-        <service>SuSEfirewall2</service>
-      </enable>
-    </services>
-  </services-manager>
   <software>
     <install_recommended config:type="boolean">true</install_recommended>
     <products config:type="list">

@@ -40,9 +40,15 @@ my $HB_EXIT_FILE = '/opt/test.exit';
 my $HB_SCRIPT    = '/opt/heartbeat.sh';
 
 # xfstests variables
+# - XFSTESTS_RANGES: Set sub tests ranges. e.g. XFSTESTS_RANGES=xfs/100-199 or XFSTESTS_RANGES=generic/010,generic/019,generic/038
+# - XFSTESTS_BLACKLIST: Set sub tests not run in XFSTESTS_RANGES. e.g. XFSTESTS_BLACKLIST=generic/010,generic/019,generic/038
+# - XFSTESTS_GROUPLIST: Include/Exclude tests in group(a classification by upstream). e.g. XFSTESTS_GROUPLIST='auto,!dangerous_online_repair'
+# - XFSTESTS_SUBTEST_MAXTIME: Debug use. To set the max time to wait for sub test to finish. Meet this time frame will trigger reboot, and continue next tests.
+# - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $TEST_RANGES  = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/usr/share/qa/qa_test_xfstests/wrapper.sh';
 my %BLACKLIST    = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
+my @GROUPLIST    = split(/,/, get_var('XFSTESTS_GROUPLIST'));
 my $STATUS_LOG   = '/opt/status.log';
 my $INST_DIR     = '/opt/xfstests';
 my $LOG_DIR      = '/opt/log';
@@ -170,6 +176,45 @@ sub tests_from_category {
     return @tests;
 }
 
+# Return matched exclude tests from groups in @GROUPLIST
+# return structure - hash
+# Group name start with ! will exclude in test, and expected to use to update blacklist
+sub exclude_grouplist {
+    my %tests_list = ();
+    foreach my $group_name (@GROUPLIST) {
+        next if ($group_name !~ /^\!/);
+        $group_name = substr($group_name, 1);
+        my $cmd = "awk '/$group_name/ {printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/$FSTYPE/group > tmp.group";
+        script_run($cmd);
+        $cmd = "awk '/$group_name/ {printf \"generic/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/generic/group >> tmp.group";
+        script_run($cmd);
+        $cmd = "cat tmp.group";
+        my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
+        %tests_list = (%tests_list, %tmp_list);
+    }
+    return %tests_list;
+}
+
+# Return matched include tests from groups in @GROUPLIST
+# return structure - array
+# Group name start without ! will include in test, and expected to use to update test ranges
+sub include_grouplist {
+    my @tests_list;
+    foreach my $group_name (@GROUPLIST) {
+        next if ($group_name =~ /^\!/);
+        my $cmd = "awk '/$group_name/ {printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/$FSTYPE/group > tmp.group";
+        script_run($cmd);
+        $cmd = "awk '/$group_name/ {printf \"generic/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/generic/group >> tmp.group";
+        script_run($cmd);
+        $cmd = "cat tmp.group";
+        my $tests = substr(script_output($cmd), 0, -1);
+        foreach my $single_test (split(/,/, $tests)) {
+            push(@tests_list, $single_test);
+        }
+    }
+    return @tests_list;
+}
+
 # Return a list of tests to run from given test ranges
 # ranges - test ranges(e.g. xfs/001-100,btrfs/100-159)
 # dir    - xfstests installation dir(e.g. /opt/xfstests)
@@ -178,7 +223,6 @@ sub tests_from_ranges {
     if ($ranges !~ /\w+(\/\d+-\d+)?(,\w+(\/\d+-\d+)?)*/) {
         die "Invalid test ranges: $ranges";
     }
-
     my %cache;
     my @tests;
     foreach my $range (split(/,/, $ranges)) {
@@ -339,9 +383,18 @@ sub run {
 
     # Get test list
     my @tests = tests_from_ranges($TEST_RANGES, $INST_DIR);
+    my %uniq;
+    @tests = (@tests, include_grouplist);
+    @tests = grep { ++$uniq{$_} < 2; } @tests;
+
+    # Shuffle tests list
     unless (get_var('NO_SHUFFLE')) {
         @tests = shuffle(@tests);
     }
+
+    # Maintain BLACKLIST by exclude group list
+    my %tests_needto_exclude = exclude_grouplist;
+    %BLACKLIST = (%BLACKLIST, %tests_needto_exclude);
 
     mkfs_setting;
     test_prepare;
@@ -410,15 +463,15 @@ sub run {
     save_tmp_file('status.log', $status_log_content);
     my $local_file = "/tmp/opt_logs.tar.gz";
     script_run("tar zcvf $local_file --absolute-names /opt/log/");
-    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 10; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 5 ]; then break; fi; done");
+    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
     my $tar_content = script_output("cat $local_file");
     save_tmp_file('opt_logs.tar.gz', $tar_content);
+    send_key 'ctrl-c';
     script_run('clear');
 }
 
 sub post_fail_hook {
     my ($self) = shift;
-    $self->SUPER::post_fail_hook;
     # Collect executed test logs
     script_run 'tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/';
     upload_logs '/tmp/opt_logs.tar.gz';

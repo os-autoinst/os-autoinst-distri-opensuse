@@ -14,12 +14,14 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use version_utils qw(is_sle is_leap);
+use utils qw(zypper_call);
 
 sub run {
     select_console 'root-console';
-    zypper_call 'in kiwi-templates-JeOS';
-    script_run 'rpm -ql kiwi-templates-JeOS';
+    my $rpm = (is_sle('<15-SP2') or is_leap('<15.2')) ? 'kiwi-templates-SLES15-JeOS' : 'kiwi-templates-JeOS';
+    zypper_call "in $rpm";
+    assert_script_run "rpm -ql $rpm";
 }
 
 1;

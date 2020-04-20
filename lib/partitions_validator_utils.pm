@@ -38,7 +38,7 @@ sub validate_partition_creation {
     my @lsblk_output = split(/\n/, script_output("lsblk -n"));
     my $check;
     foreach (@lsblk_output) {
-        if ($_ =~ /(?<check>\Q$args->{mount_point}\E\z)/) {
+        if ($_ =~ /(?<check>\Q$args->{mount_point}\E\s*\Z)/) {
             $check = $+{check};
             last;
         }

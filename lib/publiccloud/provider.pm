@@ -47,7 +47,7 @@ sub init {
         my $cloud_name = $self->conv_openqa_tf_name;
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
-        assert_script_run('cp pillar_examples/automatic/{cluster.sls,hana.sls,top.sls} salt/hana_node/files/pillar/');
+        assert_script_run("cp pillar_examples/automatic/${_}/* salt/${_}_node/files/pillar/") foreach (qw(hana drbd));
         assert_script_run('cd');    # We need to ensure to be in the home directory
         assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
         $self->create_ssh_key(ssh_private_key_file => TERRAFORM_DIR . '/salt/hana_node/files/sshkeys/cluster.id_rsa');
@@ -273,7 +273,7 @@ sub create_instances {
     my @vms = $self->terraform_apply(%args);
     foreach my $instance (@vms) {
         record_info("INSTANCE $instance->{instance_id}", Dumper($instance));
-        $instance->check_ssh_port() if ($args{check_connectivity});
+        $instance->wait_for_ssh() if ($args{check_connectivity});
     }
     return @vms;
 }
@@ -328,9 +328,11 @@ sub terraform_apply {
     record_info('INFO', "Creating instance $instance_type from $image ...");
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
-        my $sap_media   = get_required_var('HANA');
-        my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
-        my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
+        my $sap_media            = get_required_var('HANA');
+        my $sap_regcode          = get_required_var('SCC_REGCODE_SLES4SAP');
+        my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
+        my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
+        my $sle_version          = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%)         => $instance_type,
@@ -338,6 +340,8 @@ sub terraform_apply {
             q(%HANA_BUCKET%)          => $sap_media,
             q(%SLE_IMAGE%)            => $image,
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
+            q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
+            q(%STORAGE_ACCOUNT_KEY%)  => $storage_account_key,
             q(%SLE_VERSION%)          => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
@@ -390,10 +394,14 @@ sub terraform_apply {
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         $vms = $output->{cluster_nodes_name}->{value};
         $ips = $output->{cluster_nodes_public_ip}->{value};
-        my $iscsi_vms = $output->{iscsisrv_name}->{value};
-        my $iscsi_ips = $output->{iscsisrv_public_ip}->{value};
-        push @{$vms}, @{$iscsi_vms};
-        push @{$ips}, @{$iscsi_ips};
+        foreach my $others_vms (qw(drbd iscsisrv)) {
+            my $tmp_name_var = "${others_vms}_name";
+            my $tmp_ip_var   = "${others_vms}_public_ip";
+            my $tmp_vms      = $output->{${tmp_name_var}}->{value};
+            my $tmp_ips      = $output->{${tmp_ip_var}}->{value};
+            push @{$vms}, @{$tmp_vms} if defined $tmp_vms;
+            push @{$ips}, @{$tmp_ips} if defined $tmp_ips;
+        }
     }
     else {
         $vms = $output->{vm_name}->{value};
@@ -444,13 +452,13 @@ sub terraform_destroy {
     record_info('ERROR', 'Terraform exited with' . $ret, result => 'fail') if ($ret != 0);
 }
 
-=head2 vault_login
+=head2 __vault_login
 
 Login to vault using C<_SECRET_PUBLIC_CLOUD_REST_USER> and
 C<_SECRET_PUBLIC_CLOUD_REST_PW>. The retrieved VAULT_TOKEN is stored in this
 instance and used for further C<publiccloud::provider::vault_api()> calls.
 =cut
-sub vault_login
+sub __vault_login
 {
     my ($self)   = @_;
     my $url      = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
@@ -462,25 +470,40 @@ sub vault_login
     $url = $url . '/v1/auth/userpass/login/' . $user;
     my $res = $ua->post($url => json => {password => $password})->result;
     if (!$res->is_success) {
-        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
-        if ($res->code == 400) {
-            for my $e (@{$res->json->{errors}}) {
-                bmwqemu::diag($e);
-            }
-        }
+        my $err_msg = 'Request ' . $url . ' failed with: ' . $res->message . ' (' . $res->code . ')';
+        $err_msg .= "\n" . join("\n", @{$res->json->{errors}}) if ($res->code == 400);
+        record_info('Vault login', $err_msg, result => 'fail');
         die("Vault login failed - $url");
     }
 
     return $self->vault_token($res->json('/auth/client_token'));
 }
 
-=head2 vault_api
+=head2 vault_login
+
+Wrapper arround C<<$self->vault_login()>> to have retry capability.
+=cut
+sub vault_login {
+    my $self  = shift;
+    my $tries = 3;
+    my $ret;
+    while ($tries-- > 0) {
+        eval {
+            $ret = $self->__vault_login();
+        };
+        return $ret unless $@;
+        sleep 10;
+    }
+    die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
+}
+
+=head2 __vault_api
 
 Invoke a vault API call. It use _SECRET_PUBLIC_CLOUD_REST_URL as base
 url.
 Depending on the method (get|post) you can pass additional data as json.
 =cut
-sub vault_api {
+sub __vault_api {
     my ($self, $path, %args) = @_;
     my $method = $args{method} // 'get';
     my $data   = $args{data}   // {};
@@ -491,6 +514,7 @@ sub vault_api {
     $self->vault_login() unless ($self->vault_token);
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
+    $ua->request_timeout(40);
     $url = $url . $path;
     bmwqemu::diag("Request Vault REST API: $url");
     if ($method eq 'get') {
@@ -505,16 +529,32 @@ sub vault_api {
     }
 
     if (!$res->is_success) {
-        bmwqemu::diag('Request ' . $url . ' failed with: ' . $res->message . '(' . $res->code . ')');
-        if ($res->code == 400) {
-            for my $e (@{$res->json->{errors}}) {
-                bmwqemu::diag($e);
-            }
-        }
+        my $err_msg = 'Request ' . $url . ' failed with: ' . $res->message . ' (' . $res->code . ')';
+        $err_msg .= "\n" . join("\n", @{$res->json->{errors}}) if ($res->code == 400);
+        record_info('Vault API', $err_msg, result => 'fail');
         die("Vault REST api call failed - $url");
     }
 
     return $res->json;
+}
+
+=head2 vault_api
+
+Wrapper around C<<$self->vault_api()>> to get retry capability.
+=cut
+sub vault_api {
+    my ($self, $path, %args) = @_;
+    my $ret;
+    my $tries = 3;
+
+    while ($tries-- > 0) {
+        eval {
+            $ret = $self->__vault_api($path, %args);
+        };
+        return $ret unless ($@);
+        sleep 10;
+    }
+    die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
 }
 
 =head2 vault_get_secrets
@@ -557,6 +597,7 @@ sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy();
     $self->vault_revoke();
+    assert_script_run "cd";
 }
 
 =head2 stop_instance

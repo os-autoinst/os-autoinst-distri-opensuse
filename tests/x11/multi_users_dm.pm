@@ -70,7 +70,8 @@ sub run {
         wait_screen_change { assert_and_click('user_not_listed') };
     }
     elsif (check_var('DESKTOP', 'xfce')) {
-        send_key 'down';                    # select created user #01
+        # select created user #01
+        send_key_until_needlematch 'user-01-selected', 'down', 1, 3;
     }
     elsif (check_var('DESKTOP', 'kde')) {
         wait_screen_change { send_key 'shift-tab' };

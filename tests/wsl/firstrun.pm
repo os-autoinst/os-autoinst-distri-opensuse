@@ -23,16 +23,11 @@ sub set_scc_url {
     assert_screen 'yast2-wsl-firstboot-welcome';
     # Exit YaST2 Firstboot
     # Pop up warning should appear
-    wait_screen_change(sub { send_key 'alt-r' }, 5);
-    # Workaround
-    assert_screen [qw(wsl-installing-prompt wsl-firsboot-exit-warning-pop-up)];
-    if (match_has_tag 'wsl-installing-prompt') {
-        record_soft_failure 'bsc#1163347 YaST2 firstboot does not warn the user before abort in welcome';
-    } else {
-        # Cancel pop up and continue
-        wait_screen_change(sub { send_key 'alt-c' }, 5);
-        assert_screen 'yast2-wsl-firstboot-welcome';
-    }
+    send_key 'alt-r';
+    assert_screen 'wsl-firsboot-exit-warning-pop-up';
+    # Confirm to close YaST2 firstboot
+    send_key 'alt-y';
+    assert_screen 'wsl-installing-prompt';
 
     wait_screen_change(sub {
             type_string qq{echo "url: $proxyscc" > /etc/SUSEConnect}, max_interval => 125, wait_screen_change => 2;
@@ -106,7 +101,6 @@ sub register_via_scc {
 
 sub run {
     # WSL installation is in progress
-    assert_and_click 'install-linux-in-wsl', timeout => 120;
     assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 240;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {

@@ -10,6 +10,7 @@ Variable        | Type      | Default value | Details
 ADDONS          | string    |               | Comma separated list of addons to be added using DVD. Also used to indicate addons in the SUT.
 ADDONURL        | string    |               | Comma separated list of addons. Includes addon names to get url defined in ADDONURL_*. For example: ADDONURL=sdk,we ADDONURL_SDK=https://url ADDONURL_WE=ftp://url
 ADDONURL_*      | string    |               | Define url for the addons list defined in ADDONURL
+ASSERT_BSC1122804 | boolean | false | In some scenarios it is necessary to check if the mistyped full name still happens.
 ASSERT_Y2LOGS   | boolean   | false         | If set to true, we will parse YaST logs after installation and fail test suite in case unknown errors were detected.
 AUTOCONF        | boolean   | false         | Toggle automatic configuration
 AUTOYAST        | string    |               | Full url to the AY profile or relative path if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data). If value starts with `aytests/`, these profiles are provided by suport server, source code is available in [aytests repo](https://github.com/yast/aytests-tests)
@@ -41,6 +42,7 @@ DVD |||
 ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combine with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
 EVERGREEN |||
 EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be finished after `installation/start_install` test module. So that all the test modules after this one will not be scheduled and executed.
+EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=', as a kernel cmd line argument)
 EXTRABOOTPARAMS | string | | Concatenates content of the string as boot options applied to the installation bootloader.
 EXTRABOOTPARAMS_BOOT_LOCAL | string | | Boot options applied during the boot process of a local installation.
 EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot prompt.
@@ -57,7 +59,6 @@ GRUB_SELECT_SECOND_MENU | integer | | Select grub menu entry in secondary grub m
 HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and validation of the license agreements.
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
-EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=' as a kernel cmd line argument)
 INSTALL_KEYBOARD_LAYOUT | string | | Specify one of the supported keyboard layout to switch to during installation or to be used in autoyast scenarios e.g.: cz, fr
 INSTALL_SOURCE | string | | Specify network protocol to be used as installation source e.g. MIRROR_HTTP
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
@@ -65,6 +66,7 @@ INSTALLONLY | boolean | false | Indicates that test suite conducts only installa
 INSTLANG | string | en_US | Installation locale settings.
 IPXE | boolean | false | Indicates ipxe boot.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
+IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 LAPTOP |||
 LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
@@ -87,6 +89,7 @@ NETDEV | string | | Network device to be used when adding interface on zKVM.
 NFSCLIENT | boolean | false | Indicates/enables nfs client in `console/yast2_nfs_client` for multi-machine test.
 NFSSERVER | boolean | false | Indicates/enables nfs server in `console/yast2_nfs_server`.
 NICEVIDEO |||
+NICTYPE_USER_OPTIONS | string | | `hostname=myguest` causes a fake DHCP hostname 'myguest' provided to SUT. It is used as expected hostname if `EXPECTED_INSTALL_HOSTNAME` is not set.
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
@@ -123,6 +126,7 @@ SYSAUTHTEST | boolean | false | Enable system authentication test (`sysauth/sssd
 TEST | string | | Name of the test suite.
 TOGGLEHOME | boolean | false | Changes the state of partitioning to have or not to have separate home partition in the proposal.
 TUNNELED | boolean | false | Enables the use of normal consoles like "root-consoles" on a remote SUT while configuring the tunnel in a local "tunnel-console"
+TYPE_BOOT_PARAMS_FAST | boolean | false | When set, forces `bootloader_setup::type_boot_parameters` to use the default typing interval.
 UEFI | boolean | false | Indicates UEFI in the testing environment.
 UPGRADE | boolean | false | Indicates upgrade scenario.
 USBBOOT | boolean | false | Indicates booting to the usb device.

@@ -15,6 +15,7 @@
 # pvremove vgremove lvremove
 # - Choose test disk
 # - Install lvm2 and xfsprogs
+# - Check if lvmetad uses devices filter
 # - Partition test disk
 # - Create a pv and display result
 # - Create a vg and display result
@@ -31,7 +32,7 @@
 # - Remove old pv
 # - Check data from test file
 # - Cleanup
-# Maintainer: Paolo Stivanin <pstivanin@suse.com>
+# Maintainer: Paolo Stivanin <pstivanin@suse.com>, George Gkioulis <ggkioulis@suse.com>
 
 use base "consoletest";
 use strict;
@@ -60,6 +61,10 @@ sub run {
 
     zypper_call 'in lvm2';
     zypper_call 'in xfsprogs';
+
+
+    record_info("lvmetad bug", "Checking if lvmetad uses devices/filter (Bug #1163526)");
+    check_lvmetad_filter();
 
     # Create 3 partitions
     assert_script_run 'echo -e "g\nn\n\n\n+1G\nt\n8e\nn\n\n\n+1G\nt\n2\n8e\nn\n\n\n\nt\n\n8e\np\nw" | fdisk ' . $disk;
@@ -121,6 +126,29 @@ sub run {
     assert_script_run 'vgdisplay';
     validate_script_output("pvremove -y ${disk}1 ${disk}2 ${disk}3", sub { m/successfully wiped/ }, $timeout);
     assert_script_run 'pvdisplay';
+}
+
+# Checks if lvmetad reads devices/filter (bsc #1163526)
+sub check_lvmetad_filter {
+    for (my $i = 1; $i <= 2; $i++) {
+        assert_script_run 'dd if=/dev/zero of=disk_' . $i . '.img bs=1M count=32 status=none';
+        assert_script_run 'losetup /dev/loop' . $i . ' disk_' . $i . '.img';
+        assert_script_run 'pvcreate /dev/loop' . $i;
+    }
+    assert_script_run 'losetup /dev/loop3 disk_2.img';
+
+    my $filter = '[ "a|/dev/loop1|", "a|/dev/loop2|", "r|/dev/loop3|" ]';
+    assert_script_run 'pvscan --cache --config  \' devices { filter = ' . $filter . ' } \'';
+
+    my $output = script_output 'pvs 2>&1';
+    if (grep { /pvscan --cache/ } $output) {
+        record_soft_failure('lvm2 issue: bug bsc#1163526');
+    }
+
+    for (my $i = 1; $i <= 2; $i++) {
+        assert_script_run 'losetup -d /dev/loop' . $i;
+    }
+    assert_script_run 'rm -rf disk_{1,2}.img';
 }
 
 1;

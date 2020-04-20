@@ -16,7 +16,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
 use utils;
-use Utils::Backends 'has_serial_over_ssh';
+use Utils::Backends qw(has_serial_over_ssh is_pvm);
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
@@ -443,6 +443,11 @@ sub export_logs {
     my $compression = is_sle('=12-sp1') ? 'bz2' : 'xz';
     script_run "save_y2logs /tmp/y2logs_clone.tar.$compression";
     upload_logs "/tmp/y2logs_clone.tar.$compression";
+    if ($utils::IN_ZYPPER_CALL) {
+        script_run("zypper -n patch --debug-solver --with-interactive -l");
+        script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
+        upload_logs "/tmp/solverTestCase.tar.bz2 ";
+    }
     $self->investigate_yast2_failure();
 }
 
@@ -618,7 +623,7 @@ sub wait_grub {
     elsif (match_has_tag('encrypted-disk-password-prompt')) {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
-        assert_screen "grub2", 90;
+        assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
     }
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
 }
@@ -865,7 +870,7 @@ prompt or logged in desktop. Set C<$textmode> to 1 when the text mode login
 prompt should be expected rather than a desktop or display manager.  Expects
 already unlocked encrypted disks, see C<wait_boot> for handling these in
 before.  The time waiting for the system to be fully booted can be configured
-with with C<$ready_time> in seconds. C<$forcenologin> makes this function
+with C<$ready_time> in seconds. C<$forcenologin> makes this function
 behave as if the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot_past_bootloader {
@@ -1089,7 +1094,7 @@ sub select_serial_terminal {
         }
     } elsif (has_serial_over_ssh) {
         $console = 'root-ssh';
-    } elsif ($backend eq 'generalhw' && !has_serial_over_ssh) {
+    } elsif (($backend eq 'generalhw' && !has_serial_over_ssh) || $backend eq 's390x') {
         $console = $root ? 'root-console' : 'user-console';
     }
 

@@ -1,7 +1,8 @@
 ---
-name:           modify_existing_partition
-description:    >
-  Installation where we modify some pre-existing partitions. Must depend on some create_hdd test suite.
+name: modify_existing_partition
+description: >
+  Installation where we modify some pre-existing partitions. Must depend on some
+  create_hdd test suite.
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -22,12 +23,12 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - {{reconnect_mgmt_console}}
-  - {{grub_test}}
+  - '{{reconnect_mgmt_console}}'
+  - '{{grub_test}}'
   - installation/first_boot
   - console/validate_modify_existing_partition
 test_data:
-  !include: test_data/yast/modify_existing_partition/modify_existing_partition.yaml
+  $include: test_data/yast/modify_existing_partition/modify_existing_partition.yaml
 conditional_schedule:
   reconnect_mgmt_console:
     ARCH:
@@ -37,4 +38,3 @@ conditional_schedule:
     BACKEND:
       qemu:
         - installation/grub_test
-

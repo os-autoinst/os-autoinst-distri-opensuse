@@ -54,5 +54,6 @@ schedule:
 - console/kmod
 - console/suse_module_tools
 - console/aaa_base
+- console/gd
 - console/coredump_collect
 ...

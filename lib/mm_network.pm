@@ -7,6 +7,7 @@ use base 'Exporter';
 use Exporter;
 
 use testapi;
+use version_utils 'is_opensuse';
 
 our @EXPORT = qw(configure_hostname get_host_resolv_conf
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
@@ -172,6 +173,10 @@ sub check_ip_in_subnet {
 
 sub setup_static_mm_network {
     my $ip = shift;
+    if (is_opensuse && !check_var('DESKTOP', 'textmode')) {
+        assert_script_run "systemctl disable NetworkManager --now";
+        assert_script_run "systemctl enable wicked --now";
+    }
     configure_default_gateway;
     configure_static_ip($ip);
     configure_static_dns(get_host_resolv_conf());

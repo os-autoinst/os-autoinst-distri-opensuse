@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -111,6 +111,8 @@ sub run {
     }
     # aarch64 can be particularily slow depending on the hardware
     $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
+    # PPC HMC (Power9) performs very slow in general
+    $timeout *= 2 if check_var('BACKEND', 'pvm_hmc') && get_var('MAX_JOB_TIME');
     # encryption, LVM and RAID makes it even slower
     $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
     # "allpatterns" tests install a lot of packages
@@ -123,6 +125,10 @@ sub run {
     if (check_var('ARCH', 's390x')) {
         push(@tags, 'additional-packages');
     }
+    # For poo#64228, we need ensure the timeout value less than the MAX_JOB_TIME
+    my $max_job_time_bound = get_var('MAX_JOB_TIME', 7200) - 1000;
+    record_info("Timeout exceeded", "Computed timeout '$timeout' exceeds max_job_time_bound '$max_job_time_bound', consider decreasing '$timeout' or increasing 'MAX_JOB_TIME'") if $timeout > $max_job_time_bound;
+
     my $screenlock_previously_detected = 0;
     my $mouse_x                        = 1;
     while (1) {

@@ -1,14 +1,14 @@
 ---
-name : lvm +raid1 @64bit
-description : >
-  Validation of partitioning for raid1 on lvm
-  Installation of RAID1 using expert partitioner .
-vars :
-  RAIDLEVEL : 1
-  LVM       : 1
-test_data :
-  !include : test_data/yast/lvm_raid1/lvm+raid1_sle15_svirt-hyperv.yaml
-schedule :
+name: lvm +raid1 @64bit
+description: >
+  Validation of partitioning for raid1 on lvm Installation of RAID1 using expert
+  partitioner .
+vars:
+  RAIDLEVEL: 1
+  LVM: 1
+test_data:
+  $include: test_data/yast/lvm_raid1/lvm+raid1_sle15_svirt-hyperv.yaml
+schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/welcome

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+check_for_errors() {
+
+ERROR=0
+
+for file in $(find ./results/$1 -type f);
+	do
+		while IFS= read -r line
+		do
+			if [[ "$line" == *"exit_status"* ]]
+			then
+				if [[ "$line" == *"1"* ]]
+				then
+					ERROR=1
+				fi
+			elif [[ "$line" == "status"* ]]
+			then
+				if [[ "$line" == *"fail"* ]]
+				then
+					ERROR=1
+				fi
+			fi
+		done < "$file"
+	done
+}
+
+generate_xunit_report() {
+	dir=${1}
+	results=${dir}_results.xml
+	check_for_errors $dir
+	echo "<testsuite errors=\"$ERROR\" name=\"$dir\">" > ./$results
+
+	for file in $(find ./results/$dir -type f)
+	do
+		test_group=$(basename `dirname $file`)
+		test_name=`basename $file`
+		while IFS= read -r line
+		do
+			if [[ "$line" == "status"* ]]
+			then
+				if [[ "$line" == *"pass"* ]]
+				then
+					echo "<testcase name=\"${test_group}::${test_name}\">" >> ./$results
+					echo "</testcase>" >> ./$results
+				elif [[ "$line" == *"fail"* ]]
+				then
+					echo "<testcase errors=\"1\" name=\"${test_group}::${test_name}\">" >> ./$results
+					#failure_message=`cat dirname ${file}.bad`
+					failure_message=`head -10 dirname ${file}.*`
+					echo "<failure message=\"$failure_message\">" >> ./$results
+					echo "</failure>" >> ./$results
+					echo "</testcase>" >> ./$results
+				elif [[ "$line" == *"not run"* ]]
+				then
+					echo "not run: $file"
+				fi
+			fi
+		done < "$file"
+	done
+
+	echo "</testsuite>" >> ./$results
+}
+
+for dir in ./results/*
+do
+        dir=`basename $dir`
+        generate_xunit_report $dir
+done

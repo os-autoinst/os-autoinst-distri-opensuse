@@ -99,6 +99,7 @@
             <package>sudo</package>
             <package>wget</package>
             <package>python</package>
+            <package>haveged</package>
         </packages>
     </software>
     <scripts>

@@ -1,5 +1,6 @@
-name:           autoyast_multi_btrfs
-description:    >
+---
+name: autoyast_multi_btrfs
+description: >
   Test autoyast installation, while using multi-device Btrfs filesystem
 vars:
   ENCRYPT: 1
@@ -10,7 +11,7 @@ schedule:
   - autoyast/installation
   - installation/boot_encrypt
   - installation/first_boot
-  - autoyast/console 
+  - autoyast/console
   - autoyast/clone
   - console/validate_multi_btrfs_partitioning
   - console/validate_encrypt
@@ -29,7 +30,7 @@ test_data:
         - /dev/mapper/cr_test
   crypttab:
     num_devices_encrypted: 1
-  !include: test_data/yast/encryption/default_enc.yaml
+  $include: test_data/yast/encryption/default_enc.yaml
   profile:
     partitioning:
       - drive:
@@ -72,7 +73,7 @@ test_data:
           device: /dev/vdd
           disklabel: gpt
           partitions:
-            - partition: 
+            - partition:
                 unique_key: partition_nr
                 partition_nr: 1
                 crypt_method: luks1

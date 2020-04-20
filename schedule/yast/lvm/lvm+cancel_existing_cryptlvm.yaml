@@ -1,13 +1,12 @@
 ---
 description: >
-  Conduct installation cancelling encrypted partitions activation, and
-  creating non-encrypted lvm setup from scratch.
-  Using pre-partitioned disk image to validate encrypted
-  partitions activation and that we can re-ecnrypt the disk.
+  Conduct installation cancelling encrypted partitions activation, and creating
+  non-encrypted lvm setup from scratch. Using pre-partitioned disk image to validate
+  encrypted partitions activation and that we can re-ecnrypt the disk.
 name: cryptlvm+activate_existing
 vars:
-    ENCRYPT_CANCEL_EXISTING: 1
-    LVM: 1
+  ENCRYPT_CANCEL_EXISTING: 1
+  LVM: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome

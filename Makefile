@@ -58,11 +58,19 @@ test-compile-changed: os-autoinst/
 
 .PHONY: test-yaml-valid
 test-yaml-valid:
-	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid `git --no-pager diff --diff-filter=d --name-only master | grep 'schedule.*\.yaml'`
+	@# Get list of changed yaml files
+	$(eval YAMLS=$(shell sh -c "git --no-pager diff --diff-filter=dr --name-only master | grep '\(schedule\|test_data\)/.*\.y.\?ml$$'"))
+	if test -n "$(YAMLS)"; then \
+	  export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid $(YAMLS);\
+	  which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
+	  yamllint -c .yamllint $(YAMLS);\
+	else \
+	  echo "No yamls modified.";\
+	fi
 
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
-	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --name-only --exit-code $$(git merge-base master HEAD) | grep '^schedule/*'`
+	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code $$(git merge-base master HEAD) | grep '^schedule/*'`
 
 .PHONY: test-metadata
 test-metadata:
@@ -98,7 +106,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-modules test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files detect-nonexistent-testdata test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
@@ -110,7 +118,7 @@ else
 test: unit-test test-static test-compile perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --stern --include "strict" --include Perl::Critic::Policy::HashKeyQuote --include Perl::Critic::Policy::ConsistentQuoteLikeWords
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --stern --include "strict" --include Perl::Critic::Policy::HashKeyQuote
 
 .PHONY: perlcritic
 perlcritic: tools/lib/
@@ -120,9 +128,13 @@ perlcritic: tools/lib/
 test-unused-modules:
 	tools/detect_unused_modules
 
-.PHONY: test-deleted-renamed-referenced-modules
-test-deleted-renamed-referenced-modules:
-	tools/test_deleted_renamed_referenced_modules `git diff --name-only --exit-code --diff-filter=DR $$(git merge-base master HEAD) | grep '^tests/*'`
+.PHONY: test-deleted-renamed-referenced-files
+test-deleted-renamed-referenced-files:
+	tools/test_deleted_renamed_referenced_files `git diff --name-only --exit-code --diff-filter=DR $$(git merge-base master HEAD) | grep '^test*'`
+
+.PHONY: detect-nonexistent-testdata
+detect-nonexistent-testdata:
+	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_testdata `git diff --name-only --exit-code --diff-filter=d $$(git merge-base master HEAD) | grep '^schedule/.*\.ya\?ml$$'`
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:

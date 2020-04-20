@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures qw(is_aarch64 is_arm);
 
 sub run {
     select_console 'root-console';
@@ -23,7 +24,7 @@ sub run {
     record_info('Version', script_output('gpiodetect --version | head -n1'));
 
     # ARM qemu has already gpiochip0 [ARMH0061:00] (8 lines) for ACPI
-    my $gpiochipX = get_var('ARCH') =~ /aarch64/ ? 'gpiochip1' : 'gpiochip0';
+    my $gpiochipX = (is_aarch64 || is_arm) ? 'gpiochip1' : 'gpiochip0';
 
     record_info('gpiochip', "$gpiochipX");
 

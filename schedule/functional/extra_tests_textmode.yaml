@@ -9,6 +9,11 @@ conditional_schedule:
                 - boot/uefi_bootmenu
             s390x:
                 - installation/bootloader_zkvm
+        MACHINE:
+            svirt-xen-pv:
+                - installation/bootloader_svirt
+            svirt-xen-hvm:
+                - installation/bootloader_svirt
     lshw:
         ARCH:
             x86_64:
@@ -24,10 +29,11 @@ conditional_schedule:
             x86_64:
                 - console/yast2_lan_device_settings
 schedule:
-    - {{bootloader}}
+    - '{{bootloader}}'
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
+    - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/zypper_info
@@ -46,20 +52,18 @@ schedule:
     - console/cron
     - console/syslog
     - console/mta
-    - {{yast2_lan_device_settings}}
+    - '{{yast2_lan_device_settings}}'
     - console/check_default_network_manager
     - console/git
     - console/cups
     - console/java
     - console/sqlite3
-    - console/gdb
     - console/sysctl
     - console/sysstat
     - console/curl_ipv6
     - console/wget_ipv6
     - console/ca_certificates_mozilla
     - console/unzip
-    - console/machinery
     - console/gpg
     - console/rsync
     - console/clamav
@@ -74,21 +78,16 @@ schedule:
     - console/quota
     - console/vhostmd
     - console/rpcbind
-    - sysauth/sssd
     - console/timezone
     - console/procps
-    - {{lshw}}
+    - '{{lshw}}'
     - console/kmod
     - console/suse_module_tools
     - console/zziplib
     - console/firewalld
     - console/aaa_base
     - console/osinfo_db
-    - console/orphaned_packages_check
     - console/zypper_ref
-    - console/docker
-    - console/docker_runc
-    - console/docker_image
-    - console/zypper_docker
     - console/kdump_and_crash
+    - console/sssd_samba
     - console/coredump_collect

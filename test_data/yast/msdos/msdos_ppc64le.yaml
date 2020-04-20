@@ -1,7 +1,8 @@
+---
 table_type: msdos
 partition_table_disk: vda
 disks:
-  - name: vda 
+  - name: vda
     allowed_unpartitioned: 0.00GB
     partitions:
       - size: 8Mib
@@ -18,7 +19,7 @@ disks:
           filesystem: xfs
         mounting_options:
           should_mount: 1
-          mount_point: '/'
+          mount_point: /
       - size: 9250Mib
         role: data
         partition_type: primary
@@ -28,11 +29,11 @@ disks:
           filesystem: xfs
         mounting_options:
           should_mount: 1
-          mount_point: '/home'
+          mount_point: /home
       - size: max
         role: swap
         partition_type: primary
-        validation_flag: 0 
+        validation_flag: 0
         formatting_options:
           should_format: 1
           filesystem: swap

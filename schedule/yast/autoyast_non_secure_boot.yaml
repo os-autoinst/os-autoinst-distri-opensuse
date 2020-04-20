@@ -1,0 +1,30 @@
+name:       autoyast_non_secure_boot
+description:   >
+  Test autoyast installation with non-secure boot option.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_non_secure_boot.xml
+  AUTOYAST_PREPARE_PROFILE: 1
+  EXTRABOOTPARAMS: startshell=1
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/verify_secure_boot_bios
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/verify_secure_boot
+test_data:
+  secure_boot: disabled
+  profile:
+    bootloader:
+      global:
+        secure_boot: false

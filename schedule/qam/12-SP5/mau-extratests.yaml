@@ -1,7 +1,7 @@
 ---
 name: mau-extratests
 schedule:
-- {{zkvm_boot}}
+- '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - console/prepare_test_data
 - console/consoletest_setup
@@ -12,7 +12,7 @@ schedule:
 - console/update_alternatives
 - console/rpm
 - console/slp
-- {{x86_64_tests}}
+- '{{x86_64_tests}}'
 - console/libvorbis
 - console/command_not_found
 - console/openssl_alpn
@@ -59,6 +59,8 @@ schedule:
 - console/aaa_base
 - console/osinfo_db
 - console/libgcrypt
+- console/gd
+- console/valgrind
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:

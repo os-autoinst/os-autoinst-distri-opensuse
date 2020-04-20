@@ -1,5 +1,5 @@
 ---
-name:           msdos@yast
+name:           msdos
 description:    >
   Test for installation on msdos partition table.
 schedule:
@@ -16,12 +16,12 @@ schedule:
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - {{disable_grub_timeout}}
+  - '{{disable_grub_timeout}}'
   - installation/start_install
   - installation/await_install
-  - {{installation/logs_from_installation_system}}
+  - '{{installation/logs_from_installation_system}}'
   - installation/reboot_after_installation
-  - {{reconnect_mgmt_console}}
+  - '{{reconnect_mgmt_console}}'
   - installation/first_boot
   - console/validate_fs_table
 conditional_schedule:
@@ -68,5 +68,4 @@ conditional_schedule:
       svirt-hyperv:
         - installation/grub_test
 test_data:
-  !include: test_data/yast/msdos/msdos.yaml
-
+  $include: test_data/yast/msdos/msdos.yaml

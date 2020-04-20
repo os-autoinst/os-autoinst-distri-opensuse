@@ -366,11 +366,11 @@ sub script_sudo {
         $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev" unless $prog eq 'bash';
     }
     type_string "clear\n";    # poo#13710
-    type_string "su -c \'$prog\'\n";
+    type_string "su -c \'$prog\'\n", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
         if ($prog eq 'bash') {
-            return wait_still_screen(2, 4);
+            return wait_still_screen(4, 8);
         }
         else {
             return wait_serial("$str-\\d+-");

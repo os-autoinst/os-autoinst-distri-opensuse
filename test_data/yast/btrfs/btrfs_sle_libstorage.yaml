@@ -1,24 +1,25 @@
+---
 subvolume:
-cow:
-  - /opt
-  - /srv
-  - /tmp
-  - /usr/local
-  - /var/cache
-  - /var/crash
-  - /var/lib/machines
-  - /var/lib/mailman
-  - /var/lib/named
-  - /var/opt
-  - /var/spool
-  - /var/tmp
-  - /.snapshots
-no_cow:
-  - /var/lib/libvirt/images
-  - /var/lib/mariadb
-  - /var/lib/mysql
-  - /var/lib/pgsql
-  - /var/log
-file_system:
- /home: xfs
- /: btrfs
+  cow:
+    - /opt
+    - /srv
+    - /tmp
+    - /usr/local
+    - /var/cache
+    - /var/crash
+    - /var/lib/machines
+    - /var/lib/mailman
+    - /var/lib/named
+    - /var/opt
+    - /var/spool
+    - /var/tmp
+    - /.snapshots
+  no_cow:
+    - /var/lib/libvirt/images
+    - /var/lib/mariadb
+    - /var/lib/mysql
+    - /var/lib/pgsql
+    - /var/log
+  file_system:
+    /home: xfs
+    /: btrfs

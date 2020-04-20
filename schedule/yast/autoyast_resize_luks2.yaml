@@ -1,5 +1,6 @@
-name:           autoyast_resize_luks2
-description:    >
+---
+name: autoyast_resize_luks2
+description: >
   Test autoyast installation, while resizing encrypted partition using luks2
 vars:
   AUTOYAST: autoyast_sle15/autoyast_resize_luks2.xml
@@ -27,17 +28,16 @@ test_data:
       size: 5G
       luks_type: 2
   profile:
-      partitioning:
-        - drive:
-            unique_key: device
-            device: /dev/vda
-        - drive:
-            unique_key: device
-            device: /dev/vdb
-            disklabel: gpt
-            partitions:
-              - partition:
-                  unique_key: crypt_method
-                  # YaST is only capable of work with luks1
-                  crypt_method: luks1
-                  size: 5368709120
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/vda
+      - drive:
+          unique_key: device
+          device: /dev/vdb
+          disklabel: gpt
+          partitions:
+            - partition:
+                unique_key: crypt_method
+                crypt_method: luks1
+                size: 5368709120

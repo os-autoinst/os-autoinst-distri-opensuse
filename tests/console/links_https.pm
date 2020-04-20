@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,9 @@
 #
 # Summary: Test with "FIPS" installed and enabled, the WWW browser "links"
 #          can access https web pages successfully.
+#
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#52289, tc#1621467
+# Tags: poo#52289, tc#1621467, poo#65375
 
 use base "consoletest";
 use strict;
@@ -30,6 +31,10 @@ sub run {
     setup_web_browser_env();
     zypper_call("--no-refresh --no-gpg-checks in links");
     run_web_browser_text_based("links", undef);
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 0};
 }
 
 1;

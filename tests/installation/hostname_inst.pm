@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,18 +18,23 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use version_utils;
 
 sub run {
     assert_screen "before-package-selection";
     select_console 'install-shell';
-    if (my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME')) {
-        # EXPECTED_INSTALL_HOSTNAME contains expected hostname YaST installer
-        # got from environment (DHCP, 'hostname=' as a kernel cmd line argument
-        assert_script_run "test \"\$(hostname)\" == \"$expected_install_hostname\"";
-    }
-    else {
-        # 'install' is the default hostname if no hostname is get from environment
-        assert_script_run 'test "$(hostname)" == "install"';
+    # NICTYPE_USER_OPTIONS="hostname=myguest" causes a fake DHCP hostname provided by QEMU to SUT
+    # 'install' is the default hostname if no hostname is get from environment
+    # but, we may expect a different hostname (linuxrc, hostname, real DHCP server pushing a hostname)
+    # from setting EXPECTED_INSTALL_HOSTNAME
+    my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME', get_var('NICTYPE_USER_OPTIONS', 'install'));
+    $expected_install_hostname =~ s/hostname=//;
+    # Before SLE15-SP2, yast didn't take during installation the hostname by DHCP
+    # See fate#319639
+    if (is_sle('<15-SP2') && (script_run(qq{test "\$(hostname)" == "linux"}) == 0)) {
+        record_soft_failure('bsc#1166778 - Default hostname in SLE15-SP1 is not "install"');
+    } else {
+        assert_script_run(qq{test "\$(hostname)" == "$expected_install_hostname"});
     }
     save_screenshot;
     # cleanup

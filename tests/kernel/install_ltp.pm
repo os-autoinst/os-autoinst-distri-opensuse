@@ -20,8 +20,7 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_common 'get_ltp_tag';
-use main_ltp 'loadtest_from_runtest_file';
+use main_ltp qw(get_ltp_tag loadtest_from_runtest_file);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
@@ -107,32 +106,30 @@ sub install_debugging_tools {
 
 sub install_runtime_dependencies_network {
     my @deps;
-    # utils
-    @deps = qw(
-      ethtool
-      iptables
-      psmisc
-      tcpdump
-    );
-    zypper_call('-t in ' . join(' ', @deps));
-
-    # clients
     @deps = qw(
       dhcp-client
-      telnet
-    );
-    zypper_call('-t in ' . join(' ', @deps));
-
-    # services
-    @deps = qw(
       dhcp-server
+      diffutils
       dnsmasq
+      ethtool
+      iptables
       nfs-kernel-server
+      psmisc
       rpcbind
       rsync
+      telnet
+      tcpdump
       vsftpd
     );
     zypper_call('-t in ' . join(' ', @deps));
+
+    my @maybe_deps = qw(
+      telnet-server
+      xinetd
+    );
+    for my $dep (@maybe_deps) {
+        script_run('zypper -n -t in ' . $dep . ' | tee');
+    }
 }
 
 sub install_build_dependencies {
@@ -183,8 +180,7 @@ ldir='/tmp/runtest-files-$tag'
 archive="\$ldir.tar.gz"
 mkdir -p \$ldir
 cd \$ldir
-ls --file-type $dir | sed "s/\\(.*\\)/ltp-\\1-$tag/" > \$ldir/ltp-runtest-files-$tag
-cp -v $dir/* ~/openposix-test-list-$tag \$ldir
+cp -v $dir/* ~/openposix-test-list \$ldir
 tar czvf \$archive *
 ls -la \$archive
 file \$archive
@@ -195,7 +191,6 @@ curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\
 }
 
 sub install_from_git {
-    my ($tag)       = @_;
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
     my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
@@ -217,7 +212,7 @@ sub install_from_git {
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list-$tag";
+    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list";
 }
 
 sub want_stable {
@@ -250,12 +245,11 @@ sub add_ltp_repo {
 }
 
 sub install_from_repo {
-    my ($tag) = @_;
     my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
 
     zypper_call("in --recommends $pkg");
     script_run "rpm -qi $pkg | tee /opt/ltp_version";
-    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list-) . $tag;
+    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
 }
 
 sub setup_network {
@@ -342,14 +336,14 @@ sub run {
 
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
-        install_from_git($tag);
+        install_from_git();
 
         install_runtime_dependencies_network;
         install_debugging_tools;
     }
     else {
         add_ltp_repo;
-        install_from_repo($tag);
+        install_from_repo();
     }
 
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
@@ -364,7 +358,7 @@ sub run {
 
     if (get_var('LTP_COMMAND_FILE')) {
         # This assumes that current working directory is the worker's pool dir
-        loadtest_from_runtest_file('assets_public');
+        loadtest_from_runtest_file("assets_public/runtest-files-$tag.tar.gz");
     }
 
     is_jeos && zypper_call 'in system-user-bin system-user-daemon';
@@ -432,6 +426,13 @@ OpenQA is configured the ISO variable may not be necessary either.
 
 Either should contain 'git' or 'repo'. Git is recommended for now. If you decide
 to install from the repo then also specify QA_HEAD_REPO.
+
+=head2 LTP_BAREMETAL
+
+Loads installer modules to install OS before running install_ltp.
+
+This was originally used to install LTP on baremetal, but now used also on other
+platforms which do not support QCOW2 image snapshot (PowerVM, s390x backend).
 
 =head2 LTP_REPOSITORY
 

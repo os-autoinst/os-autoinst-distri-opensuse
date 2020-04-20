@@ -1,7 +1,8 @@
-name:           lvm-encrypt-separate-boot
-description:    >
-  Same as lvm-full-encrypt, but with separate boot not encrypted partition, 
-  only installation to not repeat everything again with small risk.
+---
+name: lvm-encrypt-separate-boot
+description: >
+  Same as lvm-full-encrypt, but with separate boot not encrypted partition, only
+  installation to not repeat everything again with small risk.
 vars:
   UNENCRYPTED_BOOT: 1
   ENCRYPT: 1
@@ -38,8 +39,8 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - {{boot_encrypt_reconnect_mgmt_console}}
-  - {{grub_test_boot_encrypt}}
+  - '{{boot_encrypt_reconnect_mgmt_console}}'
+  - '{{grub_test_boot_encrypt}}'
   - installation/first_boot
   - console/hostname
   - console/system_prepare

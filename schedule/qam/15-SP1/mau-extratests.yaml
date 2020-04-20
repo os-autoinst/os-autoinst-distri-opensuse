@@ -1,7 +1,7 @@
 ---
 name: mau-extratests
 schedule:
-- {{zkvm_boot}}
+- '{{zkvm_boot}}'
 - boot/boot_to_desktop
 - console/prepare_test_data
 - console/consoletest_setup
@@ -12,7 +12,7 @@ schedule:
 - console/update_alternatives
 - console/rpm
 - console/slp
-- {{sound}}
+- '{{sound}}'
 - console/libvorbis
 - console/command_not_found
 - console/openssl_alpn
@@ -20,7 +20,7 @@ schedule:
 - console/cron
 - console/syslog
 - console/mta
-- {{yast2_lan_device_settings}}
+- '{{yast2_lan_device_settings}}'
 - console/check_default_network_manager
 - console/git
 - console/cups
@@ -52,7 +52,7 @@ schedule:
 - sysauth/sssd
 - console/timezone
 - console/procps
-- {{lshw}}
+- '{{lshw}}'
 - console/kmod
 - console/suse_module_tools
 - console/zziplib
@@ -61,6 +61,9 @@ schedule:
 - console/osinfo_db
 - console/libgcrypt
 - console/libqca2
+- console/gd
+- console/valgrind
+- console/sssd_samba
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:

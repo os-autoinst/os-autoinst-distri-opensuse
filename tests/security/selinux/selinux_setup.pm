@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ sub run {
     # for sle15 and sle15+ "selinux-policy-*" pkgs will not be released
     # NOTE: have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
     if (!is_sle && !is_leap || is_sle('>=15')) {
-        my @files = ("selinux-policy-20140730-103.3.noarch.rpm", "selinux-policy-minimum-20140730-103.3.noarch.rpm");
+        my @files = ("selinux-policy-20200219-3.6.noarch.rpm", "selinux-policy-minimum-20200219-3.6.noarch.rpm");
         foreach my $file (@files) {
             assert_script_run "wget --quiet " . data_url("selinux/$file");
             assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");

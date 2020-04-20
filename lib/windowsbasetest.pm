@@ -41,13 +41,19 @@ sub open_powershell_as_admin {
 }
 
 sub run_in_powershell {
-    my ($self, $code) = @_;
+    my ($self, %args) = @_;
 
-    type_string $code, max_interval => 125;
+    type_string $args{cmd}, max_interval => 125;
     save_screenshot;
     wait_screen_change(sub { send_key 'ret' }, 10);
-    assert_screen([qw(opened-explorer opened-wsl-image powershell-ready-prompt)], 600);
-    send_key 'ctrl-l';
+    assert_screen($args{tags}, 400);
+    if (match_has_tag 'confirm-reboot') {
+        send_key 'ret';
+    } elsif (match_has_tag 'install-linux-in-wsl') {
+        return;
+    } else {
+        send_key 'ctrl-l';
+    }
 }
 
 sub reboot_or_shutdown {

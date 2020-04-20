@@ -52,22 +52,6 @@
             <timeout config:type="integer">0</timeout>
         </yesno_messages>
     </report>
-    <keyboard>
-        <keyboard_values>
-            <delay/>
-            <discaps config:type="boolean">false</discaps>
-            <numlock>bios</numlock>
-            <rate/>
-        </keyboard_values>
-        <keymap>english-us</keymap>
-    </keyboard>
-    <language>
-        <language>en_US</language>
-        <languages/>
-    </language>
-    <ntp-client>
-        <ntp_policy>auto</ntp_policy>
-    </ntp-client>
     <software>
         <packages config:type="list">
             <package>grub2</package>
@@ -90,23 +74,8 @@
         </products>
     </software>
     <networking>
-        <interfaces config:type="list">
-            <interface>
-                <bootproto>dhcp</bootproto>
-                <device>eth0</device>
-                <dhclient_set_default_route>yes</dhclient_set_default_route>
-                <startmode>auto</startmode>
-            </interface>
-        </interfaces>
+        <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
-    <firewall>
-        <enable_firewall config:type="boolean">true</enable_firewall>
-        <start_firewall config:type="boolean">true</start_firewall>
-    </firewall>
-    <timezone>
-        <hwclock>UTC</hwclock>
-        <timezone>Europe/Berlin</timezone>
-    </timezone>
     <users config:type="list">
         <user>
             <encrypted config:type="boolean">false</encrypted>
@@ -167,43 +136,11 @@
                     <filesystem config:type="symbol">btrfs</filesystem>
                     <format config:type="boolean">true</format>
                     <label>root_multi_btrfs</label>
-                    <mount>/</mount>
                     <mountby config:type="symbol">uuid</mountby>
                     <partition_id config:type="integer">131</partition_id>
                     <partition_nr config:type="integer">2</partition_nr>
                     <resize config:type="boolean">false</resize>
                     <size>19992150016</size>
-                    <subvolumes config:type="list">
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>root</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>srv</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>home</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">false</copy_on_write>
-                            <path>var</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>usr/local</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>opt</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>tmp</path>
-                        </subvolume>
-                    </subvolumes>
-                    <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
                 </partition>
                 <partition>
                     <create config:type="boolean">true</create>
@@ -233,43 +170,11 @@
                     <filesystem config:type="symbol">btrfs</filesystem>
                     <format config:type="boolean">true</format>
                     <label>root_multi_btrfs</label>
-                    <mount>/</mount>
                     <mountby config:type="symbol">uuid</mountby>
                     <partition_id config:type="integer">131</partition_id>
                     <partition_nr config:type="integer">1</partition_nr>
                     <resize config:type="boolean">false</resize>
                     <size>21463302144</size>
-                    <subvolumes config:type="list">
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>root</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>srv</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>home</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">false</copy_on_write>
-                            <path>var</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>usr/local</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>opt</path>
-                        </subvolume>
-                        <subvolume>
-                            <copy_on_write config:type="boolean">true</copy_on_write>
-                            <path>tmp</path>
-                        </subvolume>
-                    </subvolumes>
-                    <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
                 </partition>
             </partitions>
             <type config:type="symbol">CT_DISK</type>
@@ -288,7 +193,6 @@
                     <filesystem config:type="symbol">btrfs</filesystem>
                     <format config:type="boolean">false</format>
                     <label>test_multi_btrfs</label>
-                    <mount>/test</mount>
                     <mountby config:type="symbol">uuid</mountby>
                     <resize config:type="boolean">false</resize>
                     <subvolumes config:type="list"/>
@@ -314,7 +218,6 @@
                     <format config:type="boolean">true</format>
                     <label>test_multi_btrfs</label>
                     <loop_fs config:type="boolean">true</loop_fs>
-                    <mount>/test</mount>
                     <mountby config:type="symbol">uuid</mountby>
                     <partition_id config:type="integer">131</partition_id>
                     <partition_nr config:type="integer">1</partition_nr>

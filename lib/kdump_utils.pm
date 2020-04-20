@@ -15,7 +15,7 @@ use testapi;
 use utils;
 use registration;
 use Utils::Backends 'is_pvm';
-use Utils::Architectures 'is_ppc64le';
+use Utils::Architectures qw(is_ppc64le is_aarch64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 
@@ -121,18 +121,18 @@ sub activate_kdump {
     zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
     # get kdump memory size bsc#1161421
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
-    my $memory_kdump = $memory_total >= 2048 ? 1024 : 640;
+    my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
     my $memory_kdump_set;
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
     my @tags = qw(yast2-kdump-unexpected-issue yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
     do {
         assert_screen \@tags, 300;
         # ppcl64e needs increased kdump memory bsc#1161421
-        if (is_ppc64le && !$memory_kdump_set) {
+        if ((is_ppc64le || is_aarch64) && !$memory_kdump_set) {
             send_key 'alt-y';
             type_string $memory_kdump;
             send_key 'ret';
-            record_soft_failure 'default kdump memory size is too small for ppc64le bsc#1161421';
+            record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
             $memory_kdump_set = 1;
         }
         # enable and verify fadump settings
@@ -257,6 +257,7 @@ sub check_function {
 
     if (get_var('FADUMP')) {
         reconnect_mgmt_console;
+        unlock_if_encrypted;
         assert_screen 'grub2', 180;
         wait_screen_change { send_key 'ret' };
     }
@@ -280,6 +281,21 @@ sub check_function {
     else {
         # migration tests need remove core files before migration start
         assert_script_run 'rm -fr /var/crash/*';
+    }
+
+    # Test PoverVM specific scenario with disabled fadump on encrypted filesystem
+    if (is_pvm && get_var('ENCRYPT') && get_var('FADUMP')) {
+        # Disable fadump
+        assert_script_run('yast2 kdump fadump disable', 120);
+        assert_script_run('yast2 kdump show',           120);
+        # Set print_delay to slow down kernel
+        assert_script_run('echo 1000 > /proc/sys/kernel/printk_delay');
+        # Restart system and check console
+        power_action('reboot', keepconsole => 1);
+        reconnect_mgmt_console;
+        assert_screen('system-reboot', timeout => 120, no_wait => 1);
+        $self->wait_boot(bootloader_time => 300);
+        select_console 'root-console';
     }
 }
 

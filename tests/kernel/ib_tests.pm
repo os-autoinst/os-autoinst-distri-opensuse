@@ -64,7 +64,7 @@ sub ibtest_master {
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
     barrier_wait('IBTEST_BEGIN');
-    assert_script_run("./ib-test.sh $master $slave", 1800);
+    assert_script_run("./ib-test.sh $master $slave", 3600);
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_SETUP');

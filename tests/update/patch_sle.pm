@@ -1,4 +1,4 @@
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -66,9 +66,8 @@ sub patching_sle {
             assert_script_run 'sync', 600;
             # Open gdm debug info for poo#45236, this issue happen sometimes in openqa env
             script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
-            # Workaround for test failed of the reboot operation need to wait some jobs done
-            # Add '-f' to force the reboot to avoid the test be blocked here
-            type_string "reboot -f\n";
+            # Remove '-f' for reboot for poo#65226
+            type_string "reboot\n";
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300, nologin => $nologin);
             # Setup again after reboot
             $self->setup_sle();

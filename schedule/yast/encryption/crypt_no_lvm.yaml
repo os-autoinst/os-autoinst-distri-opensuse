@@ -1,9 +1,11 @@
 ---
 name: crypt_no_lvm
 description: >
-  Test installation with encrypted partitions but without lvm enabled. 
-  This is supported only by storage-ng, hence, do NOT enable test suite on distris without storage-ng.
-  (crypt-)LVM installations can take longer, especially on non-x86_64 architectures. 
+  Test installation with encrypted partitions but without lvm enabled.
+  This is supported only by storage-ng, hence, do NOT enable test suite on
+  distris without storage-ng.
+  Encrypted installations can take longer, especially on non-x86_64
+  architectures.
 vars:
   ENCRYPT: 1
   LVM: 0
@@ -29,4 +31,5 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
+  - console/system_prepare
   - console/validate_encrypt
