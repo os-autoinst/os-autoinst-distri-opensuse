@@ -19,6 +19,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sles4sap);
 use migration;
 use qam;
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -27,12 +28,14 @@ sub run {
     add_test_repositories;
     fully_patch_system;
     remove_ltss;
-    power_action('reboot', keepconsole => 1, textmode => 1);
+    if (!is_pvm()) {
+        power_action('reboot', keepconsole => 1, textmode => 1);
 
-    # Do not attempt to log into the desktop of a system installed with SLES4SAP
-    # being prepared for upgrade, as it does not have an unprivileged user to test
-    # with other than the SAP Administrator
-    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => is_sles4sap);
+        # Do not attempt to log into the desktop of a system installed with SLES4SAP
+        # being prepared for upgrade, as it does not have an unprivileged user to test
+        # with other than the SAP Administrator
+        $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => is_sles4sap);
+    }
     $self->setup_migration;
 }
 

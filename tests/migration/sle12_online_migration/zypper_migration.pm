@@ -22,6 +22,16 @@ sub run {
     my $self = shift;
     select_console 'root-console';
 
+    my $str;
+    $str = script_output("date");
+    diag "str date=: $str";
+    diag "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM";
+    script_run("zypper migration", 1200);
+    diag "================================================";
+    my $zout = script_output("zypper migration", proceed_on_failure => 1, timeout =>1200);
+    diag "zypper migration: $zout";
+    diag "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
+
     # precompile regexes
     my $zypper_continue               = qr/^Continue\? \[y/m;
     my $zypper_migration_target       = qr/\[num\/q\]/m;

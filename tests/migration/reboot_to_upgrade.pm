@@ -18,6 +18,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use power_action_utils qw(prepare_system_shutdown power_action);
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -33,7 +35,18 @@ sub run {
         set_var('BOOT_HDD_IMAGE', 0) unless check_var('ARCH', 'aarch64');
     }
     assert_script_run "sync", 300;
-    type_string "reboot\n";
+    if (is_pvm()) {
+        diag 'Called power_action reboot textmode=1 ....';
+        type_string "reboot\n";
+        save_screenshot;
+        power_action('reboot', observe => 1, keepconsole => 1, first_reboot => 1);
+        #prepare_system_shutdown;
+        save_screenshot;
+        reconnect_mgmt_console(timeout => 500);
+    }
+    else {
+        type_string "reboot\n";
+    }
     # After remove -f for reboot, we need wait more time for boot menu and avoid exception during reboot caused delay to boot up.
     assert_screen('inst-bootmenu', 300) unless check_var('ARCH', 's390x');
 }
