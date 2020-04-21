@@ -67,6 +67,9 @@ sub run {
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
         systemctl 'enable --now dhcpd.service';
         if (check_var('WICKED', 'ipv6')) {
+            $self->get_from_data('wicked/dhcp/dhcpd4.conf', '/etc/dhcpd.conf');
+            assert_script_run('ip addr add ' . $self->get_ip(type => 'dhcp4', netmask => 1) . ' dev ' . $ctx->iface());
+            systemctl 'restart dhcpd.service';
             assert_script_run('sysctl -w net.ipv6.conf.all.forwarding=1');
             my $dhcp6_conf = '/etc/dhcpd6.conf';
             $self->get_from_data('wicked/dhcp/dhcpd6.conf', $dhcp6_conf);

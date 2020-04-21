@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: IPv6 - Managed on, prefix length != 64, RDNSS
+# Summary: IPv6 - Managed off, other off, prefix length != 64
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -16,13 +16,12 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils 'file_content_replace';
+use utils qw(systemctl file_content_replace);
 
 sub run {
     my ($self, $ctx) = @_;
     $self->get_from_data('wicked/radvd/radvd_01.conf', '/etc/radvd.conf');
-    my $ipv6_dns = $self->get_ip(type => 'dns_advice');
-    file_content_replace('/etc/radvd.conf', xxx => $ctx->iface(), dns_advice => $ipv6_dns);
+    file_content_replace('/etc/radvd.conf', xxx => $ctx->iface());
     $self->sync_start_of('radvd', 'radvdipv6t01');
 }
 
