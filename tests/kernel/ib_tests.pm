@@ -51,6 +51,30 @@ sub ibtest_master {
     my $slave              = get_required_var('IBTEST_IP2');
     my $hpc_testing        = get_var('IBTEST_GITTREE', 'https://github.com/SUSE/hpc-testing.git');
     my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
+    my $timeout            = get_var('IBTEST_TIMEOUT', '3600');
+
+    # construct some parameters to allow to customize test runs when needed
+    my $start_phase  = get_var('IBTEST_START_PHASE');
+    my $end_phase    = get_var('IBTEST_END_PHASE');
+    my $phase        = get_var('IBTEST_ONLY_PHASE');
+    my $mpi_flavours = get_var('IBTEST_MPI_FLAVOURS');
+    my $ipoib_modes  = get_var('IBTEST_IPOIB_MODES');
+
+    my $args = '';
+
+    $args = '-v '               if get_var('IBTEST_VERBOSE');
+    $args = $args . '--in-vm '  if get_var('IBTEST_IN_VM');
+    $args = $args . '--no-mad ' if get_var('IBTEST_NO_MAD');
+
+    if ($phase != '') {
+        $args = $args . "--phase $phase";
+    } else {
+        $args = $args - "--start-phase $start_phase " if $start_phase;
+        $args = $args - "--end-phase $end_phase "     if $end_phase;
+    }
+
+    $args = $args . "--mpi $mpi_flavours "  if $mpi_flavours;
+    $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
 
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
@@ -64,7 +88,7 @@ sub ibtest_master {
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
     barrier_wait('IBTEST_BEGIN');
-    assert_script_run("./ib-test.sh $master $slave", 3600);
+    assert_script_run("./ib-test.sh $args $master $slave", $timeout);
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_SETUP');
@@ -123,6 +147,8 @@ sub post_fail_hook {
 1;
 
 =head1 bare metal testing for InfiniBand
+This section describes how to setup your environment for running the testsuite on bare metal.
+Once fully implemented, it will be expanded to virtualized testing.
 
 =head2 Overview
 This test is executing the hpc-testing testsuite from https://github.com/SUSE/hpc-testing
@@ -135,28 +161,49 @@ The test has some additional dependencies (twopence) that need to be in DEVEL_TO
 
 =head2 openQA worker setup
 The workers with the InfiniBand HCA's need a special worker class, in this case
-we assume it is "64bit-mlx_con5".
+we assume it is "64bit-mlx_con5". See the schedule/kernel/ibtest-master.yaml and
+schedule/kernel/ibtest-slave.yaml for more details.
+
 =head2 openQA test suites
-As the test is executed on two hosts, two test suites should be created:
+As the test is executed on two hosts, two test suites should be created. Please note: 
+most settings are now defined in the YAML schedule.
 
 =head3 ibtest-master
-ADDONURL_SDK=<addon url>
-DEVEL_TOOLS_REPO=<REPO CONTAINING RPM OF TWOPENCE>
-IBTESTS=1
-IBTEST_GITBRANCH=<default to master>
-IBTEST_GITTREE=<default to upstream>
-IBTEST_IP1=<IP_SUT1>
-IBTEST_IP2=<IP_SUT2>
-IBTEST_ROLE=IBTEST_MASTER
-TEST=ibtest-master
-WORKER_CLASS=64bit-mlx_con5
+YAML_SCHEDULE=schedule/kernel/ibtest-master.yaml
 
 =head3 ibtest-slave
-DEVEL_TOOLS_REPO=<REPO CONTAINING RPM OF TWOPENCE>
-IBTESTS=1
-IBTEST_IP1=<master IP>
-IBTEST_IP2=<slave IP>
-IBTEST_ROLE=IBTEST_SLAVE
 PARALLEL_WITH=ibtest-master
-TEST=ibtest-slave
-WORKER_CLASS=64bit-mlx_con5
+YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
+
+=head3 additional configuration variables
+These are only effective, when defined for the master job. Leave them at their 
+defaults unless you know what you are doing.
+
+IBTEST_TIMEOUT
+ Test timeout in seconds. 
+ Default: 3600 (1 hour)
+IBTEST_ONLY_PHASE
+ integer value. Only run the defined phase. 
+ Not set by default.
+IBTEST_START_PHASE
+ integer value. Start with specified phase. 
+ Default: 0
+IBTEST_END_PHASE
+ integer value. End with specified phase. 
+ Default: 999
+IBTEST_MPI_FLAVOURS
+ Comma separated list of MPI flavours to test. 
+ Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
+IBTEST_IPOIB_MODES
+ Comma separated list of IPoIB modes to test 
+ Default: connected,datagram
+IBTEST_VERBOSE
+ Set this variable to enable verbose mode
+ Default: not set
+IBTEST_IN_VM
+ Set this variable to enable testing in a VM.
+ Default: not set
+IBTEST_NO_MAD
+ Set this variable toisable test that requires MAD support. Needed for testing over SR-IOV
+ Default: not set
+
