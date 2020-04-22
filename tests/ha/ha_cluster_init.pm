@@ -53,7 +53,11 @@ sub run {
     exec_csync;
 
     # State of SBD if shared storage SBD is used
-    assert_script_run "sbd -d $sbd_device list" unless (get_var('USE_DISKLESS_SBD'));
+    if (!get_var('USE_DISKLESS_SBD')) {
+        my $sbd_output = script_output("sbd -d $sbd_device list");
+        record_info('bsc#1170037', 'All nodes not shown by sbd list command', result => 'softfail')
+          if (get_node_number != (my $clear_count = () = $sbd_output =~ /\sclear\s|\sclear$/g));
+    }
 
     # Check if the multicast port is correct (should be 5405 or 5407 by default)
     assert_script_run "grep -Eq '^[[:blank:]]*mcastport:[[:blank:]]*(5405|5407)[[:blank:]]*' $corosync_conf";
