@@ -72,13 +72,18 @@ sub run {
 
     script_run('tar -zcvf results.tar.gz results');
     upload_logs('results.tar.gz');
-    script_run('date');
 }
 
 sub test_flags {
     return {fatal => 1};
 }
 
-sub post_fail_hook { }
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->select_serial_terminal;
+    $self->export_logs_basic;
+    script_run('rpm -qi kernel-default > /tmp/kernel_info');
+    upload_logs('/tmp/kernel_info');
+}
 
 1;
