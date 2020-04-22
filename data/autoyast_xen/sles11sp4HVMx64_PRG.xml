@@ -1097,6 +1097,7 @@
   </runlevel>
   <software>
     <packages config:type="list">
+      <package>iputils</package>
       <package>ConsoleKit-32bit</package>
       <package>Mesa-32bit</package>
       <package>PolicyKit-32bit</package>

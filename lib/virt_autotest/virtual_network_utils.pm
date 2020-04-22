@@ -38,7 +38,54 @@ use virt_autotest_base;
 use virt_utils;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_libvirtd restart_network restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status);
+  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_libvirtd restart_network restore_guests restore_network
+  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status save_guest_ip test_network_interface);
+
+sub save_guest_ip {
+    my ($guest, %args) = @_;
+    my $name = $args{name};
+    if (script_run("ping -c3 $guest") != 0) {
+        script_run "sed -i '/$guest/d' /etc/hosts";
+        assert_script_run "virsh domiflist $guest";
+        my $mac_guest = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
+        script_retry "journalctl --no-pager | grep DHCPACK | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+        my $gi_guest = script_output("journalctl --no-pager | grep DHCPACK | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
+        assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
+        assert_script_run "ping -c3 $guest";
+    }
+}
+
+sub test_network_interface {
+    my ($guest, %args) = @_;
+    my $net      = $args{net};
+    my $mac      = $args{mac};
+    my $gate     = $args{gate};
+    my $isolated = $args{isolated} // 0;
+    my $target   = $args{target} // script_output("dig +short openqa.suse.de");
+
+    save_guest_ip("$guest", name => $net);
+
+    # Configure the network interface to use DHCP configuration
+    my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
+    if ($guest =~ m/sles11/i) {
+        assert_script_run("ssh root\@$guest service network restart", 90);
+    } else {
+        assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 90);
+    }
+    assert_script_run("ssh root\@$guest ifup $nic", 90);
+    my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1";
+
+    # Route our test via the tested interface
+    assert_script_run("ssh root\@$addr ip r a $target via $gate dev $nic");
+
+    if ($isolated == 0) {
+        assert_script_run("ssh root\@$addr 'ping -I $nic -c 3 $target' || true", 60);
+    } else {
+        assert_script_run("! ssh root\@$addr 'ping -I $nic -c 3 $target' || true", 60);
+    }
+    save_screenshot;
+}
 
 sub download_network_cfg {
     #Download required libvird virtual network configuration file
@@ -103,6 +150,7 @@ sub restart_network {
 }
 
 sub restore_guests {
+    return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
     my $get_vm_hostnames   = "virsh list  --all | grep sles | awk \'{print \$2}\'";
     my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);

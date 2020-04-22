@@ -40,35 +40,28 @@ sub run_test {
     die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0);
 
     #Create NAT BASED NETWORK
-    assert_script_run("virsh net-info default");
-    assert_script_run("virsh net-dumpxml default |tee libvirt_default.xml");
-    assert_script_run("virsh net-undefine default");
+    #assert_script_run("virsh net-info default");
+    #assert_script_run("virsh net-dumpxml default |tee libvirt_default.xml");
+    #assert_script_run("virsh net-undefine default");
     assert_script_run("virsh net-create vnet_nated.xml");
     save_screenshot;
     upload_logs "vnet_nated.xml";
     assert_script_run("rm -rf vnet_nated.xml");
 
-    my $gi_vnet_nated;
+    my ($mac, $model);
+    my $gate = '192.168.128.1';
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
-        #figure out that used with virtio as the network device model during
-        #attach-interface via virsh worked for all sles guest
-        assert_script_run("virsh attach-interface $guest network vnet_nated --model virtio --live", 60);
-        #Get the Guest IP Address from NAT BASED NETWORK
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            my $mac_nated = script_output("virsh domiflist $guest | grep vnet_nated | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-            script_retry "ip neigh | grep $mac_nated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_vnet_nated = script_output("ip neigh | grep $mac_nated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        else {
-            script_retry "virsh net-dhcp-leases vnet_nated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_vnet_nated = script_output("virsh net-dhcp-leases vnet_nated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        #Confirm NAT BASED NETWORK
-        assert_script_run("ssh root\@$gi_vnet_nated 'ping -c2 -W1 openqa.suse.de'", 60);
-        save_screenshot;
-        assert_script_run("virsh detach-interface $guest network --current");
+
+        $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        assert_script_run("virsh attach-interface $guest network vnet_nated --model $model --mac $mac --live", 60);
+
+        test_network_interface($guest, mac => $mac, gate => $gate, net => "vnet_nated");
+
+        assert_script_run("virsh detach-interface $guest network --mac $mac --current");
     }
+
     #Destroy NAT BASED NETWORK
     assert_script_run("virsh net-destroy vnet_nated");
     save_screenshot;

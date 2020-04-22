@@ -669,6 +669,7 @@
   <software>
     <packages config:type="list">
       <package>ModemManager</package>
+      <package>iputils</package>
       <package>NetworkManager</package>
       <package>NetworkManager-glib</package>
       <package>NetworkManager-gnome</package>

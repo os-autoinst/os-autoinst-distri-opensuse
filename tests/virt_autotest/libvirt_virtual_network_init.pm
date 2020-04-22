@@ -57,24 +57,16 @@ sub run_test {
         assert_script_run("virsh start $guest", 60);
         #Wait for forceful boot up guests
         sleep 60;
-        #Get the Guest IP Address for bootup guest
-        my $mac_guest = script_output("virsh domiflist $guest | grep br123 | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        script_retry "journalctl --no-pager | grep DHCPACK | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-        my $gi_guest = script_output("journalctl --no-pager | grep DHCPACK | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        #Copy the VM host SSH Key to guest systems
-        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -f root\@$gi_guest");
+        save_guest_ip($guest, name => "br123");
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -f root\@$guest");
         #Prepare the new guest network interface files for libvirt virtual network
-        assert_script_run("ssh root\@$gi_guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2'");
-        assert_script_run("ssh root\@$gi_guest 'rcnetwork restart'", 60);
+        assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
+        assert_script_run("ssh root\@$guest 'rcnetwork restart'", 60);
         #REDEFINE GUEST NETWORK INTERFACE
-        assert_script_run("virsh detach-interface $guest bridge --mac $mac_guest");
         assert_script_run("virsh dumpxml $guest > $guest.redefine");
         upload_logs "$guest.redefine";
         assert_script_run("rm -rf $guest.redefine");
     }
-
-    #Destroy existed br123 network interface
-    virt_autotest::virtual_network_utils::destroy_standalone();
 
     #Restart libvirtd service
     virt_autotest::virtual_network_utils::restart_libvirtd();

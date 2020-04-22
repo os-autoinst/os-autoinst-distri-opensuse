@@ -50,27 +50,20 @@ sub run_test {
     upload_logs "$vnet_host_bridge_cfg_name";
     assert_script_run("rm -rf $vnet_host_bridge_cfg_name");
 
-    my $gi_host_bridge = '';
+    my ($mac, $model);
+    my $gate = script_output "ip r s | grep 'default via ' | cut -d' ' -f3";
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
-        #figure out that used with virtio as the network device model during
-        #attach-interface via virsh worked for all sles guest
-        assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model virtio --live");
-        #Get the Guest IP Address from HOST BRIDGE NETWORK
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            my $mac_host_bridge = script_output("virsh domiflist $guest | grep vnet_host_bridge|grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-            script_retry "ip neigh | grep $mac_host_bridge | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 60, retry => 6, timeout => 60;
-            $gi_host_bridge = script_output("ip neigh | grep $mac_host_bridge | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        else {
-            script_retry "virsh domifaddr $guest --source arp | grep vnet0 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 150, retry => 15, timeout => 150;
-            $gi_host_bridge = script_output("virsh domifaddr $guest --source arp | grep vnet0| grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        #Confirm HOST BRIDGE NETWORK
-        assert_script_run("ssh root\@$gi_host_bridge 'ping -c2 -W1 openqa.suse.de'", 60);
-        save_screenshot;
-        assert_script_run("virsh detach-interface $guest bridge --current");
+
+        $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model $model --mac $mac --live");
+
+        test_network_interface($guest, mac => $mac, gate => $gate, net => "vnet_host_bridge");
+
+        assert_script_run("virsh detach-interface $guest bridge --mac $mac --current");
     }
+
     #Destroy HOST BRIDGE NETWORK
     assert_script_run("virsh net-destroy vnet_host_bridge");
     save_screenshot;

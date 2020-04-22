@@ -2673,19 +2673,36 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
     }
 
+    if (check_var('VIRT_PART', 'networking')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";
+
+        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+        loadtest "virt_autotest/libvirt_nated_virtual_network";
+        loadtest "virt_autotest/libvirt_isolated_virtual_network";
+    }
+
+    if (check_var('VIRT_PART', 'snapshots')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";
+
+        loadtest "virt_autotest/virsh_internal_snapshot";
+        loadtest "virt_autotest/virsh_external_snapshot";
+    }
+
     if (check_var('VIRT_PART', 'storage')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/storage';                        # Storage pool / volume test
+        loadtest 'virtualization/xen/storage';        # Storage pool / volume test
     }
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/ssh_final';                      # Check that every guest is reachable over SSH
-        loadtest 'virtualization/xen/virtmanager_final';              # Check that every guest shows the login screen
+        loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
+        loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
     }
 }
 

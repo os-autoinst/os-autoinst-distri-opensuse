@@ -669,6 +669,7 @@
   <software>
     <packages config:type="list">
       <package>ConsoleKit-32bit</package>
+      <package>iputils</package>
       <package>Mesa-32bit</package>
       <package>ModemManager</package>
       <package>NetworkManager</package>
