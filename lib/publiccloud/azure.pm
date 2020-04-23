@@ -57,6 +57,10 @@ sub az_login {
     my $login_cmd = sprintf(q(while ! az login --service-principal -u '%s' -p '%s' -t '%s'; do sleep 10; done),
         $self->key_id, $self->key_secret, $self->tenantid);
     assert_script_run($login_cmd, timeout => 5 * 60);
+    #Azure infra need some time to propagate given by Vault credentials
+    # Running some verification command does not prove anything because
+    # at the beginning failures can happening sporadically
+    sleep(get_var('AZURE_LOGIN_WAIT_SECONDS', 0));
 }
 
 sub vault_create_credentials {
