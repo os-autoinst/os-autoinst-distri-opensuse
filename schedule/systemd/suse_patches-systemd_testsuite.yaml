@@ -2,6 +2,33 @@ name:           suse_patches-systemd_testsuite
 description:    >
     Maintainer: slindomansilla <slindomansilla@suse.com>
     Modified upstream testsuite to be run as system test.
+conditional_schedule:
+    systemd_testsuite_15SP2ORLATER:
+        VERSION:
+            '15.2':
+                - systemd_testsuite/test_16_extend_timeout
+                - systemd_testsuite/test_17_udev_wants
+                - systemd_testsuite/test_18_failureaction
+                - systemd_testsuite/test_19_delegate
+                - systemd_testsuite/test_20_mainpidgames
+                - systemd_testsuite/test_21_sysusers
+                - systemd_testsuite/test_23_type_exec
+            '15-SP2':
+                - systemd_testsuite/test_16_extend_timeout
+                - systemd_testsuite/test_17_udev_wants
+                - systemd_testsuite/test_18_failureaction
+                - systemd_testsuite/test_19_delegate
+                - systemd_testsuite/test_20_mainpidgames
+                - systemd_testsuite/test_21_sysusers
+                - systemd_testsuite/test_23_type_exec
+            'Tumbleweed':
+                - systemd_testsuite/test_16_extend_timeout
+                - systemd_testsuite/test_17_udev_wants
+                - systemd_testsuite/test_18_failureaction
+                - systemd_testsuite/test_19_delegate
+                - systemd_testsuite/test_20_mainpidgames
+                - systemd_testsuite/test_21_sysusers
+                - systemd_testsuite/test_23_type_exec
 schedule:
     - boot/boot_to_desktop
     - systemd_testsuite/binary_tests
@@ -19,12 +46,6 @@ schedule:
     - systemd_testsuite/test_13_nspawn_smoke
     - systemd_testsuite/test_14_machine_id
     - systemd_testsuite/test_15_dropin
-    - systemd_testsuite/test_16_extend_timeout
-    - systemd_testsuite/test_17_udev_wants
-    - systemd_testsuite/test_18_failureaction
-    - systemd_testsuite/test_19_delegate
-    - systemd_testsuite/test_20_mainpidgames
-    - systemd_testsuite/test_21_sysusers
     - systemd_testsuite/test_22_tmpfiles
-    - systemd_testsuite/test_23_type_exec
+    - {{systemd_testsuite_15SP2ORLATER}}
     - shutdown/shutdown
