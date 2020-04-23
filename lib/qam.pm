@@ -17,11 +17,12 @@ use Exporter;
 
 use testapi;
 use utils;
-use List::Util 'max';
+use List::Util qw(max first);
 use version_utils 'is_sle';
+use JSON;
 
 our @EXPORT
-  = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables query_smelt  get_packages_in_MR get_packagebins_in_module );
 
 use constant ZYPPER_PACKAGE_COL    => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
@@ -175,5 +176,46 @@ sub check_patch_variables {
         die("Missing INCIDENT_PATCH or INCIDENT_ID");
     }
 }
+
+sub query_smelt {
+    my $graphql = $_[0];
+    my $api_url = "--request POST https://smelt.suse.de/graphql/";
+    my $header  = '--header "Content-Type: application/json"';
+    my $data    = qq( --data '{"query": "$graphql"}');
+    return qx(curl $api_url $header $data 2>/dev/null );
+}
+
+sub get_packages_in_MR {
+    my $mr        = $_[0];
+    my $gql_query = "{incidents(incidentId: $mr){edges{node{incidentpackagesSet{edges{node{package{name}}}}}}}}";
+    my $graph     = JSON->new->utf8->decode(query_smelt($gql_query));
+    my @nodes     = @{$graph->{'data'}{'incidents'}{'edges'}[0]{'node'}{'incidentpackagesSet'}{'edges'}};
+    my @packages  = map { $_->{'node'}{'package'}{'name'} } @nodes;
+    return @packages;
+}
+
+sub get_packagebins_in_module {
+    # This function uses the term package in the way that SMELT uses it. Not as
+    # an rpm but as a set of binaries that receive varying levels of support and are
+    # spread through modules.
+    my ($self) = @_;
+    my ($package, $module_ref) = ($self->{package}, $self->{module});
+    my $response = qx(curl "https://smelt.suse.de/api/v1/basic/maintained/$package/" 2>/dev/null);
+    my $graph    = JSON->new->utf8->decode($response);
+    # Get the modules to which this package provides binaries.
+    my @existing_modules = grep { exists($graph->{$_}) } @{$module_ref};
+    my @arr;
+    foreach my $m (@existing_modules) {
+        # The refs point to a hash of hashes. We only care about the value with
+        # the codestream key. The Update key is different for every SLE
+        # Codestream so instead of maintaining a LUT we just use a regex for it.
+        my $upd_key = first { m/Update\b/ } keys %{$graph->{$m}};
+        push(@arr, @{$graph->{$m}{$upd_key}});
+    }
+    # Return a hash of hashes, hashed by name. The values are hashes with the keys 'name', 'supportstatus' and
+    # 'package'.
+    return map { $_->{'name'} => $_ } @arr;
+}
+
 
 1;
