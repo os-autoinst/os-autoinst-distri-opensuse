@@ -38,6 +38,8 @@ sub format_partition {
     wait_still_screen 3;
     send_key 'ret';
     send_key(is_storage_ng() ? 'alt-f' : 'alt-s');
+    send_key 'home';
+    wait_still_screen 3;
     send_key_until_needlematch("expert-partitioner-$filesystem",
         "down", 20, 1);
     send_key 'ret';
