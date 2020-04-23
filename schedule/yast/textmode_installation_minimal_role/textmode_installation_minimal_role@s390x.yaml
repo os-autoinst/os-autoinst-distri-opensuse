@@ -1,0 +1,43 @@
+---
+name:           textmode_installation_minimal_role
+description:    >
+  Full Medium installation that covers the following cases:
+    1. Installation in textmode;
+    2. "Minimal" role is selected;
+    3. Boot to command-line mode;
+    4. Installation is validated by default set of smoke tests.
+
+vars:
+  VIDEOMODE: text
+  SYSTEM_ROLE: minimal
+  DESKTOP: textmode
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/system_prepare
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish
