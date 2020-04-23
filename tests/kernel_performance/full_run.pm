@@ -25,9 +25,10 @@ sub full_run {
     my $list_path   = "/root/qaset";
     my $remote_list = get_var("FULL_LIST");
     my $hostname    = script_output "hostname";
+    my $runlist     = get_var("RUN_LIST");
     #setup run list
     assert_script_run("wget -N -P $list_path $remote_list 2>&1");
-    assert_script_run("cp $list_path/default.list $list_path/list");
+    assert_script_run("cp $list_path/$runlist $list_path/list");
 
     assert_script_run("/usr/share/qa/qaset/qaset reset");
     assert_script_run("/usr/share/qa/qaset/run/performance-run.upload_Beijing");
