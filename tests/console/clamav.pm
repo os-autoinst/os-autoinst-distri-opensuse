@@ -24,6 +24,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_jeos is_opensuse);
+use Utils::Architectures 'is_aarch64';
 
 sub scan_and_parse {
     my $re       = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
@@ -39,7 +40,7 @@ sub run {
     select_console 'root-console';
     zypper_call('in clamav');
     # Initialize and download ClamAV database which needs time
-    assert_script_run('freshclam', 700);
+    assert_script_run('freshclam', 1000);
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
@@ -66,7 +67,11 @@ sub run {
 
     # Start the deamons
     script_run("sed -i 's/User vscan/User root/g' /etc/clamd.conf");
-    systemctl('start clamd', timeout => 400);
+    # increase timeout for aarch64
+    my $timeout = 400;
+    $timeout = 600 if is_aarch64;
+    systemctl('start clamd', timeout => $timeout, fail_message => "Cannot start clamd in $timeout seconds.");
+    systemctl('status clamd');
     systemctl('start freshclam');
 
     # Create md5, sha1 and sha256 Hash-based signatures
