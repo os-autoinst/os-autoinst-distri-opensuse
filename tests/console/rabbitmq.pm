@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,16 +24,16 @@ sub run {
     zypper_call 'in rabbitmq-server';
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
-    zypper_call 'in python-pika wget';
+    zypper_call 'in python3-pika wget';
     my $cmd = <<'EOF';
 mkdir rabbitmq
 cd rabbitmq
 wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/send.py
-python send.py
+python3 send.py
 wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/receive.py
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    type_string("timeout 1 python receive.py > /dev/$serialdev\n");
+    type_string("timeout 1 python3 receive.py > /dev/$serialdev\n");
     wait_serial(".*Received.*Hello World.*");
     # should be simple assert_script_run but takes too long to stop so
     # workaround

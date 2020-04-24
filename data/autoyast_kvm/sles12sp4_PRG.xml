@@ -1135,6 +1135,7 @@ DefaultPolicy default
       <package>sles-release</package>
       <package>qa_test_ltp</package>
       <package>qa-release</package>
+      <package>iputils</package>
       <package>openssh</package>
       <package>numactl</package>
       <package>kexec-tools</package>

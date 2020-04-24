@@ -27,22 +27,8 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    # Workaround: slpd requires its own user
-    # %pre statement in spec file of openslp-server creates dependency to daemon group provided by *system-user-daemon*
-    # /usr/sbin/useradd -r -g daemon -d /var/lib/empty -s /sbin/nologin -c "openslp daemon" openslp 2>/dev/null || :
-    # up to this point, JeOS doesn't require *system-user-daemon*
-    if (script_run 'getent group daemon') {
-        zypper_call 'in system-user-daemon';
-        assert_script_run 'useradd -d /var/lib/empty/ -s /sbin/nologin openslp';
-        record_soft_failure 'bsc#1165050 openslp-server does not create openslp user when system-user-daemon is not installed';
-    }
-
     # Let's install slpd
     zypper_call 'in openslp-server';
-    if (script_run 'rpm -q openslp') {
-        zypper_call 'in openslp';
-        record_soft_failure 'boo#1165121 - slpd fails to start due to missing configuration files';
-    }
 
     disable_and_stop_service($self->firewall) if (script_run("which " . $self->firewall) == 0);
 

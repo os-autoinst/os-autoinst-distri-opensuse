@@ -89,5 +89,4 @@ schedule:
     - console/osinfo_db
     - console/zypper_ref
     - console/kdump_and_crash
-    - console/sssd_samba
     - console/coredump_collect
