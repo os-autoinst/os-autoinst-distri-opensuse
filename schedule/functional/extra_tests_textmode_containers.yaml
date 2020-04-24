@@ -2,7 +2,15 @@ name:           extra_tests_textmode_containers
 description:    >
     Maintainer: slindomansilla.
     Extra tests about software in containers module
+conditional_schedule:
+    bootloader:
+        ARCH:
+            aarch64:
+                - boot/uefi_bootmenu
+            s390x:
+                - installation/bootloader_zkvm
 schedule:
+    - '{{bootloader}}'
     - boot/boot_to_desktop
     - console/docker
     - console/docker_runc
