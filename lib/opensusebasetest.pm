@@ -909,6 +909,8 @@ sub wait_boot_past_bootloader {
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
+        # Workaround for bsc#1169723
+        push(@tags, 'guest-disable-display');
     }
     # bsc#1157928 - deal with additional polkit windows
     if (is_sle && !is_sle('<=15-SP1')) {
@@ -932,6 +934,10 @@ sub wait_boot_past_bootloader {
 
     handle_broken_autologin_boo1102563()          if match_has_tag('displaymanager');
     handle_additional_polkit_windows_bsc1157928() if match_has_tag('authentication-required-user-settings');
+    if (match_has_tag('guest-disable-display')) {
+        record_soft_failure 'bsc#1169723 - [Build 174.1] openQA test fails in first_boot - Guest disabled display shown when boot up after migration';
+        send_key 'ret';
+    }
     mouse_hide(1);
 }
 
