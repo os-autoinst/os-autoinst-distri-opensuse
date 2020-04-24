@@ -5,14 +5,14 @@ description:    >
 conditional_schedule:
     bootloader:
         ARCH:
-            aarch64:
+            'aarch64':
                 - boot/uefi_bootmenu
-            s390x:
+            's390x':
                 - installation/bootloader_zkvm
         MACHINE:
-            svirt-xen-pv:
+            'svirt-xen-pv':
                 - installation/bootloader_svirt
-            svirt-xen-hvm:
+            'svirt-xen-hvm':
                 - installation/bootloader_svirt
     tests_requiring_soundcard:
         ARCH:
