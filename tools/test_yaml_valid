@@ -1,7 +1,16 @@
 #!/usr/bin/env perl
 use Test::More;
-use Test::YAML::Valid qw(-Tiny);
+use YAML::PP;
 
 pass("No yaml files modified") unless @ARGV;
-yaml_file_ok($_, $_) for @ARGV;
+for my $file (@ARGV) {
+    eval { YAML::PP::LoadFile($file) };
+    if (my $err = $@) {
+        fail("$file has invalid yaml syntax");
+        diag "Error: $err";
+    }
+    else {
+        pass("$file has valid yaml syntax");
+    }
+}
 done_testing();
