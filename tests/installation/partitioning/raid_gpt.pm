@@ -41,7 +41,7 @@ sub run {
     foreach my $md (@{$test_data->{mds}}) {
         $partitioner->add_raid($md);
     }
-    $partitioner->accept_changes();
+    $partitioner->accept_changes_and_press_next();
 }
 
 1;
