@@ -1,7 +1,7 @@
-name:           extra_tests_in_textmode_phub
+name:           extra_tests_textmode_phub
 description:    >
     Maintainer: slindomansilla.
-    Extra tests about software in package hub
+    Extra tests about software in Software Development Kit module on textmode
 conditional_schedule:
     bootloader:
         ARCH:
@@ -17,6 +17,5 @@ conditional_schedule:
 schedule:
     - '{{bootloader}}'
     - boot/boot_to_desktop
-    - console/machinery
-    - sysauth/sssd
+    - console/gdb
     - console/coredump_collect
