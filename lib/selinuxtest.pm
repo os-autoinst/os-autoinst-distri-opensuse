@@ -46,15 +46,15 @@ sub create_test_file {
 sub fixfiles_restore {
     my ($self, $file_name, $fcontext_pre, $fcontext_post) = @_;
 
-    if (-z $file_name) {
+    if (script_run("[ -z $file_name ]") == 0) {
         record_info("WARNING", "no file need to be restored", result => "softfail");
     }
-    elsif (-f $file_name) {
+    elsif (script_run("[ -f $file_name ]") == 0) {
         validate_script_output("ls -Z $file_name", sub { m/$fcontext_pre/ });
         assert_script_run("fixfiles restore $file_name");
         validate_script_output("ls -Z $file_name", sub { m/$fcontext_post/ });
     }
-    elsif (-d $file_name) {
+    elsif (script_run("[ -d $file_name ]") == 0) {
         validate_script_output("ls -Zd $file_name", sub { m/$fcontext_pre/ });
         assert_script_run("fixfiles restore $file_name");
         validate_script_output("ls -Zd $file_name", sub { m/$fcontext_post/ });
@@ -65,11 +65,31 @@ sub fixfiles_restore {
 sub check_fcontext {
     my ($self, $file_name, $fcontext) = @_;
 
-    if (-f $file_name) {
+    if (script_run("[ -f $file_name ]") == 0) {
         validate_script_output("ls -Z $file_name", sub { m/.*_u:.*_r:$fcontext:s0\ .*$file_name$/ });
     }
-    elsif (-d $file_name) {
+    elsif (script_run("[ -d $file_name ]") == 0) {
         validate_script_output("ls -Zd $file_name", sub { m/.*_u:.*_r:$fcontext:s0\ .*$file_name$/ });
+    }
+    else {
+        record_info("WARNING", "file \"$file_name\" is abnormal", result => "softfail");
+        assert_script_run("ls -lZd $file_name");
+    }
+}
+
+# check SELinux security category of a file/dir
+sub check_category {
+    my ($self, $file_name, $category) = @_;
+
+    if (script_run("[ -f $file_name ]") == 0) {
+        validate_script_output("ls -Z $file_name", sub { m/.*_u:.*_r:.*_t:$category\ .*$file_name$/ });
+    }
+    elsif (script_run("[ -d $file_name ]") == 0) {
+        validate_script_output("ls -Zd $file_name", sub { m/.*_u:.*_r:.*_t:$category\ .*$file_name$/ });
+    }
+    else {
+        record_info("WARNING", "file \"$file_name\" is abnormal", result => "softfail");
+        assert_script_run("ls -lZd $file_name");
     }
 }
 
