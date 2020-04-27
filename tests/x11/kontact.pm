@@ -54,8 +54,9 @@ sub run {
     # be "restored" after a re-login/reboot causing later tests to fail. To
     # prevent this we explicitly stop the kontact background process.
     # matching 'generic-desktop' needs more time for LIVETEST
-    @tags = qw(desktop-runner-border desktop-runner-plasma-suggestions generic-desktop);
-    x11_start_program('killall kontact', target_match => \@tags, match_timeout => $match_timeout);
+    select_console('root-console');
+    script_run 'killall -w kontact';
+    select_console('x11');
 }
 
 1;
