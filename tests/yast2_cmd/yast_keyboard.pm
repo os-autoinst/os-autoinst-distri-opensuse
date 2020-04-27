@@ -52,7 +52,7 @@ sub run {
     }
     else {
         record_soft_failure('bsc#1170292');
-        type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 60, timeout => 121);
+        type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 60, timeout => 130);
     }
     save_screenshot;
 
