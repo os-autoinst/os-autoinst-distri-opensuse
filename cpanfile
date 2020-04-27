@@ -44,6 +44,7 @@ requires 'XML::LibXML';
 requires 'XML::Simple';
 requires 'XML::Writer';
 requires 'YAML::Tiny';
+requires 'YAML::PP';
 requires 'constant';
 requires 'parent';
 requires 'strict';
