@@ -457,26 +457,28 @@ sub generateXML_from_data {
     my $timestamp = localtime(time);
     $writer->startTag(
         'testsuites',
-        id       => "0",
-        error    => "n/a",
-        failures => $xmldata{"fail_nums"},
-        name     => $xmldata{"product_name"},
-        skipped  => $xmldata{"skip_nums"},
-        tests    => "$count",
-        time     => $xmldata{"test_time"}
+        id           => "0",
+        error        => "n/a",
+        failures     => $xmldata{"fail_nums"},
+        softfailures => $xmldata{"softfail_nums"},
+        name         => $xmldata{"product_name"},
+        skipped      => $xmldata{"skip_nums"},
+        tests        => "$count",
+        time         => $xmldata{"test_time"}
     );
     $writer->startTag(
         'testsuite',
-        id        => "0",
-        error     => "n/a",
-        failures  => $xmldata{"fail_nums"},
-        hostname  => hostname(),
-        name      => $xmldata{"product_tested_on"},
-        package   => $xmldata{"package_name"},
-        skipped   => $xmldata{"skip_nums"},
-        tests     => $count,
-        time      => $xmldata{"test_time"},
-        timestamp => $timestamp
+        id           => "0",
+        error        => "n/a",
+        failures     => $xmldata{"fail_nums"},
+        softfailures => $xmldata{"softfail_nums"},
+        hostname     => hostname(),
+        name         => $xmldata{"product_tested_on"},
+        package      => $xmldata{"package_name"},
+        skipped      => $xmldata{"skip_nums"},
+        tests        => $count,
+        time         => $xmldata{"test_time"},
+        timestamp    => $timestamp
     );
 
     #Generate testcase xml by calling subroutine generate_testcase_xml
