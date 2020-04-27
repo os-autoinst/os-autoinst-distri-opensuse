@@ -51,6 +51,8 @@ sub run_test {
     my @vm_hostnames_inactive_array = split(/\n+/, $vm_hostnames_inactive);
 
     foreach my $guest (keys %xen::guests) {
+        my $type = check_guest_disk_type($guest);
+        next if ($type == 1);
         record_info "virsh-snapshot", "Creating External Snapshot of guest's disk";
         my $vm_target_dev     = script_output("virsh domblklist $guest --details | awk '/disk/{ print \$3 }'");
         my $pre_snapshot_cmd  = "virsh snapshot-create-as $guest";
@@ -79,7 +81,6 @@ sub run_test {
         record_info "virsh-snapshot", "SKIP - No support to start external snapshot";
         record_info "virsh-snapshot", "SKIP - No support to delete external snapshot";
     }
-
 }
 
 1;
