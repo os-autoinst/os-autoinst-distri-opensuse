@@ -117,38 +117,37 @@ sub prepare_for_kdump {
 
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
-    # activate kdump
-    type_string "echo \"remove potential harmful nokogiri package boo#1047449\"\n";
-    zypper_call('rm -y ruby2.1-rubygem-nokogiri', exitcode => [0, 104]);
+    # restart info will appear only when change has been done
+    my $expect_restart_info = 0;
     # get kdump memory size bsc#1161421
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
-    my $memory_kdump_set;
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
-    my @tags = qw(yast2-kdump-unexpected-issue yast2-kdump-disabled yast2-kdump-enabled yast2-kdump-restart-info yast2-missing_package yast2_console-finished);
-    do {
-        assert_screen \@tags, 300;
-        # ppcl64e needs increased kdump memory bsc#1161421
-        if ((is_ppc64le || is_aarch64) && !$memory_kdump_set) {
-            send_key 'alt-y';
-            type_string $memory_kdump;
-            send_key 'ret';
-            record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
-            $memory_kdump_set = 1;
-        }
-        # enable and verify fadump settings
-        if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
-            send_key 'alt-f';
-            assert_screen 'yast2-fadump-enabled';
-        }
-        # enable kdump if it is not already
-        wait_screen_change { send_key 'alt-u' } if match_has_tag('yast2-kdump-disabled');
-        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-enabled');
-        wait_screen_change { send_key 'alt-o' } if match_has_tag('yast2-kdump-restart-info');
-        wait_screen_change { send_key 'alt-i' } if match_has_tag('yast2-missing_package');
-        # problem with e2fsprogs requirement on JeOS
-        die('Missing e2fsprogs requirement, bsc#1140040') if (match_has_tag('yast2-kdump-unexpected-issue'));
-    } until (match_has_tag('yast2_console-finished'));
+    my $module_name  = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
+    assert_screen([qw(yast2-kdump-disabled yast2-kdump-enabled)]);
+    if (match_has_tag('yast2-kdump-disabled')) {
+        # enable kdump
+        send_key('alt-u');
+        assert_screen('yast2-kdump-enabled');
+        $expect_restart_info = 1;
+    }
+    # ppcl64e and aarch64 needs increased kdump memory bsc#1161421
+    if (is_ppc64le || is_aarch64) {
+        send_key('alt-y');
+        type_string $memory_kdump;
+        send_key('ret');
+        record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
+    }
+    # enable and verify fadump settings
+    if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
+        send_key 'alt-f';
+        assert_screen 'yast2-fadump-enabled';
+        $expect_restart_info = 1;
+    }
+    send_key('alt-o');
+    if ($expect_restart_info == 1) {
+        assert_screen('yast2-kdump-restart-info');
+        send_key('alt-o');
+    }
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 
