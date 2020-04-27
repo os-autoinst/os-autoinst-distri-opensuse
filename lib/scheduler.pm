@@ -24,7 +24,7 @@ use warnings;
 use File::Basename;
 use testapi qw(get_var set_var diag);
 use main_common 'loadtest';
-use YAML::Tiny;
+use YAML::PP;
 use Data::Dumper;
 
 our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
@@ -106,7 +106,8 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule      = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $yamlfile);
+        my $ypp = YAML::PP->new;
+        my $schedule = $ypp->load_file(dirname(__FILE__) . '/../' . $yamlfile);
         my %schedule_vars = parse_vars($schedule);
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
         my @schedule_modules = parse_schedule($schedule);
@@ -144,8 +145,8 @@ sub _ensure_include_not_present {
 
 sub _import_test_data_from_yaml {
     my (%args) = @_;
-
-    my $include_yaml = YAML::Tiny::LoadFile(dirname(__FILE__) . '/../' . $args{path});
+    my $ypp = YAML::PP->new;
+    my $include_yaml = $ypp->load_file(dirname(__FILE__) . '/../' . $args{path});
     if ($args{allow_included}) {
         # import test data using $include from test data file
         _import_test_data_included($include_yaml);
