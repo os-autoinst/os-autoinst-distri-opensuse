@@ -51,7 +51,7 @@ sub snapper_cleanup {
     assert_script_run("snapper cleanup number",  300);    # cleanup created snapshots
     assert_script_run("btrfs quota rescan -w /", 90);
     script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
-    assert_script_run("btrfs qgroup show -pcre /", 3);
+    assert_script_run("btrfs qgroup show -pcre /");
     assert_script_run("snapper list");
     clear_console;
     script_run($btrfs_fs_usage);
@@ -121,7 +121,7 @@ sub run {
         die("Insufficient initial disk space left on / to run this test: $initially_free bytes");
     }
     assert_script_run("snapper get-config");    # report customized cfg
-    assert_script_run("btrfs qgroup show -pc /", 3);
+    assert_script_run("btrfs qgroup show -pc /");
     # Exclusive disk space of qgroup should be ~50% of the fs space as set with SPACE_LIMIT
     $exp_excl_space = get_space("$btrfs_fs_usage | sed -n '2p' | awk -F ' ' '{print\$3}'") / 2;
     # We need to run snapper at least couple of times to ensure it cleans up properly
