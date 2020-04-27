@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,7 +30,8 @@ use base 'y2_module_basetest';
 use strict;
 use warnings;
 use testapi;
-use utils;
+use utils qw(zypper_call);
+use version_utils qw(is_sle);
 
 sub run {
 
@@ -46,7 +47,14 @@ sub run {
     assert_script_run("yast keyboard set layout=german");
 
     # Restore keyboard settings to english-us and verify(enter using german characters).
-    type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 40, timeout => 90);
+    if (is_sle('15-sp2+')) {
+        type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 3, timeout => 7);
+    }
+    else {
+        record_soft_failure('bsc#1170292');
+        type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 60, timeout => 121);
+    }
+    save_screenshot;
 
     validate_script_output("yast keyboard summary 2>&1", sub { m/english-us/ }, timeout => 90);
 
