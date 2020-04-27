@@ -112,9 +112,11 @@ sub prepare_parmfile {
     if (get_var('AUTOYAST')) {
         if (get_var('AUTOYAST_PREPARE_PROFILE')) {
             $params .= " autoyast=" . shorten_url(get_var('AUTOYAST'));
+            set_var('AUTOYAST', shorten_url(get_var('AUTOYAST')));
         }
         else {
             $params .= " autoyast=" . shorten_url(data_url(get_var('AUTOYAST')));
+            set_var('AUTOYAST', shorten_url(data_url(get_var('AUTOYAST'))));
         }
     }
     return split_lines($params);
