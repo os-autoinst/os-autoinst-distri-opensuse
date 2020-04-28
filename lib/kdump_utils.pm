@@ -145,7 +145,7 @@ sub activate_kdump {
     }
     send_key('alt-o');
     if ($expect_restart_info == 1) {
-        assert_screen('yast2-kdump-restart-info');
+        assert_screen('yast2-kdump-restart-info', 200);
         send_key('alt-o');
     }
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
