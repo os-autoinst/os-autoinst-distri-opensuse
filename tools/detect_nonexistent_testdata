@@ -4,17 +4,21 @@
 
 use strict;
 use warnings;
-use YAML::Tiny;
+use YAML::PP;
 use File::Basename;
 use Data::Dumper;
 
 =head2 get_testdata_filename
+
   get_testdata_paths($schedule_file_path);
+
 Returns yaml test data file name(s) with path, in case yaml schedule includes any, either via $include tag or YAML_TEST_DATA variable or both.
+
 =cut
+
 sub get_data_files {
     my ($schedule_file_path) = @_;
-    my $schedule             = YAML::Tiny::LoadFile($schedule_file_path);
+    my $schedule             = YAML::PP::LoadFile($schedule_file_path);
     my $include_tag          = '$include';
     my @testdata_list;
     my $included_files = $schedule->{test_data}->{$include_tag};
