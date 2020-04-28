@@ -123,7 +123,7 @@ sub activate_kdump {
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
     my $module_name  = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
-    assert_screen([qw(yast2-kdump-disabled yast2-kdump-enabled)]);
+    assert_screen([qw(yast2-kdump-disabled yast2-kdump-enabled)], 200);
     if (match_has_tag('yast2-kdump-disabled')) {
         # enable kdump
         send_key('alt-u');
