@@ -21,14 +21,26 @@ use warnings;
 use strict;
 use testapi;
 use utils;
+use lockapi qw(mutex_wait);
 use base "thunderbird_common";
 
 sub run {
-    my $self    = shift;
-    my $account = "internal_account_A";
+    my $self     = shift;
+    my $account  = "internal_account";
+    my $hostname = get_var('HOSTNAME');
+
+    mutex_wait('service_setup_done') if get_var('QAM_MAIL_THUNDERBIRD');
+
+    if ($hostname eq 'client') {
+        $account = "internal_account_C";
+    }
+    else {
+        $account = "internal_account_A";
+    }
 
     mouse_hide(1);
     # clean up and start thunderbird
+    script_run("rm -rf .thunderbir*");
     x11_start_program("xterm -e \"killall -9 thunderbird; find ~ -name *thunderbird | xargs rm -rf;\"", valid => 0);
     my $success = eval { x11_start_program("thunderbird", match_timeout => 300); 1 };
     unless ($success) {
