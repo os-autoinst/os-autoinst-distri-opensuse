@@ -136,6 +136,7 @@ sub activate_kdump {
         type_string $memory_kdump;
         send_key('ret');
         record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
+        $expect_restart_info = 1;
     }
     # enable and verify fadump settings
     if (get_var('FADUMP') && check_screen('yast2-fadump-not-enabled')) {
