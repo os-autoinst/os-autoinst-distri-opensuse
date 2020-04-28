@@ -52,6 +52,7 @@ schedule:
     - console/cron
     - console/syslog
     - console/mta
+    - console/vsftpd
     - '{{yast2_lan_device_settings}}'
     - console/check_default_network_manager
     - console/git

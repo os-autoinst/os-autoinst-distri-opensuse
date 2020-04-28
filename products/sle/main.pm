@@ -1021,16 +1021,6 @@ else {
             loadtest "console/yast2_nfs4_client";
         }
     }
-    elsif (get_var('QAM_VSFTPD')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('VSFTPD_SUITE_READY', 2);
-            barrier_create('VSFTPD_FINISHED',    2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        loadtest 'network/vsftpd';
-    }
     elsif (get_var('QAM_RSYNC')) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {

@@ -33,34 +33,24 @@ use utils 'zypper_call';
 sub run {
     my $password = $testapi::password;
     select_console 'root-console';
-    if (check_var('HOSTNAME', 'server')) {
-        barrier_create('SSHD_READY', 2);
-        zypper_call 'in vsftpd';
-    }
-    else {
-        zypper_call 'in expect';
-    }
+    zypper_call 'in vsftpd expect';
     # export slenkins variables
-    assert_script_run 'export SERVER=10.0.2.101';
-    assert_script_run 'export CLIENT=10.0.2.102';
+    assert_script_run 'export SERVER=127.0.0.1';
+    assert_script_run 'export CLIENT=127.0.0.1';
     # hosts entry for ssh-copy-id with expect
-    assert_script_run 'echo "10.0.2.101 server" >>/etc/hosts';
-    assert_script_run 'echo "10.0.2.102 client" >>/etc/hosts';
+    assert_script_run 'echo "\$SERVER server" >>/etc/hosts';
+    assert_script_run 'echo "\$CLIENT client" >>/etc/hosts';
     # copy ssh keys on server and client
     assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
-    barrier_wait('SSHD_READY');
-    my $ssh_copy = 'ssh-copy-id -o StrictHostKeyChecking=no';
-    assert_script_run "expect -c 'spawn $ssh_copy server;expect \"Password\";send \"$password\\r\";interact'";
-    assert_script_run "expect -c 'spawn $ssh_copy client;expect \"Password\";send \"$password\\r\";interact'";
+    assert_script_run "expect -c 'spawn ssh-copy-id client;expect \"yes\";send \"yes\\r\";expect \"Password\";send \"$password\\r\";interact'";
+    assert_script_run "expect -c 'spawn ssh-copy-id server;expect \"yes\";send \"yes\\r\";interact'";
+    assert_script_run "expect -c 'spawn ssh-copy-id 127.0.0.1;expect \"yes\";send \"yes\\r\";interact'";
     # extract vsftpd testsuite in /tmp/vsftpd
     assert_script_run 'cd /tmp';
     assert_script_run 'wget ' . data_url('qam/vsftpd.tar.gz');
     assert_script_run 'tar xzfv vsftpd.tar.gz';
-    barrier_wait('VSFTPD_SUITE_READY');
-    if (check_var('HOSTNAME', 'client')) {
-        assert_script_run 'bash run.sh', 300;
-    }
-    barrier_wait('VSFTPD_FINISHED');
+    assert_script_run 'bash run.sh | tee run.log', 300;
+    upload_logs('run.log');
 }
 
 1;
