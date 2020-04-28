@@ -48,7 +48,7 @@ sub save_guest_ip {
         script_run "sed -i '/$guest/d' /etc/hosts";
         assert_script_run "virsh domiflist $guest";
         my $mac_guest = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        script_retry "journalctl --no-pager | grep DHCPACK | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+        script_retry "journalctl --no-pager | grep DHCPACK | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 120, retry => 12, timeout => 120;
         my $gi_guest = script_output("journalctl --no-pager | grep DHCPACK | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
         assert_script_run "ping -c3 $guest";
