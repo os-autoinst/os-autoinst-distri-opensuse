@@ -50,7 +50,7 @@ sub setup {
     assert_script_run "echo 'export PATH=\$PATH:\$HOME' >> /root/.bashrc";
     # Remove any configuration set by sapconf
     assert_script_run "sed -i.bak '/^@/,\$d' /etc/security/limits.conf";
-    assert_script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
+    script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
     assert_script_run 'saptune daemon start';
     if (check_var('BACKEND', 'qemu')) {
         # Ignore disk_elevator on VM's
