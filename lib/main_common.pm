@@ -871,7 +871,7 @@ sub load_inst_tests {
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        if (get_var('MAINT_TEST_REPO' and !get_var("USER_SPACE_TESTSUITES"))) {
+        if (get_var('MAINT_TEST_REPO') and !get_var("USER_SPACE_TESTSUITES")) {
             loadtest 'installation/add_update_test_repo';
         }
         loadtest "installation/addon_products_sle";
