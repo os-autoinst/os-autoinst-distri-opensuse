@@ -77,6 +77,7 @@ sub prepare_for_kdump_sle {
     for my $i (1 .. $counter) {
         zypper_call("rr DEBUG_$i");
     }
+    zypper_call('in mokutil') if is_jeos;
 }
 
 sub prepare_for_kdump {
