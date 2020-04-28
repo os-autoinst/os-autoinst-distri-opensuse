@@ -232,7 +232,7 @@ sub investigate_yast2_failure {
     # Hash with critical errors in YaST2 and bug reference if any
     my %y2log_errors = (
         "No textdomain configured"                   => undef,    # Detecting missing translations
-                                                                  # Detecting specifi errors proposed by the YaST dev team
+                                                                  # Detecting specific errors proposed by the YaST dev team
         "nothing provides"                           => undef,    # Detecting missing required packages
         "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
         "Could not load icon|Couldn't load pixmap"   => undef,    # Detecting missing icons
@@ -241,8 +241,13 @@ sub investigate_yast2_failure {
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
-        "<3>.*no[t]? mount"   => 'bsc#1092088',                   # Detect not mounted partition
-        "<3>.*lib/cheetah.rb" => 'bsc#1153749',
+        "<3>.*QueryWidget failed.*RichText.*VScrollValue" => 'bsc#1167248',
+        "<3>.*Solverrun finished with an ERROR"           => 'bsc#1170322',
+        "<3>.*3 packages failed.*badlist"                 => 'bsc#1170322',
+        "<3>.*Unknown option.*MultiSelectionBox widget"   => 'bsc#1170431',
+        "<3>.*XML.*Argument.*to Read.*is nil"             => 'bsc#1170432',
+        "<3>.*no[t]? mount"                               => 'bsc#1092088',    # Detect not mounted partition
+        "<3>.*lib/cheetah.rb"                             => 'bsc#1153749',
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
         # Adding reference to trello, detect those in single scenario
         # (build97.1) regressions
@@ -364,7 +369,7 @@ sub investigate_yast2_failure {
             $detected_errors_detailed .= "$y2log_error_result\n\n$delimiter\n\n";
         }
     }
-    ## Check generic erros and exclude already detected issues
+    ## Check generic errors and exclude already detected issues
     if (my $y2log_error_result = script_output("$cmd_prefix -E \"<3>|<5>\" $cmd_postfix")) {
         # remove known errors from the log
         for my $known_error (@detected_errors) {
