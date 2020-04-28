@@ -100,7 +100,7 @@ sub run {
 
     type_string("cat /var/log/messages >/dev/$serialdev\n");
     # send messages logged during the testsuite runtime to serial
-    type_string("journalctl -f >/dev/$serialdev\n");
+    type_string("journalctl -f -o short-precise >/dev/$serialdev\n");
 
     mutex_create(get_var('SLENKINS_NODE'));
 

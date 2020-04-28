@@ -20,6 +20,6 @@ ls -l /etc/ntp* || true
 ps ax
 systemctl --no-pager --full
 rpm -qa | sort
-journalctl -a --no-full -m > /var/log/journal.dump
+journalctl -a --no-full -m -o short-precise > /var/log/journal.dump
 # explicitly ignore exit code as we know files can change in the mean time
 tar cjf /tmp/logs.tar.bz2 --warning=no-file-changed /var/log || true

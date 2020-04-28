@@ -72,7 +72,7 @@ sub initialize_y2lan
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
-    type_string "journalctl -f|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &\n";
+    type_string "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &\n";
     clear_journal_log();
 }
 

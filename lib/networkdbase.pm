@@ -177,7 +177,7 @@ redirected to the host system journal.
 sub export_container_journal {
     my ($self, $machine) = @_;
 
-    assert_script_run("journalctl -M $machine --no-pager -b 0 > /tmp/" . $machine . "_journal.log");
+    assert_script_run("journalctl -M $machine --no-pager -b 0 -o short-precise > /tmp/" . $machine . "_journal.log");
     upload_logs "/tmp/" . $machine . "_journal.log";
 }
 

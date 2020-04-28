@@ -46,7 +46,7 @@ sub capture_state {
     script_run("dmesg > /tmp/dmesg_$state.log");
     upload_logs("/tmp/dmesg_$state.log");
     #upload journal
-    script_run("journalctl -b > /tmp/journal_$state.log");
+    script_run("journalctl -b -o short-precise > /tmp/journal_$state.log");
     upload_logs("/tmp/journal_$state.log");
 }
 

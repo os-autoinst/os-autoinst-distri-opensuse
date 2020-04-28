@@ -110,7 +110,7 @@ Saves the journal of the systemd unit C<$unit> to C<journal_$unit.log> and uploa
 =cut
 sub save_and_upload_systemd_unit_log {
     my ($self, $unit) = @_;
-    $self->save_and_upload_log("journalctl --no-pager -u $unit", "journal_$unit.log");
+    $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.log");
 }
 
 =head2 detect_bsc_1063638
@@ -164,11 +164,11 @@ sub problem_detection {
     clear_console;
 
     # Errors in journal
-    $self->save_and_upload_log("journalctl --no-pager -p 'err'", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("journalctl --no-pager -p 'err' -o short-precise", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Tracebacks in journal
-    $self->save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log('journalctl -o short-precise | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Segmentation faults
@@ -406,10 +406,10 @@ This includes C</proc/loadavg>, C<ps axf>, complete journal since last boot, C<d
 =cut
 sub export_logs_basic {
     my ($self) = @_;
-    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
-    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
-    $self->save_and_upload_log('dmesg',             '/tmp/dmesg.log',   {screenshot => 1});
+    $self->save_and_upload_log('cat /proc/loadavg',              '/tmp/loadavg.txt', {screenshot => 1});
+    $self->save_and_upload_log('ps axf',                         '/tmp/psaxf.log',   {screenshot => 1});
+    $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('dmesg',                          '/tmp/dmesg.log',   {screenshot => 1});
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
 }
 

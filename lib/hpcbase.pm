@@ -30,7 +30,7 @@ sub enable_and_start {
 
 sub upload_service_log {
     my ($self, $service_name) = @_;
-    script_run("journalctl -u $service_name > /tmp/$service_name");
+    script_run("journalctl -u $service_name -o short-precise > /tmp/$service_name");
     script_run("cat /tmp/$service_name");
     upload_logs("/tmp/$service_name", failok => 1);
 }
