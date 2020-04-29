@@ -190,7 +190,8 @@ sub test8 {
 }
 
 sub run {
-    select_console("root-console");
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Check Service State, enable it if necessary, set default zone to public
     pre_test;

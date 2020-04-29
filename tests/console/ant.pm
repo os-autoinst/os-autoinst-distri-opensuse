@@ -75,9 +75,9 @@ EOF
 
 
 sub run {
-    my $dir = "/root/ant_test";
-
-    select_console 'root-console';
+    my $dir  = "/root/ant_test";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Install ant
     zypper_call 'in ant';

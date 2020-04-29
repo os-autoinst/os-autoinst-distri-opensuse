@@ -20,7 +20,8 @@ use registration qw(add_suseconnect_product register_product);
 
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     if (is_sle) {
         assert_script_run 'source /etc/os-release';

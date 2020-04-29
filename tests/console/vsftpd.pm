@@ -30,7 +30,9 @@ use warnings;
 use utils 'zypper_call';
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
+
     zypper_call 'in vsftpd expect';
     # export slenkins variables
     assert_script_run 'export SERVER=127.0.0.1';

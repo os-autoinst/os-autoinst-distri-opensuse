@@ -326,7 +326,8 @@ sub validate_repos {
 sub run {
     # ZYPPER_LR is needed for inconsistent migration, test would fail looking for deactivated addon
     set_var 'ZYPPER_LR', 1;
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     validate_repos;
 }
 
