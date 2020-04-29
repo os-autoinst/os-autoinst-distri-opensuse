@@ -18,7 +18,6 @@ schedule:
 - console/cron
 - console/syslog
 - console/mta
-- console/yast2_lan_device_settings
 - console/check_default_network_manager
 - console/git
 - console/cups
