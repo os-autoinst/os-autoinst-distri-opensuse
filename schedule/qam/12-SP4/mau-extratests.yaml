@@ -16,10 +16,10 @@ schedule:
 - console/libvorbis
 - console/command_not_found
 - console/openssl_alpn
-- console/autoyast_removed
 - console/cron
 - console/syslog
 - console/mta
+- console/vsftpd
 - console/check_default_network_manager
 - console/git
 - console/cups
