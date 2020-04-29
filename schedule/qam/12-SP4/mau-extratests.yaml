@@ -74,6 +74,5 @@ conditional_schedule:
         - console/aplay
         - console/soundtouch
         - console/wavpack
-        - console/yast2_lan_device_settings
         - console/gdb
 ...

@@ -1408,6 +1408,7 @@ sub load_extra_tests_y2uitest_ncurses {
         loadtest "console/yast2_ftp";
         loadtest "console/yast2_apparmor";
         loadtest "console/yast2_lan";
+        loadtest "console/yast2_lan_device_settings";
     }
     # TODO https://progress.opensuse.org/issues/20200
     # softfail record #bsc1049433 for samba and xinetd
@@ -1461,6 +1462,8 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest "console/yast2_nis" if is_sle;
     loadtest "console/yast2_ftp";
     loadtest "console/yast2_tftp";
+    # We cannot change network device settings as rely on ssh/vnc connection to the machine
+    loadtest "console/yast2_lan_device_settings" unless (is_s390x() || get_var('PUBLIC_CLOUD'));
 }
 
 sub load_extra_tests_texlive {
@@ -1635,8 +1638,8 @@ sub load_extra_tests_console {
     loadtest "console/syslog";
     loadtest "console/ntp_client" if (!is_sle || is_jeos);
     loadtest "console/mta" unless is_jeos;
-    # We cannot change network device settings as rely on ssh/vnc connection to the machine
-    loadtest "console/yast2_lan_device_settings" unless (is_s390x() || get_var('PUBLIC_CLOUD'));
+    # part of load_extra_tests_y2uitest_ncurses & load_extra_tests_y2uitest_cmd except jeos
+    loadtest "console/yast2_lan_device_settings" if is_jeos;
     loadtest "console/check_default_network_manager";
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";
