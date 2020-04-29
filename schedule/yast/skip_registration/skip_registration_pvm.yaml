@@ -1,0 +1,41 @@
+---
+name:           skip_registration_pvm
+description:    >
+  Full Medium installation with skipped registration. On all backends, except
+  pvm the installation is tested by successful boot into installed system. On
+  pvm it is validated by default set of smoke tests. The difference in pvm from
+  test suites on other architectures as it does not publish HDD in the end.
+vars:
+  SCC_REGISTER: 'none'
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/edit_optional_kernel_cmd_parameters
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish
