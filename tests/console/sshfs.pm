@@ -20,7 +20,9 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
+
     zypper_call('in sshfs');
     script_run('cd /var/tmp ; mkdir mnt ; sshfs localhost:/ mnt', 0);
     assert_script_run('zypper -n in xdelta3', fail_message => 'rpm/zypper calls statfs and might stumble over fuse fs');

@@ -26,7 +26,9 @@ use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
 
 sub run() {
-    select_console('root-console');
+    my $self = shift;
+    $self->select_serial_terminal;
+
     pkcon_quit;
 
     if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {

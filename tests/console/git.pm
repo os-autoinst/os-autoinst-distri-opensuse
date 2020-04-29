@@ -27,7 +27,8 @@ use utils qw(zypper_call);
 sub run {
     my $username = $testapi::username;
     my $email    = "you\@example.com";
-    select_console "root-console";
+    my $self     = shift;
+    $self->select_serial_terminal;
 
     # Create a test repo
     zypper_call("in git-core");

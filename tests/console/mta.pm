@@ -18,7 +18,8 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     assert_script_run '! rpm -q exim';
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,9 @@ use warnings;
 use testapi;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
+
     zypper_call 'in krb5 krb5-server krb5-client';
 
     #Get the script that creates the kerberus server:
