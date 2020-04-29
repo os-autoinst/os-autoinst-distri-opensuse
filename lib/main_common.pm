@@ -1799,6 +1799,7 @@ sub load_extra_tests_filesystem {
                 loadtest "console/btrfs_send_receive";
             }
         }
+        loadtest "console/btrfsmaintenance";
     }
     loadtest 'console/snapper_undochange';
     loadtest 'console/snapper_create';
