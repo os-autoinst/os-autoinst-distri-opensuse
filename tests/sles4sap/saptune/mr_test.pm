@@ -268,6 +268,8 @@ sub test_sapconf {
     # Scenario 1: sapconf is running and active with sap-netweaver profile.
     # The test shall show, that a running tuned profile or sapconf is not compromised.
     script_run 'cp /etc/systemd/logind.conf.d/sap.conf{.bak,}';
+    # Otherwise sapconf will fail to start. See bsc#1139176
+    assert_script_run "tuned-adm off" if is_sle('>=15');
     systemctl "enable --now sapconf";
     systemctl "disable tuned";
     systemctl "start tuned";
