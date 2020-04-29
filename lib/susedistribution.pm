@@ -45,7 +45,7 @@ sub handle_password_prompt {
     $console //= '';
 
     return if get_var("LIVETEST") || get_var('LIVECD');
-    assert_screen "password-prompt";
+    assert_screen("password-prompt", 60);
     if ($console eq 'hyperv-intermediary') {
         type_string get_required_var('VIRSH_GUEST_PASSWORD');
     }
