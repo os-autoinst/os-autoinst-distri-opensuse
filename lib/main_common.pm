@@ -2701,10 +2701,11 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
-
+        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
+        loadtest "virtualization/xen/list_guests";          # List all guests and ensure they are running
         loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
         loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
+        loadtest "virtualization/xen/stresstest";           # Perform stress tests on the guests
     }
 }
 
