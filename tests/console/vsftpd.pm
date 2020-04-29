@@ -38,8 +38,8 @@ sub run {
     assert_script_run 'export SERVER=127.0.0.1';
     assert_script_run 'export CLIENT=127.0.0.1';
     # hosts entry for ssh-copy-id with expect
-    assert_script_run 'echo "\$SERVER server" >>/etc/hosts';
-    assert_script_run 'echo "\$CLIENT client" >>/etc/hosts';
+    assert_script_run 'echo "$SERVER server" >>/etc/hosts';
+    assert_script_run 'echo "$CLIENT client" >>/etc/hosts';
     # copy ssh keys on server and client
     assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
     assert_script_run "expect -c 'spawn ssh-copy-id client;expect \"yes\";send \"yes\\r\";expect \"Password\";send \"$password\\r\";interact'";
