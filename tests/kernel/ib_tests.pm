@@ -111,9 +111,9 @@ sub run {
     # unload firewall. MPI- and libfabric-tests require too many open ports
     systemctl("stop " . opensusebasetest::firewall);
 
-    # remove, if present, create and distribute ssh key
-    script_run('rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts');
-    assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');
+    # create a ssh key if we don't have one
+    script_run('[ ! -f /root/.ssh/id_rsa] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
+    # distribute the ssh key to the machines
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$master");
     script_run("/usr/bin/clear");
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
