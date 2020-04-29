@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    </bootloader>
+    <suse_register>
+      <do_registration config:type="boolean">true</do_registration>
+      <email/>
+      <reg_code>{{SCC_REGCODE}}</reg_code>
+      <install_updates config:type="boolean">true</install_updates>
+      <reg_server>{{SCC_URL}}</reg_server>
+      <addons config:type="list">
+        <addon>
+          <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
+          <name>sle-we</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+          <reg_code>{{SCC_REGCODE_WE}}</reg_code>
+        </addon>
+      </addons>
+    </suse_register>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+    <networking>
+      <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <partitioning config:type="list">
+    <drive>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition>
+          <mount>/swap</mount>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <size>auto</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <mount>/</mount>
+          <size>75%</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/home</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <crypt_fs config:type="boolean">true</crypt_fs>
+          <crypt_key>nots3cr3t</crypt_key>
+          <size>20%</size>
+        </partition>
+      </partitions>
+    </drive>
+    </partitioning>
+    <users config:type="list">
+      <user>
+        <fullname>Bernhard M. Wiedemann</fullname>
+        <encrypted config:type="boolean">false</encrypted>
+            <user_password>nots3cr3t</user_password>
+            <username>bernhard</username>
+      </user>
+      <user>
+        <encrypted config:type="boolean">false</encrypted>
+        <user_password>nots3cr3t</user_password>
+        <username>root</username>
+      </user>
+    </users>
+    <software>
+      <products config:type="list">
+        <product>SLES</product>
+        <product>sle-we</product>
+      </products>
+      <patterns config:type="list">
+        <pattern>base</pattern>
+        <pattern>enhanced_base</pattern>
+        <pattern>gnome_x11</pattern>
+        </patterns>
+    </software>
+</profile>
