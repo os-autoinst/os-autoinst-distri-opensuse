@@ -4,7 +4,7 @@
 
 use strict;
 use warnings;
-use YAML::PP;
+use YAML::Tiny;
 use File::Basename;
 use Data::Dumper;
 
@@ -16,10 +16,9 @@ Get test modules list from 'schedule' and 'conditional_schedule' sections of
 YAML schedule file.
 
 =cut
-
 sub parse_modules_in_schedule {
     my ($schedule_file_path) = @_;
-    my $schedule = YAML::PP::LoadFile($schedule_file_path);
+    my $schedule = YAML::Tiny::LoadFile($schedule_file_path);
     my @scheduled;
     for my $module (@{$schedule->{schedule}}) {
         push(@scheduled, $module) && next unless ($module =~ s/\{\{(.*)\}\}/$1/);
@@ -45,7 +44,6 @@ C<$test_module> is file path relative to 'tests' directory, without file
 extension (as specified in YAML schedule file, e.g. 'boot/boot_to_desktop').
 
 =cut
-
 sub is_test_module_exist {
     my ($test_module) = @_;
     return (-f "tests/$test_module.pm") ? 1 : 0;
