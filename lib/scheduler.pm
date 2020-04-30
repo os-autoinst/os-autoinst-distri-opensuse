@@ -95,7 +95,10 @@ sub parse_test_suite_data {
         # test data from data file has priority over test_data from schedule
         _import_test_data_from_yaml(path => $yamlfile, allow_included => 1);
     }
-    diag(Dumper($test_suite_data));
+    local $Data::Dumper::Terse = 1;
+    my $out = Dumper($test_suite_data);
+    chomp($out);
+    diag("parse_test_suite_data: $out");
 }
 
 =head2 load_yaml_schedule
