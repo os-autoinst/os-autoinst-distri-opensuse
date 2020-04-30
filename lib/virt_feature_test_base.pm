@@ -142,6 +142,9 @@ sub post_fail_hook {
     assert_script_run("history -w /root/commands_history");
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
+    virt_utils::upload_supportconfig_log;
+    #(caller(0))[0] can help pass calling package name into called subroutine
+    virt_utils::upload_virt_logs("/var/log/libvirt", (caller(0))[0] . "-libvirt-logs");
     $self->SUPER::post_fail_hook;
 }
 
