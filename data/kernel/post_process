@@ -34,7 +34,13 @@ generate_xunit_report() {
 	for file in $(find ./results/$dir -type f)
 	do
 		test_group=$(basename `dirname $file`)
-		test_name=`basename $file`
+
+		if [[ "$line" == "description"* ]]
+		then
+			test_name=${line#'description'}
+		else
+			test_name=`basename $file`
+		fi
 		while IFS= read -r line
 		do
 			if [[ "$line" == "status"* ]]
