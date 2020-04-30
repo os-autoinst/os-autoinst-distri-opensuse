@@ -46,7 +46,7 @@ sub run {
     assert_script_run 'curl -v -o wpa_supplicant-test.zip ' . data_url('wpa_supplicant/wpa_supplicant-test.zip');
     assert_script_run 'unzip wpa_supplicant-test.zip';
     record_info('Info', 'Running wpa_supplicant_test.sh');
-    assert_script_run('bash -x ./wpa_supplicant_test.sh', timeout => 300);
+    assert_script_run('bash -x ./wpa_supplicant_test.sh', timeout => 600);
     # unregister SDK
     if (is_sle && !main_common::is_updates_tests()) {
         remove_suseconnect_product(get_addon_fullname('phub'));
