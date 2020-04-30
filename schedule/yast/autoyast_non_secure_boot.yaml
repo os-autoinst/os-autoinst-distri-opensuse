@@ -27,4 +27,4 @@ test_data:
   profile:
     bootloader:
       global:
-        secure_boot: false
+        secure_boot: 'false'

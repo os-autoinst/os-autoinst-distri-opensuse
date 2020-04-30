@@ -66,7 +66,7 @@ test_data:
           partitions:
             - partition:
                 unique_key: create
-                create: false
+                create: 'false'
           type: CT_DISK
       - drive:
           unique_key: device
@@ -85,7 +85,7 @@ test_data:
             data_raid_level: raid0
             metadata_raid_level: raid1
           disklabel: none
-          enable_snapshots: false
+          enable_snapshots: 'false'
           partitions:
             - partition:
                 unique_key: label
@@ -95,31 +95,31 @@ test_data:
                 subvolumes:
                   - subvolume:
                       unique_key: path
-                      copy_on_write: true
+                      copy_on_write: 'true'
                       path: tmp
                   - subvolume:
                       unique_key: path
-                      copy_on_write: true
+                      copy_on_write: 'true'
                       path: usr/local
                   - subvolume:
                       unique_key: path
-                      copy_on_write: true
+                      copy_on_write: 'true'
                       path: home
                   - subvolume:
                       unique_key: path
-                      copy_on_write: true
+                      copy_on_write: 'true'
                       path: root
                   - subvolume:
                       unique_key: path
-                      copy_on_write: true
+                      copy_on_write: 'true'
                       path: srv
                   - subvolume:
                       unique_key: path
-                      copy_on_write: false
+                      copy_on_write: 'false'
                       path: var
                   - subvolume:
                       unique_key: path
-                      copy_on_write: true
+                      copy_on_write: 'true'
                       path: opt
                 subvolumes_prefix: '@'
           type: CT_BTRFS

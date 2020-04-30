@@ -43,8 +43,8 @@ sub initiator_service_tab {
             );
         } else {
             change_service_configuration(
-                after_writing => {start         => 'alt-f'},
-                after_reboot  => {start_on_boot => 'alt-a'}
+                after_writing => {start           => 'alt-f'},
+                after_reboot  => {start_on_demand => 'alt-a'}
             );
         }
     }

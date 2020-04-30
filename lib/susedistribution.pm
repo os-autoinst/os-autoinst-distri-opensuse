@@ -303,9 +303,7 @@ Ensure that a package is installed
 sub ensure_installed {
     my ($self, $pkgs, %args) = @_;
     my $pkglist = ref $pkgs eq 'ARRAY' ? join ' ', @$pkgs : $pkgs;
-    # aarch64 is known to be our slowest architecture in many regards,
-    # especially when it is about I/O so be a bit more forgiving here
-    $args{timeout} //= check_var('ARCH', 'aarch64') ? 300 : 90;
+    $args{timeout} //= 90;
 
     testapi::x11_start_program('xterm');
     $self->become_root;
@@ -318,8 +316,7 @@ sub ensure_installed {
     my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
-        my $ret = check_screen(\@tags, $args{timeout});
-        last unless $ret;
+        assert_screen(\@tags, timeout => $args{timeout});
         last if (match_has_tag('pkcon-finished'));
         if (match_has_tag('Policykit')) {
             type_password;

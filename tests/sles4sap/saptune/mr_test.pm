@@ -50,7 +50,7 @@ sub setup {
     assert_script_run "echo 'export PATH=\$PATH:\$HOME' >> /root/.bashrc";
     # Remove any configuration set by sapconf
     assert_script_run "sed -i.bak '/^@/,\$d' /etc/security/limits.conf";
-    assert_script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
+    script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
     assert_script_run 'saptune daemon start';
     if (check_var('BACKEND', 'qemu')) {
         # Ignore disk_elevator on VM's
@@ -267,7 +267,9 @@ sub test_sapconf {
 
     # Scenario 1: sapconf is running and active with sap-netweaver profile.
     # The test shall show, that a running tuned profile or sapconf is not compromised.
-    assert_script_run 'cp /etc/systemd/logind.conf.d/sap.conf{.bak,}';
+    script_run 'cp /etc/systemd/logind.conf.d/sap.conf{.bak,}';
+    # Otherwise sapconf will fail to start. See bsc#1139176
+    assert_script_run "tuned-adm off" if is_sle('>=15');
     systemctl "enable --now sapconf";
     systemctl "disable tuned";
     systemctl "start tuned";

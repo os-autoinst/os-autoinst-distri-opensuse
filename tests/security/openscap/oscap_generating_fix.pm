@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,25 +35,17 @@ sub run {
     assert_script_run "oscap xccdf generate fix --template urn:xccdf:fix:script:sh --profile standard --output $fix_script xccdf.xml";
 
     my $script_output = script_output "cat $fix_script";
-    if ($script_output =~ m/securettyecho/) {
-        record_soft_failure 'bsc#1097759';
-    }
-    elsif ($script_output =~ m/sysrq#\s+END/) {
-        record_soft_failure 'bsc#1102706';
-    }
-    else {
-        prepare_remediate_validation;
+    prepare_remediate_validation;
 
-        validate_result($fix_script, $fix_script_match, 'sh');
-        assert_script_run "bash ./$fix_script";
+    validate_result($fix_script, $fix_script_match, 'sh');
+    assert_script_run "bash ./$fix_script";
 
-        # Verify the remediate action result
-        validate_script_output "cat /etc/securetty",         sub { m/^$/ };
-        validate_script_output "cat /proc/sys/kernel/sysrq", sub { m/^0$/ };
+    # Verify the remediate action result
+    validate_script_output "cat /etc/securetty",         sub { m/^$/ };
+    validate_script_output "cat /proc/sys/kernel/sysrq", sub { m/^0$/ };
 
-        # Restore
-        finish_remediate_validation;
-    }
+    # Restore
+    finish_remediate_validation;
 }
 
 1;

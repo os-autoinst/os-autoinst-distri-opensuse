@@ -17,24 +17,26 @@ use testapi;
 use qam 'ssh_add_test_repositories';
 use utils;
 use xen;
+use version_utils;
+use virt_autotest::kernel;
 
 sub run {
     my ($self) = @_;
-    my $version = get_var('VERSION');
+    my ($host_running_version, $host_running_sp) = get_sles_release();
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
+    my ($guest_running_version, $guest_running_sp);
     foreach my $guest (keys %xen::guests) {
-        my $distro = $xen::guests{$guest}->{distro};
-        $distro =~ tr/_/-/;
-        $distro =~ s/SLE-//;
+        ($guest_running_version, $guest_running_sp) = get_sles_release("ssh root\@$guest");
 
         record_info "$guest", "Adding test repositories and patching the $guest system";
-        if ($distro =~ m/$version/) {
+        if ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp) {
             ssh_add_test_repositories "$guest";
 
+            check_virt_kernel($guest, 'before');
             script_run "ssh root\@$guest zypper lr -d";
-            script_run "ssh root\@$guest rpm -qa > /tmp/patch_and_reboot-$guest-before.txt";
-            upload_logs("/tmp/patch_and_reboot-$guest-before.txt");
+            script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-before.txt";
+            upload_logs("/tmp/rpm-qa-$guest-before.txt");
 
             ssh_fully_patch_system "$guest";
         }
@@ -48,8 +50,9 @@ sub run {
             assert_script_run "virsh start $guest", 60;
         }
 
-        script_run "ssh root\@$guest rpm -qa > /tmp/patch_and_reboot-$guest-after.txt";
-        upload_logs("/tmp/patch_and_reboot-$guest-after.txt");
+        check_virt_kernel($guest, 'after');
+        script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-after.txt";
+        upload_logs("/tmp/rpm-qa-$guest-after.txt");
     }
 }
 

@@ -1,0 +1,11 @@
+name:           ha_qnetd_server
+description:    >
+    Create a qnetd server for testing qnetdevice (corosync quorum feature)
+schedule:
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/consoletest_setup
+    - console/check_os_release
+    - console/hostname
+    - ha/firewall_disable
+    - ha/qnetd

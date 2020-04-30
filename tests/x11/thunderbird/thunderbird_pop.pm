@@ -24,8 +24,15 @@ use utils;
 use base "thunderbird_common";
 
 sub run {
-    my $self    = shift;
-    my $account = "internal_account_A";
+    my $self     = shift;
+    my $account  = "internal_account";
+    my $hostname = get_var('HOSTNAME');
+    if ($hostname eq 'client') {
+        $account = "internal_account_C";
+    }
+    else {
+        $account = "internal_account_A";
+    }
 
     mouse_hide(1);
     # clean up and start thunderbird

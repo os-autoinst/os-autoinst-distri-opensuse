@@ -105,6 +105,16 @@ sub add_raid {
     $self->add_raid_partition($args->{partition});
 }
 
+=head2 resize_partition_on_gpt_disk(args)
+
+  resize_partition_on_gpt_disk(args)
+
+Once you have an instance of the page and you are in the Expert Partitioning
+C<resize_partition_on_gpt_disk> can be invoked to resize any partition or hard disk.
+The test_data hash should contains the variables C<disk>, C<existing_partition> and C<part_size>.
+C<disk> is used to select one of the options in the menu, like LVM or Bcache and a needle should match with the C<disk> value included. C<existing_partition> represents the partition or hard disk that you want to resize with the value of C<part_size>.
+=cut
+
 sub resize_partition_on_gpt_disk {
     my ($self, $args) = @_;
     $self->get_expert_partitioner_page()->go_top_in_system_view_table();

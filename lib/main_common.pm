@@ -355,7 +355,8 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
-    loadtest("shutdown/cleanup_before_shutdown");
+    # Schedule cleanup before shutdown only in cases the HDD will be published
+    loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD');
     loadtest "shutdown/shutdown";
 }
 
@@ -871,7 +872,7 @@ sub load_inst_tests {
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        if (get_var('MAINT_TEST_REPO' and !get_var("USER_SPACE_TESTSUITES"))) {
+        if (get_var('MAINT_TEST_REPO') and !get_var("USER_SPACE_TESTSUITES")) {
             loadtest 'installation/add_update_test_repo';
         }
         loadtest "installation/addon_products_sle";
@@ -2351,7 +2352,9 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/enforcing_mode_setup";
 
     # The following test modules must be run after "enforcing_mode_setup"
+    loadtest "security/selinux/semanage_fcontext";
     loadtest "security/selinux/semanage_boolean";
+    loadtest "security/selinux/fixfiles";
     loadtest "security/selinux/print_se_context";
     loadtest "security/selinux/audit2allow";
     loadtest "security/selinux/semodule";
@@ -2699,10 +2702,11 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
-
+        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
+        loadtest "virtualization/xen/list_guests";          # List all guests and ensure they are running
         loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
         loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
+        loadtest "virtualization/xen/stresstest";           # Perform stress tests on the guests
     }
 }
 
