@@ -355,7 +355,8 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
-    loadtest("shutdown/cleanup_before_shutdown");
+    # Schedule cleanup before shutdown only in cases the HDD will be published
+    loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD');
     loadtest "shutdown/shutdown";
 }
 
