@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ sub run {
     assert_script_run 'export DASD_DEVICE=$(lsreipl|awk \'/Device/ {print$2}\')';
     validate_script_output 'chreipl ccw -d $DASD_DEVICE', sub { m/Re-IPL|Device|Loadparm|Bootparms/ };
     validate_script_output 'lscss',                       sub { m/Device|Subchan|DevType|CU|Type|Use|PIM|PAM|POM|CHPIDs/ };
-    validate_script_output 'cputype',                     sub { m/IBM zEnterprise/ };
+    validate_script_output 'cputype',                     sub { m/IBM z/ };
     validate_script_output 'lsqeth',                      sub { m/Device namei|card_type|cdev0|online|state|buffer_count|layer2/ };
     validate_script_output 'lsdasd',                      sub { m/Bus-ID|Status|Name|Device|Type|BlkSz|Size|Blocks/ };
     validate_script_output 'lsmem',                       sub { m/RANGE|SIZE|STATE|REMOVABLE|BLOCK/i };
