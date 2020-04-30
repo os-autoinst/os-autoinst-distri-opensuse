@@ -47,5 +47,5 @@ schedule:
     - systemd_testsuite/test_14_machine_id
     - systemd_testsuite/test_15_dropin
     - systemd_testsuite/test_22_tmpfiles
-    - {{systemd_testsuite_15SP2ORLATER}}
+    - '{{systemd_testsuite_15SP2ORLATER}}'
     - shutdown/shutdown
