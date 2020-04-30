@@ -334,35 +334,17 @@ sub uefi_bootmenu_params {
       :         send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
-    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.2'))) {
-        for (1 .. 3) { send_key "down"; }
-        send_key "end";
-        # delete "keep" word
-        for (1 .. 4) { send_key "backspace"; }
-        # hardcoded the value of gfxpayload to 1024x768
-        type_string "1024x768";
-        assert_screen "gfxpayload_changed", 10;
-        # back to the entry position
-        send_key "home";
-        for (1 .. 10) { send_key "down"; }
-    }
-    else {
-        for (1 .. 2) { send_key "down"; }
-        send_key "end";
-        # delete "keep" word
-        for (1 .. 4) { send_key "backspace"; }
-        # hardcoded the value of gfxpayload to 1024x768
-        type_string "1024x768";
-        assert_screen "gfxpayload_changed", 10;
-        # back to the entry position
-        send_key "home";
-        for (1 .. 2) { send_key "up"; }
-        if (is_jeos) {
-            send_key "up";
-        }
-        sleep 5;
-        for (1 .. 4) { send_key "down"; }
-    }
+    send_key_until_needlematch('grub2-gfxpayload', 'down', 10, 0.5);
+    send_key "end";
+    # delete "keep" word
+    for (1 .. 4) { send_key "backspace"; }
+    # hardcoded the value of gfxpayload to 1024x768
+    type_string "1024x768";
+    assert_screen "gfxpayload_changed", 10;
+    # back to the entry position
+    send_key "home";
+    # find linux kernel command line
+    send_key_until_needlematch('grub2-linux', 'down', 10, 0.5);
 
     send_key "end";
 
