@@ -40,7 +40,7 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
     select_console 'user-console';
-    my $overview = script_output 'zypper lifecycle', 300;
+    my $overview = script_output('zypper lifecycle', 600);
     die "Missing header line:\nOutput: '$overview'" unless $overview =~ /Product end of support/;
     die "Missing link to lifecycle page:\nOutput: '$overview'"
       if $overview =~ /n\/a/ && $overview !~ qr{\*\) See https://www.suse.com/lifecycle for latest information};
