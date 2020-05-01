@@ -19,7 +19,7 @@ use utils;
 use version_utils 'is_sle';
 
 our @EXPORT = qw(
-  install_klp_product
+  install_klp_product is_klp_pkg
 );
 
 sub install_klp_product {
@@ -50,6 +50,30 @@ sub install_klp_product {
     zypper_call("ref");
     zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
     zypper_call("mr -e kgraft-update");
+}
+
+sub is_klp_pkg {
+    my $pkg  = shift;
+    my $base = qr/(?:kgraft-|kernel-live)patch/;
+
+    if ($$pkg{name} =~ m/^${base}-\d+/) {
+        if ($$pkg{name} =~ m/^${base}-(\d+_\d+_\d+-\d+_*\d*_*\d*)-([a-z][a-z0-9]*)$/) {
+            my $kver    = $1;
+            my $kflavor = $2;
+            $kver =~ s/_/./g;
+            return {
+                name    => $$pkg{name},
+                version => $$pkg{version},
+                kver    => $kver,
+                kflavor => $kflavor,
+            };
+
+        } else {
+            die "Unexpected kernel livepatch package name format: \"$$pkg{name}\"";
+        }
+    }
+
+    return undef;
 }
 
 1;

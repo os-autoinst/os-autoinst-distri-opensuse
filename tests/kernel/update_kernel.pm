@@ -188,16 +188,22 @@ sub prepare_kgraft {
         zypper_call("ar $val kgraft-test-repo-$i");
 
         my $kversion = zypper_search(q(-s -x kernel-default));
-        my $pversion = zypper_search("-s -t package -r kgraft-test-repo-$i");
-        $pversion = join(' ', map { $$_{name} } @$pversion);
+        my $pkgs     = zypper_search("-s -t package -r kgraft-test-repo-$i");
 
         #disable kgraf-test-repo for while
         zypper_call("mr -d kgraft-test-repo-$i");
 
-        my $wanted_version = right_kversion($kversion, $pversion);
         fully_patch_system;
-        install_lock_kernel($wanted_version);
+        foreach my $pkg (@$pkgs) {
+            my $incident_klp_pkg = is_klp_pkg($pkg);
+            if ($incident_klp_pkg && $$incident_klp_pkg{kflavor} eq 'default') {
+                my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
+                install_lock_kernel($wanted_version);
+                last;
+            }
+        }
 
+        my $pversion = join(' ', map { $$_{name} } @$pkgs);
         if (check_var('REMOVE_KGRAFT', '1')) {
             zypper_call("rm " . $pversion);
         }
@@ -207,9 +213,9 @@ sub prepare_kgraft {
 }
 
 sub right_kversion {
-    my ($kversion, $pversion) = @_;
-    my ($kver_fragment) = $pversion =~ qr/(?:kgraft-|kernel-live)patch-(\d+_\d+_\d+-\d+_*\d*_*\d*)-default/;
-    $kver_fragment =~ s/_/\\\./g;
+    my ($kversion, $incident_klp_pkg) = @_;
+    my $kver_fragment = $$incident_klp_pkg{kver};
+    $kver_fragment =~ s/\./\\./g;
 
     for my $item (@$kversion) {
         return $$item{version} if $$item{version} =~ qr/^$kver_fragment\./;
