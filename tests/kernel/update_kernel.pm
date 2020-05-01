@@ -19,6 +19,7 @@ use utils;
 use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
+use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends 'use_ssh_serial_console';
@@ -178,33 +179,8 @@ sub install_lock_kernel {
 
 sub prepare_kgraft {
     my ($repo, $incident_id) = @_;
-    my $arch    = get_required_var('ARCH');
-    my $version = get_required_var('VERSION');
-    my $release_override;
-    my $lp_product;
-    my $lp_module;
-    if ($version eq '12') {
-        $release_override = '-d';
-    }
-    if (!is_sle('>=12-SP3')) {
-        $version = '12';
-    }
-    # SLE15 has different structure of modules and products than SLE12
-    if (is_sle('15+')) {
-        $lp_product = 'sle-module-live-patching';
-        $lp_module  = 'SLE-Module-Live-Patching';
-    }
-    else {
-        $lp_product = 'sle-live-patching';
-        $lp_module  = 'SLE-Live-Patching';
-    }
 
-    #install kgraft product
-    zypper_call("ar http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/ kgraft-pool");
-    zypper_call("ar $release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/ kgraft-update");
-    zypper_call("ref");
-    zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
-    zypper_call("mr -e kgraft-update");
+    install_klp_product;
 
     #add repository with tested patch
     my @repos = split(",", $repo);
