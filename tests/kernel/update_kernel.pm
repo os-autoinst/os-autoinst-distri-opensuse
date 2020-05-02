@@ -193,7 +193,6 @@ sub prepare_kgraft {
         #disable kgraf-test-repo for while
         zypper_call("mr -d $cur_repo");
 
-        fully_patch_system;
         foreach my $pkg (@$pkgs) {
             my $cur_klp_pkg = is_klp_pkg($pkg);
             if ($cur_klp_pkg && $$cur_klp_pkg{kflavor} eq 'default') {
@@ -212,6 +211,8 @@ sub prepare_kgraft {
     if (!$incident_klp_pkg) {
         die "No kernel livepatch package found";
     }
+
+    fully_patch_system;
 
     my $kversion       = zypper_search(q(-s -x kernel-default));
     my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
