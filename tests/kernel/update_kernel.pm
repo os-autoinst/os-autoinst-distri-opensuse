@@ -25,8 +25,6 @@ use repo_tools 'add_qa_head_repo';
 use Utils::Backends 'use_ssh_serial_console';
 
 
-my $wk_ker = 0;
-
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
 sub first_azure_release {
@@ -122,9 +120,6 @@ sub kgraft_state {
 
 sub install_lock_kernel {
     my $version = shift;
-    if ($version eq '4.12.14-25.13.1')     { $wk_ker = 1; }
-    if ($version eq '4.12.14-197.15.1')    { $wk_ker = 2; }
-    if ($version eq '3.12.74-60.64.104.1') { $wk_ker = 3; }
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
@@ -165,11 +160,6 @@ sub install_lock_kernel {
             }
         }
         $package =~ s/$/-$l_v/;
-    }
-
-    # workaround for SLE15 - 4.12.4-25.13.1
-    if ($wk_ker == 1) {
-        @packages = grep { $_ ne 'kernel-source-4.12.14-25.13.1' } @packages;
     }
 
     # install and lock needed kernel
@@ -250,44 +240,31 @@ sub update_kgraft {
     my $patches = '';
     $patches = get_patches($incident_id, $repo);
 
-    if (!($wk_ker) && ($incident_id && !($patches))) {
+    if ($incident_id && !($patches)) {
         die "Patch isn't needed";
     }
     else {
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
         upload_logs('/tmp/rpmlist.before');
 
-        if (!$wk_ker) {
-            # Download HEAVY LOAD script
-            assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
+        # Download HEAVY LOAD script
+        assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
 
-            # install screen command
-            zypper_call("in screen", exitcode => [0, 102, 103]);
-            #run HEAVY Load script
-            script_run("bash /tmp/heavy_load.sh");
+        # install screen command
+        zypper_call("in screen", exitcode => [0, 102, 103]);
+        #run HEAVY Load script
+        script_run("bash /tmp/heavy_load.sh");
 
-            # warm up system
-            sleep 15;
-        }
-        # Use single patch or patch list
-        if ($wk_ker == 1) {
-            zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        elsif ($wk_ker == 2) {
-            zypper_call("in -l  kernel-livepatch-4_12_14-197_15-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        elsif ($wk_ker == 3) {
-            zypper_call("in -l kgraft-patch-3_12_74-60_64_104-xen kgraft-patch-3_12_74-60_64_104-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        else {
-            zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        if (!$wk_ker) {
-            #kill HEAVY-LOAD scripts
-            script_run("screen -S LTP_syscalls -X quit");
-            script_run("screen -S newburn_KCOMPILE -X quit");
-            script_run("rm -Rf /var/log/qa");
-        }
+        # warm up system
+        sleep 15;
+
+        zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+
+        #kill HEAVY-LOAD scripts
+        script_run("screen -S LTP_syscalls -X quit");
+        script_run("screen -S newburn_KCOMPILE -X quit");
+        script_run("rm -Rf /var/log/qa");
+
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
     }
@@ -329,18 +306,14 @@ sub run {
 
         if (!check_var('REMOVE_KGRAFT', '1')) {
             # dependencies for heavy load script
-            if (!$wk_ker) {
-                add_qa_head_repo;
-                zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-            }
+            add_qa_head_repo;
+            zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
 
             # update kgraft patch under heavy load
             update_kgraft($repo, $incident_id);
 
-            if (!$wk_ker) {
-                zypper_call("rr qa-head");
-                zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-            }
+            zypper_call("rr qa-head");
+            zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
             power_action('reboot', textmode => 1);
 
             boot_to_console($self);
