@@ -180,8 +180,6 @@ sub install_lock_kernel {
 sub prepare_kgraft {
     my ($repo, $incident_id) = @_;
 
-    install_klp_product;
-
     #add repository with tested patch
     my $incident_klp_pkg;
     my @all_pkgs;
@@ -217,6 +215,8 @@ sub prepare_kgraft {
     my $kversion       = zypper_search(q(-s -x kernel-default));
     my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
     install_lock_kernel($wanted_version);
+
+    install_klp_product;
 
     if (check_var('REMOVE_KGRAFT', '1') && @all_pkgs) {
         my $pversion = join(' ', map { $$_{name} } @all_pkgs);
