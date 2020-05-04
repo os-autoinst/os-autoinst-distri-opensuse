@@ -25,6 +25,17 @@ for file in $(find ./results/$1 -type f);
 	done
 }
 
+check_for_test_description() {
+	test_name=`basename $file`
+	while IFS= read -r line
+	do
+		if [[ "$line" == "description"* ]]
+		then
+			test_name=${test_name}'::'${line#'description'}
+		fi
+	done < "$file"
+}
+
 generate_xunit_report() {
 	dir=${1}
 	results=${dir}_results.xml
@@ -33,14 +44,8 @@ generate_xunit_report() {
 
 	for file in $(find ./results/$dir -type f)
 	do
+		check_for_test_description $file
 		test_group=$(basename `dirname $file`)
-
-		if [[ "$line" == "description"* ]]
-		then
-			test_name=${line#'description'}
-		else
-			test_name=`basename $file`
-		fi
 		while IFS= read -r line
 		do
 			if [[ "$line" == "status"* ]]
