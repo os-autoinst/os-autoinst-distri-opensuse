@@ -109,6 +109,7 @@ sub samba_client_access {
     send_key_until_needlematch("nautilus-connect-to-server", 'tab', 10, 2);
     type_string("smb://$ip");
     send_key "ret";
+    wait_still_screen(2);
 
     # Search the shared dir
     send_key_until_needlematch("nautilus-sharedir-search", 'ctrl-f', 5, 2);
