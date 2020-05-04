@@ -40,6 +40,8 @@ sub run {
     my $config  = get_required_var('BLK_CONFIG');
     my $devices = get_required_var('BLK_DEVICE_ONLY');
 
+    record_info('KERNEL', script_output('rpm -qi kernel-default'));
+
     #QA repo is added with lower prio in order to avoid possible problems
     #with some packages provided in both, tested product and qa repo; example: fio
     add_qa_head_repo(priority => 100);
