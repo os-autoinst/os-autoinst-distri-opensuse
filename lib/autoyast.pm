@@ -519,9 +519,11 @@ EOF
 sub test_ayp_url {
     my $ayp_url = get_var('AUTOYAST');
     if ($ayp_url =~ /^http/) {
-        die "Autoyast profile url $ayp_url is unreachable " unless head($ayp_url);
-        record_info("ayp ok", "Autoyast profile url reachable");
+        if (head($ayp_url)) {
+            record_info("ayp url ok", "Autoyast profile url $ayp_url is reachable");
+        } else {
+            record_info("Failure", "Autoyast profile url $ayp_url is unreachable");
+        }
     }
 }
-
 1;
