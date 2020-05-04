@@ -38,7 +38,7 @@ sub run {
     my $pkg_repo            = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
     my $release_pkg         = 'openSUSE-release';
     my $systemd_network_pkg = (is_tumbleweed) ? 'systemd-network' : '';
-    my $pkgs_to_install     = "systemd $systemd_network_pkg shadow zypper $release_pkg vim iproute2 iputils";
+    my $pkgs_to_install     = "systemd $systemd_network_pkg shadow zypper $release_pkg vim iproute2 iputils grep";
 
     $self->setup_nspawn_container("node1", $pkg_repo, $pkgs_to_install);
     $self->setup_nspawn_container("node2", $pkg_repo, $pkgs_to_install);
