@@ -61,5 +61,5 @@ on 'test' => sub {
   requires 'Test::MockObject';
   requires 'Test::More', '0.88';
   requires 'Test::Warnings';
-  requires 'Test::YAML::Valid';
+  requires 'JSON::Validator';
 };
