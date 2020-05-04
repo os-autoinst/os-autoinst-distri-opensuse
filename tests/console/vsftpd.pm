@@ -53,4 +53,10 @@ sub run {
     upload_logs('run.log');
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    upload_logs('run.log');
+    $self->SUPER::post_fail_hook;
+}
+
 1;
