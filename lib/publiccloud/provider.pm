@@ -204,7 +204,7 @@ sub run_img_proof {
     $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
     $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
-    $cmd .= '--running-instance-id "' . $args{instance}->instance_id . '" ';
+    $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
 
     $cmd .= $args{tests};
     record_info("img-proof cmd", $cmd);

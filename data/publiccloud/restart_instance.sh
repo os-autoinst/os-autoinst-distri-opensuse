@@ -52,7 +52,7 @@ case $PROVIDER in
         aws ec2 reboot-instances  --instance-ids "$INSTANCE_ID"
         ;;
     AZURE)
-        az vm restart -g "$INSTANCE_ID" -n "$INSTANCE_ID" --no-wait
+        az vm restart --ids "$INSTANCE_ID" --no-wait
         ;;
     GCE)
         gcloud compute instances reset "$INSTANCE_ID" --zone "$ZONE"

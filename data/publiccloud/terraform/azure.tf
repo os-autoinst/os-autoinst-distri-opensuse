@@ -196,7 +196,7 @@ resource "azurerm_managed_disk" "ssd_disk" {
 
 
 output "vm_name" {
-    value = "${azurerm_virtual_machine.openqa-vm.*.name}"
+    value = "${azurerm_virtual_machine.openqa-vm.*.id}"
 }
 
 data "azurerm_public_ip" "openqa-publicip" {
