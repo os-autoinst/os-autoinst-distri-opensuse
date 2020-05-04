@@ -27,6 +27,7 @@ use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Path 'make_path';
+use LWP::Simple 'head';
 
 use xml_utils;
 
@@ -39,6 +40,7 @@ our @EXPORT = qw(
   upload_profile
   inject_registration
   init_autoyast_profile
+  test_ayp_url
   validate_autoyast_profile
 );
 
@@ -507,6 +509,19 @@ EOF
     return $profile;
 }
 
+=head2 test_ayp_url
 
+ test_ayp_url();
+
+ Test if the autoyast profile url is reachable, before the autoyast installation begins.
+
+=cut
+sub test_ayp_url {
+    my $ayp_url = get_var('AUTOYAST');
+    if ($ayp_url =~ /^http/) {
+        die "Autoyast profile url $ayp_url is unreachable " unless head($ayp_url);
+        record_info("ayp ok", "Autoyast profile url reachable");
+    }
+}
 
 1;

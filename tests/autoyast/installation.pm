@@ -45,6 +45,7 @@ use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
+use autoyast 'test_ayp_url';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -128,8 +129,8 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
+    test_ayp_url;
     my $test_data = get_test_suite_data();
-
     my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     my @expected_warnings;

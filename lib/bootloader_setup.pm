@@ -642,6 +642,8 @@ sub autoyast_boot_params {
         $autoyast_args .= $ay_var;
     }
     push @params, split ' ', $autoyast_args;
+    $autoyast_args =~ /autoyast=(?<url>\S+)/;
+    set_var('AUTOYAST', $+{url});
     return @params;
 }
 
