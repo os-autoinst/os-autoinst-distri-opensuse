@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,10 +32,12 @@ sub run {
     if (match_has_tag "ok_on_top") {
         record_info 'alt-o ignored', 'poo#42686 so try ret key';
         type_string "Default Keyring";                # Name of the keyring
+        wait_still_screen(1, 2);
         send_key "ret";                               # &Ok
     }
     else {
         type_string "Default Keyring";                # Name of the keyring
+        wait_still_screen(1, 2);
         send_key "alt-o";                             # &Ok
     }
     assert_screen "seahorse-password-dialog";         # Dialog "Passphrase for the new keyring"
