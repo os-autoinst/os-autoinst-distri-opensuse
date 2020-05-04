@@ -45,8 +45,8 @@ sub run {
     zypper_call('in jeos-firstboot') if is_leap;
 
     if ($is_generalhw_via_ssh) {
-        # Do not set eth0 down as we are connected through ssh!
-        assert_script_run("sed -i 's/ip link set down \"\$d\" #/if [ \"eth0\" != \"\$d\" ]; then ip link set down \"\$d\"; fi; #/' /usr/lib/jeos-firstboot");
+        # Do not set network down as we are connected through ssh!
+        assert_script_run("sed -i 's/ip link set down /# ip link set down/g' /usr/lib/jeos-firstboot");
     }
     # Remove current root password
     assert_script_run("sed -i 's/^root:[^:]*:/root:*:/' /etc/shadow", 600);
