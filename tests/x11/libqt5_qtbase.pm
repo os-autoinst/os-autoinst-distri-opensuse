@@ -55,7 +55,7 @@ sub run {
     send_key "alt-f4";                           # close program
 
     # Compile an application and run it, check that exits with 0
-    ensure_installed "gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel";
+    ensure_installed "gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel", timeout => 180;
 
     x11_start_program('xterm');
     assert_script_run 'cd data';
