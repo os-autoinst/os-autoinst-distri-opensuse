@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -74,7 +74,7 @@ sub run {
     #Forward server and test lookup
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");
     systemctl("start named.service");
-    validate_script_output('dig @localhost www.suse.com +short', sub { /\Q130.57.66.10\E/ });
+    validate_script_output('dig @localhost www.suse.com +short', sub { /\Q35.157.181.240\E/ });
     $self->cmd_handle("forwarders", "remove", ip => "10.0.2.3");
     record_soft_failure("bsc#1151138") if (systemctl("is-active named.service", ignore_failure => 1));
 
