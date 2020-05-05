@@ -227,7 +227,7 @@ sub on_terraform_apply_timeout {
         }
     }
 
-    assert_script_run("az group delete --yes --no-wait --name $resgroup");
+    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
 }
 
 sub on_terraform_destroy_timeout {
