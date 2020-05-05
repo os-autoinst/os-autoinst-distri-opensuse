@@ -37,7 +37,7 @@ sub run {
     }
     select_console 'x11';
     ensure_unlocked_desktop;
-    ensure_installed("libqt5-qttools yast2-installation");
+    ensure_installed("libqt5-qttools yast2-installation", timeout => 180);
 
     # Test designer-qt5
     x11_start_program('designer-qt5');
