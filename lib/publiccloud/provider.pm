@@ -360,7 +360,7 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->region . "' ";
         $cmd .= "-var 'name=" . $name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        $cmd .= sprintf(q(-var 'tags={"openqa_ttl":"%d"}' ), get_var('MAX_JOB_TIME', 7200) + 300);
+        $cmd .= sprintf(q(-var 'tags={"openqa_ttl":"%d"}' ), get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
             $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
