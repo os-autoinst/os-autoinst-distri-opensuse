@@ -241,7 +241,7 @@ sub start_service {
     clear_console;
 
     # Server is up and running, client can use it now!
-    script_run "( journalctl -fu nfs-server > /dev/$serialdev & )";
+    script_run "( journalctl -fu nfs-server -o short-precise > /dev/$serialdev & )";
     check_nfs_ready($rw, $ro);
 }
 

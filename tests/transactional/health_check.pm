@@ -77,7 +77,7 @@ sub run {
 }
 
 sub post_fail_hook {
-    script_run "journalctl -u health-checker > health-checker.log", 60;
+    script_run "journalctl -u health-checker -o short-precise > health-checker.log", 60;
     upload_logs "health-checker.log";
 
     # revert changes to rebootmgr.sh and reboot

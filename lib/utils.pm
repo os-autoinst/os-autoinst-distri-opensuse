@@ -1009,7 +1009,7 @@ sub handle_emergency {
     elsif (match_has_tag('emergency-mode')) {
         type_password;
         send_key 'ret';
-        script_run "journalctl --no-pager > /dev/$serialdev";
+        script_run "journalctl --no-pager -o short-precise > /dev/$serialdev";
         die "hit emergency mode";
     }
 }

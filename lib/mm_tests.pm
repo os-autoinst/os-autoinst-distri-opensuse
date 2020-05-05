@@ -34,7 +34,7 @@ sub configure_static_network {
     configure_default_gateway;
     configure_static_ip($ip);
     configure_static_dns(get_host_resolv_conf());
-    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager >/dev/$serialdev";
+    assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager -o short-precise >/dev/$serialdev";
 }
 
 sub configure_stunnel {
