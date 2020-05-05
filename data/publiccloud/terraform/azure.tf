@@ -1,5 +1,5 @@
 provider "azurerm" {
-   version = "<= 1.33"
+    features {}
 }
 
 variable "instance_count" {
@@ -74,7 +74,7 @@ resource "azurerm_subnet" "openqa-subnet" {
     name                 = "${azurerm_resource_group.openqa-group.name}-subnet"
     resource_group_name  = azurerm_resource_group.openqa-group.name
     virtual_network_name = azurerm_virtual_network.openqa-network.name
-    address_prefix       = "10.0.1.0/24"
+    address_prefixes       = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "openqa-publicip" {
@@ -103,11 +103,15 @@ resource "azurerm_network_security_group" "openqa-nsg" {
     }
 }
 
+resource "azurerm_subnet_network_security_group_association" "openqa-net-sec-association" {
+    subnet_id                   = azurerm_subnet.openqa-subnet.id
+    network_security_group_id   = azurerm_network_security_group.openqa-nsg.id
+}
+
 resource "azurerm_network_interface" "openqa-nic" {
     name                      = "${var.name}-${element(random_id.service.*.hex, count.index)}-nic"
     location                  = var.region
     resource_group_name       = azurerm_resource_group.openqa-group.name
-    network_security_group_id = azurerm_network_security_group.openqa-nsg.id
     count                     = var.instance_count
 
     ip_configuration {
