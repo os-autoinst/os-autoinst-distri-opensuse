@@ -131,7 +131,8 @@ sub run {
 
     test_ayp_url;
     my $test_data = get_test_suite_data();
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key);
+
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     my @expected_warnings;
     if (defined $test_data->{expected_warnings}) {
@@ -195,6 +196,11 @@ sub run {
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
             last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
+        }
+        elsif (match_has_tag('import-untrusted-gpg-key')) {
+            handle_untrusted_gpg_key;
+            @needles = grep { $_ ne 'import-untrusted-gpg-key' } @needles;
+            next;
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
             @needles       = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
