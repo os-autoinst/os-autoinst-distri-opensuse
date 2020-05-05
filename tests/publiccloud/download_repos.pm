@@ -30,6 +30,7 @@ sub run {
 
     my $ret = 0;
     for my $maintrepo (@repos) {
+        next if $maintrepo !~ m/^http/;
         my ($parent) = $maintrepo =~ 'https?://(.*)$';
         my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
         $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
