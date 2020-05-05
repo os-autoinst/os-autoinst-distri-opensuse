@@ -51,6 +51,7 @@ schedule:
 - console/rpcbind
 - sysauth/sssd
 - console/timezone
+- console/ntp_client
 - console/procps
 - '{{lshw}}'
 - console/kmod
