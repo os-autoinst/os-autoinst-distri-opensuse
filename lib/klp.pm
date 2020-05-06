@@ -20,6 +20,7 @@ use version_utils 'is_sle';
 
 our @EXPORT = qw(
   install_klp_product is_klp_pkg find_installed_klp_pkg klp_pkg_eq
+  verify_klp_pkg_installation
 );
 
 sub install_klp_product {
@@ -103,6 +104,80 @@ sub find_installed_klp_pkg {
     }
 
     return $klp_pkg;
+}
+
+sub _klp_pkg_get_kernel_modules {
+    my $klp_pkg = shift;
+
+    my @modules;
+    my $output = script_output("rpm -ql '$$klp_pkg{name}-$$klp_pkg{version}'");
+    for my $line (split /\n/, $output) {
+        if ($line =~ /\.ko$/) {
+            push @modules, $line;
+        }
+    }
+
+    if (!@modules) {
+        die "No kernel modules provided by \"$$klp_pkg{name}-$$klp_pkg{version}\"";
+    }
+
+    return \@modules;
+}
+
+sub klp_pkg_get_kernel_modules {
+    my $klp_pkg = shift;
+
+    if (!exists($$klp_pkg{kmods_cached})) {
+        $$klp_pkg{kmods_cached} = _klp_pkg_get_kernel_modules($klp_pkg);
+    }
+
+    return $$klp_pkg{kmods_cached};
+}
+
+sub verify_initrd_for_klp_pkg {
+    my $klp_pkg = shift;
+
+    # Inspect that the target kernel's initrd has been repopulated
+    # with all the required content, namely the livepatching dracut
+    # module and all kernel modules provided by the given livepatch
+    # package.
+    my %req_kmods           = map { $_ => 0 } @{klp_pkg_get_kernel_modules($klp_pkg)};
+    my $dracut_module_found = 0;
+
+    my $initrd = "/boot/initrd-$$klp_pkg{kver}-$$klp_pkg{kflavor}";
+    my $output = script_output("lsinitrd '$initrd'");
+    for my $line (split /\n/, $output) {
+        my @line = split(/\s/, $line);
+        if (!@line) {
+            next;
+        }
+        elsif (@line == 1 &&
+            ($line[0] eq 'kernel-livepatch' ||
+                $line[0] eq 'kgraft')) {
+            $dracut_module_found = 1;
+        }
+        elsif ($line[$#line] =~ /\.ko$/) {
+            my $kmod = "/$line[$#line]";
+            if (exists($req_kmods{$kmod})) {
+                $req_kmods{$kmod} = 1;
+            }
+        }
+    }
+
+    if (!$dracut_module_found) {
+        die "Kernel live patch dracut module not found in \"$initrd\"";
+    }
+
+    while (my ($kmod, $found) = each(%req_kmods)) {
+        if (!$found) {
+            die "Kernel module \"$kmod\" not found in \"$initrd\"";
+        }
+    }
+}
+
+sub verify_klp_pkg_installation {
+    my $klp_pkg = shift;
+    verify_initrd_for_klp_pkg($klp_pkg);
 }
 
 1;

@@ -279,6 +279,8 @@ sub update_kgraft {
         elsif (!klp_pkg_eq($installed_klp_pkg, $incident_klp_pkg)) {
             die "Unexpected kernel livepatch package installed after update";
         }
+
+        verify_klp_pkg_installation($incident_klp_pkg);
     }
 }
 
