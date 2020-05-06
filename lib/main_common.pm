@@ -2353,7 +2353,6 @@ sub load_security_tests_selinux {
 
     # Change SELinux from "permissive" mode to "enforcing" mode for testing
     loadtest "security/selinux/enforcing_mode_setup";
-
     # The following test modules must be run after "enforcing_mode_setup"
     loadtest "security/selinux/semanage_fcontext";
     loadtest "security/selinux/semanage_boolean";
@@ -2362,6 +2361,9 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/audit2allow";
     loadtest "security/selinux/semodule";
     loadtest "security/selinux/setsebool";
+    loadtest "security/selinux/restorecon";
+    loadtest "security/selinux/chcon";
+    loadtest "security/selinux/chcat";
 }
 
 sub load_security_tests_mok_enroll {
