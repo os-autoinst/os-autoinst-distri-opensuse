@@ -76,7 +76,16 @@ sub run {
 
     # Save output info to logfile
     if (is_sle) {
-        my $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);
+        my $out;
+        my $timeout  = bmwqemu::scale_timeout(30);
+        my $waittime = bmwqemu::scale_timeout(5);
+        while (1) {
+            $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);
+            last if (($timeout < 0) || ($out !~ /System management is locked by the application with pid/));
+            sleep $waittime;
+            $timeout -= $waittime;
+            diag "SUSEConnect --status-text locked: $out";
+        }
         diag "SUSEConnect --status-text: $out";
         assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'" unless get_var('MEDIA_UPGRADE');
     }
