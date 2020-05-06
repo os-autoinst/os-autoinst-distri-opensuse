@@ -64,8 +64,8 @@ host_ips = ["10.0.0.2", "10.0.0.3"]
 # Local folder where HANA installation master will be mounted
 hana_inst_folder = "/root/hana_inst_media"
 
-# HA packages Repository
-ha_sap_deployment_repo = "https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/SLE_%SLE_VERSION%"
+# HA packages repository
+ha_sap_deployment_repo = "%HA_SAP_REPO%/SLE_%SLE_VERSION%"
 
 # Optional SUSE Customer Center Registration parameters
 #reg_code = "<<REG_CODE>>"
