@@ -60,7 +60,7 @@ sub check_package {
         my ($in_ver, $in_rel) = split '-', $in_vr;
         my ($up_ver, $up_rel) = split '-', script_output("rpm -q --qf '%{V}-%{R}' $package");
 
-        $up_rel =~ s/lp// if is_leap;
+        $up_rel =~ s/lp\d+\.(?:mo\.)?//;
         $in_ver = version->declare($in_ver);
         $in_rel = version->declare($in_rel);
         $up_ver = version->declare($up_ver);
@@ -79,7 +79,7 @@ sub run {
 
     script_run "rebootmgrctl set-strategy off";
 
-    if (is_leap && get_var('BETA')) {
+    if (get_var('BETA')) {
         record_info 'Remove pkgs', 'Remove preinstalled packages on Leap BETA';
         trup_call "pkg remove update-test-[^t]*";
         process_reboot 1;
