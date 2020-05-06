@@ -86,7 +86,7 @@ if (get_var 'STACK_ROLE') {
     loadtest 'shutdown/shutdown';
 }
 else {
-    load_boot_from_dvd_tests;
+    load_boot_from_dvd_tests unless get_var 'BOOT_HDD_IMAGE';
     if (get_var 'SYSTEM_ROLE') {
         load_installation_tests;
     }
