@@ -641,6 +641,7 @@ sub restart_firefox {
     # exit firefox properly
     wait_still_screen 2;
     $self->exit_firefox_common;
+    assert_script_run('time wait $(pidof firefox)');
     type_string "$cmd\n";
     type_string "firefox $url >>firefox.log 2>&1 &\n";
     $self->firefox_check_default;
