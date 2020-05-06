@@ -13,11 +13,17 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
 
     assert_script_run 'timedatectl';
+
+    if (is_sle) {
+        systemctl 'enable chronyd';
+        systemctl 'start chronyd';
+    }
 
     # ensure that ntpd is neither installed nor enabled nor active
     systemctl 'is-active ntpd',  expect_false => 1;
