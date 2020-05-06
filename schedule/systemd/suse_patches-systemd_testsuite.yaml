@@ -3,7 +3,7 @@ description:    >
     Maintainer: slindomansilla <slindomansilla@suse.com>
     Modified upstream testsuite to be run as system test.
 conditional_schedule:
-    systemd_testsuite_15SP2ORLATER:
+    systemd_testsuite_if_VERSION:
         VERSION:
             '15.2':
                 - systemd_testsuite/test_16_extend_timeout
@@ -29,6 +29,15 @@ conditional_schedule:
                 - systemd_testsuite/test_20_mainpidgames
                 - systemd_testsuite/test_21_sysusers
                 - systemd_testsuite/test_23_type_exec
+                - systemd_testsuite/test_26_setenv
+                - systemd_testsuite/test_27_stdoutfile
+                - systemd_testsuite/test_28_percentj_wantedby
+                - systemd_testsuite/test_29_udev_id_renaming
+                - systemd_testsuite/test_30_onclockchange
+                - systemd_testsuite/test_31_device_enumeration
+                - systemd_testsuite/test_32_oompolicy
+                - systemd_testsuite/test_33_clean_unit
+                - systemd_testsuite/test_34_dynamicusermigrate
 schedule:
     - boot/boot_to_desktop
     - systemd_testsuite/binary_tests
@@ -47,5 +56,5 @@ schedule:
     - systemd_testsuite/test_14_machine_id
     - systemd_testsuite/test_15_dropin
     - systemd_testsuite/test_22_tmpfiles
-    - '{{systemd_testsuite_15SP2ORLATER}}'
+    - '{{systemd_testsuite_if_VERSION}}'
     - shutdown/shutdown
