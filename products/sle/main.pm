@@ -474,6 +474,7 @@ sub load_online_migration_tests {
         loadtest "migration/sle12_online_migration/zypper_migration";
     }
     loadtest "migration/sle12_online_migration/post_migration";
+    loadtest "console/check_system_info" if (is_sle && (get_var('FLAVOR') =~ /Milestone/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
 }
 
 sub load_patching_tests {
@@ -1103,6 +1104,7 @@ else {
             loadtest "console/consoletest_setup";
             loadtest 'console/integration_services' if is_hyperv || is_vmware;
             loadtest "console/zypper_lr";
+            loadtest "console/check_system_info" if (is_sle && (get_var('FLAVOR') =~ /Milestone/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
         }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {
