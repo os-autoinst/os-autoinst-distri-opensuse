@@ -19,7 +19,7 @@ use utils;
 use version_utils 'is_sle';
 
 our @EXPORT = qw(
-  install_klp_product is_klp_pkg
+  install_klp_product is_klp_pkg find_installed_klp_pkg klp_pkg_eq
 );
 
 sub install_klp_product {
@@ -74,6 +74,35 @@ sub is_klp_pkg {
     }
 
     return undef;
+}
+
+sub klp_pkg_eq {
+    my ($klp_pkg1, $klp_pkg2) = @_;
+
+    return ($$klp_pkg1{name} eq $$klp_pkg2{name} &&
+          $$klp_pkg1{version} eq $$klp_pkg2{version});
+}
+
+sub find_installed_klp_pkg {
+    my ($kver, $kflavor) = @_;
+
+    my $pkgs = zypper_search("-s -i -t package");
+    my $klp_pkg;
+    foreach my $pkg (@$pkgs) {
+        my $cur_klp_pkg = is_klp_pkg($pkg);
+
+        if ($cur_klp_pkg &&
+            $$cur_klp_pkg{kver} eq $kver &&
+            $$cur_klp_pkg{kflavor} eq $kflavor) {
+            if ($klp_pkg && !klp_pkg_eq($klp_pkg, $cur_klp_pkg)) {
+                die "Multiple live patch packages installed for kernel";
+            }
+
+            $klp_pkg = $cur_klp_pkg;
+        }
+    }
+
+    return $klp_pkg;
 }
 
 1;
