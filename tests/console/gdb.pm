@@ -1,7 +1,7 @@
 
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,9 +23,6 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils;
-use Utils::Architectures;
-use registration;
 
 
 sub wait_serial_or_die {
@@ -39,18 +36,13 @@ sub wait_serial_or_die {
 
 
 sub run {
-    #Setup console for text feedback.
     select_console("root-console");
-    if (is_sle('=12-SP5') && is_aarch64()) {
-        register_product;
-        add_suseconnect_product 'sle-sdk';
-    }
     zypper_call('in gcc glibc-devel gdb');    #Install test dependencies.
 
     #Test Case 1
     assert_script_run("curl -O " . data_url('gdb/test1.c'));
     assert_script_run("gcc -g -std=c99 test1.c -o test1");
-    type_string("gdb test1 >/dev/$serialdev\n");
+    type_string("gdb test1 | tee /dev/$serialdev\n");
     wait_serial_or_die("GNU gdb");
     #Needed because colour codes mess up the output on $serialdev
     type_string("set style enabled 0\n");
@@ -64,7 +56,7 @@ sub run {
     #Test Case 2
     assert_script_run("curl -O " . data_url('gdb/test2.c'));
     assert_script_run("gcc -g -std=c99  test2.c -o test2");
-    type_string("gdb test2 > /dev/$serialdev\n");
+    type_string("gdb test2 | tee /dev/$serialdev\n");
     wait_serial_or_die(qr/GNU gdb/);
     type_string("set style enabled 0\n");
     type_string("run\n");
@@ -80,14 +72,12 @@ sub run {
     wait_serial_or_die("Inferior");
     type_string("y\n");
 
-
     #Test 3
     assert_script_run("curl -O " . data_url('gdb/test3.c'));
     assert_script_run("gcc -g -std=c99 test3.c -o test3");
     script_run("./test3 & echo 'this is a workaround'");
     assert_script_run("pidof test3");    #Make sure the process was launched.
-    type_string('gdb -p $(pidof test3)' . " > /dev/$serialdev");
-    type_string("\n");
+    type_string("gdb -p \$(pidof test3) | tee /dev/$serialdev\n");
     wait_serial_or_die("Attaching to process", 10);
     type_string("set style enabled 0\n");
     type_string("break test3.c:9\n");
@@ -99,9 +89,6 @@ sub run {
     type_string("y\n");
     type_string("y\n");                  #Workaround to handle sshserial behavior
     assert_script_run("pkill -9 test3");
-    if (is_sle('=12-SP5') && is_aarch64()) {
-        cleanup_registration;
-    }
 }
 
 1;

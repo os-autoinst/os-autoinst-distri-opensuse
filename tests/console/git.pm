@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,12 +22,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils;
+use utils qw(zypper_call);
 
 sub run {
-
     my $username = $testapi::username;
     my $email    = "you\@example.com";
+    my ($self)   = shift;
     select_console "root-console";
 
     prepare_ssh_localhost_key_login 'root';
@@ -45,7 +45,6 @@ sub run {
     assert_script_run("cd ~/repos;git clone --bare qa1 qa0");
 
     # Clone repo via ssh
-    type_string("clear\n");
     script_run("git clone ssh://localhost:/root/repos/qa0 qa2 | tee /dev/$serialdev", 0);
     assert_screen("input-yes");
     type_string("yes\n");
@@ -54,9 +53,7 @@ sub run {
     # Push update via ssh
     assert_script_run("cd ~/repos/qa2;echo \"Update\" >> README");
     assert_script_run("git add README;git commit  -m \"Update README\"");
-    type_string("clear\n");
     script_run("git push ssh://localhost:/root/repos/qa0 | tee /dev/$serialdev", 0);
-    assert_screen 'root-console';
 
     # git clone via https protocol
     assert_script_run("cd ~;git clone -q https://github.com/os-autoinst/os-autoinst-distri-example");

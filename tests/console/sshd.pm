@@ -108,8 +108,9 @@ sub run {
     assert_script_run "ssh -4v $ssh_testman\@localhost bash -c 'whoami | grep $ssh_testman'";
 
     # Port forwarding (bsc#1131709 bsc#1133386)
-    assert_script_run "( ssh -vv -L 4242:localhost:22 $ssh_testman\@localhost sleep 9999 & )";
-    assert_script_run "( ssh -vv -R 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost sleep 9999 & )";
+    assert_script_run "( ssh -NL 4242:localhost:22 $ssh_testman\@localhost & )";
+    assert_script_run "( ssh -NR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost & )";
+    sleep(1);
     assert_script_run "ssh-keyscan -p 4242 localhost >> ~/.ssh/known_hosts";
     assert_script_run "ssh-keyscan -p 5252 localhost >> ~/.ssh/known_hosts";
 
@@ -135,7 +136,6 @@ sub run {
 
     assert_script_run "killall -u $ssh_testman || true";
     wait_still_screen 3;
-    clear_console;
 }
 
 sub test_flags {

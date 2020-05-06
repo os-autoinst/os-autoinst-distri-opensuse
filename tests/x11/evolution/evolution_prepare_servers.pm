@@ -1,6 +1,6 @@
 # Evolution tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -93,21 +93,9 @@ sub run() {
 
     # create test users
     assert_script_run "useradd -m admin";
-    script_run "passwd admin", 0;    # set user's password
-    type_password "password123";
-    wait_still_screen(1);
-    send_key 'ret';
-    type_password "password123";
-    wait_still_screen(1);
-    send_key 'ret';
-
+    assert_script_run "expect -c 'spawn passwd admin;expect sword:;send password123\\r;expect sword:;send password123\\r;interact'";
     assert_script_run "useradd -m nimda";
-    script_run "passwd nimda", 0;    # set user's password
-    type_password "password123";
-    send_key 'ret';
-    type_password "password123";
-    send_key 'ret';
-    save_screenshot;
+    assert_script_run "expect -c 'spawn passwd nimda;expect sword:;send password123\\r;expect sword:;send password123\\r;interact'";
 
     systemctl 'status dovecot';
     systemctl 'status postfix';

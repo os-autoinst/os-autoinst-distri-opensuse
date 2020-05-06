@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,8 +12,8 @@
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
 # - Save screenshot
-# - Disable mail notifications
 # - Disable/stop serial-getty service
+# - Disable mail notifications system-wide
 # - Disable/stop packagekit service
 # - Enable pipefail
 # Maintainer: Oliver Kurz <okurz@suse.de>
@@ -26,32 +26,24 @@ use Utils::Systemd 'disable_and_stop_service';
 use strict;
 use warnings;
 
-sub disable_bash_mail_notification {
-    assert_script_run "unset MAILCHECK >> ~/.bashrc";
-    assert_script_run "unset MAILCHECK";
-}
-
 sub run {
     my $self = shift;
     # let's see how it looks at the beginning
     save_screenshot;
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
-    # Prevent mail notification messages to show up in shell and interfere with running console tests
-    disable_bash_mail_notification;
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     disable_serial_getty;
     # init
     check_console_font if has_ttys();
 
+    # Prevent mail notification messages to show up in shell and interfere with running console tests
+    script_run 'echo "unset MAILCHECK" >> /etc/bash.bashrc.local';
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
     $self->clear_and_verify_console;
-    select_console 'user-console';
-    # Shell enviromental variable MAILCHECK has to be updated for both users
-    disable_bash_mail_notification;
 }
 
 sub post_fail_hook {
