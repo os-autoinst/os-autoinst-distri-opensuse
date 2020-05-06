@@ -330,6 +330,7 @@ sub terraform_apply {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media            = get_required_var('HANA');
         my $sap_regcode          = get_required_var('SCC_REGCODE_SLES4SAP');
+        my $ha_sap_repo          = get_required_var('HA_SAP_REPO');
         my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
         my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
         my $sle_version          = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
@@ -342,6 +343,7 @@ sub terraform_apply {
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
             q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
             q(%STORAGE_ACCOUNT_KEY%)  => $storage_account_key,
+            q(%HA_SAP_REPO%)          => $ha_sap_repo,
             q(%SLE_VERSION%)          => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);

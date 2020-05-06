@@ -106,10 +106,8 @@ drbd_ips = ["10.74.1.21", "10.74.1.22"]
 # Enable drbd cluster
 drbd_enabled = true
 
-# Repository url used to install HA/SAP deployment packages
-# The latest RPM packages can be found at:
-# https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/{YOUR OS VERSION}
-ha_sap_deployment_repo = "https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/SLE_%SLE_VERSION%"
+# HA packages repository
+ha_sap_deployment_repo = "%HA_SAP_REPO%/SLE_%SLE_VERSION%"
 
 # Optional SUSE Customer Center Registration parameters
 #reg_code = "<<REG_CODE>>"
