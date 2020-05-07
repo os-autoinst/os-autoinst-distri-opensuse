@@ -30,7 +30,6 @@ use warnings;
 use utils 'zypper_call';
 
 sub run {
-    my $password = $testapi::password;
     select_console 'root-console';
     zypper_call 'in vsftpd expect';
     # export slenkins variables
@@ -39,11 +38,6 @@ sub run {
     # hosts entry for ssh-copy-id with expect
     assert_script_run 'echo "$SERVER server" >>/etc/hosts';
     assert_script_run 'echo "$CLIENT client" >>/etc/hosts';
-    # copy ssh keys on server and client
-    assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
-    assert_script_run "expect -c 'spawn ssh-copy-id client;expect \"yes\";send \"yes\\r\";expect \"Password\";send \"$password\\r\";interact'";
-    assert_script_run "expect -c 'spawn ssh-copy-id server;expect \"yes\";send \"yes\\r\";interact'";
-    assert_script_run "expect -c 'spawn ssh-copy-id 127.0.0.1;expect \"yes\";send \"yes\\r\";interact'";
     # extract vsftpd testsuite in /tmp/vsftpd
     assert_script_run 'cd /tmp';
     assert_script_run 'wget ' . data_url('qam/vsftpd.tar.gz');

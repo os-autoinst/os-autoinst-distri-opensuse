@@ -11,31 +11,46 @@
 # Summary: console test pre setup, performing actions required to run tests
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
-# - Save screenshot
+# - Setup passwordless & questionless ssh login to localhost 127.0.0.1 ::1
 # - Disable/stop serial-getty service
 # - Disable mail notifications system-wide
+# - Enable pipefail system-wide
 # - Disable/stop packagekit service
-# - Enable pipefail
+# - Check console font
+
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
 use testapi;
 use utils qw(check_console_font disable_serial_getty);
-use Utils::Backends qw(has_ttys use_ssh_serial_console);
-use Utils::Systemd 'disable_and_stop_service';
+use Utils::Backends qw(has_ttys);
+use Utils::Systemd qw(disable_and_stop_service systemctl);
 use strict;
 use warnings;
 
+
 sub run {
     my $self = shift;
-    # let's see how it looks at the beginning
-    save_screenshot;
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    $self->select_serial_terminal;
+
+    systemctl('start sshd');
+
+    # generate ssh key and use same key for root and bernhard
+    if (script_run('! test -e ~/.ssh/id_rsa') == 0) {
+        assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
+    }
+
+    # copy and add root key into authorized_keys and public key into known_hosts of both root and bernhard
+    assert_script_run('mkdir -pv ~/.ssh ~bernhard/.ssh');
+    assert_script_run('cp ~/.ssh/id_rsa ~bernhard/.ssh/id_rsa');
+    assert_script_run('touch ~{,bernhard}/.ssh/{authorized_keys,known_hosts}');
+    assert_script_run('chmod 600 ~{,bernhard}/.ssh/*');
+    assert_script_run('chown bernhard ~bernhard/.ssh/*');
+    assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~{,bernhard}/.ssh/authorized_keys');
+    assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,bernhard}/.ssh/known_hosts");
 
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     disable_serial_getty;
-    # init
-    check_console_font if has_ttys();
 
     # Prevent mail notification messages to show up in shell and interfere with running console tests
     script_run 'echo "unset MAILCHECK" >> /etc/bash.bashrc.local';
@@ -43,7 +58,8 @@ sub run {
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
-    $self->clear_and_verify_console;
+    # init
+    check_console_font if has_ttys();
 }
 
 sub post_fail_hook {
