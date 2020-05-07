@@ -57,6 +57,9 @@ sub run {
     for (1 .. 25) {
         send_key 'f5';
         wait_still_screen;
+        send_key 'home';
+        assert_and_click 'openqa-job-details';
+        wait_still_screen;
         last if check_screen('openqa-testresult', 60);
     }
     assert_screen 'openqa-testresult';
