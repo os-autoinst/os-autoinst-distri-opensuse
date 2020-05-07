@@ -36,6 +36,7 @@ our @EXPORT = qw(
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
   untick_welcome_on_next_startup
+  workaround_boo1170586
 );
 
 =head1 X11_UTILS
@@ -320,6 +321,18 @@ sub untick_welcome_on_next_startup {
         last                                          if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
+}
+
+=head2 workaround_boo1170586
+
+ workaround_boo1170586();
+
+Kill broken opensuse-welcome window and restart it properly to workaround boo#1170586.
+
+=cut
+sub workaround_boo1170586 {
+    x11_start_program('killall /usr/bin/opensuse-welcome', target_match => 'generic-desktop');
+    x11_start_program('opensuse-welcome');
 }
 
 1;

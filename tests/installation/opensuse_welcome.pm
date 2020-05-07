@@ -16,10 +16,11 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use x11utils 'untick_welcome_on_next_startup';
+use x11utils qw(untick_welcome_on_next_startup workaround_boo1170586);
 
 sub run {
-    assert_screen("opensuse-welcome");
+    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1170586)]);
+    workaround_boo1170586 if match_has_tag("opensuse-welcome-boo1170586");
     untick_welcome_on_next_startup;
 }
 
