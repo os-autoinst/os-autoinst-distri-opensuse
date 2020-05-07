@@ -1724,7 +1724,7 @@ sub load_extra_tests_docker {
 sub load_extra_tests_prepare {
     # setup $serialdev permission and so on
     loadtest "console/prepare_test_data";
-    loadtest "console/consoletest_setup" unless get_var('PUBLIC_CLOUD');
+    loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
 }
 

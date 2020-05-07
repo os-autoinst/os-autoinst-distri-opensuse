@@ -29,8 +29,6 @@ sub run {
     my $email    = "you\@example.com";
     select_console "root-console";
 
-    prepare_ssh_localhost_key_login 'root';
-
     # Create a test repo
     zypper_call("in git-core");
     assert_script_run("mkdir -p repos/qa1;cd repos/qa1");
@@ -45,9 +43,6 @@ sub run {
 
     # Clone repo via ssh
     script_run("git clone ssh://localhost:/root/repos/qa0 qa2 | tee /dev/$serialdev", 0);
-    assert_screen("input-yes");
-    type_string("yes\n");
-    assert_screen 'root-console';
 
     # Push update via ssh
     assert_script_run("cd ~/repos/qa2;echo \"Update\" >> README");

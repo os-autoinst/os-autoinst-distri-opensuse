@@ -39,6 +39,8 @@ sub run {
     my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in1';
     assert_script_run('echo -e "Match User ' . $ssh_testman . '\n\tPasswordAuthentication yes" >> /etc/ssh/sshd_config') if (get_var('PUBLIC_CLOUD'));
 
+    zypper_call('in expect');
+
     # 'nc' is not installed by default on JeOS
     if (script_run("which nc")) {
         zypper_call("in netcat-openbsd");
@@ -67,36 +69,27 @@ sub run {
     my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
     assert_script_run("useradd -m $ssh_testman");
     assert_script_run("echo $changepwd | chpasswd");
+    assert_script_run("usermod -aG \$(stat -c %G /dev/$serialdev) $ssh_testman");
 
-    opensusebasetest::select_serial_terminal();
-    if (is_serial_terminal()) {
-        # Make interactive SSH connection as the new user
-        type_string "ssh -v -l $ssh_testman localhost -t\n";
-        wait_serial('Are you sure you want to continue connecting \(yes/no(/\[fingerprint\])?\)\?', undef, 0, no_regex => 0);
-        type_string "yes\n";
-        wait_serial('[P|p]assword:', undef, 0, no_regex => 0);
-        type_string "$ssh_testman_passwd\n";
-        wait_serial('sshboy@', undef, 0, no_regex => 1);
-        type_string "export PS1='# '\n";
+    # Backup/rename ~/.ssh , generated in consotest_setup, to ~/.ssh_bck
+    assert_script_run 'mv ~/.ssh ~/.ssh_bck' unless get_var('INSTALLATION_VALIDATION') =~ /sshd/;
 
-        # Check that we are really in the SSH session
-        assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
-        assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
-        assert_script_run "whoami | grep $ssh_testman";
-        assert_script_run "mkdir .ssh";
+    # avoid harmless failures in virtio-console due to unexpected PS1
+    assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
 
-        # Exit properly and check we're root again
-        script_run("exit", 0);
-        assert_script_run "whoami | grep root";
-    }
-    else {
-        record_info("VirtIO N/A", "The VirtIO serial terminal is not available over here");
-        # Since we don't have the VirtIO serial terminal we need to gather public keys manually
-        assert_script_run "install -m 1700 -d ~/.ssh";
-        assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 > ~/.ssh/known_hosts";
-    }
+    # Make interactive SSH connection as the new user
+    type_string "expect -c 'spawn ssh $ssh_testman\@localhost -t;expect \"Are you sure\";send yes\\n;expect sword:;send $ssh_testman_passwd\\n;interact'\n";
+    sleep(1);
 
-    select_console 'root-console';
+    # Check that we are really in the SSH session
+    assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
+    assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
+    assert_script_run "whoami | grep $ssh_testman";
+    assert_script_run "mkdir .ssh";
+
+    # Exit properly and check we're root again
+    script_run("exit", 0);
+    assert_script_run "whoami | grep root";
 
     # Generate RSA key for SSH and copy it to our new user's profile
     assert_script_run "ssh-keygen -t rsa -P '' -C 'root\@localhost' -f ~/.ssh/id_rsa";
@@ -131,8 +124,8 @@ sub run {
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/{group,passwd}' /tmp";
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
 
-    # Remove the ~/.ssh folder
-    assert_script_run "rm -r ~/.ssh/";
+    # Restore ~/.ssh generated in consotest_setup
+    assert_script_run 'rm -rf ~/.ssh && mv ~/.ssh_bck ~/.ssh' unless get_var('INSTALLATION_VALIDATION') =~ /sshd/;
 
     assert_script_run "killall -u $ssh_testman || true";
     wait_still_screen 3;
