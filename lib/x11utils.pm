@@ -34,6 +34,7 @@ our @EXPORT = qw(
   handle_relogin
   handle_welcome_screen
   select_user_gnome
+  turn_off_screensaver
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
@@ -310,6 +311,21 @@ Disable suspend in gnome. To be called from a command prompt, for example an xte
 =cut
 sub turn_off_gnome_suspend {
     script_run 'gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type \'nothing\'';
+}
+
+=head2 turn_off_screensaver
+
+ turn_off_screensaver();
+
+Turns off the screensaver depending on desktop environment
+
+=cut
+sub turn_off_screensaver {
+    return turn_off_kde_screensaver if check_var('DESKTOP', 'kde');
+    die "Unsupported desktop '" . get_var('DESKTOP', '') . "'" unless check_var('DESKTOP', 'gnome');
+    x11_start_program('xterm');
+    turn_off_gnome_screensaver;
+    script_run 'exit', 0;
 }
 
 =head2 untick_welcome_on_next_startup
