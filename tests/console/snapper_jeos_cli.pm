@@ -16,8 +16,26 @@ use utils;
 use strict;
 use warnings;
 use power_action_utils qw(power_action);
-use version_utils qw(is_sle);
 
+
+
+sub check_package
+{
+    my ($not_installed, $pkgname, $check_path) = @_;
+    my $error = 'Package is ' . ($not_installed ? ' ' : ' not ') . ' installed';
+    my $ret   = script_run("rpm -q $pkgname");
+    die($error) if ($not_installed) ? !$ret : $ret;
+    $ret = script_run("ls -l $check_path");
+    die($error) if ($not_installed) ? !$ret : $ret;
+    $ret = script_run("$pkgname --help");
+    die($error) if ($not_installed) ? !$ret : $ret;
+}
+
+=head2 rollback_and_reboot
+
+    End2end flow for snapper to rollback
+
+=cut
 sub rollback_and_reboot {
     my ($self, $rollback_id) = @_;
     assert_script_run("snapper rollback $rollback_id");
@@ -33,14 +51,21 @@ sub run {
 
     select_console('root-console');
     my $file       = '/etc/openQA_snapper_test';
+    my $pkgname    = 'zsh';
+    my $check_path = '/usr/share/zsh/functions';
     my $openqainit = script_output("snapper create -p -d openqainit");
+
     assert_script_run("head -c 10000 < /dev/urandom > $file");
     my $checksum_orig = script_output("sha256sum $file");
-    my $openqalatest  = script_output("snapper create -p -d openqalatest");
+    check_package(1, $pkgname, $check_path);
+    zypper_call("in $pkgname");
+    check_package(0, $pkgname, $check_path);
+    my $openqalatest = script_output("snapper create -p -d openqalatest");
     assert_script_run("snapper list");
 
     $self->rollback_and_reboot($openqainit);
     assert_script_run("! ls -l $file");
+    check_package(1, $pkgname, $check_path);
 
     $self->rollback_and_reboot($openqalatest);
     my $checksum = script_output("sha256sum $file");
@@ -49,6 +74,7 @@ sub run {
 
     $self->rollback_and_reboot($openqainit);
     assert_script_run("! ls -l $file");
+    check_package(1, $pkgname, $check_path);
 
 }
 
