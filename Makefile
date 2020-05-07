@@ -58,12 +58,14 @@ test-compile-changed: os-autoinst/
 
 .PHONY: test-yaml-valid
 test-yaml-valid:
-	@# Get list of changed yaml files
-	$(eval YAMLS=$(shell sh -c "git --no-pager diff --diff-filter=dr --name-only master | grep '\(schedule\|test_data\)/.*\.y.\?ml$$'"))
-	if test -n "$(YAMLS)"; then \
-	  export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid $(YAMLS);\
+	@# Get list of changed yaml files. We only want to lint changed files for
+	@# now because yamllint complains about a lot of existing files
+	$(eval YAMLS=$(shell sh -c "git ls-files schedule/ test_data/ | grep '/.*\.y.\?ml$$'"))
+	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid $(YAMLS);\
+	$(eval CHANGED_YAMLS=$(shell sh -c "git --no-pager diff --diff-filter=dr --name-only master | grep '\(schedule\|test_data\)/.*\.y.\?ml$$'"))
+	if test -n "$(CHANGED_YAMLS)"; then \
 	  which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
-	  yamllint -c .yamllint $(YAMLS);\
+	  yamllint -c .yamllint $(CHANGED_YAMLS);\
 	else \
 	  echo "No yamls modified.";\
 	fi

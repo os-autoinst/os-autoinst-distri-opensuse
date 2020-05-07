@@ -568,7 +568,7 @@ sub sync_start_of {
         }
     }
     # if we get here means that service failed to start
-    script_run("journalctl -u $service");
+    script_run("journalctl -u $service -o short-precise");
     # we creating this mutex anyway even so we know that we fail to start service
     # to not cause dead-lock
     die("Create mutex failed") unless mutex_create($mutex);

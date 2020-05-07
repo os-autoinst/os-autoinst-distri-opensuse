@@ -1,0 +1,86 @@
+---
+name: mau-extratests
+schedule:
+- '{{zkvm_boot}}'
+- boot/boot_to_desktop
+- console/prepare_test_data
+- console/consoletest_setup
+- console/check_os_release
+- console/openvswitch
+- console/pam
+- console/sshd
+- console/update_alternatives
+- console/rpm
+- console/slp
+- '{{sound}}'
+- console/libvorbis
+- console/command_not_found
+- console/openssl_alpn
+- console/autoyast_removed
+- console/cron
+- console/syslog
+- console/mta
+- '{{yast2_lan_device_settings}}'
+- console/check_default_network_manager
+- console/git
+- console/cups
+- console/java
+- console/sqlite3
+- console/gdb
+- console/sysctl
+- console/sysstat
+- console/krb5
+- console/curl_ipv6
+- console/wget_ipv6
+- console/ca_certificates_mozilla
+- console/unzip
+- console/gpg
+- console/rsync
+- console/clamav
+- console/shells
+- console/sudo
+- console/dstat
+- x11/evolution/evolution_prepare_servers
+- console/mutt
+- console/supportutils
+- console/mdadm
+- console/journalctl
+- console/journalctlLevels
+- console/quota
+- console/vhostmd
+- console/rpcbind
+- sysauth/sssd
+- console/timezone
+- console/procps
+- '{{lshw}}'
+- console/kmod
+- console/suse_module_tools
+- console/zziplib
+- console/firewalld
+- console/aaa_base
+- console/osinfo_db
+- console/libgcrypt
+- console/libqca2
+- console/gd
+- console/valgrind
+- console/sssd_samba
+- console/coredump_collect
+conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+  sound:
+    ARCH:
+      x86_64:
+        - console/aplay
+        - console/wavpack
+  yast2_lan_device_settings:
+    ARCH:
+      x86_64:
+        - console/yast2_lan_device_settings
+  lshw:
+    ARCH:
+      x86_64:
+        - console/lshw
+...

@@ -1,7 +1,34 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+use FindBin '$Bin';
 use Test::More;
-use Test::YAML::Valid qw(-Tiny);
+use YAML::PP;
+use JSON::Validator;
 
-pass("No yaml files modified") unless @ARGV;
-yaml_file_ok($_, $_) for @ARGV;
+my $schema_file = "$Bin/../t/schema/Schedule-1.yaml";
+my $validator = JSON::Validator->new;
+$validator = eval { $validator->load_and_validate_schema($schema_file) };
+if (my $err = $@) {
+    diag $err;
+    BAIL_OUT("Schema $schema_file invalid");
+}
+
+pass("Nothing to do") unless @ARGV;
+for my $file (@ARGV) {
+    my $data = eval { YAML::PP::LoadFile($file) };
+    if (my $err = $@) {
+        fail("$file has invalid yaml syntax");
+        diag "Error: $err";
+    }
+    else {
+        pass("$file has valid yaml syntax");
+    }
+    if ($file =~ m{schedule/}) {
+        my @errors = $validator->validate($data);
+        is(scalar @errors, 0, "$file passes schema validation")
+            or diag @errors;
+    }
+}
+
 done_testing();

@@ -65,7 +65,7 @@ sub ensure_ssh_unblocked {
 sub check_default_target {
     # Check the systemd target where scenario make it possible
     return if (is_caasp || is_upgrade || is_hyperv ||
-        get_var('REMOTE_CONTROLLER') || (get_var('BACKEND', '') =~ /spvm|pvm_hmc/));
+        get_var('REMOTE_CONTROLLER') || (get_var('BACKEND', '') =~ /spvm|pvm_hmc|ipmi/));
     # exclude non-desktop environment and scenarios with edition of package selection (bsc#1167736)
     return if (!get_var('DESKTOP') || get_var('PATTERNS'));
 

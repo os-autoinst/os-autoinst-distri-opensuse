@@ -80,6 +80,11 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    script_run("dmesg > /tmp/dmesg.log");
+    upload_logs "/tmp/dmesg.log";
+    upload_logs "/var/log/messages";
+    my $screenlog = script_output("ls -rt /var/log/qaset/calls | tail -n 1");
+    upload_logs "/var/log/qaset/calls/$screenlog";
 }
 
 sub test_flags {

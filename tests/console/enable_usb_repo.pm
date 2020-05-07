@@ -20,12 +20,22 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    my $repo_num = script_output 'zypper lr --uri | awk \'$0 ~ /hd:\/(\/\/)?\?device=\/dev\/disk\/by-id\/usb-/ {print $1}\'';
+    my $flavor = get_var("FLAVOR");
+    my $repo_num;
+    # In case of Full medium, test skips registration so all module repo URIs point to USB drive.
+    if ($flavor eq "Full") {
+        my $sle_prod = uc get_var('SLE_PRODUCT') . get_var('VERSION');
+        $repo_num = script_output "zypper lr --uri | grep \"$sle_prod\" | awk \'\$0 ~ /hd:\\/(\\/\\/)?\\?device=\\/dev\\/disk\\/by-id\\/usb-/ {print \$1}\'";
+    }
+    else {
+        $repo_num = script_output 'zypper lr --uri | awk \'$0 ~ /hd:\/(\/\/)?\?device=\/dev\/disk\/by-id\/usb-/ {print $1}\'';
+    }
     if ($repo_num !~ /^\d+$/) {
         record_info("Serial polluted", "Serial output was polluted: Assuming first repo is USB", result => 'fail');
         $repo_num = 1;
     }
     zypper_call("mr -e $repo_num");
+
 }
 
 1;

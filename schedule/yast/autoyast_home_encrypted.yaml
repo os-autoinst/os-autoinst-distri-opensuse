@@ -1,0 +1,75 @@
+---
+name: autoyast_home_encrypted
+description: |
+  Gnome installation with separate /home partition encrypted
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/verify_separate_home
+  - console/validate_encrypt
+  - autoyast/console
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  $include: test_data/yast/encryption/encrypt_home.yaml
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/sda
+          partitions:
+            - partition:
+                unique_key: mount
+                mount: swap
+            - partition:
+                unique_key: mount
+                mount: /
+                filesystem: btrfs
+                subvolumes:
+                  - subvolume:
+                      unique_key: path
+                      path: usr/local
+                      copy_on_write: 'true'
+                  - subvolume:
+                      unique_key: path
+                      path: opt
+                      copy_on_write: 'true'
+                  - subvolume:
+                      unique_key: path
+                      path: tmp
+                      copy_on_write: 'true'
+                  - subvolume:
+                      unique_key: path
+                      path: root
+                      copy_on_write: 'true'
+                  - subvolume:
+                      unique_key: path
+                      path: boot/grub2/i386-pc
+                      copy_on_write: 'true'
+                  - subvolume:
+                      unique_key: path
+                      path: boot/grub2/x86_64-efi
+                      copy_on_write: 'true'
+                  - subvolume:
+                      unique_key: path
+                      path: var
+                      copy_on_write: 'false'
+                  - subvolume:
+                      unique_key: path
+                      path: srv
+                      copy_on_write: 'true'
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 1
+            - partition:
+                unique_key: mount
+                mount: /home
+                crypt_key: ENTER KEY HERE
+                crypt_method: luks1
+                filesystem: xfs

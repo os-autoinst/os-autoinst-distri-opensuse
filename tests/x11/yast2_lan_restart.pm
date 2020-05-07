@@ -90,9 +90,14 @@ sub run {
     unless (is_network_manager_default) {
         # Run detailed check only if explicitly configured in the test suite
         check_etc_hosts_update() if get_var('VALIDATE_ETC_HOSTS');
-        verify_network_configuration(\&check_network_card_setup_tabs);
+        record_info "check_network_card_setup_tabs";
+        my $service_status_after_conf = (is_sle('<=15')) ? 'no_restart_or_reload' : 'reload';
+        verify_network_configuration(\&check_network_card_setup_tabs, $service_status_after_conf);
+        record_info "check_default_gateway";
         verify_network_configuration(\&check_default_gateway);
-        verify_network_configuration(\&change_hw_device_name, 'dyn0', 'restart');
+        record_info "change_hw_device_name";
+        $service_status_after_conf = (is_sle('<=15-SP1')) ? 'restart' : 'reload';
+        verify_network_configuration(\&change_hw_device_name, $service_status_after_conf, 'dyn0');
     }
     type_string "killall xterm\n";
 }

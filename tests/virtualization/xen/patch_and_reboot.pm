@@ -15,6 +15,7 @@ use warnings;
 use strict;
 use power_action_utils 'power_action';
 use ipmi_backend_utils;
+use virt_autotest::kernel;
 use testapi;
 use utils;
 use qam;
@@ -24,20 +25,18 @@ sub run {
 
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
-    # Check the virt-related packages before
-    script_run 'zypper lr -d';
-    script_run 'rpm -qa | grep -i xen | nl';
-    script_run 'rpm -qa | grep -i irt | nl';
-    script_run 'rpm -qa | grep -i emu | nl';
+    check_virt_kernel('', 'before');
+    script_run "zypper lr -d";
+    script_run "rpm -qa > /tmp/rpm-qa-before.txt";
+    upload_logs("/tmp/rpm-qa-before.txt");
 
     add_test_repositories;
     fully_patch_system;
 
-    # Check the virt-related packages before
-    script_run 'zypper lr -d';
-    script_run 'rpm -qa | grep -i xen | nl';
-    script_run 'rpm -qa | grep -i irt | nl';
-    script_run 'rpm -qa | grep -i emu | nl';
+    check_virt_kernel('', 'after');
+    script_run "zypper lr -d";
+    script_run "rpm -qa > /tmp/rpm-qa-after.txt";
+    upload_logs("/tmp/rpm-qa-after.txt");
 
     # Check that all guests are still running
     script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %xen::guests);

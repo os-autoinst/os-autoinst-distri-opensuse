@@ -39,12 +39,12 @@ use testapi;
 # have various useful general info included in videos
 sub run {
     select_console 'root-console';
-    # If we're doing this test as the user root, we will not find the textinfo script
-    # in /home/root, so we'll set $home with the appropiate home directory
-    my $home = $username eq 'root' ? '/root' : "/home/$username";
-    assert_script_run("$home/data/textinfo 2>&1 | tee /tmp/info.txt", 150);
+    assert_script_run('curl -O ' . data_url('textinfo'));
+    assert_script_run('chmod +x textinfo');
+    assert_script_run("./textinfo 2>&1 | tee /tmp/info.txt", 150);
     upload_logs("/tmp/info.txt");
     upload_logs("/tmp/logs.tar.bz2");
+    assert_script_run('rm textinfo');
 }
 
 1;

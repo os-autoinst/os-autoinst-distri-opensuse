@@ -45,6 +45,8 @@ our @EXPORT = qw(
   close_xterm
 );
 my $module_name;
+# Keeping "shutting down|ifdown all" for compatibility with NetworkManager and previous wicked versions.
+my $query_pattern_for_restart = "shutting down|ifdown all|Stopping wicked";
 
 =head2 initialize_y2lan
 
@@ -70,9 +72,8 @@ sub initialize_y2lan
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
-    # Keeping "shutting down|ifdown all" for compatibility with NetworkManager and previous wicked versions.
-    type_string "journalctl -f|egrep -i --line-buffered 'shutting down|ifdown all|Stopping wicked' > journal.log &\n";
-    assert_script_run '> journal.log';     # clear journal.log
+    type_string "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &\n";
+    clear_journal_log();
 }
 
 =head2 open_network_settings
@@ -138,7 +139,7 @@ Check network status for device, test connection and DNS. Print journal.log on s
 =cut
 sub check_network_status {
     my ($expected_status, $device) = @_;
-    $expected_status //= 'no_restart';
+    $expected_status //= 'no_restart_or_reload';
     assert_screen 'yast2_closed_xterm_visible', 120;
     assert_script_run 'ip a';
     if ($device eq 'bond') {
@@ -148,15 +149,23 @@ sub check_network_status {
         assert_script_run 'dig suse.com|grep \'status: NOERROR\'';    # test if conection and DNS is working
     }
     assert_script_run 'cat journal.log';                              # print journal.log
-    my $is_empty = script_run('[ -s journal.log ]');
-    if ($is_empty) {
-        assert_equals($expected_status, 'no_restart', "Network restart didn't occur, even though it was expected.");
+    my $journal_findings = script_output('cat journal.log');
+    record_info "$expected_status", "Network status expects $expected_status";
+    if ($expected_status eq 'no_restart_or_reload') {
+        assert_matches(qr/^\s*$/, $journal_findings, "Network service should not have been restarted/reloaded. Check journalctl findings \n$journal_findings\n\n");
+    }
+    elsif ($expected_status eq 'restart') {
+        assert_matches(qr/$query_pattern_for_restart/, $journal_findings, "Network restart was expected. Check journalctl findings \n$journal_findings\n\n");
+    }
+    elsif ($expected_status eq 'reload') {
+        assert_matches(qr/Reloaded wicked/, $journal_findings, "Network reload was expected. Check journalctl findings \n$journal_findings\n\n");
+        assert_not_matches(qr/$query_pattern_for_restart/, $journal_findings, "Network restart happened when reload was expected. Check journalctl findings \n$journal_findings\n\n");
     }
     else {
-        assert_equals($expected_status, 'restart', "Network restart occurred, even though it wasn't expected.");
+        die "$expected_status was not any of the known expected status! Check journalctl findings \n$journal_findings\n\n";
     }
-    assert_script_run '> journal.log';                                # clear journal.log
-    type_string "\n\n";                                               # make space for better readability of the console
+    clear_journal_log();
+    type_string "\n\n";    # make space for better readability of the console
 }
 
 =head2 check_device_state
@@ -174,13 +183,13 @@ sub check_device_state {
 
 =head2 verify_network_configuration
 
- verify_network_configuration([$fn], [$dev_name], [$expected_status], [$workaround], [$no_network_check]);
+ verify_network_configuration([$fn], [$expected_status], [$dev_name], [$workaround], [$no_network_check]);
 
 C<$fn> is a reference to the function with the action to be performed.
 
 C<$dev_name> is device name.
 
-C<$expected_status> can be restart.
+C<$expected_status> can be restart, no_restart or reload. If undef is set to no_restart.
 
 C<$workaround> is workaround.
 
@@ -192,7 +201,7 @@ Check network status C<$expected_status>, C<$workaround> if C<$no_network_check>
 
 =cut
 sub verify_network_configuration {
-    my ($fn, $dev_name, $expected_status, $workaround, $no_network_check) = @_;
+    my ($fn, $expected_status, $dev_name, $workaround, $no_network_check) = @_;
     open_network_settings;
 
     $fn->($dev_name) if $fn;    # verify specific action

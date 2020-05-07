@@ -27,7 +27,7 @@ sub run {
             $partitioner->add_partition_msdos({disk => $disk->{name}, partition => $partition});
         }
     }
-    $partitioner->accept_changes();
+    $partitioner->accept_changes_and_press_next();
 }
 1;
 

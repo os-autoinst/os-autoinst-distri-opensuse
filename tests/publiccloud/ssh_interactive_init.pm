@@ -23,8 +23,8 @@ sub run {
 
     # Create public cloud instance
     my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance(check_connectivity => 0);
-    $instance->wait_for_ssh(timeout => 300);
+    my $instance = $provider->create_instance(check_connectivity => 1);
+    $instance->wait_for_guestregister();
     $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
 
@@ -43,7 +43,7 @@ sub run {
     assert_script_run("chown -R " . $testapi::username . " /home/" . $testapi::username . "/.ssh/");
 
     # configure ssh server, allow root and password login
-    $instance->run_ssh_command(cmd => 'hostname -f');
+    $instance->run_ssh_command(cmd => 'hostname');
     $instance->run_ssh_command(cmd => 'sudo sed -i "s/PasswordAuthentication/#PasswordAuthentication/" /etc/ssh/sshd_config; echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config');
     $instance->run_ssh_command(cmd => 'sudo sed -i "s/ChallengeResponseAuthentication/#ChallengeResponseAuthentication/" /etc/ssh/sshd_config; echo "ChallengeResponseAuthentication no" | sudo tee -a /etc/ssh/sshd_config');
     $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd root');

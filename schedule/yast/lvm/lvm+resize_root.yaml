@@ -1,0 +1,52 @@
+---
+name: lvm+resize_root
+description: |
+  Select LVM during installation and try to resize
+  the root LV to span more than 40GB which is selected as default.
+  See  bsc#989976, bsc#1000165
+vars:
+  DESKTOP: textmode
+  HDDSIZEGB: 50
+  LVM: 1
+  RESIZE_ROOT_VOLUME: 1
+  SEPARATE_HOME: 0
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/lvm_no_separate_home
+  - installation/partitioning_resize_root
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/consoletest_finish
+  - console/validate_modify_existing_partition
+test_data:
+  root:
+    disk: current-volume-management
+    existing_partition: root
+    mount_point: /
+    expert_partitioner_from: current
+    part_size: 45GiB
+    lsblk_expected_size_output: 45G

@@ -68,6 +68,7 @@ sub y2snapper_adding_new_snapper_conf {
     assert_script_run("btrfs subvolume create /test");
     assert_script_run("snapper -c test create-config /test");
     assert_script_run('sed -i \'/^TIMELINE_CREATE/ s/yes/no/\' /etc/snapper/configs/test');
+    assert_script_run('snapper cleanup timeline');
 }
 
 =head2 y2snapper_create_snapshot

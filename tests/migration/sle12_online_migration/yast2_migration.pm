@@ -204,8 +204,8 @@ sub run {
     }
     assert_screen 'yast2-migration-target';
     send_key "alt-p";                                       # focus on the item of possible migration targets
-    send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 5;
-    wait_still_screen 5;
+    assert_screen 'yast2-migration-target-list-selected', 20;
+    send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 20, 3;
     send_key "alt-n";
     assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 500;
     if (match_has_tag 'yast2-migration-installupdate') {
@@ -283,7 +283,7 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    $self->save_and_upload_log('journalctl -b', '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
     $self->export_logs_desktop;
     $self->SUPER::post_fail_hook;
 }

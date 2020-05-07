@@ -7,7 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: Apply patches to the all of our guests
+# Summary: Apply patches to the all of our guests and reboot them
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -17,33 +17,42 @@ use testapi;
 use qam 'ssh_add_test_repositories';
 use utils;
 use xen;
+use version_utils;
+use virt_autotest::kernel;
 
 sub run {
     my ($self) = @_;
-    my $version = get_var('VERSION');
+    my ($host_running_version, $host_running_sp) = get_sles_release();
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
+    my ($guest_running_version, $guest_running_sp);
     foreach my $guest (keys %xen::guests) {
-        my $distro = $xen::guests{$guest}->{distro};
-        $distro =~ tr/_/-/;
-        if ($distro =~ m/$version/) {
-            record_info "$guest", "Adding test repositories and patching the $guest system";
+        ($guest_running_version, $guest_running_sp) = get_sles_release("ssh root\@$guest");
 
-            # Check the virt-related packages before
-            script_run "ssh root\@$guest zypper lr -d";
-            script_run "ssh root\@$guest rpm -qa | grep -i xen | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i irt | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i emu | nl";
-
+        record_info "$guest", "Adding test repositories and patching the $guest system";
+        if ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp) {
             ssh_add_test_repositories "$guest";
-            ssh_fully_patch_system "$guest";
 
-            # Check the virt-related packages before
+            check_virt_kernel($guest, 'before');
             script_run "ssh root\@$guest zypper lr -d";
-            script_run "ssh root\@$guest rpm -qa | grep -i xen | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i irt | nl";
-            script_run "ssh root\@$guest rpm -qa | grep -i emu | nl";
+            script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-before.txt";
+            upload_logs("/tmp/rpm-qa-$guest-before.txt");
+
+            ssh_fully_patch_system "$guest";
         }
+
+        record_info "REBOOT", "Rebooting the $guest";
+
+        assert_script_run "ssh root\@$guest 'reboot' || true";
+        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
+            record_soft_failure "Reboot on $guest failed";
+            script_run "virsh destroy $guest",      90;
+            assert_script_run "virsh start $guest", 60;
+        }
+
+        check_virt_kernel($guest, 'after');
+        script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-after.txt";
+        upload_logs("/tmp/rpm-qa-$guest-after.txt");
     }
 }
 

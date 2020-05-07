@@ -76,9 +76,15 @@ END_SCRIPT
         assert_script_run(q{echo 'ForwardToConsole=yes' >> /etc/systemd/journald.conf});
         assert_script_run(q{echo 'MaxLevelConsole=debug' >> /etc/systemd/journald.conf});
         assert_script_run(qq{echo 'TTYPath=/dev/$serialdev' >> /etc/systemd/journald.conf});
-        assert_script_run(q{systemctl restart systemd-journald});
+        # Before updating this value again, check the system logs
+        assert_script_run(q{systemctl restart systemd-journald}, 120);
     }
 }
 
-1;
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    $self->save_and_upload_systemd_unit_log('systemd-journald');
+}
 
+1;

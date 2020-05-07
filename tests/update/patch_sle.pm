@@ -224,7 +224,7 @@ sub install_patterns {
             record_soft_failure 'bsc#1034541';
             next;
         }
-        zypper_call("in -t pattern $pt", timeout => 1200);
+        zypper_call("in -t pattern $pt", timeout => 1800);
 
     }
 }
@@ -272,7 +272,8 @@ sub sle_register {
                 assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf");
                 if (get_var('NCC_REGCODE_SDK')) {
                     my $reg_code_sdk = get_required_var('NCC_REGCODE_SDK');
-                    assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code -a regcode-sles=$reg_code_sdk", 300);
+                    assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code -a regcode-sdk=$reg_code_sdk", 300);
+                    zypper_call("ar http://schnell.suse.de/SLE11/SLE-11-SP4-SDK-GM/s390x/DVD1/ sdk");
                 } else {
                     assert_script_run("suse_register -a email=$reg_mail -a regcode-sles=$reg_code", 300);
                 }

@@ -681,6 +681,7 @@
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
+      <package>iputils</package>
       <package>wicked</package>
       <package>wget</package>
       <package>vim</package>

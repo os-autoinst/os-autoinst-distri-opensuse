@@ -1,0 +1,30 @@
+---
+name: single machine HPC tests
+description:    >
+     Maintainer: schlad
+     all singe machine HPC tests based loaded based on hpctest
+vars:
+  DESKTOP: textmode
+  PATTERNS: base,minimal
+  SLE_PRODUCT: hpc
+  HDDSIZEGB: 30
+conditional_schedule:
+  bootmenu:
+    ARCH:
+      aarch64:
+        - boot/uefi_bootmenu
+  hpctest:
+    HPC:
+      conman:
+        - hpc/conman
+      powerman:
+        - hpc/powerman
+      genders:
+        - hpc/genders
+      rasdaemon:
+        - hpc/rasdaemon
+schedule:
+  - '{{bootmenu}}'
+  - boot/boot_to_desktop
+  - hpc/before_test
+  - '{{hpctest}}'

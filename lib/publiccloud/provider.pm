@@ -204,7 +204,7 @@ sub run_img_proof {
     $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
     $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
     $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
-    $cmd .= '--running-instance-id "' . $args{instance}->instance_id . '" ';
+    $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
 
     $cmd .= $args{tests};
     record_info("img-proof cmd", $cmd);
@@ -330,6 +330,7 @@ sub terraform_apply {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media            = get_required_var('HANA');
         my $sap_regcode          = get_required_var('SCC_REGCODE_SLES4SAP');
+        my $ha_sap_repo          = get_required_var('HA_SAP_REPO');
         my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
         my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
         my $sle_version          = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
@@ -342,6 +343,7 @@ sub terraform_apply {
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
             q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
             q(%STORAGE_ACCOUNT_KEY%)  => $storage_account_key,
+            q(%HA_SAP_REPO%)          => $ha_sap_repo,
             q(%SLE_VERSION%)          => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
@@ -360,7 +362,7 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->region . "' ";
         $cmd .= "-var 'name=" . $name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        $cmd .= sprintf(q(-var 'tags={"openqa_ttl":"%d"}' ), get_var('MAX_JOB_TIME', 7200) + 300);
+        $cmd .= sprintf(q(-var 'tags={"openqa_ttl":"%d"}' ), get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
             $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
@@ -392,16 +394,8 @@ sub terraform_apply {
     my $vms;
     my $ips;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        $vms = $output->{cluster_nodes_name}->{value};
-        $ips = $output->{cluster_nodes_public_ip}->{value};
-        foreach my $others_vms (qw(drbd iscsisrv)) {
-            my $tmp_name_var = "${others_vms}_name";
-            my $tmp_ip_var   = "${others_vms}_public_ip";
-            my $tmp_vms      = $output->{${tmp_name_var}}->{value};
-            my $tmp_ips      = $output->{${tmp_ip_var}}->{value};
-            push @{$vms}, @{$tmp_vms} if defined $tmp_vms;
-            push @{$ips}, @{$tmp_ips} if defined $tmp_ips;
-        }
+        $vms = $output->{openqa_vms}->{value};
+        $ips = $output->{openqa_ips}->{value};
     }
     else {
         $vms = $output->{vm_name}->{value};

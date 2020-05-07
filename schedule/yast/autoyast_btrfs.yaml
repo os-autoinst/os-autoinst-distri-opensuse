@@ -29,7 +29,7 @@ test_data:
     partitioning:
       - drive:
           unique_key: enable_snapshots
-          enable_snapshots: true
+          enable_snapshots: 'true'
           partitions:
             - partition:
                 unique_key: mount
@@ -43,15 +43,15 @@ test_data:
                   - subvolume:
                       unique_key: path
                       path: usr/local
-                      copy_on_write: true
+                      copy_on_write: 'true'
                   - subvolume:
                       unique_key: path
                       path: opt
-                      copy_on_write: true
+                      copy_on_write: 'true'
                   - subvolume:
                       unique_key: path
                       path: tmp
-                      copy_on_write: false
+                      copy_on_write: 'false'
             - partition:
                 unique_key: mount
                 mount: /var/log

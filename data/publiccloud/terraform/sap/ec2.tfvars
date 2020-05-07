@@ -60,9 +60,8 @@ hana_cluster_vip = "192.168.1.10"
 # example : host_ips = ["10.0.0.5", "10.0.1.6"]
 host_ips = ["10.0.0.5", "10.0.1.6"]
 
-# Repository url used to install install HA/SAP deployment packages (OS version must be ommited)"
-# Contains the salt formulas
-ha_sap_deployment_repo = "https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/SLE_%SLE_VERSION%"
+# HA packages repository
+ha_sap_deployment_repo = "%HA_SAP_REPO%/SLE_%SLE_VERSION%"
 
 # Optional SUSE Customer Center Registration parameters
 #reg_code = "<<REG_CODE>>"

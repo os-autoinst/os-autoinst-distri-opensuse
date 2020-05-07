@@ -39,12 +39,13 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
-use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
+use power_action_utils 'prepare_system_shutdown';
 use version_utils qw(is_sle is_caasp is_released);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
+use autoyast 'test_ayp_url';
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -128,9 +129,10 @@ sub verify_timeout_and_check_screen {
 sub run {
     my ($self) = @_;
 
+    test_ayp_url;
     my $test_data = get_test_suite_data();
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key);
 
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed);
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     my @expected_warnings;
     if (defined $test_data->{expected_warnings}) {
@@ -159,7 +161,8 @@ sub run {
     # resolve conflicts and this is a workaround during the update
     push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
     # match openSUSE Welcome dialog on matching distros
-    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
+    push(@needles, 'opensuse-welcome')        if opensuse_welcome_applicable;
+    push(@needles, 'salt-formula-motd-setup') if get_var("SALT_FORMULAS_PATH");
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
         push(@needles, 'inst-betawarning');
@@ -193,6 +196,11 @@ sub run {
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
             last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
+        }
+        elsif (match_has_tag('import-untrusted-gpg-key')) {
+            handle_untrusted_gpg_key;
+            @needles = grep { $_ ne 'import-untrusted-gpg-key' } @needles;
+            next;
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
             @needles       = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
@@ -267,6 +275,16 @@ sub run {
             wait_screen_change { send_key 'alt-u' };
             next;
         }
+        elsif (match_has_tag('salt-formula-motd-setup')) {
+            @needles = grep { $_ ne 'salt-formula-motd-setup' } @needles;
+            # used for salt-formulas
+            send_key 'alt-m';
+            type_string "$test_data->{motd_text}";
+            assert_screen 'salt-formulas-motd-changed';
+            send_key $cmd{next};
+            assert_screen 'salt-formulas-running-provisioner';
+            next;
+        }
         elsif (match_has_tag('autoyast-postpartscript')) {
             @needles        = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
@@ -305,13 +323,6 @@ sub run {
 
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
     if (check_var('ARCH', 's390x')) {
-        # Due to bsc#1167210, the system is shut down on reboot on zkvm on SP2.
-        # This is workaround to connect to the shut off machine.
-        if (is_sle('>=15-sp2')) {
-            record_soft_failure('bsc#1167210 - System shuts down instead of reboot on zkvm');
-            console('installation')->disable_vnc_stalls;
-            assert_shutdown_and_restore_system('reboot', 120);
-        }
         reconnect_mgmt_console(timeout => 500);
         return;
     }

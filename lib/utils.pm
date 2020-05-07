@@ -579,14 +579,16 @@ sub zypper_ar {
     my $params       = $args{params}       // '';
     my $no_gpg_check = $args{no_gpg_check} // '';
 
-    $priority     = defined($priority) ? "-p $priority"  : "";
-    $no_gpg_check = $no_gpg_check      ? "--no-gpgcheck" : "";
-    my $cmd_ar  = "--gpg-auto-import-keys ar -f $priority $no_gpg_check $params $url";
+    $no_gpg_check = $no_gpg_check ? "--no-gpgcheck" : "";
+    my $prioarg = defined($priority) && !is_sle('<12') ? "-p $priority" : "";
+    my $cmd_ar  = "--gpg-auto-import-keys ar -f $prioarg $no_gpg_check $params $url";
+    my $cmd_mr  = "mr -p $priority $url";
     my $cmd_ref = "--gpg-auto-import-keys ref";
 
     # repo file
     if (!$name) {
         zypper_call($cmd_ar);
+        zypper_call($cmd_mr) if $priority && is_sle('<12');
         return zypper_call($cmd_ref);
     }
 
@@ -594,6 +596,7 @@ sub zypper_ar {
     my $out = script_output("LC_ALL=C zypper lr $name 2>&1", proceed_on_failure => 1);
     if ($out =~ /Repository.*$name.*not found/i) {
         zypper_call("$cmd_ar $name");
+        zypper_call($cmd_mr) if $priority && is_sle('<12');
         return zypper_call("$cmd_ref --repo $name");
     }
 }
@@ -1006,7 +1009,7 @@ sub handle_emergency {
     elsif (match_has_tag('emergency-mode')) {
         type_password;
         send_key 'ret';
-        script_run "journalctl --no-pager > /dev/$serialdev";
+        script_run "journalctl --no-pager -o short-precise > /dev/$serialdev";
         die "hit emergency mode";
     }
 }

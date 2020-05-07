@@ -150,7 +150,7 @@ sub check_device {
 
     add_device($device);
     select_special_device_tab($device);
-    check_network_status('no_restart', $device);
+    check_network_status('no_restart_or_reload', $device);
     delete_device($device);
 }
 
@@ -169,7 +169,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    assert_script_run 'journalctl -b > /tmp/journal', 90;
+    assert_script_run 'journalctl -b -o short-precise > /tmp/journal', 90;
     upload_logs '/tmp/journal';
     $self->SUPER::post_fail_hook;
 }
