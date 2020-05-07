@@ -20,7 +20,7 @@ use version_utils 'is_sle';
 
 our @EXPORT = qw(
   install_klp_product is_klp_pkg find_installed_klp_pkg klp_pkg_eq
-  verify_klp_pkg_installation
+  verify_klp_pkg_installation verify_klp_pkg_patch_is_active
 );
 
 sub install_klp_product {
@@ -134,6 +134,38 @@ sub klp_pkg_get_kernel_modules {
     return $$klp_pkg{kmods_cached};
 }
 
+sub _klp_pkg_get_gitrev {
+    my $klp_pkg = shift;
+
+    my $pkg_name = "$$klp_pkg{name}-$$klp_pkg{version}";
+    my $output   = script_output("rpm -qi '$pkg_name'");
+    my $gitrev;
+    for my $line (split /\n/, $output) {
+        if ($line =~ /^GIT Revision:\s+([a-z0-9]+)$/) {
+            if ($gitrev) {
+                die "Multiple GIT revisions found in description for package '$pkg_name'";
+            }
+
+            $gitrev = lc($1);
+        }
+    }
+    if (!$gitrev) {
+        die "No GIT revision found in description for package '$pkg_name'";
+    }
+
+    return $gitrev;
+}
+
+sub klp_pkg_get_gitrev {
+    my $klp_pkg = shift;
+
+    if (!exists($$klp_pkg{gitrev_cached})) {
+        $$klp_pkg{gitrev_cached} = _klp_pkg_get_gitrev($klp_pkg);
+    }
+
+    return $$klp_pkg{gitrev_cached};
+}
+
 sub verify_initrd_for_klp_pkg {
     my $klp_pkg = shift;
 
@@ -178,6 +210,148 @@ sub verify_initrd_for_klp_pkg {
 sub verify_klp_pkg_installation {
     my $klp_pkg = shift;
     verify_initrd_for_klp_pkg($klp_pkg);
+}
+
+sub _klp_tool {
+    if (!is_sle('15+')) {
+        return "kgr";
+    }
+    return "klp";
+}
+
+sub klp_tool_patches {
+    my $klp_tool = _klp_tool();
+    my $output   = script_output("$klp_tool -v patches");
+
+    my @patches;
+    my $cur_patch;
+    for my $line (split /\n/, $output) {
+        # Lines with fields further describing the current patch are
+        # prefixed by whitespace.
+        if ($line =~ /^\s/) {
+            if (!$cur_patch ||
+                !($line =~ /^\s+([^:]+):\s*(.*)/)) {
+                die "Unexpected output from '$klp_tool patches': $line";
+            }
+
+            $$cur_patch{$1} = $2;
+        }
+        elsif (length($line)) {
+            $cur_patch = {name => $line};
+            push @patches, $cur_patch;
+        } else {
+            $cur_patch = undef;
+        }
+    }
+
+    return \@patches;
+}
+
+sub klp_wait_for_transition {
+    my $klp_tool = _klp_tool();
+    my $timeout  = 61;
+
+    while ($timeout--) {
+        my $output = script_output("$klp_tool status");
+        chomp($output);
+        if ($output eq 'ready') {
+            last;
+        } elsif ($output eq 'in_progress') {
+            sleep(1) unless !$timeout;
+        } else {
+            die "Unrecognized output from '$klp_tool status': '$output'";
+        }
+    }
+
+    if (!$timeout) {
+        die "Kernel livepatch transition did not finish in time";
+    }
+
+    # As an additional sanity check, verify that the list of blocking
+    # tasks as reported by '$klp_tool blocking' is empty.
+    my $output = script_output("$klp_tool blocking");
+    chomp($output);
+    if (length($output)) {
+        die "$klp_tool reported blocking tasks in ready state: '$output'";
+    }
+}
+
+sub verify_klp_pkg_patch_is_active {
+    my $klp_pkg = shift;
+
+    # Wait for the current livepatch transition, if any, to complete.
+    klp_wait_for_transition();
+
+    # Verify that 'klp patches' reports the expected livepatch
+    # name. Note that the livepatch name displayed by 'klp patches' is
+    # the corresponding module's KBUILD_MODNAME.
+    my $kmods = klp_pkg_get_kernel_modules($klp_pkg);
+    if (@$kmods != 1) {
+        die "No support for livepatch packages with multiple kernel modules";
+    }
+
+    my $klp_name = $$kmods[0];
+    $klp_name =~ s/\.ko$//;         # strip suffix
+    $klp_name =~ s,^([^/]*/)*,,;    # strip directory
+    $klp_name =~ tr/ ,-/:__/;       # transform to KBUILD_MODNAME
+
+    my $patches = klp_tool_patches();
+    my $active_patch;
+    foreach my $cur_patch (@$patches) {
+        if (!exists $$cur_patch{active}) {
+            die "No 'active' field for '$$cur_patch{name}' in 'klp patches' output";
+        }
+
+        if ($$cur_patch{active} eq '1') {
+            if ($active_patch) {
+                die "More than one kernel livepatch active";
+            }
+            $active_patch = $cur_patch;
+        }
+    }
+
+    if (!$active_patch) {
+        die "No active kernel livepatch found";
+    }
+    elsif ($$active_patch{name} ne $klp_name) {
+        die "Expected active kernel livepatch '$klp_name', got '$$active_patch{name}'";
+    }
+
+    # As an additional sanity check, verify that the RPM reported by
+    # $klp_tool matches what would be expected from the given
+    # $klp_pkg.
+    if (!exists $$active_patch{RPM}) {
+        die "No 'RPM' field for $klp_name in 'klp patches' output";
+    }
+
+    my $rpm = $$active_patch{RPM};
+    $rpm =~ s/\.[^.]+$//;    # strip arch suffix
+    if ($rpm ne "$$klp_pkg{name}-$$klp_pkg{version}") {
+        die "Expected active livepatch from package '$$klp_pkg{name}', got '$rpm'";
+    }
+
+    # Finally check that uname -v has changed, i.e. that the reported
+    # livepatch git revision matches the one from the package
+    # description.
+    my $output = script_output("uname -v");
+    my $uname_v_gitrev;
+    chomp($output);
+    if ($output =~ m,\([a-z0-9]+/(?:lp|kGraft)-([a-z0-9]+)\)$,i) {
+        $uname_v_gitrev = lc($1);
+    }
+    else {
+        die "Unable to recognize livepatch tag in 'uname -v' output: '$output'";
+    }
+
+    my $pkgdesc_gitrev     = klp_pkg_get_gitrev($klp_pkg);
+    my $pkgdesc_gitrev_len = length($pkgdesc_gitrev);
+    my $uname_v_gitrev_len = length($uname_v_gitrev);
+    if (($pkgdesc_gitrev_len > $uname_v_gitrev_len &&
+            substr($pkgdesc_gitrev, 0, $uname_v_gitrev_len) ne $uname_v_gitrev) ||
+        ($pkgdesc_gitrev_len <= $uname_v_gitrev_len &&
+            $pkgdesc_gitrev ne substr($uname_v_gitrev, 0, $pkgdesc_gitrev_len))) {
+        die "Livepatch package GIT rev '$pkgdesc_gitrev' doesn't match '$uname_v_gitrev' from 'uname -v'";
+    }
 }
 
 1;

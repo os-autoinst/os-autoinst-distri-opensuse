@@ -280,6 +280,7 @@ sub update_kgraft {
             die "Unexpected kernel livepatch package installed after update";
         }
 
+        verify_klp_pkg_patch_is_active($incident_klp_pkg);
         verify_klp_pkg_installation($incident_klp_pkg);
     }
 }
@@ -331,6 +332,7 @@ sub run {
             power_action('reboot', textmode => 1);
 
             boot_to_console($self);
+            verify_klp_pkg_patch_is_active($incident_klp_pkg);
         }
 
         kgraft_state;
