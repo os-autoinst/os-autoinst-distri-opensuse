@@ -98,6 +98,16 @@ qa_mode = true
 # true or false (default)
 #hwcct = false
 
+# DRBD variables
+
+drbd_enabled = true
+#drbd_machine_type = "t2.xlarge"
+drbd_os_image = { "%REGION%" = "%SLE_IMAGE%" }
+#drbd_data_disk_size = "10"
+#drbd_data_disk_type = "gp2"
+drbd_ips = ["10.0.4.10", "10.0.5.11"]
+drbd_cluster_vip = "192.168.1.30"
+
 # Netweaver variables
 
 #netweaver_enabled = true
