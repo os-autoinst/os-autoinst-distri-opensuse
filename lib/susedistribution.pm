@@ -776,8 +776,10 @@ sub activate_console {
             }
         }
         assert_screen "text-logged-in-$user", 60;
-        $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        assert_screen $console;
+        unless ($args{skip_set_standard_prompt}) {
+            $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
+            assert_screen $console;
+        }
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
         serial_terminal::login($user, $self->{serial_term_prompt});
