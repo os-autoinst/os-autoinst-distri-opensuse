@@ -1,9 +1,0 @@
-<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<service>
-  <short>NIS</short>
-  <description>NIS workaround</description>
-  <port protocol=\"tcp\" port=\"111\"/>
-  <port protocol=\"tcp\" port=\"639\"/>
-  <port protocol=\"udp\" port=\"111\"/>
-  <port protocol=\"udp\" port=\"637\"/>
-</service>
