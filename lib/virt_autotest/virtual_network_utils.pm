@@ -85,6 +85,12 @@ sub test_network_interface {
         assert_script_run("! ssh root\@$addr 'ping -I $nic -c 3 $target' || true", 60);
     }
     save_screenshot;
+
+    # Restore the network interface to the default for the Xen guests
+    if (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) {
+        assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-$nic'");
+    }
+
 }
 
 sub download_network_cfg {
