@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -85,7 +85,7 @@ sub generate_vnc_events {
     mouse_click;
 
     send_key 'alt-f4';
-    wait_serial 'vncviewer-finished';
+    wait_serial 'vncviewer-finished' || die 'vncviewer not finished';
     type_string "exit \n";
 }
 
@@ -114,7 +114,7 @@ sub run {
 
         # Close xev
         send_key 'ctrl-c';
-        wait_serial 'xev-finished';
+        wait_serial 'xev-finished' || die 'xev not finished';
 
         # Check if xev recorded events or not - RO/RW mode
         if ($opt->{change}) {
