@@ -1489,7 +1489,7 @@ sub load_extra_tests_desktop {
     if (check_var('DISTRI', 'sle')) {
         loadtest 'x11/disable_screensaver';
         # start extra x11 tests from here
-        loadtest 'x11/vnc_two_passwords';
+        loadtest 'x11/vnc_two_passwords' unless is_sle("<=12-SP2");
         # TODO: check why this is not called on opensuse
         # poo#35574 - Excluded for Xen PV as it was never passed due to the fail while interacting with grub.
         loadtest 'x11/user_defined_snapshot' unless is_s390x || (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'));
@@ -1503,6 +1503,7 @@ sub load_extra_tests_desktop {
                 # 42.2 feature - not even on Tumbleweed
                 loadtest "x11/gdm_session_switch";
             }
+            loadtest 'x11/vnc_two_passwords';
             loadtest "x11/seahorse";
             # only scheduled on gnome and was developed only for gnome but no
             # special reason should prevent it to be scheduled in another DE.
