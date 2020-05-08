@@ -18,15 +18,16 @@ schedule:
   - installation/partitioning/lvm_ignore_existing
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/installation_overview
+  - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
