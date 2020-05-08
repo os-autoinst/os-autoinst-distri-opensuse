@@ -31,11 +31,13 @@ our @EXPORT = qw(
   handle_login
   handle_logout
   handle_relogin
+  handle_welcome_screen
   select_user_gnome
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
   untick_welcome_on_next_startup
+  workaround_boo1170586
 );
 
 =head1 X11_UTILS
@@ -320,6 +322,34 @@ sub untick_welcome_on_next_startup {
         last                                          if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
+}
+
+=head2 workaround_boo1170586
+
+ workaround_boo1170586();
+
+Kill broken opensuse-welcome window and restart it properly to workaround boo#1170586.
+
+=cut
+sub workaround_boo1170586 {
+    x11_start_program('killall /usr/bin/opensuse-welcome', target_match => 'generic-desktop');
+    x11_start_program('opensuse-welcome');
+}
+
+=head2 handle_welcome_screen
+
+ handle_welcome_screen([timeout => $timeout]);
+
+openSUSE Welcome window should be auto-launched.
+Disable auto-launch on next boot and close application.
+Also handle workarounds when needed.
+
+=cut
+sub handle_welcome_screen {
+    my (%args) = @_;
+    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1170586)], $args{timeout});
+    workaround_boo1170586 if match_has_tag("opensuse-welcome-boo1170586");
+    untick_welcome_on_next_startup;
 }
 
 1;

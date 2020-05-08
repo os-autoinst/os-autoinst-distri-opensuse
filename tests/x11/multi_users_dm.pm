@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use x11utils qw(handle_login handle_logout untick_welcome_on_next_startup);
+use x11utils qw(handle_login handle_logout handle_welcome_screen);
 use main_common 'opensuse_welcome_applicable';
 
 sub ensure_multi_user_target {
@@ -81,11 +81,7 @@ sub run {
     # Make sure screen changed before calling handle_login function (for slow workers)
     wait_still_screen;
     handle_login($user, 1);
-    if (opensuse_welcome_applicable) {
-        assert_screen 'opensuse-welcome', 120;
-        # Close welcome screen
-        untick_welcome_on_next_startup;
-    }
+    handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
     x11_start_program('xterm');

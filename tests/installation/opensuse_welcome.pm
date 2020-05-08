@@ -16,11 +16,10 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use x11utils 'untick_welcome_on_next_startup';
+use x11utils 'handle_welcome_screen';
 
 sub run {
-    assert_screen("opensuse-welcome");
-    untick_welcome_on_next_startup;
+    handle_welcome_screen;
 }
 
 sub test_flags {

@@ -145,11 +145,7 @@ sub run {
     assert_screen "testUser-login-dm";
     type_string "$pwd4newUser\n";
     # Handle welcome screen, when needed
-    if (opensuse_welcome_applicable) {
-        assert_screen 'opensuse-welcome', 120;
-        # Close welcome screen
-        untick_welcome_on_next_startup;
-    }
+    handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     assert_screen "generic-desktop", 120;
     switch_user;
     send_key "esc";
