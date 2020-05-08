@@ -54,7 +54,12 @@ sub run {
     wait_still_screen;
 
     # wait for result
-    for (1 .. 25) {
+    my $reload_n_times = 25;
+    if (check_var('ARCH', 'aarch64') || check_var('ARCH', 'ppc64le')) {
+        # more time on slow architectures
+        $reload_n_times = 50;
+    }
+    for (1 .. $reload_n_times) {
         send_key 'f5';
         wait_still_screen;
         send_key 'home';
