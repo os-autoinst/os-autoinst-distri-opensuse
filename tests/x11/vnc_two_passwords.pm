@@ -134,9 +134,11 @@ sub run {
 }
 
 sub post_fail_hook {
-    # xev seems to hang, send control-c to ensure that we can actually type
-    send_key "ctrl-c";
+    my ($self) = @_;
+    select_console 'log-console';
     upload_logs('/tmp/xev_log', failok => 1);
+
+    $self->SUPER::post_fail_hook();
 }
 
 1;
