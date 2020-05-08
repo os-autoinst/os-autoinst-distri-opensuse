@@ -13,14 +13,23 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi;
 use hacluster;
-use utils qw(zypper_call exec_and_insert_password);
+use utils qw(zypper_call clear_console);
 
-sub is_qdevice {
-    if (get_var('QDEVICE')) {
-        wait_serial(qr/Password:\s*$/i);
+sub type_qnetd_pwd {
+    if (is_serial_terminal()) {
+        if (wait_serial(qr/Password:\s*$/i)) {
+            type_password;
+            send_key 'ret';
+        }
+        else {
+            die "Timed out while waiting for password prompt from QNetd server";
+        }
+    }
+    else {
+        assert_screen('password-prompt', 60);
         type_password;
         send_key 'ret';
     }
@@ -29,13 +38,16 @@ sub is_qdevice {
 sub cluster_init {
     my ($init_method, $fencing_opt, $unicast_opt, $qdevice_opt) = @_;
 
+    # Clear the console to correctly catch the password needle if needed
+    clear_console if !is_serial_terminal();
+
     if ($init_method eq 'ha-cluster-init') {
-        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
-        is_qdevice;
+        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
+        type_qnetd_pwd if get_var('QDEVICE');
     }
     elsif ($init_method eq 'crm-debug-mode') {
         type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
-        is_qdevice;
+        type_qnetd_pwd                      if get_var('QDEVICE');
         die "Cluster initialization failed" if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
     }
 }
