@@ -47,7 +47,7 @@ sub setup_static_network {
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$args{ip}'">/etc/sysconfig/network/ifcfg-$iface);
     assert_script_run 'rcnetwork restart';
     assert_script_run 'ip addr';
-    assert_script_run 'ping -c 1 ' . $args{gw} . '|| journalctl -b --no-pager > /dev/' . $serialdev;
+    assert_script_run 'ping -c 1 ' . $args{gw} . '|| journalctl -b --no-pager -o short-precise > /dev/' . $serialdev;
     assert_script_run('ip -6 addr add ' . $args{ipv6} . ' dev ' . $iface) if (exists($args{ipv6}));
 }
 

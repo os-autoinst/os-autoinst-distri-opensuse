@@ -224,7 +224,7 @@ sub install_patterns {
             record_soft_failure 'bsc#1034541';
             next;
         }
-        zypper_call("in -t pattern $pt", timeout => 1200);
+        zypper_call("in -t pattern $pt", timeout => 1800);
 
     }
 }

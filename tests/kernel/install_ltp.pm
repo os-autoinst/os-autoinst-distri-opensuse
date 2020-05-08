@@ -20,7 +20,7 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_ltp 'loadtest_from_runtest_file';
+use main_ltp qw(get_ltp_tag loadtest_from_runtest_file);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'add_serial_console';
@@ -293,21 +293,6 @@ sub setup_network {
     else {
         disable_and_stop_service(opensusebasetest::firewall);
     }
-}
-
-sub get_ltp_tag {
-    my $tag = get_var('LTP_RUNTEST_TAG');
-
-    if (!defined $tag) {
-        if (defined get_var('HDD_1')) {
-            $tag = get_var('PUBLISH_HDD_1');
-            $tag = get_var('HDD_1') if (!defined $tag);
-            $tag = basename($tag);
-        } else {
-            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
-        }
-    }
-    return $tag;
 }
 
 sub run {

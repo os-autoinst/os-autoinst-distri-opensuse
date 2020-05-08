@@ -110,7 +110,7 @@ Saves the journal of the systemd unit C<$unit> to C<journal_$unit.log> and uploa
 =cut
 sub save_and_upload_systemd_unit_log {
     my ($self, $unit) = @_;
-    $self->save_and_upload_log("journalctl --no-pager -u $unit", "journal_$unit.log");
+    $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.log");
 }
 
 =head2 detect_bsc_1063638
@@ -164,11 +164,11 @@ sub problem_detection {
     clear_console;
 
     # Errors in journal
-    $self->save_and_upload_log("journalctl --no-pager -p 'err'", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log("journalctl --no-pager -p 'err' -o short-precise", "journalctl-errors.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Tracebacks in journal
-    $self->save_and_upload_log('journalctl | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
+    $self->save_and_upload_log('journalctl -o short-precise | grep -i traceback', "journalctl-tracebacks.txt", {screenshot => 1, noupload => 1});
     clear_console;
 
     # Segmentation faults
@@ -232,7 +232,7 @@ sub investigate_yast2_failure {
     # Hash with critical errors in YaST2 and bug reference if any
     my %y2log_errors = (
         "No textdomain configured"                   => undef,    # Detecting missing translations
-                                                                  # Detecting specifi errors proposed by the YaST dev team
+                                                                  # Detecting specific errors proposed by the YaST dev team
         "nothing provides"                           => undef,    # Detecting missing required packages
         "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
         "Could not load icon|Couldn't load pixmap"   => undef,    # Detecting missing icons
@@ -241,8 +241,13 @@ sub investigate_yast2_failure {
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
-        "<3>.*no[t]? mount"   => 'bsc#1092088',                   # Detect not mounted partition
-        "<3>.*lib/cheetah.rb" => 'bsc#1153749',
+        "<3>.*QueryWidget failed.*RichText.*VScrollValue" => 'bsc#1167248',
+        "<3>.*Solverrun finished with an ERROR"           => 'bsc#1170322',
+        "<3>.*3 packages failed.*badlist"                 => 'bsc#1170322',
+        "<3>.*Unknown option.*MultiSelectionBox widget"   => 'bsc#1170431',
+        "<3>.*XML.*Argument.*to Read.*is nil"             => 'bsc#1170432',
+        "<3>.*no[t]? mount"                               => 'bsc#1092088',    # Detect not mounted partition
+        "<3>.*lib/cheetah.rb"                             => 'bsc#1153749',
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
         # Adding reference to trello, detect those in single scenario
         # (build97.1) regressions
@@ -364,7 +369,7 @@ sub investigate_yast2_failure {
             $detected_errors_detailed .= "$y2log_error_result\n\n$delimiter\n\n";
         }
     }
-    ## Check generic erros and exclude already detected issues
+    ## Check generic errors and exclude already detected issues
     if (my $y2log_error_result = script_output("$cmd_prefix -E \"<3>|<5>\" $cmd_postfix")) {
         # remove known errors from the log
         for my $known_error (@detected_errors) {
@@ -406,10 +411,10 @@ This includes C</proc/loadavg>, C<ps axf>, complete journal since last boot, C<d
 =cut
 sub export_logs_basic {
     my ($self) = @_;
-    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
-    $self->save_and_upload_log('ps axf',            '/tmp/psaxf.log',   {screenshot => 1});
-    $self->save_and_upload_log('journalctl -b',     '/tmp/journal.log', {screenshot => 1});
-    $self->save_and_upload_log('dmesg',             '/tmp/dmesg.log',   {screenshot => 1});
+    $self->save_and_upload_log('cat /proc/loadavg',              '/tmp/loadavg.txt', {screenshot => 1});
+    $self->save_and_upload_log('ps axf',                         '/tmp/psaxf.log',   {screenshot => 1});
+    $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('dmesg',                          '/tmp/dmesg.log',   {screenshot => 1});
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
 }
 
@@ -876,7 +881,7 @@ behave as if the env var NOAUTOLOGIN was set.
 sub wait_boot_past_bootloader {
     my ($self, %args) = @_;
     my $textmode     = $args{textmode};
-    my $ready_time   = $args{ready_time} // (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300;
+    my $ready_time   = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
     my $nologin      = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
@@ -909,6 +914,8 @@ sub wait_boot_past_bootloader {
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
+        # Workaround for bsc#1169723
+        push(@tags, 'guest-disable-display');
     }
     # bsc#1157928 - deal with additional polkit windows
     if (is_sle && !is_sle('<=15-SP1')) {
@@ -932,6 +939,10 @@ sub wait_boot_past_bootloader {
 
     handle_broken_autologin_boo1102563()          if match_has_tag('displaymanager');
     handle_additional_polkit_windows_bsc1157928() if match_has_tag('authentication-required-user-settings');
+    if (match_has_tag('guest-disable-display')) {
+        record_soft_failure 'bsc#1169723 - [Build 174.1] openQA test fails in first_boot - Guest disabled display shown when boot up after migration';
+        send_key 'ret';
+    }
     mouse_hide(1);
 }
 
@@ -957,7 +968,7 @@ sub wait_boot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // (check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300;
+    my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
     my $in_grub         = $args{in_grub} // 0;
 
     die "wait_boot: got undefined class" unless $self;

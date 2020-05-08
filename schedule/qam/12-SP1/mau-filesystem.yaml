@@ -1,6 +1,6 @@
 ---
 name: mau-filesystem
-description: Filesystem tests on Maintenance prepared image 
+description: Filesystem tests on Maintenance prepared image
 vars:
   COLLECT_COREDUMPS: '1'
 schedule:

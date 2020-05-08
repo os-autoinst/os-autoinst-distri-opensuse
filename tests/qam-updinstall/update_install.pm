@@ -61,7 +61,7 @@ sub install_packages {
             # go to next package if it's not provided by repos
             record_info('Not present', "$package is added in patch") && next if (script_run("zypper -n se -t package -x $package") == 104);
             # install package
-            zypper_call("in -l $package", exitcode => [0, 102, 103]);
+            zypper_call("in -l $package", timeout => 1500, exitcode => [0, 102, 103]);
             save_screenshot;
         }
     }

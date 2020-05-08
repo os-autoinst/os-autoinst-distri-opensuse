@@ -1,0 +1,53 @@
+---
+name: hpc_installation_node_dev
+description:    >
+     Maintainer: schlad
+     Installation scenario with HPC system role hpc-node and hpc-dev
+vars:
+  DESKTOP: textmode
+  INSTALLONLY: 1
+  PATTERNS: base,minimal
+  SLE_PRODUCT: hpc
+  HDDSIZEGB: 30
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader_uefi
+      x86_64:
+        - installation/bootloader
+  systemrole_dev:
+    HPC:
+      installation_dev:
+        - installation/user_settings
+schedule:
+  - installation/isosize
+  - '{{bootloader}}'
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - '{{systemrole_dev}}'
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/sle15_workarounds
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

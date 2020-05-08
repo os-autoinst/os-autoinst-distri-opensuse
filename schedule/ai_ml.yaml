@@ -1,0 +1,20 @@
+name:           AI/ML tests
+description:    >
+    Tests for AI/ML software
+schedule:
+  - '{{boot_to_desktop}}'
+  - console/prepare_test_data
+  - '{{armnn}}'
+  - ai_ml/tflite2
+conditional_schedule:
+  armnn:
+    ARCH:
+      aarch64:
+        - ai_ml/armnn
+  boot_to_desktop:
+    BACKEND:
+      qemu:
+        - boot/boot_to_desktop
+      generalhw:
+        - jeos/prepare_firstboot
+        - jeos/firstrun

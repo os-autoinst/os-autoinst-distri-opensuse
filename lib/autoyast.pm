@@ -27,6 +27,7 @@ use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Path 'make_path';
+use LWP::Simple 'head';
 
 use xml_utils;
 
@@ -39,6 +40,7 @@ our @EXPORT = qw(
   upload_profile
   inject_registration
   init_autoyast_profile
+  test_ayp_url
   validate_autoyast_profile
 );
 
@@ -436,10 +438,13 @@ sub adjust_network_conf {
 sub expand_variables {
     my ($profile) = @_;
     # Expand other variables
-    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE);
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_REGCODE_WE SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS);
     # Push more variables to expand from the job setting
     my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
-
+    if (get_var 'SALT_FORMULAS_PATH') {
+        my $tarfile = data_url(get_var 'SALT_FORMULAS_PATH');
+        $profile =~ s/\{\{SALT_FORMULAS_PATH\}\}/$tarfile/g;
+    }
     for my $var (@vars) {
         # Skip if value is not defined
         next unless my ($value) = get_var($var);
@@ -504,6 +509,21 @@ EOF
     return $profile;
 }
 
+=head2 test_ayp_url
 
+ test_ayp_url();
 
+ Test if the autoyast profile url is reachable, before the autoyast installation begins.
+
+=cut
+sub test_ayp_url {
+    my $ayp_url = get_var('AUTOYAST');
+    if ($ayp_url =~ /^http/) {
+        if (head($ayp_url)) {
+            record_info("ayp url ok", "Autoyast profile url $ayp_url is reachable");
+        } else {
+            record_info("Failure", "Autoyast profile url $ayp_url is unreachable");
+        }
+    }
+}
 1;

@@ -139,6 +139,9 @@ sub run_basic_tests {
     my %test07 = t07_basic();
     push(@all_results, \%test07);
 
+    my %test08 = t08_basic();
+    push(@all_results, \%test08);
+
     return @all_results;
 }
 
@@ -244,6 +247,28 @@ sub t07_basic {
 
     ##TODO: remove hardcoded slaves
     my $result = script_run("srun -w slave-node00,slave-node01 date");
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t08_basic {
+    my $name        = 'pdsh-slurm';
+    my $description = 'Basic check of pdsh-slurm over ssh';
+    my $result      = 0;
+
+    zypper_call('in pdsh pdsh-slurm');
+
+    my $sinfo_nodeaddr = script_output('sinfo -a --Format=nodeaddr -h');
+    my $pdsh_nodes     = script_output('pdsh -R ssh -P normal /usr/bin/hostname');
+    my @sinfo_nodeaddr = (split ' ', $sinfo_nodeaddr);
+
+    foreach my $i (@sinfo_nodeaddr) {
+        if (index($pdsh_nodes, $i) == -1) {
+            $result = 1;
+            last;
+        }
+    }
 
     my %results = generate_results($name, $description, $result);
     return %results;

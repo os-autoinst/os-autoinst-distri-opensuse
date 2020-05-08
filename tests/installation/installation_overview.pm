@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_caasp is_upgrade);
 use Utils::Backends qw(is_remote_backend is_hyperv);
-
+use Test::Assert ':all';
 
 sub ensure_ssh_unblocked {
     if (!get_var('UPGRADE') && is_remote_backend) {
@@ -62,6 +62,29 @@ sub ensure_ssh_unblocked {
     }
 }
 
+sub check_default_target {
+    # Check the systemd target where scenario make it possible
+    return if (is_caasp || is_upgrade || is_hyperv ||
+        get_var('REMOTE_CONTROLLER') || (get_var('BACKEND', '') =~ /spvm|pvm_hmc|ipmi/));
+    # exclude non-desktop environment and scenarios with edition of package selection (bsc#1167736)
+    return if (!get_var('DESKTOP') || get_var('PATTERNS'));
+
+    # Set expectations
+    my $expected_target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
+
+    select_console 'install-shell';
+
+    my $target_search = 'default target has been set';
+    # default.target is not yet linked, so we parse logs and assert expectations
+    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1",
+            proceed_on_failure => 1)) {
+        $log_line =~ /$target_search: (?<current_target>.*)/;
+        assert_equals($expected_target, $+{current_target}, "Mismatch in default.target");
+    }
+
+    select_console 'installation';
+}
+
 sub run {
     my ($self) = shift;
     # overview-generation
@@ -80,17 +103,7 @@ sub run {
             }
         }
         ensure_ssh_unblocked;
-        # Check the systemd target, see poo#45020
-        # We need to exclude some scenarios where it doesn't work well
-        return if (is_caasp || is_upgrade || is_hyperv || get_var('REMOTE_CONTROLLER'));
-        if (get_var('DESKTOP')) {
-            my $target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
-            select_console 'install-shell';
-            # The default.target is not yet linked, so we have to parse the logs.
-            script_run("grep 'target has been set' /var/log/YaST2/y2log |tail -1 |grep --color=auto \"$target\"")
-              && record_info("Warning: no target", "Could not detect the systemd target. Expected was: $target (see poo#49622).");
-            select_console 'installation';
-        }
+        check_default_target;
     }
 }
 

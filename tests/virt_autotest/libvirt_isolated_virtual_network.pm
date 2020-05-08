@@ -43,27 +43,20 @@ sub run_test {
     upload_logs "vnet_isolated.xml";
     assert_script_run("rm -rf vnet_isolated.xml");
 
-    my $gi_vnet_isolated;
+    my ($mac, $model);
+    my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
-        #figure out that used with virtio as the network device model during
-        #attach-interface via virsh worked for all sles guest
-        assert_script_run("virsh attach-interface $guest network vnet_isolated --model virtio --live");
-        #Get the Guest IP Address from ISOLATED NETWORK
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            my $mac_isolated = script_output("virsh domiflist $guest | grep vnet_isolated | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-            script_retry "ip neigh | grep $mac_isolated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-            $gi_vnet_isolated = script_output("ip neigh | grep $mac_isolated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        else {
-            script_retry "virsh net-dhcp-leases vnet_isolated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-            $gi_vnet_isolated = script_output("virsh net-dhcp-leases vnet_isolated | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
-        #Confirm ISOLATED NETWORK
-        assert_script_run("! ssh root\@$gi_vnet_isolated 'ping -c2 -W1 openqa.suse.de'");
-        save_screenshot;
-        assert_script_run("virsh detach-interface $guest network --current");
+
+        $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live", 60);
+
+        test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => "vnet_isolated");
+
+        assert_script_run("virsh detach-interface $guest network --mac $mac --current");
     }
+
     #Destroy ISOLATED NETWORK
     assert_script_run("virsh net-destroy vnet_isolated");
     save_screenshot;

@@ -60,7 +60,7 @@ sub run {
 
         # Actual installation and verification
         foreach my $pattern (@sappatterns) {
-            zypper_call("in -y -t pattern $pattern");
+            zypper_call("in -y -t pattern $pattern", timeout => 1500);
             $output = script_output "zypper info -t pattern $pattern";
             # Name of HA pattern is weird...
             $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');

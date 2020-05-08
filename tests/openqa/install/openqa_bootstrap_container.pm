@@ -35,4 +35,10 @@ sub test_flags {
     return {fatal => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    $self->save_and_upload_log("journalctl -M openqa1 -b -o short-precise --no-pager", "journal_container.log", {screenshot => 1});
+}
+
 1;

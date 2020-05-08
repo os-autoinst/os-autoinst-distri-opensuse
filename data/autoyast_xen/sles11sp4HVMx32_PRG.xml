@@ -863,6 +863,7 @@
   </runlevel>
   <software>
     <packages config:type="list">
+      <package>iputils</package>
       <package>desktop-translations</package>
       <package>gconf2-branding-SLES</package>
       <package>gstreamer-0_10-plugins-base</package>

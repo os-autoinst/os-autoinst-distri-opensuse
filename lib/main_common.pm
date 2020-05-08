@@ -355,7 +355,8 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
-    loadtest("shutdown/cleanup_before_shutdown");
+    # Schedule cleanup before shutdown only in cases the HDD will be published
+    loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD_1');
     loadtest "shutdown/shutdown";
 }
 
@@ -871,7 +872,7 @@ sub load_inst_tests {
         if (is_sles4sap and is_sle('<15') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        if (get_var('MAINT_TEST_REPO')) {
+        if (get_var('MAINT_TEST_REPO') and !get_var("USER_SPACE_TESTSUITES")) {
             loadtest 'installation/add_update_test_repo';
         }
         loadtest "installation/addon_products_sle";
@@ -1692,8 +1693,9 @@ sub load_extra_tests_console {
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
-    loadtest 'console/valgrind'   unless is_sle('<=12-SP3');
-    loadtest 'console/sssd_samba' unless is_sle("<15");
+    loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
+    loadtest 'console/sssd_samba'     unless is_sle("<15");
+    loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos);
 }
 
 sub load_extra_tests_sdk {
@@ -1797,6 +1799,7 @@ sub load_extra_tests_filesystem {
                 loadtest "console/btrfs_send_receive";
             }
         }
+        loadtest "console/btrfsmaintenance";
     }
     loadtest 'console/snapper_undochange';
     loadtest 'console/snapper_create';
@@ -2173,6 +2176,9 @@ sub load_security_tests_crypt_core {
         loadtest "fips/openssl/openssl_fips_cipher";
         loadtest "fips/openssl/dirmngr_setup";
         loadtest "fips/openssl/dirmngr_daemon";    # dirmngr_daemon needs to be tested after dirmngr_setup
+        loadtest "fips/gnutls/gnutls_base_check";
+        loadtest "fips/gnutls/gnutls_server";
+        loadtest "fips/gnutls/gnutls_client";
     }
     loadtest "fips/openssl/openssl_tlsv1_3";
     loadtest "fips/openssl/openssl_pubkey_rsa";
@@ -2348,13 +2354,17 @@ sub load_security_tests_selinux {
 
     # Change SELinux from "permissive" mode to "enforcing" mode for testing
     loadtest "security/selinux/enforcing_mode_setup";
-
     # The following test modules must be run after "enforcing_mode_setup"
+    loadtest "security/selinux/semanage_fcontext";
     loadtest "security/selinux/semanage_boolean";
+    loadtest "security/selinux/fixfiles";
     loadtest "security/selinux/print_se_context";
     loadtest "security/selinux/audit2allow";
     loadtest "security/selinux/semodule";
     loadtest "security/selinux/setsebool";
+    loadtest "security/selinux/restorecon";
+    loadtest "security/selinux/chcon";
+    loadtest "security/selinux/chcat";
 }
 
 sub load_security_tests_mok_enroll {
@@ -2555,7 +2565,7 @@ sub load_systemd_patches_tests {
 
 sub load_system_prepare_tests {
     loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds'    if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
@@ -2672,19 +2682,37 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
     }
 
+    if (check_var('VIRT_PART', 'networking')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";
+
+        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+        loadtest "virt_autotest/libvirt_nated_virtual_network";
+        loadtest "virt_autotest/libvirt_isolated_virtual_network";
+    }
+
+    if (check_var('VIRT_PART', 'snapshots')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";
+
+        loadtest "virt_autotest/virsh_internal_snapshot";
+        loadtest "virt_autotest/virsh_external_snapshot";
+    }
+
     if (check_var('VIRT_PART', 'storage')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/storage';                        # Storage pool / volume test
+        loadtest 'virtualization/xen/storage';        # Storage pool / volume test
     }
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
-
-        loadtest 'virtualization/xen/ssh_final';                      # Check that every guest is reachable over SSH
-        loadtest 'virtualization/xen/virtmanager_final';              # Check that every guest shows the login screen
+        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
+        loadtest "virtualization/xen/list_guests";          # List all guests and ensure they are running
+        loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
+        loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
+        loadtest "virtualization/xen/stresstest";           # Perform stress tests on the guests
     }
 }
 

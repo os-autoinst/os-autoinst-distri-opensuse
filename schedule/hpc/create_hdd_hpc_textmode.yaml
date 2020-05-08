@@ -1,0 +1,51 @@
+---
+name: create_hdd_hpc_textmode
+description:    >
+     Maintainer: schlad
+     Rudimentary installation scenario for creating qcow2
+     required by other HPC tests
+vars:
+  DESKTOP: textmode
+  INSTALLONLY: 1
+  PATTERNS: base,minimal
+  SLE_PRODUCT: hpc
+  HDDSIZEGB: 30
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader_uefi
+      x86_64:
+        - installation/bootloader
+schedule:
+  - installation/isosize
+  - '{{bootloader}}'
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/no_separate_home
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/sle15_workarounds
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

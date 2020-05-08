@@ -72,7 +72,7 @@ sub run {
     my @orphans = split('\n',
         script_output q[zypper --quiet packages --orphaned | tee -a /tmp/orphaned.log |
          grep -v "^Warning" | grep -v "\(release-DVD\|release-dvd\|openSUSE-release\|skelcd\)" |
-         awk -F \| 'NR>2 {print $3}'], proceed_on_failure => 1);
+         awk -F \| 'NR>2 {print $3}'], proceed_on_failure => 1, timeout => 180);
 
     if (((scalar @orphans) > 0) && !is_offline_upgrade_or_livecd) {
         compare_orphans_lists(zypper_orphans => \@orphans,

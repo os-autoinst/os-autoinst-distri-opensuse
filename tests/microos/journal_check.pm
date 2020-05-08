@@ -41,7 +41,7 @@ sub run {
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
-    my $journal_output = script_output("journalctl --no-pager -p err | tail -n +2");
+    my $journal_output = script_output("journalctl --no-pager -p err -o short-precise | tail -n +2");
 
     # Find lines which matches to the pattern_bug
     while (my ($bug, $pattern) = each %$bug_pattern) {
@@ -66,7 +66,7 @@ sub run {
     }
 
     # Write full journal output for reference and upload it into Uploaded Logs section in test webUI
-    script_run("journalctl --no-pager > /tmp/full_journal.log");
+    script_run("journalctl --no-pager -o short-precise > /tmp/full_journal.log");
     upload_logs "/tmp/full_journal.log";
 
     # Check for failed systemd services and examine them

@@ -31,7 +31,7 @@ has ssh_opts    => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no 
 
 =head2 run_ssh_command
 
-    run_ssh_command(cmd => 'command'[, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0]);
+    run_ssh_command(cmd => 'command'[, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0][, rc_only => 0]);
 
 Runs a command C<cmd> via ssh in the given VM. Retrieves the output.
 If the command retrieves not zero, a exception is thrown..
@@ -44,6 +44,7 @@ With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
 C<<$instance->ssh_opts>>.
 Use argument C<username> to specify a different username then
 C<<$instance->username()>>.
+Use argument C<rc_only> to only check for the return code of the command.
 =cut
 sub run_ssh_command {
     my ($self, %args) = @_;
@@ -53,6 +54,7 @@ sub run_ssh_command {
     $args{timeout}  //= SSH_TIMEOUT;
     $args{quiet}    //= 1;
     $args{no_quote} //= 0;
+    my $rc_only = $args{rc_only} // 0;
 
     my $cmd = $args{cmd};
     unless ($args{no_quote}) {
@@ -68,9 +70,15 @@ sub run_ssh_command {
     delete($args{no_quote});
     delete($args{ssh_opts});
     delete($args{username});
+    delete($args{rc_only});
     if ($args{timeout} == 0) {
         # Run the command and don't wait for it - no output nor returncode here
         script_run($ssh_cmd, %args);
+    } elsif ($rc_only) {
+        # Run the command and return only the returncode here
+        my $ret = script_run($ssh_cmd, %args);
+        die("Timeout on $ssh_cmd") unless (defined($ret));
+        return $ret;
     } else {
         # Run the command, wait for it and return the output
         return script_output($ssh_cmd, %args);

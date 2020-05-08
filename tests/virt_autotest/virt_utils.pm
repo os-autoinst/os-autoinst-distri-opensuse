@@ -27,7 +27,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type);
 
 sub enable_debug_logging {
 
@@ -457,26 +457,28 @@ sub generateXML_from_data {
     my $timestamp = localtime(time);
     $writer->startTag(
         'testsuites',
-        id       => "0",
-        error    => "n/a",
-        failures => $xmldata{"fail_nums"},
-        name     => $xmldata{"product_name"},
-        skipped  => $xmldata{"skip_nums"},
-        tests    => "$count",
-        time     => $xmldata{"test_time"}
+        id           => "0",
+        error        => "n/a",
+        failures     => $xmldata{"fail_nums"},
+        softfailures => $xmldata{"softfail_nums"},
+        name         => $xmldata{"product_name"},
+        skipped      => $xmldata{"skip_nums"},
+        tests        => "$count",
+        time         => $xmldata{"test_time"}
     );
     $writer->startTag(
         'testsuite',
-        id        => "0",
-        error     => "n/a",
-        failures  => $xmldata{"fail_nums"},
-        hostname  => hostname(),
-        name      => $xmldata{"product_tested_on"},
-        package   => $xmldata{"package_name"},
-        skipped   => $xmldata{"skip_nums"},
-        tests     => $count,
-        time      => $xmldata{"test_time"},
-        timestamp => $timestamp
+        id           => "0",
+        error        => "n/a",
+        failures     => $xmldata{"fail_nums"},
+        softfailures => $xmldata{"softfail_nums"},
+        hostname     => hostname(),
+        name         => $xmldata{"product_tested_on"},
+        package      => $xmldata{"package_name"},
+        skipped      => $xmldata{"skip_nums"},
+        tests        => $count,
+        time         => $xmldata{"test_time"},
+        timestamp    => $timestamp
     );
 
     #Generate testcase xml by calling subroutine generate_testcase_xml
@@ -543,6 +545,22 @@ sub generate_testcase_xml {
     $xml_writer->endTag('system-out');
     $xml_writer->dataElement(failure => "affected subject: $testguest") unless $testcase_status eq 'success';
     $xml_writer->endTag('testcase');
+}
+
+#RAW do not support Snapshot, so skip Snapshot test if guest disk type as RAW
+sub check_guest_disk_type {
+    my $guest           = shift;
+    my $guest_disk_type = script_output("virsh dumpxml $guest | grep \"<driver \" | grep -o \"type='.*'\" | cut -d \"'\" -f2");
+    if ($guest_disk_type =~ /raw/) {
+        record_info "INFO", "SKIP Snapshot test if guest disk type as $guest_disk_type";
+        return 1;
+    }
+    else {
+        if ($guest_disk_type =~ /qcow2/) {
+            record_info "INFO", "Start Snapshot test with the guest disk type as $guest_disk_type";
+            return 0;
+        }
+    }
 }
 
 1;

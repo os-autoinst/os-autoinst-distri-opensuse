@@ -68,11 +68,14 @@ sub verify_mounts {
 sub run {
     my ($self) = @_;
 
+    mouse_hide;    # JeOS on generalhw
+
     my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
-    my %keylayout_key = ('en_US' => 'e', 'de_DE' => 'd');
     # For 'en_US' pick 'en_US', for 'de_DE' select 'de_DE'
     my %locale_key = ('en_US' => 'e', 'de_DE' => 'd');
+    # For 'en_US' pick 'us', for 'de_DE' select 'de'
+    my %keylayout_key = ('en_US' => 'u', 'de_DE' => 'd');
     # For 'en_US' pick 'UTC', for 'de_DE' select 'Europe/Berlin'
     my %tz_key = ('en_US' => 'u', 'de_DE' => 'e');
 

@@ -502,21 +502,21 @@
       <write_hostname config:type="boolean">false</write_hostname>
     </dns>
     <interfaces config:type="list">
-      <interface>
+     <interface>
+        <aliases/>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>
+        <bridge>yes</bridge>
+        <bridge_forward_delay>15</bridge_forward_delay>
+        <bridge_ports>eth0</bridge_ports>
+        <bridge_stp>on</bridge_stp>
+        <name>br0</name>
         <startmode>auto</startmode>
       </interface>
       <interface>
-        <bootproto>static</bootproto>
-        <device>lo</device>
-        <firewall>no</firewall>
-        <ipaddr>127.0.0.1</ipaddr>
-        <netmask>255.0.0.0</netmask>
-        <network>127.0.0.0</network>
-        <prefixlen>8</prefixlen>
-        <startmode>nfsroot</startmode>
-        <usercontrol>no</usercontrol>
+        <aliases/>
+        <bootproto>none</bootproto>
+        <name>eth0</name>
+        <startmode>auto</startmode>
       </interface>
     </interfaces>
     <ipv6 config:type="boolean">true</ipv6>

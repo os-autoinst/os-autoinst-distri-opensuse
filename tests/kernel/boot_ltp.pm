@@ -79,6 +79,7 @@ sub run {
             revision    => get_var('BUILD'),
             flavor      => get_var('FLAVOR'),
             arch        => get_var('ARCH'),
+            backend     => get_var('BACKEND'),
             kernel      => '',
             libc        => '',
             gcc         => '',

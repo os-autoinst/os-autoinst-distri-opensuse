@@ -33,7 +33,7 @@ test_data:
         partitions:
           - partition:
               unique_key: mount
-              create: false
+              create: 'false'
               mount: /test
         type: CT_NFS
     services-manager:

@@ -69,7 +69,7 @@ sub override_known_failures {
 
         bmwqemu::diag("Failure in LTP:$suite:$test is known, overriding to softfail");
         $self->{result} = 'softfail';
-        record_soft_failure($cond->{message}) if exists $cond->{message};
+        $self->record_soft_failure_result($cond->{message}) if exists $cond->{message};
         return 1;
     }
 

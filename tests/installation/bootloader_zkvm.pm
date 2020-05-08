@@ -40,6 +40,7 @@ sub set_svirt_domain_elements {
         if (my $autoyast = get_var('AUTOYAST')) {
             $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
             $cmdline .= " autoyast=" . $autoyast;
+            set_var('AUTOYAST', $autoyast);
         }
 
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");

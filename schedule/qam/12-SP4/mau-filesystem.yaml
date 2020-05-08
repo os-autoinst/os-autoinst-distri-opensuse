@@ -1,6 +1,6 @@
 ---
 name: mau-filesystem
-description: Filesystem tests on Maintenance prepared image 
+description: Filesystem tests on Maintenance prepared image
 vars:
   COLLECT_COREDUMPS: '1'
 schedule:
@@ -13,6 +13,7 @@ schedule:
 - console/lvm
 - console/btrfs_autocompletion
 - console/btrfs_qgroups
+- console/btrfsmaintenance
 - console/snapper_cleanup
 - console/btrfs_send_receive
 - console/snapper_undochange

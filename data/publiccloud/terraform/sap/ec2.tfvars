@@ -60,9 +60,8 @@ hana_cluster_vip = "192.168.1.10"
 # example : host_ips = ["10.0.0.5", "10.0.1.6"]
 host_ips = ["10.0.0.5", "10.0.1.6"]
 
-# Repository url used to install install HA/SAP deployment packages (OS version must be ommited)"
-# Contains the salt formulas
-ha_sap_deployment_repo = "https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/SLE_%SLE_VERSION%"
+# HA packages repository
+ha_sap_deployment_repo = "%HA_SAP_REPO%/SLE_%SLE_VERSION%"
 
 # Optional SUSE Customer Center Registration parameters
 #reg_code = "<<REG_CODE>>"
@@ -98,6 +97,16 @@ qa_mode = true
 # qa_mode must be set to true for executing hwcct
 # true or false (default)
 #hwcct = false
+
+# DRBD variables
+
+drbd_enabled = true
+#drbd_machine_type = "t2.xlarge"
+drbd_os_image = { "%REGION%" = "%SLE_IMAGE%" }
+#drbd_data_disk_size = "10"
+#drbd_data_disk_type = "gp2"
+drbd_ips = ["10.0.4.10", "10.0.5.11"]
+drbd_cluster_vip = "192.168.1.30"
 
 # Netweaver variables
 

@@ -27,6 +27,10 @@ sub install_pkg {
 sub setup_environment {
     my $runid             = get_required_var('QASET_RUNID');
     my $mitigation_switch = get_required_var('MITIGATION_SWITCH');
+    my $ver_cfg           = get_required_var('VER_CFG');
+    my $ver_path          = "/root";
+
+    assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
     assert_script_run(
         "/usr/share/qa/qaset/bin/deploy_performance.sh $runid $mitigation_switch"
     );

@@ -1021,16 +1021,6 @@ else {
             loadtest "console/yast2_nfs4_client";
         }
     }
-    elsif (get_var('QAM_VSFTPD')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('VSFTPD_SUITE_READY', 2);
-            barrier_create('VSFTPD_FINISHED',    2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        loadtest 'network/vsftpd';
-    }
     elsif (get_var('QAM_RSYNC')) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {
@@ -1056,6 +1046,39 @@ else {
         }
         else {
             loadtest 'network/curl_client';
+        }
+    }
+    elsif (get_var('QAM_MAIL_THUNDERBIRD')) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        if (get_var('IS_MM_SERVER')) {
+            loadtest 'network/config_services';
+            loadtest 'support_server/wait_children';
+        }
+        else {
+            loadtest 'x11/window_system';
+            loadtest 'x11/thunderbird/thunderbird_install';
+            loadtest 'x11/thunderbird/thunderbird_imap';
+            loadtest 'x11/thunderbird/thunderbird_pop';
+        }
+    }
+    elsif (get_var('QAM_MAIL_EVOLUTION')) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        if (get_var('IS_MM_SERVER')) {
+            loadtest 'network/config_services';
+            loadtest 'support_server/wait_children';
+        }
+        else {
+            loadtest 'x11/window_system';
+            loadtest 'x11/evolution/evolution_smoke';
+            loadtest 'x11/evolution/evolution_mail_imap';
+            loadtest 'x11/evolution/evolution_mail_pop';
+            loadtest 'x11/evolution/evolution_timezone_setup';
+            loadtest 'x11/evolution/evolution_meeting_imap';
+            loadtest 'x11/evolution/evolution_meeting_pop';
         }
     }
     elsif (get_var('AUTOFS')) {

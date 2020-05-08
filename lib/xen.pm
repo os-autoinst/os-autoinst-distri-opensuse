@@ -223,8 +223,8 @@ sub create_guest {
         send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
-        assert_script_run "qemu-img create -f raw /var/lib/libvirt/images/xen/$guest.raw 20G", 180;
-        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$guest.raw --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
+        assert_script_run "qemu-img create -f qcow2 /var/lib/libvirt/images/xen/$guest.qcow2 20G", 180;
+        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$guest.qcow2 --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
     }
 }
 

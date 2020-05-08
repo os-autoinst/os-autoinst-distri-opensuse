@@ -31,6 +31,7 @@ use Utils::Backends 'is_pvm';
 # use warnings;
 
 our @EXPORT = qw(
+  get_ltp_tag
   load_kernel_tests
   loadtest_from_runtest_file
 );
@@ -78,9 +79,24 @@ sub parse_runtest_file {
     }
 }
 
+sub get_ltp_tag {
+    my $tag = get_var('LTP_RUNTEST_TAG');
+
+    if (!defined $tag) {
+        if (defined get_var('HDD_1')) {
+            $tag = get_var('PUBLISH_HDD_1');
+            $tag = get_var('HDD_1') if (!defined $tag);
+            $tag = basename($tag);
+        } else {
+            $tag = get_var('DISTRI') . '-' . get_var('VERSION') . '-' . get_var('ARCH') . '-' . get_var('BUILD') . '-' . get_var('FLAVOR') . '@' . get_var('MACHINE');
+        }
+    }
+    return $tag;
+}
+
 sub loadtest_from_runtest_file {
     my $namelist           = get_var('LTP_COMMAND_FILE');
-    my $archive            = shift || get_required_var('ASSET_1');
+    my $archive            = shift || get_var('ASSET_1');
     my $unpack_path        = './runtest-files';
     my $cmd_pattern        = get_var('LTP_COMMAND_PATTERN') || '.*';
     my $cmd_exclude        = get_var('LTP_COMMAND_EXCLUDE') || '$^';
@@ -88,6 +104,11 @@ sub loadtest_from_runtest_file {
         format      => 'result_array:v2',
         environment => {},
         results     => []};
+
+    if (!$archive) {
+        my $tag = get_ltp_tag();
+        $archive = get_var('ASSETDIR') . "/other/runtest-files-$tag.tar.gz";
+    }
 
     loadtest('boot_ltp', run_args => testinfo($test_result_export));
     if (get_var('LTP_COMMAND_FILE') =~ m/ltp-aiodio.part[134]/) {

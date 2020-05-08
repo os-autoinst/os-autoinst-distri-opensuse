@@ -37,7 +37,7 @@ sub system_status {
         iptables   => "iptables -L -n --line-numbers",
         repos      => "zypper repos -u",
         dmesg      => "dmesg",
-        journalctl => "journalctl -xn 100"
+        journalctl => "journalctl -xn 100 -o short-precise"
     );
     foreach my $key (@klst) {
         my $cmd = "echo '=========> $key <=========' >> $log; ";

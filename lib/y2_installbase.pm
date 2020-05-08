@@ -507,7 +507,7 @@ sub save_upload_y2logs {
         assert_script_run "save_y2logs $filename", 180;
         upload_logs $filename;
     } else {    # Redirect logs content to serial
-        script_run("journalctl -b --no-pager > /dev/$serialdev");
+        script_run("journalctl -b --no-pager -o short-precise > /dev/$serialdev");
         script_run("dmesg > /dev/$serialdev");
         script_run("cat /var/log/YaST/y2log > /dev/$serialdev");
     }
