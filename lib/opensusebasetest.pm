@@ -416,6 +416,10 @@ sub export_logs_basic {
     $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
     $self->save_and_upload_log('dmesg',                          '/tmp/dmesg.log',   {screenshot => 1});
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
+    # Avoiding `save_and_upload_log` for `lsof -nP` because it uses tee
+    script_run 'lsof -nP >/tmp/lsof.log';    # Avoiding output to screen makes the command run 3 times faster
+    save_screenshot();
+    upload_log('/tmp/lsof.log');
 }
 
 =head2 export_logs
