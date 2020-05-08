@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -48,6 +48,7 @@ sub run {
     my $zypper_migration_error_cnt = 0;
     my $out                        = wait_serial($migration_checks, $timeout);
     while ($out) {
+        diag "out=$out";
         if ($out =~ $zypper_migration_target) {
             my $version = get_var("VERSION");
             $version =~ s/-/ /;
@@ -80,9 +81,8 @@ sub run {
             || $out =~ $zypper_migration_failed
             || $out =~ $zypper_migration_urlerror)
         {
-            $self->result('fail');
             save_screenshot;
-            return;
+            die 'Zypper migration failed';
         }
         elsif ($out =~ $zypper_continue) {
             send_key "y";
