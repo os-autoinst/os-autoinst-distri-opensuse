@@ -259,6 +259,7 @@ sub is_ltp_test {
 sub is_kernel_test {
     return is_ltp_test() ||
       (get_var('QA_TEST_KLP_REPO')
+        || get_var('INSTALL_KLP_PRODUCT')
         || get_var('INSTALL_KOTD')
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('BLKTESTS')
