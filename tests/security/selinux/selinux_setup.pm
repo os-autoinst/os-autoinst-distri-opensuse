@@ -41,7 +41,7 @@ sub run {
     # for sle15 and sle15+ "selinux-policy-*" pkgs will not be released
     # NOTE: have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
     if (!is_sle && !is_leap || is_sle('>=15')) {
-        my @files = ("selinux-policy-20200219-3.6.noarch.rpm", "selinux-policy-minimum-20200219-3.6.noarch.rpm");
+        my @files = ("selinux-policy-20200219-3.6.noarch.rpm", "selinux-policy-minimum-20200219-3.6.noarch.rpm", "selinux-policy-devel-20200219-3.20.noarch.rpm");
         foreach my $file (@files) {
             assert_script_run "wget --quiet " . data_url("selinux/$file");
             assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");

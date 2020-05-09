@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use registration 'add_suseconnect_product';
 
 sub run {
     my ($self)      = @_;
@@ -63,6 +64,26 @@ sub run {
     if (!$ret) {
         die "ERROR:\ \"$test_module\"\ module\ was\ not\ removed!";
     }
+
+    # generate reference policy using installed macros
+    # install needed pkgs for interface
+    add_suseconnect_product("sle-module-desktop-applications");
+    add_suseconnect_product("sle-module-development-tools");
+    zypper_call("in policycoreutils-devel");
+    # call sepolgen-ifgen to generate the interface descriptions
+    assert_script_run("sepolgen-ifgen");
+    # run "# audit2allow -R" to generate reference policy and verify the policy format
+    # NOTE: the output depends on the contents of audit log it may change at any time
+    #       so only check the policy format is OK
+    validate_script_output(
+        "audit2allow -R -i $audit_log",
+        sub {
+            m/
+            .*require\ \{.*
+            .*type\ .*;.*
+            #=============.*==============.*
+            .*allow.*;.*/sx
+        });
 }
 
 1;

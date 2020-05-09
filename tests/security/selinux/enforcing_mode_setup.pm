@@ -43,7 +43,6 @@ sub run {
     # control (enable) the status of SELinux on the system
     assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
     assert_script_run("echo 'SELINUX=enforcing' >> /etc/selinux/config");
-    assert_script_run("rm /var/log/audit/audit.log");
 
     power_action("reboot", textmode => 1);
     $self->wait_boot;
