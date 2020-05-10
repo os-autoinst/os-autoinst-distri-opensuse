@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,5 +25,8 @@ sub run {
 sub test_flags {
     return {milestone => 1};
 }
+
+# 'generic-desktop' already checked in wait_boot_past_bootloader
+sub post_run_hook {}
 
 1;
