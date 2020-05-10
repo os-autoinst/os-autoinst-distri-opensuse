@@ -27,6 +27,6 @@ sub test_flags {
 }
 
 # 'generic-desktop' already checked in wait_boot_past_bootloader
-sub post_run_hook {}
+sub post_run_hook { }
 
 1;

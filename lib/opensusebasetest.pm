@@ -933,6 +933,8 @@ sub wait_boot_past_bootloader {
         last if $ret;
         $timeout -= $check_interval;
     }
+    # if we reached a logged in desktop we are done here
+    return 1 if match_has_tag('generic-desktop') || match_has_tag('opensuse-welcome');
     # the last check after previous intervals must be fatal
     assert_screen \@tags, $check_interval;
     handle_emergency_if_needed;
