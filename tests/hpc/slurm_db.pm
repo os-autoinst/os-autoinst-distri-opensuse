@@ -34,17 +34,20 @@ sub run {
     # install slurm-node if sle15, not available yet for sle12
     zypper_call('in slurm-node') if is_sle '15+';
 
+    my $mariadb_service = "mariadb";
+    $mariadb_service = "mysql" if is_sle('<12-sp4');
+
     zypper_call("in mariadb");
-    systemctl("start mariadb");
-    systemctl("is-active mariadb");
+    systemctl("start $mariadb_service");
+    systemctl("is-active $mariadb_service");
 
     # allow hostnames other than localhost
     my $config = << "EOF";
 sed -i "/^bind-address.*/c\\#bind-address" /etc/my.cnf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);
-    systemctl("restart mariadb");
-    systemctl("is-active mariadb");
+    systemctl("restart $mariadb_service");
+    systemctl("is-active $mariadb_service");
     record_info("mariadb conf", script_output("cat /etc/my.cnf"));
 
     # handle db preparation
@@ -56,8 +59,8 @@ EOF
     assert_script_run("mysql -uroot -e \"GRANT ALL ON slurm_acct_db.* TO \'slurm\'@\'master-node00.openqa.test\';\"");
     assert_script_run("mysql -uroot -e \"FLUSH PRIVILEGES;\"");
 
-    systemctl("restart mariadb");
-    systemctl("is-active mariadb");
+    systemctl("restart $mariadb_service");
+    systemctl("is-active $mariadb_service");
 
     barrier_wait("SLURM_SETUP_DONE");
 
