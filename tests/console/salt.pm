@@ -61,6 +61,7 @@ EOF
     unless (script_run 'salt \'*\' test.ping') {
         assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done';
     }
+    assert_screen 'True'
     systemctl 'stop salt-master salt-minion', timeout => 120;
 }
 
