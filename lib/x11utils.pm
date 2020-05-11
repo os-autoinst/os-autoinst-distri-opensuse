@@ -121,7 +121,7 @@ sub ensure_unlocked_desktop {
                 }
                 else {
                     diag("Next loop ($counter), Generic desktop didn't match");
-                    record_soft_failure('bsc#1168979') if is_aarch64;
+                    record_info('Screen seems frozen', 'Might be consequence of bsc#1168979') if is_aarch64;
                     next;    # most probably screen is locked
                 }
             }
