@@ -39,7 +39,8 @@ DUALBOOT | boolean | false | Enables dual boot configuration during the installa
 DUD | string | | Defines url or relative path to the DUD file if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data)
 DUD_ADDONS | string | | Comma separated list of addons added using DUD.
 DVD |||
-ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combine with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
+ENCRYPT | boolean | false | Enables or indicates encryption of the disks. Can be combined with `FULL_LVM_ENCRYPT`, `ENCRYPT_CANCEL_EXISTING`, `ENCRYPT_ACTIVATE_EXISTING` and `UNENCRYPTED_BOOT`.
+ENCRYPT_CANCEL_EXISTING | boolean | false | Used to cancel activation of the encrypted partitions |
 EVERGREEN |||
 EXIT_AFTER_START_INSTALL | boolean | false | Indicates that test suite will be finished after `installation/start_install` test module. So that all the test modules after this one will not be scheduled and executed.
 EXPECTED_INSTALL_HOSTNAME | string | | Contains expected hostname YaST installer got from the environment (DHCP, 'hostname=', as a kernel cmd line argument)
