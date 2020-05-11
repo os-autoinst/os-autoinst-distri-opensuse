@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -58,9 +58,7 @@ EOF
     assert_script_run("salt-key --accept-all -y");
     # try to ping the minion. If it does not respond on the first try the ping
     # might have gone lost so try more often. Also see bsc#1069711
-    unless (script_run 'salt \'*\' test.ping') {
-        assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done';
-    }
+    assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done';
     systemctl 'stop salt-master salt-minion', timeout => 120;
 }
 
