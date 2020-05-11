@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,8 @@ use registration qw(add_suseconnect_product register_product);
 
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     if (is_sle) {
         assert_script_run 'source /etc/os-release';
@@ -46,7 +47,6 @@ sub run {
         return;
     }
     validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
-    prepare_ssh_localhost_key_login 'root';
     if (get_var('ARCH') =~ /aarch64|ppc64le/ && \
         script_run("machinery inspect localhost | grep 'no machinery-helper for the remote system architecture'", 300) == 0) {
         record_soft_failure 'boo#1125785 - no machinery-helper for this architecture.';

@@ -57,6 +57,11 @@ sub run {
         return;
     }
 
+    # press key up to cancel 10 sec timeout on jeos images to don't miss the grub screen
+    if (check_var('FLAVOR', 'JeOS-for-AArch64')) {
+        for (1 .. 5) { sleep 1; send_key 'up'; }
+    }
+
     if (get_var('DUALBOOT')) {
         tianocore_select_bootloader;
         send_key_until_needlematch('tianocore-bootmanager-dvd', 'down', 5, 5);

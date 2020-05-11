@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,8 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     assert_script_run '! rpm -q exim';
 
@@ -37,7 +38,7 @@ sub run {
     # test email transmission
     assert_script_run 'echo "FOOBAR123" | mail root';
     assert_script_run 'postqueue -p';
-    script_run 'cat /var/mail/root';
+    sleep(1);
     assert_script_run 'grep FOOBAR123 /var/mail/root';
 }
 

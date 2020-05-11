@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -75,9 +75,9 @@ EOF
 
 
 sub run {
-    my $dir = "/root/ant_test";
-
-    select_console 'root-console';
+    my $dir  = "/root/ant_test";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Install ant
     zypper_call 'in ant';
@@ -91,8 +91,8 @@ sub run {
     assert_script_run "cd $dir";
     assert_script_run "mkdir -p src/test";
     assert_script_run "mkdir -p build/classes";
-    assert_script_run "echo '$java_hello_world' >> src/test/Hello.java";
-    assert_script_run "echo '$build_file_xml' >> build.xml";
+    script_output("echo '$java_hello_world' >> src/test/Hello.java");
+    script_output("echo '$build_file_xml' >> build.xml");
 
     # Check that ant builds succesfully
     assert_script_run "ant";

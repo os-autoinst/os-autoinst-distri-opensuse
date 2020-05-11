@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,8 +30,8 @@ use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
-    # setup
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     # development module needed for dependencies, released products are tested with sdk module
     if (is_sle() && !main_common::is_updates_tests()) {
         cleanup_registration;
