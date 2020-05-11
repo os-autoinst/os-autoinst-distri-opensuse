@@ -152,6 +152,7 @@ sub y2snapper_show_changes_and_delete {
     send_key_until_needlematch 'yast2_snapper-new_snapshot_selected', 'tab';
     # Press Show Changes
     send_key "alt-s";
+    wait_still_screen(2, 4);
     assert_screen 'yast2_snapper-unselected_testdata';
     if ($ncurses) {
         # Select 1. subvolume (root) in the tree and expand it
