@@ -347,7 +347,7 @@ sub uefi_bootmenu_params {
         for (1 .. 10) { send_key "down"; }
     }
     else {
-        if (is_caasp) {
+        if (is_caasp && get_var('BOOT_HDD_IMAGE')) {
             # skip healthchecker lines
             for (1 .. 5) { send_key "down"; }
         }
@@ -366,7 +366,7 @@ sub uefi_bootmenu_params {
         }
         sleep 5;
         for (1 .. 4) { send_key "down"; }
-        if (is_caasp) {
+        if (is_caasp && get_var('BOOT_HDD_IMAGE')) {
             for (1 .. 7) { send_key "down"; }
         }
     }
