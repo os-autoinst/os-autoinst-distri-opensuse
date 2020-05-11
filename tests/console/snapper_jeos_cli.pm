@@ -34,15 +34,17 @@ sub run {
     select_console('root-console');
     my $file       = '/etc/openQA_snapper_test';
     my $openqainit = script_output("snapper create -p -d openqainit");
-    assert_script_run("touch $file");
-    my $openqalatest = script_output("snapper create -p -d openqalatest");
+    assert_script_run("head -c 10000 < /dev/urandom > $file");
+    my $checksum_orig = script_output("sha256sum $file");
+    my $openqalatest  = script_output("snapper create -p -d openqalatest");
     assert_script_run("snapper list");
 
     $self->rollback_and_reboot($openqainit);
     assert_script_run("! ls -l $file");
 
     $self->rollback_and_reboot($openqalatest);
-    assert_script_run("ls -l $file");
+    my $checksum = script_output("sha256sum $file");
+    die("Restored file sha256 checksum didn't match") if $checksum_orig ne $checksum;
     assert_script_run("rm -v $file");
 
     $self->rollback_and_reboot($openqainit);
