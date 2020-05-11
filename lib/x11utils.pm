@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap);
 use utils 'assert_and_click_until_screen_change';
+use Utils::Architectures 'is_aarch64';
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -70,8 +71,9 @@ all possible options should be handled within loop to get unlocked desktop
 =cut
 sub ensure_unlocked_desktop {
     my $counter = 10;
+
     while ($counter--) {
-        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system);
+        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         assert_screen \@tags, no_wait => 1;
         if (match_has_tag 'displaymanager') {
@@ -87,6 +89,12 @@ sub ensure_unlocked_desktop {
             else {
                 select_user_gnome($username);
             }
+        }
+        if (match_has_tag('guest-disabled-display')) {
+            wait_screen_change(sub {
+                    send_key 'shift';
+            }, 10);
+            record_info('Guest disabled display', 'Might be consequence of bsc#1168979');
         }
         if (match_has_tag('authentication-required-user-settings') || match_has_tag('authentication-required-modify-system')) {
             type_password;
@@ -114,6 +122,8 @@ sub ensure_unlocked_desktop {
                     assert_screen 'generic-desktop';
                 }
                 else {
+                    diag("Next loop ($counter), Generic desktop didn't match");
+                    record_info('Screen seems frozen', 'Might be consequence of bsc#1168979') if is_aarch64;
                     next;    # most probably screen is locked
                 }
             }
@@ -123,6 +133,7 @@ sub ensure_unlocked_desktop {
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
                 send_key 'esc';                                                                           # end screenlock
+                diag("Screen lock present");
             };
         }
         wait_still_screen 1;                                                                              # slow down loop
