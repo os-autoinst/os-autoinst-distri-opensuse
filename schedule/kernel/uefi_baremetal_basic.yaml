@@ -9,7 +9,6 @@ vars:
     IPXE_UEFI: 1
     SCC_ADDONS: sdk
 schedule:
-    - kernel/ibtests_barriers
     - autoyast/prepare_profile
     - installation/ipxe_install
     - console/suseconnect_scc
