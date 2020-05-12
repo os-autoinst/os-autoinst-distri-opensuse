@@ -30,8 +30,6 @@ sub setup_nis_client {
     assert_screen 'nis-client-configuration', 120;
     send_key 'alt-u';    # use NIS radio button
     wait_still_screen 4;
-    send_key 'alt-l';    # open firewall port
-    assert_screen 'nis-client-fw-opened';
     send_key 'alt-i';    # NIS domain
     type_string $setup_nis_nfs_x11{nis_domain};
     send_key 'alt-m';    # start automounter
@@ -61,8 +59,6 @@ sub nfs_settings_tab {
     assert_screen 'nis-client-nfs-settings-tab';
     send_key 'alt-v';        # nfsv4 domain name field
     type_string $setup_nis_nfs_x11{nfs_domain};
-    send_key 'alt-f';        # open firewall port
-    assert_screen 'nis-client-nfs-settings-tab-opened-fw';
     wait_still_screen 4, 4;    # blinking cursor
     save_screenshot;
 }
@@ -96,7 +92,7 @@ sub nfs_shares_tab {
     send_key 'alt-o';          # OK
     assert_screen 'nis-client-nfs-client-configuration';
     send_key 'alt-o';          # OK
-    assert_screen 'nis-client-fw-opened';
+    assert_screen 'nis-client-configuration';
     send_key 'alt-f';          # finish
     if (is_opensuse) {
         assert_screen 'disable_auto_login_popup';
@@ -122,15 +118,8 @@ sub run {
     setup_static_mm_network($setup_nis_nfs_x11{client_address});
     zypper_call 'in yast2-nis-server';
 
-    if ($self->firewall eq 'firewalld') {
-        # Workaround for bsc#1083486, reported by server module
-        my $firewalld_ypbind_service = get_test_data('x11/workaround_ypbind.xml');
-        type_string("echo \"$firewalld_ypbind_service\" > /usr/lib/firewalld/services/ypbind.xml\n");
-        assert_script_run('firewall-cmd --reload');
-    }
-
+    # we have to stop the firewall, see bsc#999873 and bsc#1083487#c36
     systemctl 'stop ' . $self->firewall;
-    record_soft_failure('bsc#999873');
 
     mutex_lock('nis_ready');    # wait for NIS server setup
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nis');
