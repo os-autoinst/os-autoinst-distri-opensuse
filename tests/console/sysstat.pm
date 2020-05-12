@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,8 +25,7 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
     zypper_call 'in sysstat';
     script_run 'rm -rf /var/log/sa/sa*';
     systemctl 'start sysstat.service';

@@ -81,6 +81,7 @@ our @EXPORT = qw(
   set_hostname
   show_tasks_in_blocked_state
   svirt_host_basedir
+  prepare_ssh_localhost_key_login
   disable_serial_getty
   script_retry
   script_run_interactive
@@ -1425,6 +1426,35 @@ Return C<VIRSH_OPENQA_BASEDIR> or fall back to C</var/lib>.
 =cut
 sub svirt_host_basedir {
     return get_var('VIRSH_OPENQA_BASEDIR', '/var/lib');
+}
+
+=head2 prepare_ssh_localhost_key_login
+
+ prepare_ssh_localhost_key_login($source_user);
+
+Add the SSH key of C<$source_user> to the C<.ssh/authorized_keys> file of root.
+
+=cut
+sub prepare_ssh_localhost_key_login {
+    my ($source_user) = @_;
+    # in case localhost is already inside known_hosts
+    if (script_run('test -e ~/.ssh/known_hosts') == 0) {
+        assert_script_run('ssh-keygen -R localhost');
+    }
+
+    # generate ssh key
+    if (script_run('! test -e ~/.ssh/id_rsa') == 0) {
+        assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
+    }
+
+    # add key to authorized_keys of root
+    if ($source_user eq 'root') {
+        assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys');
+    }
+    else {
+        assert_script_sudo('mkdir -p /root/.ssh');
+        assert_script_sudo("cat /home/$source_user/.ssh/id_rsa.pub | tee -a /root/.ssh/authorized_keys");
+    }
 }
 
 =head2 script_retry

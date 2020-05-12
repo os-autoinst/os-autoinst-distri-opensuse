@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,7 +28,6 @@ sub validatelr {
     my $product         = $args->{product};
     my $product_channel = $args->{product_channel} || "";
     my $version         = $args->{version};
-    my $major_version   = substr($args->{version}, 0, 2);
     if (get_var('ZDUP')) {
         $version = "";
     }
@@ -36,27 +35,46 @@ sub validatelr {
         $version .= "-SAP";
     }
     # Live patching and other modules are not per-service pack channel model,
-    # so use major version on sle12 to validate their repos
+    # so use major version to validate their repos
+    if ($product eq 'SLE-Live') {
+        $product = 'SLE-Live-Patching';
+        $version = '12';
+    }
     if ($product eq 'SLE-ASMM') {
         $product = 'SLE-Module-Adv-Systems-Management';
-        $version = $major_version if $major_version eq '12';
+        $version = '12';
     }
     if ($product eq 'SLE-CONTM') {
         $product = 'SLE-Module-Containers';
-        $version = $major_version if $major_version eq '12';
+        $version = '12';
+    }
+    if ($product eq 'SLE-HPCM') {
+        $product = 'SLE-Module-HPC';
+        $version = '12';
+    }
+    if ($product eq 'SLE-LGM') {
+        $product = 'SLE-Module-Legacy';
+        $version = '12';
+    }
+    if ($product eq 'SLE-PCM') {
+        $product = 'SLE-Module-Public-Cloud';
+        $version = '12';
     }
     if ($product eq 'SLE-TCM') {
         $product = 'SLE-Module-Toolchain';
-        $version = $major_version if $major_version eq '12';
+        $version = '12';
     }
     if ($product eq 'SLE-WSM') {
         $product = 'SLE-Module-Web-Scripting';
-        $version = $major_version if $major_version eq '12';
+        $version = '12';
+    }
+    if ($product eq 'SLE-PHUB') {
+        $product = 'SUSE-PackageHub-';
     }
     # LTSS version is included in its product name
     # leave it as empty to match the regex
     if ($product =~ /LTSS/) {
-        $version = '' if $major_version eq '12';
+        $version = '';
     }
     diag "validatelr alias:$alias product:$product cha:$product_channel version:$version";
 
@@ -107,11 +125,12 @@ sub validatelr {
             }
         }
     }
-    script_output($cmd) if defined $cmd;
+    run_scripted_command_slow($cmd, slow_type => 2) if defined $cmd;
 }
 
 sub validate_repos_sle {
     my ($version) = @_;
+    script_run "clear";
 
     # On SLE we follow "SLE Channels Checking Table"
     # (https://wiki.microfocus.net/index.php?title=SLE12_SP2_Channels_Checking_Table)
@@ -120,8 +139,6 @@ sub validate_repos_sle {
     my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
     my $scc_addon_str = '';
     for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
-        # no empty $scc_addon when SCC_ADDONS starts with ,
-        next unless length $scc_addon;
         # The form of LTSS repos is different with other addons
         # For example: SLES12-LTSS-Updates
         if ($scc_addon eq 'ltss') {
@@ -279,11 +296,11 @@ sub validate_repos_sle {
         # For the name of product channel, sle12 uses NVIDIA, sle12sp1 and sp2 use nVidia
         # Consider migration, use regex to match nvidia whether in upper, lower or mixed
         # Skip check AMD/ATI repo since it would be removed from sled12 and sle-we-12, see bsc#984866
-        if ($base_product eq "SLED" || $we && !get_required_var('FLAVOR') =~ /-Updates$|-Incidents/) {
+        if ($base_product eq "SLED" || $we) {
             validatelr(
                 {
                     product         => "SLE-",
-                    product_channel => 'Desktop-[nN][vV][iI][dD][iI][aA]-Driver',
+                    product_channel => 'GA-Desktop-[nN][vV][iI][dD][iI][aA]-Driver',
                     enabled_repo    => 'Yes',
                     uri             => $nvidia_uri,
                     version         => $version
@@ -315,7 +332,8 @@ sub validate_repos {
     my ($version) = @_;
     $version //= get_var('VERSION');
 
-    assert_script_run "zypper lr | tee /dev/$serialdev",    180;
+    assert_script_run "zypper lr | tee /dev/$serialdev", 180;
+    script_run "clear";
     assert_script_run "zypper lr -d | tee /dev/$serialdev", 180;
 
     if (!get_var('STAGING') and is_sle('12-SP1+')) {
@@ -326,8 +344,7 @@ sub validate_repos {
 sub run {
     # ZYPPER_LR is needed for inconsistent migration, test would fail looking for deactivated addon
     set_var 'ZYPPER_LR', 1;
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
     validate_repos;
 }
 

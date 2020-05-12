@@ -1,6 +1,6 @@
 #SUSE"s openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,12 +37,12 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call);
+use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
+
 
     #Search for a package (star
     zypper_call 'se star';

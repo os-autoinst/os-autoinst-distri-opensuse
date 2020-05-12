@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
+# Copyright © 2012-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,55 +11,47 @@
 # Summary: console test pre setup, performing actions required to run tests
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
-# - Setup passwordless & questionless ssh login to localhost 127.0.0.1 ::1
+# - Save screenshot
+# - Disable mail notifications
 # - Disable/stop serial-getty service
-# - Disable mail notifications system-wide
-# - Enable pipefail system-wide
 # - Disable/stop packagekit service
-# - Check console font
-
+# - Enable pipefail
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
 use testapi;
 use utils qw(check_console_font disable_serial_getty);
-use Utils::Backends qw(has_ttys);
-use Utils::Systemd qw(disable_and_stop_service systemctl);
+use Utils::Backends qw(has_ttys use_ssh_serial_console);
+use Utils::Systemd 'disable_and_stop_service';
 use strict;
 use warnings;
 
+sub disable_bash_mail_notification {
+    assert_script_run "unset MAILCHECK >> ~/.bashrc";
+    assert_script_run "unset MAILCHECK";
+}
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
-
-    systemctl('start sshd');
-
-    # generate ssh key and use same key for root and bernhard
-    if (script_run('! test -e ~/.ssh/id_rsa') == 0) {
-        assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
-    }
-
-    # copy and add root key into authorized_keys and public key into known_hosts of both root and bernhard
-    assert_script_run('mkdir -pv ~/.ssh ~bernhard/.ssh');
-    assert_script_run('cp ~/.ssh/id_rsa ~bernhard/.ssh/id_rsa');
-    assert_script_run('touch ~{,bernhard}/.ssh/{authorized_keys,known_hosts}');
-    assert_script_run('chmod 600 ~{,bernhard}/.ssh/*');
-    assert_script_run('chown bernhard ~bernhard/.ssh/*');
-    assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~{,bernhard}/.ssh/authorized_keys');
-    assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,bernhard}/.ssh/known_hosts");
-
-    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
-    disable_serial_getty;
+    # let's see how it looks at the beginning
+    save_screenshot;
+    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
     # Prevent mail notification messages to show up in shell and interfere with running console tests
-    script_run 'echo "unset MAILCHECK" >> /etc/bash.bashrc.local';
+    disable_bash_mail_notification;
+    # Stop serial-getty on serial console to avoid serial output pollution with login prompt
+    disable_serial_getty;
+    # init
+    check_console_font if has_ttys();
+
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
-    # init
-    check_console_font if has_ttys();
+    $self->clear_and_verify_console;
+    select_console 'user-console';
+    # Shell enviromental variable MAILCHECK has to be updated for both users
+    disable_bash_mail_notification;
 }
 
 sub post_fail_hook {
