@@ -2325,6 +2325,13 @@ sub load_security_tests_apparmor_profile {
     loadtest "security/apparmor_profile/usr_lib_dovecot_imap";
 }
 
+sub load_security_tests_yast2_apparmor {
+    load_security_console_prepare;
+
+    loadtest "security/yast2_apparmor/settings_disable_enable_apparmor";
+    loadtest "security/yast2_apparmor/settings_toggle_profile_mode";
+}
+
 sub load_security_tests_openscap {
     # ALWAYS run following tests in sequence because of the dependencies
 
@@ -2504,7 +2511,7 @@ sub load_security_tests {
       fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_tool
       crypt_krb5kdc crypt_krb5server crypt_krb5client
       ipsec mmtest
-      apparmor apparmor_profile selinux
+      apparmor apparmor_profile yast2_apparmor selinux
       openscap
       mok_enroll ima_measurement ima_appraisal evm_protection
       system_check
