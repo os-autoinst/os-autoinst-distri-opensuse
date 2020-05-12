@@ -70,7 +70,8 @@ sub run {
         }
     }
 
-    parse_extra_log('XUnit', "nodev_results.xml");
+    parse_extra_log('XUnit', 'nodev_results.xml');
+    parse_extra_log('XUnit', 'nullb0_results.xml');
 
     script_run('tar -zcvf results.tar.gz results');
     upload_logs('results.tar.gz');
