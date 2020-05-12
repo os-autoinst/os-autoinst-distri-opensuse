@@ -1468,6 +1468,7 @@ sub load_extra_tests_texlive {
 }
 
 sub load_extra_tests_openqa_bootstrap {
+    loadtest 'x11/disable_screensaver';
     if (get_var 'BOOTSTRAP_CONTAINER') {
         loadtest 'openqa/install/openqa_bootstrap_container';
     }
