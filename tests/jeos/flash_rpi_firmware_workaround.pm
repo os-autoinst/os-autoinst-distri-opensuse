@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: This module copies all files required to chain boot from µSD to USB on Raspberry Pi.
+# Summary: This module copies all files required to chain boot from USB to µSD on Raspberry Pi.
 # It is currently used on:
 #   * RPi2 v1.1: as it cannot boot directly from USB at all
 #   * RPi2 v1.2 / RPi3: will use bootcode.bin only once https://github.com/raspberrypi/firmware/issues/1322 will be fixed
