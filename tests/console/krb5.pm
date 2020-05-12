@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,9 +23,7 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
+    select_console 'root-console';
     zypper_call 'in krb5 krb5-server krb5-client';
 
     #Get the script that creates the kerberus server:
@@ -69,9 +67,6 @@ sub run {
 
     script_run "mkdir -p /run/user/`id -u tester`/krb5cc";
     script_run "chown tester:users /run/user/`id -u tester`/krb5cc";
-
-    # avoid failures in virtio-console due to unexpected PS1
-    assert_script_run('echo "PS1=\'# \'" >> ~tester/.bashrc') if check_var('VIRTIO_CONSOLE', '1');
 
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,9 +17,7 @@ use testapi;
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
+    select_console 'root-console';
     # test 1
     # Installing and testing options -a -d -p
     zypper_call 'in perf';

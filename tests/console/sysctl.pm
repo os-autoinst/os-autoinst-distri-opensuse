@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,8 +18,7 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
     assert_script_run 'sysctl -w vm.swappiness=59';
     validate_script_output 'cat /proc/sys/vm/swappiness', sub { m/^59$/ };
 }

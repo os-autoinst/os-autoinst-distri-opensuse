@@ -1,6 +1,6 @@
 # Evolution tests
 #
-# Copyright © 2017-2020 SUSE LLC
+# Copyright © 2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,9 +26,7 @@ use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
 
 sub run() {
-    my $self = shift;
-    $self->select_serial_terminal;
-
+    select_console('root-console');
     pkcon_quit;
 
     if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
@@ -95,9 +93,21 @@ sub run() {
 
     # create test users
     assert_script_run "useradd -m admin";
-    assert_script_run "expect -c 'spawn passwd admin;expect sword:;send password123\\r;expect sword:;send password123\\r;interact'";
+    script_run "passwd admin", 0;    # set user's password
+    type_password "password123";
+    wait_still_screen(1);
+    send_key 'ret';
+    type_password "password123";
+    wait_still_screen(1);
+    send_key 'ret';
+
     assert_script_run "useradd -m nimda";
-    assert_script_run "expect -c 'spawn passwd nimda;expect sword:;send password123\\r;expect sword:;send password123\\r;interact'";
+    script_run "passwd nimda", 0;    # set user's password
+    type_password "password123";
+    send_key 'ret';
+    type_password "password123";
+    send_key 'ret';
+    save_screenshot;
 
     systemctl 'status dovecot';
     systemctl 'status postfix';

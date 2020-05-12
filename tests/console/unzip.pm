@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
+# Copyright © 2017-2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,8 +24,8 @@ use testapi;
 use utils 'zypper_call';
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    # Preparation
+    select_console 'root-console';
     zypper_call 'in wget unzip';
     assert_script_run 'mkdir -p /tmp/unzip-test/ && pushd /tmp/unzip-test';
 

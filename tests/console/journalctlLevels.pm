@@ -20,7 +20,7 @@ use warnings;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
 
     record_info("INFO", "Logs all level0 severity types");
     assert_script_run "wget --quiet " . data_url('journalctl_levels/test.sh') . " -O test.sh";

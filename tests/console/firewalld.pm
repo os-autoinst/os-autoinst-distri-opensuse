@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
+# Copyright © 2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,15 +30,16 @@ sub test1 {
     record_info 'Test #1', 'Test: Stop firewalld, then start it';
     systemctl('stop firewalld');
     systemctl('start firewalld');
-    # wait until iptables modules are loaded, max 10 seconds
-    assert_script_run('timeout 10 bash -c "until lsmod |grep iptable; do sleep 1;done"');
+
+    # Check Service State, enable it if necessary
+    record_info 'Check Service State';
+    assert_script_run("if ! systemctl is-active -q firewalld | grep -q -i 'inactive'; then systemctl start firewalld; fi");
 }
 
 # Test #2 - Temporary Rules
 sub test2 {
     record_info 'Test #2', 'Test Temporary Rules';
-    # -w option to avoid 'Another app is currently holding the xtables lock.'
-    assert_script_run("iptables -w 10 -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
+    script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
 
     # Check if it's tumbleweed or Leap/SLE and run the correct test accordingly
     if (is_tumbleweed) {
@@ -78,7 +79,7 @@ sub test2 {
 sub test3 {
     # Test Permanent Rules
     record_info 'Test #3', 'Test Permanent Rules';
-    assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
+    script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
 
     assert_script_run("firewall-cmd --zone=public --permanent --add-port=25/tcp");
     assert_script_run("firewall-cmd --zone=public --permanent --add-service=pop3");
@@ -115,8 +116,8 @@ sub test3 {
 # Test #4 - Test Rules using Masquerading
 sub test4 {
     record_info 'Test #4', 'Test Rules using Masquerading';
-    assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
-    assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
+    script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
+    script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
 
     assert_script_run("firewall-cmd --zone=public --add-masquerade");
     assert_script_run("firewall-cmd --zone=public --add-forward-port=port=2222:proto=tcp:toport=22");
@@ -133,8 +134,8 @@ sub test4 {
 # Test #5 - Test ipv4 family addresses with rich rules
 sub test5 {
     record_info 'Test #5", "Test ipv4 family addresses with rich rules';
-    assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_allow.txt");
-    assert_script_run("iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_deny.txt");
+    script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_allow.txt");
+    script_run("iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_deny.txt");
 
     assert_script_run("firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=\"ipv4\" source address=192.168.200.0/24 accept'");
     assert_script_run("firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=\"ipv4\" source address=192.168.201.0/24 drop'");
@@ -164,7 +165,7 @@ sub test6 {
 # Test #7 - Create a rule using --timeout and verifying if the rule vanishes after the specified period
 sub test7 {
     record_info 'Test #7', 'Create a rule using timeout';
-    assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
+    script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
 
     assert_script_run("firewall-cmd --zone=public --add-service=smtp --timeout=30");
 
@@ -190,8 +191,7 @@ sub test8 {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
+    select_console("root-console");
 
     # Check Service State, enable it if necessary, set default zone to public
     pre_test;

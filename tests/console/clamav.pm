@@ -36,9 +36,7 @@ sub scan_and_parse {
 }
 
 sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
+    select_console 'root-console';
     zypper_call('in clamav');
     # Initialize and download ClamAV database which needs time
     assert_script_run('freshclam', 700);
