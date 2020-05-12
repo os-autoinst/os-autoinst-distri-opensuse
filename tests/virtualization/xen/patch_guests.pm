@@ -33,7 +33,7 @@ sub run {
         if ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp) {
             ssh_add_test_repositories "$guest";
 
-            check_virt_kernel($guest, 'before');
+            check_virt_kernel($guest, '-before');
             script_run "ssh root\@$guest zypper lr -d";
             script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-before.txt";
             upload_logs("/tmp/rpm-qa-$guest-before.txt");
