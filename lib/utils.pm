@@ -66,7 +66,6 @@ our @EXPORT = qw(
   handle_untrusted_gpg_key
   service_action
   assert_gui_app
-  run_scripted_command_slow
   get_root_console_tty
   get_x11_console_tty
   OPENQA_FTP_URL
@@ -1037,48 +1036,6 @@ sub service_action {
             systemctl "$action $name.$type";
         }
     }
-}
-
-=head2 run_scripted_command_slow
-
- run_scripted_command_slow($cmd [, slow_type => <num>]);
-
-Type slowly to run very long command in scripted way to avoid issue of 'key event queue full' (see poo#12250).
-Pass optional slow_type key to control how slow to type the command.
-Scripted very long command to shorten typing length.
-Default slow_type is type_string_slow.
-
-=cut
-sub run_scripted_command_slow {
-    my ($cmd, %args) = @_;
-    my $suffix = hashed_string("SO$cmd");
-
-    open(my $fh, '>', 'current_script');
-    print $fh $cmd;
-    close $fh;
-
-    my $slow_type   = $args{slow_type} // 1;
-    my $curl_script = "curl -f -v " . autoinst_url("/current_script") . " > /tmp/script$suffix.sh" . " ; echo curl-\$? > /dev/$testapi::serialdev\n";
-    my $exec_script = "/bin/bash -x /tmp/script$suffix.sh" . " ; echo script$suffix-\$? > /dev/$testapi::serialdev\n";
-    if ($slow_type == 1) {
-        type_string_slow $curl_script;
-        wait_serial "curl-0" || die "Command $curl_script died";
-        type_string_slow $exec_script;
-        wait_serial "script$suffix-0" || die "Command $exec_script died";
-    }
-    elsif ($slow_type == 2) {
-        type_string_very_slow $curl_script;
-        wait_serial "curl-0" || die "Command $curl_script died";
-        type_string_very_slow $exec_script;
-        wait_serial "script$suffix-0" || die "Command $exec_script died";
-    }
-    elsif ($slow_type == 3) {
-        type_string $curl_script, wait_screen_change => 1;
-        wait_serial "curl-0" || die "Command $curl_script died";
-        type_string $exec_script, wait_screen_change => 1;
-        wait_serial "script$suffix-0" || die "Command $exec_script died";
-    }
-    clear_console;
 }
 
 =head2 get_root_console_tty
