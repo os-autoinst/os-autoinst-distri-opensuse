@@ -33,6 +33,14 @@ use version_utils qw(is_sle is_leap);
 sub run {
     select_console("root-console");
 
+    if (is_sle '>=15') {
+        add_suseconnect_product('sle-module-containers');
+    }
+
+    if (!check_var('DISTRI', 'microos')) {
+        zypper_call 'in podman';
+    }
+
     # images can be searched on the default registry
     validate_script_output("podman search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
 
@@ -96,7 +104,7 @@ sub run {
     assert_script_run 'podman run --rm --init opensuse/tumbleweed ps --no-headers -xo "pid args" | grep "1 /dev/init"';
 
     if (script_run('command -v man') == 0) {
-        assert_script_run('man -P cat podman build | grep "podman-build - Build a container image using a Dockerfile"');
+        assert_script_run('man -P cat podman build | grep "podman-build - Build a container image using a Containerfile"');
     }
 
     # containers can be stopped
