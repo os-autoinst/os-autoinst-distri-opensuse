@@ -33,8 +33,6 @@ sub run {
     assert_script_run("ip li set br0 up");
     systemctl("stop firewalld");
 
-    $self->setup_nspawn_unit();
-
     my $pkg_repo            = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
     my $release_pkg         = 'openSUSE-release';
     my $systemd_network_pkg = (is_tumbleweed) ? 'systemd-network' : '';
