@@ -23,6 +23,8 @@ conditional_schedule:
         - hpc/genders
       rasdaemon:
         - hpc/rasdaemon
+      hpc_migration:
+        - hpc/hpc_migration
 schedule:
   - '{{bootmenu}}'
   - boot/boot_to_desktop
