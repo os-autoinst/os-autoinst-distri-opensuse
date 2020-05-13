@@ -30,11 +30,14 @@ sub run {
     # Install the gnutls and openssl apackages
     zypper_call 'in gnutls openssl';
 
-    # Check the library is in FIPS mode
-    validate_script_output 'gnutls-cli --fips140-mode 2>&1', sub {
-        m/
-            library\sis\sin\sFIPS140-2\smode.*/sx
-    };
+    # Check the library is in FIPS kernel mode, and skip checking this in FIPS ENV mode
+    # Since ENV mode is not pulled out/installed the fips library
+    if (!get_var("FIPS_ENV_MODE")) {
+        validate_script_output 'gnutls-cli --fips140-mode 2>&1', sub {
+            m/
+                library\sis\sin\sFIPS140-2\smode.*/sx
+        };
+    }
 
     # Lists all ciphers, check the certificate types and double confirm TLS1.3,DTLS1.2 and SSL3.0
     assert_script_run 'gnutls-cli -l | grep "Certificate types" | grep "CTYPE-X.509"';
@@ -51,7 +54,7 @@ sub run {
 }
 
 sub test_flags {
-    return {milestone => 1, fatal => 1};
+    return {milestone => 1, fatal => 0};
 }
 
 1;
