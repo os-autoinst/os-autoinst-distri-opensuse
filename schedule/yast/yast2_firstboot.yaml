@@ -3,7 +3,7 @@ name:           yast2_fistboot
 description:    >
     Smoke test for YaST2 firstboot module
 vars:
-    YAST2_FIRSTBOOT_USERNAME: y2_firstboot_tester
+    YAST2_FIRSTBOOT_USERNAME: firstbootuser
 schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
