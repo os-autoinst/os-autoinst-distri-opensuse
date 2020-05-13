@@ -20,6 +20,30 @@ conditional_schedule:
         - hpc/slurm_slave
       slurm_master_backup:
         - hpc/slurm_master_backup
+      slurm_db:
+        - hpc/slurm_db
+      slurm_master_backup_db:
+        - hpc/slurm_master_backup_db
+      mpi_master:
+        - hpc/mpi_master
+      mpi_slave:
+        - hpc/mpi_slave
+      ganglia_server:
+        - hpc/ganglia_server
+      ganglia_client:
+        - hpc/ganglia_client
+      mrsh_master:
+        - hpc/mrsh_master
+      mrsh_slave:
+        - hpc/mrsh_slave
+      munge_master:
+        - hpc/munge_master
+      munge_slave:
+        - hpc/munge_slave
+      pdsh_master:
+        - hpc/pdsh_master
+      pdsh_slave:
+        - hpc/pdsh_slave
 
 schedule:
   - '{{bootmenu}}'
