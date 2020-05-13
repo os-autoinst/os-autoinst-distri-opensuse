@@ -142,18 +142,18 @@ sub install_build_dependencies {
       gcc
       git-core
       kernel-default-devel
-      keyutils-devel
-      libacl-devel
       libaio-devel
-      libcap-devel
       libopenssl-devel
-      libselinux-devel
-      libtirpc-devel
       make
     );
     zypper_call('-t in ' . join(' ', @deps));
 
     my @maybe_deps = qw(
+      keyutils-devel
+      libcap-devel
+      libacl-devel
+      libtirpc-devel
+      libselinux-devel
       gcc-32bit
       kernel-default-devel-32bit
       keyutils-devel-32bit
