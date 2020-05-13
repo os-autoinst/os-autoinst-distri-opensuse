@@ -966,7 +966,7 @@ the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot {
     my ($self, %args) = @_;
-    my $bootloader_time = $args{bootloader_time} // 100;
+    my $bootloader_time = $args{bootloader_time} // ((is_pvm) ? 200 : 100);
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
     my $in_grub         = $args{in_grub} // 0;
