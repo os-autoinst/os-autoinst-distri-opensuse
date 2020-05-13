@@ -35,9 +35,11 @@ sub run_test {
                 record_soft_failure 'bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning.';
                 $self->{test_results}->{$guest}->{"bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning"}->{status} = 'SOFTFAILED';
                 $persistent_config_option = '--persistent' if ($sles_running_version eq '11' && $sles_running_sp eq '4');
+                script_run "brctl addbr br0; ip link set dev br0 up", 60 if ($sles_running_version eq '11' && $sles_running_sp eq '4');
             }
             if (get_var('VIRT_AUTOTEST') && (check_var('SYSTEM_ROLE', 'kvm') || check_var('HOST_HYPERVISOR', 'kvm'))) {
                 $interface_model_option = '--model virtio';
+                script_run "brctl addbr br0; ip link set dev br0 up", 60 if ($sles_running_version eq '11' && $sles_running_sp eq '4');
                 script_run "ssh root\@$guest modprobe acpiphp", 60 if ($guest =~ /^sles-11-sp4.*$/img);
                 record_soft_failure 'bsc#1167828 Bridge network interface br0 hotplugging does not work with this ' . $guest if ($guest =~ /^sles-11-sp4.*$/img);
                 $self->{test_results}->{$guest}->{"bsc#1167828 Bridge network interface br0 hotplugging does not work with this $guest"}->{status} = 'SOFTFAILED' if ($guest =~ /^sles-11-sp4.*$/img);
