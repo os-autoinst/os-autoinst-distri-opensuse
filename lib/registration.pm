@@ -189,6 +189,9 @@ sub add_suseconnect_product {
             record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
         }
         assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+    } elsif ($result && !$retry) {
+        die "SUSEConnect failed activating module $name with exit code (see log output): $result.";
+
     }
 }
 
