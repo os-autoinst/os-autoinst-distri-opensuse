@@ -44,6 +44,14 @@ conditional_schedule:
         - hpc/pdsh_master
       pdsh_slave:
         - hpc/pdsh_slave
+      hpc_master:
+        - hpc/hpc_master
+        - hpc/hpc_migration
+        - hpc/post_migration
+      hpc_slave:
+        - hpc/hpc_slave
+        - hpc/hpc_migration
+        - hpc/post_migration
 
 schedule:
   - '{{bootmenu}}'
