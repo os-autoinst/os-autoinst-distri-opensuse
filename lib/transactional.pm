@@ -167,7 +167,7 @@ sub trup_shell {
 # In general automated services will make sure that they don't block each other,
 # but this does not apply when manual triggering of the script.
 sub ensure_rollback_service_not_running {
-    for (1 .. 12) {
+    for (1 .. 24) {
         my $output = script_output("systemctl show -p SubState --value rollback.service");
         $output =~ '^(start|running)$' ? sleep 10 : last;
     }

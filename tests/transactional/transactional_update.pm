@@ -79,7 +79,7 @@ sub run {
 
     script_run "rebootmgrctl set-strategy off";
 
-    if (get_var('BETA')) {
+    if (is_opensuse && get_var('BETA')) {
         record_info 'Remove pkgs', 'Remove preinstalled packages on Leap BETA';
         trup_call "pkg remove update-test-[^t]*";
         process_reboot 1;
