@@ -1,0 +1,8 @@
+name:           hpc_supportserver
+description:    >
+    Create a supportserver for multimachine cluster tests
+schedule:
+    - support_server/login
+    - support_server/setup
+    - hpc/barrier_init
+    - support_server/wait_children
