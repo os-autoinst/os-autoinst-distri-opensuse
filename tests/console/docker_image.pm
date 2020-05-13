@@ -51,8 +51,7 @@ sub run {
     }
 
     if (check_var("ARCH", "x86_64")) {
-        assert_script_run('curl -LO https://storage.googleapis.com/container-diff/latest/container-diff-linux-amd64', 240);
-        assert_script_run('chmod +x container-diff-linux-amd64 && mv container-diff-linux-amd64 /usr/local/bin/container-diff');
+        zypper_call("install container-diff");
     }
 
     for my $i (0 .. $#$image_names) {
