@@ -1649,8 +1649,17 @@ sub handle_patch_11sp4_zvm {
     while ($out) {
         if ($out =~ $zypper_patch_conflict) {
             save_screenshot;
-            send_key "3";
-            send_key "ret";
+            if (check_var("BREAK_DEPS", '1')) {
+                send_key "3";
+                send_key "ret";
+            }
+            elsif (check_var("WORKAROUND_DEPS", '1')) {
+                send_key "2";
+                send_key "ret";
+            }
+            else {
+                die 'Dependency problems';
+            }
         }
         elsif ($out =~ $zypper_continue) {
             save_screenshot;
