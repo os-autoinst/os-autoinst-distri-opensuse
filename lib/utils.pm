@@ -500,12 +500,21 @@ sub zypper_call {
     $IN_ZYPPER_CALL = 1;
     # Retrying workarounds
     my $ret;
+    my $search_conflicts = 'awk \'BEGIN {print "Processing Record - ",NR; group=0}
+                    /Solverrun finished with an ERROR/,/statistics/{ print group"|", 
+                    $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }\'\
+                    /var/log/zypper.log
+                    ';
     for (1 .. 5) {
         $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
+            } elsif (my $conflicts = script_output($search_conflicts)) {
+                record_info("Conflict", $conflicts, result => 'fail');
+                diag "Package conflicts found, not retrying anymore" if $conflicts;
+                last;
             }
             next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
