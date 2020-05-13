@@ -67,8 +67,9 @@ It allows to have more control over diffs amongs snapshots.
 sub y2snapper_adding_new_snapper_conf {
     assert_script_run("btrfs subvolume create /test");
     assert_script_run("snapper -c test create-config /test");
-    assert_script_run('sed -i \'/^TIMELINE_CREATE/ s/yes/no/\' /etc/snapper/configs/test');
-    assert_script_run('snapper cleanup timeline');
+    assert_script_run('snapper -c test set-config TIMELINE_CREATE=no TIMELINE_MIN_AGE=0');
+    assert_script_run('snapper -c test get-config');
+    assert_script_run('snapper -c test cleanup timeline');
 }
 
 =head2 y2snapper_create_snapshot
@@ -152,6 +153,7 @@ sub y2snapper_show_changes_and_delete {
     send_key_until_needlematch 'yast2_snapper-new_snapshot_selected', 'tab';
     # Press Show Changes
     send_key "alt-s";
+    wait_still_screen(2, 4);
     assert_screen 'yast2_snapper-unselected_testdata';
     if ($ncurses) {
         # Select 1. subvolume (root) in the tree and expand it
