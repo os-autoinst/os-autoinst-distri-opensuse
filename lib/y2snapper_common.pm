@@ -208,10 +208,11 @@ sub y2snapper_clean_and_quit {
     script_run 'snapper -c test delete-config';
     script_run 'rm -rf /test/*';
     script_run "ls";
-    unless (defined($module_name)) {
-        type_string "exit\n";
-        save_screenshot;
-        type_string "exit\n";
+    unless ($ncurses) {
+        type_string "exit\n";    # root
+        wait_still_screen(1);
+        type_string "exit\n";    # user
+        wait_still_screen(1);
     }
 }
 
