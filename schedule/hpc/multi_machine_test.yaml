@@ -1,0 +1,28 @@
+---
+name: HPC node
+description:    >
+    Maintainer: schlad
+    Create a node for multimachine cluster tests
+vars:
+  DESKTOP: textmode
+  BOOT_HDD_IMAGE: 1
+
+conditional_schedule:
+  bootmenu:
+    ARCH:
+      aarch64:
+        - boot/uefi_bootmenu
+  hpctest:
+    HPC:
+      slurm_master:
+        - hpc/slurm_master
+      slurm_slave:
+        - hpc/slurm_slave
+      slurm_master_backup:
+        - hpc/slurm_master_backup
+
+schedule:
+  - '{{bootmenu}}'
+  - boot/boot_to_desktop
+  - hpc/before_test
+  - '{{hpctest}}'
