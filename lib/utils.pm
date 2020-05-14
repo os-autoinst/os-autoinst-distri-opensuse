@@ -500,7 +500,7 @@ sub zypper_call {
     $IN_ZYPPER_CALL = 1;
     # Retrying workarounds
     my $ret;
-    my $search_conflicts = 'awk \'BEGIN {print "Processing Record - ",NR; group=0}
+    my $search_conflicts = 'awk \'BEGIN {print "Processing conflicts - ",NR; group=0}
                     /Solverrun finished with an ERROR/,/statistics/{ print group"|", 
                     $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }\'\
                     /var/log/zypper.log

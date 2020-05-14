@@ -191,7 +191,6 @@ sub add_suseconnect_product {
         assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
     } elsif ($result && !$retry) {
         die "SUSEConnect failed activating module $name with exit code (see log output): $result.";
-
     }
 }
 
