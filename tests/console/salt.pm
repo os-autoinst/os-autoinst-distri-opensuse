@@ -58,7 +58,8 @@ EOF
     assert_script_run("salt-key --accept-all -y");
     # try to ping the minion. If it does not respond on the first try the ping
     # might have gone lost so try more often. Also see bsc#1069711
-    assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done';
+    assert_script_run 'for i in {1..7}; do echo "try $i" && salt \'*\' test.ping -t30 && break; done', timeout => 300;
+
     systemctl 'stop salt-master salt-minion', timeout => 120;
 }
 
