@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,19 +24,6 @@ use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
-    my $self = shift;
-
-    # Install required packages
-    # designer-qt5 is in package libqt5-qttools, yast release notes in yast2-installation
-    # SDK needs to be added for 12
-    if (is_sle('<=12-SP5')) {
-        select_console 'root-console';
-        cleanup_registration;
-        register_product;
-        add_suseconnect_product(get_addon_fullname('sdk'));
-    }
-    select_console 'x11';
-    ensure_unlocked_desktop;
     ensure_installed("libqt5-qttools yast2-installation", timeout => 180);
 
     # Test designer-qt5
@@ -65,10 +52,6 @@ sub run {
     assert_script_run 'make';
     assert_script_run './libqt5-qtbase';
     type_string "exit\n";
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
 }
 
 1;
