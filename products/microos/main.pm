@@ -32,6 +32,10 @@ sub load_boot_from_disk_tests {
     loadtest 'microos/networking';
 }
 
+sub load_tdup_tests {
+    loadtest 'transactional/tdup';
+}
+
 sub load_feature_tests {
     # Feature tests for Micro OS operating system
     loadtest 'microos/libzypp_config';
@@ -71,6 +75,7 @@ sub load_installation_tests {
         # Full list of installation test-modules can be found at 'main_common.pm'
         load_inst_tests unless get_var 'BOOT_HDD_IMAGE';
         load_boot_from_disk_tests;
+        load_tdup_tests             if (get_var 'TDUP');
         loadtest 'console/regproxy' if is_regproxy_required;
         load_feature_tests          if (check_var 'EXTRA', 'FEATURES');
         loadtest 'shutdown/shutdown';
@@ -82,6 +87,7 @@ sub load_installation_tests {
 #######################
 if (get_var 'STACK_ROLE') {
     load_boot_from_disk_tests;
+    load_tdup_tests      if (get_var 'TDUP');
     load_feature_tests() if (check_var 'EXTRA', 'FEATURES');
     loadtest 'shutdown/shutdown';
 }
