@@ -71,8 +71,9 @@ sub run_test {
     #Restart libvirtd service
     virt_autotest::virtual_network_utils::restart_libvirtd();
 
+    #Skip restart network service due to bsc#1166570
     #Restart network service
-    virt_autotest::virtual_network_utils::restart_network();
+    #virt_autotest::virtual_network_utils::restart_network();
 
 }
 
