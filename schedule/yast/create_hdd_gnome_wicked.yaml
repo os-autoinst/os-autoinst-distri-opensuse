@@ -1,0 +1,9 @@
+name:           create_hdd_gnome_wicked
+description:    >
+  Boots into installed gnome system, switches to wicked.
+  Used as base job for other jobs, that require wicked to be running.
+schedule:
+  - boot/boot_to_desktop
+  - console/switch_to_wicked
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
