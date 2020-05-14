@@ -22,7 +22,7 @@ use warnings;
 
 sub run {
     select_console 'user-console';
-    assert_script_run('curl www3.zq1.de/test.txt');
+    assert_script_run('curl openqa.opensuse.org/assets/tmp/public/test.txt|grep "Works"');
     assert_script_run('rpm -q curl libcurl4');
 }
 
