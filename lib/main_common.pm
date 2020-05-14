@@ -1400,7 +1400,6 @@ sub load_extra_tests_y2uitest_ncurses {
     unless (is_s390x) {
         loadtest "console/yast2_proxy";
         loadtest "console/yast2_vnc";
-        loadtest "console/yast2_samba";
         # internal nis server in suse network is used, but this is not possible for
         # openqa.opensuse.org
         loadtest "console/yast2_nis" if is_sle;
