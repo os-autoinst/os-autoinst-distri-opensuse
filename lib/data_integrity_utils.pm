@@ -40,7 +40,7 @@ sub get_image_digest {
 
     my $digest;
     if (check_var('BACKEND', 'svirt')) {
-        $digest = console('svirt')->get_cmd_output("sha256sum $image_path");
+        $digest = console('svirt')->run_cmd("sha256sum $image_path");
         # On Hyper-V the hash starts with '\'
         my $start = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1 : 0;
         $digest = substr $digest, $start, 64;    # extract SHA256 from the output
@@ -71,6 +71,10 @@ sub verify_checksum {
         my $image_path = get_required_var $image;
         $image_path = $dir_path . basename($image_path) if $dir_path;
         my $digest = get_image_digest($image_path);
+        unless ($digest) {
+            $error .= "Failed to calculate checksum for $image localted in: $image_path\n";
+            next;
+        }
         if ($checksum eq $digest) {
             diag("$image OK", "$image_path: OK");
         } else {
