@@ -1,8 +1,9 @@
-name:           btrfs_libstorage-ng@hmc+ipmi
+name:           btrfs_libstorage-ng@ipmi
 description:    >
-  Validate default installation with btrfs and Libstorage NG.
+  Validate default installation with btrfs and Libstorage NG on ipmi.
+  The difference from other backends is that it boots into text mode.
 vars:
-  DESKTOP: gnome
+  DESKTOP: textmode
   FILESYSTEM: btrfs
 schedule:
   - installation/bootloader_start
@@ -19,22 +20,15 @@ schedule:
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  # Called on BACKEND: ipmi
-  - '{{reconnect_mgmt_console}}'
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
   - installation/first_boot
   - console/validate_no_cow_attribute
   - console/verify_separate_home
-  - console/validate_file_system
-conditional_schedule:
-  reconnect_mgmt_console:
-    BACKEND:
-      ipmi:
-        - boot/reconnect_mgmt_console
 test_data:
   device: sda
   table_type: gpt
