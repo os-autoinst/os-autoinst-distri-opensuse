@@ -72,7 +72,7 @@ sub verify_checksum {
         $image_path = $dir_path . basename($image_path) if $dir_path;
         my $digest = get_image_digest($image_path);
         unless ($digest) {
-            $error .= "Failed to calculate checksum for $image localted in: $image_path\n";
+            $error .= "Failed to calculate checksum for $image located in: $image_path\n";
             next;
         }
         if ($checksum eq $digest) {
