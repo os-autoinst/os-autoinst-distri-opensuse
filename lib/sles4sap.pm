@@ -17,6 +17,7 @@ use version_utils 'is_sle';
 use utils 'zypper_call';
 
 our @EXPORT = qw(
+  $instance_password
   ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
@@ -42,6 +43,7 @@ our $sapadmin;
 our $sid;
 our $instance;
 our $ps_cmd;
+our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -434,6 +436,34 @@ sub install_libopenssl_legacy {
     }
 }
 
+=head2 upload_hana_install_log
+
+ upload_hana_install_log();
+
+Upload HANA installation logs.
+=cut
+sub upload_hana_install_log {
+    script_run 'tar -Jcf /tmp/hana_install.log.tar.xz /var/adm/autoinstall/logs /var/tmp/hdb*';
+    upload_logs '/tmp/hana_install.log.tar.xz';
+}
+
+=head2 upload_nw_install_log
+
+ upload_nw_install_log();
+
+Upload NW installation logs.
+=cut
+sub upload_nw_install_log {
+    my ($self) = @_;
+
+    $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
+    $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
+    upload_logs('/tmp/check-nw-media', failok => 1);
+    upload_logs '/sapinst/unattended/sapinst.log';
+    upload_logs '/sapinst/unattended/sapinst_dev.log';
+    upload_logs '/sapinst/unattended/start_dir.cd';
+}
+
 sub post_run_hook {
     my ($self) = @_;
 
@@ -445,7 +475,22 @@ sub post_run_hook {
 sub post_fail_hook {
     my ($self) = @_;
 
-    $self->export_logs;
+    # We need to be sure that *ALL* consoles are closed, are SUPER:post_fail_hook
+    # does not support virtio/serial console yet
+    reset_consoles;
+    select_console('root-console');
+
+    # YaST logs
+    script_run "save_y2logs /tmp/y2logs.tar.xz";
+    upload_logs "/tmp/y2logs.tar.xz";
+
+    # HANA installation logs, if needed
+    $self->upload_hana_install_log if get_var('HANA');
+
+    # NW installation logs, if needed
+    $self->upload_nw_install_log if get_var('NW');
+
+    # Execute the common part
     $self->SUPER::post_fail_hook;
 }
 

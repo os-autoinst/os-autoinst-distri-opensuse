@@ -15,17 +15,15 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
-use utils;
+use utils qw(file_content_replace type_string_slow);
 use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
-
-    my $timeout  = bmwqemu::scale_timeout(3600);
-    my $sid      = get_required_var('INSTANCE_SID');
-    my $password = 'Qwerty_123';
-    set_var('PASSWORD', $password);
+    my $timeout = bmwqemu::scale_timeout(3600);
+    my $sid     = get_required_var('INSTANCE_SID');
+    my $instid  = get_required_var('INSTANCE_ID');
 
     $self->select_serial_terminal;
 
@@ -76,9 +74,9 @@ sub run {
     send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');
     type_string $sid;
     wait_screen_change { send_key 'alt-a' };                   # SAP Password
-    type_password $password;
+    type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
-    type_password $password;
+    type_password $sles4sap::instance_password;
     wait_screen_change { send_key $cmd{ok} };
     assert_screen 'sap-wizard-profile-ready', 300;
     send_key $cmd{next};
@@ -109,20 +107,21 @@ sub run {
             die "Failed";
         }
     }
+
+    # Enable autostart of HANA HDB, otherwise DB will be down after the next reboot
+    # NOTE: not on HanaSR, as DB is managed by the cluster stack
+    unless (get_var('HA_CLUSTER')) {
+        select_console 'root-console' unless check_var('DESKTOP', 'textmode');
+        my $hostname = script_output 'hostname';
+        file_content_replace("/hana/shared/${sid}/profile/${sid}_HDB${instid}_${hostname}", '^Autostart[[:blank:]]*=.*' => 'Autostart = 1');
+    }
+
+    # Upload installations logs
+    $self->upload_hana_install_log;
 }
 
 sub test_flags {
     return {fatal => 1};
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    $self->select_serial_terminal;
-    assert_script_run 'tar cf /tmp/logs.tar /var/adm/autoinstall/logs /var/tmp/hdb*; xz -9v /tmp/logs.tar';
-    upload_logs '/tmp/logs.tar.xz';
-    assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
-    upload_logs "/tmp/y2logs.tar.xz";
-    $self->SUPER::post_fail_hook;
 }
 
 1;

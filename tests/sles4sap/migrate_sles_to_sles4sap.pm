@@ -59,12 +59,4 @@ sub test_flags {
     return {fatal => 1};
 }
 
-sub post_fail_hook {
-    my ($self) = @_;
-    $self->select_serial_terminal;
-    assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
-    upload_logs "/tmp/y2logs.tar.xz";
-    $self->SUPER::post_fail_hook;
-}
-
 1;
