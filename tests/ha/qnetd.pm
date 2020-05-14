@@ -17,8 +17,7 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
-use version_utils 'is_sle';
-use utils qw(systemctl file_content_replace zypper_call);
+use utils qw(zypper_call);
 
 sub qdevice_status {
     my ($expected_status) = @_;
@@ -35,15 +34,17 @@ sub qdevice_status {
     $output = script_output("$quorum_status_cmd");
 
     # Check split brain situation
-    if ($expected_status eq 'split-brain') {
-        die "Unexpected output for split-brain situation" unless ($output =~ /Activity blocked/);
+    if ($expected_status eq 'split-brain-blocked') {
+        die "Unexpected output for split-brain situation" unless ($output =~ /Activity blocked/ and $output =~ /Quorate:\s+No/);
         return;
     }
 
-    my @regexps = map { $_ . ($num_nodes + 1) } ('Expected votes:\s+', 'Highest expected:\s+', 'Total votes:\s+');
+    my @regexps        = map { $_ . ($num_nodes + 1) } ('Expected votes:\s+', 'Highest expected:\s+');
+    my $expected_votes = ($expected_status eq 'split-brain-check') ? $num_nodes : $num_nodes + 1;
+    push @regexps, 'Total votes:\s+' . $expected_votes;
     push @regexps, 'Quorum:\s+' . $num_nodes;
 
-    push @regexps, 'Flags:\s+Quorate\s+Qdevice' if ($expected_status eq 'started');
+    push @regexps, 'Flags:\s+Quorate\s+Qdevice' if ($expected_status eq 'started' or $expected_status eq 'split-brain-check');
     push @regexps, 'Flags:\s+2Node\s+Quorate'   if ($expected_status eq 'stopped');
 
     die "Qdevice membership information does not match expected info" if ($expected_status eq 'started' and $output !~ /\s+0\s+1\s+Qdevice/);
@@ -62,12 +63,12 @@ sub run {
     }
     else {
         assert_script_run "curl -f -v " . autoinst_url . "/data/ha/qdevice_check_master.sh -o $qdevice_check";
+        assert_script_run "chmod +x $qdevice_check";
     }
 
     if (is_node(1)) {
         my $qnet_node_host = choose_node(3);
         my $qnet_node_ip   = get_ip($qnet_node_host);
-        my $node2_ip       = get_ip(choose_node(2));
 
         # Add a promotable resource to check if the current node is hosting
         # master instance of the resource. If so, this cluster partition
@@ -88,21 +89,34 @@ sub run {
         assert_script_run "crm cluster init qdevice --qnetd-hostname=$qnet_node_ip -y --qdevice-heuristics=/etc/corosync/qdevice/check_master.sh --qdevice-heuristics-mode=on";
         # Qdevice should be started again
         qdevice_status('started');
-
-        # Add firewall rules to provoke a split brain situation and confirm that
-        # the qdevice node gives its vote to the node1 (where the master resource is running)
-        record_info('Split-brain info', 'Split brain test');
-        assert_script_run "iptables -A INPUT -s $node2_ip -j DROP; iptables -A OUTPUT -d $node2_ip -j DROP";
-        sleep $default_timeout;
     }
 
-    barrier_wait("SPLIT_BRAIN_TEST_$cluster_name");
+    # Perform Split Brain test
+    barrier_wait("SPLIT_BRAIN_TEST_READY_$cluster_name");
 
-    # Activity must be blocked in node2 due to split brain situation
+    record_info('Split-brain info', 'Split brain test');
+
+    # Add firewall rules to provoke a split brain situation and confirm that
+    # the qdevice node gives its vote to the node1 (where the master resource is running)
+    my $partner_ip = is_node(1) ? get_ip(choose_node(2)) : get_ip(choose_node(1));
+    assert_script_run "iptables -A INPUT -s $partner_ip -j DROP; iptables -A OUTPUT -d $partner_ip -j DROP" if (is_node(1) or is_node(2));
+    sleep $default_timeout;
+
     if (is_node(2)) {
+        # Activity must be blocked in node2 due to split brain situation
         record_info('Split-brain check', 'Check if activity is blocked');
-        qdevice_status('split-brain');
+        qdevice_status('split-brain-blocked');
     }
+    elsif (is_node(1)) {
+        # Node 1 must be OK, but with fewer Expected Votes
+        record_info('Split-brain check', 'Check qdevice information in node 1');
+        qdevice_status('split-brain-check');
+        # Resource must be running in this node
+        my $node_01 = choose_node(1);
+        ensure_resource_running("promotable-1", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+    }
+
+    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
 
     # Show cluster status before ending the test
     save_state if (!check_var('QDEVICE_TEST_ROLE', 'qnetd_server'));
