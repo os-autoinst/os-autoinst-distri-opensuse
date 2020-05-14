@@ -1487,6 +1487,7 @@ sub load_extra_tests_openqa_bootstrap {
 sub load_extra_tests_desktop {
     return unless any_desktop_is_applicable;
     if (check_var('DISTRI', 'sle')) {
+        loadtest 'x11/disable_screensaver';
         # start extra x11 tests from here
         loadtest 'x11/vnc_two_passwords';
         # TODO: check why this is not called on opensuse
@@ -1545,7 +1546,6 @@ sub load_extra_tests_desktop {
         }
         # We cannot change network device settings as rely on ssh/vnc connection to the machine
         loadtest "console/yast2_lan_device_settings" unless is_s390x();
-        loadtest "console/check_default_network_manager";
     }
 }
 
