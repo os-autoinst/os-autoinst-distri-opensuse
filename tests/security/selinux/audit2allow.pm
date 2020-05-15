@@ -23,7 +23,8 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use registration 'add_suseconnect_product';
+use version_utils qw(is_sle);
+use registration qw(add_suseconnect_product);
 
 sub run {
     my ($self)      = @_;
@@ -65,10 +66,13 @@ sub run {
         die "ERROR:\ \"$test_module\"\ module\ was\ not\ removed!";
     }
 
-    # generate reference policy using installed macros
-    # install needed pkgs for interface
-    add_suseconnect_product("sle-module-desktop-applications");
-    add_suseconnect_product("sle-module-development-tools");
+    if (is_sle) {
+        # generate reference policy using installed macros
+        # install needed pkgs for interface
+        add_suseconnect_product("sle-module-desktop-applications");
+        add_suseconnect_product("sle-module-development-tools");
+    }
+
     zypper_call("in policycoreutils-devel");
     # call sepolgen-ifgen to generate the interface descriptions
     assert_script_run("sepolgen-ifgen");
