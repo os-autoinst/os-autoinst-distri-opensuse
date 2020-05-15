@@ -40,7 +40,7 @@ sub get_image_digest {
 
     my $digest;
     if (check_var('BACKEND', 'svirt')) {
-        $digest = console('svirt')->run_cmd("sha256sum $image_path");
+        $digest = console('svirt')->get_cmd_output("sha256sum $image_path");
         # On Hyper-V the hash starts with '\'
         my $start = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1 : 0;
         $digest = substr $digest, $start, 64;    # extract SHA256 from the output
