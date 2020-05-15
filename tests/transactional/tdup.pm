@@ -40,7 +40,7 @@ sub run {
 
     trup_call 'dup';
 
-    process_reboot 1;
+    check_reboot_changes;
 
 }
 
