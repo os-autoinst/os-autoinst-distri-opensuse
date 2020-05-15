@@ -18,6 +18,7 @@ schedule:
     - '{{bootloader}}'
     - boot/boot_to_desktop
     - console/podman
+    - console/podman_image
     - console/docker
     - console/docker_runc
     - console/docker_image
