@@ -77,8 +77,15 @@ sub set_bootscript {
     my $arch        = get_required_var('ARCH');
     my $autoyast    = get_required_var('AUTOYAST');
 
-    my $kernel  = get_required_var('MIRROR_HTTP') . "/boot/$arch/loader/linux";
-    my $initrd  = get_required_var('MIRROR_HTTP') . "/boot/$arch/loader/initrd";
+    my $kernel = get_required_var('MIRROR_HTTP');
+    my $initrd = get_required_var('MIRROR_HTTP');
+    if ($arch eq "aarch64") {
+        $kernel = $kernel . "/boot/$arch/linux";
+        $initrd = $initrd . "/boot/$arch/initrd";
+    } else {
+        $kernel = $kernel . "/boot/$arch/loader/linux";
+        $initrd = $initrd . "/boot/$arch/loader/initrd";
+    }
     my $install = get_required_var('MIRROR_NFS');
     my $cmdline_extra;
 
