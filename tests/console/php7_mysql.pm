@@ -35,10 +35,6 @@ use apachetest;
 
 sub run {
     select_console 'root-console';
-    if (is_sle) {
-        add_suseconnect_product(get_addon_fullname('serverapp'));
-        add_suseconnect_product(get_addon_fullname('wsm'));
-    }
     setup_apache2(mode => 'PHP7');
     # install requirements
     zypper_call "in php7-mysql mysql sudo";
