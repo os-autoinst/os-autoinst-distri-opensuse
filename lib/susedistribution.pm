@@ -30,7 +30,7 @@ Base class implementation of distribution class necessary for testapi
 =cut
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
+use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
   match_has_tag set_var type_password type_string wait_serial $serialdev
   mouse_hide send_key_until_needlematch record_info record_soft_failure
   wait_still_screen wait_screen_change get_required_var diag);
@@ -318,9 +318,9 @@ sub ensure_installed {
         last unless @tags;
         assert_screen(\@tags, timeout => $args{timeout});
         last if (match_has_tag('pkcon-finished'));
-        if (match_has_tag('Policykit')) {
+        if (match_has_tag('Policykit-authenticate')) {
             type_password;
-            send_key 'ret';
+            click_lastmatch;
             @tags = grep { $_ ne 'Policykit' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
             next;
