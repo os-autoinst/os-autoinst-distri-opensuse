@@ -28,9 +28,16 @@ use testapi;
 use qam;
 use Utils::Backends 'use_ssh_serial_console';
 use power_action_utils qw(power_action);
+use version_utils qw(is_sle);
+use serial_terminal qw(add_serial_console);
 
 sub run {
     my $self = shift;
+    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
+    if (is_sle('<12-SP2')) {
+        select_console 'root-console';
+        add_serial_console('hvc0');
+    }
     $self->select_serial_terminal;
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
