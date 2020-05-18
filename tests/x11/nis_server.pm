@@ -82,7 +82,6 @@ sub nis_server_configuration {
 sub nfs_server_configuration {
     # NFS Server Configuration
     assert_screen 'nfs-server-configuration';
-    send_key 'alt-f';                            # open port in firewall
     send_key 'alt-s';                            # start nfs server
     send_key 'alt-m';                            # NFSv4 domain name field
     type_string $setup_nis_nfs_x11{nfs_domain};
