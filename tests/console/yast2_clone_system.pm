@@ -43,9 +43,9 @@ sub run {
     upload_asset $ay_profile_path;
 
     unless (is_opensuse) {
-        # As developement_tools are not build for staging, we will attempt to get the package from the factory repo
+        # As developement_tools are not build for staging, we will attempt to get the package
         # otherwise MODULE_DEVELOPMENT_TOOLS should be used
-        my $uri = (is_staging) ? "http://download.opensuse.org/tumbleweed/repo/oss/" : get_ftp_uri();
+        my $uri = get_ftp_uri();
         zypper_call "ar -c $uri devel-repo";
     }
     zypper_call '--gpg-auto-import-keys ref';
@@ -70,7 +70,13 @@ sub run {
 }
 
 sub get_ftp_uri {
-    my $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
+    my $devel_repo;
+    if (is_staging) {
+        $devel_repo = uc(get_required_var('DISTRI')) . '-' . get_required_var('VERSION') .
+          '-Module-Development-Tools-POOL-' . get_required_var('ARCH') . '-CURRENT-Media1';
+    } else {
+        $devel_repo = get_required_var(is_sle('>=15') ? get_repo_var_name("MODULE_DEVELOPMENT_TOOLS") : 'REPO_SLE_SDK');
+    }
     return "$utils::OPENQA_FTP_URL/" . $devel_repo;
 }
 
