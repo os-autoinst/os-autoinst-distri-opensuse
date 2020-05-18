@@ -20,7 +20,11 @@
 # - containers can be stopped
 # - containers can be deleted
 # - images can be deleted
-# Maintainer: Flavio Castelli <fcastelli@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>
+# - build a docker image
+# - attach a volume
+# - expose a port
+# - test networking outside of host
+# Maintainer: Flavio Castelli <fcastelli@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>, Anna Minou <anna.minou@suse.com>
 
 use base "consoletest";
 use testapi;
@@ -29,6 +33,7 @@ use strict;
 use warnings;
 use containers::common;
 use version_utils qw(is_sle is_leap);
+use containers::docker;
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /dev/tty | grep seccomp');
@@ -144,6 +149,18 @@ sub run {
     die('error: docker image rm tw:saved')                     unless ($output_deleted =~ m/Untagged: tw:saved/);
     die("error: docker image rm alpine:$alpine_image_version") unless ($output_deleted =~ m/Untagged: alpine:$alpine_image_version/);
     die('error: docker image rm hello-world:latest')           unless ($output_deleted =~ m/Untagged: hello-world:latest/);
+
+    # Set up environment for building a new image
+    set_up();
+
+    # Identify current job id and SLE Version
+    get_vars();
+
+    # Build the image
+    build_img();
+
+    # Run the built image
+    test_built_img();
 }
 
 1;
