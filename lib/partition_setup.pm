@@ -463,7 +463,7 @@ Select the first hard disk.
 
 =cut
 sub select_first_hard_disk {
-    my @tags           = qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-non-sda-selected select-hard-disks-one-selected);
+    my @tags = qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-sdc-selected hard-disk-dev-sdd-selected hard-disk-dev-non-sda-selected select-hard-disks-one-selected);
     my $matched_needle = assert_screen \@tags;
     return if skip_select_first_hard_disk;
     # SUT may have any number disks, only keep the first, unselect all other disks
@@ -478,6 +478,8 @@ sub select_first_hard_disk {
     # Video mode directly matched the sdb-selected needle (old code) or can do the similar (ideal for multiple disks)
     else {
         assert_and_click 'hard-disk-dev-sdb-selected' if match_has_tag('hard-disk-dev-sdb-selected');
+        assert_and_click 'hard-disk-dev-sdc-selected' if match_has_tag('hard-disk-dev-sdc-selected');
+        assert_and_click 'hard-disk-dev-sdd-selected' if match_has_tag('hard-disk-dev-sdd-selected');
         if (match_has_tag('hard-disk-dev-non-sda-selected')) {
             foreach my $tag (grep { $_ =~ /hard-disk-dev-([sv]d[a-z]|pmem[0-9])/ } @{$matched_needle->{needle}->{tags}}) {
                 assert_and_click "$tag-selected";
