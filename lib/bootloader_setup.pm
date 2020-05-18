@@ -741,6 +741,10 @@ sub specific_bootmenu_params {
         return " @params ";
     }
 
+    # Enable kernel.softlockup_panic, unless explicitly disabled
+    # See bsc#1126782
+    push @params, 'kernel.softlockup_panic=1' unless get_var('SOFTLOCKUP_PANIC_DISABLED', 0);
+
     type_boot_parameters(" @params ") if (@params);
     save_screenshot;
     return @params;
