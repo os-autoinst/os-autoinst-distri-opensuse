@@ -313,15 +313,15 @@ sub ensure_installed {
     testapi::assert_script_run('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     type_string "exit\n";
     $self->script_run("pkcon install -yp $pkglist; echo pkcon-status-\$? | tee /dev/$testapi::serialdev", 0);
-    my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
+    my @tags = qw(PolicyKit-authenticate Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
         assert_screen(\@tags, timeout => $args{timeout});
         last if (match_has_tag('pkcon-finished'));
-        if (match_has_tag('Policykit-authenticate')) {
+        if (match_has_tag('PolicyKit-authenticate')) {
             type_password;
             click_lastmatch;
-            @tags = grep { $_ ne 'Policykit' } @tags;
+            @tags = grep { $_ ne 'PolicyKit-authenticate' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
             next;
         }
