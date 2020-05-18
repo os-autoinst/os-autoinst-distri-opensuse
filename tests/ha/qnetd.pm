@@ -29,7 +29,7 @@ sub qdevice_status {
     $num_nodes-- if ($expected_status eq 'stopped');
 
     # Check qdevice status
-    $output = script_output "$qnetd_status_cmd", proceed_on_failure => 1;
+    $output = script_output "$qnetd_status_cmd" if ($expected_status ne 'stopped');
     die "Heuristics script for quorum is failing in all nodes" if ($expected_status =~ /^split-brain/ and $output !~ /Heuristics:\s+Pass\s/);
 
     $output = script_output "$quorum_status_cmd";
