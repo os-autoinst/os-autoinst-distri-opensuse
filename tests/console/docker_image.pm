@@ -29,6 +29,7 @@ sub run {
     select_console "root-console";
 
     my ($image_names, $stable_names) = get_suse_container_urls();
+    my ($plugin, $osversion, $version);
 
     install_docker_when_needed();
 
@@ -53,11 +54,20 @@ sub run {
         assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'echo "I work" | grep "I work"'};
         # It is the right version
         if (is_sle) {
-            my $osversion = get_required_var("VERSION") =~ s/-SP/ SP/r;    # 15 -> 15, 15-SP1 -> 15 SP1
+            $osversion = get_required_var("VERSION") =~ s/-SP/ SP/r;    # 15 -> 15, 15-SP1 -> 15 SP1
             validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $osversion"/ });
-        }
-        elsif (is_opensuse) {
-            my $version = get_required_var('VERSION');
+
+            if (is_sle('=12-SP3')) {
+                $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect';
+                assert_script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin'";
+            } else {
+                $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
+                assert_script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin -v'";
+                script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin lp'", 420;
+                script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin lm'", 420;
+            }
+        } elsif (is_opensuse) {
+            $version = get_required_var('VERSION');
             validate_script_output qq{docker container run --rm $image_names->[$i] cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
         }
         # zypper lr

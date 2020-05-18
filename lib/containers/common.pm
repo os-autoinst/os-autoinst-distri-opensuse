@@ -52,8 +52,8 @@ sub install_docker_when_needed {
 }
 
 sub clean_docker_host {
-    assert_script_run('docker stop $(docker ps -q)') if script_output('docker ps -q | wc -l') != '0';
-    assert_script_run('docker system prune -a -f');
+    assert_script_run('docker stop $(docker ps -q)', 180) if script_output('docker ps -q | wc -l') != '0';
+    assert_script_run('docker system prune -a -f',   180);
 }
 
 1;

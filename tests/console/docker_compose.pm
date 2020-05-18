@@ -27,6 +27,7 @@ sub run {
 
     install_docker_when_needed;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+    zypper_call("in nmap")                              if (script_run("which nmap") != 0);
 
     record_info 'Test #1', 'Test: Installation';
     zypper_call("in docker-compose");
@@ -34,10 +35,14 @@ sub run {
 
     assert_script_run 'mkdir -p dcproject; cd dcproject';
     assert_script_run("wget " . data_url("containers/docker-compose.yml") . " -O docker-compose.yml");
-    assert_script_run 'docker-compose pull';
-    assert_script_run 'docker-compose up -d';
+    assert_script_run 'docker-compose pull',  600;
+    assert_script_run 'docker-compose up -d', 120;
     assert_script_run 'docker-compose ps';
     assert_script_run 'docker-compose top';
+    assert_script_run 'curl -s http://127.0.0.1:5001/ | grep Result';
+    assert_script_run 'curl -s http://127.0.0.1:8080/ | grep Visualizer';
+    assert_script_run 'curl -s http://127.0.0.1:5000/ | grep "Cats vs Dogs!"';
+    assert_script_run 'nmap 127.0.0.1 -p 5432 | grep closed';
     assert_script_run 'docker-compose logs > logs.txt';
     upload_logs "logs.txt";
     assert_script_run 'docker-compose down', 180;

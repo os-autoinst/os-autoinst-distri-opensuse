@@ -15,6 +15,9 @@ services:
       - db-data:/var/lib/postgresql/data
     networks:
       - backend
+    restart: on-failure
+    environment:
+      - POSTGRES_PASSWORD=nots3cr3t
 
   vote:
     image: dockersamples/examplevotingapp_vote:before
