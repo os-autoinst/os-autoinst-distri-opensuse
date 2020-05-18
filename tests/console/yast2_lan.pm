@@ -65,6 +65,17 @@ sub run {
     }
 
     assert_screen 'test-yast2_lan-1';
+
+    # Do not set hostname via DHCP - poo#66775
+    # This is already the default on SLE, so change it for openSUSE only
+    if (is_opensuse) {
+        send_key "tab";
+        assert_screen 'yast2_lan-set-hostname-via-dhcp-selected';
+        send_key 'down';
+        send_key_until_needlematch("yast2_lan-set-hostname-via-dhcp-NO-selected", "up", 5);
+        send_key "ret";
+    }
+
     close_yast2_lan;
     wait_still_screen;
 
