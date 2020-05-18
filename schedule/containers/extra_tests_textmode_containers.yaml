@@ -1,6 +1,6 @@
 name:           extra_tests_textmode_containers
 description:    >
-    Maintainer: slindomansilla.
+    Maintainer: jalausuch@suse.com, qa-c@suse.de
     Extra tests about software in containers module
 conditional_schedule:
     bootloader:
