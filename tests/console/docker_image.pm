@@ -21,7 +21,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use registration qw(add_suseconnect_product install_docker_when_needed cleanup_registration register_product);
+use containers::common;
 use suse_container_urls 'get_suse_container_urls';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
@@ -29,14 +29,6 @@ sub run {
     select_console "root-console";
 
     my ($image_names, $stable_names) = get_suse_container_urls();
-
-    if (is_sle) {
-        if (script_run("SUSEConnect --status-text") != 0) {
-            cleanup_registration();
-            register_product();
-            add_suseconnect_product("sle-module-containers", substr(get_required_var('VERSION'), 0, 2));
-        }
-    }
 
     install_docker_when_needed();
 
@@ -95,6 +87,8 @@ sub run {
         # Remove the image again to save space
         assert_script_run("docker image rm --force $image_names->[$i] refreshed-image");
     }
+
+    clean_docker_host();
 }
 
 1;

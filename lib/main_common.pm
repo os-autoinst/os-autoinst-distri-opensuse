@@ -1712,6 +1712,7 @@ sub load_extra_tests_docker {
     loadtest "console/docker_runc";
     if (is_sle(">=12-sp3")) {
         loadtest "console/docker_image";
+        loadtest "console/docker_compose" if is_sle('15+');
     }
     if (is_opensuse) {
         loadtest "console/docker_image";
