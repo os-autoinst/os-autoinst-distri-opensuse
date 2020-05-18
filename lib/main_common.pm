@@ -447,7 +447,6 @@ sub load_reboot_tests {
         if (is_aarch64 && !get_var('INSTALLONLY') && !get_var('LIVE_INSTALLATION') && !get_var('LIVE_UPGRADE')) {
             loadtest "installation/system_workarounds";
         }
-        loadtest "console/early_test_setup";
     }
     if (get_var("DUALBOOT")) {
         loadtest "installation/reboot_eject_cd";
@@ -790,7 +789,6 @@ sub boot_hdd_image {
     }
     loadtest 'installation/bootloader' if is_pvm;
     loadtest 'boot/boot_to_desktop';
-    loadtest 'console/early_test_setup';
 }
 
 sub load_common_installation_steps_tests {
