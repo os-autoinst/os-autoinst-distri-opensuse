@@ -43,7 +43,6 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
-  install_docker_when_needed
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
@@ -878,28 +877,6 @@ sub rename_scc_addons {
         push @addons_new, defined $addons_map{$i} ? $addons_map{$i} : $i;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
-}
-
-sub install_docker_when_needed {
-    if (is_caasp) {
-        # Docker should be pre-installed in MicroOS
-        die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
-    }
-    else {
-        if (is_sle('<15')) {
-            assert_script_run('zypper se docker || zypper -n ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/SUSE:SLE-12:Update.repo', timeout => 600);
-        }
-        elsif (is_sle) {
-            add_suseconnect_product('sle-module-containers');
-        }
-        # docker package can be installed
-        zypper_call('in docker', timeout => 900);
-    }
-
-    # docker daemon can be started
-    systemctl('start docker');
-    systemctl('status docker');
-    assert_script_run('docker info');
 }
 
 sub verify_scc {

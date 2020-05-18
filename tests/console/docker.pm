@@ -27,7 +27,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use registration;
+use containers::common;
 use version_utils qw(is_sle is_leap);
 
 sub test_seccomp {
@@ -100,10 +100,10 @@ sub run {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # containers state can be saved to a docker image
-    my $exit_code = script_run("docker container exec $container_name zypper -n in curl", 300);
+    my $exit_code = script_run("docker container exec $container_name zypper -n in curl", 600);
     if ($exit_code) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
-        my $output = script_output("docker container exec $container_name zypper in --force-resolution -y -n curl", 300);
+        my $output = script_output("docker container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
     }
     assert_script_run("docker container commit $container_name tw:saved");

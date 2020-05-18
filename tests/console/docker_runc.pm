@@ -19,7 +19,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use version_utils qw(is_caasp is_sle);
-use registration;
+use containers::common;
 use strict;
 use warnings;
 
@@ -93,7 +93,7 @@ sub run {
     assert_script_run("! $runc state test2");
 
     # Cleanup, remove all images
-    assert_script_run("docker rmi --force busybox");
+    clean_docker_host();
 }
 
 1;
