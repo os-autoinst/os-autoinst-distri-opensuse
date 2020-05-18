@@ -79,6 +79,7 @@ Bind=/dev/sr0
 [Network]
 Bridge=br0
 ";
+    assert_script_run("mkdir -p /etc/systemd/nspawn/");
     $self->write_file("/etc/systemd/nspawn/$machine.nspawn", $systemd_nspawn_file);
     my $path = "/var/lib/machines/$machine";
     assert_script_run("mkdir $path");
