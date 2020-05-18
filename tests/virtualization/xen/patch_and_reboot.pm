@@ -25,18 +25,13 @@ sub run {
 
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
-    check_virt_kernel('', 'before');
+    check_virt_kernel();
     script_run "zypper lr -d";
-    script_run "rpm -qa > /tmp/rpm-qa-before.txt";
-    upload_logs("/tmp/rpm-qa-before.txt");
+    script_run "rpm -qa > /tmp/rpm-qa.txt";
+    upload_logs("/tmp/rpm-qa.txt");
 
     add_test_repositories;
     fully_patch_system;
-
-    check_virt_kernel('', 'after');
-    script_run "zypper lr -d";
-    script_run "rpm -qa > /tmp/rpm-qa-after.txt";
-    upload_logs("/tmp/rpm-qa-after.txt");
 
     # Check that all guests are still running
     script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %xen::guests);

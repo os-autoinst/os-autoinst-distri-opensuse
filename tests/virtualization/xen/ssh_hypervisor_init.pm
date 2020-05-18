@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils;
 
 sub run {
     my ($self) = @_;
@@ -47,6 +48,10 @@ sub run {
     # Copy that also for normal user
     assert_script_run "install -o $testapi::username -g users -m 0700 -d /home/$testapi::username/.ssh";
     assert_script_run "install -o $testapi::username -g users -m 0600 ~/.ssh/config ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts /home/$testapi::username/.ssh/";
+
+    my ($sles_running_version, $sles_running_sp) = get_sles_release();
+    zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_" . $sles_running_version . "/SUSE:CA.repo");
+    zypper_call("in ca-certificates-suse");
 }
 
 sub test_flags {
