@@ -82,6 +82,7 @@ sub run {
             my ($folderName) = $repo_url =~ /.*\/(.*)\.git/;
             if ($repo_url =~ /\#/) {
                 my ($repo_url, $branch) = ($repo_url =~ /(.*)\#(.*)/);
+                assert_script_run("git config --global http.sslVerify false");
                 assert_script_run('git clone ' . $repo_url);
                 assert_script_run("cd ./$folderName");
                 assert_script_run("git checkout -b $branch origin/$branch");
