@@ -1,7 +1,7 @@
 
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,9 +23,6 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils;
-use Utils::Architectures;
-use registration;
 
 
 sub wait_serial_or_die {
@@ -39,12 +36,7 @@ sub wait_serial_or_die {
 
 
 sub run {
-    #Setup console for text feedback.
     select_console("root-console");
-    if (is_sle('=12-SP5') && is_aarch64()) {
-        register_product;
-        add_suseconnect_product 'sle-sdk';
-    }
     zypper_call('in gcc glibc-devel gdb');    #Install test dependencies.
 
     #Test Case 1
@@ -99,9 +91,6 @@ sub run {
     type_string("y\n");
     type_string("y\n");                  #Workaround to handle sshserial behavior
     assert_script_run("pkill -9 test3");
-    if (is_sle('=12-SP5') && is_aarch64()) {
-        cleanup_registration;
-    }
 }
 
 1;
