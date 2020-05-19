@@ -19,6 +19,7 @@
 # - Check if events were recorded by xev
 # - Close all opened windows
 # Maintainer: mkravec <mkravec@suse.com>
+#             Felix Niederwanger <felix.niederwanger@suse.de>
 # Tags: poo#11794
 
 use base "x11test";
@@ -26,12 +27,16 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
+use version_utils 'is_sle';
+use utils;
 
 # Any free display
 my $display = ':37';
 
 # Passwords for VNC access
 my @options = ({pw => "readonly_pw", change => 0}, {pw => "readwrite_pw", change => 1});
+# A wrong password to check if the access is denied
+my $wrong_password = "password123";
 
 sub type_and_wait {
     type_string shift;
@@ -58,6 +63,15 @@ sub start_vnc_server {
     type_and_wait $options[0]->{pw};
     type_and_wait $options[0]->{pw};
     type_string "tput cnorm\n";
+
+    # Also set the password via `vncpasswd -f` for vncserver and to test for https://bugzilla.opensuse.org/show_bug.cgi?id=1171519
+    assert_script_run('umask 0077');
+    script_run('mkdir $HOME/.vnc');
+    assert_script_run('chmod go-rwx "$HOME/.vnc"');
+    if (script_run("echo \"$options[1]->{pw}\" | vncpasswd -f > \$HOME/.vnc/passwd; echo \"$options[0]->{pw}\" | vncpasswd -f >> \$HOME/.vnc/passwd") != 0) {
+        record_soft_failure('vncpasswd crashes - bsc#1171519');
+        assert_script_run('cp /tmp/file.passwd $HOME/.vnc/passwd');
+    }
 
     # Start server
     type_string "Xvnc $display -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd\n";
@@ -91,6 +105,8 @@ sub generate_vnc_events {
 
 sub run {
     record_info 'Setup VNC';
+    select_console('root-console');
+    zypper_call('in tigervnc xorg-x11-Xvnc xev');
     start_vnc_server;
 
     # open xterm for xev
@@ -126,11 +142,55 @@ sub run {
         assert_script_run 'rm /tmp/xev_log';
     }
 
-    # Cleanup
+    # Stop Xvnc
     send_key "alt-f4";
     select_console 'root-console', await_console => 0;
     send_key "ctrl-c";
-    select_console "x11";
+    wait_still_screen 2;
+
+    # Start vncserver and check if it is running
+    assert_script_run("vncserver $display -geometry 1024x768 -depth 16", fail_message => "vncserver is not starting");
+    script_run("vncserver -list > /var/tmp/vncserver-list");
+    assert_script_run("grep '$display' /var/tmp/vncserver-list", fail_message => "vncserver is not running");
+    # The needles for the tigervnc test are gnome specific
+    if (check_var('DESKTOP', 'gnome')) {
+        # Switch to desktop and run vncviewer
+        select_console('x11');
+        ensure_unlocked_desktop;
+        x11_start_program('vncviewer');
+        type_string("$display");
+        send_key("ret");
+        # We first test for a unsucessfull login
+        assert_screen('tigervnc-desktop-login');
+        type_string("$wrong_password");
+        send_key("ret");
+        assert_screen('tigervnc-login-fail');
+        send_key("ret");
+        # Test for a sucessfull login. Note: vncviewer remembers the last address, don't type it again
+        x11_start_program('vncviewer');
+        send_key("ret");
+        assert_screen('tigervnc-desktop-login');
+        type_string("$options[1]->{pw}");
+        send_key("ret");
+        assert_screen('tigervnc-desktop-loggedin');
+        save_screenshot();
+        send_key("alt-f4");
+        x11_start_program('vncviewer');
+        send_key("ret");
+        assert_screen('tigervnc-desktop-login');
+        type_string("$options[0]->{pw}");
+        send_key("ret");
+        assert_screen('tigervnc-desktop-loggedin');
+        save_screenshot();
+        send_key("alt-f4");
+    } else {
+        record_info("skipping graphical vnc tests (non-gnome desktop)");
+    }
+    # Terminate server
+    select_console('root-console');
+    assert_script_run("vncserver -kill $display");
+    # Done
+    select_console('x11');
 }
 
 sub post_fail_hook {
