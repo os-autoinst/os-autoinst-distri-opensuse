@@ -68,6 +68,9 @@ sub run {
     script_run "mkdir -p /run/user/`id -u tester`/krb5cc";
     script_run "chown tester:users /run/user/`id -u tester`/krb5cc";
 
+    # avoid failures in virtio-console due to unexpected PS1
+    assert_script_run('echo "PS1=\'# \'" >> ~tester/.bashrc') if check_var('VIRTIO_CONSOLE', '1');
+
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;
     type_string "klist 2> /tmp/krb5\n";
