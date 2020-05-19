@@ -36,6 +36,12 @@ sub run {
         zypper_call "in apparmor-parser";
     }
 
+    if (is_sle() && script_run('rpm -qi ca-certificates-suse') == 1) {
+        my $distversion = get_required_var("VERSION") =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
+        zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
+        zypper_call("in ca-certificates-suse");
+    }
+
     for my $i (0 .. $#$image_names) {
         # Load the image
         assert_script_run("podman pull $image_names->[$i]", 900);
