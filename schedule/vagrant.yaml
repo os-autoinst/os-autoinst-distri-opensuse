@@ -4,20 +4,24 @@ description:    >
 vars:
     QEMUCPU: host
 schedule:
-  - '{{boot_to_desktop}}'
-  - '{{add_box_virtualbox}}'
-  - virtualization/vagrant/add_box_libvirt
-  - virtualization/vagrant/sshfs
-  - virtualization/vagrant/boxes/tumbleweed
+    - '{{boot_to_desktop}}'
+    - '{{add_box_virtualbox}}'
+    - virtualization/vagrant/add_box_libvirt
+    - virtualization/vagrant/sshfs
+    - virtualization/vagrant/boxes/tumbleweed
 conditional_schedule:
-  add_box_virtualbox:
-    ARCH:
-      x86_64:
-        - virtualization/vagrant/add_box_virtualbox
-  boot_to_desktop:
-    BACKEND:
-      qemu:
-        - boot/boot_to_desktop
-      generalhw:
-        - jeos/prepare_firstboot
-        - jeos/firstrun
+    add_box_virtualbox:
+        ARCH:
+            x86_64:
+                - virtualization/vagrant/add_box_virtualbox
+    boot_to_desktop:
+        BACKEND:
+            qemu:
+                - boot/boot_to_desktop
+            generalhw:
+                - jeos/prepare_firstboot
+                - jeos/firstrun
+                - update/zypper_clear_repos
+                - console/zypper_ar
+                - console/zypper_ref
+                - console/zypper_lr
