@@ -1,0 +1,17 @@
+---
+name:           yast2_ncurses_textmode
+description:    >
+    Test for yast2 UI, ncurses only. Running on created textmode image.
+schedule:
+    - "{{pre_boot_to_desktop}}"
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/yast2_lan
+conditional_schedule:
+    pre_boot_to_desktop:
+        ARCH:
+            aarch64:
+                - boot/uefi_bootmenu
+            s390x:
+                - installation/bootloader_start

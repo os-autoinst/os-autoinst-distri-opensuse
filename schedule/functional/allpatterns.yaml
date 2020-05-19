@@ -42,7 +42,6 @@ schedule:
     - console/zypper_lr
     - console/zypper_ref
     - console/ncurses
-    - console/yast2_lan
     - console/curl_https
     - console/salt
     - console/glibc_sanity
