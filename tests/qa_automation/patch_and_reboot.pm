@@ -51,7 +51,8 @@ sub run {
     assert_script_run('rpm -ql --changelog kernel-default >/tmp/kernel_changelog.log');
     upload_logs('/tmp/kernel_changelog.log');
 
-    power_action('reboot');
+    # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
+    power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 150);
 }
 
