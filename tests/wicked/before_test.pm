@@ -76,20 +76,15 @@ sub run {
         }
     } else {
         # Common SUT Configuration
-        if (get_var('WICKED_SOURCES')) {
+        if (my $wicked_sources = get_var('WICKED_SOURCES')) {
             zypper_call('--quiet in automake autoconf libtool libnl-devel libnl3-devel libiw-devel dbus-1-devel pkg-config libgcrypt-devel systemd-devel git make gcc');
-            my $repo_url = get_var('WICKED_SOURCES');
-            my ($folderName) = $repo_url =~ /.*\/(.*)\.git/;
-            if ($repo_url =~ /\#/) {
-                my ($repo_url, $branch) = ($repo_url =~ /(.*)\#(.*)/);
-                assert_script_run("git config --global http.sslVerify false");
-                assert_script_run('git clone ' . $repo_url);
-                assert_script_run("cd ./$folderName");
-                assert_script_run("git checkout -b $branch origin/$branch");
-            }
-            else {
-                assert_script_run('git clone ' . $repo_url);
-                assert_script_run("cd ./$folderName");
+            my $folderName = 'wicked.git';
+            my ($repo_url, $branch) = split(/#/, $wicked_sources, 2);
+            assert_script_run("git config --global http.sslVerify false");
+            assert_script_run("git clone '$repo_url' '$folderName'");
+            assert_script_run("cd ./$folderName");
+            if ($branch) {
+                assert_script_run("git checkout $branch");
             }
             assert_script_run('./autogen.sh ',       timeout => 600);
             assert_script_run('make ; make install', timeout => 600);
