@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,6 @@ use base 'consoletest';
 use testapi;
 use strict;
 use warnings;
-use lockapi qw(barrier_create barrier_wait);
 use utils 'zypper_call';
 
 sub run {
@@ -49,7 +48,7 @@ sub run {
     assert_script_run 'cd /tmp';
     assert_script_run 'wget ' . data_url('qam/vsftpd.tar.gz');
     assert_script_run 'tar xzfv vsftpd.tar.gz';
-    assert_script_run 'bash run.sh | tee run.log', 300;
+    assert_script_run 'bash run.sh |& tee run.log', 300;
     upload_logs('run.log');
 }
 
