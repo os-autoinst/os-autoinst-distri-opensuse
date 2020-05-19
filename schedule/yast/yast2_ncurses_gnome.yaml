@@ -40,4 +40,11 @@ conditional_schedule:
             ppc64le:
                 - console/yast2_lan
             s390x:
+                - console/yast2_rmt
+                - console/yast2_ntpclient
+                - console/yast2_tftp
                 - console/yast2_lan
+                - console/yast2_lan_hostname
+                - console/yast2_dns_server
+                - console/yast2_nfs_client
+                - console/yast2_snapper_ncurses
