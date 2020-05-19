@@ -34,12 +34,12 @@ sub cleanup_needles {
     for my $wm (qw(mate lxqt enlightenment awesome)) {
         remove_desktop_needles($wm) unless check_var('DE_PATTERN', $wm);
     }
-    unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm') unless is_jeos;
     unregister_needle_tags('ENV-LEAP-1')              unless is_leap;
     unregister_needle_tags('ENV-VERSION-Tumbleweed')  unless is_tumbleweed;
-    for my $flavor (qw(Krypton-Live Argon-Live)) {
+    for my $flavor (qw(Krypton-Live Argon-Live GNOME-Live KDE-Live XFCE-Live Rescue-CD JeOS-for-AArch64 JeOS-for-kvm-and-xen)) {
         unregister_needle_tags("ENV-FLAVOR-$flavor") unless check_var('FLAVOR', $flavor);
     }
+    unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm') unless is_jeos;
     # unregister christmas needles unless it is December where they should
     # appear. Unused needles should be disregarded by admin delete then
     unregister_needle_tags('CHRISTMAS') unless get_var('WINTER_IS_THERE');
