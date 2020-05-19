@@ -79,23 +79,22 @@ sub set_bootscript {
 
     my $kernel = get_required_var('MIRROR_HTTP');
     my $initrd = get_required_var('MIRROR_HTTP');
+
     if ($arch eq "aarch64") {
-        $kernel = $kernel . "/boot/$arch/linux";
-        $initrd = $initrd . "/boot/$arch/initrd";
+        $kernel .= "/boot/$arch/linux";
+        $initrd .= "/boot/$arch/initrd";
     } else {
-        $kernel = $kernel . "/boot/$arch/loader/linux";
-        $initrd = $initrd . "/boot/$arch/loader/initrd";
+        $kernel .= "/boot/$arch/loader/linux";
+        $initrd .= "/boot/$arch/loader/initrd";
     }
     my $install = get_required_var('MIRROR_NFS');
     my $cmdline_extra;
 
-    my $console = get_var('IPXE_CONSOLE', 'ttyS0,115200');
+    my $console = get_var('IPXE_CONSOLE');
 
-    if (check_var('IPXE_UEFI', '1')) {
-        $cmdline_extra = "console=$console root=/dev/ram0 initrd=initrd textmode=1";
-    } else {
-        $cmdline_extra = "console=tty0 console=$console";
-    }
+    $cmdline_extra = "console=$console" if $console;
+
+    $cmdline_extra .= "root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
 
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
