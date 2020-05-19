@@ -47,8 +47,13 @@ sub run {
 
     assert_script_run('! ras-mc-ctl --status');
 
+    # Try to start rasdaemon. May need a restart on aarch64.
     systemctl('start rasdaemon');
-    systemctl('is-active rasdaemon');
+    if (systemctl('is-active rasdaemon', ignore_failure => 1)) {
+        systemctl('restart rasdaemon');
+        record_soft_failure('bsc#1170014 rasdaemon service needed to be restarted.');
+        script_retry("systemctl is-active rasdaemon", retry => 9, timeout => 10, delay => 1);
+    }
 
     # Validating output of 'ras-mc-ctl --mainboard'
     my $mainboard_output = script_output('ras-mc-ctl --mainboard');
