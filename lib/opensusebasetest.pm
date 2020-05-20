@@ -1014,7 +1014,7 @@ This will type some newlines and then enter the following text:
  If you can see this text $name is working.
 
 C<$name> will default to "I<your program>".
-If C<$slow> is set, the typing will be slow.
+If C<$slow> is set, the typing will be very slow.
 If C<$cmd> is set, the text will be prefixed by an C<echo> command.
 
 =cut
@@ -1027,7 +1027,7 @@ sub enter_test_text {
     my $text = "If you can see this text $name is working.\n";
     $text = 'echo ' . $text if $args{cmd};
     if ($args{slow}) {
-        type_string_slow $text;
+        type_string_very_slow $text;
     }
     else {
         type_string $text;
