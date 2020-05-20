@@ -39,7 +39,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in clamav');
+    zypper_call('in clamav vim');
     # Initialize and download ClamAV database which needs time
     assert_script_run('freshclam', 700);
 
