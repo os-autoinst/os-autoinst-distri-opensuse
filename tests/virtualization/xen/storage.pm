@@ -23,9 +23,6 @@ sub run_test {
     my ($self) = @_;
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
-    record_info "Default pool";
-    assert_script_run "virsh pool-list --all | grep default | grep active";
-
     record_info "Prepare";
     assert_script_run "mkdir -p /pool_testing";
     assert_script_run "virsh pool-destroy testing || true";
