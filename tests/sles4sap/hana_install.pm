@@ -15,23 +15,15 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use utils qw(file_content_replace zypper_call);
 use version_utils 'is_sle';
 use POSIX 'ceil';
-
-sub upload_install_log {
-    script_run "tar -zcvf /tmp/hana_install.log.tgz /var/tmp/hdb*";
-    upload_logs "/tmp/hana_install.log.tgz";
-}
 
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
-
-    my $sid      = get_required_var('INSTANCE_SID');
-    my $instid   = get_required_var('INSTANCE_ID');
-    my $password = 'Qwerty_123';
-    set_var('PASSWORD', $password);
+    my $sid    = get_required_var('INSTANCE_SID');
+    my $instid = get_required_var('INSTANCE_ID');
 
     $self->select_serial_terminal;
     my $RAM = $self->get_total_mem();
@@ -89,7 +81,7 @@ sub run {
     }
     assert_script_run "df -h";
 
-    # Check we have an hdblcm
+    # hdblcm is used for installation, verify if it exists
     my $hdblcm = '/sapinst/' . get_var('HANA_HDBLCM', "DATA_UNITS/HDB_SERVER_LINUX_" . uc(get_required_var('ARCH')) . "/hdblcm");
     die "hdblcm is not in [$hdblcm]. Set HANA_HDBLCM to the appropiate relative path. Example: DATA_UNITS/HDB_SERVER_LINUX_X86_64/hdblcm"
       if (script_run "ls $hdblcm");
@@ -98,30 +90,36 @@ sub run {
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
       --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production);
-    push @hdblcm_args, "--sid=$sid", "--number=$instid", "--home=$mountpts{usr_sap}->{mountpt}",
-      "--password=$password", "--system_user_password=$password", "--sapadm_password=$password",
-      "--datapath=$mountpts{hanadata}->{mountpt}/$sid", "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
+    push @hdblcm_args,
+      "--sid=$sid",
+      "--number=$instid",
+      "--home=$mountpts{usr_sap}->{mountpt}",
+      "--password=$sles4sap::instance_password",
+      "--system_user_password=$sles4sap::instance_password",
+      "--sapadm_password=$sles4sap::instance_password",
+      "--datapath=$mountpts{hanadata}->{mountpt}/$sid",
+      "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
     assert_script_run $cmd, $tout;
 
-    upload_install_log;
+    # Enable autostart of HANA HDB, otherwise DB will be down after the next reboot
+    # NOTE: not on HanaSR, as DB is managed by the cluster stack
+    unless (get_var('HA_CLUSTER')) {
+        my $hostname = script_output 'hostname';
+        file_content_replace("$mountpts{hanashared}->{mountpt}/${sid}/profile/${sid}_HDB${instid}_${hostname}", '^Autostart[[:blank:]]*=.*' => 'Autostart = 1');
+    }
 
+    # Upload installations logs
+    $self->upload_hana_install_log;
+
+    # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';
     assert_script_run 'lvs -ao +devices';
 }
 
 sub test_flags {
     return {fatal => 1};
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    $self->select_serial_terminal;
-    upload_install_log;
-    assert_script_run "save_y2logs /tmp/y2logs.tar.xz";
-    upload_logs "/tmp/y2logs.tar.xz";
-    $self->SUPER::post_fail_hook;
 }
 
 1;

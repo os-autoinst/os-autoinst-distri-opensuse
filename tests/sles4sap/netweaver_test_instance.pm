@@ -23,6 +23,10 @@ sub run {
 
     $self->select_serial_terminal;
 
+    # First, upload the installation logs
+    # NOTE: done here because there are multiple installation paths
+    $self->upload_nw_install_log;
+
     # On upgrade scenarios, hostname and IP address could have changed from the original
     # installation of NetWeaver. This ensures the current hostname can be resolved
     if (is_upgrade) {
