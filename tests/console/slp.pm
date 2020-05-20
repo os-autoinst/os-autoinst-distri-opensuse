@@ -1,6 +1,6 @@
 # SUSE's openSLP regression test
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,7 +25,7 @@ use Utils::Systemd 'disable_and_stop_service';
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Let's install slpd
     zypper_call 'in openslp-server';

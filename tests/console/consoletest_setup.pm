@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,47 +11,66 @@
 # Summary: console test pre setup, performing actions required to run tests
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module
-# - Save screenshot
-# - Disable mail notifications
+# - Setup passwordless & questionless ssh login to localhost 127.0.0.1 ::1
 # - Disable/stop serial-getty service
+# - Disable mail notifications system-wide
+# - Enable pipefail system-wide
 # - Disable/stop packagekit service
-# - Enable pipefail
+# - Check console font
+
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use base "consoletest";
 use testapi;
 use utils qw(check_console_font disable_serial_getty);
-use Utils::Backends qw(has_ttys use_ssh_serial_console);
-use Utils::Systemd 'disable_and_stop_service';
+use Utils::Backends qw(has_ttys);
+use Utils::Systemd qw(disable_and_stop_service systemctl);
 use strict;
 use warnings;
 
-sub disable_bash_mail_notification {
-    assert_script_run "unset MAILCHECK >> ~/.bashrc";
-    assert_script_run "unset MAILCHECK";
-}
 
 sub run {
     my $self = shift;
-    # let's see how it looks at the beginning
-    save_screenshot;
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    my $user = $testapi::username;
+    $self->select_serial_terminal;
 
-    # Prevent mail notification messages to show up in shell and interfere with running console tests
-    disable_bash_mail_notification;
+    systemctl('start sshd');
+
+    # generate ssh key and use same key for root and bernhard
+    if (script_run('! test -e ~/.ssh/id_rsa') == 0) {
+        assert_script_run('ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
+    }
+
+    # copy and add root key into authorized_keys and public key into known_hosts of both root and user
+    # $user is not created or used, like LIVECD or ROOTONLY tests
+    if (get_var('ROOTONLY') || get_var('LIVECD')) {
+        assert_script_run('mkdir -pv ~/.ssh');
+        assert_script_run('touch ~/.ssh/{authorized_keys,known_hosts}');
+        assert_script_run('chmod 600 ~/.ssh/*');
+        assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys');
+        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts");
+    }
+    else {
+        assert_script_run("mkdir -pv ~/.ssh ~$user/.ssh");
+        assert_script_run("cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa");
+        assert_script_run("touch ~{,$user}/.ssh/{authorized_keys,known_hosts}");
+        assert_script_run("chmod 600 ~{,$user}/.ssh/*");
+        assert_script_run("chown bernhard ~$user/.ssh/*");
+        assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
+        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts");
+    }
+
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     disable_serial_getty;
-    # init
-    check_console_font if has_ttys();
 
+    # Prevent mail notification messages to show up in shell and interfere with running console tests
+    script_run 'echo "unset MAILCHECK" >> /etc/bash.bashrc.local';
     script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
-    $self->clear_and_verify_console;
-    select_console 'user-console';
-    # Shell enviromental variable MAILCHECK has to be updated for both users
-    disable_bash_mail_notification;
+    # init
+    check_console_font if has_ttys();
 }
 
 sub post_fail_hook {
