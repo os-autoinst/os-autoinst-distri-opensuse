@@ -632,6 +632,39 @@ sub adminer_database_delete {
     clear_console;
 }
 
+# Yast2 Apparmor set up
+sub yast2_apparmor_setup {
+    # Start Apparmor in case and check it is active
+    systemctl("start apparmor");
+    systemctl("is-active apparmor");
+
+    # Turn to x11 and start "xterm"
+    select_console("x11");
+    x11_start_program("xterm");
+    become_root;
+}
+
+# Yast2 Apparmor: check apparmor is enabled
+sub yast2_apparmor_is_enabled {
+    type_string("yast2 apparmor &\n");
+    assert_screen("AppArmor-Configuration-Settings");
+    send_key "alt-l";
+    assert_screen("AppArmor-Settings-Enable-Apparmor");
+}
+
+# Yast2 Apparmor clean up
+sub yast2_apparmor_cleanup {
+    # Exit x11 and turn to console
+    send_key "alt-f4";
+    assert_screen("generic-desktop");
+    select_console("root-console");
+    send_key "ctrl-c";
+    clear_console;
+
+    # Upload logs for reference
+    upload_logs("$audit_log");
+}
+
 =head2 upload_logs_mail
 
  upload_logs_mail();
