@@ -25,7 +25,7 @@ use mm_network;
 sub post_run_hook {
     my ($self) = @_;
 
-    assert_screen('generic-desktop');
+    assert_screen('generic-desktop') unless match_has_tag('generic-desktop');
 }
 
 sub dm_login {
