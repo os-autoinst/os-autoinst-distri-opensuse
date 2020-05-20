@@ -12,7 +12,7 @@
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079, poo#65375
+# Tag: poo#47018, poo#58079, poo#65375, poo#67054
 
 use base "x11test";
 use strict;
@@ -60,10 +60,11 @@ sub run {
     assert_screen "firefox-password-change-succeeded";
     send_key "ret";
     wait_still_screen 3;
-
     send_key "ctrl-f";
     send_key "ctrl-a";
-    type_string "certificates";    # Search "Certificates" section
+
+    # Search "Certificates" section
+    type_string "certificates";
     send_key "tab";
     wait_still_screen 2;
 
@@ -72,12 +73,21 @@ sub run {
     send_key "spc";
     assert_screen "firefox-device-manager";
 
-    # Enable FIPS mode
-    send_key_until_needlematch("firefox-enable-fips", "tab", 20, 1);
-    send_key "spc";
-    assert_screen "firefox-confirm-fips_enabled";
+    # Enable the FIPS Mode in ENV Mode
+    # FIPS Enabled in Kernel Mode is set by default in Firefox preference
+    if (get_var("FIPS_ENV_MODE")) {
+        send_key_until_needlematch("firefox-enable-fips", "tab", 20, 1);
+        send_key "spc";
+        assert_screen "firefox-confirm-fips_enabled";
+    }
+    else {
+        assert_screen "firefox-device-manager_fips-kernel-mode";
+    }
+
+    # Quit device manager
     send_key "esc";    # Quit device manager
 
+    # Quit Firefox and back to desktop
     quit_firefox;
     assert_screen "generic-desktop";
 
@@ -94,15 +104,25 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    type_string "certificates";    # Search "Certificates" section
+    # Search "Certificates" section
+    type_string "certificates";
     send_key "tab";
     wait_still_screen 2;
+
     # Device Manager
     send_key_until_needlematch("firefox-security-devices", "tab", 20, 1);
     send_key "spc";
     assert_screen "firefox-device-manager";
-    assert_screen "firefox-confirm-fips_enabled";
 
+    # Confirm FIPS Mode is enabled in ENV Mode
+    if (get_var("FIPS_ENV_MODE")) {
+        assert_screen "firefox-confirm-fips_enabled";
+    }
+    else {
+        assert_screen "firefox-device-manager_fips-kernel-mode";
+    }
+
+    # Quit Firefox and back to desktop
     quit_firefox;
     assert_screen "generic-desktop";
 }
