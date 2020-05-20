@@ -128,7 +128,9 @@ perlcritic: tools/lib/
 
 .PHONY: test-unused-modules
 test-unused-modules:
-	tools/detect_unused_modules
+	tools/detect_unused_modules `git diff --name-only --diff-filter=d $$(git merge-base master HEAD) | grep '^tests/*'`
+	tools/detect_unused_modules `git diff --unified=0 $$(git merge-base master HEAD) products/* | grep -oP "^-.*loadtest.*[\"']\K[^\"'].+(?=[\"'])"`
+	tools/detect_unused_modules `git diff --unified=0 $$(git merge-base master HEAD) schedule/* | grep -oP "^-\s+- [\"']?\K.*(?=[\"']?)" | grep -v '{{'`
 
 .PHONY: test-deleted-renamed-referenced-files
 test-deleted-renamed-referenced-files:

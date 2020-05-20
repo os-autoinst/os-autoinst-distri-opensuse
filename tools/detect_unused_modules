@@ -1,9 +1,11 @@
 #!/bin/sh -e
 
-for test in $(git ls-files "*tests/*.pm") ; do
+MODULES="${@}"
+
+for test in $MODULES ; do
     t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
     t_dir=$(echo $test | sed -e 's@tests/\(.*\)/.*$@\1@')
-    git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir|^use (base )?\"?$t\"?)" | grep -qv ".(pm|yaml):\s*#" || echo $test
+    git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir|^use (base )?\"?$t\"?)" | grep -qv ".(pm|yaml):\s*#" || echo "$test module is not used in any schedule"
 done | \
     # Whitelist
 
