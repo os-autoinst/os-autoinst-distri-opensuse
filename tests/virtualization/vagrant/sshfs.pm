@@ -61,6 +61,13 @@ sub run() {
     #
     assert_script_run('cp $(dirname $(rpm -ql vagrant-sshfs-testsuite|grep testsuite.sh))/Vagrantfile .');
     assert_script_run('$(rpm -ql vagrant-sshfs-testsuite|grep testsuite.sh)', timeout => 1200);
+
+    # cleanup
+    assert_script_run('rm -rf Vagrantfile .vagrant');
+}
+
+sub post_fail_hook() {
+    assert_script_run('rm -rf Vagrantfile .vagrant');
 }
 
 1;
