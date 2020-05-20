@@ -24,6 +24,7 @@ use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
+    select_console('x11');
     ensure_installed("libqt5-qttools yast2-installation", timeout => 180);
 
     # Test designer-qt5
