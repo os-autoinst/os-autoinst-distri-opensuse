@@ -1711,6 +1711,7 @@ sub load_extra_tests_docker {
 
     loadtest "console/docker";
     loadtest "console/docker_runc";
+    loadtest "console/docker_base_images";
     if (is_sle(">=12-sp3")) {
         loadtest "console/docker_image";
         loadtest "console/docker_compose" if is_sle('15+');
