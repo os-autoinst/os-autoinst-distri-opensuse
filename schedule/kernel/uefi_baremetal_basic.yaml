@@ -4,7 +4,6 @@ description:    >
 vars:
     AUTOYAST_PREPARE_PROFILE: 1
     IPXE: 1
-    IPXE_CONSOLE: console=ttyS0,115200
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
     IPXE_UEFI: 1
     SCC_ADDONS: sdk
