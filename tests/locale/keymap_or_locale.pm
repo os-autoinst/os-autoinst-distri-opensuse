@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2019 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,6 @@ use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
-    select_console('root-console');
     my $expected = get_var('INSTALL_KEYBOARD_LAYOUT', 'us');
     # Feature of switching keyboard during installation is not ready yet,
     # so if another language is used it needs to be verfied that the needle represents properly
