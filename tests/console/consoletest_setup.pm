@@ -43,7 +43,7 @@ sub run {
 
     # copy and add root key into authorized_keys and public key into known_hosts of both root and user
     # $user is not created or used, like LIVECD or ROOTONLY tests
-    if (get_var('ROOTONLY') || get_var('LIVECD')) {
+    if (get_var('ROOTONLY') || get_var('LIVECD') || get_var('HANA')) {
         assert_script_run('mkdir -pv ~/.ssh');
         assert_script_run('touch ~/.ssh/{authorized_keys,known_hosts}');
         assert_script_run('chmod 600 ~/.ssh/*');

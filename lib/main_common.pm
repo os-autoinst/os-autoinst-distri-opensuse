@@ -2112,6 +2112,7 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
+        loadtest "console/consoletest_setup";
         load_x11_other();
     }
     elsif (check_var("REGRESSION", "firefox")) {
