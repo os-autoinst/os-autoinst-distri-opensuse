@@ -160,6 +160,7 @@ sub install_build_dependencies {
       libacl-devel-32bit
       libaio-devel-32bit
       libcap-devel-32bit
+      libmnl-devel
       libnuma-devel
       libnuma-devel-32bit
       libopenssl-devel-32bit
