@@ -96,6 +96,7 @@ sub setup_yast2_ldap_server {
     send_key 'ret';
     wait_screen_change { send_key "alt-c" };
     die "'yast2 ldap-server' didn't finish with zero exit code" unless wait_serial("$module_name-0");
+    sleep();
     assert_script_run('certutil -d /etc/dirsrv/slapd-openqatest --rename -n "openqa.ldaptest.org - Suse" --new-n Server-Cert');
     systemctl 'start dirsrv@' . $ldap_directives{dir_instance};
     systemctl 'status dirsrv@' . $ldap_directives{dir_instance};
@@ -183,10 +184,16 @@ sub setup_samba_startup {
         assert_screen 'yast2_samba-server_start-during-boot';
     }
     else {
-        change_service_configuration(
-            after_writing => {start         => 'alt-e'},
-            after_reboot  => {start_on_boot => 'alt-a'}
-        );
+		send_key 'alt-e';
+		wait_screen_change { send_key 'up' }
+		wait_screen_change { send_key 'ret' }
+		wait_screen_change { send_key 'alt-a' }
+		wait_screen_change { send_key 'up' }
+                wait_screen_change { send_key 'ret' }
+	    #change_service_configuration(
+		#after_writing => {start         => 'alt-e'}
+		#after_reboot  => {start_on_boot => 'alt-a'}
+		#);
     }
     send_key $actions{firewall}->{shortcut};
     assert_screen 'yast2_samba_open_port_firewall';
