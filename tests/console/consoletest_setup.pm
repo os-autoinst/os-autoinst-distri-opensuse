@@ -55,7 +55,7 @@ sub run {
         assert_script_run("cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa");
         assert_script_run("touch ~{,$user}/.ssh/{authorized_keys,known_hosts}");
         assert_script_run("chmod 600 ~{,$user}/.ssh/*");
-        assert_script_run("chown bernhard ~$user/.ssh/*");
+        assert_script_run("chown -R bernhard ~$user/.ssh");
         assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
         assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts");
     }
