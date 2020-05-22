@@ -40,7 +40,6 @@ sub run {
 
     # Pacemaker cts software must be started from the client server
     if (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) {
-        assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
 
         foreach my $node ($node_01, $node_02) {
             add_to_known_hosts($node);
