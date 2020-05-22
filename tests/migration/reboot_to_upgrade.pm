@@ -34,6 +34,8 @@ sub run {
     }
     assert_script_run "sync", 300;
     type_string "reboot\n";
+    # After remove -f for reboot, we need wait more time for boot menu and avoid exception during reboot caused delay to boot up.
+    assert_screen('inst-bootmenu', 300);
 }
 
 1;
