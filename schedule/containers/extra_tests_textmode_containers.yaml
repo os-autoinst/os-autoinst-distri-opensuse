@@ -22,5 +22,6 @@ schedule:
     - console/docker
     - console/docker_runc
     - console/docker_image
+    - console/docker_compose
     - console/zypper_docker
     - console/coredump_collect
