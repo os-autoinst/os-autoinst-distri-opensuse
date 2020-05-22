@@ -24,7 +24,7 @@ my %ldap_directives = (
     dir_instance        => 'openqatest',
     dir_suffix          => 'dc=ldaptest,dc=org',
     dn_container        => 'dc=ldaptest,dc=org',
-    dir_manager_dn      => 'cn=root',
+    dir_manager_dn      => 'cn=Directory Manager',
     dir_manager_passwd  => 'openqatest',
     ca_cert_pem         => '/root/samba_ca_cert.pem',
     srv_cert_key_pkcs12 => '/root/samba_server_cert.p12'
@@ -96,7 +96,7 @@ sub setup_yast2_ldap_server {
     send_key 'ret';
     wait_screen_change { send_key "alt-c" };
     die "'yast2 ldap-server' didn't finish with zero exit code" unless wait_serial("$module_name-0");
-    sleep();
+    #sleep();
     assert_script_run('certutil -d /etc/dirsrv/slapd-openqatest --rename -n "openqa.ldaptest.org - Suse" --new-n Server-Cert');
     systemctl 'start dirsrv@' . $ldap_directives{dir_instance};
     systemctl 'status dirsrv@' . $ldap_directives{dir_instance};
@@ -184,16 +184,17 @@ sub setup_samba_startup {
         assert_screen 'yast2_samba-server_start-during-boot';
     }
     else {
-		send_key 'alt-e';
-		wait_screen_change { send_key 'up' }
-		wait_screen_change { send_key 'ret' }
-		wait_screen_change { send_key 'alt-a' }
-		wait_screen_change { send_key 'up' }
-                wait_screen_change { send_key 'ret' }
-	    #change_service_configuration(
-		#after_writing => {start         => 'alt-e'}
-		#after_reboot  => {start_on_boot => 'alt-a'}
-		#);
+        send_key 'alt-e';
+        send_key 'end';
+        send_key_until_needlematch 'yast2_ncurses_service_start_after_writing_conf', 'up', 5, 1;
+        send_key 'ret';
+        send_key 'alt-a';
+        send_key_until_needlematch 'yast2_ncurses_service_start_on_boot_after_reboot', 'up', 5, 1;
+        send_key 'ret';
+        #change_service_configuration(
+        #after_writing => {start         => 'alt-e'}
+        #after_reboot  => {start_on_boot => 'alt-a'}
+        #);
     }
     send_key $actions{firewall}->{shortcut};
     assert_screen 'yast2_samba_open_port_firewall';
