@@ -108,7 +108,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files detect-nonexistent-testdata test-unused-modules test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files detect-nonexistent-testdata test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
@@ -126,11 +126,16 @@ PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --stern -
 perlcritic: tools/lib/
 	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/')
 
-.PHONY: test-unused-modules
-test-unused-modules:
+.PHONY: test-unused-modules-changed
+test-unused-modules-changed:
+	@echo "[make] Unused modules check called over modified/new files only. For a full run use make test-unused-modules-full"
 	tools/detect_unused_modules `git diff --name-only --diff-filter=d $$(git merge-base master HEAD) | grep '^tests/*'`
 	tools/detect_unused_modules `git diff --unified=0 $$(git merge-base master HEAD) products/* | grep -oP "^-.*loadtest.*[\"']\K[^\"'].+(?=[\"'])"`
 	tools/detect_unused_modules `git diff --unified=0 $$(git merge-base master HEAD) schedule/* | grep -oP "^-\s+- [\"']?\K.*(?=[\"']?)" | grep -v '{{'`
+
+.PHONY: test-unused-modules
+test-unused-modules:
+	tools/detect_unused_modules
 
 .PHONY: test-deleted-renamed-referenced-files
 test-deleted-renamed-referenced-files:

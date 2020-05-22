@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-MODULES="${@}"
+MODULES="${@}:=$(git ls-files "*tests/*.pm")"
 
 for test in $MODULES ; do
     t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
