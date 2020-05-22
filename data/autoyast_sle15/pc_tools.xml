@@ -30,18 +30,6 @@
                 <ask_user config:type="boolean">false</ask_user>
                 <selected config:type="boolean">true</selected>
             </listentry>
-            <listentry>
-                <media_url>https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_15/</media_url>
-                <product>python_devel</product>
-                <alias>Python Devel</alias>
-                <product_dir>/</product_dir>
-                <priority config:type="integer">20</priority>
-                <ask_on_error config:type="boolean">false</ask_on_error>
-                <confirm_license config:type="boolean">false</confirm_license>
-                <name>Python Devel</name>
-                <ask_user config:type="boolean">false</ask_user>
-                <selected config:type="boolean">true</selected>
-            </listentry>
         </add_on_products>
     </add-on>
     <suse_register>
@@ -52,22 +40,22 @@
         <addons config:type="list">
             <addon>
                 <name>sle-module-basesystem</name>
-                <version>15</version>
+                <version>{{VERSION}}</version>
                 <arch>x86_64</arch>
             </addon>
             <addon>
                 <name>sle-module-public-cloud</name>
-                <version>15</version>
+                <version>{{VERSION}}</version>
                 <arch>x86_64</arch>
             </addon>
             <addon>
                 <name>sle-module-development-tools</name>
-                <version>15</version>
+                <version>{{VERSION}}</version>
                 <arch>x86_64</arch>
             </addon>
             <addon>
                 <name>sle-module-legacy</name>
-                <version>15</version>
+                <version>{{VERSION}}</version>
                 <arch>x86_64</arch>
             </addon>
         </addons>
