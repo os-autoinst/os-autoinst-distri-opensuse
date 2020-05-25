@@ -29,6 +29,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
@@ -40,34 +41,37 @@ sub run_test {
     die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0);
 
     #Create NAT BASED NETWORK
-    #assert_script_run("virsh net-info default");
-    #assert_script_run("virsh net-dumpxml default |tee libvirt_default.xml");
-    #assert_script_run("virsh net-undefine default");
     assert_script_run("virsh net-create vnet_nated.xml");
     save_screenshot;
     upload_logs "vnet_nated.xml";
     assert_script_run("rm -rf vnet_nated.xml");
 
-    my ($mac, $model);
+    my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.128.1';
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
 
+        if (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) {
+            $affecter  = "--persistent";
+            $exclusive = "bridge --live --persistent";
+        } else {
+            $affecter  = "";
+            $exclusive = "network --current";
+        }
+
         $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
-        assert_script_run("virsh attach-interface $guest network vnet_nated --model $model --mac $mac --live", 60);
+
+        assert_script_run("virsh attach-interface $guest network vnet_nated --model $model --mac $mac --live $affecter", 60);
 
         test_network_interface($guest, mac => $mac, gate => $gate, net => "vnet_nated");
 
-        assert_script_run("virsh detach-interface $guest network --mac $mac --current");
+        assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
     }
 
     #Destroy NAT BASED NETWORK
     assert_script_run("virsh net-destroy vnet_nated");
     save_screenshot;
-
-    #Restore default(NATed Network)
-    virt_autotest::virtual_network_utils::restore_libvirt_default();
 }
 
 sub post_fail_hook {

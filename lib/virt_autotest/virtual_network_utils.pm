@@ -47,9 +47,10 @@ sub save_guest_ip {
     if (script_run("ping -c3 $guest") != 0) {
         script_run "sed -i '/$guest/d' /etc/hosts";
         assert_script_run "virsh domiflist $guest";
-        my $mac_guest = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        script_retry "journalctl --no-pager | grep DHCPACK | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-        my $gi_guest = script_output("journalctl --no-pager | grep DHCPACK | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
+        my $mac_guest  = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
+        my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
+        script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+        my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
         assert_script_run "ping -c3 $guest";
     }
@@ -71,7 +72,7 @@ sub test_network_interface {
     if ($guest =~ m/sles11/i) {
         assert_script_run("ssh root\@$guest service network restart", 90);
     } else {
-        assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 90);
+        assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 120);
     }
     script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 3, timeout => 90);
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1";
@@ -148,11 +149,11 @@ sub destroy_standalone {
 }
 
 sub restart_libvirtd {
-    is_sle('>11') ? systemctl 'restart libvirtd' : script_run("service libvirtd restart");
+    is_sle('=11-sp4') ? script_run("service libvirtd restart") : systemctl 'restart libvirtd';
 }
 
 sub restart_network {
-    is_sle('>11') ? systemctl 'restart network' : script_run("service network restart");
+    is_sle('=11-sp4') ? script_run("service network restart") : systemctl 'restart network';
 }
 
 sub restore_guests {
@@ -166,6 +167,7 @@ sub restore_guests {
         script_run("virsh undefine $_");
         script_run("virsh define /tmp/$_.xml");
         script_run("rm -rf /tmp/$_.xml");
+        script_run("sed -i '/$_/d' /etc/hosts");
     }
 }
 
@@ -189,7 +191,7 @@ sub enable_libvirt_log {
     assert_script_run qq(echo 'log_level = 1
     log_filters="3:remote 4:event 3:json 3:rpc"
     log_outputs="1:file:/var/log/libvirt/libvirtd.log"' >> /etc/libvirt/libvirtd.conf);
-    is_sle('>11') ? systemctl 'restart libvirtd' : script_run("service libvirtd restart");
+    is_sle('=11-sp4') ? script_run("service libvirtd restart") : systemctl 'restart libvirtd';
 }
 
 sub ssh_setup {
