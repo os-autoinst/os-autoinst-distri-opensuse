@@ -5,9 +5,9 @@ vars:
   COLLECT_COREDUMPS: '1'
 schedule:
 - boot/boot_to_desktop
+- console/system_prepare
 - console/prepare_test_data
 - console/consoletest_setup
-- console/system_prepare
 - console/lsof
 - console/autofs
 - console/lvm
