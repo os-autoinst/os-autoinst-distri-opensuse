@@ -7,6 +7,16 @@ pause()
 	read
 }
 
+show_bridges()
+{
+        for br in $(ip -o link show type bridge | awk -F': ' '{print $2}'); do
+                echo -n "bridge:$br {"
+                bridge link | grep "master $br" | awk -F': ' '{print $2}' | xargs echo -n
+                echo "}"
+        done
+
+}
+
 unset wdebug
 unset cprep
 unset only
@@ -28,8 +38,8 @@ dir=${1:-"/etc/sysconfig/network"}
 test "X${dir}" != "X" -a -d "${dir}" || exit 2
 
 bond_master="bond0"
-bond_slaves="eth1 eth2"
-bond_options="mode=802.3ad miimon=100"
+bond_slaves=${bond_slaves:-"eth1 eth2"}
+bond_options=${bond_options:-"mode=802.3ad miimon=100"}
 bond_slave_ifcfg=no
 
 vlan_tag1="2140"
@@ -128,7 +138,7 @@ step1()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
@@ -201,7 +211,7 @@ step2()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
@@ -267,7 +277,7 @@ step3()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
@@ -328,7 +338,7 @@ step4()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
@@ -401,7 +411,7 @@ step5()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
@@ -468,7 +478,7 @@ step5()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
@@ -552,7 +562,7 @@ step6()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		enslaved=no
@@ -644,7 +654,7 @@ step7()
 	for dev in ${bond_vlan2} ${other1} ${other2} ${bridge1} ${bridge2} ; do
 		ip -d a s dev ${dev} || ((err++))
 	done
-	brctl show
+	show_bridges
 
 	for slave in ${bond_slaves} ; do
 		if ! ip a s dev ${slave} | grep -qs "master ${bond_master}" ; then
