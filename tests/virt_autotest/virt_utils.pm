@@ -27,7 +27,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type perform_guest_restart);
 
 sub enable_debug_logging {
 
@@ -559,6 +559,44 @@ sub check_guest_disk_type {
         if ($guest_disk_type =~ /qcow2/) {
             record_info "INFO", "Start Snapshot test with the guest disk type as $guest_disk_type";
             return 0;
+        }
+    }
+}
+
+#Perform restart operation on desired guests of local or remote host
+#User should check guest status as expected in his/her customized and
+#suitable way after restart if there are associated specific concerns
+#guest_to_restart argument is reference to array of desired guest domains
+#wait_script argument is timeout to wait for execution to complete
+#host_addr argument takes format in ip address or fqdn as host address
+#For example, $host_ip = "10.12.13.14"; @guest_name = ('guest1', 'guest2');
+#Call this subroutine by using perform_guest_restart(\@guest_name, 90, $host_ip);
+#All these arguments can be left empty which means all guests, 120s and local host
+sub perform_guest_restart {
+    my ($guest_to_restart, $wait_script, $host_addr) = @_;
+    my $connect_uri         = "";
+    my @guest_restart_array = ();
+    $connect_uri         = "-c qemu+ssh://root\@$host_addr/system" if ((defined $host_addr)        && ($host_addr ne ''));
+    @guest_restart_array = @$guest_to_restart                      if ((defined $guest_to_restart) && ($guest_to_restart ne ''));
+    $wait_script = "120" if ((!defined $wait_script) || ($wait_script eq ''));
+    my $guest_types         = "sles|win";
+    my $get_guest_domains   = "virsh $connect_uri list --all | grep -E \"${guest_types}\" | awk \'{print \$2}\'";
+    my $guest_domains       = script_output($get_guest_domains, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my @guest_domains_array = split(/\n+/, $guest_domains);
+    if (scalar(@guest_restart_array) == 0) {
+        script_run "virsh $connect_uri destroy $_", $wait_script foreach (@guest_domains_array);
+        script_run "virsh $connect_uri start $_",   $wait_script foreach (@guest_domains_array);
+    }
+    else {
+        foreach my $guest (@guest_restart_array) {
+            if (grep { $_ eq $guest } @guest_domains_array) {
+                script_run "virsh $connect_uri destroy $guest", $wait_script;
+                script_run "virsh $connect_uri start $guest",   $wait_script;
+            }
+            else {
+                record_info("Guest missing", "Guest $guest does not exist");
+                diag("Guest $guest does not exist");
+            }
         }
     }
 }
