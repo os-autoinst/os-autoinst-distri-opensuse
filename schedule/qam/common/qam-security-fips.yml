@@ -1,0 +1,23 @@
+---
+name: qam-security-fips
+vars:
+    FIPS_ENABLED: 1
+    SECURITY_TEST: crypt_web
+
+schedule:
+- boot/boot_to_desktop
+- console/consoletest_setup
+- fips/fips_setup
+- fips/openssl/openssl_pubkey_rsa
+- fips/openssl/openssl_pubkey_dsa
+- fips/openssh/openssh_fips
+- console/sshd
+- console/ssh_pubkey
+- console/ssh_cleanup
+- console/curl_https
+- console/apache_ssl
+- console/cryptsetup
+- security/dm_crypt
+- fips/curl_fips_rc4_seed
+- fips/mozilla_nss/apache_nssfips
+- fips/mozilla_nss/firefox_nss
