@@ -184,7 +184,6 @@ sub load_fixup_firewall {
 sub load_consoletests_minimal {
     return unless (is_staging() && get_var('UEFI') || is_gnome_next || is_krypton_argon);
     # Stagings should test yast2-bootloader in miniuefi at least but not all
-    loadtest "console/system_prepare";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
     loadtest "console/textinfo";
@@ -451,6 +450,7 @@ else {
         || load_otherDE_tests()
         || load_slenkins_tests())
     {
+        loadtest "console/system_prepare";
         load_fixup_network();
         load_fixup_firewall();
         load_system_update_tests();

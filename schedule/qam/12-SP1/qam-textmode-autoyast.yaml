@@ -14,9 +14,9 @@ schedule:
 - autoyast/autoyast_reboot
 - installation/grub_test
 - installation/first_boot
+- console/system_prepare
 - qa_automation/patch_and_reboot
 - locale/keymap_or_locale
-- console/system_prepare
 - console/check_network
 - console/system_state
 - console/prepare_test_data

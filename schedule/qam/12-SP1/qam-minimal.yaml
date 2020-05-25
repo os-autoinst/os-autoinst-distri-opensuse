@@ -44,8 +44,8 @@ conditional_schedule:
   publish:
     ARCH:
       x86_64:
-        - console/hostname
         - console/system_prepare
+        - console/hostname
         - console/force_scheduled_tasks
         - shutdown/grub_set_bootargs
         - shutdown/cleanup_before_shutdown

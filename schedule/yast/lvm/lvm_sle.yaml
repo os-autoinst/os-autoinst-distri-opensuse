@@ -29,6 +29,7 @@ schedule:
   - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/first_boot
+  - console/system_prepare
   - console/validate_lvm
   - console/zypper_lr
   - console/zypper_ref

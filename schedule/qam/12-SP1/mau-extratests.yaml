@@ -2,6 +2,7 @@
 name: mau-extratests
 schedule:
 - boot/boot_to_desktop
+- console/system_prepare
 - console/prepare_test_data
 - console/consoletest_setup
 - console/check_os_release
