@@ -15,3 +15,4 @@ schedule:
     - console/suseconnect_scc
     - toolchain/install
     - kernel/install_ltp
+    - kernel/shutdown_ltp
