@@ -43,9 +43,7 @@ sub run {
 
     # add modules
     if (is_sle '15+') {
-        foreach (split(',', $registration::SLE15_DEFAULT_MODULES{get_required_var('SLE_PRODUCT')} . ",$scc_addons")) {
-            add_suseconnect_product("sle-module-" . lc($registration::SLE15_MODULES{$_}));
-        }
+        register_addons_cmd;
     }
     # Check that repos actually work
     zypper_call('refresh');
