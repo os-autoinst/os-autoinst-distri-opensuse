@@ -1,6 +1,39 @@
 #!/bin/sh -e
 
-MODULES="${@}:=$(git ls-files "*tests/*.pm")"
+usage="Detect test modules usage in the schedules, inluding main.pm and yaml schedules.
+
+Usage: $(basename "$0") { -a | -m [modules] } | -h
+
+    -h|--help                 show this help text
+    -a|--all                  check all test modules
+    -m|--modules [modules]    check provided list"
+
+if [ $# -eq 0 ]; then
+    echo "$usage"
+    exit 1
+fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            echo "$usage"
+            exit
+            ;;
+        -a|--all)
+            MODULES=$(git ls-files "*tests/*.pm")
+            break
+            ;;
+        -m|--modules)
+            shift
+            MODULES=${@}
+            break
+            ;;
+        *)
+            echo "$usage"
+            exit 1
+            ;;
+    esac
+done
 
 for test in $MODULES ; do
     t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
