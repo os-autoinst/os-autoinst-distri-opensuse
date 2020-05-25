@@ -19,10 +19,8 @@ private_key_location = "~/.ssh/id_rsa"
 public_key_location = "~/.ssh/id_rsa.pub"
 
 # Custom AMI for nodes
-sles4sap = { "%REGION%" = "%SLE_IMAGE%" }
-
-# Custom AMI for iSCSI
-iscsi_srv = { "%REGION%" = "%SLE_IMAGE%" }
+hana_os_image = "%SLE_IMAGE%"
+hana_os_owner = "self"
 
 # aws-cli credentials file. Located on ~/.aws/credentials on Linux, MacOS or Unix or at C:\Users\USERNAME\.aws\credentials on Windows
 aws_credentials = "/root/amazon_credentials"
@@ -102,7 +100,8 @@ qa_mode = true
 
 drbd_enabled = true
 #drbd_machine_type = "t2.xlarge"
-drbd_os_image = { "%REGION%" = "%SLE_IMAGE%" }
+drbd_os_image = "%SLE_IMAGE%"
+drbd_os_owner = "self"
 #drbd_data_disk_size = "10"
 #drbd_data_disk_type = "gp2"
 drbd_ips = ["10.0.4.10", "10.0.5.11"]
