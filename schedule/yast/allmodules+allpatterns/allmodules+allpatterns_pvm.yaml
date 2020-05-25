@@ -8,7 +8,6 @@ description:    >
   module is scheduled and OPT_KERNEL_PARAMS variable is set.
 vars:
   DESKTOP: textmode
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   PATTERNS: all
   ENABLE_ALL_SCC_MODULES: 1
 schedule:
@@ -25,7 +24,6 @@ schedule:
   - installation/user_settings_root
   - installation/select_patterns
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
