@@ -9,6 +9,7 @@
 		- [conditional_schedule](#conditional_schedule)
 		- [schedule](#schedule)
 		- [test_data](#test_data)
+        - [importing](#importing)
 	- [2. Enable scheduler in settings](#2-enable-scheduler-in-settings)
 	- [3. Enable scheduler in main file](#3-enable-scheduler-in-main-file)
 	- [4. Use different schedules for the same scenario](#4-use-different-schedules-for-the-same-scenario)
@@ -148,10 +149,14 @@ sub run {
 }
 ```
 
-Besides having test_data in the same yaml file for scheduling, it is possible to import test_data from another file with the following constrains:
- - test_data will be in a dedicated file that only contains data.
- - test_data file will not import data from another file (only one nested level to avoid complexity).
- For instance, we can have a test data file named `scenario_name_test_data.yaml` containing data as follows:
+#### importing
+Besides having the whole data in the same yaml file for scheduling, it is possible to import some parts of it.
+[YAML::PP::Schema::Include](https://metacpan.org/pod/YAML::PP::Schema::Include) and
+[YAML::PP::Schema::Merge](https://metacpan.org/pod/YAML::PP::Schema::Merge) are used for this purpose.
+
+Please see the example for `test_data` below (which also can be applied to other sections):
+
+For instance, there is a test data file named `scenario_name_test_data.yaml` containing data as follows:
 
  ```
  disks:
@@ -160,7 +165,7 @@ Besides having test_data in the same yaml file for scheduling, it is possible to
       - size: 2mb
   ...
 ```
-And we can include those data in `scenario_name.yaml` using `$include` and the path to the file:
+And it is possible to include that data into `scenario_name.yaml` using `<<:`(merge feature) and `!include` with the path to the file:
 ```
 name:           scenario_name_test_data.yaml
 description:    >
@@ -171,20 +176,19 @@ schedule:
   - path/to/module
 ...
 test_data:
-  $include: schedule/path/to/scenario_name_test_data.yaml
+  <<: !include schedule/path/to/scenario_name_test_data.yaml
 ```
--  it is allowed to use multiple `$include` tags in yaml scheduling
-   file. In the case they should be provided as list:
+-  it is allowed to use multiple `!include` in yaml scheduling
+   file. For example:
 
 ```
 ...
 test_data:
-  $include:
-    - path/to/first_test_data.yaml
-    - path/to/second_test_data.yaml
+  <<: !include path/to/first_test_data.yaml
+  <<: !include path/to/second_test_data.yaml
 ```
 
-- `$include` tag can be mixed with the test data that is defined in
+- included data can be mixed with the test data that is defined in
   scheduling file directly:
 
 > **_IMPORTANT:_** Test data in scheduling file has priority over the
@@ -197,9 +201,14 @@ test_data:
     - name: vdb
       partitions:
         - size: 3mb
-  $include: path/to/test_data.yaml
+  <<: !include path/to/test_data.yaml
 ```
-Test data sometimes are more related to a particular schedule, sometimes to other test data shared with other test suites and sometimes it is a mix. In those cases, `YAML_TEST_DATA` setting can be used to give us the flexibility to avoid duplicate schedule files just because they have different data and due to it will be pointing to a test data file and at the moment recursive inclusion is not implemented (to reduce complexity),only for this particular case, is allowed the possibility to use `$include` functionality in test data file, not cutting any path for the tester. For instance:
+Test data sometimes is more related to a particular schedule, sometimes  
+to other test data shared with other test suites and sometimes it is a mix.  
+In those cases, `YAML_TEST_DATA` setting can be used to give us the flexibility  
+to avoid duplicate schedule files just because they have different data and due  
+to it will be pointing to a test data file. Only for this particular case,  
+the possibility to use `$include` functionality in test data file is allowed. For instance:
 
 In your yaml for your Job Group configuration for one product you could have:
 ```
@@ -226,7 +235,7 @@ disks:
   - name: vda
     partitions:
       - size: 2mb
-$include: path/to/test_data/shared/among/test_suites.yaml
+<<: !include path/to/test_data/shared/among/test_suites.yaml
   ...
 ```
 In the other data file we could have:
@@ -235,7 +244,7 @@ disks:
   - name: vdb
     partitions:
       - size: 5mb
-$include: path/to/test_data/shared/among/test_suites.yaml
+<<: !include path/to/test_data/shared/among/test_suites.yaml
   ...
 ```
 

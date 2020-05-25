@@ -26,4 +26,4 @@ schedule:
   - console/validate_modify_existing_partition
 
 test_data:
-  $include: test_data/yast/modify_existing_partition/modify_existing_partition.yaml
+  <<: !include test_data/yast/modify_existing_partition/modify_existing_partition.yaml

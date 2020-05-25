@@ -25,15 +25,17 @@ use File::Basename;
 use testapi qw(get_var set_var diag);
 use main_common 'loadtest';
 use YAML::PP;
+use YAML::PP::Schema::Include;
 use Data::Dumper;
 
 our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
 my $test_suite_data;
-my $include_tag = '$include';
+my $root_project_dir = dirname(__FILE__) . '/../';
 
-my $ypp = YAML::PP->new();
-
+my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+my $ypp     = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+$include->yp($ypp);
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -83,20 +85,14 @@ in the same file than the schedule or in a dedicated file only for data.
 sub parse_test_suite_data {
     my ($schedule) = shift;
     $test_suite_data = {};
-
-    # if test_data section is defined in schedule file
     if (exists $schedule->{test_data}) {
-        # import test data using $include from test_data section in schedule file
-        _import_test_data_included($schedule->{test_data});
-
-        # test_data from schedule file has priority over included data
         $test_suite_data = {%$test_suite_data, %{$schedule->{test_data}}};
     }
-
     # import test data directly from data file
     if (my $yamlfile = get_var('YAML_TEST_DATA')) {
-        # test data from data file has priority over test_data from schedule
-        _import_test_data_from_yaml(path => $yamlfile, allow_included => 1);
+        my $include_yaml = $ypp->load_file($root_project_dir . $yamlfile);
+        # latest included data has priority over previous included data
+        $test_suite_data = {%$test_suite_data, %{$include_yaml}};
     }
     local $Data::Dumper::Terse = 1;
     my $out = Dumper($test_suite_data);
@@ -112,7 +108,7 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule      = $ypp->load_file(dirname(__FILE__) . '/../' . $yamlfile);
+        my $schedule      = $ypp->load_file($root_project_dir . $yamlfile);
         my %schedule_vars = parse_vars($schedule);
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
         my @schedule_modules = parse_schedule($schedule);
@@ -121,43 +117,6 @@ sub load_yaml_schedule {
         return 1;
     }
     return 0;
-}
-
-sub _import_test_data_included {
-    my ($test_data) = shift;
-
-    if (defined(my $import = $test_data->{$include_tag})) {
-        # Allow both lists and scalar value for import "$include" key
-        if (ref $import eq 'ARRAY') {
-            for my $include (@{$import}) {
-                _import_test_data_from_yaml(path => $include);
-            }
-        }
-        else {
-            _import_test_data_from_yaml(path => $import);
-        }
-        delete $test_data->{$include_tag};
-    }
-}
-
-sub _ensure_include_not_present {
-    my ($include_yaml) = shift;
-    if (exists $include_yaml->{$include_tag}) {
-        die "Error: please define in the file only the content of your test_data," .
-          " without including tag $include_tag\n";
-    }
-}
-
-sub _import_test_data_from_yaml {
-    my (%args) = @_;
-    my $include_yaml = $ypp->load_file(dirname(__FILE__) . '/../' . $args{path});
-    if ($args{allow_included}) {
-        # import test data using $include from test data file
-        _import_test_data_included($include_yaml);
-    }
-    _ensure_include_not_present($include_yaml);
-    # latest included data has priority over previous included data
-    $test_suite_data = {%$test_suite_data, %{$include_yaml}};
 }
 
 1;
