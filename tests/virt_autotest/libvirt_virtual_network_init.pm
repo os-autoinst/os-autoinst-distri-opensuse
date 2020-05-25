@@ -32,6 +32,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
@@ -53,28 +54,22 @@ sub run_test {
         #Archive deployed Guests
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
         upload_logs "/tmp/$guest.xml";
+        assert_script_run("rm -rf /tmp/$guest.xml");
         #Start installed Guests
         assert_script_run("virsh start $guest", 60);
         #Wait for forceful boot up guests
         sleep 60;
         save_guest_ip($guest, name => "br123");
-        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -f root\@$guest");
+        my $mode = is_sle('=11-sp4') ? '' : '-f';
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no $mode root\@$guest");
         #Prepare the new guest network interface files for libvirt virtual network
         assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
         assert_script_run("ssh root\@$guest 'rcnetwork restart'", 60);
-        #REDEFINE GUEST NETWORK INTERFACE
-        assert_script_run("virsh dumpxml $guest > $guest.redefine");
-        upload_logs "$guest.redefine";
-        assert_script_run("rm -rf $guest.redefine");
     }
-
-    #Restart libvirtd service
-    virt_autotest::virtual_network_utils::restart_libvirtd();
 
     #Skip restart network service due to bsc#1166570
     #Restart network service
     #virt_autotest::virtual_network_utils::restart_network();
-
 }
 
 sub post_fail_hook {
@@ -94,7 +89,6 @@ sub post_fail_hook {
 
     #Upload debug log
     virt_autotest::virtual_network_utils::upload_debug_log();
-
 }
 
 1;
