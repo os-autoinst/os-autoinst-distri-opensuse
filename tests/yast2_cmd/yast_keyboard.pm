@@ -48,7 +48,7 @@ sub run {
 
     # Restore keyboard settings to english-us and verify(enter using german characters).
     if (is_sle('15-sp2+')) {
-        type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 3, timeout => 7);
+        type_string("zast kezboard set lazout)english/us\n", wait_still_screen => 5, timeout => 10);
     }
     else {
         record_soft_failure('bsc#1170292');
