@@ -99,7 +99,7 @@ azure_start_log()
 
     inc_unique_counter
     set +e
-    az vm boot-diagnostics get-boot-log --ids $(az vm list -g "$INSTANCE_ID" --query '[].id' -o tsv) > "${OUTPUT_DIR}/$CNT""_boot_log_start.txt" 2>&1
+    az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_start.txt" 2>&1
     set -e
     nohup ssh $SSH_OPTS "azureuser@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
     echo "$!" >> "$PID_FILE"
@@ -113,7 +113,7 @@ azure_stop_log()
     set +e
     # give some time for azure to write something
     sleep 30
-    az vm boot-diagnostics get-boot-log --ids $(az vm list -g "$INSTANCE_ID" --query '[].id' -o tsv) > "${OUTPUT_DIR}/$CNT""_boot_log_stop.txt" 2>&1
+    az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_stop.txt" 2>&1
     set -e
     local pids=$(test -f "$PID_FILE" && cat "$PID_FILE")
     rm "$PID_FILE"
