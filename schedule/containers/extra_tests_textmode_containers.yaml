@@ -14,6 +14,10 @@ conditional_schedule:
                 - installation/bootloader_svirt
             'svirt-xen-hvm':
                 - installation/bootloader_svirt
+    docker_base_images:
+        DISTRI:
+            'opensuse':
+                - console/docker_base_images
 schedule:
     - '{{bootloader}}'
     - boot/boot_to_desktop
@@ -22,6 +26,7 @@ schedule:
     - console/docker
     - console/docker_runc
     - console/docker_image
+    - '{{docker_base_images}}'
     - console/docker_compose
     - console/zypper_docker
     - console/coredump_collect
