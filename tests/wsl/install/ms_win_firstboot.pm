@@ -33,7 +33,7 @@ sub run {
     assert_screen 'windows-signin-with-ms';
     assert_and_click 'windows-offline';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click [qw(windows-limited-exp windows-no-signin-ms-instead)], timeout => 60;
+    assert_and_click 'windows-limited-exp', timeout => 60;
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-create-account';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
@@ -62,33 +62,22 @@ sub run {
     assert_and_click 'windows-no';
     assert_screen 'windows-make-cortana-personal-assistant';
     assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-dont-use-speech-recognition';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-dont-user-my-location';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-turn-off-find-device';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-send-full-diagnostic-data';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-dont-improve-inking&typing';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-dont-get-tailored-experiences';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    assert_and_click 'windows-accept';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+
+    foreach my $tag (qw(
+        windows-dont-use-speech-recognition
+        windows-turn-off-find-device
+        windows-dont-improve-inking&typing
+        windows-dont-user-my-location
+        windows-send-full-diagnostic-data
+        windows-dont-get-tailored-experiences
+        )) {
+        assert_and_click $tag;
+        wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+    }
+
+    send_key 'pgdn';
     assert_and_click 'windows-dont-use-adID';
-    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
+
     assert_and_click 'windows-accept';
     assert_screen([qw(windows-desktop windows-first-boot networks-popup-be-discoverable)], 600);
 
