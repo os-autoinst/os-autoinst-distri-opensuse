@@ -75,6 +75,9 @@ sub run {
     # Ensure that ntp service is activated/started
     activate_ntp;
 
+    # Generate ssh key
+    gen_root_ssh_key;
+
     # Configure SBD_DELAY_START to yes
     # This may be necessary if your cluster nodes reboot so fast that the
     # other nodes are still waiting in the fence acknowledgement phase.

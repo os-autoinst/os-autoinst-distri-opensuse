@@ -40,7 +40,14 @@ sub remove_state_join {
     is_node(2) ? script_run("$crm_mon_cmd", $default_timeout) : save_state;
 
     # Second node needs to be reintegrated
-    assert_script_run("$join_cmd $node_01", 2 * $join_timeout) if is_node(2);
+    if (is_node(2)) {
+        type_string "$join_cmd $node_01 ; echo ha-cluster-join-finished-\$? > /dev/$serialdev\n";
+        if (check_screen('ha-cluster-join-password', 5)) {
+            type_password;
+            send_key 'ret';
+        }
+        wait_serial("ha-cluster-join-finished-0", 2 * $join_timeout);
+    }
 
     # Synchronize all the nodes after the join
     barrier_wait("JOIN_NODE_BY_" . "$method" . "_DONE_" . "$cluster_name");

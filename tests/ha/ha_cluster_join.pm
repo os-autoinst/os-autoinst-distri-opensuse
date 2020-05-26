@@ -35,12 +35,16 @@ sub run {
     diag 'Wait until cluster is initialized...';
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
 
+    # Configure ssh key to enable ssh passwordless
+    get_root_ssh_key $node_to_join;
+
     # Try to join the HA cluster through first node
     assert_script_run "ping -c1 $node_to_join";
     type_string "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? > /dev/$serialdev\n";
-    assert_screen 'ha-cluster-join-password', $join_timeout;
-    type_password;
-    send_key 'ret';
+    if (check_screen('ha-cluster-join-password', 5)) {
+        type_password;
+        send_key 'ret';
+    }
     wait_serial("ha-cluster-join-finished-0", $join_timeout);
 
     # Indicate that the other nodes have joined the cluster

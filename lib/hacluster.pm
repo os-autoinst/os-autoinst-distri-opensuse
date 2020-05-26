@@ -61,6 +61,8 @@ our @EXPORT = qw(
   test_flags
   is_not_maintenance_update
   activate_ntp
+  gen_root_ssh_key
+  get_root_ssh_key
 );
 
 # Global variables
@@ -522,6 +524,23 @@ sub is_not_maintenance_update {
 sub activate_ntp {
     my $ntp_service = is_sle('15+') ? 'chronyd' : 'ntpd';
     systemctl "enable --now $ntp_service.service";
+}
+
+sub gen_root_ssh_key {
+    # Generate an ssh key for root
+    # Was done before by 'ha-cluster-init', see bsc#1169581 for more informations
+    assert_script_run 'ssh-keygen -t rsa -f /root/.ssh/id_rsa -N "" <<< y';
+    assert_script_run 'cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys';
+}
+
+sub get_root_ssh_key {
+    my $node_to_join = shift;
+    my $hostname     = get_hostname;
+
+    # Configure ssh key to enable ssh passwordless
+    add_to_known_hosts($node_to_join);
+    exec_and_insert_password("scp root\@$node_to_join:/root/.ssh/* /root/.ssh/");
+    assert_script_run "ssh root\@$node_to_join 'ssh-keyscan -H $hostname >> /root/.ssh/known_hosts'";
 }
 
 1;

@@ -28,10 +28,7 @@ sub run {
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
 
     # Configure ssh key to enable ssh passwordless
-    add_to_known_hosts($node_to_join);
-    assert_script_run "ls -altr /root/";
-    exec_and_insert_password("scp root\@$node_to_join:/root/.ssh/* /root/.ssh/");
-    assert_script_run "ssh root\@$node_to_join 'ssh-keyscan -H $hostname >> /root/.ssh/known_hosts'";
+    get_root_ssh_key $node_to_join;
 
     # Wait until all the nodes have ssh key configured
     barrier_wait("SSH_KEY_CONFIGURED_$cluster_name");

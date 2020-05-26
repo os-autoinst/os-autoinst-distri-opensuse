@@ -79,8 +79,7 @@ sub run {
     save_state;
 
     # Generate ssh key
-    assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
-    assert_script_run 'cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys';
+    gen_root_ssh_key;
 
     # Signal that the cluster stack is initialized
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
