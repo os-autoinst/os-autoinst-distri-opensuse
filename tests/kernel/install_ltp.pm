@@ -274,7 +274,7 @@ sub setup_network {
     script_run('touch /var/lib/dhcp6/db/dhcpd6.leases');
 
     # echo/echoes, getaddrinfo_01
-    assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
+    assert_script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' $f');
 
     foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
         if (!is_jeos && is_sle('12+') || is_opensuse) {

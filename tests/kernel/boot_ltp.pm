@@ -144,7 +144,7 @@ EOF
         script_run('netstat -nap');
 
         script_run('cat /etc/resolv.conf');
-        script_run('cat /etc/nsswitch.conf');
+        script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; cat $f');
         script_run('cat /etc/hosts');
 
         # hostname (getaddrinfo_01)
