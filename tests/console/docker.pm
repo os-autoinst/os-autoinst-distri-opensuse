@@ -53,6 +53,8 @@ sub test_seccomp {
 
 sub run {
     select_console("root-console");
+    #my $hostnam = autoinst_url();
+    #record_info("$hostnam");
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
 
     install_docker_when_needed();
@@ -152,9 +154,6 @@ sub run {
 
     # Set up environment for building a new image
     set_up();
-
-    # Identify current job id and SLE Version
-    get_vars();
 
     # Build the image
     build_img();
