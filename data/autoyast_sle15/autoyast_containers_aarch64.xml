@@ -3,7 +3,6 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
-    <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
     <reg_server>{{SCC_URL}}</reg_server>
@@ -65,17 +64,31 @@
   <partitioning config:type="list">
     <drive>
       <device>/dev/vda</device>
-      <disklabel>msdos</disklabel>
+      <disklabel>gpt</disklabel>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
           <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <mount>/boot/efi</mount>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
           <mount>swap</mount>
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
           <filesystem config:type="symbol">ext4</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
           <mount>/</mount>
         </partition>
       </partitions>
@@ -89,10 +102,6 @@
     <install_recommended config:type="boolean">true</install_recommended>
     <packages config:type="list">
       <package>iputils</package>
-      <package>sles-release</package>
-      <package>sle-module-server-applications-release</package>
-      <package>sle-module-development-tools-release</package>
-      <package>sle-module-basesystem-release</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
