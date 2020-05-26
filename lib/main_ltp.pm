@@ -115,6 +115,10 @@ sub loadtest_from_runtest_file {
         loadtest 'create_junkfile_ltp';
     }
 
+    if (get_var('LTP_COMMAND_FILE') =~ m/lvm\.local/) {
+        loadtest 'ltp_init_lvm';
+    }
+
     mkdir($unpack_path, 0755);
     my $tar = Archive::Tar->new();
     $tar->read($archive) || die "tar read failed $? $!";
