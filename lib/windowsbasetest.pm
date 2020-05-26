@@ -58,14 +58,17 @@ sub run_in_powershell {
     my $rc_hash = testapi::hashed_string $args{cmd};
 
     type_string $args{cmd}, max_interval => 125;
+
     if (exists $args{code} && (ref $args{code} eq 'CODE')) {
         wait_screen_change(sub { send_key 'ret' }, 10);
         $args{code}->();
     } else {
         type_string ';$port.WriteLine(\'' . $rc_hash . '\' + $?)', max_interval => 125;
         wait_screen_change(sub { send_key 'ret' }, 10);
-        wait_serial "${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 30;
+        wait_serial("${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 30) or
+          die "Expected string (${rc_hash}True) was not found on serial";
     }
+
     send_key 'ctrl-l';
 }
 
