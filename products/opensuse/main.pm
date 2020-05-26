@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,38 +30,19 @@ init_main();
 
 sub cleanup_needles {
     remove_common_needles;
-    if (!get_var("LIVECD")) {
-        unregister_needle_tags("ENV-LIVECD-1");
+    for my $distri (qw(opensuse microos)) {
+        unregister_needle_tags("ENV-DISTRI-$distri") unless check_var('DISTRI', $distri);
     }
-    else {
-        unregister_needle_tags("ENV-LIVECD-0");
+    unregister_needle_tags('ENV-LIVECD-' . get_var('LIVECD') ? 0 : 1);
+    for my $wm (qw(mate lxqt enlightenment awesome)) {
+        remove_desktop_needles($wm) unless check_var('DE_PATTERN', $wm);
     }
-    if (!check_var("DE_PATTERN", "mate")) {
-        remove_desktop_needles("mate");
+    unregister_needle_tags('ENV-LEAP-1')             unless is_leap;
+    unregister_needle_tags('ENV-VERSION-Tumbleweed') unless is_tumbleweed;
+    for my $flavor (qw(Krypton-Live Argon-Live GNOME-Live KDE-Live XFCE-Live Rescue-CD JeOS-for-AArch64 JeOS-for-kvm-and-xen)) {
+        unregister_needle_tags("ENV-FLAVOR-$flavor") unless check_var('FLAVOR', $flavor);
     }
-    if (!check_var("DE_PATTERN", "lxqt")) {
-        remove_desktop_needles("lxqt");
-    }
-    if (!check_var("DE_PATTERN", "enlightenment")) {
-        remove_desktop_needles("enlightenment");
-    }
-    if (!check_var("DE_PATTERN", "awesome")) {
-        remove_desktop_needles("awesome");
-    }
-    if (!is_jeos) {
-        unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
-    }
-    if (!is_leap) {
-        unregister_needle_tags('ENV-LEAP-1');
-    }
-    if (!is_tumbleweed) {
-        unregister_needle_tags('ENV-VERSION-Tumbleweed');
-    }
-    for my $flavor (qw(Krypton-Live Argon-Live)) {
-        if (!check_var('FLAVOR', $flavor)) {
-            unregister_needle_tags("ENV-FLAVOR-$flavor");
-        }
-    }
+    unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm') unless is_jeos;
     # unregister christmas needles unless it is December where they should
     # appear. Unused needles should be disregarded by admin delete then
     unregister_needle_tags('CHRISTMAS') unless get_var('WINTER_IS_THERE');
@@ -77,14 +58,7 @@ testapi::set_distribution(DistributionProvider->provide());
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
-unless (get_var("DESKTOP")) {
-    if (check_var("VIDEOMODE", "text")) {
-        set_var("DESKTOP", "textmode");
-    }
-    else {
-        set_var("DESKTOP", "kde");
-    }
-}
+set_var('DESKTOP', check_var('VIDEOMODE', 'text') ? 'textmode' : 'kde') unless get_var('DESKTOP');
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
@@ -120,10 +94,7 @@ if (check_var('DESKTOP', 'kde') && !get_var('KDE4')) {
     set_var("PLASMA5", 1);
 }
 
-# ZDUP_IN_X imply ZDUP
-if (get_var('ZDUP_IN_X')) {
-    set_var('ZDUP', 1);
-}
+set_var('ZDUP', 1) if get_var('ZDUP_IN_X');
 
 if (is_updates_test_repo && !get_var('ZYPPER_ADD_REPOS')) {
     my $repos = map_incidents_to_repo({OS => get_required_var('OS_TEST_ISSUES')}, {OS => get_required_var('OS_TEST_TEMPLATE')});
