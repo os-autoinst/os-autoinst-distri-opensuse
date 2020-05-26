@@ -23,7 +23,7 @@ use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
-    select_console('user-console');
+    select_console('user-console') unless get_var('INSTALL_KEYBOARD_LAYOUT');
     my $expected = get_var('INSTALL_KEYBOARD_LAYOUT', 'us');
     # Feature of switching keyboard during installation is not ready yet,
     # so if another language is used it needs to be verfied that the needle represents properly
