@@ -372,16 +372,11 @@ sub _yast_scc_addons_handler {
 
 sub skip_package_hub_if_necessary {
     my ($addon) = @_;
-    my $skip_package_hub = 0;
-    if (is_sle('15-SP2+') && $addon eq 'phub') {
-        if (check_var('FLAVOR', 'Online')) {
-            record_soft_failure('bsc#1151373 - Missing or broken repository after registering module PackageHub');
-        } elsif (check_var('FLAVOR', 'Full')) {
-            record_info('Full media: no PHUB', 'Skipping Package Hub, it is not available on offline scenarios - bsc#1157659');
-        }
-        $skip_package_hub = 1;
+    if (is_sle('15-SP2+') && check_var('FLAVOR', 'Full') && $addon eq 'phub') {
+        record_info('Full media: no PHUB', 'Skipping Package Hub, it is not available on offline scenarios - bsc#1157659');
+        return 1;
     }
-    return $skip_package_hub;
+    return 0;
 }
 
 sub process_scc_register_addons {
