@@ -227,7 +227,8 @@ sub record_ltp_result {
         $export_details->{test}->{result} = 'PASS';
     }
     elsif ($results->{conf}) {
-        $details->{result} = 'unk';
+        $details->{result}                = 'skip';
+        $self->{result}                   = 'skip';
         $export_details->{test}->{result} = 'CONF';
     }
     else {
