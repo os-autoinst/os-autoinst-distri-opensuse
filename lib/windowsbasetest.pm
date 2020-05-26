@@ -13,6 +13,16 @@ use strict;
 use warnings;
 use testapi;
 
+sub _setup_serial_device {
+    type_string '$port = new-Object System.IO.Ports.SerialPort COM1,9600,None,8,one', max_interval => 125;
+    wait_screen_change(sub { send_key 'ret' }, 10);
+    type_string '$port.open()', max_interval => 125;
+    wait_screen_change(sub { send_key 'ret' }, 10);
+    type_string '$port.WriteLine("Serial Port has been opened...")', max_interval => 125;
+    wait_screen_change(sub { send_key 'ret' }, 10);
+    wait_serial 'Serial Port has been opened...';
+}
+
 sub use_search_feature {
     my ($self, $string_to_search) = @_;
     return unless ($string_to_search);
@@ -31,6 +41,7 @@ sub select_windows_in_grub2 {
 }
 
 sub open_powershell_as_admin {
+    my ($self, %args) = @_;
     send_key_until_needlematch 'quick-features-menu', 'super-x';
     wait_still_screen stilltime => 2, timeout => 15;
     send_key_until_needlematch 'user-acount-ctl-allow-make-changes', 'shift-a';
@@ -38,22 +49,24 @@ sub open_powershell_as_admin {
     wait_still_screen stilltime => 2, timeout => 15;
     assert_screen 'powershell-as-admin-window', 180;
     assert_and_click 'window-max';
+    sleep 3;
+    _setup_serial_device unless (exists $args{no_serial});
 }
 
 sub run_in_powershell {
     my ($self, %args) = @_;
+    my $rc_hash = testapi::hashed_string $args{cmd};
 
     type_string $args{cmd}, max_interval => 125;
-    save_screenshot;
-    wait_screen_change(sub { send_key 'ret' }, 10);
-    assert_screen($args{tags}, 400);
-    if (match_has_tag 'confirm-reboot') {
-        send_key 'ret';
-    } elsif (match_has_tag 'install-linux-in-wsl') {
-        return;
+    if (exists $args{code} && (ref $args{code} eq 'CODE')) {
+        wait_screen_change(sub { send_key 'ret' }, 10);
+        $args{code}->();
     } else {
-        send_key 'ctrl-l';
+        type_string ';$port.WriteLine(\'' . $rc_hash . '\' + $?)', max_interval => 125;
+        wait_screen_change(sub { send_key 'ret' }, 10);
+        wait_serial "${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 30;
     }
+    send_key 'ctrl-l';
 }
 
 sub reboot_or_shutdown {
@@ -83,7 +96,6 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    save_screenshot;
     sleep 30;
     save_screenshot;
 }

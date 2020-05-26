@@ -97,8 +97,8 @@ sub run {
 
     # turn off hibernation and fast startup
     $self->open_powershell_as_admin;
-    $self->run_in_powershell(q{REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d "0" /f});
-    $self->run_in_powershell('powercfg /hibernate off');
+    $self->run_in_powershell(cmd => q{REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d "0" /f});
+    $self->run_in_powershell(cmd => 'powercfg /hibernate off');
 
     # poweroff
     $self->reboot_or_shutdown();
