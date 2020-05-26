@@ -12,7 +12,7 @@
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079, poo#65375, poo#67054
+# Tag: tc#1744155, poo#47018, poo#58079, poo#65375, poo#67054, poo#67132
 
 use base "x11test";
 use strict;
@@ -45,14 +45,15 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    type_string "Passwords";    # Search "Passwords" section
-    send_key "tab";             # Hide blinking cursor in the search box
+    # Search "Passwords" section
+    type_string "Passwords";
+    send_key "tab";    # Hide blinking cursor in the search box
     wait_still_screen 2;
+
     # Use a master password
     send_key_until_needlematch("firefox-use-a-master-password", "tab", 20, 1);
     send_key "spc";
     assert_screen('firefox-passwd-master_setting');
-
     type_string $fips_password;
     send_key "tab";
     type_string $fips_password;
@@ -85,7 +86,7 @@ sub run {
     }
 
     # Quit device manager
-    send_key "esc";    # Quit device manager
+    send_key "esc";
 
     # Quit Firefox and back to desktop
     quit_firefox;
@@ -93,8 +94,9 @@ sub run {
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
-    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled');
+    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled', match_timeout => 360);
     type_string $fips_password;
+    wait_still_screen 2;
     send_key "ret";
     assert_screen "firefox-url-loaded";
 
