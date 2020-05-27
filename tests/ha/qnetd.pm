@@ -92,10 +92,16 @@ sub run {
         qdevice_status('started');
     }
 
+    # Ensure promotable resource is in node 1
+    script_run 'crm resource migrate promotable-1 ' . choose_node(1);
+
     # Perform Split Brain test
     barrier_wait("SPLIT_BRAIN_TEST_READY_$cluster_name");
 
     record_info('Split-brain info', 'Split brain test');
+
+    # Stop stonith to prevent fencing of node before our check
+    assert_script_run "crm resource stop stonith-sbd" if (is_node(1));
 
     # Add firewall rules to provoke a split brain situation and confirm that
     # the qdevice node gives its vote to the node1 (where the master resource is running)
@@ -122,7 +128,18 @@ sub run {
     # Show cluster status before ending the test
     save_state if (!check_var('QDEVICE_TEST_ROLE', 'qnetd_server'));
 
+    # Cleanup
+    if (is_node(1)) {
+        # Restart stonith. This should fence node 2
+        assert_script_run "crm resource start stonith-sbd";
+        # Remove iptable rules
+        assert_script_run "iptables -F && iptables -X";
+    }
+
     barrier_wait("QNETD_SERVER_DONE_$cluster_name");
+
+    # The following barrier prevents the QNetd server from stopping before the cluster nodes complete their tests
+    barrier_wait("QNETD_TESTS_DONE_$cluster_name") if check_var('QDEVICE_TEST_ROLE', 'qnetd_server');
 }
 
 1;
