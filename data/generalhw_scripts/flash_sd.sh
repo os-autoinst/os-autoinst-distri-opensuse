@@ -47,7 +47,7 @@ else
 fi
 
 # Cleanup target folder
-ssh $username@$flasher_ip rm -f $destination_folder/*.{raw,xz,iso}
+ssh $username@$flasher_ip rm -f "$destination_folder/*.{raw,xz,iso}"
 echo "** Previous image deleted"
 
 image_to_flash_full_path="$destination_folder/$(basename $image_to_flash)"
