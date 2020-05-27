@@ -27,6 +27,5 @@ schedule:
     - console/docker_runc
     - console/docker_image
     - '{{docker_base_images}}'
-    - console/docker_compose
     - console/zypper_docker
     - console/coredump_collect
