@@ -14,3 +14,4 @@ schedule:
   - ha/watchdog
   - ha/ha_cluster_init
   - ha/qnetd
+  - ha/check_after_reboot

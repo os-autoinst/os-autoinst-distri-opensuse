@@ -31,7 +31,7 @@ sub run {
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
     # Only do this on node01, as node02 console is expected to be the root-console
-    if (is_node(1) && !get_var('HDDVERSION')) {
+    if ((is_node(1) && !get_var('HDDVERSION')) || (is_node(2) && check_var('QDEVICE_TEST_ROLE', 'client'))) {
         reset_consoles;
         select_console 'root-console';
     }
@@ -102,6 +102,8 @@ sub run {
     barrier_wait("CHECK_AFTER_REBOOT_END_$cluster_name");
 
     barrier_wait("HAWK_FENCE_$cluster_name") if (check_var('HAWKGUI_TEST_ROLE', 'server'));
+
+    barrier_wait("QNETD_TESTS_DONE_$cluster_name") if (check_var('QDEVICE_TEST_ROLE', 'client'));
 }
 
 1;
