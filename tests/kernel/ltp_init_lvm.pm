@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
 
-    assert_script_run("prepare_lvm.sh");
+    assert_script_run("prepare_lvm.sh", timeout => 300);
 }
 
 sub test_flags {
