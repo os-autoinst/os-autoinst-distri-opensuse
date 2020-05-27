@@ -29,7 +29,7 @@ my $powershell_cmds = {
     enable_developer_mode =>
 q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1},
     enable_wsl_feature => {
-        wsl         => q{Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux},
+        wsl         => q{Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart},
         vm_platform => q{Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -NoRestart}
     }
 };
@@ -37,37 +37,31 @@ q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppMod
 sub run {
     my ($self)            = @_;
     my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
-    my $certs             = {opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt', sle => '/wsl/SLES-UEFI-CA-Certificate.crt'};
-    my $ms_cert_store     = 'cert:\\LocalMachine\\Root';
-    my $cert_file_path    = 'C:\Users\Public\image-ca.cert';
+    my $certs             = {
+        opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt',
+        sle      => '/wsl/SLES-UEFI-CA-Certificate.crt'
+    };
+    my $ms_cert_store  = 'cert:\\LocalMachine\\Root';
+    my $cert_file_path = 'C:\Users\Public\image-ca.cert';
 
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
-
     $self->run_in_powershell(
-        cmd  => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
-        tags => 'powershell-ready-prompt'
+        cmd     => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
+        timeout => 500
     );
-    $self->run_in_powershell(
-        cmd  => $powershell_cmds->{enable_developer_mode},
-        tags => 'powershell-ready-prompt'
-    );
+    $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
 
     if (is_sle('>=15-sp2') || is_tumbleweed) {
         $self->run_in_powershell(
-            cmd  => 'Invoke-WebRequest -Uri ' . data_url($certs->{get_required_var('DISTRI')}) . ' -O ' . $cert_file_path . ' -UseBasicParsing',
-            tags => 'powershell-ready-prompt'
+            cmd => 'Invoke-WebRequest -Uri ' . data_url($certs->{get_required_var('DISTRI')}) . ' -O ' . $cert_file_path . ' -UseBasicParsing',
         );
         $self->run_in_powershell(
-            cmd  => 'Import-Certificate -FilePath ' . $cert_file_path . ' -CertStoreLocation ' . $ms_cert_store . ' -Verbose',
-            tags => 'powershell-ready-prompt'
+            cmd => 'Import-Certificate -FilePath ' . $cert_file_path . ' -CertStoreLocation ' . $ms_cert_store . ' -Verbose',
         );
     } else {
         # a) Open the image file in Explorer
-        $self->run_in_powershell(
-            cmd  => q{ii C:\\},
-            tags => 'opened-explorer'
-        );
+        $self->run_in_powershell(cmd => q{ii C:\\});
         assert_and_click 'wsl-appx-file', timeout => 60, button => 'right';
         wait_still_screen stilltime => 3, timeout => 10;
         # b) Reach certificate installation
@@ -76,7 +70,7 @@ sub run {
         assert_and_click 'build-service-cert';
         assert_and_click 'cert-details';
         assert_and_click 'view-certificate-details';
-        assert_and_click 'install-certificate';
+        assert_and_click 'install-certificate', timeout => 60;
         wait_still_screen stilltime => 3, timeout => 10;
         assert_and_click 'install-certificate-to-local-machine';
         wait_screen_change(sub { send_key 'ret' }, 10);
@@ -100,19 +94,22 @@ sub run {
     # enable WSL & VM platform (WSL2) features
     # reboot the SUT
     $self->run_in_powershell(
-        cmd  => $powershell_cmds->{enable_wsl_feature}->{wsl},
-        tags => 'confirm-reboot'
+        cmd     => $powershell_cmds->{enable_wsl_feature}->{wsl},
+        timeout => 120
     );
 
+    $self->reboot_or_shutdown(1);
     $self->wait_boot_windows;
 
     # 5) Install Linux in WSL
-    $self->open_powershell_as_admin;
+    $self->open_powershell_as_admin(no_serial => 1);
     $self->run_in_powershell(
         cmd  => 'ii C:\\' . $wsl_appx_filename,
-        tags => 'install-linux-in-wsl'
+        code => sub {
+            assert_and_click 'install-linux-in-wsl', timeout => 120;
+        }
     );
-    assert_and_click 'install-linux-in-wsl', timeout => 120;
+
 }
 
 1;

@@ -758,6 +758,7 @@ sub activate_console {
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
+            push(@tags, 'wsl-linux-prompt')    if (get_var('FLAVOR') eq 'WSL');
             # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
             # or premature typing of credentials on sle15+
             my $stilltime = is_sle('15+') ? 5 : 1;
@@ -773,6 +774,9 @@ sub activate_console {
             }
             elsif (match_has_tag('text-logged-in-root')) {
                 ensure_user($user);
+            }
+            elsif (match_has_tag('wsl-linux-prompt')) {
+                return;
             }
         }
         assert_screen "text-logged-in-$user", 60;
@@ -871,7 +875,7 @@ sub console_selected {
     $args{tags}          //= $console;
     $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary};
 
-    if ($args{tags} =~ $args{ignore} || !$args{await_console}) {
+    if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;
     }

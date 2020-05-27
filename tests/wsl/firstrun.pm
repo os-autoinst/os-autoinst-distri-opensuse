@@ -121,9 +121,6 @@ sub run {
         send_key 'alt-f';
         # Back to CLI
         assert_screen 'wsl-linux-prompt';
-        wait_screen_change { type_string 'exit' };
-        send_key 'ret';
-        save_screenshot;
     } else {
         #1) skip registration, we cannot register against proxy SCC
         assert_and_click 'window-max';
@@ -138,11 +135,17 @@ sub run {
         sleep 2;
         send_key 'ret';
         assert_screen 'wsl-image-ready-prompt', 120;
-        wait_screen_change { type_string 'exit' };
-        send_key 'ret';
-        sleep 2;
-        save_screenshot;
     }
+
+    unless (get_var('SCC_REGISTER', 0)) {
+        become_root;
+    }
+
+    assert_script_run 'cd ~';
+    if (script_run "zypper ps") {
+        record_soft_failure 'bsc#1170256 - [Build 3.136] zypper ps is missing lsof package';
+    }
+
 }
 
 1;
