@@ -60,6 +60,7 @@ sub run {
     #enable quota
     assert_script_run "quotaon /tmp/quota";
     # run user to use all quota
+    ensure_serialdev_permissions;
     select_console 'user-console';
     assert_script_run 'cd /tmp/quota/test-directory';
     assert_script_run 'touch first_file';
