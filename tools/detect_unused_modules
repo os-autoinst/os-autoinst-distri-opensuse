@@ -36,8 +36,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 for test in $MODULES ; do
-    t=$(echo $test | sed -e 's@tests/.*/@@' -e 's@\.pm$@@')
-    t_dir=$(echo $test | sed -e 's@tests/\(.*\)/.*$@\1@')
+    t=$(basename $test | sed -e 's@\.pm$@@')
+    t_dir=$(dirname $test | sed -e 's@tests/\(.*\)$@\1@')
     git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir|^use (base )?\"?$t\"?)" | grep -qv ".(pm|yaml):\s*#" || echo "$test module is not used in any schedule"
 done | \
     # Whitelist
