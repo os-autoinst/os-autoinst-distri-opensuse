@@ -1,6 +1,6 @@
 # Evolution tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -64,19 +64,12 @@ sub run {
         sleep 1;
     }
 
-    type_string "$mail_passwd";
-    send_key "ret";
-    if (check_screen "evolution_mail-init-window", 30) {
-        send_key "super-up";
-    }
-    # tumbleweed may pop another auth window
-    if (is_tumbleweed) {
-        if (check_screen "evolution_mail-auth", 30) {
-            send_key "alt-a";    #disable keyring option, in SP2 or tumbleweed
-            send_key "alt-p";
-            type_string "$mail_passwd";
-            send_key "ret";
-        }
+    send_key "super-up" if (check_screen "evolution_mail-init-window", 2);
+    if (check_screen "evolution_mail-auth", 5) {
+        send_key "alt-a";    #disable keyring option, in SP2 or tumbleweed
+        send_key "alt-p";
+        type_string "$mail_passwd";
+        send_key "ret";
     }
     assert_screen "evolution_mail-max-window";
 
