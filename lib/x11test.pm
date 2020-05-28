@@ -539,7 +539,8 @@ sub setup_mail_account {
         type_password $mail_passwd;
         send_key "ret";
     }
-    assert_screen "evolution_mail-max-window";
+    # Μake sure the welcome window is maximized
+    send_key_until_needlematch 'evolution_mail-max-window', 'super-up', 3, 3;
 }
 
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
@@ -838,10 +839,6 @@ sub setup_evolution_for_ews {
     assert_screen "evolution_mail-auth";
     type_string "$mail_passwd";
     send_key "ret";
-    if (check_screen "evolution_mail-init-window") {
-        send_key "super-up";
-    }
-    assert_screen "evolution_mail-max-window";
 
     # Make all existing mails as read
     assert_screen "evolution_mail-online", 60;

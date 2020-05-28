@@ -33,13 +33,13 @@ sub run {
     x11_start_program('xterm -e "gsettings set org.gnome.desktop.session idle-delay 0"', valid => 0);
     $self->start_evolution($mail_box);
 
-    send_key "super-up" if (check_screen "evolution_mail-init-window", 2);
     if (check_screen "evolution_mail-auth", 5) {
         send_key "alt-a";    #disable keyring option, in SP2 or tumbleweed
         send_key "alt-p";
         type_string "$mail_passwd";
         send_key "ret";
     }
+    send_key "super-up" if (check_screen "evolution_mail-init-window", 2);
     assert_screen "evolution_mail-max-window";
 
     # Help
