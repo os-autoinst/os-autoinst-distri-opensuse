@@ -250,7 +250,10 @@ sub check_new_mail_evolution {
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
     assert_and_click "evolution-send-receive";
-    if (check_screen "evolution_mail-auth", 30) {
+    wait_still_screen(2);
+    assert_and_click('evolution_mail-auth-unfocused') if check_screen('evolution_mail-auth-unfocused', 2);
+    assert_screen ['evolution_mail-auth', 'evolution_mail-max-window'];
+    if (match_has_tag "evolution_mail-auth") {
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_password $mail_passwd;
@@ -520,21 +523,7 @@ sub setup_mail_account {
     send_key "ret";
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
-    if (check_screen "evolution_mail-auth", 30) {
-        if (is_sle('15+')) {
-            send_key "alt-a";    #disable keyring option
-        }
-        else {
-            assert_and_click("disable_keyring_option");
-        }
-        send_key "alt-p";
-        type_password $mail_passwd;
-        send_key "ret";
-    }
-    if (check_screen "evolution_mail-init-window", 30) {
-        send_key "super-up";
-    }
-    if (check_screen "evolution_mail-auth", 30) {
+    if (check_screen "evolution_mail-auth", 5) {
         if (is_sle('15+')) {
             send_key "alt-a";    #disable keyring option
         }
@@ -869,7 +858,7 @@ sub evolution_send_message {
     my $mail_subject = $self->get_dated_random_string(4);
 
     send_key "shift-ctrl-m";
-    if (check_screen "evolution_mail-auth", 30) {
+    if (check_screen "evolution_mail-auth", 5) {
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_string "$mail_passwd";
@@ -889,7 +878,7 @@ sub evolution_send_message {
     if (check_screen "evolution_mail_send_mail_dialog", 30) {
         send_key "ret";
     }
-    if (check_screen "evolution_mail-auth", 30) {
+    if (check_screen "evolution_mail-auth", 5) {
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_string "$mail_passwd";
