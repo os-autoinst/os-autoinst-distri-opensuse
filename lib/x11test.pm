@@ -413,11 +413,12 @@ sub evolution_add_self_signed_ca {
         assert_screen 'evolution_mail_meeting_trust_ca';
         send_key 'alt-a';
         assert_and_click 'evolution_wizard-receiving';
-        wait_screen_change { send_key $self->{next} };    # select "Next" key
-        send_key 'ret';                                   # Go to next page (previous key just selected the key)
+        send_key $cmd{next};    # select "Next" key
+        wait_still_screen(2);
+        send_key 'ret';         # Go to next page (previous key just selected the key)
     }
     else {
-        send_key $self->{next};
+        send_key $cmd{next};
     }
 }
 
@@ -528,7 +529,7 @@ sub setup_mail_account {
     type_string "$mail_user";
     assert_and_click("evolution_wizard-sending_username_filled");
     assert_screen "evolution_wizard-account-summary";
-    send_key $self->{next};
+    send_key $cmd{next};
     send_key "alt-n";
     send_key "ret";
     assert_screen "evolution_wizard-done";
