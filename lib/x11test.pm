@@ -506,15 +506,6 @@ sub setup_mail_account {
     wait_still_screen(2);
     send_key "home";
     #change to use mail-server and SSL
-
-    #On TW, need change port manually:
-    if (is_tumbleweed) {
-        wait_screen_change {
-            send_key "alt-p";
-        };
-        type_string "465";
-    }
-
     send_key_until_needlematch "evolution_SSL_wizard-sending-starttls", "down", 5, 1;
     assert_and_click "evolution_wizard-sending-setauthtype";
     assert_and_click "evolution_wizard-sending-setauthtype_login";
