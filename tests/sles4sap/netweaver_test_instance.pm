@@ -37,7 +37,7 @@ sub run {
     # The SAP Admin was set in sles4sap/netweaver_install
     $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     # Don't test pids_max on migration
-    $self->test_pids_max if !get_var('UPGRADE');
+    $self->test_pids_max unless (get_var('UPGRADE') or get_var('ONLINE_MIGRATION'));
     $self->user_change;
 
     # Do the stop/start tests
