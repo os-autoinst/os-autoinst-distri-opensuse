@@ -74,7 +74,7 @@ sub run() {
         $dovecot_path = "/usr/share/doc/packages/dovecot";
     }
 
-    assert_script_run "cd $dovecot_path;bash mkcert.sh";
+    assert_script_run "(cd $dovecot_path; bash mkcert.sh)";
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
