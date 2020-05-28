@@ -39,7 +39,6 @@ sub run() {
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call("in dovecot", exitcode => [0, 102, 103]);
         zypper_call("rr dovecot_repo");
-        save_screenshot;
     } else {
         if (is_opensuse) {
             # exim is installed by default in openSUSE, but we need postfix
