@@ -39,4 +39,8 @@ sub run() {
     assert_script_run('rm -rf Vagrantfile testfile .vagrant');
 }
 
+sub post_fail_hook() {
+    assert_script_run('rm -rf Vagrantfile testfile .vagrant');
+}
+
 1;

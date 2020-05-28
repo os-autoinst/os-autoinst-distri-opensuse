@@ -1,0 +1,37 @@
+name: rootonly
+description: >
+    Maintainer: okurz
+    Selecting the installer option to skip user creation,
+    i.e. only create the root account. Verifies ssh to ensure login
+    for the single available account is still possible
+    Added in https://progress.opensuse.org/issues/47846
+schedule:
+    - installation/isosize
+    - installation/bootloader
+    - installation/welcome
+    - installation/online_repos
+    - installation/installation_mode
+    - installation/logpackages
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - update/zypper_clear_repos
+    - console/zypper_ar
+    - console/zypper_ref
+    - shutdown/grub_set_bootargs
+    - console/sshd

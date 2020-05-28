@@ -18,11 +18,12 @@ use base "locale";
 use strict;
 use warnings;
 use Utils::Backends 'has_ttys';
-use testapi qw(assert_screen get_var);
+use testapi qw(assert_screen get_var select_console);
 use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
+    select_console('user-console') unless get_var('INSTALL_KEYBOARD_LAYOUT');
     my $expected = get_var('INSTALL_KEYBOARD_LAYOUT', 'us');
     # Feature of switching keyboard during installation is not ready yet,
     # so if another language is used it needs to be verfied that the needle represents properly

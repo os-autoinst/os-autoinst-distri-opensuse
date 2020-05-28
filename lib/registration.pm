@@ -43,7 +43,6 @@ our @EXPORT = qw(
   get_addon_fullname
   rename_scc_addons
   is_module
-  install_docker_when_needed
   verify_scc
   investigate_log_empty_license
   register_addons_cmd
@@ -373,16 +372,11 @@ sub _yast_scc_addons_handler {
 
 sub skip_package_hub_if_necessary {
     my ($addon) = @_;
-    my $skip_package_hub = 0;
-    if (is_sle('15-SP2+') && $addon eq 'phub') {
-        if (check_var('FLAVOR', 'Online')) {
-            record_soft_failure('bsc#1151373 - Missing or broken repository after registering module PackageHub');
-        } elsif (check_var('FLAVOR', 'Full')) {
-            record_info('Full media: no PHUB', 'Skipping Package Hub, it is not available on offline scenarios - bsc#1157659');
-        }
-        $skip_package_hub = 1;
+    if (is_sle('15-SP2+') && check_var('FLAVOR', 'Full') && $addon eq 'phub') {
+        record_info('Full media: no PHUB', 'Skipping Package Hub, it is not available on offline scenarios - bsc#1157659');
+        return 1;
     }
-    return $skip_package_hub;
+    return 0;
 }
 
 sub process_scc_register_addons {
@@ -878,28 +872,6 @@ sub rename_scc_addons {
         push @addons_new, defined $addons_map{$i} ? $addons_map{$i} : $i;
     }
     set_var('SCC_ADDONS', join(',', @addons_new));
-}
-
-sub install_docker_when_needed {
-    if (is_caasp) {
-        # Docker should be pre-installed in MicroOS
-        die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
-    }
-    else {
-        if (is_sle('<15')) {
-            assert_script_run('zypper se docker || zypper -n ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard/SUSE:SLE-12:Update.repo', timeout => 600);
-        }
-        elsif (is_sle) {
-            add_suseconnect_product('sle-module-containers');
-        }
-        # docker package can be installed
-        zypper_call('in docker', timeout => 900);
-    }
-
-    # docker daemon can be started
-    systemctl('start docker');
-    systemctl('status docker');
-    assert_script_run('docker info');
 }
 
 sub verify_scc {

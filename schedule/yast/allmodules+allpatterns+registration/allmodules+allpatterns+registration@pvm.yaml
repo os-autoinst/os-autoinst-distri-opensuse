@@ -1,0 +1,48 @@
+---
+name:           allmodules+allpatterns+registration
+description: >
+  Full Medium installation that covers the following cases:
+     1. Additional modules enabled using SCC (Legacy, Development Tools,
+        Web and Scripting, Containers, Desktop Applications);
+     2. All patterns installed;
+     3. System registration is skipped during installation;
+     4. Installation is validated by successful boot and that YaST does not
+        report any issues;
+     5. Registration is performed on the installed system.
+  On powerVM we don't want to test gnome, as is not used by customers, so setting
+  system role to textmode, even though Desktop Applications module is enabled as
+  is required for Development Tools module.
+vars:
+  DESKTOP: textmode
+  SYSTEM_ROLE: textmode
+  SCC_ADDONS: desktop,legacy,sdk,script,contm
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/select_patterns
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
+  - console/sle15_workarounds
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/suseconnect_scc
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

@@ -1,6 +1,6 @@
 # Evolution tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,9 @@ use utils;
 use version_utils qw(is_sle is_jeos is_opensuse);
 
 sub run() {
-    select_console('root-console');
+    my $self = shift;
+    $self->select_serial_terminal;
+
     pkcon_quit;
 
     if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
@@ -72,7 +74,7 @@ sub run() {
         $dovecot_path = "/usr/share/doc/packages/dovecot";
     }
 
-    assert_script_run "cd $dovecot_path;bash mkcert.sh";
+    assert_script_run "(cd $dovecot_path; bash mkcert.sh)";
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
@@ -93,21 +95,8 @@ sub run() {
 
     # create test users
     assert_script_run "useradd -m admin";
-    script_run "passwd admin", 0;    # set user's password
-    type_password "password123";
-    wait_still_screen(1);
-    send_key 'ret';
-    type_password "password123";
-    wait_still_screen(1);
-    send_key 'ret';
-
     assert_script_run "useradd -m nimda";
-    script_run "passwd nimda", 0;    # set user's password
-    type_password "password123";
-    send_key 'ret';
-    type_password "password123";
-    send_key 'ret';
-    save_screenshot;
+    assert_script_run "echo -e 'admin:password123\nnimda:password123' | chpasswd";
 
     systemctl 'status dovecot';
     systemctl 'status postfix';

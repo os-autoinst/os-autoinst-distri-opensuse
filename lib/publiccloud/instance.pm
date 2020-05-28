@@ -171,6 +171,7 @@ sub wait_for_ssh
     my ($self, %args) = @_;
     $args{timeout}            //= 600;
     $args{proceed_on_failure} //= 0;
+    $args{username}           //= $self->username();
     my $start_time = time();
 
     # Check port 22
@@ -181,7 +182,7 @@ sub wait_for_ssh
 
     # Check ssh command
     while ((my $duration = time() - $start_time) < $args{timeout}) {
-        return $duration if ($self->run_ssh_command(cmd => 'echo test', proceed_on_failure => 1, quiet => 1) eq 'test');
+        return $duration if ($self->run_ssh_command(cmd => 'echo test', proceed_on_failure => 1, quiet => 1, username => $args{username}) eq 'test');
         sleep 1;
     }
 
@@ -202,7 +203,8 @@ reachable anymore. The second one is the estimated bootup time.
 sub softreboot
 {
     my ($self, %args) = @_;
-    $args{timeout} //= 600;
+    $args{timeout}  //= 600;
+    $args{username} //= $self->username();
 
     my $duration;
 
@@ -213,11 +215,11 @@ sub softreboot
 
     # wait till ssh disappear
     while (($duration = time() - $start_time) < $args{timeout}) {
-        last unless (defined($self->wait_for_ssh(timeout => 1, proceed_on_failure => 1)));
+        last unless (defined($self->wait_for_ssh(timeout => 1, proceed_on_failure => 1, username => $args{username})));
     }
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
-    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time);
+    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
     return ($shutdown_time, $bootup_time);
 }
 

@@ -566,7 +566,7 @@ sub handle_uefi_boot_disk_workaround {
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # <sles> or <opensuse>
-    send_key 'up';
+    send_key_until_needlematch 'tianocore-select_opensuse_or_sles', 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # efi file
@@ -933,6 +933,8 @@ sub wait_boot_past_bootloader {
         last if $ret;
         $timeout -= $check_interval;
     }
+    # if we reached a logged in desktop we are done here
+    return 1 if match_has_tag('generic-desktop') || match_has_tag('opensuse-welcome');
     # the last check after previous intervals must be fatal
     assert_screen \@tags, $check_interval;
     handle_emergency_if_needed;
@@ -1014,7 +1016,7 @@ This will type some newlines and then enter the following text:
  If you can see this text $name is working.
 
 C<$name> will default to "I<your program>".
-If C<$slow> is set, the typing will be slow.
+If C<$slow> is set, the typing will be very slow.
 If C<$cmd> is set, the text will be prefixed by an C<echo> command.
 
 =cut
@@ -1027,7 +1029,7 @@ sub enter_test_text {
     my $text = "If you can see this text $name is working.\n";
     $text = 'echo ' . $text if $args{cmd};
     if ($args{slow}) {
-        type_string_slow $text;
+        type_string_very_slow $text;
     }
     else {
         type_string $text;

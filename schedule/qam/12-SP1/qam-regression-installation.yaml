@@ -23,6 +23,7 @@ schedule:
 - installation/reboot_after_installation
 - installation/grub_test
 - installation/first_boot
+- console/system_prepare
 - x11/x11_setup
 - qa_automation/patch_and_reboot
 - console/hostname

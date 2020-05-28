@@ -130,12 +130,20 @@ sub tb_send_message {
     if ($hostname eq 'client') {
         if (check_var('SLE_PRODUCT', 'sled')) {
             assert_and_click "thunderbird_SSL_error_security_exception";
-            assert_and_click "thunderbird_confirm_security_exception";
-            # Windows move to behind, return focus to sent.
+            #for any reason, window go to behind, useing shortcut key to focus again.
             hold_key "alt";
-            send_key "tab";
-            assert_and_click "thunderbird-focus-sent-email";
+            send_key "f1";
             release_key "alt";
+            send_key "tab";
+            send_key "ret";
+            assert_and_click "thunderbird_confirm_security_exception";
+            # Now, return focus to thunderbirt sent email window.
+            hold_key "alt";
+            send_key "f1";
+            release_key "alt";
+            send_key "tab";
+            send_key "tab";
+            send_key "ret";
         }
         if (is_tumbleweed) {
             assert_and_click "thunderbird_SSL_error_security_exception";

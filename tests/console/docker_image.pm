@@ -21,7 +21,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
-use registration qw(add_suseconnect_product install_docker_when_needed cleanup_registration register_product);
+use containers::common;
 use suse_container_urls 'get_suse_container_urls';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
@@ -29,14 +29,7 @@ sub run {
     select_console "root-console";
 
     my ($image_names, $stable_names) = get_suse_container_urls();
-
-    if (is_sle) {
-        if (script_run("SUSEConnect --status-text") != 0) {
-            cleanup_registration();
-            register_product();
-            add_suseconnect_product("sle-module-containers", substr(get_required_var('VERSION'), 0, 2));
-        }
-    }
+    my ($plugin, $osversion, $version);
 
     install_docker_when_needed();
 
@@ -61,11 +54,20 @@ sub run {
         assert_script_run qq{docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'echo "I work" | grep "I work"'};
         # It is the right version
         if (is_sle) {
-            my $osversion = get_required_var("VERSION") =~ s/-SP/ SP/r;    # 15 -> 15, 15-SP1 -> 15 SP1
+            $osversion = get_required_var("VERSION") =~ s/-SP/ SP/r;    # 15 -> 15, 15-SP1 -> 15 SP1
             validate_script_output("docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $osversion"/ });
-        }
-        elsif (is_opensuse) {
-            my $version = get_required_var('VERSION');
+
+            if (is_sle('=12-SP3')) {
+                $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect';
+                assert_script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin'";
+            } else {
+                $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
+                assert_script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin -v'";
+                script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin lp'", 420;
+                script_run "docker container run --entrypoint '/bin/bash' --rm $image_names->[$i] -c '$plugin lm'", 420;
+            }
+        } elsif (is_opensuse) {
+            $version = get_required_var('VERSION');
             validate_script_output qq{docker container run --rm $image_names->[$i] cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
         }
         # zypper lr
@@ -95,6 +97,8 @@ sub run {
         # Remove the image again to save space
         assert_script_run("docker image rm --force $image_names->[$i] refreshed-image");
     }
+
+    clean_docker_host();
 }
 
 1;

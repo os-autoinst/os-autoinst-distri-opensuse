@@ -87,8 +87,6 @@ sub run {
 
     # select type of synchronization: server, then go next
     if ($is_chronyd) {
-        # we can't select public server (yet!), so we manually enter it
-        record_soft_failure 'bsc#1073326';
         type_string "$ntp_server";
     }
     else {
@@ -124,10 +122,7 @@ sub run {
 
     # run test
     send_key 'alt-t';
-    assert_screen ['bsc#1074726', 'yast2_ntp-client_public_ntp_test'];
-
-    # If NTP server test failed, it's certainly because bsc#1074726 bug
-    record_soft_failure 'bsc#1074726' if (match_has_tag 'bsc#1074726');
+    assert_screen 'yast2_ntp-client_public_ntp_test';
 
     # close it with OK
     my $ntp_client_needle = check_var('USE_SUPPORT_SERVER', 1) ? 'support_server' : 'public';

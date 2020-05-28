@@ -1,0 +1,31 @@
+version: "3.3"
+services:
+
+  nginx:
+    image: nginx
+    networks:
+      - backend
+    volumes:
+      - www:/usr/share/nginx/html
+    restart: on-failure
+
+  haproxy:
+    image: haproxy
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "8080:80"
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - nginx
+    restart: on-failure
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  www:
+

@@ -12,7 +12,7 @@
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079, poo#65375
+# Tag: tc#1744155, poo#47018, poo#58079, poo#65375, poo#67054, poo#67132
 
 use base "x11test";
 use strict;
@@ -45,14 +45,15 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    type_string "Passwords";    # Search "Passwords" section
-    send_key "tab";             # Hide blinking cursor in the search box
+    # Search "Passwords" section
+    type_string "Passwords";
+    send_key "tab";    # Hide blinking cursor in the search box
     wait_still_screen 2;
+
     # Use a master password
     send_key_until_needlematch("firefox-use-a-master-password", "tab", 20, 1);
     send_key "spc";
     assert_screen('firefox-passwd-master_setting');
-
     type_string $fips_password;
     send_key "tab";
     type_string $fips_password;
@@ -60,10 +61,11 @@ sub run {
     assert_screen "firefox-password-change-succeeded";
     send_key "ret";
     wait_still_screen 3;
-
     send_key "ctrl-f";
     send_key "ctrl-a";
-    type_string "certificates";    # Search "Certificates" section
+
+    # Search "Certificates" section
+    type_string "certificates";
     send_key "tab";
     wait_still_screen 2;
 
@@ -72,19 +74,29 @@ sub run {
     send_key "spc";
     assert_screen "firefox-device-manager";
 
-    # Enable FIPS mode
-    send_key_until_needlematch("firefox-enable-fips", "tab", 20, 1);
-    send_key "spc";
-    assert_screen "firefox-confirm-fips_enabled";
-    send_key "esc";    # Quit device manager
+    # Enable the FIPS Mode in ENV Mode
+    # FIPS Enabled in Kernel Mode is set by default in Firefox preference
+    if (get_var("FIPS_ENV_MODE")) {
+        send_key_until_needlematch("firefox-enable-fips", "tab", 20, 1);
+        send_key "spc";
+        assert_screen "firefox-confirm-fips_enabled";
+    }
+    else {
+        assert_screen "firefox-device-manager_fips-kernel-mode";
+    }
 
+    # Quit device manager
+    send_key "esc";
+
+    # Quit Firefox and back to desktop
     quit_firefox;
     assert_screen "generic-desktop";
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
-    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled');
+    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled', match_timeout => 360);
     type_string $fips_password;
+    wait_still_screen 2;
     send_key "ret";
     assert_screen "firefox-url-loaded";
 
@@ -94,15 +106,25 @@ sub run {
     send_key "n";
     assert_screen('firefox-preferences');
 
-    type_string "certificates";    # Search "Certificates" section
+    # Search "Certificates" section
+    type_string "certificates";
     send_key "tab";
     wait_still_screen 2;
+
     # Device Manager
     send_key_until_needlematch("firefox-security-devices", "tab", 20, 1);
     send_key "spc";
     assert_screen "firefox-device-manager";
-    assert_screen "firefox-confirm-fips_enabled";
 
+    # Confirm FIPS Mode is enabled in ENV Mode
+    if (get_var("FIPS_ENV_MODE")) {
+        assert_screen "firefox-confirm-fips_enabled";
+    }
+    else {
+        assert_screen "firefox-device-manager_fips-kernel-mode";
+    }
+
+    # Quit Firefox and back to desktop
     quit_firefox;
     assert_screen "generic-desktop";
 }

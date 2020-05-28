@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -33,7 +33,9 @@ sub run {
         set_var('BOOT_HDD_IMAGE', 0) unless check_var('ARCH', 'aarch64');
     }
     assert_script_run "sync", 300;
-    type_string "reboot -f\n";
+    type_string "reboot\n";
+    # After remove -f for reboot, we need wait more time for boot menu and avoid exception during reboot caused delay to boot up.
+    assert_screen('inst-bootmenu', 300) unless check_var('ARCH', 's390x');
 }
 
 1;

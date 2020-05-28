@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,8 @@ use warnings;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     zypper_call('in openvswitch-switch iputils', timeout => 300);
 

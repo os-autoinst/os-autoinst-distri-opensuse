@@ -73,7 +73,7 @@ sub test_network_interface {
     } else {
         assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 90);
     }
-    assert_script_run("ssh root\@$guest ifup $nic", 90);
+    script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 3, timeout => 90);
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1";
 
     # Route our test via the tested interface

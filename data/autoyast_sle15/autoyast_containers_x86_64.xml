@@ -42,6 +42,9 @@
       <append>splash=verbose</append>
     </global>
   </bootloader>
+  <networking>
+        <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
   <scripts>
     <chroot-scripts config:type="list">
       <script>

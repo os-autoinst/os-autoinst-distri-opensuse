@@ -32,15 +32,22 @@ sub run {
     send_key_until_needlematch 'hexchat-nick-empty', 'delete';
     type_string "openqa" . random_string(5);
     assert_and_click "$name-connect-button";
-    assert_screen "$name-connection-complete-dialog";
-    assert_and_click "$name-join-channel";
-    type_string "openqa\n";
-    send_key 'ret';
-    assert_screen "$name-main-window";
-    type_string "hello, this is openQA running $name!\n";
-    assert_screen "$name-message-sent-to-channel";
-    type_string "/quit I'll be back\n";
-    assert_screen "$name-quit";
+    my @tags = ("$name-connection-complete-dialog");
+    push(@tags, "$name-SASL-only-error") if get_var("IP_BLACKLISTED_ON_FREENODE");
+    assert_screen \@tags;
+    if (match_has_tag("$name-connection-complete-dialog")) {
+        assert_and_click "$name-join-channel";
+        type_string "openqa\n";
+        send_key 'ret';
+        assert_screen "$name-main-window";
+        type_string "hello, this is openQA running $name!\n";
+        assert_screen "$name-message-sent-to-channel";
+        type_string "/quit I'll be back\n";
+        assert_screen "$name-quit";
+    }
+    elsif (match_has_tag("$name-SASL-only-error")) {
+        record_info('SASL required', 'The public IP of the current worker has been blacklisted on freenode, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
+    }
     send_key 'alt-f4';
 }
 

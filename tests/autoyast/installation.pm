@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE Linux GmbH
+# Copyright (C) 2015-2020 SUSE Linux GmbH
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use utils;
-use power_action_utils 'prepare_system_shutdown';
+use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
 use version_utils qw(is_sle is_caasp is_released);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
@@ -323,6 +323,13 @@ sub run {
 
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
     if (check_var('ARCH', 's390x')) {
+        # Due to bsc#1167210, the system is shut down on reboot on zkvm on SP2.
+        # This is workaround to connect to the shut off machine.
+        if (is_sle('>=15-sp2')) {
+            record_soft_failure('bsc#1167210 - System shuts down instead of reboot on zkvm');
+            console('installation')->disable_vnc_stalls;
+            assert_shutdown_and_restore_system('reboot', 120);
+        }
         reconnect_mgmt_console(timeout => 500);
         return;
     }

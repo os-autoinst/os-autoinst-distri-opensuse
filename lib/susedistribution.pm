@@ -30,7 +30,7 @@ Base class implementation of distribution class necessary for testapi
 =cut
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
-use testapi qw(send_key %cmd assert_screen check_screen check_var get_var save_screenshot
+use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
   match_has_tag set_var type_password type_string wait_serial $serialdev
   mouse_hide send_key_until_needlematch record_info record_soft_failure
   wait_still_screen wait_screen_change get_required_var diag);
@@ -313,15 +313,15 @@ sub ensure_installed {
     testapi::assert_script_run('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
     type_string "exit\n";
     $self->script_run("pkcon install -yp $pkglist; echo pkcon-status-\$? | tee /dev/$testapi::serialdev", 0);
-    my @tags = qw(Policykit Policykit-behind-window pkcon-finished);
+    my @tags = qw(PolicyKit-authenticate Policykit-behind-window pkcon-finished);
     while (1) {
         last unless @tags;
         assert_screen(\@tags, timeout => $args{timeout});
         last if (match_has_tag('pkcon-finished'));
-        if (match_has_tag('Policykit')) {
+        if (match_has_tag('PolicyKit-authenticate')) {
             type_password;
-            send_key 'ret';
-            @tags = grep { $_ ne 'Policykit' } @tags;
+            click_lastmatch;
+            @tags = grep { $_ ne 'PolicyKit-authenticate' } @tags;
             @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
             next;
         }
@@ -758,6 +758,7 @@ sub activate_console {
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
+            push(@tags, 'wsl-linux-prompt')    if (get_var('FLAVOR') eq 'WSL');
             # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
             # or premature typing of credentials on sle15+
             my $stilltime = is_sle('15+') ? 5 : 1;
@@ -773,6 +774,9 @@ sub activate_console {
             }
             elsif (match_has_tag('text-logged-in-root')) {
                 ensure_user($user);
+            }
+            elsif (match_has_tag('wsl-linux-prompt')) {
+                return;
             }
         }
         assert_screen "text-logged-in-$user", 60;
@@ -871,7 +875,7 @@ sub console_selected {
     $args{tags}          //= $console;
     $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary};
 
-    if ($args{tags} =~ $args{ignore} || !$args{await_console}) {
+    if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;
     }

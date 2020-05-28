@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,8 @@ use strict;
 use warnings;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     assert_script_run 'wget ' . data_url('qam/mdadm.sh');
     if (is_sle('<15')) {

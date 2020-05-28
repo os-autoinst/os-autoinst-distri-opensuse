@@ -700,15 +700,10 @@ sub remove_common_needles {
     remove_desktop_needles("minimalx");
     remove_desktop_needles("textmode");
 
-    if (!check_var("VIDEOMODE", "text")) {
-        unregister_needle_tags("ENV-VIDEOMODE-text");
-    }
-
+    unregister_needle_tags("ENV-VIDEOMODE-text") unless check_var("VIDEOMODE", "text");
+    unregister_needle_tags('ENV-ARCH-s390x')     unless check_var('ARCH',      's390x');
     if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
         unregister_needle_tags("ENV-INSTLANG-en_US");
-    }
-    if (!check_var('ARCH', 's390x')) {
-        unregister_needle_tags('ENV-ARCH-s390x');
     }
     else {    # english default
         unregister_needle_tags("ENV-INSTLANG-de_DE");
@@ -1087,8 +1082,8 @@ sub load_console_server_tests {
 
 sub load_consoletests {
     return unless consolestep_is_applicable();
+    loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
-    loadtest "console/system_prepare";
     loadtest "console/check_network";
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
@@ -1407,6 +1402,7 @@ sub load_extra_tests_y2uitest_ncurses {
         loadtest "console/yast2_ftp";
         loadtest "console/yast2_apparmor";
         loadtest "console/yast2_lan";
+        loadtest "console/yast2_lan_device_settings";
     }
     # TODO https://progress.opensuse.org/issues/20200
     # softfail record #bsc1049433 for samba and xinetd
@@ -1460,6 +1456,8 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest "console/yast2_nis" if is_sle;
     loadtest "console/yast2_ftp";
     loadtest "console/yast2_tftp";
+    # We cannot change network device settings as rely on ssh/vnc connection to the machine
+    loadtest "console/yast2_lan_device_settings" unless (is_s390x() || get_var('PUBLIC_CLOUD'));
 }
 
 sub load_extra_tests_texlive {
@@ -1488,7 +1486,7 @@ sub load_extra_tests_desktop {
     if (check_var('DISTRI', 'sle')) {
         loadtest 'x11/disable_screensaver';
         # start extra x11 tests from here
-        loadtest 'x11/vnc_two_passwords';
+        loadtest 'x11/vnc_two_passwords' unless is_sle("<=12-SP2");
         # TODO: check why this is not called on opensuse
         # poo#35574 - Excluded for Xen PV as it was never passed due to the fail while interacting with grub.
         loadtest 'x11/user_defined_snapshot' unless is_s390x || (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'));
@@ -1502,6 +1500,7 @@ sub load_extra_tests_desktop {
                 # 42.2 feature - not even on Tumbleweed
                 loadtest "x11/gdm_session_switch";
             }
+            loadtest 'x11/vnc_two_passwords';
             loadtest "x11/seahorse";
             # only scheduled on gnome and was developed only for gnome but no
             # special reason should prevent it to be scheduled in another DE.
@@ -1635,8 +1634,8 @@ sub load_extra_tests_console {
     loadtest "console/syslog";
     loadtest "console/ntp_client" if (!is_sle || is_jeos);
     loadtest "console/mta" unless is_jeos;
-    # We cannot change network device settings as rely on ssh/vnc connection to the machine
-    loadtest "console/yast2_lan_device_settings" unless (is_s390x() || get_var('PUBLIC_CLOUD'));
+    # part of load_extra_tests_y2uitest_ncurses & load_extra_tests_y2uitest_cmd except jeos
+    loadtest "console/yast2_lan_device_settings" if is_jeos;
     loadtest "console/check_default_network_manager";
     loadtest "console/ipsec_tools_h2h" if get_var("IPSEC");
     loadtest "console/git";
@@ -1710,8 +1709,10 @@ sub load_extra_tests_docker {
 
     loadtest "console/docker";
     loadtest "console/docker_runc";
+    loadtest "console/docker_base_images";
     if (is_sle(">=12-sp3")) {
         loadtest "console/docker_image";
+        loadtest "console/docker_compose" if is_sle('15+');
     }
     if (is_opensuse) {
         loadtest "console/docker_image";
@@ -1723,8 +1724,9 @@ sub load_extra_tests_docker {
 
 sub load_extra_tests_prepare {
     # setup $serialdev permission and so on
+    loadtest "console/system_prepare";
     loadtest "console/prepare_test_data";
-    loadtest "console/consoletest_setup" unless get_var('PUBLIC_CLOUD');
+    loadtest "console/consoletest_setup";
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
 }
 
@@ -2109,6 +2111,7 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "other")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
+        loadtest "console/consoletest_setup";
         load_x11_other();
     }
     elsif (check_var("REGRESSION", "firefox")) {
@@ -2325,6 +2328,13 @@ sub load_security_tests_apparmor_profile {
     loadtest "security/apparmor_profile/usr_lib_dovecot_imap";
 }
 
+sub load_security_tests_yast2_apparmor {
+    load_security_console_prepare;
+
+    loadtest "security/yast2_apparmor/settings_disable_enable_apparmor";
+    loadtest "security/yast2_apparmor/settings_toggle_profile_mode";
+}
+
 sub load_security_tests_openscap {
     # ALWAYS run following tests in sequence because of the dependencies
 
@@ -2504,7 +2514,7 @@ sub load_security_tests {
       fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_tool
       crypt_krb5kdc crypt_krb5server crypt_krb5client
       ipsec mmtest
-      apparmor apparmor_profile selinux
+      apparmor apparmor_profile yast2_apparmor selinux
       openscap
       mok_enroll ima_measurement ima_appraisal evm_protection
       system_check
@@ -2564,13 +2574,13 @@ sub load_systemd_patches_tests {
 }
 
 sub load_system_prepare_tests {
+    loadtest 'console/system_prepare' unless is_opensuse;
     loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
     # temporary adding test modules which applies hacks for missing parts in sle15
     loadtest 'console/sle15_workarounds'    if is_sle('15+');
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
-    loadtest 'console/hostname' unless is_bridged_networking;
-    loadtest 'console/system_prepare';
+    loadtest 'console/hostname'              unless is_bridged_networking;
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests          if is_repo_replacement_required;
@@ -2635,6 +2645,10 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/xen/upgrade_guests';         # Upgrade all guests
         loadtest 'virtualization/xen/patch_guests';           # Apply patches to all compatible guests
         loadtest 'virtualization/xen/patch_and_reboot';       # Apply updates and reboot
+
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/xen/list_guests";            # List all guests and ensure they are running
+        loadtest "virtualization/xen/kernel";                 # Virtualization kernel functions
     }
 
     if (check_var('VIRT_PART', 'virtmanager')) {
@@ -2708,10 +2722,10 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
         loadtest "virtualization/xen/list_guests";          # List all guests and ensure they are running
         loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
         loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
+        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
         loadtest "virtualization/xen/stresstest";           # Perform stress tests on the guests
     }
 }

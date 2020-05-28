@@ -96,6 +96,7 @@ sub run {
     script_run "eog 20190201_154421.jpg", 0;
     assert_screen "exiv2_rename_test";
     send_key 'alt-f4';
+    wait_still_screen(1);
 
     #check exiv2 preview feature, which extracts a image preview from the file.
     assert_script_run "exiv2 -ep1 20190201_154421.jpg";
@@ -103,6 +104,7 @@ sub run {
     script_run "eog 20190201_154421-preview1.jpg", 0;
     assert_screen "exiv2_test_preview";
     send_key 'alt-f4';
+    wait_still_screen(1);
 
     # clean-up
     assert_script_run "rm 20190201_154421.jpg";

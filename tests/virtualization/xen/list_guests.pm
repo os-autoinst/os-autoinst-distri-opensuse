@@ -14,11 +14,15 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use virt_autotest::kernel;
 
 sub run {
-    if (script_run("virsh net-list --all | grep default | grep ' active'", 30) != 0) {
-        assert_script_run "virsh net-start default";
+    my $self = shift;
+
+    if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0) {
+        systemctl "restart libvirtd";
+        if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0) {
+            assert_script_run "virsh net-start default";
+        }
     }
 
     assert_script_run "virsh list --all", 90;
@@ -39,8 +43,6 @@ sub run {
         script_retry "ping -c3 -W1 $guest", delay => 15, retry => 12;
         assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
     }
-
-    check_virt_kernel();
 }
 
 1;

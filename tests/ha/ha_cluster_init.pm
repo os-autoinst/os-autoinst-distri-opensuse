@@ -16,7 +16,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi;
 use hacluster;
-use utils qw(zypper_call clear_console);
+use utils qw(zypper_call clear_console file_content_replace);
 
 sub type_qnetd_pwd {
     if (is_serial_terminal()) {
@@ -58,6 +58,7 @@ sub run {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
     my $sbd_device    = get_lun;
+    my $sbd_cfg       = '/etc/sysconfig/sbd';
     my $unicast_opt   = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
     my $fencing_opt   = "-s $sbd_device";
@@ -73,6 +74,12 @@ sub run {
 
     # Ensure that ntp service is activated/started
     activate_ntp;
+
+    # Configure SBD_DELAY_START to yes
+    # This may be necessary if your cluster nodes reboot so fast that the
+    # other nodes are still waiting in the fence acknowledgement phase.
+    # This is an occasional issue with virtual machines.
+    file_content_replace("$sbd_cfg", "SBD_DELAY_START=no" => "SBD_DELAY_START=yes");
 
     # Initialize the cluster with diskless or shared storage SBD (default)
     $fencing_opt = '-S' if (get_var('USE_DISKLESS_SBD'));

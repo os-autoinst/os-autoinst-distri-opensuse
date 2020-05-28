@@ -719,12 +719,10 @@ sub establish_connection {
         assert_screen "virt-manager_connected";
     }
     elsif (match_has_tag 'virt-manager_not-connected') {
-        assert_and_click 'virt-manager_not-connected';
-        if (!check_screen("virt-manager_connected", 5)) {
+        if (!check_screen("virt-manager_connected", 15)) {
             assert_and_dclick 'virt-manager_not-connected';
+            assert_screen "virt-manager_connected";
         }
-
-        assert_screen "virt-manager_connected";
     }
 }
 

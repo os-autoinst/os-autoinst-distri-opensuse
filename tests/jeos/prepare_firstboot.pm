@@ -57,11 +57,11 @@ sub run {
 
     if ($reboot_for_jeos_firstboot) {
         # Ensure YaST2-Firstboot is disabled, and enable jeos-firstboot in openQA
-        assert_script_run("systemctl disable YaST2-Firstboot") if is_leap;
+        assert_script_run("systemctl disable YaST2-Firstboot") if is_leap('<15.2');
         assert_script_run("systemctl enable jeos-firstboot");
 
         # When YaST2-Firstboot is not installed, /var/lib/YaST2 does not exist, so create it
-        assert_script_run("mkdir -p /var/lib/YaST2") if !is_leap;
+        assert_script_run("mkdir -p /var/lib/YaST2") if !is_leap('<15.2');
         # Trigger *-firstboot at next boot
         assert_script_run("touch /var/lib/YaST2/reconfig_system");
 

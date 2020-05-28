@@ -1,0 +1,55 @@
+name:           minimal_x
+description:    >
+    Maintainer: slindomansilla
+    As default but explicitly unselecting DE patterns, for example gnome, to have only a "minimal X" environment preserved, for example icewm.
+schedule:
+    - installation/isosize
+    - installation/bootloader
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/change_desktop
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
+    - console/system_prepare
+    - console/check_network
+    - console/system_state
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - locale/keymap_or_locale
+    - console/force_scheduled_tasks
+    - console/textinfo
+    - console/hostname
+    - console/installation_snapshots
+    - console/x_vt
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - console/curl_https
+    - console/salt
+    - update/zypper_up
+    - console/zypper_in
+    - console/zypper_log
+    - console/vim
+    - console/firewall_enabled
+    - console/sshd
+    - console/ssh_cleanup
+    - console/mtab
+    - console/zypper_lifecycle
+    - console/orphaned_packages_check
+    - console/consoletest_finish

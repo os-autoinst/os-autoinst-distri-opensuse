@@ -33,11 +33,6 @@ use serial_terminal qw(add_serial_console);
 
 sub run {
     my $self = shift;
-    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
-    if (is_sle('<12-SP2')) {
-        select_console 'root-console';
-        add_serial_console('hvc0');
-    }
     $self->select_serial_terminal;
 
     pkcon_quit unless check_var('DESKTOP', 'textmode');
@@ -51,7 +46,8 @@ sub run {
     assert_script_run('rpm -ql --changelog kernel-default >/tmp/kernel_changelog.log');
     upload_logs('/tmp/kernel_changelog.log');
 
-    power_action('reboot');
+    # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
+    power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 150);
 }
 

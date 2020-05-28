@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: virtualization kernel functions
+# Summary: Virtualization kernel functions
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 package virt_autotest::kernel;
@@ -41,14 +41,14 @@ sub check_virt_kernel {
 
     assert_script_run("$go_to_target uname -a");
     if ($sles_running_version >= 12) {
-        assert_script_run("$go_to_target journalctl -b | tee /tmp/journalctlb$guest$suffix.log");
-        upload_logs("/tmp/journalctlb$guest$suffix.log");
+        assert_script_run("$go_to_target journalctl -b | tee /tmp/journalctl-b-$guest$suffix.log");
+        upload_logs("/tmp/journalctl-b-$guest$suffix.log");
     } else {
-        assert_script_run("$go_to_target dmesg | tee /tmp/dmesg$guest$suffix.log");
-        upload_logs("/tmp/dmesg$guest$suffix.log");
+        assert_script_run("$go_to_target dmesg | tee /tmp/dmesg-$guest$suffix.log");
+        upload_logs("/tmp/dmesg-$guest$suffix.log");
     }
 
-    my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack' |grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST'";
+    my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack' |grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST\\|xapic not enabled\\|Firmware\\|missing monitors config'";
     if (script_run("$go_to_target $dmesg") != 1) {
         record_soft_failure "The $guest needs to be checked manually!";
     }

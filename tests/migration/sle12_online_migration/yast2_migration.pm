@@ -262,7 +262,7 @@ sub run {
     send_key "alt-f";
 
     # after migration yast may ask to reboot system
-    if (check_screen("yast2-ask-reboot", 5)) {
+    if (check_screen("yast2-ask-reboot", 20)) {
         # reboot
         send_key "alt-r";
         power_action('reboot', observe => 1, keepconsole => 1);

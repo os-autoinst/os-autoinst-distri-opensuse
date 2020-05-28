@@ -29,9 +29,10 @@ sub qdevice_status {
     $num_nodes-- if ($expected_status eq 'stopped');
 
     # Check qdevice status
-    script_run "$qnetd_status_cmd";
+    $output = script_output "$qnetd_status_cmd" if ($expected_status ne 'stopped');
+    die "Heuristics script for quorum is failing in all nodes" if ($expected_status =~ /^split-brain/ and $output !~ /Heuristics:\s+Pass\s/);
 
-    $output = script_output("$quorum_status_cmd");
+    $output = script_output "$quorum_status_cmd";
 
     # Check split brain situation
     if ($expected_status eq 'split-brain-blocked') {
@@ -39,9 +40,9 @@ sub qdevice_status {
         return;
     }
 
-    my @regexps        = map { $_ . ($num_nodes + 1) } ('Expected votes:\s+', 'Highest expected:\s+');
-    my $expected_votes = ($expected_status eq 'split-brain-check') ? $num_nodes : $num_nodes + 1;
-    push @regexps, 'Total votes:\s+' . $expected_votes;
+    my @regexps     = map { $_ . ($num_nodes + 1) } ('Expected votes:\s+', 'Highest expected:\s+');
+    my $total_votes = ($expected_status eq 'split-brain-check') ? $num_nodes : $num_nodes + 1;
+    push @regexps, 'Total votes:\s+' . $total_votes;
     push @regexps, 'Quorum:\s+' . $num_nodes;
 
     push @regexps, 'Flags:\s+Quorate\s+Qdevice' if ($expected_status eq 'started' or $expected_status eq 'split-brain-check');

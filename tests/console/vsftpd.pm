@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,12 +27,12 @@ use base 'consoletest';
 use testapi;
 use strict;
 use warnings;
-use lockapi qw(barrier_create barrier_wait);
 use utils 'zypper_call';
 
 sub run {
-    my $password = $testapi::password;
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
+
     zypper_call 'in vsftpd expect';
     # export slenkins variables
     assert_script_run 'export SERVER=127.0.0.1';
@@ -40,16 +40,11 @@ sub run {
     # hosts entry for ssh-copy-id with expect
     assert_script_run 'echo "$SERVER server" >>/etc/hosts';
     assert_script_run 'echo "$CLIENT client" >>/etc/hosts';
-    # copy ssh keys on server and client
-    assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
-    assert_script_run "expect -c 'spawn ssh-copy-id client;expect \"yes\";send \"yes\\r\";expect \"Password\";send \"$password\\r\";interact'";
-    assert_script_run "expect -c 'spawn ssh-copy-id server;expect \"yes\";send \"yes\\r\";interact'";
-    assert_script_run "expect -c 'spawn ssh-copy-id 127.0.0.1;expect \"yes\";send \"yes\\r\";interact'";
     # extract vsftpd testsuite in /tmp/vsftpd
     assert_script_run 'cd /tmp';
     assert_script_run 'wget ' . data_url('qam/vsftpd.tar.gz');
     assert_script_run 'tar xzfv vsftpd.tar.gz';
-    assert_script_run 'bash run.sh | tee run.log', 300;
+    assert_script_run 'bash run.sh |& tee run.log', 300;
     upload_logs('run.log');
 }
 

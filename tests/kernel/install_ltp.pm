@@ -28,6 +28,7 @@ use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
+use LTP::utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -142,24 +143,25 @@ sub install_build_dependencies {
       gcc
       git-core
       kernel-default-devel
-      keyutils-devel
-      libacl-devel
       libaio-devel
-      libcap-devel
       libopenssl-devel
-      libselinux-devel
-      libtirpc-devel
       make
     );
     zypper_call('-t in ' . join(' ', @deps));
 
     my @maybe_deps = qw(
+      keyutils-devel
+      libcap-devel
+      libacl-devel
+      libtirpc-devel
+      libselinux-devel
       gcc-32bit
       kernel-default-devel-32bit
       keyutils-devel-32bit
       libacl-devel-32bit
       libaio-devel-32bit
       libcap-devel-32bit
+      libmnl-devel
       libnuma-devel
       libnuma-devel-32bit
       libopenssl-devel-32bit
@@ -273,7 +275,7 @@ sub setup_network {
     script_run('touch /var/lib/dhcp6/db/dhcpd6.leases');
 
     # echo/echoes, getaddrinfo_01
-    assert_script_run('sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' /etc/nsswitch.conf');
+    assert_script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' $f');
 
     foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
         if (!is_jeos && is_sle('12+') || is_opensuse) {
@@ -354,6 +356,8 @@ sub run {
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     setup_network;
+    prepare_ltp_env();
+    assert_script_run('generate_lvm_runfile.sh');
     upload_runtest_files('/opt/ltp/runtest', $tag);
 
     if (get_var('LTP_COMMAND_FILE')) {
