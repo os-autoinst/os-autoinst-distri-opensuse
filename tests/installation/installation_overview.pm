@@ -68,6 +68,7 @@ sub check_default_target {
         get_var('REMOTE_CONTROLLER') || (get_var('BACKEND', '') =~ /spvm|pvm_hmc|ipmi/));
     # exclude non-desktop environment and scenarios with edition of package selection (bsc#1167736)
     return if (!get_var('DESKTOP') || get_var('PATTERNS'));
+    return if (get_var 'BSC1167736');
 
     # Set expectations
     my $expected_target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
