@@ -30,7 +30,7 @@ ssh root@$flasher_ip $umount_previous_image
 echo "** Previous USB disk(s) disconnected"
 
 # Cleanup target folder
-ssh $username@$flasher_ip rm -f $destination_folder/*.{raw,xz,iso}
+ssh $username@$flasher_ip rm -f "$destination_folder/*.{raw,xz,iso}"
 echo "** Previous image(s) deleted"
 
 # Handle each HDD/SIZE passed in argument
