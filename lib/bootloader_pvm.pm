@@ -157,13 +157,18 @@ sub boot_hmc_pvm {
     assert_screen 'pvm-vterm-closed';
 
     # power off the machine if it's still running - and don't give it a 2nd chance
-    type_string "chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id && echo 'LPAR SUCCESSFULLY SHUT DOWN'\n";
-    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
-
+    # sometimes lpar shutdown takes long time, we need to check it's state
+    type_string "chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id && echo 'LPAR SHUTDOWN NOW'\n";
+    script_run("lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state");
+    assert_screen [qw(lpar-is-running lpar-is-down)];
+    if (match_has_tag('lpar-is-running')) {
+        record_info('LPAR is still running, waiting for shutdown');
+        script_run("for ((i=0\; i<10\; i++)) \; do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q \"Not Activated\" && echo \"LPAR IS DOWN\" && break || echo \"Waiting for lpar $lpar_id to shutdown\" && sleep 5 \; done");
+        save_screenshot;
+    }
     # proceed with normal boot if is system already installed, use sms boot for installation
     my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
-    type_string "chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id && echo 'LPAR SUCCESSFULLY BOOTED'\n";
-    assert_screen "pvm-poweron-successful";
+    type_string "chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id && echo 'LPAR BOOTS UP NOW'\n";
 
     # don't wait for it, otherwise we miss the menu
     type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
