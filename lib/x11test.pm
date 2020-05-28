@@ -249,7 +249,7 @@ sub check_new_mail_evolution {
     my $config      = $self->getconfig_emailaccount;
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
-    assert_and_click "evolution-send-receive";
+    send_key 'f12';
     wait_still_screen(2);
     assert_and_click('evolution_mail-auth-unfocused') if check_screen('evolution_mail-auth-unfocused', 2);
     assert_screen ['evolution_mail-auth', 'evolution_mail-max-window'];
@@ -262,15 +262,17 @@ sub check_new_mail_evolution {
     }
     send_key "alt-w";
     send_key "ret";
-    wait_still_screen 3;
-    send_key_until_needlematch "evolution_mail_show-all", "down", 5, 3;
+    wait_still_screen 2;
+    send_key_until_needlematch "evolution_mail_show-all", "down", 5, 1;
     send_key "ret";
+    wait_still_screen(2);
     send_key "alt-n";
     send_key "ret";
-    send_key_until_needlematch "evolution_mail_show-allcount", "down", 5, 3;
+    send_key_until_needlematch "evolution_mail_show-allcount", "down", 5, 1;
     send_key "ret";
     send_key "alt-c";
     type_string "$mail_search";
+    wait_still_screen(2);
     send_key "ret";
     assert_and_click "evolution_meeting-view-new";
     send_key "ret";
@@ -281,7 +283,7 @@ sub check_new_mail_evolution {
     # Delete the message and expunge the deleted item if not used POP3
     if ($protocol != "POP") {
         send_key "ctrl-e";
-        if (check_screen "evolution_mail-expunge", 30) {
+        if (check_screen "evolution_mail-expunge", 10) {
             send_key "alt-e";
         }
         assert_screen "evolution_mail-ready";
@@ -317,14 +319,25 @@ sub send_meeting_request {
     send_key "ctrl-s";
     assert_screen "evolution_mail-sendinvite_meeting", 60;
     send_key "ret";
-    if (check_screen "evolution_mail-auth", 30) {
+    wait_still_screen(2, 2);
+    assert_screen 'evolution_mail-auth';
+    send_key "alt-a";    #disable keyring option
+    send_key "alt-p";
+    type_password $mail_passwd;
+    wait_still_screen(2, 2);
+    send_key "ret";
+    if (check_screen "evolution_mail-compse_meeting", 5) {
+        send_key "ctrl-w";
+    }
+    wait_still_screen(2);
+    send_key 'f12';
+    if (check_screen 'evolution_mail-auth', 3) {
+        assert_and_click('evolution_mail-auth-unfocused') if check_screen('evolution_mail-auth-unfocused', 5);
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_password $mail_passwd;
+        wait_still_screen(2, 2);
         send_key "ret";
-    }
-    if (check_screen "evolution_mail-compse_meeting", 30) {
-        send_key "ctrl-w";
     }
     assert_screen [qw(evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window)];
     if (match_has_tag "evolution_mail-save_meeting_dialog") {
@@ -376,13 +389,11 @@ sub start_evolution {
     send_key "alt-e";
     wait_still_screen(2);
     type_string "SUSE Test";
+    wait_still_screen(2, 2);
     # Move to "Email Address" field and fill it.
-    assert_screen_change {
-        send_key "alt-a";
-    };
-    assert_screen_change {
-        type_string "$mail_box";
-    };
+    send_key "alt-a";
+    type_string_slow "$mail_box";
+    wait_still_screen(2, 2);
     save_screenshot();
     send_key 'alt-n';
     if ($mail_box eq 'nooops_test3@aim.com') {
@@ -403,6 +414,7 @@ sub start_evolution {
     else {
         assert_screen 'evolution_wizard-receiving';
     }
+    wait_still_screen(2);
 }
 
 sub evolution_add_self_signed_ca {
@@ -437,40 +449,29 @@ sub setup_mail_account {
 
     $self->start_evolution($mail_box);
     # Open Server Type screen.
-    wait_screen_change {
-        send_key "alt-t";
-    };
-    send_key "ret";
-    send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 10, 3;
-    assert_and_click("evolution_wizard-receiving-$proto");
-    wait_screen_change {
-        send_key "alt-s";
-    };
+    send_key "alt-t";
+    wait_still_screen(1);
+    send_key_until_needlematch "evolution_wizard-receiving-$proto", "down", 10, 1;
+    send_key "alt-s";
+    wait_still_screen(1);
     type_string "$mail_recvServer";
     if ($proto eq 'pop') {
         #No need set receive port with POP
     }
     elsif ($proto eq 'imap') {
-        wait_screen_change {
-            send_key "alt-p";
-        };
+        send_key "alt-p";
+        wait_still_screen(2, 2);
         type_string "$mail_recvport";
     }
     else {
         die "Unsupported protocol: $proto";
     }
-    wait_screen_change {
-        send_key "alt-n";
-    };
+    send_key "alt-n";
+    wait_still_screen(1);
     type_string "$mail_user";
-    wait_screen_change {
-        send_key "alt-m";
-    };
-    send_key "ret";
-    send_key_until_needlematch "evolution_wizard-receiving-ssl", "down", 5, 3;
-    wait_screen_change {
-        send_key "ret";
-    };
+    send_key "alt-m";
+    wait_still_screen(1);
+    send_key_until_needlematch "evolution_wizard-receiving-ssl", "down", 5, 1;
     $self->evolution_add_self_signed_ca($account);
     assert_screen [qw(evolution_wizard-receiving-opts evolution_wizard-receiving-not-focused)];
     if (match_has_tag 'evolution_wizard-receiving-not-focused') {
@@ -490,30 +491,21 @@ sub setup_mail_account {
     assert_screen "evolution_wizard-sending";
     send_key "alt-t";
     wait_still_screen(2);
-    send_key "ret";
-    save_screenshot;
-    send_key_until_needlematch "evolution_wizard-sending-smtp", "down", 5, 3;
-    wait_screen_change {
-        send_key "ret";
-    };
-    wait_screen_change {
-        send_key "alt-s";
-    };
+    send_key "home";
+    wait_still_screen(2);
+    send_key_until_needlematch "evolution_wizard-sending-smtp", "down", 5, 1;
+    send_key "alt-s";
     type_string "$mail_sendServer";
-    wait_screen_change {
-        send_key "alt-p";
-    };
+    wait_still_screen(2, 2);
+    send_key "alt-p";
     type_string "$mail_sendport";
-    wait_screen_change {
-        send_key "alt-v";
-    };
-    wait_screen_change {
-        send_key "alt-m";
-    };
-    send_key "ret";
-
+    wait_still_screen(2);
+    send_key "alt-v";
+    wait_still_screen(2);
+    send_key "alt-m";
+    wait_still_screen(2);
+    send_key "home";
     #change to use mail-server and SSL
-    assert_and_click "evolution_SSL_wizard-sending-starttls";
 
     #On TW, need change port manually:
     if (is_tumbleweed) {
@@ -523,6 +515,7 @@ sub setup_mail_account {
         type_string "465";
     }
 
+    send_key_until_needlematch "evolution_SSL_wizard-sending-starttls", "down", 5, 1;
     assert_and_click "evolution_wizard-sending-setauthtype";
     assert_and_click "evolution_wizard-sending-setauthtype_login";
     wait_screen_change { send_key 'alt-n' };
@@ -534,6 +527,7 @@ sub setup_mail_account {
     send_key "ret";
     assert_screen "evolution_wizard-done";
     send_key "alt-a";
+    wait_still_screen(2);
     if (check_screen "evolution_mail-auth", 5) {
         if (is_sle('15+')) {
             send_key "alt-a";    #disable keyring option
@@ -805,6 +799,7 @@ sub setup_evolution_for_ews {
         send_key "alt-a";
     };
     type_string "$mailbox";
+    wait_still_screen(2, 2);
     save_screenshot();
 
     send_key "alt-o";
@@ -814,9 +809,8 @@ sub setup_evolution_for_ews {
         assert_screen 'evolution_wizard-receiving';
     }
 
-    wait_screen_change {
-        send_key "alt-t";
-    };
+    send_key "alt-t";
+    wait_still_screen(1);
     send_key "ret";
     send_key_until_needlematch "evolution_wizard-receiving-ews", "up", 10, 3;
     send_key "ret";
@@ -873,26 +867,27 @@ sub evolution_send_message {
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_string "$mail_passwd";
+        wait_still_screen(2, 2);
         send_key "ret";
     }
     assert_screen "evolution_mail-compose-message";
     assert_and_click "evolution_mail-message-to";
     type_string "$mailbox";
-    wait_screen_change {
-        send_key "alt-u";
-    };
-    wait_still_screen;
+    wait_still_screen(2, 2);
+    send_key "alt-u";
+    wait_still_screen(1);
     type_string "$mail_subject this is a test mail";
     assert_and_click "evolution_mail-message-body";
     type_string "Test email send and receive.";
     send_key "ctrl-ret";
-    if (check_screen "evolution_mail_send_mail_dialog", 30) {
+    if (check_screen "evolution_mail_send_mail_dialog", 5) {
         send_key "ret";
     }
     if (check_screen "evolution_mail-auth", 5) {
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_string "$mail_passwd";
+        wait_still_screen(2, 2);
         send_key "ret";
     }
 
