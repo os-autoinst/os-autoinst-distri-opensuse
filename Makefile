@@ -108,7 +108,8 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files detect-nonexistent-testdata test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax
+
 .PHONY: test
 ifeq ($(TESTS),compile)
 test: test-compile
@@ -140,10 +141,6 @@ test-unused-modules:
 .PHONY: test-deleted-renamed-referenced-files
 test-deleted-renamed-referenced-files:
 	tools/test_deleted_renamed_referenced_files `git diff --name-only --exit-code --diff-filter=DR $$(git merge-base master HEAD) | grep '^test*'`
-
-.PHONY: detect-nonexistent-testdata
-detect-nonexistent-testdata:
-	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_testdata `git diff --name-only --exit-code --diff-filter=d $$(git merge-base master HEAD) | grep '^schedule/.*\.ya\?ml$$'`
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:

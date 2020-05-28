@@ -79,4 +79,4 @@ conditional_schedule:
         - console/verify_separate_home
         - console/validate_file_system
 test_data:
-  $include: test_data/yast/btrfs/btrfs_sle_libstorage.yaml
+  <<: !include test_data/yast/btrfs/btrfs_sle_libstorage.yaml

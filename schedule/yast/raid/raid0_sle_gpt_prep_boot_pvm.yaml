@@ -34,7 +34,7 @@ schedule:
   - console/validate_raid
 test_data:
   # We have same partitioning layout for all raid tests, except mds
-  $include: test_data/yast/raid/raid_prep_boot_test_data_pvm.yaml
+  <<: !include test_data/yast/raid/raid_prep_boot_test_data_pvm.yaml
   mds:
     - raid_level: 0
       chunk_size: 64

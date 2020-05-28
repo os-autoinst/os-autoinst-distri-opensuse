@@ -6,7 +6,9 @@ use Test::Warnings;
 use YAML::PP;
 use File::Basename;
 
-my $ypp = YAML::PP->new;
+my $include = YAML::PP::Schema::Include->new(paths => (dirname(__FILE__) . '/../'));
+my $ypp     = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+$include->yp($ypp);
 
 subtest 'parse_yaml_test_data_single_import' => sub {
     use scheduler;
@@ -29,11 +31,6 @@ subtest 'parse_yaml_test_data_multiple_imports' => sub {
     ok $testdata->{test_in_yaml_import_1} eq 'test_in_yaml_import_value_1', "Value from the first imported yaml were not parsed properly";
     ok $testdata->{test_in_yaml_import_2} eq 'test_in_yaml_import_value_2', "Value from the second imported yaml were not parsed properly";
 
-};
-
-subtest 'do_not_allow_nested_imports' => sub {
-    my $schedule = $ypp->load_file(dirname(__FILE__) . '/data/test_schedule_nested_import.yaml');
-    dies_ok { scheduler::parse_test_suite_data($schedule) } "Error: test_data can only be defined in a dedicated file for data\n";
 };
 
 subtest 'parse_yaml_test_data_using_yaml_data_setting' => sub {

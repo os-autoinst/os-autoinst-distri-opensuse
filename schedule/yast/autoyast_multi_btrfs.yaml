@@ -17,6 +17,7 @@ schedule:
   - console/validate_encrypt
   - autoyast/verify_cloned_profile
 test_data:
+  <<: !include test_data/yast/encryption/default_enc.yaml
   multi_devices:
     - mount_point: /
       label: root_multi_btrfs
@@ -30,7 +31,6 @@ test_data:
         - /dev/mapper/cr_test
   crypttab:
     num_devices_encrypted: 1
-  $include: test_data/yast/encryption/default_enc.yaml
   profile:
     partitioning:
       - drive:

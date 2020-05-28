@@ -5,6 +5,8 @@ use FindBin '$Bin';
 use Test::More;
 use YAML::PP;
 use JSON::Validator;
+use File::Basename;
+use YAML::PP::Schema::Include;
 
 my $schema_file = "$Bin/../t/schema/Schedule-1.yaml";
 my $validator = JSON::Validator->new;
@@ -15,8 +17,15 @@ if (my $err = $@) {
 }
 
 pass("Nothing to do") unless @ARGV;
+my $root_project_dir = dirname(__FILE__) . '/../';
+
+my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+my $ypp     = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+$include->yp($ypp);
 for my $file (@ARGV) {
-    my $data = eval { YAML::PP::LoadFile($file) };
+    my $data = eval {
+        $ypp->load_file($file);
+    };
     if (my $err = $@) {
         fail("$file has invalid yaml syntax");
         diag "Error: $err";

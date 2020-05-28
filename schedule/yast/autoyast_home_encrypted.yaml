@@ -15,9 +15,9 @@ schedule:
   - autoyast/clone
   - autoyast/verify_cloned_profile
 test_data:
+  <<: !include test_data/yast/encryption/encrypt_home.yaml
   crypttab:
     num_devices_encrypted: 1
-  $include: test_data/yast/encryption/encrypt_home.yaml
   profile:
     partitioning:
       - drive:

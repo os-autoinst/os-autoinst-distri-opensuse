@@ -68,4 +68,4 @@ conditional_schedule:
       svirt-hyperv:
         - installation/grub_test
 test_data:
-  $include: test_data/yast/msdos/msdos.yaml
+  <<: !include test_data/yast/msdos/msdos.yaml

@@ -41,11 +41,6 @@ properties:
     additionalProperties: false
     type: object
     patternProperties:
-      # Ideally we should load includes before validating
-      # but since test_data can contain pretty much every structure
-      # we can leave it like that for now
-      "^\\$include$":
-        type: string
       "^([a-zA-Z0-9_]+)$":
         oneOf:
         - type: string
