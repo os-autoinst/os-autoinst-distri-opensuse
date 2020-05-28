@@ -1,12 +1,12 @@
 from flask import Flask, render_template
-import os, sys, json, urllib.request, ssl
+import os, sys, ssl
  
 app = Flask(__name__)
-version = ""
-  
+message = ""
+
 @app.route("/")
 def index():
-    return render_template("index.html", version = version)
+    return render_template("index.html", message = message)
 
 if __name__ == "__main__":
     ctx = ssl.create_default_context()
@@ -19,7 +19,10 @@ if __name__ == "__main__":
         print("Program requires at least one argument!")
         sys.exit()
 
-    request = urllib.request.urlopen(url, context=ctx)
-    data = json.loads(request.read())
-    version = (data["job"]["settings"]["VERSION"])
+    cmd = "curl -I " + url
+    response = os.system(cmd)
+    if response == 0:
+        message = "pass"
+    else:
+        message = "not pass"
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
