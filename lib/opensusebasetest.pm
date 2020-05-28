@@ -566,7 +566,7 @@ sub handle_uefi_boot_disk_workaround {
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # <sles> or <opensuse>
-    send_key 'up';
+    send_key_until_needlematch 'tianocore-select_opensuse_or_sles', 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # efi file
