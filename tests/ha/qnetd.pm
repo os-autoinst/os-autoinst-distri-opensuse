@@ -93,7 +93,7 @@ sub run {
     }
 
     # Ensure promotable resource is in node 1
-    script_run 'crm resource migrate promotable-1 ' . choose_node(1);
+    script_run 'crm resource migrate promotable-1 ' . choose_node(1) if is_node(1);
 
     # Perform Split Brain test
     barrier_wait("SPLIT_BRAIN_TEST_READY_$cluster_name");
@@ -101,12 +101,14 @@ sub run {
     record_info('Split-brain info', 'Split brain test');
 
     # Stop stonith to prevent fencing of node before our check
-    assert_script_run "crm resource stop stonith-sbd" if (is_node(1));
+    assert_script_run "crm resource stop stonith-sbd" if is_node(1);
 
     # Add firewall rules to provoke a split brain situation and confirm that
     # the qdevice node gives its vote to the node1 (where the master resource is running)
+    # Firewall rules go in both nodes in multicast cluster, and only in node 2 in unicast
     my $partner_ip = is_node(1) ? get_ip(choose_node(2)) : get_ip(choose_node(1));
-    assert_script_run "iptables -A INPUT -s $partner_ip -j DROP; iptables -A OUTPUT -d $partner_ip -j DROP" if (is_node(1) or is_node(2));
+    assert_script_run "iptables -A INPUT -s $partner_ip -j DROP; iptables -A OUTPUT -d $partner_ip -j DROP"
+      if ((is_node(1) and !get_var('HA_UNICAST')) or is_node(2));
     sleep $default_timeout;
 
     if (is_node(2)) {
@@ -128,13 +130,8 @@ sub run {
     # Show cluster status before ending the test
     save_state if (!check_var('QDEVICE_TEST_ROLE', 'qnetd_server'));
 
-    # Cleanup
-    if (is_node(1)) {
-        # Restart stonith. This should fence node 2
-        assert_script_run "crm resource start stonith-sbd";
-        # Remove iptable rules
-        assert_script_run "iptables -F && iptables -X";
-    }
+    # Restart stonith. This should fence node 2
+    assert_script_run "crm resource start stonith-sbd" if is_node(1);
 
     barrier_wait("QNETD_SERVER_DONE_$cluster_name");
 
