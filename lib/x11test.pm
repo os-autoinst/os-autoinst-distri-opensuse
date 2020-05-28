@@ -384,9 +384,25 @@ sub start_evolution {
         type_string "$mail_box";
     };
     save_screenshot();
-
-    # Finish wizard.
-    assert_and_click('evolution_wizard-identity-next');
+    send_key 'alt-n';
+    if ($mail_box eq 'nooops_test3@aim.com') {
+        assert_screen [qw(evolution_wizard-account-summary evolution_wizard-receiving)];
+        if (match_has_tag 'evolution_wizard-account-summary') {
+            record_info 'found', "$mail_box details resolved";
+            assert_and_click "evolution-option-next";
+            assert_screen 'evolution_wizard-done';
+            send_key 'alt-a';
+            wait_still_screen(1);
+            send_key 'alt-n';
+        }
+        else {
+            record_soft_failure 'poo#67408';
+            send_key 'alt-c';
+        }
+    }
+    else {
+        assert_screen 'evolution_wizard-receiving';
+    }
 }
 
 sub evolution_add_self_signed_ca {
@@ -419,12 +435,6 @@ sub setup_mail_account {
     my $mail_recvport   = $config->{$account}->{$port_key};
 
     $self->start_evolution($mail_box);
-    if (check_screen "evolution_wizard-skip-lookup", 30) {
-        send_key "alt-s";
-    }
-
-    # Reach "Receiving Email" step.
-    assert_screen "evolution_wizard-receiving";
     # Open Server Type screen.
     wait_screen_change {
         send_key "alt-t";
