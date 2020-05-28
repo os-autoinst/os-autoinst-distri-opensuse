@@ -96,7 +96,8 @@ sub run() {
     # create test users
     assert_script_run "useradd -m admin";
     assert_script_run "useradd -m nimda";
-    assert_script_run "echo -e 'admin:password123\nnimda:password123' | chpasswd";
+    assert_script_run "echo 'admin:password123' | chpasswd";
+    assert_script_run "echo 'nimda:password123' | chpasswd";
 
     systemctl 'status dovecot';
     systemctl 'status postfix';
