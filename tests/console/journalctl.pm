@@ -39,7 +39,11 @@ sub check_journal {
 
 sub check_syslog {
     # rsyslog is not installed on tumbleweed anymore
-    return !is_tumbleweed;
+    return !is_tumbleweed && !is_jeos;
+}
+
+sub isPublicCloud {
+    return get_var('PUBLIC_CLOUD');
 }
 
 sub run {
@@ -56,22 +60,27 @@ sub run {
     assert_script_run("sed -i 's/.*Seal=.*/Seal=yes/' /etc/systemd/journald.conf");
     assert_script_run("systemctl restart systemd-journald");
     # Setup FSS keys before reboot
-    assert_script_run('journalctl --interval=10s --setup-keys | tee journalctl-setup-keys.txt');
+    assert_script_run('journalctl --interval=10s --setup-keys | tee /root/journalctl-setup-keys.txt');
     assert_script_run('journalctl --rotate');
-    assert_script_run("date '+%F %T' > reboottime");
+    assert_script_run("date '+%F %T' > /var/tmp/reboottime");
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
-    power_action('reboot', textmode => 1);
-    $self->wait_boot;
-    select_console 'root-console';
+    if (!isPublicCloud) {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+        select_console 'root-console';
+    } else {
+        # TODO: Handle reboots on public cloud
+        record_info("publiccloud", "Public cloud detected - omitting reboot for now");
+    }
     # Check journal state after reboot to trigger bsc#1171858
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /root/journalctl-setup-keys.txt`') != 0);
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
-    check_journal('',                      "journalctl.txt",        "journalctl empty");
-    check_journal('--boot=-1',             "journalctl-1.txt",      "journalctl of previous boot empty");
-    check_journal('-S "`cat reboottime`"', "journalctl-after.txt",  "journalctl after reboot empty");
-    check_journal('-U "`cat reboottime`"', "journalctl-before.txt", "journalctl before reboot empty");
-    check_journal("-k",                    "journalctl-dmesg.txt",  "journalctl dmesg empty");
-    assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot");
+    check_journal('',                               "journalctl.txt",        "journalctl empty");
+    check_journal('--boot=-1',                      "journalctl-1.txt",      "journalctl of previous boot empty") unless isPublicCloud;
+    check_journal('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt",  "journalctl after reboot empty");
+    check_journal('-U "`cat /var/tmp/reboottime`"', "journalctl-before.txt", "journalctl before reboot empty");
+    check_journal("-k",                             "journalctl-dmesg.txt",  "journalctl dmesg empty");
+    assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot") unless isPublicCloud;
     # Create virtual serial console for journal redirecting
     script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
     assert_script_run('jobs | grep socat', fail_message => "socat is not running");
@@ -108,9 +117,9 @@ sub run {
     assert_script_run('journalctl --vacuum-size=100M');
     assert_script_run('journalctl --vacuum-time=1years');
     # Rotate once more and verify the journal afterwards
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /root/journalctl-setup-keys.txt`') != 0);
     assert_script_run('journalctl --rotate');
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /root/journalctl-setup-keys.txt`') != 0);
 }
 
 sub post_fail_hook {
