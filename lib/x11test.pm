@@ -279,15 +279,6 @@ sub check_new_mail_evolution {
     assert_screen "evolution_mail_open_mail";
     send_key "ctrl-w";    # close the mail
     save_screenshot();
-
-    # Delete the message and expunge the deleted item if not used POP3
-    if ($protocol != "POP") {
-        send_key "ctrl-e";
-        if (check_screen "evolution_mail-expunge", 10) {
-            send_key "alt-e";
-        }
-        assert_screen "evolution_mail-ready";
-    }
 }
 
 # get a random string with followed by date, it used in evolution case to get a unique email title.
