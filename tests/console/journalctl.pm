@@ -60,7 +60,7 @@ sub run {
     assert_script_run("sed -i 's/.*Seal=.*/Seal=yes/' /etc/systemd/journald.conf");
     assert_script_run("systemctl restart systemd-journald");
     # Setup FSS keys before reboot
-    assert_script_run('journalctl --interval=10s --setup-keys | tee /root/journalctl-setup-keys.txt');
+    assert_script_run('journalctl --interval=10s --setup-keys | tee /var/tmp/journalctl-setup-keys.txt');
     assert_script_run('journalctl --rotate');
     assert_script_run("date '+%F %T' > /var/tmp/reboottime");
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
@@ -70,10 +70,10 @@ sub run {
         select_console 'root-console';
     } else {
         # TODO: Handle reboots on public cloud
-        record_info("publiccloud", "Public cloud detected - omitting reboot for now");
+        record_info("publiccloud", "Public cloud omits rebooting (temporary workaround)");
     }
     # Check journal state after reboot to trigger bsc#1171858
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /root/journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
     check_journal('',                               "journalctl.txt",        "journalctl empty");
     check_journal('--boot=-1',                      "journalctl-1.txt",      "journalctl of previous boot empty") unless isPublicCloud;
@@ -117,14 +117,26 @@ sub run {
     assert_script_run('journalctl --vacuum-size=100M');
     assert_script_run('journalctl --vacuum-time=1years');
     # Rotate once more and verify the journal afterwards
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /root/journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
     assert_script_run('journalctl --rotate');
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /root/journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
+}
+
+sub cleanup {
+    script_run('rm -f /var/tmp/journalctl.txt');
+    script_run('rm -f /var/tmp/journalctl-setup-keys.txt');
+    script_run('rm -f /var/tmp/journal_serial.out');
+    script_run('rm -f /var/tmp/reboottime');
 }
 
 sub post_fail_hook {
     script_run('journalctl -x > /var/tmp/journalctl.txt');
     upload_logs('/var/tmp/journalctl.txt');
+    cleanup();
+}
+
+sub post_run_hook {
+    cleanup();
 }
 
 1;
