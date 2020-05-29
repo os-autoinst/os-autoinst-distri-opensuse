@@ -88,6 +88,13 @@ sub run {
             }
             assert_script_run('./autogen.sh ',       timeout => 600);
             assert_script_run('make ; make install', timeout => 600);
+        } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
+            zypper_ar($wicked_repo, name => 'wicked_repo', no_gpg_check => 1);
+            zypper_call('in --force -y --from wicked_repo --allow-vendor-change  --allow-downgrade  wicked', log => 1);
+            validate_script_output('zypper ps  --print "%s"', /^\s*$/);
+            if (my $commit_sha = get_var('WICKED_COMMIT_SHA')) {
+                validate_script_output(q(head -n 1 /usr/share/doc/packages/wicked/ChangeLog | awk '{print $2}'), /^$commit_sha$/);
+            }
         }
         if (check_var('WICKED', 'ipv6')) {
             zypper_ar('http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/SLE_15_SP2/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
