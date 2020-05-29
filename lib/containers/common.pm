@@ -24,7 +24,7 @@ use registration;
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_caasp);
 
-our @EXPORT = qw(install_docker_when_needed clean_docker_host);
+our @EXPORT = qw(install_docker_when_needed clean_docker_host test_container_runtime);
 
 sub install_docker_when_needed {
     if (is_caasp) {
@@ -52,6 +52,59 @@ sub install_docker_when_needed {
 sub clean_docker_host {
     assert_script_run('docker stop $(docker ps -q)', 180) if script_output('docker ps -q | wc -l') != '0';
     assert_script_run('docker system prune -a -f',   180);
+}
+
+sub test_container_runtime {
+    my $runc = shift;
+
+    # installation of runtime
+    record_info 'Test #1', 'Test: Installation';
+    zypper_call("in $runc");
+
+    # create the OCI specification and verify that the template has been created
+    record_info 'Test #2', 'Test: OCI Specification';
+    assert_script_run("$runc spec");
+    assert_script_run('ls -l config.json');
+    script_run('cp config.json config.json.backup');
+
+    # Modify the configuration to run the container in background
+    assert_script_run("sed -i -e '/\"terminal\":/ s/: .*/: false,/' config.json");
+    assert_script_run("sed -i -e 's/\"sh\"/\"echo\", \"Kalimera\"/' config.json");
+
+    # Run (create, start, and delete) the container after it exits
+    record_info 'Test #3', 'Test: Use the run command';
+    assert_script_run("$runc run test1 | grep Kalimera");
+
+    # Restore the default configuration
+    assert_script_run('mv config.json.backup config.json');
+
+    assert_script_run("sed -i -e '/\"terminal\":/ s/: .*/: false,/' config.json");
+    assert_script_run("sed -i -e 's/\"sh\"/\"sleep\", \"120\"/' config.json");
+
+    # Container Lifecycle
+    record_info 'Test #4', 'Test: Create a container';
+    assert_script_run("$runc create test2");
+    assert_script_run("$runc state test2 | grep status | grep created");
+    record_info 'Test #5', 'Test: List containers';
+    assert_script_run("$runc list | grep test2");
+    record_info 'Test #6', 'Test: Start a container';
+    assert_script_run("$runc start test2");
+    assert_script_run("$runc state test2 | grep running");
+    record_info 'Test #7', 'Test: Pause a container';
+    assert_script_run("$runc pause test2");
+    assert_script_run("$runc state test2 | grep paused");
+    record_info 'Test #8', 'Test: Resume a container';
+    assert_script_run("$runc resume test2");
+    assert_script_run("$runc state test2 | grep running");
+    record_info 'Test #9', 'Test: Stop a container';
+    assert_script_run("$runc kill test2 KILL");
+    assert_script_run("$runc state test2 | grep stopped");
+    record_info 'Test #10', 'Test: Delete a container';
+    assert_script_run("$runc delete test2");
+    assert_script_run("! $runc state test2");
+
+    # remove the configuration file
+    assert_script_run("rm config.json");
 }
 
 1;

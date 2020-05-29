@@ -55,8 +55,6 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    #my $hostnam = autoinst_url();
-    #record_info("$hostnam");
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
 
     install_docker_when_needed();
