@@ -70,7 +70,7 @@ set -e
 if [ "$output" = "" ]; then
 	# Copy to SD card
 	echo "** Copy to SD card"
-	ssh root@$flasher_ip dd if=$destination_folder/$uncompressed_filename of=/dev/$sdX_device
+	ssh root@$flasher_ip dd if=$destination_folder/$uncompressed_filename of=/dev/$sdX_device oflag=sync bs=8M
 else
 	echo "***** /dev/$sdX_device is mounted, so it is unlikely your target. Please check. *****"
 	echo "$output"
