@@ -67,7 +67,6 @@ schedule:
     - x11/gnome_terminal
     - x11/gedit
     - x11/firefox
-    - x11/yast2_snapper
     - x11/glxgears
     - x11/nautilus
     - x11/desktop_mainmenu

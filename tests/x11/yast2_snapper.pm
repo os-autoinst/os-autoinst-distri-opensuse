@@ -35,6 +35,12 @@ use y2_module_consoletest;
 sub run {
     my $self = shift;
 
+    # Make sure that the module runs on graphical mode
+    unless (check_screen 'generic-desktop', 0) {
+        select_console 'x11';
+        $self->handle_displaymanager_login() if (check_screen 'linux-login', 0);
+    }
+
     # Turn off screensaver
     x11_start_program('xterm');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
