@@ -497,7 +497,8 @@ sub setup_mail_account {
     wait_still_screen(2);
     send_key "home";
     #change to use mail-server and SSL
-    send_key_until_needlematch "evolution_SSL_wizard-sending-starttls", "down", 5, 1;
+    my $encrypt = get_var('QAM_MAIL_EVOLUTION') ? 'TLS' : 'STARTTLS';
+    send_key_until_needlematch "evolution_SSL_wizard-sending-$encrypt", "down", 5, 1;
     assert_and_click "evolution_wizard-sending-setauthtype";
     assert_and_click "evolution_wizard-sending-setauthtype_login";
     wait_screen_change { send_key 'alt-n' };
