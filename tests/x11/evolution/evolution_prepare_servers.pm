@@ -39,7 +39,6 @@ sub run() {
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call("in dovecot", exitcode => [0, 102, 103]);
         zypper_call("rr dovecot_repo");
-        save_screenshot;
     } else {
         if (is_opensuse) {
             # exim is installed by default in openSUSE, but we need postfix
@@ -96,7 +95,8 @@ sub run() {
     # create test users
     assert_script_run "useradd -m admin";
     assert_script_run "useradd -m nimda";
-    assert_script_run "echo -e 'admin:password123\nnimda:password123' | chpasswd";
+    assert_script_run "echo 'admin:password123' | chpasswd";
+    assert_script_run "echo 'nimda:password123' | chpasswd";
 
     systemctl 'status dovecot';
     systemctl 'status postfix';
