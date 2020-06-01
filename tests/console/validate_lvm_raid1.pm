@@ -88,8 +88,7 @@ sub _check_raid_disks_after_reboot {
         _restore_raid_disk($config, $expected_num_devs);
     }
     else {
-        # Expected behavior is not clear currently. Assuming that the faulty disk shouldn't be automatically reactivated
-        record_soft_failure("bsc#1172203");
+        record_info("Autorecovery", "$config->{raid1}->{disk_to_fail} was automatically recovered after reboot.");
     }
 }
 
