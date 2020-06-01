@@ -47,6 +47,7 @@ sub test_built_img() {
     assert_script_run("mkdir /root/templates");
     assert_script_run "curl -f -v " . data_url('containers/index.html') . " > /root/templates/index.html";
     assert_script_run("docker run -dit -p 8888:5000 -v ~/templates:\/usr/src/app/templates myapp www.google.com");
+    sleep 5;
     assert_script_run("docker ps -a");
     assert_script_run('curl http://localhost:8888/ | grep "Networking test shall pass"');
 }
