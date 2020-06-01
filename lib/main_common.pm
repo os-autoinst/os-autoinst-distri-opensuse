@@ -587,8 +587,6 @@ sub load_jeos_tests {
             loadtest "console/suseconnect_scc";
         }
     }
-    loadtest "jeos/glibc_locale";
-    loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
 }
 
 sub installzdupstep_is_applicable {
@@ -1158,6 +1156,10 @@ sub load_consoletests {
             loadtest "console/zypper_ar";
         }
         loadtest "console/zypper_ref";
+    }
+    if (is_jeos) {
+        loadtest "jeos/glibc_locale";
+        loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
     }
     loadtest "console/ncurses";
     loadtest "console/yast2_lan" unless is_bridged_networking;
