@@ -20,8 +20,8 @@ use strict;
 use warnings;
 use testapi;
 use caasp 'microos_reboot';
-use power_action_utils 'power_action';
-use version_utils qw(is_opensuse is_caasp);
+use power_action_utils;
+use version_utils qw(is_sle is_opensuse is_caasp);
 
 our @EXPORT = qw(
   process_reboot
@@ -38,7 +38,17 @@ sub process_reboot {
     if (is_caasp) {
         microos_reboot $trigger;
     } else {
-        power_action('reboot', observe => !$trigger, keepconsole => 1);
+
+         This is workaround to connect to the shut off machine.
+	 if (is_sle('>=15-sp2') && check_var('ARCH', 's390x')) {
+	    record_soft_failure('bsc#1167210 - System shuts down instead of reboot on zkvm');
+	    power_action('reboot', observe => !$trigger, keepconsole => 0);
+	    assert_shutdown_and_restore_system('reboot', 120);
+	    reconnect_mgmt_console(timeout => 500);
+	} else {
+	    power_action('reboot', observe => !$trigger, keepconsole => 1);
+	 }
+
 
         # Replace by wait_boot if possible
         assert_screen 'grub2', 100;
