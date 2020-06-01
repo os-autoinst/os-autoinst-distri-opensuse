@@ -31,7 +31,7 @@ sub run {
     $self->select_serial_terminal;
 
     # test `fixfiles check` can print any incorrect file context labels
-    assert_script_run("fixfiles check > $file_output 2>&1");
+    assert_script_run("fixfiles check > $file_output 2>&1", timeout => 300);
 
     # pick up a test file to test
     my $file_info     = script_output("grep -i 'Would relabel' $file_output | tail -1");
