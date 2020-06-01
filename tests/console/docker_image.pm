@@ -41,6 +41,12 @@ sub run {
             'echo "{ \"insecure-registries\" : [\"registry.suse.de\", \"registry.suse.de:443\", \"registry.suse.de:5000\"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
         systemctl('restart docker');
+
+        if (get_var('SCC_DOCKER_IMAGE')) {
+            my $regcode = get_var 'SCC_DOCKER_IMAGE';
+            assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{,.bak}";
+            assert_script_run "echo -ne \"$regcode\" > /etc/zypp/credentials.d/SCCcredentials";
+        }
     }
 
     if (check_var("ARCH", "x86_64")) {
@@ -98,6 +104,7 @@ sub run {
         assert_script_run("docker image rm --force $image_names->[$i] refreshed-image");
     }
 
+    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
     clean_docker_host();
 }
 

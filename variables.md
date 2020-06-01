@@ -113,6 +113,7 @@ RESCUESYSTEM | boolean | false | Indicates rescue system under test.
 ROOTONLY | boolean | false | Request installation to create only the root account, no user account.
 RESET_HOSTNAME| boolean | false | If set to true content of /etc/hostname file will be erased
 SCC_ADDONS | string | | Comma separated list of modules to be enabled using SCC/RMT.
+SCC_DOCKER_IMAGE | string | | The content of /etc/zypp/credentials.d/SCCcredentials used by container-suseconnect-zypp zypper service in SLE base container images
 SELECT_FIRST_DISK | boolean | false | Enables test module to select first disk for the installation. Is used for baremetal machine tests with multiple disks available, including cases when server still has previous installation.
 SEPARATE_HOME | three-state | undef | Used for scheduling the test module where separate `/home` partition should be explicitly enabled (if `1` is set) or disabled (if `0` is set). If not specified, the test module is skipped.
 SES5_CEPH_QA_HEALTH_OK | string | | URL for repo containing ceph-qa-health-ok package.
