@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 SUSE LLC
+# Copyright (C) 2017-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ sub validate_result {
         assert_script_run "xmllint --noout $xml_args $result_file";
     }
 
-    validate_script_output "cat $result_file", sub { $match };
+    validate_script_output "cat $result_file", sub { $match }, timeout => 300;
     upload_logs($result_file);
 }
 
