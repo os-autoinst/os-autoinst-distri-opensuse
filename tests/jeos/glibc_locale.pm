@@ -31,7 +31,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call clear_console ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_sle is_jeos);
+use version_utils qw(is_opensuse is_sle is_tumbleweed);
 use power_action_utils qw(power_action);
 
 ## Define test data
@@ -139,7 +139,9 @@ sub run {
     # 2) ROOT_USES_LANG="ctype"
     select_console('root-console');
     # it is expected that SLE12 has glibc preinstalled
-    zypper_call('in glibc-locale') if (is_sle('15+') || is_opensuse);
+    my @pkgs = qw(glibc-locale);
+    push @pkgs, 'glibc-lang' if (is_tumbleweed);
+    zypper_call("install @pkgs") if (is_sle('15+') || is_opensuse);
 
     my $output = script_output("localectl list-locales | tee -a /dev/$serialdev | grep -E '$lang_new_short\.(UTF-8|utf8)'");
     die "Test locale not found in the available ones" unless ($output =~ $lang_new_short);
