@@ -11,16 +11,18 @@
 #          calls setup_apache2 with mode = SSL (lib/apachetest.pm)
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#65375
+# Tags: poo#65375, poo#67309
 
 use base "consoletest";
 use testapi;
 use strict;
 use warnings;
 use apachetest;
+use utils 'clear_console';
 
 sub run {
     select_console 'root-console';
+    clear_console;
     setup_apache2(mode => 'SSL');
 }
 
