@@ -39,7 +39,8 @@ sub test_image {
 }
 
 sub run {
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
     install_docker_when_needed();
     # Test base images
     test_image('alpine',              'latest');

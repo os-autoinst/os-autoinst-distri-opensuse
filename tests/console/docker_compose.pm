@@ -30,7 +30,8 @@ use strict;
 use warnings;
 
 sub run {
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     install_docker_when_needed;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
