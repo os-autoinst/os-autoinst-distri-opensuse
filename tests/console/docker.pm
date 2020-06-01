@@ -52,7 +52,9 @@ sub test_seccomp {
 }
 
 sub run {
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
+
     #my $hostnam = autoinst_url();
     #record_info("$hostnam");
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);

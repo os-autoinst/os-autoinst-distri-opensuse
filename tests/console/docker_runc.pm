@@ -24,7 +24,8 @@ use strict;
 use warnings;
 
 sub run {
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     install_docker_when_needed;
 
