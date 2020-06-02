@@ -14,3 +14,5 @@ schedule:
   - ha/watchdog
   - ha/ha_cluster_join
   - ha/qnetd
+  - boot/boot_to_desktop
+  - ha/check_after_reboot

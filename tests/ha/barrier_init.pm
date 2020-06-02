@@ -118,6 +118,7 @@ sub run {
         # QNETD barriers
         barrier_create("QNETD_SERVER_READY_$cluster_name",     $num_nodes + 1);
         barrier_create("QNETD_SERVER_DONE_$cluster_name",      $num_nodes + 1);
+        barrier_create("QNETD_TESTS_DONE_$cluster_name",       $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
 

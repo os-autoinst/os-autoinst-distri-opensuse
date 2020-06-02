@@ -31,13 +31,16 @@ sub run {
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
     # Only do this on node01, as node02 console is expected to be the root-console
-    if (is_node(1) && !get_var('HDDVERSION')) {
+    if ((is_node(1) && !get_var('HDDVERSION')) || (is_node(2) && check_var('QDEVICE_TEST_ROLE', 'client'))) {
         reset_consoles;
         select_console 'root-console';
     }
     # This code is also called after boot on update tests. We must ensure to be on the root console
     # in that case
     select_console 'root-console' if (get_var('HDDVERSION'));
+
+    # Remove iptable rules in node 1 when testing qnetd/qdevice in multicast
+    assert_script_run "iptables -F && iptables -X" if (is_node(1) && check_var('QDEVICE_TEST_ROLE', 'client') && !get_var('HA_UNICAST'));
 
     # Workaround network timeout issue during upgrade
     if (get_var('HDDVERSION')) {
@@ -102,6 +105,8 @@ sub run {
     barrier_wait("CHECK_AFTER_REBOOT_END_$cluster_name");
 
     barrier_wait("HAWK_FENCE_$cluster_name") if (check_var('HAWKGUI_TEST_ROLE', 'server'));
+
+    barrier_wait("QNETD_TESTS_DONE_$cluster_name") if (check_var('QDEVICE_TEST_ROLE', 'client'));
 }
 
 1;
