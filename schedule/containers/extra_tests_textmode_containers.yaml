@@ -18,6 +18,10 @@ conditional_schedule:
         DISTRI:
             'opensuse':
                 - console/docker_base_images
+    docker_compose:
+        DISTRI:
+            'opensuse':
+                - console/docker_compose
 schedule:
     - '{{bootloader}}'
     - boot/boot_to_desktop
@@ -27,5 +31,6 @@ schedule:
     - console/docker_runc
     - console/docker_image
     - '{{docker_base_images}}'
+    - '{{docker_compose}}'
     - console/zypper_docker
     - console/coredump_collect
