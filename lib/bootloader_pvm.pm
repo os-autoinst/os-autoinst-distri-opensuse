@@ -157,21 +157,28 @@ sub boot_hmc_pvm {
     assert_screen 'pvm-vterm-closed';
 
     # power off the machine if it's still running - and don't give it a 2nd chance
-    type_string "chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id && echo 'LPAR SUCCESSFULLY SHUT DOWN'\n";
-    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
+    # sometimes lpar shutdown takes long time, we need to check it's state
+    type_string("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id \n");
+        script_run("lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state");
+        assert_screen [qw(lpar-is-running lpar-is-down)];
+        if (match_has_tag('lpar-is-running')) {
+            record_info('LPAR is still running, waiting for shutdown');
+            type_string("for ((i=0\; i<10\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done \n");
+            save_screenshot;
+        }
+        # proceed with normal boot if is system already installed, use sms boot for installation
+        my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
+        type_string("chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id \n");
+        type_string("lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state \n");
+        assert_screen 'lpar-is-running';
 
-    # proceed with normal boot if is system already installed, use sms boot for installation
-    my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
-    type_string "chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id && echo 'LPAR SUCCESSFULLY BOOTED'\n";
-    assert_screen "pvm-poweron-successful";
-
-    # don't wait for it, otherwise we miss the menu
-    type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
-    # skip further preperations if system is already installed
-    return if get_var('BOOT_HDD_IMAGE');
-    get_into_net_boot;
-    prepare_pvm_installation;
-}
+        # don't wait for it, otherwise we miss the menu
+        type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
+        # skip further preperations if system is already installed
+        return if get_var('BOOT_HDD_IMAGE');
+        get_into_net_boot;
+        prepare_pvm_installation;
+    }
 
 =head2 boot_spvm
 
@@ -180,34 +187,34 @@ sub boot_hmc_pvm {
 Boot from spvm backend via novalink and switch to installation console (ssh or vnc).
 
 =cut
-sub boot_spvm {
-    my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
-    my $novalink = select_console 'novalink-ssh';
+    sub boot_spvm {
+        my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
+        my $novalink = select_console 'novalink-ssh';
 
-    # detach possibly attached terminals - might be left over
-    type_string "rmvterm --id $lpar_id && echo 'DONE'\n";
-    assert_screen 'pvm-vterm-closed';
+        # detach possibly attached terminals - might be left over
+        type_string "rmvterm --id $lpar_id && echo 'DONE'\n";
+        assert_screen 'pvm-vterm-closed';
 
-    # power off the machine if it's still running - and don't give it a 2nd chance
-    type_string " pvmctl lpar power-off -i id=$lpar_id --hard\n";
-    assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
+        # power off the machine if it's still running - and don't give it a 2nd chance
+        type_string " pvmctl lpar power-off -i id=$lpar_id --hard\n";
+        assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
 
-    # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
-    # see https://progress.opensuse.org/issues/39785#note-14
-    type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
-    assert_screen 'pvm-bootmode-set-normal';
+        # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
+        # see https://progress.opensuse.org/issues/39785#note-14
+        type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
+        assert_screen 'pvm-bootmode-set-normal';
 
-    # proceed with normal boot if is system already installed, use sms boot for installation
-    my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
-    type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}\n";
-    assert_screen "pvm-poweron-successful";
+        # proceed with normal boot if is system already installed, use sms boot for installation
+        my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
+        type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}\n";
+        assert_screen "pvm-poweron-successful";
 
-    # don't wait for it, otherwise we miss the menu
-    type_string " mkvterm --id $lpar_id\n";
-    # skip further preperations if system is already installed
-    return if get_var('BOOT_HDD_IMAGE');
-    get_into_net_boot;
-    prepare_pvm_installation;
-}
+        # don't wait for it, otherwise we miss the menu
+        type_string " mkvterm --id $lpar_id\n";
+        # skip further preperations if system is already installed
+        return if get_var('BOOT_HDD_IMAGE');
+        get_into_net_boot;
+        prepare_pvm_installation;
+    }
 
-1;
+    1;
