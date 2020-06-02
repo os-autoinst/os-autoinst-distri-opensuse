@@ -72,9 +72,11 @@ sub run {
     zypper_call("in bind-libs",             exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
 
     #Forward server and test lookup
+    my $suseip = script_output("dig www.suse.com +short");
+    $suseip =~ s/.*(\d+\.\d+\.\d+\.\d+).*/$1/s;
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");
     systemctl("start named.service");
-    validate_script_output('dig @localhost www.suse.com +short', sub { /\Q35.156.53.100\E/ });
+    validate_script_output('dig @localhost www.suse.com +short', sub { /\Q$suseip\E/ });
     $self->cmd_handle("forwarders", "remove", ip => "10.0.2.3");
     record_soft_failure("bsc#1151138") if (systemctl("is-active named.service", ignore_failure => 1));
 
