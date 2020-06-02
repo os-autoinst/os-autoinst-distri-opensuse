@@ -22,6 +22,7 @@ use testapi;
 use caasp 'microos_reboot';
 use power_action_utils 'power_action';
 use version_utils qw(is_opensuse is_caasp);
+use utils 'reconnect_mgmt_console';
 
 our @EXPORT = qw(
   process_reboot
@@ -39,10 +40,13 @@ sub process_reboot {
         microos_reboot $trigger;
     } else {
         power_action('reboot', observe => !$trigger, keepconsole => 1);
-
-        # Replace by wait_boot if possible
-        assert_screen 'grub2', 100;
-        send_key 'ret';
+        if (check_var('ARCH', 's390x')) {
+            reconnect_mgmt_console(timeout => 500);
+        } else {
+            # Replace by wait_boot if possible
+            assert_screen 'grub2', 100;
+            send_key 'ret';
+        }
         assert_screen 'linux-login', 200;
 
         # Login & clear login needle
