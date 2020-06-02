@@ -1078,9 +1078,19 @@ default when parameter not specified) or prefer non-root user if available.
 Variables affecting behavior:
 C<VIRTIO_CONSOLE>=0 disables virtio console (use {root,user}-console instead
 of the default {root-,}virtio-terminal)
+NOTE: virtio console is enabled by default (C<VIRTIO_CONSOLE>=1).
+For ppc64le it requires to call prepare_serial_console() to before first use
+(used in console/system_prepare and shutdown/cleanup_before_shutdown modules)
+and console=hvc0 in kernel parameters (add it to autoyast profile or update
+grub setup manually with add_grub_cmdline_settings()).
 
 C<SERIAL_CONSOLE>=0 disables serial console (use {root,user}-console instead
 of the default {root-,}sut-serial)
+NOTE: serial console is disabled by default on all but s390x machines
+(C<SERIAL_CONSOLE>=0), because it's not working yet on other machines
+(see poo#55985).
+For s390x it requires console=ttysclp0 in kernel parameters (add it to autoyast
+profile or update grub setup manually with add_grub_cmdline_settings()).
 
 On ikvm|ipmi|spvm|pvm_hmc it's expected, that use_ssh_serial_console() has been called
 (done via activate_console()) therefore SERIALDEV has been set and we can
