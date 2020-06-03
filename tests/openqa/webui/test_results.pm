@@ -18,8 +18,6 @@ use testapi;
 
 my $tutorial_disabled;
 
-sub with_optional_tutorial_popup { [grep { $_ ne '' } (@_, $tutorial_disabled ? '' : 'openqa-dont-notify-me')] }
-
 sub upload_autoinst_log {
     assert_script_run 'openqa-client jobs/1/cancel post';
     for my $i (1 .. 10) {
@@ -37,27 +35,23 @@ sub upload_autoinst_log {
 }
 
 sub handle_notify_popup {
-    return undef unless match_has_tag 'openqa-dont-notify-me';
+    assert_screen 'openqa-dont-notify-me';
+    for my $i (1 .. 5) {
+        assert_and_click 'openqa-dont-notify-me';
+        if (check_screen('openqa-tutorial-confirm', 15)) {
+            last;
+        }
+    }
     assert_and_click 'openqa-tutorial-confirm';
     assert_screen 'openqa-tutorial-closed';
-    $tutorial_disabled = 1;
-    return 1;
 }
 
 sub run {
-    # get rid of the tutorial box which can pop up immediately or slightly
-    # delayed when we already went to the test list and go to the test details
-    # of the running job
-    $tutorial_disabled = 0;
-    assert_screen with_optional_tutorial_popup 'openqa-tests';
-    click_lastmatch;
-    handle_notify_popup and assert_and_click 'openqa-tests';
-    assert_screen with_optional_tutorial_popup 'openqa-job-minimalx';
-    click_lastmatch;
-    handle_notify_popup and assert_and_click 'openqa-job-minimalx';
-    assert_screen with_optional_tutorial_popup 'openqa-job-details';
-    click_lastmatch;
     handle_notify_popup;
+    assert_screen 'openqa-tests';
+    assert_and_click 'openqa-tests';
+    assert_and_click 'openqa-job-minimalx';
+    assert_and_click 'openqa-job-details';
     assert_screen 'openqa-testresult', 600;
 }
 
