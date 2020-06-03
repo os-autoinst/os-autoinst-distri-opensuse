@@ -25,10 +25,9 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
     my $testfile = "foo";
 
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # print security context of file/dir
     assert_script_run("touch $testfile");

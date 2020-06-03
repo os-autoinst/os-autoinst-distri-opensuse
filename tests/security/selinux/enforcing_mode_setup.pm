@@ -27,7 +27,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # make sure SELinux in "permissive" mode
     validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*permissive.*/sx });
@@ -46,7 +46,7 @@ sub run {
 
     power_action("reboot", textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     validate_script_output(
         "sestatus",

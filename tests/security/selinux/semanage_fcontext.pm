@@ -36,7 +36,7 @@ sub run {
     my $fcontext_type2        = "bin_t";
     my $fcontext_type3        = "var_t";
 
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");
