@@ -88,7 +88,7 @@ sub select_filesystem {
     wait_screen_change(sub {
             send_key 'end';
     }, 20);
-    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up');
+    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up', timeout=>5);
 }
 
 # Mounting Options
