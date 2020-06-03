@@ -77,6 +77,7 @@ sub run {
     } else {
         # Common SUT Configuration
         if (my $wicked_sources = get_var('WICKED_SOURCES')) {
+            record_info('SOURCE', $wicked_sources);
             zypper_call('--quiet in automake autoconf libtool libnl-devel libnl3-devel libiw-devel dbus-1-devel pkg-config libgcrypt-devel systemd-devel git make gcc');
             my $folderName = 'wicked.git';
             my ($repo_url, $branch) = split(/#/, $wicked_sources, 2);
@@ -89,11 +90,18 @@ sub run {
             assert_script_run('./autogen.sh ',       timeout => 600);
             assert_script_run('make ; make install', timeout => 600);
         } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
-            zypper_ar($wicked_repo, name => 'wicked_repo', no_gpg_check => 1);
-            zypper_call('in --force -y --from wicked_repo --allow-vendor-change  --allow-downgrade  wicked', log => 1);
-            validate_script_output('zypper ps  --print "%s"', /^\s*$/);
+            record_info('REPO', $wicked_repo);
+            zypper_ar($wicked_repo, params => '-n wicked_repo', no_gpg_check => 1);
+            if (is_sle('<15')) {
+                zypper_call('in --force -y --from wicked_repo --force-resolution --oldpackage  wicked wicked-service', log => 1);
+            } else {
+                zypper_call('in --force -y --from wicked_repo --allow-vendor-change  --allow-downgrade  wicked wicked-service', log => 1);
+            }
+            record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+            validate_script_output('zypper ps  --print "%s"', qr/^\s*$/);
             if (my $commit_sha = get_var('WICKED_COMMIT_SHA')) {
-                validate_script_output(q(head -n 1 /usr/share/doc/packages/wicked/ChangeLog | awk '{print $2}'), /^$commit_sha$/);
+                validate_script_output(q(head -n 1 /usr/share/doc/packages/wicked/ChangeLog | awk '{print $2}'), qr/^$commit_sha$/);
+                record_info('COMMIT', $commit_sha);
             }
         }
         if (check_var('WICKED', 'ipv6')) {
