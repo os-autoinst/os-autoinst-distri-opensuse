@@ -54,9 +54,13 @@ sub run {
         last if check_screen('plasma-mpris-pause', 20);
     }
 
-    # Pause using the button in the applet
-    assert_and_click('plasma-mpris-pause');
-    # Verify that the applet noticed that
+    $counter = 3;
+    while ($counter-- > 0) {
+        # Pause using the button in the applet
+        assert_and_click('plasma-mpris-pause');
+        # Verify that the applet noticed that
+        last if check_screen('plasma-mpris-paused', 5);
+    }
     assert_screen('plasma-mpris-paused');
     # Verify that the video is paused and unpause it
     assert_and_click('plasma-browser-integration-video-unpause');
