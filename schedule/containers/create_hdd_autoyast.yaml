@@ -2,7 +2,6 @@
 name: create_hdd_autoyast
 vars:
   AUTOYAST: autoyast_sle15/autoyast_containers_%ARCH%.xml
-  AUTOYAST_CONFIRM: 1
   HDDSIZEGB: 30
 schedule:
   - autoyast/prepare_profile
