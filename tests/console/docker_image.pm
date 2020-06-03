@@ -26,7 +26,8 @@ use suse_container_urls 'get_suse_container_urls';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($plugin, $osversion, $version);

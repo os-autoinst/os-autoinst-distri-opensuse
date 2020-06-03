@@ -31,7 +31,8 @@ use registration;
 use version_utils qw(is_sle is_leap);
 
 sub run {
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     if (is_sle '>=15') {
         add_suseconnect_product('sle-module-containers');
