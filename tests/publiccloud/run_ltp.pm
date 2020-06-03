@@ -75,6 +75,8 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh',                                       timeout => 300);
 
+    record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+
     my $reset_cmd     = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
 
