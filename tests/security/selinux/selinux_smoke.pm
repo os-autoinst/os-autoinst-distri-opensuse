@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,8 +30,7 @@ use registration qw(add_suseconnect_product register_product);
 use version_utils "is_sle";
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # make sure SELinux is "enabled" and in "permissive" mode
     validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });

@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # SELinux by default
     validate_script_output("sestatus", sub { m/SELinux status: .*disabled/ });
@@ -39,9 +39,10 @@ sub run {
     assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
     assert_script_run("echo 'SELINUX=permissive' >> /etc/selinux/config");
 
+    # reboot the vm and reconnect the console
     power_action("reboot", textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     validate_script_output(
         "sestatus",

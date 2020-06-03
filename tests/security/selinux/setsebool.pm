@@ -28,7 +28,7 @@ sub run {
     my ($self) = @_;
     my $test_boolean = "fips_mode";
 
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # list and verify some (not all as it changes often) boolean(s)
     validate_script_output(
@@ -51,7 +51,7 @@ sub run {
     # reboot and check again
     power_action("reboot", textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     validate_script_output("getsebool $test_boolean", sub { m/${test_boolean}\ -->\ on/ });
 
@@ -62,7 +62,7 @@ sub run {
     # reboot and check again
     power_action("reboot", textmode => 1);
     $self->wait_boot;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     validate_script_output("getsebool $test_boolean", sub { m/${test_boolean}\ -->\ on/ });
 }
