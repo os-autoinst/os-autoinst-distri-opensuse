@@ -13,8 +13,6 @@
 # - Check return code of check_screen against array @tags
 #   - If no return code, decreate timeout by 30s, print diagnose text: "left total await_install timeout: $timeout"
 #   - If timeout less than 0, assert_screen on element of @tags and abort: "timeout hit on during await_install"
-#   - If LIVECD is defined AND $screenlock_previously_detected, print message
-#   'installation not finished, move mouse around a bit to keep screen unlocked'
 #   'installation not finished, move mouse around a bit to keep screen unlocked'
 #   and move mouse to prevent screenlock
 #   - If needle matches "yast_error", abort with 'YaST error detected. Test is terminated.'
@@ -37,7 +35,6 @@
 #           - Send 'ret'
 #       - Save a screenshot
 #       - Check for a needle: "yast-still-running"
-#   - Set $screenlock_previously_detected to 1
 #   - If needle matches 'additional-packages'
 #     - Send 'alt-i'
 #   - If needle matches 'package-update-found'
@@ -92,10 +89,6 @@ sub run {
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
     my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error);
-    if (get_var('LIVECD')) {
-        push(@tags, 'screenlock');
-        push(@tags, 'blackscreen');
-    }
     if (get_var('UPGRADE') || get_var('LIVE_UPGRADE')) {
         push(@tags, 'ERROR-removing-package');
         push(@tags, 'DIALOG-packages-notifications');
@@ -129,22 +122,26 @@ sub run {
     my $max_job_time_bound = get_var('MAX_JOB_TIME', 7200) - 1000;
     record_info("Timeout exceeded", "Computed timeout '$timeout' exceeds max_job_time_bound '$max_job_time_bound', consider decreasing '$timeout' or increasing 'MAX_JOB_TIME'") if $timeout > $max_job_time_bound;
 
-    my $screenlock_previously_detected = 0;
-    my $mouse_x                        = 1;
+    my $mouse_x = 1;
     while (1) {
         die 'timeout hit on during await_install' if $timeout <= 0;
         my $ret = check_screen \@tags, 30;
         $timeout -= 30;
         diag("left total await_install timeout: $timeout");
         if (!$ret) {
-            if (get_var('LIVECD') && $screenlock_previously_detected) {
+            if (get_var('LIVECD')) {
+                # The workaround with mouse moving was added, because screen
+                # become disabled after some time without activity on aarch64.
+                # Mouse is moved by 10 pixels, waited for 1 second (this is
+                # needed because it seems like the move is too fast to be detected
+                # on aarch64).
                 diag('installation not finished, move mouse around a bit to keep screen unlocked');
-                $mouse_x = ($mouse_x + 10) % 1024;
+                mouse_set(($mouse_x + 10) % 1024, 1);
+                sleep 1;
                 mouse_set($mouse_x, 1);
             }
             next;
         }
-
         if (match_has_tag('yast_error')) {
             die 'YaST error detected. Test is terminated.';
         }
@@ -173,9 +170,8 @@ sub run {
             send_key 'alt-o';    # ok
             next;
         }
-        if (get_var('LIVECD') and (match_has_tag('screenlock') || match_has_tag('blackscreen'))) {
+        if (get_var('LIVECD') and (check_screen('screenlock') || check_screen('blackscreen'))) {
             handle_livecd_screenlock;
-            $screenlock_previously_detected = 1;
             next;
         }
         if (match_has_tag('additional-packages')) {
