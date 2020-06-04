@@ -68,7 +68,7 @@ sub handle_livecd_screenlock {
             send_key 'tab';
             send_key 'ret';
         }
-        last unless check_screen qw(screenlock blackscreen), 20;
+        last unless check_screen([qw(screenlock blackscreen)], 20);
         die "Failed to unlock screen within multiple retries" if $_ == $retries;
     }
     save_screenshot;
