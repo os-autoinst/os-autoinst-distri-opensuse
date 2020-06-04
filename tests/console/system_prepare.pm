@@ -22,6 +22,7 @@ use version_utils 'is_sle';
 use serial_terminal 'add_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
+use services::registered_addons;
 use strict;
 use warnings;
 
@@ -87,7 +88,10 @@ sub run {
             diag "SUSEConnect --status-text locked: $out";
         }
         diag "SUSEConnect --status-text: $out";
-        assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'" unless get_var('MEDIA_UPGRADE');
+        if (!get_var('MEDIA_UPGRADE')) {
+            assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'";
+            services::registered_addons::full_registered_check;
+        }
     }
 }
 
