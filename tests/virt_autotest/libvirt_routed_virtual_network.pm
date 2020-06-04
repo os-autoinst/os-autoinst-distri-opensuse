@@ -29,6 +29,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
@@ -47,7 +48,7 @@ sub run_test {
     upload_logs "vnet_routed_clone.xml";
     assert_script_run("rm -rf vnet_routed.xml vnet_routed_clone.xml");
 
-    my ($mac1, $mac2, $model1, $model2);
+    my ($mac1, $mac2, $model1, $model2, $affecter, $exclusive);
     my $target1 = '192.168.130.1';
     my $target2 = '192.168.129.1';
     my $gate1   = '192.168.129.1';
@@ -66,21 +67,35 @@ sub run_test {
         assert_script_run("virsh start $guest");
         assert_script_run("virsh start $guest.clone");
 
+        if (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) {
+            $affecter  = "--persistent";
+            $exclusive = "bridge --live --persistent";
+        } else {
+            $affecter  = "";
+            $exclusive = "network --current";
+        }
+
         #figure out that used with virtio as the network device model during
         #attach-interface via virsh worked for all sles guest
         $mac1   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model1 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
-        assert_script_run("virsh attach-interface $guest network vnet_routed --model $model1 --mac $mac1 --live");
+
+        assert_script_run("virsh attach-interface $guest network vnet_routed --model $model1 --mac $mac1 --live $affecter", 60);
 
         $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model2 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
-        assert_script_run("virsh attach-interface $guest.clone network vnet_routed_clone --model $model2 --mac $mac2 --live");
 
-        test_network_interface("$guest",       mac => $mac1, gate => $gate1, target => $target1, net => "vnet_routed");
-        test_network_interface("$guest.clone", mac => $mac2, gate => $gate2, target => $target2, net => "vnet_routed_clone");
+        assert_script_run("virsh attach-interface $guest.clone network vnet_routed_clone --model $model2 --mac $mac2 --live $affecter", 60);
 
-        assert_script_run("virsh detach-interface $guest network --mac $mac1 --current");
-        assert_script_run("virsh detach-interface $guest.clone network --mac $mac2 --current");
+        #Wait for guests attached interface from virtual routed network
+        sleep 30;
+        my $net1 = (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) ? 'netfront' : 'vnet_routed';
+        test_network_interface("$guest", mac => $mac1, gate => $gate1, routed => 1, target => $target1, net => $net1);
+        my $net2 = (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) ? 'netfront' : 'vnet_routed_clone';
+        test_network_interface("$guest.clone", mac => $mac2, gate => $gate2, routed => 1, target => $target2, net => $net2);
+
+        assert_script_run("virsh detach-interface $guest --mac $mac1 $exclusive");
+        assert_script_run("virsh detach-interface $guest.clone --mac $mac2 $exclusive");
 
         assert_script_run("virsh destroy $guest.clone");
         assert_script_run("virsh undefine $guest.clone");
