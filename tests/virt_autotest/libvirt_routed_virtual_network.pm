@@ -90,9 +90,9 @@ sub run_test {
         #Wait for guests attached interface from virtual routed network
         sleep 30;
         my $net1 = (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) ? 'netfront' : 'vnet_routed';
-        test_network_interface("$guest", mac => $mac1, gate => $gate1, target => $target1, net => $net1);
+        test_network_interface("$guest", mac => $mac1, gate => $gate1, routed => 1, target => $target1, net => $net1);
         my $net2 = (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) ? 'netfront' : 'vnet_routed_clone';
-        test_network_interface("$guest.clone", mac => $mac2, gate => $gate2, target => $target2, net => $net2);
+        test_network_interface("$guest.clone", mac => $mac2, gate => $gate2, routed => 1, target => $target2, net => $net2);
 
         assert_script_run("virsh detach-interface $guest --mac $mac1 $exclusive");
         assert_script_run("virsh detach-interface $guest.clone --mac $mac2 $exclusive");
