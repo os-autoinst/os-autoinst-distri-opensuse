@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,7 @@
 # "nfs-client"
 # - Disable "recommended packages" and accept install of test package
 # - Remove test package
-# Maintainer: Martin Kravec <mkravec@suse.com>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base "y2_module_consoletest";
 use strict;
