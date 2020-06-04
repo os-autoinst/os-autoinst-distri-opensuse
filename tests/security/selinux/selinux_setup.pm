@@ -25,8 +25,7 @@ use utils;
 use version_utils qw(is_sle is_leap);
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
