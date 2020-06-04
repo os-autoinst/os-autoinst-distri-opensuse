@@ -44,7 +44,7 @@ sub run_test {
     virt_autotest::virtual_network_utils::ssh_setup();
 
     #Install required packages
-    zypper_call '-t in iproute2 iptables iputils bind-utils sshpass';
+    zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
 
     #Check with Guest status before libvirt virtual network tests
     virt_autotest::virtual_network_utils::check_guest_status();

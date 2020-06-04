@@ -62,13 +62,16 @@ sub test_network_interface {
     my $mac      = $args{mac};
     my $gate     = $args{gate};
     my $isolated = $args{isolated} // 0;
+    my $routed   = $args{routed} // 0;
     my $target   = $args{target} // script_output("dig +short openqa.suse.de");
 
     save_guest_ip("$guest", name => $net);
 
     # Configure the network interface to use DHCP configuration
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($routed == 1);
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
+    assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"") if ($routed == 1);
     if ($guest =~ m/sles11/i) {
         assert_script_run("ssh root\@$guest service network restart", 90);
     } else {
