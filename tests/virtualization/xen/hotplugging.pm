@@ -40,9 +40,10 @@ sub run_test {
             if (get_var('VIRT_AUTOTEST') && (check_var('SYSTEM_ROLE', 'kvm') || check_var('HOST_HYPERVISOR', 'kvm'))) {
                 $interface_model_option = '--model virtio';
                 script_run "brctl addbr br0; ip link set dev br0 up", 60 if ($sles_running_version eq '11' && $sles_running_sp eq '4');
-                script_run "ssh root\@$guest modprobe acpiphp", 60 if ($guest =~ /^sles-11-sp4.*$/img);
-                record_soft_failure 'bsc#1167828 Bridge network interface br0 hotplugging does not work with this ' . $guest if ($guest =~ /^sles-11-sp4.*$/img);
-                $self->{test_results}->{$guest}->{"bsc#1167828 Bridge network interface br0 hotplugging does not work with this $guest"}->{status} = 'SOFTFAILED' if ($guest =~ /^sles-11-sp4.*$/img);
+                if ($guest =~ /^sles-11-sp4.*$/img) {
+                    script_run "ssh root\@$guest modprobe acpiphp", 60;
+                    record_info('Info: Manually loading acpiphp module in SLE 11-SP4 guest due to bsc#1167828 otherwise network interface hotplugging does not work');
+                }
             }
             script_retry "ssh root\@$guest ip l | grep " . $xen::guests{$guest}->{macaddress}, delay => 60, retry => 3, timeout => 60;
             assert_script_run "virsh attach-interface --domain $guest --type bridge ${interface_model_option} --source br0 --mac " . $mac{$guest} . " --live " . ${persistent_config_option};
@@ -69,10 +70,13 @@ sub run_test {
     script_run "virsh detach-disk $_ ${domblk_target}", 240 foreach (keys %xen::guests);
     assert_script_run "virsh attach-disk --domain $_ --source /var/lib/libvirt/images/add/$_.raw --target ${domblk_target}" foreach (keys %xen::guests);
     assert_script_run "virsh domblklist $_ | grep ${domblk_target}"                                                         foreach (keys %xen::guests);
-    foreach my $guest (keys %xen::guests) {
-        $lsblk = script_run "ssh root\@$guest lsblk | grep ${domblk_target}", 60;
-        record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
-        $self->{test_results}->{$guest}->{"lsblk failed - please check the output manually (ssh root\@$guest lsblk | grep ${domblk_target})"}->{status} = 'SOFTFAILED' if (get_var('VIRT_AUTOTEST') && ($lsblk != 0));
+    #Skip lsblk check for VIRT_AUTOTEST KVM test suites after attaching raw disk due to uncertainty
+    if (!(get_var('VIRT_AUTOTEST') && (check_var('SYSTEM_ROLE', 'kvm') || check_var('HOST_HYPERVISOR', 'kvm')))) {
+        foreach my $guest (keys %xen::guests) {
+            $lsblk = script_run "ssh root\@$guest lsblk | grep ${domblk_target}", 60;
+            record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+            $self->{test_results}->{$guest}->{"lsblk failed - please check the output manually (ssh root\@$guest lsblk | grep ${domblk_target})"}->{status} = 'SOFTFAILED' if (get_var('VIRT_AUTOTEST') && ($lsblk != 0));
+        }
     }
     assert_script_run "ssh root\@$_ lsblk" foreach (keys %xen::guests);
     assert_script_run "virsh detach-disk $_ ${domblk_target}", 240 foreach (keys %xen::guests);
@@ -81,8 +85,7 @@ sub run_test {
     record_info "CPU", "Changing the number of CPUs available";
     foreach my $guest (keys %xen::guests) {
         if (get_var('VIRT_AUTOTEST') && (check_var('SYSTEM_ROLE', 'kvm') || check_var('HOST_HYPERVISOR', 'kvm')) && ($sles_running_version eq '11' && $sles_running_sp eq '4')) {
-            record_soft_failure 'bsc#1169065 vCPU hotplugging does no work on SLE 11-SP4 KVM host.';
-            $self->{test_results}->{$guest}->{"bsc#1169065 vCPU hotplugging does no work on SLE 11-SP4 KVM host"}->{status} = 'SOFTFAILED';
+            record_info 'Skip vCPU hotplugging', 'bsc#1169065 vCPU hotplugging does no work on SLE 11-SP4 KVM host';
             next;
         }
         unless ($guest =~ m/hvm/i) {
