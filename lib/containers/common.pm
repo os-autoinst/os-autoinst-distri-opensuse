@@ -24,7 +24,7 @@ use registration;
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_caasp);
 
-our @EXPORT = qw(install_docker_when_needed clean_docker_host test_container_runtime);
+our @EXPORT = qw(install_docker_when_needed clean_docker_host test_container_runtime test_container_image);
 
 sub install_docker_when_needed {
     if (is_caasp) {
@@ -105,6 +105,27 @@ sub test_container_runtime {
 
     # remove the configuration file
     assert_script_run("rm config.json");
+}
+
+# Test a given image. Takes the image name, version and container runtime (docker or podman) as arguments
+sub test_container_image {
+    my $name    = $_[0];
+    my $version = $_[1] //= "latest";
+    my $runtime = $_[2] //= "docker";
+    # Pull the image
+    my $image = "$name:$version";
+    assert_script_run("$runtime image pull $image", timeout => 300);
+    assert_script_run("$runtime image ls | grep '$name' | grep '$version'");
+
+    my $container = "${runtime}_${name}_${version}_smoketest";
+    $container =~ s!/!.!g;    # Slashes are not allowed as container names, but used for fetching images. Replace them with a dot
+    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
+    assert_script_run("$runtime container create --name '$container' '$image' /bin/sh -c '$smoketest'");
+    assert_script_run("$runtime container start '$container'");
+    assert_script_run("$runtime container logs '$container' > '/var/tmp/container_$container'");
+    assert_script_run("$runtime container rm '$container'");
+    assert_script_run("grep \"`uname -r`\" '/var/tmp/container_$container'");
+    assert_script_run("grep \"Heartbeat from $image\" '/var/tmp/container_$container'");
 }
 
 1;

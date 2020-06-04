@@ -17,7 +17,7 @@ conditional_schedule:
     docker_base_images:
         DISTRI:
             'opensuse':
-                - console/docker_base_images
+                - console/container_base_images
     docker_compose:
         DISTRI:
             'opensuse':
