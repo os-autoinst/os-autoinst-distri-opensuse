@@ -47,7 +47,6 @@ schedule:
     - console/glibc_sanity
     - console/zypper_in
     - console/zypper_log
-    - console/yast2_i
     - console/yast2_bootloader
     - console/firewall_enabled
     - console/sshd
