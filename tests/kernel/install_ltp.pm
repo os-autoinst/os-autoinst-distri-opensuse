@@ -357,8 +357,12 @@ sub run {
 
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     setup_network;
-    prepare_ltp_env();
-    assert_script_run('generate_lvm_runfile.sh');
+
+    if (!is_sle('<12')) {
+        prepare_ltp_env();
+        assert_script_run('generate_lvm_runfile.sh');
+    }
+
     upload_runtest_files('/opt/ltp/runtest', $tag);
 
     if (get_var('LTP_COMMAND_FILE')) {
