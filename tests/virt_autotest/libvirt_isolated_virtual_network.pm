@@ -29,6 +29,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub run_test {
     my ($self) = @_;
@@ -43,35 +44,40 @@ sub run_test {
     upload_logs "vnet_isolated.xml";
     assert_script_run("rm -rf vnet_isolated.xml");
 
-    my ($mac, $model);
+    my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
 
+        if (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) {
+            $affecter  = "--persistent";
+            $exclusive = "bridge --live --persistent";
+        } else {
+            $affecter  = "";
+            $exclusive = "network --current";
+        }
+
         $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
-        assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live", 60);
 
-        test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => "vnet_isolated");
+        assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live $affecter", 60);
 
-        assert_script_run("virsh detach-interface $guest network --mac $mac --current");
+        my $net = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen') && is_sle('=11-sp4')) ? 'netfront' : 'vnet_isolated';
+        test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => $net);
+
+        assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
     }
 
     #Destroy ISOLATED NETWORK
     assert_script_run("virsh net-destroy vnet_isolated");
     save_screenshot;
 
-    #Restore br123 for virt_autotest
-    virt_autotest::virtual_network_utils::restore_standalone();
-
     #Restore Guest systems
     virt_autotest::virtual_network_utils::restore_guests();
 
-    #Restart libvirtd service
-    virt_autotest::virtual_network_utils::restart_libvirtd();
-
+    #Skip restart network service due to bsc#1166570
     #Restart network service
-    virt_autotest::virtual_network_utils::restart_network();
+    #virt_autotest::virtual_network_utils::restart_network();
 }
 
 sub post_fail_hook {

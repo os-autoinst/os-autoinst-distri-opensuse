@@ -27,12 +27,11 @@ use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my ($self)      = @_;
     my $testfile    = "test_file";
     my $test_module = "test_module";
     my $audit_log   = "/var/log/audit/audit.log";
 
-    $self->select_serial_terminal;
+    select_console "root-console";
 
     assert_script_run("systemctl restart auditd");
 

@@ -1,17 +1,26 @@
 ---
 name:           yast2_ncurses_textmode
 description:    >
-    Test for yast2 UI, ncurses only. Running on created textmode image.
+  Test for yast2 UI, ncurses only. Running on created textmode image.
 schedule:
-    - "{{pre_boot_to_desktop}}"
-    - boot/boot_to_desktop
-    - console/prepare_test_data
-    - console/consoletest_setup
-    - console/yast2_lan
+  - "{{bootloader_start}}"
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/yast2_lan
+  - "{{yast2_lan_device_settings}}"
 conditional_schedule:
-    pre_boot_to_desktop:
-        ARCH:
-            aarch64:
-                - boot/uefi_bootmenu
-            s390x:
-                - installation/bootloader_start
+  bootloader_start:
+    BACKEND:
+      svirt:
+        - installation/bootloader_start
+  # The test module is temporary excluded on s390x due to the failures.
+  # https://progress.opensuse.org/issues/67603
+  yast2_lan_device_settings:
+    ARCH:
+      aarch64:
+        - console/yast2_lan_device_settings
+      ppc64le:
+        - console/yast2_lan_device_settings
+      x86_64:
+        - console/yast2_lan_device_settings

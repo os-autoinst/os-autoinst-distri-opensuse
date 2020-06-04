@@ -29,6 +29,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 our $virt_host_bridge = 'br0';
 sub run_test {
@@ -50,18 +51,27 @@ sub run_test {
     upload_logs "$vnet_host_bridge_cfg_name";
     assert_script_run("rm -rf $vnet_host_bridge_cfg_name");
 
-    my ($mac, $model);
+    my ($mac, $model, $affecter, $exclusive);
     my $gate = script_output "ip r s | grep 'default via ' | cut -d' ' -f3";
     foreach my $guest (keys %xen::guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
 
+        if (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) {
+            $affecter  = "--persistent";
+            $exclusive = "--live --persistent";
+        } else {
+            $affecter  = "";
+            $exclusive = "--current";
+        }
+
         $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
-        assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model $model --mac $mac --live");
+
+        assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model $model --mac $mac --live $affecter", 60);
 
         test_network_interface($guest, mac => $mac, gate => $gate, net => "vnet_host_bridge");
 
-        assert_script_run("virsh detach-interface $guest bridge --mac $mac --current");
+        assert_script_run("virsh detach-interface $guest bridge --mac $mac $exclusive");
     }
 
     #Destroy HOST BRIDGE NETWORK
