@@ -157,16 +157,17 @@ sub boot_hmc_pvm {
     assert_screen 'pvm-vterm-closed';
 
     # power off the machine if it's still running - and don't give it a 2nd chance
-    # sometimes lpar shutdown takes long time, we need to check it's state
+    # sometimes lpar shutdown takes long time if the lpar was running already, we need to check it's state
+    # and wait until it's finished
     type_string("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id \n");
-    type_string("for ((i=0\; i<10\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && clear; echo 'LPAR IS DOWN' && break || clear; echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done \n");
-    assert_screen 'lpar-is-down';
+    type_string("for ((i=0\; i<24\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done \n");
+    assert_screen 'lpar-is-down', 120;
 
     # proceed with normal boot if is system already installed, use sms boot for installation
     my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
     type_string("chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id \n");
-    type_string("for ((i=0\; i<10\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Running' && clear; echo 'LPAR IS RUNNING' && break || clear; echo 'Waiting for lpar $lpar_id to start up' && sleep 5 ; done \n");
-    assert_screen 'lpar-is-running';
+    type_string("for ((i=0\; i<12\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q -e 'Running' -e 'Firmware' && echo 'LPAR IS RUNNING' && break || echo 'Waiting for lpar $lpar_id to start up' && sleep 5 ; done \n");
+    assert_screen 'lpar-is-running', 60;
 
     # don't wait for it, otherwise we miss the menu
     type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
