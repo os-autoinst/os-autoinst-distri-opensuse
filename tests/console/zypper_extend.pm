@@ -40,12 +40,18 @@ use testapi;
 use utils qw(zypper_call);
 use version_utils 'is_sle';
 
+my $version = "";
+
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     #Search for a package (star
     zypper_call 'se star';
+    zypper_call 'se "sta"';
+    zypper_call 'se --match-exact "star"';
+    zypper_call 'se -d star';
+    zypper_call 'se -u star';
 
     #Get information about what a package provides:
     zypper_call 'info --provides star';
@@ -65,6 +71,45 @@ sub run {
     #Remove star, don't ask for permission:
     zypper_call 'rm star';
 
+    #Install specific versioni of a package
+    my $version = script_output q[zypper se -s star |grep " star " |grep x86_64 | awk 'END {print $6}'];
+    zypper_call 'in -f star-$version';
+
+    #Install and remove package combination
+    zypper_call 'in gimp -star';
+    assert_script_run("rpm -q gimp | grep gimp- ");
+    assert_script_run("rpm -q star | grep not");
+
+    #Cleaning up dependencies of removed packages
+    zypper_call 'rm --clean-deps gimp';
+    assert_script_run("rpm -q gimp | grep not");
+    
+    #Install source-packages
+    zypper_call 'source-install python';
+
+    #Add a repository
+    $version = get_var('VERSION');
+    zypper_call "ar -p 90 -f --no-gpgcheck http://download.opensuse.org/repositories/devel:/languages:/python/SLE_$version/ python";
+    assert_script_run("zypper lr | grep python");
+
+    #Install package from a disabled repository
+    zypper_call 'mr -d python';
+    zypper_call '--plus-content python install python-xml';
+
+    #Prioritize a repository
+    zypper_call 'mr -e -p 20 python';
+
+    #Rename a repository
+    zypper_call 'renamerepo "python" Python';
+
+    #Remove a repository
+    zypper_call 'rr Python';
+
+    #Verify whether all dependencies are fulfilled
+    zypper_call 'verify';
+
+    #Identify processes and services using deleted files
+    zypper_call 'ps';
     #List all applicable patches:
     zypper_call 'lu -t patch';
 
@@ -99,6 +144,9 @@ sub run {
     #Enable a specific repository
     zypper_call 'mr -e 1';
     validate_script_output('zypper lr 1', sub { m/Enabled\s+:\sYes/ });
+
+    #Forced refresh of repositories
+    zypper_call 'refresh -fdb';
 
     #Autorefresh on repository on/off
     my $refresh = is_sle('=12-sp1') ? '-r' : '-f';
