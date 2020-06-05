@@ -74,7 +74,7 @@ sub ensure_unlocked_desktop {
     my $counter = 10;
 
     while ($counter--) {
-        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display);
+        my @tags = qw(displaymanager displaymanager-password-prompt displaymanager-password-prompt-checking generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         assert_screen \@tags, no_wait => 1;
         if (match_has_tag 'displaymanager') {
@@ -102,6 +102,7 @@ sub ensure_unlocked_desktop {
             assert_and_click "authenticate";
         }
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
+            next if (check_var('DESKTOP', 'minimalx') && match_has_tag 'displaymanager-password-prompt-checking');
             if ($password ne '') {
                 type_password;
                 assert_screen [qw(locked_screen-typed_password login_screen-typed_password)];
