@@ -169,7 +169,7 @@ sub create_ssh_key {
     $args{ssh_private_key_file} //= '/root/.ssh/id_rsa';
     if (script_run('test -f ' . $args{ssh_private_key_file}) != 0) {
         assert_script_run('SSH_DIR=`dirname ' . $args{ssh_private_key_file} . '`; mkdir -p $SSH_DIR');
-        assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ' . $args{ssh_private_key_file});
+        assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -m pem -f ' . $args{ssh_private_key_file});
     }
 }
 

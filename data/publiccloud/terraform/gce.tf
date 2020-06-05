@@ -72,6 +72,7 @@ resource "google_compute_instance" "openqa" {
     zone         = var.region
 
     boot_disk {
+        device_name = "${var.name}-${element(random_id.service.*.hex, count.index)}"
         initialize_params {
             image = var.image_id
         }

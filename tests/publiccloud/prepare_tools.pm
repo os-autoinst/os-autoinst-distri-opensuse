@@ -64,8 +64,8 @@ sub run {
         }
     }
 
-    # Install prerequesite packages
-    zypper_call('-q in python-xml python3-devel python3-pip python3-virtualenv python3-img-proof python3-img-proof-tests');
+    # Install prerequesite packages test
+    zypper_call('-q in python3-pip python3-virtualenv python3-img-proof python3-img-proof-tests');
     record_info('python', script_output('python --version'));
 
     # Install AWS cli
@@ -93,7 +93,7 @@ sub run {
     record_info('img-proof', script_output('img-proof --version'));
 
     # Install Terraform from repo
-    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15/systemsmanagement:terraform.repo');
+    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP1/systemsmanagement:terraform.repo');
     zypper_call('--gpg-auto-import-keys -q in terraform');
     record_info('Terraform', script_output('terraform -v'));
 
