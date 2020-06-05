@@ -25,10 +25,11 @@ BEGIN {
     our @EXPORT = qw(
       add_serial_console
       get_login_message
+      download_file
       login
+      prepare_serial_console
       serial_term_prompt
       upload_file
-      download_file
     );
 }
 
@@ -46,6 +47,27 @@ sub add_serial_console {
     my $service = 'serial-getty@' . $console;
     script_run(qq{grep -q "^$console\$" /etc/securetty || echo '$console' >> /etc/securetty}) if (is_sle('<12-sp2'));
     script_run("systemctl enable $service; systemctl start $service");
+}
+
+=head2 prepare_serial_console
+
+    prepare_serial_console();
+
+Wrapper for add_serial_console.
+=cut
+
+sub prepare_serial_console {
+    # Configure serial consoles for virtio support
+    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
+    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
+    if (!check_var('VIRTIO_CONSOLE', 0)) {
+        if (is_sle('<12-SP2') && !check_var('ARCH', 's390x')) {
+            add_serial_console('hvc0');
+        }
+        elsif (get_var('OFW')) {
+            add_serial_console('hvc1');
+        }
+    }
 }
 
 =head2 get_login_message
@@ -208,6 +230,5 @@ sub upload_file {
     system(sprintf("cp '%s' '%s'", $tmpfilename, $dst)) == 0
       or die("Failed to finally copy file from '$tmpfilename' to '$dst'");
 }
-
 
 1;
