@@ -619,9 +619,8 @@ the second run will update the system.
 sub fully_patch_system {
     # first run, possible update of packager -- exit code 103
     zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
-    # workround for 11-SP4 s390 bsc#1155544
+    # special handle for 11-SP4 s390 install
     if (is_sle('=11-SP4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x')) {
-        record_soft_failure 'bsc#1155544';
         handle_patch_11sp4_zvm();
     } else {
         # second run, full system update
