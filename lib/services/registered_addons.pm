@@ -22,7 +22,7 @@ use registration 'get_addon_fullname';
 use Mojo::JSON;
 use List::MoreUtils 'uniq';
 
-our @addons;
+my @addons;
 
 sub suseconnect_ls {
     my ($search) = @_;
@@ -41,8 +41,8 @@ sub check_registered_system {
 sub check_registered_addons {
     my ($addonlist) = @_;
     $addonlist //= get_var('SCC_ADDONS');
-    my @addons        = grep { defined $_ && $_ } split(/,/, $addonlist);
-    my @unique_addons = uniq @addons;
+    my @my_addons     = grep { defined $_ && $_ } split(/,/, $addonlist);
+    my @unique_addons = uniq @my_addons;
     foreach my $addon (@unique_addons) {
         $addon =~ s/(^\s+|\s+$)//g;
         my $name = get_addon_fullname($addon);
@@ -63,6 +63,7 @@ sub check_upgraded_addons {
 sub check_suseconnect {
     my $output = script_output("SUSEConnect -s", 120);
     my @out    = grep { $_ =~ /identifier/ } split(/\n/, $output);
+    @addons = ();
     if (@out) {
         my $json = Mojo::JSON::decode_json($out[0]);
         foreach (@$json) {
@@ -78,10 +79,23 @@ sub check_suseconnect {
     diag "@addons";
 }
 
+sub check_suseconnect_cmd {
+    my $ls_out = script_output("SUSEConnect --list-extensions", 120);
+    diag "$ls_out";
+    my $status_out = script_output("SUSEConnect --status-text", 120);
+    diag "$status_out";
+    for (my $i = 1; $i < @addons; $i = $i + 1) {
+        diag "$addons[$i]";
+        die "$addons[$i] is not existed at SUSEConnect --list-extensions" if ($ls_out     !~ /Deactivate(.*)$addons[$i]/);
+        die "$addons[$i] is not existed at SUSEConnect --status-text"     if ($status_out !~ /$addons[$i]/);
+    }
+}
+
 sub full_registered_check {
     my ($stage) = @_;
     $stage //= '';
     check_suseconnect();
+    check_suseconnect_cmd();
     if ($stage eq 'before') {
         check_registered_system(get_var('ORIGIN_SYSTEM_VERSION'));
         check_registered_addons();
