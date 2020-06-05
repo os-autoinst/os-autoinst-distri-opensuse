@@ -32,7 +32,7 @@ sub run {
     my %sites_url = (
         http  => "http://httpbin.org/html",
         https => "https://www.google.com/",
-        ftp   => "ftp://mirror.bej.suse.com/",
+        ftp   => "ftp://mirror.suse.cz/",
         local => "file:///usr/share/w3m/w3mhelp.html"
     );
 
