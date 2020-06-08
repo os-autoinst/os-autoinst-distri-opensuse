@@ -1,0 +1,40 @@
+---
+description: 'Functional test of tools and container engines pulled from Containers (contm) and Package Hub (phub) modules'
+name: 'jeos-container-engines_and_tools'
+conditional_schedule:
+    bootloader:
+        MACHINE:
+            'svirt-xen-pv':
+                - installation/bootloader_svirt
+            'svirt-xen-hvm':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            'svirt-hyperv-uefi':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'svirt-hyperv':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'uefi-virtio-vga':
+                - installation/bootloader_uefi
+            '64bit-virtio-vga':
+                - installation/bootloader_uefi
+schedule:
+    - '{{bootloader}}'
+    - jeos/firstrun
+    - jeos/record_machine_id
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - jeos/diskusage
+    - jeos/build_key
+    - console/suseconnect_scc
+    - console/consoletest_setup
+    - console/zypper_ref
+    - console/podman
+    - console/podman_image
+    - console/docker
+    - console/docker_runc
+    - console/docker_image
+    - console/container_base_images
+    - console/zypper_docker
+    - console/docker_compose

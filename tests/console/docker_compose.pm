@@ -42,8 +42,8 @@ sub run {
 
     # Prepare docker-compose.yml and haproxy.cfg
     assert_script_run 'mkdir -p dcproject; cd dcproject';
-    assert_script_run("wget " . data_url("containers/docker-compose.yml") . " -O docker-compose.yml");
-    assert_script_run("wget " . data_url("containers/haproxy.cfg") . " -O haproxy.cfg");
+    assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
+    assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
     assert_script_run 'docker-compose pull', 600;
 

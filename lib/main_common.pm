@@ -396,12 +396,7 @@ sub load_boot_tests {
     }
     if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
-        if (is_jeos() && is_x86_64) {
-            loadtest "jeos/grub2";
-        }
-        else {
-            loadtest "installation/bootloader_uefi";
-        }
+        loadtest "installation/bootloader_uefi";
     }
     elsif (is_svirt_except_s390x()) {
         load_svirt_vm_setup_tests;
@@ -567,6 +562,7 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
+    # loadtest 'jeos/sccreg';
     unless (get_var('LTP_COMMAND_FILE')) {
         if ((is_arm || is_aarch64) && is_opensuse()) {
             # Enable jeos-firstboot, due to boo#1020019
@@ -586,6 +582,8 @@ sub load_jeos_tests {
         if (is_sle) {
             loadtest "console/suseconnect_scc";
         }
+
+        replace_opensuse_repos_tests if is_repo_replacement_required;
     }
 }
 
@@ -1708,20 +1706,16 @@ sub load_extra_tests_docker {
     my ($image_names, $stable_names) = get_suse_container_urls();
     return unless @$image_names;
 
-    loadtest "console/zypper_ref";
+    if (is_leap('15.1+') || is_tumbleweed) {
+        loadtest 'console/podman';
+        loadtest "console/podman_image";
+    }
 
     loadtest "console/docker";
     loadtest "console/docker_runc";
     loadtest "console/container_base_images";
-    if (is_sle(">=12-sp3")) {
-        loadtest "console/docker_image";
-        loadtest "console/docker_compose" if is_sle('15+');
-    }
-    if (is_opensuse) {
-        loadtest "console/docker_image";
-        loadtest "console/podman_image" if (is_leap('15.1+') || is_tumbleweed);
-        loadtest "console/docker_compose";
-    }
+    loadtest "console/docker_image" if (is_sle(">=12-sp3") || is_opensuse);
+    loadtest "console/docker_compose" unless is_sle('<15');
     loadtest "console/zypper_docker";
 }
 
