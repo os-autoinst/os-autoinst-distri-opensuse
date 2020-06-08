@@ -52,9 +52,9 @@ sub run_test {
     #Prepare Guests
     foreach my $guest (keys %xen::guests) {
         #Archive deployed Guests
+        #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
         upload_logs "/tmp/$guest.xml";
-        assert_script_run("rm -rf /tmp/$guest.xml");
         #Start installed Guests
         assert_script_run("virsh start $guest", 60);
         #Wait for forceful boot up guests
