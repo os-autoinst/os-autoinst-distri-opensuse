@@ -130,9 +130,9 @@ perlcritic: tools/lib/
 .PHONY: test-unused-modules-changed
 test-unused-modules-changed:
 	@echo "[make] Unused modules check called over modified/new files only. For a full run use make test-unused-modules-full"
-	tools/detect_unused_modules -m `git diff --name-only --diff-filter=d $$(git merge-base master HEAD) | grep '^tests/*'`
-	tools/detect_unused_modules -m `git diff --unified=0 $$(git merge-base master HEAD) products/* | grep -oP "^-.*loadtest.*[\"']\K[^\"'].+(?=[\"'])"`
-	tools/detect_unused_modules -m `git diff --unified=0 $$(git merge-base master HEAD) schedule/* | grep -oP "^-\s+- [\"']?\K.*(?=[\"']?)" | grep -v '{{'`
+	tools/detect_unused_modules -m `git --no-pager diff --name-only --diff-filter=d $$(git merge-base master HEAD) | grep '^tests/*'`
+	tools/detect_unused_modules -m `git --no-pager diff --unified=0 $$(git merge-base master HEAD) products/* | grep -oP "^-.*loadtest.*[\"']\K[^\"'].+(?=[\"'])"`
+	tools/detect_unused_modules -m `git --no-pager diff --unified=0 $$(git merge-base master HEAD) schedule/* | grep -oP "^-\s+- [\"']?\K.*(?=[\"']?)" | grep -v '{{'`
 
 .PHONY: test-unused-modules
 test-unused-modules:
