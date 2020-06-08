@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,17 +31,14 @@ sub run {
 
     # Configure static network, disable firewall
     disable_and_stop_service($self->firewall);
-    #disable apparmor
-    script_run("systemctl disable apparmor.service");
-    script_run("systemctl stop apparmor.service");
+    disable_and_stop_service('apparmor', ignore_failure => 1);
 
     # Configure the internal network an  try it
     if ($hostname =~ /server|master/) {
         setup_static_mm_network('10.0.2.101/24');
         #if server running opensuse.
         if (is_opensuse) {
-            assert_script_run 'systemctl stop NetworkManager';
-            assert_script_run 'systemctl disable NetworkManager';
+            disable_and_stop_service('NetworkManager', ignore_failure => 1);
             assert_script_run 'systemctl start  wicked';
         }
     }
@@ -54,16 +51,14 @@ sub run {
                 assert_script_run 'systemctl restart  wicked';
             }
             else {
-                assert_script_run 'systemctl stop NetworkManager';
-                assert_script_run 'systemctl disable NetworkManager';
+                disable_and_stop_service('NetworkManager', ignore_failure => 1);
                 assert_script_run 'systemctl enable wicked';
                 assert_script_run 'systemctl start  wicked';
             }
         }
         #Opensuse versions
         if (is_opensuse) {
-            assert_script_run 'systemctl stop NetworkManager';
-            assert_script_run 'systemctl disable NetworkManager';
+            disable_and_stop_service('NetworkManager', ignore_failure => 1);
             assert_script_run 'systemctl start  wicked';
         }
     }
