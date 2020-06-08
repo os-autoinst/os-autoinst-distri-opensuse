@@ -9,13 +9,21 @@
 #
 # Summary: This is a zypper extend regression tests. poo#51521.
 #   This test is based on https://gitlab.suse.de/ONalmpantis/scripts/blob/master/zypper_regression_test.sh.
-# - Search for a package (star)
+# - Combination of search commands for a package (star)
 # - Get information about what a package provides
 # - Get information about the requirements of a package
 # - Only download a package for later installation, don't ask for permission
 # - Check if the RPM actually been downloaded
 # - Disable auto-refresh, install star, don't ask for permission
 # - Remove star, don't ask for permission
+# - Install specific version of a package
+# - Install and remove package combination
+# - Clean up dependencies of a removed package
+# - Add a repository
+# - Install package from a disabled repository
+# - Prioritize, rename, remove a repository
+# - Verify whether all dependencies are fulfilled
+# - Identify processes and services using deleted files
 # - List all applicable patches
 # - List applicable patches for all CVE issues, or issues whose number matches the given string
 # - List applicable patches for all Bugzilla issues, or issues whose number matches the given string
@@ -27,11 +35,13 @@
 # - List all defined repositories and corresponding URIs
 # - Disable a specific repository
 # - Enable a specific repository
+# - Force refresh repositories
 # - Disable/Enable rpm file caching for all the repositories.
 # - Disable/Enable rpm file caching for remote repositories
 # - Enter zypper shell and run the lr command | echo lr
-# Maintainer: Marcelo Martins <mmartins@suse.cz>
-# Tags: poo#51521
+# -
+# Maintainer: Marcelo Martins <mmartins@suse.cz>, Anna Minou <anna.minou@suse.com>
+# Tags: poo#51521, poo#49076
 #
 use base "consoletest";
 use strict;
@@ -39,8 +49,6 @@ use warnings;
 use testapi;
 use utils qw(zypper_call);
 use version_utils 'is_sle';
-
-my $version = "";
 
 sub run {
     my $self = shift;
@@ -71,45 +79,39 @@ sub run {
     #Remove star, don't ask for permission:
     zypper_call 'rm star';
 
-    #Install specific versioni of a package
-    my $version = script_output q[zypper se -s star |grep " star " |grep x86_64 | awk 'END {print $6}'];
+    #Install specific version of a package
+    my $version = script_output q[zypper se -s star |grep " star " | awk 'END {print $6}'];
     zypper_call 'in -f star-$version';
 
     #Install and remove package combination
-    zypper_call 'in gimp -star';
-    assert_script_run("rpm -q gimp | grep gimp- ");
-    assert_script_run("rpm -q star | grep not");
+    zypper_call 'in vim -star';
 
     #Cleaning up dependencies of removed packages
-    zypper_call 'rm --clean-deps gimp';
-    assert_script_run("rpm -q gimp | grep not");
-    
-    #Install source-packages
-    zypper_call 'source-install python';
+    zypper_call 'rm --clean-deps vim';
 
     #Add a repository
-    $version = get_var('VERSION');
-    zypper_call "ar -p 90 -f --no-gpgcheck http://download.opensuse.org/repositories/devel:/languages:/python/SLE_$version/ python";
-    assert_script_run("zypper lr | grep python");
+    zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed/ packman';
+    assert_script_run("zypper lr | grep packman");
 
     #Install package from a disabled repository
-    zypper_call 'mr -d python';
-    zypper_call '--plus-content python install python-xml';
+    zypper_call 'mr -d packman';
+    zypper_call '--plus-content packman install rpmkey-packman';
 
     #Prioritize a repository
-    zypper_call 'mr -e -p 20 python';
+    zypper_call 'mr -e -p 20 packman';
 
     #Rename a repository
-    zypper_call 'renamerepo "python" Python';
+    zypper_call 'renamerepo "packman" Packman';
 
     #Remove a repository
-    zypper_call 'rr Python';
+    zypper_call 'rr packman';
 
     #Verify whether all dependencies are fulfilled
     zypper_call 'verify';
 
     #Identify processes and services using deleted files
     zypper_call 'ps';
+
     #List all applicable patches:
     zypper_call 'lu -t patch';
 
