@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -64,7 +64,8 @@ sub run_test {
 
         assert_script_run("virsh attach-interface $guest network vnet_nated --model $model --mac $mac --live $affecter", 60);
 
-        test_network_interface($guest, mac => $mac, gate => $gate, net => "vnet_nated");
+        my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_nated';
+        test_network_interface($guest, mac => $mac, gate => $gate, net => $net);
 
         assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
     }

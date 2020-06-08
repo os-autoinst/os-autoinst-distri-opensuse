@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,12 +32,13 @@ use utils;
 use version_utils 'is_sle';
 
 our $virt_host_bridge = 'br0';
+our $based_guest_dir  = 'tmp';
 sub run_test {
     my ($self) = @_;
 
     #Prepare VM HOST SERVER Network Interface Configuration
     #for libvirt virtual network testing
-    virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge);
+    virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);
 
     #Download libvirt host bridge virtual network configuration file
     my $vnet_host_bridge_cfg_name = "vnet_host_bridge.xml";
@@ -69,7 +70,8 @@ sub run_test {
 
         assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model $model --mac $mac --live $affecter", 60);
 
-        test_network_interface($guest, mac => $mac, gate => $gate, net => "vnet_host_bridge");
+        my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_host_bridge';
+        test_network_interface($guest, mac => $mac, gate => $gate, net => $net);
 
         assert_script_run("virsh detach-interface $guest bridge --mac $mac $exclusive");
     }
@@ -78,8 +80,8 @@ sub run_test {
     assert_script_run("virsh net-destroy vnet_host_bridge");
     save_screenshot;
 
-    #Restore Network setting
-    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge);
+    #Restore Network setting after finished HOST BRIDGE NETWORK Test
+    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge, $based_guest_dir);
 }
 
 sub post_fail_hook {
@@ -101,7 +103,7 @@ sub post_fail_hook {
     virt_autotest::virtual_network_utils::restore_guests();
 
     #Restore Network setting
-    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge);
+    virt_autotest::virtual_network_utils::restore_network($virt_host_bridge, $based_guest_dir);
 }
 
 1;

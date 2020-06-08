@@ -8,7 +8,7 @@ echo -e $interface >/etc/sysconfig/network/ifcfg-$ACTIVE_NET
 cat /etc/sysconfig/network/ifcfg-$ACTIVE_NET
 rm -rf /etc/sysconfig/network/ifcfg-$BRIDGE_INF*
 if [[ $VERSION_ID =~ '11' ]]; then
-    service libvirtd restart
+    service network restart
 else
     systemctl restart network.service
 fi

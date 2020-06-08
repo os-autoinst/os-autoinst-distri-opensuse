@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ sub run_test {
 
         assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live $affecter", 60);
 
-        my $net = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen') && is_sle('=11-sp4')) ? 'netfront' : 'vnet_isolated';
+        my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_isolated';
         test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => $net);
 
         assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
@@ -74,6 +74,9 @@ sub run_test {
 
     #Restore Guest systems
     virt_autotest::virtual_network_utils::restore_guests();
+
+    #After finished all virtual network test, need to restore file /etc/hosts from backup
+    virt_autotest::virtual_network_utils::hosts_restore();
 
     #Skip restart network service due to bsc#1166570
     #Restart network service
