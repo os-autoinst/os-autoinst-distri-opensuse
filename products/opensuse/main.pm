@@ -33,7 +33,7 @@ sub cleanup_needles {
     for my $distri (qw(opensuse microos)) {
         unregister_needle_tags("ENV-DISTRI-$distri") unless check_var('DISTRI', $distri);
     }
-    unregister_needle_tags('ENV-LIVECD-' . get_var('LIVECD') ? 0 : 1);
+    unregister_needle_tags('ENV-LIVECD-' . (get_var('LIVECD') ? 0 : 1));
     for my $wm (qw(mate lxqt enlightenment awesome)) {
         remove_desktop_needles($wm) unless check_var('DE_PATTERN', $wm);
     }
