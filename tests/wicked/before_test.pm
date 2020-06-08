@@ -19,6 +19,7 @@ use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
 use serial_terminal;
 use main_common 'is_updates_tests';
+use repo_tools 'generate_version';
 
 sub run {
     my ($self, $ctx) = @_;
@@ -105,7 +106,9 @@ sub run {
             }
         }
         if (check_var('WICKED', 'ipv6')) {
-            zypper_ar('http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/SLE_15_SP2/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
+            my $repo_url = 'https://download.opensuse.org/repositories/home:/asmorodskyi/';
+            $repo_url = 'http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/' if (is_sle());
+            zypper_ar($repo_url . generate_version('_') . '/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
             $package_list .= ' ndisc6';
         }
         $package_list .= ' openvswitch iputils';
