@@ -19,7 +19,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';
-use serial_terminal 'add_serial_console';
+use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
 use strict;
@@ -31,17 +31,7 @@ sub run {
 
     ensure_serialdev_permissions;
 
-    # Configure serial consoles for virtio support
-    # poo#18860 Enable console on hvc0 on SLES < 12-SP2
-    # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
-    if (get_var('VIRTIO_CONSOLE')) {
-        if (is_sle('<12-SP2')) {
-            add_serial_console('hvc0');
-        }
-        elsif (get_var('OFW')) {
-            add_serial_console('hvc1');
-        }
-    }
+    prepare_serial_console;
 
     # Make sure packagekit is not running, or it will conflict with SUSEConnect.
     pkcon_quit unless check_var('DESKTOP', 'textmode');
