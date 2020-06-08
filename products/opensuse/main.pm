@@ -401,15 +401,6 @@ else {
         loadtest "remote/remote_target";
         load_reboot_tests();
     }
-    elsif (is_jeos) {
-        load_boot_tests();
-        loadtest "jeos/firstrun";
-        loadtest "console/force_scheduled_tasks";
-        loadtest "jeos/diskusage";
-        if (get_var("SCC_EMAIL") && get_var("SCC_REGCODE")) {
-            loadtest "jeos/sccreg";
-        }
-    }
     else {
         return 1 if load_default_tests;
     }

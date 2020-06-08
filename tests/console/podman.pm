@@ -28,7 +28,7 @@ use utils;
 use strict;
 use warnings;
 use registration;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_jeos);
 
 sub run {
     my ($self) = @_;
@@ -39,7 +39,9 @@ sub run {
     }
 
     if (!check_var('DISTRI', 'microos')) {
-        zypper_call 'in podman';
+        my @pkgs = qw(podman);
+        push(@pkgs, 'podman-cni-config') if is_jeos;
+        zypper_call "in @pkgs";
     }
 
     # images can be searched on the default registry
