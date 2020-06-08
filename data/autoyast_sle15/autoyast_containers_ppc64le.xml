@@ -99,7 +99,7 @@
         <partition>
           <mountby config:type="symbol">device</mountby>
           <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">ext4</filesystem>
+          <filesystem config:type="symbol">btrfs</filesystem>
           <format config:type="boolean">true</format>
           <fstopt>defaults</fstopt>
           <mount>/</mount>
