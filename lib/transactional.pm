@@ -31,7 +31,22 @@ our @EXPORT = qw(
   trup_call
   trup_install
   trup_shell
+  get_utt_packages
 );
+
+# Download files needed for transactional update tests
+sub get_utt_packages {
+    # CaaSP needs an additional repo for testing
+    assert_script_run 'curl -O ' . data_url("caasp/utt.repo") unless is_opensuse;
+
+    # Different testfiles for SLE (CaaSP) and openSUSE (Kubic)
+    my $tarball = 'utt-';
+    $tarball .= is_opensuse() ? 'opensuse' : 'sle';
+    $tarball .= '-' . get_required_var('ARCH') . '.tgz';
+
+    assert_script_run 'curl -O ' . data_url("caasp/$tarball");
+    assert_script_run "tar xzvf $tarball";
+}
 
 sub process_reboot {
     my $trigger = shift // 0;

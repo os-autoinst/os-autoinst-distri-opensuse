@@ -22,19 +22,6 @@ use version_utils qw(is_caasp is_staging is_opensuse is_leap);
 use transactional;
 use utils;
 
-# Download files needed for transactional update test
-sub get_utt_packages {
-    # CaaSP needs an additional repo for testing
-    assert_script_run 'curl -O ' . data_url("caasp/utt.repo") unless is_opensuse;
-
-    # Different testfiles for SLE (CaaSP) and openSUSE (Kubic)
-    my $tarball = 'utt-';
-    $tarball .= is_opensuse() ? 'opensuse' : 'sle';
-    $tarball .= '-' . get_required_var('ARCH') . '.tgz';
-
-    assert_script_run 'curl -O ' . data_url("caasp/$tarball");
-    assert_script_run "tar xzvf $tarball";
-}
 
 =head2 check_package
 
