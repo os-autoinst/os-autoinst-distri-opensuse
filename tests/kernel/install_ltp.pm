@@ -23,7 +23,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use main_ltp qw(get_ltp_tag loadtest_from_runtest_file);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
-use serial_terminal 'add_serial_console';
+use serial_terminal 'prepare_serial_console';
 use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
@@ -312,11 +312,7 @@ sub run {
         $self->wait_boot;
     }
 
-    # poo#18980
-    if (get_var('OFW') && !check_var('VIRTIO_CONSOLE', 0)) {
-        select_console('root-console');
-        add_serial_console('hvc1');
-    }
+    prepare_serial_console;
 
     $self->select_serial_terminal;
 
