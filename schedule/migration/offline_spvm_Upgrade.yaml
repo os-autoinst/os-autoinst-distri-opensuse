@@ -1,0 +1,23 @@
+name:   offline_spvm_Upgrade
+description:    >
+    This is for spvm upgrade migration
+schedule:
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_lr
