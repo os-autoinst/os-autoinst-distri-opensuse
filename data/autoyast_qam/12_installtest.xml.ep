@@ -261,6 +261,9 @@ sed -i 's/keeppackages=0/keppackages=1/' /etc/zypp/repos.d/*
 # delete uselless path=
 sed -i '/^path*/d' /etc/zypp/repos.d/*
 
+# delete CD-ROM repo
+grep -lR "SLE[SD]<%= $get_var->('VERSION') %>-" /etc/zypp/repos.d/|xargs rm -f
+
 % if ($check_var->('ARCH', 's390x')) {
 # don't know the service which would work on s390x ...
 systemctl start SuSEfirewall2.service
