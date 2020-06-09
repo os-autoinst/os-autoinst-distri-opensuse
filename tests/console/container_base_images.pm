@@ -45,7 +45,7 @@ sub run {
         record_info("Skip Podman", "Podman image tests skipped");
         script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/container_base_images_log.txt");
     } else {
-        zypper_call('in podman', timeout => 900);
+        zypper_call('in podman podman-cni-config', timeout => 900);
         foreach my $image (@images, @podman_images) {
             test_container_image($image, 'latest', 'podman');
             script_run("echo 'OK: podman - $image:latest' >> /var/tmp/container_base_images_log.txt");
