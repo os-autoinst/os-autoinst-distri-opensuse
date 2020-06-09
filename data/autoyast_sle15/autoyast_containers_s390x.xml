@@ -104,6 +104,26 @@
       </script>
     </chroot-scripts>
   </scripts>
+  <partitioning config:type="list">
+   <drive>
+     <device>/dev/disk/by-path/ccw-0.0.0000</device>
+     <disklabel>gpt</disklabel>
+     <initialize config:type="boolean">true</initialize>
+     <partitions config:type="list">
+       <partition>
+         <mountby config:type="symbol">device</mountby>
+         <filesystem config:type="symbol">swap</filesystem>
+         <mount>swap</mount>
+       </partition>
+       <partition>
+         <mountby config:type="symbol">device</mountby>
+         <filesystem config:type="symbol">btrfs</filesystem>
+         <mount>/</mount>
+       </partition>
+     </partitions>
+     <use>all</use>
+   </drive>
+ </partitioning>
   <software>
     <products config:type="list">
       <product>SLES</product>

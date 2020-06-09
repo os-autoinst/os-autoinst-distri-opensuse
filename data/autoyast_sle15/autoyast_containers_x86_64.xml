@@ -75,7 +75,7 @@
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
-          <filesystem config:type="symbol">ext4</filesystem>
+          <filesystem config:type="symbol">btrfs</filesystem>
           <mount>/</mount>
         </partition>
       </partitions>
