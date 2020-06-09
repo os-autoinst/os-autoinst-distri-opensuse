@@ -1,0 +1,51 @@
+---
+name:           yast2_ncurses_gnome
+description:    >
+  Test for yast2 UI, ncurses only. Running on created gnome images
+  which provides both text console for ncurses UI tests as well as
+  the gnome environment for the GUI tests.
+schedule:
+  - "{{pre_boot_to_desktop}}"
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/yast2_i
+  - "{{yast_modules}}"
+  - console/coredump_collect
+conditional_schedule:
+  pre_boot_to_desktop:
+    ARCH:
+      aarch64:
+        - boot/uefi_bootmenu
+      s390x:
+        - installation/bootloader_start
+  yast_modules:
+    ARCH:
+      x86_64:
+        - console/yast2_rmt
+        - console/yast2_ntpclient
+        - console/yast2_tftp
+        - console/yast2_proxy
+        - console/yast2_vnc
+        - console/yast2_nis
+        - console/yast2_http
+        - console/yast2_ftp
+        - console/yast2_apparmor
+        - console/yast2_lan
+        - console/yast2_lan_hostname
+        - console/yast2_dns_server
+        - console/yast2_nfs_client
+        - console/yast2_snapper_ncurses
+      aarch64:
+        - console/yast2_lan
+      ppc64le:
+        - console/yast2_lan
+      s390x:
+        - console/yast2_rmt
+        - console/yast2_ntpclient
+        - console/yast2_tftp
+        - console/yast2_lan
+        - console/yast2_lan_hostname
+        - console/yast2_dns_server
+        - console/yast2_nfs_client
+        - console/yast2_snapper_ncurses
