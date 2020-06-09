@@ -130,7 +130,7 @@ sub run {
 
     # Upload test logs
     my $tarball = "/tmp/qaset.tar.bz2";
-    assert_script_run("tar cjf '$tarball' -C '/var/log/' 'qaset'");
+    assert_script_run("tar cjf '$tarball' -C '/var/log/' 'qaset'", timeout => 300);
     upload_logs($tarball, timeout => 600);
     my $log = $self->system_status();
     upload_logs($log, timeout => 100);
