@@ -15,7 +15,6 @@ package services::cups;
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use Utils::Systemd 'disable_and_stop_service';
 use strict;
 use warnings;
 
