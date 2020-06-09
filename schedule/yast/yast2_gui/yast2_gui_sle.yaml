@@ -71,6 +71,5 @@ conditional_schedule:
                 - yast2_gui/yast2_users
                 - yast2_gui/yast2_datetime
                 - yast2_gui/yast2_hostnames
-                - yast2_gui/yast2_network_settings
                 - yast2_gui/yast2_lan_restart_bridge
                 - yast2_gui/yast2_lan_restart_vlan
