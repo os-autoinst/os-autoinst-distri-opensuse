@@ -48,7 +48,7 @@ sub run {
         assert_and_click 'live-upgrade';
     }
     else {
-        assert_and_click 'live-installation';
+        x11_start_program('xdg-su -c "/usr/sbin/start-install.sh"', target_match => 'maximize');
     }
     assert_and_click 'maximize';
     mouse_hide;
