@@ -21,7 +21,9 @@ use lockapi;
 use mmapi 'wait_for_children';
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+
+    $self->select_serial_terminal;
     barrier_wait 'SETUP_DONE';
 
     my ($vpn_local, $vpn_remote, $remote);
