@@ -7,6 +7,7 @@ use ipmi_backend_utils;
 use network_utils;
 use utils 'zypper_call';
 use Exporter 'import';
+use Utils::Architectures;
 
 
 our @EXPORT_OK = qw(select_conflict_resolution workaround_dependency_issues break_dependency verify_license_has_to_be_accepted accept_license verify_license_translations get_available_compression);
@@ -115,7 +116,13 @@ sub verify_license_translations {
         }
         wait_screen_change { type_string(substr($lang, 0, 1)) } unless (check_var('VIDEOMODE', 'text'));
         send_key_until_needlematch("license-language-selected-dropbox-$lang", 'down', 60);
-        send_key 'ret';
+        if (is_s390x()) {
+            record_soft_failure('bsc#1172738 - "Next" button is triggered, even though it is not in focus while selecting language on License Agreement screen on s390x');
+            assert_and_click("license-language-selected-dropbox-$lang");
+        }
+        else {
+            send_key 'ret';
+        }
         assert_screen "license-content-$lang";
         $current_lang = $lang;
     }
