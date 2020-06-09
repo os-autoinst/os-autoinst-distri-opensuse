@@ -34,11 +34,7 @@ sub run {
         script_run("echo 'INFO: Docker image tests skipped' >> /var/tmp/container_base_images_log.txt");
     } else {
         install_docker_when_needed();
-        foreach my $image (@images) {
-            test_container_image($image, 'latest', 'docker');
-            script_run("echo 'OK: docker - $image:latest' >> /var/tmp/container_base_images_log.txt");
-        }
-        foreach my $image (@docker_images) {
+        foreach my $image (@images, @docker_images) {
             test_container_image($image, 'latest', 'docker');
             script_run("echo 'OK: docker - $image:latest' >> /var/tmp/container_base_images_log.txt");
         }
@@ -50,11 +46,7 @@ sub run {
         script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/container_base_images_log.txt");
     } else {
         zypper_call('in podman', timeout => 900);
-        foreach my $image (@images) {
-            test_container_image($image, 'latest', 'podman');
-            script_run("echo 'OK: podman - $image:latest' >> /var/tmp/container_base_images_log.txt");
-        }
-        foreach my $image (@podman_images) {
+        foreach my $image (@images, @podman_images) {
             test_container_image($image, 'latest', 'podman');
             script_run("echo 'OK: podman - $image:latest' >> /var/tmp/container_base_images_log.txt");
         }
