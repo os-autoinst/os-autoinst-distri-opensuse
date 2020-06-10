@@ -18,7 +18,7 @@ use testapi;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    select_console 'root-console';
     $self->upload_coredumps;
 }
 
