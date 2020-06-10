@@ -49,7 +49,7 @@ sub run {
 
     # Reboot
     power_action('reboot');
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 200);
     select_console('root-console');
     die "Failed to enable kdump" unless kdump_is_active;
 }

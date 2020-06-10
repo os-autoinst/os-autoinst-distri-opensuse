@@ -66,7 +66,7 @@ sub run {
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
     if (!isPublicCloud) {
         power_action('reboot', textmode => 1);
-        $self->wait_boot;
+        $self->wait_boot(bootloader_time => 200);
         select_console 'root-console';
     } else {
         # TODO: Handle reboots on public cloud
