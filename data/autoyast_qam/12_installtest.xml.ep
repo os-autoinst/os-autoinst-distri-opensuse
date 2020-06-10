@@ -5,9 +5,33 @@
     <add_on_products config:type="list">
       % if ($get_var->('VERSION') =~ m/12-SP3|12-SP2|12-SP1/ and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
       <listentry>
-        <name>SLES-LTSS:12::update</name>
-        <alias>SLES-LTSS:12::update</alias>
+        <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
+        <alias>SLES-LTSS:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if ($get_var->('FLAVOR') =~ m/Server/) {
+      <listentry>
+        <name>SLES:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>SLES:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>SLES:<%= $get_var->('VERSION') %>::update</name>
+        <alias>SLES:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if ($get_var->('FLAVOR') =~ m/Desktop/) {
+      <listentry>
+        <name>SLED:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>SLED:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>SLED:<%= $get_var->('VERSION') %>::update</name>
+        <alias>SLED:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
       % unless ($get_var->('VERSION') =~ m/12-SP3|12-SP2|12-SP1/ and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
@@ -73,30 +97,6 @@
         <alias>sle-module-web-scripting:12::update</alias>
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Web-Scripting/12/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % if ($get_var->('FLAVOR') =~ m/Server/) {
-      <listentry>
-        <name>SLES:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>SLES:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>SLES:<%= $get_var->('VERSION') %>::update</name>
-        <alias>SLES:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
-      % if ($get_var->('FLAVOR') =~ m/Desktop/) {
-      <listentry>
-        <name>SLED:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>SLED:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>SLED:<%= $get_var->('VERSION') %>::update</name>
-        <alias>SLED:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
       % if ($check_var->('ARCH', 'x86_64')) {
       <listentry>
         <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
@@ -260,6 +260,9 @@ sed -i 's/keeppackages=0/keppackages=1/' /etc/zypp/repos.d/*
 
 # delete uselless path=
 sed -i '/^path*/d' /etc/zypp/repos.d/*
+
+# delete CD-ROM repo
+grep -lR "SLE[SD]<%= $get_var->('VERSION') %>-" /etc/zypp/repos.d/|xargs rm -f
 
 % if ($check_var->('ARCH', 's390x')) {
 # don't know the service which would work on s390x ...
