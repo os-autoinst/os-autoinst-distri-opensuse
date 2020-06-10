@@ -124,6 +124,7 @@ our @EXPORT = qw(
   we_is_applicable
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
+  load_wicked_create_hdd
 );
 
 sub init_main {
@@ -1861,6 +1862,25 @@ sub load_extra_tests_wicked {
             loadtest('wicked/ref_template', run_args => $ctx, name => basename($test));
         }
     }
+}
+
+sub load_wicked_create_hdd {
+    if (get_var('WICKED_CHECK_HDD') &&
+        (
+            -e $bmwqemu::vars{ASSETDIR} . '/hdd/' . get_required_var('PUBLISH_HDD_1') ||
+            -e $bmwqemu::vars{ASSETDIR} . '/hdd/fixed/' . get_required_var('PUBLISH_HDD_1')
+        )) {
+        delete($bmwqemu::vars{$_}) foreach (qw(PUBLISH_PFLASH_VARS PUBLISH_HDD_1));
+        bmwqemu::save_vars();
+        loadtest('wicked/nop');
+    } else {
+        loadtest('autoyast/prepare_profile');
+        loadtest('installation/bootloader_start');
+        loadtest('autoyast/installation');
+        loadtest('shutdown/cleanup_before_shutdown');
+        loadtest('shutdown/shutdown');
+    }
+    return 1;
 }
 
 sub load_extra_tests_udev {

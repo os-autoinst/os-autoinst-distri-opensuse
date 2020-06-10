@@ -125,6 +125,8 @@ logcurrentenv(
 
 return 1 if load_yaml_schedule;
 
+return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
+
 sub have_addn_repos {
     return !get_var("NET") && !get_var("EVERGREEN") && get_var("SUSEMIRROR") && !is_staging();
 }

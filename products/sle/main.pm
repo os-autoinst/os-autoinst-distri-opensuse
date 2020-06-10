@@ -592,6 +592,8 @@ $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failure
 
 return 1 if load_yaml_schedule;
 
+return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
+
 if (is_jeos) {
     load_jeos_tests();
 }
