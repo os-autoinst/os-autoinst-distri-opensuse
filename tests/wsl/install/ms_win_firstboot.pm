@@ -58,10 +58,6 @@ sub run {
         sleep 3;
         assert_and_click 'windows-next';
     }
-    assert_screen 'windows-enable-more-devices';
-    assert_and_click 'windows-no';
-    assert_screen 'windows-make-cortana-personal-assistant';
-    assert_and_click 'windows-accept';
 
     foreach my $tag (qw(
         windows-dont-use-speech-recognition
@@ -69,16 +65,21 @@ sub run {
         windows-dont-improve-inking&typing
         windows-dont-user-my-location
         windows-send-full-diagnostic-data
-        windows-dont-get-tailored-experiences
         )) {
         assert_and_click $tag;
         wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     }
 
     send_key 'pgdn';
+    assert_and_click 'windows-dont-get-tailored-experiences';
     assert_and_click 'windows-dont-use-adID';
-
     assert_and_click 'windows-accept';
+
+    assert_screen 'windows-enable-more-devices';
+    assert_and_click 'windows-no';
+    assert_screen 'windows-make-cortana-personal-assistant';
+    assert_and_click 'windows-accept';
+
     assert_screen([qw(windows-desktop windows-first-boot networks-popup-be-discoverable)], 600);
 
     if (match_has_tag 'network-popup-be-discoverable') {
