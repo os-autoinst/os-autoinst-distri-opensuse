@@ -52,7 +52,8 @@ sub run {
     wait_screen_change { send_key "alt-t" };
     assert_screen "smt-test-succ";
     wait_screen_change { send_key "ret" };
-    wait_screen_change { send_key "alt-n" };
+    send_key "alt-n";
+    wait_still_screen(2);
 
     wait_screen_change { send_key "alt-d" };
     type_string "susetest";
