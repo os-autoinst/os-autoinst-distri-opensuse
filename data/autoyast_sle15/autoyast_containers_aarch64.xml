@@ -102,6 +102,12 @@
     <install_recommended config:type="boolean">true</install_recommended>
     <packages config:type="list">
       <package>iputils</package>
+      <package>runc</package>
+      <package>docker</package>
+      <package>docker-runc</package>
+      <package>zypper-docker</package>
+      <package>podman</package>
+      <package>podman-cni-config</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>

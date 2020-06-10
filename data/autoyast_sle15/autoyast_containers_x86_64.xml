@@ -89,10 +89,12 @@
     <install_recommended config:type="boolean">true</install_recommended>
     <packages config:type="list">
       <package>iputils</package>
-      <package>sles-release</package>
-      <package>sle-module-server-applications-release</package>
-      <package>sle-module-development-tools-release</package>
-      <package>sle-module-basesystem-release</package>
+      <package>runc</package>
+      <package>docker</package>
+      <package>docker-runc</package>
+      <package>zypper-docker</package>
+      <package>podman</package>
+      <package>podman-cni-config</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
