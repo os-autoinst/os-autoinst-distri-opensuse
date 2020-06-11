@@ -53,7 +53,7 @@ Returns a list of patterns to be installed.
 
 =cut
 sub expand_patterns {
-    if (get_var('PATTERNS') =~ m/^\s*$/) {
+    if (get_var('PATTERNS', '') =~ m/^\s*$/) {
         if (is_sle('15+')) {
             my @sle15;
             push @sle15, qw(base minimal_base enhanced_base apparmor sw_management yast2_basis);
@@ -147,7 +147,7 @@ Returns hash of all C<SCC_ADDONS> with name, version and architecture.
 =cut
 sub expand_addons {
     my %addons;
-    my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS'));
+    my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS', ''));
     foreach my $addon (@addons) {
         $addons{$addon} = {
             name    => get_addon_fullname($addon),
@@ -172,7 +172,7 @@ sub expand_template {
     my $template  = Mojo::Template->new(vars => 1);
     my $vars      = {
         addons   => expand_addons,
-        repos    => [split(/,/, get_var('MAINT_TEST_REPO'))],
+        repos    => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
         patterns => expand_patterns,
         # pass reference to get_required_var function to be able to fetch other variables
         get_var => \&get_required_var,
@@ -216,8 +216,8 @@ so it would be able to generate expression to check that element on the list met
 If a hash is used instead, it will validate its inner value but it will not check size of the list.
 
 To identify an element in a list (as they are not ordered) on xml via xpath it has been added
-an special field in yaml named 'unique_key' which value is the name of the selected property 
-to search the element on the list. When that property is not a direct child 
+an special field in yaml named 'unique_key' which value is the name of the selected property
+to search the element on the list. When that property is not a direct child
 (in other words, it is not at the same level in the yaml)
 it should be specify in yaml 'unique_value' to specify the value expected for that inner/nested property
 (it is verbose but avoid to search every time in the whole yaml tree).
