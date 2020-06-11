@@ -26,7 +26,7 @@ sub run {
 
     select_console 'tunnel-console';
 
-    $args->{my_instance}->run_ssh_command(cmd => "sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 180) unless (get_var('FLAVOR') =~ 'On-Demand');
+    $args->{my_instance}->run_ssh_command(cmd => "sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420) unless (get_var('FLAVOR') =~ 'On-Demand');
 
     for my $addon (@addons) {
         if (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {

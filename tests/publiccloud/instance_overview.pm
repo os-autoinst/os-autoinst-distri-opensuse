@@ -24,7 +24,7 @@ sub run {
     my ($self, $args) = @_;
     select_console 'root-console';
 
-    assert_script_run("hostname -f");
+    script_run("hostname -f");
     assert_script_run("uname -a");
 
     assert_script_run("cat /etc/os-release");
@@ -49,6 +49,9 @@ sub run {
     assert_script_run("rpm -qa > /tmp/rpm.list.txt");
     upload_logs('/tmp/rpm.list.txt');
     upload_logs('/var/log/zypper.log');
+
+    assert_script_run("SUSEConnect --status-text");
+    zypper_call("lr");
 }
 
 1;
