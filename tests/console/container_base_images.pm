@@ -38,6 +38,16 @@ sub run_image_tests {
     }
 }
 
+sub upload_image_logs {
+    # Rename for better visibility in Uploaded Logs
+    if (script_run('mv /var/tmp/container_base_images_log.txt /tmp/container_base_images.txt') != 0) {
+        record_info("No logs", "No logs found");
+    } else {
+        upload_logs("/tmp/container_base_images.txt");
+        script_run("rm /tmp/container_base_images.txt");
+    }
+}
+
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
@@ -61,34 +71,17 @@ sub run {
         script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/container_base_images_log.txt");
     } else {
         # In SLE we need to add the Containers module
-        if (is_sle) {
-            add_suseconnect_product(get_addon_fullname('contm'));
-        }
         zypper_call('in podman podman-cni-config', timeout => 900);
         run_image_tests('podman', @podman_images);
     }
 }
 
-sub cleanup {
-    # Rename for better visibility in Uploaded Logs
-    if (script_run('mv /var/tmp/container_base_images_log.txt logs.txt') != 0) {
-        record_info("No logs", "No logs found");
-    } else {
-        upload_logs("logs.txt");
-        script_run("rm logs.txt");
-    }
-    if (!skip_podman and is_sle) {
-        remove_suseconnect_product(get_addon_fullname('contm'));
-    }
-}
-
 sub post_fail_hook {
-    cleanup();
+    upload_image_logs();
 }
 
 sub post_run_hook {
-    cleanup();
+    upload_image_logs();
 }
-
 
 1;
