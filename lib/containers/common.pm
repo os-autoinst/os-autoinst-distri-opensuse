@@ -123,6 +123,7 @@ sub test_container_image {
     assert_script_run("$runtime container create --name '$container' '$image' /bin/sh -c '$smoketest'");
     assert_script_run("$runtime container start '$container'");
     assert_script_run("$runtime container logs '$container' > '/var/tmp/container_$container'");
+    assert_script_run("$runtime wait '$container'", 90);
     assert_script_run("$runtime container rm '$container'");
     assert_script_run("grep \"`uname -r`\" '/var/tmp/container_$container'");
     assert_script_run("grep \"Heartbeat from $image\" '/var/tmp/container_$container'");
