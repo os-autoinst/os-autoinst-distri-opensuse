@@ -14,7 +14,15 @@ conditional_schedule:
                 - installation/bootloader_svirt
             'svirt-xen-hvm':
                 - installation/bootloader_svirt
-    docker_base_images:
+    podman_image:
+        DISTRI:
+            'opensuse':
+                - containers/podman_image
+    docker_image:
+        DISTRI:
+            'opensuse':
+                - containers/docker_image
+    container_base_images:
         DISTRI:
             'opensuse':
                 - containers/container_base_images
@@ -26,11 +34,11 @@ schedule:
     - '{{bootloader}}'
     - boot/boot_to_desktop
     - containers/podman
-    - containers/podman_image
+    - '{{podman_image}}'
     - containers/docker
     - containers/docker_runc
-    - containers/docker_image
-    - '{{docker_base_images}}'
+    - '{{docker_image}}'
+    - '{{container_base_images}}'
     - '{{docker_compose}}'
     - containers/zypper_docker
     - console/coredump_collect
