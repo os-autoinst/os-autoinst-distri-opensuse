@@ -1,4 +1,5 @@
 ---
+name: crypt_no_lvm
 description: >
   Test installation with encrypted partitions but without lvm enabled.
   This is supported only by storage-ng, hence, do NOT enable test suite on
@@ -7,12 +8,13 @@ description: >
   module is scheduled and OPT_KERNEL_PARAMS variable is set.
   In comparison to SLE 12 we register the installation and have system roles
   wizard screen.
-name: cryptlvm
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
   ENCRYPT: 1
+  INSTALLONLY: 1
   LVM: 0
+  MAX_JOB_TIME: 14400
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -39,3 +41,5 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/validate_encrypt
+test_data:
+  <<: !include test_data/yast/encryption/encrypt_no_lvm.yaml

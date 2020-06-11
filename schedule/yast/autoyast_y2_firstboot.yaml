@@ -2,6 +2,9 @@ name:           autoyast_y2_firstboot
 description:    >
     Smoke test for YaST2 firstboot module
 vars:
+    AUTOYAST: autoyast_sle15/autoyast_firstboot.xml
+    DESKTOP: gnome
+    NOAUTOLOGIN: 1
     YAST2_FIRSTBOOT_USERNAME: firstbootuser
 schedule:
     - autoyast/prepare_profile
