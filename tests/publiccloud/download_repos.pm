@@ -27,6 +27,7 @@ sub run {
 
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    assert_script_run('touch /tmp/repos.list.txt');
 
     my $ret = 0;
     for my $maintrepo (@repos) {
