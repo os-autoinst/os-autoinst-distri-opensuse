@@ -53,24 +53,25 @@ sub get_opensuse_registry_prefix {
 # Returns a tuple of image urls and their matching released "stable" counterpart.
 # If empty, no images available.
 sub get_suse_container_urls {
-    my $version    = get_required_var('VERSION');
-    my $dotversion = $version =~ s/-SP/./r;         # 15 -> 15, 15-SP1 -> 15.1
-    $dotversion = "${dotversion}.0" if $dotversion !~ /\./;    # 15 -> 15.0
+    my $version    = shift // get_required_var('VERSION');
+    my $totest     = get_var('CONTAINER_TOTEST', '');        # totest/
+    my $dotversion = $version =~ s/-SP/./r;                  # 15 -> 15, 15-SP1 -> 15.1
+    $dotversion = "${dotversion}.0" if $dotversion !~ /\./;  # 15 -> 15.0
 
     my @image_names  = ();
     my @stable_names = ();
-    if (is_sle(">=12-sp3") && is_sle('<15')) {
+    if (is_sle(">=12-sp3", $version) && is_sle('<15', $version)) {
         my $lowerversion  = lc $version;
         my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
         if (!check_var('ARCH', 'aarch64')) {
-            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/images/suse/sles${nodashversion}";
+            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/${totest}images/suse/sles${nodashversion}";
             push @stable_names, "registry.suse.com/suse/sles${nodashversion}";
         }
     }
-    elsif (is_sle(">=15")) {
+    elsif (is_sle(">=15", $version)) {
         my $lowerversion = lc $version;
-        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/images/suse/sle15:${dotversion}";
+        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/${totest}images/suse/sle15:${dotversion}";
         push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_tumbleweed && get_opensuse_registry_prefix) {
@@ -88,7 +89,7 @@ sub get_suse_container_urls {
     elsif (is_leap(">15.0") && check_var('ARCH', 'ppc64le')) {
         # No image set up yet :-(
     }
-    elsif (is_sle("<=12-sp2")) {
+    elsif (is_sle("<=12-sp2", $version)) {
         # No images for old SLE
     }
     else {
