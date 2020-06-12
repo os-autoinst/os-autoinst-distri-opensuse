@@ -30,11 +30,11 @@ schedule:
     - console/suseconnect_scc
     - console/consoletest_setup
     - console/zypper_ref
-    - console/podman
-    - console/podman_image
-    - console/docker
-    - console/docker_runc
-    - console/docker_image
-    - console/container_base_images
-    - console/zypper_docker
-    - console/docker_compose
+    - containers/podman
+    - containers/podman_image
+    - containers/docker
+    - containers/docker_runc
+    - containers/docker_image
+    - containers/container_base_images
+    - containers/zypper_docker
+    - containers/docker_compose

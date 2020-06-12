@@ -47,7 +47,7 @@ sub load_feature_tests {
         loadtest 'console/kubeadm';
     }
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
-        loadtest 'console/podman';
+        loadtest 'containers/podman';
     }
 }
 

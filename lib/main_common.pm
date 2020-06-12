@@ -1708,16 +1708,16 @@ sub load_extra_tests_docker {
     return unless @$image_names;
 
     if (is_leap('15.1+') || is_tumbleweed) {
-        loadtest 'console/podman';
-        loadtest "console/podman_image";
+        loadtest 'containers/podman';
+        loadtest "containers/podman_image";
     }
 
-    loadtest "console/docker";
-    loadtest "console/docker_runc";
-    loadtest "console/container_base_images";
-    loadtest "console/docker_image" if (is_sle(">=12-sp3") || is_opensuse);
-    loadtest "console/docker_compose" unless is_sle('<15');
-    loadtest "console/zypper_docker";
+    loadtest "containers/docker";
+    loadtest "containers/docker_runc";
+    loadtest "containers/container_base_images";
+    loadtest "containers/docker_image" if (is_sle(">=12-sp3") || is_opensuse);
+    loadtest "containers/docker_compose" unless is_sle('<15');
+    loadtest "containers/zypper_docker";
 }
 
 sub load_extra_tests_prepare {
