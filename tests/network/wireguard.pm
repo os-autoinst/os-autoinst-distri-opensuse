@@ -37,7 +37,10 @@ sub run {
         $remote     = '10.0.2.101';
     }
 
-    zypper_call 'in wireguard-kmp-default wireguard-tools';
+    assert_script_run 'grep -i CONFIG_WIREGUARD /boot/config-$(uname -r)';
+    assert_script_run 'modinfo wireguard';
+
+    zypper_call 'in wireguard-tools';
 
     assert_script_run 'which wg';
     assert_script_run 'umask 077';
