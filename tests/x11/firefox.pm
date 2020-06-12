@@ -26,18 +26,8 @@ sub run() {
 
     $self->start_firefox;
     wait_still_screen;
-    # we have poor performance on LIVETEST, use assert_and_click here
-    if (is_tumbleweed && get_var("LIVETEST")) {
-        send_key_until_needlematch('firefox-help-menu', 'alt', 4, 10);    # show menu bar
-        assert_and_click 'firefox-help-menu';
-        assert_and_click 'firefox-help-about';
-    }
-    else {
-        send_key "alt-h";
-        assert_screen 'firefox-help-menu';
-        send_key "a";
-    }
-    assert_screen 'test-firefox-3';
+    send_key_until_needlematch('firefox-help-menu', 'alt-h', 5, 6);
+    send_key_until_needlematch('test-firefox-3',    'a',     5, 6);
 
     # close About
     send_key "alt-f4";
