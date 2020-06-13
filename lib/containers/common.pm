@@ -98,6 +98,7 @@ sub test_container_runtime {
     assert_script_run("$runc state test2 | grep running");
     record_info 'Test #9', 'Test: Stop a container';
     assert_script_run("$runc kill test2 KILL");
+    sleep 30;
     assert_script_run("$runc state test2 | grep stopped");
     record_info 'Test #10', 'Test: Delete a container';
     assert_script_run("$runc delete test2");
@@ -130,4 +131,3 @@ sub test_container_image {
 }
 
 1;
-
