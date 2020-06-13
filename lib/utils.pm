@@ -500,7 +500,7 @@ sub zypper_call {
     # Retrying workarounds
     my $ret;
     my $search_conflicts = 'awk \'BEGIN {print "Processing conflicts - ",NR; group=0}
-                    /Solverrun finished with an ERROR/,/statistics/{ print group"|", 
+                    /Solverrun finished with an ERROR/,/statistics/{ print group"|",
                     $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }\'\
                     /var/log/zypper.log
                     ';
@@ -587,7 +587,7 @@ sub zypper_ar {
     my $no_gpg_check = $args{no_gpg_check} // '';
 
     $no_gpg_check = $no_gpg_check ? "--no-gpgcheck" : "";
-    my $prioarg = defined($priority) && !is_sle('<12') ? "-p $priority" : "";
+    my $prioarg = defined($priority) && !is_sle('<=12') ? "-p $priority" : "";
     my $cmd_ar  = "--gpg-auto-import-keys ar -f $prioarg $no_gpg_check $params $url";
     my $cmd_mr  = "mr -p $priority $url";
     my $cmd_ref = "--gpg-auto-import-keys ref";
