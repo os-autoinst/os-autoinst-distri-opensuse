@@ -85,10 +85,8 @@ sub select_filesystem {
     return if $skip;
     assert_screen(FORMATTING_OPTIONS_PAGE);
     send_key($self->{filesystem_shortcut});
-    wait_screen_change(sub {
-            send_key 'end';
-    }, 20);
-    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up');
+    send_key 'end', wait_screen_change => 1;
+    send_key_until_needlematch((sprintf FILESYSTEM_TYPE, $filesystem), 'up', 20, 5);
 }
 
 # Mounting Options
