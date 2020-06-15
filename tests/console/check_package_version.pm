@@ -41,7 +41,14 @@ my %package = (
     libservicelog     => ['1.1.18',  'jsc#7727'],
     'nvme-cli'        => ['1.5.0',   'jsc#7726'],
     lsvpd             => ['1.7.8',   'jsc#7705'],
-    openssl           => ['1.1.1',   'jsc#7701']
+    openssl           => ['1.1.1',   'jsc#7701'],
+    valgrind          => ['3.15.0',  'jsc#7664'],
+    apache2           => ['2.4.42',  'jsc#7655'],
+    'libp11-kit0'     => ['0.4.10',  'jsc#10686'],
+    'smc-tools'       => ['1.2.2',   'jsc#7878'],
+    'virt-manager'    => ['2.2.0',   'jsc#7875'],
+    qclib             => ['1.4.2',   'jsc#7869'],
+    'openssl-ibmca'   => ['2.0.4',   'jsc#7854']
 );
 
 sub cmp_version {
