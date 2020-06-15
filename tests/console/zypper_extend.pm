@@ -104,12 +104,13 @@ sub run {
     zypper_call 'renamerepo "packman" Packman';
 
     #Remove a repository
-    zypper_call 'rr packman';
+    zypper_call 'rr Packman';
 
     #Verify whether all dependencies are fulfilled
     zypper_call 'verify';
 
     #Identify processes and services using deleted files
+    zypper_call 'in lsof';
     zypper_call 'ps';
 
     #List all applicable patches:
