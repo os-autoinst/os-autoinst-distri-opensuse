@@ -83,6 +83,11 @@
       <use>all</use>
     </drive>
   </partitioning>
+   <general>
+    <mode>
+        <confirm config:type="boolean"><%= $get_var->('AUTOYAST_CONFIRM') ? 'true' : 'false' %></confirm>
+    </mode>
+  </general>
   <software>
     <products config:type="list">
       <product>SLES</product>
