@@ -65,15 +65,21 @@ sub run {
         $package_list .= ' dhcp-server';
         zypper_call("-q in $package_list", timeout => 400);
         $self->get_from_data('wicked/dhcp/dhcpd.conf', '/etc/dhcpd.conf');
+        if (is_sle('<12-sp1')) {
+            file_content_replace('/etc/dhcpd.conf', '^\s*ddns-update-style' => '# ddns-update-style', '^\s*dhcp-cache-threshold' => '# dhcp-cache-threshold');
+        }
         file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD_INTERFACE=.*' => 'DHCPD_INTERFACE="' . $ctx->iface() . '"');
-        systemctl 'enable --now dhcpd.service';
+        # avoid usage of --now as <=sle-sp1 doesn't support it
+        systemctl 'enable dhcpd.service';
+        systemctl 'start dhcpd.service';
         if (check_var('WICKED', 'ipv6')) {
             assert_script_run('sysctl -w net.ipv6.conf.all.forwarding=1');
             my $dhcp6_conf = '/etc/dhcpd6.conf';
             $self->get_from_data('wicked/dhcp/dhcpd6.conf', $dhcp6_conf);
             file_content_replace('/etc/sysconfig/dhcpd', '--sed-modifier' => 'g', '^DHCPD6_INTERFACE=.*' => 'DHCPD6_INTERFACE="' . $ctx->iface() . '"');
             file_content_replace($dhcp6_conf, dns_advice => $self->get_ip(type => 'dns_advice'));
-            systemctl 'enable --now dhcpd6.service';
+            systemctl 'enable dhcpd6.service';
+            systemctl 'start dhcpd6.service';
         }
     } else {
         # Common SUT Configuration
