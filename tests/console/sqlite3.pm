@@ -28,7 +28,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    zypper_call('install sqlite3 expect');
+    zypper_call('install sqlite3 expect perl');
 
     my $archive = "sqlite3-tests.data";
     assert_script_run(

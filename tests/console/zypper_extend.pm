@@ -48,7 +48,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap is_jeos);
 
 sub run {
     my $self = shift;
@@ -84,10 +84,10 @@ sub run {
     zypper_call 'in -f star-$version';
 
     #Install and remove package combination
-    zypper_call 'in vim -star';
+    zypper_call "in cmake -star";
 
     #Cleaning up dependencies of removed packages
-    zypper_call 'rm --clean-deps vim';
+    zypper_call "rm --clean-deps cmake";
 
     #Add a repository
     zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed/ packman';
@@ -95,7 +95,7 @@ sub run {
 
     #Install package from a disabled repository
     zypper_call 'mr -d packman';
-    zypper_call '--plus-content packman install rpmkey-packman';
+    zypper_call '--plus-content packman install funny-manpages';
 
     #Prioritize a repository
     zypper_call 'mr -e -p 20 packman';
@@ -104,12 +104,14 @@ sub run {
     zypper_call 'renamerepo "packman" Packman';
 
     #Remove a repository
-    zypper_call 'rr packman';
+    zypper_call 'rr Packman';
 
     #Verify whether all dependencies are fulfilled
     zypper_call 'verify';
 
     #Identify processes and services using deleted files
+    # *zypper ps* depends on lsof package, older JeOS images do not have it pre-installed
+    zypper_call 'in lsof' if is_jeos && (is_sle("<15-SP2") || is_leap("<15.2"));
     zypper_call 'ps';
 
     #List all applicable patches:
@@ -126,6 +128,8 @@ sub run {
 
     #Show packages which are without repository:
     zypper_call 'pa --orphaned';
+    #There should be one orphan left funny-manpages, let's remove it
+    zypper_call 'rm funny-manpages';
 
     #Show packages which are installed but are not needed:
     zypper_call 'pa --unneeded';
@@ -173,7 +177,6 @@ sub run {
 
     #Enter zypper shell and run the lr command | echo lr
     assert_script_run('echo lr |zypper shell');
-
 }
 
 1;
