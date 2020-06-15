@@ -21,6 +21,10 @@ sub is_regproxy_required {
     return check_var('SYSTEM_ROLE', 'kubeadm');
 }
 
+sub is_image_flavor {
+    return get_required_var('FLAVOR') =~ /-Image$/;
+}
+
 sub load_boot_from_dvd_tests {
     loadtest 'installation/bootloader_uefi' if (get_var("UEFI"));
     loadtest 'installation/bootloader' unless (get_var("UEFI"));
@@ -39,6 +43,7 @@ sub load_tdup_tests {
 sub load_feature_tests {
     # Feature tests for Micro OS operating system
     loadtest 'microos/libzypp_config';
+    loadtest 'microos/image_checks' if is_image_flavor;
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     load_transactional_role_tests;
