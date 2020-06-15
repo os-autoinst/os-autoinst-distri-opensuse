@@ -24,9 +24,10 @@ sub run {
     my $sapsvc     = '/usr/sap/sapservices';
     my @testphases = qw(initial takeover takeback);
 
-    # WMP is a feature of SLES for SAP Applications 15+. Skip test in older systems
-    if (is_sle('<15')) {
-        record_info 'WMP', 'WMP is only available in SLES for SAP Applications 15+';
+    # Only run this test if WMP was configured. Do this by checking sap.slice cgroup
+    my $ret = script_run $sles4sap::systemd_cgls_cmd;
+    if ($ret) {
+        record_info "WMP not configured", "This test module can only be used if the system was configured with Workload Memory Protection";
         return;
     }
 
@@ -34,7 +35,7 @@ sub run {
     if (script_run "ls -d /root/$testname") {
         assert_script_run 'cd /root';
         my $wmp_test_repo = "https://gitlab.suse.de/lpalovsky/$testname/-/archive/master/$testname-master.tar.gz";
-        my $ret           = script_run "curl -k $wmp_test_repo | tar -zxvf -";
+        $ret = script_run "curl -k $wmp_test_repo | tar -zxvf -";
         record_info 'Download failed', "Could not download $testname script", result => 'fail' unless (defined $ret and $ret == 0);
         assert_script_run "mv -i $testname-master $testname";
         zypper_call 'in python3-psutil python3-PyYAML';
