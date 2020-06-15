@@ -57,7 +57,7 @@ sub run {
 
     # Start & test HANA installation
     $self->set_sap_info($sid, $instance_id);
-    $self->set_ps_cmd('HDB');
+    $self->set_ps_cmd(get_required_var('INSTANCE_TYPE'));
     $self->user_change;
     $self->test_start;
     $self->reset_user_change;
