@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list">
+      % for my $repo (split(/,/, $get_var->('AUTOYAST_ADD_REPOS'))) {
+      <listentry>
+        <media_url><%= $repo %></media_url>
+      </listentry>
+      % }
+    </add_on_products>
+  </add-on>
+  <general>
+    <mode>
+        <confirm config:type="boolean"><%= $get_var->('AUTOYAST_CONFIRM') ? 'true' : 'false' %></confirm>
+    </mode>
+  </general>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <bootloader>
+        <global>
+            <timeout config:type="integer">1</timeout>
+        </global>
+  </bootloader>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <products config:type="list">
+        <product>openSUSE</product>
+    </products>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+    </patterns>
+    <packages config:type="list">
+      <package>zypper</package>
+      <package>wicked</package>
+      <package>wicked-service</package>
+      </packages>
+      <do_online_update config:type="boolean">true</do_online_update>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
