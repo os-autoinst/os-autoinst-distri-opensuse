@@ -18,6 +18,7 @@ use utils 'zypper_call';
 
 our @EXPORT = qw(
   $instance_password
+  $systemd_cgls_cmd
   ensure_serialdev_permissions_for_sap
   fix_path
   set_ps_cmd
@@ -44,6 +45,7 @@ our $sid;
 our $instance;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
+our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u sap.slice';
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -109,7 +111,7 @@ sub user_change {
     # We need to change the 'serial_term_prompt' value for 'wait_serial'
     my $serial_term_prompt = "$sapadmin> ";
     type_string(qq/PS1="$serial_term_prompt"\n/);
-    wait_serial(qr/PS1="$serial_term_prompt"/);
+    wait_serial(qr/PS1="$serial_term_prompt"/) if testapi::is_serial_terminal;
     $testapi::distri->{serial_term_prompt} = "$serial_term_prompt";
 }
 
