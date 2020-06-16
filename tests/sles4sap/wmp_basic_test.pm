@@ -12,17 +12,19 @@
 
 use base "sles4sap";
 use testapi;
+use File::Basename qw(basename);
 use utils qw(zypper_call file_content_replace);
 use version_utils qw(is_sle);
 use strict;
 use warnings;
 
 sub run {
-    my ($self)     = @_;
-    my $testname   = 'wmp_basic_tests';
-    my $logdir     = '/root/wmp_logs';
-    my $sapsvc     = '/usr/sap/sapservices';
-    my @testphases = qw(initial takeover takeback);
+    my ($self)        = @_;
+    my $testname      = 'wmp_basic_tests';
+    my $logdir        = '/root/wmp_logs';
+    my $sapsvc        = '/usr/sap/sapservices';
+    my $wmp_test_repo = get_required_var('WMP_TEST_REPO');
+    my @testphases    = qw(initial takeover takeback);
 
     # Only run this test if WMP was configured. Do this by checking sap.slice cgroup
     my $ret = script_run $sles4sap::systemd_cgls_cmd;
@@ -33,11 +35,14 @@ sub run {
 
     # Download python test script in HOME directory only if it has not been downloaded before
     if (script_run "ls -d /root/$testname") {
+        my $dirname = basename $wmp_test_repo;
+        # Remove extension from dirname. We expect tar.gz
+        $dirname =~ s/(\.tar\.gz|\.tgz)//;
         assert_script_run 'cd /root';
-        my $wmp_test_repo = "https://gitlab.suse.de/lpalovsky/$testname/-/archive/master/$testname-master.tar.gz";
         $ret = script_run "curl -k $wmp_test_repo | tar -zxvf -";
-        record_info 'Download failed', "Could not download $testname script", result => 'fail' unless (defined $ret and $ret == 0);
-        assert_script_run "mv -i $testname-master $testname";
+        record_info 'Download failed', "Could not download $testname script from repo [$wmp_test_repo]", result => 'fail'
+          unless (defined $ret and $ret == 0);
+        assert_script_run "mv -i $dirname $testname";
         zypper_call 'in python3-psutil python3-PyYAML';
         file_content_replace("/root/$testname/config/config.yml", '^log_path: .*' => "log_path: '$logdir/'",
             '^sapservices_path: .*' => "sapservices_path: '$sapsvc'");
