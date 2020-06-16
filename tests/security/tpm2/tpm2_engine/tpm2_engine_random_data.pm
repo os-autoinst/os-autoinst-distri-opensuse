@@ -26,7 +26,8 @@ use base 'opensusebasetest';
 use testapi;
 
 sub run {
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Random data
     validate_script_output "openssl rand -engine tpm2tss -hex 10  2>&1", sub { m/engine\s\"tpm2tss\"\sset/ };

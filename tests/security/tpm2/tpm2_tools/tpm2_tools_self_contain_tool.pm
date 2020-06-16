@@ -25,7 +25,8 @@ use base 'opensusebasetest';
 use testapi;
 
 sub run {
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Display PCR values
     validate_script_output "systemctl status tpm2-abrmd.service", sub { m/Active:\sactive/ };
