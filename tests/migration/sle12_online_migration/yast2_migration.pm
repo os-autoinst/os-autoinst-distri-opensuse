@@ -33,7 +33,7 @@ sub yast2_migration_handle_conflicts_x11 {
     my $self = shift;
 
     # give a little time to check package
-    assert_screen 'yast2-migration-summary', 120;
+    assert_screen 'yast2-migration-summary', 200;
     if (check_screen("yast2-migration-conflicts", 30)) {
         if (check_screen('manual-intervention', 0)) {
             # In function deal_with_dependency_issues we handle different actions by VIDEOMODE,
@@ -49,7 +49,7 @@ sub yast2_migration_handle_conflicts_x11 {
 # deal with yast2 online migration conflicts in text with yast
 sub yast2_migration_handle_conflicts_text {
     # give a little time to check package conflicts
-    assert_screen 'yast2-migration-summary', 120;
+    assert_screen 'yast2-migration-summary', 200;
     if (check_screen("yast2-migration-conflicts", 15)) {
         if (!is_desktop_installed()) {
             send_key "alt-c";
