@@ -98,7 +98,7 @@ sub run {
             assert_script_run('make ; make install', timeout => 600);
         } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
             record_info('REPO', $wicked_repo);
-            zypper_ar($wicked_repo, params => '-n wicked_repo', no_gpg_check => 1);
+            zypper_ar($wicked_repo, name => 'wicked_repo', no_gpg_check => 1);
             if (is_sle('<15')) {
                 zypper_call('in --force -y --from wicked_repo --force-resolution --oldpackage  wicked wicked-service', log => 1);
             } else {
