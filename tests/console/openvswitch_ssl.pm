@@ -20,7 +20,7 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    zypper_call('in openvswitch');
+    zypper_call('in python openvswitch');    # Install python2 here since pox scripts need python2
 
     # Start openvswitch service
     systemctl('start openvswitch');
