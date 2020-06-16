@@ -38,6 +38,14 @@ conditional_schedule:
                 - systemd_testsuite/test_32_oompolicy
                 - systemd_testsuite/test_33_clean_unit
                 - systemd_testsuite/test_34_dynamicusermigrate
+                - systemd_testsuite/test_36_numapolicy
+                - systemd_testsuite/test_37_runtimedirectorypreserve
+                - systemd_testsuite/test_39_execreload
+                - systemd_testsuite/test_40_exec_command_ex
+                - systemd_testsuite/test_41_oneshot_restart
+                - systemd_testsuite/test_42_execstoppost
+                - systemd_testsuite/test_44_log_namespace
+                - systemd_testsuite/test_47_issue_14566
 schedule:
     - boot/boot_to_desktop
     - systemd_testsuite/binary_tests
