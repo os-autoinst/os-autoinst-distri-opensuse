@@ -26,7 +26,8 @@ use base 'opensusebasetest';
 use testapi;
 
 sub run {
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Self Signed certificate generate operation
     my $test_dir = "tpm2_engine_self_sign";

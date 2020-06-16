@@ -25,7 +25,8 @@ use base 'opensusebasetest';
 use testapi;
 
 sub run {
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Sign and verify with the TPM using the endorsement hierarchy
     my $test_dir = "tpm2_tools_sign_verify";

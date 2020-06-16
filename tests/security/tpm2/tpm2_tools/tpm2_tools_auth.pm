@@ -25,7 +25,8 @@ use base 'opensusebasetest';
 use testapi;
 
 sub run {
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Modify authorization for a loadable transient object
     my $test_dir = "tpm2_tools_auth";

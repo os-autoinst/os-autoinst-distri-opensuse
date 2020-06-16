@@ -26,8 +26,8 @@ use utils 'zypper_call';
 use power_action_utils "power_action";
 
 sub run {
-    my ($self) = @_;
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Add user tss, tss is the default user to start tpm2.0 service
     my $user   = "tss";
@@ -56,7 +56,7 @@ EOF
     # Reboot the node to make the changes take effect
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1);
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # Start the emulator
     assert_script_run "su - tss -c '/usr/lib/ibmtss/tpm_server&'";
