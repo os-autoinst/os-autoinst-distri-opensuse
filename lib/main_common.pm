@@ -1709,13 +1709,13 @@ sub load_extra_tests_docker {
 
     if (is_leap('15.1+') || is_tumbleweed) {
         loadtest 'containers/podman';
-        loadtest "containers/podman_image";
+        loadtest "containers/podman_image" unless is_public_cloud;
     }
 
     loadtest "containers/docker";
     loadtest "containers/docker_runc";
     loadtest "containers/container_base_images";
-    loadtest "containers/docker_image" if (is_sle(">=12-sp3") || is_opensuse);
+    loadtest "containers/docker_image" if (!is_public_cloud && (is_sle(">=12-sp3") || is_opensuse));
     loadtest "containers/docker_compose" unless is_sle('<15');
     loadtest "containers/zypper_docker";
 }
@@ -2801,7 +2801,8 @@ sub load_publiccloud_tests {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview";
         load_extra_tests_prepare();
-        load_extra_tests_console();
+        load_extra_tests_docker() if (get_var('PUBLIC_CLOUD_CONTAINERS'));
+        load_extra_tests_console() unless (get_var('PUBLIC_CLOUD_CONTAINERS'));
         loadtest "publiccloud/ssh_interactive_end", run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {

@@ -48,6 +48,7 @@ use constant {
           is_storage_ng
           is_using_system_role
           is_using_system_role_first_flow
+          is_public_cloud
           requires_role_selection
           check_version
           get_sles_release
@@ -576,3 +577,11 @@ sub get_sles_release {
     return $sles_version, $sles_service_pack;
 }
 
+=head2 is_public_cloud
+
+Returns true if PUBLIC_CLOUD is set to 1
+=cut
+
+sub is_public_cloud {
+    return get_var('PUBLIC_CLOUD');
+}

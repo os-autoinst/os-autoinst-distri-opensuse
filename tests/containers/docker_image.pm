@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use containers::common;
 use suse_container_urls 'get_suse_container_urls';
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_public_cloud);
 
 sub run {
     my ($self) = @_;
@@ -34,7 +34,7 @@ sub run {
 
     install_docker_when_needed();
 
-    if (is_sle) {
+    if (is_sle && !is_public_cloud) {
         # Allow our internal 'insecure' registry
         assert_script_run("mkdir -p /etc/docker");
         assert_script_run('cat /etc/docker/daemon.json; true');
@@ -50,7 +50,7 @@ sub run {
         }
     }
 
-    if (check_var("ARCH", "x86_64")) {
+    if (check_var("ARCH", "x86_64") && !is_public_cloud) {
         zypper_call("install container-diff");
     }
 
@@ -88,7 +88,7 @@ sub run {
         # Verify the image works
         script_retry("docker container run --entrypoint '/bin/bash' --rm refreshed-image -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", timeout => 600, delay => 5, retry => 5);
 
-        if (check_var("ARCH", "x86_64")) {
+        if (check_var("ARCH", "x86_64") && !is_public_cloud) {
             # container-diff
             my $image_file = $image_names->[$i] =~ s/\/|:/-/gr;
             if (script_run("docker pull $stable_names->[$i]", 600) == 0) {
