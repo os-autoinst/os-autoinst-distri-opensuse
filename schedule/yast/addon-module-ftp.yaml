@@ -1,0 +1,43 @@
+---
+name: addon-module-ftp
+description: |
+  Test verifies that adding addon using ftp works fine.  We just perform installation
+  here. Using HA here, related ticket: https://progress.opensuse.org/issues/25896
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - '{{hostname_inst}}'
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - '{{grub}}'
+  - installation/first_boot
+conditional_schedule:
+  hostname_inst:
+    BACKEND:
+      qemu:
+        - installation/hostname_inst
+      svirt:
+        - installation/hostname_inst
+  grub:
+    BACKEND:
+      qemu:
+        - installation/grub_test
+      svirt:
+        - boot/reconnect_mgmt_console
+      pvm_hmc:
+        - boot/reconnect_mgmt_console
+        - installation/grub_test
