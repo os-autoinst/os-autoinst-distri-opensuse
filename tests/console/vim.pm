@@ -24,7 +24,8 @@ use testapi;
 use version_utils qw(is_jeos is_opensuse);
 
 sub run {
-    assert_script_run 'rpm -qi vim';
+    select_console 'root-console';
+    assert_script_run 'rpm -qi --whatprovides vim_client';
     # vim-data package must not be present on JeOS (except on aarch64 openSUSE)
     assert_script_run('! rpm -qi vim-data') if (is_jeos() && !(check_var('ARCH', 'aarch64') && is_opensuse()));
     type_string "vim /etc/passwd\n";
