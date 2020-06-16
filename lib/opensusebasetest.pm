@@ -233,7 +233,7 @@ sub investigate_yast2_failure {
     my %y2log_errors = (
         "No textdomain configured"                   => undef,    # Detecting missing translations
                                                                   # Detecting specific errors proposed by the YaST dev team
-        "nothing provides"                           => undef,    # Detecting missing required packages
+        "nothing provides (?!\/bin\/sh)"             => undef,    # Detecting missing required packages
         "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
         "Could not load icon|Couldn't load pixmap"   => undef,    # Detecting missing icons
         "Internal error. Please report a bug report" => undef,    # Detecting internal errors
@@ -241,6 +241,7 @@ sub investigate_yast2_failure {
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
+        "<1>.*nothing provides \/bin\/sh"                 => 'bsc#1170322',
         "<3>.*QueryWidget failed.*RichText.*VScrollValue" => 'bsc#1167248',
         "<3>.*Solverrun finished with an ERROR"           => 'bsc#1170322',
         "<3>.*3 packages failed.*badlist"                 => 'bsc#1170322',
