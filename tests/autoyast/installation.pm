@@ -139,6 +139,7 @@ sub run {
         @expected_warnings = @{$test_data->{expected_warnings}};
         push(@needles, @expected_warnings);
     }
+    my @processed_warnings;
     if (get_var('EXTRABOOTPARAMS') =~ m/startshell=1/) {
         push @needles, 'linuxrc-start-shell-after-installation';
     }
@@ -215,6 +216,9 @@ sub run {
             $num_errors++;
         }
         elsif (match_has_tag('warning-pop-up')) {
+            # in order to avoid to match several times the same already processed warning
+            next if scalar grep { match_has_tag($_) } @processed_warnings;
+
             # Softfail only on sle, as timeout is there on CaaSP
             if (is_sle && check_screen('warning-partition-reduced', 0)) {
                 # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
@@ -224,7 +228,7 @@ sub run {
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
-            @expected_warnings = grep { !match_has_tag($_) } @expected_warnings;
+            @processed_warnings = grep { match_has_tag($_) } @expected_warnings;
             # Process warnings
             handle_warnings;
         }
@@ -394,8 +398,11 @@ sub run {
     reset_consoles if is_pvm;
     my $expect_errors = get_var('AUTOYAST_EXPECT_ERRORS') // 0;
     die 'exceeded expected autoyast errors' if $num_errors != $expect_errors;
-    die "Test Fail! Expected warnings did not appear during the installation.
-    Expected: @expected_warnings" if scalar @expected_warnings > 0;
+    if (scalar @expected_warnings != scalar @processed_warnings) {
+        die "Test Fail! Expected warnings did not appear during the installation." .
+          "Expected: @expected_warnings Processed: @processed_warnings";
+    }
+
 }
 
 sub test_flags {
