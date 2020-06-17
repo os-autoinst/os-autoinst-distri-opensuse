@@ -14,7 +14,7 @@
 # - Check registering status
 # Maintainer: Juraj Hura <jhura@suse.com>
 
-use base "basetest";
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
@@ -27,7 +27,8 @@ sub run {
     my $arch          = get_required_var("ARCH");
     my $live_reg_code = get_required_var("SCC_REGCODE_LIVE");
 
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Make sure to start with de-registered system. In case the system is not registered this command will fail
     assert_script_run "SUSEConnect -d ||:";
