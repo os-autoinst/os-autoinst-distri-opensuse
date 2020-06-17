@@ -1,0 +1,18 @@
+---
+name: qam-scc
+description: yast2 registration and SUSEConnect test
+schedule:
+    - autoyast/prepare_profile
+    - installation/isosize
+    - installation/bootloader
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/autoyast_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/system_prepare
+    - console/consoletest_setup
+    - qa_automation/patch_and_reboot
+    - console/yast2_registration
+    - console/suseconnect
+...
