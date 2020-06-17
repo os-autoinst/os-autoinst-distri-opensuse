@@ -33,7 +33,7 @@ sub run_image_tests {
     my $engine = shift;
     my @images = @_;
     foreach my $image (@images) {
-        test_container_image($image, 'latest', $engine);
+        test_container_image($image, $engine);
         script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/container_base_images_log.txt");
     }
 }
@@ -63,7 +63,7 @@ sub run {
     } else {
         install_docker_when_needed();
         run_image_tests('docker', @docker_images);
-        clean_docker_host();
+        clean_container_host('docker');
     }
     # Run podman tests
     if (skip_podman) {
@@ -71,8 +71,9 @@ sub run {
         script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/container_base_images_log.txt");
     } else {
         # In SLE we need to add the Containers module
-        zypper_call('in podman podman-cni-config', timeout => 900);
+        install_podman_when_needed();
         run_image_tests('podman', @podman_images);
+        clean_container_host('podman');
     }
 }
 

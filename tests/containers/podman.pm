@@ -28,21 +28,14 @@ use utils;
 use strict;
 use warnings;
 use registration;
+use containers::common;
 use version_utils qw(is_sle is_leap is_jeos);
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    if (is_sle '>=15') {
-        add_suseconnect_product('sle-module-containers');
-    }
-
-    if (!check_var('DISTRI', 'microos')) {
-        my @pkgs = qw(podman);
-        push(@pkgs, 'podman-cni-config') if is_jeos;
-        zypper_call "in @pkgs";
-    }
+    install_podman_when_needed();
 
     # images can be searched on the default registry
     validate_script_output("podman search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
@@ -132,6 +125,7 @@ sub run {
     die('error: podman rmi -a did not remove tw:saved')                     if ($output_containers =~ m/Untagged: tw:saved/);
     die("error: podman rmi -a did not remove alpine:$alpine_image_version") if ($output_containers =~ m/Untagged: alpine:$alpine_image_version/);
     die('error: podman rmi -a did not remove hello-world:latest')           if ($output_containers =~ m/Untagged: hello-world:latest/);
+    clean_container_host('podman');
 }
 
 sub post_fail_hook {
