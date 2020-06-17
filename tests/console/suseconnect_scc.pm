@@ -40,6 +40,7 @@ sub run {
     select_console('root-console');
     assert_script_run $cmd;
     assert_script_run 'SUSEConnect --list-extensions';
+    assert_screen 'activated-with-suseconnect';
 
     # add modules
     if (is_sle '15+') {
