@@ -10,10 +10,10 @@ schedule:
 - fips/fips_setup
 - fips/openssl/openssl_pubkey_rsa
 - fips/openssl/openssl_pubkey_dsa
-- fips/openssh/openssh_fips
 - console/sshd
 - console/ssh_pubkey
 - console/ssh_cleanup
+- fips/openssh/openssh_fips
 - console/curl_https
 - console/apache_ssl
 - console/cryptsetup
