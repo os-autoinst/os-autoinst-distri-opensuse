@@ -31,6 +31,18 @@ sub assert_script_run_container {
     assert_script_run("systemd-run -tM $machine /bin/bash -c \"$script\"");
 }
 
+=head2 script_run_container
+
+ script_run_container($machine, $script);
+
+Run C<$script> in the systemd-nspawn container called C<$machine>.
+
+=cut
+sub script_run_container {
+    my ($self, $machine, $script) = @_;
+    return script_run("systemd-run -tM $machine /bin/bash -c \"$script\"");
+}
+
 =head2 start_nspawn_container
 
  start_nspawn_container($machine);
