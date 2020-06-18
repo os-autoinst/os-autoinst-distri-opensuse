@@ -20,7 +20,7 @@ sub run {
     my ($self) = @_;
 
     if ($self->script_run_container('node1', 'rpm -qi timezone') == 1) {
-        record_soft_failure('boo#1141597: ');
+        record_soft_failure("boo#1141597: Workaround: Disable EmitTimezone as timezone rpm didn't get installed as dependency");
     }
     # Setup node1 (DHCP Server)
     $self->write_container_file(
