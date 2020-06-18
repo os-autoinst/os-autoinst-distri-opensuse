@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use Test::Assert ':all';
+use repo_tools 'validate_repo_enablement';
 
 sub run {
     select_console 'root-console';
@@ -23,20 +23,10 @@ sub run {
     my $method     = uc get_required_var('INSTALL_SOURCE');
     my $mirror_src = get_required_var("MIRROR_$method");
     $mirror_src .= '?ssl_verify=no' if ($method eq 'HTTPS');
-
-    my $output   = script_output('zypper lr --uri');
     my $sle_prod = uc get_var('SLE_PRODUCT') . get_var('VERSION');
-    $output =~ /
-        \d\s+\|                 # #
-        \s+$sle_prod.*\s+\|     # Alias
-        \s+$sle_prod.*\s+\|     # Name
-        \s+Yes\s+\|             # Enabled
-        \s+\(r\s+\)\s+Yes\s+\|  # GPG Check
-        \s+Yes\s+\|             # Refresh
-        \s+(?<uri>.*)           # URI
-    /x;
-    assert_equals($mirror_src, $+{uri},
-        "Repository on the installed system does not match mirror for installation");
+
+    record_info("Check mirror", "Validate if mirror used for installation is added in the installed system");
+    validate_repo_enablement(alias => $sle_prod, name => $sle_prod, uri => $mirror_src);
 }
 
 1;
