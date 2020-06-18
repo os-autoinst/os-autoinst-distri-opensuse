@@ -268,7 +268,8 @@ sub generate_expressions {
         for my $k (keys %{$node}) {
             next if $k =~ /unique_key|unique_value/;
             if (!ref $node->{$k}) {
-                push @{$expressions}, "$exp" . "/ns:$k" . "[text() = '$node->{$k}']";
+                push @{$expressions}, "$exp" . "/ns:$k" . "[text() = '$node->{$k}'" .
+                  (($node->{$k} eq '') ? ' or not(text())]' : ']');    # node might not have text node descendant
             }
             else {
                 generate_expressions(node => $node->{$k}, exp => "$exp/ns:$k",
