@@ -23,7 +23,7 @@ use base 'windowsbasetest';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_opensuse);
 
 my $powershell_cmds = {
     enable_developer_mode =>
@@ -52,7 +52,7 @@ sub run {
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
 
-    if (is_sle('>=15-sp2') || is_tumbleweed) {
+    if (is_sle('>=15-sp2') || is_opensuse) {
         $self->run_in_powershell(
             cmd => 'Invoke-WebRequest -Uri ' . data_url($certs->{get_required_var('DISTRI')}) . ' -O ' . $cert_file_path . ' -UseBasicParsing',
         );
