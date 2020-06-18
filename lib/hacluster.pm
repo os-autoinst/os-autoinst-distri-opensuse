@@ -345,6 +345,7 @@ sub check_cluster_state {
 }
 
 # Wait for resources to be started
+# If changing this, remember to also change wait_until_resources_started in tests/publiccloud/sles4sap.pm
 sub wait_until_resources_started {
     my %args    = @_;
     my @cmds    = ('crm cluster wait_for_startup');
@@ -427,7 +428,7 @@ sub get_lun {
     mutex_unlock 'iscsi';
 
     # Return the real path of the block device
-    return block_device_real_path "$lun";
+    return $lun;
 }
 
 # This method checks for the presence of a device in the system for up to a defined timeout (defaults to 20seconds)

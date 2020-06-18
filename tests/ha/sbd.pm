@@ -25,7 +25,7 @@ sub run {
     if (is_node(1)) {
         # Create sbd device
         my $sbd_lun = get_lun;
-        assert_script_run "sbd -d $sbd_lun create";
+        assert_script_run "sbd -d \"$sbd_lun\" create";
 
         # Add sbd device in /etc/sysconfig/sbd
         assert_script_run "curl -f -v " . autoinst_url . "/data/ha/sbd.template -o $sbd_cfg";

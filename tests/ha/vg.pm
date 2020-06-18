@@ -47,7 +47,7 @@ sub run {
         $vg_luns  = "/dev/$resource" if is_node(1);
     }
     else {
-        $vg_luns = get_lun . ' ' . get_lun if is_node(1);
+        $vg_luns = '"' . get_lun . '" "' . get_lun . '"' if is_node(1);
     }
     my $vg_name = "vg_$resource";
 

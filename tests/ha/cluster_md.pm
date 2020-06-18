@@ -45,7 +45,7 @@ sub run {
     if (is_node(1)) {
         # Create cluster-md device
         assert_script_run
-"mdadm --create $clustermd_device $clustermd_name_opt --bitmap=clustered --metadata=1.2 --raid-devices=2 --level=mirror $clustermd_lun_01 $clustermd_lun_02", $default_timeout;
+"mdadm --create $clustermd_device $clustermd_name_opt --bitmap=clustered --metadata=1.2 --raid-devices=2 --level=mirror \"$clustermd_lun_01\" \"$clustermd_lun_02\"", $default_timeout;
 
         # We need to create the configuration file on all nodes
         assert_script_run "echo DEVICE $clustermd_lun_01 $clustermd_lun_02 > $mdadm_conf", $default_timeout;
@@ -63,7 +63,7 @@ sub run {
 
     # We need to start the cluster-md device on all nodes but node01, as it still has the device started
     if (!is_node(1)) {
-        assert_script_run "mdadm -A $clustermd_device $clustermd_lun_01 $clustermd_lun_02", $default_timeout;
+        assert_script_run "mdadm -A $clustermd_device \"$clustermd_lun_01\" \"$clustermd_lun_02\"", $default_timeout;
     }
 
     # Wait until cluster-md device is started
