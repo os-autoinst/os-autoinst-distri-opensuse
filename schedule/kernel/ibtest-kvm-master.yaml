@@ -1,0 +1,41 @@
+name:           ibtest-kvm-master
+description:    >
+    The master node for the infiniband testsuite (hpc-testing) in kvm
+vars:
+    DESKTOP: textmode
+    DEVEL_TOOLS_REPO: https://download.opensuse.org/repositories/home:/MMoese:/branches:/devel:/tools/SLE_12_SP4/home:MMoese:branches:devel:tools.repo
+    BAREMETAL_SUPPORT_SERVER: http://baremetal-support.qa.suse.de:8080
+    GA_REPO: http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
+    GRUB_TIMEOUT: 300
+    IBTESTS: 1
+    IBTEST_GITBRANCH: master
+    IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
+    IBTEST_ROLE: IBTEST_MASTER
+    IPXE: 1
+    IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
+    PATTERNS: base,minimal
+    SCC_ADDONS: sdk
+    VM_HOST_1: 10.162.2.93
+    VM_HOST_2: 10.162.2.94
+schedule:
+    - kernel/ibtests_barriers
+    - installation/ipxe_install
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/reboot_after_installation
+    - kernel/mlx5_sriov
+    - kernel/ibtests_kvm
+    - kernel/ibtests
