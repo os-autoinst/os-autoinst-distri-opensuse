@@ -93,7 +93,7 @@ sub register_via_scc {
     wait_screen_change(sub { send_key 'alt-c' }, 10);
     wait_screen_change { type_string $reg_code, max_interval => 125, wait_screen_change => 2 };
     send_key 'alt-n';
-    assert_screen 'wsl-registration-repository-offer';
+    assert_screen 'wsl-registration-repository-offer', 90;
     send_key 'alt-y';
     assert_screen 'wsl-extension-module-selection';
     send_key 'alt-n';
@@ -101,7 +101,7 @@ sub register_via_scc {
 
 sub run {
     # WSL installation is in progress
-    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 240;
+    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 360;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         assert_and_click 'window-max';
