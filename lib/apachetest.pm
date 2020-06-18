@@ -75,7 +75,8 @@ sub setup_apache2 {
     }
     if ($mode =~ m/SSL|NSS/) {
         assert_script_run "sed -i '/^APACHE_SERVER_FLAGS=/s/^/#/' /etc/sysconfig/apache2";
-        assert_script_run 'echo APACHE_SERVER_FLAGS="SSL" >> /etc/sysconfig/apache2';
+        assert_script_run 'echo APACHE_SERVER_FLAGS=\"SSL\" >> /etc/sysconfig/apache2';
+        assert_script_run "sed -i '/SSLCARevocationFile/a SSLFIPS on' /etc/apache2/ssl-global.conf" if get_var("FIPS_ENABLED");
     }
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
