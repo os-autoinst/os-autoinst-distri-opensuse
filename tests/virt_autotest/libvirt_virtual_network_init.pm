@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,11 +37,18 @@ use version_utils 'is_sle';
 sub run_test {
     my ($self) = @_;
 
+    #Need to reset up environemt - br123 for virt_atuo test due to after
+    #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
+    virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
+
     #Enable libvirt debug log
     virt_autotest::virtual_network_utils::enable_libvirt_log();
 
     #VM HOST SSH SETUP
     virt_autotest::virtual_network_utils::ssh_setup();
+
+    #Backup file /etc/hosts before virtual network testing
+    virt_autotest::virtual_network_utils::hosts_backup();
 
     #Install required packages
     zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';

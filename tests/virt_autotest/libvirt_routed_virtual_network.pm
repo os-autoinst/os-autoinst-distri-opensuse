@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -89,9 +89,9 @@ sub run_test {
 
         #Wait for guests attached interface from virtual routed network
         sleep 30;
-        my $net1 = (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) ? 'netfront' : 'vnet_routed';
+        my $net1 = is_sle('=11-sp4') ? 'br123' : 'vnet_routed';
         test_network_interface("$guest", mac => $mac1, gate => $gate1, routed => 1, target => $target1, net => $net1);
-        my $net2 = (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) ? 'netfront' : 'vnet_routed_clone';
+        my $net2 = is_sle('=11-sp4') ? 'br123' : 'vnet_routed_clone';
         test_network_interface("$guest.clone", mac => $mac2, gate => $gate2, routed => 1, target => $target2, net => $net2);
 
         assert_script_run("virsh detach-interface $guest --mac $mac1 $exclusive");

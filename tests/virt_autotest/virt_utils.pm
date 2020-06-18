@@ -27,7 +27,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type perform_guest_restart);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart);
 
 sub enable_debug_logging {
 
@@ -560,6 +560,22 @@ sub check_guest_disk_type {
             record_info "INFO", "Start Snapshot test with the guest disk type as $guest_disk_type";
             return 0;
         }
+    }
+}
+
+#recreate all defined guests
+sub recreate_guests {
+    my $based_guest_dir = shift;
+    return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
+    my $get_vm_hostnames   = "virsh list  --all | grep sles | awk \'{print \$2}\'";
+    my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    foreach (@vm_hostnames_array)
+    {
+        script_run("virsh destroy $_");
+        script_run("virsh undefine $_");
+        script_run("virsh define /$based_guest_dir/$_.xml");
+        script_run("virsh start $_");
     }
 }
 

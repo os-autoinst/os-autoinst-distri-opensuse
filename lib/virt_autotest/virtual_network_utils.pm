@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ use virt_utils;
 
 our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_libvirtd restart_network restore_guests restore_network
-  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status save_guest_ip test_network_interface);
+  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status save_guest_ip test_network_interface hosts_backup hosts_restore);
 
 sub save_guest_ip {
     my ($guest, %args) = @_;
@@ -68,7 +68,7 @@ sub test_network_interface {
     save_guest_ip("$guest", name => $net);
 
     # Configure the network interface to use DHCP configuration
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($routed == 1);
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
     assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"") if ($routed == 1);
@@ -108,8 +108,9 @@ sub download_network_cfg {
 
 sub prepare_network {
     #Confirm the host bridge configuration file
-    my $virt_host_bridge = shift;
-    my $config_path      = "/etc/sysconfig/network/ifcfg-$virt_host_bridge";
+    my ($virt_host_bridge, $based_guest_dir) = @_;
+    my $config_path = "/etc/sysconfig/network/ifcfg-$virt_host_bridge";
+
     if (script_run("[[ -f $config_path ]]") != 0) {
         assert_script_run("ip link add name $virt_host_bridge type bridge");
         assert_script_run("ip link set dev $virt_host_bridge up");
@@ -120,15 +121,22 @@ sub prepare_network {
         script_output($download_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_bash_script = "chmod +x ~/$bash_script_name && ~/$bash_script_name $virt_host_bridge";
         script_output($execute_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        #Create required host bridge interface br0 on sles hosts for libvirt virtual network testing
+        #Need to reset up environment, included recreate br123 bridege interface for virt_auto test
+        restore_standalone();
+        #Need to recreate all guests system depned on the above prepare network operation on vm host
+        recreate_guests($based_guest_dir);
     }
 }
 
 sub restore_network {
-    my $virt_host_bridge = shift;
-    my $network_mark     = "/etc/sysconfig/network/ifcfg-$virt_host_bridge.new";
+    my ($virt_host_bridge, $based_guest_dir) = @_;
+    my $network_mark = "/etc/sysconfig/network/ifcfg-$virt_host_bridge.new";
+
     if (script_run("[[ -f $network_mark ]]") == 0) {
-        assert_script_run("ip link set dev $virt_host_bridge down",       60);
-        assert_script_run("ip link delete $virt_host_bridge type bridge", 60);
+        #Restore all defined guest system before restore Network setting on vm host
+        restore_guests();
+        assert_script_run("rm -rf /etc/sysconfig/network/ifcfg-$virt_host_bridge*", 60);
         my $wait_script          = "180";
         my $bash_script_name     = "vm_host_bridge_final.sh";
         my $bash_script_url      = data_url("virt_autotest/$bash_script_name");
@@ -136,6 +144,12 @@ sub restore_network {
         script_output($download_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_bash_script = "chmod +x ~/$bash_script_name && ~/$bash_script_name $virt_host_bridge";
         script_output($execute_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
+        #After destroyed host bridge interface br0 on sles vm hosts
+        #Need to reset environment again depend on the following virt_auto tests required
+        restore_standalone();
+        #Recreate all defined guest depend on the above restore network operation on vm host
+        #And Keep all guest as running status for the following virtual network tests
+        recreate_guests($based_guest_dir);
     }
 }
 
@@ -143,6 +157,23 @@ sub restore_standalone {
     #File standalone was installed from qa_test_virtualization package
     my $standalone_path = "/usr/share/qa/qa_test_virtualization/shared/standalone";
     assert_script_run("source $standalone_path", 60) if (script_run("[[ -f $standalone_path ]]") == 0);
+}
+
+sub hosts_backup {
+    #During virtual network testing, there will be modified file /etc/hosts depend on
+    #testing required, to keep connection both on vm host and guests system via ssh
+    #So, would be better to backup file /etc/hosts before virtual network testing
+    my $hosts_file   = "/etc/hosts";
+    my $hosts_backup = "/etc/hosts.orig";
+    assert_script_run("cp $hosts_file $hosts_backup", 60) if (script_run("[[ -f $hosts_file ]]") == 0);
+}
+
+sub hosts_restore {
+    #After finished all virtual network testing, need to restore file /etc/hosts from backup
+    #for the following virt_auto testing
+    my $hosts_restore = "/etc/hosts.orig";
+    my $hosts_file    = "/etc/hosts";
+    assert_script_run("cp $hosts_restore $hosts_file", 60) if (script_run("[[ -f $hosts_restore ]]") == 0);
 }
 
 sub destroy_standalone {
@@ -169,8 +200,6 @@ sub restore_guests {
         script_run("virsh destroy $_");
         script_run("virsh undefine $_");
         script_run("virsh define /tmp/$_.xml");
-        script_run("rm -rf /tmp/$_.xml");
-        script_run("sed -i '/$_/d' /etc/hosts");
     }
 }
 
