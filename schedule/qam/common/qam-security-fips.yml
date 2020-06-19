@@ -11,7 +11,6 @@ schedule:
 - fips/openssl/openssl_pubkey_rsa
 - fips/openssl/openssl_pubkey_dsa
 - console/sshd
-- console/ssh_pubkey
 - console/ssh_cleanup
 - fips/openssh/openssh_fips
 - console/curl_https
