@@ -445,35 +445,35 @@ sub load_feature_tests {
 
 sub load_online_migration_tests {
     # stop packagekit service and more
-    loadtest "migration/sle12_online_migration/online_migration_setup";
+    loadtest "migration/online_migration/online_migration_setup";
     # switch VERSION to ensure migrate to expected target for online migration
     set_var('ORIGIN_SYSTEM_VERSION',  get_var('HDDVERSION'));
     set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
 
-    loadtest "migration/sle12_online_migration/register_system";
+    loadtest "migration/online_migration/register_system";
     # do full/minimal update before migration
     if (get_var("FULL_UPDATE")) {
-        loadtest "migration/sle12_online_migration/zypper_patch";
+        loadtest "migration/online_migration/zypper_patch";
     }
     if (get_var("MINIMAL_UPDATE")) {
-        loadtest "migration/sle12_online_migration/minimal_patch";
+        loadtest "migration/online_migration/minimal_patch";
     }
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
-        loadtest "migration/sle12_online_migration/register_without_ltss";
+        loadtest "migration/online_migration/register_without_ltss";
     }
     loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "migration/version_switch_upgrade_target";
-    loadtest "migration/sle12_online_migration/pre_migration";
+    loadtest "migration/online_migration/pre_migration";
     if (get_var("LOCK_PACKAGE")) {
         loadtest "console/lock_package";
     }
     if (check_var("MIGRATION_METHOD", 'yast')) {
-        loadtest "migration/sle12_online_migration/yast2_migration";
+        loadtest "migration/online_migration/yast2_migration";
     }
     if (check_var("MIGRATION_METHOD", 'zypper')) {
-        loadtest "migration/sle12_online_migration/zypper_migration";
+        loadtest "migration/online_migration/zypper_migration";
     }
-    loadtest "migration/sle12_online_migration/post_migration";
+    loadtest "migration/online_migration/post_migration";
     loadtest "console/check_system_info" if (is_sle && (get_var('FLAVOR') =~ /Milestone/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
 }
 
