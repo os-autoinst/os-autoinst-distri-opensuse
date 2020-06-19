@@ -1,5 +1,7 @@
 ---
-description: "Maintainer: thehejik; Install RT extension on current SLE over SCC net\n\nADDONURL_RT=http://dist.suse.de/ibs/Devel:/RTE:/SLE12SP3/images/repo/SLE-12-SP3-RT-POOL-x86_64-Build%BUILD%-Media1/"
+description: |
+  "Maintainer: thehejik; Install RT extension on current SLE over SCC net
+  ADDONURL_RT=http://dist.suse.de/ibs/Devel:/RTE:/SLE12SP3/images/repo/SLE-12-SP3-RT-POOL-x86_64-Build%BUILD%-Media1/"
 name: 'sles+rt-net@64bit ( qemu )'
 schedule:
   - boot/boot_to_desktop
