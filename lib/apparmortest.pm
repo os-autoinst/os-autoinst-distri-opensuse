@@ -619,10 +619,10 @@ sub adminer_database_delete {
     assert_screen("adminer-save-passwd");
     send_key "alt-s";
     assert_screen("adminer-select-database");
-    send_key_until_needlematch("adminer-select-database-test", 'tab', 30, 5);
+    send_key_until_needlematch("adminer-select-database-test", 'tab', 30, 1);
     assert_screen("adminer-select-database-test");
     send_key "spc";
-    send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 5);
+    send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 1);
 
     # Exit x11 and turn to console
     send_key "alt-f4";
