@@ -33,6 +33,7 @@ sub suseconnect_ls {
 sub check_registered_system {
     my ($system) = @_;
     my $pro = uc get_var('SLE_PRODUCT');
+    $pro = 'SLE_' . $pro if ($pro eq 'HPC');
     suseconnect_ls($pro);
     my $ver = $system =~ s/\-SP/./r;
     script_run("SUSEConnect -s | grep " . $ver);
@@ -47,6 +48,7 @@ sub check_registered_addons {
         $addon =~ s/(^\s+|\s+$)//g;
         my $name = get_addon_fullname($addon);
         $name = 'LTSS' if ($name =~ /LTSS/);
+        next if ($name eq '');
         suseconnect_ls($name);
     }
 }
@@ -84,7 +86,8 @@ sub check_suseconnect_cmd {
     diag "$ls_out";
     my $status_out = script_output("SUSEConnect --status-text", 120);
     diag "$status_out";
-    for (my $i = 1; $i < @addons; $i = $i + 1) {
+    for (my $i = 0; $i < @addons; $i = $i + 1) {
+        next if ($addons[$i] =~ /^SLE(S|D|_HPC)$/);
         diag "$addons[$i]";
         die "$addons[$i] is not existed at SUSEConnect --list-extensions" if ($ls_out     !~ /Deactivate(.*)$addons[$i]/);
         die "$addons[$i] is not existed at SUSEConnect --status-text"     if ($status_out !~ /$addons[$i]/);
