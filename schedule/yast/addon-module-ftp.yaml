@@ -25,6 +25,10 @@ schedule:
   - installation/reboot_after_installation
   - '{{grub}}'
   - installation/first_boot
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_ref
+  - console/validate_addon_repos
 conditional_schedule:
   hostname_inst:
     BACKEND:
