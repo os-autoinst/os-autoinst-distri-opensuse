@@ -55,6 +55,14 @@ sub enable_debug_logging {
     }
     save_screenshot;
 
+    # enable qemu core dumps
+    my $qemu_conf_file = "/etc/libvirt/qemu.conf";
+    if (!script_run "ls $qemu_conf_file") {
+        script_run "sed -i '/max_core *=/{h;s/^[# ]*max_core *=.*\$/max_core = \"unlimited\"/};\${x;/^\$/{s//max_core = \"unlimited\"/;H};x}' $qemu_conf_file";
+        script_run "grep max_core $qemu_conf_file";
+    }
+    save_screenshot;
+
 }
 
 sub get_version_for_daily_build_guest {
