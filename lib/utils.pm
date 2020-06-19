@@ -85,6 +85,7 @@ our @EXPORT = qw(
   script_run_interactive
   create_btrfs_subvolume
   file_content_replace
+  ensure_ca_certificates_suse_installed
 );
 
 =head1 SYNOPSIS
@@ -1629,4 +1630,21 @@ sub assert_file_content {
     my ($param, $value) = @_;
     assert_script_run("cat $param | grep $value");
 }
+
+=head2 ensure_ca_certificates_suse_installed
+    ensure_ca_certificates_suse_installed();
+
+This functions checks if ca-certificates-suse is installed and if it is not it adds the repository and installs it.
+
+=cut
+
+sub ensure_ca_certificates_suse_installed {
+    return unless is_sle;
+    if (script_run('rpm -qi ca-certificates-suse') == 1) {
+        my $distversion = get_required_var("VERSION") =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
+        zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
+        zypper_call("in ca-certificates-suse");
+    }
+}
+
 1;

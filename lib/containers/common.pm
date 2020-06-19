@@ -22,9 +22,23 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_caasp);
+use version_utils qw(is_sle is_leap is_caasp is_opensuse is_jeos is_public_cloud);
 
-our @EXPORT = qw(install_docker_when_needed clean_docker_host test_container_runtime test_container_image);
+our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_registry_suse_de_for_docker clean_container_host
+  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
+
+sub install_podman_when_needed {
+    if (script_run("which podman") != 0) {
+        if (is_sle '>=15') {
+            add_suseconnect_product('sle-module-containers');
+        }
+
+        my @pkgs = qw(podman);
+        push(@pkgs, 'podman-cni-config') if is_jeos();
+        push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
+        zypper_call "in @pkgs";
+    }
+}
 
 sub install_docker_when_needed {
     if (is_caasp) {
@@ -49,9 +63,21 @@ sub install_docker_when_needed {
     assert_script_run('docker info');
 }
 
-sub clean_docker_host {
-    assert_script_run('docker stop $(docker ps -q)', 180) if script_output('docker ps -q | wc -l') != '0';
-    assert_script_run('docker system prune -a -f',   180);
+sub allow_registry_suse_de_for_docker {
+    # Allow our internal 'insecure' registry
+    assert_script_run("mkdir -p /etc/docker");
+    assert_script_run('cat /etc/docker/daemon.json; true');
+    assert_script_run(
+        'echo "{ \"insecure-registries\" : [\"registry.suse.de\", \"registry.suse.de:443\", \"registry.suse.de:5000\"] }" > /etc/docker/daemon.json');
+    assert_script_run('cat /etc/docker/daemon.json');
+    systemctl('restart docker');
+}
+
+sub clean_container_host {
+    my $runtime = $_[0];
+    die "You must define the runtime!" unless $runtime;
+    assert_script_run("$runtime stop \$($runtime ps -q)", 180) if script_output("$runtime ps -q | wc -l") != '0';
+    assert_script_run("$runtime system prune -a -f",      180);
 }
 
 sub test_container_runtime {
@@ -108,26 +134,37 @@ sub test_container_runtime {
     assert_script_run("rm config.json");
 }
 
-# Test a given image. Takes the image name, version and container runtime (docker or podman) as arguments
+# Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
-    my $name    = $_[0];
-    my $version = $_[1] //= "latest";
-    my $runtime = $_[2] //= "docker";
-    # Pull the image
-    my $image = "$name:$version";
-    assert_script_run("$runtime image pull $image", timeout => 300);
-    assert_script_run("$runtime image ls | grep '$name' | grep '$version'");
+    my $image   = $_[0];
+    my $runtime = $_[1] //= "docker";
+    my ($name, $tag) = split(/:/, $image);
+    $tag //= 'latest';
 
-    my $container = "${runtime}_${name}_${version}_smoketest";
+    # Pull the image
+    assert_script_run("$runtime pull $image", timeout => 300);
+    assert_script_run("$runtime image ls | grep '$name' | grep '$tag'");
+
+    my $container = "${runtime}_${name}_${tag}_smoketest";
     $container =~ s!/!.!g;    # Slashes are not allowed as container names, but used for fetching images. Replace them with a dot
-    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
-    assert_script_run("$runtime container create --name '$container' '$image' /bin/sh -c '$smoketest'");
+    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $name:$tag\"";
+    assert_script_run("$runtime container create --name '$container' '$name:$tag' /bin/sh -c '$smoketest'");
     assert_script_run("$runtime container start '$container'");
     assert_script_run("$runtime container logs '$container' > '/var/tmp/container_$container'");
     assert_script_run("$runtime wait '$container'", 90);
     assert_script_run("$runtime container rm '$container'");
     assert_script_run("grep \"`uname -r`\" '/var/tmp/container_$container'");
-    assert_script_run("grep \"Heartbeat from $image\" '/var/tmp/container_$container'");
+    assert_script_run("grep \"Heartbeat from $name:$tag\" '/var/tmp/container_$container'");
+}
+
+sub scc_apply_docker_image_credentials {
+    my $regcode = get_var 'SCC_DOCKER_IMAGE';
+    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{,.bak}";
+    assert_script_run "echo -ne \"$regcode\" > /etc/zypp/credentials.d/SCCcredentials";
+}
+
+sub scc_restore_docker_image_credentials {
+    assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
 }
 
 1;

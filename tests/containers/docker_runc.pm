@@ -61,7 +61,7 @@ sub run {
     install_docker_when_needed;
 
     # remove leftover containers and images
-    clean_docker_host();
+    clean_container_host('docker');
 }
 
 1;
