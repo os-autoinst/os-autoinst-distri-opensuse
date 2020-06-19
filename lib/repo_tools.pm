@@ -12,9 +12,9 @@
 
 =head1 repo_tools
 
-Tools for repositories used by openQA: 
+Tools for repositories used by openQA:
 
-=over 
+=over
 
 =item * add_qa_head_repo
 
@@ -56,6 +56,7 @@ use testapi;
 use utils;
 use version_utils qw(is_leap is_sle is_tumbleweed);
 use y2_module_consoletest;
+use Test::Assert ':all';
 
 our @EXPORT = qw(
   add_qa_head_repo
@@ -70,7 +71,8 @@ our @EXPORT = qw(
   type_password_twice
   prepare_oss_repo
   disable_oss_repo
-  generate_version);
+  generate_version
+  validate_repo_enablement);
 
 =head2 add_qa_head_repo
 
@@ -103,8 +105,8 @@ sub add_qa_web_repo {
 =head2 get_repo_var_name
 
  get_repo_var_name($repo_name);
- 
-This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter C<$repo_name> 
+
+This takes something like "MODULE_BASESYSTEM_SOURCE" as parameter C<$repo_name>
 and returns "REPO_SLE15_SP1_MODULE_BASESYSTEM_SOURCE" when being called on SLE15-SP1.
 
 =cut
@@ -373,6 +375,37 @@ sub generate_version {
         $dist = 'openSUSE_Leap';
     }
     return $dist . $separator . $version;
+}
+
+
+=head2 validate_repo_enablement
+
+ validate_repo_enablement(%args);
+
+Validates that repo with given name and alias has correct uri and is enabled.
+C<%args> should have following keys defined:
+- C<alias>: repository alias
+- C<name>: repository name
+- C<uri>: repository uri
+
+=cut
+sub validate_repo_enablement {
+    my (%args) = @_;
+
+    my $output = script_output('zypper lr --uri');
+
+    assert_true($output =~ /
+        \d\s+\|                 # #
+        \s+$args{alias}.*\s+\|  # Alias
+        \s+$args{name}.*\s+\|   # Name
+        \s+Yes\s+\|             # Enabled
+        \s+\(r\s+\)\s+Yes\s+\|  # GPG Check
+        \s+Yes\s+\|             # Refresh
+        \s+(?<uri>.*)           # URI
+    /ix, "Repository $args{name} is not found in the installed system:\n$output");
+
+    assert_equals($args{uri}, $+{uri},
+        "Repository $args{name} has system wrong url or repo is not added to the system:\n$output");
 }
 
 1;
