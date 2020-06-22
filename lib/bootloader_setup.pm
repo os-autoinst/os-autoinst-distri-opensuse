@@ -63,6 +63,7 @@ our @EXPORT = qw(
   grub_mkconfig
   remove_grub_cmdline_settings
   replace_grub_cmdline_settings
+  mimic_user_to_import
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -1251,6 +1252,39 @@ sub create_encrypted_part {
     assert_script_run "parted -s /dev/$disk mkpart 1 512 100%";
     # encrypt created partition
     assert_script_run "echo nots3cr3t | cryptsetup $luks_type luksFormat -q --force-password /dev/${disk}1";
+}
+
+=head2 mimic_user_to_import
+
+    mimic_user_to_import(disk => $disk, passwd => $passwd, shadow => $shadow);
+
+Creates /etc/passwd and /etc/shadow files to simluate existing users on the
+encrypted partition disk. Is expected to be used together with create_encrypted_part
+Can be used to test user import functionality not to chain jobs.
+Method accepts C<disk> to define the device to work with, C<passwd> and C<shadow>
+store content of the /etc/passwd and /etc/shadow files accordingly.
+
+=cut
+sub mimic_user_to_import {
+    my (%args) = @_;
+    my $disk   = $args{disk};
+    my $passwd = $args{passwd};
+    my $shadow = $args{shadow};
+    my $mapper = "/dev/mapper/crypt";
+    my $mount  = "/mnt/crypt";
+    # open LUKS partition
+    assert_script_run "echo nots3cr3t | cryptsetup luksOpen -q /dev/${disk}1 crypt";
+    # format it and create passwd and shadow files
+    assert_script_run "mkfs.ext4 $mapper";
+    assert_script_run "mkdir $mount";
+    assert_script_run "mount $mapper $mount";
+    assert_script_run "mkdir $mount/etc";
+    # write content to the files
+    assert_script_run "echo '$passwd' > $mount/etc/passwd";
+    assert_script_run "echo '$shadow' > $mount/etc/shadow";
+    # unmount and close LUKS partition
+    assert_script_run "umount $mount";
+    assert_script_run "cryptsetup luksClose $mapper";
 }
 
 sub type_boot_parameters {
