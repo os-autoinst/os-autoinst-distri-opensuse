@@ -89,5 +89,4 @@ schedule:
     - console/aaa_base
     - console/osinfo_db
     - console/zypper_ref
-    - console/kdump_and_crash
     - console/coredump_collect
