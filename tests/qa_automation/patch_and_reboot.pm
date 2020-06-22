@@ -48,7 +48,7 @@ sub run {
 
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 150);
+    $self->wait_boot(bootloader_time => 300);
 }
 
 sub test_flags {
