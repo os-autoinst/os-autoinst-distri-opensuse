@@ -41,6 +41,8 @@ sub run {
     assert_script_run $cmd;
     assert_script_run 'SUSEConnect --list-extensions';
     assert_screen 'activated-with-suseconnect';
+    assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"';
+    assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'        \e\[1mWeb and Scripting Module\')"';
 
     # add modules
     if (is_sle '15+') {
