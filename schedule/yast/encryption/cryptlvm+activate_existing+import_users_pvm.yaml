@@ -1,0 +1,36 @@
+---
+description: >
+  Conduct installation activating encrypted partitions and importing users created
+  in that installation. Using pre-partitioned disk image to validate encrypted
+  partitions activation and that we can re-ecnrypt the disk.
+  Separate schedule is used because on powerVM we simulate existing users on the
+  encrypted partition by injecting /etc/passwd and /etc/shadow files.
+name: cryptlvm+activate_existing+import_users
+vars:
+  ENCRYPT_ACTIVATE_EXISTING: 1
+  ETC_PASSWD: "bernhard:x:1000:100:bernhard:/home/bernhard:/bin/bash"
+  ETC_SHADOW: "bernhard:$6$ZQ2QptdwejF6$QAEuGvFZJCsyA0oWlrFsWXcMSNcgkU4y3oVPGHhoOjuEHU7BhKAm8DN5L8FnwQlngmNheB.vZqyz1HripbwKL0:18435:0:99999:7:::"
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/encrypted_volume_activation
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/encrypt_lvm_reuse_existing
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_import
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
