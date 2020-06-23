@@ -80,11 +80,12 @@ EOF
     systemctl('is-active slurmd');
 
     barrier_wait("SLURM_SLAVE_SERVICE_ENABLED");
-    barrier_wait("SLURM_MASTER_RUN_TESTS");
 
     # always upload logs from slurmdbd as those are crucial and there is no simple
     # way to get those logs if slurctld fails
     upload_logs('/var/log/slurmdbd.log');
+
+    barrier_wait("SLURM_MASTER_RUN_TESTS");
 }
 
 sub test_flags {
