@@ -72,7 +72,7 @@ sub user_setup {
 }
 
 sub root_setup {
-    assert_screen 'root_user';
+    assert_screen 'root_user', 60;
     enter_rootinfo;
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
