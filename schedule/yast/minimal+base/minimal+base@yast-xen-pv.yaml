@@ -5,6 +5,10 @@ description:    >
   except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
   Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
   due to grub2 doesn't support xfb console.
+vars:
+  DEPENDENCY_RESOLVER_FLAG: 1
+  DESKTOP: textmode
+  PATTERNS: base,minimal
 schedule:
   - installation/bootloader_start
   - installation/welcome

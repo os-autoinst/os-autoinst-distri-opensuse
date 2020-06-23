@@ -5,8 +5,10 @@ description: >
   btrfs in new installation and generation of autoinst.xml. Same as autoyast_btrfs,
   but with product and and addons defined for SLE15.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_btrfs.xml
   AUTOYAST_PREPARE_PROFILE: 1
+  AUTOYAST: autoyast_sle15/autoyast_btrfs.xml
+  DESKTOP: gnome
+  FILESYSTEM: btrfs
 schedule:
   - autoyast/prepare_profile
   - installation/isosize

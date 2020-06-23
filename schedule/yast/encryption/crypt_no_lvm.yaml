@@ -7,8 +7,11 @@ description: >
   Encrypted installations can take longer, especially on non-x86_64
   architectures.
 vars:
+  DESKTOP: gnome
   ENCRYPT: 1
+  INSTALLONLY: 1
   LVM: 0
+  MAX_JOB_TIME: 14400
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -33,3 +36,5 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/validate_encrypt
+test_data:
+  <<: !include test_data/yast/encryption/encrypt_no_lvm.yaml
