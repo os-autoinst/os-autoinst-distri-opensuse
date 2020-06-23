@@ -236,6 +236,7 @@ sed -i "/^DbdHost.*/c\\DbdHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.c
 sed -i "/^#StorageHost.*/c\\StorageHost=$cluster_compute_nodes[-1]" /etc/slurm/slurmdbd.conf
 sed -i "/^#StorageLoc.*/c\\StorageLoc=slurm_acct_db" /etc/slurm/slurmdbd.conf
 sed -i "/^#DbdPort.*/c\\DbdPort=20088" /etc/slurm/slurmdbd.conf
+sed -i "/^DebugLevel.*/c\\DebugLevel=debug5" /etc/slurm/slurmdbd.conf
 EOF
     assert_script_run($_) foreach (split /\n/, $config);
 }
