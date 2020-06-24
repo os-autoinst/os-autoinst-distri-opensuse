@@ -545,7 +545,7 @@ sub post_fail_hook {
     $self->upload_service_log('slurmd');
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');
-    $self->upload_service_log('slurmdbd');
+    $self->export_logs_basic;
     upload_logs('/var/log/slurmctld.log');
 }
 
