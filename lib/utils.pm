@@ -1290,15 +1290,12 @@ sub _handle_login_not_found {
 
  reconnect_mgmt_console([timeout => $timeout]);
 
-After each reboot we have to reconnect to the management console on remote backends.
-C<$timeout> can be set to some specific time and if during reboot GRUB is shown twice C<grub_expected_twice>
-can be set to 1.
+After each reboot we have to reconnect to the management console on remote backends
 
 =cut
 sub reconnect_mgmt_console {
     my (%args) = @_;
-    $args{timeout}             //= 300;
-    $args{grub_expected_twice} //= 0;
+    $args{timeout} //= 300;
 
     if (check_var('ARCH', 's390x')) {
         my $login_ready = qr/Welcome to /;
@@ -1327,15 +1324,9 @@ sub reconnect_mgmt_console {
                 wait_serial($login_ready) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
             }
             else {
+                wait_serial('GNU GRUB') || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
                 select_console('svirt');
                 save_svirt_pty;
-                if ($args{grub_expected_twice}) {
-                    wait_serial('Press enter to boot the selected OS') ||
-                      diag 'Could not find boot selection, continuing nevertheless, trying to boot';
-                    type_line_svirt '';
-                }
-                wait_serial('GNU GRUB') ||
-                  diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
                 type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
             }
         }
