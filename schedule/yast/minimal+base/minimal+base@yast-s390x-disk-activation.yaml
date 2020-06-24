@@ -8,7 +8,7 @@ description: >
 vars:
   DEPENDENCY_RESOLVER_FLAG: 1
   DESKTOP: textmode
-  PATTERNS: base,minimal
+  PATTERNS: base,enhanced_base
 schedule:
   - installation/bootloader_start
   - installation/welcome
