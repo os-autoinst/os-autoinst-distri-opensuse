@@ -15,7 +15,8 @@ use strict;
 use warnings;
 use testapi;
 use lockapi;
-use utils 'systemctl';
+use utils qw(systemctl);
+use version_utils qw(is_sle);
 use hacluster;
 
 sub run {
@@ -25,7 +26,7 @@ sub run {
     if (is_node(1)) {
         # Create sbd device
         my $sbd_lun = get_lun;
-        assert_script_run "sbd -d $sbd_lun create";
+        assert_script_run "sbd -d \"$sbd_lun\" create";
 
         # Add sbd device in /etc/sysconfig/sbd
         assert_script_run "curl -f -v " . autoinst_url . "/data/ha/sbd.template -o $sbd_cfg";
@@ -51,7 +52,13 @@ sub run {
     # We need to restart the cluster to start SBD
     # A mutex is used to restart one node at a time
     mutex_lock 'cluster_restart';
-    assert_script_run "crm cluster restart";
+    if (is_sle('12-SP4+')) {
+        assert_script_run "crm cluster restart";
+    }
+    else {
+        assert_script_run "crm cluster stop";
+        assert_script_run "crm cluster start";
+    }
     mutex_unlock 'cluster_restart';
 
     # Print SBD information

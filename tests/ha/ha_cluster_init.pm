@@ -61,7 +61,7 @@ sub run {
     my $sbd_cfg       = '/etc/sysconfig/sbd';
     my $unicast_opt   = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
-    my $fencing_opt   = "-s $sbd_device";
+    my $fencing_opt   = "-s \"$sbd_device\"";
     my $qdevice_opt;
 
     # Qdevice configuration
@@ -104,7 +104,7 @@ sub run {
 
     # State of SBD if shared storage SBD is used
     if (!get_var('USE_DISKLESS_SBD')) {
-        my $sbd_output = script_output("sbd -d $sbd_device list");
+        my $sbd_output = script_output("sbd -d \"$sbd_device\" list");
         record_soft_failure 'bsc#1170037 - All nodes not shown by sbd list command'
           if (get_node_number != (my $clear_count = () = $sbd_output =~ /\sclear\s|\sclear$/g));
     }
