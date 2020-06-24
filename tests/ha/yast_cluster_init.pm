@@ -16,6 +16,7 @@ use warnings;
 use testapi;
 use lockapi;
 use utils qw(zypper_call systemctl exec_and_insert_password);
+use version_utils qw(is_sle);
 use hacluster;
 
 sub run {
@@ -27,10 +28,14 @@ sub run {
 
     # Start yast2 cluster module
     script_run("yast2 cluster; echo yast2-cluster-status-\$? > /dev/$serialdev", 0);
-    assert_screen 'yast-cluster-overview', 60;
+    assert_screen ['yast-cluster-overview', 'yast-cluster-install-packages'], 60;
+    if (match_has_tag 'yast-cluster-install-packages') {
+        send_key 'alt-i';
+        assert_screen 'yast-cluster-overview', 60;
+    }
 
     # Bind network address
-    send_key 'alt-w';    # Bind network adress
+    send_key 'alt-w';    # Bind network address
     save_screenshot;
 
     # Remove preconfigured network
@@ -40,11 +45,15 @@ sub run {
     # Configure expected votes
     send_key 'alt-x';
     type_string "1";
+    wait_still_screen;
+    save_screenshot;
     wait_screen_change { send_key 'alt-n' };
 
-    # Corosync settings screen
-    assert_screen 'yast-cluster-corosync';
-    wait_screen_change { send_key 'alt-n' };
+    # Corosync settings screen, only on 15+
+    if (is_sle('15+')) {
+        assert_screen 'yast-cluster-corosync';
+        wait_screen_change { send_key 'alt-n' };
+    }
 
     # Security settings screen
     assert_screen 'yast-cluster-security';
@@ -52,14 +61,14 @@ sub run {
 
     # Csync2 settings screen
     assert_screen 'yast-cluster-csync2';
-    send_key 'alt-G';    # Generate Pre-Shared-Keys
-    send_key 'alt-O';    # Validation
-    send_key 'alt-S';    # Add suggested files
-    send_key 'alt-A';    # Add Sync host
+    wait_screen_change { send_key 'alt-G' };    # Generate Pre-Shared-Keys
+    send_key 'alt-O';                           # Validation
+    wait_screen_change { send_key 'alt-S' };    # Add suggested files
+    wait_screen_change { send_key 'alt-A' };    # Add Sync host
     type_string "$hostname";
-    send_key 'alt-O';    # Validation
-    send_key 'alt-u';    # Turn csync2 on
-    wait_still_screen 5;
+    send_key 'alt-O';                           # Validation
+    send_key 'alt-u';                           # Turn csync2 on
+    wait_still_screen 10;
     save_screenshot;
     wait_screen_change { send_key 'alt-n' };
 
@@ -68,17 +77,28 @@ sub run {
     wait_screen_change { send_key 'alt-n' };
 
     # Cluster service settings screen
+    # This screen is different depending on the yast2-cluster version.
+    # In 15-SP2 Alt-E is required to enable the cluster at boot time,
+    # and Alt-a to start cluster now. In older versions, Alt-a is
+    # required to start the cluster on boot and Alt-S to start the
+    # cluster now. The following combination of send_key calls tries
+    # to cover most cases
     assert_screen 'yast-cluster-service';
-    send_key 'alt-a';    # Start pacemaker during boot
+    send_key 'alt-E';    # Enable cluster
+    wait_still_screen;
     send_key 'alt-S';    # Start pacemaker now
-    wait_still_screen 5;
+    wait_still_screen;
+    send_key 'alt-a';    # Start pacemaker during boot
+    wait_still_screen;
+    save_screenshot;
     wait_screen_change { send_key "alt-n" };
     save_screenshot;
     wait_still_screen 5;
-    save_screenshot;
+    wait_serial('yast2-cluster-status-0', 90) || die "'yast2 cluster' didn't finish";
     save_state;
 
     # Generate ssh key
+    type_string "rm -rf /root/.ssh\n";
     assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
     assert_script_run 'cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys';
 
