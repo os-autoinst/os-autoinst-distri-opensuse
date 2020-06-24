@@ -304,7 +304,6 @@ sub t01_accounting {
     script_run("useradd $users{user_3}");
     script_run("useradd $users{user_4}");
 
-    script_run('sacctmgr -i add cluster linux');
     my $cluster = script_output('sacctmgr -n -p list cluster');
 
     if (index($cluster, 'linux') == -1) {

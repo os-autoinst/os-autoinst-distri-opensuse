@@ -71,6 +71,7 @@ EOF
     record_info("slurmdbd conf", script_output("cat /etc/slurm/slurmdbd.conf"));
     $self->enable_and_start("slurmdbd");
     systemctl('is-active slurmdbd');
+    script_run('sacctmgr -i add cluster linux');
     barrier_wait('SLURM_SETUP_DBD');
     barrier_wait("SLURM_MASTER_SERVICE_ENABLED");
 
