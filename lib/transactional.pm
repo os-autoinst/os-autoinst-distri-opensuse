@@ -34,25 +34,18 @@ our @EXPORT = qw(
 );
 
 sub process_reboot {
-    my (%args) = @_;
-    $args{trigger}            //= 0;
-    $args{automated_rollback} //= 0;
+    my $trigger = shift // 0;
 
     if (is_caasp) {
-        microos_reboot $args{trigger};
+        microos_reboot $trigger;
     } else {
-        power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
+        power_action('reboot', observe => !$trigger, keepconsole => 1);
         if (check_var('ARCH', 's390x')) {
-            reconnect_mgmt_console(timeout => 500, grub_expected_twice => $args{automated_rollback});
+            reconnect_mgmt_console(timeout => 500);
         } else {
             # Replace by wait_boot if possible
             assert_screen 'grub2', 100;
             send_key 'ret';
-            # After automated rollback is still needed to pass by grub a second time
-            if ($args{automated_rollback}) {
-                process_reboot();
-                return;
-            }
         }
         assert_screen 'linux-login', 200;
 
@@ -75,11 +68,11 @@ sub check_reboot_changes {
     my $change_happened = script_run "diff $mounted $default";
 
     # If changes are expected check that default subvolume changed
-    die "Error during diff"                                             if $change_happened > 1;
-    die "Change expected: $change_expected, happened: $change_happened" if $change_expected != $change_happened;
+    die "Error during diff"                                            if $change_happened > 1;
+    die "Change expected: $change_expected, happeed: $change_happened" if $change_expected != $change_happened;
 
     # Reboot into new snapshot
-    process_reboot(trigger => 1) if $change_happened;
+    process_reboot 1 if $change_happened;
 }
 
 # Return names and version of packages for transactional-update tests
@@ -149,7 +142,7 @@ sub trup_install {
     }
     if ($necessary) {
         trup_call("pkg install $necessary");
-        process_reboot(trigger => 1);
+        process_reboot(1);
     }
 
     # By the end, all pkgs should be installed
@@ -168,7 +161,7 @@ sub trup_shell {
     type_string("exit\n");
     wait_serial('trup_shell-status-0') || die "'transactional-update shell' didn't finish";
 
-    process_reboot(trigger => 1) if $args{reboot};
+    process_reboot 1 if $args{reboot};
 }
 
 # When transactional-update is triggered manually is required to wait for rollback.service
