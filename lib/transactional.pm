@@ -47,7 +47,7 @@ sub process_reboot {
         } else {
             # Replace by wait_boot if possible
             assert_screen 'grub2', 100;
-            send_key 'ret';
+            wait_screen_change { send_key 'ret' };
             # After automated rollback is still needed to pass by grub a second time
             if ($args{automated_rollback}) {
                 process_reboot();
