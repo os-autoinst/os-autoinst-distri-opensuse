@@ -10,20 +10,13 @@ vars:
     SOFTFAIL_BSC1063638: 1
     VALIDATE_ETC_HOSTS: 1
 schedule:
-    - "{{pre_boot_to_desktop}}"
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
     - console/hostname
     - "{{yast2_modules}}"
 conditional_schedule:
-    pre_boot_to_desktop:
-        ARCH:
-            aarch64:
-                - boot/uefi_bootmenu
-        BACKEND:
-            svirt:
-                - installation/bootloader_start
     yast2_modules:
         ARCH:
             x86_64:

@@ -4,17 +4,6 @@ description:    >
     Extra tests for software in desktop applications which were designed to run on gnome
     VNC_STALL_THRESHOLD is needed for xen svirt to don't turn off the scrreen after default 4 sec
 conditional_schedule:
-    bootloader:
-        ARCH:
-            'aarch64':
-                - boot/uefi_bootmenu
-            's390x':
-                - installation/bootloader_zkvm
-        MACHINE:
-            'svirt-xen-pv':
-                - installation/bootloader_svirt
-            'svirt-xen-hvm':
-                - installation/bootloader_svirt
     user_defined_snapshot:
         ARCH:
             'aarch64':
@@ -32,7 +21,7 @@ conditional_schedule:
             'x86_64':
                 - x11/keyboard_layout_gdm
 schedule:
-    - '{{bootloader}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup

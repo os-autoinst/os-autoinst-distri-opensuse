@@ -2,20 +2,8 @@ name:           extra_tests_in_textmode_phub
 description:    >
     Maintainer: slindomansilla.
     Extra tests about software in package hub
-conditional_schedule:
-    bootloader:
-        ARCH:
-            'aarch64':
-                - boot/uefi_bootmenu
-            's390x':
-                - installation/bootloader_zkvm
-        MACHINE:
-            'svirt-xen-pv':
-                - installation/bootloader_svirt
-            'svirt-xen-hvm':
-                - installation/bootloader_svirt
 schedule:
-    - '{{bootloader}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/machinery
     - sysauth/sssd

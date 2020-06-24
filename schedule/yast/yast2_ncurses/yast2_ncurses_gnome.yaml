@@ -5,7 +5,7 @@ description:    >
   which provides both text console for ncurses UI tests as well as
   the gnome environment for the GUI tests.
 schedule:
-  - "{{pre_boot_to_desktop}}"
+  - installation/bootloader_start
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
@@ -13,12 +13,6 @@ schedule:
   - "{{yast_modules}}"
   - console/coredump_collect
 conditional_schedule:
-  pre_boot_to_desktop:
-    ARCH:
-      aarch64:
-        - boot/uefi_bootmenu
-      s390x:
-        - installation/bootloader_start
   yast_modules:
     ARCH:
       x86_64:

@@ -16,12 +16,16 @@
 # - Boot selected entry
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
+package uefi_bootmenu;
 use base "basetest";
 use strict;
 use warnings;
 use testapi;
 use utils;
 use bootloader_setup;
+
+require Exporter;
+our @EXPORT = qw();
 
 sub run {
     my ($self) = @_;

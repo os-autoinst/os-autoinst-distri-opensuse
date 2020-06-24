@@ -5,18 +5,8 @@ description:    >
 vars:
   BOOT_HDD_IMAGE: 1
   HDDSIZEGB: 40
-conditional_schedule:
-  uefi_boot:
-    ARCH:
-      aarch64:
-        - boot/uefi_bootmenu
-  bootloader_zkvm:
-    ARCH:
-      s390x:
-        - installation/bootloader_zkvm
 schedule:
-  - "{{uefi_boot}}"
-  - "{{bootloader_zkvm}}"
+  - installation/bootloader_start
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
