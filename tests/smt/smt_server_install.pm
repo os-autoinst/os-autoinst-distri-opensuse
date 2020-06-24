@@ -44,7 +44,7 @@ sub run {
     type_string 'osukup@suse.com';
     wait_screen_change { send_key "alt-y" };
     foreach (0 .. 15) {
-        wait_screen_change { send_key "backspace" };
+        send_key "backspace";
     }
     type_string "http://server/";
     assert_screen "smt_settings";
@@ -79,25 +79,35 @@ sub run {
     wait_screen_change { send_key "alt-o" };
 
     wait_screen_change { send_key "alt-n" };
-    wait_still_screen(7, 45);
-    wait_screen_change(sub { }, 360);
-    $self->clear_and_verify_console;
+    wait_serial("$module_name-0", 500) || die "yast2 smt-wizard failed";
 
     #creating smt certificate
-    script_run("yast ca_mgm", timeout => 0);
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ca_mgm');
     wait_still_screen;
     assert_screen "smt-yast-ca";
-    wait_screen_change { send_key "alt-e" };
+    wait_still_screen(2);
+    send_key "alt-e";
+    wait_still_screen(2);
     type_string "susetest";
-    wait_screen_change { send_key "alt-o" };
-    wait_screen_change { send_key "alt-e" };
-    wait_screen_change { send_key "alt-r" };
-    wait_screen_change { send_key "alt-o" };
-    wait_screen_change { send_key "alt-d" };
-    wait_screen_change { send_key "alt-o" };
-    wait_screen_change { send_key "alt-a" };
-    wait_screen_change { send_key "alt-a" };
+    wait_still_screen(2);
+    send_key "alt-o";
+    wait_still_screen(2);
+    send_key "alt-e";
+    wait_still_screen(2);
+    send_key "alt-r";
+    wait_still_screen(2);
+    send_key "alt-o";
+    wait_still_screen(2);
+    send_key "alt-d";
+    wait_still_screen(2);
+    send_key "alt-o";
+    wait_still_screen(2);
+    send_key "alt-a";
+    wait_still_screen(2);
+    send_key "alt-a";
+    assert_screen 'smt-ca-new-server-vertificate';
     type_string "server";
+    wait_still_screen(2);
     wait_screen_change { send_key "alt-n" };
     wait_screen_change { send_key "alt-a" };
     wait_screen_change { send_key "down" };
@@ -113,28 +123,32 @@ sub run {
     wait_screen_change { send_key "ret" };
     wait_screen_change { send_key "alt-a" };
     wait_screen_change { send_key "alt-d" };
-    wait_screen_change { send_key "alt-n" };
+    send_key "alt-n";
+    wait_still_screen(2);
     type_string "server";
+    wait_still_screen(2);
     wait_screen_change { send_key "alt-o" };
     wait_screen_change { send_key "alt-o" };
     wait_screen_change { send_key "alt-u" };
     wait_screen_change { send_key "alt-n" };
     assert_screen "smt-ca-settings";
-    wait_screen_change { send_key "alt-t" };
-    wait_still_screen(3, 45);
+    send_key "alt-t";
+    wait_still_screen(2);
     wait_screen_change { send_key "alt-x" };
     assert_screen "smt-export-ca";
     wait_screen_change { send_key "alt-p" };
-    wait_screen_change { send_key "alt-p" };
     assert_screen "smt-yastca-passwd";
+    wait_screen_change { send_key "alt-p" };
+    wait_still_screen(2);
     type_string "susetest";
-    wait_screen_change { send_key "alt-o" };
-    wait_still_screen;
-    wait_screen_change { send_key "alt-o" };
-    wait_still_screen;
+    wait_still_screen(2);
+    send_key "alt-o";
+    wait_still_screen(2);
+    send_key "alt-o";
+    wait_still_screen(2);
     wait_screen_change { send_key "alt-o" };
     wait_screen_change { send_key "alt-f" };
-    $self->clear_and_verify_console;
+    wait_serial("$module_name-0", 200) || die "yast2 ca_mgm failed";
 
     #mirroring repos
     assert_script_run "df -h";    #mirroring needs quite a lot of space
@@ -155,4 +169,9 @@ sub run {
     save_screenshot;
     select_console "x11";
 }
+
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
