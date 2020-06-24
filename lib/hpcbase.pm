@@ -48,6 +48,7 @@ sub post_fail_hook {
 sub get_remote_logs {
     my ($self, $machine, $logs) = @_;
     script_run("scp -o StrictHostKeyChecking=no root\@$machine:/var/log/$logs /tmp/$machine\@$logs");
+    upload_logs("/tmp/$machine\@$logs", failok => 1);
 }
 
 sub switch_user {
