@@ -546,6 +546,7 @@ sub post_fail_hook {
     $self->upload_service_log('munge');
     $self->upload_service_log('slurmctld');
     $self->export_logs_basic;
+    $self->get_remote_logs('slave-node02', 'slurmdbd.log');
     upload_logs('/var/log/slurmctld.log');
 }
 
