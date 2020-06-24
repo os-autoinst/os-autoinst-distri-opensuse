@@ -1701,7 +1701,7 @@ sub load_extra_tests_docker {
     my ($image_names, $stable_names) = get_suse_container_urls();
     return unless @$image_names;
 
-    if (is_leap('15.1+') || is_tumbleweed) {
+    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
         loadtest 'containers/podman';
         loadtest "containers/podman_image" unless is_public_cloud;
     }
