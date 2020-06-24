@@ -15,15 +15,14 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use lockapi 'mutex_create';
-use mmapi 'wait_for_children';
+use lockapi;
+use mmapi;
 use utils;
 use mm_network 'setup_static_mm_network';
 use y2_module_guitest '%setup_nis_nfs_x11';
 use x11utils 'turn_off_gnome_screensaver';
 use y2_module_consoletest;
 use scheduler 'get_test_suite_data';
-
 
 sub setup_verification {
     script_run 'rpcinfo -u localhost ypserv';    # ypserv is running
@@ -126,15 +125,18 @@ sub run {
     nis_server_configuration();
     wait_serial("$module_name-0", 360) || die "'yast2 nis server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible';
-    # NIS Server is configured and running, configuration continues on client side
-    mutex_create('nis_ready');
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nfs_server');
     nfs_server_configuration();
     wait_serial("$module_name-0", 360) || die "'yast2 nfs server' didn't finish";
     assert_screen 'yast2_closed_xterm_visible', 200;
-    # NFS Server is configured and running, configuration continues on client side
-    mutex_create('nfs_ready');
-    wait_for_children;
+    # In order for the hostname to get the set value via yast2 nis_server, a restart is needed. Otherwise "make"
+    # command won't work as in Makefile, there is a variable that gets it's value from "domainname" command
+    systemctl 'restart network';
+    # NIS and NFS Server is configured and running, configuration continues on client side
+    mutex_create('nis_nfs_server_ready');
+    my $children = get_children();
+    my $child_id = (keys %$children)[0];
+    mutex_wait('nis_nfs_client_ready', $child_id);
     # Read content of a file created by the client
     setup_verification();
     type_string "killall xterm\n";    # game over -> xterm

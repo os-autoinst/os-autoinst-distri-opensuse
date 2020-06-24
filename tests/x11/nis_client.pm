@@ -15,7 +15,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
-use lockapi 'mutex_lock';
+use lockapi;
 use utils;
 use version_utils 'is_opensuse';
 use mm_network 'setup_static_mm_network';
@@ -121,15 +121,15 @@ sub run {
     # we have to stop the firewall, see bsc#999873 and bsc#1083487#c36
     systemctl 'stop ' . $self->firewall;
 
-    mutex_lock('nis_ready');    # wait for NIS server setup
+    mutex_wait('nis_nfs_server_ready');    # wait for server setup
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'nis');
     setup_nis_client($server_ip);
-    mutex_lock('nfs_ready');    # wait for NFS server setup
     nfs_settings_tab();
     nfs_shares_tab($server_ip);
     wait_serial("$module_name-0", 360) || die "'yast2 nis client' didn't finish";
     setup_verification();
-    type_string "killall xterm\n";    # game over -> xterm
+    mutex_create('nis_nfs_client_ready');
+    type_string "killall xterm\n";         # game over -> xterm
 }
 
 1;
