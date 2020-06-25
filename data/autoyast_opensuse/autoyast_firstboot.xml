@@ -28,9 +28,6 @@
         <pattern>base</pattern>
         <pattern>gnome</pattern>
       </patterns>
-      <products config:type="list">
-        <product>openSUSE</product>
-      </products>
     </software>
     <users config:type="list">
         <user>
