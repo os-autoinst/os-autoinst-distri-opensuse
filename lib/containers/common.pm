@@ -141,8 +141,8 @@ sub test_container_image {
     my ($name, $tag) = split(/:/, $image);
     $tag //= 'latest';
 
-    # Pull the image
-    assert_script_run("$runtime pull $image", timeout => 300);
+    # Pull the image if necessary
+    assert_script_run("$runtime pull $image", timeout => 300) if script_run("$runtime image ls | grep \"$image\" | grep \"$tag\"") != 0;
     assert_script_run("$runtime image ls | grep '$name' | grep '$tag'");
 
     my $container = "${runtime}_${name}_${tag}_smoketest";
