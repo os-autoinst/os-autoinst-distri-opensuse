@@ -37,6 +37,8 @@ use constant {
           is_aarch64
           is_arm
           is_ppc64le
+          is_ppc64
+          is_powerpc
           )
     ]
 };
@@ -124,6 +126,28 @@ Returns C<check_var('ppc64le')>.
 =cut
 sub is_ppc64le {
     return check_var('ARCH', 'ppc64le');
+}
+
+=head2 is_ppc64
+
+ is_ppc64();
+
+Returns C<check_var('ppc64')>.
+
+=cut
+sub is_ppc64 {
+    return check_var('ARCH', 'ppc64');
+}
+
+=head2 is_powerpc
+
+ is_powerpc();
+
+Returns C<check_var('ppc64le') || check_var('ppc64')>.
+
+=cut
+sub is_powerpc {
+    return (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'ppc64'));
 }
 
 1;
