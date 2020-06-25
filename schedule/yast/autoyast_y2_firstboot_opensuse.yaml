@@ -1,0 +1,15 @@
+name:           autoyast_y2_firstboot
+description:    >
+    Smoke test for YaST2 firstboot module
+vars:
+    AUTOYAST: autoyast_opensuse/autoyast_firstboot.xml
+    DESKTOP: gnome
+    YAST2_FIRSTBOOT_USERNAME: firstbootuser
+schedule:
+    - autoyast/prepare_profile
+    - installation/isosize
+    - installation/bootloader_start
+    - autoyast/installation
+    - installation/yast2_firstboot
+    - installation/first_boot
+    - console/validate_yast2_firstboot_configuration
