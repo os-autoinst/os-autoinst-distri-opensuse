@@ -1,12 +1,12 @@
 ---
-name:           yast_self_update
+name:           yast_no_self_update
 description:    >
-  Test suite conducts installation with self-update explicitly enabled. No hard
-  checks are done that the self-updating is really disabled.
+  Test suite conducts installation with self-update explicitly disabled. No
+  hard checks are done that the self-updating is really disabled.
   Installation is validated by successful boot and that YaST does not report
   any issue.
 vars:
-  INSTALLER_SELF_UPDATE: 1
+  INSTALLER_SELF_UPDATE: 0
 schedule:
   - installation/isosize
   - installation/bootloader
