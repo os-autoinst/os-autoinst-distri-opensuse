@@ -74,7 +74,8 @@ sub allow_registry_suse_de_for_docker {
 }
 
 sub clean_container_host {
-    my $runtime = $_[0];
+    my %args    = @_;
+    my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     assert_script_run("$runtime stop \$($runtime ps -q)", 180) if script_output("$runtime ps -q | wc -l") != '0';
     assert_script_run("$runtime system prune -a -f",      180);
@@ -82,6 +83,7 @@ sub clean_container_host {
 
 sub test_container_runtime {
     my $runc = shift;
+    die "You must define the runtime!" unless $runc;
 
     # installation of runtime
     record_info 'Test #1', 'Test: Installation';
@@ -136,25 +138,27 @@ sub test_container_runtime {
 
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
-    my $image   = $_[0];
-    my $runtime = $_[1] //= "docker";
-    my ($name, $tag) = split(/:/, $image);
-    $tag //= 'latest';
+    my %args    = @_;
+    my $image   = $args{image};
+    my $runtime = $args{runtime};
+
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
 
     # Pull the image if necessary
-    assert_script_run("$runtime pull $image", timeout => 300) if script_run("$runtime image ls | grep \"$image\" | grep \"$tag\"") != 0;
-    assert_script_run("$runtime image ls | grep '$name' | grep '$tag'");
+    if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
+        assert_script_run("$runtime pull $image", timeout => 300);
+        assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
+    }
 
-    my $container = "${runtime}_${name}_${tag}_smoketest";
-    $container =~ s!/!.!g;    # Slashes are not allowed as container names, but used for fetching images. Replace them with a dot
-    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $name:$tag\"";
-    assert_script_run("$runtime container create --name '$container' '$name:$tag' /bin/sh -c '$smoketest'");
-    assert_script_run("$runtime container start '$container'");
-    assert_script_run("$runtime container logs '$container' > '/var/tmp/container_$container'");
-    assert_script_run("$runtime wait '$container'", 90);
-    assert_script_run("$runtime container rm '$container'");
-    assert_script_run("grep \"`uname -r`\" '/var/tmp/container_$container'");
-    assert_script_run("grep \"Heartbeat from $name:$tag\" '/var/tmp/container_$container'");
+    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
+    assert_script_run("$runtime container create --name 'testing' '$image' /bin/sh -c '$smoketest'");
+    assert_script_run("$runtime container start 'testing'");
+    assert_script_run("$runtime wait 'testing'", 90);
+    assert_script_run("$runtime container logs 'testing' > '/var/tmp/container_testing'");
+    assert_script_run("$runtime container rm 'testing'");
+    assert_script_run("grep \"`uname -r`\" '/var/tmp/container_testing'");
+    assert_script_run("grep \"Heartbeat from $image\" '/var/tmp/container_testing'");
 }
 
 sub scc_apply_docker_image_credentials {

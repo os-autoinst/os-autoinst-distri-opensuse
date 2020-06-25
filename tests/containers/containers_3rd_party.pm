@@ -33,7 +33,7 @@ sub run_image_tests {
     my $engine = shift;
     my @images = @_;
     foreach my $image (@images) {
-        test_container_image($image, $engine);
+        test_container_image(image => $image, runtime => $engine);
         script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
     }
 }
@@ -63,7 +63,7 @@ sub run {
     } else {
         install_docker_when_needed();
         run_image_tests('docker', @docker_images);
-        clean_container_host('docker');
+        clean_container_host(runtime => 'docker');
     }
     # Run podman tests
     if (skip_podman) {
@@ -73,7 +73,7 @@ sub run {
         # In SLE we need to add the Containers module
         install_podman_when_needed();
         run_image_tests('podman', @podman_images);
-        clean_container_host('podman');
+        clean_container_host(runtime => 'podman');
     }
 }
 

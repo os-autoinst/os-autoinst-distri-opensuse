@@ -19,3 +19,4 @@ schedule:
     - boot/boot_to_desktop
     - containers/podman_image
     - containers/docker_image
+    - containers/container_diff

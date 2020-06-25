@@ -58,7 +58,7 @@ sub run {
     test_built_img("docker");
 
     # Clean container
-    clean_container_host("docker");
+    clean_container_host(runtime => "docker");
 }
 
 1;

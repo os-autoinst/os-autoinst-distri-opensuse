@@ -69,7 +69,7 @@ sub run {
     assert_script_run 'cd';
 
     remove_suseconnect_product(get_addon_fullname('phub')) if is_sle();
-    clean_container_host('docker');
+    clean_container_host(runtime => 'docker');
 }
 
 sub post_fail_hook {
