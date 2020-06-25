@@ -22,10 +22,10 @@ conditional_schedule:
         DISTRI:
             'opensuse':
                 - containers/docker_image
-    container_base_images:
+    containers_3rd_party:
         DISTRI:
             'opensuse':
-                - containers/container_base_images
+                - containers/containers_3rd_party
     docker_compose:
         DISTRI:
             'opensuse':
@@ -38,7 +38,7 @@ schedule:
     - containers/docker
     - containers/docker_runc
     - '{{docker_image}}'
-    - '{{container_base_images}}'
+    - '{{containers_3rd_party}}'
     - '{{docker_compose}}'
     - containers/zypper_docker
     - console/coredump_collect

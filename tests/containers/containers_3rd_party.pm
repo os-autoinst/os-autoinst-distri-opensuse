@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Pull and test several base images (alpine, openSUSE, debian, ubuntu, fedora, centos) for their base functionality
-#          Log the test results in container_base_images.txt
+#          Log the test results in containers_3rd_party.txt
 #          Docker or Podman tests can be skipped by setting SKIP_DOCKER_IMAGE_TESTS=1 or SKIP_PODMAN_IMAGE_TESTS=1 in the job
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
@@ -34,17 +34,17 @@ sub run_image_tests {
     my @images = @_;
     foreach my $image (@images) {
         test_container_image($image, $engine);
-        script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/container_base_images_log.txt");
+        script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
     }
 }
 
 sub upload_image_logs {
     # Rename for better visibility in Uploaded Logs
-    if (script_run('mv /var/tmp/container_base_images_log.txt /tmp/container_base_images.txt') != 0) {
+    if (script_run('mv /var/tmp/containers_3rd_party_log.txt /tmp/containers_3rd_party.txt') != 0) {
         record_info("No logs", "No logs found");
     } else {
-        upload_logs("/tmp/container_base_images.txt");
-        script_run("rm /tmp/container_base_images.txt");
+        upload_logs("/tmp/containers_3rd_party.txt");
+        script_run("rm /tmp/containers_3rd_party.txt");
     }
 }
 
@@ -55,11 +55,11 @@ sub run {
     my @docker_images = ('alpine', 'opensuse/leap', 'opensuse/tumbleweed', 'debian', 'ubuntu', 'centos', 'fedora');
     my @podman_images = ('alpine', 'opensuse/leap', 'opensuse/tumbleweed', 'debian', 'ubuntu', 'centos', 'fedora');
 
-    script_run('echo "Container base image tests:" > /var/tmp/container_base_images_log.txt');
+    script_run('echo "Container base image tests:" > /var/tmp/containers_3rd_party_log.txt');
     # Run docker tests
     if (skip_docker) {
         record_info("Skip Docker", "Docker image tests skipped");
-        script_run("echo 'INFO: Docker image tests skipped' >> /var/tmp/container_base_images_log.txt");
+        script_run("echo 'INFO: Docker image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
         install_docker_when_needed();
         run_image_tests('docker', @docker_images);
@@ -68,7 +68,7 @@ sub run {
     # Run podman tests
     if (skip_podman) {
         record_info("Skip Podman", "Podman image tests skipped");
-        script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/container_base_images_log.txt");
+        script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
         # In SLE we need to add the Containers module
         install_podman_when_needed();

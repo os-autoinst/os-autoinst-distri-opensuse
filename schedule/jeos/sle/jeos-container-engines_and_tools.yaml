@@ -35,6 +35,6 @@ schedule:
     - containers/docker
     - containers/docker_runc
     - containers/docker_image
-    - containers/container_base_images
+    - containers/containers_3rd_party
     - containers/zypper_docker
     - containers/docker_compose

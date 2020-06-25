@@ -1708,7 +1708,7 @@ sub load_extra_tests_docker {
 
     loadtest "containers/docker";
     loadtest "containers/docker_runc";
-    loadtest "containers/container_base_images";
+    loadtest "containers/containers_3rd_party";
     loadtest "containers/docker_image" if (!is_public_cloud && (is_sle(">=12-sp3") || is_opensuse));
     loadtest "containers/docker_compose" unless is_sle('<15');
     loadtest "containers/zypper_docker";
