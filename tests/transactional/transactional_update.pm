@@ -69,7 +69,7 @@ sub run {
     if (is_opensuse && get_var('BETA')) {
         record_info 'Remove pkgs', 'Remove preinstalled packages on Leap BETA';
         trup_call "pkg remove update-test-[^t]*";
-        process_reboot 1;
+        process_reboot(trigger => 1);
     }
 
     get_utt_packages;
