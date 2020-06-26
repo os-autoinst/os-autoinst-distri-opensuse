@@ -22,6 +22,7 @@ schedule:
   - console/consoletest_setup
   - console/hostname
   - console/snapper_create_from
+  - transactional/verify_undelete_snapshots
 test_data:
   snapshots:
     - description: 'Snapshot with read-write'
