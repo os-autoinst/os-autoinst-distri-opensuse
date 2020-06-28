@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sles4sap);
+use Utils::Backends 'is_pvm';
 
 sub run {
     my $self = shift;
@@ -106,6 +107,7 @@ sub run {
     # We can't use 'keepconsole' here, because sometimes a display-manager upgrade can lead to a screen change
     # during restart of the X/GDM stack
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
 
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test

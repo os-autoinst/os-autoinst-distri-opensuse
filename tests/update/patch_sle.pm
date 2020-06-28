@@ -17,6 +17,7 @@ use version_utils qw(is_sle is_desktop_installed is_upgrade is_sles4sap);
 use migration;
 use registration;
 use qam;
+use Utils::Backends 'is_pvm';
 
 
 sub patching_sle {
@@ -68,6 +69,7 @@ sub patching_sle {
             script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
             # Remove '-f' for reboot for poo#65226
             type_string "reboot\n";
+            reconnect_mgmt_console if is_pvm;
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300, nologin => $nologin);
             # Setup again after reboot
             $self->setup_sle();
