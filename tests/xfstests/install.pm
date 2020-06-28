@@ -26,7 +26,6 @@ use repo_tools 'add_qa_head_repo';
 
 my $STATUS_LOG  = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
-my $LOCAL_DIR   = '/tmp/xfstests-dev';
 
 sub install_xfstests_from_ibs {
     add_qa_head_repo(priority => 100);
@@ -44,7 +43,7 @@ sub log_create {
 
 sub collect_version {
     my $file = shift;
-    my $cmd  = "(cd /tmp/xfstests-dev; git rev-parse HEAD; cd - > /dev/null; rpm -qa xfsprogs xfsdump btrfsprogs; uname -r) | tee $file";
+    my $cmd  = "(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests; uname -r) | tee $file";
     script_run($cmd);
 }
 
@@ -56,6 +55,7 @@ sub run {
     pkcon_quit;
 
     install_xfstests_from_ibs;
+    script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
 
     # Create log file
     log_create($STATUS_LOG);
