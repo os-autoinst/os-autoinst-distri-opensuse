@@ -980,6 +980,11 @@ sub wait_boot {
     # shutting down or booting up
     $self->{in_wait_boot} = 1;
 
+    # for powerVM, it need switch console, it need wait longer time to
+    # get grub page. After we get grub page, the workflow will be same
+    # as others
+    $self->wait_grub(bootloader_time => $bootloader_time) if is_pvm;
+
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
     select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');

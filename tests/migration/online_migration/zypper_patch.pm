@@ -19,6 +19,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sles4sap);
 use migration;
 use qam;
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -28,6 +29,7 @@ sub run {
     fully_patch_system;
     remove_ltss;
     power_action('reboot', keepconsole => 1, textmode => 1);
+    reconnect_mgmt_console if is_pvm;
 
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test

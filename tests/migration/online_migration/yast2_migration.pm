@@ -18,6 +18,7 @@ use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sle);
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
+use Utils::Backends 'is_pvm';
 
 sub yast2_migration_gnome_remote {
     return check_var('MIGRATION_METHOD', 'yast') && check_var('DESKTOP', 'gnome') && get_var('REMOTE_CONNECTION');
@@ -221,7 +222,7 @@ sub run {
     send_key "alt-n";
     assert_screen 'yast2-migration-startupgrade', 90;
     send_key "alt-u";
-    assert_screen "yast2-migration-upgrading";
+    assert_screen "yast2-migration-upgrading", 120;
 
     # start migration
     my $timeout = 7200;
@@ -266,9 +267,10 @@ sub run {
         # reboot
         send_key "alt-r";
         power_action('reboot', observe => 1, keepconsole => 1);
+        reconnect_mgmt_console if is_pvm;
         # sometimes reboot takes longer time after online migration
         # give more time to reboot
-        $self->wait_boot(bootloader_time => 300, textmode => !is_desktop_installed);
+        $self->wait_boot(bootloader_time => 300, textmode => !is_desktop_installed, ready_time => 600);
     }
     else {
         wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
