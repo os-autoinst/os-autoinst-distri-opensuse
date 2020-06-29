@@ -40,6 +40,8 @@ our @EXPORT = qw(
   handle_dhcp_popup
   open_yast2_lan
   close_yast2_lan
+  open_yast2_routing
+  change_ipforward
   wait_for_xterm_to_be_visible
   clear_journal_log
   close_xterm
@@ -351,6 +353,39 @@ sub handle_dhcp_popup {
     if (match_has_tag('dhcp-popup')) {
         wait_screen_change { send_key 'alt-o' };
     }
+}
+
+=head2 open_yast2_routing
+
+ open_yast2_routing();
+
+Open yast2 routing
+
+=cut
+sub open_yast2_routing {
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'routing');
+    assert_screen "yast2_routing", 120;
+}
+
+=head2 change_ipforward
+
+ change_ipforward([$state], [$should_conflict]);
+
+C<$state> enabled/disabled will used to set the expected needle to match
+C<$should_conflict> 1 means conflict is expected or 0 otherwise
+
+Open routing module and enable or disable ip_forwarding
+
+=cut
+sub change_ipforward {
+    my %options = @_;
+    open_yast2_routing();
+    send_key 'spc';
+    assert_screen "ipv4_forwarding_$options{state}";
+    send_key 'alt-n', wait_screen_change => 1;
+    assert_screen "sysctl_ip_forward_conflict" if ($options{should_conflict});
+    send_key 'alt-o';
+    wait_serial("yast2-routing-status-0", 180) || die "'yast2-routing' didn't finish";
 }
 
 =head2 open_yast2_lan
