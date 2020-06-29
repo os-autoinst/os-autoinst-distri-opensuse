@@ -159,6 +159,10 @@ sub init_cmd {
         $testapi::cmd{sync_interval}       = "alt-i";
         $testapi::cmd{sync_without_daemon} = "alt-s";
     }
+    if (check_var('VIDEOMODE', 'text') && check_var('SCC_REGISTER', 'installation')) {
+        $testapi::cmd{expertpartitioner} = "alt-x";
+    }
+
     ## keyboard cmd vars end
 }
 
