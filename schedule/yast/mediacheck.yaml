@@ -1,0 +1,16 @@
+---
+name: mediacheck
+description: >
+  Test suite triggers installation medium check and verifies that check passes
+  in linuxrc.
+vars:
+  MEDIACHECK: '1'
+schedule:
+  - '{{bootloader}}'
+  - installation/mediacheck
+conditional_schedule:
+  bootloader:
+    VIRSH_VMM_TYPE:
+      hvm:
+        - installation/bootloader_start
+

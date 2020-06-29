@@ -1,0 +1,25 @@
+---
+name: releasenotes_origin+unregistered
+description: >
+  Test fate#323273 - Check the origin (rpm or url) of the showed release notes.
+vars:
+  CHECK_RELEASENOTES_ORIGIN: '1'
+  EXIT_AFTER_START_INSTALL: '1'
+  SCC_REGISTER: 'none'
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/releasenotes_origin
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
