@@ -105,6 +105,7 @@ sub prepare_pvm_installation {
     specific_bootmenu_params;
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
     type_string_slow remote_install_bootmenu_params;
+    type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
     type_string_slow "\n";
 
     assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # kernel is downloaded while waiting
@@ -124,19 +125,21 @@ sub prepare_pvm_installation {
     }
     assert_screen("run-yast-ssh", 300);
 
-    # Delete partition table before starting installation
-    select_console('install-shell');
+    if (!get_var('UPGRADE')) {
+        # Delete partition table before starting installation
+        select_console('install-shell');
 
-    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
-    for my $d (split('\n', $disks)) {
-        script_run "wipefs -a /dev/$d";
-        if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
-        {
-            create_encrypted_part(disk => $d);
-            if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
-                mimic_user_to_import(disk => $d,
-                    passwd => get_var('ETC_PASSWD'),
-                    shadow => get_var('ETC_SHADOW'));
+        my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
+        for my $d (split('\n', $disks)) {
+            script_run "wipefs -a /dev/$d";
+            if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
+            {
+                create_encrypted_part(disk => $d);
+                if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
+                    mimic_user_to_import(disk => $d,
+                        passwd => get_var('ETC_PASSWD'),
+                        shadow => get_var('ETC_SHADOW'));
+                }
             }
         }
     }
