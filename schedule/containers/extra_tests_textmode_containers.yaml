@@ -22,6 +22,7 @@ conditional_schedule:
         DISTRI:
             'opensuse':
                 - containers/docker_image
+                - containers/container_diff
     containers_3rd_party:
         DISTRI:
             'opensuse':

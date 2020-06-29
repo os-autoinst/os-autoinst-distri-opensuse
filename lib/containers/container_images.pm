@@ -22,12 +22,16 @@ use strict;
 use warnings;
 use version_utils;
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image perform_container_diff);
+our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image);
 
 # Build any container image using a basic Dockerfile
 sub build_container_image {
-    my $image   = shift;
-    my $runtime = shift // "docker";
+    my %args    = @_;
+    my $image   = $args{image};
+    my $runtime = $args{runtime};
+
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
 
     my $dir = "/root/sle_base_image/docker_build";
 
@@ -56,14 +60,15 @@ sub build_with_sle2docker {
 
 # Testing openSUSE based images
 sub test_opensuse_based_image {
-    my $image = $_[0];
-    my ($name, $tag) = split(/:/, $image);
-    $tag //= 'latest';
+    my %args    = @_;
+    my $image   = $args{image};
+    my $runtime = $args{runtime};
 
-    my $runtime = $_[1] //= "docker";
+    my $distri  = $args{distri}  //= get_required_var("DISTRI");
+    my $version = $args{version} //= get_required_var("VERSION");
 
-    my $distri  = $_[2] //= get_required_var("DISTRI");
-    my $version = $_[3] //= get_required_var("VERSION");
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
 
     # It is the right version
     if ($distri eq 'sle') {
@@ -92,27 +97,6 @@ sub test_opensuse_based_image {
     assert_script_run("$runtime rm refreshed", 120);
     # Verify the image works
     assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
-}
-
-sub perform_container_diff {
-    my $first  = $_[0];
-    my $second = $_[1];
-
-    # The container-diff is available only for x86_64 architecture
-    # The registry.suse.de is not accessible from PC instances
-    return unless check_var('ARCH', 'x86_64');
-
-    zypper_call("install container-diff") if (script_run("which container-diff") != 0);
-
-    # container-diff
-    my $image_file = $first =~ s/\/|:/-/gr;
-    if (script_run("docker pull $second", 600) == 0) {
-        assert_script_run("container-diff diff daemon://$first daemon://$second --type=rpm --type=file --type=history > /tmp/container-diff-$image_file.txt", 300);
-        upload_logs("/tmp/container-diff-$image_file.txt");
-        assert_script_run("docker image rm $second");
-    } else {
-        record_soft_failure("Could not compare $first to $second as $second could not be downloaded");
-    }
 }
 
 1;

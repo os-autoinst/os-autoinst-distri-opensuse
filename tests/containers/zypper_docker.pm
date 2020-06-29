@@ -50,7 +50,7 @@ sub run {
     # apply all the updates to a new_image
     assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
 
-    clean_container_host('docker');
+    clean_container_host(runtime => 'docker');
 }
 
 1;

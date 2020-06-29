@@ -138,6 +138,7 @@ sub basic_container_tests {
 # Setup environment
 sub set_up {
     my $dir = shift;
+    die "You must define the directory!" unless $dir;
 
     assert_script_run("mkdir -p $dir/BuildTest");
     assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
@@ -147,7 +148,8 @@ sub set_up {
 
 # Build the image
 sub build_img {
-    my $dir     = shift;
+    my $dir = shift;
+    die "You must define the directory!" unless $dir;
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
 

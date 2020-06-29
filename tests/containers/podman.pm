@@ -53,7 +53,7 @@ sub run {
     test_built_img("podman");
 
     # Clean container
-    clean_container_host("podman");
+    clean_container_host(runtime => "podman");
 }
 
 sub post_fail_hook {

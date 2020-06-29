@@ -42,16 +42,13 @@ sub run {
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
     for my $i (0 .. $#$image_names) {
-        test_container_image($image_names->[$i], 'docker');
-        build_container_image($image_names->[$i], 'docker');
-        test_opensuse_based_image($image_names->[$i], 'docker');
-        if (check_var("ARCH", "x86_64")) {
-            perform_container_diff($image_names->[$i], $stable_names->[$i]);
-        }
+        test_container_image(image => $image_names->[$i], runtime => 'docker');
+        build_container_image(image => $image_names->[$i], runtime => 'docker');
+        test_opensuse_based_image(image => $image_names->[$i], runtime => 'docker');
     }
 
     scc_restore_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
-    clean_container_host('docker');
+    clean_container_host(runtime => 'docker');
 }
 
 1;

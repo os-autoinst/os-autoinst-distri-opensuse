@@ -30,11 +30,11 @@ sub run {
     install_podman_when_needed();
 
     for my $i (0 .. $#$image_names) {
-        test_container_image($image_names->[$i], 'podman');
-        build_container_image($image_names->[$i], 'podman');
-        test_opensuse_based_image($image_names->[$i], 'podman');
+        test_container_image(image => $image_names->[$i], runtime => 'podman');
+        build_container_image(image => $image_names->[$i], runtime => 'podman');
+        test_opensuse_based_image(image => $image_names->[$i], runtime => 'podman');
     }
-    clean_container_host('podman');
+    clean_container_host(runtime => 'podman');
 }
 
 1;

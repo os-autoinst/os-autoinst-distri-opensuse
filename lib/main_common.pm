@@ -1709,8 +1709,11 @@ sub load_extra_tests_docker {
     loadtest "containers/docker";
     loadtest "containers/docker_runc";
     loadtest "containers/containers_3rd_party";
-    loadtest "containers/docker_image" if (!is_public_cloud && (is_sle(">=12-sp3") || is_opensuse));
-    loadtest "containers/docker_compose" unless is_sle('<15');
+    if ((!is_public_cloud() && is_sle(">=12-sp3")) || is_opensuse()) {
+        loadtest "containers/docker_image";
+        loadtest "containers/container_diff";
+    }
+    loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
     loadtest "containers/zypper_docker";
 }
 
