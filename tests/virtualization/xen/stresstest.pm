@@ -31,7 +31,7 @@ sub run {
         if ($sles_running_version >= 15) {
             # Push test script to guest and execute it
             assert_script_run("scp /var/tmp/stresstest.sh root\@$guest:/var/tmp/stresstest.sh");
-            script_run("ssh root\@$guest bash -x /var/tmp/stresstest.sh | tee /var/tmp/stresstest-$guest.txt", timeout => 600);
+            script_run("ssh root\@$guest bash -x /var/tmp/stresstest.sh | tee /var/tmp/stresstest-$guest.txt", timeout => 900);
             upload_logs("/var/tmp/stresstest-$guest.txt");
             if (script_run("grep 'OK' /var/tmp/stresstest-$guest.txt", timeout => 300)) {
                 record_soft_failure "stresstest failed on $guest";

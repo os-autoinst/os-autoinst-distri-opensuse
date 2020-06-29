@@ -49,6 +49,7 @@ sub run {
             script_run "virsh destroy $guest",      90;
             assert_script_run "virsh start $guest", 60;
         }
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6);
 
         check_virt_kernel($guest, 'after');
         script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-after.txt";
