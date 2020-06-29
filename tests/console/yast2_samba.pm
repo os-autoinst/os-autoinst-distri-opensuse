@@ -183,11 +183,15 @@ sub setup_samba_startup {
         assert_screen 'yast2_samba-server_start-during-boot';
     }
     else {
-        change_service_configuration(
-            after_writing => {start         => 'alt-e'},
-            after_reboot  => {start_on_boot => 'alt-a'}
-        );
+        send_key 'alt-e';
+        send_key 'end';
+        send_key_until_needlematch 'yast2_ncurses_service_start_after_writing_conf', 'up', 5, 1;
+        send_key 'ret';
+        send_key 'alt-a';
+        send_key_until_needlematch 'yast2_ncurses_service_start_on_boot_after_reboot', 'up', 5, 1;
+        send_key 'ret';
     }
+
     send_key $actions{firewall}->{shortcut};
     assert_screen 'yast2_samba_open_port_firewall';
 }
