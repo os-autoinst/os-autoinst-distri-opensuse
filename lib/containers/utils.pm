@@ -54,7 +54,12 @@ sub basic_container_tests {
     #   - https://store.docker.com/images/hello-world
     assert_script_run("$runtime image pull hello-world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    assert_script_run("$runtime image pull opensuse/leap", timeout => 600);
+    if (!check_var('ARCH', 's390x')) {
+        assert_script_run("$runtime image pull opensuse/leap", timeout => 600);
+    }
+    else {
+        record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
+    }
     #   - pull image of openSUSE Tumbleweed
     assert_script_run("$runtime image pull opensuse/tumbleweed", timeout => 600);
 
@@ -67,7 +72,7 @@ sub basic_container_tests {
     #   - all local images
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime image opensuse/tumbleweed not found") unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
-    die("$runtime image opensuse/leap not found")       unless ($local_images_list =~ /opensuse\/leap\s*latest/);
+    die("$runtime image opensuse/leap not found") if (!check_var('ARCH', 's390x') && !$local_images_list =~ /opensuse\/leap\s*latest/);
 
     # Containers can be spawned
     #   - using 'run'
@@ -90,10 +95,13 @@ sub basic_container_tests {
 
     # Containers' state can be saved to a docker image
     my $exit_code = script_run("$runtime container exec $container_name zypper -n in curl", 300);
-    if ($exit_code) {
+    if ($exit_code && !check_var('ARCH', 's390x')) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
+    }
+    elsif (check_var('ARCH', 's390x')) {
+        record_soft_failure("bsc#1165922 s390x control.xml has wrong repos");
     }
     assert_script_run("$runtime container commit $container_name tw:saved");
 
@@ -121,11 +129,8 @@ sub basic_container_tests {
     assert_script_run("$cmd_docker_container_prune");
     $output_containers = script_output("$runtime container ls -a");
     die("error: container was not removed: $cmd_docker_container_prune") if ($output_containers =~ m/test_2/);
+
     # Images can be deleted
-    my $images_to_delete = "alpine:$alpine_image_version hello-world opensuse/tumbleweed tw:saved";
-    $images_to_delete .= ' opensuse/leap' if (!check_var('ARCH', 's390x'));
-    #my $cmd_docker_rmi = "$runtime rmi $images_to_delete";
-    #my $output_deleted = script_output($cmd_docker_rmi);
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
     die("error: $runtime image rmi -a opensuse/leap")                if ($output_containers =~ m/Untagged: opensuse\/leap/);
