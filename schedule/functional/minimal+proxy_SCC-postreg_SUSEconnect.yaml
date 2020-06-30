@@ -1,0 +1,7 @@
+name:           minimal+proxy_SCC-postreg_SUSEconnect
+description:    >
+    Maintainer: riafarov
+    Register modules after a system is installed using SUSEconnect.
+schedule:
+    - boot/boot_to_desktop
+    - console/suseconnect_scc
