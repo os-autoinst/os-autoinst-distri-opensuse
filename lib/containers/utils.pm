@@ -25,7 +25,8 @@ use version_utils;
 our @EXPORT = qw(test_seccomp basic_container_tests set_up get_vars build_img test_built_img);
 
 sub test_seccomp {
-    my $no_seccomp = script_run('docker info | tee /dev/$serialdev | grep seccomp');
+    my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
+    upload_logs('/tmp/docker_info.txt');
     if ($no_seccomp) {
         my $err_seccomp_support = 'boo#1072367 - Docker Engine does NOT have seccomp support';
         if (is_sle('<15') || is_leap('<15.0')) {
