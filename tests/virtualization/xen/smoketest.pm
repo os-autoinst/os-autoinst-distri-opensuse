@@ -58,6 +58,17 @@ sub run {
     }
 }
 
+sub ignore_cve_fail {
+    my $cve   = $_[0];
+    my $guest = $_[1];
+
+    # Exceptions we are aware of
+    return 1 if $cve =~ /^CVE-2017-5753$/i and $guest =~ /sles11sp4/i;
+    return 1 if $cve =~ /^CVE-2017-5715$/i and $guest =~ /sles11sp4/i;
+    return 1 if $cve =~ /^CVE-2018-3639$/i and $guest =~ /sles11sp4/i;
+
+    return 0;
+}
 
 sub smoketest() {
     my $go_to_target = $_[0];
@@ -76,7 +87,9 @@ sub smoketest() {
     for my $cve (keys %cves) {
         my $name = $cves{$cve};
         if (script_run("grep '$cve: OK' /var/tmp/spectre-meltdown-checker-$go_to_target.out")) {
-            record_soft_failure("$cve ($name) vulnerable on $go_to_target");
+            # Some failures are OK but we still want to record them
+            record_soft_failure("$cve ($name) vulnerable on $go_to_target") unless ignore_cve_fail($cve, $go_to_target);
+            record_info("$name", "$cve ($name) vulnerable on $go_to_target") if ignore_cve_fail($cve, $go_to_target);
         }
     }
 }
