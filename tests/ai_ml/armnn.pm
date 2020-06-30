@@ -42,9 +42,9 @@ sub armnn_tf_lite_test_run {
     my $backend_opt;
     $backend_opt = "-c $opts{backend}" if $opts{backend};    # Can be CpuRef, CpuAcc, GpuAcc, ...
 
-    # assert_script_run("TfLiteInceptionV3Quantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt"); # Broken with current Cat.jpg image
+    assert_script_run("TfLiteInceptionV3Quantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
     assert_script_run("TfLiteMnasNet-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
-    # assert_script_run("TfLiteMobilenetQuantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt"); # Broken with current Dog.jpg image
+    assert_script_run("TfLiteMobilenetQuantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
     assert_script_run("TfLiteMobilenetV2Quantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
 }
 
