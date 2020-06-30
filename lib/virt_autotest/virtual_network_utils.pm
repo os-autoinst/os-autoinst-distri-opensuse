@@ -39,7 +39,19 @@ use virt_utils;
 
 our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_libvirtd restart_network restore_guests restore_network
-  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status save_guest_ip test_network_interface hosts_backup hosts_restore);
+  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status check_guest_module save_guest_ip test_network_interface hosts_backup hosts_restore);
+
+sub check_guest_module {
+    my ($guest, %args) = @_;
+    my $module = $args{module};
+    if (($guest =~ m/sles-?11/i) && ($module eq "acpiphp")) {
+        my $status = script_run("ssh root\@$guest \"lsmod | grep $module\"");
+        if ($status != 0) {
+            script_run("ssh root\@$guest modprobe $module", 60);
+            record_info('bsc#1167828 - need to load acpiphp kernel module to sles11sp4 guest otherwise network interface hotplugging does not work');
+        }
+    }
+}
 
 sub save_guest_ip {
     my ($guest, %args) = @_;
@@ -52,6 +64,7 @@ sub save_guest_ip {
         script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         assert_script_run "ping -c3 $guest";
     }
 }
@@ -69,10 +82,11 @@ sub test_network_interface {
 
     # Configure the network interface to use DHCP configuration
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
-    my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
-    assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"") if ($routed == 1);
-    if ($guest =~ m/sles11/i) {
+    my $nic       = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    my $dhcp_mode = get_var('VIRT_AUTOTEST') ? 'dhcp4' : 'dhcp';
+    assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'$dhcp_mode\\' > /etc/sysconfig/network/ifcfg-$nic\"");
+    assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"") if (($routed == 1) || ($isolated == 1));
+    if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
         assert_script_run("ssh root\@$guest service network restart", 90);
     } else {
         assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 120);
@@ -227,8 +241,10 @@ sub enable_libvirt_log {
 }
 
 sub ssh_setup {
-    # Remove existing SSH public keys and create new one
-    script_run("rm -f ~/.ssh/id_*; ssh-keygen -t rsa -f ~/.ssh/id_rsa -P ''", 0);
+    my $default_ssh_key = "/root/.ssh/id_rsa";
+    if (script_run("[[ -f $default_ssh_key ]]") != 0) {
+        script_run("ssh-keygen -t rsa -f $default_ssh_key -P ''", 0);
+    }
 }
 
 sub upload_debug_log {

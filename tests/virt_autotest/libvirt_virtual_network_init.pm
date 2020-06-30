@@ -69,9 +69,14 @@ sub run_test {
         save_guest_ip($guest, name => "br123");
         my $mode = is_sle('=11-sp4') ? '' : '-f';
         exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no $mode root\@$guest");
+        check_guest_module($guest, module => "acpiphp");
         #Prepare the new guest network interface files for libvirt virtual network
         assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
-        assert_script_run("ssh root\@$guest 'rcnetwork restart'", 60);
+        if ($guest =~ m/sles-?11/i) {
+            assert_script_run("ssh root\@$guest service network restart", 90);
+        } else {
+            assert_script_run("time ssh -v root\@$guest systemctl restart network", 120);
+        }
     }
 
     #Skip restart network service due to bsc#1166570
