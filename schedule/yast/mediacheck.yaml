@@ -13,4 +13,3 @@ conditional_schedule:
     VIRSH_VMM_TYPE:
       hvm:
         - installation/bootloader_start
-

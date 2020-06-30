@@ -1,0 +1,26 @@
+---
+name: clone_system
+description: >
+  Test suite triggers `yast clone_system` command and checks that profile is
+  generated and no error reported by YaST. No validation of the profile is done.
+vars:
+  DESKTOP: gnome
+schedule:
+  # Called on ARCH: s390x
+  - '{{bootloader_zkvm}}'
+  # Called on ARCH: aarch64
+  - '{{uefi_bootmenu}}'
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/yast2_clone_system
+  - console/consoletest_finish
+conditional_schedule:
+  bootloader_zkvm:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+  uefi_bootmenu:
+    ARCH:
+      aarch64:
+        - boot/uefi_bootmenu
