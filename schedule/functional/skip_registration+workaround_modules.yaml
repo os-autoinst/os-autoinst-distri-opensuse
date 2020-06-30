@@ -1,0 +1,48 @@
+name:           skip_registration+workaround_modules
+description:    >
+    Maintainer: slindomansilla
+    Like skip_registration test suite, but enable all modules as custom
+    addons. For internal testing, not simulating customer workflows.
+    See https://progress.opensuse.org/issues/25264 for details.
+conditional_schedule:
+  disk_activation:
+    BACKEND:
+      's390x':
+        - installation/disk_activation
+  grub:
+    BACKEND:
+      'qemu':
+        - installation/grub_test
+      'svirt':
+        - boot/reconnect_mgmt_console
+      's390x':
+        - boot/reconnect_mgmt_console
+  hostname_inst:
+    BACKEND:
+      'qemu':
+        - installation/hostname_inst
+      'svirt':
+        - installation/hostname_inst
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - '{{disk_activation}}'
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - '{{hostname_inst}}'
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - '{{grub}}'
+  - installation/first_boot
