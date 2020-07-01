@@ -20,7 +20,7 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_ltp qw(loadtest shutdown_ltp);
+use main_ltp qw(get_ltp_tag loadtest_from_runtest_file);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'prepare_serial_console';
@@ -174,6 +174,25 @@ sub install_build_dependencies {
     }
 }
 
+sub upload_runtest_files {
+    my ($dir, $tag) = @_;
+    my $aiurl = autoinst_url();
+
+    my $up_script = qq%
+ldir='/tmp/runtest-files-$tag'
+archive="\$ldir.tar.gz"
+mkdir -p \$ldir
+cd \$ldir
+cp -v $dir/* ~/openposix-test-list \$ldir
+tar czvf \$archive *
+ls -la \$archive
+file \$archive
+echo "curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\$(basename \$archive)"
+curl --form upload=\@\$archive --form target=assets_public $aiurl/upload_asset/\$(basename \$archive)
+%;
+    script_output($up_script, 300);
+}
+
 sub install_from_git {
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
@@ -282,6 +301,7 @@ sub setup_network {
 sub run {
     my $self       = shift;
     my $inst_ltp   = get_var 'INSTALL_LTP';
+    my $tag        = get_ltp_tag();
     my $grub_param = 'ignore_loglevel';
 
     if ($inst_ltp !~ /(repo|git)/i) {
@@ -339,16 +359,17 @@ sub run {
         assert_script_run('generate_lvm_runfile.sh');
     }
 
-    is_jeos && zypper_call 'in system-user-bin system-user-daemon';
+    upload_runtest_files('/opt/ltp/runtest', $tag);
 
-    # boot_ltp will schedule the tests and shutdown_ltp if there is a command
-    # file
-    if (get_var('LTP_COMMAND_FILE') || get_var('LTP_INSTALL_REBOOT')) {
-        power_action('reboot', textmode => 1) unless is_jeos;
-        loadtest 'boot_ltp';
+    if (get_var('LTP_COMMAND_FILE')) {
+        # This assumes that current working directory is the worker's pool dir
+        loadtest_from_runtest_file("assets_public/runtest-files-$tag.tar.gz");
     }
 
-    shutdown_ltp() unless get_var('LTP_COMMAND_FILE');
+    is_jeos && zypper_call 'in system-user-bin system-user-daemon';
+
+    power_action('reboot', textmode => 1) if (get_var('LTP_INSTALL_REBOOT') ||
+        get_var('LTP_COMMAND_FILE')) && !is_jeos;
 }
 
 sub post_fail_hook {

@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: Executes a single LTP test case
+# Summary: Extracts test commands from an LTP runfile and executes them on the guest.
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 # More documentation is at the bottom
 
@@ -366,8 +366,9 @@ sub run_post_fail {
 
 =head1 Discussion
 
-This module executes a single LTP test case specified by LTP::TestInfo which
-is passed to run. This module is dynamically scheduled by boot_ltp at runtime.
+This module extracts an LTP runtest file from the VM[1], parses it and then
+executes the LTP test cases defined on each line of the runtest file. Logs are
+uploaded and interpreted after each LTP test case completes.
 
 LTP test cases are usually a binary executable or a shell script. Each line of
 the runtest file contains the name of the test case and a string which is
@@ -376,6 +377,10 @@ executed by the shell.
 The output of each test case is parsed for lines containing CONF and FAIL.
 If these terms are found in the output then a neutral or fail result will be
 reported, otherwise a pass.
+
+[1] Actually the parsing is now done by lib/main_ltp.pm which is called from
+    main.pm after install_ltp has uploaded the runtest files as
+    assets. run_ltp is scheduled once for each LTP test case/executable.
 
 [2] This overrides the default basetest class behaviour because the LTP tests
     are able to continue after most failures (without reverting to a
@@ -428,6 +433,12 @@ LTP test itself.
 
 Comma separated list of environment variables to be set for tests.
 E.g.: key=value,key2="value with spaces",key3='another value with spaces'
+
+=head2 LTP_RUNTEST_TAG
+
+The runtest asset files are appended with git or pkg depending on how LTP was
+installed. By default the runtest files from the git installation will be
+used, but setting this variable to pkg allows that behavior to be overridden.
 
 =cut
 
