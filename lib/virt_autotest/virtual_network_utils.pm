@@ -45,7 +45,9 @@ our @EXPORT
 sub check_guest_module {
     my ($guest, %args) = @_;
     my $module = $args{module};
+    my $net    = $args{net} // "br123";
     if (($guest =~ m/sles-?11/i) && ($module eq "acpiphp")) {
+        save_guest_ip("$guest", name => $net);
         my $status = script_run("ssh root\@$guest \"lsmod | grep $module\"");
         if ($status != 0) {
             script_run("ssh root\@$guest modprobe $module", 60);
@@ -83,18 +85,18 @@ sub test_network_interface {
 
     # Configure the network interface to use DHCP configuration
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
-    my $nic       = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    my $dhcp_mode = get_var('VIRT_AUTOTEST') ? 'dhcp4' : 'dhcp';
-    assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'$dhcp_mode\\' > /etc/sysconfig/network/ifcfg-$nic\"");
-    assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"") if (($routed == 1) || ($isolated == 1));
-    if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
-        if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
-            assert_script_run("ssh root\@$guest service network restart", 90);
-        } else {
-            assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 120);
+    my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
+    if (!(get_var('VIRT_AUTOTEST'))) {
+        assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
+        if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+            if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
+                assert_script_run("ssh root\@$guest service network restart", 90);
+            } else {
+                assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 120);
+            }
         }
+        script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 3, timeout => 90);
     }
-    script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 3, timeout => 90);
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1";
 
     # Route our test via the tested interface
