@@ -1,0 +1,52 @@
+---
+name: remote_ssh_target_ftp
+description: >
+  Multi-machine test using one VM to trigger installation over ssh using ftp
+  mirror, second VM connects over ssh and conducts the installation.
+  Installation is validated by successful boot and that YaST does not report
+  any issue. Boots with ssh=1 parameter and waits for parallel job
+  (remote_ssh_controller) to install the system.
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - remote/remote_target
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/hostname
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - console/yast2_lan
+  - console/curl_https
+  - console/salt
+  - console/glibc_sanity
+  - update/zypper_up
+  - console/zypper_in
+  - console/zypper_log
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/firewall_enabled
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/mysql_srv
+  - console/yast2_nfs_server
+  - console/rsync
+  - console/http_srv
+  - console/apache
+  - console/dns_srv
+  - console/postgresql_server
+  - console/shibboleth
+  - console/apache_ssl
+  - console/apache_nss
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish
