@@ -30,11 +30,16 @@ use version_utils 'is_sle';
 sub run {
     select_console 'root-console';
     my $dracut_test = get_var('DRACUT_TEST');
+    # dracut on SLE15SP2 was updated to 049
+    my $dracut_version = "dracut-patches.tar.gz";
+    if (is_sle('>=15-SP2')) {
+        $dracut_version = "dracut-patches-SLE15SP2.tar.gz";
+    }
     if (is_sle('<12-SP2')) {
         die "Unsupported dracut version";
     }
     else {
-        assert_script_run 'curl -v -o /tmp/dracut-patches.tar.gz ' . data_url('qam/dracut/dracut-patches.tar.gz');
+        assert_script_run "curl -v -o /tmp/dracut-patches.tar.gz " . data_url("qam/dracut/$dracut_version");
         assert_script_run 'tar xvf /tmp/dracut-patches.tar.gz -C /tmp';
         zypper_call "in rpmbuild dhcp-client strace";
         zypper_call "si -D dracut";
