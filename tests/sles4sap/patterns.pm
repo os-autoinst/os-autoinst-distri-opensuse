@@ -15,6 +15,7 @@ use base "sles4sap";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_upgrade);
+use main_common 'is_updates_tests';
 use strict;
 use warnings;
 
@@ -42,7 +43,7 @@ sub run {
         # use of the 'textmode' system role during install, or on upgrades when the
         # original system didn't have the pattern (for example, from SLES4SAP 11-SP4)
         die "Pattern sap_server not installed by default"
-          unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade() or check_var('SLE_PRODUCT', 'sles'));
+          unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade() or is_updates_tests() or check_var('SLE_PRODUCT', 'sles'));
         record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
         zypper_call('in -y -t pattern sap_server');
         systemctl 'start tuned';
