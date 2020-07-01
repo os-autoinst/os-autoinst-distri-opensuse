@@ -8,11 +8,14 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/sles4sap_product_installation_mode
+  - '{{update_test_repo}}'
   - installation/addon_products_sle
+  - '{{system_role}}'
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/hostname_inst
+  - '{{user_settings}}'
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
@@ -28,3 +31,16 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+conditional_schedule:
+  update_test_repo:
+    QAM_INCI:
+      1:
+        - installation/add_update_test_repo
+  system_role:
+    QAM_INCI:
+      1:
+        - installation/system_role
+  user_settings:
+    QAM_INCI:
+      1:
+        - installation/user_settings
