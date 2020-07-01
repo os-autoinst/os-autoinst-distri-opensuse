@@ -248,7 +248,7 @@ sub enable_libvirt_log {
 sub ssh_setup {
     my $default_ssh_key = "/root/.ssh/id_rsa";
     if (script_run("[[ -f $default_ssh_key ]]") != 0) {
-        script_run("ssh-keygen -t rsa -f $default_ssh_key -P ''", 0);
+        assert_script_run "ssh-keygen -t rsa -P '' -f $default_ssh_key";
     }
 }
 
