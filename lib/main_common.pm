@@ -274,7 +274,7 @@ sub is_kernel_test {
 {
     local $@;
 
-    eval 'use main_ltp';
+    eval "use main_ltp 'load_kernel_tests'";
     if ($@) {
         bmwqemu::fctwarn("Failed to load main_ltp.pm:\n$@", 'main_common.pm');
         eval q%{
