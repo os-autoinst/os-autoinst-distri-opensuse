@@ -7,7 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: Waits for the guest to boot and sets some variables for LTP
+# Summary: Waits for the guest to boot, sets some variables for LTP then
+#          dynamically loads the test modules based on the runtest file
+#          contents.
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
@@ -16,11 +18,13 @@ use base 'opensusebasetest';
 use testapi;
 use LTP::WhiteList 'download_whitelist';
 use LTP::utils;
+use LTP::TestInfo 'testinfo';
 use version_utils 'is_jeos';
+use main_ltp qw(loadtest shutdown_ltp);
 
 sub run {
-    my ($self, $tinfo) = @_;
-    my $cmd_file   = get_var('LTP_COMMAND_FILE') || '';
+    my ($self) = @_;
+    my $cmd_file = get_var('LTP_COMMAND_FILE') || '';
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $is_ima     = $cmd_file =~ m/^ima$/i;
 
@@ -59,32 +63,6 @@ sub run {
     script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
     upload_logs($ver_linux_log, failok => 1);
     my $ver_linux_out = script_output("cat $ver_linux_log");
-
-    if (defined $tinfo) {
-        my $environment = {
-            product     => get_var('DISTRI') . ':' . get_var('VERSION'),
-            revision    => get_var('BUILD'),
-            flavor      => get_var('FLAVOR'),
-            arch        => get_var('ARCH'),
-            backend     => get_var('BACKEND'),
-            kernel      => '',
-            libc        => '',
-            gcc         => '',
-            harness     => 'SUSE OpenQA',
-            ltp_version => ''
-        };
-        if ($ver_linux_out =~ qr'^Linux\s+(.*?)\s*$'m) {
-            $environment->{kernel} = $1;
-        }
-        if ($ver_linux_out =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
-            $environment->{libc} = $1;
-        }
-        if ($ver_linux_out =~ qr'^Gnu C\s*(.*?)\s*$'m) {
-            $environment->{gcc} = $1;
-        }
-        $environment->{ltp_version} = script_output('touch /opt/ltp_version; cat /opt/ltp_version');
-        $tinfo->test_result_export->{environment} = $environment;
-    }
 
     script_run('ps axf') if ($is_network || $is_ima);
 
@@ -153,6 +131,93 @@ EOF
     script_run 'grep -e Huge -e PageTables /proc/meminfo';
     script_run 'echo 1 > /proc/sys/vm/nr_hugepages';
     script_run 'grep -e Huge -e PageTables /proc/meminfo';
+
+    # If the command file (runtest file) is set then we dynamically schedule
+    # the test and shutdown modules.
+    return unless $cmd_file;
+
+    my $test_result_export = {
+        format      => 'result_array:v2',
+        environment => {},
+        results     => []};
+    my $cmd_pattern = get_var('LTP_COMMAND_PATTERN') || '.*';
+    my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
+    my $environment = {
+        product     => get_var('DISTRI') . ':' . get_var('VERSION'),
+        revision    => get_var('BUILD'),
+        flavor      => get_var('FLAVOR'),
+        arch        => get_var('ARCH'),
+        backend     => get_var('BACKEND'),
+        kernel      => '',
+        libc        => '',
+        gcc         => '',
+        harness     => 'SUSE OpenQA',
+        ltp_version => ''
+    };
+    if ($ver_linux_out =~ qr'^Linux\s+(.*?)\s*$'m) {
+        $environment->{kernel} = $1;
+    }
+    if ($ver_linux_out =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
+        $environment->{libc} = $1;
+    }
+    if ($ver_linux_out =~ qr'^Gnu C\s*(.*?)\s*$'m) {
+        $environment->{gcc} = $1;
+    }
+    $environment->{ltp_version}        = script_output('touch /opt/ltp_version; cat /opt/ltp_version');
+    $test_result_export->{environment} = $environment;
+
+    if ($cmd_file =~ m/ltp-aiodio.part[134]/) {
+        loadtest 'create_junkfile_ltp';
+    }
+
+    if ($cmd_file =~ m/lvm\.local/) {
+        loadtest 'ltp_init_lvm';
+    }
+
+    for my $name (split(/,/, $cmd_file)) {
+        if ($name eq 'openposix') {
+            parse_openposix_runfile($name,
+                script_output("cat /opt/ltp/runtest/openposix-test-list"),
+                $cmd_pattern, $cmd_exclude, $test_result_export);
+        }
+        else {
+            parse_runtest_file($name, script_output("cat /opt/ltp/runtest/$name"),
+                $cmd_pattern, $cmd_exclude, $test_result_export);
+        }
+    }
+
+    shutdown_ltp(run_args => testinfo($test_result_export));
+}
+
+sub parse_openposix_runfile {
+    my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
+
+    for my $line (split(/^/, $cmds)) {
+        chomp($line);
+        if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
+            my $test  = {name => basename($line, '.run-test'), command => $line};
+            my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
+            loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);
+        }
+    }
+}
+
+sub parse_runtest_file {
+    my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
+
+    for my $line (split(/^/, $cmds)) {
+        next if ($line =~ /(^#)|(^$)/);
+
+        #Command format is "<name> <command> [<args>...] [#<comment>]"
+        if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
+            next if (check_var('BACKEND', 'svirt') && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
+            my $test  = {name => $1, command => $2};
+            my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
+            if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
+                loadtest('run_ltp', name => $test->{name}, run_args => $tinfo);
+            }
+        }
+    }
 }
 
 sub test_flags {
