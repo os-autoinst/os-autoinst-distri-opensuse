@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -46,7 +46,7 @@ my $HB_SCRIPT    = '/opt/heartbeat.sh';
 # - XFSTESTS_SUBTEST_MAXTIME: Debug use. To set the max time to wait for sub test to finish. Meet this time frame will trigger reboot, and continue next tests.
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $TEST_RANGES  = get_required_var('XFSTESTS_RANGES');
-my $TEST_WRAPPER = '/usr/share/qa/qa_test_xfstests/wrapper.sh';
+my $TEST_WRAPPER = '/opt/wrapper.sh';
 my %BLACKLIST    = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
 my @GROUPLIST    = split(/,/, get_var('XFSTESTS_GROUPLIST'));
 my $STATUS_LOG   = '/opt/status.log';
@@ -380,6 +380,10 @@ END_CMD
 sub run {
     my $self = shift;
     select_console('root-console');
+
+    # Get wrapper
+    assert_script_run('wget --quiet ' . data_url('xfstests/wrapper.sh') . " -O $TEST_WRAPPER");
+    assert_script_run("chmod a+x $TEST_WRAPPER");
 
     # Get test list
     my @tests = tests_from_ranges($TEST_RANGES, $INST_DIR);

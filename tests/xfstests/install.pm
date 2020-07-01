@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,6 +26,14 @@ use repo_tools 'add_qa_head_repo';
 
 my $STATUS_LOG  = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
+my $LOCAL_DIR   = '/tmp/xfstests-dev';
+
+sub install_xfstests_from_ibs {
+    add_qa_head_repo(priority => 100);
+    zypper_call('--gpg-auto-import-keys ref');
+    zypper_call('in xfstests');
+    zypper_call('in fio');
+}
 
 # Create log file used to generate junit xml report
 sub log_create {
@@ -45,29 +53,9 @@ sub run {
     $self->select_serial_terminal;
 
     # Disable PackageKit
-    # This is done by the previous module (enable_kdump) only if NO_KDUMP is not set
     pkcon_quit;
 
-    add_qa_head_repo;
-
-    # Install qa_test_xfstests
-    zypper_call('--gpg-auto-import-keys ref', timeout => 600);
-    zypper_call('in qa_test_xfstests',        timeout => 1200);
-    zypper_call('in fio');
-
-    if (get_var('XFSTESTS_REPO')) {
-        # Add filesystems repository and install xfstests package
-        zypper_call '--no-gpg-checks ar -f ' . get_var('XFSTESTS_REPO') . ' filesystems';
-        zypper_call '--gpg-auto-import-keys ref';
-        zypper_call 'in xfstests';
-        zypper_call 'rr filesystems';
-        # Link the tests as the wrapper expects this somewhere else
-        script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
-    }
-    else {
-        # Build test suite from git snapshot provided by the qa_test_xfstests package
-        assert_script_run('/usr/share/qa/qa_test_xfstests/install.sh', 600);
-    }
+    install_xfstests_from_ibs;
 
     # Create log file
     log_create($STATUS_LOG);
