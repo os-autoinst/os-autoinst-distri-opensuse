@@ -21,7 +21,7 @@
 #   * The SCP is tested by copying various files
 #
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
-# Tags: poo#65375
+# Tags: poo#65375, poo#68200
 
 use warnings;
 use base "consoletest";
@@ -72,7 +72,8 @@ sub run {
     assert_script_run("usermod -aG \$(stat -c %G /dev/$serialdev) $ssh_testman");
 
     # Backup/rename ~/.ssh , generated in consotest_setup, to ~/.ssh_bck
-    assert_script_run 'mv ~/.ssh ~/.ssh_bck' unless get_var('INSTALLATION_VALIDATION') =~ /sshd/;
+    # poo#68200. Take FIPS_ENABLED into consideration, get rid of the problem from openssh_fips rm -r ~/.ssh/ directory in advance
+    assert_script_run 'mv ~/.ssh ~/.ssh_bck' unless ((get_var('INSTALLATION_VALIDATION') =~ /sshd/) || get_var('FIPS_ENABLED'));
 
     # avoid harmless failures in virtio-console due to unexpected PS1
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
@@ -125,7 +126,8 @@ sub run {
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
 
     # Restore ~/.ssh generated in consotest_setup
-    assert_script_run 'rm -rf ~/.ssh && mv ~/.ssh_bck ~/.ssh' unless get_var('INSTALLATION_VALIDATION') =~ /sshd/;
+    # poo#68200. Take FIPS_ENABLED into consideration, get rid of the problem from openssh_fips rm -r ~/.ssh/ directory in advance
+    assert_script_run 'rm -rf ~/.ssh && mv ~/.ssh_bck ~/.ssh' unless ((get_var('INSTALLATION_VALIDATION') =~ /sshd/) || get_var('FIPS_ENABLED'));
 
     assert_script_run "killall -u $ssh_testman || true";
     wait_still_screen 3;
