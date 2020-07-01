@@ -75,7 +75,8 @@ sub run {
     # Install ec2imgutils
     install_in_venv('ec2imgutils', 'ec2uploadimg');
     assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
-    record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
+    # TODO: revert to 'ec2uploadimg --version' when it will be fixed
+    record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg -h'));
 
     # Install Azure cli
     install_in_venv('azure-cli', 'az');
