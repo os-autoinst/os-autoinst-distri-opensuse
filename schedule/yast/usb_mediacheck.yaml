@@ -1,0 +1,6 @@
+---
+name: USBmediacheck
+description: >
+  Run media check in the usb installation media
+schedule:
+  - installation/mediacheck

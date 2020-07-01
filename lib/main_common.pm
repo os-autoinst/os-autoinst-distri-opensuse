@@ -50,8 +50,6 @@ our @EXPORT = qw(
   is_ltp_test
   is_livesystem
   is_mediacheck
-  is_mediacheck
-  is_memtest
   is_memtest
   is_server
   is_sles4sap
