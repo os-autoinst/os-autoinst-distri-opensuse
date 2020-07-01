@@ -343,9 +343,9 @@ sub compress_single_qcow2_disk {
 sub upload_supportconfig_log {
     my $datetab = script_output("date '+%Y%m%d%H%M%S'");
     script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
-    script_run("tar zcvfP nts_supportconfig.$datetab.tar.gz nts_supportconfig.$datetab");
-    upload_logs("nts_supportconfig.$datetab.tar.gz");
-    script_run("rm -rf nts_supportconfig.*");
+    script_run("tar zcvfP supportconfig.$datetab.tar.gz *supportconfig.$datetab");
+    upload_logs("supportconfig.$datetab.tar.gz");
+    script_run("rm -rf *supportconfig.*");
     save_screenshot;
 }
 
