@@ -35,6 +35,7 @@ use IO::File;
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest_base;
+use virt_autotest::utils;
 use virt_utils;
 
 our @EXPORT
@@ -86,15 +87,18 @@ sub test_network_interface {
     my $dhcp_mode = get_var('VIRT_AUTOTEST') ? 'dhcp4' : 'dhcp';
     assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'$dhcp_mode\\' > /etc/sysconfig/network/ifcfg-$nic\"");
     assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"") if (($routed == 1) || ($isolated == 1));
-    if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
-        assert_script_run("ssh root\@$guest service network restart", 90);
-    } else {
-        assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 120);
+    if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+        if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
+            assert_script_run("ssh root\@$guest service network restart", 90);
+        } else {
+            assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 120);
+        }
     }
     script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 3, timeout => 90);
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1";
 
     # Route our test via the tested interface
+    script_run "ssh root\@$addr '[ `ip r | grep $target | wc -l` -gt 0 ] && ip r del $target'";
     assert_script_run("ssh root\@$addr ip r a $target via $gate dev $nic");
 
     if ($isolated == 0) {
@@ -105,10 +109,11 @@ sub test_network_interface {
     save_screenshot;
 
     # Restore the network interface to the default for the Xen guests
-    if (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) {
-        assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-$nic'");
+    if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+        if (is_xen_host()) {
+            assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-$nic'");
+        }
     }
-
 }
 
 sub download_network_cfg {
