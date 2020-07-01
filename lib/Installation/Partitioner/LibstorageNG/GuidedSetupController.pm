@@ -67,17 +67,14 @@ sub get_select_hard_disks_page {
 
 sub edit_proposal {
     my ($self, %args) = @_;
-    my $multiple_disks = $args{multiple_disks};
-
     $self->get_suggested_partitioning_page()->press_guided_setup_button();
-    $self->get_select_hard_disks_page()->skip_hard_disk_selection() if $multiple_disks;
     $self->_set_partitioning(%args);
 }
 
 sub edit_proposal_for_existing_partition {
     my ($self, %args) = @_;
     $self->get_suggested_partitioning_page()->press_guided_setup_button();
-    $self->get_select_hard_disks_page()->skip_handling_partitions();
+    $self->get_select_hard_disks_page()->press_next();
     $self->_set_partitioning(%args);
 }
 
