@@ -48,6 +48,33 @@ sub armnn_tf_lite_test_run {
     assert_script_run("TfLiteMobilenetV2Quantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
 }
 
+sub armnn_tf_test_prepare {
+    zypper_call 'in arm-ml-examples-data';
+
+    assert_script_run('mkdir -p armnn/data');
+    # Copy data files from arm-ml-examples-data, used by TfMnist-Armnn
+    assert_script_run("cp /usr/share/armnn-mnist/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
+    assert_script_run("cp /usr/share/armnn-mnist/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
+
+    assert_script_run('mkdir -p armnn/models');
+    assert_script_run('pushd armnn/models');
+    # Copy model files from arm-ml-examples-data, used by TfMnist-Armnn
+    assert_script_run("cp /usr/share/armnn-mnist/model/* ./");
+    # inception_v3_2016_08_28_frozen.pb.tar.gz is big, so download it on demand
+    assert_script_run('wget https://storage.googleapis.com/download.tensorflow.org/models/inception_v3_2016_08_28_frozen.pb.tar.gz -O ~/data/ai_ml/models/inception_v3_2016_08_28_frozen.pb.tar.gz');
+    assert_script_run('tar xzf ~/data/ai_ml/models/inception_v3_2016_08_28_frozen.pb.tar.gz');
+    assert_script_run('popd');
+}
+
+sub armnn_tf_test_run {
+    my %opts = @_;
+    my $backend_opt;
+    $backend_opt = "-c $opts{backend}" if $opts{backend};    # Can be CpuRef, CpuAcc, GpuAcc, ...
+
+    assert_script_run("TfInceptionV3-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
+    assert_script_run("TfMnist-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
+}
+
 sub armnn_onnx_test_prepare {
     zypper_call 'in arm-ml-examples-data';
 
@@ -115,6 +142,12 @@ sub run {
     armnn_tf_lite_test_run;
     # Run with explicit backend, if requested
     armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
+
+    # Test TensorFlow backend
+    record_info('TensorFlow', "TensorFlow backend");
+    armnn_tf_test_prepare;
+    armnn_tf_test_run;
+    armnn_tf_test_run(backend => $_) for split(/,/, $armnn_backends);
 
     # Test ONNX backend
     record_info('ONNX', "ONNX backend");
