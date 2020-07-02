@@ -77,8 +77,17 @@ sub run {
             send_key 'r';
             send_key 'ret';
         }
-        elsif ($out =~ $zypper_migration_conflict
-            || $out =~ $zypper_migration_fileconflict
+        elsif ($out =~ $zypper_migration_conflict)
+        {
+            if (check_var("BREAK_DEPS", '1')) {
+                send_key '1';
+                send_key 'ret';
+            } else {
+                save_screenshot;
+                die 'Zypper migration failed';
+            }
+        }
+        elsif ($out =~ $zypper_migration_fileconflict
             || $out =~ $zypper_migration_failed
             || $out =~ $zypper_migration_urlerror)
         {
