@@ -50,6 +50,7 @@ schedule:
 - console/ntp
 - console/procps
 - console/iotop
+- console/udisks2
 - console/kmod
 - console/suse_module_tools
 - console/aaa_base
