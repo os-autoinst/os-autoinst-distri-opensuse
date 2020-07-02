@@ -9,7 +9,7 @@ vars:
   SYSTEM_ROLE: minimal
 schedule:
   - installation/isosize
-  - installation/bootloader_uefi
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
