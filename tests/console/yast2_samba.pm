@@ -24,7 +24,7 @@ my %ldap_directives = (
     dir_instance        => 'openqatest',
     dir_suffix          => 'dc=ldaptest,dc=org',
     dn_container        => 'dc=ldaptest,dc=org',
-    dir_manager_dn      => 'cn=root',
+    dir_manager_dn      => 'cn=Directory Manager',
     dir_manager_passwd  => 'openqatest',
     ca_cert_pem         => '/root/samba_ca_cert.pem',
     srv_cert_key_pkcs12 => '/root/samba_server_cert.p12'
@@ -45,7 +45,7 @@ my %samba_directives = (
 
 sub smb_conf_checker {
     my $error = "";
-    # select global & add share sections
+    # Select global & add share sections
     my $select_script = get_test_data('console/yast2_samba_share_section_selection.sh');
 
     die 'Updated smb.conf section is missing' if script_run($select_script);
