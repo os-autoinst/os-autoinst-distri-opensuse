@@ -17,7 +17,7 @@ use warnings FATAL => 'all';
 use testapi;
 
 sub has_multiple_disks {
-    return 1 if (get_var('NUMDISKS') > 1 || get_var('IBFT'));
+    return 1 if (get_var('NUMDISKS', 0) > 1 || get_var('IBFT'));
     return 0;
 }
 
