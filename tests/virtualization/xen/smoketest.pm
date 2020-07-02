@@ -75,7 +75,7 @@ sub smoketest() {
     # Print guest kernel version
     assert_script_run("ssh root\@$go_to_target uname -a");
     # Requirements for spectre-meltdown-checker
-    assert_script_run("ssh root\@$go_to_target zypper in -y binutils");
+    assert_script_run("ssh root\@$go_to_target zypper in -y binutils", 180);
     if ($go_to_target ne "" && $go_to_target ne "localhost") {
         assert_script_run("scp /var/tmp/spectre-meltdown-checker.sh root\@$go_to_target:/var/tmp/spectre-meltdown-checker.sh");
     }
