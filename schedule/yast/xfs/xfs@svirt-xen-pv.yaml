@@ -1,0 +1,30 @@
+---
+name: xfs
+description: >
+  Installation with default parameters, except XFS being selected as filesystem
+  for the root partition. Installation is validated by successful boot and that
+  YaST does not report any issue.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: xfs
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_filesystem
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/first_boot
