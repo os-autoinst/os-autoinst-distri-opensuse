@@ -1,5 +1,5 @@
 ---
-name:           yast_no_self_update
+name: yast_no_self_update
 description:    >
   Test suite conducts installation with self-update explicitly disabled. No
   hard checks are done that the self-updating is really disabled.
@@ -9,7 +9,7 @@ vars:
   INSTALLER_NO_SELF_UPDATE: 1
 schedule:
   - installation/isosize
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -18,6 +18,7 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
+  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
@@ -27,6 +28,17 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  # Called on BACKEND: svirt
+  - '{{reconnect_mgmt_console}}'
+  # Called on BACKEND: qemu
+  - '{{grub_test}}'
   - installation/first_boot
+conditional_schedule:
+  reconnect_mgmt_console:
+    BACKEND:
+      svirt:
+        - boot/reconnect_mgmt_console
+  grub_test:
+    BACKEND:
+      qemu:
+        - installation/grub_test
