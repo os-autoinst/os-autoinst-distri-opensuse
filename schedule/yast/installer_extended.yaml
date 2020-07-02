@@ -1,0 +1,40 @@
+---
+name: installer_extended
+description: >
+  Test suite performs additional UI checks. As of now following is tested:
+     - License has to be accepted and there is pop-up with a hint;
+     - License translations (except SLE 15 due to missing translations in the
+       beta phase).
+vars:
+  CHECK_PRESELECTED_MODULES: '1'
+  CHECK_RELEASENOTES: '1'
+  EULA_LANGUAGES: korean
+  EXIT_AFTER_START_INSTALL: '1'
+  EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
+  INSTALLER_EXTENDED_TEST: '1'
+  VALIDATE_CHECKSUM: '1'
+schedule:
+  # Called on BACKEND: qemu
+  - '{{compare_checksums}}'
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/releasenotes
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+conditional_schedule:
+  compare_checksums:
+    BACKEND:
+      qemu:
+        - installation/isosize
+        - installation/data_integrity
