@@ -49,12 +49,10 @@ sub armnn_tf_lite_test_run {
 }
 
 sub armnn_tf_test_prepare {
-    zypper_call 'in arm-ml-examples-data';
-
     assert_script_run('mkdir -p armnn/data');
     # Copy data files from arm-ml-examples-data, used by TfMnist-Armnn
-    assert_script_run("cp /usr/share/armnn-mnist/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
-    assert_script_run("cp /usr/share/armnn-mnist/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
+    assert_script_run("cp /usr/share/armnn-mnist/data/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
+    assert_script_run("cp /usr/share/armnn-mnist/data/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
 
     assert_script_run('mkdir -p armnn/models');
     assert_script_run('pushd armnn/models');
@@ -76,12 +74,10 @@ sub armnn_tf_test_run {
 }
 
 sub armnn_onnx_test_prepare {
-    zypper_call 'in arm-ml-examples-data';
-
     assert_script_run('mkdir -p armnn/data');
     # Copy data files from arm-ml-examples-data, used by OnnxMnist-Armnn
-    assert_script_run("cp /usr/share/armnn-mnist/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
-    assert_script_run("cp /usr/share/armnn-mnist/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
+    assert_script_run("cp /usr/share/armnn-mnist/data/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
+    assert_script_run("cp /usr/share/armnn-mnist/data/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
 
     assert_script_run('mkdir -p armnn/models');
     assert_script_run('pushd armnn/models');
@@ -102,12 +98,10 @@ sub armnn_onnx_test_run {
 }
 
 sub armnn_caffe_test_prepare {
-    zypper_call 'in arm-ml-examples-data';
-
     assert_script_run('mkdir -p armnn/data');
     # Copy data files from arm-ml-examples-data, used by TfMnist-Armnn
-    assert_script_run('cp /usr/share/armnn-mnist/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte');
-    assert_script_run('cp /usr/share/armnn-mnist/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte');
+    assert_script_run('cp /usr/share/armnn-mnist/data/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte');
+    assert_script_run('cp /usr/share/armnn-mnist/data/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte');
 
     assert_script_run('mkdir -p armnn/models');
     assert_script_run('pushd armnn/models');
@@ -129,6 +123,8 @@ sub run {
 
     $self->select_serial_terminal;
     zypper_call $armnn_backends =~ /GpuAcc/ ? 'in armnn-opencl' : 'in armnn';
+    # Install arm-ml-examples-data as required for TF, ONNX and Caffe tests
+    zypper_call 'in arm-ml-examples-data';
 
     select_console 'user-console';
 
