@@ -1,0 +1,44 @@
+---
+name: yast_self_update
+description:    >
+  Test suite conducts installation with self-update explicitly enabled. No hard
+  checks are done that the self-updating is really disabled.
+  Installation is validated by successful boot and that YaST does not report
+  any issue.
+vars:
+  INSTALLER_SELF_UPDATE: 1
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  # Called on BACKEND: svirt
+  - '{{reconnect_mgmt_console}}'
+  # Called on BACKEND: qemu
+  - '{{grub_test}}'
+  - installation/first_boot
+conditional_schedule:
+  reconnect_mgmt_console:
+    BACKEND:
+      svirt:
+        - boot/reconnect_mgmt_console
+  grub_test:
+    BACKEND:
+      qemu:
+        - installation/grub_test
