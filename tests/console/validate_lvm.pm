@@ -25,7 +25,6 @@ sub pre_run_hook {
 }
 
 sub run {
-
     record_info('LVM config', 'Validate LVM config');
     assert_script_run('lvmconfig --mergedconfig --validate | grep "LVM configuration valid."',
         fail_message => 'LVM config validation failed');
@@ -81,9 +80,12 @@ sub run {
     record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
     my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
     my $drives            = extract_drives_from_json($lsblk_output_json);
+    my $i;
     foreach my $dev (@{$drives}) {
-        for (my $i = 1; $i <= scalar @{get_children($dev)}; $i++) {
+        $i = 1;
+        foreach my $child (@{get_children($dev)}) {
             assert_script_run("parted $dev->{name} align-check optimal $i");
+            $i++;
         }
     }
 }
@@ -101,7 +103,7 @@ sub get_children {
     my $drive = shift;
     return (
         (ref($drive) eq 'HASH') and
-          defined($drive->{children})) ? $drive->{children} : undef;
+          defined($drive->{children})) ? $drive->{children} : [];
 }
 
 1;

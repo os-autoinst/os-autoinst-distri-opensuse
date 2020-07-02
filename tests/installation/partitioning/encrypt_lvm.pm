@@ -16,9 +16,14 @@ use strict;
 use warnings FATAL => 'all';
 use testapi;
 
+sub has_multiple_disks {
+    return 1 if (get_var('NUMDISKS') > 1 || get_var('IBFT'));
+    return 0;
+}
+
 sub run {
     my $partitioner = $testapi::distri->get_partitioner();
-    $partitioner->edit_proposal(is_lvm => 1, is_encrypted => 1);
+    $partitioner->edit_proposal(multiple_disks => has_multiple_disks, is_lvm => 1, is_encrypted => 1);
     $partitioner->get_suggested_partitioning_page()->assert_encrypted_partition_with_lvm_shown_in_the_list();
 }
 

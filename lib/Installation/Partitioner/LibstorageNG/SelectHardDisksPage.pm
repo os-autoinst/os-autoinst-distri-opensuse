@@ -19,12 +19,18 @@ use testapi;
 use parent 'Installation::WizardPage';
 
 use constant {
-    SELECT_HARD_DISKS_PAGE => 'inst-select-disk-to-use-as-root'
+    SELECT_HARD_DISKS_PAGE     => 'select-hard-disks-one-selected',
+    SELECT_HANDLING_PARTITIONS => 'inst-select-disk-to-use-as-root'
 };
 
-sub press_next {
+sub skip_hard_disk_selection {
     my ($self) = @_;
     $self->SUPER::press_next(SELECT_HARD_DISKS_PAGE);
+}
+
+sub skip_handling_partitions {
+    my ($self) = @_;
+    $self->SUPER::press_next(SELECT_HANDLING_PARTITIONS);
 }
 
 1;
