@@ -33,6 +33,7 @@ conditional_schedule:
         - console/yast2_apparmor
         - console/yast2_lan
         - console/yast2_lan_hostname
+        - console/yast2_settings
         - console/yast2_dns_server
         - console/yast2_nfs_client
         - console/yast2_snapper_ncurses
