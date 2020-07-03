@@ -1,0 +1,5 @@
+disks:
+  - sda
+  - sdb
+  - sdc
+  - sdd

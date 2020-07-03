@@ -1,0 +1,44 @@
+---
+description: >
+  Test the selection of "first" disk with the guided setup in partitioning.
+  This is also used as a prerequisite for real hardware tests to select
+  the right disk for installation and not a "random" one.
+name: select_disk
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_firstdisk
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - "{{edit_optional_kernel_cmd_parameters}}"
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - "{{reconnect_mgmt_console}}"
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_first_disk_selection
+conditional_schedule:
+  edit_optional_kernel_cmd_parameters:
+    BACKEND:
+      pvm_hmc:
+        - installation/edit_optional_kernel_cmd_parameters
+  reconnect_mgmt_console:
+    BACKEND:
+      pvm_hmc:
+        - boot/reconnect_mgmt_console
+test_data:
+  disks:
+    - vda
+    - vdb
