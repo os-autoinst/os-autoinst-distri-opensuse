@@ -20,9 +20,9 @@ schedule:
   - autoyast/clone
   - autoyast/logs
   - autoyast/autoyast_reboot
-  # Called on ARCH: s390x
+  # Called on ARCH: s390x and on powerVM
   - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu
+  # Called on BACKEND: qemu and on powerVM
   - '{{grub_test}}'
   - installation/first_boot
 conditional_schedule:
@@ -34,9 +34,14 @@ conditional_schedule:
     ARCH:
       s390x:
         - boot/reconnect_mgmt_console
+    BACKEND:
+      pvm_hmc:
+        - boot/reconnect_mgmt_console
   grub_test:
     BACKEND:
       qemu:
+        - installation/grub_test
+      pvm_hmc:
         - installation/grub_test
   opensuse_welcome:
     VERSION:
