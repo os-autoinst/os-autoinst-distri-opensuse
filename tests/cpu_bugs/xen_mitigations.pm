@@ -212,7 +212,7 @@ my $mitigations_list =
         "ibpb=off" => {
             default => {
                 expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: IBPB']}
+                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
             }
         },
         "ibpb=on" => {
@@ -235,14 +235,14 @@ my $mitigations_list =
         },
         "eager-fpu=off" => {
             default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']}
+                expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB MD_CLEAR']},
+                unexpected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']}
             }
         },
         "eager-fpu=on" => {
             default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB MD_CLEAR']}
+                expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+                unexpected => {''},
             }
         },
         "l1d-flush=off" => {
@@ -291,76 +291,128 @@ my $mitigations_list =
 
 sub check_expected_string {
     my ($cmd, $lines) = @_;
+    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
+    assert_script_run("xl info | grep -i \"xen_commandline\"");
     foreach my $expected_string (@{$lines}) {
         if ($expected_string ne "") {
             my $ret = script_run("$cmd | grep \"$expected_string\"");
             if ($ret ne 0) {
                 record_info("ERROR", "Can't found a expected string.", result => 'fail');
-                assert_script_run("$cmd | grep -A 10 \"Speculative\"");
+                if ($cmd =~ /xl.*info/) {
+                    assert_script_run("$cmd");
+                }
+                return 1;
             } else {
                 #Debug what output be report.
-                assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
-                print "This unexpection is empty string, skip";
-
+                print "Got expected string, go on\n";
             }
 
         }
     }
+    return 0;
 }
+
 sub check_unexpected_string {
     my ($cmd, $lines) = @_;
+    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
     foreach my $unexpected_string (@{$lines}) {
         if ($unexpected_string ne "") {
             my $ret = script_run("$cmd | grep \"$unexpected_string\"");
-            record_info("ERROR", "found a unexpected string.", result => 'fail') unless $ret ne 0;
-            assert_script_run("$cmd | grep -A 10 \"Speculative\"");
-        } else {
-            #Debug what output be report.
-            assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
-            print "This unexpection is empty string, skip";
+            if ($ret ne 0) {
+                print "Not found unexpected string, go ahead";
+            } else {
+                #Debug what output be report.
+                record_info("ERROR", "found a unexpected string.", result => 'fail');
+                return 1;
+            }
         }
-
     }
-
+    return 0;
 }
+
 sub do_check {
     my $secnario = shift;
     my $foo      = $secnario->{default};
     if ($foo->{expected}) {
         while (my ($cmd, $lines) = each %{$foo->{expected}}) {
-            check_expected_string($cmd, $lines);
+            return 1 if check_expected_string($cmd, $lines) ne 0;
         }
     }
     if ($foo->{unexpected}) {
         while (my ($cmd, $lines) = each %{$foo->{unexpected}}) {
-            check_unexpected_string($cmd, $lines);
+            return 1 if check_unexpected_string($cmd, $lines) ne 0;
         }
     }
+    return 0;
 }
 
 sub do_test {
     my ($self, $hash) = @_;
-    #xen parameter be store into arg
-    #
+
+    # Initialize variable for generating junit file
+    my $testsuites_name        = 'xen_hyper_mitigation';
+    my $testsuite_name         = '';
+    my $testcase_name          = '';
+    my $total_failure_tc_count = 0;
+    my $failure_tc_count_in_ts = 0;
+    my $total_tc_count         = 0;
+    my $total_tc_count_in_ts   = 0;
+    my $junit_file             = "/tmp/xen_hypervisor_mitigation_test_junit.xml";
+
+    # Initialize junit sturcture for hypervisor mitigation test
+    Mitigation::init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
     while (my ($arg, $dict) = each %$hash) {
+        $failure_tc_count_in_ts = 0;
+        $total_tc_count_in_ts   = 0;
+
+        # Add a group case name as testsuite to junit file
+        Mitigation::append_ts2_xml(file_name => "$junit_file", testsuite_name => "$arg");
+
+        # Start loop and execute all test cases
         while (my ($key, $value) = each %$dict) {
-            my $parameter = $arg . '=' . $key;
-            bootloader_setup::add_grub_xen_cmdline_settings($parameter);
-            bootloader_setup::grub_mkconfig();
+            my $parameter          = $arg . '=' . $key;
+            my $speculative_output = '';
+
+            # Calculate test case count
+            $total_tc_count       += 1;
+            $total_tc_count_in_ts += 1;
+
+            # Set xen parameter to grub
+            bootloader_setup::add_grub_xen_cmdline_settings($parameter, 1);
             Mitigation::reboot_and_wait($self, 150);
-            #$value include the check rules of current $parameter.
+
             record_info('INFO', "$parameter test is start.");
             my $ret = do_check($value);
             if ($ret ne 0) {
+                # Calculate failure test case count
+                $total_failure_tc_count += 1;
+                $failure_tc_count_in_ts += 1;
+
                 record_info('ERROR', "$parameter test is failed.", result => 'fail');
+                # Collect speculative related output and insert current testcase into junit file
+                $speculative_output = script_output("xl dmesg | grep -A 10 \"Speculative\"");
+                Mitigation::insert_tc2_xml(file_name => "$junit_file", class_name => "$parameter", case_status => "fail", sys_output => '', sys_err => "$speculative_output");
+            } else {
+                Mitigation::insert_tc2_xml(file_name => "$junit_file", class_name => "$parameter", case_status => "pass");
             }
+            # update testsuite into
+            Mitigation::update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
+            Mitigation::update_ts_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count_in_ts);
+            # update testsuites info
+            Mitigation::update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
+            Mitigation::update_tss_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count);
+            # upload junit file for each case to avoid missing all result once test causes host hang.
+            parse_junit_log("$junit_file");
+
             record_info('INFO', "$parameter test is finished.");
+            # Restore to original gurb
             bootloader_setup::remove_grub_xen_cmdline_settings($parameter);
             bootloader_setup::grub_mkconfig();
         }
-
     }
+    parse_junit_log("$junit_file");
 }
+
 
 sub run {
     my $self = @_;

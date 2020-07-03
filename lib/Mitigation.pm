@@ -80,8 +80,9 @@ sub reboot_and_wait {
     if (check_var('BACKEND', 'ipmi')) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
-        check_screen([qw('login_screen' 'linux-login')], $timeout);
+        check_screen([qw(login_screen linux-login)], $timeout);
         use_ssh_serial_console;
+
     }
     else {
         power_action('reboot', textmode => 1);
@@ -483,6 +484,93 @@ sub do_test {
     remove_grub_cmdline_settings($self->{parameter} . '=' . '[a-z,]*');
 }
 
+# Initialize junit xml file structure.
+sub init_xml {
+    my %args = {
+        testsuites_name => 'ts',
+        file_name       => '/tmp/junit.xml'
+    };
+    %args = @_;
+    my $xml_content = << "EOF";
+<testsuites error='0' failures='0' name=\\"$args{testsuites_name}\\" skipped='0' tests='0' time=''>
+</testsuites>
+EOF
+    assert_script_run("echo \"$xml_content\" > $args{file_name}", 200);
 
+}
+
+sub append_ts2_xml {
+    my %args = {
+        testsuite_name => 'ts',
+        file_name      => '/tmp/junit.xml'
+    };
+    %args = @_;
+    my $cmd_append_ts2_xml = << "EOF";
+xmlstarlet ed  -P -L -s /testsuites -t elem -n testsuite -v '' \\
+-i "/testsuites/testsuite[last()]" -t attr -n error -v 0 \\
+-i "/testsuites/testsuite[last()]" -t attr -n failures -v 0 \\
+-i "/testsuites/testsuite[last()]" -t attr -n hostname -v "`hostname`" \\
+-i "/testsuites/testsuite[last()]" -t attr -n id -v '' \\
+-i "/testsuites/testsuite[last()]" -t attr -n name -v \"$args{testsuite_name}\" \\
+-i "/testsuites/testsuite[last()]" -t attr -n package -v \"$args{testsuite_name}\" \\
+-i "/testsuites/testsuite[last()]" -t attr -n  skipped -v 0 \\
+-i "/testsuites/testsuite[last()]" -t attr -n tests -v 0 \\
+-i "/testsuites/testsuite[last()]" -t attr -n time -v '' \\
+-i "/testsuites/testsuite[last()]" -t attr -n timestamp -v "`date +%Y-%m-%dT%X`" $args{file_name} \\
+EOF
+    assert_script_run($cmd_append_ts2_xml, 200);
+}
+
+# Update testsuites atturate value
+sub update_tss_attr {
+    my %args = {
+        file_name => "/tmp/junit.xml",
+        attr      => 0,
+        value     => 0
+    };
+    %args = @_;
+    my $cmd_update_tss_attr = << "EOF";
+xmlstarlet ed -L -u /testsuites/\@$args{attr} -v $args{value}  $args{file_name} \\
+EOF
+    assert_script_run($cmd_update_tss_attr, 200);
+}
+
+# update testsuite atturate
+sub update_ts_attr {
+    my %args = {
+        file_name   => "/tmp/junit.xml",
+        ts_position => -1,
+        attr        => 0,
+        value       => 0
+    };
+    %args = @_;
+    my $cmd_update_ts_attr = << "EOF";
+xmlstarlet ed -L -u "/testsuites/testsuite[last()]/\@$args{attr}" -v $args{value}  $args{file_name} \\
+EOF
+    assert_script_run($cmd_update_ts_attr, 200);
+}
+
+# Insert one test case to existing junit file
+sub insert_tc2_xml {
+    my %args = {
+        file_name   => "/tmp/junit.xml",
+        class_name  => '',
+        case_status => 'pass',
+        sys_output  => '',
+        sys_err     => ''
+    };
+    %args = @_;
+    my $cmd_insert_tc2_xml = << "EOF";
+xmlstarlet ed  -L -s "/testsuites/testsuite[last()]" -t elem -n testcase -v "" \\
+-s "/testsuites/testsuite[last()]/testcase[last()]" -t elem -n system-err -v "$args{sys_err}" \\
+-s "/testsuites/testsuite[last()]/testcase[last()]" -t elem -n system-out -v "$args{sys_output}" \\
+-i "/testsuites/testsuite[last()]/testcase[last()]" -t attr -n classname -v "$args{class_name}" \\
+-i "/testsuites/testsuite[last()]/testcase[last()]" -t attr -n name -v "$args{class_name}" \\
+-i "/testsuites/testsuite[last()]/testcase[last()]" -t attr -n status  -v "$args{case_status}" \\
+-i "/testsuites/testsuite[last()]/testcase[last()]" -t attr -n time  -v "none" $args{file_name} \\
+EOF
+
+    assert_script_run($cmd_insert_tc2_xml, 200);
+}
 
 1;
