@@ -19,6 +19,51 @@ use utils qw(file_content_replace zypper_call);
 use version_utils 'is_sle';
 use POSIX 'ceil';
 
+sub is_multipath {
+    return (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
+}
+
+sub get_hana_device_from_system {
+    my ($self, $disk_requirement) = @_;
+
+    # Create a list of devices already configured as PVs to exclude them from the search
+    my $out = script_output q@echo PV=$(pvscan -s 2>/dev/null | awk '/dev/ {print $1}' | tr '\n' ',')@;
+    $out =~ /PV=(.+),$/;
+    $out = $1;
+    my @pvdevs = map { if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// } else { $_ =~ s/\d+$// } $_ =~ s@^/dev/@@; $_; } split(/,/, $out);
+
+    # lsblk command to probe for devices is different when in multipath scenario
+    my $lsblk;
+    if (is_multipath()) {
+        $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | egrep -vw '@ . join('|', @pvdevs) . "'";
+    }
+    else {
+        $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | egrep -vw '@ . join('|', @pvdevs) . "'";
+    }
+
+    # Probe devices, check its size and filter out the ones that do not meet the disk requirements
+    my $devsize = 0;
+    my $devpath = is_multipath() ? '/dev/mapper/' : '/dev/';
+    my $device;
+    my $filter_devices;
+    while ($devsize < $disk_requirement) {
+        $out = script_output "echo DEV=\$($lsblk | egrep -vw '$filter_devices' | head -1)";
+        $out =~ /DEV=([\w\.]+)$/;
+        $device = $devpath . $1;
+
+        # Need to verify there is enough space in the device for HANA
+        $out = script_output "echo SIZE=\$(lsblk -o SIZE --nodeps --noheadings --bytes $device)";
+        $out =~ /SIZE=(\d+)$/;
+        $devsize = $1;
+        $devsize /= 1024;    # Work in Mbytes since $RAM = $self->get_total_mem() is in Mbytes
+
+        $filter_devices .= "|$device";
+        $filter_devices =~ s/^|//;
+    }
+
+    return $device;
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
@@ -65,10 +110,15 @@ sub run {
         # in a different backend, assume sdb exists. Always create mountpoints.
         foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
         if ((check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) or !check_var('BACKEND', 'qemu')) {
-            my $device = (check_var('HDDMODEL', 'scsi-hd') or !check_var('BACKEND', 'qemu')) ? '/dev/sdb' : '/dev/vdb';
-            script_run "wipefs -f $device; wipefs -f ${device}1";
+            my $device = check_var('HDDMODEL', 'scsi-hd') ? '/dev/sdb' : '/dev/vdb';
+            # We need 2.5 times $RAM + 50G for HANA installation.
+            # On qemu, we assume 2nd disk was properly configured in settings
+            # On BACKENDS different than qemu make sure we get a device with at least that size
+            $device = $self->get_hana_device_from_system(($RAM * 2.5) + 50000) unless check_var('BACKEND', 'qemu');
+            record_info "Device: $device", "Will use device [$device] for HANA installation";
+            script_run "wipefs -f $device; [[ -b ${device}1 ]] && wipefs -f ${device}1; [[ -b ${device}-part1 ]] && wipefs -f ${device}-part1";
             assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
-            $device .= '1';
+            $device .= is_multipath() ? '-part1' : '1';
             assert_script_run "pvcreate -y $device";
             assert_script_run "vgcreate -f vg_hana $device";
             foreach my $mounts (keys %mountpts) {
