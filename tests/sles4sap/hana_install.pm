@@ -32,14 +32,9 @@ sub get_hana_device_from_system {
     $out = $1;
     my @pvdevs = map { if ($_ =~ s@mapper/@@) { $_ =~ s/\-part\d+$// } else { $_ =~ s/\d+$// } $_ =~ s@^/dev/@@; $_; } split(/,/, $out);
 
+    my $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | egrep -vw '@ . join('|', @pvdevs) . "'";
     # lsblk command to probe for devices is different when in multipath scenario
-    my $lsblk;
-    if (is_multipath()) {
-        $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | egrep -vw '@ . join('|', @pvdevs) . "'";
-    }
-    else {
-        $lsblk = q@lsblk -n -l -o NAME -d -e 7,11 | egrep -vw '@ . join('|', @pvdevs) . "'";
-    }
+    $lsblk = q@lsblk -l -o NAME,TYPE -e 7,11 | awk '($2 == "mpath") {print $1}' | sort -u | egrep -vw '@ . join('|', @pvdevs) . "'" if is_multipath();
 
     # Probe devices, check its size and filter out the ones that do not meet the disk requirements
     my $devsize = 0;
@@ -110,11 +105,8 @@ sub run {
         # in a different backend, assume sdb exists. Always create mountpoints.
         foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
         if ((check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) or !check_var('BACKEND', 'qemu')) {
-            my $device = check_var('HDDMODEL', 'scsi-hd') ? '/dev/sdb' : '/dev/vdb';
             # We need 2.5 times $RAM + 50G for HANA installation.
-            # On qemu, we assume 2nd disk was properly configured in settings
-            # On BACKENDS different than qemu make sure we get a device with at least that size
-            $device = $self->get_hana_device_from_system(($RAM * 2.5) + 50000) unless check_var('BACKEND', 'qemu');
+            my $device = $self->get_hana_device_from_system(($RAM * 2.5) + 50000);
             record_info "Device: $device", "Will use device [$device] for HANA installation";
             script_run "wipefs -f $device; [[ -b ${device}1 ]] && wipefs -f ${device}1; [[ -b ${device}-part1 ]] && wipefs -f ${device}-part1";
             assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
