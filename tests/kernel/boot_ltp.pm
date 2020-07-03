@@ -63,7 +63,6 @@ sub run {
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
     script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
     upload_logs($ver_linux_log, failok => 1);
-    my $ver_linux_out = script_output("cat $ver_linux_log");
 
     script_run('ps axf') if ($is_network || $is_ima);
 
@@ -135,7 +134,27 @@ EOF
 
     # If the command file (runtest file) is set then we dynamically schedule
     # the test and shutdown modules.
-    return unless $cmd_file;
+    schedule_tests($cmd_file) if $cmd_file;
+}
+
+sub read_runfile {
+    my ($runfile_path) = @_;
+    my $basename = basename($runfile_path);
+    my @ret;
+
+    upload_asset($runfile_path);
+    open my $rf, "assets_private/$basename" or die "Cannot open runfile $basename: $!";
+
+    while (my $line = <$rf>) {
+        push @ret, $line;
+    }
+
+    close($rf);
+    return \@ret;
+}
+
+sub schedule_tests {
+    my ($cmd_file) = @_;
 
     my $test_result_export = {
         format      => 'result_array:v2',
@@ -155,6 +174,7 @@ EOF
         harness     => 'SUSE OpenQA',
         ltp_version => ''
     };
+    my $ver_linux_out = script_output("cat /tmp/ver_linux_before.txt");
     if ($ver_linux_out =~ qr'^Linux\s+(.*?)\s*$'m) {
         $environment->{kernel} = $1;
     }
@@ -178,11 +198,11 @@ EOF
     for my $name (split(/,/, $cmd_file)) {
         if ($name eq 'openposix') {
             parse_openposix_runfile($name,
-                script_output("cat ~/openposix-test-list"),
+                read_runfile('/root/openposix-test-list'),
                 $cmd_pattern, $cmd_exclude, $test_result_export);
         }
         else {
-            parse_runtest_file($name, script_output("cat /opt/ltp/runtest/$name"),
+            parse_runtest_file($name, read_runfile("/opt/ltp/runtest/$name"),
                 $cmd_pattern, $cmd_exclude, $test_result_export);
         }
     }
@@ -193,7 +213,7 @@ EOF
 sub parse_openposix_runfile {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
-    for my $line (split(/^/, $cmds)) {
+    for my $line (@$cmds) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
             my $test  = {name => basename($line, '.run-test'), command => $line};
@@ -206,7 +226,7 @@ sub parse_openposix_runfile {
 sub parse_runtest_file {
     my ($name, $cmds, $cmd_pattern, $cmd_exclude, $test_result_export) = @_;
 
-    for my $line (split(/^/, $cmds)) {
+    for my $line (@$cmds) {
         next if ($line =~ /(^#)|(^$)/);
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
