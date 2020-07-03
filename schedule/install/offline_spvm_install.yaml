@@ -9,6 +9,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
+  - installation/partitioning/no_separate_home
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
