@@ -99,7 +99,7 @@ sub verify_cryptsetup_luks {
 }
 
 sub run {
-    select_console 'root-console' unless is_pvm;
+    select_console 'root-console';
     my $test_data = get_test_suite_data();
     my $crypttab  = parse_crypttab();
     verify_crypttab(num_devices => $test_data->{crypttab}->{num_devices_encrypted},
