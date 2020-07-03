@@ -23,6 +23,11 @@ sub armnn_get_images {
     assert_script_run('cp ~/data/ai_ml/images/{Cat,Dog,shark}.jpg armnn/data/');
 }
 
+sub cleanup_model_folder {
+    # Save space by cleaning up models folder
+    assert_script_run('rm -rf armnn/models');
+}
+
 sub armnn_tf_lite_test_prepare {
     # Only the *.tflite files are needed, but more files are in the archives
     assert_script_run('mkdir -p armnn/models');
@@ -138,24 +143,28 @@ sub run {
     armnn_tf_lite_test_run;
     # Run with explicit backend, if requested
     armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
+    cleanup_model_folder;
 
     # Test TensorFlow backend
     record_info('TensorFlow', "TensorFlow backend");
     armnn_tf_test_prepare;
     armnn_tf_test_run;
     armnn_tf_test_run(backend => $_) for split(/,/, $armnn_backends);
+    cleanup_model_folder;
 
     # Test ONNX backend
     record_info('ONNX', "ONNX backend");
     armnn_onnx_test_prepare;
     armnn_onnx_test_run;
     armnn_onnx_test_run(backend => $_) for split(/,/, $armnn_backends);
+    cleanup_model_folder;
 
     # Test Caffe backend
     record_info('Caffe', "Caffe backend");
     armnn_caffe_test_prepare;
     armnn_caffe_test_run;
     armnn_caffe_test_run(backend => $_) for split(/,/, $armnn_backends);
+    cleanup_model_folder;
 }
 
 1;
