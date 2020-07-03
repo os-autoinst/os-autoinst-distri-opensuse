@@ -66,6 +66,9 @@ sub load_kernel_tests {
             loadtest_kernel 'update_kernel';
         }
         loadtest_kernel 'install_ltp';
+        # If there is a command file then install_ltp schedules boot_ltp which
+        # will schedule shutdown
+        shutdown_ltp() unless get_var('LTP_COMMAND_FILE');
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
         if (get_var('INSTALL_KOTD')) {

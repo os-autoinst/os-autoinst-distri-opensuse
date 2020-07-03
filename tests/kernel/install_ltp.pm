@@ -20,7 +20,7 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_ltp qw(loadtest_kernel shutdown_ltp);
+use main_ltp 'loadtest_kernel';
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'prepare_serial_console';
@@ -347,8 +347,6 @@ sub run {
         power_action('reboot', textmode => 1) unless is_jeos;
         loadtest_kernel 'boot_ltp';
     }
-
-    shutdown_ltp() unless get_var('LTP_COMMAND_FILE');
 }
 
 sub post_fail_hook {
