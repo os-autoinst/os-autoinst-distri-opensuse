@@ -470,7 +470,7 @@ sub is_using_system_role {
     return is_sle('>=12-SP2') && is_sle('<15')
       && check_var('ARCH', 'x86_64')
       && is_server()
-      && (!is_sles4sap() || is_sles4sap_standard())
+      && (!is_sles4sap()         || is_sles4sap_standard())
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || (is_sles4sap() && main_common::is_updates_test_repo())
       || is_sle('=15')

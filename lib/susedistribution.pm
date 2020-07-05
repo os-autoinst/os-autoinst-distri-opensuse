@@ -272,7 +272,7 @@ sub x11_start_program {
     # As above especially krunner seems to take some time before disappearing
     # after 'ret' press we should wait in this case nevertheless
     wait_still_screen(3, similarity_level => 45) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
-    return unless $args{valid};
+    return                                       unless $args{valid};
     set_var('IN_X11_START_PROGRAM', $program);
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
@@ -671,7 +671,7 @@ sub hyperv_console_switch {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;
     }
-    die 'hyperv_console_switch: Console was not provided' unless $console;
+    die 'hyperv_console_switch: Console was not provided'         unless $console;
     diag 'hyperv_console_switch: Console number was not provided' unless $nr;
     # If we are in VT, 'Alt-Fx' switch already worked
     return if check_screen('any-console', 10);
