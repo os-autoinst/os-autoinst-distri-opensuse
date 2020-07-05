@@ -70,7 +70,7 @@ sub run {
                 sleep $poll_client_says_proceed;
                 $testcase_in_progress = mutex_try_lock("flakyserver_testcase_started$count", $jobid_client);
                 $done_all             = mutex_try_lock('flakyserver_testcases_done_all',     $jobid_client);
-                $client_says_proceed = $testcase_in_progress || $done_all;
+                $client_says_proceed  = $testcase_in_progress || $done_all;
 
                 # DEBUG: provide an idea of timing
                 record_info("Proceed?", "\$count =  $count: Received "

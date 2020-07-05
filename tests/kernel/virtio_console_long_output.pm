@@ -21,7 +21,7 @@ sub create_test_data
 {
     my $size        = shift // 1024 * 1024;
     my $line_length = shift // 79;
-    my @a = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+    my @a           = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
 
     my $data = "";
     for (my $i = 1; $i < $size; $i++) {

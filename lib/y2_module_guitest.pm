@@ -54,7 +54,7 @@ sub launch_yast2_module_x11 {
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }
-    die "unexpected last match" unless match_has_tag 'root-auth-dialog';
+    die "unexpected last match"    unless match_has_tag 'root-auth-dialog';
     die "need password definition" unless $password;
     diag 'assuming root-auth-dialog, typing password';
     type_password;

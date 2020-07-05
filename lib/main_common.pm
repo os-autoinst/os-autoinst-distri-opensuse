@@ -1073,7 +1073,7 @@ sub load_console_server_tests {
 }
 
 sub load_consoletests {
-    return unless consolestep_is_applicable();
+    return                            unless consolestep_is_applicable();
     loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";

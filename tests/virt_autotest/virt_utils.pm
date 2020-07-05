@@ -594,7 +594,7 @@ sub perform_guest_restart {
     my @guest_restart_array = ();
     $connect_uri         = "-c qemu+ssh://root\@$host_addr/system" if ((defined $host_addr)        && ($host_addr ne ''));
     @guest_restart_array = @$guest_to_restart                      if ((defined $guest_to_restart) && ($guest_to_restart ne ''));
-    $wait_script = "120" if ((!defined $wait_script) || ($wait_script eq ''));
+    $wait_script         = "120"                                   if ((!defined $wait_script) || ($wait_script eq ''));
     my $guest_types         = "sles|win";
     my $get_guest_domains   = "virsh $connect_uri list --all | grep -E \"${guest_types}\" | awk \'{print \$2}\'";
     my $guest_domains       = script_output($get_guest_domains, $wait_script, type_command => 0, proceed_on_failure => 0);
