@@ -845,6 +845,10 @@ elsif (get_var("PERF_KERNEL")) {
         loadtest "kernel_performance/full_run";
     }
 }
+elsif (get_var("MITIGATION_INSTALL")) {
+    load_boot_tests();
+    load_inst_tests();
+}
 elsif (get_var("QAM_MINIMAL")) {
     prepare_target();
     loadtest "qam-minimal/install_update";
