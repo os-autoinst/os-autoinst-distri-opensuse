@@ -29,11 +29,6 @@ sub run {
 "find $repos_folder/*.repo -type f -exec grep -q 'baseurl=http://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
         15
     );
-    assert_script_run(
-"find $repos_folder/*.repo -type f -exec grep -q 'baseurl=https://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
-        15
-    );
-
     zypper_call 'lr -d', exitcode => [0, 6];
     save_screenshot;    # take a screenshot after repos removed
 
