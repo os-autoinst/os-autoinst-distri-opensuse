@@ -21,3 +21,5 @@ schedule:
   - console/system_prepare
   - console/consoletest_setup
   - console/zypper_lr
+  - boot/grub_test_snapshot
+  - boot/snapper_rollback

@@ -20,6 +20,7 @@ use testapi;
 use utils;
 use version_utils qw(is_caasp is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
+use Utils::Backends 'is_pvm';
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT);
 
@@ -261,7 +262,7 @@ sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
     # assert needle to avoid send down key early in grub_test_snapshot.
-    assert_screen('snap-default', 120) if get_var('OFW');
+    assert_screen('snap-default', 120) if (get_var('OFW') || is_pvm);
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
         send_key_until_needlematch('snap-before-update', 'down', 40, 5);

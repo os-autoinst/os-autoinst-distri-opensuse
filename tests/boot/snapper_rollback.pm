@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use migration qw(check_rollback_system boot_into_ro_snapshot);
 use power_action_utils 'power_action';
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -32,6 +33,7 @@ sub run {
     script_run("snapper rollback -d rollback-before-migration");
     assert_script_run("snapper list | tail -n 2 | grep rollback", 180);
     power_action('reboot', textmode => 1, keepconsole => 1);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(ready_time => 300, bootloader_time => 300);
     select_console 'root-console';
     check_rollback_system;
