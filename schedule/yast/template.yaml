@@ -1,0 +1,23 @@
+---
+name: autoyast_installonly
+description: >
+  The schedule for the common installation with AutoYaST control file.
+  Could be used by variety of AutoYaST test suites with different set of openQA
+  variables. The variables are specified in Job Group or in Test Suite settings.
+vars:
+  AUTOYAST_PREPARE_PROFILE: '1'
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
