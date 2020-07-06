@@ -55,15 +55,17 @@ sub run {
         my $output = script_output('man -P cat journalctl');
         record_soft_failure('bsc#1063066 - broken manpage') if ($output =~ m/\s+\.SH /);
     }
-    # Enable persistent journal and reboot system
+    # Enable persistent journal
     assert_script_run("sed -i 's/.*Storage=.*/Storage=persistent/' /etc/systemd/journald.conf");
     assert_script_run("sed -i 's/.*Seal=.*/Seal=yes/' /etc/systemd/journald.conf");
     assert_script_run("systemctl restart systemd-journald");
+    assert_script_run("journalctl -e | grep -i 'Flush Journal to Persistent Storage'");
     # Setup FSS keys before reboot
     assert_script_run('journalctl --interval=10s --setup-keys | tee /var/tmp/journalctl-setup-keys.txt');
     assert_script_run('journalctl --rotate');
     assert_script_run("date '+%F %T' > /var/tmp/reboottime");
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
+    # Reboot system - public cloud does not handle reboot well atm
     if (!isPublicCloud) {
         power_action('reboot', textmode => 1);
         $self->wait_boot(bootloader_time => 200);
@@ -75,8 +77,11 @@ sub run {
     # Check journal state after reboot to trigger bsc#1171858
     record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
-    check_journal('',                               "journalctl.txt",        "journalctl empty");
-    check_journal('--boot=-1',                      "journalctl-1.txt",      "journalctl of previous boot empty") unless isPublicCloud;
+    script_run("cat /var/tmp/reboottime");
+    check_journal('',          "journalctl.txt",   "journalctl empty");
+    check_journal('--boot=-1', "journalctl-1.txt", "journalctl of previous boot empty") unless isPublicCloud;
+    # Note: Detailled error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
+    die "no persistent journal was found" if script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") == 0;
     check_journal('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt",  "journalctl after reboot empty");
     check_journal('-U "`cat /var/tmp/reboottime`"', "journalctl-before.txt", "journalctl before reboot empty");
     check_journal("-k",                             "journalctl-dmesg.txt",  "journalctl dmesg empty");
@@ -132,6 +137,7 @@ sub cleanup {
 sub post_fail_hook {
     script_run('journalctl -x > /var/tmp/journalctl.txt');
     upload_logs('/var/tmp/journalctl.txt');
+    upload_logs('/etc/systemd/journald.conf');
     cleanup();
 }
 
