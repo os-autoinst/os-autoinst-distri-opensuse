@@ -1806,6 +1806,7 @@ sub load_extra_tests_filesystem {
         loadtest 'console/snapper_thin_lvm' unless is_jeos;
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
+    loadtest "console/udisks2" unless is_sle;
 }
 
 sub get_wicked_tests {

@@ -22,11 +22,12 @@ sub run {
     select_console 'root-console';
 
     # Install udisks2 package. mkisofs and util-linux for support packages
-    if (is_sle('>=15')) {
-        zypper_call('in mkisofs udisks2 util-linux');
+    if (is_sle('<15')) {
+        # mkisofs is part of 'cdrkit-cdrtools-compat' on SLE version older than 15
+        zypper_call('in cdrkit-cdrtools-compat udisks2 util-linux');
     }
     else {
-        zypper_call('in cdrkit-cdrtools-compat udisks2 util-linux');
+        zypper_call('in mkisofs udisks2 util-linux');
     }
 
     # Compares block devices from lsblk and udisksctl outputs.
@@ -70,8 +71,7 @@ sub run {
         }
     }
 
-    my $loop_dev =
-      assert_script_run("udisksctl loop-delete -b $device_path");
+    assert_script_run("udisksctl loop-delete -b $device_path");
 
     # clean
     assert_script_run "rm -rf udisk_test/";
