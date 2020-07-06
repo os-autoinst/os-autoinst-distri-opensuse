@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,22 +16,22 @@ use warnings;
 use utils;
 use testapi;
 use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);
-
-# Check if running kernel is the last installed
-sub kernel_updated {
-    select_console "root-console";
-    my $current = script_output "uname -r | cut -d'-' -f1,2";
-    return script_run "rpm -q --last kernel-default | head -1 | grep $current";
-}
+use power_action_utils 'power_action';
 
 # Update with Plasma applet for software updates using PackageKit
-sub run {
-    my ($self) = @_;
+
+sub setup_system {
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
     turn_off_kde_screensaver;
+}
 
-    my @updates_installed_tags = qw(updates_none updates_available updates_available-tray);
+
+sub run {
+    my ($self) = @_;
+    setup_system;
+
+    my @updates_installed_tags = qw(updates_none updates_available updates_available-tray );
     assert_screen [qw(updates_available-tray tray-without-updates-available)];
     if (match_has_tag 'updates_available-tray') {
         assert_and_click("updates_available-tray");
@@ -45,20 +45,27 @@ sub run {
 
             # Wait until installation is done
             assert_screen \@updates_installed_tags, 3600;
-
             # Make sure the applet has fetched the current status from the backend
             # and has finished redrawing. In case the update status changed after
             # the assert_screen, record a soft failure
             wait_still_screen;
+
+            #Check if the applet reports that a restart is needed.
+            if (check_screen 'updates_installed-restart') {
+                assert_and_click 'updates_installed-restart', 5;
+                $self->wait_boot;
+                setup_system;
+                # Look again
+                assert_screen \@updates_installed_tags;
+            }
+            wait_still_screen;
             if (match_has_tag('updates_none')) {
                 if (check_screen 'updates_none', 30) {
                     last;
-                }
-                else {
+                } else {
                     record_soft_failure 'boo#992773';
                 }
-            }
-            elsif (match_has_tag('updates_available')) {
+            } elsif (match_has_tag('updates_available')) {
                 # look again
                 if (check_screen 'updates_none', 0) {
                     record_soft_failure 'boo#1041112';
@@ -70,8 +77,7 @@ sub run {
                 # look again
                 if (check_screen 'updates_available-tray', 30) {
                     assert_and_click("updates_available-tray");
-                }
-                else {
+                } else {
                     # Make sure, that there are no updates, otherwise fail
                     assert_screen 'updates_none';
                     record_soft_failure 'boo#1041112';
@@ -81,14 +87,6 @@ sub run {
         }
         # Close tray updater
         send_key("alt-f4");
-    }
-
-    if (kernel_updated) {
-        type_string "reboot\n";
-        $self->wait_boot;
-    }
-    else {
-        select_console "x11";
     }
 }
 
