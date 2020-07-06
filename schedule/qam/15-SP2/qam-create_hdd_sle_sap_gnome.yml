@@ -24,6 +24,7 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - '{{patch_and_reboot}}'
   - console/sle15_workarounds
   - console/hostname
   - console/system_prepare
@@ -31,3 +32,8 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+conditional_schedule:
+  patch_and_reboot:
+    FLAVOR:
+      SAP-DVD-Updates:
+        - qa_automation/patch_and_reboot
