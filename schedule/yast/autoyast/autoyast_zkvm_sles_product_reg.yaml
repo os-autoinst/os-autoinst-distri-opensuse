@@ -1,0 +1,21 @@
+---
+name: autoyast_zkvm_sles_product_reg
+description: >
+  First ay test on zkvm, works only there, has special partitioning and networking
+  setup.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_sles_zkvm.xml
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_zkvm
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
