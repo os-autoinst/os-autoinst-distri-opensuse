@@ -40,14 +40,23 @@ sub login_to_console {
     $timeout //= 5;
     $counter //= 240;
 
+    reset_consoles;
+    select_console 'sol', await_console => 0;
+
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
-        reset_consoles;
-        select_console 'sol', await_console => 0;
-        send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $counter, $timeout);
-        #use console based on ssh to avoid unstable ipmi
-        save_screenshot;
-        use_ssh_serial_console;
-        return;
+        if (get_var("XEN")) {
+            assert_screen 'pxe-qa-net-mitigation', 90;
+            send_key 'ret';
+            assert_screen([qw(grub2 grub1)], 60);
+            send_key 'up';
+        }
+        else {
+            send_key_until_needlematch(['linux-login', 'virttest-displaymanager'], 'ret', $counter, $timeout);
+            #use console based on ssh to avoid unstable ipmi
+            save_screenshot;
+            use_ssh_serial_console;
+            return;
+        }
     }
 
     if (check_var('ARCH', 's390x')) {
@@ -56,9 +65,6 @@ sub login_to_console {
         my $svirt = select_console('svirt', await_console => 0);
         return;
     }
-
-    reset_consoles;
-    select_console 'sol', await_console => 0;
 
     my $sut_machine = get_var('SUT_IP', 'nosutip');
     boot_local_disk_arm_huawei if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /huawei/img));
