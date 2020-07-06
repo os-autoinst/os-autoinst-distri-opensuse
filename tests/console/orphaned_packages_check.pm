@@ -62,9 +62,7 @@ sub compare_orphans_lists {
 sub run {
     select_console 'root-console';
 
-    record_info('Upgraded?',
-        'Has the SUT been upgraded or installed from LIVECD? Both can possibly cause orphans',
-        result => (is_offline_upgrade_or_livecd) ? 'ok' : 'fail');
+    record_info((is_offline_upgrade_or_livecd) ? 'Upgrade/LiveCD' : 'No upgrade/LiveCD', 'Upgraded or installed from LIVECD can possibly cause orphans');
 
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
