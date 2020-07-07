@@ -40,6 +40,13 @@ sub login_to_console {
     $timeout //= 5;
     $counter //= 240;
 
+    if (check_var('ARCH', 's390x')) {
+        #Switch to s390x lpar console
+        reset_consoles;
+        my $svirt = select_console('svirt', await_console => 0);
+        return;
+    }
+
     reset_consoles;
     select_console 'sol', await_console => 0;
 
@@ -57,13 +64,6 @@ sub login_to_console {
             use_ssh_serial_console;
             return;
         }
-    }
-
-    if (check_var('ARCH', 's390x')) {
-        #Switch to s390x lpar console
-        reset_consoles;
-        my $svirt = select_console('svirt', await_console => 0);
-        return;
     }
 
     my $sut_machine = get_var('SUT_IP', 'nosutip');
