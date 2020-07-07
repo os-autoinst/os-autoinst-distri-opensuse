@@ -86,8 +86,10 @@ sub armnn_onnx_test_prepare {
 
     assert_script_run('mkdir -p armnn/models');
     assert_script_run('pushd armnn/models');
+    assert_script_run('wget https://onnxzoo.blob.core.windows.net/models/opset_8/mnist/mnist.tar.gz -O ~/data/ai_ml/models/mnist.tar.gz');
     assert_script_run("tar xzf ~/data/ai_ml/models/mnist.tar.gz");
     assert_script_run("cp mnist/model.onnx ./mnist_onnx.onnx");
+    assert_script_run('wget https://s3.amazonaws.com/onnx-model-zoo/mobilenet/mobilenetv2-1.0/mobilenetv2-1.0.tar.gz -O ~/data/ai_ml/models/mobilenetv2-1.0.tar.gz');
     assert_script_run("tar xzf ~/data/ai_ml/models/mobilenetv2-1.0.tar.gz");
     assert_script_run("cp mobilenetv2-1.0/mobilenetv2-1.0.onnx ./");
     assert_script_run('popd');
