@@ -343,9 +343,6 @@ sub ensure_installed {
         $self->_ensure_installed_zypper_fallback($pkglist);
         record_soft_failure 'boo#1100134 - pkcon randomly fails to download packages';
     }
-    elsif ($ret =~ /pkcon-status-7/) {
-        record_info 'pkcon succeeded: no package needed be installed. Requested package already up-to-date';
-    }
     elsif ($ret !~ /pkcon-status-0/) {
         die "pkcon install did not succeed, return code: $ret";
     }
