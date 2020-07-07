@@ -3,17 +3,6 @@ description:    >
     Maintainer: dheidler.
     Extra tests about CLI software in desktop applications module
 conditional_schedule:
-    bootloader:
-        ARCH:
-            'aarch64':
-                - boot/uefi_bootmenu
-            's390x':
-                - installation/bootloader_zkvm
-        MACHINE:
-            'svirt-xen-pv':
-                - installation/bootloader_svirt
-            'svirt-xen-hvm':
-                - installation/bootloader_svirt
     tests_requiring_soundcard:
         ARCH:
             aarch64:
@@ -24,7 +13,7 @@ conditional_schedule:
                 - console/aplay
                 - console/wavpack
 schedule:
-    - '{{bootloader}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup

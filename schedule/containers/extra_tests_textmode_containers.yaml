@@ -3,17 +3,6 @@ description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     Extra tests about software in containers module
 conditional_schedule:
-    bootloader:
-        ARCH:
-            'aarch64':
-                - boot/uefi_bootmenu
-            's390x':
-                - installation/bootloader_zkvm
-        MACHINE:
-            'svirt-xen-pv':
-                - installation/bootloader_svirt
-            'svirt-xen-hvm':
-                - installation/bootloader_svirt
     podman_image:
         DISTRI:
             'opensuse':
@@ -32,7 +21,7 @@ conditional_schedule:
             'opensuse':
                 - containers/docker_compose
 schedule:
-    - '{{bootloader}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - containers/podman
     - '{{podman_image}}'

@@ -3,17 +3,6 @@ description:    >
     Maintainer: dheidler.
     Extra CLI tests
 conditional_schedule:
-    bootloader:
-        ARCH:
-            'aarch64':
-                - boot/uefi_bootmenu
-            's390x':
-                - installation/bootloader_zkvm
-        MACHINE:
-            'svirt-xen-pv':
-                - installation/bootloader_svirt
-            'svirt-xen-hvm':
-                - installation/bootloader_svirt
     lshw:
         ARCH:
             x86_64:
@@ -29,7 +18,7 @@ conditional_schedule:
             x86_64:
                 - console/yast2_lan_device_settings
 schedule:
-    - '{{bootloader}}'
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
