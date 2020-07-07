@@ -19,4 +19,5 @@ schedule:
 - console/snapper_undochange
 - console/snapper_create
 - console/coredump_collect
+- console/udisks2
 ...

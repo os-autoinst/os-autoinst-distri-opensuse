@@ -20,4 +20,5 @@ schedule:
 - console/snapper_create
 - console/snapper_thin_lvm
 - console/coredump_collect
+- console/udisks2
 ...

@@ -56,7 +56,6 @@ schedule:
 - console/procps
 - '{{lshw}}'
 - console/iotop
-- console/udisks2
 - console/kmod
 - console/suse_module_tools
 - console/zziplib
