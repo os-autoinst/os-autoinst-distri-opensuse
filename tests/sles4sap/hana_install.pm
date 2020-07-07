@@ -50,7 +50,7 @@ sub get_hana_device_from_system {
         $out = script_output "echo SIZE=\$(lsblk -o SIZE --nodeps --noheadings --bytes $device)";
         $out =~ /SIZE=(\d+)$/;
         $devsize = $1;
-        $devsize /= 1024;    # Work in Mbytes since $RAM = $self->get_total_mem() is in Mbytes
+        $devsize /= (1024 * 1024);    # Work in Mbytes since $RAM = $self->get_total_mem() is in Mbytes
 
         $filter_devices .= "|$device";
         $filter_devices =~ s/^|//;
