@@ -140,6 +140,7 @@ sub run_test {
     if ($upload_virt_log_flag eq "yes") {
         upload_virt_logs($log_dir, $compressed_log_name);
         virt_utils::upload_supportconfig_log;
+        $self->upload_coredumps;
     }
 
     if ($upload_guest_assets_flag eq "yes") {

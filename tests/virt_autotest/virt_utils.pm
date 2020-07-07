@@ -55,6 +55,14 @@ sub enable_debug_logging {
     }
     save_screenshot;
 
+    # enable qemu core dumps
+    my $qemu_conf_file = "/etc/libvirt/qemu.conf";
+    if (!script_run "ls $qemu_conf_file") {
+        script_run "sed -i '/max_core *=/{h;s/^[# ]*max_core *=.*\$/max_core = \"unlimited\"/};\${x;/^\$/{s//max_core = \"unlimited\"/;H};x}' $qemu_conf_file";
+        script_run "grep max_core $qemu_conf_file";
+    }
+    save_screenshot;
+
 }
 
 sub get_version_for_daily_build_guest {
@@ -335,9 +343,9 @@ sub compress_single_qcow2_disk {
 sub upload_supportconfig_log {
     my $datetab = script_output("date '+%Y%m%d%H%M%S'");
     script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
-    script_run("tar zcvfP nts_supportconfig.$datetab.tar.gz nts_supportconfig.$datetab");
-    upload_logs("nts_supportconfig.$datetab.tar.gz");
-    script_run("rm -rf nts_supportconfig.*");
+    script_run("tar zcvfP supportconfig.$datetab.tar.gz *supportconfig.$datetab");
+    upload_logs("supportconfig.$datetab.tar.gz");
+    script_run("rm -rf *supportconfig.*");
     save_screenshot;
 }
 

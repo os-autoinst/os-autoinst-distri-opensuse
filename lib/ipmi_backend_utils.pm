@@ -106,14 +106,17 @@ sub setup_console_in_grub {
             # autoballoning is disabled since sles15sp1 beta2. we use default dom0_ram which is '10% of total ram + 1G'
             # while for older release, bsc#1107572 "This dom0 memory amount works well with hosts having 4 to 8 Gigs of RAM"
             # considering of one SUT in OSD with 4G ram only, we set dom0_mem=2G
-            my $dom0_mem_options = "";
+            my $dom0_options = "";
             if (is_sle('<=12-SP4') || is_sle('=15')) {
-                $dom0_mem_options = "dom0_mem=2048M,max:2048M";
+                $dom0_options = "dom0_mem=2048M,max:2048M";
+            }
+            if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+                $dom0_options .= " iommu=on";
             }
             $cmd
               = "sed -ri '/multiboot/ "
               . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-              . "/multiboot/ s/\$/ $dom0_mem_options console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/;}; "
+              . "/multiboot/ s/\$/ $dom0_options console=com2,115200 log_lvl=all guest_loglvl=all sync_console $com_settings/;}; "
               . "' $grub_cfg_file";
             assert_script_run($cmd);
             save_screenshot;
