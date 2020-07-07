@@ -1,0 +1,16 @@
+---
+name: autoyast-supportserver
+description: >
+  autoyast-supportserver runs in parallel to many jobs, e.g. autoyast
+  installation tests. MAX_JOB_TIME increased to 4h as it was previously failing
+  as incomplete in case of 2h timeout.AYTESTS_REPO should point to the newest
+  available subproject/repo of the IBS project Devel:YaSTAYTESTS_REPO is now
+  defined in main.pm. See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/4193
+  For SLE 12 it's:AYTESTS_REPO=http://download.suse.de/ibs/Devel:/YaST:/SLE-12-SP4/SLE_12_SP4
+  For SLE 15:AYTESTS_REPO=http://download.suse.de/ibs/Devel:/YaST:/Head/SUSE_SLE-15_GA/'
+vars:
+  DESKTOP: textmode
+schedule:
+  - support_server/login
+  - support_server/setup
+  - support_server/wait_children

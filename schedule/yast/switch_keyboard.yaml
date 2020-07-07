@@ -1,12 +1,9 @@
 ---
-name:           yast_no_self_update
-description:    >
-  Test suite conducts installation with self-update explicitly disabled. No
-  hard checks are done that the self-updating is really disabled.
-  Installation is validated by successful boot and that YaST does not report
-  any issue.
+name: switch_keyboard
+description: >
+  Basic installation testing keyboard layout and switching back to default.
 vars:
-  INSTALLER_NO_SELF_UPDATE: 1
+  INSTALL_KEYBOARD_LAYOUT: fr
 schedule:
   - installation/isosize
   - installation/bootloader
@@ -24,9 +21,3 @@ schedule:
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
-  - installation/await_install
-  - installation/logs_from_installation_system
-  - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
-  - installation/first_boot

@@ -1,14 +1,15 @@
 ---
-name:           yast_no_self_update
-description:    >
-  Test suite conducts installation with self-update explicitly disabled. No
-  hard checks are done that the self-updating is really disabled.
-  Installation is validated by successful boot and that YaST does not report
-  any issue.
+name: xfs
+description: >
+  Installation with default parameters, except XFS being selected as filesystem
+  for the root partition. Installation is validated by successful boot and that
+  YaST does not report any issue.
 vars:
-  INSTALLER_NO_SELF_UPDATE: 1
+  DESKTOP: gnome
+  FILESYSTEM: xfs
 schedule:
   - installation/isosize
+  - installation/bootloader_svirt
   - installation/bootloader
   - installation/welcome
   - installation/accept_license
@@ -16,6 +17,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
+  - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
@@ -27,6 +29,5 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/first_boot

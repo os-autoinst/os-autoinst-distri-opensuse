@@ -1,0 +1,11 @@
+---
+name: remote_vnc_target_nfs
+description: >
+  Boot with vnc=1 parameter and wait for parallel job (remote_vnc_controller) to
+  install the system.
+vars:
+  DESKTOP: gnome
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - remote/remote_target

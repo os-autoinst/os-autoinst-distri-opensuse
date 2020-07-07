@@ -1,0 +1,28 @@
+---
+name: autoyast_gnome
+description: >
+  AutoYaST installation with gnome using default partitioning. Installation is
+  validated by execution set of smoke userspace tests.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_gnome.xml
+  DESKTOP: gnome
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/sle15_workarounds
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/autoyast_smoke

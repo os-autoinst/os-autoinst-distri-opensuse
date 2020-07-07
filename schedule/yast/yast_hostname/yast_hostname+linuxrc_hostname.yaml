@@ -1,0 +1,28 @@
+---
+name: yast_hostname+linuxrc_hostname
+description: >
+  Test suite uses default option to set hostname=linuxrchostname.
+  Test validates if installation can successfully start in case of usage of
+  these parameters.
+vars:
+  EXIT_AFTER_START_INSTALL: '1'
+  EXPECTED_INSTALL_HOSTNAME: linuxrchostname
+  EXTRABOOTPARAMS: hostname=linuxrchostname
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
