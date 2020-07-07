@@ -21,6 +21,7 @@ schedule:
 - console/snapper_thin_lvm
 - console/snapper_used_space
 - console/coredump_collect
+- console/udisks2
 conditional_schedule:
   boot:
     ARCH:
