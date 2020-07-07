@@ -17,12 +17,7 @@ conditional_schedule:
         - installation/bootloader_uefi
       x86_64:
         - installation/bootloader
-  isosize:
-    VERSION:
-      15-SP2:
-        - installation/isosize
 schedule:
-  - '{{isosize}}'
   - '{{bootloader}}'
   - installation/welcome
   - installation/accept_license
