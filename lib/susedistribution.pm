@@ -160,7 +160,7 @@ sub init_cmd {
         $testapi::cmd{sync_without_daemon} = "alt-s";
     }
     ## keyboard cmd vars end
-    if (check_var('FLAVOR', 'Online')) {
+    if (check_var('VIDEOMODE', 'text') && check_var('SCC_REGISTER', 'installation')) {
         $testapi::cmd{expertpartitioner} = "alt-x";
     }
 }
