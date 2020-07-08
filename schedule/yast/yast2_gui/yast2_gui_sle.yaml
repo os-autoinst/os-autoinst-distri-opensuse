@@ -39,6 +39,7 @@ conditional_schedule:
                 - yast2_gui/yast2_software_management
                 - yast2_gui/yast2_security
                 - x11/yast2_snapper
+                - yast2_gui/yast2_lang
                 - yast2_gui/yast2_users
                 - yast2_gui/yast2_datetime
                 - yast2_gui/yast2_hostnames
@@ -50,6 +51,7 @@ conditional_schedule:
                 - yast2_gui/yast2_software_management
                 - yast2_gui/yast2_security
                 - x11/yast2_snapper
+                - yast2_gui/yast2_lang
                 - yast2_gui/yast2_users
                 - yast2_gui/yast2_datetime
                 - yast2_gui/yast2_hostnames
@@ -61,6 +63,7 @@ conditional_schedule:
                 - yast2_gui/yast2_software_management
                 - yast2_gui/yast2_security
                 - x11/yast2_snapper
+                - yast2_gui/yast2_lang
                 - yast2_gui/yast2_users
                 - yast2_gui/yast2_datetime
                 - yast2_gui/yast2_hostnames
