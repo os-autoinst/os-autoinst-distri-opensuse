@@ -1,0 +1,27 @@
+---
+name: autoyast_tftp
+description: >
+  AutoYaST installation with tftp configuration. tftp service configuration is
+  validated in the end of the installation. Profile additionally contains
+  following features being tested:
+     - Post installation script execution
+     - Adding host entries to the /etc/hosts
+     - ntp/chrony configuration
+vars:
+  AUTOYAST: aytests/tftp.xml
+  AUTOYAST_VERIFY: aytests/tftp.list
+  DESKTOP: textmode
+schedule:
+  - installation/isosize
+  - boot/boot_from_pxe
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/autoyast_verify
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
