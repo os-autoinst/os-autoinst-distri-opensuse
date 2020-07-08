@@ -1445,6 +1445,7 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_nfs_server';
     loadtest 'yast2_cmd/yast_nfs_client';
     loadtest 'yast2_cmd/yast_dns_server';
+    loadtest 'yast2_cmd/yast_lang';
 
     #temporary runs for QAM while tests under y2uitest_ncurses are being ported
     loadtest "console/yast2_apparmor";
