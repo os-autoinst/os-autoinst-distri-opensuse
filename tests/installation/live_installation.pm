@@ -46,12 +46,19 @@ sub run {
     x11_start_program('systemctl stop packagekit.service', target_match => 'generic-desktop');
     turn_off_kde_screensaver;
     if (is_upgrade) {
-        assert_and_click 'live-upgrade';
+        if (is_aarch64) {
+            # On aarch64 there is sporadic issue when "Upgrade" icon is clicked too long,
+            # so that overlay appeared instead of opening the wizard.
+            x11_start_program('xdg-su -c "/usr/sbin/start-install.sh upgrade"', target_match => 'maximize');
+        }
+        else {
+            assert_and_click 'live-upgrade';
+        }
     }
     else {
         if (is_aarch64) {
             # On aarch64 there is sporadic issue when "Install" icon is clicked too long,
-            # so that context menu is called instead of opening the wizard.
+            # so that overlay appeared instead of opening the wizard.
             x11_start_program('xdg-su -c "/usr/sbin/start-install.sh"', target_match => 'maximize');
         }
         else {
