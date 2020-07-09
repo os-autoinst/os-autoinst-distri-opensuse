@@ -19,6 +19,8 @@ use warnings;
 use testapi;
 use migration;
 use version_utils 'is_sle';
+use Utils::Backends 'is_pvm';
+use utils;
 
 sub run {
     # After being patched, original system is ready for upgrade
@@ -49,7 +51,11 @@ sub run {
     set_var('DM_NEEDS_USERNAME', '1') if (check_var('DESKTOP', 'KDE') && is_sle('15+') && (get_var('ADDONURL', '') !~ /phub/));
 
     record_info('Version', 'VERSION=' . get_var('VERSION'));
-    reset_consoles_tty;
+    if (is_pvm) {
+        reconnect_mgmt_console;
+    } else {
+        reset_consoles_tty;
+    }
 }
 
 1;
