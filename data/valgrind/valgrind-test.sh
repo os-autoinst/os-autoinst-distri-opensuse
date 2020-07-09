@@ -80,14 +80,6 @@ GREP 'Conditional jump or move depends on uninitialised value' "output_7.txt"
 GREP 'Uninitialised value was created by a heap allocation' "output_7.txt"
 GREP 'All heap blocks were freed -- no leaks are possible' "output_7.txt"
 
-# sgcheck is only available on x86_64
-if [[ $x86_64 == 1 ]]; then
-	valgrind --tool=exp-sgcheck --log-file="output_8.txt" ./valgrind-test --oob-stack 65
-	GREP 'Invalid read of size ' "output_8.txt"
-else
-	echo "    INFO: Skipping sg-check (not supported on this platform)"
-fi
-
 echo "Testing callgrind ... "
 valgrind --tool=callgrind --callgrind-out-file="callgrind.out" ./valgrind-test 2>/dev/null
 GREP '# callgrind format' callgrind.out
