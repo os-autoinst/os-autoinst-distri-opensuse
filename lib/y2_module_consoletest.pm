@@ -12,10 +12,8 @@ sub yast2_console_exec {
     die "Yast2 module has not been found among function arguments!\n" unless (defined($args{yast2_module}));
     my $y2_start    = y2_module_basetest::with_yast_env_variables() . ' yast2 ';
     my $module_name = 'yast2-' . $args{yast2_module} . '-status';
-    $y2_start .= (defined($args{yast2_opts})) ?
-      $args{yast2_opts} . ' ' . $args{yast2_module} . ';' :
-      $args{yast2_module} . ';';
-
+    $y2_start .= (defined($args{yast2_opts})) ? $args{yast2_opts} . ' ' : '';
+    $y2_start .= $args{yast2_module} . ' --ncurses;';
     # poo#40715: Hyper-V 2012 R2 serial console is unstable (a Hyper-V product bug)
     # and is in many cases loosing the 15th character, so e.g. instead of the expected
     # 'yast2-scc-status-0' we get 'yast2-scc-statu-0' (sic, see the missing 's').
