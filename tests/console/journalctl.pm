@@ -25,16 +25,16 @@
 use base "consoletest";
 use strict;
 use warnings;
+use Date::Parse;
 use testapi;
 use utils;
 use version_utils;
 use power_action_utils 'power_action';
 
 sub check_journal {
-    my ($args, $filename, $fail_message) = @_;
-    $fail_message //= "journalctl '$args' is empty";
+    my ($args, $filename) = @_;
     assert_script_run("journalctl -q $args > $filename");
-    assert_script_run("if [ -s $filename ]; then true; else false; fi", fail_message => "$fail_message");
+    return script_run("if [ -s $filename ]; then true; else false; fi");
 }
 
 sub check_syslog {
@@ -42,8 +42,11 @@ sub check_syslog {
     return !is_tumbleweed && !is_jeos;
 }
 
-sub isPublicCloud {
-    return get_var('PUBLIC_CLOUD');
+sub reboot {
+    my ($self) = @_;
+    power_action('reboot', textmode => 1);
+    $self->wait_boot(bootloader_time => 200);
+    select_console 'root-console';
 }
 
 sub run {
@@ -63,13 +66,11 @@ sub run {
     # Setup FSS keys before reboot
     assert_script_run('journalctl --interval=10s --setup-keys | tee /var/tmp/journalctl-setup-keys.txt');
     assert_script_run('journalctl --rotate');
-    assert_script_run("date '+%F %T' > /var/tmp/reboottime");
+    assert_script_run("date '+%F %T' | tee /var/tmp/reboottime");
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
     # Reboot system - public cloud does not handle reboot well atm
-    if (!isPublicCloud) {
-        power_action('reboot', textmode => 1);
-        $self->wait_boot(bootloader_time => 200);
-        select_console 'root-console';
+    if (!is_public_cloud) {
+        reboot($self);
     } else {
         # TODO: Handle reboots on public cloud
         record_info("publiccloud", "Public cloud omits rebooting (temporary workaround)");
@@ -77,15 +78,25 @@ sub run {
     # Check journal state after reboot to trigger bsc#1171858
     record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
-    script_run("cat /var/tmp/reboottime");
-    check_journal('',          "journalctl.txt",   "journalctl empty");
-    check_journal('--boot=-1', "journalctl-1.txt", "journalctl of previous boot empty") unless isPublicCloud;
+    script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
+    die "journalctl empty" if check_journal('', "journalctl.txt");
+    die "journalctl of previous boot empty" if !is_public_cloud && check_journal('--boot=-1', "journalctl-1.txt");
     # Note: Detailled error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
     die "no persistent journal was found" if script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") == 0;
-    check_journal('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt",  "journalctl after reboot empty");
-    check_journal('-U "`cat /var/tmp/reboottime`"', "journalctl-before.txt", "journalctl before reboot empty");
-    check_journal("-k",                             "journalctl-dmesg.txt",  "journalctl dmesg empty");
-    assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot") unless isPublicCloud;
+    die "journalctl after reboot empty"   if check_journal('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
+    if (check_journal('-U "`cat /var/tmp/reboottime`"', "journalctl-before.txt")) {
+        # Check for bsc1173856, i.e. the first date in the journal is newer than the last date
+        my $awk    = '{print($1 " " $2 " " $3);}';
+        my $f_time = script_output("journalctl -q | head -n 1 | awk '$awk'", proceed_on_failure => 1);
+        my $l_time = script_output("journalctl -q | tail -n 1 | awk '$awk'", proceed_on_failure => 1);
+        if (str2time($f_time) > str2time($l_time)) {
+            record_soft_failure "bsc#1173856";
+        } else {
+            die "journalctl before reboot empty";
+        }
+    }
+    die "journalctl dmesg empty" if check_journal("-k", "journalctl-dmesg.txt");
+    assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot") unless is_public_cloud;
     # Create virtual serial console for journal redirecting
     script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
     assert_script_run('jobs | grep socat', fail_message => "socat is not running");
