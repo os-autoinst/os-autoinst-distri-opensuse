@@ -339,9 +339,17 @@ sub ensure_installed {
         record_soft_failure "boo#1091353 - pkcon doesn't find existing pkg - falling back to zypper";
     }
     elsif ($ret =~ /pkcon-status-5/) {
-        record_info 'pkcon failed', 'Return value meaning: "Nothing useful was done", trying fallback to zypper"';
-        $self->_ensure_installed_zypper_fallback($pkglist);
-        record_soft_failure 'boo#1100134 - pkcon randomly fails to download packages';
+        if (!check_screen('pkcon-pkg-already-installed')) {
+            record_info 'pkcon failed', 'Return value meaning: "Nothing useful was done", trying fallback to zypper"';
+            $self->_ensure_installed_zypper_fallback($pkglist);
+            record_soft_failure 'boo#1100134 - pkcon randomly fails to download packages';
+        }
+    }
+    elsif ($ret =~ /pkcon-status-7/) {
+        # If a pkg is already installed, status 7 is no problem.
+        # This is only for legacy as pkg-already-installed will trigger status 5
+        # since https://build.suse.de/request/show/220474
+        assert_screen('pkcon-pkg-already-installed');
     }
     elsif ($ret !~ /pkcon-status-0/) {
         die "pkcon install did not succeed, return code: $ret";
