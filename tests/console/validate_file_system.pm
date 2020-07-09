@@ -25,6 +25,7 @@ sub run {
     my $test_data            = get_test_suite_data();
     my $partitions           = $test_data->{file_system};
     my $encrypted_partitions = $test_data->{encrypted_filesystem};
+    my $swap                 = $test_data->{swap};
 
     select_console 'root-console';
 
@@ -53,6 +54,11 @@ sub run {
             validate_script_output "cryptsetup luksDump /dev/$_->{partition}",
               sub { m/Version:\s+$luks_type.*/s };
         }
+    }
+    if ($swap) {
+        record_info("Check swap", "Check swap partition exists");
+        assert_script_run("lsblk -n | grep -F '[SWAP]'",
+            fail_message => 'swap partition is expected on the installed system');
     }
 }
 
