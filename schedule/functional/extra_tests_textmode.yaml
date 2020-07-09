@@ -35,6 +35,7 @@ schedule:
     - console/update_alternatives
     - console/rpm
     - console/slp
+    - console/pkcon
     - console/command_not_found
     - console/openssl_alpn
     - console/autoyast_removed
