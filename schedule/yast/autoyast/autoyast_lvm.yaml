@@ -1,11 +1,12 @@
 ---
-name: autoyast_tftp
+name: autoyast_lvm
 description: >
-  AutoYaST installation with tftp configuration. tftp service configuration is validated in the end of the installation.
-  Profile additionally contains following features being tested:
-     - Post installation script execution
-     - Adding host entries to the /etc/hosts
-     - ntp/chrony configuration
+  AutoYaST installation using LVM for partitioning, having GPT with /, /opt and swap Logical Volumes in a single Volume
+  Group. Following is validated in the SUT:
+     - LVM configuration
+     - Firewall configuration
+     - Subvolumes configuration
+     - Passwords are set for the users in the profile
 schedule:
   - installation/isosize
   - boot/boot_from_pxe
