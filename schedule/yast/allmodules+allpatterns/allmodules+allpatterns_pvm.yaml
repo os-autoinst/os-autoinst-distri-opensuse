@@ -32,3 +32,6 @@ schedule:
   - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/first_boot
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/yast2_i
