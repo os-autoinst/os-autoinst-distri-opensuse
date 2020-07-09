@@ -35,10 +35,12 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils "is_sle";
 
 sub run {
     my $self = shift;
     select_console("x11");
+    my $accept_keybind = is_sle("<=15-SP1") ? "alt-o" : "alt-a";
 
     # 1. start yast2 keyboard
     $self->launch_yast2_module_x11("keyboard", match_timeout => 120);
@@ -48,7 +50,7 @@ sub run {
 
     # 2. Switch keymap from us to german
     send_key_until_needlematch("yast2_keyboard-layout-german", "down");
-    wait_screen_change { send_key "alt-o" };
+    wait_screen_change { send_key $accept_keybind };
     assert_screen "generic-desktop", timeout => 90;
 
     # 3. Use gedit to enter german characters to verify keyboard layout
@@ -71,8 +73,9 @@ sub run {
     send_key "alt-k";
     wait_still_screen 2;
     send_key "e";
+    send_key "n" if is_sle("=15-SP2");
     send_key_until_needlematch("yast2_keyboard-layout-us", "down");
-    send_key "alt-o";
+    send_key $accept_keybind;
     assert_screen "generic-desktop", timeout => 90;
 
     # 5. Reproduce bug 1142559

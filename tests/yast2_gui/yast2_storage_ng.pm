@@ -115,6 +115,8 @@ sub run {
     assert_screen "yast2_storage_ng-partition-created";
     send_key "alt-n";
     wait_still_screen 2;
+    send_key "alt-n";
+    wait_still_screen 2;
     send_key "alt-f";
     wait_still_screen 2;
 
@@ -154,6 +156,8 @@ sub run {
     assert_screen "yast2_storage_ng-partition-resized";
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
+    wait_screen_change { send_key "alt-n" };
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
 
     # check that the partion is ~170MiB (output is: /dev/vdb1     2048 355477  353430 172.6M 83 Linux)
@@ -172,6 +176,8 @@ sub run {
     wait_still_screen 1;
     wait_screen_change { send_key "alt-y" };
     assert_screen "yast2_storage_ng-unpartitioned";
+    wait_screen_change { send_key "alt-n" };
+    wait_still_screen 1;
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-f" };
@@ -222,6 +228,8 @@ sub run {
     wait_screen_change { send_key $fs_page_shortcut };
 
     # summary and finish
+    wait_still_screen 1;
+    wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
