@@ -25,7 +25,6 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - '{{patch_and_reboot}}'
-  - qa_automation/patch_and_reboot
   - console/sle15_workarounds
   - console/hostname
   - console/system_prepare
