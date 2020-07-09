@@ -1,14 +1,16 @@
 ---
-name: autoyast_zkvm_sles_product_reg
+name: autoyast_zvm_sles_product_reg
 description: >
-  First ay test on zkvm, works only there, has special partitioning and networking
+  First ay test on zvm, works only there, has special partitioning and networking
   setup.
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_sles_zkvm.xml
+  AUTOYAST: autoyast_sle15/autoyast_sles_zvm.xml
+  AUTOYAST_PREPARE_PROFILE: 1
   DESKTOP: textmode
+  FORMAT_DASD: 0
 schedule:
   - autoyast/prepare_profile
-  - installation/bootloader_zkvm
+  - installation/bootloader_start
   - autoyast/installation
   - autoyast/console
   - autoyast/login

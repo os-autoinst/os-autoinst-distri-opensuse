@@ -35,7 +35,13 @@
     <loader_type>grub2</loader_type>
   </bootloader>
   <dasd>
-    <devices config:type="list"/>
+    <devices config:type="list">
+      <listentry>
+        <channel>0.0.0150</channel>
+        <diag config:type="boolean">false</diag>
+        <format config:type="boolean">false</format>
+      </listentry>
+    </devices>
     <format_unformatted config:type="boolean">false</format_unformatted>
   </dasd>
   <deploy_image>
