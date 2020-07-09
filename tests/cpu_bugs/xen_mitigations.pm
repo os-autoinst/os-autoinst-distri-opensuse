@@ -54,253 +54,364 @@ use ipmi_backend_utils;
 use testapi;
 use utils;
 
-my $mitigations_list =
-  {
-    #command-line parameter name
-    xpti => {
-        #command-line the value of parameter.
-        #It point to a array that include TWO elements.
-
-        true => {
-            default => {
-                expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU enabled']},
-                unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU disabled', 'XPTI (64-bit PV only): Dom0 disabled, DomU enabled', 'XPTI (64-bit PV only): Dom0 disabled, DomU disabled']}
-            }
-        },
-        false => {
-            default => {
-                expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU disabled']},
-                unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU disabled', 'XPTI (64-bit PV only): Dom0 enabled, DomU enabled', 'XPTI (64-bit PV only): Dom0 disabled, DomU enabled']}
-            }
-        },
-        "dom0=true" => {
-            default => {
-                expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']},
-                unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']}
-            }
-        },
-        "dom0=false" => {
-            default => {
-                expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']},
-                unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']}
-            }
-        },
-        "domu=true" => {
-            default => {
-                expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']},
-                unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']}
-            }
-        },
-        "domu=false" => {
-            default => {
-                expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']},
-                unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']}
-            }
-        },
-
-    },
-    'spec-ctrl' => {
-        #command-line the value of parameter.
-        #It point to a array that include TWO elements.
-        #
-        no => {
-            default => {
-                #expection string. If it doesn't appear go die
-                expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$',
-'Support for HVM VMs: MD_CLEAR', 'Support for PV VMs: MD_CLEAR', '^(XEN)   XPTI (64-bit PV only): Dom0 disabled, DomU disabled (with PCID)$', '^(XEN)   PV L1TF shadowing: Dom0 disabled, DomU disabled$']},
-                #unexpection string. If it appears go die.
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "no-xen" => {
-            default => {
-                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "pv=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "pv=0" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for PV VMs: EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "hvm=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "hvm=0" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "msr-sc=on" => {
-            default => {
-                expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "msr-sc=off" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "rsb=on" => {
-            default => {
-                expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "rsb=off" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "md-clear=off" => {
-            default => {
-                #even md-clear=off
-                expected   => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "md-clear=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "bti-thunk=retpoline" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "bti-thunk=lfence" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk LFENCE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "bti-thunk=jmp" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "ibrs=off" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "ibrs=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "ibpb=off" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
-            }
-        },
-        "ibpb=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: IBPB']},
-                unexpected => {'xl dmesg' => ['']}
-            }
-        },
-        "ssbd=off" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']}
-            }
-        },
-        "ssbd=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']},
-                unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
-            }
-        },
-        "eager-fpu=off" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB MD_CLEAR']},
-                unexpected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']}
-            }
-        },
-        "eager-fpu=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
-                unexpected => {''},
-            }
-        },
-        "l1d-flush=off" => {
-            default => {
-                expected   => {''},
-                unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
-            }
-        },
-        "l1d-flush=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
-                unexpected => {''},
-            }
-        },
-        "branch-harden=on" => {
-            default => {
-                expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
-                unexpected => {''},
-            }
-        },
-        "branch-harden=off" => {
-            default => {
-                expected   => {''},
-                unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
-            },
-        },
-        #FIXME
-        #Haswell-noTSX platform wouldn't display TSX flag, should be ignore it when test run is failed.
-        "tsx=off" => {
-            default => {
-                expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: .*TSX-, Other:.*'],
-                    'xl info' => ['tsx=off']},
-                unexpected => {'xl dmesg' => ['']},
-            }
-        },
-        "tsx=on" => {
-            default => {
-                expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: .*TSX+, Other:.*'],
-                    'xl info' => ['tsx=on']},
-                unexpected => {''},
-            }
-        },
+my $xpti_true = {true => {
+        default => {
+            expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU enabled']},
+            unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU disabled', 'XPTI (64-bit PV only): Dom0 disabled, DomU enabled', 'XPTI (64-bit PV only): Dom0 disabled, DomU disabled']}
+        }
     }
-  };
+};
+my $xpti_false = {false => {
+        default => {
+            expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU disabled']},
+            unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU disabled', 'XPTI (64-bit PV only): Dom0 enabled, DomU enabled', 'XPTI (64-bit PV only): Dom0 disabled, DomU enabled']}
+        }
+    }
+};
+my $xpti_dom0_true = {"dom0=true" => {
+        default => {
+            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']},
+            unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']}
+        }
+    }
+};
+my $xpti_dom0_false = {"dom0=false" => {
+        default => {
+            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']},
+            unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']}
+        }
+    }
+};
+my $xpti_domu_true = {"domu=true" => {
+        default => {
+            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']},
+            unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']}
+        }
+    }
+};
+my $xpti_domu_false = {"domu=false" => {
+        default => {
+            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']},
+            unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']}
+        }
+    }
+};
 
+# Test Case for spec_ctrl
+my $spec_ctrl_no = {no => {
+        default => {
+            #expection string. If it doesn't appear go die
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$',
+'Support for HVM VMs: MD_CLEAR', 'Support for PV VMs: MD_CLEAR', '^(XEN)   XPTI (64-bit PV only): Dom0 disabled, DomU disabled (with PCID)$', '^(XEN)   PV L1TF shadowing: Dom0 disabled, DomU disabled$']},
+            #unexpection string. If it appears go die.
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_no_xen = {"no-xen" => {
+        default => {
+            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_pv_on = {"pv=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_pv_0 = {"pv=0" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for PV VMs: EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_hvm_on = {"hvm=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_hvm_0 = {"hvm=0" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for HVM VMs: EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_msr_sc_on = {"msr-sc=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_msr_sc_off = {"msr-sc=off" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: RSB EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_rsb_on = {"rsb=on" => {
+        default => {
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_rsb_off = {"rsb=off" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_md_clear_off = {"md-clear=off" => {
+        default => {
+            #even md-clear=off
+            expected   => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_md_clear_on = {"md-clear=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_bti_thunk_retp_for_intel = {"bti-thunk=retpoline" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_bti_thunk_retp_for_amd = {"bti-thunk=lfence" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk LFENCE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_bti_thunk_jmp = {"bti-thunk=jmp" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_ibrs_off = {"ibrs=off" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_ibrs_on = {"ibrs=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_ibpb_off = {"ibpb=off" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
+        }
+    }
+};
+my $spec_ctrl_ibpb_on = {"ibpb=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: IBPB']},
+            unexpected => {'xl dmesg' => ['']}
+        }
+    }
+};
+my $spec_ctrl_ssbd_off = {"ssbd=off" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
+            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']}
+        }
+    }
+};
+my $spec_ctrl_ssbd_on = {"ssbd=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']},
+            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
+        }
+    }
+};
+my $spec_ctrl_eager_fpu_off = {"eager-fpu=off" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB MD_CLEAR']},
+            unexpected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']}
+        }
+    }
+};
+my $spec_ctrl_eager_fpu_on = {"eager-fpu=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            unexpected => {},
+        }
+    }
+};
+my $spec_ctrl_l1d_flsh_off = {"l1d-flush=off" => {
+        default => {
+            expected   => {},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
+        }
+    }
+};
+my $spec_ctrl_l1d_flsh_on = {"l1d-flush=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
+            unexpected => {},
+        }
+    }
+};
+my $spec_ctrl_branch_harden_on = {"branch-harden=on" => {
+        default => {
+            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
+            unexpected => {},
+        }
+    }
+};
+my $spec_ctrl_branch_harden_off = {"branch-harden=off" => {
+        default => {
+            expected   => {},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
+        }
+    }
+};
+# Test cases for TAA
+my $tsx_off_for_haswell = {off => {
+        default => {
+            expected   => {'xl info' => ['tsx=off']},
+            unexpected => {},
+        }
+    }
+};
+
+my $tsx_on_for_haswell = {on => {
+        default => {
+            expected   => {'xl info' => ['tsx=on']},
+            unexpected => {},
+        }
+    }
+};
+
+my $tsx_off_for_non_haswell = {off => {
+        default => {
+            expected   => {'xl info' => ['tsx=off']},
+            unexpected => {},
+        }
+    }
+};
+
+my $tsx_on_for_non_haswell = {on => {
+        default => {
+            expected   => {'xl info' => ['tsx=on']},
+            unexpected => {},
+        }
+    }
+};
+
+# Test case for pv-l1tf
+my $pv_l1tf_true = {
+    true => {
+        default => {
+            expected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled, DomU enabled']},
+            unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled', 'PV L1TF shadowing: Dom0 enabled, DomU disabled', 'PV L1TF shadowing: Dom0 disabled, DomU disabled']}
+        }
+    }
+};
+my $pv_l1tf_false = {false => {
+        default => {
+            expected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU disabled']},
+            unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled', 'PV L1TF shadowing: Dom0 enabled, DomU disabled', 'PV L1TF shadowing: Dom0 enabled, DomU enabled']}
+        }
+    }
+};
+my $pv_l1tf_dom0_true = {"dom0=true" => {
+        default => {
+            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled, DomU enabled']},
+            unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled']}
+        }
+    }
+};
+my $pv_l1tf_dom0_false = {"dom0=false" => {
+        default => {
+            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled']},
+            unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled']}
+        }
+    }
+};
+my $pv_l1tf_domu_true = {"domu=true" => {
+        default => {
+            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled']},
+            unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0.*, DomU disabled']}
+        }
+    }
+};
+my $pv_l1tf_domu_false = {"domu=false" => {
+        default => {
+            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU disabled']},
+            unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0.*, DomU enabled']}
+        }
+    }
+};
+
+# Generate full test cases hash
+my $xpti_hash = {%$xpti_true, %$xpti_false, %$xpti_dom0_true, %$xpti_dom0_false, %$xpti_domu_true, %$xpti_domu_false};
+
+my $spec_ctrl_hash = {%$spec_ctrl_no, %$spec_ctrl_no_xen, %$spec_ctrl_pv_on, %$spec_ctrl_pv_0,
+    %$spec_ctrl_hvm_on,   %$spec_ctrl_hvm_0,   %$spec_ctrl_msr_sc_on,     %$spec_ctrl_msr_sc_off,
+    %$spec_ctrl_rsb_on,   %$spec_ctrl_rsb_off, %$spec_ctrl_md_clear_off,  %$spec_ctrl_md_clear_on,
+    %$spec_ctrl_ibrs_off, %$spec_ctrl_ibrs_on, %$spec_ctrl_ibpb_off,      %$spec_ctrl_ibpb_on,
+    %$spec_ctrl_ssbd_off, %$spec_ctrl_ssbd_on, %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
+    %$spec_ctrl_l1d_flsh_off, %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
+    %$spec_ctrl_branch_harden_off, %$spec_ctrl_bti_thunk_jmp};
+
+# TODO
+if (get_var('FLAVOR', '') =~ /amd/i) {
+    ${$spec_ctrl_hash}{'bti-thunk=lfence'} = ${$spec_ctrl_bti_thunk_retp_for_amd}{'bti-thunk=lfence'};
+} else {
+    ${$spec_ctrl_hash}{'bti-thunk=retpoline'} = ${$spec_ctrl_bti_thunk_retp_for_intel}{'bti-thunk=retpoline'};
+}
+
+my $tsx_hash = {};
+if (get_var('FLAVOR', '') =~ /Haswell/i) {
+    $tsx_hash = {%$tsx_off_for_haswell, %$tsx_on_for_haswell};
+} else {
+    $tsx_hash = {%$tsx_off_for_non_haswell, %$tsx_on_for_non_haswell};
+}
+
+my $pv_l1tf_hash = {%$pv_l1tf_false, %$pv_l1tf_true, %$pv_l1tf_dom0_false,
+    %$pv_l1tf_dom0_true, %$pv_l1tf_domu_true, %$pv_l1tf_domu_false};
+
+my $mitigations_list = {};
+${$mitigations_list}{xpti}        = $xpti_hash;
+${$mitigations_list}{'spec-ctrl'} = $spec_ctrl_hash;
+${$mitigations_list}{tsx}         = $tsx_hash;
+${$mitigations_list}{'pv-l1tf'}   = $pv_l1tf_hash;
 
 sub check_expected_string {
     my ($cmd, $lines) = @_;
-    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
-    assert_script_run("xl info | grep -i \"xen_commandline\"");
     foreach my $expected_string (@{$lines}) {
         if ($expected_string ne "") {
             my $ret = script_run("$cmd | grep \"$expected_string\"");
             if ($ret ne 0) {
                 record_info("ERROR", "Can't found a expected string.", result => 'fail');
-                if ($cmd =~ /xl.*info/) {
-                    assert_script_run("$cmd");
-                }
+                assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
+                assert_script_run("xl info | grep -i \"xen_commandline\"");
                 return 1;
             } else {
                 #Debug what output be report.
@@ -314,7 +425,6 @@ sub check_expected_string {
 
 sub check_unexpected_string {
     my ($cmd, $lines) = @_;
-    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
     foreach my $unexpected_string (@{$lines}) {
         if ($unexpected_string ne "") {
             my $ret = script_run("$cmd | grep \"$unexpected_string\"");
@@ -323,6 +433,8 @@ sub check_unexpected_string {
             } else {
                 #Debug what output be report.
                 record_info("ERROR", "found a unexpected string.", result => 'fail');
+                assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
+                assert_script_run("xl info | grep -i \"xen_commandline\"");
                 return 1;
             }
         }
