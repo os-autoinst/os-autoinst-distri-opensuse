@@ -80,11 +80,15 @@ sub run_test {
         $mac1   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model1 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
 
+        #Check guest loaded kernel module before attach interface to guest system
+        check_guest_module("$guest", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest network vnet_routed --model $model1 --mac $mac1 --live $affecter", 60);
 
         $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model2 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
 
+        #Check guest loaded kernel module before attach interface to guest system
+        check_guest_module("$guest.clone", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest.clone network vnet_routed_clone --model $model2 --mac $mac2 --live $affecter", 60);
 
         #Wait for guests attached interface from virtual routed network

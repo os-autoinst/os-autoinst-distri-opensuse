@@ -68,6 +68,8 @@ sub run_test {
         $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
 
+        #Check guest loaded kernel module before attach interface to guest system
+        check_guest_module("$guest", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest network vnet_host_bridge --model $model --mac $mac --live $affecter", 60);
 
         my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_host_bridge';
