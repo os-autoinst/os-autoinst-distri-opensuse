@@ -29,9 +29,13 @@ my %services_for = (
 
 sub check_services {
     my $services = shift;
-    for my $s (@$services) {
-        systemctl "is-enabled $s";
+    while (my ($s, $on) = each %$services) {
+        systemctl "is-enabled $s", expect_false => ($on ? 0 : 1);
     }
+}
+
+sub map_services {
+    map { my $on = (s/^!//) ? 0 : 1; $_ => $on } @_;
 }
 
 sub run {
@@ -44,16 +48,19 @@ sub run {
     # minus to indicates whether they are to be added or removed
     # from the built in list. Without plus or minus the built in
     # list gets ignored.
+    # an exclamation mark in front of a service verifies the service is
+    # disabled.
+    # Example: SERVICES_ENABLED="+!sshd"
     my $extra = get_var('SERVICES_ENABLED');
     if ($extra && $extra !~ /^[+-]/) {
-        %services = map { $_ => 1 } split(/\s+/, $extra);
+        %services = map_services split(/\s+/, $extra);
     } else {
         my $role = get_var('SYSTEM_ROLE');
 
-        %services = map { $_ => 1 } @{$services_for{default}};
+        %services = map_services @{$services_for{default}};
         if ($role) {
-            %services = (%services, map { $_ => 1 } @{$services_for{$role}})   if $services_for{$role};
-            %services = (%services, map { $_ => 1 } @{$services_for{cluster}}) if $role =~ /admin|worker/;
+            %services = (%services, map_services @{$services_for{$role}})   if $services_for{$role};
+            %services = (%services, map_services @{$services_for{cluster}}) if $role =~ /admin|worker/;
         }
 
         if ($extra) {
@@ -63,13 +70,14 @@ sub run {
                 } else {
                     # even if there is no plus in following items we still add it
                     $s =~ s/^\+//;
-                    $services{$s} = 1;
+                    my $on = ($s =~ s/^!//) ? 0 : 1;
+                    $services{$s} = $on;
                 }
             }
         }
     }
 
-    check_services [keys %services] if %services;
+    check_services \%services if %services;
 }
 
 1;
