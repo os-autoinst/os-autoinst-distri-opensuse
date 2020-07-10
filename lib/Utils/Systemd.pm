@@ -63,8 +63,8 @@ Please note that return code of this function is handle by 'script_run' or
 sub systemctl {
     my ($command, %args) = @_;
     croak "systemctl(): no command specified" if ($command =~ /^ *$/);
-    my $expect_false  = $args{expect_false} ? '!' : '';
-    my @script_params = ("$expect_false systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
+    my $expect_false  = $args{expect_false} ? '! ' : '';
+    my @script_params = ("${expect_false}systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
     if ($args{ignore_failure}) {
         script_run($script_params[0], $args{timeout});
     } else {
