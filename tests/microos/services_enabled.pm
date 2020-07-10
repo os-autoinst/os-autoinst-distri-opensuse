@@ -29,18 +29,47 @@ my %services_for = (
 
 sub check_services {
     my $services = shift;
-    foreach my $s (@$services) {
+    for my $s (@$services) {
         systemctl "is-enabled $s";
     }
 }
 
 sub run {
-    my $role = get_var('SYSTEM_ROLE');
+    my %services;
 
-    check_services $services_for{default};
-    check_services $services_for{cloud}   if is_caasp('caasp');
-    check_services $services_for{$role}   if $role;
-    check_services $services_for{cluster} if $role =~ /admin|worker/;
+    # the SERVICES_ENABLED var allows to overwrite the test's built
+    # in defaults. It's a space separated list of services to check
+    # for. If the first service in the list starts with a plus or
+    # minus, the listed services have to start with either a plus or
+    # minus to indicates whether they are to be added or removed
+    # from the built in list. Without plus or minus the built in
+    # list gets ignored.
+    my $extra = get_var('SERVICES_ENABLED');
+    if ($extra && $extra !~ /^[+-]/) {
+        %services = map { $_ => 1 } split(/\s+/, $extra);
+    } else {
+        my $role = get_var('SYSTEM_ROLE');
+
+        %services = map { $_ => 1 } @{$services_for{default}};
+        if ($role) {
+            %services = (%services, map { $_ => 1 } @{$services_for{$role}})   if $services_for{$role};
+            %services = (%services, map { $_ => 1 } @{$services_for{cluster}}) if $role =~ /admin|worker/;
+        }
+
+        if ($extra) {
+            for my $s (split(/\s+/, $extra)) {
+                if ($s =~ s/^-//) {
+                    delete $services{$s};
+                } else {
+                    # even if there is no plus in following items we still add it
+                    $s =~ s/^\+//;
+                    $services{$s} = 1;
+                }
+            }
+        }
+    }
+
+    check_services [keys %services] if %services;
 }
 
 1;
