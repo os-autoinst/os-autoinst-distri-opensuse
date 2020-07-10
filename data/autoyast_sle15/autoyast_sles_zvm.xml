@@ -1,36 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-    <suse_register>
-      <do_registration config:type="boolean">true</do_registration>
-      <email/>
-      <reg_code>{{SCC_REGCODE}}</reg_code>
-      <install_updates config:type="boolean">true</install_updates>
-      <reg_server>{{SCC_URL}}</reg_server>
-      <addons config:type="list">
-        <addon>
-          <name>sle-module-server-applications</name>
-          <version>{{VERSION}}</version>
-          <arch>{{ARCH}}</arch>
-        </addon>
-        <addon>
-          <name>sle-module-desktop-applications</name>
-          <version>{{VERSION}}</version>
-          <arch>{{ARCH}}</arch>
-        </addon>
-      </addons>
-    </suse_register>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
   <bootloader>
     <global>
-      <append>hvc_iucv=8 TERM=dumb resume=/dev/disk/by-path/ccw-0.0.0000-part3 crashkernel=163M</append>
+      <append>hvc_iucv=8 TERM=dumb mitigations=auto crashkernel=191M</append>
+      <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
+      <secure_boot>false</secure_boot>
       <terminal>console</terminal>
       <timeout config:type="integer">8</timeout>
       <trusted_grub>false</trusted_grub>
-      <xen_append>crashkernel=163M</xen_append>
-      <xen_kernel_append>crashkernel=163M\&lt;4G</xen_kernel_append>
+      <xen_kernel_append>crashkernel=191M\&lt;4G</xen_kernel_append>
     </global>
     <loader_type>grub2</loader_type>
   </bootloader>
@@ -46,7 +47,7 @@
   </dasd>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
-  </deploy_image> 
+  </deploy_image>
   <general>
     <ask-list config:type="list"/>
     <cio_ignore config:type="boolean">false</cio_ignore>
@@ -420,7 +421,6 @@
     </dhcp_options>
     <dns>
       <dhcp_hostname config:type="boolean">true</dhcp_hostname>
-      <hostname>susetest</hostname>
       <nameservers config:type="list">
         <nameserver>10.160.0.1</nameserver>
       </nameservers>
@@ -438,7 +438,6 @@
         <netmask>255.255.240.0</netmask>
         <prefixlen>20</prefixlen>
         <startmode>auto</startmode>
-        <zone>public</zone>
       </interface>
       <interface>
         <bootproto>static</bootproto>
@@ -451,30 +450,40 @@
         <startmode>nfsroot</startmode>
         <usercontrol>no</usercontrol>
       </interface>
-  </interfaces>
+    </interfaces>
     <ipv6 config:type="boolean">true</ipv6>
     <keep_install_network config:type="boolean">true</keep_install_network>
     <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule>
+        <name>eth0</name>
+        <rule>KERNELS</rule>
+        <value>0.0.0800</value>
+      </rule>
+    </net-udev>
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
       <ipv6_forward config:type="boolean">false</ipv6_forward>
       <routes config:type="list">
         <route>
+          <destination>10.162.63.254</destination>
+          <device>eth0</device>
+          <gateway>-</gateway>
+          <netmask>255.255.255.255</netmask>
+        </route>
+        <route>
           <destination>default</destination>
           <device>eth0</device>
-          <gateway>10.161.159.254</gateway>
+          <gateway>10.162.63.254</gateway>
           <netmask>-</netmask>
         </route>
       </routes>
     </routing>
     <s390-devices config:type="list">
       <listentry>
-        <chanids>   </chanids>
-        <type/>
-      </listentry>
-      <listentry>
-        <chanids>   </chanids>
-        <type/>
+        <chanids>0.0.0800:0.0.0801:0.0.0802</chanids>
+        <layer2 config:type="boolean">true</layer2>
+        <type>qeth</type>
       </listentry>
     </s390-devices>
   </networking>
@@ -492,82 +501,79 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-      <_id config:type="integer">0</_id>
-      <device>/dev/disk/by-path/ccw-0.0.0000</device>
-      <disklabel>gpt</disklabel>
+      <device>/dev/disk/by-path/ccw-0.0.0150</device>
+      <disklabel>dasd</disklabel>
       <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">false</initialize>
       <partitions config:type="list">
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">ext2</filesystem>
           <format config:type="boolean">true</format>
-          <fstopt>acl,user_xattr</fstopt>
           <mount>/boot/zipl</mount>
-          <mountby config:type="symbol">uuid</mountby>
+          <mountby config:type="symbol">path</mountby>
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
-          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
           <size>314572800</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
+          <create_subvolumes config:type="boolean">true</create_subvolumes>
           <filesystem config:type="symbol">btrfs</filesystem>
           <format config:type="boolean">true</format>
           <mount>/</mount>
-          <mountby config:type="symbol">uuid</mountby>
+          <mountby config:type="symbol">path</mountby>
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
-          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
-          <size>29748101120</size>
+          <size>20047724544</size>
           <subvolumes config:type="list">
-            <listentry>
-              <copy_on_write config:type="boolean">false</copy_on_write>
-              <path>var</path>
-            </listentry>
-            <listentry>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>home</path>
-            </listentry>
-            <listentry>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>opt</path>
-            </listentry>
-            <listentry>
+            <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/s390x-emu</path>
-            </listentry>
-            <listentry>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>home</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>usr/local</path>
-            </listentry>
-            <listentry>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>srv</path>
-            </listentry>
-            <listentry>
+            </subvolume>
+            <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
               <path>tmp</path>
-            </listentry>
-            <listentry>
+            </subvolume>
+            <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>var/lib/machines</path>
-            </listentry>
+              <path>opt</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
           </subvolumes>
-          <subvolumes_prefix>@</subvolumes_prefix>
+          <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
           <format config:type="boolean">true</format>
           <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
+          <mountby config:type="symbol">path</mountby>
+          <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">3</partition_nr>
-          <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
-          <size>2148515328</size>
+          <size>1789919232</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_DISK</type>
@@ -608,7 +614,6 @@
         <service>cio_ignore</service>
         <service>cron</service>
         <service>display-manager</service>
-        <service>firewalld</service>
         <service>iscsi</service>
         <service>issue-generator</service>
         <service>kbdsettings</service>
@@ -653,7 +658,6 @@
       <package>icewm</package>
       <package>grub2</package>
       <package>glibc</package>
-      <package>firewalld</package>
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
       <package>autoyast2</package>
