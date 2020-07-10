@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_desktop_installed is_sle);
+use version_utils qw(is_desktop_installed is_sle is_leap_migration);
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
 use Utils::Backends 'is_pvm';
 
@@ -106,7 +106,7 @@ sub run {
     }
     else {
         select_console 'x11', await_console => 0;
-        ensure_unlocked_desktop;
+        ensure_unlocked_desktop unless is_leap_migration;
         mouse_hide(1);
         assert_screen 'generic-desktop';
 
