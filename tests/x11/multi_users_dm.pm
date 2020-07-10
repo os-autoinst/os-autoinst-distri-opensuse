@@ -71,7 +71,10 @@ sub run {
     }
     elsif (check_var('DESKTOP', 'xfce')) {
         # select created user #01
-        send_key_until_needlematch 'user-01-selected', 'down', 1, 3;
+        send_key_until_needlematch(['user-01-selected', 'user-freetext-input-selected'], 'down', 1, 3);
+        if (match_has_tag 'user-freetext-input-selected') {
+            type_string "$user\n";
+        }
     }
     elsif (check_var('DESKTOP', 'kde')) {
         wait_screen_change { send_key 'shift-tab' };
