@@ -72,8 +72,8 @@ sub run {
     assert_script_run("usermod -aG \$(stat -c %G /dev/$serialdev) $ssh_testman");
 
     # Backup/rename ~/.ssh , generated in consotest_setup, to ~/.ssh_bck
-    # poo#68200. Confirm the ~/.ssh directory is exist in advance, in order to avoid the null backup
-    assert_script_run 'if [ -d ~/.ssh ]; then mv ~/.ssh ~/.ssh_bck; fi';
+    # poo#68200. Take FIPS_ENABLED into consideration, get rid of the problem from openssh_fips rm -r ~/.ssh/ directory in advance
+    assert_script_run 'mv ~/.ssh ~/.ssh_bck' unless ((get_var('INSTALLATION_VALIDATION') =~ /sshd/) || get_var('FIPS_ENABLED'));
 
     # avoid harmless failures in virtio-console due to unexpected PS1
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
@@ -126,8 +126,8 @@ sub run {
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
 
     # Restore ~/.ssh generated in consotest_setup
-    # poo#68200. Confirm the ~/.ssh_bck directory is exist in advance, in order to avoid the null restore
-    assert_script_run 'if [ -d ~/.ssh_bck ]; then mv ~/.ssh_bck ~/.ssh; else rm -rf ~/.ssh; fi';
+    # poo#68200. Take FIPS_ENABLED into consideration, get rid of the problem from openssh_fips rm -r ~/.ssh/ directory in advance
+    assert_script_run 'rm -rf ~/.ssh && mv ~/.ssh_bck ~/.ssh' unless ((get_var('INSTALLATION_VALIDATION') =~ /sshd/) || get_var('FIPS_ENABLED'));
 
     assert_script_run "killall -u $ssh_testman || true";
     wait_still_screen 3;
