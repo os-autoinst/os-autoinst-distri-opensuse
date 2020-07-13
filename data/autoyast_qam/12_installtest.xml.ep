@@ -3,7 +3,7 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
     <add_on_products config:type="list">
-      % if ($get_var->('VERSION') =~ m/12-SP3|12-SP2|12-SP1/ and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
+      % if ($get_var->('SCC_REGCODE_LTSS')) {
       <listentry>
         <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
         <alias>SLES-LTSS:<%= $get_var->('VERSION') %>::update</alias>
@@ -34,7 +34,7 @@
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % unless ($get_var->('VERSION') =~ m/12-SP3|12-SP2|12-SP1/ and $get_var->('ARCH') =~ m/x86_64|s390x|ppc64le/) {
+      % unless ($get_var->('SCC_REGCODE_LTSS')) {
       <listentry>
         <name>sle-sdk:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-sdk:<%= $get_var->('VERSION') %>::pool</alias>
