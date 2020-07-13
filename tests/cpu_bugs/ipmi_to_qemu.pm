@@ -27,28 +27,30 @@ use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils 'get_sles_release';
 my $cliect_ini_url    = get_var('CLIENT_INI');
 my $webui_hostname    = get_var('WEBUI_HOSTNAME');
 my $nfs_hostname      = get_var('NFS_HOSTNAME');
 my $qemu_worker_class = get_var('QEMU_WORKER_CLASS');
 sub run {
     my $self = shift;
+    my $current_dist;
     script_run("systemctl disable apparmor.service");
     script_run("aa-teardown");
-    zypper_call('rr devel_languages_perl devel_openQA devel_openQA_SLE-12 devel_openQA_SLE-15');
-    if (is_sle(">=15")) {
-        zypper_call('ar http://download.opensuse.org/repositories/devel:/languages:/perl/SLE_15/devel:languages:perl.repo');
-        zypper_call('ar http://download.opensuse.org/repositories/devel:/openQA/SLE_15/devel:openQA.repo');
-        zypper_call('ar http://download.opensuse.org/repositories/devel:/openQA:/SLE-15/SLE_15/devel:openQA:SLE-15.repo');
-    } elsif (is_sle(">=12")) {
-        zypper_call('ar http://download.opensuse.org/repositories/devel:/languages:/perl/SLE_12_SP4/devel:languages:perl.repo');
-        zypper_call('ar http://download.opensuse.org/repositories/devel:/openQA/SLE_12_SP4/devel:openQA.repo');
-        zypper_call('ar http://download.opensuse.org/repositories/devel:/openQA:/SLE-12/SLE_12_SP4/devel:openQA:SLE-12.repo');
+    my ($sles_running_version, $sles_running_sp) = get_sles_release();
+    if ($sles_running_sp gt '0') {
+        $current_dist = sprintf("SLE_%s_SP%s", $sles_running_version, $sles_running_sp);
+    } else {
+        $current_dist = sprintf("SLE_%s", $sles_running_version);
     }
+    die "Fail to get SLES release version" unless $current_dist;
+    zypper_call("rr devel_languages_perl devel_openQA devel_openQA_SLE-$sles_running_version");
+    zypper_call("ar http://download.opensuse.org/repositories/devel:/languages:/perl/$current_dist/devel:languages:perl.repo");
+    zypper_call("ar http://download.opensuse.org/repositories/devel:/openQA/$current_dist/devel:openQA.repo");
+    zypper_call("ar http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo");
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('dup --auto-agree-with-licenses');
-    zypper_call('in openQA-worker perl-DBIx-Class-DeploymentHandler perl-YAML-Tiny');
+    zypper_call('in openQA-worker perl-DBIx-Class-DeploymentHandler perl-YAML-Tiny perl-Test-Assert');
     zypper_call('in --replacefiles perl-DBD-SQLite');
 
     #NFS mount
