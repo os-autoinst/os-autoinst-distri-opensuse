@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# package: docker podman
 # Summary: Pull and test several base images (alpine, openSUSE, debian, ubuntu, fedora, centos) for their base functionality
 #          Log the test results in containers_3rd_party.txt
 #          Docker or Podman tests can be skipped by setting SKIP_DOCKER_IMAGE_TESTS=1 or SKIP_PODMAN_IMAGE_TESTS=1 in the job

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# package: podman
 # Summary: Test podman installation and extended usage in a Kubic system
 #    Cover the following aspects of podman:
 #      * podman daemon can be started
