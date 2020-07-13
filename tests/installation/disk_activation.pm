@@ -45,8 +45,9 @@ sub run {
     if (check_var('S390_DISK', 'ZFCP')) {
         assert_screen 'disk-activation-zfcp';
         wait_screen_change { send_key 'alt-z' };
-        add_zfcp_disk('0.0.fa00');
-        add_zfcp_disk('0.0.fc00');
+        foreach my $zfcp (split(/,/, get_required_var('ZFCP_ADAPTERS'))) {
+            add_zfcp_disk($zfcp);
+        }
         assert_screen 'zfcp-activated';
         send_key $cmd{next};
         wait_still_screen 5;
