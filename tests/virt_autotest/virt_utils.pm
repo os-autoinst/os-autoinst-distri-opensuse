@@ -558,7 +558,7 @@ sub generate_testcase_xml {
 #RAW do not support Snapshot, so skip Snapshot test if guest disk type as RAW
 sub check_guest_disk_type {
     my $guest           = shift;
-    my $guest_disk_type = script_output("virsh dumpxml $guest | grep \"<driver \" | grep -o \"type='.*'\" | cut -d \"'\" -f2");
+    my $guest_disk_type = script_output("virsh dumpxml $guest | grep \"<driver \" | grep -o \"type='.*'\" | cut -d \"'\" -f2 | tail -n1");
     if ($guest_disk_type =~ /raw/) {
         record_info "INFO", "SKIP Snapshot test if guest disk type as $guest_disk_type";
         return 1;

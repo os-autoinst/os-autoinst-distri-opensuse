@@ -54,7 +54,7 @@ sub run_test {
         my $type = check_guest_disk_type($guest);
         next if ($type == 1);
         record_info "virsh-snapshot", "Creating External Snapshot of guest's disk";
-        my $vm_target_dev     = script_output("virsh domblklist $guest --details | awk '/disk/{ print \$3 }'");
+        my $vm_target_dev     = script_output("virsh domblklist $guest --details | awk '/disk/{ print \$3 }' | head -n1");
         my $pre_snapshot_cmd  = "virsh snapshot-create-as $guest";
         my $diskspec_diskonly = "$vm_target_dev,snapshot=external,file=/var/lib/libvirt/images/$guest.disk-only";
         $pre_snapshot_cmd = $pre_snapshot_cmd . " --disk-only ";
