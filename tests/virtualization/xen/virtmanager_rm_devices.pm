@@ -60,7 +60,7 @@ sub run {
             mouse_set(0, 0);
             assert_and_click 'virt-manager_graphical-console';
 
-            detect_login_screen();
+            detect_login_screen() if (!check_screen('virt-manager_viewer_disconnected', 5));
             close_guest();
         }
     }

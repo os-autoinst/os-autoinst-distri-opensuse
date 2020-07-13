@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils;
 use virtmanager;
 
 sub run {
@@ -61,6 +62,7 @@ sub run {
             send_key 'tab';
             send_key 'tab';
             send_key 'tab';
+            send_key 'tab' if is_sle('15-sp2+');
             type_string '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
             assert_and_click 'virt-manager_add-hardware-finish';
             # Workaround for bsc#1172356
@@ -76,7 +78,7 @@ sub run {
 
             assert_and_click 'virt-manager_graphical-console';
 
-            detect_login_screen();
+            detect_login_screen() if (!check_screen('virt-manager_viewer_disconnected', 5));
             close_guest();
         }
     }
