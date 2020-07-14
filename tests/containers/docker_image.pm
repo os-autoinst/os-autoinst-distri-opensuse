@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# package: docker
 # Summary: Test installation and running of the docker image from the registry for this snapshot
 # - if on SLE, enable internal registry
 # - load image

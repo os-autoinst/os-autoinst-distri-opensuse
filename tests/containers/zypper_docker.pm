@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# package: zypper-docker
 # Summary: Test zypper-docker installation and its usage
 #    Cover the following aspects of zypper-docker:
 #      * zypper-docker package can be installed

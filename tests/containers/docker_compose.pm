@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# package: docker-compose
 # Summary: Test docker-compose installation
 #    Cover the following aspects of docker-compose:
 #      * package can be installed
