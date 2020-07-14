@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# package: podman
+# Package: podman
 # Summary: Test installation and running of the docker image from the registry for this snapshot
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 

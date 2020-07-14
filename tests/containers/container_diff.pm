@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# package: container-diff
+# Package: container-diff
 # Summary: Print and save diffs between two cotaniners using container-diff tool
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
