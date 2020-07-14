@@ -127,6 +127,9 @@ sub run {
 
     assert_script_run("rpm -q sapconf");
 
+    # NOTE: Remove when sapconf v5 is released
+    return;
+
     my $output = script_output "tuned-adm active";
     $output =~ /Current active profile: ([a-z\-]+)/;
     my $default_profile = $1;

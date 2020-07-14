@@ -46,7 +46,8 @@ sub run {
           unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade() or is_updates_tests() or check_var('SLE_PRODUCT', 'sles'));
         record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
         zypper_call('in -y -t pattern sap_server');
-        systemctl 'start tuned';
+        # NOTE: Remove when sapconf v5 is released on SLES 12
+        systemctl 'start tuned' unless is_sle('15+');
     }
 
     # This test is also used for testing SAP products installation on plain SLE

@@ -152,6 +152,9 @@ sub prepare_profile {
     # for netweaver and the recommended one for hana
     my $has_saptune = $self->is_saptune_installed();
 
+    # NOTE: Remove when sapconf v5 is released
+    return unless ($has_saptune);
+
     if ($has_saptune) {
         assert_script_run "tuned-adm profile saptune";
         assert_script_run "saptune solution apply $profile";
