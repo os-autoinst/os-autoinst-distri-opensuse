@@ -17,6 +17,7 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
+use Utils::Backends 'is_pvm';
 
 sub run {
     clear_console;
@@ -30,6 +31,7 @@ sub run {
     # switch to root-console (in case we are in X)
     select_console 'root-console';
     power_action('reboot', keepconsole => 1, textmode => 1);
+    reconnect_mgmt_console if is_pvm;
 }
 
 1;

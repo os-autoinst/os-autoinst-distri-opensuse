@@ -16,12 +16,13 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_jeos';
+use version_utils qw(is_jeos is_desktop_installed);
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
 
-    $self->wait_boot(ready_time => 600) unless is_jeos;
+    $self->wait_boot(textmode => !is_desktop_installed(), bootloader_time => 300, ready_time => 600) unless is_jeos;
     if (get_var('ZDUP_IN_X')) {
         x11_start_program('xterm');
         become_root;
@@ -53,6 +54,7 @@ sub run {
             type_string("/sbin/reboot\n");
 
             reset_consoles;
+            reconnect_mgmt_console if is_pvm;
             $self->wait_boot(textmode => 1, bootloader_time => 200);
 
             select_console('root-console');
