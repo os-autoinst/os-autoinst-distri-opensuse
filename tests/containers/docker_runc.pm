@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# package: runc docker-runc
+# Package: runc docker-runc
 # Summary: Test docker-runc and runc installation, and extended usage
 #    Cover the following aspects of docker-runc and runc respectively:
 #      * package can be installed

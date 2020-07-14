@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# package: docker
+# Package: docker
 # Summary: Test docker installation and extended usage
 # - docker package can be installed
 # - docker daemon can be started
