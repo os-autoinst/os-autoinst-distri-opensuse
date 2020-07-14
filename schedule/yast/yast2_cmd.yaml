@@ -1,22 +1,8 @@
 name:           yast2_cmd
 description:    >
     YaST2 cmd interface tests.
-conditional_schedule:
-  bootloader_zkvm:
-    ARCH:
-      s390x:
-        - installation/bootloader_zkvm
-  # As per bsc#1161234 yast keyaboard won't be fixed on s390x
-  yast_keyboard:
-    ARCH:
-      aarch64:
-        - yast2_cmd/yast_keyboard
-      ppc64le:
-        - yast2_cmd/yast_keyboard
-      x86_64:
-        - yast2_cmd/yast_keyboard
 schedule:
-  - '{{bootloader_zkvm}}'
+  - '{{bootloader}}'
   - boot/boot_to_desktop
   - yast2_cmd/yast_rdp
   - yast2_cmd/yast_timezone
@@ -25,6 +11,25 @@ schedule:
   - yast2_cmd/yast_nfs_server
   - yast2_cmd/yast_nfs_client
   - yast2_cmd/yast_tftp_server
-  - yast2_cmd/yast_lan
+  - '{{yast_lan}}'
   - yast2_cmd/yast_users
   - yast2_cmd/yast_sysconfig
+conditional_schedule:
+  bootloader:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+    BACKEND:
+      spvm:
+        - installation/bootloader
+  # As per bsc#1161234 yast keyaboard won't be fixed on s390x
+  yast_keyboard:
+    BACKEND:
+      qemu:
+        - yast2_cmd/yast_keyboard
+  yast_lan:
+    BACKEND:
+      qemu:
+        - yast2_cmd/yast_lan
+      svirt:
+        - yast2_cmd/yast_lan
