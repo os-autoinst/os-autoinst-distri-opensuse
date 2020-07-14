@@ -40,7 +40,7 @@ use virt_utils;
 
 our @EXPORT
   = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_libvirtd restart_network restore_guests restore_network
-  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup upload_debug_log check_guest_status check_guest_module save_guest_ip test_network_interface hosts_backup hosts_restore);
+  destroy_vir_network restore_libvirt_default enable_libvirt_log ssh_setup ssh_copy_id upload_debug_log check_guest_status check_guest_module save_guest_ip test_network_interface hosts_backup hosts_restore);
 
 sub check_guest_module {
     my ($guest, %args) = @_;
@@ -86,7 +86,7 @@ sub test_network_interface {
     # Configure the network interface to use DHCP configuration
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    if (!(get_var('VIRT_AUTOTEST'))) {
+    if (check_var('TEST', 'qam-xen-networking') || get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
         if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
             if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
@@ -97,6 +97,7 @@ sub test_network_interface {
         }
         script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 3, timeout => 90);
     }
+    assert_script_run("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1");
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1";
 
     # Route our test via the tested interface
@@ -248,9 +249,18 @@ sub enable_libvirt_log {
 }
 
 sub ssh_setup {
-    my $default_ssh_key = "/root/.ssh/id_rsa";
+    my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
     if (script_run("[[ -f $default_ssh_key ]]") != 0) {
         assert_script_run "ssh-keygen -t rsa -P '' -f $default_ssh_key";
+    }
+}
+
+sub ssh_copy_id {
+    my $guest           = shift;
+    my $mode            = is_sle('=11-sp4') ? '' : '-f';
+    my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
+    if (script_run("ssh -o PreferredAuthentications=publickey root\@$guest hostname -f") != 0) {
+        exec_and_insert_password("ssh-copy-id -i $default_ssh_key -o StrictHostKeyChecking=no $mode root\@$guest");
     }
 }
 

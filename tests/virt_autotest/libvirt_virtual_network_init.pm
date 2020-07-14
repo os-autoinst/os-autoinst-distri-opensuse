@@ -53,23 +53,18 @@ sub run_test {
     #Install required packages
     zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
 
-    #Check with Guest status before libvirt virtual network tests
-    virt_autotest::virtual_network_utils::check_guest_status();
-
     #Prepare Guests
     foreach my $guest (keys %xen::guests) {
         #Archive deployed Guests
         #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
         upload_logs "/tmp/$guest.xml";
-        #Start installed Guests
-        assert_script_run("virsh start $guest", 60);
-        #Wait for forceful boot up guests
-        sleep 60;
+        #Used with attach-detach(hotplugging) interface to confirm all virtual network mode
+        #NOTE: Required all guests keep running status
+        #Check that all guests are still running before virtual network tests
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
         save_guest_ip($guest, name => "br123");
-        my $mode            = is_sle('=11-sp4') ? '' : '-f';
-        my $default_ssh_key = "/root/.ssh/id_rsa.pub";
-        exec_and_insert_password("ssh-copy-id -i $default_ssh_key -o StrictHostKeyChecking=no $mode root\@$guest");
+        virt_autotest::virtual_network_utils::ssh_copy_id($guest);
         #Prepare the new guest network interface files for libvirt virtual network
         assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
         if ($guest =~ m/sles-?11/i) {

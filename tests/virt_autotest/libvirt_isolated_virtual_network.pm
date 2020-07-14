@@ -64,6 +64,8 @@ sub run_test {
         check_guest_module("$guest", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live $affecter", 60);
 
+        #Wait for guests attached interface from virtual isolated network
+        sleep 30;
         my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_isolated';
         test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => $net);
 
@@ -73,9 +75,6 @@ sub run_test {
     #Destroy ISOLATED NETWORK
     assert_script_run("virsh net-destroy vnet_isolated");
     save_screenshot;
-
-    #Restore Guest systems
-    virt_autotest::virtual_network_utils::restore_guests();
 
     #After finished all virtual network test, need to restore file /etc/hosts from backup
     virt_autotest::virtual_network_utils::hosts_restore();
