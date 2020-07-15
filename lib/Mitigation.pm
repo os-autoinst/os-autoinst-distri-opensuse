@@ -133,11 +133,20 @@ sub MSR {
 }
 
 sub read_cpuid {
+    #Reimplement: "cpuid -1 -l 7 -s 0 -r | awk \'{print \$6}\' | awk -F \"=\" \'{print \$2}\' | tail -n1"
+    #Refer to data/virtualization/spectre-meltdown-checker.sh
     my $self = shift;
-    zypper_call('in cpuid');
-    my $edx = hex script_output(
-        "cpuid -1 -l 7 -s 0 -r | awk \'{print \$6}\' | awk -F \"=\" \'{print \$2}\' | tail -n1"
+    script_output('modprobe cpuid');
+    my $_leaf        = 7;                             #leaf=7
+    my $_ddskip      = int($_leaf / 16);
+    my $_odskip      = int($_leaf - $_ddskip * 16);
+    my $_odskip_plus = int($_odskip + 1);
+    my $_skip_byte   = int($_odskip * 16);
+    my $edx          = 0;
+    $edx = hex script_output(
+        "dd if=/dev/cpu/0/cpuid bs=16 skip=$_ddskip count=$_odskip_plus 2>/dev/null | od -j $_skip_byte -A n -t x4 | awk \'{print \$4}\'"
     );
+    print sprintf("read_cpuid edx: 0x%X\n", $edx);
     return $edx;
 }
 
