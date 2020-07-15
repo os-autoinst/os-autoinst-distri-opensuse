@@ -68,7 +68,7 @@ sub run {
     type_string '10.0.2.101';
     # Explore the available shares and select the only available one
     send_key 'alt-e';
-    if (check_screen("console-messages-over-tty", 10)) { record_soft_failure 'bsc#1011815, Console over tty' }
+    if (check_screen("console-messages-over-tty", 10)) { record_soft_failure 'bsc#1174164, Console over tty' }
     assert_screen 'yast2-nfs-client-exported';
     send_key 'alt-o';
     # Set the local mount point
@@ -114,4 +114,3 @@ sub run {
 }
 
 1;
-
