@@ -1,0 +1,6 @@
+name:    rmt_export
+description:    >
+    This is for rmt export and mirror test
+schedule:
+  - boot/boot_to_desktop
+  - console/consoletest_setup
