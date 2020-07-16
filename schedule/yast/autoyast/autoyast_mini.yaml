@@ -1,0 +1,100 @@
+---
+name: autoyast_mini
+description: >
+  The schedule for the common installation with AutoYaST control file.
+  Could be used by variety of AutoYaST test suites with different set of openQA
+  variables. The variables are specified in Job Group or in Test Suite settings.
+vars:
+  AUTOYAST_PREPARE_PROFILE: '1'
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_file_system
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_in
+  - console/zypper_log
+  - console/orphaned_packages_check
+  - autoyast/verify_cloned_profile
+test_data:
+  # partitioning validation
+  device: sda
+  table_type: gpt
+  file_system:
+    /home: xfs
+    /: btrfs
+  swap: 1
+  # cloned profile validation
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/sda
+          disklabel: gpt
+          enable_snapshots: 'true'
+          partitions:
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 1
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 2
+                filesystem: btrfs
+                mount: /
+                subvolumes:
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: usr/local
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'false'
+                      path: var
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: srv
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: root
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: opt
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: boot/grub2/x86_64-efi
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: boot/grub2/i386-pc
+                  - subvolume:
+                      unique_key: path
+                      copy_on_write: 'true'
+                      path: tmp
+                subvolumes_prefix: '@'
+            - partition:
+                unique_key: partition_nr
+                filesystem: xfs
+                mount: /home
+                partition_nr: 3
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 4
+                filesystem: swap
+                mount: swap
+          type: CT_DISK
