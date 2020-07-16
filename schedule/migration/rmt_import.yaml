@@ -1,0 +1,7 @@
+name:    rmt_import
+description:    >
+    This is for rmt import and mirror test
+schedule:
+  - boot/boot_to_desktop
+  - network/setup_multimachine
+  - x11/rmt
