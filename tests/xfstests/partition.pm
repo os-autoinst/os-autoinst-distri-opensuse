@@ -23,6 +23,9 @@ use testapi;
 use filesystem_utils qw(str_to_mb parted_print partition_num_by_type mountpoint_to_partition
   partition_table create_partition remove_partition format_partition);
 
+my $INST_DIR    = '/opt/xfstests';
+my $CONFIG_FILE = "$INST_DIR/local.config";
+
 # Number of SCRATCH disk in SCRATCH_DEV_POOL, other than btrfs has only 1 SCRATCH_DEV, xfstests specific
 sub partition_amount_by_homesize {
     my $home_size = shift;
@@ -118,15 +121,16 @@ sub do_partition_for_xfstests {
     parted_print($para{dev});
     # Create mount points
     script_run('mkdir /mnt/test /mnt/scratch');
-    # Generate ~/.xfstests
-    script_run("export TEST_DEV=$test_dev");
-    script_run('export TEST_DIR=/mnt/test');
-    script_run('export SCRATCH_MNT=/mnt/scratch');
+    # Setup configure file xfstests/local.config
+    script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
+    script_run("echo 'export TEST_DIR=/mnt/test' >> $CONFIG_FILE");
+    script_run("echo 'export SCRATCH_MNT=/mnt/scratch' >> $CONFIG_FILE");
     if ($para{amount} == 1) {
-        script_run("export SCRATCH_DEV=$scratch_dev[0]");
+        script_run("echo 'export SCRATCH_DEV=$scratch_dev[0]' >> $CONFIG_FILE");
     }
     else {
-        script_run("export SCRATCH_DEV_POOL='" . join(' ', @scratch_dev) . "'");
+        my $SCRATCH_DEV_POOL = join(' ', @scratch_dev);
+        script_run("echo 'export SCRATCH_DEV_POOL=\"$SCRATCH_DEV_POOL\"' >> $CONFIG_FILE");
     }
     # Sync
     script_run('sync');
