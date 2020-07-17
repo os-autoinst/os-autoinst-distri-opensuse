@@ -99,11 +99,10 @@ sub run {
         } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
             record_info('REPO', $wicked_repo);
             zypper_ar($wicked_repo, params => '-n wicked_repo', no_gpg_check => 1);
-            if (is_sle('<15')) {
-                zypper_call('in --force -y --from wicked_repo --force-resolution --oldpackage  wicked wicked-service', log => 1);
-            } else {
-                zypper_call('in --force -y --from wicked_repo --allow-vendor-change  --allow-downgrade  wicked wicked-service', log => 1);
-            }
+            my ($resolv_options, $repo_id) = (' --allow-vendor-change  --allow-downgrade ', 'wicked_repo');
+            $resolv_options = ' --oldpackage'              if (is_sle('<15'));
+            $repo_id        = ($wicked_repo =~ m!(^.*/)!s) if (is_sle('<=12-sp1'));
+            zypper_call(sprintf("in --from %s %s --force -y --force-resolution  wicked wicked-service", $repo_id, $resolv_options), log => 1);
             record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
             validate_script_output('zypper ps  --print "%s"', qr/^\s*$/);
             if (my $commit_sha = get_var('WICKED_COMMIT_SHA')) {
