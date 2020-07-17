@@ -1,0 +1,33 @@
+---
+name: select_disk
+description: >
+  Test the selection of "first" disk with the guided setup in partitioning.
+  This is also used as a prerequisite for real hardware tests to select
+  the right disk for installation and not a "random" one.
+schedule:
+  - installation/isosize
+  - installation/bootloader
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_firstdisk
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_first_disk_selection
+test_data:
+  disks:
+    - vda
+    - vdb
