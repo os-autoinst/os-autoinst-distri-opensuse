@@ -330,7 +330,7 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
 
     # SLES4SAP does not have addon on SLE12
     # We need to push sles4sap for using _TEST_ISSUES and _TEST_TEMPLATE below
-    push(@addons, 'sles4sap') if is_sle('<15') && check_var('FLAVOR', 'SAP-DVD-Updates') || check_var('FLAVOR', 'Server-DVD-SAP-Incidents');
+    push(@addons, 'sles4sap') if (is_sle('<15') && !get_var('PLAIN_SLE') && check_var('FLAVOR', 'SAP-DVD-Updates')) || check_var('FLAVOR', 'Server-DVD-SAP-Incidents');
 
     # push sdk addon to slenkins tests
     if (get_var('TEST', '') =~ /^slenkins/) {
