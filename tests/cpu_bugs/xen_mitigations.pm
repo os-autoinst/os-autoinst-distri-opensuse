@@ -471,12 +471,19 @@ sub do_test {
     my $total_tc_count_in_ts   = 0;
     my $junit_file             = "/tmp/xen_hypervisor_mitigation_test_junit.xml";
 
+    # user specify test suites to run, take "," as delimiter
+    my $test_suites = get_var("TEST_SUITES", "");
+
     # Initialize junit sturcture for hypervisor mitigation test
     Mitigation::init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
     while (my ($arg, $dict) = each %$hash) {
         $failure_tc_count_in_ts = 0;
         $total_tc_count_in_ts   = 0;
 
+        # run user specifed test suite
+        if ($test_suites and !grep { $_ eq $arg } split(/,+/, $test_suites)) {
+            next;
+        }
         # Add a group case name as testsuite to junit file
         Mitigation::append_ts2_xml(file_name => "$junit_file", testsuite_name => "$arg");
 
