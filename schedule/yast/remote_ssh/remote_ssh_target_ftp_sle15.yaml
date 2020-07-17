@@ -7,8 +7,7 @@ description: >
   any issue. Boots with ssh=1 parameter and waits for parallel job
   (remote_ssh_controller) to install the system.
 schedule:
-  - installation/isosize
-  - installation/bootloader
+  - installation/bootloader_start
   - remote/remote_target
   - console/system_prepare
   - console/check_network
