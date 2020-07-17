@@ -38,7 +38,7 @@ sub run {
         my $qa_head_repo = "http://download.suse.de/ibs/QA:/Head/" . 'SLE-' . $version;
         zypper_ar("$qa_head_repo", name => 'qa-head-repo');
     }
-    zypper_call('install bats pam-test pam pam-config snapper perl');
+    zypper_call('install bats pam-test pam pam-config pam-deprecated snapper perl');
 
     # create a snapshot for rollback
     assert_script_run("snapbf=\$(snapper create -p -d 'before pam test')");
