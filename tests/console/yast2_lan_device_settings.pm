@@ -36,49 +36,57 @@ sub run {
     script_run('ip a');
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
+    unless (check_var("ARCH", "s390x")) {
+        my $opened = open_yast2_lan();
+        wait_still_screen;
+        if ($opened eq "Controlled by network manager") {
+            return;
+        }
 
-    my $opened = open_yast2_lan();
-    wait_still_screen;
-    if ($opened eq "Controlled by network manager") {
-        return;
+        send_key "alt-i";    # open edit device dialog
+        assert_screen 'edit-network-card';
+        send_key "alt-t";    # select static IP address option
+        send_key "tab";
+        type_string $static_ip;
+        send_key 'alt-o';
+        send_key_until_needlematch 'hostname-localhost-removed', 'backspace';
+        type_string $static_hostname;
+        send_key "alt-n";    # next
+        wait_still_screen;
+        assert_screen([qw(yast_lan_duplicate_ip static-ip-address-set)]);
+        if (match_has_tag 'yast_lan_duplicate_ip') {
+            send_key "alt-n";
+            send_key "alt-c";
+            close_yast2_lan();
+            record_soft_failure("Duplicate IP, $static_ip is currently unavailable. Skipping static IP assignment");
+        } elsif (match_has_tag 'static-ip-address-set') {
+            close_yast2_lan();
+
+            # verify that static IP has been set
+            assert_script_run "ip a | grep $static_ip";
+            # verify that hostname for static ip is recorded in /etc/hosts
+            $is_set_in_etc_host->($static_hostname) or die qq{Static hostname "$static_hostname" was not written to /etc/hosts file!\n};
+
+            open_yast2_lan();
+            for (1 .. 2) { send_key "tab" }    # move to device list
+            send_key "alt-i";                  # open edit device dialog
+            wait_still_screen;
+            assert_screen 'edit-network-card';
+            send_key "alt-y";                  # select dynamic address option
+            send_key "alt-n";                  # next
+            assert_screen 'dynamic-ip-address-set';
+            close_yast2_lan();
+
+            # verify that dynamic IP address has been set
+            assert_script_run "ip r s | grep dhcp";
+            # verify that static ip is not recorded in /etc/hosts
+            if ($is_set_in_etc_host->($static_ip)) {
+                record_soft_failure 'bsc#1115644 yast2 lan does not update /etc/hosts after shifting from static ip to dynamic';
+                assert_script_run qq{sed -i '/$static_ip/d' /etc/hosts};
+                assert_script_run q{cat /etc/hosts};
+            }
+        }
     }
-
-    send_key "alt-i";    # open edit device dialog
-    assert_screen 'edit-network-card';
-    send_key "alt-t";    # select static IP address option
-    send_key "tab";
-    type_string $static_ip;
-    send_key 'alt-o';
-    send_key_until_needlematch 'hostname-localhost-removed', 'backspace';
-    type_string $static_hostname;
-    send_key "alt-n";    # next
-    assert_screen 'static-ip-address-set';
-    close_yast2_lan();
-
-    # verify that static IP has been set
-    assert_script_run "ip a | grep $static_ip";
-    # verify that hostname for static ip is recorded in /etc/hosts
-    $is_set_in_etc_host->($static_hostname) or die qq{Static hostname "$static_hostname" was not written to /etc/hosts file!\n};
-
-    open_yast2_lan();
-    for (1 .. 2) { send_key "tab" }    # move to device list
-    send_key "alt-i";                  # open edit device dialog
-    wait_still_screen;
-    assert_screen 'edit-network-card';
-    send_key "alt-y";                  # select dynamic address option
-    send_key "alt-n";                  # next
-    assert_screen 'dynamic-ip-address-set';
-    close_yast2_lan();
-
-    # verify that dynamic IP address has been set
-    assert_script_run "ip r s | grep dhcp";
-    # verify that static ip is not recorded in /etc/hosts
-    if ($is_set_in_etc_host->($static_ip)) {
-        record_soft_failure 'bsc#1115644 yast2 lan does not update /etc/hosts after shifting from static ip to dynamic';
-        assert_script_run qq{sed -i '/$static_ip/d' /etc/hosts};
-        assert_script_run q{cat /etc/hosts};
-    }
-
     # on SLE15-SP1+ / Leap 15.1+ the assign loopback checkbox has been dropped
     if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();

@@ -11,4 +11,5 @@ schedule:
   - console/consoletest_setup
   - console/yast2_i
   - console/yast2_bootloader
+  - console/yast2_lan_device_settings
   - console/coredump_collect
