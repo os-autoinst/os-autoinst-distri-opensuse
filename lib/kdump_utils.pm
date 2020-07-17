@@ -27,21 +27,16 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
-    my $kernel    = script_output('rpm -qf --qf %{name} /boot/initrd-$(uname -r)');
-    my $debuginfo = script_output('rpmquery --queryformat="%{NAME}-%{VERSION}-%{RELEASE}\n" ' . $kernel . '| sort --version-sort | tail -n 1');
-    $debuginfo =~ s/$kernel/$kernel-debuginfo/g;
-    # Since SLE15-SP2+/Leap 15.2+ (standard and JeOS) there is 'kernel-default-base' but no 'kernel-default-base-debuginfo'
-    # use 'kernel-default-debuginfo' instead.
-    if ((is_sle('>=15-sp2') || is_leap('>=15.2') || is_tumbleweed) && $kernel eq 'kernel-default-base') {
-        $debuginfo =~ s/-base//g;
-        # kernel-default-base repackages kernel-default as an independent package now. They both work with kernel-default-debuginfo package.
-        # kernel-default-base has extra numbers added to the release version. e.g.
-        # - kernel-default           5.3.7-1.2
-        # - kernel-default-base      5.3.7-1.2.7.14
-        # - kernel-default-debuginfo 5.3.7-1.2
-        # Ignore the extra numbers added to the release version.
-        $debuginfo =~ s/(.*?)(\.lp\d+)*(\.\d+){2}$/$1/;
-    }
+    # Using the provided capabilities of the currently active kernel, get the
+    # name and version of the shortest flavor and add "-debuginfo" to the name.
+    # Before kernel-default-base was built separately (< 15 SP2/15.2):
+    # kernel-default-base(x86-64) = 4.12.14-197.37.1
+    # -> kernel-default-base-debuginfo-4.12.14-197.37.1
+    # With kernel-default-base built separately (>= 15 SP2/15.2):
+    # kernel-default(x86-64) = 5.3.18-lp152.26.2
+    # kernel-default-base(x86-64) = 5.3.18-lp152.26.2.lp152.8.2.2
+    # -> kernel-default-debuginfo-5.3.18-lp152.26.2
+    my $debuginfo = script_output('rpm -qf /boot/initrd-$(uname -r) --provides | awk \'match($0,/(kernel-.+)\(.+\) = (.+)/,m) {printf "%d %s-debuginfo-%s\n", length($0), m[1], m[2]}\' | sort -n | head -n1 | cut -d" " -f2-');
     zypper_call("-v in $debuginfo", timeout => 4000);
 }
 
