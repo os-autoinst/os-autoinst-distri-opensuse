@@ -26,7 +26,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle);
+use version_utils;
 
 sub run {
     my $self = shift;
@@ -38,7 +38,10 @@ sub run {
         my $qa_head_repo = "http://download.suse.de/ibs/QA:/Head/" . 'SLE-' . $version;
         zypper_ar("$qa_head_repo", name => 'qa-head-repo');
     }
-    zypper_call('install bats pam-test pam pam-config pam-deprecated snapper perl');
+    zypper_call('install bats pam-test pam pam-config snapper perl');
+    if (is_tumbleweed()) {
+        zypper_call('install pam-deprecated');
+    }
 
     # create a snapshot for rollback
     assert_script_run("snapbf=\$(snapper create -p -d 'before pam test')");
