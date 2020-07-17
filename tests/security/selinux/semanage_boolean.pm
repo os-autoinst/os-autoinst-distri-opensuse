@@ -24,6 +24,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -50,7 +51,8 @@ sub run {
 
     # reboot and check again
     power_action("reboot", textmode => 1);
-    $self->wait_boot;
+    reconnect_mgmt_console if is_pvm;
+    $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
     select_console "root-console";
 
     validate_script_output("semanage boolean -l | grep $test_boolean", sub { m/${test_boolean}.*(on.*,.*on).*Allow.*to.*/ });
