@@ -49,6 +49,7 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           is_public_cloud
+          is_leap_migration
           requires_role_selection
           check_version
           get_sles_release
@@ -585,3 +586,13 @@ Returns true if PUBLIC_CLOUD is set to 1
 sub is_public_cloud {
     return get_var('PUBLIC_CLOUD');
 }
+
+=head2 is_leap_migration
+
+Returns true if called in a leap to sle migration scenario
+=cut
+sub is_leap_migration {
+    return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
+}
+
+1;
