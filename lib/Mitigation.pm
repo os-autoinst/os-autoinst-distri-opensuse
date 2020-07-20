@@ -67,6 +67,7 @@ use power_action_utils 'power_action';
 my $vm_ip_addr;
 my $qa_password;
 
+our $DEBUG_MODE = get_var("XEN_DEBUG", 0);
 =head2 reboot_and_wait
 
 	reboot_and_wait([timeout => $timeout]);
@@ -335,27 +336,16 @@ sub remove_parameter {
 
 sub ssh_vm_cmd {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $ret = script_run("sshpass -p ${qa_password} ssh -qy root\@${vm_ip_addr} $cmd");
+    my $ret = script_run("sshpass -p ${qa_password} ssh -qy root\@${vm_ip_addr} \"$cmd\"");
     return $ret;
 }
 
-sub mds_taa_check {
-    my ($qa_password, $mdstaa_domain_name, $vm_ip_addr) = @_;
-    #mds=off and taa=off need to be tested in the same time
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"mds=off\\ tsx_async_abort=off\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $mdstaa_domain_name, $vm_ip_addr);
-    my $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/mds | grep \"Vulnerable; SMT Host state unknown\"", $qa_password, $vm_ip_addr);
-    if ($ret ne 0) {
-        record_info('ERROR', "hvm_mds=off test is failed.", result => 'fail');
-    }
-    record_info('INFO', "hvm_mds=off test is finished.");
-    $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/tsx_async_abort | grep \"Vulnerable\"", $qa_password, $vm_ip_addr);
-    if ($ret ne 0) {
-        record_info('ERROR', "hvm_taa=off test is failed.", result => 'fail');
-    }
-    record_info('INFO', "hvm_taa=off test is finished.");
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"mds=off\\ tsx_async_abort=off\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $mdstaa_domain_name, $vm_ip_addr);
+
+# Execute $cmd in vm and get output
+sub script_output_from_vm {
+    my ($cmd, $qa_password, $vm_ip_addr) = @_;
+    my $output = script_output("sshpass -p ${qa_password} ssh -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+    return $output;
 }
 
 sub config_and_reboot {
@@ -364,13 +354,22 @@ sub config_and_reboot {
     if ($config_ret ne 0) {
         ssh_vm_cmd("grub2-mkconfig -o /boot/grub2/grub.cfg", $qa_password, $vm_ip_addr);
     }
-    record_info('INFO', "Config success.");
+    record_info('INFO', "Generate domu kernel parameters.");
     ssh_vm_cmd("poweroff", $qa_password, $vm_ip_addr);
     script_run('virsh list --all');
     script_run("virsh start \"${vm_domain_name}\"");
-    script_run('echo Now I am waiting for the vm to reboot');
-    script_run("sleep 60");
-    ssh_vm_cmd("cat /proc/cmdline", $qa_password, $vm_ip_addr);
+
+    record_info('INFO', "Waiting for the vm to reboot");
+    sleep 60;
+    if ($DEBUG_MODE) {
+        record_info("Debug",
+            "DomU kernel parameter: "
+              . script_output_from_vm("cat /proc/cmdline",
+                $qa_password,
+                $vm_ip_addr),
+            result => 'ok');
+    }
+
 }
 
 sub do_check {
@@ -378,111 +377,121 @@ sub do_check {
     my $foo = $secnario->{default};
     if ($foo->{expected}) {
         while (my ($cmd, $lines) = each %{$foo->{expected}}) {
+            my $vm_output = script_output_from_vm("$cmd", $qa_password, $vm_ip_addr);
             foreach my $expected_string (@{$lines}) {
-                if ($expected_string ne "") {
-                    ssh_vm_cmd("$cmd", $qa_password, $vm_ip_addr);
-                    my $ret = ssh_vm_cmd("$cmd | grep \"$expected_string\"", $qa_password, $vm_ip_addr);
-                    record_info("ERROR", "Can't found a expected string.", result => 'fail') unless $ret eq 0;
-                } else {
-                    print "This expection is empty string, skip";
+                if ($vm_output !~ /$expected_string/i) {
+                    record_info("ERROR", "Actual output: " . $vm_output . "\nExpected string: " . $expected_string, result => 'fail');
+                    return (1, "Expected", $expected_string, $vm_output);
                 }
-
             }
         }
     }
     if ($foo->{unexpected}) {
         while (my ($cmd, $lines) = each %{$foo->{unexpected}}) {
+            my $vm_output = script_output_from_vm("$cmd", $qa_password, $vm_ip_addr);
             foreach my $unexpected_string (@{$lines}) {
-                if ($unexpected_string ne "") {
-                    my $ret = ssh_vm_cmd("$cmd | grep \"$unexpected_string\"", $qa_password, $vm_ip_addr);
-                    record_info("ERROR", "found a unexpected string.", result => 'fail') unless $ret ne 0;
-                } else {
-                    #Debug what output be report.
-                    assert_script_run("xl dmesg | grep -A 10 \"Speculative\"");
-                    print "This unexpection is empty string, skip";
+                if ($vm_output =~ /$unexpected_string/ix) {
+                    record_info("ERROR", "Actual output: " . $vm_output . "\nUnexpected string: " . $unexpected_string, result => 'fail');
+                    return (1, "Unexpected", $unexpected_string, $vm_output);
                 }
-
             }
         }
     }
-}
-
-sub pti_check {
-    my ($qa_password, $pti_domain_name, $vm_ip_addr) = @_;
-    #pti test need to be conducted separately
-    my $check_para;
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"pti=on\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
-    if ($pti_domain_name eq 'pv_worker') {
-        $check_para = "Unknown (XEN PV detected, hypervisor mitigation required)";
-    }
-    if ($pti_domain_name eq 'hvm_worker') {
-        $check_para = "Mitigation: PTI";
-    }
-    my $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep \"$check_para\"", $qa_password, $vm_ip_addr);
-    if ($ret ne 0) {
-        record_info('ERROR', "$pti_domain_name pti=on test is failed.", result => 'fail');
-    }
-    record_info('INFO', "$pti_domain_name pti=on test is finished.");
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"pti=on\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"pti=auto\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
-    $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep \"$check_para\"", $qa_password, $vm_ip_addr);
-    if ($ret ne 0) {
-        record_info('ERROR', "$pti_domain_name pti=auto test is failed.", result => 'fail');
-    }
-    record_info('INFO', "$pti_domain_name pti=auto test is finished.");
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"pti=auto\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"pti=off\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
-    if ($pti_domain_name eq 'hvm_worker') {
-        $check_para = "Vulnerable";
-    }
-    $ret = ssh_vm_cmd("cat /sys/devices/system/cpu/vulnerabilities/meltdown | grep \"$check_para\"", $qa_password, $vm_ip_addr);
-    if ($ret ne 0) {
-        record_info('ERROR', "$pti_domain_name pti=off test is failed.", result => 'fail');
-    }
-    record_info('INFO', "$pti_domain_name pti=off test is finished.");
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"pti=off\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    config_and_reboot($qa_password, $pti_domain_name, $vm_ip_addr);
+    return (0, undef, undef, undef);
 }
 
 sub cycle_workflow {
-    my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $pv_hypsecnario) = @_;
-    my $parameter = $carg . '=' . $ckey;
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"$parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
-    my $cmd_ret = ssh_vm_cmd("cat /etc/default/grub | grep \"$parameter\"", $qa_password, $vm_ip_addr);
-    if ($cmd_ret ne 0) {
-        ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"\\\"/GRUB_CMDLINE_LINUX=\\\"$parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    my ($self, $carg, $ckey, $cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
+    my $parameter = $ckey;
+    ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/\\\"\$/ $parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    my $cmd_output = script_output_from_vm("grep GRUB_CMDLINE_LINUX= /etc/default/grub", $qa_password, $vm_ip_addr);
+    if ($cmd_output !~ /$parameter/i) {
+        ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/\\\"\$/ $parameter\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
     }
     config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
-    my $ret = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr, $pv_hypsecnario);
+    if ($DEBUG_MODE) {
+        my $vm_vulnerability_output = script_output_from_vm("grep -H . " . $syspath . "*", $qa_password, $vm_ip_addr);
+        my $vm_cmdline_output       = script_output_from_vm("cat /proc/cmdline",           $qa_password, $vm_ip_addr);
+        record_info("Debug", "Test Parameter:" . $parameter
+              . "\nDomu kernel parameters:" . $vm_cmdline_output
+              . "\nVulnerabilities value: " . $vm_vulnerability_output, result => 'ok');
+    }
+    my ($ret, $match_type, $match_value, $actual_output) = do_check($cvalue, $qa_password, $cvm_domain_name, $vm_ip_addr);
     if ($ret ne 0) {
         record_info('ERROR', "$parameter test is failed.", result => 'fail');
     }
     record_info('INFO', "$parameter test is finished.");
-    ssh_vm_cmd("sed -i -e 's/GRUB_CMDLINE_LINUX=\\\"$parameter\\\"/GRUB_CMDLINE_LINUX=\\\"\\\"/' /etc/default/grub", $qa_password, $vm_ip_addr);
+    ssh_vm_cmd("sed -i -e '/GRUB_CMDLINE_LINUX=/s/ $parameter//g' /etc/default/grub", $qa_password, $vm_ip_addr);
     config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
+    return ($ret, $match_type, $match_value, $actual_output);
 }
 
 sub guest_cycle {
-    my ($self, $hash, $single, $mode, $qa_password, $gcvm_domain_name, $vm_ip_addr, $pv_hypsecnario) = @_;
+    my ($self, $hash, $single, $mode, $qa_password, $gcvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
+
+    # Initialize variable for generating junit file
+    my $testsuites_name        = $gcvm_domain_name . '_mitigation_test';
+    my $testsuite_name         = '';
+    my $testcase_name          = '';
+    my $total_failure_tc_count = 0;
+    my $failure_tc_count_in_ts = 0;
+    my $total_tc_count         = 0;
+    my $total_tc_count_in_ts   = 0;
+    my $junit_file             = "/tmp/" . $gcvm_domain_name . "_mitigation_test_junit.xml";
+
+    # Initialize junit sturcture for hypervisor mitigation test
+    init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
+
     while (my ($arg, $dict) = each %$hash) {
-        if ($mode eq 'single') {
-            if ($arg eq $single) {
-                while (my ($key, $value) = each %$dict) {
-                    cycle_workflow($self, $arg, $key, $value, $qa_password, $gcvm_domain_name, $vm_ip_addr, $pv_hypsecnario);
+        if ($mode eq 'all' or $mode eq 'single') {
+            $failure_tc_count_in_ts = 0;
+            $total_tc_count_in_ts   = 0;
+            if ($DEBUG_MODE) {
+                record_info("Debug", "Hypervisor params: " . $arg . "\nTest mode: " . $mode . "\nTestCase:" . $single . "\n", result => 'ok');
+            }
+            # check user specified test cases and support mutliple test cases to run, use "," as delimiter
+            if ($mode eq 'single') {
+                if (!grep { $_ =~ /$arg/i } split(/,+/, $single)) {
+                    next;
                 }
             }
-        }
-        if ($mode eq 'all') {
+            # Add a group case name as testsuite to junit file
+            append_ts2_xml(file_name => "$junit_file", testsuite_name => "$arg on " . "$hyper_param");
             while (my ($key, $value) = each %$dict) {
-                cycle_workflow($self, $arg, $key, $value, $qa_password, $gcvm_domain_name, $vm_ip_addr, $pv_hypsecnario);
+                if ($DEBUG_MODE) {
+                    record_info("Debug", "DomU kernel params for test: " . $key . "\n", result => 'ok');
+                }
+                # Calculate test case count
+                $total_tc_count       += 1;
+                $total_tc_count_in_ts += 1;
+                my $testcase_status = "pass";
+
+                # go through each case
+                my ($ret, $match_type, $match_value, $actual_output) = cycle_workflow($self, $arg, $key, $value, $qa_password, $gcvm_domain_name, $vm_ip_addr);
+                if ($ret ne 0) {
+                    $testcase_status = "fail";
+                    $failure_tc_count_in_ts += 1;
+                    $total_failure_tc_count += 1;
+                }
+                insert_tc2_xml(file_name => "$junit_file",
+                    class_name  => "$key",
+                    case_status => "$testcase_status",
+                    sys_output  => "$match_type:" . "$match_value",
+                    sys_err     => "Actual:" . "$actual_output");
+                update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
+                update_ts_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count_in_ts);
+                # update testsuites info
+                update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
+                update_tss_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count);
+                # upload junit file for each case to avoid missing all result once test causes host hang.
+                parse_junit_log("$junit_file");
             }
+        } else {
+            last;
         }
+
     }
+    parse_junit_log("$junit_file");
 }
 #This is entry for testing.
 #The instances call this function to finish all 'basic' testing.
