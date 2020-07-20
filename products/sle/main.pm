@@ -328,9 +328,9 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     # set SCC_ADDONS before push to slenkins
     set_var('SCC_ADDONS', join(',', @addons));
 
-    # SLES4SAP does not have addon on SLE12
-    # We need to push sles4sap for using _TEST_ISSUES and _TEST_TEMPLATE below
-    push(@addons, 'sles4sap') if (is_sle('<15') && !get_var('PLAIN_SLE') && check_var('FLAVOR', 'SAP-DVD-Updates')) || check_var('FLAVOR', 'Server-DVD-SAP-Incidents');
+    # SLES4SAP and HA do not have addon on SLE12
+    # We need to push sles4sap and ha for using _TEST_ISSUES and _TEST_TEMPLATE below
+    push(@addons, 'sles4sap', 'ha') if (is_sle('<15') && !get_var('PLAIN_SLE') && check_var('FLAVOR', 'SAP-DVD-Updates')) || check_var('FLAVOR', 'Server-DVD-SAP-Incidents');
 
     # push sdk addon to slenkins tests
     if (get_var('TEST', '') =~ /^slenkins/) {
