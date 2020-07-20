@@ -47,6 +47,7 @@ conditional_schedule:
                 - '{{x86_64_tests}}'
                 - x11/multi_users_dm
                 - x11/gnucash
+                - gaming/wesnoth
                 - texlive/latexdiff
                 - appgeo/qgis
                 - x11/network/hwsim_wpa2_enterprise_setup
