@@ -37,7 +37,7 @@ sub run() {
     assert_screen [qw(firefox-save-and-quit generic-desktop)];
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
-        send_key "ret";
+        send_key_until_needlematch('generic-desktop', 'ret', 5, 6);
     }
 }
 
