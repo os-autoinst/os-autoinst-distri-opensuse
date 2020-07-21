@@ -48,6 +48,7 @@ conditional_schedule:
                 - systemd_testsuite/test_47_issue_14566
 schedule:
     - boot/boot_to_desktop
+    - systemd_testsuite/prepare_systemd_and_testsuite
     - systemd_testsuite/binary_tests
     - systemd_testsuite/test_01_basic
     - systemd_testsuite/test_02_cryptsetup
