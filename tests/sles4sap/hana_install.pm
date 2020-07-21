@@ -43,15 +43,15 @@ sub get_hana_device_from_system {
     my $filter_devices;
     while ($devsize < $disk_requirement) {
         $out = script_output "echo DEV=\$($lsblk | egrep -vw '$filter_devices' | head -1)";
-        $out =~ /DEV=([\w\.]+)$/;
+        die "Could not find a suitable device for HANA installation." unless ($out =~ /DEV=([\w\.]+)$/);
         $device = $1;
         $filter_devices .= "|$device";
-        $filter_devices =~ s/^|//;
+        $filter_devices =~ s/^\|//;
         $device = $devpath . $device;
 
         # Need to verify there is enough space in the device for HANA
         $out = script_output "echo SIZE=\$(lsblk -o SIZE --nodeps --noheadings --bytes $device)";
-        $out =~ /SIZE=(\d+)$/;
+        die "Could not get size for [$device] block device." unless ($out =~ /SIZE=(\d+)$/);
         $devsize = $1;
         $devsize /= (1024 * 1024);    # Work in Mbytes since $RAM = $self->get_total_mem() is in Mbytes
     }
