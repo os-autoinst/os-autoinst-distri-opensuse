@@ -57,7 +57,6 @@ sub test_nfs_instserver {
     # use default nfs config
     send_key_and_wait("alt-n", 2);
     assert_screen('yast2-instserver-ui', 200);
-    send_key_and_wait("alt-n", 3) if is_sle("=15-SP2");
     # finish wizard
     send_key_and_wait("alt-f", 3);
     # check that the nfs instserver is working
