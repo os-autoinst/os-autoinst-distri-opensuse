@@ -341,14 +341,6 @@ elsif (get_var('SECURITY_TEST')) {
     prepare_target();
     load_security_tests;
 }
-elsif (get_var('SYSTEMD_TESTSUITE')) {
-    if (!get_var('BOOT_HDD_IMAGE')) {
-        load_boot_tests();
-        load_inst_tests();
-        load_reboot_tests();
-    }
-    load_systemd_patches_tests;
-}
 elsif (get_var('AUTOFS')) {
     load_mm_autofs_tests;
 }
