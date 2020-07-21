@@ -45,9 +45,8 @@ sub run {
     assert_screen('firefox-preferences');
 
     # Search "Passwords" section
-    type_string "Use a";    # Search "Passwords" section
-    wait_still_screen 2;
-    send_key "alt-shift-u";    # Use a master password
+    type_string "Use a master", timeout => 2;    # Search "Passwords" section
+    assert_and_click('firefox-master-password-checkbox');
     assert_screen('firefox-passwd-master_setting');
 
     type_string $fips_password;
