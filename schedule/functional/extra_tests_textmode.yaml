@@ -31,6 +31,7 @@ schedule:
     - console/check_os_release
     - console/openvswitch
     - console/pam
+    - console/shar
     - console/sshd
     - console/update_alternatives
     - console/rpm
