@@ -39,8 +39,8 @@ sub run {
     send_key "tab";
     send_key 'spc';
     send_key_until_needlematch 'firefox-ssl-risk-accept-and-continue-button-selected', 'tab', 7, 1;
-    send_key 'spc';
-    if (check_screen 'firefox-ssl-addexception', 5) {
+    assert_and_click('firefox-ssl-risk-accept-and-continue-button-selected');
+    if (check_screen 'firefox-ssl-addexception', 10) {
         send_key 'alt-c';
     }
 

@@ -34,7 +34,7 @@ use strict;
 use warnings;
 use base "x11test";
 use testapi;
-use version_utils 'is_sle';
+use version_utils;
 
 sub run {
     my ($self) = @_;
@@ -51,6 +51,7 @@ sub run {
     assert_and_click('firefox-passwd-security');
 
     send_key "alt-shift-u";
+    send_key "alt-shift-u" unless (is_sle('=15') || is_leap('=15'));
     wait_still_screen 3;
     send_key 'spc' unless check_screen('firefox-passwd-master_setting');
 
@@ -89,14 +90,21 @@ sub run {
     assert_screen('firefox-passwd-saved');
 
     send_key "alt-shift-a";    #"Remove"
-    wait_still_screen 3;
+    assert_and_click('firefox-saved-logins-remove') unless (is_sle('=15') || is_leap('=15'));
+    wait_still_screen 3                             unless (is_sle('=15') || is_leap('=15'));
+    send_key "spc"                                  unless (is_sle('=15') || is_leap('=15'));
+    wait_still_screen 3                             unless (is_sle('=15') || is_leap('=15'));
     send_key "alt-y";
     wait_still_screen 3;
     send_key "alt-shift-c";
     wait_still_screen 3;
     send_key "ctrl-w";
     wait_still_screen 3;
+    send_key "ctrl-w"   unless (is_sle('=15') || is_leap('=15'));
+    wait_still_screen 3 unless (is_sle('=15') || is_leap('=15'));
     send_key "f5";
+    wait_still_screen 3;
+    send_key "f5" unless (is_sle('=15') || is_leap('=15'));
     assert_screen('firefox-passwd-removed', 60);
 
     # Exit
