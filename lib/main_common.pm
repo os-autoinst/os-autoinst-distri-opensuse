@@ -1608,6 +1608,7 @@ sub load_extra_tests_console {
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
     loadtest "console/pam"         unless is_leap;
+    loadtest "console/shar";
     # dependency of git test
     loadtest "console/sshd";
     loadtest "console/update_alternatives";
