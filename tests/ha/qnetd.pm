@@ -100,7 +100,7 @@ sub run {
 
     record_info('Split-brain info', 'Split brain test');
 
-    # Stop stonith to prevent fencing of node before our check
+    record_info('Stopping stonith', 'Stop stonith to prevent fencing of node before our check');
     assert_script_run "crm resource stop stonith-sbd" if is_node(1);
 
     # Add firewall rules to provoke a split brain situation and confirm that
